@@ -26,7 +26,7 @@
 
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 import { GENERATION_BY_ID, type GenerationId } from './generations';
-import { BAVEL_SHAPE, ISRAEL_SHAPE } from './geoShapes';
+import { ISRAEL_SHAPE } from './geoShapes';
 import { t } from './i18n';
 
 export type Region = 'israel' | 'bavel' | 'other';
@@ -528,7 +528,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
                   else onDotClick(d);
                 }}
               >
-                <title>{`${name} · ${d.city.name} (${d.city.nameHe})${gen ? ' · ' + (GENERATION_BY_ID[gen]?.label ?? '') : ''}`}</title>
+                <title>{`${name} · ${d.city.name} (${d.city.nameHe})${gen ? ` · ${GENERATION_BY_ID[gen]?.label ?? ''}` : ''}`}</title>
               </circle>
             );
           }}

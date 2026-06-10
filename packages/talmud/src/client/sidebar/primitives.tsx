@@ -518,7 +518,7 @@ export function describeRecipe(recipe: SidebarRecipe): RecipeInfo {
         return { n, type: s.type, target: s.dep, inspect: { leafId: s.dep }, custom: false };
       case 'qa':
         return { n, type: s.type, target: null, inspect: null, custom: false };
-      case 'special':
+      default:
         return {
           n,
           type: s.type,

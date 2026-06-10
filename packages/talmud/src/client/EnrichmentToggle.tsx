@@ -26,6 +26,7 @@ export interface EnrichmentToggleProps {
 export function EnrichmentToggle(props: EnrichmentToggleProps): JSX.Element {
   return (
     <button
+      type="button"
       class="toggle-pill"
       classList={{
         'toggle-on': props.included && !props.running,

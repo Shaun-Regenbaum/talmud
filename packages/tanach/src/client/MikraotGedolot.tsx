@@ -120,8 +120,13 @@ export function MikraotGedolot(props: {
   const highlight = (v: string | null) => {
     if (v === curV || !host) return;
     curV = v;
-    host.querySelectorAll('.mg-seg.hl').forEach((el) => el.classList.remove('hl'));
-    if (v) host.querySelectorAll(`.mg-seg[data-v="${v}"]`).forEach((el) => el.classList.add('hl'));
+    host.querySelectorAll('.mg-seg.hl').forEach((el) => {
+      el.classList.remove('hl');
+    });
+    if (v)
+      host.querySelectorAll(`.mg-seg[data-v="${v}"]`).forEach((el) => {
+        el.classList.add('hl');
+      });
   };
   const onOver = (e: MouseEvent) => {
     const s = (e.target as HTMLElement).closest('.mg-seg');
@@ -245,6 +250,7 @@ export function MikraotGedolot(props: {
             <For each={anchors()}>
               {(a) => (
                 <button
+                  type="button"
                   class="evt-margin evt-left mg-anchor"
                   style={{ top: `${a.top}px` }}
                   title={`${a.label} (verse ${a.verse})`}
@@ -260,6 +266,7 @@ export function MikraotGedolot(props: {
                   <For each={ic.kinds}>
                     {(k) => (
                       <button
+                        type="button"
                         class={`vgutter vgutter-${k}`}
                         classList={{ active: props.activeVerse === ic.verse }}
                         style={{ width: `${ICON_SIZE}px`, height: `${ICON_SIZE}px` }}

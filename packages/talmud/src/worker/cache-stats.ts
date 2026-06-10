@@ -220,7 +220,7 @@ const alignedCommentaries: AlignPredicate = (v) => {
   const d = v as { by_commentator?: Record<string, unknown> };
   return !!d.by_commentator && Object.keys(d.by_commentator).length > 0;
 };
-const alignedDafyomi: AlignPredicate = (v) => {
+const _alignedDafyomi: AlignPredicate = (v) => {
   if (!v || failed(v)) return false;
   const d = v as { amudim?: { a?: Record<string, unknown>; b?: Record<string, unknown> } };
   // An amud counts only if at least one of its content-type blocks is itself a

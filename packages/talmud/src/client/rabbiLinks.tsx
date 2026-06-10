@@ -18,7 +18,6 @@
 import { type Accessor, createContext, createMemo, For, type JSX, useContext } from 'solid-js';
 import { ConceptAwareText, firstMentionGloss, useConceptLinks } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
-import { Hebraized } from './Hebraized';
 
 export interface RabbiLinkContextValue {
   rabbis: Accessor<IdentifiedRabbi[]>;

@@ -34,7 +34,7 @@ import {
   TIDBIT_RECIPE,
   YERUSHALMI_RECIPE,
 } from '@corpus/core/sidebar/recipe';
-import { GENERATION_IDS, GENERATIONS_PROMPT_REFERENCE } from '../client/generations';
+import { GENERATIONS_PROMPT_REFERENCE } from '../client/generations';
 import { alwaysHebraizeBlock } from '../lib/hebrewTerms';
 import {
   AGGADATA_BACKGROUND_OUTPUT_SCHEMA,
@@ -43,17 +43,14 @@ import {
   AGGADATA_PARALLELS_OUTPUT_SCHEMA,
   AGGADATA_QA_OUTPUT_SCHEMA,
   AGGADATA_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
-  AGGADATA_SYNTHESIS_OUTPUT_SCHEMA,
   ARGUMENT_BACKGROUND_OUTPUT_SCHEMA,
   ARGUMENT_MOVE_COMMENTARIES_OUTPUT_SCHEMA,
   ARGUMENT_MOVE_OUTPUT_SCHEMA,
   ARGUMENT_MOVE_QA_OUTPUT_SCHEMA,
   ARGUMENT_MOVE_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
-  ARGUMENT_MOVE_SYNTHESIS_OUTPUT_SCHEMA,
   ARGUMENT_NARRATIVE_OUTPUT_SCHEMA,
   ARGUMENT_OUTPUT_SCHEMA,
   ARGUMENT_OVERVIEW_FLOW_OUTPUT_SCHEMA,
-  ARGUMENT_SYNTHESIS_OUTPUT_SCHEMA,
   ARGUMENT_VOICES_OUTPUT_SCHEMA,
   BIYUN_ESSAY_OUTPUT_SCHEMA,
   CHART_OUTPUT_SCHEMA,
@@ -62,20 +59,17 @@ import {
   HALACHA_DISPUTE_OUTPUT_SCHEMA,
   HALACHA_OUTPUT_SCHEMA,
   HALACHA_PRACTICAL_OUTPUT_SCHEMA,
-  HALACHA_SYNTHESIS_OUTPUT_SCHEMA,
   PESUKIM_LANDING_OUTPUT_SCHEMA,
   PESUKIM_MECHANISM_OUTPUT_SCHEMA,
   PESUKIM_OUTPUT_SCHEMA,
   PESUKIM_QA_OUTPUT_SCHEMA,
   PESUKIM_SUGGESTED_QUESTIONS_OUTPUT_SCHEMA,
-  PESUKIM_SYNTHESIS_OUTPUT_SCHEMA,
   PESUKIM_TANACH_CONTEXT_OUTPUT_SCHEMA,
   PESUKIM_WHY_HERE_OUTPUT_SCHEMA,
   PLACE_FIGURES_OUTPUT_SCHEMA,
   PLACE_PROFILE_OUTPUT_SCHEMA,
   PLACE_SIGNIFICANCE_OUTPUT_SCHEMA,
   PLACES_OUTPUT_SCHEMA,
-  PLACES_SYNTHESIS_OUTPUT_SCHEMA,
   proseSchema,
   RABBI_BIO_OUTPUT_SCHEMA,
   RABBI_CLASSIFICATION_OUTPUT_SCHEMA,
@@ -86,8 +80,6 @@ import {
   RABBI_PHILOSOPHY_OUTPUT_SCHEMA,
   RABBI_RELATIONSHIPS_EVIDENCE_OUTPUT_SCHEMA,
   RABBI_RELATIONSHIPS_OUTPUT_SCHEMA,
-  RABBI_SYNTHESIS_OUTPUT_SCHEMA,
-  RISHONIM_SYNTHESIS_OUTPUT_SCHEMA,
   TIDBIT_ESSAY_OUTPUT_SCHEMA,
   YERUSHALMI_OUTPUT_SCHEMA,
 } from './output-schemas';
@@ -2102,7 +2094,7 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
 // range exactly like clicking a section anchor does today.
 // ---------------------------------------------------------------------------
 
-const ARGUMENT_ROLE_ENUM = [
+const _ARGUMENT_ROLE_ENUM = [
   'opening',
   'question',
   'answer',
@@ -4056,8 +4048,8 @@ CODE_ENRICHMENTS.push(
 // known for, who taught there, how does it show up on this daf."
 // ---------------------------------------------------------------------------
 
-const PLACES_KIND_ENUM = ['city', 'academy', 'land', 'region'] as const;
-const PLACES_REGION_ENUM = ['israel', 'bavel', 'other'] as const;
+const _PLACES_KIND_ENUM = ['city', 'academy', 'land', 'region'] as const;
+const _PLACES_REGION_ENUM = ['israel', 'bavel', 'other'] as const;
 
 const PLACES_SYSTEM_PROMPT = `You are a Talmud geographer. Given a daf of Talmud, identify every geographic reference — cities (Sura, Pumbedita, Tiberias, Sepphoris, Caesarea, Babylonia/Bavel, the Land of Israel/Eretz Yisrael, etc.), academies/yeshivot, broader lands, and regions.
 

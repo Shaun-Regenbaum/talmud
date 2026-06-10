@@ -194,6 +194,7 @@ function RunRow(props: {
       </Show>
       <Show when={props.onInspect}>
         <button
+          type="button"
           onClick={(ev) => {
             ev.stopPropagation();
             props.onInspect!();
@@ -266,7 +267,7 @@ export default function RunTreeDock(props: {
     },
   );
   const maxCold = createMemo(() => Math.max(1, ...(runs() ?? []).map((r) => r.cold_ms ?? 0)));
-  const dafTotals = createMemo(() => {
+  const _dafTotals = createMemo(() => {
     const rs = runs() ?? [];
     return {
       count: rs.length,
@@ -519,6 +520,7 @@ export default function RunTreeDock(props: {
         <For each={TABS}>
           {(t) => (
             <button
+              type="button"
               onClick={() => setTab(t.id)}
               style={{
                 font: 'inherit',
@@ -540,6 +542,7 @@ export default function RunTreeDock(props: {
           {props.tractate} {props.page}
         </span>
         <button
+          type="button"
           onClick={props.onClose}
           style={{
             'margin-left': 'auto',
@@ -616,6 +619,7 @@ export default function RunTreeDock(props: {
                 const c = f.v === 'source' ? BADGE_SRC : f.v === 'mark' ? BADGE_LLM : BADGE_PRO;
                 return (
                   <button
+                    type="button"
                     onClick={() => toggleType(f.v)}
                     style={{
                       display: 'inline-flex',
@@ -693,6 +697,7 @@ export default function RunTreeDock(props: {
                 >
                   {/* edge layer */}
                   <svg
+                    aria-hidden="true"
                     width={lay().width}
                     height={lay().height}
                     style={{
@@ -825,6 +830,7 @@ export default function RunTreeDock(props: {
                           </div>
                           <Show when={hasKids(id)}>
                             <button
+                              type="button"
                               onClick={(ev) => {
                                 ev.stopPropagation();
                                 setSelected(id);

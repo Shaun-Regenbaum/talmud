@@ -215,7 +215,7 @@ function pickUniqueSlug(base, existing) {
   throw new Error(`cannot find unique slug for ${base}`);
 }
 
-function sleep(ms) {
+function _sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
@@ -282,7 +282,7 @@ async function main() {
     const progress = `[${done}/${total}]`;
 
     const page = await fetchExtract(title);
-    if (!page || !page.extract || page.extract.length < 40) {
+    if (!page?.extract || page.extract.length < 40) {
       skipped++;
       console.log(`${progress} SKIP ${title} (no extract)`);
       return;
@@ -370,7 +370,7 @@ async function main() {
     if (!DRY_RUN && (added > 0 || updated > 0)) {
       data.generatedAt = new Date().toISOString();
       try {
-        await writeFile(DATA_PATH, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+        await writeFile(DATA_PATH, `${JSON.stringify(data, null, 2)}\n`, 'utf-8');
         console.log(`[wiki] wrote partial: ${added} added, ${updated} updated`);
       } catch (err) {
         console.error('[wiki] partial write failed:', err);
@@ -418,7 +418,7 @@ async function main() {
   }
   data.generatedAt = new Date().toISOString();
   data.source = data.source ?? 'Sefaria /api/topics?type=person';
-  await writeFile(DATA_PATH, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+  await writeFile(DATA_PATH, `${JSON.stringify(data, null, 2)}\n`, 'utf-8');
   console.log(`[wiki] wrote ${DATA_PATH}`);
 }
 

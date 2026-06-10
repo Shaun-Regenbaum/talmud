@@ -1204,7 +1204,7 @@ function ActivitySection(props: { activity: ZoneActivity }): JSX.Element {
         >
           <Show
             when={!a().configured}
-            fallback={<>{t('usage.activity.queryFailed', { error: a().error ?? '' })}</>}
+            fallback={t('usage.activity.queryFailed', { error: a().error ?? '' })}
           >
             {t('usage.activity.notConfigured.before')}
             <code>wrangler secret put CF_ZONE_ANALYTICS_TOKEN</code>
@@ -1406,7 +1406,7 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
           >
             <Show
               when={!aigw().configured}
-              fallback={<>{t('usage.aigw.queryFailed', { error: aigw().error ?? '' })}</>}
+              fallback={t('usage.aigw.queryFailed', { error: aigw().error ?? '' })}
             >
               {t('usage.aigw.notConfigured.before')}
               <code>wrangler secret put CF_ANALYTICS_TOKEN</code>
@@ -2437,6 +2437,7 @@ function ReportItem(props: {
       }}
     >
       <button
+        type="button"
         onClick={props.onToggle}
         title={props.done ? t('usage.reports.restore') : t('usage.reports.markDone')}
         style={{
@@ -2630,6 +2631,7 @@ export function UsagePage(): JSX.Element {
           {t('usage.backToDaf')}
         </a>
         <button
+          type="button"
           onClick={() => tabRefetch[tab()]?.()}
           disabled={busy()}
           style={{
@@ -2662,6 +2664,7 @@ export function UsagePage(): JSX.Element {
             const active = () => tab() === tb.id;
             return (
               <button
+                type="button"
                 onClick={() => selectTab(tb.id)}
                 style={{
                   padding: '0.45rem 0.9rem',

@@ -114,7 +114,7 @@ export function injectRabbiUnderlines(html: string, rabbis: GenerationRabbi[]): 
       // Particle-prefix variants on `רבי` (only — others are ambiguous).
       if (tokens.length >= 2 && tokens[0] === 'רבי') {
         for (const p of HEBREW_PARTICLES) {
-          variants.push({ ...base, tokens: [p + 'רבי', ...tokens.slice(1)] });
+          variants.push({ ...base, tokens: [`${p}רבי`, ...tokens.slice(1)] });
         }
       }
       // `ר` variant covers the geresh-shorthand form `ר' X`, which normalizes

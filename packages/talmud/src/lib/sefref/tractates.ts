@@ -164,8 +164,8 @@ export function toHebrewNumeral(num: number): string {
   }
   out += HUNDREDS[Math.floor(n / 100)];
   n %= 100;
-  if (n === 15) return out + 'טו';
-  if (n === 16) return out + 'טז';
+  if (n === 15) return `${out}טו`;
+  if (n === 16) return `${out}טז`;
   out += TENS[Math.floor(n / 10)];
   out += ONES[n % 10];
   return out;

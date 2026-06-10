@@ -53,7 +53,8 @@ export function assembleDaf(
         ...blk,
         parseWarnings: parsed.parseWarnings.length ? parsed.parseWarnings : undefined,
       };
-      const bucket = (amudim[blk.amud] ??= {});
+      const bucket = amudim[blk.amud] ?? {};
+      amudim[blk.amud] = bucket;
       bucket[f.type] = stored;
     }
   }

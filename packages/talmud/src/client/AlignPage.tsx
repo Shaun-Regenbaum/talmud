@@ -383,7 +383,9 @@ export function AlignPage(): JSX.Element {
         segs: new Set(),
         source: it.source,
       };
-      it.segs.forEach((s) => g.segs.add(s));
+      it.segs.forEach((s) => {
+        g.segs.add(s);
+      });
       groups.set(it.source, g);
     }
     const rows = [...groups.values()];
@@ -481,7 +483,7 @@ export function AlignPage(): JSX.Element {
     }
     if (d?.t === 'gen') {
       const m = allMarks().find((x) => x.id === d.mid);
-      if (!m || !m.meta) return '';
+      if (!m?.meta) return '';
       const usd = m.meta.cost ? (m.meta.cost.billedUsd ?? m.meta.cost.estimatedUsd) : null;
       return `<div class="aw-card aw-detail"><button class="aw-back" data-back>← back to list</button>
         <div class="aw-dtitle">${markIconHtml(m.kind, true)} ${esc(m.label)} <span style="color:#94a3b8;font-weight:400;font-size:12px">· ${m.instances.length} instances</span></div>
@@ -734,7 +736,12 @@ export function AlignPage(): JSX.Element {
           </For>
         </select>
         <div class="tb-nav">
-          <button class="tb-navbtn" onClick={() => go('prev')} disabled={!adjPage(page(), 'prev')}>
+          <button
+            type="button"
+            class="tb-navbtn"
+            onClick={() => go('prev')}
+            disabled={!adjPage(page(), 'prev')}
+          >
             ‹
           </button>
           <input
@@ -743,7 +750,12 @@ export function AlignPage(): JSX.Element {
             value={page()}
             onChange={(e) => setPage(e.currentTarget.value.trim())}
           />
-          <button class="tb-navbtn" onClick={() => go('next')} disabled={!adjPage(page(), 'next')}>
+          <button
+            type="button"
+            class="tb-navbtn"
+            onClick={() => go('next')}
+            disabled={!adjPage(page(), 'next')}
+          >
             ›
           </button>
         </div>
@@ -843,6 +855,7 @@ export function AlignPage(): JSX.Element {
               <For each={cats()}>
                 {(cc) => (
                   <button
+                    type="button"
                     class={`aw-chip${cat() === cc.id ? ' on' : ''}`}
                     onClick={() => setCat(cc.id)}
                   >
@@ -866,7 +879,7 @@ export function AlignPage(): JSX.Element {
             }
           >
             <div class="aw-card">
-              <button class="aw-back" onClick={() => setDetail(null)}>
+              <button type="button" class="aw-back" onClick={() => setDetail(null)}>
                 ← back to list
               </button>
               <Show when={genMark()}>

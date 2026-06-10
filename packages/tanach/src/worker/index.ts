@@ -407,9 +407,8 @@ app.get('/api/synthesis/:book/:chapter/:verse', async (c) => {
   if (cached) return c.json(JSON.parse(cached));
 
   // Reuse the cached commentary if the drawer already fetched it.
-  let commentaries: VerseCommentary[];
   const cc = await c.env.CACHE.get(`commentary:v1:${book}:${chapter}:${verse}`);
-  commentaries = cc
+  const commentaries: VerseCommentary[] = cc
     ? (JSON.parse(cc).commentaries as VerseCommentary[])
     : await fetchVerseCommentaries(book, chapter, verse);
   if (commentaries.length < 2) return c.json({ error: 'Not enough commentary to synthesize' }, 404);
@@ -529,8 +528,12 @@ app.get('/api/sources-index/:book/:chapter', async (c) => {
         midSeen.set(v, s);
       }
     }
-    gemSeen.forEach((s, v) => gem.set(v, s.size));
-    midSeen.forEach((s, v) => mid.set(v, s.size));
+    gemSeen.forEach((s, v) => {
+      gem.set(v, s.size);
+    });
+    midSeen.forEach((s, v) => {
+      mid.set(v, s.size);
+    });
   } catch {
     /* links too heavy / unavailable — skip gemara+midrash counts */
   }

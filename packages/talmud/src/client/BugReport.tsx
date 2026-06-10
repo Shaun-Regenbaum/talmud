@@ -57,6 +57,7 @@ export function BugReport(props: BugReportProps): JSX.Element {
             when={status() === 'sent'}
             fallback={
               <button
+                type="button"
                 data-tour="report"
                 onClick={() => setStatus('open')}
                 style={{
@@ -112,6 +113,7 @@ export function BugReport(props: BugReportProps): JSX.Element {
           />
           <div style={{ display: 'flex', gap: '0.5rem', 'justify-content': 'flex-end' }}>
             <button
+              type="button"
               onClick={() => {
                 setStatus('idle');
                 setText('');
@@ -131,6 +133,7 @@ export function BugReport(props: BugReportProps): JSX.Element {
               {t('bugreport.cancel')}
             </button>
             <button
+              type="button"
               onClick={submit}
               disabled={status() === 'submitting' || !text().trim()}
               style={{

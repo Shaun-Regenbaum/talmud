@@ -13,6 +13,7 @@ describe('resolveSidebarHint', () => {
     instanceKeyField: 'name',
   };
 
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: the test name documents the literal key format
   it('maps title/titleHe/markId and builds instanceKey as `${markId}:${keyVal}`', () => {
     expect(resolveSidebarHint(PLACE, { name: 'Tiberias', nameHe: 'טבריה' })).toEqual({
       accent: '#222', // ACCENTS.place

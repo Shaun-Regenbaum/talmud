@@ -277,324 +277,336 @@ export default function SpineFlowGraph(props: {
 
   return (
     <Show when={props.dapim.length > 0}>
-      <>
-        <div
-          style={{
-            display: 'flex',
-            'align-items': 'center',
-            gap: '0.35rem',
-            'margin-top': '0.4rem',
-            'font-size': '0.78rem',
-            color: 'var(--muted)',
-          }}
+      <div
+        style={{
+          display: 'flex',
+          'align-items': 'center',
+          gap: '0.35rem',
+          'margin-top': '0.4rem',
+          'font-size': '0.78rem',
+          color: 'var(--muted)',
+        }}
+      >
+        <button
+          type="button"
+          style={zbtn}
+          title="zoom out"
+          onClick={() => setZoom((z) => clampZoom(z * 0.85))}
         >
-          <button style={zbtn} title="zoom out" onClick={() => setZoom((z) => clampZoom(z * 0.85))}>
-            &minus;
-          </button>
-          <span style={{ 'min-width': '3ch', 'text-align': 'center' }}>
-            {Math.round(zoom() * 100)}%
-          </span>
-          <button style={zbtn} title="zoom in" onClick={() => setZoom((z) => clampZoom(z * 1.18))}>
-            +
-          </button>
-          <button style={zbtn} onClick={() => setZoom(1)}>
-            1:1
-          </button>
-          <button style={zbtn} onClick={fit}>
-            fit height
-          </button>
-          <span style={{ 'margin-left': '0.3rem' }}>ctrl/&#8984;+scroll to zoom</span>
-        </div>
-        <div
-          ref={boxRef}
-          onWheel={onWheel}
-          style={{
-            'max-height': '78vh',
-            'overflow-y': 'auto',
-            'overflow-x': 'auto',
-            border: '1px solid #ece9df',
-            'border-radius': '8px',
-            background: '#fdfcf9',
-            'margin-top': '0.4rem',
-            padding: '0.3rem',
-          }}
+          &minus;
+        </button>
+        <span style={{ 'min-width': '3ch', 'text-align': 'center' }}>
+          {Math.round(zoom() * 100)}%
+        </span>
+        <button
+          type="button"
+          style={zbtn}
+          title="zoom in"
+          onClick={() => setZoom((z) => clampZoom(z * 1.18))}
         >
-          <Show
-            when={props.mode === 'overview'}
-            fallback={(() => {
-              const m = model();
-              const hl = () => props.highlight ?? null; // a rabbi slug
-              return (
-                <svg
-                  width={m.width * zoom()}
-                  height={m.height * zoom()}
-                  viewBox={`0 0 ${m.width} ${m.height}`}
-                  style={{ display: 'block' }}
-                >
-                  <defs>
-                    <For each={Object.entries(KIND_COLOR)}>
-                      {([kind, color]) => (
-                        <marker
-                          id={`spine-arrow-${kind}`}
-                          markerWidth="8"
-                          markerHeight="8"
-                          refX="6"
-                          refY="3"
-                          orient="auto"
-                        >
-                          <path d="M 0 0 L 6 3 L 0 6 z" fill={color} />
-                        </marker>
-                      )}
-                    </For>
-                    <filter id="spine-card-shadow" x="-10%" y="-20%" width="120%" height="150%">
-                      <feDropShadow
-                        dx="0"
-                        dy="1"
-                        stdDeviation="1.2"
-                        flood-color="#3a3320"
-                        flood-opacity="0.12"
-                      />
-                    </filter>
-                  </defs>
+          +
+        </button>
+        <button type="button" style={zbtn} onClick={() => setZoom(1)}>
+          1:1
+        </button>
+        <button type="button" style={zbtn} onClick={fit}>
+          fit height
+        </button>
+        <span style={{ 'margin-left': '0.3rem' }}>ctrl/&#8984;+scroll to zoom</span>
+      </div>
+      <div
+        ref={boxRef}
+        onWheel={onWheel}
+        style={{
+          'max-height': '78vh',
+          'overflow-y': 'auto',
+          'overflow-x': 'auto',
+          border: '1px solid #ece9df',
+          'border-radius': '8px',
+          background: '#fdfcf9',
+          'margin-top': '0.4rem',
+          padding: '0.3rem',
+        }}
+      >
+        <Show
+          when={props.mode === 'overview'}
+          fallback={(() => {
+            const m = model();
+            const hl = () => props.highlight ?? null; // a rabbi slug
+            return (
+              <svg
+                role="img"
+                aria-label="Cross-daf flow graph for this spine"
+                width={m.width * zoom()}
+                height={m.height * zoom()}
+                viewBox={`0 0 ${m.width} ${m.height}`}
+                style={{ display: 'block' }}
+              >
+                <defs>
+                  <For each={Object.entries(KIND_COLOR)}>
+                    {([kind, color]) => (
+                      <marker
+                        id={`spine-arrow-${kind}`}
+                        markerWidth="8"
+                        markerHeight="8"
+                        refX="6"
+                        refY="3"
+                        orient="auto"
+                      >
+                        <path d="M 0 0 L 6 3 L 0 6 z" fill={color} />
+                      </marker>
+                    )}
+                  </For>
+                  <filter id="spine-card-shadow" x="-10%" y="-20%" width="120%" height="150%">
+                    <feDropShadow
+                      dx="0"
+                      dy="1"
+                      stdDeviation="1.2"
+                      flood-color="#3a3320"
+                      flood-opacity="0.12"
+                    />
+                  </filter>
+                </defs>
 
-                  <For each={m.dafHeaders}>
-                    {(h) => (
-                      <>
-                        <line
-                          x1={0}
-                          y1={h.y + DAF_HEADER_H - 6}
-                          x2={m.width}
-                          y2={h.y + DAF_HEADER_H - 6}
-                          stroke="#efece2"
+                <For each={m.dafHeaders}>
+                  {(h) => (
+                    <>
+                      <line
+                        x1={0}
+                        y1={h.y + DAF_HEADER_H - 6}
+                        x2={m.width}
+                        y2={h.y + DAF_HEADER_H - 6}
+                        stroke="#efece2"
+                        stroke-width={1}
+                      />
+                      <text
+                        x={6}
+                        y={h.y + 15}
+                        font-size="13"
+                        font-weight="700"
+                        font-family="system-ui, -apple-system, sans-serif"
+                        fill="#8a2a2b"
+                      >
+                        {h.page}
+                      </text>
+                    </>
+                  )}
+                </For>
+
+                <For each={m.edges}>
+                  {(e, i) => (
+                    <path
+                      d={edgePath(m.mid(e.from), m.mid(e.to), m.lanes[i()])}
+                      fill="none"
+                      stroke={KIND_COLOR[e.kind] ?? '#888'}
+                      stroke-width={e.cross ? 2.25 : 1.5}
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-opacity={e.cross ? 0.95 : 0.8}
+                      stroke-dasharray={KIND_DASH[e.kind]}
+                      marker-end={`url(#spine-arrow-${e.kind})`}
+                    >
+                      <title>{`${e.fromPage} §${e.fromSec + 1} ${e.kind}${e.cross ? ` ${e.toPage}` : ''} §${e.toSec + 1}${e.note ? ` — ${e.note}` : ''}`}</title>
+                    </path>
+                  )}
+                </For>
+
+                <For each={[...m.nodeY.keys()]}>
+                  {(key) => {
+                    const yTop = m.nodeY.get(key)!;
+                    const h = m.nodeH.get(key)!;
+                    const rabbis = m.nodeRabbis.get(key) ?? [];
+                    const cyTitle = yTop + NODE_H / 2;
+                    const lines = wrapTitle(m.nodeTitle.get(key) ?? '', TITLE_CHARS, TITLE_LINES);
+                    const num = m.nodeNum.get(key) ?? 0;
+                    const lit = () => hl() !== null && rabbis.some((r) => r.slug === hl());
+                    // lay rabbi chips left-to-right with approx text width
+                    let cx = LEFT_PAD + 10;
+                    const chips = rabbis
+                      .map((r) => {
+                        const x = cx;
+                        cx += r.name.length * 5.4 + 12;
+                        return { name: r.name, slug: r.slug, x };
+                      })
+                      .filter((c) => c.x < LEFT_PAD + NODE_W - 16);
+                    return (
+                      <g>
+                        <title>{`${num}. ${m.nodeTitle.get(key) ?? ''}`}</title>
+                        <rect
+                          x={LEFT_PAD}
+                          y={yTop}
+                          width={NODE_W}
+                          height={h}
+                          rx={10}
+                          ry={10}
+                          fill={lit() ? '#fffaf0' : '#ffffff'}
+                          stroke={lit() ? HILITE : '#e4e0d4'}
+                          stroke-width={lit() ? 2 : 1}
+                          filter="url(#spine-card-shadow)"
+                        />
+                        <circle
+                          cx={LEFT_PAD + 18}
+                          cy={cyTitle}
+                          r={11}
+                          fill="#f2eee4"
+                          stroke="#e4e0d4"
                           stroke-width={1}
                         />
                         <text
-                          x={6}
-                          y={h.y + 15}
-                          font-size="13"
+                          x={LEFT_PAD + 18}
+                          y={cyTitle}
+                          text-anchor="middle"
+                          dominant-baseline="central"
+                          font-size="11"
                           font-weight="700"
-                          font-family="system-ui, -apple-system, sans-serif"
+                          font-family="system-ui, sans-serif"
                           fill="#8a2a2b"
                         >
-                          {h.page}
+                          {num}
                         </text>
-                      </>
-                    )}
-                  </For>
-
-                  <For each={m.edges}>
-                    {(e, i) => (
-                      <path
-                        d={edgePath(m.mid(e.from), m.mid(e.to), m.lanes[i()])}
-                        fill="none"
-                        stroke={KIND_COLOR[e.kind] ?? '#888'}
-                        stroke-width={e.cross ? 2.25 : 1.5}
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-opacity={e.cross ? 0.95 : 0.8}
-                        stroke-dasharray={KIND_DASH[e.kind]}
-                        marker-end={`url(#spine-arrow-${e.kind})`}
-                      >
-                        <title>{`${e.fromPage} §${e.fromSec + 1} ${e.kind}${e.cross ? ` ${e.toPage}` : ''} §${e.toSec + 1}${e.note ? ` — ${e.note}` : ''}`}</title>
-                      </path>
-                    )}
-                  </For>
-
-                  <For each={[...m.nodeY.keys()]}>
-                    {(key) => {
-                      const yTop = m.nodeY.get(key)!;
-                      const h = m.nodeH.get(key)!;
-                      const rabbis = m.nodeRabbis.get(key) ?? [];
-                      const cyTitle = yTop + NODE_H / 2;
-                      const lines = wrapTitle(m.nodeTitle.get(key) ?? '', TITLE_CHARS, TITLE_LINES);
-                      const num = m.nodeNum.get(key) ?? 0;
-                      const lit = () => hl() !== null && rabbis.some((r) => r.slug === hl());
-                      // lay rabbi chips left-to-right with approx text width
-                      let cx = LEFT_PAD + 10;
-                      const chips = rabbis
-                        .map((r) => {
-                          const x = cx;
-                          cx += r.name.length * 5.4 + 12;
-                          return { name: r.name, slug: r.slug, x };
-                        })
-                        .filter((c) => c.x < LEFT_PAD + NODE_W - 16);
-                      return (
-                        <g>
-                          <title>{`${num}. ${m.nodeTitle.get(key) ?? ''}`}</title>
-                          <rect
-                            x={LEFT_PAD}
-                            y={yTop}
-                            width={NODE_W}
-                            height={h}
-                            rx={10}
-                            ry={10}
-                            fill={lit() ? '#fffaf0' : '#ffffff'}
-                            stroke={lit() ? HILITE : '#e4e0d4'}
-                            stroke-width={lit() ? 2 : 1}
-                            filter="url(#spine-card-shadow)"
-                          />
-                          <circle
-                            cx={LEFT_PAD + 18}
-                            cy={cyTitle}
-                            r={11}
-                            fill="#f2eee4"
-                            stroke="#e4e0d4"
-                            stroke-width={1}
-                          />
-                          <text
-                            x={LEFT_PAD + 18}
-                            y={cyTitle}
-                            text-anchor="middle"
-                            dominant-baseline="central"
-                            font-size="11"
-                            font-weight="700"
-                            font-family="system-ui, sans-serif"
-                            fill="#8a2a2b"
-                          >
-                            {num}
-                          </text>
-                          <For each={lines}>
-                            {(line, li) => (
-                              <text
-                                x={LEFT_PAD + 38}
-                                y={cyTitle + (li() - (lines.length - 1) / 2) * LINE_H}
-                                text-anchor="start"
-                                dominant-baseline="central"
-                                font-size="12"
-                                font-weight="600"
-                                font-family="system-ui, sans-serif"
-                                fill="#2a2723"
-                              >
-                                {line}
-                              </text>
-                            )}
+                        <For each={lines}>
+                          {(line, li) => (
+                            <text
+                              x={LEFT_PAD + 38}
+                              y={cyTitle + (li() - (lines.length - 1) / 2) * LINE_H}
+                              text-anchor="start"
+                              dominant-baseline="central"
+                              font-size="12"
+                              font-weight="600"
+                              font-family="system-ui, sans-serif"
+                              fill="#2a2723"
+                            >
+                              {line}
+                            </text>
+                          )}
+                        </For>
+                        <Show when={rabbis.length}>
+                          <For each={chips}>
+                            {(c) => {
+                              const on = () => hl() === c.slug;
+                              return (
+                                <text
+                                  x={c.x}
+                                  y={yTop + h - 8}
+                                  font-size="9.5"
+                                  font-weight={on() ? 700 : 500}
+                                  font-family="system-ui, sans-serif"
+                                  fill={on() ? HILITE : '#8a7a55'}
+                                  style={{ cursor: 'pointer' }}
+                                  onClick={() => props.onRabbi?.(c.slug)}
+                                >
+                                  <title>{`trace ${c.name} across the tractate`}</title>
+                                  {c.name}
+                                </text>
+                              );
+                            }}
                           </For>
-                          <Show when={rabbis.length}>
-                            <For each={chips}>
-                              {(c) => {
-                                const on = () => hl() === c.slug;
-                                return (
-                                  <text
-                                    x={c.x}
-                                    y={yTop + h - 8}
-                                    font-size="9.5"
-                                    font-weight={on() ? 700 : 500}
-                                    font-family="system-ui, sans-serif"
-                                    fill={on() ? HILITE : '#8a7a55'}
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={() => props.onRabbi?.(c.slug)}
-                                  >
-                                    <title>{`trace ${c.name} across the tractate`}</title>
-                                    {c.name}
-                                  </text>
-                                );
-                              }}
-                            </For>
-                          </Show>
-                        </g>
-                      );
-                    }}
-                  </For>
-                </svg>
-              );
-            })()}
-          >
-            {(() => {
-              const o = overviewModel();
-              return (
-                <svg
-                  width={o.width * zoom()}
-                  height={o.height * zoom()}
-                  viewBox={`0 0 ${o.width} ${o.height}`}
-                  style={{ display: 'block' }}
-                >
-                  <defs>
-                    <For each={Object.entries(KIND_COLOR)}>
-                      {([kind, color]) => (
-                        <marker
-                          id={`ov-arrow-${kind}`}
-                          markerWidth="8"
-                          markerHeight="8"
-                          refX="6"
-                          refY="3"
-                          orient="auto"
-                        >
-                          <path d="M 0 0 L 6 3 L 0 6 z" fill={color} />
-                        </marker>
-                      )}
-                    </For>
-                  </defs>
-                  <For each={o.edges}>
-                    {(e, i) => (
-                      <path
-                        d={orthPath(o.mid(e.from), o.mid(e.to), o.lanes[i()], OV_LEFT + OV_NODE_W)}
-                        fill="none"
-                        stroke={KIND_COLOR[e.kind] ?? '#888'}
-                        stroke-width={1.5}
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-opacity={0.85}
-                        stroke-dasharray={KIND_DASH[e.kind]}
-                        marker-end={`url(#ov-arrow-${e.kind})`}
+                        </Show>
+                      </g>
+                    );
+                  }}
+                </For>
+              </svg>
+            );
+          })()}
+        >
+          {(() => {
+            const o = overviewModel();
+            return (
+              <svg
+                role="img"
+                aria-label="Spine flow overview"
+                width={o.width * zoom()}
+                height={o.height * zoom()}
+                viewBox={`0 0 ${o.width} ${o.height}`}
+                style={{ display: 'block' }}
+              >
+                <defs>
+                  <For each={Object.entries(KIND_COLOR)}>
+                    {([kind, color]) => (
+                      <marker
+                        id={`ov-arrow-${kind}`}
+                        markerWidth="8"
+                        markerHeight="8"
+                        refX="6"
+                        refY="3"
+                        orient="auto"
                       >
-                        <title>{`${e.from} ${e.kind} ${e.to}`}</title>
-                      </path>
+                        <path d="M 0 0 L 6 3 L 0 6 z" fill={color} />
+                      </marker>
                     )}
                   </For>
-                  <For each={[...o.nodeY.keys()]}>
-                    {(page) => {
-                      const yTop = o.nodeY.get(page)!;
-                      const meta = o.meta.get(page)!;
-                      return (
-                        <g
-                          style={{ cursor: props.onPickDaf ? 'pointer' : 'default' }}
-                          onClick={() => props.onPickDaf?.(page)}
+                </defs>
+                <For each={o.edges}>
+                  {(e, i) => (
+                    <path
+                      d={orthPath(o.mid(e.from), o.mid(e.to), o.lanes[i()], OV_LEFT + OV_NODE_W)}
+                      fill="none"
+                      stroke={KIND_COLOR[e.kind] ?? '#888'}
+                      stroke-width={1.5}
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-opacity={0.85}
+                      stroke-dasharray={KIND_DASH[e.kind]}
+                      marker-end={`url(#ov-arrow-${e.kind})`}
+                    >
+                      <title>{`${e.from} ${e.kind} ${e.to}`}</title>
+                    </path>
+                  )}
+                </For>
+                <For each={[...o.nodeY.keys()]}>
+                  {(page) => {
+                    const yTop = o.nodeY.get(page)!;
+                    const meta = o.meta.get(page)!;
+                    return (
+                      <g
+                        style={{ cursor: props.onPickDaf ? 'pointer' : 'default' }}
+                        onClick={() => props.onPickDaf?.(page)}
+                      >
+                        <title>{`${page} — ${meta.sections} sections${meta.hasCross ? ' · cross-daf links' : ''}`}</title>
+                        <rect
+                          x={OV_LEFT}
+                          y={yTop}
+                          width={OV_NODE_W}
+                          height={OV_NODE_H}
+                          rx={6}
+                          ry={6}
+                          fill={meta.hasCross ? '#fdf2f2' : '#ffffff'}
+                          stroke={meta.hasCross ? '#d8a3a3' : '#e4e0d4'}
+                          stroke-width={1}
+                        />
+                        <text
+                          x={OV_LEFT + 8}
+                          y={yTop + OV_NODE_H / 2}
+                          dominant-baseline="central"
+                          font-size="11"
+                          font-weight="700"
+                          font-family="system-ui, sans-serif"
+                          fill="#8a2a2b"
                         >
-                          <title>{`${page} — ${meta.sections} sections${meta.hasCross ? ' · cross-daf links' : ''}`}</title>
-                          <rect
-                            x={OV_LEFT}
-                            y={yTop}
-                            width={OV_NODE_W}
-                            height={OV_NODE_H}
-                            rx={6}
-                            ry={6}
-                            fill={meta.hasCross ? '#fdf2f2' : '#ffffff'}
-                            stroke={meta.hasCross ? '#d8a3a3' : '#e4e0d4'}
-                            stroke-width={1}
-                          />
-                          <text
-                            x={OV_LEFT + 8}
-                            y={yTop + OV_NODE_H / 2}
-                            dominant-baseline="central"
-                            font-size="11"
-                            font-weight="700"
-                            font-family="system-ui, sans-serif"
-                            fill="#8a2a2b"
-                          >
-                            {page}
-                          </text>
-                          <For each={Array.from({ length: Math.min(meta.sections, 8) })}>
-                            {(_item, di) => (
-                              <rect
-                                x={OV_LEFT + 44 + di() * 6}
-                                y={yTop + OV_NODE_H / 2 - 3}
-                                width={4}
-                                height={6}
-                                rx={1}
-                                fill="#9a948a"
-                              />
-                            )}
-                          </For>
-                        </g>
-                      );
-                    }}
-                  </For>
-                </svg>
-              );
-            })()}
-          </Show>
-        </div>
-      </>
+                          {page}
+                        </text>
+                        <For each={Array.from({ length: Math.min(meta.sections, 8) })}>
+                          {(_item, di) => (
+                            <rect
+                              x={OV_LEFT + 44 + di() * 6}
+                              y={yTop + OV_NODE_H / 2 - 3}
+                              width={4}
+                              height={6}
+                              rx={1}
+                              fill="#9a948a"
+                            />
+                          )}
+                        </For>
+                      </g>
+                    );
+                  }}
+                </For>
+              </svg>
+            );
+          })()}
+        </Show>
+      </div>
     </Show>
   );
 }

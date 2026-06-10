@@ -52,8 +52,8 @@ describe('declarative pass wiring', () => {
 
   it('every declared pass id is registered in PASSES', () => {
     const declared = new Set<string>();
-    for (const m of CODE_MARKS) (m.passes ?? []).forEach((c) => declared.add(c));
-    for (const e of CODE_ENRICHMENTS) (e.passes ?? []).forEach((c) => declared.add(c));
+    for (const m of CODE_MARKS) for (const c of m.passes ?? []) declared.add(c);
+    for (const e of CODE_ENRICHMENTS) for (const c of e.passes ?? []) declared.add(c);
     for (const id of declared) {
       expect(PASSES[id], `pass '${id}' registered`).toBeTruthy();
     }

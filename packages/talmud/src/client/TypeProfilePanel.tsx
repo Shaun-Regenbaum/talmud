@@ -149,7 +149,7 @@ export default function TypeProfilePanel(props: {
                     'font-size': '0.62rem',
                     'border-radius': '3px',
                     padding: '0 0.3rem',
-                    background: (PRIMARY_COLOR[p.primary] ?? '#888') + '22',
+                    background: `${PRIMARY_COLOR[p.primary] ?? '#888'}22`,
                     color: PRIMARY_COLOR[p.primary] ?? '#666',
                   }}
                 >

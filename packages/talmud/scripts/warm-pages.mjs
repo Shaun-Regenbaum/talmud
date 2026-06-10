@@ -102,7 +102,7 @@ async function postRun(body) {
       return { status: r.status, body: j };
     } catch (e) {
       if (attempt === 3) {
-        return { status: 0, body: { error: `network: ${(e && e.message) || e}` } };
+        return { status: 0, body: { error: `network: ${e?.message || e}` } };
       }
       await sleep(500 * 2 ** attempt);
     }
@@ -126,7 +126,7 @@ async function pollUntilDone(runId, timeoutS) {
       if (j && j.status === 'ok') return j;
       if (j && j.status === 'error') return j;
       consecutiveNetworkErrs = 0;
-    } catch (e) {
+    } catch (_e) {
       // Transient network blip (DNS flake, ETIMEDOUT, etc.). Tolerate up
       // to 10 consecutive failures (= ~15s of network unavailability)
       // before giving up. Single blips just lose a poll tick.
@@ -160,7 +160,7 @@ async function fireEnrichment(tractate, page, enrichmentId, markInput) {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ enrichment_id: enrichmentId, tractate, page, mark_input: markInput }),
     });
-  } catch (e) {
+  } catch (_e) {
     // Network blip — skip; the queue's prior fire may have already enqueued it.
   }
 }
@@ -193,7 +193,7 @@ async function warmAuxiliaryEndpoints(tractate, page) {
 /** Warm /api/pasuk for every cited verse on a page. Cheap-ish; each call
  *  is one Sefaria fetch + KV write. The pesukim mark output gives us the
  *  verseRefs to warm. */
-async function warmPasukim(tractate, page, pesukimResult) {
+async function warmPasukim(_tractate, _page, pesukimResult) {
   const instances = pesukimResult?.parsed?.instances;
   if (!Array.isArray(instances)) return;
   for (const inst of instances) {

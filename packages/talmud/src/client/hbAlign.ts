@@ -132,7 +132,7 @@ export interface LocateQuery {
  */
 export function locateInHb(hb: HbWords, q: LocateQuery): Located | null {
   if (hb.norm.length === 0) return null;
-  const win = q.segs && q.segs.length ? segWindow(hb, q.segs) : null;
+  const win = q.segs?.length ? segWindow(hb, q.segs) : null;
   const rawTokens = q.phrase
     ? q.phrase
         .replace(/<[^>]+>/g, ' ')

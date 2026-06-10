@@ -98,11 +98,11 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
     const comments = props.activeComments;
     if (!comments || comments.length === 0) return;
     for (const c of comments) {
-      if (c.textEn && c.textEn.trim()) continue;
+      if (c.textEn?.trim()) continue;
       const state = translations()[c.sourceRef];
       const cached = translationCache.get(c.sourceRef);
       if (cached !== undefined) {
-        if (!state || state.state !== 'ready') {
+        if (state?.state !== 'ready') {
           setTranslations((prev) => ({ ...prev, [c.sourceRef]: { state: 'ready', text: cached } }));
         }
         continue;
@@ -242,6 +242,7 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={props.onCloseSegment}
                 aria-label={t('commentary.closeSegment')}
                 style={{
@@ -262,7 +263,7 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
               {(comment, i) => {
                 const tx = () => translations()[comment.sourceRef];
                 const englishPair = (): { text: string; kind: 'sefaria' | 'kimi' } | null => {
-                  if (comment.textEn && comment.textEn.trim()) {
+                  if (comment.textEn?.trim()) {
                     return { text: comment.textEn, kind: 'sefaria' };
                   }
                   const cur = tx();

@@ -562,13 +562,13 @@ export async function runPasses(
   const issues: CheckIssue[] = [];
   for (const id of checkIds) {
     const c = PASSES[id];
-    if (!c || c.phase !== 'transform') continue;
+    if (c?.phase !== 'transform') continue;
     const r = await c.run(current, ctx);
     if ('parsed' in r) current = r.parsed;
   }
   for (const id of checkIds) {
     const c = PASSES[id];
-    if (!c || c.phase !== 'validate') continue;
+    if (c?.phase !== 'validate') continue;
     const r = await c.run(current, ctx);
     if ('issues' in r) issues.push(...r.issues);
   }

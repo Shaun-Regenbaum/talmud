@@ -643,8 +643,9 @@ export async function parseOpenAIStream(stream: ReadableStream<Uint8Array>): Pro
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
 
-      let sep: number;
-      while ((sep = buffer.indexOf('\n\n')) !== -1) {
+      for (;;) {
+        const sep = buffer.indexOf('\n\n');
+        if (sep === -1) break;
         const event = buffer.slice(0, sep);
         buffer = buffer.slice(sep + 2);
         for (const line of event.split('\n')) {

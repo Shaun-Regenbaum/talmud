@@ -137,7 +137,12 @@ function ArgumentSection(props: {
 
       <Show when={hasSectionDetail()}>
         <div class="flow-section-more">
-          <button class="flow-more-btn" onClick={() => setOpen(!open())} aria-expanded={open()}>
+          <button
+            type="button"
+            class="flow-more-btn"
+            onClick={() => setOpen(!open())}
+            aria-expanded={open()}
+          >
             {open() ? '−' : '…'}
           </button>
         </div>
@@ -217,6 +222,7 @@ function RabbiCard(props: { rabbi: Rabbi }): JSX.Element {
 
       <Show when={hasDetail()}>
         <button
+          type="button"
           class="flow-rabbi-toggle"
           onClick={() => setOpen(!open())}
           aria-expanded={open()}

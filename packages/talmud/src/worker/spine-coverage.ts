@@ -21,7 +21,7 @@
  */
 
 import { iterAmudim, TRACTATE_END_AMUD } from '../lib/sefref/amudim';
-import { keyForGemara, slugDaf, slugTractate } from './cache-keys';
+import { slugDaf, slugTractate } from './cache-keys';
 import { CODE_ENRICHMENTS, CODE_MARKS } from './code-marks';
 
 export interface CoverageColumn {

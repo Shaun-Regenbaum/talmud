@@ -180,6 +180,7 @@ export function RunTreeDag(props: {
               }}
             >
               <svg
+                aria-hidden="true"
                 width={lay().width}
                 height={lay().height}
                 style={{
@@ -308,6 +309,7 @@ export function RunTreeDag(props: {
                       </div>
                       <Show when={hasKids(id)}>
                         <button
+                          type="button"
                           onClick={(ev) => {
                             ev.stopPropagation();
                             setSelected(id);

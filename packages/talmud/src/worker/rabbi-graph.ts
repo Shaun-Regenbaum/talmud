@@ -217,7 +217,7 @@ function findSlug(name: string, nameHe?: string, generation?: string): string | 
     for (const [s, node] of Object.entries(DATA.nodes)) {
       if (node.generation !== generation) continue;
       const nodeNorm = normalizeName(node.canonical);
-      if (nodeNorm === norm || nodeNorm.startsWith(norm + ' ')) {
+      if (nodeNorm === norm || nodeNorm.startsWith(`${norm} `)) {
         slug = s;
         break;
       }
@@ -259,7 +259,7 @@ export function rabbiCandidates(name: string, nameHe?: string): string[] {
   const prefix = new Set<string>();
   for (const { norm: c, slug } of NORM_INDEX) {
     if (c === norm) exact.add(slug);
-    else if (c.startsWith(norm + ' ')) prefix.add(slug); // short form ("Rav Kahana" → "Rav Kahana (II)")
+    else if (c.startsWith(`${norm} `)) prefix.add(slug); // short form ("Rav Kahana" → "Rav Kahana (II)")
   }
   const ix = INDEX.nameToSlug.get(norm);
   if (ix) exact.add(ix);
@@ -473,7 +473,7 @@ function buildProse(
   if (parts.length === 0) return `${node.canonical} (${node.generation}).`;
   // Capitalize first letter.
   const sentence = parts.join('; ');
-  return sentence.charAt(0).toUpperCase() + sentence.slice(1) + '.';
+  return `${sentence.charAt(0).toUpperCase() + sentence.slice(1)}.`;
 }
 
 export interface LookupResult {

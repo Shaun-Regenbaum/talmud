@@ -93,7 +93,7 @@ export default function PretextSpike() {
         <p style={{ margin: '0.25rem 0', color: '#6b6b6b', 'font-size': '0.9rem' }}>
           Fonts ready: {fontsReady() ? 'yes' : 'loading…'}
         </p>
-        <button onClick={run} style={{ 'margin-top': '0.5rem' }}>
+        <button type="button" onClick={run} style={{ 'margin-top': '0.5rem' }}>
           Re-measure
         </button>
       </header>
