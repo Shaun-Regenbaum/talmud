@@ -63,7 +63,7 @@ import {
   validateLLMRabbiOutput,
 } from '../lib/rabbi/types';
 import type { EntityPiece } from '../lib/registry/entity';
-import { adjacentAmud, type RishonimBundle, sefariaAPI, type TalmudPageData } from '../lib/sefref';
+import { adjacentAmud, sefariaAPI, type TalmudPageData } from '../lib/sefref';
 import { iterAmudim } from '../lib/sefref/amudim';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { fetchHebrewBooksDaf } from '../lib/sefref/hebrewbooks/client';
@@ -171,7 +171,6 @@ import {
   type RabbiPlacesEntry,
   resolveRabbi,
   resolveRabbiByName,
-  resolveRabbiName,
 } from './rabbi-places';
 import { placeRevachWithAi } from './revach-ai-place';
 import { buildSourceResolvers, type CommentariesSlice, type GemaraSlice } from './run-sources';
@@ -459,35 +458,6 @@ interface DafSkeleton {
     rabbiNames: string[];
   }>;
 }
-
-function _rishonimBlock(bundle: RishonimBundle, perCommentatorCap = 2500): string {
-  const entries = Object.entries(bundle);
-  if (entries.length === 0) return '';
-  const sliceStr = (s: string | undefined | null, cap: number) => {
-    if (!s) return '';
-    const cleaned = stripHtmlServer(s);
-    return cleaned.length > cap ? cleaned.slice(0, cap) : cleaned;
-  };
-  const parts = entries.map(([label, snip]) => {
-    const he = sliceStr(snip.hebrew, perCommentatorCap);
-    const en = sliceStr(snip.english, perCommentatorCap);
-    const body = [he && `<hebrew>${he}</hebrew>`, en && `<english>${en}</english>`]
-      .filter(Boolean)
-      .join('\n');
-    return `<commentator name="${label}" ref="${snip.ref}">\n${body}\n</commentator>`;
-  });
-  return `<rishonim_commentary>\n${parts.join('\n')}\n</rishonim_commentary>`;
-}
-
-const _STRATEGY_NAMES = [
-  'rabbis',
-  'references',
-  'parallels',
-  'commentaries',
-  'bigger-picture',
-  'background',
-  'synthesize',
-] as const;
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -6073,11 +6043,6 @@ const KNOWN_RABBIS_HE: KnownRabbi[] = (() => {
   out.sort((a, b) => b.nameHeNorm.length - a.nameHeNorm.length);
   return out;
 })();
-
-function _canonicalizeName(raw: string): string {
-  const hit = resolveRabbiName(raw);
-  return hit?.canonical ?? raw;
-}
 
 // Hebrew word-boundary test — match only when surrounded by whitespace or at
 // a string edge, so "רבא" doesn't match inside "דרבא" (prefix דְ־).

@@ -121,8 +121,3 @@ export function resolveRabbi(name: string, nameHe?: string | null): RabbiResolut
   }
   return resolveRabbiByName(name);
 }
-
-// Back-compat shim: many call sites take just the canonical English name.
-export function resolveRabbiName(raw: string): RabbiPlacesEntry | null {
-  return resolveRabbiByName(raw)?.entry ?? null;
-}
