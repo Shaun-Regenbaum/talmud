@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BOOKS, SECTIONS, bookByName, isBook } from '../src/lib/books';
+import { BOOKS, bookByName, isBook, SECTIONS } from '../src/lib/books';
 import { COMMENTATORS } from '../src/lib/commentators';
 
 describe('BOOKS registry', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { type UsageEntry, readUsage, recordUsage } from '../src/worker/usage';
+import { readUsage, recordUsage, type UsageEntry } from '../src/worker/usage';
 
 /** Minimal in-memory stand-in for the KV binding (string get/put only). */
 function kvStub(initial?: Record<string, string>) {
