@@ -33,6 +33,9 @@ import {
   resolveInputs,
 } from '@corpus/core/run/producer-run';
 import { type RunProducerPorts, runProducer } from '@corpus/core/run/run-producer';
+import { ArtifactStore, type KVStore } from '@corpus/core/store/artifact-store';
+import type { StoredArtifact } from '@corpus/core/store/envelope';
+import { producerKeyInfo, talmudLegacyKeyScheme } from '@corpus/core/store/key-schemes';
 import { Hono } from 'hono';
 import {
   GENERATION_IDS,
@@ -127,7 +130,6 @@ import {
   keyForSpineLinks,
   keyForTranslate,
   prefixForRabbiObs,
-  previousVersionKey,
   qualifierHash,
   recipeHash,
 } from './cache-keys';
@@ -1788,16 +1790,25 @@ app.get('/api/stale/:id/:tractate/:page', async (c) => {
   // right per-lang KEY to read the entry.
   const current = await recipeHash(enrichmentRecipe(def));
   const iid = await instanceIdOf({ fields: {} });
-  const key = keyForEnrichment(
-    def,
-    iid,
-    def.scope === 'local' ? { tractate, page } : undefined,
-    undefined,
+  const store = artifactStore(c.env);
+  const key = store.keyFor(enrichKeyInfo(def), {
+    instanceId: iid,
+    unit: { work: tractate, unit: page },
     lang,
-  );
-  const hit = (await readCachedResult(c.env, key)) as RunResultEnrichment | null;
+  });
+  const hit = (await store.get(key)) as RunResultEnrichment | null;
   const cached = hit?.recipe_hash ?? null;
-  const status = !hit ? 'miss' : !cached ? 'unknown' : cached === current ? 'fresh' : 'stale';
+  // The recipe compare goes through store.staleness ('stale-recipe' → this
+  // endpoint's 'stale'); 'miss' (nothing cached) and 'unknown' (pre-stamp
+  // entry — keyed off the TOP-LEVEL recipe_hash, exactly as before) stay
+  // handler-side so the JSON shape and tri-state are byte-identical.
+  const status = !hit
+    ? 'miss'
+    : !cached
+      ? 'unknown'
+      : (await store.staleness(hit as StoredArtifact, { recipeHash: current })) === 'fresh'
+        ? 'fresh'
+        : 'stale';
   return c.json({
     id,
     tractate,
@@ -2354,15 +2365,59 @@ interface RunResultEnrichment extends RunResult {
   section_range?: string;
 }
 
+// ===========================================================================
+// ArtifactStore — the ONE storage chokepoint for producer outputs (the
+// `mark:` / `enrich:` keys). Key derivation delegates to the frozen
+// cache-keys contract via talmudLegacyKeyScheme (byte parity locked by
+// store-key-parity.test.ts); reads keep readCachedResult's exact semantics
+// (null on miss, null on corrupt JSON); writes enforce the HUMAN-EDIT GUARD
+// (ArtifactStore.put — a human-authored entry is never overwritten by
+// rule/AI output). Source-cache keys (ctx:*, sefaria-bundle:*, …) and the
+// `job:{runId}` polling records are NOT artifacts and stay on direct KV.
+// ===========================================================================
+
+const ARTIFACT_SCHEME = talmudLegacyKeyScheme();
+/** Key-derivation-only backing when CACHE is absent: every read misses and
+ *  writes/evictions are no-ops — the same observable behavior the direct-KV
+ *  sites had behind their `if (!env.CACHE)` guards. */
+const NOOP_KV: KVStore = {
+  get: async () => null,
+  put: async () => {},
+  delete: async () => {},
+};
+function artifactStore(env: Bindings): ArtifactStore {
+  return new ArtifactStore(env.CACHE ?? NOOP_KV, ARTIFACT_SCHEME);
+}
+
+/** ProducerKeyInfo for a loaded mark def. The store derives hasHePrompt from
+ *  the extractor's system_prompt_he, which is what applies the production
+ *  he-collapse rule (a lang='he' request keys onto ':he' only when the mark
+ *  has a Hebrew prompt; otherwise it collapses to the English key). */
+function markKeyInfo(def: SchemaMarkDefinition) {
+  return {
+    id: def.id,
+    cacheVersion: def.cache_version,
+    scope: 'local' as const,
+    key_shape: 'mark' as const,
+    recipe: { extractor: def.extractor },
+  };
+}
+
+/** ProducerKeyInfo for a loaded enrichment def. The scheme applies the daf to
+ *  the key per def.scope (local uses tractate+page, global omits it) exactly
+ *  as the legacy keyForEnrichment call sites did. */
+function enrichKeyInfo(def: EnrichmentDefinition) {
+  return {
+    id: def.id,
+    cacheVersion: def.cache_version,
+    scope: def.scope,
+    key_shape: 'enrich' as const,
+  };
+}
+
 async function readCachedResult(env: Bindings, key: string): Promise<RunResult | null> {
   if (!env.CACHE) return null;
-  const raw = await env.CACHE.get(key);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as RunResult;
-  } catch {
-    return null;
-  }
+  return (await artifactStore(env).get(key)) as RunResult | null;
 }
 
 async function writeCachedResult(env: Bindings, key: string, result: RunResult): Promise<void> {
@@ -2373,7 +2428,13 @@ async function writeCachedResult(env: Bindings, key: string, result: RunResult):
   // call /api/run with bypass_cache=true. A TTL on top of that
   // just makes warmed pages silently rot — measured pain: full-shas
   // warming costs ~$1000 and ~17 days; we don't want it expiring on us.
-  await env.CACHE.put(key, JSON.stringify(result));
+  //
+  // HUMAN-EDIT GUARD (live at this chokepoint): store.put refuses to
+  // overwrite a human-authored entry (provenance.authority === 'human') with
+  // rule/AI output. The refusal is deliberately SILENT — the fresh result is
+  // still returned/served to the caller, it just isn't persisted over the
+  // human edit (the never-clobber rule applied at write time).
+  await artifactStore(env).put(key, result as unknown as StoredArtifact);
 }
 
 /** Computed-mark function signature. Receives env + (tractate, page) and
@@ -2684,7 +2745,9 @@ function postProcessRabbi(parsed: unknown, hebrewText: string): unknown {
 // runMarkOnce / runEnrichmentOnce — thin shims over the ONE corpus-agnostic
 // runProducer orchestration (@corpus/core/run/run-producer). Everything
 // app-specific enters through RUN_PORTS: key derivation (the same
-// keyForMark / keyForEnrichment as always), the LLM call + option
+// keyForMark / keyForEnrichment as always), cache I/O (readCachedResult /
+// writeCachedResult, which route through the ArtifactStore — so every
+// run-path write passes the human-edit guard), the LLM call + option
 // construction (incl. the argument-move fan-out), the check layer, and the
 // id-keyed short-circuits (rabbi graph/identity/observations, the pesukim
 // Hebrew prefetch, argument move-scoping, rabbi/places mark post-processing)
@@ -2697,15 +2760,23 @@ function postProcessRabbi(parsed: unknown, hebrewText: string): unknown {
 const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefinition> = {
   cacheRead: (rc, key) => readCachedResult(rc.env, key),
   cacheWrite: (rc, key, value) => writeCachedResult(rc.env, key, value as RunResult),
-  markKey: (def, tractate, page, lang) => keyForMark(def, tractate, page, lang),
+  // Both key ports derive through the SAME scheme as cacheKeyForRunBody, so
+  // the 202 cacheKey, the queued job, and the write-through can never disagree
+  // (a spine-scoped def would otherwise throw here while deriving a valid
+  // tractate-only key there). runProducer passes the RESOLVED mark lang, so
+  // the scheme's he-collapse is idempotent on this path.
+  markKey: (def, tractate, page, lang) =>
+    ARTIFACT_SCHEME.key(producerKeyInfo(markKeyInfo(def)), {
+      unit: { work: tractate, unit: page },
+      lang,
+    }),
   enrichmentKey: (def, instanceId, tractate, page, qualifier, lang) =>
-    keyForEnrichment(
-      def,
+    ARTIFACT_SCHEME.key(producerKeyInfo(enrichKeyInfo(def)), {
       instanceId,
-      def.scope === 'local' ? { tractate, page } : undefined,
+      unit: { work: tractate, unit: page },
       qualifier,
       lang,
-    ),
+    }),
   enrichmentRecipeHash: (def) => recipeHash(enrichmentRecipe(def)),
   sectionRange: (def, markInput) => sectionRangeOf(def, markInput),
   resolveInputs: (rc, dependencies, tractate, page, markInput, bypassCache, parentChain) =>
@@ -3337,22 +3408,30 @@ export async function cacheKeyForRunBody(
   if (body.mark_id) {
     const def = await loadMarkDef(env, body.mark_id);
     if (!def) return { key: null, defKind: null };
-    // Mirror runMarkOnce: only namespace :he when the mark has a Hebrew prompt,
-    // so the producer's cache-check and the consumer's write-through agree on
-    // the key (otherwise a HE request would hit the EN-cached mark).
-    const ext = def.extractor as { system_prompt_he?: string } | undefined;
-    const useHe = body.lang === 'he' && !!ext?.system_prompt_he;
-    return { key: keyForMark(def, body.tractate, body.page, useHe ? 'he' : 'en'), defKind: 'mark' };
+    // The store mirrors runMarkOnce: it only namespaces :he when the mark has
+    // a Hebrew prompt (hasHePrompt derived from the def's extractor), so the
+    // producer's cache-check and the consumer's write-through agree on the
+    // key (otherwise a HE request would hit the EN-cached mark).
+    return {
+      key: artifactStore(env).keyFor(markKeyInfo(def), {
+        unit: { work: body.tractate, unit: body.page },
+        lang: body.lang === 'he' ? 'he' : 'en',
+      }),
+      defKind: 'mark',
+    };
   }
   if (body.enrichment_id) {
     const def = await loadEnrichmentDef(env, body.enrichment_id);
     if (!def) return { key: null, defKind: null };
     const instance_id = await instanceIdOf(body.mark_input);
-    const dafForKey =
-      def.scope === 'local' ? { tractate: body.tractate, page: body.page } : undefined;
     const qHash = body.user_question ? await qualifierHash(body.user_question) : undefined;
     return {
-      key: keyForEnrichment(def, instance_id, dafForKey, qHash, body.lang ?? 'en'),
+      key: artifactStore(env).keyFor(enrichKeyInfo(def), {
+        instanceId: instance_id,
+        unit: { work: body.tractate, unit: body.page },
+        qualifier: qHash,
+        lang: body.lang ?? 'en',
+      }),
       defKind: 'enrichment',
     };
   }
@@ -3510,14 +3589,15 @@ app.post('/api/run', async (c) => {
     lang: body.lang === 'he' ? 'he' : undefined,
   };
 
-  // Hot path: canonical cache hit short-circuits the queue entirely.
+  // Hot path: canonical cache hit short-circuits the queue entirely. The
+  // store read maps a corrupt entry to a miss (same as the old inline parse),
+  // so a corrupt cache falls through to enqueue exactly as before.
   if (!job.bypass_cache) {
     const { key } = await cacheKeyForRunBody(c.env, job);
     if (key && c.env.CACHE) {
-      const cached = await c.env.CACHE.get(key);
-      if (cached) {
+      const result = (await artifactStore(c.env).get(key)) as RunResultEnrichment | null;
+      if (result) {
         try {
-          const result = JSON.parse(cached) as RunResultEnrichment;
           // Section-enrichment range guard (mirrors runEnrichmentOnce): the
           // title-keyed section cache can hold another section's result after a
           // re-extraction shifts the title's range. Only serve the hot-path hit
@@ -3534,7 +3614,7 @@ app.post('/api/run', async (c) => {
             return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0 } });
           }
         } catch {
-          /* corrupt cache; fall through to enqueue */
+          /* def load failed; fall through to enqueue */
         }
       }
     }
@@ -3557,40 +3637,48 @@ app.post('/api/run', async (c) => {
   // be CAS-guarded so this never overwrites an edit.)
   if (!job.bypass_cache && job.enrichment_id && c.env.CACHE && c.env.ENRICHMENT_QUEUE) {
     const def = await loadEnrichmentDef(c.env, job.enrichment_id);
-    const { key } = await cacheKeyForRunBody(c.env, job);
-    const prevKey = previousVersionKey(key, job.enrichment_id, def?.cache_version);
-    if (prevKey) {
-      const stale = await c.env.CACHE.get(prevKey);
-      if (stale) {
-        try {
-          const result = JSON.parse(stale) as RunResultEnrichment;
-          // Mirror the hot path's section-range guard: don't serve a stale
-          // result stamped for a different section than the one requested.
-          const sectionRange = sectionRangeOf(def, job.mark_input);
-          if (!sectionRange || result.section_range === sectionRange) {
-            // Enqueue the recompute only when budget allows (else just serve
-            // stale; the warm path will fill the new version when budget frees)
-            // and only when not gated as an experimental warm. `refreshing`
-            // reflects whether a recompute was ACTUALLY queued — otherwise the
-            // client polls a run that will never start and keeps the updating
-            // marker up (experimental cards stay stale until explicitly warmed;
-            // budget-paused stays stale until budget frees).
-            const customRun = !!(job.enrichment_id.endsWith('.qa') && job.user_question);
-            let refreshing = false;
-            if (!skipExperimentalWarm && (await checkBudget(c.env, { custom: customRun })).ok) {
-              job.runId = await makeRunId(job);
-              await c.env.ENRICHMENT_QUEUE.send(job);
-              refreshing = true;
-            }
-            recordTelemetry(c, runTelemetryRec(job, { ...result, cache_hit: true }, 0));
-            return c.json({
-              status: 'ok',
-              result: { ...result, cache_hit: true, total_ms: 0, stale: true, refreshing },
-            });
-          }
-        } catch {
-          /* corrupt prev value; fall through to a normal enqueue */
+    if (def) {
+      // Mirror the hot path's section-range guard via the store's accept
+      // predicate: don't serve a stale result stamped for a different section
+      // than the one requested (and a corrupt prev value reads as a miss, so
+      // it falls through to a normal enqueue exactly as before).
+      const sectionRange = sectionRangeOf(def, job.mark_input);
+      const swr = await artifactStore(c.env).getSWR(
+        enrichKeyInfo(def),
+        {
+          instanceId: await instanceIdOf(job.mark_input),
+          unit: { work: job.tractate, unit: job.page },
+          qualifier: job.user_question ? await qualifierHash(job.user_question) : undefined,
+          lang: job.lang ?? 'en',
+        },
+        {
+          accept: (v) => !sectionRange || (v as RunResultEnrichment).section_range === sectionRange,
+        },
+      );
+      // Serve only a PREVIOUS-version hit here (the canonical key was already
+      // checked — and missed or range-failed — on the hot path above). The
+      // recompute job + the 202 fallthrough keep targeting the CANONICAL key.
+      if (swr.stale && swr.value) {
+        const result = swr.value as RunResultEnrichment;
+        // Enqueue the recompute only when budget allows (else just serve
+        // stale; the warm path will fill the new version when budget frees)
+        // and only when not gated as an experimental warm. `refreshing`
+        // reflects whether a recompute was ACTUALLY queued — otherwise the
+        // client polls a run that will never start and keeps the updating
+        // marker up (experimental cards stay stale until explicitly warmed;
+        // budget-paused stays stale until budget frees).
+        const customRun = !!(job.enrichment_id.endsWith('.qa') && job.user_question);
+        let refreshing = false;
+        if (!skipExperimentalWarm && (await checkBudget(c.env, { custom: customRun })).ok) {
+          job.runId = await makeRunId(job);
+          await c.env.ENRICHMENT_QUEUE.send(job);
+          refreshing = true;
         }
+        recordTelemetry(c, runTelemetryRec(job, { ...result, cache_hit: true }, 0));
+        return c.json({
+          status: 'ok',
+          result: { ...result, cache_hit: true, total_ms: 0, stale: true, refreshing },
+        });
       }
     }
   }
@@ -3762,14 +3850,11 @@ app.get('/api/run-status/:runId', async (c) => {
   }
   const cacheKey = c.req.query('k');
   if (cacheKey) {
-    const cached = await cache.get(cacheKey);
-    if (cached) {
-      try {
-        const result = JSON.parse(cached) as RunResult;
-        return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0 } });
-      } catch {
-        /* corrupt canonical entry — fall through to pending */
-      }
+    // store.get maps a corrupt canonical entry to a miss — same fall-through
+    // to pending the old inline parse had.
+    const result = (await artifactStore(c.env).get(cacheKey)) as RunResult | null;
+    if (result) {
+      return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0 } });
     }
   }
   return c.json({ status: 'pending' }, 202);
@@ -8670,28 +8755,32 @@ async function evictCascadeEntries(
   tractate: string,
   page: string,
 ): Promise<number> {
-  const cache = env.CACHE;
-  if (!cache) return 0;
+  if (!env.CACHE) return 0;
+  const store = artifactStore(env);
+  const unit = { work: tractate, unit: page };
   let evicted = 0;
   const wholeIid = await instanceIdOf({ fields: {} });
   for (const id of ids) {
     const def = await loadEnrichmentDef(env, id);
     if (!def) continue;
-    const daf = def.scope === 'local' ? { tractate, page } : undefined;
     // Whole-daf instance ({fields:{}}) — id is lang-safe, so evict both langs.
     for (const lang of ['en', 'he'] as const) {
-      const key = keyForEnrichment(def, wholeIid, daf, undefined, lang);
+      const key = store.keyFor(enrichKeyInfo(def), { instanceId: wholeIid, unit, lang });
       if (key) {
-        await cache.delete(key);
+        await store.evict(key);
         evicted++;
       }
     }
     // Per-section/entity instances — EN only (the HE id derives from the Hebrew
     // title we can't enumerate here; see the doc above).
     for (const inst of await readMarkInstances(env, def.mark, tractate, page).catch(() => [])) {
-      const key = keyForEnrichment(def, await instanceIdOf(inst), daf, undefined, 'en');
+      const key = store.keyFor(enrichKeyInfo(def), {
+        instanceId: await instanceIdOf(inst),
+        unit,
+        lang: 'en',
+      });
       if (key) {
-        await cache.delete(key);
+        await store.evict(key);
         evicted++;
       }
     }
@@ -8723,6 +8812,12 @@ async function deepWarmDaf(
   const queue = rc.env.ENRICHMENT_QUEUE;
   const cache = rc.env.CACHE;
   if (!queue) return { marks: 0, enqueued: 0, skipped: 0, bridges: 0 };
+  // Keys derive through the store (one derivation chokepoint); the probes
+  // below stay raw `cache.get` EXISTENCE checks on purpose — store.get would
+  // treat a corrupt entry as a miss and re-enqueue it, where today's probe
+  // counts it as cached. Skip-if-cached semantics are unchanged.
+  const store = artifactStore(rc.env);
+  const unit = { work: tractate, unit: page };
   let marks = 0,
     enqueued = 0,
     skipped = 0;
@@ -8748,13 +8843,7 @@ async function deepWarmDaf(
         const def = await loadEnrichmentDef(rc.env, enrichmentId);
         if (!def) continue;
         const iid = await instanceIdOf(inst);
-        const key = keyForEnrichment(
-          def,
-          iid,
-          def.scope === 'local' ? { tractate, page } : undefined,
-          undefined,
-          lang,
-        );
+        const key = store.keyFor(enrichKeyInfo(def), { instanceId: iid, unit, lang });
         if (key && cache && (await cache.get(key))) {
           skipped++;
           continue;
@@ -8799,7 +8888,7 @@ async function deepWarmDaf(
         );
         if (!sec) continue;
         const iid = await instanceIdOf(sec);
-        const key = keyForEnrichment(narrativeDef, iid, { tractate, page }, undefined, lang);
+        const key = store.keyFor(enrichKeyInfo(narrativeDef), { instanceId: iid, unit, lang });
         if (key && cache && (await cache.get(key))) {
           skipped++;
           continue;
@@ -8849,7 +8938,7 @@ async function deepWarmDaf(
       const def = await loadEnrichmentDef(rc.env, eid);
       if (!def) continue;
       const iid = await instanceIdOf({ fields: {} });
-      const key = keyForEnrichment(def, iid, { tractate, page }, undefined, lang);
+      const key = store.keyFor(enrichKeyInfo(def), { instanceId: iid, unit, lang });
       if (key && cache && (await cache.get(key))) {
         skipped++;
         continue;
