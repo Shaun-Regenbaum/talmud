@@ -1,13 +1,18 @@
 # Sources — the context pool, and how to add one
 
+> Path note: `src/...` paths below are relative to `packages/talmud`. The
+> generic context model (`ContextItem`, the matcher contract, `select.ts`)
+> moved to `@corpus/core/context/*` in the four-primitive consolidation — see
+> `docs/framework.md` for the model; this doc stays the operational recipe.
+
 A **source** is anything external we pull in to build a daf and feed its smart
 notes: Sefaria commentary, Mishnayot, Rishonim, halachic codifications, topic
 tags, and the dafyomi.co.il study aids. Every source maps into the one flat
-`ContextItem` model (`src/lib/context/types.ts`) — `{ source, sourceLabel, segs,
+`ContextItem` model (`@corpus/core/context/types`) — `{ source, sourceLabel, segs,
 … }` — and lands in the shared **context pool** assembled by `collectContext`
 (`src/worker/context-providers.ts`). The pool is what the alignment workbench
 renders and what enrichments draw from (via `contextForAnchor` /
-`formatContextForPrompt` in `src/lib/context/select.ts`).
+`formatContextForPrompt` in `@corpus/core/context/select`).
 
 ## The registry is the source of truth
 
@@ -46,8 +51,8 @@ is visible, never silently missing.
    bundle already knows the anchor; otherwise leave `segs: []` (optionally with
    an `amud`) for a matcher / the AI placer to fill.
 
-3. **Register it.** Add the `ContextSource` union member in
-   `src/lib/context/types.ts` and its `SOURCE_META` entry in `sources.ts`.
+3. **Register it.** Add the `ContextSource` union member and its `SOURCE_META`
+   entry, both in `src/lib/context/sources.ts`.
    (Skipping either fails `pnpm typecheck`.) Update the count in
    `tests/context-sources.test.ts`.
 

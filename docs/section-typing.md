@@ -2,6 +2,11 @@
 
 Status: draft for review. No code yet. Branch `section-typing-design`.
 
+> Written before the four-primitive consolidation (PRs #356–#364); the
+> producer/anchor vocabulary it uses now lives in `@corpus/core` (e.g.
+> `src/lib/context/placement.ts` is `@corpus/core/context/placement`) — see
+> `docs/framework.md` for the current model. The design itself still applies.
+
 ## The problem we're solving
 
 The per-section "voices" graph (`argument.voices`) assumes every section is a
