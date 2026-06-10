@@ -3,6 +3,14 @@
  * a word, or drag across a phrase) and gets a concise English gloss. Context
  * (the surrounding verse) is passed so a word is translated in the sense it has
  * here. Cached per normalized selection.
+ *
+ * DELIBERATELY NOT migrated onto runProducer/ArtifactStore (the only one of the
+ * five producers left on bespoke plumbing): its cache stores a RAW STRING with
+ * a 30-day TTL — both incompatible with the StoredArtifact envelope and the
+ * store's no-TTL contract (decided at the tanach migration stage; also locked
+ * in core's key-schemes tests, which exclude translate:v1 from the template
+ * scheme). The producer is still DECLARED in producers/defs.ts so the registry
+ * is complete; this module remains its live implementation.
  */
 
 import { type LLMEnv, runLLM } from '@corpus/core/llm/llm';
@@ -16,7 +24,7 @@ export interface TranslateResult {
   outTokens: number;
 }
 
-const SYSTEM = [
+export const TRANSLATE_SYSTEM = [
   'You translate Biblical Hebrew into concise, plain English.',
   '',
   'You are given a word or short phrase (it may carry niqqud and cantillation)',
@@ -25,7 +33,11 @@ const SYSTEM = [
   'context. No explanation, no transliteration, no notes.',
 ].join('\n');
 
-const SCHEMA = {
+/** DESCRIPTIVE template for the registry (the live call below builds the same
+ *  prompt by hand — this producer does not run through runProducer). */
+export const TRANSLATE_USER_TEMPLATE = 'Hebrew: {{q}}{{context_suffix}}';
+
+export const TRANSLATE_SCHEMA = {
   name: 'translation',
   strict: true,
   schema: {
@@ -43,12 +55,12 @@ export async function translateHebrew(
 ): Promise<TranslateResult> {
   const res = await runLLM(env, {
     messages: [
-      { role: 'system', content: SYSTEM },
+      { role: 'system', content: TRANSLATE_SYSTEM },
       { role: 'user', content: `Hebrew: ${q}${context ? `\n\nFrom this verse: ${context}` : ''}` },
     ],
     max_tokens: 120,
     temperature: 0.2,
-    response_format: { type: 'json_schema', json_schema: SCHEMA },
+    response_format: { type: 'json_schema', json_schema: TRANSLATE_SCHEMA },
     tag: 'tanach:translate',
   });
 
