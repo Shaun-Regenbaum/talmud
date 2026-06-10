@@ -15,12 +15,24 @@ export interface UsageEntry {
   cost: number | null;
 }
 
+export interface ProducerUsage {
+  calls: number;
+  costUsd: number;
+  /** Added later than calls/costUsd — absent on buckets recorded before the
+   *  field existed, so per-bucket token totals can undercount early traffic.
+   *  Defaulted to 0 at display time. */
+  inTokens?: number;
+  outTokens?: number;
+}
+
 export interface UsageSummary {
   calls: number;
   inTokens: number;
   outTokens: number;
   costUsd: number;
-  byProducer: Record<string, { calls: number; costUsd: number }>;
+  byProducer: Record<string, ProducerUsage>;
+  /** Same vintage caveat as ProducerUsage token fields. */
+  byModel?: Record<string, ProducerUsage>;
   recent: UsageEntry[];
 }
 
@@ -28,7 +40,15 @@ const KEY = 'usage:v1';
 const RECENT_CAP = 100;
 
 function empty(): UsageSummary {
-  return { calls: 0, inTokens: 0, outTokens: 0, costUsd: 0, byProducer: {}, recent: [] };
+  return {
+    calls: 0,
+    inTokens: 0,
+    outTokens: 0,
+    costUsd: 0,
+    byProducer: {},
+    byModel: {},
+    recent: [],
+  };
 }
 
 export async function readUsage(cache: KVNamespace): Promise<UsageSummary> {
@@ -43,16 +63,24 @@ export async function readUsage(cache: KVNamespace): Promise<UsageSummary> {
   return empty();
 }
 
+function bump(bucket: Record<string, ProducerUsage>, key: string, e: UsageEntry): void {
+  const b = bucket[key] ?? { calls: 0, costUsd: 0, inTokens: 0, outTokens: 0 };
+  bucket[key] = b;
+  b.calls += 1;
+  b.costUsd += e.cost ?? 0;
+  b.inTokens = (b.inTokens ?? 0) + e.in;
+  b.outTokens = (b.outTokens ?? 0) + e.out;
+}
+
 export async function recordUsage(cache: KVNamespace, e: UsageEntry): Promise<void> {
   const s = await readUsage(cache);
   s.calls += 1;
   s.inTokens += e.in;
   s.outTokens += e.out;
   s.costUsd += e.cost ?? 0;
-  const p = s.byProducer[e.producer] ?? { calls: 0, costUsd: 0 };
-  s.byProducer[e.producer] = p;
-  p.calls += 1;
-  p.costUsd += e.cost ?? 0;
+  bump(s.byProducer, e.producer, e);
+  s.byModel ??= {};
+  bump(s.byModel, e.model, e);
   s.recent.unshift(e);
   s.recent = s.recent.slice(0, RECENT_CAP);
   await cache.put(KEY, JSON.stringify(s));

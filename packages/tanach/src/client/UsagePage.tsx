@@ -9,12 +9,20 @@ interface UsageEntry {
   out: number;
   cost: number | null;
 }
+interface BucketUsage {
+  calls: number;
+  costUsd: number;
+  // Absent on buckets recorded before token tracking existed.
+  inTokens?: number;
+  outTokens?: number;
+}
 interface UsageSummary {
   calls: number;
   inTokens: number;
   outTokens: number;
   costUsd: number;
-  byProducer: Record<string, { calls: number; costUsd: number }>;
+  byProducer: Record<string, BucketUsage>;
+  byModel?: Record<string, BucketUsage>;
   recent: UsageEntry[];
 }
 
@@ -27,6 +35,67 @@ const usd = (n: number) => `$${(n ?? 0).toFixed(4)}`;
 const num = (n: number) => (n ?? 0).toLocaleString();
 const when = (ts: number) => new Date(ts).toLocaleString();
 const model = (m: string) => m.replace(/^openrouter\//, '');
+const tokens = (b: BucketUsage) =>
+  b.inTokens || b.outTokens ? `${num(b.inTokens ?? 0)} / ${num(b.outTokens ?? 0)}` : '—';
+const perCall = (b: BucketUsage) => (b.calls > 0 ? usd(b.costUsd / b.calls) : '—');
+
+function byCostDesc(entries: Record<string, BucketUsage>): Array<[string, BucketUsage]> {
+  return Object.entries(entries).sort((a, b) => b[1].costUsd - a[1].costUsd);
+}
+
+/** A bucket table (producers or models): cost-sorted, with a relative cost
+ *  share bar, tokens (where recorded), and average cost per call. */
+function BucketTable(props: {
+  label: string;
+  buckets: Record<string, BucketUsage>;
+  nameCell?: (name: string) => JSX.Element | string;
+}): JSX.Element {
+  const rows = () => byCostDesc(props.buckets);
+  const maxCost = () => Math.max(...rows().map(([, b]) => b.costUsd), 0.000001);
+  return (
+    <table class="usage-table">
+      <thead>
+        <tr>
+          <th>{props.label}</th>
+          <th>Calls</th>
+          <th>Tokens in/out</th>
+          <th>$/call</th>
+          <th>Cost</th>
+        </tr>
+      </thead>
+      <tbody>
+        <For
+          each={rows()}
+          fallback={
+            <tr>
+              <td colspan="5" class="muted">
+                no calls yet
+              </td>
+            </tr>
+          }
+        >
+          {([name, b]) => (
+            <tr>
+              <td>{props.nameCell ? props.nameCell(name) : name}</td>
+              <td>{num(b.calls)}</td>
+              <td class="muted">{tokens(b)}</td>
+              <td class="muted">{perCall(b)}</td>
+              <td>
+                <span class="usage-cost-cell">
+                  <span
+                    class="usage-cost-bar"
+                    style={{ width: `${Math.max(2, (b.costUsd / maxCost()) * 72)}px` }}
+                  />
+                  {usd(b.costUsd)}
+                </span>
+              </td>
+            </tr>
+          )}
+        </For>
+      </tbody>
+    </table>
+  );
+}
 
 /** Self-tracked LLM usage for the Tanach producers (from the KV ledger at
  *  /api/usage). Independent of the AI Gateway. */
@@ -69,35 +138,12 @@ export function UsagePage(): JSX.Element {
             </div>
 
             <h2>By producer</h2>
-            <table class="usage-table">
-              <thead>
-                <tr>
-                  <th>Producer</th>
-                  <th>Calls</th>
-                  <th>Cost</th>
-                </tr>
-              </thead>
-              <tbody>
-                <For
-                  each={Object.entries(d().byProducer)}
-                  fallback={
-                    <tr>
-                      <td colspan="3" class="muted">
-                        no calls yet
-                      </td>
-                    </tr>
-                  }
-                >
-                  {([name, p]) => (
-                    <tr>
-                      <td>{name}</td>
-                      <td>{num(p.calls)}</td>
-                      <td>{usd(p.costUsd)}</td>
-                    </tr>
-                  )}
-                </For>
-              </tbody>
-            </table>
+            <BucketTable label="Producer" buckets={d().byProducer} />
+
+            <Show when={Object.keys(d().byModel ?? {}).length > 0}>
+              <h2>By model</h2>
+              <BucketTable label="Model" buckets={d().byModel ?? {}} nameCell={model} />
+            </Show>
 
             <h2>Recent calls</h2>
             <table class="usage-table">

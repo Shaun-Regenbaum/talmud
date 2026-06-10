@@ -402,6 +402,18 @@ body {
 .usage-table .muted {
   color: var(--muted);
 }
+.usage-cost-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.usage-cost-bar {
+  display: inline-block;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.45;
+}
 
 /* this-week's-parsha button + EN/HE language toggle (like the Talmud reader) */
 .parsha-btn {

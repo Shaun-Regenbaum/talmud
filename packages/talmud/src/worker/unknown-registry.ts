@@ -433,9 +433,15 @@ export function recordObservedConcept(
 }
 
 export interface UnknownSummary<T> {
-  total: number; // distinct entities tracked
-  sightings: number; // sum of counts
-  sample: T[]; // top entities by sighting count
+  /** Distinct KV entries under the prefix (exact — from key listing; for
+   *  filtered lists this counts pre-filter entries). */
+  total: number;
+  /** Sum of sighting counts over the SCANNED subset. */
+  sightings: number;
+  /** How many entries had their values read. scanned < total means sightings
+   *  and the sample are approximate (the value-fetch budget capped the scan). */
+  scanned?: number;
+  sample: T[]; // top entities by sighting count within the scanned subset
 }
 
 // Read values in bounded batches and keep only a running top-N, so memory stays
@@ -443,6 +449,17 @@ export interface UnknownSummary<T> {
 // (one big Promise.all) blew the 128MB worker limit once `concepts` grew into
 // the thousands and three of these run in parallel from the backlog build.
 const LIST_BATCH = 400;
+
+/**
+ * Per-list cap on VALUE fetches. Every cache.get is a Worker subrequest
+ * (limit ~1000 per request), and three of these lists run in parallel from the
+ * backlog build — at ~2k unknown-rabbi keys alone, fetching every value blew
+ * the subrequest budget and 500'd /api/usage/backlog. Key LISTING is cheap
+ * (one subrequest per 1000 keys), so `total` stays exact; `sightings` and the
+ * top-N sample come from the first `VALUE_BUDGET` keys and are flagged
+ * approximate via `scanned < total`.
+ */
+const VALUE_BUDGET = 250;
 
 async function listPrefix<T extends { count: number }>(
   cache: KVNamespace,
@@ -452,6 +469,8 @@ async function listPrefix<T extends { count: number }>(
 ): Promise<UnknownSummary<T>> {
   const byCount = (a: T, b: T) => (b.count ?? 0) - (a.count ?? 0);
   let total = 0;
+  let scanned = 0;
+  let kept = 0;
   let sightings = 0;
   let top: T[] = [];
   // Cap the working set well above `sample` so the top-N is exact after a final
@@ -462,6 +481,7 @@ async function listPrefix<T extends { count: number }>(
     for (let i = 0; i < names.length; i += LIST_BATCH) {
       const recs = await Promise.all(names.slice(i, i + LIST_BATCH).map((n) => cache.get(n)));
       for (const raw of recs) {
+        scanned += 1;
         if (!raw) continue;
         let r: T;
         try {
@@ -470,7 +490,7 @@ async function listPrefix<T extends { count: number }>(
           continue;
         }
         if (keep && !keep(r)) continue;
-        total += 1;
+        kept += 1;
         sightings += r.count ?? 0;
         top.push(r);
       }
@@ -488,12 +508,21 @@ async function listPrefix<T extends { count: number }>(
       list_complete: boolean;
       cursor?: string;
     };
-    await ingest(res.keys.map((k) => k.name));
+    total += res.keys.length;
+    const remaining = VALUE_BUDGET - scanned;
+    if (remaining > 0) {
+      await ingest(res.keys.slice(0, remaining).map((k) => k.name));
+    }
     if (res.list_complete || !res.cursor) break;
     cursor = res.cursor;
   }
   top.sort(byCount);
-  return { total, sightings, sample: top.slice(0, sample) };
+  // When the scan covered every key, the old post-filter semantics hold
+  // exactly (a `keep`-filtered list reports kept entries, not raw keys). Only
+  // a budget-capped scan falls back to the raw key count, where the filtered
+  // fraction of unread values is unknowable.
+  if (scanned >= total) total = kept;
+  return { total, sightings, scanned, sample: top.slice(0, sample) };
 }
 
 export function listUnknownRabbis(
