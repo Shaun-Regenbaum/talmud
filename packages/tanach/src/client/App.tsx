@@ -578,6 +578,7 @@ export function App(): JSX.Element {
           </button>
         </Show>
 
+        {/* biome-ignore lint/a11y/useSemanticElements: a fieldset would bring UA margin/padding/min-inline-size and change the toggle's layout; div+role="group" carries the same semantics */}
         <div class="lang-toggle" role="group" aria-label="Language">
           <button
             type="button"
@@ -641,6 +642,8 @@ export function App(): JSX.Element {
       <Show when={loc().view === 'scroll' && data()}>
         {(ch) => (
           <main class="scroll-main" ref={(el) => (scrollMain = el)}>
+            {/* biome-ignore lint/a11y/noStaticElementInteractions: scripture prose surface; onMouseUp is text-selection word lookup and onClick is a pointer convenience delegated to verse-number spans inside innerHTML — a role would mis-announce running text */}
+            {/* biome-ignore lint/a11y/useKeyWithClickEvents: the click target (.vnum spans inside innerHTML) is not focusable; the same verse drawers are keyboard-reachable via the gutter <button>s (evt-margin / vgutter) */}
             <div
               class="scroll-band"
               dir="rtl"

@@ -21,10 +21,11 @@ export interface SefariaTextResponse {
     versionTitle: string;
     versionSource?: string;
   }>;
-  commentary?: any[];
-  sheets?: any[];
-  notes?: any[];
-  links?: any[];
+  /** Present on the v1 response but never read here — shapes left opaque. */
+  commentary?: unknown[];
+  sheets?: unknown[];
+  notes?: unknown[];
+  links?: unknown[];
 }
 
 export interface SefariaRelatedResponse {
@@ -41,8 +42,9 @@ export interface SefariaRelatedResponse {
     sourceHasEn: boolean;
     commentaryNum?: number;
   }>;
-  sheets: any[];
-  notes: any[];
+  /** Present on the /related response but never read here — shapes left opaque. */
+  sheets: unknown[];
+  notes: unknown[];
 }
 
 export interface TalmudPageData {

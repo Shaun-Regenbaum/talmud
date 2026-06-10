@@ -461,12 +461,26 @@ export default function ArgumentVoiceMap(props: Props): JSX.Element {
             <For each={layout().nodes}>
               {(n) => {
                 const clickable = props.onClickVoice && isClickableVoiceName(n.name);
+                const openVoice = clickable ? () => props.onClickVoice!(n.name) : undefined;
                 const titleText = n.stance
                   ? `${n.name} (${n.role})\n${n.stance}`
                   : `${n.name} (${n.role})`;
                 return (
+                  // biome-ignore lint/a11y/noStaticElementInteractions: role="button"/tabindex ARE set when this voice is clickable; Biome cannot resolve the conditional role expression
                   <g
-                    onClick={clickable ? () => props.onClickVoice!(n.name) : undefined}
+                    role={clickable ? 'button' : undefined}
+                    tabindex={clickable ? 0 : undefined}
+                    onClick={openVoice}
+                    onKeyDown={
+                      openVoice
+                        ? (e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              openVoice();
+                            }
+                          }
+                        : undefined
+                    }
                     style={clickable ? { cursor: 'pointer' } : undefined}
                   >
                     <title>{clickable ? `${titleText}\n— click to open` : titleText}</title>

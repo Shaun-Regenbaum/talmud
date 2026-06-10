@@ -48,6 +48,7 @@ export function TopBar(): JSX.Element {
       >
         {t('tutorial.help')}
       </button>
+      {/* biome-ignore lint/a11y/useSemanticElements: .tb-seg is an inline-flex pill; a fieldset cannot reliably be a flex container and carries UA border/padding/min-inline-size */}
       <div
         class="tb-seg"
         role="group"

@@ -115,10 +115,20 @@ function ArgumentSection(props: {
 
   return (
     <section class="flow-section">
+      {/* biome-ignore lint/a11y/useSemanticElements: section heading that doubles as a daf-anchor target; a button element would break the flow-section-head heading layout */}
       <h3
         class="flow-section-head"
         classList={{ 'flow-section-head-linked': !!props.onAnchorClick }}
         onClick={clickHead}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            clickHead();
+          }
+        }}
+        // biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: the heading stays an h3 in the DOM for the flow-section-head styling; restructuring to a nested button would change the reader layout
+        role="button"
+        tabIndex={0}
       >
         <span class="flow-section-num">§{props.idx + 1}</span>
         <span class="flow-section-title">{sec().title}</span>

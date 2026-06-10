@@ -228,8 +228,18 @@ export default function ArgumentNarrative(props: {
                       );
                     };
                     return (
+                      // biome-ignore lint/a11y/useSemanticElements: a beat is a list item in the ordered beat list; converting it to a button would break the ol>li structure and layout
                       <li
                         onClick={toggle}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggle();
+                          }
+                        }}
+                        // biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: the beat stays an li in the DOM so the ol keeps valid children; a nested button would change the reader layout
+                        role="button"
+                        tabIndex={0}
                         title={anchored() ? 'Highlight this beat on the daf' : undefined}
                         style={{
                           'font-size': '0.82rem',

@@ -132,6 +132,7 @@ export default function DevModeShelf(props: Props) {
       }}
     >
       {/* Drag handle on the right edge */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: pointer-drag resize handle for the dev-only shelf; resizing has no keyboard equivalent */}
       <div
         onMouseDown={onDragStart}
         style={{

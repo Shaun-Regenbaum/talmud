@@ -318,8 +318,21 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
               const active = () => props.activeIndex === n.index;
               const cy = () => nodeY(i()) + NODE_H / 2;
               const lines = () => wrapTitle(n.title, TITLE_CHARS, TITLE_LINES);
+              const select = () => props.onSelect(n.index);
               return (
-                <g style={{ cursor: 'pointer' }} onClick={() => props.onSelect(n.index)}>
+                // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
+                <g
+                  role="button"
+                  tabindex={0}
+                  style={{ cursor: 'pointer' }}
+                  onClick={select}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      select();
+                    }
+                  }}
+                >
                   <title>{`${n.index + 1}. ${n.title} — click for voices`}</title>
                   <rect
                     x={LEFT_PAD}

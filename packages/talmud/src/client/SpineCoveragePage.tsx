@@ -687,10 +687,20 @@ export function SpineCoveragePage(): JSX.Element {
                     const filledCount = createMemo(
                       () => r().columns.filter((c) => row.cells[c.id]).length,
                     );
+                    const toggleRow = () => setExpanded(isOpen() ? null : row.page);
                     return (
                       <>
+                        {/* biome-ignore lint/a11y/useSemanticElements: a native <button> would inject UA layout/typography into this tightly inline-styled grid row; role+tabIndex+keydown give the same semantics */}
                         <div
-                          onClick={() => setExpanded(isOpen() ? null : row.page)}
+                          role="button"
+                          tabIndex={0}
+                          onClick={toggleRow}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              toggleRow();
+                            }
+                          }}
                           style={{
                             display: 'flex',
                             'align-items': 'center',

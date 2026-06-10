@@ -552,8 +552,20 @@ function ArgumentMoveCard(props: {
           card's click-to-highlight target to the synthesis body — clicks
           on rabbi-link buttons + chips stopPropagation so they don't toggle
           the highlight. */}
+      {/* biome-ignore lint/a11y/useSemanticElements: wraps the synthesis prose block, which nests rabbi-link buttons and chips; a native button cannot contain them */}
       <div
         onClick={toggleHighlight}
+        onKeyDown={(e) => {
+          // Only the wrapper itself toggles — a keydown bubbled up from a
+          // focused rabbi-link button or chip inside must not also toggle.
+          if (e.currentTarget !== e.target) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleHighlight();
+          }
+        }}
+        role="button"
+        tabIndex={0}
         title={isActive() ? t('move.highlight.clear') : t('move.highlight.set')}
         style={{ cursor: 'pointer' }}
       >
@@ -626,9 +638,19 @@ function ArgumentMoveFlow(props: {
             const f = m.fields;
             const color = ROLE_COLORS[f.role] ?? '#64748b';
             const isActive = () => props.highlightedMoveId === f.id;
+            const toggleMove = () => props.onHighlightMove(isActive() ? null : m);
             return (
+              // biome-ignore lint/a11y/useSemanticElements: inline-styled flex row with a baseline-aligned Hebrew excerpt; a native button's UA styles (border, font, centering) would alter the reader layout
               <div
-                onClick={() => props.onHighlightMove(isActive() ? null : m)}
+                onClick={toggleMove}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleMove();
+                  }
+                }}
+                role="button"
+                tabIndex={0}
                 title="Highlight this move on the daf"
                 style={{
                   display: 'flex',

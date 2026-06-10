@@ -128,7 +128,8 @@ export function MikraotGedolot(props: {
         el.classList.add('hl');
       });
   };
-  const onOver = (e: MouseEvent) => {
+  // Shared by mouse-over and focus so keyboard focus mirrors the hover highlight.
+  const onOver = (e: Event) => {
     const s = (e.target as HTMLElement).closest('.mg-seg');
     highlight(s ? s.getAttribute('data-v') : null);
   };
@@ -228,11 +229,14 @@ export function MikraotGedolot(props: {
       <Show when={data()}>
         {(d) => (
           <>
+            {/* biome-ignore lint/a11y/noStaticElementInteractions: hover-only cross-highlighting of pasuk/Rashi/Onkelos segments is decorative; activation lives on the gutter <button>s — a role would mis-announce the rendered daf text */}
             <div
               class="mg-host"
               ref={host}
               onMouseOver={onOver}
+              onFocus={onOver}
               onMouseLeave={() => highlight(null)}
+              onBlur={() => highlight(null)}
             >
               <DafRenderer
                 main={main()}

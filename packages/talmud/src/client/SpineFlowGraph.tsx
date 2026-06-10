@@ -484,7 +484,9 @@ export default function SpineFlowGraph(props: {
                           <For each={chips}>
                             {(c) => {
                               const on = () => hl() === c.slug;
+                              const trace = () => props.onRabbi?.(c.slug);
                               return (
+                                // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
                                 <text
                                   x={c.x}
                                   y={yTop + h - 8}
@@ -493,7 +495,15 @@ export default function SpineFlowGraph(props: {
                                   font-family="system-ui, sans-serif"
                                   fill={on() ? HILITE : '#8a7a55'}
                                   style={{ cursor: 'pointer' }}
-                                  onClick={() => props.onRabbi?.(c.slug)}
+                                  role="button"
+                                  tabindex={0}
+                                  onClick={trace}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      trace();
+                                    }
+                                  }}
                                 >
                                   <title>{`trace ${c.name} across the tractate`}</title>
                                   {c.name}
@@ -558,10 +568,20 @@ export default function SpineFlowGraph(props: {
                   {(page) => {
                     const yTop = o.nodeY.get(page)!;
                     const meta = o.meta.get(page)!;
+                    const pick = () => props.onPickDaf?.(page);
                     return (
+                      // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
                       <g
+                        role="button"
+                        tabindex={0}
                         style={{ cursor: props.onPickDaf ? 'pointer' : 'default' }}
-                        onClick={() => props.onPickDaf?.(page)}
+                        onClick={pick}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            pick();
+                          }
+                        }}
                       >
                         <title>{`${page} — ${meta.sections} sections${meta.hasCross ? ' · cross-daf links' : ''}`}</title>
                         <rect

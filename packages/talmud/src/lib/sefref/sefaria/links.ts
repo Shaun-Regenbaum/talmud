@@ -33,7 +33,15 @@ const commentaryIncludes = {
   Tosafot: 'tosafot',
 } as const;
 
-function parseLink(daf: string, linkObj: any): SefariaLink | null {
+/** The raw link object Sefaria's /api/related returns — only the fields we read. */
+interface RawSefariaLink {
+  ref: string;
+  category: string;
+  anchorRef?: string;
+  collectiveTitle?: { en: string; he: string };
+}
+
+function parseLink(daf: string, linkObj: RawSefariaLink): SefariaLink | null {
   try {
     const anchorRef = linkObj.anchorRef;
     if (!anchorRef?.includes(':')) return null;
@@ -102,7 +110,7 @@ export async function getSefariaLinks(tractate: string, daf: string): Promise<Se
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    const data = (await response.json()) as { links?: unknown };
+    const data = (await response.json()) as { links?: RawSefariaLink[] };
 
     if (!data.links || !Array.isArray(data.links)) {
       console.warn('No links data found in Sefaria response');
@@ -110,7 +118,7 @@ export async function getSefariaLinks(tractate: string, daf: string): Promise<Se
     }
 
     const links = data.links
-      .map((linkObj: any) => parseLink(ref, linkObj))
+      .map((linkObj) => parseLink(ref, linkObj))
       .filter((link: SefariaLink | null): link is SefariaLink => link !== null)
       .filter(includeLink);
 

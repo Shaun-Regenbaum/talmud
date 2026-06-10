@@ -8,7 +8,8 @@
       "!**/node_modules",
       "!**/static",
       "!Sandbox",
-      "!**/scripts/out"
+      "!**/scripts/out",
+      "!**/src/lib/data"
     ]
   },
   "formatter": {
@@ -28,7 +29,6 @@
     "enabled": true,
     "rules": {
       "recommended": true,
-      "a11y": "warn",
       "style": {
         "noNonNullAssertion": "off"
       },
