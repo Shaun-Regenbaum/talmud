@@ -24,6 +24,7 @@ import {
 import { lang } from './i18n';
 import {
   ACTIVE_STROKE,
+  AuthorityBadge,
   BADGE_LLM,
   BADGE_PRO,
   BADGE_SRC,
@@ -41,9 +42,11 @@ import {
   NODE_H,
   NODE_W,
   NodeIcon,
+  ProvenanceSection,
   ROW_H,
   type RunResult,
   type RunTree,
+  StalenessDot,
   TOP_PAD,
   type TreeNode,
   variantOf,
@@ -301,9 +304,21 @@ export function RunTreeDag(props: {
                           >
                             {fmtMs(n().cold_ms)}
                           </span>
+                          <Show when={n().staleness}>
+                            {(s) => (
+                              <StalenessDot
+                                staleness={s()}
+                                inputsChanged={n().inputsChanged}
+                                isMark={n().producer === 'mark'}
+                              />
+                            )}
+                          </Show>
                         </div>
                         <div
                           style={{
+                            display: 'flex',
+                            'align-items': 'center',
+                            gap: '0.3rem',
                             'font-size': '0.66rem',
                             'font-family': 'ui-monospace, Menlo, monospace',
                             color: isLLM() ? '#9a8fb5' : '#9aa4ad',
@@ -312,6 +327,9 @@ export function RunTreeDag(props: {
                             'text-overflow': 'ellipsis',
                           }}
                         >
+                          <Show when={n().authority}>
+                            {(a) => <AuthorityBadge authority={a()} />}
+                          </Show>
                           {isLLM()
                             ? `${(n().model ?? '').split('/').pop()} · ${fmtCost(n().cost)}`
                             : 'source · $0'}
@@ -520,6 +538,7 @@ export function RunTreeDag(props: {
                         nothing cached for this node on this daf yet.
                       </div>
                     </Show>
+                    <ProvenanceSection node={n()} />
                   </>
                 }
               >

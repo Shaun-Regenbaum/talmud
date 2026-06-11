@@ -21,6 +21,7 @@ import {
   isLLMModelId,
   MODEL_PRESETS,
 } from '@corpus/core/llm/settings';
+import type { Authority } from '@corpus/core/model/provenance';
 import {
   forwardSubgraph,
   producerNodesFrom,
@@ -32,9 +33,13 @@ import {
   type ResolveInputsPorts,
   resolveInputs,
 } from '@corpus/core/run/producer-run';
-import { type RunProducerPorts, runProducer } from '@corpus/core/run/run-producer';
-import { ArtifactStore, type KVStore } from '@corpus/core/store/artifact-store';
-import type { StoredArtifact } from '@corpus/core/store/envelope';
+import {
+  provenanceInputRefs,
+  type RunProducerPorts,
+  runProducer,
+} from '@corpus/core/run/run-producer';
+import { ArtifactStore, type KVStore, type Staleness } from '@corpus/core/store/artifact-store';
+import { authorityOf, type StoredArtifact } from '@corpus/core/store/envelope';
 import { producerKeyInfo, talmudLegacyKeyScheme } from '@corpus/core/store/key-schemes';
 import { Hono } from 'hono';
 import {
@@ -154,7 +159,13 @@ import {
   ENRICH_JSON_SCHEMA,
   TRANSLATE_BIO_JSON_SCHEMA,
 } from './output-schemas';
-import { loadEnrichmentDef, loadMarkDef } from './producer-registry';
+import { rawDependenciesOf } from '@corpus/core/model/compat';
+import {
+  adaptCodeEnrichment,
+  listProducers,
+  loadEnrichmentDef,
+  loadMarkDef,
+} from './producer-registry';
 import {
   groundRabbiInstances,
   groundRabbiNames,
@@ -210,6 +221,7 @@ import type {
   EnrichmentDependency,
   LLMExtractor,
   MarkDependency,
+  EnrichmentDefinition as SchemaEnrichmentDefinition,
   MarkDefinition as SchemaMarkDefinition,
 } from './studio-schema';
 import { classifyError, recordTelemetry, runTelemetryRec, type TelemetryRecord } from './telemetry';
@@ -1099,14 +1111,29 @@ app.get('/api/links/:tractate/:page', async (c) => {
   return c.json({ tractate, page, count: links.length, links });
 });
 
+/** Producer nodes over the LIVE registry (KV-over-code via listProducers), so
+ *  cascades and dependents reflect Studio-defined or KV-overridden producers,
+ *  not just the code defs. Falls back to the code registry on a KV failure. */
+async function liveProducerNodes(env: Bindings) {
+  try {
+    const producers = await listProducers(env);
+    return producerNodesFrom(
+      producers.map((p) => ({ id: p.id, dependencies: rawDependenciesOf(p) })),
+    );
+  } catch (err) {
+    console.error('[dep-graph] live registry read failed; using code defs:', err);
+    return producerNodesFrom([...CODE_MARKS, ...CODE_ENRICHMENTS]);
+  }
+}
+
 // Reverse-dependency index over the producer graph: "if `id` (a producer or a
 // source input like 'gemara') changes, what must re-warm?" Computes the cascade
 // that is otherwise reasoned about by hand when bumping a cache_version — e.g.
 // bumping argument.background returns argument.synthesis (which depends on it)
-// and everything downstream. Read-only over the static registry; no daf, no KV.
-app.get('/api/dependents/:id', (c) => {
+// and everything downstream. Read-only over the LIVE registry (KV wins).
+app.get('/api/dependents/:id', async (c) => {
   const id = c.req.param('id');
-  const nodes = producerNodesFrom([...CODE_MARKS, ...CODE_ENRICHMENTS]);
+  const nodes = await liveProducerNodes(c.env);
   const rev = reverseDependencyIndex(nodes);
   const direct = [...(rev.get(id) ?? [])].sort();
   const transitive = [...transitiveDependents(rev, id)].sort();
@@ -1531,6 +1558,13 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
 
   const { nodes: nodeIds, edges } = forwardSubgraph(producerNodesFrom(defs), id);
 
+  // Per-input freshness verdict for the inspector: 'same' (recomputed content
+  // hash matches the one stamped at generation), 'changed', or 'unknown' (the
+  // dep isn't cached / has no stamped hash / can't be recomputed cheaply).
+  interface TreeNodeInput {
+    sourceKey: string;
+    status: 'same' | 'changed' | 'unknown';
+  }
   interface TreeNode {
     id: string;
     label: string;
@@ -1541,6 +1575,14 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
     cold_ms: number | null;
     cost: number | null;
     tokens: number | null;
+    // --- additive provenance/staleness fields (absent on source leaves; null
+    // when nothing is cached). Older clients ignore them. ---
+    authority?: Authority | null;
+    staleness?: Staleness | null;
+    createdAt?: string | null;
+    recipeHash?: string | null;
+    inputs?: TreeNodeInput[];
+    inputsChanged?: string[];
   }
   const out: Record<string, TreeNode> = {};
   let totalColdMs = 0,
@@ -1548,6 +1590,15 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
     llmCount = 0,
     sourceCount = 0,
     cachedCount = 0;
+
+  // The cached entries + per-producer current recipe hashes collected during
+  // the walk, so the second (inputs) pass below recomputes dependency content
+  // hashes from entries ALREADY read — zero extra KV reads, no generation.
+  const store = artifactStore(c.env);
+  const entryOf = new Map<string, RunResult>();
+  const currentRecipeOf = new Map<string, string>();
+  const depsOf = new Map<string, ReadonlyArray<unknown>>();
+  const rootCustomInstance = JSON.stringify(rootInstance) !== JSON.stringify({ fields: {} });
 
   for (const nid of nodeIds) {
     const def = byId.get(nid);
@@ -1570,17 +1621,31 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
     const isMark = markIds.has(nid);
     const ext = (def as { extractor?: { kind?: string; model?: string } }).extractor;
     const isLLM = ext?.kind === 'llm';
-    const job = (isMark
-      ? { mark_id: nid, tractate, page, lang }
-      : {
-          enrichment_id: nid,
-          tractate,
-          page,
-          mark_input: nid === id ? rootInstance : { fields: {} },
+    // Same key derivation (and the same KV def reads) cacheKeyForRunBody
+    // performs — inlined so the loaded def also yields the CURRENT recipe hash
+    // (enrichments stamp recipe_hash at generation; marks never have).
+    let key: string | null = null;
+    if (isMark) {
+      const ldef = await loadMarkDef(c.env, nid);
+      if (ldef) {
+        key = store.keyFor(markKeyInfo(ldef), { unit: { work: tractate, unit: page }, lang });
+        depsOf.set(nid, ldef.dependencies ?? []);
+      }
+    } else {
+      const ldef = await loadEnrichmentDef(c.env, nid);
+      if (ldef) {
+        const iid = await instanceIdOf(nid === id ? rootInstance : { fields: {} });
+        key = store.keyFor(enrichKeyInfo(ldef), {
+          instanceId: iid,
+          unit: { work: tractate, unit: page },
           lang,
-        }) as unknown as JobMessage;
-    const { key } = await cacheKeyForRunBody(c.env, job);
+        });
+        currentRecipeOf.set(nid, await recipeHash(enrichmentRecipe(ldef)));
+        depsOf.set(nid, ldef.dependencies ?? []);
+      }
+    }
     const res = key ? await readCachedResult(c.env, key) : null;
+    if (res) entryOf.set(nid, res);
     const usage = res?.usage as { cost?: number; total_tokens?: number } | undefined;
     const coldMs = typeof res?.elapsed_ms === 'number' ? res.elapsed_ms : null;
     const cost = typeof usage?.cost === 'number' ? usage.cost : null;
@@ -1601,6 +1666,80 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
       cost,
       tokens: typeof usage?.total_tokens === 'number' ? usage.total_tokens : null,
     };
+  }
+
+  // Second pass: provenance + staleness per producer node, computed ONLY from
+  // the entries read above (cache reads only; no LLM, no extra KV).
+  for (const nid of nodeIds) {
+    const node = out[nid];
+    if (!node || node.kind === 'source') continue;
+    const res = entryOf.get(nid);
+    if (!res) {
+      node.authority = null;
+      node.staleness = null;
+      node.createdAt = null;
+      node.recipeHash = null;
+      continue;
+    }
+    const stored = res as unknown as StoredArtifact;
+    node.authority = authorityOf(stored);
+    node.createdAt = stored.provenance?.createdAt || null;
+    const storedHash = res.recipe_hash ?? stored.provenance?.recipeHash ?? null;
+    node.recipeHash = storedHash;
+    // Recompute each stamped input's CURRENT content hash from the dep's
+    // already-read cached entry, the same way provenanceInputRefs hashed the
+    // resolved value at generation (enrichment dep → parsed ?? content; mark
+    // dep → parsed.instances ?? content). 'unknown' when the dep isn't cached,
+    // is a fanOut aggregate (its generation value spanned per-instance runs we
+    // didn't read), or — for a custom-instance root — an enrichment dep that
+    // inherited that instance (whose whole-daf entry isn't what fed the run).
+    const stampedInputs = stored.provenance?.inputs;
+    if (stampedInputs?.length) {
+      const fanOutIds = new Set(
+        (depsOf.get(nid) ?? [])
+          .map((d) =>
+            d && typeof d === 'object' && (d as { fanOut?: boolean }).fanOut
+              ? (d as { enrichment?: string }).enrichment
+              : undefined,
+          )
+          .filter((x): x is string => typeof x === 'string'),
+      );
+      const inputs: TreeNodeInput[] = [];
+      for (const ref of stampedInputs) {
+        const k = ref.sourceKey;
+        if (!k) continue;
+        let status: TreeNodeInput['status'] = 'unknown';
+        const depRes = entryOf.get(k);
+        const depIsMark = markIds.has(k);
+        const comparable =
+          !!ref.contentHash &&
+          !!depRes &&
+          !fanOutIds.has(k) &&
+          (depIsMark || nid !== id || !rootCustomInstance);
+        if (comparable && depRes) {
+          const value = depIsMark
+            ? ((depRes.parsed as { instances?: unknown } | null)?.instances ?? depRes.content)
+            : (depRes.parsed ?? depRes.content);
+          const [cur] = await provenanceInputRefs({ depends: { [k]: value }, anchors: {} });
+          status = cur?.contentHash === ref.contentHash ? 'same' : 'changed';
+        }
+        inputs.push({ sourceKey: k, status });
+      }
+      node.inputs = inputs;
+      node.inputsChanged = inputs.filter((i) => i.status === 'changed').map((i) => i.sourceKey);
+    }
+    // Verdict mirrors ArtifactStore.staleness: the recipe leg first (no stamp
+    // → 'unknown'; marks never stamp one), then the input-hash leg.
+    const current = currentRecipeOf.get(nid) ?? null;
+    node.staleness = !storedHash
+      ? 'unknown'
+      : current && storedHash !== current
+        ? 'stale-recipe'
+        : node.inputsChanged?.length
+          ? 'stale-inputs'
+          : current
+            ? 'fresh'
+            : 'unknown';
   }
 
   return c.json({
@@ -1642,21 +1781,62 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
     ...CODE_MARKS.map((def) => ({ def, isMark: true as const })),
     ...wholeDafEnrichments.map((def) => ({ def, isMark: false as const })),
   ];
+  // KV-overridden defs (Studio-authored, KV wins over code) change BOTH the
+  // cache key (cache_version) and the current recipe — read the indexes once
+  // and prefer the KV def per id, so the row reads the LIVE key and the
+  // staleness verdict compares against the LIVE recipe. (KV-ONLY producers
+  // still don't appear in this waterfall — it enumerates the code registry;
+  // acceptable known limit, the prod KV registry is empty today.)
+  const [kvEnrichList, kvMarkList] = await Promise.all([
+    listEnrichments(c.env).catch(() => []),
+    listMarks(c.env).catch(() => []),
+  ]);
+  const kvEnrichById = new Map(kvEnrichList.map((e) => [e.id, e]));
+  const kvMarkById = new Map(kvMarkList.map((m) => [m.id, m]));
 
   // Read all producers' cached results in PARALLEL — ~46 KV gets at once instead
   // of serially (the serial loop made the waterfall take seconds on first open).
-  // Keys are computed directly from the defs we already hold (no loadDef round-trip).
   const runs = await Promise.all(
     producers.map(async ({ def, isMark }) => {
-      const ext = def.extractor as
-        | { kind?: string; model?: string; system_prompt_he?: string }
-        | undefined;
-      const isLLM = ext?.kind === 'llm';
+      const kvEnrich = isMark ? undefined : kvEnrichById.get(def.id);
+      const kvMark = isMark ? kvMarkById.get(def.id) : undefined;
+      const ext = (kvEnrich ??
+        kvMark ??
+        (def.extractor as
+          | { kind?: string; model?: string; system_prompt_he?: string }
+          | undefined)) as { kind?: string; model?: string; system_prompt_he?: string } | undefined;
+      const isLLM = kvEnrich || kvMark ? true : ext?.kind === 'llm';
       const key = isMark
-        ? keyForMark(def, tractate, page, lang === 'he' && ext?.system_prompt_he ? 'he' : 'en')
-        : keyForEnrichment(def, iid, { tractate, page }, undefined, lang);
+        ? keyForMark(
+            kvMark ?? def,
+            tractate,
+            page,
+            lang === 'he' && ext?.system_prompt_he ? 'he' : 'en',
+          )
+        : keyForEnrichment(kvEnrich ?? def, iid, { tractate, page }, undefined, lang);
       const res = await readCachedResult(c.env, key);
       const usage = res?.usage as { cost?: number; total_tokens?: number } | undefined;
+      // Additive provenance fields for the waterfall dots — cheap (no extra KV
+      // reads; recipe-leg verdict only, the inputs leg needs the DAG's dep
+      // reads and stays on /api/run-tree). Marks never stamp a recipe_hash, so
+      // a cached mark is 'unknown'; an uncached row is null.
+      const stored = res as StoredArtifact | null;
+      const storedHash = res?.recipe_hash ?? stored?.provenance?.recipeHash ?? null;
+      let staleness: Staleness | null = null;
+      if (res) {
+        if (!storedHash) staleness = 'unknown';
+        else {
+          // Current recipe from the LIVE def: the KV override when one exists
+          // (already flat — same shape /api/stale hashes), else the code def
+          // flattened. Hashing the code recipe for a KV-overridden producer
+          // would report a false 'stale-recipe' against the wrong recipe.
+          const flat = isMark
+            ? null
+            : (kvEnrich ?? adaptCodeEnrichment(def as SchemaEnrichmentDefinition));
+          const current = flat ? await recipeHash(enrichmentRecipe(flat)) : null;
+          staleness = !current ? 'unknown' : storedHash === current ? 'fresh' : 'stale-recipe';
+        }
+      }
       return {
         id: def.id,
         label: def.label,
@@ -1667,6 +1847,8 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
         cold_ms: typeof res?.elapsed_ms === 'number' ? res.elapsed_ms : null,
         cost: typeof usage?.cost === 'number' ? usage.cost : null,
         tokens: typeof usage?.total_tokens === 'number' ? usage.total_tokens : null,
+        authority: stored ? authorityOf(stored) : null,
+        staleness,
       };
     }),
   );
@@ -1827,7 +2009,7 @@ app.post('/api/admin/rewarm/:id/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
-  const rev = reverseDependencyIndex(producerNodesFrom([...CODE_MARKS, ...CODE_ENRICHMENTS]));
+  const rev = reverseDependencyIndex(await liveProducerNodes(c.env));
   const cascade = [id, ...transitiveDependents(rev, id)];
   const runId = `rewarm:${id}:${tractate}:${page}:${lang}:${Math.floor(Date.now() / 1000)}`
     .replace(/[^a-zA-Z0-9._:-]+/g, '_')
