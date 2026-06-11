@@ -982,6 +982,10 @@ const CATALOG = {
   'rabbi.onThisDaf': { en: 'On this daf: {text}', he: 'בדף זה: {text}' },
   'rabbi.row.highlight': { en: 'Click to highlight in daf', he: 'לחצו להדגשה בדף' },
   'rabbi.row.unhighlight': { en: 'Click to un-highlight', he: 'לחצו לביטול ההדגשה' },
+  'rabbi.generationUncertain': {
+    en: 'Generation uncertain — {count} rabbis share this name',
+    he: 'הדור אינו ודאי — {count} חכמים נושאים שם זה',
+  },
 
   // — Rabbi geography card —
   'rabbi.geography.title': { en: 'Geography', he: 'גאוגרפיה' },

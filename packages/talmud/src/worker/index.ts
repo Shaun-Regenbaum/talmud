@@ -155,7 +155,13 @@ import {
   TRANSLATE_BIO_JSON_SCHEMA,
 } from './output-schemas';
 import { loadEnrichmentDef, loadMarkDef } from './producer-registry';
-import { groundRabbiInstances, groundRabbiNames, lookupRelationships } from './rabbi-graph';
+import {
+  groundRabbiInstances,
+  groundRabbiNames,
+  lookupRelationships,
+  lookupRelationshipsBySlug,
+  type RelationshipsData,
+} from './rabbi-graph';
 import {
   buildObservationSlices,
   normalizeForMatch,
@@ -2683,7 +2689,7 @@ async function runExtractorFannedOut(
 // underline + timeline entry. Rebuilds the instance list from the augmented
 // rabbis — `excerpt` is non-load-bearing for the rabbi mark (the renderer and
 // sidebar key off fields.nameHe), so mirroring it from nameHe is safe.
-function postProcessRabbi(parsed: unknown, hebrewText: string): unknown {
+export function postProcessRabbi(parsed: unknown, hebrewText: string): unknown {
   const p = parsed as {
     instances?: Array<{ fields?: { name?: string; nameHe?: string; generation?: string } }>;
   } | null;
@@ -2698,17 +2704,40 @@ function postProcessRabbi(parsed: unknown, hebrewText: string): unknown {
     ...p,
     instances: augmented.map((r) => ({
       excerpt: r.nameHe,
-      // Fill an 'unknown' generation from the registry so a model-missed or
-      // model-unsure rabbi (the deterministic safety net adds known rabbis as
-      // 'unknown') still underlines on the right tier instead of neutral gray.
-      // The model's call wins whenever it assigned a generation.
+      // Keep the model's (or the augment's 'unknown') generation here. The
+      // registry fill for still-unknown generations happens AFTER grounding
+      // (fillUngroundedGenerations) — a name-keyed first-wins registry guess
+      // must not masquerade as the LLM's local generation read inside the
+      // homonym era-consistency veto.
       fields: {
         name: r.name,
         nameHe: r.nameHe,
-        generation: resolveGeneration(r.name, r.nameHe, r.generation),
+        generation: r.generation,
       },
     })),
   };
+}
+
+// After grounding: fill an 'unknown' generation from the rabbi-places registry
+// ONLY for instances the hierarchy registry has no opinion on (genSource
+// 'none') — so a model-missed later authority (Rashi, a named Gaon, …) still
+// lands on the right tier instead of neutral gray. Grounded instances already
+// carry the authoritative registry era, and 'ambiguous' homonyms stay honestly
+// 'unknown' (a name-keyed first-wins fill is precisely the homonym guess
+// grounding just refused to make).
+export function fillUngroundedGenerations(parsed: unknown): unknown {
+  const p = parsed as {
+    instances?: Array<{
+      fields?: { name?: string; nameHe?: string; generation?: string; genSource?: string };
+    }>;
+  } | null;
+  if (!p || !Array.isArray(p.instances)) return parsed;
+  for (const inst of p.instances) {
+    const f = inst.fields;
+    if (f?.genSource !== 'none' || f.generation !== 'unknown') continue;
+    f.generation = resolveGeneration(String(f.name ?? ''), String(f.nameHe ?? ''), 'unknown');
+  }
+  return parsed;
 }
 
 // ===========================================================================
@@ -2946,8 +2975,10 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
         // Ground each rabbi's generation through the registry (relational homonym
         // disambiguation off the daf's cast): authoritative era when identified,
         // neutral 'unknown' for a homonym we can't pin — so the reader's era color
-        // is grounded, not a freeform per-daf guess.
+        // is grounded, not a freeform per-daf guess. Then fill the generations
+        // grounding had no opinion on (genSource 'none') from rabbi-places.
         parsed = groundRabbiInstances(parsed);
+        parsed = fillUngroundedGenerations(parsed);
       } else if (parsed && a.def.id === 'places') {
         // Places have no global gazetteer — log every observed location to the
         // "needs global enrichment" backlog so we can see what to add over time.
@@ -2963,28 +2994,62 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
       // an LLM call, deterministic, free, and instant. We only fall through to
       // the LLM when the graph misses (rabbi not found OR node has no edges).
       if (def.id === 'rabbi.relationships') {
-        const inst = markInput as { name?: string; nameHe?: string; generation?: string } | null;
-        if (inst?.name) {
-          const hit = lookupRelationships(inst.name, inst.nameHe, inst.generation);
-          if (hit) {
-            return {
-              content: JSON.stringify(hit.data),
-              parsed: hit.data,
-              parse_error: null,
-              model: `graph:${hit.slug}`,
-              transport: 'graph',
-              attempts: 0,
-              usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
-              elapsed_ms: 0,
-              prompt_chars: 0,
-              resolved: {
-                system_prompt: `(graph lookup: ${hit.slug})`,
-                user_prompt: `(graph lookup for rabbi: ${inst.name})`,
-              },
-              cache_hit: false,
-              recipe_hash: a.recipeHash,
-            };
-          }
+        const inst = rabbiMarkInputFields(markInput);
+        const envelope = (data: unknown, slug: string, transient?: boolean) => ({
+          content: JSON.stringify(data),
+          parsed: data,
+          parse_error: null,
+          model: `graph:${slug}`,
+          transport: 'graph',
+          attempts: 0,
+          usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+          elapsed_ms: 0,
+          prompt_chars: 0,
+          resolved: {
+            system_prompt: `(graph lookup: ${slug})`,
+            user_prompt: `(graph lookup for rabbi: ${inst.name || inst.nameHe})`,
+          },
+          cache_hit: false,
+          recipe_hash: a.recipeHash,
+          ...(transient ? { transient: true } : {}),
+        });
+        // Grounded instance → resolve the graph node by SLUG directly. A name
+        // re-resolution here is first-wins and homonym-blind — it re-pinned
+        // grounded "Rav Kahana" mentions to whatever bearer the index lists
+        // first, contradicting the mark's own verdict.
+        if (inst.slug) {
+          const hit = lookupRelationshipsBySlug(inst.slug, inst.name || undefined);
+          if (hit) return envelope(hit.data, hit.slug);
+          // Pinned but edge-less node — fall through to the LLM path (the
+          // prompt's mark_input now carries the slug as a disambiguator).
+          return null;
+        }
+        // Grounding says AMBIGUOUS homonym: several registry rabbis share the
+        // name and the daf evidence can't pin one. Do NOT first-win a graph
+        // node and do NOT let the LLM guess — serve an honest empty payload.
+        // `transient`: rabbi.relationships is scope-global keyed by the NAME
+        // slug, which a later-resolved same-name instance shares; the degraded
+        // payload must not occupy that key.
+        if (inst.genSource === 'ambiguous') {
+          const data: RelationshipsData = {
+            teachers: [],
+            students: [],
+            debatePartners: [],
+            family: [],
+            prose:
+              'Several rabbis in the sources share this name, and this mention ' +
+              'could not be pinned to one of them — so no relationship map is shown.',
+          };
+          return envelope(data, 'ambiguous', true);
+        }
+        if (inst.name) {
+          const hit = lookupRelationships(
+            inst.name,
+            inst.nameHe || undefined,
+            // 'unknown' must not scope findSlug's generation-prefix step.
+            inst.generation !== 'unknown' ? inst.generation : undefined,
+          );
+          if (hit) return envelope(hit.data, hit.slug);
           // Miss — fall through to the LLM path with the disambiguation prompt.
         }
         return null;
@@ -2998,32 +3063,74 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
       if (def.id === 'rabbi.identity') {
         // Always short-circuit — there is no useful LLM fallback (a model can't
         // know a Sefaria slug), and the placeholder prompt must never run.
-        const inst = markInput as {
-          name?: string;
-          nameHe?: string;
-          generation?: GenerationId;
-        } | null;
-        const ident = enrichRabbi(
-          inst?.name ?? '',
-          inst?.nameHe ?? '',
-          inst?.generation ?? 'unknown',
-        );
-        // Rabbi not in the bundled dataset → add to the "needs global enrichment"
-        // backlog so we can track who to add a base bio for as usage grows.
-        if (!ident.slug && (inst?.name || inst?.nameHe)) {
-          recordUnknownRabbi(rc.env, rc.ctx, {
-            name: inst?.name,
-            nameHe: inst?.nameHe,
-            generation: inst?.generation,
-            tractate,
-            page,
-          });
+        //
+        // KNOWN DEFERRED ISSUE (homonym cache collision): rabbi.identity is
+        // scope-global keyed by instance id = the NAME slug, so every
+        // same-name instance — ambiguous or resolved, and two DIFFERENTLY
+        // resolved homonyms — shares one cache key. We don't change keys
+        // (a key change cold-misses all of Shas). Mitigations here: (1) the
+        // ambiguous path serves a degraded payload marked `transient`, which
+        // runProducer serves WITHOUT writing, so it can't poison the shared
+        // key; (2) the slug path joins the dataset directly (no name
+        // first-wins). Residual: resolved homonyms sharing one name share one
+        // cached identity entry (first writer wins on later cache hits), and
+        // an ambiguous instance whose name already has a cached resolved
+        // entry is served that entry by the cache-hit path upstream of this
+        // hook. A real fix needs the slug in the cache key — deferred.
+        const inst = rabbiMarkInputFields(markInput);
+        // Grounded slug → direct dataset join, never a name re-resolution.
+        let ident = inst.slug
+          ? enrichRabbiBySlug(inst.slug, inst.name, inst.nameHe, inst.generation)
+          : null;
+        let transient = false;
+        if (!ident && !inst.slug && inst.genSource === 'ambiguous') {
+          // Grounding says: several registry rabbis share this name and the
+          // daf evidence can't pin one. Serve an honest name-only identity —
+          // a name join here would re-pin the first-listed bearer (the
+          // "Rav Kahana → rav-kahana-(ii), amora-ey-1" defect).
+          ident = {
+            slug: null,
+            name: inst.name || inst.nameHe,
+            nameHe: inst.nameHe,
+            generation: inst.generation,
+            region: null,
+            places: [],
+            moved: null,
+            bio: null,
+            image: null,
+            wiki: null,
+            genSource: 'ambiguous',
+            ...(inst.homonyms && inst.homonyms > 1 ? { homonyms: inst.homonyms } : {}),
+          };
+          transient = true;
+        }
+        if (!ident) {
+          // Ungrounded instance (older cached mark runs) — the legacy
+          // name-keyed join.
+          ident = enrichRabbi(inst.name, inst.nameHe, inst.generation);
+          // Rabbi not in the bundled dataset → add to the "needs global
+          // enrichment" backlog so we can track who to add a base bio for as
+          // usage grows. (Ambiguous homonyms are NOT recorded — they're in
+          // the registry several times over, not missing from it.)
+          if (!ident.slug && (inst.name || inst.nameHe)) {
+            recordUnknownRabbi(rc.env, rc.ctx, {
+              name: inst.name || undefined,
+              nameHe: inst.nameHe || undefined,
+              generation: inst.generation,
+              tractate,
+              page,
+            });
+          }
         }
         return {
           content: JSON.stringify(ident),
           parsed: ident,
           parse_error: null,
-          model: ident.slug ? `lookup:${ident.slug}` : 'lookup:miss',
+          model: ident.slug
+            ? `lookup:${ident.slug}`
+            : transient
+              ? 'lookup:ambiguous'
+              : 'lookup:miss',
           transport: 'lookup',
           attempts: 0,
           usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
@@ -3031,10 +3138,11 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
           prompt_chars: 0,
           resolved: {
             system_prompt: '(deterministic lookup: rabbi-places.json)',
-            user_prompt: `(identity lookup for rabbi: ${inst?.name ?? '(unnamed)'})`,
+            user_prompt: `(identity lookup for rabbi: ${inst.name || inst.nameHe || '(unnamed)'})`,
           },
           cache_hit: false,
           recipe_hash: a.recipeHash,
+          ...(transient ? { transient: true } : {}),
         };
       }
       return null;
@@ -3261,8 +3369,23 @@ async function runRabbiObservations(
     const nameHe = String(fields.nameHe ?? inst.excerpt ?? '');
     if (!name && !nameHe) continue;
     const generation = (fields.generation ?? 'unknown') as GenerationId;
-    const ident = enrichRabbi(name, nameHe, generation);
-    const slug = ident.slug ?? obsSlugId(name || nameHe);
+    // Slug precedence: (1) the grounding stamp on the mark instance (the
+    // mark's own homonym verdict — never re-resolve a pinned instance by
+    // name); (2) SKIP an instance grounding marked AMBIGUOUS — accumulating
+    // its observations would require exactly the name-keyed first-wins pin
+    // grounding refused to make, attributing this daf's material to the
+    // wrong same-name rabbi in the reverse index; (3) the legacy name join
+    // for ungrounded (older-cache) instances.
+    const stampedSlug = typeof fields.slug === 'string' && fields.slug ? fields.slug : null;
+    let slug: string;
+    if (stampedSlug) {
+      slug = stampedSlug;
+    } else if (fields.genSource === 'ambiguous') {
+      continue;
+    } else {
+      const ident = enrichRabbi(name, nameHe, generation);
+      slug = ident.slug ?? obsSlugId(name || nameHe);
+    }
     if (!slug) continue;
     const segIdxs = resolveSegIdxs(String(inst.excerpt ?? nameHe), normSegs);
 
@@ -6052,20 +6175,73 @@ const KNOWN_RABBIS_HE: KnownRabbi[] = (() => {
   return out;
 })();
 
+// Short-form index: TITLE + FIRST GIVEN NAME of multi-part canonical names
+// ("רבי תנחום" from "רבי תנחום בר חנילאי"), built ONCE. The full-form-only scan
+// missed every daf that cites a rabbi by his everyday short name. Guards:
+//   - skip entries whose raw canonicalHe carries a parenthetical disambiguator
+//     ("רב (שם אמורא)", "רבי מנא (1)") — their stripped token soup yields junk
+//     shorts that falsely claim uniqueness;
+//   - skip when the would-be short form IS some rabbi's full canonical form
+//     ("רבי תנחום" is also Rabbi Tanhum's complete name) — the full-form scan
+//     above already owns that string;
+//   - skip patronymic second tokens (a "רבי בר..." shape has no given name).
+// A short form mapping to ONE entry identifies that rabbi; mapping to several
+// is still a real mention (the name IS in the text) that grounding gets to
+// disambiguate from candidates.
+const HE_PATRONYMIC_TOKENS: ReadonlySet<string> = new Set(['בר', 'בן', 'בריה', 'ברבי']);
+const KNOWN_RABBIS_HE_SHORT: Map<string, KnownRabbi[]> = (() => {
+  const fullForms = new Set(KNOWN_RABBIS_HE.map((k) => k.nameHeNorm));
+  const m = new Map<string, KnownRabbi[]>();
+  for (const k of KNOWN_RABBIS_HE) {
+    if (k.nameHe.includes('(')) continue;
+    const tokens = k.nameHeNorm.split(' ');
+    if (tokens.length < 3) continue;
+    if (!RABBI_HE_TITLE_RE.test(k.nameHeNorm)) continue;
+    if (HE_PATRONYMIC_TOKENS.has(tokens[1])) continue;
+    const short = `${tokens[0]} ${tokens[1]}`;
+    if (fullForms.has(short)) continue;
+    const list = m.get(short);
+    if (list) list.push(k);
+    else m.set(short, [k]);
+  }
+  return m;
+})();
+
+/** English TITLE + FIRST GIVEN NAME ("Rabbi Tanchum" from "Rabbi Tanchum bar
+ *  Chanilai") — the honest display name for a short-form mention that maps to
+ *  several registry entries. */
+function shortEnglishName(name: string): string {
+  const tokens = name.trim().split(/\s+/);
+  return tokens.length >= 2 ? `${tokens[0]} ${tokens[1]}` : name;
+}
+
 // Hebrew word-boundary test — match only when surrounded by whitespace or at
 // a string edge, so "רבא" doesn't match inside "דרבא" (prefix דְ־).
 function hasHebrewWordBoundaryMatch(haystack: string, needle: string): boolean {
-  if (!needle) return false;
+  return countHebrewWordBoundaryMatches(haystack, needle, 1) > 0;
+}
+
+// Count word-boundary occurrences (same boundary rule as above). `cap` bounds
+// the scan for callers that only need existence or a small comparison —
+// counting stops once the cap is reached.
+function countHebrewWordBoundaryMatches(
+  haystack: string,
+  needle: string,
+  cap = Number.POSITIVE_INFINITY,
+): number {
+  if (!needle) return 0;
+  let count = 0;
   let from = 0;
-  while (true) {
+  while (count < cap) {
     const idx = haystack.indexOf(needle, from);
-    if (idx < 0) return false;
+    if (idx < 0) break;
     const beforeOk = idx === 0 || /\s/.test(haystack[idx - 1]);
     const afterIdx = idx + needle.length;
     const afterOk = afterIdx === haystack.length || /\s/.test(haystack[afterIdx]);
-    if (beforeOk && afterOk) return true;
+    if (beforeOk && afterOk) count++;
     from = idx + 1;
   }
+  return count;
 }
 
 // Aramaic/Hebrew tokens that sometimes trail a rabbi's name when the model
@@ -6146,6 +6322,41 @@ export function augmentWithKnownRabbis(
     added.push({ name: k.name, nameHe: k.nameHe, generation: 'unknown' });
     seenHe.add(k.nameHeNorm);
   }
+  // Second pass: SHORT forms (title + first given name). Runs after the
+  // full-form pass so a daf that carries the full name never double-adds.
+  // The nameHe we stamp is the matched short span exactly as it appears in
+  // the (normalized) daf text — the client's verbatim matcher anchors it, so
+  // the mention gets an underline/gutter presence instead of being invisible.
+  for (const [short, entries] of KNOWN_RABBIS_HE_SHORT) {
+    if (seenHe.has(short)) continue;
+    const shortCount = countHebrewWordBoundaryMatches(textNorm, short);
+    if (shortCount === 0) continue;
+    // Skip the occurrences that are just the inside of a longer already-seen
+    // name (the daf says "רבי תנחום בר חנילאי", which the full pass already
+    // added) — OCCURRENCE-AWARE: each occurrence of a covering longer form
+    // accounts for exactly one short-form occurrence (the longer form's own
+    // word-boundary match contains one). Only skip the short form entirely
+    // when EVERY short occurrence is accounted for; a daf that carries
+    // "רבן יוחנן בן זכאי" AND a later standalone "רבן יוחנן" still gets the
+    // standalone mention.
+    let coveredCount = 0;
+    for (const s of seenHe) {
+      if (!s.startsWith(`${short} `)) continue;
+      coveredCount += countHebrewWordBoundaryMatches(textNorm, s, shortCount - coveredCount);
+      if (coveredCount >= shortCount) break;
+    }
+    if (coveredCount >= shortCount) continue;
+    const unique = entries.length === 1 ? entries[0] : null;
+    added.push({
+      // Unique mapping → the registry entry's canonical name (this IS that
+      // rabbi); several bearers → the honest short English name, generation
+      // 'unknown', and grounding disambiguates from the candidate set.
+      name: unique ? unique.name : shortEnglishName(entries[0].name),
+      nameHe: short,
+      generation: 'unknown',
+    });
+    seenHe.add(short);
+  }
   return [...sanitized, ...added];
 }
 
@@ -6165,6 +6376,80 @@ interface IdentifiedRabbi {
   bio: string | null;
   image: string | null;
   wiki: string | null;
+  /** Grounding provenance (mirrors the client type): stamped on the degraded
+   *  identity payload served for an unpinnable homonym so the reader can say
+   *  WHY there is no registry join. Absent on legacy/slug-resolved payloads. */
+  genSource?: string;
+  /** Registry candidate count for the name when >1 (homonym). */
+  homonyms?: number;
+}
+
+/**
+ * enrichRabbi for an instance grounding ALREADY pinned to a registry slug —
+ * a direct dataset join, no name re-resolution (the name path is first-wins
+ * and homonym-blind, so re-resolving a grounded "Rav Kahana" by name can land
+ * on a different same-name bearer). Null when the slug isn't in the dataset
+ * (shouldn't happen — grounding slugs come from the same Sefaria slug space).
+ */
+function enrichRabbiBySlug(
+  slug: string,
+  name: string,
+  nameHe: string,
+  generation: GenerationId,
+): IdentifiedRabbi | null {
+  const entry = RABBI_PLACES.rabbis[slug];
+  if (!entry) return null;
+  const finalGen: GenerationId =
+    generation !== 'unknown'
+      ? generation
+      : typeof entry.generation === 'string' && GENERATION_ID_SET.has(entry.generation)
+        ? (entry.generation as GenerationId)
+        : 'unknown';
+  return {
+    slug,
+    name: entry.canonical || name,
+    nameHe,
+    generation: finalGen,
+    region: entry.region ?? deriveRegionFromGeneration(finalGen),
+    places: entry.places ?? [],
+    moved: entry.moved ?? null,
+    bio: entry.bio ?? null,
+    image: entry.image ?? null,
+    wiki: entry.wiki ?? null,
+  };
+}
+
+/**
+ * Read a rabbi enrichment's mark_input in BOTH shapes it arrives in — the
+ * sidebar's flat `{name, nameHe, generation, ...}` and the warm queue's
+ * mark-instance `{excerpt, fields: {name, ...}}` — including the grounding
+ * stamps (slug / genSource / homonyms) groundRabbiInstances wrote onto the
+ * rabbi mark. The stamps are how the deterministic short-circuits below honor
+ * the mark's homonym verdict instead of re-resolving by name (first-wins).
+ */
+export function rabbiMarkInputFields(markInput: unknown): {
+  name: string;
+  nameHe: string;
+  generation: GenerationId;
+  slug: string | null;
+  genSource: string | null;
+  homonyms: number | null;
+} {
+  const o = (markInput && typeof markInput === 'object' ? markInput : {}) as Record<
+    string,
+    unknown
+  >;
+  const f = (o.fields && typeof o.fields === 'object' ? o.fields : o) as Record<string, unknown>;
+  const str = (v: unknown): string => (typeof v === 'string' ? v : '');
+  const gen = str(f.generation);
+  return {
+    name: str(f.name),
+    nameHe: str(f.nameHe) || str(o.excerpt),
+    generation: GENERATION_ID_SET.has(gen) ? (gen as GenerationId) : 'unknown',
+    slug: str(f.slug) || null,
+    genSource: str(f.genSource) || null,
+    homonyms: typeof f.homonyms === 'number' ? f.homonyms : null,
+  };
 }
 
 export function deriveRegionFromGeneration(g: GenerationId): 'israel' | 'bavel' | null {

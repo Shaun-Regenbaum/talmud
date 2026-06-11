@@ -1646,33 +1646,56 @@ function RabbiMeta(props: SpecialBlockProps): JSX.Element {
     if (pl.length > 0) parts.push(pl.join(', '));
     return parts;
   };
+  // Homonym uncertainty: grounding refused to pin this name (genSource
+  // 'ambiguous') because several registry rabbis share it — say so instead of
+  // leaving an unexplained gray "unknown" era.
+  const homonymNote = (): string | null => {
+    const n = f().homonyms;
+    if (f().genSource !== 'ambiguous' || typeof n !== 'number' || n <= 1) return null;
+    return t('rabbi.generationUncertain', { count: n });
+  };
   return (
-    <Show when={metaParts().length > 0}>
-      <div
-        style={{
-          display: 'flex',
-          'align-items': 'center',
-          gap: '0.45rem',
-          'font-size': '0.78rem',
-          color: '#666',
-          'margin-bottom': '0.85rem',
-          'flex-wrap': 'wrap',
-          'line-height': 1.5,
-        }}
-      >
-        <Show when={gen()}>
-          <span
+    <Show when={metaParts().length > 0 || homonymNote()}>
+      <div style={{ 'margin-bottom': '0.85rem' }}>
+        <Show when={metaParts().length > 0}>
+          <div
             style={{
-              display: 'inline-block',
-              width: '0.55rem',
-              height: '0.55rem',
-              'background-color': gen()!.color,
-              'border-radius': '50%',
-              'flex-shrink': 0,
+              display: 'flex',
+              'align-items': 'center',
+              gap: '0.45rem',
+              'font-size': '0.78rem',
+              color: '#666',
+              'flex-wrap': 'wrap',
+              'line-height': 1.5,
             }}
-          />
+          >
+            <Show when={gen()}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: '0.55rem',
+                  height: '0.55rem',
+                  'background-color': gen()!.color,
+                  'border-radius': '50%',
+                  'flex-shrink': 0,
+                }}
+              />
+            </Show>
+            <span>{metaParts().join(' · ')}</span>
+          </div>
         </Show>
-        <span>{metaParts().join(' · ')}</span>
+        <Show when={homonymNote()}>
+          <div
+            style={{
+              'font-size': '0.74rem',
+              color: '#8a6d1a',
+              'line-height': 1.5,
+              'margin-top': metaParts().length > 0 ? '0.2rem' : '0',
+            }}
+          >
+            {homonymNote()}
+          </div>
+        </Show>
       </div>
     </Show>
   );
@@ -1757,7 +1780,8 @@ function RabbiGeography(props: SpecialBlockProps): JSX.Element {
   );
 }
 
-/** Display instance ({fields} for the heading + meta). */
+/** Display instance ({fields} for the heading + meta). genSource/homonyms are
+ *  the grounding stamps RabbiMeta uses to surface homonym uncertainty. */
 export function rabbiDisplayInstance(rabbi: IdentifiedRabbi): { fields: Record<string, unknown> } {
   return {
     fields: {
@@ -1766,11 +1790,18 @@ export function rabbiDisplayInstance(rabbi: IdentifiedRabbi): { fields: Record<s
       generation: rabbi.generation,
       region: rabbi.region,
       places: rabbi.places,
+      genSource: rabbi.genSource,
+      homonyms: rabbi.homonyms,
     },
   };
 }
-/** The FLAT shape the rabbi mark synthesis expects as mark_input (unchanged from
- *  the bespoke body, so the rabbi.synthesis cache stays valid). */
+/** The FLAT shape the rabbi mark synthesis expects as mark_input. Cache-key
+ *  safe: instanceIdOf keys this shape off `name` (we never set `id`), so the
+ *  grounding stamps below don't shift any enrichment cache key. slug/genSource/
+ *  homonyms are how the server short-circuits (rabbi.identity / .relationships
+ *  / .observations) see the mark's grounding verdict — without them the server
+ *  re-resolves by NAME (first-wins, homonym-blind) and can re-pin an
+ *  ambiguous "Rav Kahana" to the wrong registry entry. */
 export function rabbiSynthInstance(rabbi: IdentifiedRabbi): unknown {
   return {
     name: rabbi.name,
@@ -1778,6 +1809,9 @@ export function rabbiSynthInstance(rabbi: IdentifiedRabbi): unknown {
     generation: rabbi.generation,
     region: rabbi.region,
     places: rabbi.places,
+    ...(rabbi.slug ? { slug: rabbi.slug } : {}),
+    ...(rabbi.genSource ? { genSource: rabbi.genSource } : {}),
+    ...(typeof rabbi.homonyms === 'number' ? { homonyms: rabbi.homonyms } : {}),
   };
 }
 export const RABBI_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {

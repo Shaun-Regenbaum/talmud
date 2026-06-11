@@ -46,6 +46,20 @@ describe('instanceIdOf — Hebrew title collision', () => {
     expect(anchor).toBe('rabbi_yochanan');
   });
 
+  it('the rabbi grounding stamps (slug/genSource/homonyms) do NOT shift the instance id', async () => {
+    // Cache-key freeze: name stays the id source; the stamps the client now
+    // passes through in mark_input must be key-invisible on BOTH shapes.
+    const stamps = { slug: 'rav-kahana-of-pum-nahara', genSource: 'relational', homonyms: 3 };
+    const bare = await instanceIdOf({ name: 'Rav Kahana', nameHe: 'רב כהנא' });
+    const flat = await instanceIdOf({ name: 'Rav Kahana', nameHe: 'רב כהנא', ...stamps });
+    const anchor = await instanceIdOf({
+      excerpt: 'רב כהנא',
+      fields: { name: 'Rav Kahana', nameHe: 'רב כהנא', ...stamps },
+    });
+    expect(flat).toBe(bare);
+    expect(anchor).toBe(bare);
+  });
+
   it('prefers an explicit id/fields.id over a hash', async () => {
     expect(await instanceIdOf({ fields: { id: '6-8_0' } })).toBe('6-8_0');
   });

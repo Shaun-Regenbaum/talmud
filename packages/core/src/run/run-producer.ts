@@ -256,7 +256,12 @@ export interface RunProducerPorts<
     ): Promise<unknown>;
     /** Enrichment pre-resolve short-circuits (rabbi.relationships graph,
      *  rabbi.identity lookup): a non-null return is the finished result —
-     *  core writes it (with provenance) and returns. */
+     *  core writes it (with provenance) and returns. A result marked
+     *  `transient: true` is SERVED but never written: some short-circuit
+     *  outputs are instance-specific while the cache key is shared across
+     *  instances (e.g. rabbi.identity is keyed by name slug, which every
+     *  same-name homonym instance shares) — a degraded/ambiguous payload
+     *  must not poison the shared key for instances that resolve. */
     enrichmentPreResolve(
       ctx: Ctx,
       args: {
@@ -266,7 +271,7 @@ export interface RunProducerPorts<
         page: string;
         recipeHash: string;
       },
-    ): Promise<StoredArtifact | null>;
+    ): Promise<(StoredArtifact & { transient?: boolean }) | null>;
     /** Enrichment post-resolve step (deps are resolved, LLM not yet called):
      *  may fully produce (rabbi.observations — `shortCircuit`), and/or return
      *  extra prompt vars (the pesukim Hebrew prefetch), and/or mutate
@@ -487,7 +492,12 @@ export async function runProducer<
       recipeHash: recipe_hash,
     });
     if (pre) {
-      if (cacheKey) return writeWithProvenance(ports, ctx, cacheKey, pre, edef.id, null);
+      // `transient` results are served without a cache write (shared-key
+      // protection — see the hook doc above). Cheap to re-serve: the
+      // pre-resolve short-circuits are deterministic lookups, no LLM.
+      if (cacheKey && !pre.transient) {
+        return writeWithProvenance(ports, ctx, cacheKey, pre, edef.id, null);
+      }
       return pre;
     }
   }
