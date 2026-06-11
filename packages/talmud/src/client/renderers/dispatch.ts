@@ -57,7 +57,7 @@ type Renderer = (html: string, instances: MarkInstance[], def: MarkDef) => strin
 /**
  * phrase + inline → for the rabbi mark, dispatch to injectRabbiUnderlines.
  * For places, wrap each matched Hebrew place name as a `.city-marker` span
- * (legacy GeographyMap click-highlighting reads `.city-marker[data-city]`).
+ * (GeographyMap click-highlighting reads `.city-marker[data-city]`).
  * Other phrase+inline marks pass through unchanged.
  */
 const phraseInline: Renderer = (html, instances, def) => {

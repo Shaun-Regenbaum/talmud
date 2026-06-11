@@ -69,10 +69,9 @@ export function buildSeedMarks(_io: SeedMarkInputs): SeedMark[] {
     //   - places    → code-marks.ts (LLM extractor; drives inline .city-marker wraps)
     //   - commentary → code-marks.ts (computed extractor; per-segment digest with click-to-open inspector)
     //
-    // TODO(geography-rederive): the 'geography' seed was removed when the
-    // GeographyStrip / GeographyMap was uninstalled. Rederive a whole-daf
-    // map from the per-rabbi `rabbi.geography` enrichment data (which the
-    // sidebar's RabbiPlacesTimeline already consumes), then reintroduce
-    // the seed entry with a real data binding.
+    // The old 'geography' seed is gone for good: the whole-daf geography map
+    // now mounts directly from already-cached data (registry identity +
+    // rabbi.geography + the places mark — see dafGeoModel in DafViewer) and
+    // hides itself when empty, so it needs no toggle.
   ];
 }

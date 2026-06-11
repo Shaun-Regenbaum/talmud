@@ -21,6 +21,7 @@ import {
   isLLMModelId,
   MODEL_PRESETS,
 } from '@corpus/core/llm/settings';
+import { rawDependenciesOf } from '@corpus/core/model/compat';
 import type { Authority } from '@corpus/core/model/provenance';
 import {
   forwardSubgraph,
@@ -159,7 +160,6 @@ import {
   ENRICH_JSON_SCHEMA,
   TRANSLATE_BIO_JSON_SCHEMA,
 } from './output-schemas';
-import { rawDependenciesOf } from '@corpus/core/model/compat';
 import {
   adaptCodeEnrichment,
   listProducers,
@@ -1878,31 +1878,83 @@ async function readGlobalPiece(
   return hit?.parsed ?? null;
 }
 
+// Like readGlobalPiece, but probes several candidate markInputs (one def
+// load, parallel key reads) and returns the FIRST hit in candidate order.
+// Needed because global rabbi pieces are keyed by whatever display name the
+// warming surface used (instanceIdOf slug-ifies the name) — usually the
+// canonical, but a daf's mark can carry a registry alias, and an entry
+// warmed under "Rebbi Meir" must still be found when asked for via the slug.
+async function readGlobalPieceFirst(
+  env: Bindings,
+  enrichmentId: string,
+  markInputs: unknown[],
+): Promise<unknown> {
+  const def = await loadEnrichmentDef(env, enrichmentId);
+  if (!def) return null;
+  const hits = await Promise.all(
+    markInputs.map(async (markInput) => {
+      const instanceId = await instanceIdOf(markInput);
+      const hit = await readCachedResult(env, keyForEnrichment(def, instanceId));
+      return hit?.parsed ?? null;
+    }),
+  );
+  return hits.find((h) => h != null) ?? null;
+}
+
+const RABBI_ENTITY_FACETS = ['identity', 'relationships', 'geography'] as const;
+type RabbiEntityFacet = (typeof RABBI_ENTITY_FACETS)[number];
+
 app.get('/api/entity/rabbi/:slug', async (c) => {
   const slug = c.req.param('slug');
   const entry = RABBI_PLACES.rabbis[slug];
   if (!entry) return c.json({ error: 'not found' }, 404);
+  // Facet selection (additive): ?facets=identity,geography limits which
+  // pieces are assembled — the daf map only consumes identity+geography, and
+  // probing relationships costs up to 8 extra KV reads (alias candidates)
+  // per request for data the caller throws away. Unknown facet names are
+  // ignored; no param (or nothing valid left) keeps the full default, so
+  // existing consumers are unchanged.
+  const requested = new Set(
+    (c.req.query('facets') ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter((f): f is RabbiEntityFacet => (RABBI_ENTITY_FACETS as readonly string[]).includes(f)),
+  );
+  const want = (f: RabbiEntityFacet) => requested.size === 0 || requested.has(f);
   const name = entry.canonical;
   const nameHe = entry.canonicalHe ?? '';
+  // Probe canonical first, then registry aliases (bounded — a handful of KV
+  // reads per enrichment), so entries warmed under a daf's alias spelling
+  // still surface here.
+  const candidates = [name, ...(entry.aliases ?? []).filter((a) => a !== name)]
+    .slice(0, 8)
+    .map((n) => ({ name: n, nameHe }));
+  const pieces: Record<string, unknown> = {};
   // identity is the deterministic rabbi-places lookup (always available); the
   // others are the same global enrichments the card reads — keyed by the rabbi
   // instance the card passes (flat {name,...}), so instanceIdOf matches.
-  const identity = enrichRabbi(
-    name,
-    nameHe,
-    (entry.generation as GenerationId | undefined) ?? 'unknown',
-  );
-  const markInput = { name, nameHe };
+  if (want('identity'))
+    pieces.identity = enrichRabbi(
+      name,
+      nameHe,
+      (entry.generation as GenerationId | undefined) ?? 'unknown',
+    );
   const [relationships, geography] = await Promise.all([
-    readGlobalPiece(c.env, 'rabbi.relationships', markInput),
-    readGlobalPiece(c.env, 'rabbi.geography', markInput),
+    want('relationships')
+      ? readGlobalPieceFirst(c.env, 'rabbi.relationships', candidates)
+      : Promise.resolve(undefined),
+    want('geography')
+      ? readGlobalPieceFirst(c.env, 'rabbi.geography', candidates)
+      : Promise.resolve(undefined),
   ]);
+  if (want('relationships')) pieces.relationships = relationships;
+  if (want('geography')) pieces.geography = geography;
   const piece: EntityPiece = {
     type: 'rabbi',
     id: slug,
     name,
     nameHe: nameHe || undefined,
-    pieces: { identity, relationships, geography },
+    pieces,
   };
   return c.json(piece);
 });

@@ -13,7 +13,7 @@
     "test:watch": "vitest",
     "test:int": "vitest run --config vitest.integration.config.ts",
     "rebuild-rabbi-places": "python3 scripts/build-rabbi-places.py",
-    "rebuild-geo-shapes": "python3 scripts/gen-geo-shapes.py --israel ~/Downloads/israel.svg --bavel ~/Downloads/mYxtJ7j01.svg --israel-mode union",
+    "rebuild-geo-shapes": "node scripts/build-geo-shapes.ts",
     "scrape-wikipedia-rabbis": "node scripts/scrape-wikipedia-rabbis.mjs",
     "scrape-dafyomi": "node scripts/scrape-dafyomi.mjs",
     "build-rabbi-hierarchy": "node scripts/build-rabbi-hierarchy.mjs",
