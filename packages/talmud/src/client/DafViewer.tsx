@@ -317,7 +317,7 @@ import { LruMap } from '../lib/lruMap';
 // eviction so they restore instantly on back-nav / language flip but don't
 // grow without limit over a long session (one entry per daf × lang). ~16 dapim
 // per language is far more than any realistic back-nav window.
-import type { IdentifiedRabbi } from './dafContext';
+import { dedupRabbiList, type IdentifiedRabbi } from './dafContext';
 
 const SESSION_CACHE_MAX = 32;
 const analysisSessionCache = new LruMap<string, DafAnalysis>(SESSION_CACHE_MAX);
@@ -863,7 +863,16 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       | {
           instances?: Array<{
             excerpt?: string;
-            fields?: { name?: string; nameHe?: string; generation?: GenerationId };
+            fields?: {
+              name?: string;
+              nameHe?: string;
+              generation?: GenerationId;
+              // Grounding stamps (groundRabbiInstances): registry slug,
+              // resolution basis, homonym candidate count.
+              slug?: string;
+              genSource?: string;
+              homonyms?: number;
+            };
           }>;
         }
       | undefined;
@@ -885,20 +894,19 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   });
 
   // Daf rabbi list as IdentifiedRabbi[] for the sidebar + routing. Thin —
-  // slug/region/places are null/empty here; the per-rabbi bio sidebar fills
-  // them from the rabbi.identity enrichment when a rabbi is opened. Deduped
-  // by canonical name.
+  // region/places are null/empty here; the per-rabbi bio sidebar fills them
+  // from the rabbi.identity enrichment when a rabbi is opened. Carries the
+  // grounding stamps (slug/genSource/homonyms) so list identity dedups
+  // slug-first ("Rabbi Yirmiyah"/"Rabbi Yirmeyah" are one rabbi) and the card
+  // can surface homonym uncertainty.
   const dafRabbis = createMemo<IdentifiedRabbi[]>(() => {
-    const seen = new Set<string>();
-    const out: IdentifiedRabbi[] = [];
+    const entries: IdentifiedRabbi[] = [];
     for (const i of rabbiMarkInstances()) {
       const name = String(i.fields?.name ?? '');
       const nameHe = String(i.fields?.nameHe ?? i.excerpt ?? '');
-      const dedupKey = name || nameHe;
-      if (!dedupKey || seen.has(dedupKey)) continue;
-      seen.add(dedupKey);
-      out.push({
-        slug: null,
+      if (!name && !nameHe) continue;
+      entries.push({
+        slug: typeof i.fields?.slug === 'string' ? i.fields.slug : null,
         name,
         nameHe,
         generation: (i.fields?.generation ?? 'unknown') as GenerationId,
@@ -908,9 +916,11 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         bio: null,
         image: null,
         wiki: null,
+        genSource: typeof i.fields?.genSource === 'string' ? i.fields.genSource : undefined,
+        homonyms: typeof i.fields?.homonyms === 'number' ? i.fields.homonyms : undefined,
       });
     }
-    return out;
+    return dedupRabbiList(entries);
   });
 
   // This daf's background terms (daf-background.concepts), flattened for the
@@ -2824,7 +2834,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       )?.instances?.find((i) => i.fields?.name === name);
       if (inst) {
         r = {
-          slug: null,
+          slug: typeof inst.fields.slug === 'string' ? inst.fields.slug : null,
           name,
           nameHe: String(inst.fields.nameHe ?? inst.excerpt ?? ''),
           generation: (inst.fields.generation ?? 'unknown') as GenerationId,
@@ -2834,6 +2844,8 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           bio: null,
           image: null,
           wiki: null,
+          genSource: typeof inst.fields.genSource === 'string' ? inst.fields.genSource : undefined,
+          homonyms: typeof inst.fields.homonyms === 'number' ? inst.fields.homonyms : undefined,
         };
       }
     }
@@ -2878,6 +2890,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // useful sidebar entry. Push (not replace) so the back chip can pop.
   //
   // Resolution chain:
+  //   0. Slug match in dafContext, when the caller knows the slug (an
+  //      openRabbiSlug hand-off). Same-name homonyms can coexist in the
+  //      list with different slugs — a name lookup could open the WRONG one.
   //   1. Exact name match in dafContext.
   //   2. Normalized (strip Rabbi/Rav/R. prefix, lowercase) match in dafContext.
   //   3. Substring match: dafContext name contains the query, or vice
@@ -2889,12 +2904,15 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   //      stub with a static descriptive bio.
   //   6. Stub fallback: open the sidebar with just the name + 'unknown'
   //      generation so the user at least sees what they clicked.
-  const pushRabbi = (name: string) => {
+  const pushRabbi = (name: string, slug?: string) => {
     const ctx = dafRabbis();
     let r: IdentifiedRabbi | null = null;
 
+    // 0. slug (strongest identity — survives same-name homonym pairs)
+    if (slug) r = ctx.find((x) => x.slug === slug) ?? null;
+
     // 1. exact
-    r = ctx.find((x) => x.name === name) ?? null;
+    if (!r) r = ctx.find((x) => x.name === name) ?? null;
 
     // 2. normalized
     if (!r) {
@@ -2924,7 +2942,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       )?.instances?.find((i) => i.fields?.name === name);
       if (inst) {
         r = {
-          slug: null,
+          slug: typeof inst.fields.slug === 'string' ? inst.fields.slug : null,
           name,
           nameHe: String(inst.fields.nameHe ?? inst.excerpt ?? ''),
           generation: (inst.fields.generation ?? 'unknown') as GenerationId,
@@ -2934,6 +2952,8 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           bio: null,
           image: null,
           wiki: null,
+          genSource: typeof inst.fields.genSource === 'string' ? inst.fields.genSource : undefined,
+          homonyms: typeof inst.fields.homonyms === 'number' ? inst.fields.homonyms : undefined,
         };
       }
     }
@@ -2979,12 +2999,15 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // from the dataset via /api/rabbi/:slug. ALWAYS pushes so chains of
   // rabbi → cited-rabbi → ... can be unwound by the back chip.
   const openRabbiSlug = async (slug: string) => {
-    // dafRabbis() carries null slugs (the join lives in the rabbi.identity
-    // enrichment now), so this won't match by slug — fall through to the
-    // standalone /api/rabbi/:slug fetch, which resolves the dataset entry.
+    // dafRabbis() carries the grounding-stamped slug when the registry pinned
+    // the rabbi (older cached runs may still have null slugs) — prefer the
+    // in-context entry, else fall through to the standalone /api/rabbi/:slug
+    // fetch, which resolves the dataset entry.
     const inCtx = dafRabbis().find((x) => x.slug === slug);
     if (inCtx) {
-      pushRabbi(inCtx.name);
+      // Thread the slug through — a name-only re-lookup could land on a
+      // SAME-NAME homonym that grounding pinned to a different slug.
+      pushRabbi(inCtx.name, slug);
       return;
     }
     try {

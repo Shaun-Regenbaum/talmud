@@ -107,6 +107,10 @@ function normalizeName(name: string): string {
 const ALIASES: Record<string, string> = {
   'reish lakish': 'rabbi-shimon-b-lakish',
   'resh lakish': 'rabbi-shimon-b-lakish',
+  // The graph carries a duplicate "Rabbi Shimon b. Lakish" node (slug …-2,
+  // canonicalHe ריש לקיש) — the full English form always means THE Reish
+  // Lakish, so pin it rather than treating the data quirk as a homonym.
+  'rabbi shimon bar lakish': 'rabbi-shimon-b-lakish',
   'rabbi yohanan': 'rabbi-yochanan-b-napacha',
   'rabbi yohanan bar nappaha': 'rabbi-yochanan-b-napacha',
   rabbah: 'rabbah-b-nachmani',
@@ -158,18 +162,40 @@ function extractPatronymic(name: string): string | null {
   return null;
 }
 
+/** Normalize a HEBREW name for index keys + lookups: strip nikkud/cantillation,
+ *  drop a trailing digit disambiguator ("רבי יוחנן (1)" → "רבי יוחנן"), expand
+ *  the geresh title shorthand ("ר' ירמיה" → "רבי ירמיה" — the daf's most common
+ *  form, which the previous exact-string lookup silently missed), strip
+ *  punctuation, collapse whitespace. Idempotent. */
+function normalizeHeName(s: string): string {
+  return s
+    .replace(/[֑-ׇ]/g, '') // nikkud + cantillation
+    .replace(/\s*\(\d+\)\s*$/, '') // trailing digit disambiguator
+    .replace(/^ר['׳]\s+/, 'רבי ') // geresh title shorthand → full title
+    .replace(/[.,:;?!"'״׳]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 // Build indices at module load. We map every name form we can think of to
 // the slug; multiple forms can point to the same slug (canonical, Hebrew,
 // normalized canonical).
+interface HeHit {
+  slug: string;
+  /** false when this key only exists because we stripped a "(N)" homonym
+   *  disambiguator off the stored canonicalHe — the bare Hebrew form is then
+   *  registry-AMBIGUOUS by Sefaria's own naming, not a unique pin. */
+  pinned: boolean;
+}
 interface IndexBuilt {
   nameToSlug: Map<string, string>; // normalized name → slug
-  heToSlug: Map<string, string>; // Hebrew name → slug
+  heIndex: Map<string, HeHit[]>; // normalized Hebrew name → ALL bearers
   slugToCanonical: Map<string, string>; // slug → canonical name (display)
 }
 
 function buildIndex(): IndexBuilt {
   const nameToSlug = new Map<string, string>();
-  const heToSlug = new Map<string, string>();
+  const heIndex = new Map<string, HeHit[]>();
   const slugToCanonical = new Map<string, string>();
   for (const [slug, node] of Object.entries(DATA.nodes)) {
     slugToCanonical.set(slug, node.canonical);
@@ -179,12 +205,16 @@ function buildIndex(): IndexBuilt {
     const slugAsName = slug.replace(/-/g, ' ').replace(/\((\w+)\)/g, '$1');
     if (!nameToSlug.has(slugAsName)) nameToSlug.set(slugAsName, slug);
     if (node.canonicalHe) {
-      // Normalize: trim, strip parenthetical disambiguators ("רבי יוחנן (1)").
-      const cleanHe = node.canonicalHe.replace(/\s*\(\d+\)\s*$/, '').trim();
-      if (cleanHe && !heToSlug.has(cleanHe)) heToSlug.set(cleanHe, slug);
+      const cleanHe = normalizeHeName(node.canonicalHe);
+      if (cleanHe) {
+        const pinned = !/\(\d+\)\s*$/.test(node.canonicalHe.trim());
+        const hits = heIndex.get(cleanHe);
+        if (hits) hits.push({ slug, pinned });
+        else heIndex.set(cleanHe, [{ slug, pinned }]);
+      }
     }
   }
-  return { nameToSlug, heToSlug, slugToCanonical };
+  return { nameToSlug, heIndex, slugToCanonical };
 }
 
 const INDEX = buildIndex();
@@ -201,10 +231,10 @@ function findSlug(name: string, nameHe?: string, generation?: string): string | 
   // 2. Exact normalized English match.
   let slug = INDEX.nameToSlug.get(norm) ?? null;
 
-  // 3. Hebrew match.
+  // 3. Hebrew match (single-best: prefer a pinned bearer, else the first).
   if (!slug && nameHe) {
-    const cleanHe = nameHe.replace(/\s*\(\d+\)\s*$/, '').trim();
-    slug = INDEX.heToSlug.get(cleanHe) ?? null;
+    const hits = INDEX.heIndex.get(normalizeHeName(nameHe)) ?? [];
+    slug = (hits.find((h) => h.pinned) ?? hits[0])?.slug ?? null;
   }
 
   // 4. Prefix match scoped by generation. Useful when the input is shorter
@@ -263,12 +293,21 @@ export function rabbiCandidates(name: string, nameHe?: string): string[] {
   }
   const ix = INDEX.nameToSlug.get(norm);
   if (ix) exact.add(ix);
+  // Hebrew form. A pinned single bearer is as good as an English exact. But a
+  // bearer whose stored canonicalHe carried a "(N)" homonym disambiguator
+  // ("רב כהנא (2)") must NOT pin the bare form — Sefaria numbered it precisely
+  // because the bare Hebrew is ambiguous; treating that stripped key as exact
+  // is how "Rav Kahana" silently collapsed to rav-kahana-(ii) and got stamped
+  // amora-ey-1. Such hits only JOIN the candidate set.
+  const heOpen = new Set<string>();
   if (nameHe) {
-    const cleanHe = nameHe.replace(/\s*\(\d+\)\s*$/, '').trim();
-    const he = INDEX.heToSlug.get(cleanHe);
-    if (he) exact.add(he);
+    const hits = INDEX.heIndex.get(normalizeHeName(nameHe)) ?? [];
+    if (hits.length === 1 && hits[0].pinned) exact.add(hits[0].slug);
+    else for (const h of hits) heOpen.add(h.slug);
   }
-  return exact.size ? [...exact] : [...prefix];
+  if (exact.size) return [...exact];
+  for (const s of heOpen) prefix.add(s);
+  return [...prefix];
 }
 
 export type ResolveBasis = 'unique' | 'relational' | 'generation' | 'ambiguous' | 'none';
@@ -277,6 +316,12 @@ export interface ResolvedRabbi {
   basis: ResolveBasis;
 }
 
+/** A relational win must beat the runner-up by this many shared edges. A
+ *  1-edge "win" is exactly what incidental co-presence produces (e.g. Rav
+ *  appearing in another sugya on the daf handed Rav Kahana to the early
+ *  Kahana), so a bare margin of one is treated as thin evidence. */
+const RELATIONAL_MARGIN = 2;
+
 /**
  * Registry-FIRST rabbi resolution with relational homonym disambiguation.
  *
@@ -284,11 +329,22 @@ export interface ResolvedRabbi {
  *  - 1 candidate          → it ('unique').
  *  - >1 (a homonym)       → disambiguate by DAF EVIDENCE: score each candidate
  *    by how many of the co-occurring rabbis on the daf sit in its registry
- *    teacher/student/colleague edges, and pick the unique best ('relational').
- *    e.g. the Rav Kahana who sits next to Rav resolves to the Kahana whose
- *    edges include Rav. If relational gives no clear winner, fall back to a
- *    generation match ONLY if it singles out one candidate; otherwise return
- *    null ('ambiguous') rather than guess. Precision over a confident-wrong id.
+ *    teacher/student/colleague edges. A candidate wins 'relational' only when
+ *    its score clears the runner-up by RELATIONAL_MARGIN — a single shared
+ *    edge is routinely incidental co-presence on a multi-sugya daf, not
+ *    identification. On a candidate set that itself SPANS generations (the
+ *    dangerous case: picking decides the era), a margin-clearing win is
+ *    additionally vetoed when it CONTRADICTS the LLM's local generation read
+ *    — daf-level co-occurrence can pile famous-name edges onto the wrong
+ *    bearer (Shabbat 21b: Rav+Rava+R. Yochanan all sit in the conflated
+ *    rav-kahana-(ii) node's edges), while the model at least read the sugya.
+ *    Below the margin, the LLM's generation guess may still single out one
+ *    candidate ('generation'), but ONLY when the relational evidence
+ *    corroborates it (the gen-matched candidate sits at the top of the
+ *    relational scores with score > 0) or the candidate set doesn't span
+ *    generations at all. Two independent signals must AGREE; conflicting or
+ *    thin evidence returns null ('ambiguous') — generation 'unknown' is the
+ *    honest output, not a confident-wrong era.
  */
 export function resolveRabbiSlug(
   name: string,
@@ -305,12 +361,13 @@ export function resolveRabbiSlug(
     const s = findSlug(co); // single best for context names
     if (s && !candSet.has(s)) coSlugs.add(s);
   }
-  let best: string | null = null;
-  let bestScore = 0;
-  let tie = false;
+  const scoreOf = new Map<string, number>();
   for (const slug of cands) {
     const node = DATA.nodes[slug];
-    if (!node) continue;
+    if (!node) {
+      scoreOf.set(slug, 0);
+      continue;
+    }
     const nbrs = new Set<string>([
       ...(node.teachers ?? []),
       ...(node.students ?? []),
@@ -318,17 +375,32 @@ export function resolveRabbiSlug(
     ]);
     let score = 0;
     for (const cs of coSlugs) if (nbrs.has(cs)) score++;
-    if (score > bestScore) {
-      bestScore = score;
-      best = slug;
-      tie = false;
-    } else if (score === bestScore && score > 0) tie = true;
+    scoreOf.set(slug, score);
   }
-  if (best && bestScore > 0 && !tie) return { slug: best, basis: 'relational' };
-
-  if (opts?.generation) {
-    const genMatch = cands.filter((s) => DATA.nodes[s]?.generation === opts.generation);
-    if (genMatch.length === 1) return { slug: genMatch[0], basis: 'generation' };
+  const ranked = [...scoreOf.entries()].sort((a, b) => b[1] - a[1]);
+  const [topSlug, topScore] = ranked[0];
+  const runnerScore = ranked[1]?.[1] ?? 0;
+  const genSpan = new Set(
+    cands.map((s) => DATA.nodes[s]?.generation).filter((g): g is string => Boolean(g)),
+  ).size;
+  const llmGen = opts?.generation && opts.generation !== 'unknown' ? opts.generation : null;
+  // Margin requirement (also subsumes the old tie check: a tie at the top
+  // means margin 0) + the era-consistency veto: on a cross-generation set, a
+  // relational win that contradicts the LLM's local generation read is
+  // conflicting evidence, not identification.
+  if (topScore > 0 && topScore >= runnerScore + RELATIONAL_MARGIN) {
+    const eraConsistent = genSpan <= 1 || !llmGen || DATA.nodes[topSlug]?.generation === llmGen;
+    if (eraConsistent) return { slug: topSlug, basis: 'relational' };
+  } else if (llmGen) {
+    const genMatch = cands.filter((s) => DATA.nodes[s]?.generation === llmGen);
+    if (genMatch.length === 1) {
+      // Below the margin the LLM's per-daf generation guess is exactly the
+      // overclaim this path exists to correct — so on a cross-generation set
+      // the guess only stands when the relational evidence, however thin,
+      // points at the SAME candidate.
+      const corroborated = topScore > 0 && (scoreOf.get(genMatch[0]) ?? 0) === topScore;
+      if (genSpan <= 1 || corroborated) return { slug: genMatch[0], basis: 'generation' };
+    }
   }
   return { slug: null, basis: 'ambiguous' };
 }
@@ -339,6 +411,9 @@ export interface GroundedRabbi {
   canonical: string | null;
   generation: string | null;
   genSource: ResolveBasis;
+  /** Registry candidate count for the name — >1 means a homonym. Lets the
+   *  client say "N rabbis share this name" when the basis is 'ambiguous'. */
+  homonyms: number;
 }
 
 /**
@@ -374,6 +449,7 @@ export function groundRabbiNames(
       canonical: slug ? slugToName(slug) : null,
       generation,
       genSource: basis,
+      homonyms: rabbiCandidates(it.name, it.nameHe).length,
     };
   });
 }
@@ -418,6 +494,10 @@ export function groundRabbiInstances(parsed: unknown): unknown {
   grounded.forEach((g, i) => {
     const f = targets[i].f;
     f.genSource = g.genSource;
+    // Candidate count, stamped only for homonyms — the client renders
+    // "generation uncertain — N rabbis share this name" off it when the
+    // basis is 'ambiguous'. Additive field; instances aren't strict-validated.
+    if (g.homonyms > 1) f.homonyms = g.homonyms;
     if (g.slug) {
       f.slug = g.slug;
       f.canonical = g.canonical;
@@ -500,8 +580,21 @@ export function lookupRelationships(
 ): LookupResult | null {
   const slug = findSlug(name, nameHe, generation);
   if (!slug) return null;
+  return lookupRelationshipsBySlug(slug, name);
+}
+
+/**
+ * Same as lookupRelationships but keyed DIRECTLY by a known registry slug —
+ * the path for mark instances grounding already pinned (their `fields.slug`).
+ * Skips name resolution entirely: a name lookup is first-wins and homonym-
+ * blind, so re-resolving a grounded instance by name can land on a different
+ * same-name bearer. `displayName` (the daf's English form) feeds the
+ * patronymic family derivation; defaults to the node's canonical name.
+ */
+export function lookupRelationshipsBySlug(slug: string, displayName?: string): LookupResult | null {
   const node = DATA.nodes[slug];
   if (!node) return null;
+  const name = displayName || node.canonical;
 
   // Cap each list at a sane number. Sefaria's graph can record 15-50+
   // students/colleagues for prolific sages (Rava has 22 students; R.
