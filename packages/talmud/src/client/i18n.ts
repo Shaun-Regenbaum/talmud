@@ -1037,8 +1037,9 @@ const CATALOG = {
     en: 'Geography · click a dot to highlight',
     he: 'גאוגרפיה · לחצו על נקודה להדגשה',
   },
-  'geography.mapping': { en: 'Mapping rabbi geography…', he: 'ממפה את גאוגרפיית החכמים…' },
+  'geography.mapTitle': { en: 'Geography map', he: 'מפת גאוגרפיה' },
   'geography.mentionedInDaf': { en: 'mentioned in daf', he: 'מוזכר בדף' },
+  'geography.cityUnknown': { en: 'city unknown', he: 'עיר לא ידועה' },
   'geography.eretzYisrael': { en: 'Eretz Yisrael', he: 'ארץ ישראל' },
   'geography.eretzYisrael.aria': {
     en: 'Eretz Yisrael — rabbi geographic origins',
@@ -1051,7 +1052,6 @@ const CATALOG = {
   },
   'geography.euphrates': { en: 'Euphrates', he: 'פרת' },
   'geography.tigris': { en: 'Tigris', he: 'חידקל' },
-  'geography.placesMentioned': { en: 'Places mentioned', he: 'מקומות מוזכרים' },
   'geography.migration': { en: 'Migration', he: 'הגירה' },
 
   // — Translation popup —

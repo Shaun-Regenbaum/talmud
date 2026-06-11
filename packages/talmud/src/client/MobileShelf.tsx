@@ -43,6 +43,11 @@ interface MobileShelfProps {
       tokenEnd?: number;
     } | null,
   ) => void;
+
+  /** Whole-daf geography map (already-assembled, cached-only data). Rendered
+   *  collapsed behind a <details> row so it costs no shelf height until the
+   *  reader opens it; null/absent hides the row entirely. */
+  geography?: JSX.Element | null;
 }
 
 // Fixed-bottom sheet on mobile. The interaction-mode bar (Read / Translate)
@@ -71,6 +76,28 @@ export function MobileShelf(props: MobileShelfProps): JSX.Element {
     >
       <Show when={props.sidebar !== null}>
         <ExpansionView {...props} />
+      </Show>
+      {/* Whole-daf geography map — collapsed by default (one summary row);
+          only present when the daf has placeable data. */}
+      <Show when={props.geography}>
+        <details style={{ 'border-bottom': '1px solid #eee', 'flex-shrink': 0 }}>
+          <summary
+            style={{
+              padding: '0.45rem 0.8rem',
+              'font-size': '0.72rem',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.06em',
+              color: '#888',
+              cursor: 'pointer',
+              'user-select': 'none',
+            }}
+          >
+            {t('geography.mapTitle')}
+          </summary>
+          <div style={{ padding: '0 0.8rem 0.6rem', 'max-height': '45vh', overflow: 'auto' }}>
+            {props.geography}
+          </div>
+        </details>
       </Show>
       {/* Daf-load progress lives here on mobile (above Read/Translate) so it
           never sits on top of the daf text. Self-hides when nothing's loading,

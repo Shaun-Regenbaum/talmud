@@ -31,9 +31,17 @@ import DafLoadProgress from './DafLoadProgress';
 import { readDevMode, setDevModeActive } from './DevModeShelf';
 import { cancelPrefetch, prefetchDaf } from './dafPrefetch';
 import { ensureMasechetIncipit } from './ensureMasechetIncipit';
+import { type EntityGeoPieces, fetchEntityGeoPieces } from './entityGeo';
+import { GeographyStrip } from './GeographyStrip';
 import { GutterIcons, type GutterKind } from './GutterIcons';
 import { GutterOverlay } from './GutterOverlay';
 import type { GenerationId } from './generations';
+import {
+  buildGeoModel,
+  type DafGeoModel,
+  type PlaceMention,
+  type RabbiGeoSource,
+} from './geographyData';
 import { buildTokenRange } from './highlightRange';
 import { lang, setLang, t } from './i18n';
 import { injectHadran } from './injectHadran';
@@ -46,7 +54,6 @@ import MarksRegistryPanel, {
   markRunsByMarkId,
   markStatuses,
 } from './MarksRegistryPanel';
-// GeographyStrip removed pending rederivation — see TODO(geography-rederive).
 import { type MobileInteractionMode, MobileShelf } from './MobileShelf';
 import RunTreeDock from './RunTreeDock';
 import { recordStage } from './rendererActivity';
@@ -777,19 +784,22 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (showPesukim() !== want('pesukim')) setShowPesukim(want('pesukim'));
   });
 
-  // Cities matched on this daf, derived from the `places` mark's run output.
-  // Replaces the heuristic injectCityMarkers placeMatches set. Returns null
-  // when the mark hasn't yielded yet (so GeographyMap can show a loading state).
-  const placesMatchedFromMark = (): Set<string> => {
+  // Place mentions on this daf, from the `places` mark's run output (the
+  // same instances that drive the inline .city-marker wraps). Feeds the
+  // whole-daf geography model, which sizes city dots by mention count.
+  const placeMentions = createMemo<PlaceMention[]>(() => {
     const run = markRunsByMarkId().places;
-    const out = new Set<string>();
-    if (!run?.parsed?.instances) return out;
-    for (const inst of run.parsed.instances) {
-      const name = String(inst.fields?.name ?? '').trim();
-      if (name) out.add(name);
-    }
-    return out;
-  };
+    const instances = (
+      run?.parsed as
+        | { instances?: Array<{ fields?: { name?: string; nameHe?: string } }> }
+        | undefined
+    )?.instances;
+    if (!Array.isArray(instances)) return [];
+    return instances.map((i) => ({
+      name: typeof i.fields?.name === 'string' ? i.fields.name : undefined,
+      nameHe: typeof i.fields?.nameHe === 'string' ? i.fields.nameHe : undefined,
+    }));
+  });
 
   // Prefetch trigger: once the daf's anchor marks have settled (none still
   // loading), warm the section-level syntheses + suggested-questions so the
@@ -976,9 +986,65 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // enrichment resolves or if it errors.
   const glossaryTerms = createMemo<Term[]>(() => glossaryForDaf(dafBackgroundTermsRes() ?? []));
 
-  // TODO(geography-rederive): the rabbiPlaces memo previously fed
-  // GeographyMap from the legacy dafContext fetch. Removed pending a
-  // proper rebuild from per-rabbi `rabbi.geography` enrichment data.
+  // ── Whole-daf geography (the map strip) — CACHED-ONLY by construction ───
+  // One GET /api/entity/rabbi/:slug?facets=identity,geography per unique
+  // rabbi on the daf (fetchEntityGeoPieces — session-cached by slug AND
+  // in-flight-deduped, so concurrent asks for the same rabbi share one
+  // request). The worker route only READS: the deterministic registry
+  // identity (places/region/moved from rabbi-places.json) plus whatever
+  // rabbi.geography enrichment is already cached in KV (readGlobalPiece —
+  // never an LLM run). Rabbis without cached pieces simply get no dot;
+  // failures are swallowed; the map hides when the model is empty. (The
+  // previous GeographyMap was removed for spinning on a flaky LLM-backed
+  // daf-context fetch — this path cannot generate, so it cannot spin.)
+  //
+  // One AbortController per daf-effect: turning the page aborts the previous
+  // daf's outstanding entity fetches (10-25 per daf) instead of stranding
+  // them. Aborted fetches cache nothing (see entityGeo.ts).
+  let entityGeoAbort: AbortController | null = null;
+  const [entityGeo] = createResource(
+    // Note: '' (no slugged rabbis) still runs the fetcher — it must, so the
+    // previous daf's in-flight fetches get aborted even when the new daf has
+    // no rabbis of its own.
+    () =>
+      Array.from(new Set(dafRabbis().flatMap((r) => (r.slug ? [r.slug] : []))))
+        .sort()
+        .join(','),
+    async (key) => {
+      entityGeoAbort?.abort();
+      const ac = new AbortController();
+      entityGeoAbort = ac;
+      const out = new Map<string, EntityGeoPieces>();
+      if (!key) return out;
+      await Promise.all(
+        key.split(',').map(async (slug) => {
+          const pieces = await fetchEntityGeoPieces(slug, ac.signal);
+          if (pieces) out.set(slug, pieces);
+        }),
+      );
+      return out;
+    },
+  );
+
+  const dafGeoModel = createMemo<DafGeoModel>(() => {
+    const pieces = entityGeo();
+    const sources: RabbiGeoSource[] = dafRabbis().map((r) => {
+      const p = r.slug ? pieces?.get(r.slug) : undefined;
+      return {
+        name: r.name,
+        slug: r.slug,
+        identity: p?.identity ?? null,
+        geography: p?.geography ?? null,
+      };
+    });
+    return buildGeoModel(sources, placeMentions());
+  });
+
+  // The strip's RESERVED SPACE condition: any slugged rabbi on the daf means
+  // geography may arrive, so the fixed-width aside mounts at daf first paint
+  // — the daf column must not shift left mid-read when the async model
+  // lands. (Stable per daf: rabbi-less dapim get no strip at all.)
+  const hasGeoRabbis = createMemo<boolean>(() => dafRabbis().some((r) => r.slug));
 
   // Argument / halacha / aggadata / pesukim state — populated by the
   // registry-mark adapter effects from `markRunsByMarkId()`. Loading and
@@ -1179,7 +1245,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // Transient hover highlight — driven by hovering a row in the Migration
   // list. Additive on top of click-driven highlights so hovering doesn't
   // stomp the sidebar / active-location state the user already committed to.
-  const [hoveredRabbi, _setHoveredRabbi] = createSignal<string | null>(null);
+  const [hoveredRabbi, setHoveredRabbi] = createSignal<string | null>(null);
 
   // Place-dot highlight: clicking a city dot (not a rabbi dot) lights up
   // every `.city-marker[data-city="<name>"]` in the daf body. Mutually
@@ -2299,11 +2365,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       }
     }
 
-    // City-marker wraps + the per-daf places list now come from the
-    // `places` worker mark via applyMarkRenderers above. citiesInText
-    // (derived below) reads from the mark's run output rather than a
-    // heuristic match set.
-    const placeMatches = placesMatchedFromMark();
+    // City-marker wraps + the per-daf places list come from the `places`
+    // worker mark via applyMarkRenderers above; the geography model reads
+    // the same run through placeMentions().
 
     const ctx = { tractate: tractate(), page: page() };
 
@@ -2386,15 +2450,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       if (anchors.length > 0) main = injectYerushalmiAnchors(main, anchors, ctx);
     }
 
-    return { main, inner, outer, placeMatches };
-  });
-
-  // Cities found in the daf's Hebrew text — passed to GeographyMap so each
-  // explicit mention gets a gray place-dot even when no rabbi in the list
-  // is placed there.
-  const _citiesInText = createMemo<Set<string> | null>(() => {
-    const t = tokenized();
-    return t ? t.placeMatches : null;
+    return { main, inner, outer };
   });
 
   // Changes to this key force GutterIcons to re-measure anchor positions.
@@ -2541,7 +2597,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     return `${s.kind}:${s.index}`;
   });
 
-  const _onHighlightLocation = (cityName: string | null, rabbiNames: string[]) => {
+  const onHighlightLocation = (cityName: string | null, rabbiNames: string[]) => {
     setActiveRabbi(null);
     setSidebar(null);
     setActivePlace(null);
@@ -3578,14 +3634,6 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       <div class="daf-layout">
         <div class="daf-cluster">
           <section class="daf-body-col">
-            {/* TODO(geography-rederive): the right-side Geography panel + its
-          "Map" pill were removed because their data source (legacy
-          /api/daf-context fetch returning rabbiPlaces) hangs or 1031s.
-          Rederive the panel from registry data — per-rabbi places live in
-          the `rabbi.geography` enrichment now, and the rabbi sidebar's
-          RabbiPlacesTimeline already renders them well. A whole-daf map
-          would aggregate those per-rabbi enrichments. Until then, the
-          top-bar toggle nav is empty and hidden. */}
             {/* First-visit nudge offering the guided tour (#tutorial). */}
             <Show when={showBanner}>
               <TutorialBanner />
@@ -3924,11 +3972,37 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               </a>
             </footer>
           </section>
+
+          {/* Right-flank geography strip — part of the reading cluster so it
+            hugs the daf (the cluster centers as one unit; the on-demand
+            sidebar floats far right). Fed exclusively by already-cached data
+            (registry identity + cached rabbi.geography + the places mark).
+            The fixed-width container mounts EAGERLY once the daf has any
+            slugged rabbi — before the async geo model lands — so the daf
+            column's geometry settles at first paint instead of shifting
+            left mid-read; the map itself fills in when (and if) the model
+            has content. The CSS .daf-strip rules give the aside its 220px
+            width (content-independent) and hide it below 1280px, where the
+            map would crowd the daf. */}
+          <Show when={!isMobile() && hasGeoRabbis()}>
+            <aside class="daf-strip">
+              <Show when={!dafGeoModel().empty}>
+                <GeographyStrip
+                  model={dafGeoModel()}
+                  activeLocation={activeLocation()}
+                  onHighlightLocation={onHighlightLocation}
+                  onHighlightSingleRabbi={pushRabbi}
+                  onHoverRabbi={setHoveredRabbi}
+                  generationByName={generationByName()}
+                  onHighlightPlace={(name) => (name ? openPlace(name) : setActivePlace(null))}
+                  activePlace={activePlace()}
+                />
+              </Show>
+            </aside>
+          </Show>
         </div>
 
-        {/* Right-side aside — currently only ArgumentSidebar mounts here.
-          GeographyStrip was removed pending rederivation from registry
-          data; see the TODO(geography-rederive) note above. */}
+        {/* Right-side aside — the on-demand ArgumentSidebar. */}
         <Show when={!isMobile() && sidebar() !== null}>
           <aside
             class="daf-aside"
@@ -4013,6 +4087,20 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           generationByName={generationByName()}
           dafSections={analysis()?.sections ?? []}
           onOpenArgument={openArgument}
+          geography={
+            dafGeoModel().empty ? null : (
+              <GeographyStrip
+                model={dafGeoModel()}
+                activeLocation={activeLocation()}
+                onHighlightLocation={onHighlightLocation}
+                onHighlightSingleRabbi={pushRabbi}
+                onHoverRabbi={setHoveredRabbi}
+                generationByName={generationByName()}
+                onHighlightPlace={(name) => (name ? openPlace(name) : setActivePlace(null))}
+                activePlace={activePlace()}
+              />
+            )
+          }
         />
       </Show>
 

@@ -227,11 +227,12 @@
   border-radius: 2px;
 }
 
-/* City-name marker — injected by src/client/injectCityMarkers.ts around
-   occurrences of KNOWN_CITIES in the Hebrew text. Faint dotted underline so
-   readers know the span is clickable but it doesn't compete visually with
-   rabbi-generation underlines. `.city-highlighted` turns on when a
-   GeographyMap place-dot for that city is the active selection. */
+/* City-name marker — injected by the `places` mark renderer
+   (src/client/renderers/dispatch.ts) around place mentions in the Hebrew
+   text. Faint dotted underline so readers know the span is clickable but it
+   doesn't compete visually with rabbi-generation underlines.
+   `.city-highlighted` turns on when a GeographyMap city-dot for that city
+   is the active selection. */
 .daf-root .daf-text .city-marker {
   border-bottom: 1px dotted #6b7280;
   padding-bottom: 0;
