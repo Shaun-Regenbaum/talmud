@@ -31,6 +31,8 @@ import { lang } from './i18n';
 import { inspectRequest } from './inspectBridge';
 import {
   ACTIVE_STROKE,
+  type Authority,
+  AuthorityBadge,
   BADGE_LLM,
   BADGE_PRO,
   BADGE_SRC,
@@ -49,9 +51,13 @@ import {
   NODE_H,
   NODE_W,
   NodeIcon,
+  ProvenanceSection,
   ROW_H,
   type RunResult,
   type RunTree,
+  STALENESS_COLOR,
+  type Staleness,
+  StalenessDot,
   TOP_PAD,
   type TreeNode,
   variantOf,
@@ -67,6 +73,9 @@ interface DafRun {
   cold_ms: number | null;
   cost: number | null;
   tokens: number | null;
+  // additive (older payloads omit them)
+  authority?: Authority | null;
+  staleness?: Staleness | null;
 }
 
 /** One waterfall row — a piece run with a cold-time bar. Used as the collapsed
@@ -184,6 +193,19 @@ function RunRow(props: {
       >
         {isLLM() ? fmtCost(r().cost) : '—'}
       </span>
+      {/* staleness dot — only when the payload carries a verdict (cached rows) */}
+      <span
+        style={{
+          width: '10px',
+          'flex-shrink': 0,
+          display: 'inline-flex',
+          'justify-content': 'center',
+        }}
+      >
+        <Show when={!props.loading && r().staleness}>
+          {(s) => <StalenessDot staleness={s()} isMark={r().producer === 'mark'} />}
+        </Show>
+      </span>
       <span
         style={{ width: '1.9rem', 'text-align': 'right', 'font-size': '0.62rem', 'flex-shrink': 0 }}
       >
@@ -232,6 +254,216 @@ function RunRow(props: {
         </button>
       </Show>
     </div>
+  );
+}
+
+/** Studio secret for the privileged rewarm endpoint — the SAME localStorage
+ *  convention as MarksRegistryPanel's studioHeaders(): the owner sets it once
+ *  via `localStorage.setItem('talmud_studio_secret', '<secret>')`. */
+function studioSecret(): string | null {
+  try {
+    return localStorage.getItem('talmud_studio_secret');
+  } catch {
+    return null;
+  }
+}
+
+interface StaleVerdict {
+  status: 'fresh' | 'stale' | 'unknown' | 'miss' | 'n/a';
+  cached_recipe?: string | null;
+  current_recipe?: string | null;
+}
+interface Dependents {
+  id: string;
+  direct: string[];
+  transitive: string[];
+  count: number;
+}
+
+/** Collapsed-by-default freshness section for the currently drilled producer:
+ *  the /api/stale recipe verdict, the /api/dependents re-warm blast radius, and
+ *  a studio-gated 'Rewarm cascade' button (POST /api/admin/rewarm). */
+function FreshnessPanel(props: {
+  tractate: string;
+  page: string;
+  pieceId: string;
+  onRewarmed: () => void;
+}): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const [rewarm, setRewarm] = createSignal<
+    | { kind: 'idle' }
+    | { kind: 'busy' }
+    | { kind: 'ok'; runId: string }
+    | { kind: 'err'; msg: string }
+  >({ kind: 'idle' });
+  // New piece → stale rewarm status no longer applies.
+  createEffect(() => {
+    void props.pieceId;
+    setRewarm({ kind: 'idle' });
+  });
+  const [stale] = createResource(
+    () => (open() ? `${props.tractate}|${props.page}|${props.pieceId}|${lang()}` : null),
+    async (): Promise<StaleVerdict> => {
+      const r = await fetch(
+        `/api/stale/${encodeURIComponent(props.pieceId)}/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}?lang=${lang()}`,
+      );
+      // 404 = not an enrichment (marks have no recipe stamp / stale probe).
+      if (!r.ok) return { status: 'n/a' };
+      return (await r.json()) as StaleVerdict;
+    },
+  );
+  const [deps] = createResource(
+    () => (open() ? props.pieceId : null),
+    async (): Promise<Dependents | null> => {
+      const r = await fetch(`/api/dependents/${encodeURIComponent(props.pieceId)}`);
+      return r.ok ? ((await r.json()) as Dependents) : null;
+    },
+  );
+  const verdictColor = (s: StaleVerdict['status']): string =>
+    s === 'fresh'
+      ? STALENESS_COLOR.fresh
+      : s === 'stale'
+        ? STALENESS_COLOR['stale-recipe']
+        : s === 'unknown'
+          ? STALENESS_COLOR.unknown
+          : '#bbb';
+  const doRewarm = async () => {
+    const secret = studioSecret();
+    if (!secret) return;
+    setRewarm({ kind: 'busy' });
+    try {
+      const r = await fetch(
+        `/api/admin/rewarm/${encodeURIComponent(props.pieceId)}/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}?lang=${lang()}`,
+        { method: 'POST', headers: { 'x-studio-secret': secret } },
+      );
+      const j = (await r.json()) as { runId?: string; error?: string };
+      if (!r.ok || !j.runId) {
+        setRewarm({ kind: 'err', msg: j.error ?? `HTTP ${r.status}` });
+        return;
+      }
+      setRewarm({ kind: 'ok', runId: j.runId });
+      props.onRewarmed();
+    } catch (e) {
+      setRewarm({ kind: 'err', msg: String(e) });
+    }
+  };
+  const mono = { 'font-family': 'ui-monospace, Menlo, monospace' } as const;
+  return (
+    <details
+      onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
+      style={{ 'border-top': '1px solid #eee', 'flex-shrink': 0, background: '#fcfcfa' }}
+    >
+      <summary
+        style={{
+          cursor: 'pointer',
+          padding: '0.35rem 0.7rem',
+          'font-size': '0.72rem',
+          color: '#777',
+          'user-select': 'none',
+        }}
+      >
+        Freshness · <span style={mono}>{props.pieceId}</span>
+      </summary>
+      <div style={{ padding: '0.2rem 0.7rem 0.6rem', 'font-size': '0.74rem' }}>
+        <div style={{ display: 'flex', 'align-items': 'center', gap: '0.45rem' }}>
+          <span style={{ color: '#999', 'font-size': '0.68rem' }}>recipe</span>
+          <Show when={stale()} fallback={<span style={{ color: '#bbb' }}>checking…</span>}>
+            {(s) => (
+              <span
+                title={
+                  s().status === 'n/a'
+                    ? 'no stale probe for this producer (marks don’t stamp a recipe hash)'
+                    : `cached ${s().cached_recipe?.slice(0, 12) ?? '—'} vs current ${s().current_recipe?.slice(0, 12) ?? '—'}`
+                }
+                style={{
+                  ...mono,
+                  'font-size': '0.7rem',
+                  color: '#fff',
+                  background: verdictColor(s().status),
+                  'border-radius': '4px',
+                  padding: '0.05rem 0.45rem',
+                }}
+              >
+                {s().status}
+              </span>
+            )}
+          </Show>
+          <button
+            type="button"
+            onClick={doRewarm}
+            disabled={!studioSecret() || rewarm().kind === 'busy'}
+            title={
+              studioSecret()
+                ? 'evict + regenerate this producer and its whole dependent cascade on this daf'
+                : "set localStorage 'talmud_studio_secret' to enable rewarm"
+            }
+            style={{
+              'margin-left': 'auto',
+              font: 'inherit',
+              'font-size': '0.7rem',
+              padding: '0.15rem 0.55rem',
+              'border-radius': '4px',
+              border: '1px solid #d8c9c0',
+              background: '#fff',
+              color: studioSecret() ? '#8a2a2b' : '#bbb',
+              cursor: studioSecret() ? 'pointer' : 'not-allowed',
+            }}
+          >
+            {rewarm().kind === 'busy' ? 'rewarming…' : 'Rewarm cascade'}
+          </button>
+        </div>
+        <Show when={!studioSecret()}>
+          <div style={{ color: '#bbb', 'font-size': '0.66rem', 'margin-top': '0.2rem' }}>
+            rewarm needs the studio secret (localStorage 'talmud_studio_secret')
+          </div>
+        </Show>
+        <Show when={rewarm().kind === 'ok'}>
+          <div style={{ color: '#15803d', 'font-size': '0.7rem', 'margin-top': '0.25rem' }}>
+            enqueued <span style={mono}>{(rewarm() as { runId: string }).runId}</span>
+          </div>
+        </Show>
+        <Show when={rewarm().kind === 'err'}>
+          <div style={{ color: '#b91c1c', 'font-size': '0.7rem', 'margin-top': '0.25rem' }}>
+            {(rewarm() as { msg: string }).msg}
+          </div>
+        </Show>
+        <div style={{ 'margin-top': '0.35rem' }}>
+          <span style={{ color: '#999', 'font-size': '0.68rem' }}>
+            rewarm cascade ({deps()?.count ?? 0})
+          </span>
+          <div
+            style={{
+              display: 'flex',
+              'flex-wrap': 'wrap',
+              gap: '0.25rem',
+              'margin-top': '0.25rem',
+            }}
+          >
+            <Show when={(deps()?.transitive ?? []).length === 0}>
+              <span style={{ color: '#bbb', 'font-size': '0.7rem' }}>
+                nothing depends on this producer
+              </span>
+            </Show>
+            <For each={deps()?.transitive ?? []}>
+              {(d) => (
+                <span
+                  style={{
+                    ...mono,
+                    'font-size': '0.66rem',
+                    background: '#f1f1f3',
+                    color: '#555',
+                    'border-radius': '4px',
+                    padding: '0.05rem 0.4rem',
+                  }}
+                >
+                  {d}
+                </span>
+              )}
+            </For>
+          </div>
+        </div>
+      </div>
+    </details>
   );
 }
 
@@ -832,9 +1064,21 @@ export default function RunTreeDock(props: {
                               >
                                 {fmtMs(n().cold_ms)}
                               </span>
+                              <Show when={n().staleness}>
+                                {(s) => (
+                                  <StalenessDot
+                                    staleness={s()}
+                                    inputsChanged={n().inputsChanged}
+                                    isMark={n().producer === 'mark'}
+                                  />
+                                )}
+                              </Show>
                             </div>
                             <div
                               style={{
+                                display: 'flex',
+                                'align-items': 'center',
+                                gap: '0.3rem',
                                 'font-size': '0.66rem',
                                 'font-family': 'ui-monospace, Menlo, monospace',
                                 color: isLLM() ? '#9a8fb5' : '#9aa4ad',
@@ -843,6 +1087,9 @@ export default function RunTreeDock(props: {
                                 'text-overflow': 'ellipsis',
                               }}
                             >
+                              <Show when={n().authority}>
+                                {(a) => <AuthorityBadge authority={a()} />}
+                              </Show>
                               {isLLM()
                                 ? `${(n().model ?? '').split('/').pop()} · ${fmtCost(n().cost)}`
                                 : 'source · $0'}
@@ -885,6 +1132,17 @@ export default function RunTreeDock(props: {
               )}
             </Show>
           </div>
+        </Show>
+
+        {/* freshness (collapsed) — the drilled producer's stale verdict +
+            dependents cascade + the studio-gated rewarm action */}
+        <Show when={view() === 'dag'}>
+          <FreshnessPanel
+            tractate={props.tractate}
+            page={props.page}
+            pieceId={pieceId()}
+            onRewarmed={() => refetchRuns()}
+          />
         </Show>
 
         {/* node detail (bottom) — DAG mode only; drag its top edge to resize */}
@@ -1087,6 +1345,7 @@ export default function RunTreeDock(props: {
                               nothing cached for this node on this daf yet.
                             </div>
                           </Show>
+                          <ProvenanceSection node={n()} />
                         </>
                       }
                     >
