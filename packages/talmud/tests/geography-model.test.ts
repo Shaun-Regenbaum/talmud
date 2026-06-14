@@ -6,6 +6,7 @@ import {
   matchCity,
   placeRabbi,
   type RabbiGeoSource,
+  regionFromGeneration,
 } from '../src/lib/geographyModel';
 
 const geo = (g: Partial<GeoEnrichment>): GeoEnrichment => ({
@@ -37,6 +38,27 @@ describe('matchCity', () => {
     expect(matchCity('Rome')).toBeNull();
     expect(matchCity('Radun')).toBeNull();
     expect(matchCity('')).toBeNull();
+  });
+});
+
+describe('regionFromGeneration', () => {
+  it('maps Eretz-Yisrael tiers to israel', () => {
+    expect(regionFromGeneration('amora-ey-1')).toBe('israel');
+    expect(regionFromGeneration('amora-ey-5')).toBe('israel');
+    expect(regionFromGeneration('tanna-4')).toBe('israel');
+    expect(regionFromGeneration('zugim')).toBe('israel');
+  });
+  it('maps Babylonian tiers (incl. geonim) to bavel', () => {
+    expect(regionFromGeneration('amora-bavel-3')).toBe('bavel');
+    expect(regionFromGeneration('savora')).toBe('bavel');
+    expect(regionFromGeneration('geonim')).toBe('bavel');
+  });
+  it('returns null for later / unknown / missing generations', () => {
+    expect(regionFromGeneration('rishonim')).toBeNull();
+    expect(regionFromGeneration('achronim')).toBeNull();
+    expect(regionFromGeneration('unknown')).toBeNull();
+    expect(regionFromGeneration(null)).toBeNull();
+    expect(regionFromGeneration(undefined)).toBeNull();
   });
 });
 
@@ -161,6 +183,66 @@ describe('buildGeoModel', () => {
     expect(model.israelCount).toBe(1);
     expect(model.bavelCount).toBe(1);
     expect(model.empty).toBe(false);
+  });
+
+  it('buckets ungrounded rabbis by generation when no place/region is known', () => {
+    const model = buildGeoModel(
+      [
+        // No registry place, no region, no enrichment — only a generation. The
+        // generation fallback now keeps them on the map instead of dropping.
+        { name: 'Bavli Amora', generation: 'amora-bavel-3' },
+        { name: 'EY Amora', generation: 'amora-ey-2' },
+        { name: 'A Tanna', generation: 'tanna-4' },
+        { name: 'A Gaon', generation: 'geonim' },
+        // unknown / later authority → still dropped (no region).
+        { name: 'Anonymous', generation: 'unknown' },
+        { name: 'A Rishon', generation: 'rishonim' },
+        { name: 'No Generation' },
+      ],
+      [],
+    );
+    expect(model.unspecifiedBavel).toEqual([
+      { name: 'A Gaon', slug: null },
+      { name: 'Bavli Amora', slug: null },
+    ]);
+    expect(model.unspecifiedIsrael).toEqual([
+      { name: 'A Tanna', slug: null },
+      { name: 'EY Amora', slug: null },
+    ]);
+    expect(model.dots).toEqual([]);
+    expect(model.bavelCount).toBe(2);
+    expect(model.israelCount).toBe(2);
+    expect(model.empty).toBe(false);
+  });
+
+  it('a daf of only unknown-generation rabbis is still empty', () => {
+    const model = buildGeoModel(
+      [
+        { name: 'Anonymous A', generation: 'unknown' },
+        { name: 'Anonymous B', generation: 'rishonim' },
+        { name: 'Anonymous C' },
+      ],
+      [],
+    );
+    expect(model.empty).toBe(true);
+  });
+
+  it('registry region/place still wins over the generation fallback', () => {
+    // A Babylonian-generation rabbi the registry places in Eretz Yisrael: the
+    // identity (place/region) is checked first, so generation never overrides.
+    const placed = buildGeoModel(
+      [{ name: 'P', identity: { places: ['Tiberias'] }, generation: 'amora-bavel-3' }],
+      [],
+    );
+    expect(placed.dots.find((d) => d.city.name === 'Tiberias')?.rabbis).toEqual([
+      { name: 'P', slug: null },
+    ]);
+    const regioned = buildGeoModel(
+      [{ name: 'R', identity: { region: 'israel' }, generation: 'amora-bavel-3' }],
+      [],
+    );
+    expect(regioned.unspecifiedIsrael).toEqual([{ name: 'R', slug: null }]);
+    expect(regioned.unspecifiedBavel).toEqual([]);
   });
 
   it('builds migration rows — registry moved wins over derived', () => {

@@ -2851,6 +2851,10 @@ export async function computeGeographyModel(
         slug,
         identity: { places: ident.places, region: ident.region ?? null, moved: ident.moved },
         geography: geo,
+        // The resolved generation (ident.generation fills an 'unknown' instance
+        // generation from the registry when it can) — the region fallback of
+        // last resort, so an ungrounded amora/tanna still buckets into a region.
+        generation: ident.generation,
       };
     }),
   );
