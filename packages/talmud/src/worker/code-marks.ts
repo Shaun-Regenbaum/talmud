@@ -849,7 +849,9 @@ export const CODE_MARKS: MarkDefinition[] = [
     // v2: ungrounded rabbis now fall back to a region via their `generation`
     // (regionFromGeneration), so far fewer dapim compute an empty model. A
     // computed mark (no LLM) — recomputing all of Shas is free.
-    cache_version: '2',
+    // v3: the model now carries per-rabbi `trajectories` (the click-to-trace
+    // drill-down). Bump so cached models recompute and gain the new field.
+    cache_version: '3',
     source: 'code',
     updated_at: NOW,
   },

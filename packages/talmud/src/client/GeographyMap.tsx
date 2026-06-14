@@ -16,9 +16,23 @@
  */
 
 import { createSignal, For, type JSX, Show } from 'solid-js';
-import type { CityDot, DafGeoModel, GeoRabbi, MoveDirection } from '../lib/geographyModel';
+import type {
+  CityDot,
+  DafGeoModel,
+  GeoRabbi,
+  MoveDirection,
+  RabbiTrajectory,
+  TrajectoryStop,
+} from '../lib/geographyModel';
 import { GENERATION_BY_ID, type GenerationId } from './generations';
-import { BAVEL_SHAPE, GEO_CITIES, type GeoRegionShape, ISRAEL_SHAPE } from './geoShapes';
+import {
+  BAVEL_SHAPE,
+  GEO_CITIES,
+  type GeoCity,
+  type GeoRegionId,
+  type GeoRegionShape,
+  ISRAEL_SHAPE,
+} from './geoShapes';
 import { t } from './i18n';
 
 export interface GeographyMapProps {
@@ -112,8 +126,87 @@ function regionCentroid(region: 'israel' | 'bavel'): { x: number; y: number } {
   return { x: x / cities.length, y: y / cities.length };
 }
 
+const CITY_BY_NAME = new Map<string, GeoCity>(GEO_CITIES.map((c) => [c.name, c]));
+
+// Trajectory drill-down visuals: a numbered path the selected rabbi walked.
+const TRAJ_COLOR = '#7c3aed'; // violet — distinct from the gen-colored dots
+const DIMMED_OPACITY = 0.18;
+
+/** Region tint for the inline trajectory list (matches the daf-count colors:
+ *  Bavel amber, Eretz Yisrael dark, unknown gray). */
+function regionTint(r: GeoRegionId | null): string {
+  if (r === 'bavel') return '#92400e';
+  if (r === 'israel') return '#1f2937';
+  return '#6b7280';
+}
+
+/** Shape-local position of a trajectory stop: its city coords when the place
+ *  matched a known city, else the region centroid (the same place the
+ *  "city unknown" cluster sits), else null (no region → unplottable). */
+function stopPosition(stop: TrajectoryStop): { x: number; y: number } | null {
+  if (stop.cityName) {
+    const c = CITY_BY_NAME.get(stop.cityName);
+    if (c) return { x: c.x, y: c.y };
+  }
+  if (stop.region === 'israel' || stop.region === 'bavel') return regionCentroid(stop.region);
+  return null;
+}
+
+/** A positioned, numbered stop (the index in the full ordered trajectory). */
+interface PlacedStop {
+  stop: TrajectoryStop;
+  num: number;
+  pos: { x: number; y: number } | null;
+}
+
 export function GeographyMap(props: GeographyMapProps): JSX.Element {
   const [hoveredMoverRow, setHoveredMoverRow] = createSignal<string | null>(null);
+  // Drill-down: the rabbi whose life path is being traced. Clicking a rabbi
+  // dot or a migration row selects them (and still fires the daf-text
+  // highlight); clicking the same one again, or [clear], or a region, resets.
+  const [selected, setSelected] = createSignal<{ name: string; slug: string | null } | null>(null);
+
+  const selectedTrajectory = (): RabbiTrajectory | null => {
+    const sel = selected();
+    if (!sel) return null;
+    const trs = props.model.trajectories ?? [];
+    // A slugged selection matches ONLY by slug (homonym-safe — never fall back
+    // to a name match, which could draw a same-name rabbi's path). Only the
+    // ungrounded case (no slug) keys on the display name, as the dots do.
+    if (sel.slug) return trs.find((tr) => tr.slug === sel.slug) ?? null;
+    return trs.find((tr) => tr.name === sel.name) ?? null;
+  };
+
+  /** The selected rabbi's stops, numbered in life order, each positioned.
+   *  Consecutive stops that resolve to the SAME spot (e.g. studied AND was a
+   *  notable authority in Sura) collapse to one numbered node so badges don't
+   *  stack illegibly; a later RETURN to an earlier place stays a distinct node. */
+  const placedStops = (): PlacedStop[] => {
+    const tr = selectedTrajectory();
+    if (!tr) return [];
+    const out: PlacedStop[] = [];
+    let lastKey: string | null = null;
+    let num = 0;
+    for (const stop of tr.stops) {
+      const pos = stopPosition(stop);
+      const key = pos ? `${Math.round(pos.x * 10)},${Math.round(pos.y * 10)}` : `np:${stop.place}`;
+      if (key === lastKey && out.length > 0) continue;
+      lastKey = key;
+      out.push({ stop, num: ++num, pos });
+    }
+    return out;
+  };
+
+  // Active drill-down only when the selected rabbi has at least one stop we can
+  // actually plot — otherwise selecting would dim the maps with nothing drawn.
+  const drilling = (): boolean => placedStops().some((p) => p.pos !== null);
+
+  const pickRabbi = (name: string, slug?: string) => {
+    const cur = selected();
+    const same = cur && cur.name === name && (cur.slug ?? null) === (slug ?? null);
+    setSelected(same ? null : { name, slug: slug ?? null });
+    props.onHighlightSingleRabbi?.(name, slug);
+  };
 
   const onCityClick = (d: CityDot) => {
     const isActive = props.activeLocation === d.city.name;
@@ -133,6 +226,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
     );
     const key = region === 'israel' ? '_Israel' : '_Bavel';
     const isActive = props.activeLocation === key;
+    setSelected(null); // region highlight is a different mode than tracing one rabbi
     props.onHighlightLocation(isActive ? null : key, list);
   };
 
@@ -140,9 +234,7 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
     const name = rabbi.name;
     const gen = props.generationByName?.get(name);
     const genInfo = gen ? GENERATION_BY_ID[gen] : undefined;
-    const activate = () => {
-      if (props.onHighlightSingleRabbi) props.onHighlightSingleRabbi(name, rabbi.slug ?? undefined);
-    };
+    const activate = () => pickRabbi(name, rabbi.slug ?? undefined);
     return (
       // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG map
       <circle
@@ -258,6 +350,95 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
     );
   };
 
+  // One arrow segment of the trajectory path: a violet line + arrowhead, drawn
+  // shape-local. Endpoints are pulled in by ENDR so they touch the badge edges,
+  // not their centers.
+  const arrowSeg = (a: { x: number; y: number }, b: { x: number; y: number }): JSX.Element => {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len;
+    const uy = dy / len;
+    const ENDR = 3.4; // stop short of the badge circle (r≈3.2)
+    const sx = a.x + ux * ENDR;
+    const sy = a.y + uy * ENDR;
+    const ex = b.x - ux * ENDR;
+    const ey = b.y - uy * ENDR;
+    const h = 2.0; // arrowhead length
+    const w = 1.2; // arrowhead half-width
+    const ax1 = ex - ux * h - uy * w;
+    const ay1 = ey - uy * h + ux * w;
+    const ax2 = ex - ux * h + uy * w;
+    const ay2 = ey - uy * h - ux * w;
+    return (
+      <g>
+        <line
+          x1={sx}
+          y1={sy}
+          x2={ex}
+          y2={ey}
+          stroke={TRAJ_COLOR}
+          stroke-width={1.1}
+          vector-effect="non-scaling-stroke"
+          stroke-linecap="round"
+          opacity={0.9}
+        />
+        <polygon
+          points={`${ex},${ey} ${ax1},${ay1} ${ax2},${ay2}`}
+          fill={TRAJ_COLOR}
+          opacity={0.9}
+        />
+      </g>
+    );
+  };
+
+  // The numbered path overlay for one region: arrows between consecutive
+  // same-region stops, then a numbered badge at each positioned stop. Drawn on
+  // top of the (dimmed) dots. Returns null when not drilling.
+  const trajectoryOverlay = (region: 'israel' | 'bavel'): JSX.Element => {
+    const all = placedStops();
+    const segs: Array<{ a: { x: number; y: number }; b: { x: number; y: number } }> = [];
+    for (let i = 0; i < all.length - 1; i++) {
+      const a = all[i];
+      const b = all[i + 1];
+      if (a.pos && b.pos && a.stop.region === region && b.stop.region === region) {
+        segs.push({ a: a.pos, b: b.pos });
+      }
+    }
+    const badges = all.filter((p) => p.pos && p.stop.region === region);
+    return (
+      <g style={{ 'pointer-events': 'none' }}>
+        <For each={segs}>{(s) => arrowSeg(s.a, s.b)}</For>
+        <For each={badges}>
+          {(p) => (
+            <g>
+              <circle
+                cx={p.pos!.x}
+                cy={p.pos!.y}
+                r={3.2}
+                fill={TRAJ_COLOR}
+                stroke="#fff"
+                stroke-width={0.9}
+                vector-effect="non-scaling-stroke"
+              />
+              <text
+                x={p.pos!.x}
+                y={p.pos!.y}
+                text-anchor="middle"
+                dominant-baseline="central"
+                font-size="3.4"
+                font-weight="700"
+                fill="#fff"
+              >
+                {p.num}
+              </text>
+            </g>
+          )}
+        </For>
+      </g>
+    );
+  };
+
   const regionCard = (
     region: 'israel' | 'bavel',
     shape: GeoRegionShape,
@@ -349,13 +530,18 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
           )}
         </For>
         {extras}
-        <For each={props.model.dots.filter((d) => d.city.region === region)}>
-          {(d) => renderCityDot(d)}
-        </For>
-        {renderUnspecified(
-          region,
-          region === 'israel' ? props.model.unspecifiedIsrael : props.model.unspecifiedBavel,
-        )}
+        {/* Dots dim while tracing one rabbi's path so the numbered trajectory
+            (drawn on top) reads clearly. */}
+        <g opacity={drilling() ? DIMMED_OPACITY : 1}>
+          <For each={props.model.dots.filter((d) => d.city.region === region)}>
+            {(d) => renderCityDot(d)}
+          </For>
+          {renderUnspecified(
+            region,
+            region === 'israel' ? props.model.unspecifiedIsrael : props.model.unspecifiedBavel,
+          )}
+        </g>
+        <Show when={drilling()}>{trajectoryOverlay(region)}</Show>
       </svg>
     </div>
   );
@@ -439,6 +625,109 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
         )}
       </div>
 
+      {/* Discovery hint — only when paths exist and none is being traced. */}
+      <Show when={!drilling() && (props.model.trajectories?.length ?? 0) > 0}>
+        <div
+          style={{
+            'margin-top': '0.3rem',
+            'font-size': '0.68rem',
+            'font-style': 'italic',
+            color: '#999',
+          }}
+        >
+          {t('geography.trajectory.hint')}
+        </div>
+      </Show>
+
+      {/* Drill-down panel: the selected rabbi's numbered path as a list. The
+          numbers match the badges on the maps above. */}
+      <Show when={drilling()}>
+        <div
+          style={{
+            'margin-top': '0.45rem',
+            padding: '0.45rem 0.55rem',
+            border: `1px solid ${TRAJ_COLOR}33`,
+            'border-radius': '6px',
+            background: `${TRAJ_COLOR}0d`,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              'align-items': 'center',
+              'justify-content': 'space-between',
+              gap: '0.5rem',
+              'margin-bottom': '0.35rem',
+            }}
+          >
+            <span style={{ 'font-weight': 700, color: '#333', 'font-size': '0.84rem' }}>
+              {selected()?.name}
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelected(null)}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                color: TRAJ_COLOR,
+                cursor: 'pointer',
+                'font-size': '0.72rem',
+                'font-family': 'inherit',
+                padding: '0.1rem 0.2rem',
+              }}
+            >
+              ✕ {t('geography.trajectory.clear')}
+            </button>
+          </div>
+          <ol
+            style={{
+              'list-style': 'none',
+              margin: 0,
+              padding: 0,
+              display: 'flex',
+              'flex-direction': 'column',
+              gap: '0.25rem',
+            }}
+          >
+            <For each={placedStops()}>
+              {(p) => (
+                <li style={{ display: 'flex', 'align-items': 'baseline', gap: '0.4rem' }}>
+                  <span
+                    style={{
+                      'flex-shrink': 0,
+                      width: '1.1rem',
+                      height: '1.1rem',
+                      'border-radius': '50%',
+                      background: p.pos ? TRAJ_COLOR : '#cbd5e1',
+                      color: '#fff',
+                      'font-size': '0.62rem',
+                      'font-weight': 700,
+                      display: 'inline-flex',
+                      'align-items': 'center',
+                      'justify-content': 'center',
+                    }}
+                  >
+                    {p.num}
+                  </span>
+                  <span style={{ 'font-size': '0.82rem' }}>
+                    <span style={{ 'font-weight': 600, color: '#222' }}>{p.stop.place}</span>{' '}
+                    <span style={{ color: regionTint(p.stop.region), 'font-size': '0.66rem' }}>
+                      {t(`rabbi.places.kind.${p.stop.kind}`)}
+                    </span>
+                    <Show when={p.stop.detail}>
+                      <span style={{ color: '#777', 'font-size': '0.74rem' }}>
+                        {' · '}
+                        {p.stop.detail}
+                      </span>
+                    </Show>
+                  </span>
+                </li>
+              )}
+            </For>
+          </ol>
+        </div>
+      </Show>
+
       <div
         style={{
           display: 'flex',
@@ -517,11 +806,11 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
                   onMouseLeave={onLeave}
                   onFocus={onEnter}
                   onBlur={onLeave}
-                  onClick={() => props.onHighlightSingleRabbi?.(row.name, row.slug ?? undefined)}
+                  onClick={() => pickRabbi(row.name, row.slug ?? undefined)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      props.onHighlightSingleRabbi?.(row.name, row.slug ?? undefined);
+                      pickRabbi(row.name, row.slug ?? undefined);
                     }
                   }}
                   tabIndex={0}
