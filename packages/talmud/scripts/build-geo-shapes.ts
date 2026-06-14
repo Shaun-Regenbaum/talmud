@@ -420,6 +420,10 @@ type Pt = [number, number]; // [lon, lat]
 interface Projector {
   width: number;
   height: number;
+  /** Local viewBox units per degree of latitude (the y axis scale). */
+  k: number;
+  /** Local viewBox units per degree of longitude (x; = cos(midLat) * k). */
+  xScale: number;
   toLocal: (lon: number, lat: number) => { x: number; y: number };
 }
 
@@ -431,6 +435,8 @@ function makeProjector(w: RegionWindow): Projector {
   return {
     width,
     height: w.height,
+    k,
+    xScale,
     toLocal: (lon, lat) => ({ x: (lon - w.lonMin) * xScale, y: (w.latMax - lat) * k }),
   };
 }
@@ -552,6 +558,26 @@ function pathLength(points: Array<{ x: number; y: number }>): number {
   return len;
 }
 
+/** Bounding-box size of a path, measured back in GEOGRAPHIC degrees (each axis
+ *  divided by its projection scale). Degrees are region-independent — the two
+ *  windows project at different scales (cos(midLat) and a different height-per-
+ *  latitude span), so a local-unit threshold would mean different real sizes in
+ *  Israel vs Bavel. Returns the larger of the two axes' degree spans. */
+function bboxMaxDeg(points: Array<{ x: number; y: number }>, proj: Projector): number {
+  if (points.length === 0) return 0;
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const p of points) {
+    if (p.x < minX) minX = p.x;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.y > maxY) maxY = p.y;
+  }
+  return Math.max((maxX - minX) / proj.xScale, (maxY - minY) / proj.k);
+}
+
 // ---------------------------------------------------------------------------
 // GeoJSON plumbing
 // ---------------------------------------------------------------------------
@@ -590,7 +616,18 @@ function buildPaths(
   features: GeoFeature[],
   w: RegionWindow,
   proj: Projector,
-  opts: { epsilon: number; minLength: number; nameFilter?: (name: string) => boolean },
+  opts: {
+    epsilon: number;
+    minLength: number;
+    /** Drop a path whose bounding box (in geographic degrees) is smaller than
+     *  this on its longer axis. Used for LAND only — it removes clipped
+     *  coastline slivers (e.g. the Gulf of Aqaba head "nib" in the Israel
+     *  window) while keeping every real coast and Bavel's small-but-legit land.
+     *  Degrees, not local units, so the single threshold means the same real
+     *  size in both region windows despite their different projection scales. */
+    minBboxDeg?: number;
+    nameFilter?: (name: string) => boolean;
+  },
 ): string[] {
   const out: string[] = [];
   for (const f of features) {
@@ -601,6 +638,8 @@ function buildPaths(
         const local = run.map((p) => proj.toLocal(p[0], p[1]));
         const simplified = simplify(local, opts.epsilon);
         if (pathLength(simplified) < opts.minLength) continue;
+        if (opts.minBboxDeg !== undefined && bboxMaxDeg(simplified, proj) < opts.minBboxDeg)
+          continue;
         // A clipped ring is only re-closed when the clip didn't cut it open.
         const isStillClosed =
           closed &&
@@ -633,9 +672,16 @@ async function main(): Promise<void> {
 
   // Israel: 10m everything. Lakes restricted to the two ancient ones (the
   // window contains nothing else, but the filter makes intent explicit).
+  // LAND_MIN_BBOX_DEG: drop coastline fragments whose longer bbox axis is below
+  // this many geographic degrees. Tuned to sit in the clean gap between the
+  // Israel Gulf-of-Aqaba "nib" (~0.18 deg, an artifact of the south clip) and
+  // the smallest legitimate land path (Bavel's eastern Gulf coast at ~0.28 deg;
+  // every real coast is >1 deg). Applied identically to both regions.
+  const LAND_MIN_BBOX_DEG = 0.22;
   const israelLand = buildPaths(coast10, ISRAEL_WINDOW, israelProj, {
     epsilon: 0.35,
     minLength: 4,
+    minBboxDeg: LAND_MIN_BBOX_DEG,
   });
   const israelRivers = [
     ...buildPaths(rivers10, ISRAEL_WINDOW, israelProj, {
@@ -654,6 +700,7 @@ async function main(): Promise<void> {
   const bavelLand = buildPaths(coast50, BAVEL_WINDOW, bavelProj, {
     epsilon: 0.35,
     minLength: 4,
+    minBboxDeg: LAND_MIN_BBOX_DEG,
   });
   const bavelRivers = buildPaths(rivers50, BAVEL_WINDOW, bavelProj, {
     epsilon: 0.35,
