@@ -846,7 +846,10 @@ export const CODE_MARKS: MarkDefinition[] = [
     dependencies: [{ mark: 'rabbi' }, { mark: 'places' }],
     status: 'promoted',
     def_hash: 'geography-v1',
-    cache_version: '1',
+    // v2: ungrounded rabbis now fall back to a region via their `generation`
+    // (regionFromGeneration), so far fewer dapim compute an empty model. A
+    // computed mark (no LLM) — recomputing all of Shas is free.
+    cache_version: '2',
     source: 'code',
     updated_at: NOW,
   },

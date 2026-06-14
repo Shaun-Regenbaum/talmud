@@ -52,6 +52,11 @@ export interface RabbiGeoSource {
   } | null;
   /** Cached rabbi.geography enrichment (null/absent until warmed). */
   geography?: GeoEnrichment | null;
+  /** The rabbi instance's generation id (amora-bavel-3, amora-ey-1, tanna-4,
+   *  …). Encodes region directly — the region fallback of last resort, so an
+   *  ungrounded rabbi with a known generation still buckets into a region
+   *  instead of being dropped off the map. */
+  generation?: string | null;
 }
 
 export interface PlaceMention {
@@ -218,7 +223,22 @@ export function placeRabbi(src: RabbiGeoSource): GeoCity | null {
   return null;
 }
 
-/** Region fallback when no city matched. */
+/** Region implied by a rabbi's generation id. Mirrors the worker's
+ *  `deriveRegionFromGeneration` but accepts a plain string (the lib stays free
+ *  of the worker's GenerationId type). Eretz-Yisrael tiers (amora-ey*, tanna*,
+ *  zugim) → 'israel'; Babylonian tiers (amora-bavel*, savora) → 'bavel'; geonim
+ *  → 'bavel' (the Geonic academies — Sura, Pumbedita — were in Bavel).
+ *  Everything else (rishonim/achronim/unknown) → null. */
+export function regionFromGeneration(gen?: string | null): GeoRegionId | null {
+  if (!gen) return null;
+  if (gen.startsWith('amora-ey') || gen.startsWith('tanna') || gen === 'zugim') return 'israel';
+  if (gen.startsWith('amora-bavel') || gen === 'savora' || gen === 'geonim') return 'bavel';
+  return null;
+}
+
+/** Region fallback when no city matched. Generation is the fallback of last
+ *  resort: an ungrounded rabbi with no registry place but a known generation
+ *  still buckets into a region instead of dropping off the map. */
 function regionOf(src: RabbiGeoSource): GeoRegionId | null {
   if (src.identity?.region === 'israel' || src.identity?.region === 'bavel')
     return src.identity.region;
@@ -228,7 +248,7 @@ function regionOf(src: RabbiGeoSource): GeoRegionId | null {
     const r = inferRegionOfPlace(sp.place);
     if (r) return r;
   }
-  return null;
+  return regionFromGeneration(src.generation);
 }
 
 // ---------------------------------------------------------------------------

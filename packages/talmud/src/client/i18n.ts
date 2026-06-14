@@ -1037,8 +1037,8 @@ const CATALOG = {
   'geography.chip': { en: 'Geography', he: 'גאוגרפיה' },
   'geography.title': { en: 'Geography', he: 'גאוגרפיה' },
   'geography.empty': {
-    en: 'No rabbis or places on this daf could be placed on the map yet.',
-    he: 'לא ניתן עדיין למקם חכמים או מקומות מדף זה על המפה.',
+    en: 'No rabbis on this daf could be placed on the map yet.',
+    he: 'לא ניתן עדיין למקם חכמים מדף זה על המפה.',
   },
   'geography.heading': {
     en: 'Geography · click a dot to highlight',

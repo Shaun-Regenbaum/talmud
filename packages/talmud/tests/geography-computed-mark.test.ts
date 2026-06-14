@@ -101,6 +101,50 @@ describe('geography computed mark — computeGeographyModel', () => {
     ]);
   });
 
+  it('buckets an ungrounded rabbi by its instance generation (no place, no enrichment)', async () => {
+    const t = 'Berakhot';
+    const p = '8a';
+    // A made-up rabbi NOT in rabbi-places (no identity place/region) and NO
+    // cached rabbi.geography — only an instance `generation`. The generation
+    // fallback buckets him into a region instead of dropping him off the map.
+    const seed: Record<string, string> = {
+      [keyForMark(RABBI_DEF, t, p, 'en')]: env({
+        instances: [
+          { fields: { name: 'Rav Bavelfake', nameHe: '', generation: 'amora-bavel-3' } },
+          { fields: { name: 'Rabbi Eyfake', nameHe: '', generation: 'amora-ey-2' } },
+          // unknown generation, not in registry → stays dropped.
+          { fields: { name: 'Anonfake', nameHe: '', generation: 'unknown' } },
+        ],
+      }),
+      [keyForMark(PLACES_DEF, t, p, 'en')]: env({ instances: [] }),
+    };
+    const out = await computeGeographyModel(envWith(seed), t, p);
+    const model = out.instances[0].fields.model as {
+      empty: boolean;
+      unspecifiedBavel: Array<{ name: string }>;
+      unspecifiedIsrael: Array<{ name: string }>;
+      dots: unknown[];
+    };
+    expect(model.empty).toBe(false);
+    expect(model.dots).toEqual([]);
+    expect(model.unspecifiedBavel.map((r) => r.name)).toEqual(['Rav Bavelfake']);
+    expect(model.unspecifiedIsrael.map((r) => r.name)).toEqual(['Rabbi Eyfake']);
+  });
+
+  it('a daf of only unknown-generation, non-registry rabbis is genuinely empty', async () => {
+    const t = 'Berakhot';
+    const p = '9a';
+    const seed: Record<string, string> = {
+      [keyForMark(RABBI_DEF, t, p, 'en')]: env({
+        instances: [{ fields: { name: 'Anonfake', nameHe: '', generation: 'unknown' } }],
+      }),
+      [keyForMark(PLACES_DEF, t, p, 'en')]: env({ instances: [] }),
+    };
+    const out = await computeGeographyModel(envWith(seed), t, p);
+    const model = out.instances[0].fields.model as { empty: boolean };
+    expect(model.empty).toBe(true);
+  });
+
   it('returns an empty model when nothing is cached', async () => {
     const out = await computeGeographyModel(envWith({}), 'Berakhot', '4a');
     const model = out.instances[0].fields.model as { empty: boolean };
