@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildGeoModel,
+  buildTrajectory,
   deriveMoveDirection,
   type GeoEnrichment,
   matchCity,
@@ -342,5 +343,61 @@ describe('orderBySeq', () => {
     ];
     expect(orderBySeq(items).map((i) => i.id)).toEqual(['c', 'a', 'b']);
     expect(items.map((i) => i.id)).toEqual(['a', 'b', 'c']); // original untouched
+  });
+});
+
+describe('buildTrajectory', () => {
+  it('orders stops by seq, resolves cities + regions across both regions', () => {
+    // Rav: born Kafri (Bavel), studied Sepphoris (E.Y.), founded Sura (Bavel).
+    const stops = buildTrajectory(
+      geo({
+        birthplace: { place: 'Kafri', region: 'bavel', seq: 0 },
+        primaryStudyPlaces: [
+          { place: 'Sura', academy: 'Sura', seq: 3 },
+          { place: 'Sepphoris', period: 'youth onward', seq: 1 },
+        ],
+        notablePlaces: [{ place: 'Nehardea', event: 'served as dayan', seq: 4 }],
+      }),
+    );
+    expect(stops.map((s) => s.place)).toEqual(['Kafri', 'Sepphoris', 'Sura', 'Nehardea']);
+    expect(stops.map((s) => s.cityName)).toEqual(['Kafri', 'Tzipori', 'Sura', 'Nehardea']);
+    expect(stops.map((s) => s.region)).toEqual(['bavel', 'israel', 'bavel', 'bavel']);
+    expect(stops[1].kind).toBe('study');
+    expect(stops[1].detail).toBe('youth onward');
+  });
+
+  it('falls back to birth->study->notable bucket order without seq', () => {
+    const stops = buildTrajectory(
+      geo({
+        birthplace: { place: 'Kafri', region: 'bavel' },
+        notablePlaces: [{ place: 'Nehardea', event: 'dayan' }],
+        primaryStudyPlaces: [{ place: 'Sura', academy: 'Sura' }],
+      }),
+    );
+    expect(stops.map((s) => s.kind)).toEqual(['birth', 'study', 'notable']);
+  });
+
+  it('returns [] when there is no geography', () => {
+    expect(buildTrajectory(null)).toEqual([]);
+    expect(buildTrajectory(geo({}))).toEqual([]);
+  });
+
+  it('buildGeoModel carries a trajectory per rabbi that has geography', () => {
+    const model = buildGeoModel(
+      [
+        {
+          name: 'Rav',
+          slug: 'rav',
+          geography: geo({
+            birthplace: { place: 'Kafri', region: 'bavel', seq: 0 },
+            primaryStudyPlaces: [{ place: 'Sura', seq: 1 }],
+          }),
+        },
+        { name: 'Plain', slug: null }, // no geography → no trajectory
+      ],
+      [],
+    );
+    expect(model.trajectories.map((tr) => tr.name)).toEqual(['Rav']);
+    expect(model.trajectories[0].stops.map((s) => s.place)).toEqual(['Kafri', 'Sura']);
   });
 });

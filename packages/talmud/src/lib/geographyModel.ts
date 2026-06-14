@@ -43,10 +43,42 @@ export function orderBySeq<T extends { seq?: number | null }>(items: T[]): T[] {
  *  structural subset of RabbiGeographyCard's GeographyData — kept local so this
  *  module stays free of any client (.tsx) import. */
 export interface GeoEnrichment {
-  birthplace?: { place: string; region?: string } | null;
-  primaryStudyPlaces?: Array<{ place: string }>;
-  notablePlaces?: Array<{ place: string }>;
-  movements?: Array<{ from: string; to: string }>;
+  birthplace?: { place: string; region?: string; seq?: number } | null;
+  primaryStudyPlaces?: Array<{ place: string; academy?: string; period?: string; seq?: number }>;
+  notablePlaces?: Array<{ place: string; event?: string; seq?: number }>;
+  movements?: Array<{
+    from: string;
+    to: string;
+    approximateWhen?: string;
+    reason?: string;
+    seq?: number;
+  }>;
+}
+
+/** One positioned stop in a rabbi's life trajectory — the unit the drill-down
+ *  numbers on the maps and lists inline. Built from the rabbi.geography
+ *  LOCATION events (birth / study / notable); movements are the implied edges
+ *  between consecutive stops (a region change), not their own nodes. */
+export interface TrajectoryStop {
+  /** Life-order index (rabbi.geography v4+); null for pre-v4 cached values. */
+  seq: number | null;
+  kind: 'birth' | 'study' | 'notable';
+  /** Canonical GEO_CITIES name when the place matched a known city, else null
+   *  (a region-only stop the map drops at the region centroid). */
+  cityName: string | null;
+  region: GeoRegionId | null;
+  /** Raw place label for display. */
+  place: string;
+  /** Academy/period (study) or event (notable) — the inline list's detail. */
+  detail: string;
+}
+
+/** A rabbi's ordered life trajectory, carried on the DafGeoModel so the
+ *  geography card's drill-down can draw the path without any extra fetch. */
+export interface RabbiTrajectory {
+  name: string;
+  slug: string | null;
+  stops: TrajectoryStop[];
 }
 
 /** One rabbi's geographic inputs, as assembled by the caller. */
@@ -112,6 +144,10 @@ export interface DafGeoModel {
   unspecifiedIsrael: GeoRabbi[];
   unspecifiedBavel: GeoRabbi[];
   moverRows: MoverRow[];
+  /** Per-rabbi life trajectories (only rabbis whose rabbi.geography is cached
+   *  and yields at least one located stop). Drives the click-to-drill-down path
+   *  overlay + inline list; keyed to a dot/mover by name+slug. */
+  trajectories: RabbiTrajectory[];
   israelCount: number;
   bavelCount: number;
   /** True when there is nothing to draw — callers show an empty-state card. */
@@ -205,6 +241,61 @@ export function deriveMoveDirection(geo: GeoEnrichment | null | undefined): Move
   if (toIsrael) return 'bavel->israel';
   if (toBavel) return 'israel->bavel';
   return null;
+}
+
+/** Region of a place: the matched city's region, else the region-word
+ *  fallback. (matchCity is tried inside inferRegionOfPlace too, but resolving
+ *  the city here lets the trajectory carry the canonical city name.) */
+function regionOfStop(place: string, declared?: string): GeoRegionId | null {
+  if (declared === 'israel' || declared === 'bavel') return declared;
+  return inferRegionOfPlace(place);
+}
+
+/** Build a rabbi's ordered life trajectory from their rabbi.geography. The
+ *  LOCATION events (birth / study / notable) become stops, ordered by `seq`
+ *  when present (rabbi.geography v4+), else by the birth→study→notable bucket
+ *  order — mirroring the per-rabbi timeline. Movements are NOT stops; a region
+ *  change between consecutive stops is the move. Empty when no geography. */
+export function buildTrajectory(geo: GeoEnrichment | null | undefined): TrajectoryStop[] {
+  if (!geo) return [];
+  const stops: TrajectoryStop[] = [];
+  const bp = geo.birthplace;
+  if (bp?.place) {
+    const city = matchCity(bp.place);
+    stops.push({
+      seq: bp.seq ?? null,
+      kind: 'birth',
+      cityName: city?.name ?? null,
+      region: city?.region ?? regionOfStop(bp.place, bp.region),
+      place: bp.place,
+      detail: '',
+    });
+  }
+  for (const sp of geo.primaryStudyPlaces ?? []) {
+    if (!sp.place) continue;
+    const city = matchCity(sp.place);
+    stops.push({
+      seq: sp.seq ?? null,
+      kind: 'study',
+      cityName: city?.name ?? null,
+      region: city?.region ?? regionOfStop(sp.place),
+      place: sp.place,
+      detail: [sp.academy, sp.period].filter(Boolean).join(' · '),
+    });
+  }
+  for (const np of geo.notablePlaces ?? []) {
+    if (!np.place) continue;
+    const city = matchCity(np.place);
+    stops.push({
+      seq: np.seq ?? null,
+      kind: 'notable',
+      cityName: city?.name ?? null,
+      region: city?.region ?? regionOfStop(np.place),
+      place: np.place,
+      detail: np.event ?? '',
+    });
+  }
+  return orderBySeq(stops);
 }
 
 // ---------------------------------------------------------------------------
@@ -303,6 +394,7 @@ export function buildGeoModel(
   const unspecifiedIsrael: GeoRabbi[] = [];
   const unspecifiedBavel: GeoRabbi[] = [];
   const seen = new Set<string>();
+  const trajectories: RabbiTrajectory[] = [];
   const moverBuckets: Record<MoveDirection, GeoRabbi[]> = {
     'bavel->israel': [],
     'israel->bavel': [],
@@ -315,6 +407,8 @@ export function buildGeoModel(
     if (seen.has(idKey)) continue;
     seen.add(idKey);
     const rabbi: GeoRabbi = { name: src.name, slug };
+    const stops = buildTrajectory(src.geography);
+    if (stops.length > 0) trajectories.push({ name: src.name, slug, stops });
     const city = placeRabbi(src);
     if (city) {
       let list = byCity.get(city.name);
@@ -368,6 +462,7 @@ export function buildGeoModel(
     unspecifiedIsrael: unspecifiedIsrael.slice().sort((a, b) => a.name.localeCompare(b.name)),
     unspecifiedBavel: unspecifiedBavel.slice().sort((a, b) => a.name.localeCompare(b.name)),
     moverRows,
+    trajectories,
     israelCount,
     bavelCount,
     empty: dots.length === 0 && unspecifiedIsrael.length === 0 && unspecifiedBavel.length === 0,
