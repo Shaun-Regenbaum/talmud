@@ -55,6 +55,7 @@ import RabbiLineageTree, {
   type RelationshipsData,
   type RelationshipsEvidence,
 } from './RabbiLineageTree';
+import RabbiObservations from './RabbiObservations';
 import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
 import { HebraizedWithRabbis, RabbiLinkProvider } from './rabbiLinks';
 import type {
@@ -1789,6 +1790,17 @@ function RabbiGeography(props: SpecialBlockProps): JSX.Element {
   );
 }
 
+// "Across the Talmud" — the accumulated reverse-index (rabbi.observations),
+// fetched lazily by the rabbi's canonical slug. The LIVING counterpart to the
+// static geography biography above it: it grows as more dapim are studied.
+function RabbiObservationsBlock(props: SpecialBlockProps): JSX.Element {
+  const slug = (): string | null => {
+    const i = props.deps['rabbi.identity'] as IdentifiedRabbi | undefined;
+    return i?.slug ?? null;
+  };
+  return <RabbiObservations slug={slug()} />;
+}
+
 /** Display instance ({fields} for the heading + meta). genSource/homonyms are
  *  the grounding stamps RabbiMeta uses to surface homonym uncertainty. */
 export function rabbiDisplayInstance(rabbi: IdentifiedRabbi): { fields: Record<string, unknown> } {
@@ -1827,6 +1839,7 @@ export const RABBI_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element>
   'rabbi-meta': RabbiMeta,
   'rabbi-lineage': RabbiLineage,
   'rabbi-geography': RabbiGeography,
+  'rabbi-observations': RabbiObservationsBlock,
 };
 
 // ===========================================================================

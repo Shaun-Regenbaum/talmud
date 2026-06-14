@@ -1009,6 +1009,16 @@ const CATALOG = {
   'rabbi.places.confidence.high': { en: 'high', he: 'גבוהה' },
   'rabbi.places.confidence.medium': { en: 'medium', he: 'בינונית' },
   'rabbi.places.confidence.low': { en: 'low', he: 'נמוכה' },
+  // — Across the Talmud (accumulated observations) —
+  'rabbi.observations.title': { en: 'Across the Talmud', he: 'לאורך הש"ס' },
+  'rabbi.observations.appearsOn': { en: 'Appears on {n} dapim', he: 'מופיע ב-{n} דפים' },
+  'rabbi.observations.oftenWith': { en: 'Often appears with', he: 'מופיע לעתים קרובות עם' },
+  'rabbi.observations.places': { en: 'Places', he: 'מקומות' },
+  'rabbi.observations.opinions': { en: 'opinions', he: 'דעות' },
+  'rabbi.observations.stories': { en: 'stories', he: 'סיפורים' },
+  'rabbi.observations.exegesis': { en: 'verse expositions', he: 'דרשות פסוקים' },
+  'rabbi.observations.loading': { en: 'Gathering across the Talmud…', he: 'אוסף מכל הש"ס…' },
+  'rabbi.observations.onNDapim': { en: 'on {n} dapim', he: 'ב-{n} דפים' },
 
   // — Commentary picker / strip —
   'commentary.heading': { en: 'Commentaries on this daf', he: 'מפרשים על הדף' },

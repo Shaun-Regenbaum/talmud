@@ -267,5 +267,8 @@ export const RABBI_RECIPE: SidebarRecipe = {
       block: 'rabbi-geography',
       deps: ['rabbi.geography', 'rabbi.geography.evidence', 'rabbi.location'],
     },
+    // "Across the Talmud" — accumulated reverse-index. Lazily fetched by slug
+    // (rabbi.identity), so it only needs that dep; nothing per-daf to resolve.
+    { type: 'special', block: 'rabbi-observations', deps: ['rabbi.identity'] },
   ],
 };
