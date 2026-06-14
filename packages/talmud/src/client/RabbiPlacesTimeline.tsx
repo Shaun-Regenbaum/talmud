@@ -23,6 +23,7 @@
  */
 
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { inferRegionOfPlace } from '../lib/geographyModel';
 import { t } from './i18n';
 import type { BirthPlace, GeographyData, GeographyEvidence } from './RabbiGeographyCard';
 
@@ -79,16 +80,13 @@ interface TimelineEvent {
   evidencePlace: string;
 }
 
+// Region of a place name, mapped onto the timeline's 4-value Region. Routes
+// through the SHARED matcher (geographyModel.inferRegionOfPlace — the same
+// GEO_CITIES table + region-word fallback the whole-daf geography map uses) so
+// the timeline and the map agree on what "Sura" or "Tiberias" is. The canonical
+// matcher returns israel|bavel|null; null becomes the timeline's neutral 'other'.
 function inferRegion(place: string): Region {
-  const p = place.toLowerCase();
-  if (/bavel|babylonia|sura|pumbedita|nehardea|machoza|mata mehasya/.test(p)) return 'bavel';
-  if (
-    /eretz yisrael|israel|tiberias|tiberya|sepphoris|tzipori|yavneh|caesarea|lod|jerusalem|usha|bnei brak/.test(
-      p,
-    )
-  )
-    return 'israel';
-  return 'other';
+  return inferRegionOfPlace(place) ?? 'other';
 }
 
 function regionColor(r: Region): string {
