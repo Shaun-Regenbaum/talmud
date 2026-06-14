@@ -1040,6 +1040,10 @@ const CATALOG = {
     en: 'No rabbis on this daf could be placed on the map yet.',
     he: 'לא ניתן עדיין למקם חכמים מדף זה על המפה.',
   },
+  'geography.loading': {
+    en: 'Mapping this daf’s rabbis…',
+    he: 'ממפה את חכמי הדף…',
+  },
   'geography.heading': {
     en: 'Geography · click a dot to highlight',
     he: 'גאוגרפיה · לחצו על נקודה להדגשה',

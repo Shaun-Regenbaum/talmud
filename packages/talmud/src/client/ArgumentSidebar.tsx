@@ -2485,6 +2485,10 @@ export const CHART_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element>
  *  highlight/navigation callbacks, assembled by DafViewer. */
 export interface GeographyExtras {
   model: DafGeoModel | null;
+  /** True while a dependency mark (rabbi, or places-if-loading) is still
+   *  resolving — so an empty/null model isn't yet trustworthy. The block shows
+   *  a loading line instead of the terminal "no rabbis" message. */
+  loading: boolean;
   activeLocation: string | null;
   activePlace: string | null;
   generationByName: Map<string, GenerationId> | null;
@@ -2497,13 +2501,35 @@ export interface GeographyExtras {
 function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
   const ex = (): GeographyExtras | undefined => props.extras as GeographyExtras | undefined;
   const model = (): DafGeoModel | null => ex()?.model ?? null;
+  const hasMap = (): boolean => !!model() && !model()!.empty;
   return (
     <Show
-      when={model() && !model()!.empty}
+      when={hasMap()}
       fallback={
-        <p style={{ margin: '0.4rem 0 0', color: '#888', 'font-size': '0.82rem' }}>
-          {t('geography.empty')}
-        </p>
+        // No map yet. If a dependency mark is still resolving, the empty/null
+        // model isn't trustworthy — show a loading line (italic muted, matching
+        // pasuk.loading) rather than the terminal "no rabbis" message, which
+        // would pin a false-empty until reload. Only once loading settles and
+        // the model is still empty do we show the terminal copy.
+        <Show
+          when={ex()?.loading}
+          fallback={
+            <p style={{ margin: '0.4rem 0 0', color: '#888', 'font-size': '0.82rem' }}>
+              {t('geography.empty')}
+            </p>
+          }
+        >
+          <p
+            style={{
+              margin: '0.4rem 0 0',
+              color: '#999',
+              'font-style': 'italic',
+              'font-size': '0.82rem',
+            }}
+          >
+            {t('geography.loading')}
+          </p>
+        </Show>
       }
     >
       <GeographyMap
