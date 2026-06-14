@@ -22,17 +22,22 @@ import type {
   GeoRabbi,
   MoveDirection,
   RabbiTrajectory,
-  TrajectoryStop,
 } from '../lib/geographyModel';
 import { GENERATION_BY_ID, type GenerationId } from './generations';
 import {
-  BAVEL_SHAPE,
-  GEO_CITIES,
-  type GeoCity,
-  type GeoRegionId,
-  type GeoRegionShape,
-  ISRAEL_SHAPE,
-} from './geoShapes';
+  collapsePlaced,
+  DIMMED_OPACITY,
+  PAD,
+  type PlacedStop,
+  RegionMapCard,
+  regionCentroid,
+  regionTint,
+  SHARED_HEIGHT,
+  SHARED_WIDTH,
+  TRAJ_COLOR,
+  TrajectoryBadges,
+} from './geoMapBase';
+import { BAVEL_SHAPE, type GeoRegionShape, ISRAEL_SHAPE } from './geoShapes';
 import { t } from './i18n';
 
 export interface GeographyMapProps {
@@ -57,41 +62,9 @@ export interface GeographyMapProps {
 }
 
 const GEN_FALLBACK_COLOR = '#9ca3af';
-const LAND_COLOR = '#6b7280';
-const WATER_COLOR = '#3b82f6';
-const WATER_FILL = 'rgba(96, 165, 250, 0.25)';
 const CITY_COLOR = '#6b7280';
-
-// Both region shapes share the same projected HEIGHT (180) but differ in WIDTH
-// (Israel ~98.7, Bavel ~153.8). With one viewBox per shape + meet, the narrower
-// Israel card rendered small and letterboxed. To make a MATCHED PAIR — equal
-// box, comparable fill — every card uses ONE common aspect ratio (the widest
-// shape's), and each shape is centered horizontally within it. City dots /
-// rabbi markers are in shape-local coords, so this viewBox change is
-// transparent to them. PAD is the breathing room around the bounds.
-const PAD = 4;
-const SHARED_HEIGHT = Math.max(ISRAEL_SHAPE.height, BAVEL_SHAPE.height);
-const SHARED_WIDTH = Math.max(ISRAEL_SHAPE.width, BAVEL_SHAPE.width);
-
-/** The viewBox for a shape, padded to the common aspect ratio with the shape
- *  centered (so both cards fill their equal boxes the same way). */
-function sharedViewBox(shape: GeoRegionShape): string {
-  const x0 = -PAD - (SHARED_WIDTH - shape.width) / 2;
-  const y0 = -PAD - (SHARED_HEIGHT - shape.height) / 2;
-  return `${x0} ${y0} ${SHARED_WIDTH + PAD * 2} ${SHARED_HEIGHT + PAD * 2}`;
-}
-
-// Stroke weights are in screen px (vector-effect: non-scaling-stroke) so the
-// line weight is IDENTICAL across both cards regardless of each shape's local
-// scale — without this, the smaller-rendered shape's strokes looked thinner.
-const LAND_STROKE_PX = 1.2;
-const RIVER_STROKE_PX = 0.9;
-// City + rabbi dot radii are likewise normalized to apparent screen size. The
-// shapes render at slightly different scales, so a shape-local radius would
-// look bigger on one card; divide by the per-card render scale to keep dots the
-// same apparent size on both. (The scale is the rendered px per viewBox unit;
-// since the viewBox is shared, both cards scale identically, so a constant
-// works — kept as named values for the renderer.)
+// City + rabbi dot radii, normalized to apparent screen size (both cards share
+// one viewBox scale, so a given radius reads the same on both).
 const CITY_DOT_BASE = 1.6;
 const CITY_DOT_PER_MENTION = 0.4;
 const CITY_DOT_RABBI_ONLY = 1.3;
@@ -113,52 +86,6 @@ function clusterOffsets(n: number, cx: number, cy: number): Array<{ x: number; y
   return out;
 }
 
-/** Centroid of a region's cities — where the "region known, city unknown"
- *  cluster lands. */
-function regionCentroid(region: 'israel' | 'bavel'): { x: number; y: number } {
-  const cities = GEO_CITIES.filter((c) => c.region === region);
-  let x = 0;
-  let y = 0;
-  for (const c of cities) {
-    x += c.x;
-    y += c.y;
-  }
-  return { x: x / cities.length, y: y / cities.length };
-}
-
-const CITY_BY_NAME = new Map<string, GeoCity>(GEO_CITIES.map((c) => [c.name, c]));
-
-// Trajectory drill-down visuals: a numbered path the selected rabbi walked.
-const TRAJ_COLOR = '#7c3aed'; // violet — distinct from the gen-colored dots
-const DIMMED_OPACITY = 0.18;
-
-/** Region tint for the inline trajectory list (matches the daf-count colors:
- *  Bavel amber, Eretz Yisrael dark, unknown gray). */
-function regionTint(r: GeoRegionId | null): string {
-  if (r === 'bavel') return '#92400e';
-  if (r === 'israel') return '#1f2937';
-  return '#6b7280';
-}
-
-/** Shape-local position of a trajectory stop: its city coords when the place
- *  matched a known city, else the region centroid (the same place the
- *  "city unknown" cluster sits), else null (no region → unplottable). */
-function stopPosition(stop: TrajectoryStop): { x: number; y: number } | null {
-  if (stop.cityName) {
-    const c = CITY_BY_NAME.get(stop.cityName);
-    if (c) return { x: c.x, y: c.y };
-  }
-  if (stop.region === 'israel' || stop.region === 'bavel') return regionCentroid(stop.region);
-  return null;
-}
-
-/** A positioned, numbered stop (the index in the full ordered trajectory). */
-interface PlacedStop {
-  stop: TrajectoryStop;
-  num: number;
-  pos: { x: number; y: number } | null;
-}
-
 export function GeographyMap(props: GeographyMapProps): JSX.Element {
   const [hoveredMoverRow, setHoveredMoverRow] = createSignal<string | null>(null);
   // Drill-down: the rabbi whose life path is being traced. Clicking a rabbi
@@ -177,25 +104,9 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
     return trs.find((tr) => tr.name === sel.name) ?? null;
   };
 
-  /** The selected rabbi's stops, numbered in life order, each positioned.
-   *  Consecutive stops that resolve to the SAME spot (e.g. studied AND was a
-   *  notable authority in Sura) collapse to one numbered node so badges don't
-   *  stack illegibly; a later RETURN to an earlier place stays a distinct node. */
-  const placedStops = (): PlacedStop[] => {
-    const tr = selectedTrajectory();
-    if (!tr) return [];
-    const out: PlacedStop[] = [];
-    let lastKey: string | null = null;
-    let num = 0;
-    for (const stop of tr.stops) {
-      const pos = stopPosition(stop);
-      const key = pos ? `${Math.round(pos.x * 10)},${Math.round(pos.y * 10)}` : `np:${stop.place}`;
-      if (key === lastKey && out.length > 0) continue;
-      lastKey = key;
-      out.push({ stop, num: ++num, pos });
-    }
-    return out;
-  };
+  /** The selected rabbi's stops, numbered in life order, each positioned
+   *  (shared collapse: consecutive same-spot stops merge to one badge). */
+  const placedStops = (): PlacedStop[] => collapsePlaced(selectedTrajectory()?.stops ?? []);
 
   // Active drill-down only when the selected rabbi has at least one stop we can
   // actually plot — otherwise selecting would dim the maps with nothing drawn.
@@ -350,95 +261,9 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
     );
   };
 
-  // One arrow segment of the trajectory path: a violet line + arrowhead, drawn
-  // shape-local. Endpoints are pulled in by ENDR so they touch the badge edges,
-  // not their centers.
-  const arrowSeg = (a: { x: number; y: number }, b: { x: number; y: number }): JSX.Element => {
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const len = Math.hypot(dx, dy) || 1;
-    const ux = dx / len;
-    const uy = dy / len;
-    const ENDR = 3.4; // stop short of the badge circle (r≈3.2)
-    const sx = a.x + ux * ENDR;
-    const sy = a.y + uy * ENDR;
-    const ex = b.x - ux * ENDR;
-    const ey = b.y - uy * ENDR;
-    const h = 2.0; // arrowhead length
-    const w = 1.2; // arrowhead half-width
-    const ax1 = ex - ux * h - uy * w;
-    const ay1 = ey - uy * h + ux * w;
-    const ax2 = ex - ux * h + uy * w;
-    const ay2 = ey - uy * h - ux * w;
-    return (
-      <g>
-        <line
-          x1={sx}
-          y1={sy}
-          x2={ex}
-          y2={ey}
-          stroke={TRAJ_COLOR}
-          stroke-width={1.1}
-          vector-effect="non-scaling-stroke"
-          stroke-linecap="round"
-          opacity={0.9}
-        />
-        <polygon
-          points={`${ex},${ey} ${ax1},${ay1} ${ax2},${ay2}`}
-          fill={TRAJ_COLOR}
-          opacity={0.9}
-        />
-      </g>
-    );
-  };
-
-  // The numbered path overlay for one region: arrows between consecutive
-  // same-region stops, then a numbered badge at each positioned stop. Drawn on
-  // top of the (dimmed) dots. Returns null when not drilling.
-  const trajectoryOverlay = (region: 'israel' | 'bavel'): JSX.Element => {
-    const all = placedStops();
-    const segs: Array<{ a: { x: number; y: number }; b: { x: number; y: number } }> = [];
-    for (let i = 0; i < all.length - 1; i++) {
-      const a = all[i];
-      const b = all[i + 1];
-      if (a.pos && b.pos && a.stop.region === region && b.stop.region === region) {
-        segs.push({ a: a.pos, b: b.pos });
-      }
-    }
-    const badges = all.filter((p) => p.pos && p.stop.region === region);
-    return (
-      <g style={{ 'pointer-events': 'none' }}>
-        <For each={segs}>{(s) => arrowSeg(s.a, s.b)}</For>
-        <For each={badges}>
-          {(p) => (
-            <g>
-              <circle
-                cx={p.pos!.x}
-                cy={p.pos!.y}
-                r={3.2}
-                fill={TRAJ_COLOR}
-                stroke="#fff"
-                stroke-width={0.9}
-                vector-effect="non-scaling-stroke"
-              />
-              <text
-                x={p.pos!.x}
-                y={p.pos!.y}
-                text-anchor="middle"
-                dominant-baseline="central"
-                font-size="3.4"
-                font-weight="700"
-                fill="#fff"
-              >
-                {p.num}
-              </text>
-            </g>
-          )}
-        </For>
-      </g>
-    );
-  };
-
+  // A region card built on the shared RegionMapCard: the outline + chrome come
+  // from the base; the whole-daf overlay (region-click hit-box, river labels,
+  // dimmed dots, and the numbered trajectory when drilling) goes in as children.
   const regionCard = (
     region: 'israel' | 'bavel',
     shape: GeoRegionShape,
@@ -447,103 +272,51 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
     aria: string,
     extras?: JSX.Element,
   ): JSX.Element => (
-    <div
-      style={{
-        flex: 1,
-        border: props.layout === 'column' ? 'none' : '1px solid #e5e7eb',
-        'border-radius': props.layout === 'column' ? '0' : '8px',
-        background: props.layout === 'column' ? 'transparent' : '#fff',
-        padding: '0.5rem 0.5rem 0.4rem',
-        display: 'flex',
-        'flex-direction': 'column',
-        'align-items': 'center',
-        'min-width': 0,
-      }}
+    <RegionMapCard
+      shape={shape}
+      heading={heading}
+      headingColor={headingColor}
+      aria={aria}
+      layout={props.layout}
     >
-      <div
-        style={{
-          'font-size': '0.8rem',
-          'font-weight': 600,
-          color: headingColor,
-          'margin-bottom': '0.3rem',
+      {/* Invisible hit-box: a click anywhere in the card selects the region.
+          Spans the full shared viewBox so the padding around a narrow shape is
+          still clickable. Rendered first (under the dots) so dot clicks win. */}
+      {/* biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG map */}
+      <rect
+        x={-PAD - (SHARED_WIDTH - shape.width) / 2}
+        y={-PAD - (SHARED_HEIGHT - shape.height) / 2}
+        width={SHARED_WIDTH + PAD * 2}
+        height={SHARED_HEIGHT + PAD * 2}
+        fill="transparent"
+        style={{ cursor: 'pointer' }}
+        role="button"
+        tabindex={0}
+        aria-label={heading}
+        onClick={() => onRegionClick(region)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onRegionClick(region);
+          }
         }}
-      >
-        {heading}
-      </div>
-      <svg
-        viewBox={sharedViewBox(shape)}
-        style={{ width: '100%', flex: 1, display: 'block', 'min-height': 0 }}
-        preserveAspectRatio="xMidYMid meet"
-        role="img"
-        aria-label={aria}
-      >
-        {/* Invisible hit-box: a click anywhere in the card selects the region.
-            Spans the full shared viewBox (not the tight shape bounds) so the
-            padding around a narrow shape is still clickable. */}
-        {/* biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG map */}
-        <rect
-          x={-PAD - (SHARED_WIDTH - shape.width) / 2}
-          y={-PAD - (SHARED_HEIGHT - shape.height) / 2}
-          width={SHARED_WIDTH + PAD * 2}
-          height={SHARED_HEIGHT + PAD * 2}
-          fill="transparent"
-          style={{ cursor: 'pointer' }}
-          role="button"
-          tabindex={0}
-          aria-label={heading}
-          onClick={() => onRegionClick(region)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onRegionClick(region);
-            }
-          }}
-        />
-        {/* Water under land: rivers as thin blue lines; closed rings (the
-            Kinneret / Dead Sea) get a light fill. */}
-        <For each={shape.riverPaths}>
-          {(d) => (
-            <path
-              d={d}
-              fill={d.endsWith('Z') ? WATER_FILL : 'none'}
-              stroke={WATER_COLOR}
-              stroke-width={RIVER_STROKE_PX}
-              vector-effect="non-scaling-stroke"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              opacity={0.75}
-            />
-          )}
+      />
+      {extras}
+      {/* Dots dim while tracing one rabbi's path so the numbered trajectory
+          (drawn on top) reads clearly. */}
+      <g opacity={drilling() ? DIMMED_OPACITY : 1}>
+        <For each={props.model.dots.filter((d) => d.city.region === region)}>
+          {(d) => renderCityDot(d)}
         </For>
-        <For each={shape.landPaths}>
-          {(d) => (
-            <path
-              d={d}
-              fill="none"
-              stroke={LAND_COLOR}
-              stroke-width={LAND_STROKE_PX}
-              vector-effect="non-scaling-stroke"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              opacity={0.85}
-            />
-          )}
-        </For>
-        {extras}
-        {/* Dots dim while tracing one rabbi's path so the numbered trajectory
-            (drawn on top) reads clearly. */}
-        <g opacity={drilling() ? DIMMED_OPACITY : 1}>
-          <For each={props.model.dots.filter((d) => d.city.region === region)}>
-            {(d) => renderCityDot(d)}
-          </For>
-          {renderUnspecified(
-            region,
-            region === 'israel' ? props.model.unspecifiedIsrael : props.model.unspecifiedBavel,
-          )}
-        </g>
-        <Show when={drilling()}>{trajectoryOverlay(region)}</Show>
-      </svg>
-    </div>
+        {renderUnspecified(
+          region,
+          region === 'israel' ? props.model.unspecifiedIsrael : props.model.unspecifiedBavel,
+        )}
+      </g>
+      <Show when={drilling()}>
+        <TrajectoryBadges placed={placedStops()} region={region} />
+      </Show>
+    </RegionMapCard>
   );
 
   // River name labels for the Bavel card, positioned where the generated
