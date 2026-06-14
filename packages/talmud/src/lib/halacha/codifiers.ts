@@ -124,8 +124,12 @@ export interface CodifierNode {
   short: string;
   order: number;
   tier: CodifierTier;
-  /** Grounded refs (with text + daf anchors), in bundle order. */
+  /** Grounded refs (with text + daf anchors), Ein Mishpat refs first. */
   refs: HalachicSnippet[];
+  /** True when Ein Mishpat / Ner Mitzvah anchors at least one of this codifier's
+   *  refs to the daf — i.e. the codification is classically attested, not just a
+   *  topical match. */
+  einMishpat: boolean;
 }
 
 /**
@@ -154,12 +158,18 @@ export function buildCodificationChain(
         order: meta.order,
         tier: meta.tier,
         refs: [],
+        einMishpat: false,
       };
       byId.set(meta.id, node);
     }
     for (const s of snippets) {
       if (!node.refs.some((r) => r.ref === s.ref)) node.refs.push(s);
     }
+  }
+  for (const node of byId.values()) {
+    node.einMishpat = node.refs.some((r) => r.einMishpat);
+    // Surface the classically-attested refs first within each codifier.
+    node.refs.sort((a, b) => Number(Boolean(b.einMishpat)) - Number(Boolean(a.einMishpat)));
   }
   return Array.from(byId.values()).sort((a, b) => a.order - b.order);
 }
@@ -186,18 +196,26 @@ function truncate(s: string | undefined, n = 360): string {
 export function formatGroundedRefsForPrompt(bundle: HalachicRefBundle | undefined): string {
   const chain = buildCodificationChain(bundle, { includeSecondary: true });
   if (!chain.length) return '(no codifier links found for this daf)';
-  return chain
+  const anyEinMishpat = chain.some((n) => n.einMishpat);
+  const body = chain
     .map((node) => {
       const refs = node.refs
         .map((r) => {
           const he = truncate(r.hebrew);
+          const tag = r.einMishpat ? ' [Ein Mishpat — classical codification of this daf]' : '';
           const en = truncate(r.english);
-          return `  - ${r.ref}${he ? `\n    HE: ${he}` : ''}${en ? `\n    EN: ${en}` : ''}`;
+          return `  - ${r.ref}${tag}${he ? `\n    HE: ${he}` : ''}${en ? `\n    EN: ${en}` : ''}`;
         })
         .join('\n');
       return `${node.label}:\n${refs}`;
     })
     .join('\n\n');
+  // When Ein Mishpat / Ner Mitzvah attests refs, tell the model these are the
+  // authoritative codifications to prefer (precision over recall).
+  const header = anyEinMishpat
+    ? 'Refs tagged [Ein Mishpat] are asserted by Ein Mishpat / Ner Mitzvah — the classical index of where this daf is codified. PREFER them as the canonical ref for their codifier over untagged (topical) links.\n\n'
+    : '';
+  return header + body;
 }
 
 // ---------------------------------------------------------------------------
@@ -210,6 +228,9 @@ export type SourceKind = 'bavli' | 'yerushalmi' | 'tanakh' | 'other';
 export interface RelatedLink {
   ref: string;
   category: string;
+  /** True when Ein Mishpat / Ner Mitzvah asserts this code↔source link — the
+   *  authoritative classical derivation, vs. a looser topical match. */
+  einMishpat?: boolean;
 }
 
 /** Classify a source ref returned when querying a code ref's related links.
@@ -261,6 +282,9 @@ export interface DerivationSource {
   role: DerivationRole;
   /** True when this is the daf currently being viewed. */
   isCurrent: boolean;
+  /** True when Ein Mishpat / Ner Mitzvah anchors the code to this source — the
+   *  authoritative derivation, surfaced ahead of looser topical links. */
+  einMishpat: boolean;
 }
 
 function roleFor(kind: SourceKind): DerivationRole {
@@ -280,22 +304,34 @@ export function buildDerivation(
   current?: { tractate: string; page: string },
 ): DerivationSource[] {
   const curBase = current ? `${current.tractate} ${current.page}`.trim() : null;
-  const seen = new Set<string>();
-  const out: DerivationSource[] = [];
+  const byRef = new Map<string, DerivationSource>();
   for (const l of links ?? []) {
     const kind = classifyShasSource(l.ref, l.category);
     if (kind === 'other') continue;
     // Only Bavli refs collapse to the daf; Yerushalmi (chapter:halacha:segment)
     // and Tanakh (verse-precise) refs are kept whole.
     const ref = kind === 'bavli' ? baseDafRef(l.ref) : (l.ref ?? '').trim();
-    if (!ref || seen.has(ref)) continue;
-    seen.add(ref);
-    out.push({ ref, kind, role: roleFor(kind), isCurrent: curBase != null && ref === curBase });
+    if (!ref) continue;
+    const existing = byRef.get(ref);
+    if (existing) {
+      // Same base ref can arrive via several links (e.g. a topical match AND an
+      // Ein Mishpat anchor) — keep it authoritative if any link asserts it.
+      existing.einMishpat = existing.einMishpat || Boolean(l.einMishpat);
+      continue;
+    }
+    byRef.set(ref, {
+      ref,
+      kind,
+      role: roleFor(kind),
+      isCurrent: curBase != null && ref === curBase,
+      einMishpat: Boolean(l.einMishpat),
+    });
   }
   const roleRank: Record<DerivationRole, number> = { primary: 0, related: 1, root: 2 };
-  return out.sort((a, b) => {
+  return Array.from(byRef.values()).sort((a, b) => {
     if (a.role !== b.role) return roleRank[a.role] - roleRank[b.role];
     if (a.isCurrent !== b.isCurrent) return a.isCurrent ? -1 : 1; // current daf leads its group
+    if (a.einMishpat !== b.einMishpat) return a.einMishpat ? -1 : 1; // authoritative first
     return a.ref.localeCompare(b.ref);
   });
 }

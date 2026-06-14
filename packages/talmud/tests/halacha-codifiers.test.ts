@@ -97,6 +97,27 @@ describe('buildCodificationChain', () => {
     ]);
   });
 
+  it('flags einMishpat on the node and sorts attested refs first', () => {
+    // Two MT sub-books: the second carries the Ein Mishpat attestation.
+    const chain = buildCodificationChain({
+      'Mishneh Torah, Reading the Shema': [
+        { ref: 'Mishneh Torah, Reading the Shema 4:1', hebrew: 'he', english: 'en' }, // topical
+        {
+          ref: 'Mishneh Torah, Reading the Shema 1:9',
+          hebrew: 'he',
+          english: 'en',
+          einMishpat: true,
+        },
+      ],
+      'Tur, Orach Chayim': [{ ref: 'Tur, Orach Chayim 235', hebrew: 'he', english: 'en' }],
+    });
+    const mt = chain.find((n) => n.id === 'mishneh-torah')!;
+    expect(mt.einMishpat).toBe(true);
+    // Ein Mishpat ref leads even though it arrived second.
+    expect(mt.refs[0].ref).toBe('Mishneh Torah, Reading the Shema 1:9');
+    expect(chain.find((n) => n.id === 'tur')!.einMishpat).toBe(false);
+  });
+
   it('returns empty for a bundle with no codifiers (the aggadah case)', () => {
     const aggadic: HalachicRefBundle = {
       'Sefer Yereim': [{ ref: 'Sefer Yereim 300:1', hebrew: 'he', english: 'en' }],
@@ -130,6 +151,31 @@ describe('formatGroundedRefsForPrompt', () => {
     expect(out).toContain('Mishneh Torah, Reading the Shema 1:9');
     expect(out).toContain('HE: מצאת הכוכבים');
     expect(out).toContain('EN: The time for Shema');
+  });
+
+  it('tags Ein Mishpat refs and adds the prefer-these header', () => {
+    const out = formatGroundedRefsForPrompt({
+      'Mishneh Torah, Reading the Shema': [
+        {
+          ref: 'Mishneh Torah, Reading the Shema 1:9',
+          hebrew: 'he',
+          english: 'en',
+          einMishpat: true,
+        },
+      ],
+      'Tur, Orach Chayim': [{ ref: 'Tur, Orach Chayim 235', hebrew: 'he', english: 'en' }],
+    });
+    expect(out).toContain('Mishneh Torah, Reading the Shema 1:9 [Ein Mishpat');
+    expect(out).toContain('PREFER them'); // header instruction present
+    // Untagged refs carry no marker.
+    expect(out).toMatch(/Tur, Orach Chayim 235(?!\s*\[Ein Mishpat)/);
+  });
+
+  it('omits the prefer-these header when nothing is Ein Mishpat-attested', () => {
+    const out = formatGroundedRefsForPrompt({
+      'Tur, Orach Chayim': [{ ref: 'Tur, Orach Chayim 235', hebrew: 'he', english: 'en' }],
+    });
+    expect(out).not.toContain('Ein Mishpat');
   });
 
   it('caps long snippets and marks an empty bundle', () => {
@@ -195,6 +241,24 @@ describe('buildDerivation', () => {
     const d = buildDerivation(links);
     expect(d.some((s) => s.ref.startsWith('Rashi'))).toBe(false);
     expect(d.every((s) => !s.isCurrent)).toBe(true);
+  });
+
+  it('orders Ein Mishpat-attested sources ahead of topical ones within a role', () => {
+    const d = buildDerivation([
+      { ref: 'Shabbat 34b', category: 'Talmud' }, // topical
+      { ref: 'Pesachim 94a', category: 'Talmud', einMishpat: true }, // attested
+    ]);
+    expect(d.map((s) => s.ref)).toEqual(['Pesachim 94a', 'Shabbat 34b']);
+    expect(d[0].einMishpat).toBe(true);
+  });
+
+  it('keeps a base ref authoritative if any contributing link is Ein Mishpat', () => {
+    const d = buildDerivation([
+      { ref: 'Berakhot 2a:1', category: 'Talmud' }, // topical segment
+      { ref: 'Berakhot 2a:2', category: 'Talmud', einMishpat: true }, // attested segment
+    ]);
+    expect(d).toHaveLength(1);
+    expect(d[0]).toMatchObject({ ref: 'Berakhot 2a', einMishpat: true });
   });
 });
 

@@ -4675,6 +4675,7 @@ Output STRICT JSON only:
 
 Rules:
 - GROUND every ref. You are given a "Grounded codifier references" block listing the real Sefaria refs (with their text) that cite this daf. For Mishneh Torah, Tur, and Shulchan Aruch: SELECT the ref from that block and base the ruling on the text shown there. If one of those three is absent from the block, return null for it — DO NOT invent or recall a ref that is not listed.
+- PREFER Ein Mishpat. Refs tagged [Ein Mishpat] are asserted by the classical Ein Mishpat / Ner Mitzvah index as THE codification of this daf. When a codifier has an [Ein Mishpat]-tagged ref, choose it over any untagged (merely topical) ref for that codifier.
 - Rema is the EXCEPTION: Sefaria folds Rema's glosses into the Shulchan Aruch, so Rema will NOT appear as its own entry in the block. Supply Rema (using the Shulchan Aruch's siman:seif as its ref) ONLY when he explicitly disagrees with, qualifies, or adds Ashkenazi minhag to the Mechaber's ruling on THIS topic — otherwise null.
 - ref MUST be a real, citable reference (sefer + hilchot + chapter:halacha for Mishneh Torah; siman[:seif] for Tur/Shulchan Aruch/Rema). If you cannot supply a real ref with confidence, return null for that codifier — DO NOT invent references.
 - For each non-null entry, the ruling MUST genuinely match what the codifier says on THIS topic, not a general gloss.
@@ -4982,8 +4983,10 @@ CODE_ENRICHMENTS.push(
       // prompt so refs are GROUNDED (selected) rather than recalled.
       dependencies: ['gemara', 'halacha-refs'],
       passes: ['hebrew-gloss'],
-      defHash: 'halacha.codification-v4',
-      cacheVersion: '4',
+      // v5: the prompt now prefers Ein Mishpat / Ner Mitzvah-attested refs, and
+      // the grounded-refs input tags them — so cached v4 outputs regenerate.
+      defHash: 'halacha.codification-v5',
+      cacheVersion: '5',
       systemPromptHe: HALACHA_CODIFICATION_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_CODIFICATION_USER_TEMPLATE_HE,
     },

@@ -101,6 +101,11 @@ export interface HalachicSnippet {
   /** 0-indexed daf segment(s) this ref anchors to (from the link's anchorRef). */
   segStart?: number;
   segEnd?: number;
+  /** True when this codification is asserted by Ein Mishpat / Ner Mitzvah — the
+   *  classical index (R. Yehoshua Boaz, printed on the daf) mapping each din to
+   *  where it is codified. These are the authoritative "this line → this siman"
+   *  links; the rest of the Halakhah category is looser topical matching. */
+  einMishpat?: boolean;
 }
 
 export type HalachicRefBundle = Record<string, HalachicSnippet[]>;
@@ -213,6 +218,11 @@ export function rishonLabel(indexTitle: string, tractate: string): string | null
   const book = indexTitle.replace(new RegExp(`\\s+(?:on\\s+)?${esc}\\b.*$`), '').trim();
   return RISHONIM.get(book) ?? ACHARONIM.get(book) ?? null;
 }
+
+/** Sefaria's link `type` for the Ein Mishpat / Ner Mitzvah codification index
+ *  (the classical "this din → this code" cross-reference). Spelled exactly as
+ *  Sefaria returns it on /api/related links. */
+export const EIN_MISHPAT_LINK_TYPE = 'ein mishpat / ner mitsvah';
 
 /** Parse the trailing segment range from a Sefaria ref like
  *  "Berakhot 2a:1-5" → { start: 1, end: 5 } or "Shabbat 20b:5" →
@@ -510,19 +520,28 @@ class SefariaAPI {
     const related = await this.getRelated(ref).catch(() => null);
     if (!related) return {};
     const halakhahLinks = related.links.filter((l) => l.category === 'Halakhah');
-    // Keep each ref's anchorRef so the snippet can anchor to its daf segment.
-    const grouped = new Map<string, { ref: string; anchorRef: string }[]>();
+    // Keep each ref's anchorRef so the snippet can anchor to its daf segment,
+    // and its link `type` so we can flag the Ein Mishpat / Ner Mitzvah refs —
+    // the classical, authoritative codification index (vs. looser topical
+    // Halakhah links). A ref can appear under several link types; once any of
+    // them is Ein Mishpat the ref is authoritative.
+    const grouped = new Map<string, { ref: string; anchorRef: string; einMishpat: boolean }[]>();
     for (const link of halakhahLinks) {
       const book = link.index_title;
       const refs = grouped.get(book) ?? [];
-      if (!refs.some((r) => r.ref === link.ref))
-        refs.push({ ref: link.ref, anchorRef: link.anchorRef });
+      const einMishpat = link.type === EIN_MISHPAT_LINK_TYPE;
+      const existing = refs.find((r) => r.ref === link.ref);
+      if (existing) existing.einMishpat = existing.einMishpat || einMishpat;
+      else refs.push({ ref: link.ref, anchorRef: link.anchorRef, einMishpat });
       grouped.set(book, refs);
     }
     const out: HalachicRefBundle = {};
     await Promise.all(
       Array.from(grouped.entries()).map(async ([book, refs]) => {
-        const capped = refs.slice(0, maxPerBook);
+        // Ein Mishpat refs are the authoritative codifications — keep them
+        // ahead of looser topical links when capping per book.
+        const ordered = [...refs].sort((a, b) => Number(b.einMishpat) - Number(a.einMishpat));
+        const capped = ordered.slice(0, maxPerBook);
         const texts = await Promise.all(
           capped.map(async (r) => ({ link: r, t: await this.getText(r.ref).catch(() => null) })),
         );
@@ -539,6 +558,7 @@ class SefariaAPI {
               english,
               segStart: range ? range.start - 1 : undefined,
               segEnd: range ? range.end - 1 : undefined,
+              einMishpat: link.einMishpat || undefined,
             });
           }
         }
@@ -556,12 +576,18 @@ class SefariaAPI {
    * `{ ref, category }` links; `buildDerivation` (src/lib/halacha/codifiers)
    * classifies + dedupes them. Returns [] on any fetch error.
    */
-  async fetchCodeSources(codeRef: string): Promise<Array<{ ref: string; category: string }>> {
+  async fetchCodeSources(
+    codeRef: string,
+  ): Promise<Array<{ ref: string; category: string; einMishpat?: boolean }>> {
     const related = await this.getRelated(codeRef).catch(() => null);
     if (!related) return [];
     return related.links
       .filter((l) => l.category === 'Talmud' || l.category === 'Tanakh')
-      .map((l) => ({ ref: l.ref, category: l.category }));
+      .map((l) => ({
+        ref: l.ref,
+        category: l.category,
+        einMishpat: l.type === EIN_MISHPAT_LINK_TYPE || undefined,
+      }));
   }
 
   /**

@@ -175,7 +175,9 @@ export async function getHalachaRefsCached(
   page: string,
   track?: CacheTrack,
 ): Promise<HalachicRefBundle> {
-  // v2: snippets now carry segStart/segEnd (the linked daf segment).
+  // v2: snippets carry segStart/segEnd (the linked daf segment).
+  // v3: snippets carry einMishpat (Ein Mishpat / Ner Mitzvah classical
+  // codification flag), and Ein Mishpat refs sort first within each book.
   const key = keyForHalachaRefs(tractate, page);
   const hit = await readCache<HalachicRefBundle>(cache, key);
   track?.onCache?.(hit ? 'hit' : 'miss');
@@ -194,9 +196,12 @@ export async function getHalachaRefsCached(
 export async function getCodeSourcesCached(
   cache: KVNamespace | undefined,
   codeRef: string,
-): Promise<Array<{ ref: string; category: string }>> {
+): Promise<Array<{ ref: string; category: string; einMishpat?: boolean }>> {
   const key = keyForCodeSources(codeRef);
-  const hit = await readCache<Array<{ ref: string; category: string }>>(cache, key);
+  const hit = await readCache<Array<{ ref: string; category: string; einMishpat?: boolean }>>(
+    cache,
+    key,
+  );
   if (hit) return hit;
   try {
     const data = await sefariaAPI.fetchCodeSources(codeRef);
