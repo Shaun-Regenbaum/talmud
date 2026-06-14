@@ -388,6 +388,8 @@ describe('buildTrajectory', () => {
     expect(stops.map((s) => s.place)).toEqual(['Sura', 'Eretz Yisrael']);
     expect(stops[1].kind).toBe('movement');
     expect(stops[1].region).toBe('israel');
+    // movement carries its origin so the per-rabbi timeline can render "from → to"
+    expect(stops[1].from).toEqual({ place: 'Bavel', region: 'bavel' });
   });
 
   it('returns [] when there is no geography', () => {

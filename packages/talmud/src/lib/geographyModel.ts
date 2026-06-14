@@ -73,6 +73,10 @@ export interface TrajectoryStop {
   place: string;
   /** Academy/period (study) or event (notable) — the inline list's detail. */
   detail: string;
+  /** Movement ORIGIN (kind === 'movement' only). `place` holds the destination
+   *  (where the map plots the stop); `from` lets the per-rabbi timeline render
+   *  the "from → to" transition. Absent for non-movement stops. */
+  from?: { place: string; region: GeoRegionId | null };
 }
 
 /** A rabbi's ordered life trajectory, carried on the DafGeoModel so the
@@ -287,6 +291,7 @@ export function buildTrajectory(geo: GeoEnrichment | null | undefined): Trajecto
       region: city?.region ?? regionOfStop(mv.to),
       place: mv.to,
       detail: [mv.approximateWhen, mv.reason].filter(Boolean).join(' · '),
+      from: mv.from ? { place: mv.from, region: regionOfStop(mv.from) } : undefined,
     });
   }
   for (const sp of geo.primaryStudyPlaces ?? []) {

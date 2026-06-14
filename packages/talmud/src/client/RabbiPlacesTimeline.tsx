@@ -26,9 +26,10 @@
  */
 
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
-import { inferRegionOfPlace, orderBySeq } from '../lib/geographyModel';
+import { buildTrajectory, type TrajectoryStop } from '../lib/geographyModel';
+import type { GeoRegionId } from './geoShapes';
 import { t } from './i18n';
-import type { BirthPlace, GeographyData, GeographyEvidence } from './RabbiGeographyCard';
+import type { GeographyData, GeographyEvidence } from './RabbiGeographyCard';
 
 export interface LocationInference {
   place: string;
@@ -64,19 +65,18 @@ const EVIDENCE_BORDER = '#eab308';
 
 type Region = 'israel' | 'bavel' | 'other' | 'unknown';
 
+// Render view-model for one timeline row, projected from a shared TrajectoryStop
+// (the ONE builder, geographyModel.buildTrajectory, that also feeds the geography
+// map's drill-down — so the two surfaces can't disagree on a rabbi's life events).
 interface TimelineEvent {
   key: string;
   kind: 'birth' | 'movement' | 'study' | 'notable';
-  /** Chronological life-order index from rabbi.geography (v4+). When every
-   *  event has one, buildEvents sorts by it; otherwise rows keep bucket order. */
-  seq?: number;
   region: Region;
   /** For birth/study/notable: the single place name. For movement: "from →
    *  to" rendered as two cells. */
   primaryPlace: string;
   secondaryPlace?: string; // movement destination
   secondaryRegion?: Region; // movement destination region
-  label: string; // small uppercase tag (e.g. "BIRTH", "STUDY")
   detail: string; // 1-line context (academy/period/event/reason)
   /** Which kind to look up in the evidence map for this row. */
   evidenceKind: GeographyEvidence['kind'];
@@ -86,13 +86,10 @@ interface TimelineEvent {
   evidencePlace: string;
 }
 
-// Region of a place name, mapped onto the timeline's 4-value Region. Routes
-// through the SHARED matcher (geographyModel.inferRegionOfPlace — the same
-// GEO_CITIES table + region-word fallback the whole-daf geography map uses) so
-// the timeline and the map agree on what "Sura" or "Tiberias" is. The canonical
-// matcher returns israel|bavel|null; null becomes the timeline's neutral 'other'.
-function inferRegion(place: string): Region {
-  return inferRegionOfPlace(place) ?? 'other';
+// The shared matcher (inside buildTrajectory) resolves a region to israel|bavel|
+// null; null becomes the timeline's neutral 'other'.
+function toRegion(r: GeoRegionId | null): Region {
+  return r ?? 'other';
 }
 
 function regionColor(r: Region): string {
@@ -107,90 +104,48 @@ function regionLabel(r: Region): string {
   return r === 'unknown' ? t('region.unknown') : t('region.other');
 }
 
-function buildEvents(data: GeographyData): TimelineEvent[] {
-  const events: TimelineEvent[] = [];
-
-  // 1. Birthplace
-  if (data.birthplace?.place) {
-    const bp: BirthPlace = data.birthplace;
-    events.push({
-      key: `birth:${bp.place}`,
-      kind: 'birth',
-      seq: bp.seq,
-      region: bp.region,
-      primaryPlace: bp.place,
-      label: 'BIRTH',
-      detail: regionLabel(bp.region),
-      evidenceKind: 'birthplace',
-      evidencePlace: bp.place,
-    });
-  }
-
-  // 2. Movements (in declared order; each becomes its own step)
-  for (const mv of data.movements ?? []) {
-    const fromRegion = inferRegion(mv.from);
-    const toRegion = inferRegion(mv.to);
-    const detailParts: string[] = [];
-    if (mv.approximateWhen) detailParts.push(mv.approximateWhen);
-    if (mv.reason) detailParts.push(mv.reason);
-    events.push({
-      key: `movement:${mv.from}→${mv.to}`,
+// Project one shared TrajectoryStop into a render row. The stop carries the
+// destination in `place` (and the origin in `from` for movements); the timeline
+// renders a movement as the "from → to" two-cell transition, everything else as
+// a single place. Ordering + region/city resolution already happened inside
+// buildTrajectory — this is presentation only.
+function toTimelineEvent(stop: TrajectoryStop): TimelineEvent {
+  const region = toRegion(stop.region);
+  if (stop.kind === 'movement') {
+    return {
+      key: `movement:${stop.from?.place ?? ''}→${stop.place}`,
       kind: 'movement',
-      seq: mv.seq,
-      region: fromRegion,
-      primaryPlace: mv.from,
-      secondaryPlace: mv.to,
-      secondaryRegion: toRegion,
-      label: 'MOVED',
-      detail: detailParts.join(' · ') || 'movement',
+      region: toRegion(stop.from?.region ?? null),
+      primaryPlace: stop.from?.place ?? stop.place,
+      secondaryPlace: stop.place,
+      secondaryRegion: region,
+      detail: stop.detail || 'movement',
       evidenceKind: 'movement',
-      evidencePlace: mv.to,
-    });
+      evidencePlace: stop.place,
+    };
   }
-
-  // 3. Primary study places
-  for (const sp of data.primaryStudyPlaces ?? []) {
-    const sub: string[] = [];
-    if (sp.academy) sub.push(sp.academy);
-    if (sp.period) sub.push(sp.period);
-    events.push({
-      key: `study:${sp.place}`,
-      kind: 'study',
-      seq: sp.seq,
-      region: inferRegion(sp.place),
-      primaryPlace: sp.place,
-      label: 'STUDY',
-      detail: sub.join(' · ') || regionLabel(inferRegion(sp.place)),
-      evidenceKind: 'study',
-      evidencePlace: sp.place,
-    });
-  }
-
-  // 4. Notable places
-  for (const np of data.notablePlaces ?? []) {
-    events.push({
-      key: `notable:${np.place}`,
-      kind: 'notable',
-      seq: np.seq,
-      region: inferRegion(np.place),
-      primaryPlace: np.place,
-      label: 'NOTABLE',
-      detail: np.event || '',
-      evidenceKind: 'notable',
-      evidencePlace: np.place,
-    });
-  }
-
-  // Chronological order when rabbi.geography (v4+) stamped a seq on every
-  // event; otherwise keep the bucket order above (birth → movements → study →
-  // notable), the pre-v4 behavior for cached values that predate seq.
-  return orderBySeq(events);
+  // birth's evidence kind is 'birthplace'; study/notable match directly. detail
+  // falls back to the region label (birth always, study when no academy/period).
+  const evidenceKind: GeographyEvidence['kind'] = stop.kind === 'birth' ? 'birthplace' : stop.kind;
+  const detail = stop.kind === 'notable' ? stop.detail : stop.detail || regionLabel(region);
+  return {
+    key: `${stop.kind}:${stop.place}`,
+    kind: stop.kind,
+    region,
+    primaryPlace: stop.place,
+    detail,
+    evidenceKind,
+    evidencePlace: stop.place,
+  };
 }
 
 export default function RabbiPlacesTimeline(props: Props): JSX.Element {
   const [activeEvidenceKey, setActiveEvidenceKey] = createSignal<string | null>(null);
 
-  const events = () => buildEvents(props.data);
+  // ONE builder shared with the geography map (buildTrajectory), projected to
+  // the card's render rows. buildTrajectory already orders by seq (bucket
+  // fallback) and resolves cities/regions via the shared matcher.
+  const events = () => buildTrajectory(props.data).map(toTimelineEvent);
 
   const evidenceByPlace = (): Map<string, GeographyEvidence> => {
     const m = new Map<string, GeographyEvidence>();
