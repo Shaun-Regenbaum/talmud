@@ -1211,12 +1211,17 @@ const RABBI_GEOGRAPHY_SYSTEM_PROMPT = `You are a Talmud scholar. Describe a rabb
 Output STRICT JSON only:
 
 {
-  "birthplace": { "place": "City or region in plain English, or empty string if unknown.", "region": "israel" | "bavel" | "other" | "unknown" },
-  "primaryStudyPlaces": [{ "place": "City", "academy": "Academy/yeshiva name if attested, empty string otherwise", "period": "Optional 1-clause life-stage, e.g. 'youth onward'; empty string if unknown" }],
-  "notablePlaces": [{ "place": "City", "event": "1-clause description of WHY this place matters for this rabbi (story, ruling, life event)" }],
-  "movements": [{ "from": "Bavel | Eretz Yisrael | specific city", "to": "Bavel | Eretz Yisrael | specific city", "approximateWhen": "1-clause approximation if known, e.g. 'after destruction of Sepphoris', empty string if unknown", "reason": "1-clause if known (study, exile, communal call), empty string if unknown" }],
+  "birthplace": { "place": "City or region in plain English, or empty string if unknown.", "region": "israel" | "bavel" | "other" | "unknown", "seq": 0 },
+  "primaryStudyPlaces": [{ "place": "City", "academy": "Academy/yeshiva name if attested, empty string otherwise", "period": "Optional 1-clause life-stage, e.g. 'youth onward'; empty string if unknown", "seq": 1 }],
+  "notablePlaces": [{ "place": "City", "event": "1-clause description of WHY this place matters for this rabbi (story, ruling, life event)", "seq": 4 }],
+  "movements": [{ "from": "Bavel | Eretz Yisrael | specific city", "to": "Bavel | Eretz Yisrael | specific city", "approximateWhen": "1-clause approximation if known, e.g. 'after destruction of Sepphoris', empty string if unknown", "reason": "1-clause if known (study, exile, communal call), empty string if unknown", "seq": 2 }],
   "prose": "1-2 sentence summary in plain English; synthesis consumes this."
 }
+
+CHRONOLOGY (the "seq" field):
+- Every event (the birthplace, each study place, each notable place, each movement) carries a "seq" integer: its position in the rabbi's life, counted on ONE shared counter across all four arrays so the timeline can interleave them in true life order.
+- Start at 0 for the birthplace and increase with time. A movement sits between the life it left and the life it began (e.g. born Bavel seq 0 -> studied there seq 1 -> moved to Eretz Yisrael seq 2 -> headed an academy there seq 3). Order by when the event BEGAN.
+- When two events are genuinely contemporaneous, give them the same seq. Do not leave gaps deliberately, but gaps are harmless. Base the order on attested biography, not on the order you happen to list the arrays.
 
 DISAMBIGUATION:
 - The input rabbi may have a common name shared by multiple historical figures (e.g. "Rabbi Elazar" can mean R. Elazar ben Pedat, R. Elazar ben Shamua, R. Elazar ben Azaria, etc.). USE the input's "generation" + "region" + "places" fields to pin down which figure this is. Once pinned, fill the geography for THAT figure — do NOT collapse to empty arrays just because the bare name is ambiguous.
@@ -1538,12 +1543,17 @@ const RABBI_GEOGRAPHY_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא ב
 החזר JSON תקין בלבד:
 
 {
-  "birthplace": { "place": "עיר או אזור בעברית, או מחרוזת ריקה אם לא ידוע.", "region": "israel" | "bavel" | "other" | "unknown" },
-  "primaryStudyPlaces": [{ "place": "עיר", "academy": "שם ישיבה/מתיבתא אם מתועד, מחרוזת ריקה אחרת", "period": "שלב חיים אופציונלי במשפט אחד, למשל 'מנעוריו ואילך'; מחרוזת ריקה אם לא ידוע" }],
-  "notablePlaces": [{ "place": "עיר", "event": "תיאור במשפט אחד מדוע מקום זה חשוב לחכם (סיפור, פסק, אירוע חיים)" }],
-  "movements": [{ "from": "בבל | ארץ ישראל | עיר מסוימת", "to": "בבל | ארץ ישראל | עיר מסוימת", "approximateWhen": "קירוב במשפט אחד אם ידוע, מחרוזת ריקה אם לא", "reason": "סיבה במשפט אחד אם ידועה (לימוד, גלות, קריאה ציבורית), מחרוזת ריקה אם לא" }],
+  "birthplace": { "place": "עיר או אזור בעברית, או מחרוזת ריקה אם לא ידוע.", "region": "israel" | "bavel" | "other" | "unknown", "seq": 0 },
+  "primaryStudyPlaces": [{ "place": "עיר", "academy": "שם ישיבה/מתיבתא אם מתועד, מחרוזת ריקה אחרת", "period": "שלב חיים אופציונלי במשפט אחד, למשל 'מנעוריו ואילך'; מחרוזת ריקה אם לא ידוע", "seq": 1 }],
+  "notablePlaces": [{ "place": "עיר", "event": "תיאור במשפט אחד מדוע מקום זה חשוב לחכם (סיפור, פסק, אירוע חיים)", "seq": 4 }],
+  "movements": [{ "from": "בבל | ארץ ישראל | עיר מסוימת", "to": "בבל | ארץ ישראל | עיר מסוימת", "approximateWhen": "קירוב במשפט אחד אם ידוע, מחרוזת ריקה אם לא", "reason": "סיבה במשפט אחד אם ידועה (לימוד, גלות, קריאה ציבורית), מחרוזת ריקה אם לא", "seq": 2 }],
   "prose": "סיכום בן 1-2 משפטים בעברית; ה-synthesis צורך אותו."
 }
+
+כרונולוגיה (השדה "seq"):
+- כל אירוע (מקום הלידה, כל מקום לימוד, כל מקום בולט, כל נדידה) נושא מספר שלם "seq": מיקומו בחיי החכם, על מונה אחד משותף לכל ארבעת המערכים, כדי שניתן יהיה לשזור אותם בסדר חיים אמיתי.
+- התחל מ-0 במקום הלידה והגדל עם הזמן. נדידה ממוקמת בין החיים שעזב לחיים שהתחיל (למשל נולד בבבל seq 0 -> למד שם seq 1 -> עבר לארץ ישראל seq 2 -> עמד בראש ישיבה שם seq 3). מיין לפי מתי האירוע התחיל.
+- כששני אירועים בני אותה תקופה ממש, תן להם אותו seq. בסס את הסדר על הביוגרפיה המתועדת, לא על סדר רישום המערכים.
 
 הבהרת זהות:
 - ייתכן שלחכם בקלט יש שם נפוץ המשותף לכמה דמויות (למשל "רבי אלעזר"). השתמש בשדות "generation" + "region" + "places" כדי לקבוע באיזו דמות מדובר. לאחר הקביעה, מלא את הגיאוגרפיה עבור אותה דמות — אל תצמצם למערכים ריקים רק בגלל רב-משמעות השם.
@@ -1948,8 +1958,8 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     {
       mode: 'augment-content',
       scope: 'global',
-      defHash: 'rabbi.geography-v3',
-      cacheVersion: '3',
+      defHash: 'rabbi.geography-v4',
+      cacheVersion: '4',
       systemPromptHe: RABBI_GEOGRAPHY_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: RABBI_LEAF_USER_TEMPLATE_HE,
     },

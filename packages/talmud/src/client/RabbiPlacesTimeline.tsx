@@ -1,7 +1,10 @@
 /**
  * Chronological timeline of places associated with a rabbi.
  *
- * Vertical strip rendered top → bottom in best-effort life order:
+ * Vertical strip rendered top → bottom in life order. When rabbi.geography
+ * (v4+) stamps a chronological `seq` on every event, the rows are sorted by it
+ * so birth / study / movements / notable roles interleave in true life order.
+ * For cached values that predate seq, the rows fall back to bucket order:
  *   1. Birthplace
  *   2. Movements (each "from → to" step in declared order)
  *   3. Primary study places (in declared order)
@@ -23,7 +26,7 @@
  */
 
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
-import { inferRegionOfPlace } from '../lib/geographyModel';
+import { inferRegionOfPlace, orderBySeq } from '../lib/geographyModel';
 import { t } from './i18n';
 import type { BirthPlace, GeographyData, GeographyEvidence } from './RabbiGeographyCard';
 
@@ -64,6 +67,9 @@ type Region = 'israel' | 'bavel' | 'other' | 'unknown';
 interface TimelineEvent {
   key: string;
   kind: 'birth' | 'movement' | 'study' | 'notable';
+  /** Chronological life-order index from rabbi.geography (v4+). When every
+   *  event has one, buildEvents sorts by it; otherwise rows keep bucket order. */
+  seq?: number;
   region: Region;
   /** For birth/study/notable: the single place name. For movement: "from →
    *  to" rendered as two cells. */
@@ -110,6 +116,7 @@ function buildEvents(data: GeographyData): TimelineEvent[] {
     events.push({
       key: `birth:${bp.place}`,
       kind: 'birth',
+      seq: bp.seq,
       region: bp.region,
       primaryPlace: bp.place,
       label: 'BIRTH',
@@ -129,6 +136,7 @@ function buildEvents(data: GeographyData): TimelineEvent[] {
     events.push({
       key: `movement:${mv.from}→${mv.to}`,
       kind: 'movement',
+      seq: mv.seq,
       region: fromRegion,
       primaryPlace: mv.from,
       secondaryPlace: mv.to,
@@ -148,6 +156,7 @@ function buildEvents(data: GeographyData): TimelineEvent[] {
     events.push({
       key: `study:${sp.place}`,
       kind: 'study',
+      seq: sp.seq,
       region: inferRegion(sp.place),
       primaryPlace: sp.place,
       label: 'STUDY',
@@ -162,6 +171,7 @@ function buildEvents(data: GeographyData): TimelineEvent[] {
     events.push({
       key: `notable:${np.place}`,
       kind: 'notable',
+      seq: np.seq,
       region: inferRegion(np.place),
       primaryPlace: np.place,
       label: 'NOTABLE',
@@ -171,7 +181,10 @@ function buildEvents(data: GeographyData): TimelineEvent[] {
     });
   }
 
-  return events;
+  // Chronological order when rabbi.geography (v4+) stamped a seq on every
+  // event; otherwise keep the bucket order above (birth → movements → study →
+  // notable), the pre-v4 behavior for cached values that predate seq.
+  return orderBySeq(events);
 }
 
 export default function RabbiPlacesTimeline(props: Props): JSX.Element {

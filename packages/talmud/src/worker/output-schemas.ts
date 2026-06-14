@@ -517,20 +517,32 @@ export const AGGADATA_QA_OUTPUT_SCHEMA = responseFormat('aggadata_qa', QA);
 // Rabbi enrichments
 // ===========================================================================
 const region4 = z.enum(['israel', 'bavel', 'other', 'unknown']);
+// `seq` is a chronological life-order index shared across ALL four arrays
+// (birth -> study -> movements -> notable roles), so the events interleave
+// correctly when the timeline merges them. The model assigns it; the timeline
+// sorts by it (and falls back to bucket order for older cached values).
 export const RABBI_GEOGRAPHY_OUTPUT_SCHEMA = responseFormat(
   'rabbi_geography',
   z.object({
-    birthplace: z.object({ place: z.string(), region: region4 }),
+    birthplace: z.object({ place: z.string(), region: region4, seq: z.number().int() }),
     primaryStudyPlaces: z.array(
-      z.object({ place: z.string(), academy: z.string(), period: z.string() }),
+      z.object({
+        place: z.string(),
+        academy: z.string(),
+        period: z.string(),
+        seq: z.number().int(),
+      }),
     ),
-    notablePlaces: z.array(z.object({ place: z.string(), event: z.string() })),
+    notablePlaces: z.array(
+      z.object({ place: z.string(), event: z.string(), seq: z.number().int() }),
+    ),
     movements: z.array(
       z.object({
         from: z.string(),
         to: z.string(),
         approximateWhen: z.string(),
         reason: z.string(),
+        seq: z.number().int(),
       }),
     ),
     prose: z.string(),

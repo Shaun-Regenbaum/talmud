@@ -25,6 +25,20 @@ import { GEO_CITIES, type GeoCity, type GeoRegionId } from '../client/geoShapes'
 
 export type MoveDirection = 'bavel->israel' | 'israel->bavel' | 'both';
 
+/** Stable chronological sort by an optional `seq` (the life-order index
+ *  rabbi.geography v4+ stamps on every event). Only reorders when EVERY item
+ *  carries a numeric seq — otherwise the array is returned in insertion order
+ *  (cached pre-v4 values lack seq, so the timeline keeps its prior bucket
+ *  order). Equal seqs preserve insertion order (stable). Pure; no mutation. */
+export function orderBySeq<T extends { seq?: number | null }>(items: T[]): T[] {
+  if (items.length < 2) return items.slice();
+  if (!items.every((it) => typeof it.seq === 'number')) return items.slice();
+  return items
+    .map((it, i) => [it, i] as const)
+    .sort((a, b) => (a[0].seq as number) - (b[0].seq as number) || a[1] - b[1])
+    .map(([it]) => it);
+}
+
 /** The shape of the `rabbi.geography` enrichment this assembler reads. A
  *  structural subset of RabbiGeographyCard's GeographyData — kept local so this
  *  module stays free of any client (.tsx) import. */

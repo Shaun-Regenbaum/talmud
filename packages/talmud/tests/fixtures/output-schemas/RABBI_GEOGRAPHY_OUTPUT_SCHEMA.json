@@ -9,7 +9,7 @@
       "birthplace": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["place", "region"],
+        "required": ["place", "region", "seq"],
         "properties": {
           "place": {
             "type": "string"
@@ -17,6 +17,9 @@
           "region": {
             "type": "string",
             "enum": ["israel", "bavel", "other", "unknown"]
+          },
+          "seq": {
+            "type": "integer"
           }
         }
       },
@@ -25,7 +28,7 @@
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["place", "academy", "period"],
+          "required": ["place", "academy", "period", "seq"],
           "properties": {
             "place": {
               "type": "string"
@@ -35,6 +38,9 @@
             },
             "period": {
               "type": "string"
+            },
+            "seq": {
+              "type": "integer"
             }
           }
         }
@@ -44,13 +50,16 @@
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["place", "event"],
+          "required": ["place", "event", "seq"],
           "properties": {
             "place": {
               "type": "string"
             },
             "event": {
               "type": "string"
+            },
+            "seq": {
+              "type": "integer"
             }
           }
         }
@@ -60,7 +69,7 @@
         "items": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["from", "to", "approximateWhen", "reason"],
+          "required": ["from", "to", "approximateWhen", "reason", "seq"],
           "properties": {
             "from": {
               "type": "string"
@@ -73,6 +82,9 @@
             },
             "reason": {
               "type": "string"
+            },
+            "seq": {
+              "type": "integer"
             }
           }
         }

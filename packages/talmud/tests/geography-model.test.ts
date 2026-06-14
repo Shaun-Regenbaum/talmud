@@ -4,6 +4,7 @@ import {
   deriveMoveDirection,
   type GeoEnrichment,
   matchCity,
+  orderBySeq,
   placeRabbi,
   type RabbiGeoSource,
   regionFromGeneration,
@@ -310,5 +311,36 @@ describe('buildGeoModel', () => {
   it('reports empty when nothing is placeable', () => {
     expect(buildGeoModel([], []).empty).toBe(true);
     expect(buildGeoModel([{ name: 'Nobody' }], [{ name: 'Atlantis' }]).empty).toBe(true);
+  });
+});
+
+describe('orderBySeq', () => {
+  it('sorts by seq when every item has one', () => {
+    const items = [
+      { id: 'notable', seq: 4 },
+      { id: 'birth', seq: 0 },
+      { id: 'moved', seq: 2 },
+      { id: 'study', seq: 1 },
+    ];
+    expect(orderBySeq(items).map((i) => i.id)).toEqual(['birth', 'study', 'moved', 'notable']);
+  });
+
+  it('keeps insertion order when ANY item is missing seq (pre-v4 cached values)', () => {
+    const items = [
+      { id: 'birth', seq: 0 },
+      { id: 'study' }, // no seq
+      { id: 'moved', seq: 2 },
+    ];
+    expect(orderBySeq(items).map((i) => i.id)).toEqual(['birth', 'study', 'moved']);
+  });
+
+  it('is stable for equal seqs and does not mutate the input', () => {
+    const items = [
+      { id: 'a', seq: 1 },
+      { id: 'b', seq: 1 },
+      { id: 'c', seq: 0 },
+    ];
+    expect(orderBySeq(items).map((i) => i.id)).toEqual(['c', 'a', 'b']);
+    expect(items.map((i) => i.id)).toEqual(['a', 'b', 'c']); // original untouched
   });
 });
