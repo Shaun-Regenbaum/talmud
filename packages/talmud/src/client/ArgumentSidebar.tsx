@@ -56,7 +56,7 @@ import RabbiLineageTree, {
   type RelationshipsEvidence,
 } from './RabbiLineageTree';
 import RabbiObservations from './RabbiObservations';
-import RabbiPlacesTimeline, { type LocationInference } from './RabbiPlacesTimeline';
+import RabbiTrajectoryMap, { type LocationInference } from './RabbiTrajectoryMap';
 import { HebraizedWithRabbis, RabbiLinkProvider } from './rabbiLinks';
 import type {
   AggadataStory,
@@ -1778,7 +1778,7 @@ function RabbiGeography(props: SpecialBlockProps): JSX.Element {
             leafId="rabbi.geography"
             style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }}
           />
-          <RabbiPlacesTimeline
+          <RabbiTrajectoryMap
             data={g()}
             evidence={geoEv()}
             location={loc()}
