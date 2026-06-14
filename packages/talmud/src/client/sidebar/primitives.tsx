@@ -33,6 +33,7 @@ export const ACCENTS = {
   'daf-background': '#8a6d3b',
   tidbit: '#2f6b66',
   biyun: '#3f4ea0',
+  geography: '#1e40af',
   halacha: '#1e40af',
   chart: '#0e7490',
   aggadata: '#7c3aed',
@@ -60,6 +61,8 @@ export function kindLabelKey(kind: SidebarKind): CatalogKey {
       return 'sidebar.kind.tidbit';
     case 'biyun':
       return 'sidebar.kind.biyun';
+    case 'geography':
+      return 'sidebar.kind.geography';
     case 'halacha':
       return 'sidebar.kind.halacha';
     case 'chart':

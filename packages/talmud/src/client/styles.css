@@ -471,30 +471,6 @@ body.dev-panel-open .daf-page {
   direction: ltr;
 }
 
-/* Strips are NOT sticky — they flow with the page like the timeline and
-   daf body. Only the right-side on-demand sidebar (.daf-aside) sticks. */
-.daf-strip {
-  align-self: flex-start;
-  width: 220px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.daf-strip-left {
-  /* Commentaries: slightly wider since commentary text wraps Hebrew. */
-  width: 240px;
-}
-
-/* Between ~1100–1300px the strips get too cramped. Fall back to collapsing
-   the strips into the aside (matches pre-strip behavior). */
-@media (max-width: 1279px) {
-  .daf-strip {
-    display: none;
-  }
-}
-
 @media (max-width: 767px) {
   .daf-page {
     padding: 0.75rem;
@@ -592,19 +568,6 @@ body.dev-panel-open .daf-page {
   }
   .daf-cluster > section {
     padding: 0 12px;
-  }
-  /* Strips stack full-width below the daf on mobile; desktop stickiness is
-     irrelevant here. Override the narrow-desktop hide. */
-  .daf-strip {
-    /* No !important needed: the narrow-desktop hide (display:none @1279px) and
-       the 220px/240px base widths are equal-specificity (0,1,0) rules EARLIER
-       in this file, so this later block wins by source order; nothing else
-       (no inline styles) sets position/max-height/overflow on .daf-strip. */
-    display: flex;
-    position: static;
-    width: 100%;
-    max-height: none;
-    overflow: visible;
   }
   /* Native pan + pinch-zoom on the daf container regardless of mode. The
      traditional Tzurat HaDaf renders at full 520px width on phones (the

@@ -9,9 +9,9 @@ import { fireEvent, render } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { GeographyMap } from '../../src/client/GeographyMap';
 import type { GenerationId } from '../../src/client/generations';
-import { buildGeoModel } from '../../src/client/geographyData';
 import { BAVEL_SHAPE, ISRAEL_SHAPE } from '../../src/client/geoShapes';
 import { setLang } from '../../src/client/i18n';
+import { buildGeoModel } from '../../src/lib/geographyModel';
 
 beforeEach(() => setLang('en'));
 afterEach(() => setLang('en'));

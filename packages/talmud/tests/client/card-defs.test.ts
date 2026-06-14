@@ -26,6 +26,7 @@ describe('CARD_DEFS registry', () => {
         'biyun',
         'chart',
         'daf-background',
+        'geography',
         'halacha',
         'pesuk',
         'rabbi',

@@ -239,8 +239,21 @@ export interface RunProducerPorts<
   hooks: {
     /** The computed-extractor branch (deterministic, no LLM): produce the FULL
      *  result envelope (model `computed:<fn>`, transport 'computed', …). Core
-     *  owns its cache read/write (always on the EN key). */
-    computedMark(ctx: Ctx, def: MDef, tractate: string, page: string): Promise<StoredArtifact>;
+     *  owns its cache read/write (always on the EN key). A result marked
+     *  `transient: true` is SERVED but never written — mirroring
+     *  `enrichmentPreResolve`. A computed mark whose declared dependency marks
+     *  haven't been computed yet (cold daf, mark race) would otherwise persist
+     *  an empty/not-ready model to the EN key forever (no LLM run ⇒ never
+     *  recomputed until a cache_version bump). Marking it transient lets the
+     *  current view render from whatever's cached while leaving the key unpinned
+     *  so the next request recomputes — until the deps are warm, then it caches
+     *  normally. */
+    computedMark(
+      ctx: Ctx,
+      def: MDef,
+      tractate: string,
+      page: string,
+    ): Promise<StoredArtifact & { transient?: boolean }>;
     /** Mark post-parse processing (after the check passes): rabbi registry
      *  grounding, places backlog logging. Returns the (possibly transformed)
      *  parsed value. */
@@ -427,6 +440,10 @@ export async function runProducer<
       if (hit) return { ...hit, cache_hit: true };
     }
     const out = await ports.hooks.computedMark(ctx, mdef, tractate, page);
+    // `transient` results are served without a cache write (same contract as
+    // enrichmentPreResolve): a not-ready computed mark (its declared dep marks
+    // aren't cached yet) must not pin an empty model to the EN key forever.
+    if (out.transient) return out;
     return writeWithProvenance(ports, ctx, cacheKey, out, mdef.id, null);
   }
   if (isMark && mdef.extractor.kind !== 'llm') {

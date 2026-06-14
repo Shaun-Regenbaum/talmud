@@ -8,6 +8,7 @@ import {
   BIYUN_RECIPE,
   CHART_RECIPE,
   DAF_BACKGROUND_RECIPE,
+  GEOGRAPHY_RECIPE,
   HALACHA_RECIPE,
   PASUK_RECIPE,
   RABBI_RECIPE,
@@ -28,6 +29,7 @@ import {
   Switch,
 } from 'solid-js';
 import { selectSectionMoves } from '../lib/argumentMoves';
+import type { DafGeoModel } from '../lib/geographyModel';
 import { type DerivationSource, parseBavliRef } from '../lib/halacha/codifiers';
 import { adjacentAmud } from '../lib/sefref/amudim';
 import { dafRefHe, pageLabelHe } from '../lib/sefref/tractates';
@@ -43,6 +45,7 @@ import CodificationMap from './CodificationMap';
 import { buildConceptMatcher, ConceptLinkProvider } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
 import { type CodificationData, codeMapFromCodification, SIDE_COLOR } from './flow/codeMapLayout';
+import { GeographyMap } from './GeographyMap';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
 import { Hebraized } from './Hebraized';
 import { lang, t } from './i18n';
@@ -86,6 +89,7 @@ export {
   ARGUMENT_RECIPE,
   BIYUN_RECIPE,
   DAF_BACKGROUND_RECIPE,
+  GEOGRAPHY_RECIPE,
   HALACHA_RECIPE,
   PASUK_RECIPE,
   RABBI_RECIPE,
@@ -223,7 +227,8 @@ export type SidebarContent =
   | { kind: 'argument-overview' }
   | { kind: 'daf-background' }
   | { kind: 'tidbit' }
-  | { kind: 'biyun' };
+  | { kind: 'biyun' }
+  | { kind: 'geography' };
 
 export interface ArgumentSidebarProps {
   content: SidebarContent | null;
@@ -273,6 +278,10 @@ export interface ArgumentSidebarProps {
   /** Open the in-depth `argument` card for a section (by index). Lets the
    *  whole-daf overview hand off into the full per-section argument. */
   onOpenArgument?: (index: number) => void;
+  /** The whole-daf geography card's model + interaction callbacks. The model
+   *  comes from the computed `geography` mark run; the callbacks drive in-text
+   *  highlighting. Forwarded to the geography-map special block via extras. */
+  geography?: GeographyExtras;
 }
 
 // Parse markdown-style links out of a bio string. Sefaria `/topics/<slug>`
@@ -2464,6 +2473,58 @@ export const CHART_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element>
   'chart-table': ChartTableBlock,
 };
 
+// ---------------------------------------------------------------------------
+// Geography map block — renders the computed `geography` mark's DafGeoModel
+// (the two region cards). The model + the daf's interaction callbacks ride in
+// via `extras` (the model lives in the mark run, the callbacks in DafViewer);
+// the block itself is a thin GeographyMap mount, so the registry-fed mark
+// instance — not client-assembled data — is what's drawn.
+// ---------------------------------------------------------------------------
+
+/** The geography card's `extras` bundle: the computed model + the daf's
+ *  highlight/navigation callbacks, assembled by DafViewer. */
+export interface GeographyExtras {
+  model: DafGeoModel | null;
+  activeLocation: string | null;
+  activePlace: string | null;
+  generationByName: Map<string, GenerationId> | null;
+  onHighlightLocation: (cityName: string | null, rabbiNames: string[]) => void;
+  onHighlightSingleRabbi: (rabbiName: string, slug?: string) => void;
+  onHoverRabbi: (rabbiName: string | null) => void;
+  onHighlightPlace: (cityName: string | null) => void;
+}
+
+function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
+  const ex = (): GeographyExtras | undefined => props.extras as GeographyExtras | undefined;
+  const model = (): DafGeoModel | null => ex()?.model ?? null;
+  return (
+    <Show
+      when={model() && !model()!.empty}
+      fallback={
+        <p style={{ margin: '0.4rem 0 0', color: '#888', 'font-size': '0.82rem' }}>
+          {t('geography.empty')}
+        </p>
+      }
+    >
+      <GeographyMap
+        model={model()!}
+        layout="column"
+        activeLocation={ex()?.activeLocation ?? null}
+        activePlace={ex()?.activePlace ?? null}
+        generationByName={ex()?.generationByName ?? null}
+        onHighlightLocation={(c, r) => ex()?.onHighlightLocation(c, r)}
+        onHighlightSingleRabbi={(n, s) => ex()?.onHighlightSingleRabbi(n, s)}
+        onHoverRabbi={(n) => ex()?.onHoverRabbi(n)}
+        onHighlightPlace={(n) => ex()?.onHighlightPlace(n)}
+      />
+    </Show>
+  );
+}
+
+export const GEOGRAPHY_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
+  'geography-map': GeographyMapBlock,
+};
+
 /** Sidebar panel for a cited pasuk: shows the full Hebrew Tanakh verse and,
  *  on expand, the surrounding verses inlined as one continuous Hebrew block
  *  (prev + cited + next) with the cited verse rendered dark and the others
@@ -2700,6 +2761,8 @@ export function instanceKeyForContent(
       return `${tractate}/${page}/biyun`;
     case 'daf-background':
       return `${tractate}/${page}/background`;
+    case 'geography':
+      return `${tractate}/${page}/geography`;
     case 'aggadata':
       return `${tractate}:${page}:${content.index}:${content.story.title}`;
     case 'yerushalmi':
@@ -3155,6 +3218,9 @@ interface CardExtrasCtx {
   onPushRabbi: (name: string) => void;
   dafSections: Section[];
   onOpenArgument?: (index: number) => void;
+  /** The whole-daf geography card's model + interaction callbacks (the
+   *  geography-map block's `extras`). */
+  geography?: GeographyExtras;
 }
 
 interface CardDef {
@@ -3221,6 +3287,15 @@ export const CARD_DEFS: Partial<Record<SidebarContent['kind'], CardDef>> = {
     blocks: DAF_BACKGROUND_BLOCKS,
     instance: () => ({ fields: { title: t('background.title') } }),
     synthInstance: () => ({ fields: {} }),
+  },
+  // Whole-daf geography: no synthesis (computed mark). The geography-map block
+  // renders the model that arrives via extras (from the mark run). The display
+  // instance carries only the localized heading.
+  geography: {
+    recipe: GEOGRAPHY_RECIPE,
+    blocks: GEOGRAPHY_BLOCKS,
+    instance: () => ({ fields: { title: t('geography.title') } }),
+    extras: (ctx) => ({ ...(ctx.geography ?? {}) }),
   },
   aggadata: {
     recipe: AGGADATA_RECIPE,
@@ -3444,6 +3519,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                       onPushRabbi: props.onPushRabbi,
                       dafSections: props.dafSections ?? [],
                       onOpenArgument: props.onOpenArgument,
+                      geography: props.geography,
                     })}
                   />
                 )}

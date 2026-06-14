@@ -229,6 +229,7 @@ const FORCE_ON_DEFAULTS: { tag: string; ids: string[] }[] = [
   { tag: 'tidbit-2026-06', ids: ['tidbit'] },
   { tag: 'biyun-2026-06', ids: ['biyun'] },
   { tag: 'yerushalmi-2026-06', ids: ['yerushalmi'] },
+  { tag: 'geography-2026-06', ids: ['geography'] },
 ];
 
 function readAppliedDefaults(): Set<string> {

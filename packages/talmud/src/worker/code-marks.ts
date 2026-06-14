@@ -27,6 +27,7 @@ import {
   BIYUN_RECIPE,
   CHART_RECIPE,
   DAF_BACKGROUND_RECIPE,
+  GEOGRAPHY_RECIPE,
   HALACHA_RECIPE,
   PASUK_RECIPE,
   RABBI_RECIPE,
@@ -805,6 +806,46 @@ export const CODE_MARKS: MarkDefinition[] = [
     // and first-visit defaults. Prefetch is already gated on dev mode.
     experimental: true,
     def_hash: 'biyun-v1',
+    cache_version: '1',
+    source: 'code',
+    updated_at: NOW,
+  },
+  {
+    id: 'geography',
+    recipe: GEOGRAPHY_RECIPE,
+    label: 'Geography',
+    description:
+      "Whole-daf geography: the two region cards (Eretz Yisrael + Bavel) placing the daf's rabbis and on-daf place mentions on real projected maps. Computed (no LLM) — assembled server-side from the rabbi + places marks and whatever rabbi.geography enrichment is already cached, so it never spins or generates.",
+    category: 'spatial',
+    // Whole-daf chip, like the overview/tidbit/biyun. Its computed instance
+    // carries the DafGeoModel the sidebar's geography-map block renders.
+    anchor: 'whole-daf',
+    render: {
+      kind: 'chip',
+      color: '#1e40af',
+      position: 'header',
+    },
+    extractor: {
+      kind: 'computed',
+      fn: 'geography-model',
+    },
+    // Declared so /api/dependents + staleness reason about the inputs the
+    // compute fn reads.
+    //
+    // KNOWN FRESHNESS GAP (deferred — needs a schema change, out of scope):
+    // computeGeographyModel ALSO reads the `rabbi.geography` GLOBAL enrichment,
+    // but a MarkDependency can only reference an input slice or another MARK —
+    // studio-schema's MarkDependency forbids mark→enrichment deps. So when a
+    // rabbi's rabbi.geography enrichment warms or changes LATER, the freshness /
+    // staleness cascade does NOT mark this geography mark stale, and (because
+    // it's a no-LLM computed mark) a cached model won't pick up the new
+    // enrichment on its own. Current recompute triggers are: (a) bumping this
+    // def's cache_version, or (b) a change to the declared rabbi/places deps
+    // (which DOES cascade). A real fix is to let MarkDependency reference
+    // enrichments (a studio-schema change) — tracked as a deferred item.
+    dependencies: [{ mark: 'rabbi' }, { mark: 'places' }],
+    status: 'promoted',
+    def_hash: 'geography-v1',
     cache_version: '1',
     source: 'code',
     updated_at: NOW,
