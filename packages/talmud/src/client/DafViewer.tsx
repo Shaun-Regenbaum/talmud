@@ -11,10 +11,16 @@ import {
 } from 'solid-js';
 import { dedupeBy, partitionSections } from '../lib/argumentMoves';
 import { DafRenderer } from '../lib/daf-render';
+import type { DafGeoModel } from '../lib/geographyModel';
 import type { TalmudPageData } from '../lib/sefref';
 import { dafRefHe, TRACTATE_OPTIONS } from '../lib/sefref';
 import { conceptToTerm, glossaryForDaf, type Term } from '../lib/terms/registry';
-import { ArgumentSidebar, type PlaceInstance, type SidebarContent } from './ArgumentSidebar';
+import {
+  ArgumentSidebar,
+  type GeographyExtras,
+  type PlaceInstance,
+  type SidebarContent,
+} from './ArgumentSidebar';
 import {
   injectAggadataAnchors,
   injectAnchorMarkers,
@@ -31,17 +37,9 @@ import DafLoadProgress from './DafLoadProgress';
 import { readDevMode, setDevModeActive } from './DevModeShelf';
 import { cancelPrefetch, prefetchDaf } from './dafPrefetch';
 import { ensureMasechetIncipit } from './ensureMasechetIncipit';
-import { type EntityGeoPieces, fetchEntityGeoPieces } from './entityGeo';
-import { GeographyStrip } from './GeographyStrip';
 import { GutterIcons, type GutterKind } from './GutterIcons';
 import { GutterOverlay } from './GutterOverlay';
 import type { GenerationId } from './generations';
-import {
-  buildGeoModel,
-  type DafGeoModel,
-  type PlaceMention,
-  type RabbiGeoSource,
-} from './geographyData';
 import { buildTokenRange } from './highlightRange';
 import { lang, setLang, t } from './i18n';
 import { injectHadran } from './injectHadran';
@@ -784,23 +782,6 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (showPesukim() !== want('pesukim')) setShowPesukim(want('pesukim'));
   });
 
-  // Place mentions on this daf, from the `places` mark's run output (the
-  // same instances that drive the inline .city-marker wraps). Feeds the
-  // whole-daf geography model, which sizes city dots by mention count.
-  const placeMentions = createMemo<PlaceMention[]>(() => {
-    const run = markRunsByMarkId().places;
-    const instances = (
-      run?.parsed as
-        | { instances?: Array<{ fields?: { name?: string; nameHe?: string } }> }
-        | undefined
-    )?.instances;
-    if (!Array.isArray(instances)) return [];
-    return instances.map((i) => ({
-      name: typeof i.fields?.name === 'string' ? i.fields.name : undefined,
-      nameHe: typeof i.fields?.nameHe === 'string' ? i.fields.nameHe : undefined,
-    }));
-  });
-
   // Prefetch trigger: once the daf's anchor marks have settled (none still
   // loading), warm the section-level syntheses + suggested-questions so the
   // reader doesn't wait on a cold generation when they open a sidebar. The
@@ -986,65 +967,20 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // enrichment resolves or if it errors.
   const glossaryTerms = createMemo<Term[]>(() => glossaryForDaf(dafBackgroundTermsRes() ?? []));
 
-  // ── Whole-daf geography (the map strip) — CACHED-ONLY by construction ───
-  // One GET /api/entity/rabbi/:slug?facets=identity,geography per unique
-  // rabbi on the daf (fetchEntityGeoPieces — session-cached by slug AND
-  // in-flight-deduped, so concurrent asks for the same rabbi share one
-  // request). The worker route only READS: the deterministic registry
-  // identity (places/region/moved from rabbi-places.json) plus whatever
-  // rabbi.geography enrichment is already cached in KV (readGlobalPiece —
-  // never an LLM run). Rabbis without cached pieces simply get no dot;
-  // failures are swallowed; the map hides when the model is empty. (The
-  // previous GeographyMap was removed for spinning on a flaky LLM-backed
-  // daf-context fetch — this path cannot generate, so it cannot spin.)
-  //
-  // One AbortController per daf-effect: turning the page aborts the previous
-  // daf's outstanding entity fetches (10-25 per daf) instead of stranding
-  // them. Aborted fetches cache nothing (see entityGeo.ts).
-  let entityGeoAbort: AbortController | null = null;
-  const [entityGeo] = createResource(
-    // Note: '' (no slugged rabbis) still runs the fetcher — it must, so the
-    // previous daf's in-flight fetches get aborted even when the new daf has
-    // no rabbis of its own.
-    () =>
-      Array.from(new Set(dafRabbis().flatMap((r) => (r.slug ? [r.slug] : []))))
-        .sort()
-        .join(','),
-    async (key) => {
-      entityGeoAbort?.abort();
-      const ac = new AbortController();
-      entityGeoAbort = ac;
-      const out = new Map<string, EntityGeoPieces>();
-      if (!key) return out;
-      await Promise.all(
-        key.split(',').map(async (slug) => {
-          const pieces = await fetchEntityGeoPieces(slug, ac.signal);
-          if (pieces) out.set(slug, pieces);
-        }),
-      );
-      return out;
-    },
-  );
-
-  const dafGeoModel = createMemo<DafGeoModel>(() => {
-    const pieces = entityGeo();
-    const sources: RabbiGeoSource[] = dafRabbis().map((r) => {
-      const p = r.slug ? pieces?.get(r.slug) : undefined;
-      return {
-        name: r.name,
-        slug: r.slug,
-        identity: p?.identity ?? null,
-        geography: p?.geography ?? null,
-      };
-    });
-    return buildGeoModel(sources, placeMentions());
+  // ── Whole-daf geography map — the `geography` computed mark ───────────────
+  // The model is assembled SERVER-SIDE (the geography-model compute fn reads the
+  // cached rabbi + places marks and the cached rabbi.geography enrichments — no
+  // LLM, so it never spins) and arrives as the mark's instance body, like any
+  // other whole-daf chip mark. The chip + sidebar panel come from the registry
+  // (the `geography` mark def + GEOGRAPHY_RECIPE); here we only read the run's
+  // model out for the sidebar's geography-map block.
+  const dafGeoModel = createMemo<DafGeoModel | null>(() => {
+    const run = markRunsByMarkId().geography;
+    const inst = (
+      run?.parsed as { instances?: Array<{ fields?: { model?: DafGeoModel } }> } | undefined
+    )?.instances?.[0];
+    return inst?.fields?.model ?? null;
   });
-
-  // The strip's RESERVED SPACE condition: any slugged rabbi on the daf means
-  // geography may arrive, so the fixed-width aside mounts at daf first paint
-  // — the daf column must not shift left mid-read when the async model
-  // lands. (Stable per daf: rabbi-less dapim get no strip at all.)
-  const hasGeoRabbis = createMemo<boolean>(() => dafRabbis().some((r) => r.slug));
 
   // Argument / halacha / aggadata / pesukim state — populated by the
   // registry-mark adapter effects from `markRunsByMarkId()`. Loading and
@@ -1117,6 +1053,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (c.kind === 'daf-background') return t('background.chip');
     if (c.kind === 'tidbit') return t('tidbit.chip');
     if (c.kind === 'biyun') return t('biyun.chip');
+    if (c.kind === 'geography') return t('geography.chip');
     return 'Back';
   };
   const sidebarKey = (c: SidebarContent): string => {
@@ -1134,6 +1071,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (c.kind === 'daf-background') return 'daf-background';
     if (c.kind === 'tidbit') return 'tidbit';
     if (c.kind === 'biyun') return 'biyun';
+    if (c.kind === 'geography') return 'geography';
     return 'unknown';
   };
 
@@ -1149,6 +1087,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     else if (id === 'daf-background') setSidebar({ kind: 'daf-background' });
     else if (id === 'tidbit') setSidebar({ kind: 'tidbit' });
     else if (id === 'biyun') setSidebar({ kind: 'biyun' });
+    else if (id === 'geography') setSidebar({ kind: 'geography' });
   };
   // Set by ArgumentSidebar when the user clicks an argument-move card. Paints
   // a yellow band over the move's segment range in the main daf text. When
@@ -2366,8 +2305,8 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     }
 
     // City-marker wraps + the per-daf places list come from the `places`
-    // worker mark via applyMarkRenderers above; the geography model reads
-    // the same run through placeMentions().
+    // worker mark via applyMarkRenderers above; the geography mark's compute
+    // fn reads the same places run server-side to build its model.
 
     const ctx = { tractate: tractate(), page: page() };
 
@@ -2594,6 +2533,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (s.kind === 'daf-background') return 'daf-background';
     if (s.kind === 'tidbit') return 'tidbit';
     if (s.kind === 'biyun') return 'biyun';
+    if (s.kind === 'geography') return 'geography';
     return `${s.kind}:${s.index}`;
   });
 
@@ -3049,6 +2989,20 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     pushSidebar({ kind: 'rabbi', rabbi: r });
     setLastInteractedCard('argument');
   };
+
+  // The geography card's extras bundle: the computed model (from the geography
+  // mark run) + the daf's highlight/navigation callbacks. Forwarded to the
+  // sidebar's geography-map block (desktop + mobile).
+  const geographyExtras = (): GeographyExtras => ({
+    model: dafGeoModel(),
+    activeLocation: activeLocation(),
+    activePlace: activePlace(),
+    generationByName: generationByName(),
+    onHighlightLocation,
+    onHighlightSingleRabbi: pushRabbi,
+    onHoverRabbi: setHoveredRabbi,
+    onHighlightPlace: (name) => (name ? openPlace(name) : setActivePlace(null)),
+  });
 
   // Bio-text link → open that rabbi's bio. Prefer the in-context entry (so
   // we also light up daf highlights); otherwise pull the standalone entry
@@ -3679,7 +3633,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
                             ? t('tidbit.chip')
                             : m.id === 'biyun'
                               ? t('biyun.chip')
-                              : m.id;
+                              : m.id === 'geography'
+                                ? t('geography.chip')
+                                : m.id;
                     const active = () => sidebar()?.kind === m.id;
                     return (
                       <button
@@ -3973,33 +3929,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             </footer>
           </section>
 
-          {/* Right-flank geography strip — part of the reading cluster so it
-            hugs the daf (the cluster centers as one unit; the on-demand
-            sidebar floats far right). Fed exclusively by already-cached data
-            (registry identity + cached rabbi.geography + the places mark).
-            The fixed-width container mounts EAGERLY once the daf has any
-            slugged rabbi — before the async geo model lands — so the daf
-            column's geometry settles at first paint instead of shifting
-            left mid-read; the map itself fills in when (and if) the model
-            has content. The CSS .daf-strip rules give the aside its 220px
-            width (content-independent) and hide it below 1280px, where the
-            map would crowd the daf. */}
-          <Show when={!isMobile() && hasGeoRabbis()}>
-            <aside class="daf-strip">
-              <Show when={!dafGeoModel().empty}>
-                <GeographyStrip
-                  model={dafGeoModel()}
-                  activeLocation={activeLocation()}
-                  onHighlightLocation={onHighlightLocation}
-                  onHighlightSingleRabbi={pushRabbi}
-                  onHoverRabbi={setHoveredRabbi}
-                  generationByName={generationByName()}
-                  onHighlightPlace={(name) => (name ? openPlace(name) : setActivePlace(null))}
-                  activePlace={activePlace()}
-                />
-              </Show>
-            </aside>
-          </Show>
+          {/* Geography is no longer a hand-mounted right-flank strip — it's a
+            first-class whole-daf chip mark (the `geography` mark def): the chip
+            appears from the registry and opens the sidebar's geography card,
+            like the Overview / Tidbit / Background. */}
         </div>
 
         {/* Right-side aside — the on-demand ArgumentSidebar. */}
@@ -4051,6 +3984,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
                 generationByName={generationByName()}
                 dafSections={analysis()?.sections ?? []}
                 onOpenArgument={openArgument}
+                geography={geographyExtras()}
               />
             </Show>
           </aside>
@@ -4087,20 +4021,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           generationByName={generationByName()}
           dafSections={analysis()?.sections ?? []}
           onOpenArgument={openArgument}
-          geography={
-            dafGeoModel().empty ? null : (
-              <GeographyStrip
-                model={dafGeoModel()}
-                activeLocation={activeLocation()}
-                onHighlightLocation={onHighlightLocation}
-                onHighlightSingleRabbi={pushRabbi}
-                onHoverRabbi={setHoveredRabbi}
-                generationByName={generationByName()}
-                onHighlightPlace={(name) => (name ? openPlace(name) : setActivePlace(null))}
-                activePlace={activePlace()}
-              />
-            )
-          }
+          geography={geographyExtras()}
         />
       </Show>
 

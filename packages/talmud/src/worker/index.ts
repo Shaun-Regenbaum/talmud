@@ -55,6 +55,7 @@ import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import { type DafLink, dafLinks } from '../lib/context/dafLinks';
 import { dafSpine } from '../lib/context/spine';
 import { spineLinks } from '../lib/context/spineLinks';
+import { buildGeoModel, type GeoEnrichment, type RabbiGeoSource } from '../lib/geographyModel';
 import { buildDerivation } from '../lib/halacha/codifiers';
 import {
   buildRabbiEnrichUserMessage,
@@ -2654,7 +2655,13 @@ type ComputedMarkFn = (
   env: Bindings,
   tractate: string,
   page: string,
-) => Promise<{ instances: unknown[] }>;
+  // `transient: true` means "serve-but-don't-write": the result was assembled
+  // from whatever upstream is cached, but a declared dependency mark's cache
+  // entry was ABSENT (not yet computed), so this result is not-ready and must
+  // not be pinned to the EN key. The computedMark hook propagates it onto the
+  // envelope so run-producer skips the write. (Mirrors enrichmentPreResolve's
+  // transient contract.)
+) => Promise<{ instances: unknown[]; transient?: boolean }>;
 
 /** Rishonim allowlist for the `rishonim` mark. Sefaria's
  *  `category: 'Commentary'` sweeps in acharonim + modern works too — we
@@ -2754,7 +2761,103 @@ const COMPUTED_FNS: Record<string, ComputedMarkFn> = {
   // represent one daf-level concept. Emit a single anchorless instance so the
   // chip renders and daf-level enrichments have something to attach to.
   'whole-daf-instance': async () => ({ instances: [{ fields: {} }] }),
+  // Whole-daf geography map — assembles the DafGeoModel SERVER-SIDE from cached
+  // inputs only (NO LLM, NO generation; only KV reads), so it can never spin.
+  // The single anchorless instance's `fields.model` is the DafGeoModel the
+  // sidebar's geography-map block renders.
+  'geography-model': (env, tractate, page) => computeGeographyModel(env, tractate, page),
 };
+
+/**
+ * The `geography` computed mark's body — exported for direct unit testing
+ * (seed KV with the rabbi + places marks + rabbi.geography → assert the model).
+ * Reads ONLY cached inputs; never an LLM run, so it can't spin.
+ */
+export async function computeGeographyModel(
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<{ instances: Array<{ fields: { model: unknown } }>; transient?: boolean }> {
+  // NOT-READY GUARD (cold daf, mark race). The geography mark DECLARES
+  // dependencies on the `rabbi` + `places` marks, but the client enables all
+  // marks concurrently on a cold daf — if geography wins the race, those marks
+  // haven't been computed yet and readMarkInstances returns [] for the same
+  // reason a genuinely rabbi-less daf returns []. Telling those apart needs the
+  // raw cache ENTRY: present (even with empty instances) = computed = genuine;
+  // ABSENT = not computed yet = not-ready. A not-ready model must NOT be cached
+  // (this is a no-LLM computed mark — once an empty model is pinned to the EN
+  // key it never recomputes until a cache_version bump). We mark the result
+  // `transient` so it renders this view but isn't pinned; the next request
+  // recomputes until rabbi+places are warm, then it caches normally.
+  const rabbiDef = findCodeMark('rabbi');
+  const placesDef = findCodeMark('places');
+  const [rabbiEntry, placesEntry] = await Promise.all([
+    rabbiDef ? readCachedResult(env, keyForMark(rabbiDef, tractate, page, 'en')) : null,
+    placesDef ? readCachedResult(env, keyForMark(placesDef, tractate, page, 'en')) : null,
+  ]);
+  const notReady = rabbiEntry === null || placesEntry === null;
+
+  // 1. The daf's rabbis (the `rabbi` mark) — name / nameHe / slug / generation.
+  const rabbiInsts = await readMarkInstances(env, 'rabbi', tractate, page);
+  // 2. On-daf place mentions (the `places` mark).
+  const placeInsts = await readMarkInstances(env, 'places', tractate, page);
+  const placeMentions = placeInsts.map((i) => ({
+    name: typeof i.fields?.name === 'string' ? i.fields.name : undefined,
+    nameHe: typeof i.fields?.nameHe === 'string' ? i.fields.nameHe : undefined,
+  }));
+
+  // 3. Per slugged rabbi: read the CACHED rabbi.geography GLOBAL enrichment
+  //    (alias-probed, never an LLM run). Registry identity (places / region /
+  //    moved) comes from enrichRabbi — the same deterministic rabbi-places
+  //    join the entity endpoint and the per-rabbi card use.
+  const sources: RabbiGeoSource[] = await Promise.all(
+    rabbiInsts.map(async (i): Promise<RabbiGeoSource> => {
+      const name = typeof i.fields?.name === 'string' ? i.fields.name : '';
+      const nameHe = typeof i.fields?.nameHe === 'string' ? i.fields.nameHe : '';
+      const slug = typeof i.fields?.slug === 'string' ? i.fields.slug : null;
+      const generation =
+        typeof i.fields?.generation === 'string'
+          ? (i.fields.generation as GenerationId)
+          : 'unknown';
+      // Derive registry identity the SAME way the rabbi.identity short-circuit
+      // does: a grounded slug → direct dataset join (enrichRabbiBySlug, NO name
+      // re-resolution — re-resolving a grounded "Rav Kahana" by name is
+      // first-wins and homonym-blind, landing on the wrong same-name bearer).
+      // Only fall back to the name-keyed enrichRabbi for ungrounded instances
+      // (older cached mark runs with no slug stamp).
+      const ident =
+        (slug ? enrichRabbiBySlug(slug, name, nameHe, generation) : null) ??
+        enrichRabbi(name, nameHe, generation);
+      // Alias-probe the global rabbi.geography by the display name(s) the
+      // warming surface may have used (same approach as the entity endpoint's
+      // readGlobalPieceFirst — an entry warmed under a registry alias still
+      // surfaces). nameHe rides along so a he-keyed entry matches too.
+      //
+      // KNOWN FRESHNESS GAP (deferred — see the geography mark def in
+      // code-marks.ts): this rabbi.geography GLOBAL enrichment is a real input
+      // but CANNOT be declared as a mark dependency (MarkDependency forbids
+      // mark→enrichment deps). So if a rabbi's rabbi.geography warms/changes
+      // after this model is cached, the staleness cascade won't notice — the
+      // recompute trigger is a cache_version bump or a rabbi/places dep change.
+      const candidates = [{ name, nameHe }];
+      if (ident.name && ident.name !== name) candidates.push({ name: ident.name, nameHe });
+      const geo = (await readGlobalPieceFirst(
+        env,
+        'rabbi.geography',
+        candidates,
+      )) as GeoEnrichment | null;
+      return {
+        name: name || ident.name,
+        slug,
+        identity: { places: ident.places, region: ident.region ?? null, moved: ident.moved },
+        geography: geo,
+      };
+    }),
+  );
+
+  const model = buildGeoModel(sources, placeMentions);
+  return { instances: [{ fields: { model } }], ...(notReady ? { transient: true } : {}) };
+}
 
 // Per-section fan-out concurrency. Each section call is small (~3-6 moves);
 // 5 in flight balances throughput against producer pressure / provider rate.
@@ -3179,7 +3282,10 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
       const fn = COMPUTED_FNS[extractor.fn];
       if (!fn) throw new Error(`mark ${def.id}: no computed fn '${extractor.fn}' registered`);
       const t0 = Date.now();
-      const parsed = await fn(rc.env, tractate, page);
+      const raw = await fn(rc.env, tractate, page);
+      // Split the serve-but-don't-write flag off the parsed body — it rides the
+      // envelope (so run-producer skips the cache write), not the stored value.
+      const { transient, ...parsed } = raw;
       const elapsed_ms = Date.now() - t0;
       const content = JSON.stringify(parsed);
       return {
@@ -3197,6 +3303,7 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
           user_prompt: `(no LLM call — deterministic extraction from upstream data source)`,
         },
         cache_hit: false,
+        ...(transient ? { transient: true } : {}),
       };
     },
     // Special cases that don't fit the segments-only transform signature yet:

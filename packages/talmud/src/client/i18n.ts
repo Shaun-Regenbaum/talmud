@@ -186,6 +186,7 @@ const CATALOG = {
   'sidebar.kind.daf-background': { en: 'Background', he: 'רקע' },
   'sidebar.kind.tidbit': { en: 'Tidbit', he: 'תובנה' },
   'sidebar.kind.biyun': { en: "Bi'yun", he: 'עיון' },
+  'sidebar.kind.geography': { en: 'Geography', he: 'גאוגרפיה' },
 
   // — Whole-daf argument overview —
   'overview.chip': { en: 'Overview', he: 'סקירה' },
@@ -1033,6 +1034,12 @@ const CATALOG = {
   'commentary.noText': { en: '(No text available)', he: '(אין טקסט זמין)' },
 
   // — Geography map —
+  'geography.chip': { en: 'Geography', he: 'גאוגרפיה' },
+  'geography.title': { en: 'Geography', he: 'גאוגרפיה' },
+  'geography.empty': {
+    en: 'No rabbis or places on this daf could be placed on the map yet.',
+    he: 'לא ניתן עדיין למקם חכמים או מקומות מדף זה על המפה.',
+  },
   'geography.heading': {
     en: 'Geography · click a dot to highlight',
     he: 'גאוגרפיה · לחצו על נקודה להדגשה',

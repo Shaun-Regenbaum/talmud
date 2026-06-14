@@ -1,26 +1,39 @@
 /**
- * Whole-daf geography model assembly.
+ * Whole-daf geography model assembly — the pure assembler shared by the worker
+ * (the `geography` computed mark's compute fn builds this server-side from
+ * cached inputs) and the client (GeographyMap renders it).
  *
- * Pure functions (no Solid, no fetch) that merge the two registry-era data
- * sources into the model GeographyMap renders:
+ * Pure functions (no Solid, no fetch, no worker bindings) that merge the two
+ * registry-era data sources into the model GeographyMap renders:
  *
  *   1. Per-rabbi geography — the deterministic registry identity (places /
- *      region / moved from rabbi-places.json, served by /api/entity/rabbi/:slug)
- *      plus the CACHED `rabbi.geography` enrichment when one exists. Registry
- *      places win over the AI enrichment (human-curated outranks AI); the
- *      enrichment fills in rabbis the registry has no places for and supplies
- *      movements.
+ *      region / moved from rabbi-places.json) plus the CACHED `rabbi.geography`
+ *      enrichment when one exists. Registry places win over the AI enrichment
+ *      (human-curated outranks AI); the enrichment fills in rabbis the registry
+ *      has no places for and supplies movements.
  *   2. On-daf place mentions — the `places` mark instances (name/nameHe),
  *      matched against the projected city table by alias or Hebrew name.
  *
  * Everything here is cached-only by construction: the inputs are whatever the
  * caller already has in hand; nothing in this module can trigger generation.
+ *
+ * Lives in src/lib (not src/client) so the worker compute fn can import it
+ * without dragging in Solid — geoShapes.ts is likewise pure data.
  */
 
-import { GEO_CITIES, type GeoCity, type GeoRegionId } from './geoShapes';
-import type { GeographyData } from './RabbiGeographyCard';
+import { GEO_CITIES, type GeoCity, type GeoRegionId } from '../client/geoShapes';
 
 export type MoveDirection = 'bavel->israel' | 'israel->bavel' | 'both';
+
+/** The shape of the `rabbi.geography` enrichment this assembler reads. A
+ *  structural subset of RabbiGeographyCard's GeographyData — kept local so this
+ *  module stays free of any client (.tsx) import. */
+export interface GeoEnrichment {
+  birthplace?: { place: string; region?: string } | null;
+  primaryStudyPlaces?: Array<{ place: string }>;
+  notablePlaces?: Array<{ place: string }>;
+  movements?: Array<{ from: string; to: string }>;
+}
 
 /** One rabbi's geographic inputs, as assembled by the caller. */
 export interface RabbiGeoSource {
@@ -38,7 +51,7 @@ export interface RabbiGeoSource {
     moved?: MoveDirection | null;
   } | null;
   /** Cached rabbi.geography enrichment (null/absent until warmed). */
-  geography?: GeographyData | null;
+  geography?: GeoEnrichment | null;
 }
 
 export interface PlaceMention {
@@ -82,7 +95,7 @@ export interface DafGeoModel {
   moverRows: MoverRow[];
   israelCount: number;
   bavelCount: number;
-  /** True when there is nothing to draw — callers hide the map entirely. */
+  /** True when there is nothing to draw — callers show an empty-state card. */
   empty: boolean;
 }
 
@@ -158,7 +171,7 @@ export function inferRegionOfPlace(place: string): GeoRegionId | null {
 
 /** Derive a Bavel<->Eretz Yisrael migration direction from the enrichment's
  *  movements list. Local moves (both ends in one region) don't count. */
-export function deriveMoveDirection(geo: GeographyData | null | undefined): MoveDirection | null {
+export function deriveMoveDirection(geo: GeoEnrichment | null | undefined): MoveDirection | null {
   if (!geo?.movements?.length) return null;
   let toIsrael = false;
   let toBavel = false;

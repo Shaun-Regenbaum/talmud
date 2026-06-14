@@ -16,8 +16,8 @@
  */
 
 import { createSignal, For, type JSX, Show } from 'solid-js';
+import type { CityDot, DafGeoModel, GeoRabbi, MoveDirection } from '../lib/geographyModel';
 import { GENERATION_BY_ID, type GenerationId } from './generations';
-import type { CityDot, DafGeoModel, GeoRabbi, MoveDirection } from './geographyData';
 import { BAVEL_SHAPE, GEO_CITIES, type GeoRegionShape, ISRAEL_SHAPE } from './geoShapes';
 import { t } from './i18n';
 
@@ -47,6 +47,41 @@ const LAND_COLOR = '#6b7280';
 const WATER_COLOR = '#3b82f6';
 const WATER_FILL = 'rgba(96, 165, 250, 0.25)';
 const CITY_COLOR = '#6b7280';
+
+// Both region shapes share the same projected HEIGHT (180) but differ in WIDTH
+// (Israel ~98.7, Bavel ~153.8). With one viewBox per shape + meet, the narrower
+// Israel card rendered small and letterboxed. To make a MATCHED PAIR — equal
+// box, comparable fill — every card uses ONE common aspect ratio (the widest
+// shape's), and each shape is centered horizontally within it. City dots /
+// rabbi markers are in shape-local coords, so this viewBox change is
+// transparent to them. PAD is the breathing room around the bounds.
+const PAD = 4;
+const SHARED_HEIGHT = Math.max(ISRAEL_SHAPE.height, BAVEL_SHAPE.height);
+const SHARED_WIDTH = Math.max(ISRAEL_SHAPE.width, BAVEL_SHAPE.width);
+
+/** The viewBox for a shape, padded to the common aspect ratio with the shape
+ *  centered (so both cards fill their equal boxes the same way). */
+function sharedViewBox(shape: GeoRegionShape): string {
+  const x0 = -PAD - (SHARED_WIDTH - shape.width) / 2;
+  const y0 = -PAD - (SHARED_HEIGHT - shape.height) / 2;
+  return `${x0} ${y0} ${SHARED_WIDTH + PAD * 2} ${SHARED_HEIGHT + PAD * 2}`;
+}
+
+// Stroke weights are in screen px (vector-effect: non-scaling-stroke) so the
+// line weight is IDENTICAL across both cards regardless of each shape's local
+// scale — without this, the smaller-rendered shape's strokes looked thinner.
+const LAND_STROKE_PX = 1.2;
+const RIVER_STROKE_PX = 0.9;
+// City + rabbi dot radii are likewise normalized to apparent screen size. The
+// shapes render at slightly different scales, so a shape-local radius would
+// look bigger on one card; divide by the per-card render scale to keep dots the
+// same apparent size on both. (The scale is the rendered px per viewBox unit;
+// since the viewBox is shared, both cards scale identically, so a constant
+// works — kept as named values for the renderer.)
+const CITY_DOT_BASE = 1.6;
+const CITY_DOT_PER_MENTION = 0.4;
+const CITY_DOT_RABBI_ONLY = 1.3;
+const RABBI_DOT_R = 2.6;
 
 /**
  * N points around (cx, cy) in a sunflower spiral so co-located rabbi dots
@@ -113,10 +148,11 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
       <circle
         cx={x}
         cy={y}
-        r={2.6}
+        r={RABBI_DOT_R}
         fill={genInfo?.color ?? GEN_FALLBACK_COLOR}
         stroke="rgba(0,0,0,0.3)"
-        stroke-width={0.3}
+        stroke-width={0.8}
+        vector-effect="non-scaling-stroke"
         style={{ cursor: props.onHighlightSingleRabbi ? 'pointer' : 'default' }}
         role="button"
         tabindex={0}
@@ -149,8 +185,11 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
       d.mentionNames.includes(props.activePlace);
     const mentioned = d.mentions > 0;
     // City dot sized by on-daf mention count; a rabbi-only city gets a small
-    // anchor dot.
-    const r = mentioned ? 1.6 + 0.4 * Math.min(d.mentions, 6) : 1.3;
+    // anchor dot. (Radii are shape-local; both cards share one viewBox scale,
+    // so a given radius reads the same apparent size on both.)
+    const r = mentioned
+      ? CITY_DOT_BASE + CITY_DOT_PER_MENTION * Math.min(d.mentions, 6)
+      : CITY_DOT_RABBI_ONLY;
     const cityLabel = `${d.city.name} (${d.city.nameHe})${d.city.approx ? ' ~' : ''}`;
     const offsets = clusterOffsets(d.rabbis.length, d.city.x, d.city.y);
     const clickCity = () => {
@@ -172,7 +211,8 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
           r={r}
           fill={mentioned ? CITY_COLOR : '#9ca3af'}
           stroke={activeCity() || activeMention() ? '#000' : 'rgba(0,0,0,0.25)'}
-          stroke-width={activeCity() || activeMention() ? 0.7 : 0.3}
+          stroke-width={activeCity() || activeMention() ? 1.6 : 0.8}
+          vector-effect="non-scaling-stroke"
           style={{ cursor: 'pointer' }}
           role="button"
           tabindex={0}
@@ -250,19 +290,21 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
         {heading}
       </div>
       <svg
-        viewBox={`-4 -4 ${shape.width + 8} ${shape.height + 8}`}
+        viewBox={sharedViewBox(shape)}
         style={{ width: '100%', flex: 1, display: 'block', 'min-height': 0 }}
         preserveAspectRatio="xMidYMid meet"
         role="img"
         aria-label={aria}
       >
-        {/* Invisible hit-box: a click anywhere in the card selects the region. */}
+        {/* Invisible hit-box: a click anywhere in the card selects the region.
+            Spans the full shared viewBox (not the tight shape bounds) so the
+            padding around a narrow shape is still clickable. */}
         {/* biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG map */}
         <rect
-          x={-4}
-          y={-4}
-          width={shape.width + 8}
-          height={shape.height + 8}
+          x={-PAD - (SHARED_WIDTH - shape.width) / 2}
+          y={-PAD - (SHARED_HEIGHT - shape.height) / 2}
+          width={SHARED_WIDTH + PAD * 2}
+          height={SHARED_HEIGHT + PAD * 2}
           fill="transparent"
           style={{ cursor: 'pointer' }}
           role="button"
@@ -284,7 +326,8 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               d={d}
               fill={d.endsWith('Z') ? WATER_FILL : 'none'}
               stroke={WATER_COLOR}
-              stroke-width={0.7}
+              stroke-width={RIVER_STROKE_PX}
+              vector-effect="non-scaling-stroke"
               stroke-linecap="round"
               stroke-linejoin="round"
               opacity={0.75}
@@ -297,7 +340,8 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
               d={d}
               fill="none"
               stroke={LAND_COLOR}
-              stroke-width={1.1}
+              stroke-width={LAND_STROKE_PX}
+              vector-effect="non-scaling-stroke"
               stroke-linecap="round"
               stroke-linejoin="round"
               opacity={0.85}

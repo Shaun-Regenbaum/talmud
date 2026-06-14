@@ -1,6 +1,6 @@
 import { type JSX, Show } from 'solid-js';
 import type { Term } from '../lib/terms/registry';
-import { ArgumentSidebar, type SidebarContent } from './ArgumentSidebar';
+import { ArgumentSidebar, type GeographyExtras, type SidebarContent } from './ArgumentSidebar';
 import DafLoadProgress from './DafLoadProgress';
 import type { IdentifiedRabbi } from './dafContext';
 import type { GenerationId } from './generations';
@@ -44,10 +44,10 @@ interface MobileShelfProps {
     } | null,
   ) => void;
 
-  /** Whole-daf geography map (already-assembled, cached-only data). Rendered
-   *  collapsed behind a <details> row so it costs no shelf height until the
-   *  reader opens it; null/absent hides the row entirely. */
-  geography?: JSX.Element | null;
+  /** Whole-daf geography card's model + interaction callbacks. Forwarded to the
+   *  ArgumentSidebar so the kind:'geography' card (opened via the chip, like
+   *  every other whole-daf chip) renders through the standard sidebar. */
+  geography?: GeographyExtras;
 }
 
 // Fixed-bottom sheet on mobile. The interaction-mode bar (Read / Translate)
@@ -76,28 +76,6 @@ export function MobileShelf(props: MobileShelfProps): JSX.Element {
     >
       <Show when={props.sidebar !== null}>
         <ExpansionView {...props} />
-      </Show>
-      {/* Whole-daf geography map — collapsed by default (one summary row);
-          only present when the daf has placeable data. */}
-      <Show when={props.geography}>
-        <details style={{ 'border-bottom': '1px solid #eee', 'flex-shrink': 0 }}>
-          <summary
-            style={{
-              padding: '0.45rem 0.8rem',
-              'font-size': '0.72rem',
-              'text-transform': 'uppercase',
-              'letter-spacing': '0.06em',
-              color: '#888',
-              cursor: 'pointer',
-              'user-select': 'none',
-            }}
-          >
-            {t('geography.mapTitle')}
-          </summary>
-          <div style={{ padding: '0 0.8rem 0.6rem', 'max-height': '45vh', overflow: 'auto' }}>
-            {props.geography}
-          </div>
-        </details>
       </Show>
       {/* Daf-load progress lives here on mobile (above Read/Translate) so it
           never sits on top of the daf text. Self-hides when nothing's loading,
@@ -215,6 +193,7 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
           generationByName={props.generationByName}
           dafSections={props.dafSections}
           onOpenArgument={props.onOpenArgument}
+          geography={props.geography}
         />
       </div>
     </div>
@@ -252,5 +231,7 @@ function labelForSidebar(s: SidebarContent | null): string {
       return 'Tidbit';
     case 'biyun':
       return "Bi'yun";
+    case 'geography':
+      return 'Geography';
   }
 }

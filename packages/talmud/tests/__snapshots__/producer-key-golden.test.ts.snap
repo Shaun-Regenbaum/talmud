@@ -93,6 +93,8 @@ exports[`producer cache-key golden (Berakhot 5a) > every CODE_MARKS + CODE_ENRIC
   "daf-background.synthesis@6 enrich inst=named lang=he enrich:daf-background.synthesis:6:he:abaye:berakhot:5a",
   "daf-background@1 mark lang=en  mark:daf-background:1:berakhot:5a",
   "daf-background@1 mark lang=he->en mark:daf-background:1:berakhot:5a",
+  "geography@1 mark lang=en  mark:geography:1:berakhot:5a",
+  "geography@1 mark lang=he->en mark:geography:1:berakhot:5a",
   "halacha.codification@4 enrich inst=daf lang=en enrich:halacha.codification:4:f35cd02cd97b:berakhot:5a",
   "halacha.codification@4 enrich inst=daf lang=he enrich:halacha.codification:4:he:f35cd02cd97b:berakhot:5a",
   "halacha.codification@4 enrich inst=named lang=en enrich:halacha.codification:4:abaye:berakhot:5a",

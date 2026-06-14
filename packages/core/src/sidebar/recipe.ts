@@ -236,6 +236,18 @@ export const DAF_BACKGROUND_RECIPE: SidebarRecipe = {
   ],
 };
 
+// Whole-daf geography: the two region cards (Eretz Yisrael + Bavel) drawn from
+// the computed `geography` mark's own instance body (the DafGeoModel assembled
+// server-side from the rabbi + places marks and cached rabbi.geography). No
+// synthesis, no enrichment deps — like the chart card, the whole card IS the
+// custom block rendering the mark instance.
+export const GEOGRAPHY_RECIPE: SidebarRecipe = {
+  kind: 'geography',
+  markId: 'geography',
+  titleField: 'title',
+  sections: [{ type: 'special', block: 'geography-map' }],
+};
+
 export const RABBI_RECIPE: SidebarRecipe = {
   kind: 'rabbi',
   markId: 'rabbi',

@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   buildGeoModel,
   deriveMoveDirection,
+  type GeoEnrichment,
   matchCity,
   placeRabbi,
   type RabbiGeoSource,
-} from '../src/client/geographyData';
-import type { GeographyData } from '../src/client/RabbiGeographyCard';
+} from '../src/lib/geographyModel';
 
-const geo = (g: Partial<GeographyData>): GeographyData => ({
+const geo = (g: Partial<GeoEnrichment>): GeoEnrichment => ({
   primaryStudyPlaces: [],
   notablePlaces: [],
   movements: [],
