@@ -21,7 +21,7 @@ exports[`CODE_ENRICHMENTS cache identity > per-enrichment fingerprint is stable 
   "biyun.essay@5 mode=aggregate scope=local mark=biyun schema=biyun_essay[hook,paragraphs,sources,textConfidence,readingConfidence] deps=[gemara|commentaries|context|m:argument|m:rishonim|m:pesukim|e:argument-overview.synthesis|e:daf-background.concepts|e*:rishonim.synthesis|e*:argument.synthesis|e*:pesukim.synthesis|e*:halacha.synthesis]",
   "daf-background.concepts@5 mode=augment-content scope=local mark=daf-background schema=daf_background_concepts[groups] deps=[gemara|context|m:argument]",
   "daf-background.synthesis@6 mode=aggregate scope=local mark=daf-background schema=daf_background_synthesis[synthesis] deps=[gemara|context|e:daf-background.concepts]",
-  "halacha.codification@4 mode=augment-content scope=local mark=halacha schema=halacha_codification[mishnehTorah,tur,shulchanAruch,rema,prose] deps=[gemara|halacha-refs]",
+  "halacha.codification@5 mode=augment-content scope=local mark=halacha schema=halacha_codification[mishnehTorah,tur,shulchanAruch,rema,prose] deps=[gemara|halacha-refs]",
   "halacha.dispute@1 mode=augment-content scope=local mark=halacha schema=halacha_dispute[present,axis,label,positions,sephardi,ashkenazi,settled] deps=[gemara|e:halacha.codification|context]",
   "halacha.practical@5 mode=augment-content scope=local mark=halacha schema=halacha_practical[shape,best,fallback,statement,rows,note] deps=[gemara]",
   "halacha.synthesis@6 mode=aggregate scope=local mark=halacha schema=halacha_synthesis[synthesis] deps=[gemara|e:halacha.codification|e:halacha.practical|e:halacha.dispute|e:daf-background.concepts]",

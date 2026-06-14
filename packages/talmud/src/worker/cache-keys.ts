@@ -73,12 +73,15 @@ export function keyForRishonim(tractate: string, page: string): string {
   return `rishonim:v4:${tractate}:${page}`;
 }
 export function keyForHalachaRefs(tractate: string, page: string): string {
-  return `halacha-refs:v2:${tractate}:${page}`;
+  // v3: snippets now carry einMishpat (Ein Mishpat / Ner Mitzvah classical
+  // codification flag) alongside segStart/segEnd.
+  return `halacha-refs:v3:${tractate}:${page}`;
 }
 /** Reverse derivation: the Talmud/Tanakh sources a CODE ref (Mishneh Torah /
  *  Tur / Shulchan Aruch citation) links back to. Keyed by the raw code ref. */
 export function keyForCodeSources(codeRef: string): string {
-  return `code-sources:v1:${codeRef}`;
+  // v2: links now carry einMishpat (authoritative classical derivation flag).
+  return `code-sources:v2:${codeRef}`;
 }
 export function keyForDafTopics(tractate: string, page: string): string {
   return `daf-topics:v1:${tractate}:${page}`;

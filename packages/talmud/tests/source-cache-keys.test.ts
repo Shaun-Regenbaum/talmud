@@ -49,7 +49,7 @@ describe('source-cache keys — byte-exact contract', () => {
     expect(keyForSefariaBundle(t, p)).toBe('sefaria-bundle:v5:Berakhot:2a');
     expect(keyForSefariaSegments(t, p)).toBe('sefaria-seg:v1:Berakhot:2a');
     expect(keyForRishonim(t, p)).toBe('rishonim:v4:Berakhot:2a');
-    expect(keyForHalachaRefs(t, p)).toBe('halacha-refs:v2:Berakhot:2a');
+    expect(keyForHalachaRefs(t, p)).toBe('halacha-refs:v3:Berakhot:2a');
     expect(keyForDafTopics(t, p)).toBe('daf-topics:v1:Berakhot:2a');
     expect(keyForMishnaBundle(t, p)).toBe('mishna-bundle:v1:Berakhot:2a');
     expect(keyForYerushalmi(t, p)).toBe('yerushalmi:v1:Berakhot:2a');

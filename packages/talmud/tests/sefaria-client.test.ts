@@ -332,3 +332,105 @@ describe('getTalmudPageWithCommentaries', () => {
     expect(data.rashi).toBeUndefined();
   });
 });
+
+describe('fetchHalachicRefs — Ein Mishpat flagging', () => {
+  let fetchSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    fetchSpy = vi.spyOn(global, 'fetch');
+  });
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+  const jsonResponse = (body: unknown) =>
+    new Response(JSON.stringify(body), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+
+  it('marks snippets whose link type is "ein mishpat / ner mitsvah"', async () => {
+    fetchSpy.mockImplementation(async (input: string | URL | Request) => {
+      const url = typeof input === 'string' ? input : input.toString();
+      if (url.endsWith('/api/related/Chullin.45a')) {
+        return jsonResponse({
+          links: [
+            // Authoritative classical codification — carries the daf anchor.
+            {
+              index_title: 'Mishneh Torah, Ritual Slaughter',
+              category: 'Halakhah',
+              type: 'ein mishpat / ner mitsvah',
+              ref: 'Mishneh Torah, Ritual Slaughter 1:6',
+              anchorRef: 'Chullin 45a:11',
+            },
+            // Same category, but a looser topical reference (no Ein Mishpat).
+            {
+              index_title: 'Shulchan Arukh, Yoreh Deah',
+              category: 'Halakhah',
+              type: 'reference',
+              ref: 'Shulchan Arukh, Yoreh Deah 33:1',
+              anchorRef: 'Chullin 45a:3',
+            },
+          ],
+        });
+      }
+      if (url.includes('/api/texts/')) {
+        return jsonResponse({
+          ref: decodeURIComponent(url.split('/api/texts/')[1]),
+          he: 'he',
+          text: 'en',
+        });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    const bundle = await sefariaAPI.fetchHalachicRefs('Chullin', '45a');
+    const mt = bundle['Mishneh Torah, Ritual Slaughter'];
+    const sa = bundle['Shulchan Arukh, Yoreh Deah'];
+    expect(mt?.[0].einMishpat).toBe(true);
+    // segStart is the 0-indexed daf segment from anchorRef "...:11".
+    expect(mt?.[0].segStart).toBe(10);
+    // Untagged topical link leaves einMishpat unset (undefined, not false).
+    expect(sa?.[0].einMishpat).toBeUndefined();
+  });
+});
+
+describe('fetchCodeSources — Ein Mishpat flagging', () => {
+  let fetchSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    fetchSpy = vi.spyOn(global, 'fetch');
+  });
+  afterEach(() => {
+    fetchSpy.mockRestore();
+  });
+  const jsonResponse = (body: unknown) =>
+    new Response(JSON.stringify(body), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+
+  it('flags the Talmud source asserted by Ein Mishpat', async () => {
+    fetchSpy.mockImplementation(async (input: string | URL | Request) => {
+      const url = typeof input === 'string' ? input : input.toString();
+      if (url.includes('/api/related/')) {
+        return jsonResponse({
+          links: [
+            {
+              ref: 'Chullin 45a:11',
+              category: 'Talmud',
+              type: 'ein mishpat / ner mitsvah',
+            },
+            { ref: 'Shabbat 34b', category: 'Talmud', type: 'reference' },
+            { ref: 'Rashi on Chullin 45a', category: 'Commentary', type: 'commentary' },
+          ],
+        });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    const sources = await sefariaAPI.fetchCodeSources('Mishneh Torah, Ritual Slaughter 1:6');
+    // Commentary dropped; Talmud sources kept with the flag preserved.
+    expect(sources).toEqual([
+      { ref: 'Chullin 45a:11', category: 'Talmud', einMishpat: true },
+      { ref: 'Shabbat 34b', category: 'Talmud', einMishpat: undefined },
+    ]);
+  });
+});
