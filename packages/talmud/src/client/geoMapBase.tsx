@@ -10,7 +10,7 @@
  * RegionMapCard via children, in shape-local coordinates.
  */
 
-import { For, type JSX } from 'solid-js';
+import { createMemo, For, type JSX } from 'solid-js';
 import type { TrajectoryStop } from '../lib/geographyModel';
 import {
   BAVEL_SHAPE,
@@ -148,45 +148,126 @@ function arrowSeg(a: { x: number; y: number }, b: { x: number; y: number }): JSX
   );
 }
 
+// Minimum separation between two badge centers (viewBox units; badge r≈3.2).
+// Cities that sit closer than this (e.g. Pumbedita & Nehardea) — or a rabbi's
+// repeat visit to one city — would render as overlapping, unreadable badges.
+const MIN_BADGE_DIST = 8;
+
+/** Nudge points apart in place so none are closer than `minDist`. Map label
+ *  de-collision: badges shift a little off their true city so every number
+ *  stays legible. Two passes: (1) exact-coincident points (a return visit to a
+ *  city) are pre-spread onto a ring sized so neighbours sit exactly `minDist`
+ *  apart — relaxation alone converges slowly when many points coincide; then
+ *  (2) deterministic relaxation resolves near-overlaps between distinct cities. */
+function declutter(pts: Array<{ x: number; y: number }>, minDist: number): void {
+  // (1) Ring-spread groups of (near-)coincident points (grouped at 0.25 units).
+  const groups = new Map<string, number[]>();
+  for (let i = 0; i < pts.length; i++) {
+    const k = `${Math.round(pts[i].x * 4)},${Math.round(pts[i].y * 4)}`;
+    const g = groups.get(k);
+    if (g) g.push(i);
+    else groups.set(k, [i]);
+  }
+  for (const idxs of groups.values()) {
+    if (idxs.length < 2) continue;
+    let cx = 0;
+    let cy = 0;
+    for (const idx of idxs) {
+      cx += pts[idx].x;
+      cy += pts[idx].y;
+    }
+    cx /= idxs.length;
+    cy /= idxs.length;
+    // Ring radius so adjacent chord (2r·sin(π/n)) == minDist.
+    const r = minDist / (2 * Math.sin(Math.PI / idxs.length));
+    for (let k = 0; k < idxs.length; k++) {
+      const a = (k * 2 * Math.PI) / idxs.length;
+      pts[idxs[k]].x = cx + r * Math.cos(a);
+      pts[idxs[k]].y = cy + r * Math.sin(a);
+    }
+  }
+  // (2) Relax remaining near-overlaps (different cities sitting close).
+  for (let iter = 0; iter < 24; iter++) {
+    let moved = false;
+    for (let i = 0; i < pts.length; i++) {
+      for (let j = i + 1; j < pts.length; j++) {
+        let dx = pts[j].x - pts[i].x;
+        let dy = pts[j].y - pts[i].y;
+        let d = Math.hypot(dx, dy);
+        if (d >= minDist) continue;
+        if (d < 1e-4) {
+          const a = i * 2.399963; // golden angle — separate any residual coincidence
+          dx = Math.cos(a);
+          dy = Math.sin(a);
+          d = 1;
+        }
+        const push = (minDist - d) / 2;
+        const ux = dx / d;
+        const uy = dy / d;
+        pts[i].x -= ux * push;
+        pts[i].y -= uy * push;
+        pts[j].x += ux * push;
+        pts[j].y += uy * push;
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+}
+
 /** The numbered path overlay for ONE region: arrows between consecutive
  *  same-region stops, then a numbered badge per positioned stop. `placed` is the
  *  FULL ordered list (so cross-region arrows are correctly skipped). When `onPick`
  *  is given the badges are interactive (the per-rabbi map); otherwise inert (the
- *  whole-daf drill-down draws on top of dots). `activeNum` rings the open stop. */
+ *  whole-daf drill-down draws on top of dots). `activeNum` rings the open stop.
+ *  Overlapping badges are de-collided so every number stays readable. */
 export function TrajectoryBadges(props: {
   placed: PlacedStop[];
   region: 'israel' | 'bavel';
   onPick?: (p: PlacedStop) => void;
   activeNum?: number | null;
 }): JSX.Element {
+  // This region's positioned stops + their decluttered DISPLAY positions
+  // (keyed by num), shared by the badges and the arrows so they stay attached.
+  const layout = createMemo(() => {
+    const rs = props.placed.filter((p) => p.pos && p.stop.region === props.region);
+    const pts = rs.map((p) => ({ x: p.pos!.x, y: p.pos!.y }));
+    declutter(pts, MIN_BADGE_DIST);
+    const pos = new Map<number, { x: number; y: number }>();
+    for (let i = 0; i < rs.length; i++) pos.set(rs[i].num, pts[i]);
+    return { rs, pos };
+  });
   const segs = (): Array<{ a: { x: number; y: number }; b: { x: number; y: number } }> => {
     const all = props.placed;
+    const pos = layout().pos;
     const out: Array<{ a: { x: number; y: number }; b: { x: number; y: number } }> = [];
     for (let i = 0; i < all.length - 1; i++) {
       const a = all[i];
       const b = all[i + 1];
       if (a.pos && b.pos && a.stop.region === props.region && b.stop.region === props.region) {
-        out.push({ a: a.pos, b: b.pos });
+        const pa = pos.get(a.num);
+        const pb = pos.get(b.num);
+        if (pa && pb) out.push({ a: pa, b: pb });
       }
     }
     return out;
   };
-  const badges = () => props.placed.filter((p) => p.pos && p.stop.region === props.region);
   const interactive = (): boolean => !!props.onPick;
   return (
     <g style={{ 'pointer-events': interactive() ? 'auto' : 'none' }}>
       <For each={segs()}>{(s) => arrowSeg(s.a, s.b)}</For>
-      <For each={badges()}>
+      <For each={layout().rs}>
         {(p) => {
           const active = () => props.activeNum === p.num;
+          const xy = () => layout().pos.get(p.num) ?? p.pos!;
           // Interactivity lives on the <circle> (same accepted pattern as the
           // whole-daf rabbi dots); the number <text> is click-through.
           return (
             <g>
               {/* biome-ignore lint/a11y/noStaticElementInteractions: a native <button> can't live in an SVG map; role is set when interactive */}
               <circle
-                cx={p.pos!.x}
-                cy={p.pos!.y}
+                cx={xy().x}
+                cy={xy().y}
                 r={3.2}
                 fill={TRAJ_COLOR}
                 stroke={active() ? '#111' : '#fff'}
@@ -208,8 +289,8 @@ export function TrajectoryBadges(props: {
                 }
               />
               <text
-                x={p.pos!.x}
-                y={p.pos!.y}
+                x={xy().x}
+                y={xy().y}
                 text-anchor="middle"
                 dominant-baseline="central"
                 font-size="3.4"

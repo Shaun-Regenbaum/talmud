@@ -60,6 +60,10 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
   // Stops we can actually plot — the detail card + default selection key off
   // these so a numbered badge is always reachable.
   const positioned = (): PlacedStop[] => placed().filter((p) => p.pos);
+  // Only render a region's map when the rabbi actually has a stop there — a
+  // pure-Bavel rabbi shows just Bavel; a pure-Eretz-Yisrael one just that.
+  const showIsrael = (): boolean => positioned().some((p) => p.stop.region === 'israel');
+  const showBavel = (): boolean => positioned().some((p) => p.stop.region === 'bavel');
 
   const evidenceByKey = (): Map<string, GeographyEvidence> => {
     const m = new Map<string, GeographyEvidence>();
@@ -162,36 +166,40 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
           {t('rabbi.places.title')}
         </div>
 
-        {/* The two region maps, stacked, with this rabbi's numbered path. */}
+        {/* The region maps, stacked — only those the rabbi actually visited. */}
         <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.4rem' }}>
-          <RegionMapCard
-            shape={ISRAEL_SHAPE}
-            heading={t('geography.eretzYisrael')}
-            headingColor="#1f2937"
-            aria={t('geography.eretzYisrael.aria')}
-            layout="column"
-          >
-            <TrajectoryBadges
-              placed={placed()}
-              region="israel"
-              onPick={pick}
-              activeNum={activeNum()}
-            />
-          </RegionMapCard>
-          <RegionMapCard
-            shape={BAVEL_SHAPE}
-            heading={t('geography.bavel')}
-            headingColor="#1e40af"
-            aria={t('geography.bavel.aria')}
-            layout="column"
-          >
-            <TrajectoryBadges
-              placed={placed()}
-              region="bavel"
-              onPick={pick}
-              activeNum={activeNum()}
-            />
-          </RegionMapCard>
+          <Show when={showIsrael()}>
+            <RegionMapCard
+              shape={ISRAEL_SHAPE}
+              heading={t('geography.eretzYisrael')}
+              headingColor="#1f2937"
+              aria={t('geography.eretzYisrael.aria')}
+              layout="column"
+            >
+              <TrajectoryBadges
+                placed={placed()}
+                region="israel"
+                onPick={pick}
+                activeNum={activeNum()}
+              />
+            </RegionMapCard>
+          </Show>
+          <Show when={showBavel()}>
+            <RegionMapCard
+              shape={BAVEL_SHAPE}
+              heading={t('geography.bavel')}
+              headingColor="#1e40af"
+              aria={t('geography.bavel.aria')}
+              layout="column"
+            >
+              <TrajectoryBadges
+                placed={placed()}
+                region="bavel"
+                onPick={pick}
+                activeNum={activeNum()}
+              />
+            </RegionMapCard>
+          </Show>
         </div>
 
         {/* Detail card for the open node — renders EVERY event collapsed at that
