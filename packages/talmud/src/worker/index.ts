@@ -2789,13 +2789,18 @@ export async function computeGeographyModel(
   // key it never recomputes until a cache_version bump). We mark the result
   // `transient` so it renders this view but isn't pinned; the next request
   // recomputes until rabbi+places are warm, then it caches normally.
+  // Readiness gates on the RABBI mark ONLY — it is the load-bearing input
+  // (rabbis place the dots). The `places` mark is OPTIONAL (it only adds
+  // city-mention dots); gating on it too meant a daf where `places` is
+  // disabled/never-enqueued stayed transient forever, re-firing on every open
+  // and never settling (the places cache is permanently absent). So: rabbi
+  // absent = not-ready (transient, recompute next request); places absent =
+  // just no mentions, settle on the rabbi data.
   const rabbiDef = findCodeMark('rabbi');
-  const placesDef = findCodeMark('places');
-  const [rabbiEntry, placesEntry] = await Promise.all([
-    rabbiDef ? readCachedResult(env, keyForMark(rabbiDef, tractate, page, 'en')) : null,
-    placesDef ? readCachedResult(env, keyForMark(placesDef, tractate, page, 'en')) : null,
-  ]);
-  const notReady = rabbiEntry === null || placesEntry === null;
+  const rabbiEntry = rabbiDef
+    ? await readCachedResult(env, keyForMark(rabbiDef, tractate, page, 'en'))
+    : null;
+  const notReady = rabbiEntry === null;
 
   // 1. The daf's rabbis (the `rabbi` mark) — name / nameHe / slug / generation.
   const rabbiInsts = await readMarkInstances(env, 'rabbi', tractate, page);

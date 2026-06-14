@@ -21,6 +21,7 @@
  */
 
 import {
+  dependencyId,
   producerNodesFrom,
   type RawDependency,
   reverseDependencyIndex,
@@ -174,6 +175,13 @@ export interface RunResult {
    *  hit total_ms is injected as 0, but elapsed_ms still carries the original
    *  generation time from when the result was first computed. */
   cache_hit?: boolean;
+  /** "Serve-but-don't-write" — the worker assembled this result while a
+   *  dependency wasn't ready yet (e.g. the geography computed mark read the
+   *  rabbi/places mark caches before they warmed) and so did NOT pin it to the
+   *  cache. The run loop treats a transient result as not-yet-final and
+   *  re-fires the mark once its dependency marks reach 'ok', so the empty model
+   *  isn't left pinned in the UI until a manual reload. */
+  transient?: boolean;
 }
 
 export type RunState =
@@ -181,6 +189,40 @@ export type RunState =
   | { kind: 'loading'; stamp: string }
   | { kind: 'ok'; stamp: string; at: number; result: RunResult }
   | { kind: 'error'; stamp: string; at: number; error: string };
+
+/** Per-(mark, stamp) cap on transient re-fires — a loop / runaway guard.
+ *  A genuinely-empty daf is NOT transient server-side (its dep entries exist),
+ *  so it never reaches the re-fire path; this only bounds the race window. */
+export const TRANSIENT_REFIRE_CAP = 3;
+
+/** Pure decision for the transient re-fire effect (extracted so it's unit-
+ *  testable without the component's resources / network). Returns true when a
+ *  mark whose current run is a SETTLED transient `ok` for `stamp` should be
+ *  re-fired: every enabled dependency mark must itself have reached a settled,
+ *  non-transient `ok` for the same stamp (so the caches the computed mark reads
+ *  server-side are warm), and the per-(mark, stamp) re-fire cap mustn't be hit.
+ *  A dependency that's disabled / idle / not-running doesn't block — it simply
+ *  contributes nothing (e.g. the places mark turned off). */
+export function shouldRefireTransientMark(args: {
+  markId: string;
+  stamp: string;
+  runs: Record<string, RunState>;
+  enabled: ReadonlySet<string>;
+  depMarkIds: ReadonlyArray<string>;
+  refireCount: number;
+}): boolean {
+  const { markId, stamp, runs, enabled, depMarkIds, refireCount } = args;
+  const cur = runs[markId];
+  if (cur?.kind !== 'ok' || cur.stamp !== stamp) return false;
+  if (!cur.result.transient) return false;
+  if (refireCount >= TRANSIENT_REFIRE_CAP) return false;
+  return depMarkIds.every((depId) => {
+    if (!enabled.has(depId)) return true; // disabled dep — won't warm; don't wait
+    const ds = runs[depId];
+    if (!ds || ds.kind === 'idle') return true; // not running — don't wait
+    return ds.kind === 'ok' && ds.stamp === stamp && !ds.result.transient;
+  });
+}
 
 const ENABLED_KEY = 'marks-registry:enabled:v1';
 
@@ -597,6 +639,83 @@ export default function MarksRegistryPanel(props: Props) {
           (err) => {
             if (currentStamp() === stamp)
               setRun(e.id, {
+                kind: 'error',
+                stamp,
+                at: Date.now(),
+                error: String((err as Error)?.message ?? err),
+              });
+          },
+        );
+      }
+    });
+  });
+
+  // --- Transient re-fire: re-run a "serve-but-don't-write" mark once its deps land ---
+  // A computed mark (geography) reads its DEPENDENCY marks' caches (rabbi +
+  // places) server-side. The run loop above fires every enabled mark
+  // concurrently, so on a cold daf geography can win the race and read those
+  // caches before they warm — the worker then returns an empty model tagged
+  // `transient: true` (served, never pinned). The client has no auto-rerun, so
+  // without this that empty model would stay on screen until a manual reload.
+  //
+  // Fix: when a mark's current OK result is `transient`, re-fire it — but only
+  // once every dependency mark that is itself enabled+running has reached a
+  // settled, non-transient `ok` (so we read warm caches, not busy-loop while
+  // rabbi is still pending). A small per-(mark, stamp) cap guards against any
+  // loop (and against a genuinely-empty daf, though that returns notReady=false
+  // server-side and so is NOT transient — it never reaches here). Once rabbi +
+  // places are cached, the re-fired run reads them, is no longer transient, and
+  // is cached normally → no further re-fires, no extra cost on warm dapim.
+  const refireCounts = new Map<string, number>();
+
+  const depMarkIds = (markId: string): string[] => {
+    const reg = registry();
+    const def = reg?.marks.find((m) => m.id === markId);
+    if (!def?.dependencies) return [];
+    const ids: string[] = [];
+    for (const d of def.dependencies) {
+      const id = dependencyId(d);
+      // Only mark deps gate the re-fire (a `{ mark }` dep resolves to a mark id
+      // present in the registry); source-input leaves aren't runnable marks.
+      if (id && reg?.marks.some((m) => m.id === id)) ids.push(id);
+    }
+    return ids;
+  };
+
+  createEffect(() => {
+    const reg = registry();
+    if (!reg) return;
+    const on = enabled();
+    const r = runs();
+    const stamp = `${props.tractate}/${props.page}/${lang()}`;
+
+    untrack(() => {
+      for (const m of visibleMarks(reg)) {
+        if (!on.has(m.id)) continue;
+        const countKey = `${m.id}:${stamp}`;
+        const count = refireCounts.get(countKey) ?? 0;
+        if (
+          !shouldRefireTransientMark({
+            markId: m.id,
+            stamp,
+            runs: r,
+            enabled: on,
+            depMarkIds: depMarkIds(m.id),
+            refireCount: count,
+          })
+        )
+          continue;
+        refireCounts.set(countKey, count + 1);
+
+        setRun(m.id, { kind: 'loading', stamp });
+        void runMark(m.id, props.tractate, props.page).then(
+          (result) => {
+            if (currentStamp() === stamp)
+              setRun(m.id, { kind: 'ok', stamp, at: Date.now(), result });
+          },
+          (err) => {
+            if (currentStamp() === stamp)
+              setRun(m.id, {
                 kind: 'error',
                 stamp,
                 at: Date.now(),

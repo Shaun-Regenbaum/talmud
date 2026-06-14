@@ -2993,8 +2993,33 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // The geography card's extras bundle: the computed model (from the geography
   // mark run) + the daf's highlight/navigation callbacks. Forwarded to the
   // sidebar's geography-map block (desktop + mobile).
+  // The geography model is COMPUTED server-side from the rabbi + places mark
+  // caches. On a cold daf the run loop fires every enabled mark concurrently,
+  // so geography can read those caches before they warm and return an empty
+  // model. Treat the model as not-yet-trustworthy while a dependency is still
+  // resolving: rabbi must reach 'ok' (it always runs on a real daf, so 'idle'
+  // = hasn't started = still not ready), geography itself mustn't be mid-run,
+  // and places only counts when it's ACTIVELY loading (it may be disabled and
+  // sit 'idle' forever — gating on places-ok would never clear). The block
+  // shows a loading line instead of the terminal "no rabbis" copy until this
+  // settles. (Re-running geography once its deps land is handled in the marks
+  // run loop via the server's `transient` flag.)
+  const geographyLoading = (): boolean => {
+    const statuses = markStatuses();
+    const rabbiStatus = statuses.find((s) => s.id === 'rabbi')?.kind;
+    const geographyStatus = statuses.find((s) => s.id === 'geography')?.kind;
+    const placesStatus = statuses.find((s) => s.id === 'places')?.kind;
+    return (
+      rabbiStatus === 'loading' ||
+      rabbiStatus === 'idle' ||
+      geographyStatus === 'loading' ||
+      placesStatus === 'loading'
+    );
+  };
+
   const geographyExtras = (): GeographyExtras => ({
     model: dafGeoModel(),
+    loading: geographyLoading(),
     activeLocation: activeLocation(),
     activePlace: activePlace(),
     generationByName: generationByName(),
