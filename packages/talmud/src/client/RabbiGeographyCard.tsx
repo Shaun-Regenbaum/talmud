@@ -13,20 +13,27 @@
 import { createSignal, For, type JSX, Show } from 'solid-js';
 import { t } from './i18n';
 
+// `seq` is the chronological life-order index from rabbi.geography (v4+),
+// shared across all four arrays so the timeline can interleave the events in
+// true life order. Optional: cached values from before v4 lack it, in which
+// case the timeline keeps its prior bucket order.
 export interface BirthPlace {
   place: string;
   region: 'israel' | 'bavel' | 'other' | 'unknown';
+  seq?: number;
 }
 
 export interface StudyPlace {
   place: string;
   academy?: string;
   period?: string;
+  seq?: number;
 }
 
 export interface NotablePlace {
   place: string;
   event: string;
+  seq?: number;
 }
 
 export interface Movement {
@@ -34,6 +41,7 @@ export interface Movement {
   to: string;
   approximateWhen?: string;
   reason?: string;
+  seq?: number;
 }
 
 export interface GeographyData {
