@@ -4346,6 +4346,25 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
   const slug = c.req.param('slug');
   const prefix = prefixForRabbiObs(slug);
 
+  const typeFilterEarly = c.req.query('type') ?? '';
+  const minEarly = Math.max(1, parseInt(c.req.query('min') ?? '1', 10) || 1);
+  // `summary=1` omits the (potentially huge — tens of thousands for Rav) flat
+  // observations list, returning only dafCount + byType + aggregated. The
+  // accumulation card uses this; full reads stay available without the flag.
+  const summary = c.req.query('summary') === '1';
+  // Aggregating a prolific rabbi means a KV.list + a get per daf slice (~1600
+  // for Rav) — too slow to run on every card open. Cache the computed view
+  // with a short TTL; the accumulation is a lifetime signal, so minutes-stale
+  // is fine, and the backfill keeps writing slices underneath regardless. Only
+  // `summary` bodies are cached (the full body's flat list can be many MB and
+  // risk the KV value limit); `type` only narrows that flat list, so it drops
+  // out of the summary key.
+  const aggKey = `rabbi-obs-agg:v1:${slug}:${summary ? 'all' : typeFilterEarly || 'all'}:${minEarly}:${summary ? 's' : 'f'}`;
+  if (summary) {
+    const cachedAgg = await cache.get(aggKey);
+    if (cachedAgg) return c.json(JSON.parse(cachedAgg));
+  }
+
   const keys: string[] = [];
   let cursor: string | undefined;
   do {
@@ -4365,8 +4384,8 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
     }
   }
 
-  const typeFilter = c.req.query('type');
-  const minDafs = Math.max(1, parseInt(c.req.query('min') ?? '1', 10) || 1);
+  const typeFilter = typeFilterEarly || undefined;
+  const minDafs = minEarly;
   const RANK: Record<string, number> = { high: 3, medium: 2, low: 1 };
 
   const byType: Record<string, number> = {};
@@ -4388,7 +4407,7 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
       } else {
         freq.set(o.hash, { type: o.type, payload: o.payload, dafs: 1, confidence: o.confidence });
       }
-      if (!typeFilter || o.type === typeFilter) {
+      if (!summary && (!typeFilter || o.type === typeFilter)) {
         observations.push({ ...o, tractate: s.tractate, page: s.page });
       }
     }
@@ -4397,7 +4416,7 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
     .filter((e) => e.dafs >= minDafs)
     .sort((a, b) => b.dafs - a.dafs || (RANK[b.confidence] ?? 0) - (RANK[a.confidence] ?? 0));
 
-  return c.json({
+  const body = {
     slug,
     name: slices[0]?.name ?? slug,
     nameHe: slices[0]?.nameHe ?? '',
@@ -4405,7 +4424,14 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
     byType,
     aggregated,
     observations,
-  });
+  };
+  // 10-minute TTL: fast on repeat opens; the lifetime view tolerates staleness.
+  // summary only (bounded size); best-effort so a failed/oversized put never
+  // turns a good read into a 500.
+  if (summary) {
+    await cache.put(aggKey, JSON.stringify(body), { expirationTtl: 600 }).catch(() => {});
+  }
+  return c.json(body);
 });
 
 /**

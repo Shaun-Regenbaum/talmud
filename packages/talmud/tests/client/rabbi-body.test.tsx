@@ -72,10 +72,15 @@ describe('Rabbi recipe card — name-flip', () => {
     expect(sub.textContent).toBe('Rabbi Yochanan');
   });
 
-  it('declares the meta + lineage + geography blocks around the synthesis (flip=rabbi)', () => {
+  it('declares the meta + lineage + geography + observations blocks around the synthesis (flip=rabbi)', () => {
     expect(RABBI_RECIPE.flip).toBe('rabbi');
     const blocks = RABBI_RECIPE.sections.flatMap((s) => (s.type === 'special' ? [s.block] : []));
-    expect(blocks).toEqual(['rabbi-meta', 'rabbi-lineage', 'rabbi-geography']);
+    expect(blocks).toEqual([
+      'rabbi-meta',
+      'rabbi-lineage',
+      'rabbi-geography',
+      'rabbi-observations',
+    ]);
     for (const b of blocks) expect(RABBI_BLOCKS[b]).toBeTypeOf('function');
   });
 });
