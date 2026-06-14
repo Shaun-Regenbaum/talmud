@@ -377,6 +377,19 @@ describe('buildTrajectory', () => {
     expect(stops.map((s) => s.kind)).toEqual(['birth', 'study', 'notable']);
   });
 
+  it('keeps a movement whose destination has no study/notable stop', () => {
+    // "moved to Eretz Yisrael" with no EY study — must survive as its own stop.
+    const stops = buildTrajectory(
+      geo({
+        birthplace: { place: 'Sura', region: 'bavel', seq: 0 },
+        movements: [{ from: 'Bavel', to: 'Eretz Yisrael', reason: 'study', seq: 1 }],
+      }),
+    );
+    expect(stops.map((s) => s.place)).toEqual(['Sura', 'Eretz Yisrael']);
+    expect(stops[1].kind).toBe('movement');
+    expect(stops[1].region).toBe('israel');
+  });
+
   it('returns [] when there is no geography', () => {
     expect(buildTrajectory(null)).toEqual([]);
     expect(buildTrajectory(geo({}))).toEqual([]);
@@ -399,5 +412,20 @@ describe('buildTrajectory', () => {
     );
     expect(model.trajectories.map((tr) => tr.name)).toEqual(['Rav']);
     expect(model.trajectories[0].stops.map((s) => s.place)).toEqual(['Kafri', 'Sura']);
+  });
+
+  it('buildGeoModel drops a trajectory with no plottable stop', () => {
+    const model = buildGeoModel(
+      [
+        {
+          name: 'Obscure',
+          slug: null,
+          // A place that matches no city and no region word, no declared region.
+          geography: geo({ birthplace: { place: 'Some hamlet' } }),
+        },
+      ],
+      [],
+    );
+    expect(model.trajectories).toEqual([]);
   });
 });

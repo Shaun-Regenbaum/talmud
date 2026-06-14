@@ -170,12 +170,11 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
     const sel = selected();
     if (!sel) return null;
     const trs = props.model.trajectories ?? [];
-    // Prefer a slug match (homonym-safe); fall back to display name.
-    return (
-      trs.find((tr) => sel.slug && tr.slug === sel.slug) ??
-      trs.find((tr) => tr.name === sel.name) ??
-      null
-    );
+    // A slugged selection matches ONLY by slug (homonym-safe — never fall back
+    // to a name match, which could draw a same-name rabbi's path). Only the
+    // ungrounded case (no slug) keys on the display name, as the dots do.
+    if (sel.slug) return trs.find((tr) => tr.slug === sel.slug) ?? null;
+    return trs.find((tr) => tr.name === sel.name) ?? null;
   };
 
   /** The selected rabbi's stops, numbered in life order, each positioned.
@@ -198,8 +197,9 @@ export function GeographyMap(props: GeographyMapProps): JSX.Element {
     return out;
   };
 
-  // Active drill-down only when the selected rabbi actually has a path to draw.
-  const drilling = (): boolean => placedStops().length > 0;
+  // Active drill-down only when the selected rabbi has at least one stop we can
+  // actually plot — otherwise selecting would dim the maps with nothing drawn.
+  const drilling = (): boolean => placedStops().some((p) => p.pos !== null);
 
   const pickRabbi = (name: string, slug?: string) => {
     const cur = selected();

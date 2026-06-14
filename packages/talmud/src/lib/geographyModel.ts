@@ -62,7 +62,9 @@ export interface GeoEnrichment {
 export interface TrajectoryStop {
   /** Life-order index (rabbi.geography v4+); null for pre-v4 cached values. */
   seq: number | null;
-  kind: 'birth' | 'study' | 'notable';
+  /** A movement stop sits at the destination it landed on (the origin is the
+   *  previous stop); a same-spot study/notable right after it collapses in. */
+  kind: 'birth' | 'study' | 'notable' | 'movement';
   /** Canonical GEO_CITIES name when the place matched a known city, else null
    *  (a region-only stop the map drops at the region centroid). */
   cityName: string | null;
@@ -251,11 +253,15 @@ function regionOfStop(place: string, declared?: string): GeoRegionId | null {
   return inferRegionOfPlace(place);
 }
 
-/** Build a rabbi's ordered life trajectory from their rabbi.geography. The
- *  LOCATION events (birth / study / notable) become stops, ordered by `seq`
- *  when present (rabbi.geography v4+), else by the birth→study→notable bucket
- *  order — mirroring the per-rabbi timeline. Movements are NOT stops; a region
- *  change between consecutive stops is the move. Empty when no geography. */
+/** Build a rabbi's ordered life trajectory from their rabbi.geography. Every
+ *  event becomes a stop: birth + study + notable at their place, and each
+ *  movement at the place it LANDED on (the origin is the previous stop). Stops
+ *  are ordered by `seq` when present (rabbi.geography v4+), else by the
+ *  birth→movements→study→notable bucket order — mirroring the per-rabbi
+ *  timeline. A movement that lands where the next study/notable also sits
+ *  collapses into one badge downstream (placedStops); a movement to a region
+ *  with no other stop there (e.g. "to Eretz Yisrael") is preserved as its own
+ *  stop. Empty when no geography. */
 export function buildTrajectory(geo: GeoEnrichment | null | undefined): TrajectoryStop[] {
   if (!geo) return [];
   const stops: TrajectoryStop[] = [];
@@ -269,6 +275,18 @@ export function buildTrajectory(geo: GeoEnrichment | null | undefined): Trajecto
       region: city?.region ?? regionOfStop(bp.place, bp.region),
       place: bp.place,
       detail: '',
+    });
+  }
+  for (const mv of geo.movements ?? []) {
+    if (!mv.to) continue;
+    const city = matchCity(mv.to);
+    stops.push({
+      seq: mv.seq ?? null,
+      kind: 'movement',
+      cityName: city?.name ?? null,
+      region: city?.region ?? regionOfStop(mv.to),
+      place: mv.to,
+      detail: [mv.approximateWhen, mv.reason].filter(Boolean).join(' · '),
     });
   }
   for (const sp of geo.primaryStudyPlaces ?? []) {
@@ -408,7 +426,12 @@ export function buildGeoModel(
     seen.add(idKey);
     const rabbi: GeoRabbi = { name: src.name, slug };
     const stops = buildTrajectory(src.geography);
-    if (stops.length > 0) trajectories.push({ name: src.name, slug, stops });
+    // Only keep a trajectory the map can actually plot (at least one stop with
+    // a city or a known region) — else selecting it would dim the maps with
+    // nothing drawn and inflate the "paths available" hint.
+    if (stops.some((s) => s.cityName !== null || s.region === 'israel' || s.region === 'bavel')) {
+      trajectories.push({ name: src.name, slug, stops });
+    }
     const city = placeRabbi(src);
     if (city) {
       let list = byCity.get(city.name);
