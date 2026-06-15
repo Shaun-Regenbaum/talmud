@@ -131,6 +131,14 @@ export function keyForDafIndex(
 export function prefixForDafIndex(tractate: string, page: string): string {
   return `dafidx:v1:${slugDaf(tractate, page)}:`;
 }
+/** Completion sentinel — written by a full backfill of one (daf, lang). Its
+ *  presence is what lets /api/daf-runs trust the index (serve from one `list()`
+ *  instead of probing): a daf with only scattered fresh-write entries but no
+ *  completed backfill has no sentinel, so it still takes the probe path. Kept in
+ *  a SEPARATE namespace so it doesn't appear under `prefixForDafIndex`. */
+export function keyForDafIndexDone(tractate: string, page: string, lang: 'en' | 'he'): string {
+  return `dafidx-done:v1:${slugDaf(tractate, page)}:${lang}`;
+}
 
 // Per-daf analysis + per-rabbi enrichment caches. Each of these was hand-built
 // at 2-4 separate call sites in index.ts — the precise drift hazard that bit

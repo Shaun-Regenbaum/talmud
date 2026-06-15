@@ -118,6 +118,7 @@ import {
   keyForCommentaries,
   keyForCrossFlow,
   keyForCtxMatch,
+  keyForDafIndexDone,
   keyForEnrichment,
   keyForGemara,
   keyForHebraize,
@@ -161,9 +162,13 @@ import { recordEnrichmentDafIndex, recordMarkDafIndex } from './daf-index';
 import { getRabbiEntryOr404, readJsonBody } from './http-helpers';
 import {
   aggregateProbes,
+  type DafIndexEntryMeta,
+  type DafRunRow,
+  dafRunsFromIndex,
   type InspectEntry,
   inspectorCostOf,
   type ProbeAggregate,
+  type ProducerSpec,
   probeInstances,
   tokensOfEntry,
 } from './inspect';
@@ -2052,15 +2057,7 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
 app.get('/api/daf-index/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
-  if (!c.env.CACHE) return c.json({ tractate, page, count: 0, entries: [] });
-  const prefix = prefixForDafIndex(tractate, page);
-  const entries: Array<{ key: string; meta: unknown }> = [];
-  let cursor: string | undefined;
-  do {
-    const res = await c.env.CACHE.list({ prefix, cursor, limit: 1000 });
-    for (const k of res.keys) entries.push({ key: k.name, meta: k.metadata ?? null });
-    cursor = res.list_complete ? undefined : res.cursor;
-  } while (cursor);
+  const entries = await listDafIndexRaw(c.env, tractate, page);
   return c.json({ tractate, page, count: entries.length, entries });
 });
 
@@ -2131,13 +2128,129 @@ async function backfillDafIndex(
       }
     }),
   );
+  // Written LAST: the completion sentinel marks this (daf, lang) fully indexed, so
+  // /api/daf-runs may now trust the index (serve from one list() instead of
+  // probing). Until it exists, daf-runs stays on the probe path.
+  await cache.put(keyForDafIndexDone(tractate, page, lang), '1');
   return n;
+}
+
+/** List the raw daf-index entries (every lang) for a daf — paginated. Shared by
+ *  GET /api/daf-index and the index-backed daf-runs fast path. */
+async function listDafIndexRaw(
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<Array<{ key: string; meta: unknown }>> {
+  if (!env.CACHE) return [];
+  const prefix = prefixForDafIndex(tractate, page);
+  const out: Array<{ key: string; meta: unknown }> = [];
+  let cursor: string | undefined;
+  do {
+    const res = await env.CACHE.list({ prefix, cursor, limit: 1000 });
+    for (const k of res.keys) out.push({ key: k.name, meta: k.metadata ?? null });
+    cursor = res.list_complete ? undefined : res.cursor;
+  } while (cursor);
+  return out;
+}
+
+/** The registry producer specs the index-backed daf-runs needs but the index
+ *  doesn't carry: static registry info + per-instance totals (from the target
+ *  mark) + the CURRENT recipe hash (whole-daf enrichments, for the staleness
+ *  verdict). Mirrors /api/daf-runs' producer enumeration exactly. */
+async function buildProducerSpecs(
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<ProducerSpec[]> {
+  const markAnchorById = new Map(CODE_MARKS.map((m) => [m.id, (m as { anchor?: string }).anchor]));
+  const localEnrichments = CODE_ENRICHMENTS.filter(
+    (e) => e.scope === 'local' && e.target_mark !== 'argument',
+  );
+  const perInstanceTargets = new Set(
+    localEnrichments
+      .map((e) => e.target_mark)
+      .filter((m): m is string => !!m && markAnchorById.get(m) !== 'whole-daf'),
+  );
+  const totalByMark = new Map<string, number>();
+  await Promise.all(
+    [...perInstanceTargets].map(async (mid) => {
+      totalByMark.set(mid, (await readMarkInstances(env, mid, tractate, page)).length);
+    }),
+  );
+  const specOf = (
+    def: { id: string; label: string; extractor?: unknown; experimental?: boolean },
+    producer: 'mark' | 'enrichment',
+    perInstance: boolean,
+    extra: Partial<ProducerSpec>,
+  ): ProducerSpec => {
+    const ext = def.extractor as { kind?: string; model?: string } | undefined;
+    const isLLM = ext?.kind === 'llm';
+    return {
+      id: def.id,
+      label: def.label,
+      kind: isLLM ? 'llm' : 'computed',
+      producer,
+      model: isLLM ? ext?.model : undefined,
+      experimental: !!def.experimental,
+      perInstance,
+      ...extra,
+    };
+  };
+  const specs: ProducerSpec[] = CODE_MARKS.map((def) => specOf(def, 'mark', false, {}));
+  for (const def of localEnrichments) {
+    const targetMark = (def as { target_mark?: string }).target_mark;
+    const perInstance = !!targetMark && markAnchorById.get(targetMark) !== 'whole-daf';
+    const flat = perInstance ? null : adaptCodeEnrichment(def as SchemaEnrichmentDefinition);
+    const currentRecipe = flat ? await recipeHash(enrichmentRecipe(flat)) : undefined;
+    specs.push(
+      specOf(def, 'enrichment', perInstance, {
+        instancesTotal: perInstance && targetMark ? totalByMark.get(targetMark) : undefined,
+        currentRecipe,
+      }),
+    );
+  }
+  return specs;
+}
+
+/** Build the daf-runs rows from the daf-index (the fast path): one `list()` +
+ *  the per-instance mark reads, NO per-instance probes. */
+async function dafRunsFromIndexRows(
+  env: Bindings,
+  tractate: string,
+  page: string,
+  lang: 'en' | 'he',
+): Promise<DafRunRow[]> {
+  const [raw, specs] = await Promise.all([
+    listDafIndexRaw(env, tractate, page),
+    buildProducerSpecs(env, tractate, page),
+  ]);
+  const metas = raw
+    .map((e) => e.meta as DafIndexEntryMeta & { l?: string })
+    .filter((m): m is DafIndexEntryMeta & { l?: string } => !!m && m.l === lang);
+  return dafRunsFromIndex(metas, specs);
 }
 
 app.get('/api/daf-runs/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
+
+  // FAST PATH: when a full backfill has marked this (daf, lang) complete (the
+  // sentinel), serve from the daf-index — ONE list() + the per-instance mark
+  // reads, skipping the ~200 per-instance KV probes the slow path does. The rows
+  // are byte-identical to the probe path (pinned by tests/inspect-from-index).
+  // No sentinel → fall through to the enumerate-and-probe path below (which
+  // backfills + writes the sentinel, so the next view takes this branch).
+  if (c.env.CACHE && (await c.env.CACHE.get(keyForDafIndexDone(tractate, page, lang)))) {
+    try {
+      const runs = await dafRunsFromIndexRows(c.env, tractate, page, lang);
+      runs.sort((a, b) => (b.cold_ms ?? -1) - (a.cold_ms ?? -1));
+      return c.json({ tractate, page, lang, runs, source: 'index' });
+    } catch {
+      /* fall through to the probe path on any index-read error */
+    }
+  }
 
   // Every LOCAL enrichment (the global rabbi/place facets are entity pieces shown
   // elsewhere) EXCEPT the per-section `argument` facets. Those carry a dual
@@ -2287,7 +2400,7 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
     );
   }
   runs.sort((a, b) => (b.cold_ms ?? -1) - (a.cold_ms ?? -1));
-  return c.json({ tractate, page, lang, runs });
+  return c.json({ tractate, page, lang, runs, source: 'probe' });
 });
 
 // Entity pieces (step 5): a first-class, addressable view of a "global" entity
