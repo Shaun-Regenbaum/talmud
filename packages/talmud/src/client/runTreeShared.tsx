@@ -25,6 +25,9 @@ export interface TreeNode {
   cold_ms: number | null;
   cost: number | null;
   tokens: number | null;
+  /** Per-instance producers report the warmed fraction; absent on whole-daf /
+   *  single-entry nodes (which carry one cached entry, not a per-instance set). */
+  instances?: { total: number; cached: number };
   // additive provenance/staleness fields (absent on older payloads + source
   // leaves; null when nothing is cached) — every consumer must tolerate absence
   authority?: Authority | null;
@@ -41,6 +44,10 @@ export interface RunTree {
   lang: string;
   nodes: Record<string, TreeNode>;
   edges: Array<[string, string]>;
+  /** For a per-instance ROOT opened without a pinned instance: its instance list
+   *  so the dock can offer a picker (each chip re-opens the piece with that
+   *  instance to inspect its content). Absent on whole-daf roots. */
+  rootInstances?: Array<{ label: string; instance: unknown }>;
   totals: {
     count: number;
     llm: number;
