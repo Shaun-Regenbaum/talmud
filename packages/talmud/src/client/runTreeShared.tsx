@@ -208,9 +208,11 @@ export function edgePath(fromRow: number, toRow: number, lane: number): string {
   ].join(' ');
 }
 
-export type IconVariant = 'source' | 'mark' | 'enrichment';
-/** source = database cylinder, mark = stacked layers, enrichment/generation =
- *  sparkle. Inline 18px SVG. */
+export type IconVariant = 'source' | 'mark' | 'enrichment' | 'computed';
+/** source = database cylinder (a fetched INPUT, $0), mark = stacked layers (an
+ *  extractor), computed = hexagon (a DETERMINISTIC note, no model), enrichment =
+ *  sparkle (a GENERATED note). Inline 18px SVG. The computed glyph is what stops
+ *  deterministic notes from masquerading as raw sources. */
 export function NodeIcon(props: { variant: IconVariant; color: string }): JSX.Element {
   return (
     <svg
@@ -261,12 +263,31 @@ export function NodeIcon(props: { variant: IconVariant; color: string }): JSX.El
             fill={props.color}
           />
         </Match>
+        <Match when={props.variant === 'computed'}>
+          <path
+            d="M0 -6.4 L5.6 -3.2 V3.2 L0 6.4 L-5.6 3.2 V-3.2 Z"
+            fill="none"
+            stroke={props.color}
+            stroke-width={1.4}
+            stroke-linejoin="round"
+          />
+          <circle cx={0} cy={0} r={1.5} fill={props.color} />
+        </Match>
       </Switch>
     </svg>
   );
 }
+/** source (fetched input) → database; computed (deterministic, no model) →
+ *  hexagon; llm mark (extractor) → layers; llm enrichment (generated) → sparkle.
+ *  The computed case is the fix: it no longer collapses into the source icon. */
 export const variantOf = (n: { kind: string; producer?: string }): IconVariant =>
-  n.kind !== 'llm' ? 'source' : n.producer === 'mark' ? 'mark' : 'enrichment';
+  n.kind === 'source'
+    ? 'source'
+    : n.kind === 'computed'
+      ? 'computed'
+      : n.producer === 'mark'
+        ? 'mark'
+        : 'enrichment';
 
 // ---------------------------------------------------------------------------
 // Provenance + staleness visuals (Inspect dock only)

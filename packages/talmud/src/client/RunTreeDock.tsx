@@ -40,6 +40,7 @@ import {
 } from './dafRunsStore';
 import { lang } from './i18n';
 import { inspectRequest } from './inspectBridge';
+import { AnchorTypeIcon, anchorTypeOf } from './inspectVocab';
 import {
   ACTIVE_STROKE,
   AuthorityBadge,
@@ -504,7 +505,7 @@ export default function RunTreeDock(props: {
   // Open onto the waterfall; a row's (i) drills into that piece's DAG.
   const [view, setView] = createSignal<'waterfall' | 'dag'>('waterfall');
   const [typeFilter, setTypeFilter] = createSignal<Set<IconVariant>>(
-    new Set(['source', 'mark', 'enrichment']),
+    new Set(['source', 'mark', 'computed', 'enrichment']),
   );
   const toggleType = (v: IconVariant) =>
     setTypeFilter((prev) => {
@@ -863,7 +864,8 @@ export default function RunTreeDock(props: {
                 [
                   { v: 'source', l: 'sources' },
                   { v: 'mark', l: 'marks' },
-                  { v: 'enrichment', l: 'generations' },
+                  { v: 'computed', l: 'computed' },
+                  { v: 'enrichment', l: 'generated' },
                 ] as const
               }
             >
@@ -928,6 +930,7 @@ export default function RunTreeDock(props: {
                     const k = anchorKey(g);
                     const open = () => whole || expandedAnchors().has(k);
                     const cachedN = g.pieces.filter((p) => p.cached).length;
+                    const ty = anchorTypeOf(g.anchor.markId);
                     return (
                       <Show when={pieces().length > 0}>
                         {/* biome-ignore lint/a11y/useSemanticElements: collapsible anchor-group header; a div keeps it consistent with RunRow's clickable rows */}
@@ -952,28 +955,34 @@ export default function RunTreeDock(props: {
                             'font-size': '0.72rem',
                           }}
                         >
-                          <span style={{ width: '0.7rem', color: '#b3a994' }}>
+                          <span style={{ width: '0.7rem', color: '#b3a994', 'flex-shrink': 0 }}>
                             {whole ? '' : open() ? '▾' : '▸'}
                           </span>
+                          <AnchorTypeIcon markId={g.anchor.markId} color={ty.color} />
+                          {/* type chip — the traditional term, colour-coded */}
                           <span
                             style={{
                               'font-weight': 600,
-                              color: '#4a4034',
+                              color: ty.color,
+                              'flex-shrink': 0,
+                              'font-size': '0.7rem',
+                              'letter-spacing': '0.01em',
+                            }}
+                          >
+                            {ty.label}
+                          </span>
+                          {/* the anchor's own label (the verse / section title / sage name) */}
+                          <span
+                            style={{
+                              color: '#6b6358',
                               'white-space': 'nowrap',
                               overflow: 'hidden',
                               'text-overflow': 'ellipsis',
                               flex: 1,
                             }}
                           >
-                            {whole ? 'Whole daf' : g.anchor.label || g.anchor.markId}
+                            {whole ? 'all daf-level notes' : g.anchor.label}
                           </span>
-                          <Show when={!whole}>
-                            <span
-                              style={{ 'font-size': '0.6rem', color: '#a89c86', 'flex-shrink': 0 }}
-                            >
-                              {g.anchor.markId}
-                            </span>
-                          </Show>
                           <span
                             style={{
                               'font-variant-numeric': 'tabular-nums',
