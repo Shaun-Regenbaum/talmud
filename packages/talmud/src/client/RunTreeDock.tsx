@@ -26,13 +26,18 @@ import {
   onCleanup,
   Show,
 } from 'solid-js';
-import { aiActivity } from './aiActivity';
+import {
+  type DafRun,
+  dafRunRows,
+  dafRunsLoading,
+  liveCounts,
+  liveLoading,
+  refetchDafRuns,
+} from './dafRunsStore';
 import { lang } from './i18n';
 import { inspectRequest } from './inspectBridge';
-import { liveProducerCounts, liveProducerSet } from './runStatus';
 import {
   ACTIVE_STROKE,
-  type Authority,
   AuthorityBadge,
   BADGE_LLM,
   BADGE_PRO,
@@ -57,30 +62,14 @@ import {
   type RunResult,
   type RunTree,
   STALENESS_COLOR,
-  type Staleness,
   StalenessDot,
   TOP_PAD,
   type TreeNode,
   variantOf,
 } from './runTreeShared';
 
-interface DafRun {
-  id: string;
-  label: string;
-  kind: 'llm' | 'computed';
-  producer: 'mark' | 'enrichment';
-  model?: string;
-  cached: boolean;
-  cold_ms: number | null;
-  cost: number | null;
-  tokens: number | null;
-  // additive (older payloads omit them)
-  authority?: Authority | null;
-  staleness?: Staleness | null;
-  // Per-instance producers report the warmed fraction (e.g. 3/5 pesukim);
-  // absent on whole-daf / single-entry rows.
-  instances?: { total: number; cached: number };
-}
+// DafRun (the shared snapshot row) is imported from dafRunsStore — the load bar
+// reads the same rows, so the two surfaces can't drift.
 
 /** One waterfall row — a piece run with a cold-time bar. Used as the collapsed
  *  header (the selected run) and as each row of the full waterfall list. */
@@ -525,20 +514,14 @@ export default function RunTreeDock(props: {
   const [width, setWidth] = createSignal(Math.min(620, Math.round(window.innerWidth * 0.42)));
   const [detailH, setDetailH] = createSignal(Math.round(window.innerHeight * 0.34));
 
-  // Waterfall feed — every top-level run on this daf with cached telemetry.
-  const [runs, { refetch: refetchRuns }] = createResource(
-    () => (props.open ? `${props.tractate}|${props.page}|${lang()}` : null),
-    async (): Promise<DafRun[]> => {
-      const r = await fetch(
-        `/api/daf-runs/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}?lang=${lang()}`,
-      );
-      if (!r.ok) return [];
-      return ((await r.json()) as { runs: DafRun[] }).runs;
-    },
-  );
-  const maxCold = createMemo(() => Math.max(1, ...(runs() ?? []).map((r) => r.cold_ms ?? 0)));
+  // Waterfall feed + live overlay come from the SHARED dafRunsStore — the load bar
+  // reads the same snapshot, so the two surfaces can't drift. The store owns the
+  // fetch (keyed by the open daf) and the refetch-while-warming poll; the dock
+  // only reads. `liveLoading`/`liveCounts` are the store's aiActivity overlay.
+  const runs = dafRunRows;
+  const maxCold = createMemo(() => Math.max(1, ...runs().map((r) => r.cold_ms ?? 0)));
   const _dafTotals = createMemo(() => {
-    const rs = runs() ?? [];
+    const rs = runs();
     return {
       count: rs.length,
       cached: rs.filter((r) => r.cached).length,
@@ -546,26 +529,6 @@ export default function RunTreeDock(props: {
       cold_ms: rs.reduce((s, r) => s + (r.cold_ms ?? 0), 0),
     };
   });
-  // Producer ids with a live in-flight run, and the per-producer in-flight count
-  // ("2 warming"). Both derive from the in-memory aiActivity signal — see
-  // runStatus.ts, which also strips the dev panel's `mark:`/`enrichment:` prefix
-  // so those ids map to a real producer instead of a phantom "mark"/"enrichment".
-  const liveLoading = createMemo<Set<string>>(() => liveProducerSet(aiActivity()));
-  const liveCounts = createMemo<Map<string, number>>(() => liveProducerCounts(aiActivity()));
-  // The waterfall's telemetry is a snapshot; while anything is loading, re-poll
-  // /api/daf-runs so finished pieces flip from "run" to their real hit + time +
-  // cost (instead of staying on the stale miss/0ms snapshot). Also refetch once
-  // more right after the live set empties, to capture the final state.
-  createEffect((wasLive: boolean) => {
-    const isLive = props.open && liveLoading().size > 0;
-    if (isLive) {
-      const t = setInterval(() => refetchRuns(), 2500);
-      onCleanup(() => clearInterval(t));
-    } else if (wasLive && props.open) {
-      refetchRuns();
-    }
-    return isLive;
-  }, false);
   // Waterfall rows after the type filter; actively-loading pieces float to the top.
   const visibleRuns = createMemo(() => {
     const live = liveLoading();
@@ -912,7 +875,7 @@ export default function RunTreeDock(props: {
             </span>
           </div>
           <div style={{ flex: 1, 'min-height': 0, overflow: 'auto' }}>
-            <Show when={runs.loading}>
+            <Show when={dafRunsLoading()}>
               <div style={{ padding: '0.6rem', color: '#aaa' }}>loading…</div>
             </Show>
             <For each={visibleRuns()}>
@@ -1166,7 +1129,7 @@ export default function RunTreeDock(props: {
             tractate={props.tractate}
             page={props.page}
             pieceId={pieceId()}
-            onRewarmed={() => refetchRuns()}
+            onRewarmed={() => refetchDafRuns()}
           />
         </Show>
 

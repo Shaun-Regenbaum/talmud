@@ -2045,6 +2045,7 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
           cost: agg.cost,
           tokens: agg.tokens,
           instances: agg.instances,
+          experimental: !!(def as { experimental?: boolean }).experimental,
           authority: null,
           staleness: null,
         };
@@ -2090,6 +2091,7 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
         cost: inspectorCostOf(res as InspectEntry | null),
         tokens: tokensOfEntry(res),
         instances: undefined as { total: number; cached: number } | undefined,
+        experimental: !!(def as { experimental?: boolean }).experimental,
         authority: stored ? authorityOf(stored) : null,
         staleness,
       };

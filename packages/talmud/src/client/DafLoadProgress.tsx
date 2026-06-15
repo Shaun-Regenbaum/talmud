@@ -14,6 +14,7 @@
 
 import { createEffect, createMemo, createSignal, type JSX, onCleanup, Show } from 'solid-js';
 import { loadNotice, prefetchProgress } from './dafPrefetch';
+import { dafCacheProgress } from './dafRunsStore';
 import { t } from './i18n';
 import { markStatuses } from './MarksRegistryPanel';
 
@@ -46,7 +47,9 @@ export default function DafLoadProgress(props: DafLoadProgressProps = {}): JSX.E
   // anchor extraction then snapping backwards when the prefetch cohort appears.
   // Anchors occupy the first 30%; section prefetch the remaining 70%.
   const ANCHOR_WEIGHT = 30;
-  const percent = createMemo(() => {
+  // The client warm engine (anchors + prefetch) drives the smooth, low-latency
+  // live climb — the part that made this bar more reliable than the waterfall.
+  const enginePercent = createMemo(() => {
     const { m, pf } = combined();
     if (m.total === 0 && pf.total === 0) return 0;
     const anchorFrac = m.total > 0 ? m.done / m.total : 1;
@@ -58,6 +61,13 @@ export default function DafLoadProgress(props: DafLoadProgressProps = {}): JSX.E
     }
     return Math.round(ANCHOR_WEIGHT + (pf.done / pf.total) * (100 - ANCHOR_WEIGHT));
   });
+  // Ground completion in the SHARED daf-runs cache snapshot — the same source the
+  // Inspect waterfall reads — so the two can't disagree about what's loaded (a
+  // warm revisit with a full cache reads ~100% at once). max() so the snapshot
+  // only ever ADVANCES the bar; it never drags the live climb backward on a cold
+  // load, where the snapshot lags the warm. (Stale cross-daf rows are guarded in
+  // the store, so this fraction is always for the current daf.)
+  const percent = createMemo(() => Math.max(enginePercent(), dafCacheProgress().pct));
 
   const label = createMemo(() => {
     const c = combined();
