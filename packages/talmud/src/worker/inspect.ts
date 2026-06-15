@@ -121,3 +121,127 @@ export async function probeInstances(
   );
   return aggregateProbes(probes);
 }
+
+// ===========================================================================
+// Index-backed daf-runs (read recorded truth instead of probing). The PURE
+// mapping from daf-index metadata -> the same DafRun rows the probe path
+// produces. The worker lists the index + assembles the producer specs (totals
+// from the mark, current recipe for staleness) and calls this; the parity with
+// the probe path is what the inspect-from-index test pins.
+// ===========================================================================
+
+/** One daf-index entry's metadata (the compact KV-metadata shape), as the
+ *  reader sees it. Only the fields the row mapping needs. */
+export interface DafIndexEntryMeta {
+  /** producer id */ p: string;
+  /** instance id ('-'/absent for whole-daf marks) */ i?: string;
+  /** model */ m?: string;
+  /** cost USD */ c?: number;
+  /** tokens */ t?: number;
+  /** cold ms */ ms?: number;
+  /** recipe hash */ rh?: string;
+}
+
+/** A registry producer the waterfall lists, with the bits the row needs that
+ *  DON'T live in the index (static registry info + per-instance total + the
+ *  CURRENT recipe hash for the staleness verdict). */
+export interface ProducerSpec {
+  id: string;
+  label: string;
+  kind: 'llm' | 'computed';
+  producer: 'mark' | 'enrichment';
+  model?: string;
+  experimental: boolean;
+  perInstance: boolean;
+  /** total instances on this daf (per-instance producers) — from the target mark. */
+  instancesTotal?: number;
+  /** current recipe hash (whole-daf enrichments) for the staleness verdict. */
+  currentRecipe?: string;
+}
+
+export type StalenessLite = 'fresh' | 'stale-recipe' | 'unknown' | null;
+
+export interface DafRunRow {
+  id: string;
+  label: string;
+  kind: 'llm' | 'computed';
+  producer: 'mark' | 'enrichment';
+  model?: string;
+  cached: boolean;
+  cold_ms: number | null;
+  cost: number | null;
+  tokens: number | null;
+  instances?: { total: number; cached: number };
+  experimental: boolean;
+  authority: null;
+  staleness: StalenessLite;
+}
+
+const sumDefined = (xs: (number | undefined)[]): number | null => {
+  const nums = xs.filter((x): x is number => typeof x === 'number');
+  return nums.length ? nums.reduce((a, b) => a + b, 0) : null;
+};
+
+/**
+ * Build the daf-runs rows from the daf-index metadata (already lang-filtered) +
+ * the producer specs — the SAME shape the enumerate-and-probe path returns, so
+ * the two are interchangeable. Per-instance producers aggregate their entries
+ * (one per cached instance) against the spec's `instancesTotal`; whole-daf marks
+ * / enrichments take their single entry. `authority` is null here (not carried
+ * in the index metadata yet — a follow-up); `staleness` is recomputed from the
+ * stamped recipe hash vs the current one.
+ */
+export function dafRunsFromIndex(metas: DafIndexEntryMeta[], specs: ProducerSpec[]): DafRunRow[] {
+  const byProducer = new Map<string, DafIndexEntryMeta[]>();
+  for (const m of metas) {
+    const arr = byProducer.get(m.p);
+    if (arr) arr.push(m);
+    else byProducer.set(m.p, [m]);
+  }
+  return specs.map((s): DafRunRow => {
+    const es = byProducer.get(s.id) ?? [];
+    if (s.perInstance) {
+      const cachedN = new Set(es.map((e) => e.i ?? '-')).size;
+      const total = s.instancesTotal ?? cachedN;
+      return {
+        id: s.id,
+        label: s.label,
+        kind: s.kind,
+        producer: s.producer,
+        model: s.model,
+        cached: total > 0 && cachedN === total,
+        cold_ms: sumDefined(es.map((e) => e.ms)),
+        cost: sumDefined(es.map((e) => e.c)),
+        tokens: sumDefined(es.map((e) => e.t)),
+        instances: { total, cached: cachedN },
+        experimental: s.experimental,
+        authority: null,
+        staleness: null,
+      };
+    }
+    const e = es[0];
+    const staleness: StalenessLite = !e
+      ? null
+      : s.producer === 'mark'
+        ? 'unknown' // marks never stamp a recipe hash
+        : !e.rh || !s.currentRecipe
+          ? 'unknown'
+          : e.rh === s.currentRecipe
+            ? 'fresh'
+            : 'stale-recipe';
+    return {
+      id: s.id,
+      label: s.label,
+      kind: s.kind,
+      producer: s.producer,
+      model: s.model,
+      cached: !!e,
+      cold_ms: e?.ms ?? null,
+      cost: e?.c ?? null,
+      tokens: e?.t ?? null,
+      experimental: s.experimental,
+      authority: null,
+      staleness,
+    };
+  });
+}
