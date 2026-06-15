@@ -1,5 +1,33 @@
 import { describe, expect, it } from 'vitest';
-import { cacheProgressOf, type DafRun, isEagerRow } from '../src/client/dafRunsProgress';
+import {
+  type AnchorPiece,
+  cacheProgressOf,
+  type DafRun,
+  isEagerRow,
+  pieceToRun,
+} from '../src/client/dafRunsProgress';
+
+describe('pieceToRun — adapt an anchor piece to the RunRow shape', () => {
+  const piece = (o: Partial<AnchorPiece> & { producerId: string }): AnchorPiece => ({
+    label: o.producerId,
+    kind: 'llm',
+    cached: true,
+    cost: null,
+    cold_ms: null,
+    tokens: null,
+    ...o,
+  });
+  it('maps producerId->id and derives producer from the dot in the id', () => {
+    expect(pieceToRun(piece({ producerId: 'pesukim.why-here', cost: 0.001 }))).toMatchObject({
+      id: 'pesukim.why-here',
+      producer: 'enrichment',
+      cached: true,
+      cost: 0.001,
+    });
+    // a bare mark id (no dot) -> 'mark'
+    expect(pieceToRun(piece({ producerId: 'rabbi' })).producer).toBe('mark');
+  });
+});
 
 // The load bar and the Inspect waterfall now read ONE snapshot (dafRunsStore).
 // These pin the reducer the load bar grounds its completion in — the shared
