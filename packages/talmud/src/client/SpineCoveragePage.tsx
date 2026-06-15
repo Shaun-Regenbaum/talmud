@@ -1,5 +1,5 @@
 import { createMemo, createResource, createSignal, For, type JSX, Show } from 'solid-js';
-import { connectionKinds, FlowLegend, KIND_COLOR } from './ArgumentFlowGraph';
+import { connectionKinds, FlowLegend } from './ArgumentFlowGraph';
 import SpineFlowGraph, { type SpineViewDaf } from './SpineFlowGraph';
 
 /**
@@ -31,29 +31,6 @@ interface CoverageReport {
   rows: CoverageRow[];
   summary: { computed: number; total: number; pct: number };
 }
-
-interface SpineGraph {
-  tractate: string;
-  nodes: { key: string; coord: { tractate: string; page: string; seg: number } }[];
-  edges: { source: string; target: string; relation: string; via: string; note?: string }[];
-  byRelation: Record<string, number>;
-  byVia: Record<string, number>;
-  continuityRuns: string[][];
-  coverage: { dapimWithLinks: number; dapimTotal: number };
-}
-
-// coordKey "tractate:page:seg" -> compact "page §seg" ("page" when whole-daf).
-function coordLabel(key: string): string {
-  const parts = key.split(':');
-  const seg = Number(parts[parts.length - 1]);
-  const page = parts[parts.length - 2];
-  return seg < 0 ? page : `${page} §${seg}`;
-}
-
-// Relation colors come from the daf reader's own muted KIND_COLOR (imported), so
-// #spine never drifts from the reader. `glosses` isn't a flow kind — fall back.
-const relColor = (rel: string): string =>
-  (KIND_COLOR as Record<string, string>)[rel] ?? 'var(--muted)';
 
 // Coverage producer kinds, recoloured off neon onto app-native hues.
 const COV_COLOR: Record<string, string> = {
@@ -94,18 +71,6 @@ const PANEL_H: JSX.CSSProperties = {
   'font-weight': 700,
   margin: 0,
 };
-const CHIP = (color: string): JSX.CSSProperties => ({
-  display: 'inline-flex',
-  'align-items': 'center',
-  gap: '0.35rem',
-  padding: '0.1rem 0.5rem',
-  background: '#faf8f3',
-  border: '1px solid #ece7db',
-  'border-radius': '999px',
-  'font-size': '0.7rem',
-  color: 'var(--muted)',
-  'border-left': `3px solid ${color}`,
-});
 
 function routeTractate(): string {
   const raw = window.location.hash.replace(/^#/, '');
@@ -115,15 +80,6 @@ function routeTractate(): string {
 
 async function fetchCoverage(tractate: string): Promise<CoverageReport> {
   const r = await fetch(`/api/spine-coverage/${encodeURIComponent(tractate)}`);
-  if (!r.ok) {
-    const body = await r.json().catch(() => ({}));
-    throw new Error((body as { error?: string }).error || `HTTP ${r.status}`);
-  }
-  return r.json();
-}
-
-async function fetchSpineGraph(tractate: string): Promise<SpineGraph> {
-  const r = await fetch(`/api/spine-links/${encodeURIComponent(tractate)}`);
   if (!r.ok) {
     const body = await r.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `HTTP ${r.status}`);
@@ -150,14 +106,6 @@ export function SpineCoveragePage(): JSX.Element {
   const [report] = createResource(tractate, fetchCoverage);
   const [expanded, setExpanded] = createSignal<string | null>(null);
   const [input, setInput] = createSignal('');
-  // The assembled spine graph loads on demand (it sweeps the whole tractate).
-  // A non-null trigger (the tractate) activates the resource. A third hash
-  // segment (#spine/<tractate>/assemble) auto-loads it — a shareable deep link.
-  const thirdSeg = () => window.location.hash.replace(/^#/, '').split('/')[2];
-  const [graphTrigger, setGraphTrigger] = createSignal<string | null>(
-    thirdSeg() === 'assemble' ? routeTractate() : null,
-  );
-  const [graph] = createResource(graphTrigger, fetchSpineGraph);
   // The stitched flow view (real per-daf flow graphs, connected by cross-daf
   // edges). Auto-loads with the tractate (keyed like the coverage report);
   // the panel button re-fetches. It is read-only over cached pieces — the
@@ -293,146 +241,6 @@ export function SpineCoveragePage(): JSX.Element {
                 {r().summary.computed} / {r().summary.total} pieces &middot; {r().rows.length} dapim
                 &times; {r().columns.length} producers &middot; to {r().endAmud}
               </span>
-            </div>
-
-            {/* assembled spine graph (loads on demand) */}
-            <div style={PANEL}>
-              <div
-                style={{
-                  display: 'flex',
-                  'align-items': 'center',
-                  'justify-content': 'space-between',
-                  gap: '10px',
-                }}
-              >
-                <span style={PANEL_H}>Assembled spine &mdash; tractate link graph</span>
-                <button
-                  type="button"
-                  class="tb-select"
-                  disabled={graph.loading}
-                  onClick={() => setGraphTrigger(tractate())}
-                >
-                  {graph.loading ? 'assembling…' : graph() ? 'rebuild' : 'assemble'}
-                </button>
-              </div>
-              <Show when={graph.error}>
-                <p style={{ 'font-size': '0.85rem', color: '#b3261e', margin: '6px 0 0' }}>
-                  error: {String(graph.error?.message || graph.error)}
-                </p>
-              </Show>
-              <Show when={graph()}>
-                {(g) => (
-                  <div style={{ 'margin-top': '0.7rem', 'font-size': '0.85rem' }}>
-                    <div style={{ color: 'var(--muted)', 'margin-bottom': '0.5rem' }}>
-                      {g().nodes.length} nodes &middot; {g().edges.length} edges &middot; backbone
-                      from {g().coverage.dapimWithLinks} / {g().coverage.dapimTotal} dapim with
-                      links
-                    </div>
-                    <div
-                      style={{
-                        'font-size': '0.78rem',
-                        color: 'var(--muted)',
-                        'margin-bottom': '0.5rem',
-                      }}
-                    >
-                      by producer:{' '}
-                      {Object.entries(g().byVia)
-                        .map(([v, n]) => `${v} ${n}`)
-                        .join('  ·  ') || '—'}
-                    </div>
-                    {/* relation breakdown */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        'flex-wrap': 'wrap',
-                        gap: '0.35rem',
-                        'margin-bottom': '0.7rem',
-                      }}
-                    >
-                      <For each={Object.entries(g().byRelation).sort((a, b) => b[1] - a[1])}>
-                        {([rel, n]) => (
-                          <span style={CHIP(relColor(rel))}>
-                            {rel} {n}
-                          </span>
-                        )}
-                      </For>
-                    </div>
-                    {/* continuity backbone — sugya chains that carry across daf boundaries */}
-                    <Show
-                      when={g().continuityRuns.length}
-                      fallback={
-                        <div style={{ color: 'var(--muted)', 'font-style': 'italic' }}>
-                          no continuity edges cached yet (warm bridges to grow the backbone)
-                        </div>
-                      }
-                    >
-                      <div
-                        style={{
-                          ...PANEL_H,
-                          'margin-bottom': '0.3rem',
-                          color: relColor('continues'),
-                        }}
-                      >
-                        Continuity backbone &mdash; {g().continuityRuns.length} runs
-                      </div>
-                      <div
-                        style={{
-                          'max-height': '180px',
-                          'overflow-y': 'auto',
-                          'font-family': MONO,
-                          'font-size': '0.8rem',
-                        }}
-                      >
-                        <For each={g().continuityRuns.sort((a, b) => b.length - a.length)}>
-                          {(run) => (
-                            <div style={{ padding: '1px 0', color: 'var(--fg)' }}>
-                              <span style={{ color: 'var(--muted)' }}>
-                                {String(run.length).padStart(2)}{' '}
-                              </span>
-                              {run.join(' → ')}
-                            </div>
-                          )}
-                        </For>
-                      </div>
-                    </Show>
-                    {/* cross-daf edges — the AI Stage 1 layer (section -> section across the page break) */}
-                    <Show when={g().edges.some((e) => e.via === 'cross-flow')}>
-                      <div
-                        style={{
-                          ...PANEL_H,
-                          margin: '0.7rem 0 0.3rem',
-                          color: relColor('parallels'),
-                        }}
-                      >
-                        Cross-daf edges (AI) &mdash;{' '}
-                        {g().edges.filter((e) => e.via === 'cross-flow').length}
-                      </div>
-                      <div
-                        style={{
-                          'max-height': '200px',
-                          'overflow-y': 'auto',
-                          'font-size': '0.83rem',
-                        }}
-                      >
-                        <For each={g().edges.filter((e) => e.via === 'cross-flow')}>
-                          {(e) => (
-                            <div style={{ padding: '1px 0' }}>
-                              <span style={{ 'font-family': MONO }}>{coordLabel(e.source)}</span>
-                              <span style={{ color: relColor(e.relation), margin: '0 0.4rem' }}>
-                                &mdash;{e.relation}&rarr;
-                              </span>
-                              <span style={{ 'font-family': MONO }}>{coordLabel(e.target)}</span>
-                              <Show when={e.note}>
-                                <span style={{ color: 'var(--muted)' }}> {e.note}</span>
-                              </Show>
-                            </div>
-                          )}
-                        </For>
-                      </div>
-                    </Show>
-                  </div>
-                )}
-              </Show>
             </div>
 
             {/* stitched flow view — real per-daf flow graphs down the tractate,
