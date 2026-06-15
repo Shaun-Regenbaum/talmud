@@ -215,6 +215,24 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
         },
       },
     },
+    '/api/marks/{tractate}/{page}': {
+      get: {
+        summary:
+          "What the alignment workbench shows: every cached mark on this daf + where it anchors. Each entry is { id, kind, label, anchorBy: 'segment'|'name'|'whole-daf', cached, instances, meta }. Whole-daf computed marks (geography, daf-background, tidbit, biyun, argument-overview) appear with anchorBy 'whole-daf' and no instances. The fastest way to see which pieces exist on a daf without running anything.",
+        parameters: [
+          tractate,
+          page,
+          {
+            name: 'lang',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['en', 'he'] },
+            description: 'Language of the cached marks to read (default en).',
+          },
+        ],
+        responses: { '200': { description: '{ tractate, page, lang, marks: [...] }' } },
+      },
+    },
 
     '/api/enrichments': {
       get: {
@@ -340,8 +358,16 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
             schema: { type: 'integer' },
             description: 'Minimum daf count to include an aggregated observation.',
           },
+          {
+            name: 'summary',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['1'] },
+            description:
+              'summary=1 drops the (large) flat observation list, returning only dafCount + byType + aggregated. Cached server-side (~10 min).',
+          },
         ],
-        responses: { '200': { description: '{ observations, aggregated, byType }' } },
+        responses: { '200': { description: '{ dafCount, byType, aggregated, observations }' } },
       },
     },
 

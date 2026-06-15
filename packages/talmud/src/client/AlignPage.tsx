@@ -75,7 +75,7 @@ interface MarkRow {
   id: string;
   kind: string;
   label: string;
-  anchorBy: 'segment' | 'name';
+  anchorBy: 'segment' | 'name' | 'whole-daf';
   cached: boolean;
   instances: (SegInst | NameInst)[];
   meta: MarkMeta | null;
@@ -215,9 +215,14 @@ export function AlignPage(): JSX.Element {
   const items = () => ctx()?.items ?? [];
   const timing = () => ctx()?.timing ?? [];
   const allMarks = () =>
-    (marksRes()?.marks ?? []).filter((m) => m.cached && m.instances.length > 0);
+    // whole-daf marks (geography, daf-background, …) anchor to the spine as a
+    // whole, so they carry no instances — keep them on `cached` alone.
+    (marksRes()?.marks ?? []).filter(
+      (m) => m.cached && (m.instances.length > 0 || m.anchorBy === 'whole-daf'),
+    );
   const segMarks = () => allMarks().filter((m) => m.anchorBy === 'segment');
   const nameMarks = () => allMarks().filter((m) => m.anchorBy === 'name');
+  const wholeDafMarks = () => allMarks().filter((m) => m.anchorBy === 'whole-daf');
   const onLine = () => items().filter((i) => i.segs.length > 0);
   const offLine = () => items().filter((i) => i.segs.length === 0);
   const byKey = createMemo(() => new Map(items().map((i) => [i.key, i])));
@@ -310,7 +315,9 @@ export function AlignPage(): JSX.Element {
     ];
     if (onLine().length) c.push({ id: 'line', label: 'On a line', n: onLine().length });
     if (offLine().length) c.push({ id: 'page', label: 'Page-level', n: offLine().length });
-    const nInst = segMarks().reduce((a, m) => a + m.instances.length, 0);
+    // "Marks" covers both segment instances and whole-daf computed marks, so
+    // the chip shows (and counts) even on a daf whose only marks are whole-daf.
+    const nInst = segMarks().reduce((a, m) => a + m.instances.length, 0) + wholeDafMarks().length;
     if (nInst) c.push({ id: 'marks', label: 'Marks', n: nInst });
     for (const m of nameMarks()) {
       const e = entitiesFor(m).length;
@@ -432,6 +439,24 @@ export function AlignPage(): JSX.Element {
       <div class="aw-mkdetail"><span class="aw-label" style="display:block">made from — how it was built (hover to locate · click to inspect)</span>
         <div class="aw-wf"><div class="aw-wfband">collect — sources it drew on</div>${collectRowsHtml(new Set(range))}${gen}</div></div></div>`;
   }
+  // A whole-daf computed mark (geography, daf-background, tidbit, biyun,
+  // argument-overview): no span/name anchor, so it highlights the whole spine
+  // (data-hl="*") and exposes its generation DAG (data-gen) for debugging.
+  function wholeDafRow(m: MarkRow): string {
+    const c = kindColor(m.kind);
+    const usd = m.meta?.cost ? (m.meta.cost.billedUsd ?? m.meta.cost.estimatedUsd) : null;
+    const gen = m.meta
+      ? `<div class="aw-wfband">generate — model run (whole daf)</div>
+         <div class="aw-wfrow" data-gen="${esc(m.id)}" data-hl="*"><div class="aw-wflabel">${markIconHtml(m.kind)}${esc(m.label)} run</div>
+           <div class="aw-wftrack"><div class="aw-wfbar gen" style="width:100%;background:${c}"></div></div>
+           <div class="aw-wfmeta">${fmtMs(m.meta.elapsed_ms)} · ${usd == null ? '<span class="free">unpriced</span>' : `<span class="cost">${fmtUsd(usd)}</span>`}</div></div>`
+      : '';
+    return `<div class="aw-li aw-mkrow" style="--mkc:${c}">
+      <div class="aw-mkhead" data-mkhead data-hl="*">${markIconHtml(m.kind, true)}<span class="aw-nm" style="color:${c}">${esc(m.label)}</span>
+        <span class="aw-range">whole daf</span><span class="aw-chev">▸</span></div>
+      <div class="aw-mkdetail"><span class="aw-label" style="display:block">made from — how it was built (hover to locate · click to inspect)</span>
+        <div class="aw-wf">${gen || '<div class="aw-note">not generated yet</div>'}</div></div></div>`;
+  }
   function scopeRowsHtml(): string {
     const me = meAmud();
     const groups = new Map<
@@ -518,6 +543,11 @@ export function AlignPage(): JSX.Element {
       if (instances.length)
         blocks.push(
           `<div class="aw-grouph">Marks · ${instances.length}</div>${instances.join('')}`,
+        );
+      const wd = wholeDafMarks();
+      if (wd.length)
+        blocks.push(
+          `<div class="aw-grouph">Whole-daf · ${wd.length}</div>${wd.map(wholeDafRow).join('')}`,
         );
     }
     for (const m of nameMarks()) {

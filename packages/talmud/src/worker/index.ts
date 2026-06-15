@@ -155,6 +155,7 @@ import { collectContext, type SourceTiming } from './context-providers';
 import { dafCostReport } from './daf-cost';
 import { getRabbiEntryOr404, readJsonBody } from './http-helpers';
 import { noteLintAttempt, readLintFailures } from './lint-failures';
+import { ALIGN_MARKS } from './mark-categories';
 import {
   ARGUMENT_BRIDGE_OUTPUT_SCHEMA,
   ARGUMENT_CROSS_FLOW_OUTPUT_SCHEMA,
@@ -660,21 +661,6 @@ app.delete('/api/marks/:id', async (c) => {
 // uncached mark just reports `cached:false`. Two path params, so it never
 // collides with the single-param `/api/marks/:id` definition route above.
 // Segment-anchored gutter marks (instances carry startSegIdx/endSegIdx).
-const GUTTER_MARKS: { id: string; kind: string }[] = [
-  { id: 'argument', kind: 'argument' },
-  { id: 'halacha', kind: 'halacha' },
-  { id: 'chart', kind: 'chart' },
-  { id: 'aggadata', kind: 'aggadata' },
-  { id: 'yerushalmi', kind: 'yerushalmi' },
-  { id: 'pesukim', kind: 'pesuk' },
-  { id: 'rishonim', kind: 'rishonim' },
-];
-// Name/phrase-anchored marks (markInstances: { excerpt, fields:{name,nameHe,…} }).
-// No segment indices — the workbench locates them by matching nameHe in the text.
-const NAME_MARKS: { id: string; kind: string }[] = [
-  { id: 'rabbi', kind: 'rabbi' },
-  { id: 'places', kind: 'place' },
-];
 function instanceLabel(fields: Record<string, unknown> | undefined): string {
   const f = fields ?? {};
   for (const k of ['title', 'topic', 'theme', 'caption', 'verseRef', 'summary']) {
@@ -699,54 +685,51 @@ app.get('/api/marks/:tractate/:page', async (c) => {
           cost: hit.cost ?? null,
         }
       : null;
-  for (const gm of GUTTER_MARKS) {
-    const def = findCodeMark(gm.id);
+  // One loop over the DERIVED alignment-mark list (ALIGN_MARKS, from CODE_MARKS
+  // by anchor) — segment, name, AND whole-daf computed marks. Deriving it means
+  // a newly added mark can't be silently dropped from the workbench/MCP
+  // (geography once was); the coverage test pins it.
+  for (const am of ALIGN_MARKS) {
+    const def = findCodeMark(am.id);
     if (!def) continue;
     const hit = await readCachedResult(c.env, keyForMark(def, tractate, page, lang));
     const parsed = hit?.parsed as { instances?: unknown } | null;
-    const raw = Array.isArray(parsed?.instances) ? (parsed!.instances as RawInstance[]) : [];
-    const instances = raw
-      .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
-      .map((i) => ({
-        startSegIdx: i.startSegIdx as number,
-        endSegIdx: i.endSegIdx as number,
-        label: instanceLabel(i.fields),
-      }));
-    marks.push({
-      id: gm.id,
-      kind: gm.kind,
-      label: def.label ?? gm.id,
-      anchorBy: 'segment',
+    const base = {
+      id: am.id,
+      kind: am.kind,
+      label: def.label ?? am.id,
       cached: !!hit,
-      instances,
       meta: metaOf(hit),
-    });
-  }
-  for (const nm of NAME_MARKS) {
-    const def = findCodeMark(nm.id);
-    if (!def) continue;
-    const hit = await readCachedResult(c.env, keyForMark(def, tractate, page, lang));
-    const parsed = hit?.parsed as { instances?: unknown } | null;
-    const raw = Array.isArray(parsed?.instances)
-      ? (parsed!.instances as { excerpt?: unknown; fields?: Record<string, unknown> }[])
-      : [];
-    const instances = raw
-      .map((i) => ({
-        name: str(i.fields?.name),
-        nameHe: str(i.fields?.nameHe),
-        generation: str(i.fields?.generation),
-        excerpt: str(i.excerpt),
-      }))
-      .filter((x) => x.nameHe || x.name);
-    marks.push({
-      id: nm.id,
-      kind: nm.kind,
-      label: def.label ?? nm.id,
-      anchorBy: 'name',
-      cached: !!hit,
-      instances,
-      meta: metaOf(hit),
-    });
+    };
+    if (am.anchorBy === 'segment') {
+      const raw = Array.isArray(parsed?.instances) ? (parsed!.instances as RawInstance[]) : [];
+      const instances = raw
+        .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
+        .map((i) => ({
+          startSegIdx: i.startSegIdx as number,
+          endSegIdx: i.endSegIdx as number,
+          label: instanceLabel(i.fields),
+        }));
+      marks.push({ ...base, anchorBy: 'segment', instances });
+    } else if (am.anchorBy === 'name') {
+      const raw = Array.isArray(parsed?.instances)
+        ? (parsed!.instances as { excerpt?: unknown; fields?: Record<string, unknown> }[])
+        : [];
+      const instances = raw
+        .map((i) => ({
+          name: str(i.fields?.name),
+          nameHe: str(i.fields?.nameHe),
+          generation: str(i.fields?.generation),
+          excerpt: str(i.excerpt),
+        }))
+        .filter((x) => x.nameHe || x.name);
+      marks.push({ ...base, anchorBy: 'name', instances });
+    } else {
+      // whole-daf: a computed daf-level mark (geography, daf-background, tidbit,
+      // biyun, argument-overview). No span/name instances — the workbench
+      // anchors it to the whole spine.
+      marks.push({ ...base, anchorBy: 'whole-daf', instances: [] });
+    }
   }
   return c.json({ tractate, page, lang, marks });
 });
