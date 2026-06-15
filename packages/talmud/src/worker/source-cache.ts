@@ -292,6 +292,19 @@ export async function getYerushalmiCached(
 }
 
 /**
+ * Read-only: this daf's cached Jerusalem Talmud bundle, or [] if not yet
+ * computed. NEVER fetches — the spine sweep reads across a whole tractate and
+ * must not fan out network calls (same contract as readCachedTalmudParallels).
+ */
+export async function readCachedYerushalmi(
+  cache: KVNamespace | undefined,
+  tractate: string,
+  page: string,
+): Promise<YerushalmiBundle> {
+  return (await readCache<YerushalmiBundle>(cache, keyForYerushalmi(tractate, page))) ?? [];
+}
+
+/**
  * Cache this daf's Talmud↔Talmud parallels (the "Mesorat HaShas" apparatus:
  * related gemaras elsewhere in Shas), located via Sefaria's `category: "Talmud"`
  * related links. One getRelated call; daf-keyed since the apparatus doesn't vary

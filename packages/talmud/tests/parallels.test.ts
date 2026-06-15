@@ -1,6 +1,11 @@
 import { DAF_SEG } from '@corpus/core/context/coord';
 import { describe, expect, it } from 'vitest';
-import { parseTalmudRef, talmudParallelsToLinks } from '../src/lib/context/parallels';
+import {
+  parseTalmudRef,
+  parseYerushalmiRef,
+  talmudParallelsToLinks,
+  yerushalmiToLinks,
+} from '../src/lib/context/parallels';
 
 describe('parseTalmudRef', () => {
   it('parses a bare daf ref to a daf-level coord', () => {
@@ -101,5 +106,69 @@ describe('talmudParallelsToLinks', () => {
       { anchorRef: 'Berakhot 2a:8', targetRef: 'Shabbat 31a:5' },
     ]);
     expect(links).toHaveLength(2);
+  });
+});
+
+describe('parseYerushalmiRef', () => {
+  it('parses a perek:halacha ref to a daf-level coord on the Yerushalmi spine', () => {
+    expect(parseYerushalmiRef('Jerusalem Talmud Berakhot 1:1')).toEqual({
+      tractate: 'Jerusalem Talmud Berakhot',
+      page: '1:1',
+      seg: DAF_SEG,
+    });
+  });
+  it('keeps multi-word tractate names + ignores a trailing segment or range', () => {
+    expect(parseYerushalmiRef('Jerusalem Talmud Bava Metzia 2:3:4')).toEqual({
+      tractate: 'Jerusalem Talmud Bava Metzia',
+      page: '2:3',
+      seg: DAF_SEG,
+    });
+    expect(parseYerushalmiRef('Jerusalem Talmud Berakhot 1:1-3')).toEqual({
+      tractate: 'Jerusalem Talmud Berakhot',
+      page: '1:1',
+      seg: DAF_SEG,
+    });
+  });
+  it('rejects non-Yerushalmi refs (Bavli, Mishnah, empty)', () => {
+    expect(parseYerushalmiRef('Shabbat 31a')).toBeNull();
+    expect(parseYerushalmiRef('Mishnah Berakhot 1:1')).toBeNull();
+    expect(parseYerushalmiRef('')).toBeNull();
+  });
+});
+
+describe('yerushalmiToLinks', () => {
+  const daf = { tractate: 'Berakhot', page: '2a' };
+  const snip = (ref: string, anchorStartSeg: number) => ({
+    ref,
+    heRef: '',
+    mishnahRef: '',
+    anchorStartSeg,
+    anchorEndSeg: anchorStartSeg,
+    hebrew: 'h',
+    english: 'e',
+  });
+
+  it('projects a shared-mishnah snippet to a cross-corpus parallels link', () => {
+    expect(yerushalmiToLinks(daf, [snip('Jerusalem Talmud Berakhot 1:1', 4)])).toEqual([
+      {
+        via: 'yerushalmi',
+        relation: 'parallels',
+        source: { tractate: 'Berakhot', page: '2a', seg: 4 },
+        targets: [{ tractate: 'Jerusalem Talmud Berakhot', page: '1:1', seg: DAF_SEG }],
+      },
+    ]);
+  });
+
+  it('dedupes identical (source-segment, target) pairs', () => {
+    expect(
+      yerushalmiToLinks(daf, [
+        snip('Jerusalem Talmud Berakhot 1:1', 0),
+        snip('Jerusalem Talmud Berakhot 1:1', 0),
+      ]),
+    ).toHaveLength(1);
+  });
+
+  it('drops snippets whose ref does not parse to a Yerushalmi coordinate', () => {
+    expect(yerushalmiToLinks(daf, [snip('Berakhot 2a', 0)])).toEqual([]);
   });
 });

@@ -1,24 +1,25 @@
 /**
- * talmudParallels — project a daf's Talmud↔Talmud cross-references (the
- * "Mesorat HaShas" apparatus: where the same sugya, baraita, or dispute recurs
- * elsewhere in Shas) into the shared Link vocabulary.
+ * parallels — project a daf's "parallel sugya" cross-references into the shared
+ * Link vocabulary (`relation: 'parallels'`), from two deterministic sources:
+ *   - via 'mesorah'    — Sefaria's `category: "Talmud"` apparatus (Mesorat
+ *                        HaShas: the same sugya/baraita/dispute recurring
+ *                        elsewhere in Shas). Same-corpus, Bavli↔Bavli.
+ *   - via 'yerushalmi' — the `yerushalmi` mark's shared-mishnah bundle (the
+ *                        Jerusalem Talmud on a daf's mishnah IS its direct
+ *                        parallel sugya). Cross-corpus, Bavli↔Yerushalmi.
  *
- * The data is Sefaria's `category: "Talmud"` related links — a human-curated
- * apparatus, so the edges are high-precision by construction. Each link carries
- * `anchorRef` (the segment on THIS daf) and `ref` (the parallel passage). This
- * pure module parses those refs to global coordinates and emits one
- * `relation: 'parallels'` DafLink per cross-reference (`via: 'mesorah'`), so a
- * parallel sugya joins the daf/tractate link graph exactly like a flow edge or
- * a citation — no bespoke encoding.
+ * Both are human-curated/deterministic, so the edges are high-precision by
+ * construction, and both emit the SAME `parallels` link shape — a parallel joins
+ * the daf/tractate link graph exactly like a flow edge or a citation, no bespoke
+ * encoding. The `via` distinguishes the producer.
  *
- * PRECISION over recall: a ref that doesn't parse to a Bavli coordinate
- * (Yerushalmi chapter:halacha, a Tanakh verse) is dropped, not guessed, and a
- * parallel that points back onto the same daf carries no cross-daf information
- * so it is dropped too.
+ * PRECISION over recall: a ref that doesn't parse to its expected coordinate is
+ * dropped, not guessed, and a same-daf self-parallel carries no cross-daf
+ * information so it is dropped too.
  */
 
 import { type AnchorCoord, coordForSeg, DAF_SEG, type DafRef } from '@corpus/core/context/coord';
-import type { TalmudParallel } from '../sefref/sefaria/client.ts';
+import type { TalmudParallel, YerushalmiBundle } from '../sefref/sefaria/client.ts';
 import type { DafLink } from './dafLinks.ts';
 
 /**
@@ -77,6 +78,46 @@ export function talmudParallelsToLinks(
     if (seen.has(dedup)) continue;
     seen.add(dedup);
     out.push({ via: 'mesorah', source, relation: 'parallels', targets: [target] });
+  }
+  return out;
+}
+
+/**
+ * Parse a Sefaria Jerusalem Talmud ref ("Jerusalem Talmud Berakhot 1:1", or a
+ * normalized form with a trailing segment / range) into an `AnchorCoord` on the
+ * Yerushalmi spine: `tractate` keeps the full "Jerusalem Talmud <Name>" title
+ * (its own pagination — a distinct spine from the Bavli, hence a `tractate`
+ * value, not the commentary-style `spine` overlay), `page` is the
+ * "<perek>:<halacha>", and it is daf-level ({@link DAF_SEG}) — the parallel is
+ * the halacha-level discussion, not a single segment. Returns null for anything
+ * that isn't a Jerusalem Talmud ref.
+ */
+export function parseYerushalmiRef(ref: string): AnchorCoord | null {
+  const m = (ref ?? '').trim().match(/^(Jerusalem Talmud .+?)\s+(\d+:\d+)(?::\d+)?(?:[-–].*)?$/);
+  if (!m) return null;
+  return { tractate: m[1], page: m[2], seg: DAF_SEG };
+}
+
+/**
+ * Project a daf's Jerusalem Talmud parallels (the `yerushalmi` mark's already
+ * computed shared-mishnah bundle) into DafLinks (`relation: 'parallels'`,
+ * `via: 'yerushalmi'`): source = the Bavli segment the shared mishnah anchors to
+ * on THIS daf (`anchorStartSeg`, already 0-indexed), target = the parallel
+ * Yerushalmi halacha. The cross-corpus sibling of {@link talmudParallelsToLinks}.
+ * Drops snippets whose ref doesn't parse and dedupes identical
+ * (source-segment, target) pairs.
+ */
+export function yerushalmiToLinks(daf: DafRef, bundle: YerushalmiBundle): DafLink[] {
+  const out: DafLink[] = [];
+  const seen = new Set<string>();
+  for (const s of bundle) {
+    const target = parseYerushalmiRef(s.ref);
+    if (!target) continue;
+    const source = coordForSeg(daf, s.anchorStartSeg >= 0 ? s.anchorStartSeg : DAF_SEG);
+    const dedup = `${source.seg}|${target.tractate}:${target.page}`;
+    if (seen.has(dedup)) continue;
+    seen.add(dedup);
+    out.push({ via: 'yerushalmi', source, relation: 'parallels', targets: [target] });
   }
   return out;
 }

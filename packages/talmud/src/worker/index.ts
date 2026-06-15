@@ -205,6 +205,7 @@ import {
   getTalmudParallelsCached,
   getYerushalmiCached,
   readCachedTalmudParallels,
+  readCachedYerushalmi,
   type SefariaSegments,
 } from './source-cache';
 import { computeCoverage, isKnownTractate } from './spine-coverage';
@@ -1091,6 +1092,9 @@ app.get('/api/links/:tractate/:page', async (c) => {
   const talmudParallels = await getTalmudParallelsCached(c.env.CACHE, tractate, page).catch(
     () => [],
   );
+  // Jerusalem Talmud parallels (cross-corpus): the `yerushalmi` mark's
+  // shared-mishnah bundle, projected into 'parallels' links. Fetch-on-miss.
+  const yerushalmi = await getYerushalmiCached(c.env.CACHE, tractate, page).catch(() => []);
 
   const links = dafLinks(daf, {
     continuesTo: bridge?.continues ? bridge.to : null,
@@ -1099,6 +1103,7 @@ app.get('/api/links/:tractate/:page', async (c) => {
     sectionStartSegs,
     commentaryWorks,
     talmudParallels,
+    yerushalmi,
   });
   return c.json({ tractate, page, count: links.length, links });
 });
@@ -1305,6 +1310,7 @@ async function readDafParts(env: Bindings, tractate: string, page: string): Prom
   const bridge = await readCachedBridge(env, tractate, page);
   const cross = await readCachedCrossFlow(env, tractate, page);
   const talmudParallels = await readCachedTalmudParallels(env.CACHE, tractate, page);
+  const yerushalmi = await readCachedYerushalmi(env.CACHE, tractate, page);
   const withinLinks = dafLinks(
     { tractate, page },
     {
@@ -1314,6 +1320,7 @@ async function readDafParts(env: Bindings, tractate: string, page: string): Prom
       sectionStartSegs: startSegs,
       commentaryWorks: [],
       talmudParallels,
+      yerushalmi,
     },
   );
   return { withinLinks, startSegs, crossEdges: cross?.edges ?? [] };
