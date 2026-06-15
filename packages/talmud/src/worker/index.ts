@@ -172,6 +172,14 @@ import {
   probeInstances,
   tokensOfEntry,
 } from './inspect';
+import {
+  type AnchorGroup,
+  type AnchorPiece,
+  type AnchorRef,
+  anchorRefOf,
+  groupByAnchor,
+  WHOLE_DAF_ANCHOR,
+} from './inspect-anchors';
 import { noteLintAttempt, readLintFailures } from './lint-failures';
 import { ALIGN_MARKS } from './mark-categories';
 import {
@@ -2095,9 +2103,11 @@ async function backfillDafIndex(
     }),
   );
   const markAnchorById = new Map(CODE_MARKS.map((m) => [m.id, (m as { anchor?: string }).anchor]));
-  const localEnrichments = CODE_ENRICHMENTS.filter(
-    (e) => e.scope === 'local' && e.target_mark !== 'argument',
-  );
+  // Index ALL local enrichments — including the per-section `argument` facets,
+  // which were held out of the flat `runs`/load-bar path but are a first-class
+  // anchor in the by-anchor view. Their leaves key by slug(title), which matches
+  // the argument mark instance (pinned by tests/inspect-anchors).
+  const localEnrichments = CODE_ENRICHMENTS.filter((e) => e.scope === 'local');
   const wholeDafIid = await instanceIdOf({ fields: {} });
   await Promise.all(
     localEnrichments.map(async (def) => {
@@ -2231,6 +2241,117 @@ async function dafRunsFromIndexRows(
   return dafRunsFromIndex(metas, specs);
 }
 
+/** Build the BY-ANCHOR groups for the fast (index) path: join the per-instance
+ *  index entries to the mark instances (the anchors), enumerating EVERY expected
+ *  piece per anchor (cached from the index, else a miss) so a group shows the
+ *  full set. Whole-daf marks + whole-daf enrichments lead in a `__whole_daf__`
+ *  group. Includes the per-section `argument` facets (a first-class anchor here,
+ *  even though they stay out of the flat `runs`/load-bar path). */
+async function dafGroupsFromIndex(
+  env: Bindings,
+  tractate: string,
+  page: string,
+  lang: 'en' | 'he',
+): Promise<AnchorGroup[]> {
+  const raw = await listDafIndexRaw(env, tractate, page);
+  const metas = raw
+    .map((e) => e.meta as DafIndexEntryMeta & { l?: string })
+    .filter((m): m is DafIndexEntryMeta & { l?: string } => !!m && m.l === lang);
+
+  const markAnchorById = new Map(CODE_MARKS.map((m) => [m.id, (m as { anchor?: string }).anchor]));
+  interface Desc {
+    id: string;
+    label: string;
+    kind: 'llm' | 'computed';
+    model?: string;
+    producer: 'mark' | 'enrichment';
+  }
+  const descOf = (
+    def: { id: string; label: string; extractor?: unknown },
+    producer: 'mark' | 'enrichment',
+  ): Desc => {
+    const ext = def.extractor as { kind?: string; model?: string } | undefined;
+    const isLLM = ext?.kind === 'llm';
+    return {
+      id: def.id,
+      label: def.label,
+      kind: isLLM ? 'llm' : 'computed',
+      model: isLLM ? ext?.model : undefined,
+      producer,
+    };
+  };
+  // Per-instance enrichments grouped by target mark; everything else is whole-daf.
+  const byTarget = new Map<string, Desc[]>();
+  const wholeDafProducers: Desc[] = CODE_MARKS.map((d) => descOf(d, 'mark'));
+  for (const def of CODE_ENRICHMENTS.filter((e) => e.scope === 'local')) {
+    const targetMark = (def as { target_mark?: string }).target_mark;
+    if (targetMark && markAnchorById.get(targetMark) !== 'whole-daf') {
+      const arr = byTarget.get(targetMark) ?? [];
+      arr.push(descOf(def, 'enrichment'));
+      byTarget.set(targetMark, arr);
+    } else {
+      wholeDafProducers.push(descOf(def, 'enrichment'));
+    }
+  }
+  // Anchors for each per-instance target mark (instanceIdOf = the join key).
+  const anchorsByMark = new Map<string, AnchorRef[]>();
+  await Promise.all(
+    [...byTarget.keys()].map(async (mid) => {
+      const insts = await readMarkInstances(env, mid, tractate, page);
+      anchorsByMark.set(mid, await Promise.all(insts.map((inst) => anchorRefOf(mid, inst))));
+    }),
+  );
+  // Index lookups: per-instance entries by (producer:instance); mark entries (no
+  // instance id) by producer; whole-daf enrichment entries by the {fields:{}} id.
+  const metaByPK = new Map<string, DafIndexEntryMeta>();
+  const markMetaByP = new Map<string, DafIndexEntryMeta>();
+  for (const m of metas) {
+    if (m.i) metaByPK.set(`${m.p}:${m.i}`, m);
+    else markMetaByP.set(m.p, m);
+  }
+  const wholeIid = await instanceIdOf({ fields: {} });
+  const pieceOf = (d: Desc, meta: DafIndexEntryMeta | undefined): AnchorPiece => ({
+    producerId: d.id,
+    label: d.label,
+    kind: d.kind,
+    model: d.model,
+    cached: !!meta,
+    cost: meta?.c ?? null,
+    cold_ms: meta?.ms ?? null,
+    tokens: meta?.t ?? null,
+  });
+
+  const placed: Array<{ piece: AnchorPiece; anchor: AnchorRef | null }> = [];
+  for (const [mid, anchors] of anchorsByMark) {
+    const producers = byTarget.get(mid) ?? [];
+    for (const anchor of anchors) {
+      for (const d of producers) {
+        placed.push({ piece: pieceOf(d, metaByPK.get(`${d.id}:${anchor.instanceId}`)), anchor });
+      }
+    }
+  }
+  for (const d of wholeDafProducers) {
+    const meta =
+      d.producer === 'mark' ? markMetaByP.get(d.id) : metaByPK.get(`${d.id}:${wholeIid}`);
+    placed.push({ piece: pieceOf(d, meta), anchor: null });
+  }
+
+  const { groups, wholeDaf } = groupByAnchor(placed);
+  return [
+    {
+      anchor: {
+        markId: WHOLE_DAF_ANCHOR,
+        instanceId: '',
+        label: 'Whole daf',
+        segRange: null,
+        instanceJson: { fields: {} },
+      },
+      pieces: wholeDaf,
+    },
+    ...groups,
+  ];
+}
+
 app.get('/api/daf-runs/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
@@ -2244,9 +2365,15 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
   // backfills + writes the sentinel, so the next view takes this branch).
   if (c.env.CACHE && (await c.env.CACHE.get(keyForDafIndexDone(tractate, page, lang)))) {
     try {
-      const runs = await dafRunsFromIndexRows(c.env, tractate, page, lang);
+      const [runs, groups] = await Promise.all([
+        dafRunsFromIndexRows(c.env, tractate, page, lang),
+        dafGroupsFromIndex(c.env, tractate, page, lang),
+      ]);
       runs.sort((a, b) => (b.cold_ms ?? -1) - (a.cold_ms ?? -1));
-      return c.json({ tractate, page, lang, runs, source: 'index' });
+      // `groups` (additive) is the by-anchor view; `runs` stays flat for the load
+      // bar + old clients. The slow path below emits no groups → client falls
+      // back to grouping `runs` flatly until the daf backfills.
+      return c.json({ tractate, page, lang, runs, groups, source: 'index' });
     } catch {
       /* fall through to the probe path on any index-read error */
     }
