@@ -51,7 +51,7 @@ import { GeographyMap } from './GeographyMap';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
 import { Hebraized } from './Hebraized';
 import { lang, t } from './i18n';
-import { LinkRef } from './LinkRef';
+import { CorpusBadge, LinkRef } from './LinkRef';
 import { InspectDot, registerMarkRenderer } from './MarkEnrichmentCards';
 import type { GeographyData, GeographyEvidence } from './RabbiGeographyCard';
 import RabbiLineageTree, {
@@ -2297,6 +2297,9 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
                   >
                     {s.ref}
                   </span>
+                  {/* Corpus badge — shared with the overview chips. Only the
+                      Yerushalmi shows one; Bavli + Tanakh read for themselves. */}
+                  <CorpusBadge corpus={s.kind === 'tanakh' ? 'other' : s.kind} />
                   <span
                     style={{
                       'font-family': 'system-ui, -apple-system, sans-serif',
