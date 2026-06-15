@@ -1,0 +1,93 @@
+/**
+ * LinkRef — one cross-text reference, rendered the same way everywhere.
+ *
+ * Every surface that points at another text (overview cross-references, the
+ * Yerushalmi card header, the halacha derivation, …) used to draw its own chip.
+ * This is the shared atom: the target's label, a small corpus badge when the
+ * label alone doesn't say which corpus it is, clickable into our reader when the
+ * target is a Bavli daf and inert otherwise. Corpus + navigation come from the
+ * one `linkTarget` resolver, so every chip agrees.
+ *
+ * It is just the chip — views own their own layout (a list, a card header, a
+ * map) and drop this in.
+ */
+
+import type { AnchorCoord } from '@corpus/core/context/coord';
+import { type JSX, Show } from 'solid-js';
+import { type LinkCorpus, linkTarget } from '../lib/context/linkTarget';
+import { t } from './i18n';
+
+/** Corpus badge — only for corpora the label alone doesn't make obvious. A Bavli
+ *  daf ("Berakhot 13a") and a Tanakh verse ("Genesis 1:1") read for themselves,
+ *  so they get none; the Yerushalmi + commentary spines get a tag. */
+const CORPUS_BADGE: Partial<Record<LinkCorpus, { label: string; bg: string; fg: string }>> = {
+  yerushalmi: { label: 'ירושלמי', bg: '#0e7490', fg: '#ffffff' },
+  commentary: { label: 'commentary', bg: '#ece9e1', fg: '#57534e' },
+};
+
+const BASE: JSX.CSSProperties = {
+  display: 'inline-flex',
+  'align-items': 'center',
+  gap: '0.28rem',
+  'font-size': '0.72rem',
+  'text-decoration': 'none',
+  'border-radius': '5px',
+  padding: '0.12rem 0.4rem',
+  'white-space': 'nowrap',
+};
+const NAV: JSX.CSSProperties = {
+  ...BASE,
+  color: '#1d4ed8',
+  background: '#eff6ff',
+  border: '1px solid #dbeafe',
+};
+const INERT: JSX.CSSProperties = {
+  ...BASE,
+  color: '#6b7280',
+  background: '#f3f4f6',
+  border: '1px solid #e5e7eb',
+};
+
+export function LinkRef(props: { coord: AnchorCoord }): JSX.Element {
+  const target = () => linkTarget(props.coord);
+  const badge = (): { label: string; bg: string; fg: string } | undefined =>
+    CORPUS_BADGE[target().corpus];
+  const Badge = (): JSX.Element => (
+    <Show when={badge()}>
+      {(b) => (
+        <span
+          style={{
+            'font-size': '0.6rem',
+            'font-weight': 650,
+            'border-radius': '999px',
+            padding: '0 0.32rem',
+            background: b().bg,
+            color: b().fg,
+          }}
+        >
+          {b().label}
+        </span>
+      )}
+    </Show>
+  );
+  return (
+    <Show
+      when={target().navigable && target().href}
+      fallback={
+        // Inert: no in-app reader for this corpus (Yerushalmi, a verse, …).
+        <span style={INERT} title={target().label}>
+          {target().label}
+          <Badge />
+        </span>
+      }
+    >
+      {(href) => (
+        // A real href (relative `?tractate=&page=`) so middle-click / open-in-new-tab work.
+        <a style={NAV} href={href()} title={t('overview.goToDaf', { daf: target().label })}>
+          {target().label}
+          <Badge />
+        </a>
+      )}
+    </Show>
+  );
+}
