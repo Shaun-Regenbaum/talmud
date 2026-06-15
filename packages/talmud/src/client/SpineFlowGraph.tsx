@@ -13,6 +13,7 @@
  * Hidden #spine page only.
  */
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { dafTarget } from '../lib/context/linkTarget';
 import { type FlowConnection, KIND_COLOR, KIND_DASH, wrapTitle } from './ArgumentFlowGraph';
 
 type Kind = FlowConnection['kind'];
@@ -72,19 +73,10 @@ const EXIT_H = 21,
 const PARALLEL = KIND_COLOR.parallels ?? '#7c3aed';
 const HILITE = '#b8860b';
 
-/** In-app reader URL for an exit's target — the same `?tractate=&page=` contract
- *  the daf reader + overview cross-references use (hash cleared). */
-function dafHref(ex: { tractate: string; page: string }): string {
-  const u = new URL(window.location.href);
-  u.searchParams.set('tractate', ex.tractate);
-  u.searchParams.set('page', ex.page);
-  u.hash = '';
-  return u.pathname + u.search;
-}
-/** Whether an exit opens in our reader (a Bavli daf). The Yerushalmi (corpus
- *  'yeru') has no reader page here, so its chip is informative but not clickable
- *  — consistent with the overview, which leaves non-Bavli refs non-clickable. */
-const navigableExit = (ex: ExitMark): boolean => ex.corpus !== 'yeru';
+// Navigation (is this a Bavli daf we can open + at what URL) comes from the
+// shared `linkTarget` resolver — see ../lib/context/linkTarget. The corpus BADGE
+// stays here: it carries 'here' (same tractate as the daf in view), a view-local
+// distinction the context-free resolver doesn't make.
 const corpusTag = (c: ExitMark['corpus']): string =>
   c === 'yeru' ? 'ירושלמי' : c === 'bavli' ? 'Bavli' : 'this tractate';
 const corpusFill = (c: ExitMark['corpus']): string =>
@@ -142,7 +134,8 @@ export default function SpineFlowGraph(props: {
       props.onPickExit(ex);
       return;
     }
-    if (navigableExit(ex)) window.location.href = dafHref(ex);
+    const href = dafTarget(ex).href;
+    if (href) window.location.href = href;
   };
   // Which section boxes have their cross-text exits expanded. Collapsed is the
   // default — a box shows only a small "⤳ N" badge until clicked.
@@ -718,7 +711,7 @@ export default function SpineFlowGraph(props: {
                                         ex.ref.length > refMax
                                           ? `${ex.ref.slice(0, refMax - 1)}…`
                                           : ex.ref;
-                                      const nav = navigableExit(ex);
+                                      const nav = dafTarget(ex).navigable;
                                       const inner = (
                                         <>
                                           <title>{`${ex.relation} — ${ex.ref}${nav ? ' (open in reader)' : ' (Yerushalmi — see the daf’s Yerushalmi card)'}`}</title>
