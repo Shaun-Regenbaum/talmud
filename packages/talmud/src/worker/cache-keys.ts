@@ -137,7 +137,10 @@ export function prefixForDafIndex(tractate: string, page: string): string {
  *  completed backfill has no sentinel, so it still takes the probe path. Kept in
  *  a SEPARATE namespace so it doesn't appear under `prefixForDafIndex`. */
 export function keyForDafIndexDone(tractate: string, page: string, lang: 'en' | 'he'): string {
-  return `dafidx-done:v1:${slugDaf(tractate, page)}:${lang}`;
+  // v2: the backfill now also indexes the per-section `argument` facets, so a v1
+  // "complete" is stale. Bumping forces one re-backfill per daf (off the request
+  // path) that adds the argument entries, then writes v2.
+  return `dafidx-done:v2:${slugDaf(tractate, page)}:${lang}`;
 }
 
 // Per-daf analysis + per-rabbi enrichment caches. Each of these was hand-built
