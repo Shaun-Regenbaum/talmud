@@ -1,6 +1,8 @@
 // Recipes now live in the shared lib (carried on the worker mark def too).
 // Re-exported so existing importers (CARD_DEFS, tests) keep their `from
 // './ArgumentSidebar'` path.
+
+import type { AnchorCoord } from '@corpus/core/context/coord';
 import {
   AGGADATA_RECIPE,
   ARGUMENT_OVERVIEW_RECIPE,
@@ -49,6 +51,7 @@ import { GeographyMap } from './GeographyMap';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
 import { Hebraized } from './Hebraized';
 import { lang, t } from './i18n';
+import { LinkRef } from './LinkRef';
 import { InspectDot, registerMarkRenderer } from './MarkEnrichmentCards';
 import type { GeographyData, GeographyEvidence } from './RabbiGeographyCard';
 import RabbiLineageTree, {
@@ -1083,11 +1086,8 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   // relation as navigable chips, plus a compact count of the within-daf flow
   // (whose detailed view is the maps above). Retires the old cites-only list.
   const relLabel = (rel: string): string => t(`link.rel.${rel}` as Parameters<typeof t>[0]);
-  const crossDafByRelation = (): {
-    relation: string;
-    pages: { tractate: string; page: string; label: string }[];
-  }[] => {
-    const byRel = new Map<string, { tractate: string; page: string; label: string }[]>();
+  const crossDafByRelation = (): { relation: string; targets: AnchorCoord[] }[] => {
+    const byRel = new Map<string, AnchorCoord[]>();
     const seen = new Set<string>();
     for (const l of links() ?? []) {
       for (const tgt of l.targets) {
@@ -1095,14 +1095,12 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
         const k = `${l.relation}|${tgt.tractate}|${tgt.page}`;
         if (seen.has(k)) continue;
         seen.add(k);
-        const label =
-          tgt.seg >= 0 ? `${tgt.tractate} ${tgt.page}:${tgt.seg}` : `${tgt.tractate} ${tgt.page}`;
         const arr = byRel.get(l.relation) ?? [];
-        arr.push({ tractate: tgt.tractate, page: tgt.page, label });
+        arr.push(tgt);
         byRel.set(l.relation, arr);
       }
     }
-    return [...byRel.entries()].map(([relation, pages]) => ({ relation, pages }));
+    return [...byRel.entries()].map(([relation, targets]) => ({ relation, targets }));
   };
   const withinFlowCounts = (): { relation: string; count: number }[] => {
     const byRel = new Map<string, number>();
@@ -1117,13 +1115,6 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   };
   const hasConnections = (): boolean =>
     crossDafByRelation().length > 0 || withinFlowCounts().length > 0;
-  const goToDaf = (tractate: string, page: string): void => {
-    const u = new URL(window.location.href);
-    u.searchParams.set('tractate', tractate);
-    u.searchParams.set('page', page);
-    u.hash = '';
-    window.location.href = u.toString();
-  };
 
   // Adjacent-amud page label for the continuation caption: Hebrew daf form
   // ('ב.') in he mode, the raw '2a' slug in en.
@@ -1257,41 +1248,7 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
                 >
                   {relLabel(grp.relation)}
                 </span>
-                <For each={grp.pages}>
-                  {(p) => {
-                    // A Bavli daf (page like "31a") opens in our reader; a non-daf
-                    // target (Yerushalmi perek:halacha, e.g. "1:1") has no reader
-                    // here, so show it but leave it non-clickable.
-                    const nav = /^\d+[ab]$/.test(p.page);
-                    const chip = {
-                      'font-size': '0.72rem',
-                      'text-decoration': 'none',
-                      color: nav ? '#1d4ed8' : '#6b7280',
-                      background: nav ? '#eff6ff' : '#f3f4f6',
-                      border: `1px solid ${nav ? '#dbeafe' : '#e5e7eb'}`,
-                      'border-radius': '5px',
-                      padding: '0.12rem 0.4rem',
-                      'white-space': 'nowrap',
-                    };
-                    return nav ? (
-                      <a
-                        href={dafHref({ tractate: p.tractate, page: p.page })}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          goToDaf(p.tractate, p.page);
-                        }}
-                        title={t('overview.goToDaf', { daf: p.label })}
-                        style={chip}
-                      >
-                        {p.label}
-                      </a>
-                    ) : (
-                      <span title={p.label} style={chip}>
-                        {p.label}
-                      </span>
-                    );
-                  }}
-                </For>
+                <For each={grp.targets}>{(c) => <LinkRef coord={c} />}</For>
               </div>
             )}
           </For>
