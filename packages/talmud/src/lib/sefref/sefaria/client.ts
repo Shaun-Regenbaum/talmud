@@ -224,6 +224,16 @@ export function rishonLabel(indexTitle: string, tractate: string): string | null
  *  Sefaria returns it on /api/related links. */
 export const EIN_MISHPAT_LINK_TYPE = 'ein mishpat / ner mitsvah';
 
+/** One Talmud↔Talmud cross-reference from Sefaria's "Mesorat HaShas" apparatus
+ *  (its `category: "Talmud"` related links): `anchorRef` is the segment on the
+ *  queried daf, `targetRef` the parallel passage elsewhere in Shas. The raw
+ *  Sefaria refs — `talmudParallelsToLinks` (src/lib/context/parallels.ts) parses
+ *  them to coordinates. */
+export interface TalmudParallel {
+  anchorRef: string;
+  targetRef: string;
+}
+
 /** Parse the trailing segment range from a Sefaria ref like
  *  "Berakhot 2a:1-5" → { start: 1, end: 5 } or "Shabbat 20b:5" →
  *  { start: 5, end: 5 }. Returns null if no trailing segment is present.
@@ -588,6 +598,34 @@ class SefariaAPI {
         category: l.category,
         einMishpat: l.type === EIN_MISHPAT_LINK_TYPE || undefined,
       }));
+  }
+
+  /**
+   * Forward Talmud↔Talmud parallels for a gemara daf — the "related gemaras"
+   * apparatus (Mesorat HaShas + Sefaria's editorial parallels), surfaced as
+   * `category: "Talmud"` links on /api/related. The inverse direction of
+   * `fetchCodeSources` (which reads the same category from a CODE ref). Each
+   * kept link carries its `anchorRef` (the segment on THIS daf) + `ref` (the
+   * parallel passage); the projection to coordinates lives in parallels.ts.
+   *
+   * Lets `getRelated` throw on failure — the caller's cache wrapper
+   * distinguishes "no parallels" (cache an empty array) from "fetch failed"
+   * (don't cache, retry later).
+   */
+  async fetchTalmudParallels(tractate: string, page: string): Promise<TalmudParallel[]> {
+    const ref = `${tractate}.${page}`;
+    const related = await this.getRelated(ref);
+    const out: TalmudParallel[] = [];
+    const seen = new Set<string>();
+    for (const l of related.links) {
+      if (l.category !== 'Talmud') continue;
+      if (!l.ref || !l.anchorRef) continue;
+      const dedup = `${l.anchorRef}|${l.ref}`;
+      if (seen.has(dedup)) continue;
+      seen.add(dedup);
+      out.push({ anchorRef: l.anchorRef, targetRef: l.ref });
+    }
+    return out;
   }
 
   /**

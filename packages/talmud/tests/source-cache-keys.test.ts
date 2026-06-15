@@ -29,6 +29,7 @@ import {
   keyForSaCommentary,
   keyForSefariaBundle,
   keyForSefariaSegments,
+  keyForTalmudParallels,
   keyForTranslate,
   keyForYerushalmi,
   prefixForRabbiObs,
@@ -53,6 +54,7 @@ describe('source-cache keys — byte-exact contract', () => {
     expect(keyForDafTopics(t, p)).toBe('daf-topics:v1:Berakhot:2a');
     expect(keyForMishnaBundle(t, p)).toBe('mishna-bundle:v1:Berakhot:2a');
     expect(keyForYerushalmi(t, p)).toBe('yerushalmi:v1:Berakhot:2a');
+    expect(keyForTalmudParallels(t, p)).toBe('talmud-parallels:v1:Berakhot:2a');
     expect(keyForSaCommentary('Mishnah_Berurah_1:1')).toBe('sa-commentary:v1:Mishnah_Berurah_1:1');
   });
   it('keeps a space/upper-case tractate in the key verbatim (the cold-miss trap)', () => {

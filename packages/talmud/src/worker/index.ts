@@ -201,7 +201,9 @@ import {
   getRishonimCached,
   getSefariaPageCached,
   getSefariaSegmentsCached,
+  getTalmudParallelsCached,
   getYerushalmiCached,
+  readCachedTalmudParallels,
   type SefariaSegments,
 } from './source-cache';
 import { computeCoverage, isKnownTractate } from './spine-coverage';
@@ -1101,6 +1103,11 @@ app.get('/api/links/:tractate/:page', async (c) => {
   // nothing rather than failing the response — same contract as the others.
   const commentary = await fetchCommentaryWorks(c.env, tractate, page).catch(() => null);
   const commentaryWorks = commentary && !('error' in commentary) ? commentary.works : [];
+  // Talmud↔Talmud parallels (Mesorat HaShas): deterministic, from Sefaria's
+  // apparatus. Fetch-on-miss + cache, like the other source bundles above.
+  const talmudParallels = await getTalmudParallelsCached(c.env.CACHE, tractate, page).catch(
+    () => [],
+  );
 
   const links = dafLinks(daf, {
     continuesTo: bridge?.continues ? bridge.to : null,
@@ -1108,6 +1115,7 @@ app.get('/api/links/:tractate/:page', async (c) => {
     flowEdges,
     sectionStartSegs,
     commentaryWorks,
+    talmudParallels,
   });
   return c.json({ tractate, page, count: links.length, links });
 });
@@ -1313,6 +1321,7 @@ async function readDafParts(env: Bindings, tractate: string, page: string): Prom
   const flowEdges = await readFlowConnections(env, tractate, page);
   const bridge = await readCachedBridge(env, tractate, page);
   const cross = await readCachedCrossFlow(env, tractate, page);
+  const talmudParallels = await readCachedTalmudParallels(env.CACHE, tractate, page);
   const withinLinks = dafLinks(
     { tractate, page },
     {
@@ -1321,6 +1330,7 @@ async function readDafParts(env: Bindings, tractate: string, page: string): Prom
       flowEdges,
       sectionStartSegs: startSegs,
       commentaryWorks: [],
+      talmudParallels,
     },
   );
   return { withinLinks, startSegs, crossEdges: cross?.edges ?? [] };
