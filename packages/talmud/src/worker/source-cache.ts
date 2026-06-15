@@ -330,17 +330,18 @@ export async function getTalmudParallelsCached(
 }
 
 /**
- * Read-only: this daf's cached Talmud parallels, or [] if not yet computed.
- * NEVER fetches — the spine sweep reads across a whole tractate and must not fan
- * out network calls (the same contract as readCachedBridge / readCachedCrossFlow
- * in index.ts). The apparatus fills into the spine as dapim are warmed.
+ * Read-only: this daf's cached Talmud parallels — the ARRAY if computed (even
+ * `[]` = computed and genuinely none), or `null` if NEVER computed (no KV key).
+ * That distinction drives the spine's "not computed yet" indicator. NEVER
+ * fetches — the spine sweep reads across a whole tractate and must not fan out
+ * network calls (same contract as readCachedBridge / readCachedCrossFlow).
  */
 export async function readCachedTalmudParallels(
   cache: KVNamespace | undefined,
   tractate: string,
   page: string,
-): Promise<TalmudParallel[]> {
-  return (await readCache<TalmudParallel[]>(cache, keyForTalmudParallels(tractate, page))) ?? [];
+): Promise<TalmudParallel[] | null> {
+  return (await readCache<TalmudParallel[]>(cache, keyForTalmudParallels(tractate, page))) ?? null;
 }
 
 export async function getSaCommentaryCached(
