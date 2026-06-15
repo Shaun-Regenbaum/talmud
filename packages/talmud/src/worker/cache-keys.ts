@@ -95,6 +95,14 @@ export function keyForMishnaBundle(tractate: string, page: string): string {
 export function keyForYerushalmi(tractate: string, page: string): string {
   return `yerushalmi:v1:${tractate}:${page}`;
 }
+/** Talmud↔Talmud parallels on this daf — Sefaria's "Mesorat HaShas" apparatus
+ *  (`category: "Talmud"` related links) projected into the spine link graph as
+ *  `parallels` edges. One getRelated call; daf-keyed since the apparatus doesn't
+ *  vary by argument. Distinct prefix from keyForMesorah (rabbi transmission).
+ *  RAW tractate:page like its source-bundle siblings above. */
+export function keyForTalmudParallels(tractate: string, page: string): string {
+  return `talmud-parallels:v1:${tractate}:${page}`;
+}
 /** Shulchan Aruch commentary, keyed by an already-sanitised Sefaria ref. */
 export function keyForSaCommentary(safeKey: string): string {
   return `sa-commentary:v1:${safeKey}`;

@@ -23,12 +23,15 @@ import {
   type LinkRelation,
 } from '@corpus/core/context/link';
 import type { ContextItem } from '@corpus/core/context/types';
+import type { TalmudParallel } from '../sefref/sefaria/client.ts';
+import { talmudParallelsToLinks } from './parallels.ts';
 
 /** A link on a daf: where it lives (`source`), the `relation`, and what it
  *  points at (`targets`). `via` records which producer it came from, for
- *  display + debugging. */
+ *  display + debugging. ('mesorah' = the Mesorat HaShas parallel-sugya
+ *  apparatus — unrelated to the rabbi-transmission `mesorah:` cache namespace.) */
 export interface DafLink {
-  via: 'bridge' | 'context' | 'flow' | 'commentary' | 'cross-flow';
+  via: 'bridge' | 'context' | 'flow' | 'commentary' | 'cross-flow' | 'mesorah';
   source: AnchorCoord;
   relation: LinkRelation;
   targets: AnchorCoord[];
@@ -49,6 +52,10 @@ export interface DafLinkInputs {
   /** Commentary works on this daf — each becomes a 'glosses' link from its own
    *  spine to the daf segments it glosses. Optional/absent contributes nothing. */
   commentaryWorks?: readonly CommentaryWorkLike[];
+  /** Talmud↔Talmud parallels (Mesorat HaShas) from Sefaria's apparatus — each
+   *  becomes a 'parallels' link from its anchored segment on this daf to a
+   *  passage elsewhere in Shas. Optional/absent contributes nothing. */
+  talmudParallels?: readonly TalmudParallel[];
 }
 
 export function dafLinks(daf: DafRef, input: DafLinkInputs): DafLink[] {
@@ -103,6 +110,10 @@ export function dafLinks(daf: DafRef, input: DafLinkInputs): DafLink[] {
       note: gl.source.spine,
     });
   }
+
+  // 5) Talmud parallels: Mesorat HaShas cross-references to parallel sugyot
+  //    elsewhere in Shas (deterministic, from Sefaria's apparatus).
+  out.push(...talmudParallelsToLinks(daf, input.talmudParallels ?? []));
 
   return out;
 }

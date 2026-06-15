@@ -27,6 +27,7 @@ import {
   type SefariaTopicBundle,
   sefariaAPI,
   type TalmudPageData,
+  type TalmudParallel,
   type YerushalmiBundle,
 } from '../lib/sefref';
 import type { DafyomiDaf } from '../lib/sefref/dafyomi/schema';
@@ -41,6 +42,7 @@ import {
   keyForSaCommentary,
   keyForSefariaBundle,
   keyForSefariaSegments,
+  keyForTalmudParallels,
   keyForYerushalmi,
 } from './cache-keys';
 import { scrapeDafyomiLive } from './dafyomi-live';
@@ -287,6 +289,45 @@ export async function getYerushalmiCached(
   } catch {
     return [];
   }
+}
+
+/**
+ * Cache this daf's Talmud↔Talmud parallels (the "Mesorat HaShas" apparatus:
+ * related gemaras elsewhere in Shas), located via Sefaria's `category: "Talmud"`
+ * related links. One getRelated call; daf-keyed since the apparatus doesn't vary
+ * by argument. 30-day TTL like the other source bundles. A daf with genuinely no
+ * parallels caches an empty array; a fetch FAILURE (fetchTalmudParallels lets
+ * getRelated throw) returns [] WITHOUT caching, so it retries later.
+ */
+export async function getTalmudParallelsCached(
+  cache: KVNamespace | undefined,
+  tractate: string,
+  page: string,
+): Promise<TalmudParallel[]> {
+  const key = keyForTalmudParallels(tractate, page);
+  const hit = await readCache<TalmudParallel[]>(cache, key);
+  if (hit) return hit;
+  try {
+    const data = await sefariaAPI.fetchTalmudParallels(tractate, page);
+    await writeCache(cache, key, data);
+    return data;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Read-only: this daf's cached Talmud parallels, or [] if not yet computed.
+ * NEVER fetches — the spine sweep reads across a whole tractate and must not fan
+ * out network calls (the same contract as readCachedBridge / readCachedCrossFlow
+ * in index.ts). The apparatus fills into the spine as dapim are warmed.
+ */
+export async function readCachedTalmudParallels(
+  cache: KVNamespace | undefined,
+  tractate: string,
+  page: string,
+): Promise<TalmudParallel[]> {
+  return (await readCache<TalmudParallel[]>(cache, keyForTalmudParallels(tractate, page))) ?? [];
 }
 
 export async function getSaCommentaryCached(
