@@ -21,10 +21,20 @@ export interface SectionRabbi {
   slug: string;
   name: string;
 }
+/** A cross-text parallel that leaves the visible tractate (another tractate, or
+ *  the Yerushalmi) — rendered as a click-to-expand "exit marker" on its section
+ *  box rather than an in-graph arrow to an off-screen node. */
+export interface ExitMark {
+  ref: string;
+  relation: string;
+  corpus: 'yeru' | 'bavli' | 'here';
+  tractate: string;
+  page: string;
+}
 export interface SpineViewDaf {
   page: string;
   nextPage: string | null;
-  sections: { index: number; title: string; rabbis: SectionRabbi[] }[];
+  sections: { index: number; title: string; rabbis: SectionRabbi[]; exits?: ExitMark[] }[];
   flow: FlowConnection[];
   cross: { fromSection: number; toSection: number; relation: string; note?: string }[];
   /** deterministic daf-continuity bridge: does the sugya carry into the next daf? */
@@ -49,7 +59,33 @@ const LANE_BASE = 14,
 const LINE_H = 15,
   TITLE_CHARS = 44,
   TITLE_LINES = 2;
+// Exit markers: the click-to-expand band of cross-text parallels under a box.
+const EXIT_H = 21,
+  EXIT_TOP = 5,
+  EXIT_INDENT = 26,
+  BADGE_W = 30,
+  BADGE_H = 15;
+const PARALLEL = KIND_COLOR.parallels ?? '#7c3aed';
 const HILITE = '#b8860b';
+
+/** In-app reader URL for an exit's target — the same `?tractate=&page=` contract
+ *  the daf reader + overview cross-references use (hash cleared). */
+function dafHref(ex: { tractate: string; page: string }): string {
+  const u = new URL(window.location.href);
+  u.searchParams.set('tractate', ex.tractate);
+  u.searchParams.set('page', ex.page);
+  u.hash = '';
+  return u.pathname + u.search;
+}
+/** Whether an exit opens in our reader (a Bavli daf). The Yerushalmi (corpus
+ *  'yeru') has no reader page here, so its chip is informative but not clickable
+ *  — consistent with the overview, which leaves non-Bavli refs non-clickable. */
+const navigableExit = (ex: ExitMark): boolean => ex.corpus !== 'yeru';
+const corpusTag = (c: ExitMark['corpus']): string =>
+  c === 'yeru' ? 'ירושלמי' : c === 'bavli' ? 'Bavli' : 'this tractate';
+const corpusFill = (c: ExitMark['corpus']): string =>
+  c === 'yeru' ? '#0e7490' : c === 'bavli' ? '#ece9e1' : '#f3f1ea';
+const corpusInk = (c: ExitMark['corpus']): string => (c === 'yeru' ? '#ffffff' : '#57534e');
 // Overview mode: one compact node per daf so the WHOLE tractate fits a screen.
 const OV_NODE_H = 22,
   OV_NODE_W = 132,
@@ -92,13 +128,37 @@ export default function SpineFlowGraph(props: {
   onRabbi?: (name: string) => void;
   mode?: 'detail' | 'overview';
   onPickDaf?: (page: string) => void;
+  /** Click handler for a cross-text exit chip. Defaults to opening the target daf
+   *  in our reader (`?tractate=&page=`); a non-Bavli target (Yerushalmi) is
+   *  non-navigable. */
+  onPickExit?: (ex: ExitMark) => void;
 }): JSX.Element {
+  const pickExit = (ex: ExitMark) => {
+    if (props.onPickExit) {
+      props.onPickExit(ex);
+      return;
+    }
+    if (navigableExit(ex)) window.location.href = dafHref(ex);
+  };
+  // Which section boxes have their cross-text exits expanded. Collapsed is the
+  // default — a box shows only a small "⤳ N" badge until clicked.
+  const [openExits, setOpenExits] = createSignal(new Set<string>());
+  const toggleExits = (key: string) =>
+    setOpenExits((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+
   const model = createMemo(() => {
     const nodeY = new Map<string, number>();
     const nodeH = new Map<string, number>();
     const nodeTitle = new Map<string, string>();
     const nodeNum = new Map<string, number>();
     const nodeRabbis = new Map<string, SectionRabbi[]>();
+    const nodeExits = new Map<string, ExitMark[]>();
+    const nodeBand = new Map<string, number>(); // reserved height for an open exits band
     const dafHeaders: { page: string; y: number; pending: boolean }[] = [];
     let y = TOP_PAD;
     for (const d of props.dapim) {
@@ -115,7 +175,13 @@ export default function SpineFlowGraph(props: {
         nodeTitle.set(key, s.title);
         nodeNum.set(key, pos + 1);
         nodeRabbis.set(key, s.rabbis);
-        y += h + ROW_GAP;
+        const exits = s.exits ?? [];
+        nodeExits.set(key, exits);
+        // Reflow: an expanded box reserves a vertical band for its chips, so they
+        // never overlap the next box (reading openExits() makes this reactive).
+        const band = exits.length && openExits().has(key) ? EXIT_TOP + exits.length * EXIT_H : 0;
+        nodeBand.set(key, band);
+        y += h + band + ROW_GAP;
       });
       y += DAF_GAP;
     }
@@ -194,6 +260,8 @@ export default function SpineFlowGraph(props: {
       nodeTitle,
       nodeNum,
       nodeRabbis,
+      nodeExits,
+      nodeBand,
       dafHeaders,
       height,
       edges,
@@ -441,15 +509,29 @@ export default function SpineFlowGraph(props: {
                     const lines = wrapTitle(m.nodeTitle.get(key) ?? '', TITLE_CHARS, TITLE_LINES);
                     const num = m.nodeNum.get(key) ?? 0;
                     const lit = () => hl() !== null && rabbis.some((r) => r.slug === hl());
-                    // lay rabbi chips left-to-right with approx text width
+                    // Lay rabbi chips left-to-right, keeping each WITHIN the box.
+                    // (The old filter only checked the START x, so a long name —
+                    // "Rabbi Elazar b. Azaryah" — overflowed the right edge.) Stop
+                    // at the first that won't fit and show "+N"; truncate a lone
+                    // over-long first name.
+                    const RABBI_RIGHT = LEFT_PAD + NODE_W - 12;
                     let cx = LEFT_PAD + 10;
-                    const chips = rabbis
-                      .map((r) => {
-                        const x = cx;
-                        cx += r.name.length * 5.4 + 12;
-                        return { name: r.name, slug: r.slug, x };
-                      })
-                      .filter((c) => c.x < LEFT_PAD + NODE_W - 16);
+                    const chips: { name: string; full: string; slug: string; x: number }[] = [];
+                    let hiddenRabbis = 0;
+                    for (const r of rabbis) {
+                      const w = r.name.length * 5.4;
+                      if (chips.length > 0 && cx + w > RABBI_RIGHT) {
+                        hiddenRabbis = rabbis.length - chips.length;
+                        break;
+                      }
+                      let name = r.name;
+                      if (cx + w > RABBI_RIGHT) {
+                        const max = Math.max(4, Math.floor((RABBI_RIGHT - cx) / 5.4) - 1);
+                        name = `${r.name.slice(0, max)}…`;
+                      }
+                      chips.push({ name, full: r.name, slug: r.slug, x: cx });
+                      cx += name.length * 5.4 + 12;
+                    }
                     return (
                       <g>
                         <title>{`${num}. ${m.nodeTitle.get(key) ?? ''}`}</title>
@@ -526,12 +608,180 @@ export default function SpineFlowGraph(props: {
                                     }
                                   }}
                                 >
-                                  <title>{`trace ${c.name} across the tractate`}</title>
+                                  <title>{`trace ${c.full} across the tractate`}</title>
                                   {c.name}
                                 </text>
                               );
                             }}
                           </For>
+                          <Show when={hiddenRabbis > 0}>
+                            <text
+                              x={cx}
+                              y={yTop + h - 8}
+                              font-size="9.5"
+                              font-weight={500}
+                              font-family="system-ui, sans-serif"
+                              fill="#b0a894"
+                            >
+                              {`+${hiddenRabbis}`}
+                            </text>
+                          </Show>
+                        </Show>
+                        {/* cross-text exits: collapsed ⤳N badge → click to expand a chip per parallel */}
+                        <Show when={(m.nodeExits.get(key) ?? []).length}>
+                          {(() => {
+                            const exits = m.nodeExits.get(key) ?? [];
+                            const isOpen = () => openExits().has(key);
+                            const bx = LEFT_PAD + NODE_W - BADGE_W - 7;
+                            const by = yTop + 6;
+                            return (
+                              <>
+                                {/* biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram */}
+                                <g
+                                  role="button"
+                                  tabindex={0}
+                                  style={{ cursor: 'pointer' }}
+                                  onClick={() => toggleExits(key)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      toggleExits(key);
+                                    }
+                                  }}
+                                >
+                                  <title>{`${exits.length} parallel${exits.length > 1 ? 's' : ''} elsewhere — click to ${isOpen() ? 'hide' : 'show'}`}</title>
+                                  <rect
+                                    x={bx}
+                                    y={by}
+                                    width={BADGE_W}
+                                    height={BADGE_H}
+                                    rx={7}
+                                    ry={7}
+                                    fill={isOpen() ? PARALLEL : '#ffffff'}
+                                    stroke={PARALLEL}
+                                    stroke-width={1.5}
+                                  />
+                                  <text
+                                    x={bx + BADGE_W / 2}
+                                    y={by + BADGE_H / 2 + 0.5}
+                                    text-anchor="middle"
+                                    dominant-baseline="central"
+                                    font-size="10"
+                                    font-weight="700"
+                                    font-family="system-ui, sans-serif"
+                                    fill={isOpen() ? '#ffffff' : PARALLEL}
+                                  >
+                                    {`⤳ ${exits.length}`}
+                                  </text>
+                                </g>
+                                <Show when={isOpen()}>
+                                  <For each={exits}>
+                                    {(ex, j) => {
+                                      const top = yTop + h + EXIT_TOP + j() * EXIT_H;
+                                      const ch = EXIT_H - 3;
+                                      const cy = top + ch / 2;
+                                      const chipX = LEFT_PAD + EXIT_INDENT;
+                                      const chipW = NODE_W - EXIT_INDENT - 6;
+                                      const tag = corpusTag(ex.corpus);
+                                      const tagW = tag.length * 5.4 + 12;
+                                      const refMax = Math.max(
+                                        8,
+                                        Math.floor((chipW - tagW - 32) / 5.4),
+                                      );
+                                      const refText =
+                                        ex.ref.length > refMax
+                                          ? `${ex.ref.slice(0, refMax - 1)}…`
+                                          : ex.ref;
+                                      const nav = navigableExit(ex);
+                                      const inner = (
+                                        <>
+                                          <title>{`${ex.relation} — ${ex.ref}${nav ? ' (open in reader)' : ' (Yerushalmi — see the daf’s Yerushalmi card)'}`}</title>
+                                          <rect
+                                            x={chipX}
+                                            y={top}
+                                            width={chipW}
+                                            height={ch}
+                                            rx={6}
+                                            ry={6}
+                                            fill="#ffffff"
+                                            stroke="#e4e0d4"
+                                            stroke-width={1}
+                                          />
+                                          <rect
+                                            x={chipX}
+                                            y={top}
+                                            width={3}
+                                            height={ch}
+                                            fill={PARALLEL}
+                                          />
+                                          <text
+                                            x={chipX + 11}
+                                            y={cy}
+                                            dominant-baseline="central"
+                                            font-size="10"
+                                            fill="#9a948a"
+                                          >
+                                            ↗
+                                          </text>
+                                          <text
+                                            x={chipX + 22}
+                                            y={cy}
+                                            dominant-baseline="central"
+                                            font-size="10.5"
+                                            font-weight="500"
+                                            font-family="system-ui, sans-serif"
+                                            fill="#2a2723"
+                                          >
+                                            {refText}
+                                          </text>
+                                          <rect
+                                            x={chipX + chipW - tagW - 5}
+                                            y={top + 2.5}
+                                            width={tagW}
+                                            height={ch - 5}
+                                            rx={5}
+                                            ry={5}
+                                            fill={corpusFill(ex.corpus)}
+                                          />
+                                          <text
+                                            x={chipX + chipW - tagW / 2 - 5}
+                                            y={cy}
+                                            text-anchor="middle"
+                                            dominant-baseline="central"
+                                            font-size="8.5"
+                                            font-weight="650"
+                                            font-family="system-ui, sans-serif"
+                                            fill={corpusInk(ex.corpus)}
+                                          >
+                                            {tag}
+                                          </text>
+                                        </>
+                                      );
+                                      // Bavli → clickable (opens in our reader); Yerushalmi → informative only.
+                                      if (!nav) return <g>{inner}</g>;
+                                      return (
+                                        // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
+                                        <g
+                                          role="button"
+                                          tabindex={0}
+                                          style={{ cursor: 'pointer' }}
+                                          onClick={() => pickExit(ex)}
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                              e.preventDefault();
+                                              pickExit(ex);
+                                            }
+                                          }}
+                                        >
+                                          {inner}
+                                        </g>
+                                      );
+                                    }}
+                                  </For>
+                                </Show>
+                              </>
+                            );
+                          })()}
                         </Show>
                       </g>
                     );

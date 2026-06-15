@@ -1258,28 +1258,39 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
                   {relLabel(grp.relation)}
                 </span>
                 <For each={grp.pages}>
-                  {(p) => (
-                    <a
-                      href={dafHref({ tractate: p.tractate, page: p.page })}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        goToDaf(p.tractate, p.page);
-                      }}
-                      title={t('overview.goToDaf', { daf: p.label })}
-                      style={{
-                        'font-size': '0.72rem',
-                        color: '#1d4ed8',
-                        'text-decoration': 'none',
-                        background: '#eff6ff',
-                        border: '1px solid #dbeafe',
-                        'border-radius': '5px',
-                        padding: '0.12rem 0.4rem',
-                        'white-space': 'nowrap',
-                      }}
-                    >
-                      {p.label}
-                    </a>
-                  )}
+                  {(p) => {
+                    // A Bavli daf (page like "31a") opens in our reader; a non-daf
+                    // target (Yerushalmi perek:halacha, e.g. "1:1") has no reader
+                    // here, so show it but leave it non-clickable.
+                    const nav = /^\d+[ab]$/.test(p.page);
+                    const chip = {
+                      'font-size': '0.72rem',
+                      'text-decoration': 'none',
+                      color: nav ? '#1d4ed8' : '#6b7280',
+                      background: nav ? '#eff6ff' : '#f3f4f6',
+                      border: `1px solid ${nav ? '#dbeafe' : '#e5e7eb'}`,
+                      'border-radius': '5px',
+                      padding: '0.12rem 0.4rem',
+                      'white-space': 'nowrap',
+                    };
+                    return nav ? (
+                      <a
+                        href={dafHref({ tractate: p.tractate, page: p.page })}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          goToDaf(p.tractate, p.page);
+                        }}
+                        title={t('overview.goToDaf', { daf: p.label })}
+                        style={chip}
+                      >
+                        {p.label}
+                      </a>
+                    ) : (
+                      <span title={p.label} style={chip}>
+                        {p.label}
+                      </span>
+                    );
+                  }}
                 </For>
               </div>
             )}
