@@ -2252,7 +2252,7 @@ async function dafGroupsFromIndex(
   tractate: string,
   page: string,
   lang: 'en' | 'he',
-): Promise<AnchorGroup[]> {
+): Promise<{ groups: AnchorGroup[]; marks: Record<string, AnchorPiece> }> {
   const raw = await listDafIndexRaw(env, tractate, page);
   const metas = raw
     .map((e) => e.meta as DafIndexEntryMeta & { l?: string })
@@ -2281,8 +2281,13 @@ async function dafGroupsFromIndex(
     };
   };
   // Per-instance enrichments grouped by target mark; everything else is whole-daf.
+  // Only WHOLE-DAF marks (Overview/Background/Tidbit/Bi'yun) are daf-level notes;
+  // per-instance marks (pesukim/argument/rabbi/…) are EXTRACTORS — not daf-level
+  // pieces — so they go in `marks` (the per-type header), NOT this group.
   const byTarget = new Map<string, Desc[]>();
-  const wholeDafProducers: Desc[] = CODE_MARKS.map((d) => descOf(d, 'mark'));
+  const wholeDafProducers: Desc[] = CODE_MARKS.filter(
+    (m) => (m as { anchor?: string }).anchor === 'whole-daf',
+  ).map((d) => descOf(d, 'mark'));
   for (const def of CODE_ENRICHMENTS.filter((e) => e.scope === 'local')) {
     const targetMark = (def as { target_mark?: string }).target_mark;
     if (targetMark && markAnchorById.get(targetMark) !== 'whole-daf') {
@@ -2321,6 +2326,14 @@ async function dafGroupsFromIndex(
     tokens: meta?.t ?? null,
   });
 
+  // The per-instance marks themselves (the extractors) — one row each, keyed by
+  // mark id (= the anchor type), for the place-type cluster header's telemetry.
+  const marks: Record<string, AnchorPiece> = {};
+  for (const m of CODE_MARKS) {
+    if ((m as { anchor?: string }).anchor === 'whole-daf') continue;
+    marks[m.id] = pieceOf(descOf(m, 'mark'), markMetaByP.get(m.id));
+  }
+
   const placed: Array<{ piece: AnchorPiece; anchor: AnchorRef | null }> = [];
   for (const [mid, anchors] of anchorsByMark) {
     const producers = byTarget.get(mid) ?? [];
@@ -2337,19 +2350,22 @@ async function dafGroupsFromIndex(
   }
 
   const { groups, wholeDaf } = groupByAnchor(placed);
-  return [
-    {
-      anchor: {
-        markId: WHOLE_DAF_ANCHOR,
-        instanceId: '',
-        label: 'Whole daf',
-        segRange: null,
-        instanceJson: { fields: {} },
+  return {
+    groups: [
+      {
+        anchor: {
+          markId: WHOLE_DAF_ANCHOR,
+          instanceId: '',
+          label: 'Whole daf',
+          segRange: null,
+          instanceJson: { fields: {} },
+        },
+        pieces: wholeDaf,
       },
-      pieces: wholeDaf,
-    },
-    ...groups,
-  ];
+      ...groups,
+    ],
+    marks,
+  };
 }
 
 app.get('/api/daf-runs/:tractate/:page', async (c) => {
@@ -2365,15 +2381,24 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
   // backfills + writes the sentinel, so the next view takes this branch).
   if (c.env.CACHE && (await c.env.CACHE.get(keyForDafIndexDone(tractate, page, lang)))) {
     try {
-      const [runs, groups] = await Promise.all([
+      const [runs, grouped] = await Promise.all([
         dafRunsFromIndexRows(c.env, tractate, page, lang),
         dafGroupsFromIndex(c.env, tractate, page, lang),
       ]);
       runs.sort((a, b) => (b.cold_ms ?? -1) - (a.cold_ms ?? -1));
-      // `groups` (additive) is the by-anchor view; `runs` stays flat for the load
+      // `groups` (additive) is the by-anchor view, `marks` the per-type extractor
+      // rows (for the place-type cluster headers); `runs` stays flat for the load
       // bar + old clients. The slow path below emits no groups → client falls
       // back to grouping `runs` flatly until the daf backfills.
-      return c.json({ tractate, page, lang, runs, groups, source: 'index' });
+      return c.json({
+        tractate,
+        page,
+        lang,
+        runs,
+        groups: grouped.groups,
+        marks: grouped.marks,
+        source: 'index',
+      });
     } catch {
       /* fall through to the probe path on any index-read error */
     }

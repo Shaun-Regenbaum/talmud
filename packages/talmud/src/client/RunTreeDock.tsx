@@ -30,6 +30,7 @@ import {
   type AnchorGroup as AnchorGroupT,
   type DafRun,
   dafRunGroups,
+  dafRunMarks,
   dafRunRows,
   dafRunsLoading,
   liveCounts,
@@ -561,6 +562,185 @@ export default function RunTreeDock(props: {
   // wants). A group with none passing is hidden.
   const groupPieces = (g: AnchorGroupT): DafRun[] =>
     g.pieces.map(pieceToRun).filter((r) => typeFilter().has(variantOf(r)));
+  // Cluster the per-place groups by their TYPE (mark id) so a place-type (the
+  // extractor mark) heads its own places, instead of the mark floating in the
+  // "Daf" group apart from its instances. The Daf group (daf-level notes) leads.
+  const typeClusters = createMemo(() => {
+    const groups = groupedRuns();
+    if (!groups) return null;
+    const daf = groups.find((g) => g.anchor.markId === WHOLE_DAF_ANCHOR) ?? null;
+    const clusters: { markId: string; instances: AnchorGroupT[] }[] = [];
+    const byId = new Map<string, { markId: string; instances: AnchorGroupT[] }>();
+    for (const g of groups) {
+      if (g.anchor.markId === WHOLE_DAF_ANCHOR) continue;
+      let c = byId.get(g.anchor.markId);
+      if (!c) {
+        c = { markId: g.anchor.markId, instances: [] };
+        byId.set(g.anchor.markId, c);
+        clusters.push(c);
+      }
+      c.instances.push(g);
+    }
+    return { daf, clusters };
+  });
+  // Type clusters default OPEN; instance groups default closed (`expandedAnchors`).
+  const [collapsedTypes, setCollapsedTypes] = createSignal<Set<string>>(new Set());
+  const typeOpen = (markId: string) => !collapsedTypes().has(markId);
+  const toggleTypeCluster = (markId: string) =>
+    setCollapsedTypes((prev) => {
+      const n = new Set(prev);
+      if (n.has(markId)) n.delete(markId);
+      else n.add(markId);
+      return n;
+    });
+
+  // A place-type cluster header (the extractor mark): icon + traditional label +
+  // count + the mark's own cost. Collapsible — hides the whole cluster.
+  const TypeHeader = (tp: {
+    markId: string;
+    count: number;
+    cachedN: number;
+    daf?: boolean;
+  }): JSX.Element => {
+    const ty = anchorTypeOf(tp.markId);
+    return (
+      // biome-ignore lint/a11y/useSemanticElements: collapsible cluster header, consistent with RunRow
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => toggleTypeCluster(tp.markId)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleTypeCluster(tp.markId);
+          }
+        }}
+        style={{
+          display: 'flex',
+          'align-items': 'center',
+          gap: '0.4rem',
+          padding: '0.3rem 0.6rem',
+          cursor: 'pointer',
+          background: '#efe9dc',
+          'border-top': '1px solid #e2dccc',
+          'font-size': '0.72rem',
+        }}
+      >
+        <span style={{ width: '0.7rem', color: '#9a8f78', 'flex-shrink': 0 }}>
+          {typeOpen(tp.markId) ? '▾' : '▸'}
+        </span>
+        <AnchorTypeIcon markId={tp.markId} color={ty.color} />
+        <span
+          style={{
+            'font-weight': 700,
+            color: ty.color,
+            'flex-shrink': 0,
+            'letter-spacing': '0.01em',
+          }}
+        >
+          {ty.label}
+        </span>
+        <span style={{ color: '#a89c86', 'flex-shrink': 0 }}>
+          {tp.daf ? 'daf-level notes' : `· ${tp.count}`}
+        </span>
+        <span style={{ flex: 1 }} />
+        <Show when={dafRunMarks()[tp.markId]?.cost != null}>
+          <span
+            style={{
+              'font-size': '0.66rem',
+              color: '#bcae9a',
+              'font-variant-numeric': 'tabular-nums',
+              'flex-shrink': 0,
+            }}
+          >
+            {fmtCost(dafRunMarks()[tp.markId]?.cost ?? null)}
+          </span>
+        </Show>
+        <span
+          style={{
+            'font-variant-numeric': 'tabular-nums',
+            color: tp.cachedN === tp.count ? '#5f8a6f' : '#a8854a',
+            'flex-shrink': 0,
+          }}
+        >
+          {tp.cachedN}/{tp.count}
+        </span>
+      </div>
+    );
+  };
+
+  // One instance group (a single place): a collapsible row — the anchor's own
+  // label + cached fraction — expanding to its pieces. Indented under its type.
+  const AnchorGroupRow = (gp: { g: AnchorGroupT }): JSX.Element => {
+    const g = gp.g;
+    const pieces = createMemo(() => groupPieces(g));
+    const k = anchorKey(g);
+    const open = () => expandedAnchors().has(k);
+    const cachedN = g.pieces.filter((p) => p.cached).length;
+    return (
+      <Show when={pieces().length > 0}>
+        {/* biome-ignore lint/a11y/useSemanticElements: collapsible instance header, consistent with RunRow */}
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => toggleAnchor(k)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleAnchor(k);
+            }
+          }}
+          style={{
+            display: 'flex',
+            'align-items': 'center',
+            gap: '0.4rem',
+            padding: '0.2rem 0.6rem 0.2rem 1.6rem',
+            cursor: 'pointer',
+            'font-size': '0.72rem',
+          }}
+        >
+          <span style={{ width: '0.7rem', color: '#b3a994', 'flex-shrink': 0 }}>
+            {open() ? '▾' : '▸'}
+          </span>
+          <span
+            style={{
+              color: '#6b6358',
+              'white-space': 'nowrap',
+              overflow: 'hidden',
+              'text-overflow': 'ellipsis',
+              flex: 1,
+            }}
+          >
+            {g.anchor.label || g.anchor.markId}
+          </span>
+          <span
+            style={{
+              'font-variant-numeric': 'tabular-nums',
+              color: cachedN === g.pieces.length ? '#5f8a6f' : '#a8854a',
+              'flex-shrink': 0,
+            }}
+          >
+            {cachedN}/{g.pieces.length}
+          </span>
+        </div>
+        <Show when={open()}>
+          <For each={pieces()}>
+            {(r) => (
+              <RunRow
+                run={r}
+                maxMs={maxCold()}
+                active={r.id === pieceId()}
+                loading={liveLoading().has(r.id)}
+                loadingCount={liveCounts().get(r.id) ?? 0}
+                onClick={() => openPiece(r.id, g.anchor.instanceJson)}
+                onInspect={() => openPiece(r.id, g.anchor.instanceJson)}
+              />
+            )}
+          </For>
+        </Show>
+      </Show>
+    );
+  };
   // Per-instance focus (a mark_input) when an (i) inspects e.g. one section's
   // synthesis; null = whole-daf. Cleared when navigating via the waterfall.
   const [focusInstance, setFocusInstance] = createSignal<unknown>(null);
@@ -905,7 +1085,7 @@ export default function RunTreeDock(props: {
               <div style={{ padding: '0.6rem', color: '#aaa' }}>loading…</div>
             </Show>
             <Show
-              when={groupedRuns()}
+              when={typeClusters()}
               fallback={
                 <For each={visibleRuns()}>
                   {(r) => (
@@ -922,96 +1102,57 @@ export default function RunTreeDock(props: {
                 </For>
               }
             >
-              {(groups) => (
-                <For each={groups()}>
-                  {(g) => {
-                    const pieces = createMemo(() => groupPieces(g));
-                    const whole = g.anchor.markId === WHOLE_DAF_ANCHOR;
-                    const k = anchorKey(g);
-                    const open = () => whole || expandedAnchors().has(k);
-                    const cachedN = g.pieces.filter((p) => p.cached).length;
-                    const ty = anchorTypeOf(g.anchor.markId);
-                    return (
-                      <Show when={pieces().length > 0}>
-                        {/* biome-ignore lint/a11y/useSemanticElements: collapsible anchor-group header; a div keeps it consistent with RunRow's clickable rows */}
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => !whole && toggleAnchor(k)}
-                          onKeyDown={(e) => {
-                            if (!whole && (e.key === 'Enter' || e.key === ' ')) {
-                              e.preventDefault();
-                              toggleAnchor(k);
-                            }
-                          }}
-                          style={{
-                            display: 'flex',
-                            'align-items': 'center',
-                            gap: '0.4rem',
-                            padding: '0.25rem 0.6rem',
-                            cursor: whole ? 'default' : 'pointer',
-                            background: '#f6f3ec',
-                            'border-top': '1px solid #ece7da',
-                            'font-size': '0.72rem',
-                          }}
-                        >
-                          <span style={{ width: '0.7rem', color: '#b3a994', 'flex-shrink': 0 }}>
-                            {whole ? '' : open() ? '▾' : '▸'}
-                          </span>
-                          <AnchorTypeIcon markId={g.anchor.markId} color={ty.color} />
-                          {/* type chip — the traditional term, colour-coded */}
-                          <span
-                            style={{
-                              'font-weight': 600,
-                              color: ty.color,
-                              'flex-shrink': 0,
-                              'font-size': '0.7rem',
-                              'letter-spacing': '0.01em',
-                            }}
-                          >
-                            {ty.label}
-                          </span>
-                          {/* the anchor's own label (the verse / section title / sage name) */}
-                          <span
-                            style={{
-                              color: '#6b6358',
-                              'white-space': 'nowrap',
-                              overflow: 'hidden',
-                              'text-overflow': 'ellipsis',
-                              flex: 1,
-                            }}
-                          >
-                            {whole ? 'all daf-level notes' : g.anchor.label}
-                          </span>
-                          <span
-                            style={{
-                              'font-variant-numeric': 'tabular-nums',
-                              color: cachedN === g.pieces.length ? '#5f8a6f' : '#a8854a',
-                              'flex-shrink': 0,
-                            }}
-                          >
-                            {cachedN}/{g.pieces.length}
-                          </span>
-                        </div>
-                        <Show when={open()}>
-                          <For each={pieces()}>
-                            {(r) => (
-                              <RunRow
-                                run={r}
-                                maxMs={maxCold()}
-                                active={r.id === pieceId()}
-                                loading={liveLoading().has(r.id)}
-                                loadingCount={liveCounts().get(r.id) ?? 0}
-                                onClick={() => openPiece(r.id, g.anchor.instanceJson)}
-                                onInspect={() => openPiece(r.id, g.anchor.instanceJson)}
-                              />
-                            )}
-                          </For>
+              {(tc) => (
+                <>
+                  {/* Daf — the daf-level notes, as rows under the header */}
+                  <Show when={tc().daf}>
+                    {(daf) => {
+                      const pcs = createMemo(() => groupPieces(daf()));
+                      return (
+                        <Show when={pcs().length > 0}>
+                          <TypeHeader
+                            markId={WHOLE_DAF_ANCHOR}
+                            count={daf().pieces.length}
+                            cachedN={daf().pieces.filter((p) => p.cached).length}
+                            daf
+                          />
+                          <Show when={typeOpen(WHOLE_DAF_ANCHOR)}>
+                            <For each={pcs()}>
+                              {(r) => (
+                                <RunRow
+                                  run={r}
+                                  maxMs={maxCold()}
+                                  active={r.id === pieceId()}
+                                  loading={liveLoading().has(r.id)}
+                                  loadingCount={liveCounts().get(r.id) ?? 0}
+                                  onClick={() => openPiece(r.id)}
+                                  onInspect={() => openPiece(r.id)}
+                                />
+                              )}
+                            </For>
+                          </Show>
                         </Show>
-                      </Show>
-                    );
-                  }}
-                </For>
+                      );
+                    }}
+                  </Show>
+                  {/* One cluster per place-type — the extractor mark heads its places */}
+                  <For each={tc().clusters}>
+                    {(c) => (
+                      <>
+                        <TypeHeader
+                          markId={c.markId}
+                          count={c.instances.length}
+                          cachedN={
+                            c.instances.filter((g) => g.pieces.every((p) => p.cached)).length
+                          }
+                        />
+                        <Show when={typeOpen(c.markId)}>
+                          <For each={c.instances}>{(g) => <AnchorGroupRow g={g} />}</For>
+                        </Show>
+                      </>
+                    )}
+                  </For>
+                </>
               )}
             </Show>
           </div>
