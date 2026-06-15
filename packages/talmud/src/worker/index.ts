@@ -2385,19 +2385,14 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
       };
     }),
   );
-  // longest cold runs first — the waterfall reads as "where the time went"
-  // Backfill the daf-index for this daf if nothing's indexed yet — pieces warmed
-  // before the index existed. One `list(limit:1)` decides; the backfill itself
-  // runs off the request path (waitUntil) so the response is unchanged and never
-  // waits on it. Runs at most once per daf (the next view sees entries + skips).
+  // We only reach this (probe) path when the daf has NO completion sentinel, so
+  // (re)backfill it off the request path (waitUntil — the response never waits):
+  // this writes any missing index entries + the sentinel, flipping the NEXT view
+  // to the fast index path. Covers both never-indexed dapim AND ones PR2
+  // backfilled before sentinels existed (entries but no sentinel). Idempotent; a
+  // concurrent second view may double-run it harmlessly.
   if (c.env.CACHE) {
-    const cache = c.env.CACHE;
-    c.executionCtx.waitUntil(
-      (async () => {
-        const head = await cache.list({ prefix: prefixForDafIndex(tractate, page), limit: 1 });
-        if (head.keys.length === 0) await backfillDafIndex(c.env, tractate, page, lang);
-      })().catch(() => {}),
-    );
+    c.executionCtx.waitUntil(backfillDafIndex(c.env, tractate, page, lang).catch(() => {}));
   }
   runs.sort((a, b) => (b.cold_ms ?? -1) - (a.cold_ms ?? -1));
   return c.json({ tractate, page, lang, runs, source: 'probe' });
