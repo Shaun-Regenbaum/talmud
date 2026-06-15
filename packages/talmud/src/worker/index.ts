@@ -71,7 +71,7 @@ import {
 } from '../lib/rabbi/types';
 import type { EntityPiece } from '../lib/registry/entity';
 import { adjacentAmud, sefariaAPI, type TalmudPageData } from '../lib/sefref';
-import { iterAmudim } from '../lib/sefref/amudim';
+import { iterAmudim, TRACTATE_END_AMUD } from '../lib/sefref/amudim';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { fetchHebrewBooksDaf } from '../lib/sefref/hebrewbooks/client';
 import {
@@ -1387,6 +1387,117 @@ async function computeCrossFlow(env: Bindings, tractate: string, page: string): 
   return result;
 }
 
+// Connect ONE daf boundary (page -> next daf): compute + pin BOTH the
+// daf-continuity bridge and the section-level cross-flow. Both compute fns are
+// cache-respecting and never pin a no-data verdict, so this is idempotent and
+// self-healing — a boundary whose two dapim aren't both warm yet stays unpinned
+// and retries on a later call. The single shared step behind the read-triggered
+// deep warm (deepWarmDaf) and the cron connect sweep (runConnectSweep), so the
+// cross-daf layer fills in the same way the within-daf flow already does.
+// Budget-gated at the runLLM chokepoint; best-effort (a failure connects
+// nothing rather than throwing).
+async function connectBoundary(
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<{ bridge: boolean; cross: boolean }> {
+  let bridge = false;
+  let cross = false;
+  try {
+    const b = await computeDafBridge(env, tractate, page);
+    bridge = b.via !== 'no-data';
+  } catch {
+    /* best-effort */
+  }
+  try {
+    const cf = await computeCrossFlow(env, tractate, page);
+    cross = cf.via === 'llm'; // 'llm' = computed/cached; 'no-data'/'edge-of-tractate' = not linked
+  } catch {
+    /* best-effort */
+  }
+  return { bridge, cross };
+}
+
+// Completeness backstop for the cross-daf layer: walk every daf boundary across
+// Shas and CONNECT (bridge + cross-flow) any where both dapim are already warm
+// but the link is still cold. Connect-ONLY — it never warms the underlying
+// argument marks (that happens on read / deep-warm); it just links what is
+// already linkable, so a tick is mostly cheap KV existence checks plus a couple
+// of flash LLM calls per genuinely-new boundary. Cursor-driven and PERPETUAL: a
+// full pass wraps back to the start rather than latching done, so boundaries
+// whose dapim warm up *after* a pass (or that failed on a budget cap / transient
+// error) are picked up on the next lap. Once everything is connected, each tick
+// is pure cheap skips. Best-effort per boundary.
+const CONNECT_CURSOR_KEY = 'connect-cursor:v1';
+const CONNECT_BATCH = 16; // boundaries examined per tick (most are cheap skips)
+interface ConnectCursor {
+  tractateIdx: number;
+  amudIdx: number;
+  connected: number;
+}
+async function runConnectSweep(env: Bindings): Promise<void> {
+  const cache = env.CACHE;
+  if (!cache) return;
+  const tractates = Object.keys(TRACTATE_END_AMUD);
+  if (tractates.length === 0) return;
+  let cur: ConnectCursor = { tractateIdx: 0, amudIdx: 0, connected: 0 };
+  const raw = await cache.get(CONNECT_CURSOR_KEY);
+  if (raw) {
+    try {
+      cur = JSON.parse(raw) as ConnectCursor;
+    } catch {
+      /* reset */
+    }
+  }
+  let { tractateIdx, amudIdx, connected } = cur;
+  if (tractateIdx >= tractates.length) tractateIdx = 0; // tractate list shrank
+  let examined = 0;
+  while (examined < CONNECT_BATCH) {
+    if (tractateIdx >= tractates.length) {
+      // End of Shas — wrap to the start so newly-connectable boundaries get
+      // picked up on the next lap (skips are cheap once already connected).
+      tractateIdx = 0;
+      amudIdx = 0;
+    }
+    const tractate = tractates[tractateIdx];
+    const pages = [...iterAmudim(tractate)];
+    if (amudIdx >= pages.length) {
+      tractateIdx++;
+      amudIdx = 0;
+      continue;
+    }
+    const page = pages[amudIdx];
+    amudIdx++;
+    examined++;
+    const next = adjacentAmud(tractate, page, 1);
+    if (!next) continue; // last daf of the tractate — no boundary
+    // Fully connected? Skip only when BOTH the cross-flow AND the bridge are
+    // cached — `/api/cross-flow` can write the cross key without the bridge, so
+    // a cross-only check would skip a boundary whose continuity is still cold.
+    const [haveCross, haveBridge] = await Promise.all([
+      cache.get(keyForCrossFlow(tractate, page)),
+      cache.get(keyForBridge(tractate, page)),
+    ]);
+    if (haveCross && haveBridge) continue;
+    // Only connect when BOTH sides already have argument sections cached; else
+    // the compute would no-data (not pin) — skip rather than waste the call.
+    const a = await readSortedSections(env, tractate, page);
+    if (a.sections.length === 0) continue;
+    const b = await readSortedSections(env, tractate, next);
+    if (b.sections.length === 0) continue;
+    // connectBoundary computes both; the already-cached side is a cheap hit.
+    const r = await connectBoundary(env, tractate, page).catch(() => ({
+      bridge: false,
+      cross: false,
+    }));
+    if (r.cross) connected++;
+  }
+  await cache.put(CONNECT_CURSOR_KEY, JSON.stringify({ tractateIdx, amudIdx, connected }));
+  console.log(
+    `[connect-sweep] examined=${examined} connected=${connected} cursor=${tractateIdx}:${amudIdx}`,
+  );
+}
+
 // The STITCHED flow view: per-daf argument flow graphs (the same nodes +
 // connections the daf reader's ArgumentFlowGraph renders) plus each daf's
 // cross-daf edges into the next, for the whole tractate. Read-only over cached
@@ -1411,6 +1522,11 @@ app.get('/api/spine-view/:tractate', async (c) => {
       })),
       flow,
       cross: cross?.edges ?? [],
+      // Has this daf's cross-daf link been computed yet? A cached cross-flow
+      // (even with zero edges = genuinely no link) means computed; null means
+      // still cold (not yet warmed). Lets the client distinguish "no link" from
+      // "not connected yet" and surface the gaps.
+      crossComputed: cross != null,
       // deterministic daf-continuity: does the sugya carry into the next daf?
       continues: bridge?.continues === true,
     };
@@ -9435,10 +9551,10 @@ async function deepWarmDaf(
    *  cache-skip below finds them missing and regenerates them; unchanged
    *  (non-cascade) dependencies are not evicted and cache-hit. */
   only?: ReadonlySet<string>,
-): Promise<{ marks: number; enqueued: number; skipped: number; bridges: number }> {
+): Promise<{ marks: number; enqueued: number; skipped: number; bridges: number; cross: number }> {
   const queue = rc.env.ENRICHMENT_QUEUE;
   const cache = rc.env.CACHE;
-  if (!queue) return { marks: 0, enqueued: 0, skipped: 0, bridges: 0 };
+  if (!queue) return { marks: 0, enqueued: 0, skipped: 0, bridges: 0, cross: 0 };
   // Keys derive through the store (one derivation chokepoint); the probes
   // below stay raw `cache.get` EXISTENCE checks on purpose — store.get would
   // treat a corrupt entry as a miss and re-enqueue it, where today's probe
@@ -9587,25 +9703,30 @@ async function deepWarmDaf(
     }
   }
 
-  // Cross-daf bridges (the reader Overview's sugya map): compute + pin this
-  // daf's forward bridge and the previous daf's bridge into this one. Both
-  // dapim's argument sections are warm (run above / globally), so the bridge
-  // verdict resolves and caches instead of leaving the first reader to pay the
-  // cold bridge LLM calls. Best-effort — a bridge failure never fails the warm.
+  // Cross-daf links (the reader Overview's sugya map + the spine stitched view):
+  // connect this daf's forward boundary and the previous daf's boundary into
+  // this one — computing + pinning BOTH the continuity bridge and the
+  // section-level cross-flow. Both dapim's argument sections are warm (run above
+  // / globally), so the verdicts resolve and cache instead of leaving the first
+  // reader to pay the cold LLM calls. Best-effort — a failure never fails the
+  // warm.
   let bridges = 0;
+  let cross = 0;
   try {
-    const fwd = await computeDafBridge(rc.env, tractate, page);
-    if (fwd.via !== 'no-data') bridges++;
+    const fwd = await connectBoundary(rc.env, tractate, page);
+    if (fwd.bridge) bridges++;
+    if (fwd.cross) cross++;
     const prev = adjacentAmud(tractate, page, -1);
     if (prev) {
-      const back = await computeDafBridge(rc.env, tractate, prev);
-      if (back.via !== 'no-data') bridges++;
+      const back = await connectBoundary(rc.env, tractate, prev);
+      if (back.bridge) bridges++;
+      if (back.cross) cross++;
     }
   } catch {
-    /* bridges are best-effort */
+    /* cross-daf links are best-effort */
   }
 
-  return { marks, enqueued, skipped, bridges };
+  return { marks, enqueued, skipped, bridges, cross };
 }
 
 /**
@@ -9668,7 +9789,7 @@ async function processEnrichmentJob(
         result: { kind: 'warm', ...stats, total_ms: Date.now() - t0 },
       });
       console.log(
-        `[queue] deep-warm ${job.tractate}/${job.page} lang=${rc.lang} marks=${stats.marks} enqueued=${stats.enqueued} skipped=${stats.skipped} bridges=${stats.bridges}`,
+        `[queue] deep-warm ${job.tractate}/${job.page} lang=${rc.lang} marks=${stats.marks} enqueued=${stats.enqueued} skipped=${stats.skipped} bridges=${stats.bridges} cross=${stats.cross}`,
       );
       return;
     }
@@ -9787,7 +9908,13 @@ export default {
       // ~nothing when disabled (the common case).
       ctx.waitUntil(
         runBacklogBackfill(wrapped, (n, nHe, g) => enrichRabbi(n, nHe, g as GenerationId)).then(
-          (r) => (r ? undefined : runWarmCron(wrapped)),
+          async (r) => {
+            if (r) return; // backfill ran this tick — give it the full budget
+            // Connect-only cross-daf sweep first (bounded + cheap, so it always
+            // makes a little progress), then the source warm cron uses the rest.
+            await runConnectSweep(wrapped).catch(() => {});
+            await runWarmCron(wrapped);
+          },
         ),
       );
     }

@@ -29,6 +29,10 @@ export interface SpineViewDaf {
   cross: { fromSection: number; toSection: number; relation: string; note?: string }[];
   /** deterministic daf-continuity bridge: does the sugya carry into the next daf? */
   continues?: boolean;
+  /** has this daf's cross-daf link been computed yet? false = still cold (the
+   *  warmer/sweep hasn't connected this boundary). Drawn as a dashed "not yet
+   *  connected" divider so gaps in the map are visible, not silent. */
+  crossComputed?: boolean;
 }
 
 const NODE_W = 330,
@@ -95,10 +99,13 @@ export default function SpineFlowGraph(props: {
     const nodeTitle = new Map<string, string>();
     const nodeNum = new Map<string, number>();
     const nodeRabbis = new Map<string, SectionRabbi[]>();
-    const dafHeaders: { page: string; y: number }[] = [];
+    const dafHeaders: { page: string; y: number; pending: boolean }[] = [];
     let y = TOP_PAD;
     for (const d of props.dapim) {
-      dafHeaders.push({ page: d.page, y });
+      // pending = this daf has a next daf but its cross-daf link is still cold
+      // (not computed). Genuinely-no-link boundaries (computed, 0 edges) are NOT
+      // pending — crossComputed distinguishes them.
+      dafHeaders.push({ page: d.page, y, pending: !!d.nextPage && d.crossComputed === false });
       y += DAF_HEADER_H;
       d.sections.forEach((s, pos) => {
         const key = `${d.page}#${s.index}`;
@@ -376,8 +383,9 @@ export default function SpineFlowGraph(props: {
                         y1={h.y + DAF_HEADER_H - 6}
                         x2={m.width}
                         y2={h.y + DAF_HEADER_H - 6}
-                        stroke="#efece2"
+                        stroke={h.pending ? '#d8d2c4' : '#efece2'}
                         stroke-width={1}
+                        stroke-dasharray={h.pending ? '4 3' : undefined}
                       />
                       <text
                         x={6}
@@ -389,6 +397,19 @@ export default function SpineFlowGraph(props: {
                       >
                         {h.page}
                       </text>
+                      <Show when={h.pending}>
+                        <text
+                          x={m.width - 6}
+                          y={h.y + 15}
+                          text-anchor="end"
+                          font-size="10.5"
+                          font-style="italic"
+                          font-family="system-ui, -apple-system, sans-serif"
+                          fill="#b0a894"
+                        >
+                          cross-daf link not computed yet
+                        </text>
+                      </Show>
                     </>
                   )}
                 </For>

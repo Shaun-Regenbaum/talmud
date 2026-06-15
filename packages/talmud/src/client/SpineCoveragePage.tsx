@@ -294,6 +294,19 @@ export function SpineCoveragePage(): JSX.Element {
                   const crossCount = createMemo(() =>
                     capped().reduce((n, d) => n + d.cross.length, 0),
                   );
+                  // Cross-daf warming progress across the whole tractate: a
+                  // boundary = a daf with a next daf; connected = its cross-daf
+                  // link has been computed (warmer/sweep reached it).
+                  const connectivity = createMemo(() => {
+                    let total = 0;
+                    let done = 0;
+                    for (const d of v().dapim) {
+                      if (!d.nextPage) continue;
+                      total++;
+                      if (d.crossComputed) done++;
+                    }
+                    return { total, done };
+                  });
                   const segChip = (active: boolean): JSX.CSSProperties => ({
                     font: 'inherit',
                     'font-size': '0.78rem',
@@ -342,8 +355,12 @@ export function SpineCoveragePage(): JSX.Element {
                         >
                           showing {capped().length} of {shown().length} dapim{' '}
                           {shown().length > FLOW_VIEW_CAP ? '(capped)' : ''} &middot; {crossCount()}{' '}
-                          cross-daf arrows (thicker lines span the page break) &middot; click a
-                          rabbi to trace
+                          cross-daf arrows (thicker lines span the page break) &middot;{' '}
+                          {connectivity().done}/{connectivity().total} boundaries connected
+                          {connectivity().done < connectivity().total
+                            ? ' (dashed = not computed yet)'
+                            : ''}{' '}
+                          &middot; click a rabbi to trace
                         </Show>
                       </div>
                       <FlowLegend kinds={allKinds()} />
