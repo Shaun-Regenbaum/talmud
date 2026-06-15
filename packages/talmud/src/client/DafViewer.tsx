@@ -36,6 +36,7 @@ import { type CommentaryAnchorIndex, fetchCommentaryAnchorIndex } from './commen
 import DafLoadProgress from './DafLoadProgress';
 import { readDevMode, setDevModeActive } from './DevModeShelf';
 import { cancelPrefetch, prefetchDaf } from './dafPrefetch';
+import { setDafRunsTarget } from './dafRunsStore';
 import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { GutterIcons, type GutterKind } from './GutterIcons';
 import { GutterOverlay } from './GutterOverlay';
@@ -788,6 +789,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // signature (daf + per-mark instance counts) guards against re-firing and
   // self-corrects if a daf change briefly leaves stale mark runs visible — the
   // generation-guarded prefetchDaf supersedes any stale cohort.
+  // Point the shared daf-runs store (Inspect waterfall + the load bar's cache
+  // grounding) at the open daf, so both consume one snapshot for this daf/lang.
+  createEffect(() => setDafRunsTarget(tractate(), page(), lang()));
+
   let lastPrefetchSig = '';
   createEffect(() => {
     const t = tractate();
