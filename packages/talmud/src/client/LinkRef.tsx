@@ -48,28 +48,33 @@ const INERT: JSX.CSSProperties = {
   border: '1px solid #e5e7eb',
 };
 
-export function LinkRef(props: { coord: AnchorCoord }): JSX.Element {
-  const target = () => linkTarget(props.coord);
-  const badge = (): { label: string; bg: string; fg: string } | undefined =>
-    CORPUS_BADGE[target().corpus];
-  const Badge = (): JSX.Element => (
-    <Show when={badge()}>
-      {(b) => (
+/** The corpus tag shown beside a cross-text reference — only for corpora whose
+ *  label isn't self-evident (Yerushalmi, commentary). Shared so the overview
+ *  chip, the halacha sources, and any other ref list badge the same way. */
+export function CorpusBadge(props: { corpus: LinkCorpus }): JSX.Element {
+  const b = (): { label: string; bg: string; fg: string } | undefined => CORPUS_BADGE[props.corpus];
+  return (
+    <Show when={b()}>
+      {(badge) => (
         <span
           style={{
             'font-size': '0.6rem',
             'font-weight': 650,
             'border-radius': '999px',
             padding: '0 0.32rem',
-            background: b().bg,
-            color: b().fg,
+            background: badge().bg,
+            color: badge().fg,
           }}
         >
-          {b().label}
+          {badge().label}
         </span>
       )}
     </Show>
   );
+}
+
+export function LinkRef(props: { coord: AnchorCoord }): JSX.Element {
+  const target = () => linkTarget(props.coord);
   return (
     <Show
       when={target().navigable && target().href}
@@ -77,7 +82,7 @@ export function LinkRef(props: { coord: AnchorCoord }): JSX.Element {
         // Inert: no in-app reader for this corpus (Yerushalmi, a verse, …).
         <span style={INERT} title={target().label}>
           {target().label}
-          <Badge />
+          <CorpusBadge corpus={target().corpus} />
         </span>
       }
     >
@@ -85,7 +90,7 @@ export function LinkRef(props: { coord: AnchorCoord }): JSX.Element {
         // A real href (relative `?tractate=&page=`) so middle-click / open-in-new-tab work.
         <a style={NAV} href={href()} title={t('overview.goToDaf', { daf: target().label })}>
           {target().label}
-          <Badge />
+          <CorpusBadge corpus={target().corpus} />
         </a>
       )}
     </Show>
