@@ -22,7 +22,12 @@ import {
   onCleanup,
 } from 'solid-js';
 import { aiActivity } from './aiActivity';
-import { type AnchorGroup, cacheProgressOf, type DafRun } from './dafRunsProgress';
+import {
+  type AnchorGroup,
+  type AnchorPiece,
+  cacheProgressOf,
+  type DafRun,
+} from './dafRunsProgress';
 import { liveProducerCounts, liveProducerSet } from './runStatus';
 
 // Re-export the pure shape + reducers so consumers keep one import site; the
@@ -62,15 +67,26 @@ const targetKey = (): string | null => {
 const store = createRoot(() => {
   const [runs, { refetch }] = createResource(
     targetKey,
-    async (key): Promise<{ key: string; rows: DafRun[]; groups: AnchorGroup[] }> => {
+    async (
+      key,
+    ): Promise<{
+      key: string;
+      rows: DafRun[];
+      groups: AnchorGroup[];
+      marks: Record<string, AnchorPiece>;
+    }> => {
       const t = target();
-      if (!t) return { key, rows: [], groups: [] };
+      if (!t) return { key, rows: [], groups: [], marks: {} };
       const r = await fetch(
         `/api/daf-runs/${encodeURIComponent(t.tractate)}/${encodeURIComponent(t.page)}?lang=${t.lang}`,
       );
-      if (!r.ok) return { key, rows: [], groups: [] };
-      const j = (await r.json()) as { runs?: DafRun[]; groups?: AnchorGroup[] };
-      return { key, rows: j.runs ?? [], groups: j.groups ?? [] };
+      if (!r.ok) return { key, rows: [], groups: [], marks: {} };
+      const j = (await r.json()) as {
+        runs?: DafRun[];
+        groups?: AnchorGroup[];
+        marks?: Record<string, AnchorPiece>;
+      };
+      return { key, rows: j.runs ?? [], groups: j.groups ?? [], marks: j.marks ?? {} };
     },
   );
   const liveLoading = createMemo<Set<string>>(() => liveProducerSet(aiActivity()));
@@ -101,6 +117,10 @@ export const dafRunRows = (): DafRun[] => {
 };
 /** The by-anchor groups for the current daf (additive; empty when the server is
  *  old or the daf is un-indexed — the dock falls back to the flat `runs` view). */
+export const dafRunMarks = (): Record<string, AnchorPiece> => {
+  const r = store.runs();
+  return r && r.key === targetKey() ? r.marks : {};
+};
 export const dafRunGroups = (): AnchorGroup[] => {
   const r = store.runs();
   return r && r.key === targetKey() ? r.groups : [];
