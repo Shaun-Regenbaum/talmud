@@ -90,4 +90,34 @@ describe('SpineFlowGraph — cross-text exit markers', () => {
     const { container } = render(() => <SpineFlowGraph dapim={noExits} />);
     expect(texts(container, '⤳')).toHaveLength(0);
   });
+
+  it('shows a ⤳? marker on a daf whose parallels are not computed yet', () => {
+    const cold: SpineViewDaf[] = [
+      {
+        page: '7a',
+        nextPage: '7b',
+        parallelsComputed: false,
+        sections: [{ index: 0, title: 'X', rabbis: [], exits: [] }],
+        flow: [],
+        cross: [],
+      },
+    ];
+    const { container } = render(() => <SpineFlowGraph dapim={cold} />);
+    expect(texts(container, '⤳?').length).toBeGreaterThan(0);
+  });
+
+  it('shows no ⤳? marker once the daf is computed (even with zero parallels)', () => {
+    const warm: SpineViewDaf[] = [
+      {
+        page: '7a',
+        nextPage: '7b',
+        parallelsComputed: true,
+        sections: [{ index: 0, title: 'X', rabbis: [], exits: [] }],
+        flow: [],
+        cross: [],
+      },
+    ];
+    const { container } = render(() => <SpineFlowGraph dapim={warm} />);
+    expect(texts(container, '⤳?')).toHaveLength(0);
+  });
 });

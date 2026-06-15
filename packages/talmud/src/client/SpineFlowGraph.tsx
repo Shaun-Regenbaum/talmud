@@ -43,6 +43,10 @@ export interface SpineViewDaf {
    *  warmer/sweep hasn't connected this boundary). Drawn as a dashed "not yet
    *  connected" divider so gaps in the map are visible, not silent. */
   crossComputed?: boolean;
+  /** have this daf's cross-text parallels been computed yet? false = still cold
+   *  (no `⤳ N` badge would be ambiguous — "none" vs "not checked"); drawn as a
+   *  muted `⤳?` marker on the daf header so the gap is visible, not silent. */
+  parallelsComputed?: boolean;
 }
 
 const NODE_W = 330,
@@ -159,13 +163,19 @@ export default function SpineFlowGraph(props: {
     const nodeRabbis = new Map<string, SectionRabbi[]>();
     const nodeExits = new Map<string, ExitMark[]>();
     const nodeBand = new Map<string, number>(); // reserved height for an open exits band
-    const dafHeaders: { page: string; y: number; pending: boolean }[] = [];
+    const dafHeaders: { page: string; y: number; pending: boolean; parallelsCold: boolean }[] = [];
     let y = TOP_PAD;
     for (const d of props.dapim) {
       // pending = this daf has a next daf but its cross-daf link is still cold
       // (not computed). Genuinely-no-link boundaries (computed, 0 edges) are NOT
-      // pending — crossComputed distinguishes them.
-      dafHeaders.push({ page: d.page, y, pending: !!d.nextPage && d.crossComputed === false });
+      // pending — crossComputed distinguishes them. parallelsCold = the daf's
+      // cross-text parallels have never been computed (vs computed-and-none).
+      dafHeaders.push({
+        page: d.page,
+        y,
+        pending: !!d.nextPage && d.crossComputed === false,
+        parallelsCold: d.parallelsComputed === false,
+      });
       y += DAF_HEADER_H;
       d.sections.forEach((s, pos) => {
         const key = `${d.page}#${s.index}`;
@@ -465,6 +475,22 @@ export default function SpineFlowGraph(props: {
                       >
                         {h.page}
                       </text>
+                      <Show when={h.parallelsCold}>
+                        <text
+                          x={44}
+                          y={h.y + 15}
+                          font-size="10.5"
+                          font-family="system-ui, -apple-system, sans-serif"
+                          fill="#c4bdab"
+                          style={{ cursor: 'default' }}
+                        >
+                          <title>
+                            parallels not computed yet for this daf (warm it to see its cross-text
+                            links)
+                          </title>
+                          ⤳?
+                        </text>
+                      </Show>
                       <Show when={h.pending}>
                         <text
                           x={m.width - 6}

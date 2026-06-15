@@ -1322,7 +1322,7 @@ async function readDafParts(env: Bindings, tractate: string, page: string): Prom
   const flowEdges = await readFlowConnections(env, tractate, page);
   const bridge = await readCachedBridge(env, tractate, page);
   const cross = await readCachedCrossFlow(env, tractate, page);
-  const talmudParallels = await readCachedTalmudParallels(env.CACHE, tractate, page);
+  const talmudParallels = (await readCachedTalmudParallels(env.CACHE, tractate, page)) ?? [];
   const yerushalmi = await readCachedYerushalmi(env.CACHE, tractate, page);
   const withinLinks = dafLinks(
     { tractate, page },
@@ -1545,7 +1545,7 @@ function sectionExitMarks(
   yeru: Awaited<ReturnType<typeof readCachedYerushalmi>>,
 ): SpineExit[][] {
   const daf = { tractate, page };
-  const links = [...talmudParallelsToLinks(daf, tp), ...yerushalmiToLinks(daf, yeru)];
+  const links = [...talmudParallelsToLinks(daf, tp ?? []), ...yerushalmiToLinks(daf, yeru)];
   const out: SpineExit[][] = sectionStarts.map(() => []);
   if (out.length === 0) return out;
   for (const l of links) {
@@ -1621,6 +1621,10 @@ app.get('/api/spine-view/:tractate', async (c) => {
       // still cold (not yet warmed). Lets the client distinguish "no link" from
       // "not connected yet" and surface the gaps.
       crossComputed: cross != null,
+      // Same distinction for cross-text parallels: the bundle is cached (an array,
+      // even empty = checked-and-none) vs never computed (null). false → the spine
+      // shows a "parallels not computed yet" marker instead of silently nothing.
+      parallelsComputed: tp != null,
       // deterministic daf-continuity: does the sugya carry into the next daf?
       continues: bridge?.continues === true,
     };
