@@ -29,6 +29,7 @@ import {
 import { aiActivity } from './aiActivity';
 import { lang } from './i18n';
 import { inspectRequest } from './inspectBridge';
+import { liveProducerCounts, liveProducerSet } from './runStatus';
 import {
   ACTIVE_STROKE,
   type Authority,
@@ -76,6 +77,9 @@ interface DafRun {
   // additive (older payloads omit them)
   authority?: Authority | null;
   staleness?: Staleness | null;
+  // Per-instance producers report the warmed fraction (e.g. 3/5 pesukim);
+  // absent on whole-daf / single-entry rows.
+  instances?: { total: number; cached: number };
 }
 
 /** One waterfall row — a piece run with a cold-time bar. Used as the collapsed
@@ -86,6 +90,7 @@ function RunRow(props: {
   active?: boolean;
   collapsed?: boolean;
   loading?: boolean;
+  loadingCount?: number;
   onClick?: () => void;
   onInspect?: () => void;
 }): JSX.Element {
@@ -94,6 +99,14 @@ function RunRow(props: {
   const slow = () => (r().cold_ms ?? 0) > 10_000;
   const color = () => (isLLM() ? (r().model?.includes('pro') ? BADGE_PRO : BADGE_LLM) : BADGE_SRC);
   const pct = () => Math.max(2, Math.round(((r().cold_ms ?? 0) / props.maxMs) * 100));
+  // Per-instance fraction (e.g. 3/5 pesukim warmed). `anyCached` keeps the bar
+  // and badge honest for a partially-warmed producer (cost > 0 yet cached=false).
+  const inst = () => r().instances;
+  const frac = () => {
+    const i = inst();
+    return i && i.total > 0 && i.cached < i.total ? `${i.cached}/${i.total}` : null;
+  };
+  const anyCached = () => r().cached || (inst()?.cached ?? 0) > 0;
   return (
     // biome-ignore lint/a11y/useSemanticElements: row contains a nested inspect <button>; a native button cannot contain another button
     <div
@@ -148,7 +161,7 @@ function RunRow(props: {
               style={{
                 width: `${pct()}%`,
                 height: '100%',
-                background: !r().cached
+                background: !anyCached()
                   ? '#ddd7c9'
                   : slow()
                     ? '#a8542e'
@@ -212,12 +225,28 @@ function RunRow(props: {
         <Show
           when={props.loading}
           fallback={
-            <Show when={r().cached} fallback={<span style={{ color: '#a8854a' }}>miss</span>}>
-              <span style={{ color: '#5f8a6f' }}>hit</span>
+            <Show
+              when={frac()}
+              fallback={
+                <Show when={r().cached} fallback={<span style={{ color: '#a8854a' }}>miss</span>}>
+                  <span style={{ color: '#5f8a6f' }}>hit</span>
+                </Show>
+              }
+            >
+              {(f) => (
+                <span
+                  title={`${inst()?.cached} of ${inst()?.total} instances cached`}
+                  style={{ color: '#a8854a' }}
+                >
+                  {f()}
+                </span>
+              )}
             </Show>
           }
         >
-          <span style={{ color: '#9c5a2a' }}>run</span>
+          <span style={{ color: '#9c5a2a' }}>
+            run{props.loadingCount && props.loadingCount > 1 ? ` ${props.loadingCount}` : ''}
+          </span>
         </Show>
       </span>
       <Show when={props.collapsed}>
@@ -517,17 +546,12 @@ export default function RunTreeDock(props: {
       cold_ms: rs.reduce((s, r) => s + (r.cold_ms ?? 0), 0),
     };
   });
-  // Producer ids with a live in-flight run (the activity id is `${id}:${t}:${p}:…`).
-  const liveLoading = createMemo<Set<string>>(() => {
-    const out = new Set<string>();
-    for (const e of Object.values(aiActivity())) {
-      if (e.state.kind === 'loading' || e.state.kind === 'queued') {
-        const pid = e.id.split(':')[0];
-        if (pid) out.add(pid);
-      }
-    }
-    return out;
-  });
+  // Producer ids with a live in-flight run, and the per-producer in-flight count
+  // ("2 warming"). Both derive from the in-memory aiActivity signal — see
+  // runStatus.ts, which also strips the dev panel's `mark:`/`enrichment:` prefix
+  // so those ids map to a real producer instead of a phantom "mark"/"enrichment".
+  const liveLoading = createMemo<Set<string>>(() => liveProducerSet(aiActivity()));
+  const liveCounts = createMemo<Map<string, number>>(() => liveProducerCounts(aiActivity()));
   // The waterfall's telemetry is a snapshot; while anything is loading, re-poll
   // /api/daf-runs so finished pieces flip from "run" to their real hit + time +
   // cost (instead of staying on the stale miss/0ms snapshot). Also refetch once
@@ -898,6 +922,7 @@ export default function RunTreeDock(props: {
                   maxMs={maxCold()}
                   active={r.id === pieceId()}
                   loading={liveLoading().has(r.id)}
+                  loadingCount={liveCounts().get(r.id) ?? 0}
                   onClick={() => openPiece(r.id)}
                   onInspect={() => openPiece(r.id)}
                 />
@@ -1237,6 +1262,24 @@ export default function RunTreeDock(props: {
                         {fmtCost(n().cost)}
                       </span>
                     </Show>
+                    <Show when={n().instances}>
+                      {(i) => (
+                        <span
+                          style={{
+                            'font-size': '0.66rem',
+                            background: '#f1f1f3',
+                            'border-radius': '4px',
+                            padding: '0.05rem 0.4rem',
+                            color:
+                              i().cached === i().total && i().total > 0 ? '#047857' : '#a8854a',
+                            'font-family': 'ui-monospace, Menlo, monospace',
+                          }}
+                          title="instances warmed on this daf"
+                        >
+                          {i().cached}/{i().total} cached
+                        </span>
+                      )}
+                    </Show>
                     <span
                       style={{
                         'font-size': '0.66rem',
@@ -1341,9 +1384,49 @@ export default function RunTreeDock(props: {
                             )}
                           </Show>
                           <Show when={!detail.loading && !detail()}>
-                            <div style={{ color: '#bbb', 'font-size': '0.78rem' }}>
-                              nothing cached for this node on this daf yet.
-                            </div>
+                            <Show
+                              when={
+                                n().id === tree()?.root && (tree()?.rootInstances?.length ?? 0) > 0
+                              }
+                              fallback={
+                                <div style={{ color: '#bbb', 'font-size': '0.78rem' }}>
+                                  nothing cached for this node on this daf yet.
+                                </div>
+                              }
+                            >
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  'flex-wrap': 'wrap',
+                                  gap: '0.3rem',
+                                  'align-items': 'center',
+                                  'font-size': '0.78rem',
+                                }}
+                              >
+                                <span style={{ color: '#999' }}>
+                                  per-instance — pick one to inspect:
+                                </span>
+                                <For each={tree()?.rootInstances ?? []}>
+                                  {(ri) => (
+                                    <button
+                                      type="button"
+                                      onClick={() => openPiece(tree()!.root, ri.instance)}
+                                      style={{
+                                        'font-size': '0.72rem',
+                                        padding: '0.1rem 0.45rem',
+                                        border: '1px solid #d8d2c4',
+                                        'border-radius': '4px',
+                                        background: '#faf8f2',
+                                        cursor: 'pointer',
+                                        color: '#555',
+                                      }}
+                                    >
+                                      {ri.label}
+                                    </button>
+                                  )}
+                                </For>
+                              </div>
+                            </Show>
                           </Show>
                           <ProvenanceSection node={n()} />
                         </>

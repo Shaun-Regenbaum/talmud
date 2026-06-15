@@ -154,6 +154,14 @@ import { aiMatchToSegments } from './context-match';
 import { collectContext, type SourceTiming } from './context-providers';
 import { dafCostReport } from './daf-cost';
 import { getRabbiEntryOr404, readJsonBody } from './http-helpers';
+import {
+  aggregateProbes,
+  type InspectEntry,
+  inspectorCostOf,
+  type ProbeAggregate,
+  probeInstances,
+  tokensOfEntry,
+} from './inspect';
 import { noteLintAttempt, readLintFailures } from './lint-failures';
 import { ALIGN_MARKS } from './mark-categories';
 import {
@@ -1576,6 +1584,9 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
     cold_ms: number | null;
     cost: number | null;
     tokens: number | null;
+    // Per-instance producers (one cached entry per pasuk / halacha / rabbi /
+    // move) report the fraction warmed; absent on whole-daf / single-entry nodes.
+    instances?: { total: number; cached: number };
     // --- additive provenance/staleness fields (absent on source leaves; null
     // when nothing is cached). Older clients ignore them. ---
     authority?: Authority | null;
@@ -1600,6 +1611,19 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
   const currentRecipeOf = new Map<string, string>();
   const depsOf = new Map<string, ReadonlyArray<unknown>>();
   const rootCustomInstance = JSON.stringify(rootInstance) !== JSON.stringify({ fields: {} });
+  // Whole-daf marks key their enrichments under the single {fields:{}} instance;
+  // every other mark is per-instance, so its enrichments live under one key per
+  // instance. Read each target mark's instance list at most once per request.
+  const markAnchorById = new Map(CODE_MARKS.map((m) => [m.id, (m as { anchor?: string }).anchor]));
+  const instCache = new Map<string, Promise<RawInstance[]>>();
+  const instancesForMark = (mid: string): Promise<RawInstance[]> => {
+    let p = instCache.get(mid);
+    if (!p) {
+      p = readMarkInstances(c.env, mid, tractate, page);
+      instCache.set(mid, p);
+    }
+    return p;
+  };
 
   for (const nid of nodeIds) {
     const def = byId.get(nid);
@@ -1625,33 +1649,67 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
     // Same key derivation (and the same KV def reads) cacheKeyForRunBody
     // performs — inlined so the loaded def also yields the CURRENT recipe hash
     // (enrichments stamp recipe_hash at generation; marks never have).
-    let key: string | null = null;
+    let res: RunResult | null = null;
+    // Per-instance enrichments (target mark is NOT whole-daf) cache one entry per
+    // instance, keyed by the mark_input's identity via instanceIdOf — NOT under
+    // {fields:{}}. Probing {fields:{}} (the old code) always missed them; enumerate
+    // the target mark's real instances and aggregate. The exception is THIS node
+    // being the root with a caller-pinned instance — then it's the one we want.
+    let aggregate: ProbeAggregate | null = null;
     if (isMark) {
       const ldef = await loadMarkDef(c.env, nid);
       if (ldef) {
-        key = store.keyFor(markKeyInfo(ldef), { unit: { work: tractate, unit: page }, lang });
+        const key = store.keyFor(markKeyInfo(ldef), { unit: { work: tractate, unit: page }, lang });
+        res = await readCachedResult(c.env, key);
         depsOf.set(nid, ldef.dependencies ?? []);
       }
     } else {
       const ldef = await loadEnrichmentDef(c.env, nid);
       if (ldef) {
-        const iid = await instanceIdOf(nid === id ? rootInstance : { fields: {} });
-        key = store.keyFor(enrichKeyInfo(ldef), {
-          instanceId: iid,
-          unit: { work: tractate, unit: page },
-          lang,
-        });
         currentRecipeOf.set(nid, await recipeHash(enrichmentRecipe(ldef)));
         depsOf.set(nid, ldef.dependencies ?? []);
+        const targetMark = (def as { target_mark?: string }).target_mark;
+        const perInstance = !!targetMark && markAnchorById.get(targetMark) !== 'whole-daf';
+        const pinnedRoot = nid === id && rootCustomInstance;
+        const keyForIid = (iid: string): string =>
+          store.keyFor(enrichKeyInfo(ldef), {
+            instanceId: iid,
+            unit: { work: tractate, unit: page },
+            lang,
+          });
+        if (perInstance && !pinnedRoot && targetMark) {
+          const insts = await instancesForMark(targetMark);
+          const probed = await Promise.all(
+            insts.map(async (inst) => readCachedResult(c.env, keyForIid(await instanceIdOf(inst)))),
+          );
+          aggregate = aggregateProbes(
+            probed.map((r) => ({
+              cached: !!r,
+              cost: inspectorCostOf(r as InspectEntry | null),
+              cold_ms: typeof r?.elapsed_ms === 'number' ? r.elapsed_ms : null,
+              tokens: tokensOfEntry(r),
+            })),
+          );
+          // A real instance entry stands in for the provenance/staleness pass.
+          res = probed.find((r) => r) ?? null;
+        } else {
+          const iid = await instanceIdOf(pinnedRoot ? rootInstance : { fields: {} });
+          res = await readCachedResult(c.env, keyForIid(iid));
+        }
       }
     }
-    const res = key ? await readCachedResult(c.env, key) : null;
     if (res) entryOf.set(nid, res);
-    const usage = res?.usage as { cost?: number; total_tokens?: number } | undefined;
-    const coldMs = typeof res?.elapsed_ms === 'number' ? res.elapsed_ms : null;
-    const cost = typeof usage?.cost === 'number' ? usage.cost : null;
-    if (res) cachedCount++;
-    if (isLLM && res) {
+    const coldMs = aggregate
+      ? aggregate.cold_ms
+      : typeof res?.elapsed_ms === 'number'
+        ? res.elapsed_ms
+        : null;
+    const cost = aggregate ? aggregate.cost : inspectorCostOf(res as InspectEntry | null);
+    const tokens = aggregate ? aggregate.tokens : tokensOfEntry(res);
+    const cached = aggregate ? aggregate.cached : !!res;
+    const anyCached = aggregate ? aggregate.instances.cached > 0 : !!res;
+    if (cached) cachedCount++;
+    if (isLLM && anyCached) {
       totalColdMs += coldMs ?? 0;
       totalCost += cost ?? 0;
       llmCount++;
@@ -1662,10 +1720,11 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
       kind: isLLM ? 'llm' : 'computed',
       producer: isMark ? 'mark' : 'enrichment',
       model: isLLM ? ext?.model : undefined,
-      cached: !!res,
+      cached,
       cold_ms: coldMs,
       cost,
-      tokens: typeof usage?.total_tokens === 'number' ? usage.total_tokens : null,
+      tokens,
+      ...(aggregate ? { instances: aggregate.instances } : {}),
     };
   }
 
@@ -1743,6 +1802,22 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
             : 'unknown';
   }
 
+  // A per-instance root opened WITHOUT a pinned instance shows an aggregate; hand
+  // back the instance list so the dock can offer a picker (each chip re-opens the
+  // piece with ?instance= to inspect that one's content/provenance). Empty for
+  // whole-daf roots and when an instance was already pinned.
+  const rootTarget = (byId.get(id) as { target_mark?: string } | undefined)?.target_mark;
+  const rootInstances =
+    !markIds.has(id) &&
+    rootTarget &&
+    markAnchorById.get(rootTarget) !== 'whole-daf' &&
+    !rootCustomInstance
+      ? (await instancesForMark(rootTarget)).map((inst) => ({
+          label: instanceLabel(inst.fields),
+          instance: inst,
+        }))
+      : [];
+
   return c.json({
     root: id,
     tractate,
@@ -1750,6 +1825,7 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
     lang,
     nodes: out,
     edges,
+    rootInstances,
     totals: {
       count: nodeIds.length,
       llm: llmCount,
@@ -1772,15 +1848,38 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
   const page = c.req.param('page');
   const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
 
-  const wholeDafEnrichments = CODE_ENRICHMENTS.filter(
+  // Every LOCAL enrichment (the global rabbi/place facets are entity pieces shown
+  // elsewhere) EXCEPT the per-section `argument` facets. Those carry a dual
+  // display/synth mark_input (argumentDisplayInstance drops the seg indices
+  // argumentSynthInstance keys on), so their instance id needs separate
+  // verification before we enumerate them here — every other per-instance mark
+  // (pesukim, aggadata, halacha, argument-move, rabbi, places) round-trips
+  // cleanly (the reader reshape preserves the fields instanceIdOf hashes).
+  const localEnrichments = CODE_ENRICHMENTS.filter(
     (e) => e.scope === 'local' && e.target_mark !== 'argument',
   );
-  // The whole-daf instance id is the same for every enrichment ({fields:{}}),
-  // so hash it ONCE rather than per producer (cacheKeyForRunBody did it per call).
+  // The whole-daf instance id is the same for every whole-daf enrichment
+  // ({fields:{}}), so hash it ONCE rather than per producer.
   const iid = await instanceIdOf({ fields: {} });
+  // Per-instance enrichments (target mark is NOT whole-daf) are keyed one entry
+  // per instance — enumerate the target mark's instances and aggregate, instead
+  // of probing {fields:{}} (which never matched and reported a false miss). Read
+  // each target mark's instance list once.
+  const markAnchorById = new Map(CODE_MARKS.map((m) => [m.id, (m as { anchor?: string }).anchor]));
+  const perInstanceTargets = new Set(
+    localEnrichments
+      .map((e) => e.target_mark)
+      .filter((m): m is string => !!m && markAnchorById.get(m) !== 'whole-daf'),
+  );
+  const instancesByMark = new Map<string, RawInstance[]>();
+  await Promise.all(
+    [...perInstanceTargets].map(async (mid) => {
+      instancesByMark.set(mid, await readMarkInstances(c.env, mid, tractate, page));
+    }),
+  );
   const producers = [
     ...CODE_MARKS.map((def) => ({ def, isMark: true as const })),
-    ...wholeDafEnrichments.map((def) => ({ def, isMark: false as const })),
+    ...localEnrichments.map((def) => ({ def, isMark: false as const })),
   ];
   // KV-overridden defs (Studio-authored, KV wins over code) change BOTH the
   // cache key (cache_version) and the current recipe — read the indexes once
@@ -1807,6 +1906,33 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
           | { kind?: string; model?: string; system_prompt_he?: string }
           | undefined)) as { kind?: string; model?: string; system_prompt_he?: string } | undefined;
       const isLLM = kvEnrich || kvMark ? true : ext?.kind === 'llm';
+      // Per-instance enrichment: aggregate across the target mark's instances
+      // (each its own cached entry). One row that reads "3/3 cached · $0.004"
+      // instead of a single {fields:{}} probe that always missed. Provenance dots
+      // (authority/staleness) are per-entry and so left null on the aggregate.
+      const targetMark = isMark ? undefined : (def as { target_mark?: string }).target_mark;
+      if (!isMark && targetMark && markAnchorById.get(targetMark) !== 'whole-daf') {
+        const edef = kvEnrich ?? def;
+        const agg = await probeInstances(
+          async (k) => (await readCachedResult(c.env, k)) as InspectEntry | null,
+          (iidLocal) => keyForEnrichment(edef, iidLocal, { tractate, page }, undefined, lang),
+          instancesByMark.get(targetMark) ?? [],
+        );
+        return {
+          id: def.id,
+          label: def.label,
+          kind: isLLM ? 'llm' : 'computed',
+          producer: 'enrichment' as const,
+          model: isLLM ? ext?.model : undefined,
+          cached: agg.cached,
+          cold_ms: agg.cold_ms,
+          cost: agg.cost,
+          tokens: agg.tokens,
+          instances: agg.instances,
+          authority: null,
+          staleness: null,
+        };
+      }
       const key = isMark
         ? keyForMark(
             kvMark ?? def,
@@ -1816,7 +1942,6 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
           )
         : keyForEnrichment(kvEnrich ?? def, iid, { tractate, page }, undefined, lang);
       const res = await readCachedResult(c.env, key);
-      const usage = res?.usage as { cost?: number; total_tokens?: number } | undefined;
       // Additive provenance fields for the waterfall dots — cheap (no extra KV
       // reads; recipe-leg verdict only, the inputs leg needs the DAG's dep
       // reads and stays on /api/run-tree). Marks never stamp a recipe_hash, so
@@ -1846,8 +1971,9 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
         model: isLLM ? ext?.model : undefined,
         cached: !!res,
         cold_ms: typeof res?.elapsed_ms === 'number' ? res.elapsed_ms : null,
-        cost: typeof usage?.cost === 'number' ? usage.cost : null,
-        tokens: typeof usage?.total_tokens === 'number' ? usage.total_tokens : null,
+        cost: inspectorCostOf(res as InspectEntry | null),
+        tokens: tokensOfEntry(res),
+        instances: undefined as { total: number; cached: number } | undefined,
         authority: stored ? authorityOf(stored) : null,
         staleness,
       };
