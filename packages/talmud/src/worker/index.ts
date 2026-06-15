@@ -136,6 +136,7 @@ import {
   keyForRegion,
   keyForSpineLinks,
   keyForTranslate,
+  prefixForDafIndex,
   prefixForRabbiObs,
   qualifierHash,
   recipeHash,
@@ -153,6 +154,7 @@ import { fetchCommentaryWorks, registerCommentaryRoutes } from './commentary';
 import { aiMatchToSegments } from './context-match';
 import { collectContext, type SourceTiming } from './context-providers';
 import { dafCostReport } from './daf-cost';
+import { recordEnrichmentDafIndex, recordMarkDafIndex } from './daf-index';
 import { getRabbiEntryOr404, readJsonBody } from './http-helpers';
 import {
   aggregateProbes,
@@ -1959,6 +1961,28 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
 // waterfall; clicking one drills into its dependency DAG via /api/run-tree.
 // Whole-daf enrichments only (scope=local, not the per-section `argument`
 // enrichments and not the global rabbi/place facets) so each row is one run.
+// GET /api/daf-index/:tractate/:page — read the daf-index (the `dafidx:v1`
+// reverse index written at each fresh mark/enrichment write). ONE cache.list()
+// over the daf PREFIX returns every cached piece for the daf with its telemetry
+// in KV metadata — no per-entry reads, no key re-derivation. Read-only. The
+// inspector + load bar move onto this in a follow-up (with a fallback to the
+// enumerate-and-probe /api/daf-runs for dapim warmed before the index existed);
+// surfaced now to verify the index populates.
+app.get('/api/daf-index/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  if (!c.env.CACHE) return c.json({ tractate, page, count: 0, entries: [] });
+  const prefix = prefixForDafIndex(tractate, page);
+  const entries: Array<{ key: string; meta: unknown }> = [];
+  let cursor: string | undefined;
+  do {
+    const res = await c.env.CACHE.list({ prefix, cursor, limit: 1000 });
+    for (const k of res.keys) entries.push({ key: k.name, meta: k.metadata ?? null });
+    cursor = res.list_complete ? undefined : res.cursor;
+  } while (cursor);
+  return c.json({ tractate, page, count: entries.length, entries });
+});
+
 app.get('/api/daf-runs/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
@@ -3816,6 +3840,15 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
   },
 };
 
+/** Fire a best-effort daf-index write off the request critical path. Errors are
+ *  swallowed (the index is additive — a miss just falls back to enumerate-probe);
+ *  `waitUntil` lets it finish after the response without adding run latency. */
+function fireDafIndex(rc: RunCtx, p: Promise<void>): void {
+  const done = p.catch(() => {});
+  if (rc.ctx?.waitUntil) rc.ctx.waitUntil(done);
+  else void done;
+}
+
 async function runMarkOnce(
   rc: RunCtx,
   def: SchemaMarkDefinition,
@@ -3823,10 +3856,15 @@ async function runMarkOnce(
   page: string,
   bypassCache: boolean,
 ): Promise<RunResult> {
-  return (await runProducer(RUN_PORTS, rc, 'mark', def, tractate, page, undefined, {
+  const res = (await runProducer(RUN_PORTS, rc, 'mark', def, tractate, page, undefined, {
     bypassCache,
     lang: rc.lang,
   })) as RunResult;
+  // Stamp the daf-index on a FRESH write only (a cache hit is already indexed).
+  if (!res.cache_hit && rc.env.CACHE) {
+    fireDafIndex(rc, recordMarkDafIndex(rc.env.CACHE, def.id, tractate, page, rc.lang, res));
+  }
+  return res;
 }
 
 /** The segment range a section-level argument enrichment is being computed for,
@@ -3881,13 +3919,22 @@ async function runEnrichmentOnce(
    *  template as {{user_question}}. */
   userQuestion?: string,
 ): Promise<RunResultEnrichment> {
-  return (await runProducer(RUN_PORTS, rc, 'enrich', def, tractate, page, markInput, {
+  const res = (await runProducer(RUN_PORTS, rc, 'enrich', def, tractate, page, markInput, {
     bypassCache,
     lang: rc.lang,
     modelOverride,
     parentChain,
     userQuestion,
   })) as RunResultEnrichment;
+  // Daf-index on a fresh write of a daf-scoped (local) enrichment. Skip global/
+  // spine (daf-agnostic) and qualified .qa runs (lazy, not in the eager set).
+  if (!res.cache_hit && rc.env.CACHE && def.scope === 'local' && !userQuestion) {
+    fireDafIndex(
+      rc,
+      recordEnrichmentDafIndex(rc.env.CACHE, def.id, tractate, page, markInput, rc.lang, res),
+    );
+  }
+  return res;
 }
 
 // ===========================================================================

@@ -108,6 +108,30 @@ export function keyForSaCommentary(safeKey: string): string {
   return `sa-commentary:v1:${safeKey}`;
 }
 
+/** daf -> cached pieces reverse index (the "build manifest" read side). One KV
+ *  entry PER (daf, producer, instance, lang), written at every fresh mark/
+ *  enrichment write (best-effort, off the request critical path). The daf is the
+ *  PREFIX — the content `mark:`/`enrich:` keys carry it as a SUFFIX, so they
+ *  can't be listed by daf — so `prefixForDafIndex(t,p)` + one `cache.list()`
+ *  returns the whole daf's pieces, with per-piece telemetry in each entry's KV
+ *  METADATA (cost/model/tokens/cold_ms/recipeHash). The value is empty: the
+ *  inspector needs only the key + metadata, and skipping the content key avoids
+ *  re-deriving it (the mark he-collapse makes that ambiguous). `instanceToken` is
+ *  the enrichment instance_id, or '-' for a whole-daf mark. */
+export function keyForDafIndex(
+  tractate: string,
+  page: string,
+  producerId: string,
+  instanceToken: string,
+  lang: 'en' | 'he',
+): string {
+  return `dafidx:v1:${slugDaf(tractate, page)}:${producerId}:${instanceToken}:${lang}`;
+}
+/** List every daf-index entry for one daf (`cache.list({ prefix })`). */
+export function prefixForDafIndex(tractate: string, page: string): string {
+  return `dafidx:v1:${slugDaf(tractate, page)}:`;
+}
+
 // Per-daf analysis + per-rabbi enrichment caches. Each of these was hand-built
 // at 2-4 separate call sites in index.ts — the precise drift hazard that bit
 // `sefaria-bundle` (warm-cron probed v2 while the reader used v5). Centralising
