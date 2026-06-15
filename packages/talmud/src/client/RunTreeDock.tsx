@@ -930,6 +930,7 @@ export default function RunTreeDock(props: {
                     const cachedN = g.pieces.filter((p) => p.cached).length;
                     return (
                       <Show when={pieces().length > 0}>
+                        {/* biome-ignore lint/a11y/useSemanticElements: collapsible anchor-group header; a div keeps it consistent with RunRow's clickable rows */}
                         <div
                           role="button"
                           tabIndex={0}
