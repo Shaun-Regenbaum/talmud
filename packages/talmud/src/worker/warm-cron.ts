@@ -17,6 +17,7 @@ import {
   keyForHebrewBooks,
   keyForSefariaBundle,
   keyForSefariaSegments,
+  keyForTalmudParallels,
 } from './cache-keys';
 import { computeCacheStats, writeCachedCacheStats } from './cache-stats';
 import {
@@ -24,6 +25,8 @@ import {
   getHebrewBooksDafCached,
   getSefariaPageCached,
   getSefariaSegmentsCached,
+  getTalmudParallelsCached,
+  getYerushalmiCached,
 } from './source-cache';
 import type { JobMessage } from './types';
 
@@ -417,7 +420,12 @@ async function runSefariaPhase(env: WarmEnv): Promise<void> {
     const amud = AMUDIM_BY_TRACTATE[tractateIdx][amudIdx];
     const bundleKey = keyForSefariaBundle(tractate, amud); // was sefaria-bundle:v2 — drifted from the reader's v5
     const segKey = keyForSefariaSegments(tractate, amud);
-    const [bundleHit, segHit] = await Promise.all([cache.get(bundleKey), cache.get(segKey)]);
+    const parKey = keyForTalmudParallels(tractate, amud);
+    const [bundleHit, segHit, parHit] = await Promise.all([
+      cache.get(bundleKey),
+      cache.get(segKey),
+      cache.get(parKey),
+    ]);
 
     let didFetch = false;
     if (bundleHit === null) {
@@ -426,6 +434,15 @@ async function runSefariaPhase(env: WarmEnv): Promise<void> {
     }
     if (segHit === null) {
       await getSefariaSegmentsCached(cache, tractate, amud);
+      didFetch = true;
+    }
+    // Cross-text parallels (Mesorat HaShas + the shared-mishnah Yerushalmi) — the
+    // spine's exit markers. Sefaria getRelated only, no LLM; warming here turns
+    // the spine's "⤳?" cold markers into real badges Shas-wide. Both bundles are
+    // written together (also by /api/links), so the parallels key gates both.
+    if (parHit === null) {
+      await getTalmudParallelsCached(cache, tractate, amud);
+      await getYerushalmiCached(cache, tractate, amud);
       didFetch = true;
     }
     if (didFetch) {
