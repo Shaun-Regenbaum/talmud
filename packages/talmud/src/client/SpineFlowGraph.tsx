@@ -68,12 +68,19 @@ const EXIT_H = 21,
 const PARALLEL = KIND_COLOR.parallels ?? '#7c3aed';
 const HILITE = '#b8860b';
 
-/** The Sefaria URL for an exit's target (Bavli or Yerushalmi) — "Berakhot 13a"
- *  → …/Berakhot.13a, "Jerusalem Talmud Berakhot 1:1" → …/Jerusalem_Talmud_Berakhot.1.1. */
-function sefariaUrl(ex: { tractate: string; page: string }): string {
-  const ref = `${ex.tractate.replace(/ /g, '_')}.${ex.page.replace(/:/g, '.')}`;
-  return `https://www.sefaria.org/${ref}`;
+/** In-app reader URL for an exit's target — the same `?tractate=&page=` contract
+ *  the daf reader + overview cross-references use (hash cleared). */
+function dafHref(ex: { tractate: string; page: string }): string {
+  const u = new URL(window.location.href);
+  u.searchParams.set('tractate', ex.tractate);
+  u.searchParams.set('page', ex.page);
+  u.hash = '';
+  return u.pathname + u.search;
 }
+/** Whether an exit opens in our reader (a Bavli daf). The Yerushalmi (corpus
+ *  'yeru') has no reader page here, so its chip is informative but not clickable
+ *  — consistent with the overview, which leaves non-Bavli refs non-clickable. */
+const navigableExit = (ex: ExitMark): boolean => ex.corpus !== 'yeru';
 const corpusTag = (c: ExitMark['corpus']): string =>
   c === 'yeru' ? 'ירושלמי' : c === 'bavli' ? 'Bavli' : 'this tractate';
 const corpusFill = (c: ExitMark['corpus']): string =>
@@ -121,13 +128,17 @@ export default function SpineFlowGraph(props: {
   onRabbi?: (name: string) => void;
   mode?: 'detail' | 'overview';
   onPickDaf?: (page: string) => void;
-  /** Click handler for a cross-text exit chip. Defaults to opening the target on
-   *  Sefaria in a new tab. */
+  /** Click handler for a cross-text exit chip. Defaults to opening the target daf
+   *  in our reader (`?tractate=&page=`); a non-Bavli target (Yerushalmi) is
+   *  non-navigable. */
   onPickExit?: (ex: ExitMark) => void;
 }): JSX.Element {
   const pickExit = (ex: ExitMark) => {
-    if (props.onPickExit) props.onPickExit(ex);
-    else window.open(sefariaUrl(ex), '_blank', 'noopener');
+    if (props.onPickExit) {
+      props.onPickExit(ex);
+      return;
+    }
+    if (navigableExit(ex)) window.location.href = dafHref(ex);
   };
   // Which section boxes have their cross-text exits expanded. Collapsed is the
   // default — a box shows only a small "⤳ N" badge until clicked.
@@ -498,15 +509,29 @@ export default function SpineFlowGraph(props: {
                     const lines = wrapTitle(m.nodeTitle.get(key) ?? '', TITLE_CHARS, TITLE_LINES);
                     const num = m.nodeNum.get(key) ?? 0;
                     const lit = () => hl() !== null && rabbis.some((r) => r.slug === hl());
-                    // lay rabbi chips left-to-right with approx text width
+                    // Lay rabbi chips left-to-right, keeping each WITHIN the box.
+                    // (The old filter only checked the START x, so a long name —
+                    // "Rabbi Elazar b. Azaryah" — overflowed the right edge.) Stop
+                    // at the first that won't fit and show "+N"; truncate a lone
+                    // over-long first name.
+                    const RABBI_RIGHT = LEFT_PAD + NODE_W - 12;
                     let cx = LEFT_PAD + 10;
-                    const chips = rabbis
-                      .map((r) => {
-                        const x = cx;
-                        cx += r.name.length * 5.4 + 12;
-                        return { name: r.name, slug: r.slug, x };
-                      })
-                      .filter((c) => c.x < LEFT_PAD + NODE_W - 16);
+                    const chips: { name: string; full: string; slug: string; x: number }[] = [];
+                    let hiddenRabbis = 0;
+                    for (const r of rabbis) {
+                      const w = r.name.length * 5.4;
+                      if (chips.length > 0 && cx + w > RABBI_RIGHT) {
+                        hiddenRabbis = rabbis.length - chips.length;
+                        break;
+                      }
+                      let name = r.name;
+                      if (cx + w > RABBI_RIGHT) {
+                        const max = Math.max(4, Math.floor((RABBI_RIGHT - cx) / 5.4) - 1);
+                        name = `${r.name.slice(0, max)}…`;
+                      }
+                      chips.push({ name, full: r.name, slug: r.slug, x: cx });
+                      cx += name.length * 5.4 + 12;
+                    }
                     return (
                       <g>
                         <title>{`${num}. ${m.nodeTitle.get(key) ?? ''}`}</title>
@@ -583,12 +608,24 @@ export default function SpineFlowGraph(props: {
                                     }
                                   }}
                                 >
-                                  <title>{`trace ${c.name} across the tractate`}</title>
+                                  <title>{`trace ${c.full} across the tractate`}</title>
                                   {c.name}
                                 </text>
                               );
                             }}
                           </For>
+                          <Show when={hiddenRabbis > 0}>
+                            <text
+                              x={cx}
+                              y={yTop + h - 8}
+                              font-size="9.5"
+                              font-weight={500}
+                              font-family="system-ui, sans-serif"
+                              fill="#b0a894"
+                            >
+                              {`+${hiddenRabbis}`}
+                            </text>
+                          </Show>
                         </Show>
                         {/* cross-text exits: collapsed ⤳N badge → click to expand a chip per parallel */}
                         <Show when={(m.nodeExits.get(key) ?? []).length}>
@@ -655,21 +692,10 @@ export default function SpineFlowGraph(props: {
                                         ex.ref.length > refMax
                                           ? `${ex.ref.slice(0, refMax - 1)}…`
                                           : ex.ref;
-                                      return (
-                                        // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
-                                        <g
-                                          role="button"
-                                          tabindex={0}
-                                          style={{ cursor: 'pointer' }}
-                                          onClick={() => pickExit(ex)}
-                                          onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                              e.preventDefault();
-                                              pickExit(ex);
-                                            }
-                                          }}
-                                        >
-                                          <title>{`${ex.relation} — ${ex.ref} (open on Sefaria)`}</title>
+                                      const nav = navigableExit(ex);
+                                      const inner = (
+                                        <>
+                                          <title>{`${ex.relation} — ${ex.ref}${nav ? ' (open in reader)' : ' (Yerushalmi — see the daf’s Yerushalmi card)'}`}</title>
                                           <rect
                                             x={chipX}
                                             y={top}
@@ -729,6 +755,25 @@ export default function SpineFlowGraph(props: {
                                           >
                                             {tag}
                                           </text>
+                                        </>
+                                      );
+                                      // Bavli → clickable (opens in our reader); Yerushalmi → informative only.
+                                      if (!nav) return <g>{inner}</g>;
+                                      return (
+                                        // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
+                                        <g
+                                          role="button"
+                                          tabindex={0}
+                                          style={{ cursor: 'pointer' }}
+                                          onClick={() => pickExit(ex)}
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                              e.preventDefault();
+                                              pickExit(ex);
+                                            }
+                                          }}
+                                        >
+                                          {inner}
                                         </g>
                                       );
                                     }}

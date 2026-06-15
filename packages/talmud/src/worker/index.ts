@@ -1,3 +1,4 @@
+import { slugTractate } from '@corpus/core/cache/keys';
 import { continuationLink, type FlowEdge } from '@corpus/core/context/link';
 import { coordLabel } from '@corpus/core/context/types';
 import { gatewayActive, gatewayStatus, wrapEnv } from '@corpus/core/llm/ai-gateway';
@@ -72,7 +73,7 @@ import {
   validateLLMRabbiOutput,
 } from '../lib/rabbi/types';
 import type { EntityPiece } from '../lib/registry/entity';
-import { adjacentAmud, sefariaAPI, type TalmudPageData } from '../lib/sefref';
+import { adjacentAmud, sefariaAPI, type TalmudPageData, TRACTATE_OPTIONS } from '../lib/sefref';
 import { iterAmudim, TRACTATE_END_AMUD } from '../lib/sefref/amudim';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { fetchHebrewBooksDaf } from '../lib/sefref/hebrewbooks/client';
@@ -1569,10 +1570,23 @@ function sectionExitMarks(
   return out;
 }
 
+/** Resolve a tractate slug ('berakhot', 'bava_kamma') to its Sefaria-canonical
+ *  name ('Berakhot', 'Bava Kamma') — the case the parallel/yerushalmi bundles are
+ *  keyed under. Falls back to the input when unknown. */
+function canonicalTractateName(slug: string): string {
+  const s = slugTractate(slug);
+  return TRACTATE_OPTIONS.find((o) => slugTractate(o.value) === s)?.value ?? slug;
+}
+
 app.get('/api/spine-view/:tractate', async (c) => {
   const tractate = c.req.param('tractate');
   if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
   if (!c.env.CACHE) return c.json({ error: 'no CACHE binding in this environment' }, 503);
+  // The route param is a lowercase slug; the parallel / yerushalmi bundles are
+  // keyed by the Sefaria-canonical tractate name the reader/API wrote them under
+  // (raw case, unlike the slugDaf-folded mark/flow/bridge keys), so resolve it or
+  // the read-only bundle reads cold-miss everything.
+  const canonical = canonicalTractateName(tractate);
   const pages = [...iterAmudim(tractate)];
   const raw = await mapPool(pages, 24, async (page) => {
     const secs = await readSectionRabbis(c.env, tractate, page);
@@ -1581,10 +1595,10 @@ app.get('/api/spine-view/:tractate', async (c) => {
     const bridge = await readCachedBridge(c.env, tractate, page);
     // Cross-text parallels (off-tractate / Yerushalmi), read-only, grouped to the
     // section they leave from — rendered as exit markers in the flow graph.
-    const tp = await readCachedTalmudParallels(c.env.CACHE, tractate, page);
-    const yeru = await readCachedYerushalmi(c.env.CACHE, tractate, page);
+    const tp = await readCachedTalmudParallels(c.env.CACHE, canonical, page);
+    const yeru = await readCachedYerushalmi(c.env.CACHE, canonical, page);
     const exits = sectionExitMarks(
-      tractate,
+      canonical,
       page,
       secs.map((s) => s.start),
       tp,

@@ -69,6 +69,12 @@ describe('SpineFlowGraph — cross-text exit markers', () => {
     expect(texts(container, 'Jerusalem Talmud Berakhot 1:1').length).toBeGreaterThan(0);
     expect(texts(container, 'Bavli').length).toBeGreaterThan(0);
     expect(texts(container, 'ירושלמי').length).toBeGreaterThan(0);
+    // a Bavli chip is navigable (opens in our reader); the Yerushalmi chip is
+    // informative only — no in-app reader, so not a button.
+    const bavliChip = texts(container, 'Shabbat 31a')[0]?.closest('g');
+    const yeruChip = texts(container, 'Jerusalem Talmud Berakhot 1:1')[0]?.closest('g');
+    expect(bavliChip?.getAttribute('role')).toBe('button');
+    expect(yeruChip?.getAttribute('role')).toBeNull();
   });
 
   it('renders no badge for a section without parallels', () => {
