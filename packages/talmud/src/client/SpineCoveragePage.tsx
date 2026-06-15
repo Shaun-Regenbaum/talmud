@@ -159,11 +159,10 @@ export function SpineCoveragePage(): JSX.Element {
   );
   const [graph] = createResource(graphTrigger, fetchSpineGraph);
   // The stitched flow view (real per-daf flow graphs, connected by cross-daf
-  // edges). Loads on demand; #spine/<tractate>/flow auto-loads it.
-  const [viewTrigger, setViewTrigger] = createSignal<string | null>(
-    thirdSeg() === 'flow' ? routeTractate() : null,
-  );
-  const [flowView] = createResource(viewTrigger, fetchSpineView);
+  // edges). Auto-loads with the tractate (keyed like the coverage report);
+  // the panel button re-fetches. It is read-only over cached pieces — the
+  // sweep reads ~4 KV keys per daf and computes nothing.
+  const [flowView, { refetch: refetchFlow }] = createResource(tractate, fetchSpineView);
   const [trace, setTrace] = createSignal<string | null>(null); // rabbi being traced across the tractate
   // #spine/<tractate>/flow/overview deep-links straight to the overview.
   const fourthSeg = () => window.location.hash.replace(/^#/, '').split('/')[3];
@@ -454,7 +453,7 @@ export function SpineCoveragePage(): JSX.Element {
                   type="button"
                   class="tb-select"
                   disabled={flowView.loading}
-                  onClick={() => setViewTrigger(tractate())}
+                  onClick={() => refetchFlow()}
                 >
                   {flowView.loading ? 'loading…' : flowView() ? 'reload' : 'load'}
                 </button>
