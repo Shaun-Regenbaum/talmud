@@ -27,6 +27,51 @@ export interface DafRun {
   experimental?: boolean;
 }
 
+// --- BY-ANCHOR view (additive; the server's /api/daf-runs `groups`) ----------
+/** One producer's result for one anchor (or for the whole daf). */
+export interface AnchorPiece {
+  producerId: string;
+  label: string;
+  kind: 'llm' | 'computed';
+  model?: string;
+  cached: boolean;
+  cost: number | null;
+  cold_ms: number | null;
+  tokens: number | null;
+}
+/** Where a group of pieces sits — the join id + label + range + the raw instance
+ *  (passed back as ?instance= to root the DAG on this anchor). */
+export interface AnchorRef {
+  markId: string;
+  instanceId: string;
+  label: string;
+  segRange: [number, number] | null;
+  instanceJson: unknown;
+}
+export interface AnchorGroup {
+  anchor: AnchorRef;
+  pieces: AnchorPiece[];
+}
+/** The sentinel anchor markId for the leading daf-level group. */
+export const WHOLE_DAF_ANCHOR = '__whole_daf__';
+
+/** Adapt an anchor piece to the DafRun shape RunRow renders. `producer` is
+ *  derived from the id (mark ids have no dot; enrichment ids do — e.g.
+ *  `pesukim.why-here`), which only drives the icon/dot, not behaviour. */
+export function pieceToRun(p: AnchorPiece): DafRun {
+  return {
+    id: p.producerId,
+    label: p.label,
+    kind: p.kind,
+    producer: p.producerId.includes('.') ? 'enrichment' : 'mark',
+    model: p.model,
+    cached: p.cached,
+    cold_ms: p.cold_ms,
+    cost: p.cost,
+    tokens: p.tokens,
+  };
+}
+
 /** A row the reader auto-warms on daf load — the load bar's denominator. Excludes
  *  experimental (chart) and lazy on-demand leaves (*.qa / *.suggested-questions),
  *  which only warm when a user opens them, so they'd otherwise peg the bar < 100%. */

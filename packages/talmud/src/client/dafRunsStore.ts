@@ -22,12 +22,21 @@ import {
   onCleanup,
 } from 'solid-js';
 import { aiActivity } from './aiActivity';
-import { cacheProgressOf, type DafRun } from './dafRunsProgress';
+import { type AnchorGroup, cacheProgressOf, type DafRun } from './dafRunsProgress';
 import { liveProducerCounts, liveProducerSet } from './runStatus';
 
 // Re-export the pure shape + reducers so consumers keep one import site; the
 // testable definitions live in dafRunsProgress (no Solid → importable in vitest).
-export { cacheProgressOf, type DafRun, isEagerRow } from './dafRunsProgress';
+export {
+  type AnchorGroup,
+  type AnchorPiece,
+  type AnchorRef,
+  cacheProgressOf,
+  type DafRun,
+  isEagerRow,
+  pieceToRun,
+  WHOLE_DAF_ANCHOR,
+} from './dafRunsProgress';
 
 interface Target {
   tractate: string;
@@ -53,14 +62,15 @@ const targetKey = (): string | null => {
 const store = createRoot(() => {
   const [runs, { refetch }] = createResource(
     targetKey,
-    async (key): Promise<{ key: string; rows: DafRun[] }> => {
+    async (key): Promise<{ key: string; rows: DafRun[]; groups: AnchorGroup[] }> => {
       const t = target();
-      if (!t) return { key, rows: [] };
+      if (!t) return { key, rows: [], groups: [] };
       const r = await fetch(
         `/api/daf-runs/${encodeURIComponent(t.tractate)}/${encodeURIComponent(t.page)}?lang=${t.lang}`,
       );
-      if (!r.ok) return { key, rows: [] };
-      return { key, rows: ((await r.json()) as { runs: DafRun[] }).runs };
+      if (!r.ok) return { key, rows: [], groups: [] };
+      const j = (await r.json()) as { runs?: DafRun[]; groups?: AnchorGroup[] };
+      return { key, rows: j.runs ?? [], groups: j.groups ?? [] };
     },
   );
   const liveLoading = createMemo<Set<string>>(() => liveProducerSet(aiActivity()));
@@ -88,6 +98,12 @@ const store = createRoot(() => {
 export const dafRunRows = (): DafRun[] => {
   const r = store.runs();
   return r && r.key === targetKey() ? r.rows : [];
+};
+/** The by-anchor groups for the current daf (additive; empty when the server is
+ *  old or the daf is un-indexed — the dock falls back to the flat `runs` view). */
+export const dafRunGroups = (): AnchorGroup[] => {
+  const r = store.runs();
+  return r && r.key === targetKey() ? r.groups : [];
 };
 export const dafRunsLoading = (): boolean => store.runs.loading;
 export const refetchDafRuns = (): void => {

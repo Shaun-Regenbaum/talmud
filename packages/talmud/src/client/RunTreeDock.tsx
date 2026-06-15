@@ -27,12 +27,16 @@ import {
   Show,
 } from 'solid-js';
 import {
+  type AnchorGroup as AnchorGroupT,
   type DafRun,
+  dafRunGroups,
   dafRunRows,
   dafRunsLoading,
   liveCounts,
   liveLoading,
+  pieceToRun,
   refetchDafRuns,
+  WHOLE_DAF_ANCHOR,
 } from './dafRunsStore';
 import { lang } from './i18n';
 import { inspectRequest } from './inspectBridge';
@@ -536,6 +540,26 @@ export default function RunTreeDock(props: {
       .filter((r) => typeFilter().has(variantOf(r)))
       .sort((a, b) => (live.has(b.id) ? 1 : 0) - (live.has(a.id) ? 1 : 0));
   });
+  // BY-ANCHOR view: the server's per-place groups (each anchored instance + its
+  // pieces). Null when absent (old server / un-indexed daf) → the flat
+  // `visibleRuns` fallback renders instead.
+  const groupedRuns = createMemo<AnchorGroupT[] | null>(() => {
+    const g = dafRunGroups();
+    return g.length ? g : null;
+  });
+  const anchorKey = (g: AnchorGroupT) => `${g.anchor.markId}:${g.anchor.instanceId}`;
+  const [expandedAnchors, setExpandedAnchors] = createSignal<Set<string>>(new Set());
+  const toggleAnchor = (k: string) =>
+    setExpandedAnchors((prev) => {
+      const n = new Set(prev);
+      if (n.has(k)) n.delete(k);
+      else n.add(k);
+      return n;
+    });
+  // Pieces in a group passing the type filter (mapped to the DafRun shape RunRow
+  // wants). A group with none passing is hidden.
+  const groupPieces = (g: AnchorGroupT): DafRun[] =>
+    g.pieces.map(pieceToRun).filter((r) => typeFilter().has(variantOf(r)));
   // Per-instance focus (a mark_input) when an (i) inspects e.g. one section's
   // synthesis; null = whole-daf. Cleared when navigating via the waterfall.
   const [focusInstance, setFocusInstance] = createSignal<unknown>(null);
@@ -878,19 +902,108 @@ export default function RunTreeDock(props: {
             <Show when={dafRunsLoading()}>
               <div style={{ padding: '0.6rem', color: '#aaa' }}>loading…</div>
             </Show>
-            <For each={visibleRuns()}>
-              {(r) => (
-                <RunRow
-                  run={r}
-                  maxMs={maxCold()}
-                  active={r.id === pieceId()}
-                  loading={liveLoading().has(r.id)}
-                  loadingCount={liveCounts().get(r.id) ?? 0}
-                  onClick={() => openPiece(r.id)}
-                  onInspect={() => openPiece(r.id)}
-                />
+            <Show
+              when={groupedRuns()}
+              fallback={
+                <For each={visibleRuns()}>
+                  {(r) => (
+                    <RunRow
+                      run={r}
+                      maxMs={maxCold()}
+                      active={r.id === pieceId()}
+                      loading={liveLoading().has(r.id)}
+                      loadingCount={liveCounts().get(r.id) ?? 0}
+                      onClick={() => openPiece(r.id)}
+                      onInspect={() => openPiece(r.id)}
+                    />
+                  )}
+                </For>
+              }
+            >
+              {(groups) => (
+                <For each={groups()}>
+                  {(g) => {
+                    const pieces = createMemo(() => groupPieces(g));
+                    const whole = g.anchor.markId === WHOLE_DAF_ANCHOR;
+                    const k = anchorKey(g);
+                    const open = () => whole || expandedAnchors().has(k);
+                    const cachedN = g.pieces.filter((p) => p.cached).length;
+                    return (
+                      <Show when={pieces().length > 0}>
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => !whole && toggleAnchor(k)}
+                          onKeyDown={(e) => {
+                            if (!whole && (e.key === 'Enter' || e.key === ' ')) {
+                              e.preventDefault();
+                              toggleAnchor(k);
+                            }
+                          }}
+                          style={{
+                            display: 'flex',
+                            'align-items': 'center',
+                            gap: '0.4rem',
+                            padding: '0.25rem 0.6rem',
+                            cursor: whole ? 'default' : 'pointer',
+                            background: '#f6f3ec',
+                            'border-top': '1px solid #ece7da',
+                            'font-size': '0.72rem',
+                          }}
+                        >
+                          <span style={{ width: '0.7rem', color: '#b3a994' }}>
+                            {whole ? '' : open() ? '▾' : '▸'}
+                          </span>
+                          <span
+                            style={{
+                              'font-weight': 600,
+                              color: '#4a4034',
+                              'white-space': 'nowrap',
+                              overflow: 'hidden',
+                              'text-overflow': 'ellipsis',
+                              flex: 1,
+                            }}
+                          >
+                            {whole ? 'Whole daf' : g.anchor.label || g.anchor.markId}
+                          </span>
+                          <Show when={!whole}>
+                            <span
+                              style={{ 'font-size': '0.6rem', color: '#a89c86', 'flex-shrink': 0 }}
+                            >
+                              {g.anchor.markId}
+                            </span>
+                          </Show>
+                          <span
+                            style={{
+                              'font-variant-numeric': 'tabular-nums',
+                              color: cachedN === g.pieces.length ? '#5f8a6f' : '#a8854a',
+                              'flex-shrink': 0,
+                            }}
+                          >
+                            {cachedN}/{g.pieces.length}
+                          </span>
+                        </div>
+                        <Show when={open()}>
+                          <For each={pieces()}>
+                            {(r) => (
+                              <RunRow
+                                run={r}
+                                maxMs={maxCold()}
+                                active={r.id === pieceId()}
+                                loading={liveLoading().has(r.id)}
+                                loadingCount={liveCounts().get(r.id) ?? 0}
+                                onClick={() => openPiece(r.id, g.anchor.instanceJson)}
+                                onInspect={() => openPiece(r.id, g.anchor.instanceJson)}
+                              />
+                            )}
+                          </For>
+                        </Show>
+                      </Show>
+                    );
+                  }}
+                </For>
               )}
-            </For>
+            </Show>
           </div>
         </Show>
 
