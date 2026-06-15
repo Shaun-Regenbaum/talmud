@@ -2060,6 +2060,76 @@ app.get('/api/daf-index/:tractate/:page', async (c) => {
   return c.json({ tractate, page, count: entries.length, entries });
 });
 
+/** Backfill the daf-index for pieces warmed BEFORE the index existed (PR1 only
+ *  indexes fresh writes; the warm cron doesn't re-write already-cached content).
+ *  Mirrors /api/daf-runs' enumeration exactly — marks + local enrichments
+ *  (per-instance via the target mark's instances), skipping per-section
+ *  `argument` — and writes one index entry per CACHED piece, byte-identical to
+ *  the key a fresh write would. Best-effort, off the request path; returns the
+ *  count written. Idempotent (a re-run just rewrites the same keys), but callers
+ *  guard on "already indexed" so it runs at most once per daf. */
+async function backfillDafIndex(
+  env: Bindings,
+  tractate: string,
+  page: string,
+  lang: 'en' | 'he',
+): Promise<number> {
+  if (!env.CACHE) return 0;
+  const cache = env.CACHE;
+  let n = 0;
+  const bump = () => {
+    n++;
+  };
+  // Marks — one cached entry per daf (he-collapse: a mark with no `_he` prompt
+  // shares the 'en' key, so probe the lang the run would actually have written).
+  await Promise.all(
+    CODE_MARKS.map(async (def) => {
+      const ext = def.extractor as { system_prompt_he?: string } | undefined;
+      const markLang = lang === 'he' && ext?.system_prompt_he ? 'he' : 'en';
+      const res = await readCachedResult(env, keyForMark(def, tractate, page, markLang));
+      if (res) {
+        await recordMarkDafIndex(cache, def.id, tractate, page, markLang, res);
+        bump();
+      }
+    }),
+  );
+  const markAnchorById = new Map(CODE_MARKS.map((m) => [m.id, (m as { anchor?: string }).anchor]));
+  const localEnrichments = CODE_ENRICHMENTS.filter(
+    (e) => e.scope === 'local' && e.target_mark !== 'argument',
+  );
+  const wholeDafIid = await instanceIdOf({ fields: {} });
+  await Promise.all(
+    localEnrichments.map(async (def) => {
+      const targetMark = (def as { target_mark?: string }).target_mark;
+      if (targetMark && markAnchorById.get(targetMark) !== 'whole-daf') {
+        const insts = await readMarkInstances(env, targetMark, tractate, page);
+        await Promise.all(
+          insts.map(async (inst) => {
+            const res = await readCachedResult(
+              env,
+              keyForEnrichment(def, await instanceIdOf(inst), { tractate, page }, undefined, lang),
+            );
+            if (res) {
+              await recordEnrichmentDafIndex(cache, def.id, tractate, page, inst, lang, res);
+              bump();
+            }
+          }),
+        );
+      } else {
+        const res = await readCachedResult(
+          env,
+          keyForEnrichment(def, wholeDafIid, { tractate, page }, undefined, lang),
+        );
+        if (res) {
+          await recordEnrichmentDafIndex(cache, def.id, tractate, page, { fields: {} }, lang, res);
+          bump();
+        }
+      }
+    }),
+  );
+  return n;
+}
+
 app.get('/api/daf-runs/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
@@ -2199,6 +2269,19 @@ app.get('/api/daf-runs/:tractate/:page', async (c) => {
     }),
   );
   // longest cold runs first — the waterfall reads as "where the time went"
+  // Backfill the daf-index for this daf if nothing's indexed yet — pieces warmed
+  // before the index existed. One `list(limit:1)` decides; the backfill itself
+  // runs off the request path (waitUntil) so the response is unchanged and never
+  // waits on it. Runs at most once per daf (the next view sees entries + skips).
+  if (c.env.CACHE) {
+    const cache = c.env.CACHE;
+    c.executionCtx.waitUntil(
+      (async () => {
+        const head = await cache.list({ prefix: prefixForDafIndex(tractate, page), limit: 1 });
+        if (head.keys.length === 0) await backfillDafIndex(c.env, tractate, page, lang);
+      })().catch(() => {}),
+    );
+  }
   runs.sort((a, b) => (b.cold_ms ?? -1) - (a.cold_ms ?? -1));
   return c.json({ tractate, page, lang, runs });
 });
