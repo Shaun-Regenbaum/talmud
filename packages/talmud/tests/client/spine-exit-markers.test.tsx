@@ -1,0 +1,87 @@
+// @vitest-environment jsdom
+//
+// Cross-text "exit markers" on the spine flow graph: a section with parallels
+// elsewhere in Shas / the Yerushalmi shows a small ⤳N badge (collapsed default);
+// clicking it expands a chip per parallel. Verifies the badge renders, chips are
+// hidden until expansion, and a click reveals them (incl. the corpus badge).
+import { fireEvent, render } from '@solidjs/testing-library';
+import { describe, expect, it } from 'vitest';
+import SpineFlowGraph, { type SpineViewDaf } from '../../src/client/SpineFlowGraph';
+
+function texts(container: HTMLElement, needle: string): SVGTextElement[] {
+  return Array.from(container.querySelectorAll('text')).filter((t) =>
+    (t.textContent ?? '').includes(needle),
+  ) as unknown as SVGTextElement[];
+}
+
+const dapim: SpineViewDaf[] = [
+  {
+    page: '2a',
+    nextPage: '2b',
+    sections: [
+      {
+        index: 0,
+        title: 'Evening Shema',
+        rabbis: [],
+        exits: [
+          {
+            ref: 'Shabbat 31a',
+            relation: 'parallels',
+            corpus: 'bavli',
+            tractate: 'Shabbat',
+            page: '31a',
+          },
+          {
+            ref: 'Jerusalem Talmud Berakhot 1:1',
+            relation: 'parallels',
+            corpus: 'yeru',
+            tractate: 'Jerusalem Talmud Berakhot',
+            page: '1:1',
+          },
+        ],
+      },
+      { index: 1, title: 'Gemara source', rabbis: [], exits: [] },
+    ],
+    flow: [],
+    cross: [],
+  },
+];
+
+describe('SpineFlowGraph — cross-text exit markers', () => {
+  it('shows a ⤳N badge for a section with parallels, collapsed by default', () => {
+    const { container } = render(() => <SpineFlowGraph dapim={dapim} />);
+    // badge present with the count
+    expect(texts(container, '⤳').some((t) => (t.textContent ?? '').includes('2'))).toBe(true);
+    // chips are hidden until expanded
+    expect(texts(container, 'Shabbat 31a')).toHaveLength(0);
+    expect(texts(container, 'Jerusalem Talmud Berakhot 1:1')).toHaveLength(0);
+  });
+
+  it('expands the chips (with corpus badges) when the badge is clicked', () => {
+    const { container } = render(() => <SpineFlowGraph dapim={dapim} />);
+    const badge = texts(container, '⤳')
+      .find((t) => (t.textContent ?? '').includes('2'))
+      ?.closest('[role="button"]');
+    expect(badge).toBeTruthy();
+    fireEvent.click(badge as Element);
+    // both parallel chips now render, with their corpus tags
+    expect(texts(container, 'Shabbat 31a').length).toBeGreaterThan(0);
+    expect(texts(container, 'Jerusalem Talmud Berakhot 1:1').length).toBeGreaterThan(0);
+    expect(texts(container, 'Bavli').length).toBeGreaterThan(0);
+    expect(texts(container, 'ירושלמי').length).toBeGreaterThan(0);
+  });
+
+  it('renders no badge for a section without parallels', () => {
+    const noExits: SpineViewDaf[] = [
+      {
+        page: '5a',
+        nextPage: null,
+        sections: [{ index: 0, title: 'Lone section', rabbis: [], exits: [] }],
+        flow: [],
+        cross: [],
+      },
+    ];
+    const { container } = render(() => <SpineFlowGraph dapim={noExits} />);
+    expect(texts(container, '⤳')).toHaveLength(0);
+  });
+});

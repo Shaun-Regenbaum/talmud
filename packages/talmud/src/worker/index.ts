@@ -1,4 +1,5 @@
 import { continuationLink, type FlowEdge } from '@corpus/core/context/link';
+import { coordLabel } from '@corpus/core/context/types';
 import { gatewayActive, gatewayStatus, wrapEnv } from '@corpus/core/llm/ai-gateway';
 import {
   type BudgetScope,
@@ -53,6 +54,7 @@ import { dedupeBy, dedupeByRange, type MoveLike, selectSectionMoves } from '../l
 import { runPasses } from '../lib/check/passes';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import { type DafLink, dafLinks } from '../lib/context/dafLinks';
+import { talmudParallelsToLinks, yerushalmiToLinks } from '../lib/context/parallels';
 import { dafSpine } from '../lib/context/spine';
 import { spineLinks } from '../lib/context/spineLinks';
 import { buildGeoModel, type GeoEnrichment, type RabbiGeoSource } from '../lib/geographyModel';
@@ -1518,6 +1520,55 @@ async function runConnectSweep(env: Bindings): Promise<void> {
 // cross-daf edges into the next, for the whole tractate. Read-only over cached
 // pieces — nothing is computed. The client stacks these into one continuous
 // argument map down the tractate. (Hidden #spine page only.)
+/** A cross-text "exit" on a section: a parallel link whose target is off the
+ *  visible tractate (another tractate, or the Yerushalmi) and so can't be drawn
+ *  as an in-graph arrow — the spine flow graph renders these as click-to-expand
+ *  markers beside the section box. `corpus` distinguishes the badge. */
+interface SpineExit {
+  ref: string;
+  relation: string;
+  corpus: 'yeru' | 'bavli' | 'here';
+  tractate: string;
+  page: string;
+}
+/** Group a daf's cached parallels (Mesorat HaShas + Yerushalmi) into per-section
+ *  exit marks, keyed to the argument section their source segment sits in. Pure
+ *  over already-read bundles — no network. */
+function sectionExitMarks(
+  tractate: string,
+  page: string,
+  sectionStarts: readonly number[],
+  tp: Awaited<ReturnType<typeof readCachedTalmudParallels>>,
+  yeru: Awaited<ReturnType<typeof readCachedYerushalmi>>,
+): SpineExit[][] {
+  const daf = { tractate, page };
+  const links = [...talmudParallelsToLinks(daf, tp), ...yerushalmiToLinks(daf, yeru)];
+  const out: SpineExit[][] = sectionStarts.map(() => []);
+  if (out.length === 0) return out;
+  for (const l of links) {
+    const t = l.targets[0];
+    if (!t) continue;
+    // the section whose start is the greatest not exceeding the source segment
+    // (robust to section array order).
+    let idx = 0;
+    let best = -1;
+    for (let i = 0; i < sectionStarts.length; i++) {
+      if (sectionStarts[i] <= l.source.seg && sectionStarts[i] >= best) {
+        best = sectionStarts[i];
+        idx = i;
+      }
+    }
+    out[idx].push({
+      ref: coordLabel(t),
+      relation: l.relation,
+      corpus: l.via === 'yerushalmi' ? 'yeru' : t.tractate === tractate ? 'here' : 'bavli',
+      tractate: t.tractate,
+      page: t.page,
+    });
+  }
+  return out;
+}
+
 app.get('/api/spine-view/:tractate', async (c) => {
   const tractate = c.req.param('tractate');
   if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
@@ -1528,12 +1579,24 @@ app.get('/api/spine-view/:tractate', async (c) => {
     const flow = await readFlowConnections(c.env, tractate, page);
     const cross = await readCachedCrossFlow(c.env, tractate, page);
     const bridge = await readCachedBridge(c.env, tractate, page);
+    // Cross-text parallels (off-tractate / Yerushalmi), read-only, grouped to the
+    // section they leave from — rendered as exit markers in the flow graph.
+    const tp = await readCachedTalmudParallels(c.env.CACHE, tractate, page);
+    const yeru = await readCachedYerushalmi(c.env.CACHE, tractate, page);
+    const exits = sectionExitMarks(
+      tractate,
+      page,
+      secs.map((s) => s.start),
+      tp,
+      yeru,
+    );
     return {
       page,
       sections: secs.map((s, i) => ({
         index: i,
         title: s.title || `Section ${i + 1}`,
         rabbis: s.rabbis,
+        exits: exits[i] ?? [],
       })),
       flow,
       cross: cross?.edges ?? [],
