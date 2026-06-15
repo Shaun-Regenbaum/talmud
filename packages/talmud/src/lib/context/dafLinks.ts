@@ -23,15 +23,16 @@ import {
   type LinkRelation,
 } from '@corpus/core/context/link';
 import type { ContextItem } from '@corpus/core/context/types';
-import type { TalmudParallel } from '../sefref/sefaria/client.ts';
-import { talmudParallelsToLinks } from './parallels.ts';
+import type { TalmudParallel, YerushalmiBundle } from '../sefref/sefaria/client.ts';
+import { talmudParallelsToLinks, yerushalmiToLinks } from './parallels.ts';
 
 /** A link on a daf: where it lives (`source`), the `relation`, and what it
  *  points at (`targets`). `via` records which producer it came from, for
  *  display + debugging. ('mesorah' = the Mesorat HaShas parallel-sugya
- *  apparatus — unrelated to the rabbi-transmission `mesorah:` cache namespace.) */
+ *  apparatus — unrelated to the rabbi-transmission `mesorah:` cache namespace;
+ *  'yerushalmi' = the cross-corpus Bavli↔Yerushalmi parallel.) */
 export interface DafLink {
-  via: 'bridge' | 'context' | 'flow' | 'commentary' | 'cross-flow' | 'mesorah';
+  via: 'bridge' | 'context' | 'flow' | 'commentary' | 'cross-flow' | 'mesorah' | 'yerushalmi';
   source: AnchorCoord;
   relation: LinkRelation;
   targets: AnchorCoord[];
@@ -56,6 +57,10 @@ export interface DafLinkInputs {
    *  becomes a 'parallels' link from its anchored segment on this daf to a
    *  passage elsewhere in Shas. Optional/absent contributes nothing. */
   talmudParallels?: readonly TalmudParallel[];
+  /** Jerusalem Talmud parallels (the `yerushalmi` mark's shared-mishnah bundle)
+   *  — each becomes a cross-corpus 'parallels' link to the parallel halacha.
+   *  Optional/absent contributes nothing. */
+  yerushalmi?: YerushalmiBundle;
 }
 
 export function dafLinks(daf: DafRef, input: DafLinkInputs): DafLink[] {
@@ -114,6 +119,10 @@ export function dafLinks(daf: DafRef, input: DafLinkInputs): DafLink[] {
   // 5) Talmud parallels: Mesorat HaShas cross-references to parallel sugyot
   //    elsewhere in Shas (deterministic, from Sefaria's apparatus).
   out.push(...talmudParallelsToLinks(daf, input.talmudParallels ?? []));
+
+  // 6) Yerushalmi parallels: the cross-corpus Bavli↔Yerushalmi parallel sugya,
+  //    via the shared mishnah (deterministic, from the `yerushalmi` mark).
+  out.push(...yerushalmiToLinks(daf, input.yerushalmi ?? []));
 
   return out;
 }
