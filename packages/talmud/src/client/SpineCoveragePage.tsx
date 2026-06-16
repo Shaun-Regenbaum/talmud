@@ -7,6 +7,7 @@ import {
   type JSX,
   Show,
 } from 'solid-js';
+import { TRACTATE_OPTIONS } from '../lib/sefref/tractates';
 import type { StatementSpine } from '../lib/typing/statementSpine';
 import { connectionKinds, FlowLegend } from './ArgumentFlowGraph';
 import { ArgumentMoveCard, type ArgumentMoveInstance } from './ArgumentSidebar';
@@ -40,6 +41,15 @@ interface CoverageReport {
   columns: CoverageColumn[];
   rows: CoverageRow[];
   summary: { computed: number; total: number; pct: number };
+}
+/** Minimal slice of a /api/marks row — enough to count instances per mark in an
+ *  expanded coverage row. */
+interface MarkLite {
+  id: string;
+  label: string;
+  kind: string;
+  cached: boolean;
+  instances: unknown[];
 }
 
 // Coverage producer kinds, recoloured off neon onto app-native hues.
@@ -85,7 +95,14 @@ const PANEL_H: JSX.CSSProperties = {
 function routeTractate(): string {
   const raw = window.location.hash.replace(/^#/, '');
   const parts = raw.split('/');
-  return (parts[1] || 'berakhot').toLowerCase();
+  // The hash route (#spine/<tractate>) wins; otherwise fall back to the
+  // ?tractate= query param so a deep link like ?tractate=Chullin&page=47b#spine
+  // (the form the reader/align pages use) opens that tractate rather than the
+  // berakhot default. Title-case query values are slugged.
+  if (parts[1]) return parts[1].toLowerCase();
+  const q = new URLSearchParams(window.location.search).get('tractate');
+  if (q?.trim()) return q.trim().toLowerCase().replace(/\s+/g, '_');
+  return 'berakhot';
 }
 
 async function fetchCoverage(tractate: string): Promise<CoverageReport> {
@@ -97,10 +114,16 @@ async function fetchCoverage(tractate: string): Promise<CoverageReport> {
   return r.json();
 }
 
-async function fetchSpineView(
-  tractate: string,
-): Promise<{ tractate: string; dapim: SpineViewDaf[] }> {
-  const r = await fetch(`/api/spine-view/${encodeURIComponent(tractate)}`);
+async function fetchSpineView(tractate: string): Promise<{
+  tractate: string;
+  dapim: SpineViewDaf[];
+  truncated?: boolean;
+  fromShelf?: boolean;
+  builtAt?: number;
+}> {
+  // Prefer the cron-built snapshot shelf (O(1), un-bounded); on a miss the server
+  // falls back to the bounded live build (truncated:true past 60 warmed dapim).
+  const r = await fetch(`/api/spine-view/${encodeURIComponent(tractate)}?cached=1`);
   if (!r.ok) {
     const body = await r.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `HTTP ${r.status}`);
@@ -108,7 +131,9 @@ async function fetchSpineView(
   return r.json();
 }
 
-const FLOW_VIEW_CAP = 40; // keep the stitched render light; note when truncated
+// Render budget for the stitched flow graph. >= the server's SPINE_VIEW_MAX_DAPIM
+// so the client never re-truncates the (already-bounded) server payload.
+const FLOW_VIEW_CAP = 64;
 
 export function SpineCoveragePage(): JSX.Element {
   const [tractate, setTractate] = createSignal(routeTractate());
@@ -190,6 +215,50 @@ export function SpineCoveragePage(): JSX.Element {
   };
 
   const prettyTractate = () => tractate().replace(/_/g, ' ');
+
+  // Slug ('bava_metzia') -> the canonical TractateOption.value ('Bava Metzia')
+  // the alignment + reader pages match their <select>/param on; falls back to a
+  // title-cased guess. Load-bearing: a lowercase slug leaves the alignment page's
+  // <select> blank (its data still loads — the worker slug-normalises — but the
+  // selection is wrong).
+  const titleOf = (slug: string): string =>
+    TRACTATE_OPTIONS.find((o) => o.value.toLowerCase().replace(/ /g, '_') === slug)?.value ??
+    slug.replace(/_/g, ' ').replace(/\b\w/g, (ch) => ch.toUpperCase());
+  const alignHref = (page: string): string =>
+    `?tractate=${encodeURIComponent(titleOf(tractate()))}&page=${encodeURIComponent(page)}#align`;
+  const readerHref = (page: string): string =>
+    `?tractate=${encodeURIComponent(titleOf(tractate()))}&page=${encodeURIComponent(page)}`;
+  // Open a daf's alignment workbench / reader. A FULL url change is required (App
+  // re-renders only on hashchange; the alignment page reads its query once at
+  // construction), and stopPropagation keeps the row's expand toggle from firing.
+  const goDaf = (e: MouseEvent, page: string, align: boolean) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const u = new URL(window.location.href);
+    u.searchParams.set('tractate', titleOf(tractate()));
+    u.searchParams.set('page', page);
+    u.hash = align ? 'align' : '';
+    window.location.href = u.toString();
+  };
+
+  // Per-piece detail for the OPEN row only: one /api/marks fetch keyed on the
+  // expanded daf, so an expanded row can show which marks (and how many of each)
+  // are actually on the page — richer than the coverage report's booleans.
+  const [openMarks] = createResource(
+    () => (expanded() ? `${tractate()}/${expanded()}` : null),
+    async (key: string): Promise<MarkLite[]> => {
+      const slash = key.lastIndexOf('/');
+      const t = key.slice(0, slash);
+      const p = key.slice(slash + 1);
+      try {
+        const r = await fetch(`/api/marks/${encodeURIComponent(t)}/${encodeURIComponent(p)}`);
+        if (!r.ok) return [];
+        return ((await r.json()) as { marks?: MarkLite[] }).marks ?? [];
+      } catch {
+        return [];
+      }
+    },
+  );
 
   return (
     <main class="page-shell" style={{ '--page-max': '1040px' }}>
@@ -420,9 +489,15 @@ export function SpineCoveragePage(): JSX.Element {
                           fallback={`whole tractate — ${v().dapim.length} dapim, one node each; tinted = has cross-daf links. Click a daf for detail.`}
                         >
                           showing {capped().length} of {shown().length} dapim{' '}
-                          {shown().length > FLOW_VIEW_CAP ? '(capped)' : ''} &middot; {crossCount()}{' '}
-                          cross-daf arrows (thicker lines span the page break) &middot;{' '}
-                          {connectivity().done}/{connectivity().total} boundaries connected
+                          {v().truncated || shown().length > FLOW_VIEW_CAP
+                            ? '(bounded — warm more dapim to extend) '
+                            : ''}
+                          {v().fromShelf && v().builtAt
+                            ? `· snapshot ${Math.max(0, Math.round((Date.now() - (v().builtAt ?? 0)) / 60000))}m old `
+                            : ''}
+                          &middot; {crossCount()} cross-daf arrows (thicker lines span the page
+                          break) &middot; {connectivity().done}/{connectivity().total} boundaries
+                          connected
                           {connectivity().done < connectivity().total
                             ? ' (dashed = not computed yet)'
                             : ''}{' '}
@@ -630,19 +705,24 @@ export function SpineCoveragePage(): JSX.Element {
                             background: isOpen() ? '#f2eee4' : 'transparent',
                           }}
                         >
-                          <span
+                          <a
+                            href={alignHref(row.page)}
+                            onClick={(e) => goDaf(e, row.page, true)}
+                            title={`Open ${prettyTractate()} ${row.page} in the alignment workbench`}
                             style={{
                               width: '44px',
                               'flex-shrink': 0,
                               'font-family': MONO,
                               'font-size': '0.78rem',
-                              color: filledCount() ? 'var(--fg)' : 'var(--muted)',
+                              color: filledCount() ? 'var(--accent)' : 'var(--muted)',
                               'font-weight': isOpen() ? 700 : 400,
                               'padding-left': '0.2rem',
+                              'text-decoration': 'none',
+                              cursor: 'pointer',
                             }}
                           >
                             {row.page}
-                          </span>
+                          </a>
                           <For each={r().columns}>
                             {(col) => (
                               <span
@@ -689,6 +769,37 @@ export function SpineCoveragePage(): JSX.Element {
                             >
                               {prettyTractate()} {row.page}
                             </div>
+                            <div
+                              style={{
+                                display: 'flex',
+                                gap: '0.8rem',
+                                'margin-bottom': '0.45rem',
+                                'font-size': '0.78rem',
+                              }}
+                            >
+                              <a
+                                href={alignHref(row.page)}
+                                onClick={(e) => goDaf(e, row.page, true)}
+                                style={{
+                                  color: 'var(--accent)',
+                                  'text-decoration': 'none',
+                                  'font-weight': 600,
+                                }}
+                              >
+                                open in alignment →
+                              </a>
+                              <a
+                                href={readerHref(row.page)}
+                                onClick={(e) => goDaf(e, row.page, false)}
+                                style={{
+                                  color: 'var(--accent)',
+                                  'text-decoration': 'none',
+                                  'font-weight': 600,
+                                }}
+                              >
+                                open in reader →
+                              </a>
+                            </div>
                             <For each={r().columns}>
                               {(col) => (
                                 <div
@@ -714,6 +825,54 @@ export function SpineCoveragePage(): JSX.Element {
                                 </div>
                               )}
                             </For>
+                            {/* Per-mark instance counts on this page (lazy /api/marks for the open row). */}
+                            <Show
+                              when={(openMarks() ?? []).some((m) => m.cached && m.instances.length)}
+                            >
+                              <div
+                                style={{
+                                  'margin-top': '0.45rem',
+                                  'border-top': '1px solid #eee',
+                                  'padding-top': '0.35rem',
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    'font-size': '0.68rem',
+                                    'text-transform': 'uppercase',
+                                    'letter-spacing': '0.05em',
+                                    color: 'var(--muted)',
+                                    'margin-bottom': '0.25rem',
+                                  }}
+                                >
+                                  pieces on the page
+                                </div>
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    'flex-wrap': 'wrap',
+                                    gap: '0.25rem 0.6rem',
+                                  }}
+                                >
+                                  <For
+                                    each={(openMarks() ?? []).filter(
+                                      (m) => m.cached && m.instances.length,
+                                    )}
+                                  >
+                                    {(m) => (
+                                      <span style={{ 'font-size': '0.76rem', color: 'var(--fg)' }}>
+                                        {m.label}{' '}
+                                        <span
+                                          style={{ color: 'var(--accent)', 'font-weight': 600 }}
+                                        >
+                                          {m.instances.length}
+                                        </span>
+                                      </span>
+                                    )}
+                                  </For>
+                                </div>
+                              </div>
+                            </Show>
                           </div>
                         </Show>
                       </>

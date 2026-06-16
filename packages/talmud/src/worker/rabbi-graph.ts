@@ -38,6 +38,8 @@ interface HierarchyNode {
     students?: string[];
     colleagues?: string[];
   };
+  /** Set on AI-researched nodes added outside the admin relationship pipeline. */
+  provenance?: string;
 }
 
 interface HierarchyData {

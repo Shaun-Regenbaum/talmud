@@ -142,6 +142,8 @@ import {
   keyForReferences,
   keyForRegion,
   keyForSpineLinks,
+  keyForSpineView,
+  keyForSpineViewAcc,
   keyForTranslate,
   prefixForDafIndex,
   prefixForRabbiObs,
@@ -1626,60 +1628,97 @@ function canonicalTractateName(slug: string): string {
   return TRACTATE_OPTIONS.find((o) => slugTractate(o.value) === s)?.value ?? slug;
 }
 
+// Hard cap on dapim swept per LIVE /api/spine-view build: each warmed daf costs
+// ~a dozen KV reads (sections + per-section voices + flow + cross + bridge +
+// parallels), and Cloudflare caps a request at 1000 subrequests. The fan-out is
+// already gated onto warmed dapim; this bounds the worst case. The cron snapshot
+// shelf (below) removes the bound entirely for tractates it has warmed.
+const SPINE_VIEW_MAX_DAPIM = 60;
+
+// One daf's whole-tractate-flow node: its sections (+ rabbis + cross-text exit
+// markers), within-daf flow, cross-daf edges, and the cold/computed flags. Field
+// names are load-bearing for SpineFlowGraph / SpineCoveragePage — preserve them.
+// `canonical` is the Sefaria raw-case name, passed ONLY to the parallels/yerushalmi
+// reads (their bundle keys are raw, unlike the slug-folded mark/flow/bridge keys).
+async function buildSpineViewDaf(
+  env: Bindings,
+  tractate: string,
+  page: string,
+  canonical: string,
+  nextPage: string | null,
+) {
+  const cache = env.CACHE;
+  if (!cache) throw new Error('buildSpineViewDaf: no CACHE');
+  const secs = await readSectionRabbis(env, tractate, page);
+  const flow = await readFlowConnections(env, tractate, page);
+  const cross = await readCachedCrossFlow(env, tractate, page);
+  const bridge = await readCachedBridge(env, tractate, page);
+  const tp = await readCachedTalmudParallels(cache, canonical, page);
+  const yeru = await readCachedYerushalmi(cache, canonical, page);
+  const exits = sectionExitMarks(
+    canonical,
+    page,
+    secs.map((s) => s.start),
+    tp,
+    yeru,
+  );
+  return {
+    page,
+    nextPage,
+    sections: secs.map((s, i) => ({
+      index: i,
+      title: s.title || `Section ${i + 1}`,
+      rabbis: s.rabbis,
+      exits: exits[i] ?? [],
+    })),
+    flow,
+    cross: cross?.edges ?? [],
+    // A cached cross-flow (even zero edges = genuinely no link) means computed;
+    // null = still cold. Lets the client show "not connected yet" vs "no link".
+    crossComputed: cross != null,
+    parallelsComputed: tp != null,
+    continues: bridge?.continues === true,
+  };
+}
+type SpineViewDaf = Awaited<ReturnType<typeof buildSpineViewDaf>>;
+
+// The LIVE (un-shelved) whole-tractate spine view: gate the per-daf fan-out onto
+// dapim that have an argument mark (cheap computeCoverage key-presence sweep),
+// bound at SPINE_VIEW_MAX_DAPIM so a fully-warmed tractate can't blow the
+// subrequest limit, and assemble. The fallback path when the cron shelf isn't
+// warmed yet; the cron's incremental builder shares buildSpineViewDaf.
+async function buildSpineView(
+  env: Bindings,
+  tractate: string,
+): Promise<{ tractate: string; dapim: SpineViewDaf[]; truncated: boolean }> {
+  const cache = env.CACHE;
+  if (!cache) return { tractate, dapim: [], truncated: false };
+  const canonical = canonicalTractateName(tractate);
+  const pages = [...iterAmudim(tractate)];
+  const nextOf = new Map(pages.map((p, i) => [p, pages[i + 1] ?? null] as const));
+  const cov = await computeCoverage(cache, tractate).catch(() => null);
+  const warmed = cov ? new Set(cov.rows.filter((r) => r.cells.argument).map((r) => r.page)) : null;
+  const withSections = warmed ? pages.filter((p) => warmed.has(p)) : pages;
+  const truncated = withSections.length > SPINE_VIEW_MAX_DAPIM;
+  const sweep = truncated ? withSections.slice(0, SPINE_VIEW_MAX_DAPIM) : withSections;
+  const dapim = await mapPool(sweep, 24, (page) =>
+    buildSpineViewDaf(env, tractate, page, canonical, nextOf.get(page) ?? null),
+  );
+  return { tractate, dapim: dapim.filter((d) => d.sections.length > 0), truncated };
+}
+
 app.get('/api/spine-view/:tractate', async (c) => {
   const tractate = c.req.param('tractate');
   if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
   if (!c.env.CACHE) return c.json({ error: 'no CACHE binding in this environment' }, 503);
-  // The route param is a lowercase slug; the parallel / yerushalmi bundles are
-  // keyed by the Sefaria-canonical tractate name the reader/API wrote them under
-  // (raw case, unlike the slugDaf-folded mark/flow/bridge keys), so resolve it or
-  // the read-only bundle reads cold-miss everything.
-  const canonical = canonicalTractateName(tractate);
-  const pages = [...iterAmudim(tractate)];
-  const raw = await mapPool(pages, 24, async (page) => {
-    const secs = await readSectionRabbis(c.env, tractate, page);
-    const flow = await readFlowConnections(c.env, tractate, page);
-    const cross = await readCachedCrossFlow(c.env, tractate, page);
-    const bridge = await readCachedBridge(c.env, tractate, page);
-    // Cross-text parallels (off-tractate / Yerushalmi), read-only, grouped to the
-    // section they leave from — rendered as exit markers in the flow graph.
-    const tp = await readCachedTalmudParallels(c.env.CACHE, canonical, page);
-    const yeru = await readCachedYerushalmi(c.env.CACHE, canonical, page);
-    const exits = sectionExitMarks(
-      canonical,
-      page,
-      secs.map((s) => s.start),
-      tp,
-      yeru,
-    );
-    return {
-      page,
-      sections: secs.map((s, i) => ({
-        index: i,
-        title: s.title || `Section ${i + 1}`,
-        rabbis: s.rabbis,
-        exits: exits[i] ?? [],
-      })),
-      flow,
-      cross: cross?.edges ?? [],
-      // Has this daf's cross-daf link been computed yet? A cached cross-flow
-      // (even with zero edges = genuinely no link) means computed; null means
-      // still cold (not yet warmed). Lets the client distinguish "no link" from
-      // "not connected yet" and surface the gaps.
-      crossComputed: cross != null,
-      // Same distinction for cross-text parallels: the bundle is cached (an array,
-      // even empty = checked-and-none) vs never computed (null). false → the spine
-      // shows a "parallels not computed yet" marker instead of silently nothing.
-      parallelsComputed: tp != null,
-      // deterministic daf-continuity: does the sugya carry into the next daf?
-      continues: bridge?.continues === true,
-    };
-  });
-  // nextPage = the adjacent amud (iterAmudim order), so cross-daf + continuity
-  // edges have a target daf to point at.
-  const dapim = raw.map((d, i) => ({ ...d, nextPage: pages[i + 1] ?? null }));
-  // Only dapim that actually have sections (a flow graph needs nodes).
-  return c.json({ tractate, dapim: dapim.filter((d) => d.sections.length > 0) });
+  // The cron materializes a per-tractate snapshot shelf (O(1), un-bounded). The
+  // client requests ?cached=1; serve the shelf on a hit, else fall back to the
+  // bounded live build (correct before the shelf is first warmed).
+  if (c.req.query('cached') === '1') {
+    const snap = await c.env.CACHE.get(keyForSpineView(tractate));
+    if (snap) return c.json({ ...JSON.parse(snap), fromShelf: true });
+  }
+  return c.json(await buildSpineView(c.env, tractate));
 });
 
 // One daf's STATEMENT spines — the source of truth the #spine drill-down pulls.
@@ -1745,6 +1784,103 @@ app.get('/api/statement-spine/:tractate/:page', async (c) => {
   // legitimately has no sub-statements. Without it an empty band reads as broken.
   return c.json({ tractate, page, sections: out, movesComputed: allMoves.length > 0 });
 });
+
+// Incremental per-tractate spine-view snapshot builder — the cron payoff. A full
+// warm of a large tractate (~170 amudim × ~12 KV reads) exceeds the 1000-subrequest
+// cap, so each tick builds a WINDOW of warmed dapim, RMW-merges it into a
+// per-tractate accumulator (overwrite-by-page → idempotent; cron ticks are serial,
+// so the RMW is safe), and PUBLISHES the sorted snapshot to the shelf at
+// end-of-tractate-pass. A perpetual wrapping cursor re-derives every tractate each
+// pass, so newly-warmed dapim + human edits flow in on the next lap. Gated by
+// SPINE_VIEW_WARM_SHAS.
+const SPINE_VIEW_CURSOR_KEY = 'spine-view-cursor:v1';
+const SPINE_VIEW_WINDOW = 20; // warmed dapim built per tick (~240 KV reads)
+interface SpineViewCursor {
+  tractateIdx: number;
+  amudIdx: number; // index into the WARMED-pages list of the current tractate
+  wraps: number;
+}
+async function runSpineViewSnapshot(env: Bindings): Promise<void> {
+  const cache = env.CACHE;
+  if (!cache || env.SPINE_VIEW_WARM_SHAS !== '1') return;
+  const tractates = Object.keys(TRACTATE_END_AMUD);
+  if (tractates.length === 0) return;
+  try {
+    let cur: SpineViewCursor = { tractateIdx: 0, amudIdx: 0, wraps: 0 };
+    const raw = await cache.get(SPINE_VIEW_CURSOR_KEY);
+    if (raw) {
+      try {
+        cur = JSON.parse(raw) as SpineViewCursor;
+      } catch {
+        /* reset */
+      }
+    }
+    let { tractateIdx, amudIdx, wraps } = cur;
+    if (tractateIdx >= tractates.length) {
+      tractateIdx = 0;
+      amudIdx = 0;
+    }
+    const tractate = tractates[tractateIdx];
+    const pages = [...iterAmudim(tractate)];
+    const order = new Map(pages.map((p, i) => [p, i] as const));
+    const nextOf = new Map(pages.map((p, i) => [p, pages[i + 1] ?? null] as const));
+    const canonical = canonicalTractateName(tractate);
+    const cov = await computeCoverage(cache, tractate).catch(() => null);
+    const warmed = cov
+      ? new Set(cov.rows.filter((r) => r.cells.argument).map((r) => r.page))
+      : null;
+    const warmedPages = warmed ? pages.filter((p) => warmed.has(p)) : [];
+
+    const accKey = keyForSpineViewAcc(tractate);
+    let acc: Record<string, SpineViewDaf> = {};
+    const accRaw = await cache.get(accKey);
+    if (accRaw) {
+      try {
+        acc = JSON.parse(accRaw) as Record<string, SpineViewDaf>;
+      } catch {
+        acc = {};
+      }
+    }
+
+    const window = warmedPages.slice(amudIdx, amudIdx + SPINE_VIEW_WINDOW);
+    if (window.length > 0) {
+      const built = await mapPool(window, 24, (page) =>
+        buildSpineViewDaf(env, tractate, page, canonical, nextOf.get(page) ?? null),
+      );
+      for (const d of built) if (d.sections.length > 0) acc[d.page] = d;
+      await cache.put(accKey, JSON.stringify(acc));
+      amudIdx += window.length;
+    }
+
+    if (amudIdx >= warmedPages.length) {
+      // Tractate pass complete → publish the shelf (only when there is content),
+      // clear the accumulator, advance to the next tractate (wrap at end-of-Shas).
+      const dapim = Object.values(acc).sort(
+        (a, b) => (order.get(a.page) ?? 0) - (order.get(b.page) ?? 0),
+      );
+      if (dapim.length > 0) {
+        const shelf = {
+          tractate,
+          dapim,
+          truncated: false,
+          builtAt: Date.now(),
+          coverage: { dapimWithSections: dapim.length, dapimTotal: pages.length },
+        };
+        await cache.put(keyForSpineView(tractate), JSON.stringify(shelf));
+      }
+      await cache.delete(accKey).catch(() => {});
+      tractateIdx++;
+      amudIdx = 0;
+      if (tractateIdx >= tractates.length) {
+        tractateIdx = 0;
+        wraps++;
+      }
+    }
+    await cache.put(SPINE_VIEW_CURSOR_KEY, JSON.stringify({ tractateIdx, amudIdx, wraps }));
+  } catch (err) {
+    console.error('[spine-view-snapshot] tick failed:', err);
+  }
+}
 
 // On-demand compute (or cache hit) of one daf's cross-daf flow, returned both as
 // the raw verdict and projected to coordinate-resolved links. Mirrors /api/bridge.
@@ -10617,6 +10753,9 @@ export default {
             // makes a little progress), then the source warm cron uses the rest.
             await runConnectSweep(wrapped).catch(() => {});
             await runWarmCron(wrapped);
+            // Last (and self-gated by SPINE_VIEW_WARM_SHAS): build a window of the
+            // per-tractate spine-view snapshot shelf from the now-warmed pieces.
+            await runSpineViewSnapshot(wrapped);
           },
         ),
       );
