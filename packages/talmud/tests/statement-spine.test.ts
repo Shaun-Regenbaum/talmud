@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildDafSpine,
   buildStatementSpine,
+  crossSectionStatementFlow,
+  type DafSectionRanged,
   type StatementMoveLike,
   type VoicesGraphLike,
 } from '../src/lib/typing/statementSpine';
@@ -224,5 +227,111 @@ describe('buildStatementSpine — edge cases', () => {
       voices: { edges: [{ from: 'Rava', to: 'Rava', kind: 'opposes' }] },
     });
     expect(spine.links.every((l) => l.from !== l.to)).toBe(true);
+  });
+});
+
+// The DAF-GLOBAL builder: walks ALL the daf's moves with a stack of open moves,
+// so an answer/objection in one section attaches to the question/claim it really
+// engages in ANOTHER — the connections the per-section walk structurally can't see
+// (a one-move-per-section technical sugya). A `continues` backbone keeps the rest
+// from floating; a segment-gap guard keeps a far-away open move from over-reaching.
+describe('buildDafSpine — daf-global walk', () => {
+  it('links an answer to a question in an EARLIER section (per-section walk cannot)', () => {
+    const sections = [
+      { moves: [move(0, 'question', 'Stam')] },
+      { moves: [move(5, 'answer', 'Stam')] },
+    ];
+    const daf = buildDafSpine(sections);
+    expect(
+      daf.links.some((l) => l.relation === 'responds-to' && l.from === 's_5' && l.to === 's_0'),
+    ).toBe(true);
+    // Per-section: each section has ONE move, so neither produces a typed link.
+    const perSection = sections.flatMap((s) => buildStatementSpine(s).links);
+    expect(perSection.filter((l) => l.relation !== 'continues')).toHaveLength(0);
+  });
+
+  it('attaches a cross-section objection to the claim it opposes', () => {
+    const daf = buildDafSpine([
+      { moves: [move(0, 'opening', 'Rava', ['Rava'])] },
+      { moves: [move(3, 'objection', 'Abaye', ['Abaye'])] },
+    ]);
+    expect(
+      daf.links.some((l) => l.relation === 'opposes' && l.from === 's_3' && l.to === 's_0'),
+    ).toBe(true);
+  });
+
+  it('lays a continues backbone between consecutive moves, but not over a typed pair', () => {
+    const daf = buildDafSpine([
+      { moves: [move(0, 'question', 'Stam'), move(1, 'answer', 'Stam')] },
+    ]);
+    // The answer responds-to the question, so NO continues doubles that pair…
+    expect(
+      daf.links.some((l) => l.relation === 'responds-to' && l.from === 's_1' && l.to === 's_0'),
+    ).toBe(true);
+    expect(daf.links.some((l) => l.relation === 'continues' && l.from === 's_1')).toBe(false);
+  });
+
+  it('does NOT reach back past the segment-gap guard (precision over recall)', () => {
+    const daf = buildDafSpine([
+      { moves: [move(0, 'question', 'Stam')] },
+      { moves: [move(40, 'answer', 'Stam')] }, // > MAX_ANTECEDENT_GAP segments away
+    ]);
+    expect(daf.links.some((l) => l.relation === 'responds-to')).toBe(false);
+  });
+});
+
+describe('crossSectionStatementFlow — section→section edges from the dialectic', () => {
+  const ranged = (
+    index: number,
+    start: number,
+    end: number,
+    m: StatementMoveLike,
+  ): DafSectionRanged => ({
+    index,
+    startSegIdx: start,
+    endSegIdx: end,
+    moves: [m],
+  });
+
+  it('lifts a cross-section responds-to (a question answered in a later section)', () => {
+    const flow = crossSectionStatementFlow([
+      ranged(0, 0, 2, move(0, 'question', 'Stam')),
+      ranged(1, 3, 5, move(4, 'answer', 'Stam')),
+    ]);
+    expect(flow).toEqual([{ fromSection: 1, toSection: 0, relation: 'responds-to' }]);
+    expect(flow.every((f) => f.relation !== 'continues')).toBe(true);
+  });
+
+  it('does NOT lift cross-section opposes (the audit found it ~70% false)', () => {
+    // An objection opposes an earlier opening across sections; buildDafSpine still
+    // computes that `opposes`, but crossSectionStatementFlow must not surface it.
+    const flow = crossSectionStatementFlow([
+      ranged(0, 0, 2, move(0, 'opening', 'Rava', ['Rava'])),
+      ranged(1, 3, 5, move(4, 'objection', 'Abaye', ['Abaye'])),
+    ]);
+    expect(flow.some((f) => f.relation === 'opposes')).toBe(false);
+    expect(flow).toHaveLength(0);
+  });
+
+  it('does NOT lift cross-section supports either', () => {
+    const flow = crossSectionStatementFlow([
+      ranged(0, 0, 2, move(0, 'opening', 'Rava', ['Rava'])),
+      ranged(1, 3, 5, move(4, 'supporting-evidence', 'Abaye', ['Abaye'])),
+    ]);
+    expect(flow.some((f) => f.relation === 'supports')).toBe(false);
+  });
+
+  it('a resolution clears the stack so a later unit cannot reach back (no false edge)', () => {
+    // §0 question is RESOLVED inside §1; §2's answer must not then "respond-to" the
+    // already-closed §0 question across the boundary (the parallel-units cascade).
+    const flow = crossSectionStatementFlow([
+      ranged(0, 0, 2, move(0, 'question', 'Stam')),
+      ranged(1, 3, 5, move(4, 'resolution', 'Stam')),
+      ranged(2, 6, 8, move(7, 'answer', 'Stam')),
+    ]);
+    // The only legitimate cross-section edge is §1 resolves §0; §2's answer finds
+    // no open question (the stack was cleared), so no §2→§0 responds-to.
+    expect(flow).toContainEqual({ fromSection: 1, toSection: 0, relation: 'resolves' });
+    expect(flow.some((f) => f.fromSection === 2)).toBe(false);
   });
 });

@@ -135,7 +135,8 @@ const STMT_REL_AS_LINK: Record<string, FlowConnection['kind']> = {
   cites: 'cites',
   continues: 'continues',
 };
-const stmtRelKind = (rel: string): FlowConnection['kind'] => STMT_REL_AS_LINK[rel] ?? 'continues';
+export const stmtRelKind = (rel: string): FlowConnection['kind'] =>
+  STMT_REL_AS_LINK[rel] ?? 'continues';
 // `supports` (raya / proof) has no section-flow kin — the section vocabulary lacks
 // it (see the deferred note above). So it gets its OWN evidential colour + label
 // rather than the old, direction-REVERSED alias to `depends-on` (evidence-FOR vs

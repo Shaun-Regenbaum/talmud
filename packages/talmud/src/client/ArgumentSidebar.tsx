@@ -42,7 +42,7 @@ import {
 } from '../lib/typing/statementSpine';
 import type { ArgumentVoicesData } from '../lib/typing/voices';
 import { deriveVoiceEdges } from '../lib/typing/voices';
-import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
+import ArgumentFlowGraph, { type FlowConnection, stmtRelKind } from './ArgumentFlowGraph';
 import ArgumentNarrative from './ArgumentNarrative';
 import { type BackgroundGroup, orderBackgroundGroups } from './backgroundGroups';
 import { ChartTableView } from './ChartTableView';
@@ -934,6 +934,28 @@ async function fetchOverviewFlow(
   return null;
 }
 
+/** A section→section connection derived deterministically from the statement
+ *  dialectic (GET /api/derived-flow, read-only). Used to CONNECT sections the AI
+ *  flow producer left disconnected — see the endpoint comment. The relation is a
+ *  StatementRelation; the consumer maps it onto a FlowConnection kind. */
+interface DerivedFlowEdge {
+  fromSection: number;
+  toSection: number;
+  relation: string;
+}
+async function fetchDerivedFlow(tractate: string, page: string): Promise<DerivedFlowEdge[]> {
+  try {
+    const r = await fetch(
+      `/api/derived-flow/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}`,
+    );
+    if (!r.ok) return [];
+    const j = (await r.json()) as { derived?: DerivedFlowEdge[] };
+    return Array.isArray(j.derived) ? j.derived : [];
+  } catch {
+    return [];
+  }
+}
+
 // ===========================================================================
 // Whole-daf argument OVERVIEW card — recipe block.
 // ---------------------------------------------------------------------------
@@ -993,16 +1015,39 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
     readyKey() === dafKey() ||
     mapsState(sections().length, props.synthesisResolved || flowResolved()) === 'ready';
 
-  // The daf-level flow leaf's section connections. Prefer the flow bundled in
-  // the synthesis deps (free once the synthesis resolves); otherwise the
-  // independently-fetched flow. Empty = a daf that legitimately has no section
-  // edges (see `mapsState`).
+  // Section connections derived from the statement dialectic — they CONNECT the
+  // sections the AI flow producer left disconnected (often all of them on a long
+  // technical sugya). Merged UNDER the AI flow below (AI keeps final say).
+  const [derivedFlow] = createResource(
+    () => `${props.tractate}|${props.page}`,
+    () => fetchDerivedFlow(props.tractate, props.page),
+  );
+
+  // The daf-level flow leaf's section connections. Start from the AI flow — the
+  // bundled-in-synthesis copy (free once it resolves) or the direct fetch — then
+  // ADD the deterministic statement-derived edges for any section pair the AI flow
+  // didn't already cover (AI authoritative; deterministic fills its silence). Empty
+  // = a daf that legitimately has no section edges (see `mapsState`).
   const connections = createMemo<FlowConnection[]>(() => {
     const flow = props.deps['argument-overview.flow'] as
       | { connections?: FlowConnection[] }
       | undefined;
-    if (flow && Array.isArray(flow.connections)) return flow.connections;
-    return flowRun() ?? [];
+    const ai: FlowConnection[] =
+      flow && Array.isArray(flow.connections) ? flow.connections : (flowRun() ?? []);
+    const covered = new Set(ai.map((c) => `${Math.min(c.from, c.to)}|${Math.max(c.from, c.to)}`));
+    const merged = [...ai];
+    for (const d of derivedFlow() ?? []) {
+      const pairKey = `${Math.min(d.fromSection, d.toSection)}|${Math.max(d.fromSection, d.toSection)}`;
+      if (covered.has(pairKey)) continue; // the AI flow already connects this pair
+      covered.add(pairKey);
+      merged.push({
+        from: d.fromSection,
+        to: d.toSection,
+        kind: stmtRelKind(d.relation),
+        note: 'from the statement dialectic',
+      });
+    }
+    return merged;
   });
 
   // The daf's statement spines (one per section), built server-side from the
