@@ -238,6 +238,33 @@ def main() -> int:
         else:
             print(f'  [warn] GENERATION_OVERRIDES: slug {slug!r} not in dataset, skipping')
 
+    # Preserve manual / AI-researched additions across regens. Any entry in the
+    # PREVIOUS output that carries a `provenance` field did NOT come from this
+    # Sefaria scrape (e.g. sages absent from Sefaria's PersonTopic export, added
+    # by the 2026-06 backlog research). Without this, `rebuild-rabbi-places`
+    # would silently drop them. Re-merge such entries (and their aliases) unless
+    # the scrape now produces the same slug. `add_alias` is first-wins, so a
+    # scraped alias mapping is never clobbered.
+    if OUT_PATH.exists():
+        try:
+            prev = json.loads(OUT_PATH.read_text())
+        except (json.JSONDecodeError, OSError):
+            prev = None
+        if isinstance(prev, dict) and isinstance(prev.get('rabbis'), dict):
+            kept = 0
+            for slug, entry in prev['rabbis'].items():
+                if not isinstance(entry, dict) or not entry.get('provenance'):
+                    continue  # only preserve non-scrape (provenance-stamped) entries
+                if slug in entries:
+                    continue  # the scrape now covers this slug — let it win
+                entries[slug] = entry
+                for a in entry.get('aliases', []):
+                    add_alias(a, slug)
+                add_alias(slug.replace('-', ' '), slug)
+                kept += 1
+            if kept:
+                print(f'  preserved {kept} provenance-stamped (manual/AI-researched) entries from the previous build')
+
     out = {
         'generatedAt': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
         'source': 'https://www.sefaria.org/api/topics?type=person',
