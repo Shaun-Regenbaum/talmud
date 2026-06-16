@@ -233,7 +233,7 @@ export type SidebarContent =
   | { kind: 'place'; place: PlaceInstance }
   | { kind: 'voice-group'; group: { name: string; nameHe: string; bio: string } }
   | { kind: 'rishonim'; instance: RishonimInstance; index: number }
-  | { kind: 'argument-overview' }
+  | { kind: 'argument-overview'; focus?: number }
   | { kind: 'daf-background' }
   | { kind: 'tidbit' }
   | { kind: 'biyun' }
@@ -911,13 +911,16 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
 
   // The focused section (array index) whose statement spine shows below the map.
   // Clicking a map node sets it — the deep-dive happens IN PLACE under the map
-  // (the "extra"), not in a separate pushed card. Defaults to the first section
-  // and resets on a daf change so the overview always opens with something shown.
-  const [focused, setFocused] = createSignal(0);
+  // (the "extra"), not in a separate pushed card. Seeded from the incoming `focus`
+  // (a gutter marker / reader chip that opened a specific section) or the first
+  // section; re-syncs when a new section is opened from the daf, while a local map
+  // click (which doesn't change `focus`/daf) is left alone.
+  const incomingFocus = (): number | undefined => props.extras?.focus as number | undefined;
+  const [focused, setFocused] = createSignal(incomingFocus() ?? 0);
   createEffect(() => {
     void props.tractate;
     void props.page;
-    setFocused(0);
+    setFocused(incomingFocus() ?? 0);
   });
 
   // The daf-level flow leaf's section connections. Empty until the synthesis
@@ -3197,8 +3200,8 @@ export const CARD_DEFS: Partial<Record<SidebarContent['kind'], CardDef>> = {
     forwardHighlight: true,
     extras: (ctx) => ({
       sections: ctx.dafSections,
-      onOpenArgument: ctx.onOpenArgument,
       onPushRabbi: ctx.onPushRabbi,
+      focus: (ctx.content as Extract<SidebarContent, { kind: 'argument-overview' }>).focus,
     }),
   },
   // Whole-daf essay cards: header + synthesis only (the essay renders through
