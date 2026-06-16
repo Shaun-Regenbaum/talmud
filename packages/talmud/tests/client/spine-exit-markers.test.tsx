@@ -5,7 +5,8 @@
 // clicking it expands a chip per parallel. Verifies the badge renders, chips are
 // hidden until expansion, and a click reveals them (incl. the corpus badge).
 import { fireEvent, render } from '@solidjs/testing-library';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { setLang } from '../../src/client/i18n';
 import SpineFlowGraph, { type SpineViewDaf } from '../../src/client/SpineFlowGraph';
 
 function texts(container: HTMLElement, needle: string): SVGTextElement[] {
@@ -119,5 +120,30 @@ describe('SpineFlowGraph — cross-text exit markers', () => {
     ];
     const { container } = render(() => <SpineFlowGraph dapim={warm} />);
     expect(texts(container, '⤳?')).toHaveLength(0);
+  });
+});
+
+// In Hebrew mode the daf labels, corpus tags, and exit refs read in Hebrew
+// rather than leaking the English slug ("2a", "Bavli", "Shabbat 31a").
+describe('SpineFlowGraph — Hebrew mode localization', () => {
+  afterEach(() => setLang('en'));
+
+  it('renders the daf label, corpus tag, and Bavli exit ref in Hebrew', () => {
+    setLang('he');
+    const { container } = render(() => <SpineFlowGraph dapim={dapim} />);
+    // daf page label: '2a' -> 'ב.'
+    expect(texts(container, 'ב.').length).toBeGreaterThan(0);
+    expect(texts(container, '2a')).toHaveLength(0);
+    // expand the parallels to reveal the chips
+    const badge = texts(container, '⤳')
+      .find((t) => (t.textContent ?? '').includes('2'))
+      ?.closest('[role="button"]');
+    fireEvent.click(badge as Element);
+    // Bavli corpus tag localized; the English 'Bavli' gone
+    expect(texts(container, 'בבלי').length).toBeGreaterThan(0);
+    expect(texts(container, 'Bavli')).toHaveLength(0);
+    // Bavli exit ref as the Hebrew daf form ('Shabbat 31a' -> 'שבת לא.')
+    expect(texts(container, 'שבת לא.').length).toBeGreaterThan(0);
+    expect(texts(container, 'Shabbat 31a')).toHaveLength(0);
   });
 });

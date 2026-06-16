@@ -12,7 +12,7 @@
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 import { linkTarget } from '../lib/context/linkTarget';
 import type { SectionExit } from '../lib/context/sectionExits';
-import { lang } from './i18n';
+import { lang, t } from './i18n';
 
 export interface FlowConnection {
   from: number;
@@ -130,7 +130,7 @@ export function FlowLegend(props: { kinds: FlowConnection['kind'][] }): JSX.Elem
                 'border-top': `1.5px ${KIND_DASH[kind] ? 'dashed' : 'solid'} ${KIND_COLOR[kind]}`,
               }}
             />
-            {kind}
+            {t(`link.rel.${kind}`)}
           </span>
         )}
       </For>
@@ -641,7 +641,7 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                     'border-top': `2px ${KIND_DASH[kind] ? 'dashed' : 'solid'} ${KIND_COLOR[kind]}`,
                   }}
                 />
-                {kind}
+                {t(`link.rel.${kind}`)}
               </span>
             )}
           </For>

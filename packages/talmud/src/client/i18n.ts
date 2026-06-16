@@ -213,6 +213,38 @@ const CATALOG = {
   'link.rel.glosses': { en: 'glosses', he: 'מפרש' },
   'link.rel.codifies': { en: 'codified in', he: 'נפסק ב' },
 
+  // — Spine flow graph (whole-tractate overview, SpineFlowGraph) —
+  'spine.corpus.bavli': { en: 'Bavli', he: 'בבלי' },
+  'spine.corpus.yeru': { en: 'ירושלמי', he: 'ירושלמי' },
+  'spine.corpus.here': { en: 'this tractate', he: 'מסכת זו' },
+  'spine.crossCold': { en: 'cross-daf link not computed yet', he: 'קישור בין־דפי טרם חושב' },
+  'spine.tip.parallelsCold': {
+    en: 'parallels not computed yet for this daf (warm it to see its cross-text links)',
+    he: 'מקבילות טרם חושבו לדף זה (חממו כדי לראות קישורים בין־טקסטואליים)',
+  },
+  'spine.tip.traceRabbi': {
+    en: 'trace {name} across the tractate',
+    he: 'עקבו אחר {name} לאורך המסכת',
+  },
+  'spine.tip.parallels.one': {
+    en: '{count} parallel elsewhere — click to {action}',
+    he: 'מקבילה אחת במקום אחר — לחצו ל{action}',
+  },
+  'spine.tip.parallels.other': {
+    en: '{count} parallels elsewhere — click to {action}',
+    he: '{count} מקבילות במקומות אחרים — לחצו ל{action}',
+  },
+  'spine.action.show': { en: 'show', he: 'הצגה' },
+  'spine.action.hide': { en: 'hide', he: 'הסתרה' },
+  'spine.tip.openInReader': { en: 'open in reader', he: 'פתחו בקורא' },
+  'spine.tip.yeruCard': {
+    en: 'Yerushalmi — see the daf’s Yerushalmi card',
+    he: 'ירושלמי — ראו בכרטיס הירושלמי של הדף',
+  },
+  'spine.tip.node.one': { en: '{count} section', he: 'מקטע אחד' },
+  'spine.tip.node.other': { en: '{count} sections', he: '{count} מקטעים' },
+  'spine.tip.node.crossSuffix': { en: ' · cross-daf links', he: ' · קישורים בין־דפי' },
+
   // — Whole-daf background (terms/concepts a reader needs) —
   'background.chip': { en: 'Background', he: 'רקע' },
   'background.title': { en: 'Background', he: 'רקע' },
@@ -920,6 +952,16 @@ const CATALOG = {
   'source.tur': { en: 'Tur', he: 'טור' },
   'source.shulchanAruch': { en: 'Shulchan Aruch', he: 'שולחן ערוך' },
   'source.rema': { en: 'Rema', he: 'רמ״א' },
+  // Codification-map node labels (the lineage cards: Gemara → Rambam → … → Rema).
+  'source.gemara': { en: 'Gemara', he: 'גמרא' },
+  'source.rambam': { en: 'Rambam', he: 'רמב״ם' },
+  'source.mechaber': { en: 'Mechaber', he: 'מחבר' },
+  'source.badge': { en: 'source', he: 'מקור' },
+  // Halacha derivation (מקורות בש״ס) source-role badges + the current-daf marker.
+  'halacha.role.primary': { en: 'primary source', he: 'מקור עיקרי' },
+  'halacha.role.related': { en: 'related', he: 'קשור' },
+  'halacha.role.root': { en: 'scriptural root', he: 'מקור מן הכתוב' },
+  'halacha.youAreHere': { en: 'You are here', he: 'אתם כאן' },
   // Dispute axis chips (מחלוקות).
   'axis.mechaber-rema': { en: 'Mechaber–Rema', he: 'מחבר–רמ״א' },
   'axis.ashkenaz-sefarad': { en: 'Ashkenaz–Sefarad', he: 'אשכנז–ספרד' },

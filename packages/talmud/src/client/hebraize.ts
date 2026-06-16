@@ -547,20 +547,59 @@ const HE_GLOSS_PAREN_RE = new RegExp(
   'g',
 );
 
+/** Hebrew final-form letters → their medial form, so a word at the end of a
+ *  parenthetical (final kaf/mem/nun/pe/tsadi) compares equal to the same word
+ *  used mid-phrase. */
+const HEBREW_FINAL_FORMS: Record<string, string> = {
+  ך: 'כ',
+  ם: 'מ',
+  ן: 'נ',
+  ף: 'פ',
+  ץ: 'צ',
+};
+
+/** A spelling-invariant skeleton of a Hebrew word: drop the optional matres
+ *  lectionis (vav and yud — the letters that vary between male/plene and
+ *  chaser/defective spelling, e.g. טריפה vs טרפה) and fold final-form letters to
+ *  their medial form. Two spellings of the SAME word collapse to one skeleton.
+ *  Lossy: vav/yud are often consonantal, so two DIFFERENT short words can share
+ *  a skeleton (בית→בת, מום→ממ, דין→דנ) — the caller gates skeleton matching on a
+ *  minimum length so only long, low-collision skeletons are trusted. */
+function hebrewSpellingSkeleton(word: string): string {
+  return word.replace(/[וי]/g, '').replace(/[ךםןףץ]/g, (c) => HEBREW_FINAL_FORMS[c] ?? c);
+}
+
+/** Minimum skeleton length for a male/chaser match to count. Below this, the
+ *  matres-stripping is too lossy — distinct short words collide (בית vs בת, מום
+ *  vs מים, דין vs דן) — so short paren words must restate the term EXACTLY. The
+ *  reported leaks (טרפה/טריפה, skeleton "טרפה") are well above this. */
+const MIN_SKELETON_MATCH_LEN = 3;
+
 /** Drop an all-Hebrew parenthetical that merely restates the Hebrew term before
  *  it (a redundant/duplicated gloss). Conservative: drop only when EVERY word in
- *  the paren already appears in the preceding term — i.e. it adds no new
- *  information (the observed failures are exact or padded repetitions like
- *  "מלא צואר (מלא צואר וחוץ לצואר)"). A paren that introduces even one new word
- *  is a real clarification and is kept. Any closing quote in the gap is kept (it
- *  belongs to the term); only the paren and the whitespace that separated it
- *  are dropped. */
+ *  the paren already appears in the preceding term — exactly, OR (for long
+ *  enough words) as a male/chaser spelling variant (same skeleton, e.g.
+ *  "a טרפה (טריפה)" — defective inline, full in the paren). The observed failures
+ *  are exact, spelling-variant, or padded repetitions like
+ *  "מלא צואר (מלא צואר וחוץ לצואר)". A paren that introduces even one genuinely
+ *  new word is a real clarification and is kept. Any closing quote in the gap is
+ *  kept (it belongs to the term); only the paren and the whitespace that
+ *  separated it are dropped. */
 function dropHebrewGlossEchoes(text: string): string {
   return text.replace(HE_GLOSS_PAREN_RE, (m: string, term: string, gap: string, paren: string) => {
-    const termWords = new Set(term.trim().split(/\s+/).filter(Boolean));
+    const termWords = term.trim().split(/\s+/).filter(Boolean);
     const parenWords = paren.trim().split(/\s+/).filter(Boolean);
     if (parenWords.length === 0) return m;
-    const addsNewWord = parenWords.some((w: string) => !termWords.has(w));
+    const termSet = new Set(termWords);
+    // Only long skeletons are trusted for variant matching (see MIN_… above).
+    const termSkeletons = new Set(
+      termWords.map(hebrewSpellingSkeleton).filter((s) => s.length >= MIN_SKELETON_MATCH_LEN),
+    );
+    const addsNewWord = parenWords.some((w: string) => {
+      if (termSet.has(w)) return false;
+      const skel = hebrewSpellingSkeleton(w);
+      return !(skel.length >= MIN_SKELETON_MATCH_LEN && termSkeletons.has(skel));
+    });
     if (addsNewWord) return m;
     return term + gap.replace(/\s+/g, '');
   });

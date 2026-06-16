@@ -1,5 +1,11 @@
-import { describe, expect, it } from 'vitest';
-import { surfacesOf, termLabel, tokenizeConceptMentions } from '../src/client/conceptLinks';
+import { afterEach, describe, expect, it } from 'vitest';
+import {
+  surfacesOf,
+  termGloss,
+  termLabel,
+  tokenizeConceptMentions,
+} from '../src/client/conceptLinks';
+import { setLang } from '../src/client/i18n';
 import { globalTerms, type Term } from '../src/lib/terms/registry';
 
 // The concept-tooltip layer wraps mentions of the daf's glossary terms in prose
@@ -141,5 +147,29 @@ describe('global terms in the matcher pool', () => {
     expect(termLabel(byHe('בית דין'))).toBe('court'); // en
     expect(termLabel(byHe('הלכה'))).toBe('halacha'); // translit
     expect(termLabel(mk({ hebrew: 'פלוני', gloss: 'g' }))).toBe('פלוני'); // bare
+  });
+});
+
+// termGloss is the tooltip/meaning surface in the active language: the authored
+// Hebrew gloss in Hebrew mode, the English gloss otherwise. A per-daf concept
+// (no glossHe) keeps its single gloss in both modes.
+describe('termGloss — language-aware meaning', () => {
+  const g = globalTerms();
+  const byHe = (he: string): Term => g.find((t) => t.hebrew === he)!;
+  afterEach(() => setLang('en'));
+
+  it('returns the English gloss in English mode', () => {
+    setLang('en');
+    expect(termGloss(byHe('טריפה'))).toBe('ritually unfit');
+  });
+
+  it('returns the authored Hebrew gloss in Hebrew mode', () => {
+    setLang('he');
+    expect(termGloss(byHe('טריפה'))).toBe('בהמה פסולה לאכילה מחמת מום');
+  });
+
+  it('falls back to the single gloss for a per-daf concept lacking glossHe', () => {
+    setLang('he');
+    expect(termGloss(mk({ hebrew: 'פלוני', gloss: 'a placeholder' }))).toBe('a placeholder');
   });
 });

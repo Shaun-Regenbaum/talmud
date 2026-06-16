@@ -25,6 +25,7 @@ import {
   relationStyle,
   SIDE_COLOR,
 } from './flow/codeMapLayout';
+import { t } from './i18n';
 
 export type { CodeMapEdge, CodeMapNode } from './flow/codeMapLayout';
 
@@ -160,7 +161,7 @@ export default function CodificationMap(props: Props): JSX.Element {
                   'line-height': 1.3,
                 }}
               >
-                {n.label}
+                {n.labelKey ? t(n.labelKey) : n.label}
                 <Show when={n.ref}>
                   <span style={{ 'font-weight': 400, color: '#1e5fae' }}>{` · ${n.ref}`}</span>
                 </Show>
@@ -175,7 +176,7 @@ export default function CodificationMap(props: Props): JSX.Element {
                       'margin-left': '4px',
                     }}
                   >
-                    {n.era}
+                    {n.eraKey ? t(n.eraKey) : n.era}
                   </span>
                 </Show>
               </div>

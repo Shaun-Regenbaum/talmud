@@ -15,7 +15,8 @@
 import type { AnchorCoord } from '@corpus/core/context/coord';
 import { type JSX, Show } from 'solid-js';
 import { type LinkCorpus, linkTarget } from '../lib/context/linkTarget';
-import { t } from './i18n';
+import { dafRefHe } from '../lib/sefref/tractates';
+import { lang, t } from './i18n';
 
 /** Corpus badge — only for corpora the label alone doesn't make obvious. A Bavli
  *  daf ("Berakhot 13a") and a Tanakh verse ("Genesis 1:1") read for themselves,
@@ -79,13 +80,23 @@ export function CorpusBadge(props: { corpus: LinkCorpus }): JSX.Element {
 
 export function LinkRef(props: { coord: AnchorCoord }): JSX.Element {
   const target = () => linkTarget(props.coord);
+  // In Hebrew mode a Bavli daf reads as the Hebrew daf form ("חולין מז:") rather
+  // than the English slug ("Chullin 47b"); other corpora keep coordLabel's form.
+  const label = (): string => {
+    const c = props.coord;
+    if (lang() === 'he' && target().corpus === 'bavli') {
+      const daf = dafRefHe(c.tractate, c.page);
+      return c.seg >= 0 ? `${daf}:${c.seg}` : daf;
+    }
+    return target().label;
+  };
   return (
     <Show
       when={target().navigable && target().href}
       fallback={
         // Inert: no in-app reader for this corpus (Yerushalmi, a verse, …).
-        <span style={INERT} title={target().label}>
-          {target().label}
+        <span style={INERT} title={label()}>
+          {label()}
           <CorpusBadge corpus={target().corpus} />
         </span>
       }
@@ -98,11 +109,9 @@ export function LinkRef(props: { coord: AnchorCoord }): JSX.Element {
           style={NAV}
           href={href()}
           {...(target().external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-          title={
-            target().external ? target().label : t('overview.goToDaf', { daf: target().label })
-          }
+          title={target().external ? label() : t('overview.goToDaf', { daf: label() })}
         >
-          {target().label}
+          {label()}
           <CorpusBadge corpus={target().corpus} />
         </a>
       )}
