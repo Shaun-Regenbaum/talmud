@@ -63,3 +63,26 @@ export function deriveVoiceEdges(parsed: unknown): unknown {
   g.edges = out;
   return g;
 }
+
+// The STRICT display shape of a per-section `argument.voices` graph (the typed
+// counterpart to the loose Voice/VoiceEdge/VoicesGraph above, which deriveVoiceEdges
+// repairs from `unknown`). Lives here, beside the repair pass, now that the old
+// ArgumentVoiceMap component that originally declared it is retired.
+export interface ArgumentVoice {
+  name: string;
+  nameHe?: string;
+  role: string;
+  side: string;
+  stance: string;
+  opinionStart?: string;
+}
+export interface ArgumentEdge {
+  from: string;
+  to: string;
+  kind: 'opposes' | 'supports' | 'responds-to' | 'cites' | 'resolves';
+  note?: string;
+}
+export interface ArgumentVoicesData {
+  voices: ArgumentVoice[];
+  edges: ArgumentEdge[];
+}

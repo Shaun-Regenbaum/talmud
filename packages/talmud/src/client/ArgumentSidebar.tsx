@@ -36,15 +36,14 @@ import { type DerivationSource, parseBavliRef } from '../lib/halacha/codifiers';
 import { adjacentAmud } from '../lib/sefref/amudim';
 import { dafRefHe, pageLabelHe } from '../lib/sefref/tractates';
 import type { Term } from '../lib/terms/registry';
-import { voicesMapEligible, voicesShowFallback, voicesShowMap } from '../lib/typing/profile';
 import {
   buildStatementSpine,
   type StatementSpine as StatementSpineData,
 } from '../lib/typing/statementSpine';
+import type { ArgumentVoicesData } from '../lib/typing/voices';
 import { deriveVoiceEdges } from '../lib/typing/voices';
 import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
 import ArgumentNarrative from './ArgumentNarrative';
-import type { ArgumentVoicesData } from './ArgumentVoiceMap';
 import { type BackgroundGroup, orderBackgroundGroups } from './backgroundGroups';
 import { ChartTableView } from './ChartTableView';
 import CodificationMap from './CodificationMap';
@@ -210,16 +209,11 @@ function useVoicesGate(
       (p) => p.unit.startSegIdx === s.startSegIdx && p.unit.endSegIdx === s.endSegIdx,
     );
   };
-  // The three decisions are pure functions in src/lib/typing/profile.ts
-  // (voicesMapEligible / voicesShowMap / voicesShowFallback) so the gate logic
-  // is unit-tested against the regressions it fixes (Chullin 2a hallucination,
-  // Gittin 90a warming race); here we just bind them to the reactive profile.
-  const mapEligible = (): boolean => voicesMapEligible(profile());
-  const showVoiceMap = (voices: ArgumentVoicesData | null): boolean =>
-    voicesShowMap(profile(), voices);
-  const showFallback = (voices: ArgumentVoicesData | null, resolved: boolean): boolean =>
-    voicesShowFallback(profile(), voices, resolved);
-  return { profile, mapEligible, showVoiceMap, showFallback };
+  // Only `primary` (the aggadata-vs-dialectic split) is consumed now that the
+  // statement spine replaced the old voice-map / dialectic-flow gate. The pure
+  // gate functions (voicesMapEligible / voicesShowMap / voicesShowFallback) stay
+  // in profile.ts with their tests, for the day the spine itself reads them.
+  return { profile };
 }
 
 export type SidebarContent =
