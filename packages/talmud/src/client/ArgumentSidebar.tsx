@@ -958,6 +958,30 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   );
   const focusedSpine = (): { title: string; spine: StatementSpineData } | undefined =>
     (spines() ?? []).find((s) => s.index === focused());
+  // The selected statement WITHIN the focused section — its detail renders below
+  // the map. Clears whenever the focused section changes.
+  const [selectedStmt, setSelectedStmt] = createSignal<string | null>(null);
+  createEffect(() => {
+    void focused();
+    setSelectedStmt(null);
+  });
+  const selectedNode = (): StatementSpineData['nodes'][number] | undefined =>
+    focusedSpine()?.spine.nodes.find((n) => n.id === selectedStmt());
+  // Selecting a statement highlights its range in the reader (cleared when none).
+  createEffect(() => {
+    const n = selectedNode();
+    props.onHighlightRange?.(
+      n
+        ? {
+            start: n.startSegIdx,
+            end: n.endSegIdx,
+            key: `stmt-${n.startSegIdx}-${n.tokenStart ?? 0}`,
+            tokenStart: n.tokenStart,
+            tokenEnd: n.tokenEnd,
+          }
+        : null,
+    );
+  });
 
   // Split the daf's sections into discussion maps. With no flow yet (cold), each
   // section is its own group; once the flow loads they merge into real sugyot.
@@ -1096,6 +1120,9 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
               index: i,
               title: sections()[i].title,
               exits: sectionExits()?.[sections()[i].startSegIdx ?? -1] ?? [],
+              // The focused section carries its statement spine, rendered as
+              // nested sub-nodes under the node (the in-map drill-in).
+              statements: i === focused() ? focusedSpine()?.spine.nodes : undefined,
             }));
             return (
               <div style={{ 'margin-bottom': '0.7rem' }}>
@@ -1107,6 +1134,8 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
                   connections={connections()}
                   activeIndex={focused()}
                   onSelect={setFocused}
+                  selectedStatementId={selectedStmt()}
+                  onSelectStatement={setSelectedStmt}
                 />
                 <Show when={hasLast && bridge()?.toNext}>
                   {crossLabel(t('overview.continuesOnto', { page: pageRef(bridge()!.next) }))}
@@ -1115,35 +1144,93 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
             );
           }}
         </For>
-        {/* The "extra": the focused section's statement spine, IN PLACE under the
-            map (no pushed card). Clicking a map node above refocuses it. */}
-        <Show when={focusedSpine()}>
-          {(fs) => (
+        {/* The "extra": the SELECTED statement's detail, below the map. Clicking a
+            nested statement node above selects it; this panel shows its summary
+            (synthesis + Q&A land here next). Highlights its range in the reader. */}
+        <Show when={selectedNode()}>
+          {(n) => (
             <div
               style={{
-                'margin-top': '0.4rem',
-                'padding-top': '0.8rem',
-                'border-top': '1px solid #ece9df',
+                'margin-top': '0.5rem',
+                padding: '0.7rem 0.85rem',
+                border: '1px solid #e4e0d4',
+                'border-left': `4px solid ${STMT_SIDE_TINT[n().side ?? ''] ?? '#8a2a2b'}`,
+                'border-radius': '6px',
+                background: '#fdfcf9',
               }}
             >
-              <StatementSpine
-                spine={fs().spine}
-                title={fs().title}
-                onPushRabbi={onPushRabbi()}
-                onHighlight={(r) =>
-                  props.onHighlightRange?.(
-                    r
-                      ? {
-                          start: r.start,
-                          end: r.end,
-                          key: `stmt-${r.start}-${r.tokenStart ?? 0}`,
-                          tokenStart: r.tokenStart,
-                          tokenEnd: r.tokenEnd,
-                        }
-                      : null,
-                  )
+              <div
+                style={{
+                  display: 'flex',
+                  'align-items': 'center',
+                  gap: '0.45rem',
+                  'flex-wrap': 'wrap',
+                  'margin-bottom': '0.3rem',
+                }}
+              >
+                <span
+                  style={{
+                    'font-size': '0.62rem',
+                    'font-weight': 700,
+                    'text-transform': 'uppercase',
+                    'letter-spacing': '0.05em',
+                    color: STMT_DETAIL_ROLE_COLOR[n().role] ?? '#64748b',
+                  }}
+                >
+                  {n().role}
+                </span>
+                <Show when={n().speaker}>
+                  <button
+                    type="button"
+                    disabled={!n().named}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (n().named) onPushRabbi()(n().speaker);
+                    }}
+                    style={{
+                      font: 'inherit',
+                      'font-weight': 600,
+                      color: n().named ? '#0b5cad' : '#444',
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      cursor: n().named ? 'pointer' : 'default',
+                      'text-decoration': n().named ? 'underline' : 'none',
+                      'text-underline-offset': '2px',
+                    }}
+                  >
+                    {n().speaker}
+                  </button>
+                </Show>
+              </div>
+              <Show when={n().excerpt}>
+                <div
+                  dir="rtl"
+                  lang="he"
+                  style={{
+                    'font-family': '"Mekorot Vilna", serif',
+                    'font-size': '1rem',
+                    color: '#333',
+                    'margin-bottom': '0.3rem',
+                  }}
+                >
+                  {n().excerpt}…
+                </div>
+              </Show>
+              <Show
+                when={n().summary}
+                fallback={
+                  <p style={{ margin: 0, color: '#999', 'font-style': 'italic' }}>
+                    {t('overview.statementHint')}
+                  </p>
                 }
-              />
+              >
+                <p
+                  style={{ margin: 0, color: '#333', 'line-height': 1.55, 'font-size': '0.88rem' }}
+                >
+                  <HebraizedWithRabbis text={n().summary ?? ''} />
+                </p>
+              </Show>
             </div>
           )}
         </Show>
@@ -1151,6 +1238,28 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
     </Show>
   );
 }
+
+// Position side → tint for the selected-statement detail panel's accent bar.
+const STMT_SIDE_TINT: Record<string, string> = {
+  A: '#1d4ed8',
+  B: '#b91c1c',
+  C: '#92400e',
+  'support-A': '#1d4ed8',
+  'support-B': '#b91c1c',
+};
+// Role → colour for the selected-statement detail panel (matches the spine).
+const STMT_DETAIL_ROLE_COLOR: Record<string, string> = {
+  opening: '#475569',
+  question: '#0369a1',
+  answer: '#15803d',
+  objection: '#b91c1c',
+  rejection: '#9f1239',
+  'supporting-evidence': '#0891b2',
+  resolution: '#15803d',
+  digression: '#a16207',
+  shift: '#7c3aed',
+  other: '#64748b',
+};
 
 export const ARGUMENT_OVERVIEW_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
   'argument-overview-maps': ArgumentOverviewMaps,

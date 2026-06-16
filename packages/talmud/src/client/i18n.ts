@@ -202,6 +202,10 @@ const CATALOG = {
   'overview.crossRefs': { en: 'Cross-references', he: 'הפניות' },
   'overview.mapping': { en: 'Mapping the discussion…', he: 'ממפה את הסוגיה…' },
   'overview.goToDaf': { en: 'Go to {daf}', he: 'מעבר ל{daf}' },
+  'overview.statementHint': {
+    en: 'Select a statement above to see it here.',
+    he: 'בחרו אמירה למעלה כדי לראותה כאן.',
+  },
   // Link-relation labels (the unified link layer, src/lib/context/link.ts).
   'link.rel.cites': { en: 'cites', he: 'מצטט' },
   'link.rel.continues': { en: 'continues', he: 'ממשיך' },

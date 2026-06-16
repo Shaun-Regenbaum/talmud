@@ -12,6 +12,7 @@
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 import { linkTarget } from '../lib/context/linkTarget';
 import type { SectionExit } from '../lib/context/sectionExits';
+import type { StatementNode } from '../lib/typing/statementSpine';
 import { lang, t } from './i18n';
 
 export interface FlowConnection {
@@ -36,6 +37,10 @@ export interface FlowNode {
    *  pesukim, halacha) — rendered as a click-to-expand exit-marker band. The
    *  spine's links projected onto the section that owns them. */
   exits?: SectionExit[];
+  /** This section's statement spine (voices/moves). Rendered as nested sub-nodes
+   *  in an indented band below the node when it's the focused (active) section —
+   *  the in-map drill-in. */
+  statements?: StatementNode[];
 }
 
 interface Props {
@@ -50,6 +55,10 @@ interface Props {
    *  (our reader for a daf, the Tanach app for a pasuk); an inert target
    *  (halacha) does nothing without a handler. */
   onPickExit?: (ex: SectionExit) => void;
+  /** The selected statement (move) id in the focused section; clicking a nested
+   *  statement node selects it (its detail renders below the map). */
+  selectedStatementId?: string | null;
+  onSelectStatement?: (id: string) => void;
 }
 
 const NODE_W = 310;
@@ -84,6 +93,31 @@ const EXIT_INDENT = 26;
 const BADGE_W = 30;
 const BADGE_H = 15;
 const MARKER_INK = '#9a7b4f';
+// Nested statement nodes (the focused section's voices/moves): indented sub-nodes
+// in a band below the section node, deterministic height like the exit band.
+const STMT_TOP = 6;
+const STMT_H = 28;
+const STMT_INDENT = 24;
+const STMT_SIDE_COLOR: Record<string, string> = {
+  A: '#1d4ed8',
+  B: '#b91c1c',
+  C: '#92400e',
+  'support-A': '#1d4ed8',
+  'support-B': '#b91c1c',
+};
+const STMT_ROLE_COLOR: Record<string, string> = {
+  opening: '#475569',
+  question: '#0369a1',
+  answer: '#15803d',
+  objection: '#b91c1c',
+  rejection: '#9f1239',
+  'supporting-evidence': '#0891b2',
+  resolution: '#15803d',
+  digression: '#a16207',
+  shift: '#7c3aed',
+  other: '#64748b',
+};
+const stmtRoleColor = (role: string): string => STMT_ROLE_COLOR[role] ?? STMT_ROLE_COLOR.other;
 const EXIT_FAMILY_COLOR: Record<string, string> = {
   parallel: KIND_COLOR.parallels,
   citation: KIND_COLOR.cites,
@@ -217,17 +251,29 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
     else window.location.href = t.href;
   };
 
-  // Accumulated vertical layout: every node is NODE_H tall, plus a reserved band
-  // below it when its exit markers are expanded, so the chips never overlap the
-  // next node. Reading openExits() makes the whole layout reflow reactively.
+  // Reserved bands below a node: its expanded exit markers, and — for the focused
+  // section — its nested statement nodes. Both deterministic heights, so the
+  // accumulated layout below just sums them and the rest of the map reflows.
+  const exitsBandOf = (n: FlowNode): number => {
+    const ex = n.exits ?? [];
+    return ex.length && openExits().has(n.index) ? EXIT_TOP + ex.length * EXIT_H : 0;
+  };
+  const stmtsOf = (n: FlowNode): StatementNode[] =>
+    n.index === props.activeIndex && n.statements ? n.statements : [];
+  const stmtsBandOf = (n: FlowNode): number => {
+    const s = stmtsOf(n);
+    return s.length ? STMT_TOP + s.length * STMT_H : 0;
+  };
+
+  // Accumulated vertical layout: every node is NODE_H tall, plus its reserved
+  // bands (exits, then the focused section's statements). Reading openExits() /
+  // activeIndex makes the whole layout reflow reactively.
   const layout = createMemo(() => {
     const ys: number[] = [];
     let y = TOP_PAD;
     props.nodes.forEach((n, i) => {
       ys[i] = y;
-      const exits = n.exits ?? [];
-      const band = exits.length && openExits().has(n.index) ? EXIT_TOP + exits.length * EXIT_H : 0;
-      y += NODE_H + band + ROW_GAP;
+      y += NODE_H + exitsBandOf(n) + stmtsBandOf(n) + ROW_GAP;
     });
     return { ys, total: props.nodes.length ? y - ROW_GAP + TOP_PAD : 0 };
   });
@@ -598,6 +644,98 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                         }}
                       </For>
                     </Show>
+                  </Show>
+                  {/* Nested statement nodes: the focused section's voices/moves,
+                      indented under the node — the in-map drill-in. Click one to
+                      select it (its detail renders below the map). */}
+                  <Show when={stmtsOf(n).length}>
+                    <For each={stmtsOf(n)}>
+                      {(s, k) => {
+                        const sTop = () =>
+                          nodeY(i()) + NODE_H + exitsBandOf(n) + STMT_TOP + k() * STMT_H;
+                        const sh = STMT_H - 5;
+                        const sx = LEFT_PAD + STMT_INDENT;
+                        const sw = NODE_W - STMT_INDENT;
+                        const accent = STMT_SIDE_COLOR[s.side ?? ''] ?? stmtRoleColor(s.role);
+                        const sel = () => props.selectedStatementId === s.id;
+                        const pickStmt = () => props.onSelectStatement?.(s.id);
+                        const roleLabel = s.role.toUpperCase();
+                        const roleW = roleLabel.length * 5.6 + 10;
+                        return (
+                          // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
+                          <g
+                            role="button"
+                            tabindex={0}
+                            style={{ cursor: 'pointer' }}
+                            onClick={pickStmt}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                pickStmt();
+                              }
+                            }}
+                          >
+                            <title>{`${s.role}${s.speaker ? ` — ${s.speaker}` : ''}`}</title>
+                            <rect
+                              x={sx}
+                              y={sTop()}
+                              width={sw}
+                              height={sh}
+                              rx={6}
+                              ry={6}
+                              fill={sel() ? '#fdf2f2' : '#ffffff'}
+                              stroke={sel() ? '#8a2a2b' : '#e4e0d4'}
+                              stroke-width={sel() ? 1.75 : 1}
+                            />
+                            <rect x={sx} y={sTop()} width={3.5} height={sh} fill={accent} />
+                            <text
+                              x={sx + 12}
+                              y={sTop() + sh / 2}
+                              dominant-baseline="central"
+                              font-size="8.5"
+                              font-weight="700"
+                              font-family="system-ui, sans-serif"
+                              fill={stmtRoleColor(s.role)}
+                            >
+                              {roleLabel}
+                            </text>
+                            <text
+                              x={sx + 12 + roleW}
+                              y={sTop() + sh / 2}
+                              dominant-baseline="central"
+                              font-size="11"
+                              font-family="system-ui, sans-serif"
+                              fill="#2a2723"
+                            >
+                              {s.speaker || ''}
+                            </text>
+                            <Show when={s.side}>
+                              <rect
+                                x={sx + sw - 19}
+                                y={sTop() + sh / 2 - 6}
+                                width={13}
+                                height={12}
+                                rx={3}
+                                ry={3}
+                                fill={STMT_SIDE_COLOR[s.side ?? ''] ?? '#888'}
+                              />
+                              <text
+                                x={sx + sw - 19 + 6.5}
+                                y={sTop() + sh / 2}
+                                text-anchor="middle"
+                                dominant-baseline="central"
+                                font-size="8"
+                                font-weight="700"
+                                font-family="system-ui, sans-serif"
+                                fill="#ffffff"
+                              >
+                                {s.side}
+                              </text>
+                            </Show>
+                          </g>
+                        );
+                      }}
+                    </For>
                   </Show>
                 </>
               );
