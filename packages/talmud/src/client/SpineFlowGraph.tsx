@@ -65,6 +65,9 @@ const LANE_BASE = 14,
   CORNER_R = 16;
 const LINE_H = 15,
   TITLE_CHARS = 44,
+  // Narrower budget for a box that carries an exit badge (top-right), so the
+  // title's first line clips BEFORE the ⤳N badge instead of running under it.
+  TITLE_CHARS_EXIT = 36,
   TITLE_LINES = 2;
 // Exit markers: the click-to-expand band of cross-text parallels under a box.
 const EXIT_H = 21,
@@ -536,7 +539,12 @@ export default function SpineFlowGraph(props: {
                     const h = m.nodeH.get(key)!;
                     const rabbis = m.nodeRabbis.get(key) ?? [];
                     const cyTitle = yTop + NODE_H / 2;
-                    const lines = wrapTitle(m.nodeTitle.get(key) ?? '', TITLE_CHARS, TITLE_LINES);
+                    const hasExits = (m.nodeExits.get(key) ?? []).length > 0;
+                    const lines = wrapTitle(
+                      m.nodeTitle.get(key) ?? '',
+                      hasExits ? TITLE_CHARS_EXIT : TITLE_CHARS,
+                      TITLE_LINES,
+                    );
                     const num = m.nodeNum.get(key) ?? 0;
                     const lit = () => hl() !== null && rabbis.some((r) => r.slug === hl());
                     // Lay rabbi chips left-to-right, keeping each WITHIN the box.
