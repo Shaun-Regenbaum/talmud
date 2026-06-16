@@ -158,7 +158,14 @@ import {
   writeCachedCacheStats,
 } from './cache-stats';
 import { fetchZoneActivity } from './cf-zone-analytics';
-import { CODE_ENRICHMENTS, CODE_MARKS, findCodeEnrichment, findCodeMark } from './code-marks';
+import {
+  CODE_ENRICHMENTS,
+  CODE_MARKS,
+  findCodeEnrichment,
+  findCodeMark,
+  RABBI_PIN_OUTPUT_SCHEMA,
+  RABBI_PIN_SYSTEM_PROMPT,
+} from './code-marks';
 import { fetchCommentaryWorks, registerCommentaryRoutes } from './commentary';
 import { aiMatchToSegments } from './context-match';
 import { collectContext, type SourceTiming } from './context-providers';
@@ -204,7 +211,9 @@ import {
   groundRabbiNames,
   lookupRelationships,
   lookupRelationshipsBySlug,
+  type RabbiCandidateSummary,
   type RelationshipsData,
+  rabbiCandidateSummaries,
 } from './rabbi-graph';
 import {
   buildObservationSlices,
@@ -4420,6 +4429,54 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
           ...(transient ? { transient: true } : {}),
         };
       }
+      // rabbi.identity.pin — EXPERIMENTAL AI homonym disambiguation. Only the
+      // 'ambiguous' instances pay an LLM call; every other instance returns a
+      // transient no-op (no spend, not cached). Scope is LOCAL, so a confident
+      // pin caches per daf+name — it never touches the global rabbi.identity
+      // key (the documented homonym-collision hazard above).
+      if (def.id === 'rabbi.identity.pin') {
+        const inst = rabbiMarkInputFields(markInput);
+        const ambiguous = inst.genSource === 'ambiguous';
+        const pin = ambiguous
+          ? await computeRabbiPin(rc.env, tractate, page, inst)
+          : ({
+              slug: null,
+              name: inst.name || inst.nameHe,
+              nameHe: inst.nameHe,
+              generation: inst.generation,
+              region: null,
+              places: [],
+              moved: null,
+              bio: null,
+              image: null,
+              wiki: null,
+              genSource: inst.genSource ?? 'none',
+              confidence: 'none',
+              reason: '',
+              homonyms: inst.homonyms ?? 0,
+            } satisfies RabbiPin);
+        const pinned = pin.genSource === 'ai-pin' && !!pin.slug;
+        return {
+          content: JSON.stringify(pin),
+          parsed: pin,
+          parse_error: null,
+          model: pinned ? `pin:${pin.slug}` : 'pin:declined',
+          transport: 'lookup',
+          attempts: 0,
+          usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+          elapsed_ms: 0,
+          prompt_chars: 0,
+          resolved: {
+            system_prompt: '(rabbi.identity.pin: AI homonym disambiguation)',
+            user_prompt: `(homonym pin for rabbi: ${inst.name || inst.nameHe || '(unnamed)'})`,
+          },
+          cache_hit: false,
+          recipe_hash: a.recipeHash,
+          // A confident pin caches (local scope, per daf+name); a no-op /
+          // decline is transient so it never occupies the key.
+          ...(pinned ? {} : { transient: true }),
+        };
+      }
       return null;
     },
     enrichmentPostResolve: async (rc, a) => {
@@ -7823,6 +7880,173 @@ export function enrichRabbi(
     image: entry?.image ?? null,
     wiki: entry?.wiki ?? null,
   };
+}
+
+// --- rabbi.identity.pin: AI homonym disambiguation (EXPERIMENTAL) -----------
+// When the deterministic grounder gave up ('ambiguous' — several registry
+// rabbis share the bare name and the daf's cast didn't single one out), this
+// asks the model to pick the most-likely bearer + a confidence. It's the
+// recall-first counterpart to the precision-first honest grounding: it lets the
+// card pin a specific sage (and so AGREE with the bio prose, which already
+// names the famous bearer) instead of showing "generation uncertain". A null
+// slug or a low-confidence lean keeps the honest verdict — a wrong confident
+// pin is worse than "uncertain".
+export interface RabbiPin extends IdentifiedRabbi {
+  /** 'ai-pin' when the model confidently chose a bearer; 'ambiguous' otherwise. */
+  genSource: string;
+  confidence: 'high' | 'medium' | 'low' | 'none';
+  reason: string;
+  homonyms: number;
+}
+
+// The OTHER rabbis named on this daf — read best-effort from the cached rabbi
+// mark (the sidebar that triggers the pin has already warmed it). The cast is
+// the strongest co-occurrence signal for the model.
+async function readDafRabbiCast(
+  env: Bindings,
+  tractate: string,
+  page: string,
+  excludeName: string,
+): Promise<string[]> {
+  const def = findCodeMark('rabbi');
+  if (!def) return [];
+  const hit = await readCachedResult(env, keyForMark(def, tractate, page, 'en'));
+  const parsed = hit?.parsed as { instances?: Array<{ fields?: { name?: string } }> } | undefined;
+  if (!parsed?.instances) return [];
+  const lc = excludeName.toLowerCase();
+  const out = new Set<string>();
+  for (const i of parsed.instances) {
+    const n = i.fields?.name;
+    if (typeof n === 'string' && n && n.toLowerCase() !== lc) out.add(n);
+  }
+  return [...out];
+}
+
+function buildRabbiPinPrompt(
+  inst: { name: string; nameHe: string },
+  cands: RabbiCandidateSummary[],
+  cast: string[],
+  tractate: string,
+  page: string,
+): string {
+  const lines: string[] = [];
+  lines.push(`Bare name to disambiguate: ${inst.name}${inst.nameHe ? ` (${inst.nameHe})` : ''}`);
+  lines.push(`Daf: ${tractate} ${page}.`);
+  lines.push('');
+  lines.push(`Candidate figures (${cands.length}) — pick exactly one slug, or null:`);
+  for (const c of cands) {
+    const edges: string[] = [];
+    if (c.teachers.length) edges.push(`teachers: ${c.teachers.slice(0, 6).join(', ')}`);
+    if (c.students.length) edges.push(`students: ${c.students.slice(0, 6).join(', ')}`);
+    if (c.colleagues.length) edges.push(`colleagues: ${c.colleagues.slice(0, 6).join(', ')}`);
+    lines.push(
+      `- slug="${c.slug}" | ${c.canonical} | generation: ${c.generation ?? 'unknown'}` +
+        `${c.region ? ` | region: ${c.region}` : ''}` +
+        `${edges.length ? ` | ${edges.join('; ')}` : ' | (no curated edges)'}`,
+    );
+  }
+  lines.push('');
+  lines.push(
+    cast.length
+      ? `Other rabbis named on this daf: ${cast.join(', ')}.`
+      : 'No other rabbis are named on this daf.',
+  );
+  lines.push('');
+  lines.push('Return JSON per the schema.');
+  return lines.join('\n');
+}
+
+export async function computeRabbiPin(
+  env: Bindings,
+  tractate: string,
+  page: string,
+  inst: { name: string; nameHe: string; generation: GenerationId; homonyms: number | null },
+): Promise<RabbiPin> {
+  const homonyms = inst.homonyms ?? 0;
+  const declined: RabbiPin = {
+    slug: null,
+    name: inst.name || inst.nameHe,
+    nameHe: inst.nameHe,
+    generation: inst.generation,
+    region: null,
+    places: [],
+    moved: null,
+    bio: null,
+    image: null,
+    wiki: null,
+    genSource: 'ambiguous',
+    confidence: 'none',
+    reason: '',
+    homonyms,
+  };
+  const cands = rabbiCandidateSummaries(inst.name, inst.nameHe);
+  if (cands.length < 2) return declined; // nothing to disambiguate
+
+  let cast: string[] = [];
+  try {
+    cast = await readDafRabbiCast(env, tractate, page, inst.name);
+  } catch {
+    /* best-effort: pin without the cast */
+  }
+
+  let pick: { slug?: unknown; confidence?: unknown; reason?: unknown } | null = null;
+  try {
+    const res = await runLLM(env, {
+      model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
+      messages: [
+        { role: 'system', content: RABBI_PIN_SYSTEM_PROMPT },
+        { role: 'user', content: buildRabbiPinPrompt(inst, cands, cast, tractate, page) },
+      ],
+      max_tokens: 400,
+      temperature: 0.1,
+      response_format: { type: 'json_schema', json_schema: RABBI_PIN_OUTPUT_SCHEMA },
+      thinking: false,
+      tag: 'rabbi.identity.pin',
+      attribution: { kind: 'rabbi', producerId: 'rabbi.identity.pin', tractate, page },
+    });
+    pick = JSON.parse(res.content);
+  } catch {
+    return declined; // budget-gated / parse failure → stay honest
+  }
+
+  const rawSlug = typeof pick?.slug === 'string' ? pick.slug : null;
+  const reason = typeof pick?.reason === 'string' ? pick.reason : '';
+  const confidence: 'high' | 'medium' | 'low' =
+    pick?.confidence === 'high' || pick?.confidence === 'medium' ? pick.confidence : 'low';
+  // slug MUST be one of the candidates (never an invented one).
+  const slug = rawSlug && cands.some((c) => c.slug === rawSlug) ? rawSlug : null;
+  // Precision gate: only OVERRIDE the honest "uncertain" verdict on a confident
+  // pin to a real candidate. A null slug or a low-confidence lean stays honest.
+  if (!slug || confidence === 'low') {
+    return { ...declined, confidence: slug ? 'low' : 'none', reason };
+  }
+  const cand = cands.find((c) => c.slug === slug);
+  const joined = enrichRabbiBySlug(slug, inst.name, inst.nameHe, inst.generation);
+  const base: IdentifiedRabbi =
+    joined ??
+    (() => {
+      const gen: GenerationId =
+        cand && GENERATION_ID_SET.has(cand.generation ?? '')
+          ? (cand.generation as GenerationId)
+          : inst.generation;
+      const region: 'israel' | 'bavel' | null =
+        cand?.region === 'israel' || cand?.region === 'bavel'
+          ? cand.region
+          : deriveRegionFromGeneration(gen);
+      return {
+        slug,
+        name: cand?.canonical ?? inst.name,
+        nameHe: inst.nameHe,
+        generation: gen,
+        region,
+        places: [],
+        moved: null,
+        bio: null,
+        image: null,
+        wiki: null,
+      };
+    })();
+  return { ...base, genSource: 'ai-pin', confidence, reason, homonyms };
 }
 
 // Prefer non-'unknown' generations, and the LONGEST nameHe (so `רבי אליעזר`

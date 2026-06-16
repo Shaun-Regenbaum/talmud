@@ -1050,6 +1050,10 @@ const CATALOG = {
     en: 'Generation uncertain — {count} rabbis share this name',
     he: 'הדור אינו ודאי — {count} חכמים נושאים שם זה',
   },
+  'rabbi.generationLikely': {
+    en: 'Most likely {name} — {count} rabbis share this name (AI guess)',
+    he: 'ככל הנראה {name} — {count} חכמים נושאים שם זה (ניחוש בינה מלאכותית)',
+  },
 
   // — Rabbi geography card —
   'rabbi.geography.title': { en: 'Geography', he: 'גאוגרפיה' },
