@@ -280,6 +280,13 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
     n.index === props.activeIndex && n.statements ? n.statements : [];
   const stmtLinksOf = (n: FlowNode): StatementLink[] =>
     n.index === props.activeIndex && n.statementLinks ? n.statementLinks : [];
+  // Statement-relation kinds drawn in this group (for the legend) — only the
+  // focused section contributes links, so this is non-empty only there.
+  const stmtRelsPresent = (): string[] => {
+    const seen = new Set<string>();
+    for (const n of props.nodes) for (const l of stmtLinksOf(n)) seen.add(l.relation);
+    return Object.keys(STMT_REL_COLOR).filter((r) => seen.has(r));
+  };
   const stmtsBandOf = (n: FlowNode): number => {
     const s = stmtsOf(n);
     return s.length ? STMT_TOP + s.length * STMT_H : 0;
@@ -300,6 +307,20 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
   const nodeY = (i: number) => layout().ys[i] ?? TOP_PAD;
   const rowMidY = (i: number) => nodeY(i) + NODE_H / 2;
   const height = () => layout().total;
+
+  // The array position of the focused (expanded) section in THIS group, or -1.
+  const expandedPos = (): number => props.nodes.findIndex((n) => n.index === props.activeIndex);
+  const nodeBandBottom = (i: number): number => {
+    const n = props.nodes[i];
+    return nodeY(i) + NODE_H + exitsBandOf(n) + stmtsBandOf(n);
+  };
+  // Where a section-flow edge anchors on a node. An edge LEAVING the expanded
+  // section exits from just below its statement band — so the flow appears to
+  // thread OUT of the statements into the next section, not skip across them.
+  const edgeAnchorY = (i: number, isSource: boolean): number =>
+    isSource && i === expandedPos() && stmtsBandOf(props.nodes[i]) > 0
+      ? nodeBandBottom(i) - 4
+      : rowMidY(i);
 
   // Map section index -> array position, so a SUBSET of the daf's sections (one
   // sugya group) lays out compactly in rows 0..k while connections still arrive
@@ -350,8 +371,8 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
   // short horizontal or vertical leg.
   const edgePath = (c: FlowConnection, lane: number): string => {
     const x = laneX(lane);
-    const y1 = rowMidY(c.from);
-    const y2 = rowMidY(c.to);
+    const y1 = edgeAnchorY(c.from, true);
+    const y2 = edgeAnchorY(c.to, false);
     const rightX = LEFT_PAD + NODE_W;
     const dir = y2 >= y1 ? 1 : -1;
     const r = Math.min(CORNER_R, x - rightX, Math.abs(y2 - y1) / 2);
@@ -879,6 +900,46 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                   }}
                 />
                 {t(`link.rel.${kind}`)}
+              </span>
+            )}
+          </For>
+        </div>
+      </Show>
+      {/* Statement-relation legend — only when the focused section's statement
+          edges are drawn (threads + opposition bracket). */}
+      <Show when={stmtRelsPresent().length > 0}>
+        <div
+          style={{
+            display: 'flex',
+            'flex-wrap': 'wrap',
+            gap: '0.35rem 0.45rem',
+            'margin-top': '0.4rem',
+          }}
+        >
+          <For each={stmtRelsPresent()}>
+            {(rel) => (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  'align-items': 'center',
+                  gap: '0.35rem',
+                  padding: '0.12rem 0.5rem',
+                  background: '#faf8f3',
+                  border: '1px solid #ece7db',
+                  'border-radius': '999px',
+                  'font-size': '0.66rem',
+                  color: '#6b6661',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: '16px',
+                    height: 0,
+                    'border-top': `2px ${STMT_REL_DASH[rel] ? 'dashed' : 'solid'} ${STMT_REL_COLOR[rel]}`,
+                  }}
+                />
+                {t(`stmt.rel.${rel}`)}
               </span>
             )}
           </For>

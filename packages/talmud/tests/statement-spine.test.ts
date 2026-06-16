@@ -201,6 +201,22 @@ describe('buildStatementSpine — edge cases', () => {
     expect(buildStatementSpine({ moves: [] })).toEqual({ nodes: [], links: [], dispute: false });
   });
 
+  it('round-trips a large section (>=15 statements) with no loss and stable order', () => {
+    const roles = ['opening', 'question', 'answer', 'objection', 'resolution'];
+    const big = Array.from({ length: 18 }, (_, i) =>
+      move(
+        i,
+        roles[i % roles.length],
+        i % 3 === 0 ? `Rabbi ${i}` : 'Stam',
+        i % 3 === 0 ? [`Rabbi ${i}`] : [],
+      ),
+    );
+    const { nodes } = buildStatementSpine({ moves: big });
+    expect(nodes).toHaveLength(18);
+    expect(nodes.map((n) => n.order)).toEqual(Array.from({ length: 18 }, (_, i) => i));
+    expect(new Set(nodes.map((n) => n.id)).size).toBe(18); // all ids distinct, none dropped
+  });
+
   it('never emits a self-loop', () => {
     // A degenerate voices edge pointing a voice at itself must not survive.
     const spine = buildStatementSpine({

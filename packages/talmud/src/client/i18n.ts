@@ -216,6 +216,13 @@ const CATALOG = {
   'link.rel.generalizes': { en: 'generalizes', he: 'מכליל' },
   'link.rel.glosses': { en: 'glosses', he: 'מפרש' },
   'link.rel.codifies': { en: 'codified in', he: 'נפסק ב' },
+  // Statement-relation labels (within-section spine edges; statementSpine.ts).
+  'stmt.rel.opposes': { en: 'opposes', he: 'חולק' },
+  'stmt.rel.responds-to': { en: 'responds to', he: 'משיב' },
+  'stmt.rel.resolves': { en: 'resolves', he: 'מיישב' },
+  'stmt.rel.supports': { en: 'supports', he: 'תומך' },
+  'stmt.rel.cites': { en: 'cites', he: 'מצטט' },
+  'stmt.rel.continues': { en: 'continues', he: 'ממשיך' },
 
   // — Spine flow graph (whole-tractate overview, SpineFlowGraph) —
   'spine.corpus.bavli': { en: 'Bavli', he: 'בבלי' },
