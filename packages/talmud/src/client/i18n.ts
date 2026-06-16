@@ -213,6 +213,7 @@ const CATALOG = {
   'link.rel.contrasts': { en: 'contrasts', he: 'מנוגד' },
   'link.rel.generalizes': { en: 'generalizes', he: 'מכליל' },
   'link.rel.glosses': { en: 'glosses', he: 'מפרש' },
+  'link.rel.codifies': { en: 'codified in', he: 'נפסק ב' },
 
   // — Whole-daf background (terms/concepts a reader needs) —
   'background.chip': { en: 'Background', he: 'רקע' },

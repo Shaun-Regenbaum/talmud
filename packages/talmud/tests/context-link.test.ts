@@ -49,6 +49,7 @@ describe('isLinkRelation — guards an untyped kind string', () => {
       'contrasts',
       'generalizes',
       'glosses',
+      'codifies',
     ]) {
       expect(isLinkRelation(k)).toBe(true);
     }
