@@ -2055,20 +2055,20 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     },
     { mode: 'augment-content', scope: 'global', defHash: 'rabbi.identity-v1', cacheVersion: '1' },
   ),
-  // rabbi.identity.pin — EXPERIMENTAL homonym disambiguator (scope LOCAL, so it
-  // is keyed per daf+name — no collision with the global rabbi.identity key).
+  // rabbi.identity.pin — AI homonym disambiguator (scope LOCAL, so it is keyed
+  // per daf+name — no collision with the global rabbi.identity key).
   // Short-circuited in computeRabbiPin: for an 'ambiguous' instance it asks the
   // model to pick the most-likely bearer + confidence; otherwise a no-op.
-  // DEV-GATE: it is NOT in any mark's deep-warm surface (WARM_SURFACE) and NOT a
-  // dependency of rabbi.synthesis, so prod warming never runs it. The ONLY
-  // caller is the dev-mode RabbiMeta (client), so the recall-first pin doesn't
-  // reach production readers until it is benchmarked against the deterministic
-  // honest-grounding it overrides. category 'experimental' documents that.
+  // LAZY: NOT in any deep-warm surface (WARM_SURFACE) and NOT a rabbi.synthesis
+  // dependency, so warming never runs it Shas-wide. RabbiMeta (client) fetches
+  // it on-demand the first time a reader opens an ambiguous-homonym card, then
+  // it caches per daf+name. Benchmarked before promotion (PR #423: 10/10 clear,
+  // 0 confidently-wrong on the Berakhot 2a-11b ambiguous set).
   {
     id: 'rabbi.identity.pin',
     label: 'Identity pin (homonym)',
     description:
-      'EXPERIMENTAL. When grounding is ambiguous, AI-picks the most-likely bearer of a shared name + confidence, joined to rabbi-places.json. Lets the card pin a specific sage instead of "generation uncertain".',
+      'When grounding is ambiguous, AI-picks the most-likely bearer of a shared name + confidence, joined to rabbi-places.json. Lets the card pin a specific sage instead of "generation uncertain".',
     target_mark: 'rabbi',
     mode: 'augment-content',
     scope: 'local',
@@ -2101,7 +2101,6 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
       thinking_off: true,
     },
     status: 'promoted',
-    category: 'experimental',
     def_hash: 'rabbi.identity.pin-v1',
     cache_version: '1',
     source: 'code',

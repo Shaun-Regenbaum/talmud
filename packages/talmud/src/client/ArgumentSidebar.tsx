@@ -48,7 +48,6 @@ import { type BackgroundGroup, orderBackgroundGroups } from './backgroundGroups'
 import { ChartTableView } from './ChartTableView';
 import CodificationMap from './CodificationMap';
 import { buildConceptMatcher, ConceptLinkProvider } from './conceptLinks';
-import { devModeActive } from './DevModeShelf';
 import type { IdentifiedRabbi } from './dafContext';
 import { type CodificationData, codeMapFromCodification, SIDE_COLOR } from './flow/codeMapLayout';
 import { GeographyMap } from './GeographyMap';
@@ -1652,14 +1651,13 @@ function RabbiMeta(props: SpecialBlockProps): JSX.Element {
   };
   const homonymCount = (): number =>
     typeof f().homonyms === 'number' ? (f().homonyms as number) : 0;
-  // EXPERIMENTAL (dev-mode only): when the grounder gave up on this homonym,
-  // ask rabbi.identity.pin to choose the most-likely bearer. A confident pin
-  // lets the header agree with the bio prose (which already names the famous
-  // bearer) instead of showing "generation uncertain". Off in production until
-  // benchmarked — the producer is never warmed and not a synthesis dep, so this
-  // is the only place that runs it, and only in dev-mode.
-  const pinEnabled = (): boolean =>
-    devModeActive() && f().genSource === 'ambiguous' && homonymCount() > 1;
+  // When the grounder gave up on this homonym, ask rabbi.identity.pin to choose
+  // the most-likely bearer. A confident pin lets the header agree with the bio
+  // prose (which already names the famous bearer) instead of showing
+  // "generation uncertain". Fetched lazily on-demand for any ambiguous homonym
+  // (the pin is not warmed / not a synthesis dep) and cached per daf+name;
+  // benchmarked at 10/10 clear, 0 confidently-wrong before promotion (PR #423).
+  const pinEnabled = (): boolean => f().genSource === 'ambiguous' && homonymCount() > 1;
   const [pinRes] = createResource(
     () => (pinEnabled() ? { t: props.tractate, p: props.page, key: props.instanceKey } : null),
     async (src) => {
