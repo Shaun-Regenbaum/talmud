@@ -983,6 +983,13 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
         : null,
     );
   };
+  // Clicking a statement node selects it (its detail shows below) AND highlights
+  // its range on the daf in one gesture — the move carries tokenStart/tokenEnd
+  // for word-precise highlighting.
+  const selectStatement = (id: string): void => {
+    setSelectedStmt(id);
+    onHighlightMove(focusedSpine()?.moves.find((m) => m.fields.id === id) ?? null);
+  };
 
   // Split the daf's sections into discussion maps. With no flow yet (cold), each
   // section is its own group; once the flow loads they merge into real sugyot.
@@ -1138,7 +1145,7 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
                   activeIndex={focused()}
                   onSelect={setFocused}
                   selectedStatementId={selectedStmt()}
-                  onSelectStatement={setSelectedStmt}
+                  onSelectStatement={selectStatement}
                 />
                 <Show when={hasLast && bridge()?.toNext}>
                   {crossLabel(t('overview.continuesOnto', { page: pageRef(bridge()!.next) }))}

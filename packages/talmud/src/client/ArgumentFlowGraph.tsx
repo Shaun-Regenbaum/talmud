@@ -100,11 +100,14 @@ const MARKER_INK = '#9a7b4f';
 // Nested statement nodes (the focused section's voices/moves): indented sub-nodes
 // in a band below the section node, deterministic height like the exit band.
 const STMT_TOP = 6;
-const STMT_H = 28;
+const STMT_H = 33; // a little breathing room — let the statements read like a text, not a list
 const STMT_INDENT = 24; // left gutter — response/resolution threads route here
 const STMT_RGUT = 14; // right gutter — opposition brackets route here
-const STMT_STRIPE = 4; // left accent-stripe width on a nested statement node
+const STMT_STRIPE = 3; // left accent-stripe width on a nested statement node
 const STMT_RAIL_X = LEFT_PAD + 11; // x of the left thread rail (inside the indent)
+// Elegant serif for the statement labels + speakers — Koren-leaning, classic and
+// timeless, distinct from the system-sans chrome. Falls back through fine serifs.
+const STMT_SERIF = "'Frank Ruhl Libre', 'Palatino Linotype', Palatino, Georgia, serif";
 // Statement-relation palette — deliberately NOT the section-flow KIND_COLOR (a
 // 'cites' between statements means something different than between sections).
 const STMT_REL_COLOR: Record<string, string> = {
@@ -758,12 +761,12 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                         const sel = () => props.selectedStatementId === s.id;
                         const pickStmt = () => props.onSelectStatement?.(s.id);
                         const roleLabel = s.role.toUpperCase();
-                        const roleW = roleLabel.length * 5.6 + 10;
-                        // Truncate the speaker to the room left after the role label
-                        // and the side badge so a long name can't overflow the node.
+                        // Letterspaced serif caps for the role — wider per-char than
+                        // plain sans, so budget the speaker around it + the side mark.
+                        const roleW = roleLabel.length * 6.4 + 14;
                         const speakerBudget = Math.max(
                           3,
-                          Math.floor((sw - 12 - roleW - (s.side ? 24 : 8) - 6) / 6),
+                          Math.floor((sw - 14 - roleW - (s.side ? 14 : 8) - 6) / 6.4),
                         );
                         const speakerText =
                           (s.speaker || '').length > speakerBudget
@@ -815,50 +818,47 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                               rx={6}
                               ry={6}
                               fill="none"
-                              stroke={sel() ? '#8a2a2b' : '#e4e0d4'}
-                              stroke-width={sel() ? 1.75 : 1}
+                              stroke={sel() ? '#8a2a2b' : '#e7e2d6'}
+                              stroke-width={sel() ? 1.5 : 1}
                             />
+                            {/* Role — letterspaced serif caps, muted; the accent
+                                stripe carries the colour, so the label stays quiet. */}
                             <text
-                              x={sx + 12}
+                              x={sx + 13}
                               y={sTop() + sh / 2}
                               dominant-baseline="central"
-                              font-size="8.5"
-                              font-weight="700"
-                              font-family="system-ui, sans-serif"
+                              font-size="8"
+                              font-weight="600"
+                              letter-spacing="0.1em"
+                              font-family={STMT_SERIF}
                               fill={stmtRoleColor(s.role)}
+                              fill-opacity={0.82}
                             >
                               {roleLabel}
                             </text>
+                            {/* Speaker — the daf's serif, in ink. */}
                             <text
-                              x={sx + 12 + roleW}
+                              x={sx + 13 + roleW}
                               y={sTop() + sh / 2}
                               dominant-baseline="central"
-                              font-size="11"
-                              font-family="system-ui, sans-serif"
-                              fill="#2a2723"
+                              font-size="12.5"
+                              font-family={STMT_SERIF}
+                              fill="#2a2520"
                             >
                               <title>{s.speaker || ''}</title>
                               {speakerText}
                             </text>
+                            {/* Side — a quiet colored letter, not a filled badge. */}
                             <Show when={s.side}>
-                              <rect
-                                x={sx + sw - 19}
-                                y={sTop() + sh / 2 - 6}
-                                width={13}
-                                height={12}
-                                rx={3}
-                                ry={3}
-                                fill={STMT_SIDE_COLOR[s.side ?? ''] ?? '#888'}
-                              />
                               <text
-                                x={sx + sw - 19 + 6.5}
+                                x={sx + sw - 9}
                                 y={sTop() + sh / 2}
                                 text-anchor="middle"
                                 dominant-baseline="central"
-                                font-size="8"
-                                font-weight="700"
-                                font-family="system-ui, sans-serif"
-                                fill="#ffffff"
+                                font-size="10"
+                                font-weight="600"
+                                font-family={STMT_SERIF}
+                                fill={STMT_SIDE_COLOR[s.side ?? ''] ?? '#888'}
                               >
                                 {s.side}
                               </text>
