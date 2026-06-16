@@ -884,6 +884,56 @@ export function mapsState(
   return flowResolved ? 'ready' : 'loading';
 }
 
+// Fetch the daf's argument FLOW (section→section edges) directly. The maps need
+// only the flow — it's cheap and independently cacheable — yet the recipe used
+// to deliver it ONLY bundled inside the synthesis's deps_resolved, so the whole
+// map waited on the expensive synthesis prose LLM call (a cold/stale/limited
+// synthesis left the map spinning on "Mapping the discussion…" forever). This
+// decouples them: the map renders as soon as the flow lands (a cache hit on warm
+// dapim), and the synthesis prose resolves on its own. POST /api/run, poll if the
+// job is still pending. Request shape matches the warmed cache key (no mark_input
+// — the whole-daf flow key doesn't depend on one). Returns null on miss/error so
+// the caller stops the spinner and shows the (edgeless) nodes rather than hang.
+async function fetchOverviewFlow(
+  tractate: string,
+  page: string,
+  langCode: string,
+): Promise<FlowConnection[] | null> {
+  const read = (result: unknown): FlowConnection[] | null => {
+    const parsed = (result as { parsed?: { connections?: FlowConnection[] } } | undefined)?.parsed;
+    return parsed && Array.isArray(parsed.connections) ? parsed.connections : null;
+  };
+  const r = await fetch('/api/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      enrichment_id: 'argument-overview.flow',
+      tractate,
+      page,
+      lang: langCode,
+    }),
+  });
+  const j = (await r.json()) as {
+    status?: string;
+    result?: unknown;
+    runId?: string;
+    cacheKey?: string;
+  };
+  if (j.status === 'ok') return read(j.result);
+  if (j.status === 'pending' && j.runId) {
+    const start = Date.now();
+    const qs = j.cacheKey ? `?k=${encodeURIComponent(j.cacheKey)}` : '';
+    while (Date.now() - start < 90_000) {
+      await new Promise((res) => setTimeout(res, 1500));
+      const s = await fetch(`/api/run-status/${encodeURIComponent(j.runId)}${qs}`);
+      const sj = (await s.json()) as { status?: string; result?: unknown };
+      if (sj.status === 'ok') return read(sj.result);
+      if (sj.status === 'error') return null;
+    }
+  }
+  return null;
+}
+
 // ===========================================================================
 // Whole-daf argument OVERVIEW card — recipe block.
 // ---------------------------------------------------------------------------
@@ -915,14 +965,27 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
     setFocused(incomingFocus() ?? 0);
   });
 
-  // The daf-level flow leaf's section connections. Empty until the synthesis
-  // resolves; `props.synthesisResolved` is the "flow resolved" gate (a daf can
-  // legitimately resolve to zero edges — see `mapsState`).
+  // The flow, fetched directly so the map doesn't wait on the synthesis prose
+  // (see fetchOverviewFlow). On warm dapim this is a cache hit; its result is a
+  // fallback used when the synthesis hasn't delivered its bundled flow yet.
+  const [flowRun] = createResource(
+    () => `${props.tractate}|${props.page}|${lang()}`,
+    () => fetchOverviewFlow(props.tractate, props.page, lang()).catch(() => null),
+  );
+  // The direct flow fetch has settled (resolved to edges OR to null on
+  // miss/error) — either way the map should stop waiting and render.
+  const flowResolved = (): boolean => flowRun.state === 'ready';
+
+  // The daf-level flow leaf's section connections. Prefer the flow bundled in
+  // the synthesis deps (free once the synthesis resolves); otherwise the
+  // independently-fetched flow. Empty = a daf that legitimately has no section
+  // edges (see `mapsState`).
   const connections = createMemo<FlowConnection[]>(() => {
     const flow = props.deps['argument-overview.flow'] as
       | { connections?: FlowConnection[] }
       | undefined;
-    return flow && Array.isArray(flow.connections) ? flow.connections : [];
+    if (flow && Array.isArray(flow.connections)) return flow.connections;
+    return flowRun() ?? [];
   });
 
   // The daf's statement spines (one per section), built server-side from the
@@ -1104,7 +1167,7 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
             page break. Until the flow resolves we have no connections, so we
             show a loading state rather than disconnected, link-less nodes. */}
       <Show
-        when={mapsState(sections().length, props.synthesisResolved) === 'ready'}
+        when={mapsState(sections().length, props.synthesisResolved || flowResolved()) === 'ready'}
         fallback={
           <div
             style={{
