@@ -102,6 +102,8 @@ import {
   type TypeProfile,
   type UnitRange,
 } from '../lib/typing/profile';
+import { buildStatementSpine } from '../lib/typing/statementSpine';
+import { deriveVoiceEdges } from '../lib/typing/voices';
 import {
   alignOutlineToSegments,
   flattenYerushalmiOutline,
@@ -1647,6 +1649,63 @@ app.get('/api/spine-view/:tractate', async (c) => {
   const dapim = raw.map((d, i) => ({ ...d, nextPage: pages[i + 1] ?? null }));
   // Only dapim that actually have sections (a flow graph needs nodes).
   return c.json({ tractate, dapim: dapim.filter((d) => d.sections.length > 0) });
+});
+
+// One daf's STATEMENT spines — the source of truth the #spine drill-down pulls.
+// For each argument section (same order + index as /api/spine-view's nodes, so a
+// clicked node maps to the right section), fold its moves + voices into ONE graph
+// via buildStatementSpine: nodes = statements, links = role-derived + voices-
+// mapped relations, `dispute` = is it a real מחלוקת. Read-only (cached reads
+// only; never triggers compute) — mirrors /api/spine-view.
+app.get('/api/statement-spine/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
+  if (!c.env.CACHE) return c.json({ error: 'no CACHE binding in this environment' }, 503);
+
+  const sections = (await readMarkInstances(c.env, 'argument', tractate, page))
+    .filter((s) => typeof s.startSegIdx === 'number' && typeof s.endSegIdx === 'number')
+    .sort((a, b) => (a.startSegIdx as number) - (b.startSegIdx as number));
+  // All the daf's moves once; selectSectionMoves slices each section's set (and
+  // cleans a doubled/overlapping argument-move cache — the Shabbat 126a class).
+  const allMoves: MoveLike[] = (await readMarkInstances(c.env, 'argument-move', tractate, page))
+    .filter((m) => typeof m.startSegIdx === 'number' && typeof m.endSegIdx === 'number')
+    .map((m) => ({
+      startSegIdx: m.startSegIdx as number,
+      endSegIdx: m.endSegIdx as number,
+      fields: m.fields ?? {},
+    }));
+  const voicesDef = findCodeEnrichment('argument.voices');
+
+  const out = await Promise.all(
+    sections.map(async (sec, index) => {
+      const startSegIdx = sec.startSegIdx as number;
+      const endSegIdx = sec.endSegIdx as number;
+      const moves = selectSectionMoves(allMoves, { startSegIdx, endSegIdx });
+      // Per-section voices graph, keyed by the section instance's identity (the
+      // same key readSectionRabbis reads); repair edge directions before folding.
+      let voices: ReturnType<typeof deriveVoiceEdges> | null = null;
+      if (voicesDef) {
+        const vhit = await readCachedResult(
+          c.env,
+          keyForEnrichment(voicesDef, await instanceIdOf(sec), { tractate, page }),
+        );
+        if (vhit?.parsed) voices = deriveVoiceEdges(vhit.parsed);
+      }
+      const spine = buildStatementSpine({
+        moves,
+        voices: voices as Parameters<typeof buildStatementSpine>[0]['voices'],
+      });
+      return {
+        index,
+        title: typeof sec.fields?.title === 'string' ? sec.fields.title : `Section ${index + 1}`,
+        startSegIdx,
+        endSegIdx,
+        spine,
+      };
+    }),
+  );
+  return c.json({ tractate, page, sections: out });
 });
 
 // On-demand compute (or cache hit) of one daf's cross-daf flow, returned both as
