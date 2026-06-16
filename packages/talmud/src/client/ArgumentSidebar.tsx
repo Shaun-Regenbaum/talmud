@@ -906,8 +906,6 @@ export function mapsState(
 // ===========================================================================
 function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   const sections = (): Section[] => (props.extras?.sections as Section[]) ?? [];
-  const onPushRabbi = (): ((name: string) => void) =>
-    (props.extras?.onPushRabbi as (name: string) => void) ?? (() => {});
 
   // The focused section (array index) whose statement spine shows below the map.
   // Clicking a map node sets it — the deep-dive happens IN PLACE under the map
@@ -936,52 +934,55 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   // The daf's statement spines (one per section), built server-side from the
   // cached moves + voices (GET /api/statement-spine). The map's "extra" reads the
   // focused section's spine from here — the single source the #spine view pulls.
+  type SectionSpine = {
+    index: number;
+    title: string;
+    spine: StatementSpineData;
+    moves: ArgumentMoveInstance[];
+  };
   const [spines] = createResource(
     () => `${props.tractate}|${props.page}`,
-    async (): Promise<{ index: number; title: string; spine: StatementSpineData }[]> => {
+    async (): Promise<SectionSpine[]> => {
       try {
         const r = await fetch(
           `/api/statement-spine/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}`,
         );
         if (!r.ok) return [];
-        return (
-          (
-            (await r.json()) as {
-              sections?: { index: number; title: string; spine: StatementSpineData }[];
-            }
-          ).sections ?? []
-        );
+        return ((await r.json()) as { sections?: SectionSpine[] }).sections ?? [];
       } catch {
         return [];
       }
     },
   );
-  const focusedSpine = (): { title: string; spine: StatementSpineData } | undefined =>
+  const focusedSpine = (): SectionSpine | undefined =>
     (spines() ?? []).find((s) => s.index === focused());
-  // The selected statement WITHIN the focused section — its detail renders below
-  // the map. Clears whenever the focused section changes.
+  // The selected statement WITHIN the focused section — its per-move detail
+  // (synthesis + Q&A) renders below the map. Clears when the focused section
+  // changes; the daf-side highlight is owned by the detail card's header.
   const [selectedStmt, setSelectedStmt] = createSignal<string | null>(null);
+  const [highlightedMove, setHighlightedMove] = createSignal<string | null>(null);
   createEffect(() => {
     void focused();
     setSelectedStmt(null);
+    setHighlightedMove(null);
+    props.onHighlightRange?.(null);
   });
-  const selectedNode = (): StatementSpineData['nodes'][number] | undefined =>
-    focusedSpine()?.spine.nodes.find((n) => n.id === selectedStmt());
-  // Selecting a statement highlights its range in the reader (cleared when none).
-  createEffect(() => {
-    const n = selectedNode();
+  const selectedMove = (): ArgumentMoveInstance | undefined =>
+    focusedSpine()?.moves.find((m) => m.fields.id === selectedStmt());
+  const onHighlightMove = (m: ArgumentMoveInstance | null): void => {
+    setHighlightedMove(m ? m.fields.id : null);
     props.onHighlightRange?.(
-      n
+      m
         ? {
-            start: n.startSegIdx,
-            end: n.endSegIdx,
-            key: `stmt-${n.startSegIdx}-${n.tokenStart ?? 0}`,
-            tokenStart: n.tokenStart,
-            tokenEnd: n.tokenEnd,
+            start: m.startSegIdx,
+            end: m.endSegIdx,
+            key: m.fields.id,
+            tokenStart: m.fields.tokenStart,
+            tokenEnd: m.fields.tokenEnd,
           }
         : null,
     );
-  });
+  };
 
   // Split the daf's sections into discussion maps. With no flow yet (cold), each
   // section is its own group; once the flow loads they merge into real sugyot.
@@ -1144,93 +1145,26 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
             );
           }}
         </For>
-        {/* The "extra": the SELECTED statement's detail, below the map. Clicking a
-            nested statement node above selects it; this panel shows its summary
-            (synthesis + Q&A land here next). Highlights its range in the reader. */}
-        <Show when={selectedNode()}>
-          {(n) => (
+        {/* The "extra": the SELECTED statement's full detail below the map — its
+            per-move synthesis + Q&A (the same card the moves list used). Clicking
+            a nested statement node above selects it; the card's header toggles the
+            daf-side highlight. */}
+        <Show when={selectedMove()}>
+          {(m) => (
             <div
               style={{
                 'margin-top': '0.5rem',
-                padding: '0.7rem 0.85rem',
-                border: '1px solid #e4e0d4',
-                'border-left': `4px solid ${STMT_SIDE_TINT[n().side ?? ''] ?? '#8a2a2b'}`,
-                'border-radius': '6px',
-                background: '#fdfcf9',
+                'padding-top': '0.7rem',
+                'border-top': '1px solid #ece9df',
               }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  'align-items': 'center',
-                  gap: '0.45rem',
-                  'flex-wrap': 'wrap',
-                  'margin-bottom': '0.3rem',
-                }}
-              >
-                <span
-                  style={{
-                    'font-size': '0.62rem',
-                    'font-weight': 700,
-                    'text-transform': 'uppercase',
-                    'letter-spacing': '0.05em',
-                    color: STMT_DETAIL_ROLE_COLOR[n().role] ?? '#64748b',
-                  }}
-                >
-                  {n().role}
-                </span>
-                <Show when={n().speaker}>
-                  <button
-                    type="button"
-                    disabled={!n().named}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (n().named) onPushRabbi()(n().speaker);
-                    }}
-                    style={{
-                      font: 'inherit',
-                      'font-weight': 600,
-                      color: n().named ? '#0b5cad' : '#444',
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      cursor: n().named ? 'pointer' : 'default',
-                      'text-decoration': n().named ? 'underline' : 'none',
-                      'text-underline-offset': '2px',
-                    }}
-                  >
-                    {n().speaker}
-                  </button>
-                </Show>
-              </div>
-              <Show when={n().excerpt}>
-                <div
-                  dir="rtl"
-                  lang="he"
-                  style={{
-                    'font-family': '"Mekorot Vilna", serif',
-                    'font-size': '1rem',
-                    color: '#333',
-                    'margin-bottom': '0.3rem',
-                  }}
-                >
-                  {n().excerpt}…
-                </div>
-              </Show>
-              <Show
-                when={n().summary}
-                fallback={
-                  <p style={{ margin: 0, color: '#999', 'font-style': 'italic' }}>
-                    {t('overview.statementHint')}
-                  </p>
-                }
-              >
-                <p
-                  style={{ margin: 0, color: '#333', 'line-height': 1.55, 'font-size': '0.88rem' }}
-                >
-                  <HebraizedWithRabbis text={n().summary ?? ''} />
-                </p>
-              </Show>
+              <ArgumentMoveCard
+                move={m()}
+                tractate={props.tractate}
+                page={props.page}
+                highlightedMoveId={highlightedMove()}
+                onHighlightMove={onHighlightMove}
+              />
             </div>
           )}
         </Show>
@@ -1238,28 +1172,6 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
     </Show>
   );
 }
-
-// Position side → tint for the selected-statement detail panel's accent bar.
-const STMT_SIDE_TINT: Record<string, string> = {
-  A: '#1d4ed8',
-  B: '#b91c1c',
-  C: '#92400e',
-  'support-A': '#1d4ed8',
-  'support-B': '#b91c1c',
-};
-// Role → colour for the selected-statement detail panel (matches the spine).
-const STMT_DETAIL_ROLE_COLOR: Record<string, string> = {
-  opening: '#475569',
-  question: '#0369a1',
-  answer: '#15803d',
-  objection: '#b91c1c',
-  rejection: '#9f1239',
-  'supporting-evidence': '#0891b2',
-  resolution: '#15803d',
-  digression: '#a16207',
-  shift: '#7c3aed',
-  other: '#64748b',
-};
 
 export const ARGUMENT_OVERVIEW_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
   'argument-overview-maps': ArgumentOverviewMaps,
@@ -3309,7 +3221,6 @@ export const CARD_DEFS: Partial<Record<SidebarContent['kind'], CardDef>> = {
     forwardHighlight: true,
     extras: (ctx) => ({
       sections: ctx.dafSections,
-      onPushRabbi: ctx.onPushRabbi,
       focus: (ctx.content as Extract<SidebarContent, { kind: 'argument-overview' }>).focus,
     }),
   },

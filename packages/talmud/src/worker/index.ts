@@ -1733,6 +1733,10 @@ app.get('/api/statement-spine/:tractate/:page', async (c) => {
         startSegIdx,
         endSegIdx,
         spine,
+        // The section's move instances (the same mark_input the spine was built
+        // from) so the client can render a statement's per-move synthesis + Q&A —
+        // keyed by move id, this cache-hits the warmed argument-move.synthesis.
+        moves,
       };
     }),
   );

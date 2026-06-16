@@ -687,7 +687,19 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                               stroke={sel() ? '#8a2a2b' : '#e4e0d4'}
                               stroke-width={sel() ? 1.75 : 1}
                             />
-                            <rect x={sx} y={sTop()} width={3.5} height={sh} fill={accent} />
+                            {/* Accent bar clipped to the card's rounded shape so its
+                                corners follow the rounding instead of poking past it. */}
+                            <clipPath id={`stmt-clip-${n.index}-${k()}`}>
+                              <rect x={sx} y={sTop()} width={sw} height={sh} rx={6} ry={6} />
+                            </clipPath>
+                            <rect
+                              x={sx}
+                              y={sTop()}
+                              width={3.5}
+                              height={sh}
+                              fill={accent}
+                              clip-path={`url(#stmt-clip-${n.index}-${k()})`}
+                            />
                             <text
                               x={sx + 12}
                               y={sTop() + sh / 2}
