@@ -1350,8 +1350,8 @@ const CATALOG = {
 
   'tutorial.argument.title': { en: 'Following the argument', he: 'מעקב אחר מהלך הסוגיה' },
   'tutorial.argument.body': {
-    en: "Here's a real argument note open beside the daf. It lays out who is speaking and the sides of the dispute — the voices — so you can see how the sugya builds its case. Tap a part of the note to highlight the matching text on the page.",
-    he: 'הנה הערת מהלך אמיתית פתוחה לצד הדף. היא מציגה מי מדבר ומהם צדדי המחלוקת — הקולות — כדי שתראו כיצד הסוגיה בונה את טיעונה. הקישו על חלק בהערה כדי להדגיש את הטקסט המתאים בדף.',
+    en: "Here's a real argument note open beside the daf. It draws the sugya as a small map of its moves — who speaks, and how each statement answers, objects to, or resolves another — so you can follow how the case is built. Tap a statement to highlight its words on the page.",
+    he: 'הנה הערת מהלך אמיתית פתוחה לצד הדף. היא משרטטת את הסוגיה כמפה קטנה של מהלכיה — מי מדבר, וכיצד כל אמירה עונה, מקשה או מיישבת אמירה אחרת — כדי שתוכלו לעקוב אחר בניית הטיעון. הקישו על אמירה כדי להדגיש את מילותיה בדף.',
   },
 
   'tutorial.halacha.title': { en: 'The practical ruling', he: 'הפסיקה למעשה' },
@@ -1362,8 +1362,8 @@ const CATALOG = {
 
   'tutorial.overview.title': { en: 'The whole-daf overview', he: 'סקירת כל הדף' },
   'tutorial.overview.body': {
-    en: 'This note zooms out to the whole page: a short summary, a map of how the discussion flows, key terms, and cross-references to where the sugya continues. A good place to get your bearings before diving in.',
-    he: 'הערה זו מתרחקת אל כל הדף: סיכום קצר, מפה של מהלך הדיון, מונחי מפתח, והפניות למקום שבו הסוגיה ממשיכה. מקום טוב להתמצא בו לפני הצלילה ללימוד.',
+    en: 'This note zooms out to the whole page: a short summary and a map of how the discussion flows from one section to the next. Click a section in the map to open its statements right there, and click a statement to read its detail. It also points to where the sugya continues — a good place to get your bearings before diving in.',
+    he: 'הערה זו מתרחקת אל כל הדף: סיכום קצר ומפה של מהלך הדיון מקטע לקטע. הקישו על קטע במפה כדי לפתוח בו במקום את אמירותיו, והקישו על אמירה כדי לקרוא את פירוטה. ההערה גם מפנה למקום שבו הסוגיה ממשיכה — מקום טוב להתמצא בו לפני הצלילה ללימוד.',
   },
 
   'tutorial.underline.title': { en: 'The colored names', he: 'השמות הצבעוניים' },
