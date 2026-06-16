@@ -15,9 +15,9 @@
  */
 import { For, type JSX, Show } from 'solid-js';
 import type {
+  StatementSpine as Spine,
   StatementLink,
   StatementNode,
-  StatementSpine as Spine,
 } from '../lib/typing/statementSpine';
 
 // Dialectic role → colour (matches the reader's ArgumentMoveFlow palette).
@@ -62,8 +62,13 @@ export function StatementSpine(props: {
   spine: Spine;
   title?: string;
   /** Reader-highlight hook: clicking a statement asks the host to highlight its
-   *  segment range (the same channel the move-flow uses). Optional. */
-  onHighlight?: (range: { start: number; end: number } | null) => void;
+   *  text range (the same channel the move-flow uses). Optional. */
+  onHighlight?: (
+    range: { start: number; end: number; tokenStart?: number; tokenEnd?: number } | null,
+  ) => void;
+  /** Click a named speaker to open their rabbi card (carried over from the voice
+   *  map's onClickVoice). Speakers are plain text when absent. */
+  onPushRabbi?: (name: string) => void;
 }): JSX.Element {
   const nodes = (): StatementNode[] => props.spine.nodes;
   const byId = (): Map<string, StatementNode> => new Map(nodes().map((n) => [n.id, n]));
@@ -112,7 +117,15 @@ export function StatementSpine(props: {
           <For each={nodes()}>
             {(n, i) => {
               const accent = (): string => sideTint(n.side) ?? roleColor(n.role);
+              const highlight = () =>
+                props.onHighlight?.({
+                  start: n.startSegIdx,
+                  end: n.endSegIdx,
+                  tokenStart: n.tokenStart,
+                  tokenEnd: n.tokenEnd,
+                });
               return (
+                // biome-ignore lint/a11y/useSemanticElements: inline-styled statement row holding a baseline RTL excerpt + a nested speaker button; a native <button> would alter the reader layout and can't nest the speaker control
                 <div
                   style={{
                     position: 'relative',
@@ -123,7 +136,15 @@ export function StatementSpine(props: {
                     'border-radius': '0 5px 5px 0',
                     cursor: props.onHighlight ? 'pointer' : 'default',
                   }}
-                  onClick={() => props.onHighlight?.({ start: n.startSegIdx, end: n.endSegIdx })}
+                  role="button"
+                  tabIndex={0}
+                  onClick={highlight}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      highlight();
+                    }
+                  }}
                 >
                   <div
                     style={{
@@ -145,9 +166,35 @@ export function StatementSpine(props: {
                       {n.role}
                     </span>
                     <Show when={n.speaker}>
-                      <span style={{ 'font-weight': n.named ? 600 : 400, color: '#444' }}>
-                        {n.speaker}
-                      </span>
+                      <Show
+                        when={props.onPushRabbi && n.named}
+                        fallback={
+                          <span style={{ 'font-weight': n.named ? 600 : 400, color: '#444' }}>
+                            {n.speaker}
+                          </span>
+                        }
+                      >
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            props.onPushRabbi?.(n.speaker);
+                          }}
+                          style={{
+                            font: 'inherit',
+                            'font-weight': 600,
+                            color: '#0b5cad',
+                            background: 'none',
+                            border: 'none',
+                            padding: 0,
+                            cursor: 'pointer',
+                            'text-decoration': 'underline',
+                            'text-underline-offset': '2px',
+                          }}
+                        >
+                          {n.speaker}
+                        </button>
+                      </Show>
                     </Show>
                     <Show when={n.side}>
                       <span

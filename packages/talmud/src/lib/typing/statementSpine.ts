@@ -78,6 +78,10 @@ export interface StatementNode {
   /** Text anchor — the segment range, for click-to-highlight in the reader. */
   startSegIdx: number;
   endSegIdx: number;
+  /** Finer in-segment token range (when the move carries it), so highlighting a
+   *  statement lands on its exact words rather than the whole segment. */
+  tokenStart?: number;
+  tokenEnd?: number;
 }
 
 export interface StatementLink {
@@ -114,6 +118,8 @@ export interface StatementMoveLike {
     rabbiNames?: unknown;
     excerpt?: unknown;
     summary?: unknown;
+    tokenStart?: unknown;
+    tokenEnd?: unknown;
   };
 }
 
@@ -205,6 +211,8 @@ export function buildStatementSpine(input: {
         summary: str(f.summary) || undefined,
         startSegIdx: m.startSegIdx,
         endSegIdx: m.endSegIdx,
+        tokenStart: typeof f.tokenStart === 'number' ? f.tokenStart : undefined,
+        tokenEnd: typeof f.tokenEnd === 'number' ? f.tokenEnd : undefined,
         _i: i,
       };
     })
@@ -284,10 +292,7 @@ export function buildStatementSpine(input: {
   // 5. A real מחלוקת = an opposition between two named statements.
   const byId = new Map(nodes.map((n) => [n.id, n]));
   const dispute = links.some(
-    (l) =>
-      l.relation === 'opposes' &&
-      !!byId.get(l.from)?.named &&
-      !!byId.get(l.to)?.named,
+    (l) => l.relation === 'opposes' && !!byId.get(l.from)?.named && !!byId.get(l.to)?.named,
   );
 
   return { nodes, links, dispute };

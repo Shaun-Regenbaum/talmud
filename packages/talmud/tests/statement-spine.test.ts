@@ -35,18 +35,24 @@ describe('buildStatementSpine — nodes', () => {
 
   it('flags named vs anonymous statements from rabbiNames', () => {
     const { nodes } = buildStatementSpine({
-      moves: [move(0, 'question', "the Gemara"), move(1, 'answer', 'Rava', ['Rava'])],
+      moves: [move(0, 'question', 'the Gemara'), move(1, 'answer', 'Rava', ['Rava'])],
     });
     expect(nodes[0].named).toBe(false);
     expect(nodes[1].named).toBe(true);
     expect(nodes[1].rabbiNames).toEqual(['Rava']);
   });
 
-  it('carries the text anchor (segment range) for click-to-highlight', () => {
+  it('carries the text anchor (segment + token range) for click-to-highlight', () => {
     const { nodes } = buildStatementSpine({
-      moves: [{ startSegIdx: 4, endSegIdx: 6, fields: { id: 'x', moveOrder: 0, role: 'opening' } }],
+      moves: [
+        {
+          startSegIdx: 4,
+          endSegIdx: 6,
+          fields: { id: 'x', moveOrder: 0, role: 'opening', tokenStart: 2, tokenEnd: 9 },
+        },
+      ],
     });
-    expect(nodes[0]).toMatchObject({ startSegIdx: 4, endSegIdx: 6 });
+    expect(nodes[0]).toMatchObject({ startSegIdx: 4, endSegIdx: 6, tokenStart: 2, tokenEnd: 9 });
   });
 
   it('falls back to a synthesized id and order when fields are missing', () => {
