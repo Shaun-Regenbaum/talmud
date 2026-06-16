@@ -104,7 +104,6 @@ const STMT_H = 33; // a little breathing room — let the statements read like a
 const STMT_INDENT = 24; // left gutter — response/resolution threads route here
 const STMT_RGUT = 14; // right gutter — opposition brackets route here
 const STMT_STRIPE = 3; // left accent-stripe width on a nested statement node
-const STMT_RAIL_X = LEFT_PAD + 11; // x of the left thread rail (inside the indent)
 // Statement labels + speakers use the SAME system-sans as the section nodes, so
 // the nested sub-nodes read as part of the one map. Elegance comes from restraint
 // (muted role caps, a quiet side letter, hairline rules), not a different face.
@@ -272,6 +271,180 @@ export function wrapTitle(s: string, maxChars: number, maxLines: number): string
     lines.push(`${rest.slice(0, maxChars - 1).trimEnd()}…`);
   }
   return lines.length ? lines : [''];
+}
+
+/** Reserved height of a section's nested-statement band (0 when none). */
+export function statementBandHeight(count: number): number {
+  return count > 0 ? STMT_TOP + count * STMT_H : 0;
+}
+
+/**
+ * The nested statement nodes + their edges, drawn in a band starting at `topY`
+ * under a section node spanning [nodeX, nodeX+nodeW]. Response/resolution threads
+ * route on a left rail, the opposition bracket on a right gutter (relation colours
+ * follow the section link palette; `supports` keeps its own evidential hue).
+ * Shared by the per-daf map (ArgumentFlowGraph) and the tractate map
+ * (SpineFlowGraph) so the two stay in sync — the in-map statement drill-in.
+ */
+export function StatementBand(props: {
+  statements: StatementNode[];
+  links: StatementLink[];
+  nodeX: number;
+  nodeW: number;
+  topY: number;
+  selectedId?: string | null;
+  onSelect?: (id: string) => void;
+}): JSX.Element {
+  const sx = props.nodeX + STMT_INDENT;
+  const swNode = props.nodeW - STMT_INDENT - STMT_RGUT;
+  const sh = STMT_H - 5;
+  const yTop = (k: number) => props.topY + STMT_TOP + k * STMT_H;
+  const yC = (k: number) => yTop(k) + sh / 2;
+  return (
+    <>
+      {/* Statement edges (under the nodes): threads on the LEFT rail, opposition
+          brackets on the RIGHT gutter — the spine.links drawn. */}
+      <Show when={props.links.length}>
+        <For each={props.links}>
+          {(lnk) => {
+            const kf = props.statements.findIndex((s) => s.id === lnk.from);
+            const kt = props.statements.findIndex((s) => s.id === lnk.to);
+            if (kf < 0 || kt < 0 || kf === kt) return null;
+            const isSupport = lnk.relation === 'supports';
+            const relKind = stmtRelKind(lnk.relation);
+            const color = isSupport ? STMT_SUPPORTS_COLOR : KIND_COLOR[relKind];
+            const dash = isSupport ? undefined : KIND_DASH[relKind];
+            // Stagger concurrent same-family edges so they don't overlap on one line.
+            const isOpp = lnk.relation === 'opposes';
+            const ord = props.links
+              .filter((l) => (l.relation === 'opposes') === isOpp)
+              .indexOf(lnk);
+            if (isOpp) {
+              const bx = Math.min(sx + swNode + STMT_RGUT - 2, sx + swNode + 5 + ord * 3);
+              return (
+                <path
+                  d={`M ${sx + swNode} ${yC(kf)} L ${bx} ${yC(kf)} L ${bx} ${yC(kt)} L ${sx + swNode} ${yC(kt)}`}
+                  fill="none"
+                  stroke={color}
+                  stroke-width={1.5}
+                  stroke-dasharray={dash}
+                  stroke-linejoin="round"
+                />
+              );
+            }
+            const railX = Math.max(props.nodeX + 3, props.nodeX + 11 - (ord % 4) * 3);
+            return (
+              <path
+                d={`M ${sx} ${yC(kf)} L ${railX} ${yC(kf)} L ${railX} ${yC(kt)} L ${sx} ${yC(kt)}`}
+                fill="none"
+                stroke={color}
+                stroke-width={1.5}
+                stroke-linejoin="round"
+              />
+            );
+          }}
+        </For>
+      </Show>
+      {/* Nested statement nodes: the focused section's voices/moves. */}
+      <For each={props.statements}>
+        {(s, k) => {
+          const top = () => yTop(k());
+          const accent = STMT_SIDE_COLOR[s.side ?? ''] ?? stmtRoleColor(s.role);
+          const sel = () => props.selectedId === s.id;
+          const pick = () => props.onSelect?.(s.id);
+          const roleLabel = s.role.toUpperCase();
+          const roleW = roleLabel.length * 6 + 13;
+          const speakerBudget = Math.max(
+            3,
+            Math.floor((swNode - 14 - roleW - (s.side ? 14 : 8) - 6) / 6),
+          );
+          const speakerText =
+            (s.speaker || '').length > speakerBudget
+              ? `${(s.speaker || '').slice(0, speakerBudget - 1)}…`
+              : s.speaker || '';
+          return (
+            // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
+            <g
+              role="button"
+              tabindex={0}
+              style={{ cursor: 'pointer' }}
+              onClick={pick}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  pick();
+                }
+              }}
+            >
+              <title>{`${s.role}${s.speaker ? ` — ${s.speaker}` : ''}`}</title>
+              {/* Rounded card with a left accent stripe (the SVG analog of CSS
+                  border-left): accent rect under a left-inset body of the same radius,
+                  then a hairline outline — the stripe wraps the corners cleanly. */}
+              <rect x={sx} y={top()} width={swNode} height={sh} rx={6} ry={6} fill={accent} />
+              <rect
+                x={sx + STMT_STRIPE}
+                y={top()}
+                width={swNode - STMT_STRIPE}
+                height={sh}
+                rx={6}
+                ry={6}
+                fill={sel() ? '#fdf2f2' : '#ffffff'}
+              />
+              <rect
+                x={sx}
+                y={top()}
+                width={swNode}
+                height={sh}
+                rx={6}
+                ry={6}
+                fill="none"
+                stroke={sel() ? '#8a2a2b' : '#e7e2d6'}
+                stroke-width={sel() ? 1.5 : 1}
+              />
+              <text
+                x={sx + 13}
+                y={top() + sh / 2}
+                dominant-baseline="central"
+                font-size="8"
+                font-weight="600"
+                letter-spacing="0.07em"
+                font-family={STMT_FONT}
+                fill={stmtRoleColor(s.role)}
+                fill-opacity={0.78}
+              >
+                {roleLabel}
+              </text>
+              <text
+                x={sx + 13 + roleW}
+                y={top() + sh / 2}
+                dominant-baseline="central"
+                font-size="12"
+                font-family={STMT_FONT}
+                fill="#2a2520"
+              >
+                <title>{s.speaker || ''}</title>
+                {speakerText}
+              </text>
+              <Show when={s.side}>
+                <text
+                  x={sx + swNode - 9}
+                  y={top() + sh / 2}
+                  text-anchor="middle"
+                  dominant-baseline="central"
+                  font-size="9.5"
+                  font-weight="700"
+                  font-family={STMT_FONT}
+                  fill={STMT_SIDE_COLOR[s.side ?? ''] ?? '#888'}
+                >
+                  {s.side}
+                </text>
+              </Show>
+            </g>
+          );
+        }}
+      </For>
+    </>
+  );
 }
 
 export default function ArgumentFlowGraph(props: Props): JSX.Element {
@@ -714,187 +887,15 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                       </For>
                     </Show>
                   </Show>
-                  {/* Statement edges (under the nodes): response/resolution threads
-                      on the LEFT rail, opposition brackets on the RIGHT gutter —
-                      the spine.links drawn, folding dialectic (threads) + dispute
-                      (bracket) into the one map. */}
-                  <Show when={stmtLinksOf(n).length}>
-                    <For each={stmtLinksOf(n)}>
-                      {(lnk) => {
-                        const stmts = stmtsOf(n);
-                        const kf = stmts.findIndex((s) => s.id === lnk.from);
-                        const kt = stmts.findIndex((s) => s.id === lnk.to);
-                        if (kf < 0 || kt < 0 || kf === kt) return null;
-                        const baseY = nodeY(i()) + NODE_H + exitsBandOf(n) + STMT_TOP;
-                        const sh = STMT_H - 5;
-                        const yC = (k: number) => baseY + k * STMT_H + sh / 2;
-                        const sx = LEFT_PAD + STMT_INDENT;
-                        const swNode = NODE_W - STMT_INDENT - STMT_RGUT;
-                        const isSupport = lnk.relation === 'supports';
-                        const relKind = stmtRelKind(lnk.relation);
-                        const color = isSupport ? STMT_SUPPORTS_COLOR : KIND_COLOR[relKind];
-                        const dash = isSupport ? undefined : KIND_DASH[relKind];
-                        // Stagger concurrent edges of the same family so they don't
-                        // overlap on one line: opposition brackets fan out into the
-                        // right gutter, response threads into the left rail.
-                        const isOpp = lnk.relation === 'opposes';
-                        const ord = stmtLinksOf(n)
-                          .filter((l) => (l.relation === 'opposes') === isOpp)
-                          .indexOf(lnk);
-                        if (isOpp) {
-                          // Bracket on the right gutter joining the two disputed sides.
-                          const bx = Math.min(
-                            sx + swNode + STMT_RGUT - 2,
-                            sx + swNode + 5 + ord * 3,
-                          );
-                          return (
-                            <path
-                              d={`M ${sx + swNode} ${yC(kf)} L ${bx} ${yC(kf)} L ${bx} ${yC(kt)} L ${sx + swNode} ${yC(kt)}`}
-                              fill="none"
-                              stroke={color}
-                              stroke-width={1.5}
-                              stroke-dasharray={dash}
-                              stroke-linejoin="round"
-                            />
-                          );
-                        }
-                        // Thread on the left rail: the actor's statement back to the
-                        // one it responds to / resolves / supports / cites.
-                        const railX = Math.max(LEFT_PAD + 3, STMT_RAIL_X - (ord % 4) * 3);
-                        return (
-                          <path
-                            d={`M ${sx} ${yC(kf)} L ${railX} ${yC(kf)} L ${railX} ${yC(kt)} L ${sx} ${yC(kt)}`}
-                            fill="none"
-                            stroke={color}
-                            stroke-width={1.5}
-                            stroke-linejoin="round"
-                          />
-                        );
-                      }}
-                    </For>
-                  </Show>
-                  {/* Nested statement nodes: the focused section's voices/moves,
-                      indented under the node — the in-map drill-in. Click one to
-                      select it (its detail renders below the map). */}
-                  <Show when={stmtsOf(n).length}>
-                    <For each={stmtsOf(n)}>
-                      {(s, k) => {
-                        const sTop = () =>
-                          nodeY(i()) + NODE_H + exitsBandOf(n) + STMT_TOP + k() * STMT_H;
-                        const sh = STMT_H - 5;
-                        const sx = LEFT_PAD + STMT_INDENT;
-                        const sw = NODE_W - STMT_INDENT - STMT_RGUT;
-                        const accent = STMT_SIDE_COLOR[s.side ?? ''] ?? stmtRoleColor(s.role);
-                        const sel = () => props.selectedStatementId === s.id;
-                        const pickStmt = () => props.onSelectStatement?.(s.id);
-                        const roleLabel = s.role.toUpperCase();
-                        // Letterspaced sans caps for the role; budget the speaker
-                        // around it + the side mark so a long name can't overflow.
-                        const roleW = roleLabel.length * 6 + 13;
-                        const speakerBudget = Math.max(
-                          3,
-                          Math.floor((sw - 14 - roleW - (s.side ? 14 : 8) - 6) / 6),
-                        );
-                        const speakerText =
-                          (s.speaker || '').length > speakerBudget
-                            ? `${(s.speaker || '').slice(0, speakerBudget - 1)}…`
-                            : s.speaker || '';
-                        return (
-                          // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
-                          <g
-                            role="button"
-                            tabindex={0}
-                            style={{ cursor: 'pointer' }}
-                            onClick={pickStmt}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                pickStmt();
-                              }
-                            }}
-                          >
-                            <title>{`${s.role}${s.speaker ? ` — ${s.speaker}` : ''}`}</title>
-                            {/* Rounded card with a left accent stripe — the SVG analog
-                                of CSS border-left: an accent-filled rounded rect under
-                                a left-inset body rect of the SAME radius, so the stripe
-                                wraps the rounded corners cleanly (no pinched tips), then
-                                a hairline border outline on top. */}
-                            <rect
-                              x={sx}
-                              y={sTop()}
-                              width={sw}
-                              height={sh}
-                              rx={6}
-                              ry={6}
-                              fill={accent}
-                            />
-                            <rect
-                              x={sx + STMT_STRIPE}
-                              y={sTop()}
-                              width={sw - STMT_STRIPE}
-                              height={sh}
-                              rx={6}
-                              ry={6}
-                              fill={sel() ? '#fdf2f2' : '#ffffff'}
-                            />
-                            <rect
-                              x={sx}
-                              y={sTop()}
-                              width={sw}
-                              height={sh}
-                              rx={6}
-                              ry={6}
-                              fill="none"
-                              stroke={sel() ? '#8a2a2b' : '#e7e2d6'}
-                              stroke-width={sel() ? 1.5 : 1}
-                            />
-                            {/* Role — letterspaced sans caps, muted; the accent
-                                stripe carries the colour, so the label stays quiet. */}
-                            <text
-                              x={sx + 13}
-                              y={sTop() + sh / 2}
-                              dominant-baseline="central"
-                              font-size="8"
-                              font-weight="600"
-                              letter-spacing="0.07em"
-                              font-family={STMT_FONT}
-                              fill={stmtRoleColor(s.role)}
-                              fill-opacity={0.78}
-                            >
-                              {roleLabel}
-                            </text>
-                            {/* Speaker — same sans as the section titles, in ink. */}
-                            <text
-                              x={sx + 13 + roleW}
-                              y={sTop() + sh / 2}
-                              dominant-baseline="central"
-                              font-size="12"
-                              font-family={STMT_FONT}
-                              fill="#2a2520"
-                            >
-                              <title>{s.speaker || ''}</title>
-                              {speakerText}
-                            </text>
-                            {/* Side — a quiet colored letter, not a filled badge. */}
-                            <Show when={s.side}>
-                              <text
-                                x={sx + sw - 9}
-                                y={sTop() + sh / 2}
-                                text-anchor="middle"
-                                dominant-baseline="central"
-                                font-size="9.5"
-                                font-weight="700"
-                                font-family={STMT_FONT}
-                                fill={STMT_SIDE_COLOR[s.side ?? ''] ?? '#888'}
-                              >
-                                {s.side}
-                              </text>
-                            </Show>
-                          </g>
-                        );
-                      }}
-                    </For>
-                  </Show>
+                  <StatementBand
+                    statements={stmtsOf(n)}
+                    links={stmtLinksOf(n)}
+                    nodeX={LEFT_PAD}
+                    nodeW={NODE_W}
+                    topY={nodeY(i()) + NODE_H + exitsBandOf(n)}
+                    selectedId={props.selectedStatementId}
+                    onSelect={props.onSelectStatement}
+                  />
                 </>
               );
             }}
