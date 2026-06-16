@@ -223,6 +223,7 @@ import {
   type CacheTrack,
   getCodeSourcesCached,
   getDafyomiContentCached,
+  getHalachaRefsCached,
   getHebrewBooksDafCached,
   getMishnaBundleCached,
   getRishonimCached,
@@ -1121,6 +1122,25 @@ app.get('/api/links/:tractate/:page', async (c) => {
   // Jerusalem Talmud parallels (cross-corpus): the `yerushalmi` mark's
   // shared-mishnah bundle, projected into 'parallels' links. Fetch-on-miss.
   const yerushalmi = await getYerushalmiCached(c.env.CACHE, tractate, page).catch(() => []);
+  // Pesukim: scriptural citations on the daf (the `pesukim` mark) → 'cites'
+  // links INTO the Tanach spine, sourced at the segment that cites each verse.
+  const pesukimInstances = await readMarkInstances(c.env, 'pesukim', tractate, page).catch(
+    () => [],
+  );
+  const pesukim = pesukimInstances
+    .filter((i) => typeof i.fields?.verseRef === 'string')
+    .map((i) => ({
+      verseRef: i.fields?.verseRef as string,
+      startSegIdx: typeof i.startSegIdx === 'number' ? i.startSegIdx : undefined,
+    }));
+  // Halacha codifiers: the grounded Sefaria bundle (canonical), flattened to
+  // 'codifies' links INTO the code spines. Fetch-on-miss + cache.
+  const halachaBundle = await getHalachaRefsCached(c.env.CACHE, tractate, page).catch(() => null);
+  const halacha = halachaBundle
+    ? Object.values(halachaBundle)
+        .flat()
+        .map((s) => ({ ref: s.ref, segStart: s.segStart }))
+    : [];
 
   const links = dafLinks(daf, {
     continuesTo: bridge?.continues ? bridge.to : null,
@@ -1130,6 +1150,8 @@ app.get('/api/links/:tractate/:page', async (c) => {
     commentaryWorks,
     talmudParallels,
     yerushalmi,
+    pesukim,
+    halacha,
   });
   return c.json({ tractate, page, count: links.length, links });
 });
