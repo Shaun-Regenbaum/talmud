@@ -66,8 +66,9 @@ const LANE_BASE = 14,
 const LINE_H = 15,
   TITLE_CHARS = 44,
   // Narrower budget for a box that carries an exit badge (top-right), so the
-  // title's first line clips BEFORE the ⤳N badge instead of running under it.
-  TITLE_CHARS_EXIT = 36,
+  // title's first line clips well BEFORE the ⤳N badge instead of kissing it (the
+  // char estimate runs generous for proper-name titles, so leave real margin).
+  TITLE_CHARS_EXIT = 30,
   TITLE_LINES = 2;
 // Exit markers: the click-to-expand band of cross-text parallels under a box.
 const EXIT_H = 21,
@@ -552,23 +553,27 @@ export default function SpineFlowGraph(props: {
                     // "Rabbi Elazar b. Azaryah" — overflowed the right edge.) Stop
                     // at the first that won't fit and show "+N"; truncate a lone
                     // over-long first name.
-                    const RABBI_RIGHT = LEFT_PAD + NODE_W - 12;
+                    // Conservative per-char width: the 9.5px system font renders a
+                    // touch wider than a tight estimate, and an under-estimate let a
+                    // chip (and the trailing "+N") spill past the box edge.
+                    const CHAR_W = 5.9;
+                    const RABBI_RIGHT = LEFT_PAD + NODE_W - 14;
                     let cx = LEFT_PAD + 10;
                     const chips: { name: string; full: string; slug: string; x: number }[] = [];
                     let hiddenRabbis = 0;
                     for (const r of rabbis) {
-                      const w = r.name.length * 5.4;
+                      const w = r.name.length * CHAR_W;
                       if (chips.length > 0 && cx + w > RABBI_RIGHT) {
                         hiddenRabbis = rabbis.length - chips.length;
                         break;
                       }
                       let name = r.name;
                       if (cx + w > RABBI_RIGHT) {
-                        const max = Math.max(4, Math.floor((RABBI_RIGHT - cx) / 5.4) - 1);
+                        const max = Math.max(4, Math.floor((RABBI_RIGHT - cx) / CHAR_W) - 1);
                         name = `${r.name.slice(0, max)}…`;
                       }
                       chips.push({ name, full: r.name, slug: r.slug, x: cx });
-                      cx += name.length * 5.4 + 12;
+                      cx += name.length * CHAR_W + 12;
                     }
                     return (
                       <g>
@@ -654,7 +659,7 @@ export default function SpineFlowGraph(props: {
                           </For>
                           <Show when={hiddenRabbis > 0}>
                             <text
-                              x={cx}
+                              x={Math.min(cx, LEFT_PAD + NODE_W - 26)}
                               y={yTop + h - 8}
                               font-size="9.5"
                               font-weight={500}
