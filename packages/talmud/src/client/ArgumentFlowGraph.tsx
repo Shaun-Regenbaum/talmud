@@ -704,9 +704,19 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                         const swNode = NODE_W - STMT_INDENT - STMT_RGUT;
                         const color = STMT_REL_COLOR[lnk.relation] ?? '#94a3b8';
                         const dash = STMT_REL_DASH[lnk.relation];
-                        if (lnk.relation === 'opposes') {
+                        // Stagger concurrent edges of the same family so they don't
+                        // overlap on one line: opposition brackets fan out into the
+                        // right gutter, response threads into the left rail.
+                        const isOpp = lnk.relation === 'opposes';
+                        const ord = stmtLinksOf(n)
+                          .filter((l) => (l.relation === 'opposes') === isOpp)
+                          .indexOf(lnk);
+                        if (isOpp) {
                           // Bracket on the right gutter joining the two disputed sides.
-                          const bx = sx + swNode + 7;
+                          const bx = Math.min(
+                            sx + swNode + STMT_RGUT - 2,
+                            sx + swNode + 5 + ord * 3,
+                          );
                           return (
                             <path
                               d={`M ${sx + swNode} ${yC(kf)} L ${bx} ${yC(kf)} L ${bx} ${yC(kt)} L ${sx + swNode} ${yC(kt)}`}
@@ -720,9 +730,10 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                         }
                         // Thread on the left rail: the actor's statement back to the
                         // one it responds to / resolves / supports / cites.
+                        const railX = Math.max(LEFT_PAD + 3, STMT_RAIL_X - (ord % 4) * 3);
                         return (
                           <path
-                            d={`M ${sx} ${yC(kf)} L ${STMT_RAIL_X} ${yC(kf)} L ${STMT_RAIL_X} ${yC(kt)} L ${sx} ${yC(kt)}`}
+                            d={`M ${sx} ${yC(kf)} L ${railX} ${yC(kf)} L ${railX} ${yC(kt)} L ${sx} ${yC(kt)}`}
                             fill="none"
                             stroke={color}
                             stroke-width={1.5}
