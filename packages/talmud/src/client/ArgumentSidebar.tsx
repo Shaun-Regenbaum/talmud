@@ -1200,23 +1200,31 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
           {(grp) => {
             const hasFirst = grp.includes(0);
             const hasLast = grp.includes(sections().length - 1);
-            const grpNodes = grp.map((i) => ({
-              index: i,
-              title: sections()[i].title,
-              exits: sectionExits()?.[sections()[i].startSegIdx ?? -1] ?? [],
-              // The focused section carries its statement spine, rendered as
-              // nested sub-nodes under the node (the in-map drill-in) + its edges
-              // (response threads + opposition bracket) drawn between them.
-              statements: i === focused() ? focusedSpine()?.spine.nodes : undefined,
-              statementLinks: i === focused() ? focusedSpine()?.spine.links : undefined,
-            }));
+            // A MEMO, not a static const: the focused section's `statements`
+            // depend on focused() + focusedSpine(), which change AFTER this group
+            // first renders (a map-node click only changes focus, not groups()).
+            // Baking grpNodes once froze `statements` to the focus at mount, so
+            // clicking a different node highlighted it (activeIndex is reactive)
+            // but never expanded its spine. The memo re-bakes on focus change.
+            const grpNodes = createMemo(() =>
+              grp.map((i) => ({
+                index: i,
+                title: sections()[i].title,
+                exits: sectionExits()?.[sections()[i].startSegIdx ?? -1] ?? [],
+                // The focused section carries its statement spine, rendered as
+                // nested sub-nodes under the node (the in-map drill-in) + its edges
+                // (response threads + opposition bracket) drawn between them.
+                statements: i === focused() ? focusedSpine()?.spine.nodes : undefined,
+                statementLinks: i === focused() ? focusedSpine()?.spine.links : undefined,
+              })),
+            );
             return (
               <div style={{ 'margin-bottom': '0.7rem' }}>
                 <Show when={hasFirst && bridge()?.fromPrev}>
                   {crossLabel(t('overview.continuesFrom', { page: pageRef(bridge()!.prev) }))}
                 </Show>
                 <ArgumentFlowGraph
-                  nodes={grpNodes}
+                  nodes={grpNodes()}
                   connections={connections()}
                   activeIndex={focused()}
                   onSelect={setFocused}
