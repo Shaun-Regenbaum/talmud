@@ -98,6 +98,88 @@ const ETHNONYMS_HE = new Set([
 ]);
 const PATRONYMIC_RE = /\s(בר|בן|ברה)\s|\sבריה/; // "X bar/ben Y", "X בריה ד..." (son of) — boundary-anchored so it doesn't fire inside טבריה (Tiberias)
 
+// The `places` mark also tags non-geographic referents as "places": institutions
+// and structures (בית המדרש a study hall, מזבח the altar, בית ריש גלותא the
+// Exilarch's household), halachic land *categories* (בית הפרס a plowed grave-
+// field — an impurity status, not a town), and generic words (מתא "the town",
+// כרכים "cities"). None belong in a gazetteer of missing places. Matched EXACTLY
+// (normalized) — never as a substring — so real towns that merely share a letter
+// (בי חוזאי Bei Ḥozai, מחוזא Mehoza) are untouched. Seeded from the 2026-06 Shas
+// backlog research (see Sandbox/2026-06-16-backlog-research/findings.md).
+const NON_PLACE_HE = new Set([
+  // study halls / academies-as-institution (not a located town)
+  'בית המדרש',
+  'בית מדרש',
+  'בי מדרשא',
+  'בי רב',
+  'בית רבי',
+  'מתיבתא דרקיעא',
+  // synagogues / courts / households (institutions, not points)
+  'בית הכנסת',
+  'בית כנסת',
+  'בתי כנסיות',
+  'בית דין',
+  'בית ריש גלותא',
+  'בית נשיאה',
+  // Temple precinct structures (subsumed by Jerusalem; not gazetteer points)
+  'בית המקדש',
+  'המקדש',
+  'מקדש',
+  'מזבח',
+  'עזרה',
+  'היכל',
+  'לשכת הגזית',
+  'שער נקנור',
+  // halachic land categories / generic terms / cemeteries / bathhouses
+  'בית הפרס',
+  'בית הסאה',
+  'בית סאה',
+  'בית כור',
+  'בית הקברות',
+  'בית המרחץ',
+  'מתא',
+  'מקום',
+  'כרך',
+  'כרכים',
+  'מדבר',
+  'גולה',
+  'שדה',
+  'גורן',
+]);
+const NON_PLACE_EN =
+  /^(beit ?ha?-?(midrash|knesset|din|mikdash)|beit din|study hall|academy of|synagogues?|bathhouse|altar|the temple|chamber of|gate of nicanor|heavenly|exilarch'?s? (household|court)|house of the nasi|cities|a certain place|threshing floor|cemetery)\b/i;
+
+// Anonymous / collective / paired attributions the rabbi mark surfaces as if they
+// were people: אחרים "Others", חכמים "the Sages", תנא קמא the anonymous first
+// opinion, ריש גלותא the Exilarch (an office), דבי רבי ישמעאל "the school of...",
+// and paired speakers ("X and Y", ...דאמרי תרוייהו "who both said"). They resolve
+// to slug=null and so flood the missing-RABBI backlog, but none is a single
+// person to research. Matched exactly (HE) or by shape (schools / pairs).
+const COLLECTIVE_HE = new Set([
+  'אחרים',
+  'חכמים',
+  'רבנן',
+  'רבותינו',
+  'תנא קמא',
+  'תנו רבנן',
+  'תנא',
+  'תנאי',
+  'אמוראי',
+  'יש אומרים',
+  'ויש אומרים',
+  'ריש גלותא',
+  'בית הלל',
+  'בית שמאי',
+  'חכם',
+  'חכמי',
+]);
+const COLLECTIVE_EN =
+  /^(others|the sages|sages|rabbanan|our rabbis|the rabbis|some say|(the )?first tanna|tanna kamma|school of|academy of|the (academy|school)|beit (hillel|shammai))\b/i;
+// The Exilarch is an OFFICE only when bare; a *named* exilarch ("Exilarch Mar
+// Ukva", "Mar Ukva") is a real person — so match the title exactly, never as a
+// prefix (the Hebrew office ריש גלותא is already exact in COLLECTIVE_HE).
+const EXILARCH_OFFICE_EN = /^(the )?exilarch$/i;
+
 function stripNiqqud(s?: string): string {
   return (s || '').replace(/[֑-ׇ]/g, '').trim();
 }
@@ -123,10 +205,38 @@ function isEthnonym(name?: string, nameHe?: string): boolean {
   );
 }
 
+/** True when the emitted "place" is an institution, structure, halachic land
+ *  category, or generic term rather than a located settlement. */
+function isNonGeographic(name?: string, nameHe?: string): boolean {
+  if (NON_PLACE_HE.has(stripNiqqud(nameHe))) return true;
+  return NON_PLACE_EN.test((name || '').trim());
+}
+
 /** True when an emitted "place" is a real geographic location — i.e. not a
- *  rabbi/sage misclassified as a city, and not a people/nation. */
+ *  rabbi/sage misclassified as a city, not a people/nation, and not a
+ *  non-geographic referent (institution / structure / halachic land category /
+ *  generic term). */
 export function isRealPlace(name?: string, nameHe?: string): boolean {
-  return !looksLikePerson(name, nameHe) && !isEthnonym(name, nameHe);
+  return (
+    !looksLikePerson(name, nameHe) && !isEthnonym(name, nameHe) && !isNonGeographic(name, nameHe)
+  );
+}
+
+/** True when an emitted "unknown rabbi" is a single named sage worth tracking —
+ *  i.e. not an anonymous/collective attribution (אחרים, חכמים, תנא קמא), an
+ *  office (ריש גלותא), a school (דבי רבי...), or a paired speaker ("X and Y",
+ *  ...דאמרי תרוייהו). Those resolve to slug=null but are not people to research. */
+export function isNamedSage(name?: string, nameHe?: string): boolean {
+  const he = stripNiqqud(nameHe);
+  if (he) {
+    if (COLLECTIVE_HE.has(he)) return false;
+    if (he.includes('תרוייהו')) return false; // "...who both said" — a pair
+    if (he.startsWith('דבי ')) return false; // "the school of ..."
+  }
+  const en = (name || '').trim();
+  if (COLLECTIVE_EN.test(en) || EXILARCH_OFFICE_EN.test(en)) return false;
+  if (/\band\b/i.test(en)) return false; // "Abaye and Rava" — a pair, not a person
+  return true;
 }
 
 // `count` is a best-effort APPROXIMATION, not an exact tally. This read-modify-
@@ -161,6 +271,7 @@ export async function putUnknownRabbi(
   cache: KVNamespace,
   r: { name?: string; nameHe?: string; generation?: string; tractate: string; page: string },
 ): Promise<void> {
+  if (!isNamedSage(r.name, r.nameHe)) return; // collectives / schools / pairs aren't people to research
   const keyPart = norm(r.name || '') || norm(r.nameHe || '');
   if (!keyPart) return;
   const daf = `${r.tractate} ${r.page}`.trim();
@@ -370,6 +481,7 @@ export function putUnknownRabbisBatch(
   return bumpBatch<UnknownRabbi>(
     cache,
     items.flatMap((r) => {
+      if (!isNamedSage(r.name, r.nameHe)) return []; // skip collectives / schools / pairs
       const keyPart = norm(r.name || '') || norm(r.nameHe || '');
       if (!keyPart) return [];
       return [
@@ -529,7 +641,11 @@ export function listUnknownRabbis(
   cache: KVNamespace,
   sample = 50,
 ): Promise<UnknownSummary<UnknownRabbi>> {
-  return listPrefix<UnknownRabbi>(cache, RABBI_PREFIX, sample);
+  // Hide collective/school/paired attributions already in KV (recorded before
+  // the isNamedSage gate) without a destructive purge — they age out via TTL.
+  return listPrefix<UnknownRabbi>(cache, RABBI_PREFIX, sample, (r) =>
+    isNamedSage(r.name, r.nameHe),
+  );
 }
 
 export function listObservedPlaces(
