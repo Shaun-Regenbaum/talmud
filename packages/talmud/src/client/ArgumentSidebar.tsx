@@ -2,7 +2,6 @@
 // Re-exported so existing importers (CARD_DEFS, tests) keep their `from
 // './ArgumentSidebar'` path.
 
-import type { AnchorCoord } from '@corpus/core/context/coord';
 import {
   AGGADATA_RECIPE,
   ARGUMENT_OVERVIEW_RECIPE,
@@ -31,6 +30,7 @@ import {
   Switch,
 } from 'solid-js';
 import { selectSectionMoves } from '../lib/argumentMoves';
+import type { SectionExit } from '../lib/context/sectionExits';
 import type { DafGeoModel } from '../lib/geographyModel';
 import { type DerivationSource, parseBavliRef } from '../lib/halacha/codifiers';
 import { adjacentAmud } from '../lib/sefref/amudim';
@@ -50,8 +50,8 @@ import { type CodificationData, codeMapFromCodification, SIDE_COLOR } from './fl
 import { GeographyMap } from './GeographyMap';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
 import { Hebraized } from './Hebraized';
-import { lang, t } from './i18n';
-import { CorpusBadge, LinkRef } from './LinkRef';
+import { type CatalogKey, lang, t } from './i18n';
+import { CorpusBadge } from './LinkRef';
 import { InspectDot, registerMarkRenderer } from './MarkEnrichmentCards';
 import type { GeographyData, GeographyEvidence } from './RabbiGeographyCard';
 import RabbiLineageTree, {
@@ -978,14 +978,6 @@ export function mapsState(
   return flowResolved ? 'ready' : 'loading';
 }
 
-/** A link from the unified link layer (GET /api/links). Minimal client shape. */
-interface DafLinkLite {
-  via: string;
-  relation: string;
-  targets: { tractate: string; page: string; seg: number }[];
-  note?: string;
-}
-
 // ===========================================================================
 // Whole-daf argument OVERVIEW card — recipe block.
 // ---------------------------------------------------------------------------
@@ -996,8 +988,9 @@ interface DafLinkLite {
 // discussion carries over from the previous daf, or continues onto the next, are
 // flagged; clicking a section node drills straight into that section's full
 // argument card (pushed onto the Overview, with a back chip returning here).
-// Below: the unified cross-reference links. The daf `sections` and
-// `onOpenArgument` arrive via `extras`.
+// Each section node also carries its off-node connections (cross-daf parallels,
+// cites, pesukim, halacha) as click-to-expand exit markers. The daf `sections`
+// and `onOpenArgument` arrive via `extras`.
 // ===========================================================================
 function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   const sections = (): Section[] => (props.extras?.sections as Section[]) ?? [];
@@ -1063,58 +1056,28 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
     },
   );
 
-  // Unified link layer for this daf (src/lib/context/link.ts → /api/links): the
-  // continuity, flow, and CITATIONS in one shape. We surface the citations —
-  // cross-references to OTHER dapim — which no other view shows; the flow is in
-  // the maps above and the continuity in the captions.
-  const [links] = createResource(
+  // The daf's per-section exit marks (GET /api/links computes them from the
+  // unified link graph): the off-node connections — cross-daf parallels, cites,
+  // pesukim, halacha — anchored to each section, keyed by section start seg. Each
+  // section node in the maps places them as click-to-expand exit markers, so the
+  // cross-references live ON the section that owns them (retiring the old
+  // detached chip list).
+  const [sectionExits] = createResource(
     () => `${props.tractate}|${props.page}`,
-    async (): Promise<DafLinkLite[]> => {
+    async (): Promise<Record<number, SectionExit[]>> => {
       try {
         const r = await fetch(
           `/api/links/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}`,
         );
-        if (!r.ok) return [];
-        return ((await r.json()) as { links?: DafLinkLite[] }).links ?? [];
+        if (!r.ok) return {};
+        return (
+          ((await r.json()) as { sectionExits?: Record<number, SectionExit[]> }).sectionExits ?? {}
+        );
       } catch {
-        return [];
+        return {};
       }
     },
   );
-  // The daf's connections, ALL from the unified /api/links layer, rendered
-  // uniformly: cross-daf links (cites + continues + any off-daf flow) grouped by
-  // relation as navigable chips, plus a compact count of the within-daf flow
-  // (whose detailed view is the maps above). Retires the old cites-only list.
-  const relLabel = (rel: string): string => t(`link.rel.${rel}` as Parameters<typeof t>[0]);
-  const crossDafByRelation = (): { relation: string; targets: AnchorCoord[] }[] => {
-    const byRel = new Map<string, AnchorCoord[]>();
-    const seen = new Set<string>();
-    for (const l of links() ?? []) {
-      for (const tgt of l.targets) {
-        if (tgt.tractate === props.tractate && tgt.page === props.page) continue; // same daf → not here
-        const k = `${l.relation}|${tgt.tractate}|${tgt.page}`;
-        if (seen.has(k)) continue;
-        seen.add(k);
-        const arr = byRel.get(l.relation) ?? [];
-        arr.push(tgt);
-        byRel.set(l.relation, arr);
-      }
-    }
-    return [...byRel.entries()].map(([relation, targets]) => ({ relation, targets }));
-  };
-  const withinFlowCounts = (): { relation: string; count: number }[] => {
-    const byRel = new Map<string, number>();
-    for (const l of links() ?? []) {
-      if (l.via !== 'flow') continue;
-      for (const tgt of l.targets) {
-        if (tgt.tractate !== props.tractate || tgt.page !== props.page) continue; // within-daf only
-        byRel.set(l.relation, (byRel.get(l.relation) ?? 0) + 1);
-      }
-    }
-    return [...byRel.entries()].map(([relation, count]) => ({ relation, count }));
-  };
-  const hasConnections = (): boolean =>
-    crossDafByRelation().length > 0 || withinFlowCounts().length > 0;
 
   // Adjacent-amud page label for the continuation caption: Hebrew daf form
   // ('ב.') in he mode, the raw '2a' slug in en.
@@ -1138,132 +1101,77 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   );
 
   return (
-    <>
-      <Show
-        when={sections().length > 0}
-        fallback={
-          <HebrewProse size="0.85rem" color="#999" margin="0.6rem 0 0">
-            {t('overview.empty')}
-          </HebrewProse>
-        }
-      >
-        {/* One flow-graph map per discussion. Multiple maps = multiple sugyot on
+    <Show
+      when={sections().length > 0}
+      fallback={
+        <HebrewProse size="0.85rem" color="#999" margin="0.6rem 0 0">
+          {t('overview.empty')}
+        </HebrewProse>
+      }
+    >
+      {/* One flow-graph map per discussion. Multiple maps = multiple sugyot on
             the daf; the cross-page flags show where a discussion runs past the
             page break. Until the flow resolves we have no connections, so we
             show a loading state rather than disconnected, link-less nodes. */}
-        <Show
-          when={mapsState(sections().length, props.synthesisResolved) === 'ready'}
-          fallback={
-            <div
-              style={{
-                display: 'flex',
-                'align-items': 'center',
-                gap: '0.6rem',
-                padding: '0.7rem 0.2rem',
-                color: '#666',
-                'font-size': '0.82rem',
-                'font-style': 'italic',
-              }}
-            >
-              <span
-                style={{
-                  display: 'inline-block',
-                  width: '0.85rem',
-                  height: '0.85rem',
-                  'border-radius': '50%',
-                  border: '2px solid #d6d3d1',
-                  'border-top-color': '#8a2a2b',
-                  animation: 'daf-spin 0.8s linear infinite',
-                  'flex-shrink': 0,
-                }}
-              />
-              {t('overview.mapping')}
-            </div>
-          }
-        >
-          <For each={groups()}>
-            {(grp) => {
-              const hasFirst = grp.includes(0);
-              const hasLast = grp.includes(sections().length - 1);
-              const grpNodes = grp.map((i) => ({ index: i, title: sections()[i].title }));
-              return (
-                <div style={{ 'margin-bottom': '0.7rem' }}>
-                  <Show when={hasFirst && bridge()?.fromPrev}>
-                    {crossLabel(t('overview.continuesFrom', { page: pageRef(bridge()!.prev) }))}
-                  </Show>
-                  <ArgumentFlowGraph
-                    nodes={grpNodes}
-                    connections={connections()}
-                    activeIndex={null}
-                    onSelect={openSection}
-                  />
-                  <Show when={hasLast && bridge()?.toNext}>
-                    {crossLabel(t('overview.continuesOnto', { page: pageRef(bridge()!.next) }))}
-                  </Show>
-                </div>
-              );
-            }}
-          </For>
-        </Show>
-      </Show>
-      <Show when={hasConnections()}>
-        <div
-          style={{
-            'margin-top': '0.7rem',
-            'border-top': '1px solid #f0f0f0',
-            'padding-top': '0.55rem',
-          }}
-        >
+      <Show
+        when={mapsState(sections().length, props.synthesisResolved) === 'ready'}
+        fallback={
           <div
             style={{
-              'font-size': '0.65rem',
-              'text-transform': 'uppercase',
-              'letter-spacing': '0.05em',
-              color: '#9ca3af',
-              'margin-bottom': '0.35rem',
+              display: 'flex',
+              'align-items': 'center',
+              gap: '0.6rem',
+              padding: '0.7rem 0.2rem',
+              color: '#666',
+              'font-size': '0.82rem',
+              'font-style': 'italic',
             }}
           >
-            {t('overview.connections')}
+            <span
+              style={{
+                display: 'inline-block',
+                width: '0.85rem',
+                height: '0.85rem',
+                'border-radius': '50%',
+                border: '2px solid #d6d3d1',
+                'border-top-color': '#8a2a2b',
+                animation: 'daf-spin 0.8s linear infinite',
+                'flex-shrink': 0,
+              }}
+            />
+            {t('overview.mapping')}
           </div>
-          {/* Cross-daf links, grouped by relation — each navigable. */}
-          <For each={crossDafByRelation()}>
-            {(grp) => (
-              <div
-                style={{
-                  display: 'flex',
-                  'align-items': 'baseline',
-                  'flex-wrap': 'wrap',
-                  gap: '0.3rem',
-                  'margin-bottom': '0.25rem',
-                }}
-              >
-                <span
-                  style={{
-                    'font-size': '0.62rem',
-                    'text-transform': 'uppercase',
-                    'letter-spacing': '0.05em',
-                    color: '#9ca3af',
-                    'flex-shrink': 0,
-                  }}
-                >
-                  {relLabel(grp.relation)}
-                </span>
-                <For each={grp.targets}>{(c) => <LinkRef coord={c} />}</For>
+        }
+      >
+        <For each={groups()}>
+          {(grp) => {
+            const hasFirst = grp.includes(0);
+            const hasLast = grp.includes(sections().length - 1);
+            const grpNodes = grp.map((i) => ({
+              index: i,
+              title: sections()[i].title,
+              exits: sectionExits()?.[sections()[i].startSegIdx ?? -1] ?? [],
+            }));
+            return (
+              <div style={{ 'margin-bottom': '0.7rem' }}>
+                <Show when={hasFirst && bridge()?.fromPrev}>
+                  {crossLabel(t('overview.continuesFrom', { page: pageRef(bridge()!.prev) }))}
+                </Show>
+                <ArgumentFlowGraph
+                  nodes={grpNodes}
+                  connections={connections()}
+                  activeIndex={null}
+                  onSelect={openSection}
+                />
+                <Show when={hasLast && bridge()?.toNext}>
+                  {crossLabel(t('overview.continuesOnto', { page: pageRef(bridge()!.next) }))}
+                </Show>
               </div>
-            )}
-          </For>
-          {/* Within-daf flow — the detail is in the maps above; here just a count. */}
-          <Show when={withinFlowCounts().length > 0}>
-            <div style={{ 'font-size': '0.66rem', color: '#9ca3af', 'margin-top': '0.2rem' }}>
-              {t('overview.withinFlow')}:{' '}
-              {withinFlowCounts()
-                .map((f) => `${f.count} ${relLabel(f.relation)}`)
-                .join(' · ')}
-            </div>
-          </Show>
-        </div>
+            );
+          }}
+        </For>
       </Show>
-    </>
+    </Show>
   );
 }
 
@@ -1890,7 +1798,9 @@ function HalachaCodification(props: SpecialBlockProps): JSX.Element {
   };
   const map = () => {
     const cod = codification();
-    return cod ? codeMapFromCodification(cod, `${props.tractate} ${props.page}`) : null;
+    const dafRef =
+      lang() === 'he' ? dafRefHe(props.tractate, props.page) : `${props.tractate} ${props.page}`;
+    return cod ? codeMapFromCodification(cod, dafRef) : null;
   };
   return (
     <Show when={map()}>
@@ -2213,10 +2123,10 @@ async function fetchDerivation(args: {
   return j.sources ?? [];
 }
 
-const DERIVATION_ROLE_LABEL: Record<DerivationSource['role'], string> = {
-  primary: 'primary source',
-  related: 'related',
-  root: 'scriptural root',
+const DERIVATION_ROLE_KEY: Record<DerivationSource['role'], CatalogKey> = {
+  primary: 'halacha.role.primary',
+  related: 'halacha.role.related',
+  root: 'halacha.role.root',
 };
 
 // `parseBavliRef` (imported from lib/halacha/codifiers) turns a Bavli source
@@ -2273,6 +2183,15 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
             {(s) => {
               // Bavli sources (other than the current daf) navigate to that daf.
               const target = s.kind === 'bavli' && !s.isCurrent ? parseBavliRef(s.ref) : null;
+              // In Hebrew mode a Bavli ref reads as the Hebrew daf form; Tanakh /
+              // Yerushalmi refs keep their own string (no Hebrew daf shape).
+              const refLabel = (): string => {
+                if (lang() === 'he' && s.kind === 'bavli') {
+                  const p = parseBavliRef(s.ref);
+                  if (p) return dafRefHe(p.tractate, p.page);
+                }
+                return s.ref;
+              };
               const rowStyle: JSX.CSSProperties = {
                 display: 'flex',
                 'align-items': 'baseline',
@@ -2295,7 +2214,7 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
                       color: '#2a2723',
                     }}
                   >
-                    {s.ref}
+                    {refLabel()}
                   </span>
                   {/* Corpus badge — shared with the overview chips. Only the
                       Yerushalmi shows one; Bavli + Tanakh read for themselves. */}
@@ -2309,7 +2228,7 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
                       color: '#9a958a',
                     }}
                   >
-                    {DERIVATION_ROLE_LABEL[s.role]}
+                    {t(DERIVATION_ROLE_KEY[s.role])}
                   </span>
                   <Show when={s.isCurrent}>
                     <span
@@ -2325,7 +2244,7 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
                         'flex-shrink': 0,
                       }}
                     >
-                      YOU ARE HERE
+                      {t('halacha.youAreHere')}
                     </span>
                   </Show>
                   <Show when={target}>
@@ -2352,7 +2271,7 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
                       e.preventDefault();
                       navigateToDaf(target!);
                     }}
-                    title={t('overview.goToDaf', { daf: s.ref })}
+                    title={t('overview.goToDaf', { daf: refLabel() })}
                     style={rowStyle}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = '#8a2a2b';
@@ -3124,31 +3043,59 @@ function RishonimSources(props: SpecialBlockProps): JSX.Element {
             }}
           >
             <summary style={{ cursor: 'pointer', 'font-weight': 500, color: '#1f2937' }}>
-              {c.work}
-              <Show when={c.workHe}>
+              {/* In Hebrew mode the Hebrew work name leads (serif, rtl) and the
+                  English is the muted aside; in English mode the reverse. The
+                  Sefaria sourceRef ("Rashi on Chullin 47b:1:1") is English-only
+                  and pure breadcrumb, so it's dropped in Hebrew mode. */}
+              <Show
+                when={lang() === 'he'}
+                fallback={
+                  <>
+                    {c.work}
+                    <Show when={c.workHe}>
+                      <span
+                        style={{
+                          'margin-left': '0.4rem',
+                          color: '#94a3b8',
+                          'font-size': '0.78rem',
+                          'font-family': '"Mekorot Vilna", serif',
+                        }}
+                        dir="rtl"
+                        lang="he"
+                      >
+                        {c.workHe}
+                      </span>
+                    </Show>
+                  </>
+                }
+              >
+                <span dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif' }}>
+                  {c.workHe || c.work}
+                </span>
+                <Show when={c.workHe && c.work}>
+                  <span
+                    style={{
+                      'margin-inline-start': '0.4rem',
+                      color: '#94a3b8',
+                      'font-size': '0.78rem',
+                    }}
+                  >
+                    {c.work}
+                  </span>
+                </Show>
+              </Show>
+              <Show when={c.sourceRef && lang() !== 'he'}>
                 <span
                   style={{
                     'margin-left': '0.4rem',
-                    color: '#94a3b8',
-                    'font-size': '0.78rem',
-                    'font-family': '"Mekorot Vilna", serif',
+                    color: '#cbd5e1',
+                    'font-size': '0.7rem',
+                    'font-family': 'ui-monospace, Menlo, monospace',
                   }}
-                  dir="rtl"
-                  lang="he"
                 >
-                  {c.workHe}
+                  {c.sourceRef}
                 </span>
               </Show>
-              <span
-                style={{
-                  'margin-left': '0.4rem',
-                  color: '#cbd5e1',
-                  'font-size': '0.7rem',
-                  'font-family': 'ui-monospace, Menlo, monospace',
-                }}
-              >
-                {c.sourceRef}
-              </span>
             </summary>
             <Show when={c.textHe}>
               <p

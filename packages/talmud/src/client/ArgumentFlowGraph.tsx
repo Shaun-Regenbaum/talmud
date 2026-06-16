@@ -9,8 +9,10 @@
  * Clicking a node calls `onSelect(index)` so the parent can expand that
  * section's voice map (the drill-in).
  */
-import { For, type JSX, Show } from 'solid-js';
-import { lang } from './i18n';
+import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { linkTarget } from '../lib/context/linkTarget';
+import type { SectionExit } from '../lib/context/sectionExits';
+import { lang, t } from './i18n';
 
 export interface FlowConnection {
   from: number;
@@ -30,6 +32,10 @@ export interface FlowNode {
   /** 0-based section index (matches connection from/to). */
   index: number;
   title: string;
+  /** Off-node connections anchored to this section (cross-daf parallels, cites,
+   *  pesukim, halacha) — rendered as a click-to-expand exit-marker band. The
+   *  spine's links projected onto the section that owns them. */
+  exits?: SectionExit[];
 }
 
 interface Props {
@@ -40,6 +46,10 @@ interface Props {
   /** Suppress this graph's own legend (when a shared legend is rendered once
    *  for several stacked graphs, e.g. one per sugya in the overview). */
   hideLegend?: boolean;
+  /** Click handler for an exit-marker chip. Defaults to navigating the target
+   *  (our reader for a daf, the Tanach app for a pasuk); an inert target
+   *  (halacha) does nothing without a handler. */
+  onPickExit?: (ex: SectionExit) => void;
 }
 
 const NODE_W = 310;
@@ -63,6 +73,28 @@ export const KIND_COLOR: Record<FlowConnection['kind'], string> = {
 export const KIND_DASH: Partial<Record<FlowConnection['kind'], string>> = {
   contrasts: '5 3',
   parallels: '2 3',
+};
+
+// Exit markers: a per-node click-to-expand band of OFF-node connections (cross-
+// daf parallels, cites, pesukim, halacha) — the spine's links projected onto the
+// section that owns them. Mirrors the #spine view's exit markers.
+const EXIT_H = 21;
+const EXIT_TOP = 5;
+const EXIT_INDENT = 26;
+const BADGE_W = 30;
+const BADGE_H = 15;
+const MARKER_INK = '#9a7b4f';
+const EXIT_FAMILY_COLOR: Record<string, string> = {
+  parallel: KIND_COLOR.parallels,
+  citation: KIND_COLOR.cites,
+  scripture: '#b45309',
+  codification: '#7c2d12',
+};
+const EXIT_FAMILY_TAG: Record<string, string> = {
+  parallel: 'parallel',
+  citation: 'cites',
+  scripture: 'pasuk',
+  codification: 'halacha',
 };
 
 /** Distinct connection kinds present across a set of connections, in the
@@ -98,7 +130,7 @@ export function FlowLegend(props: { kinds: FlowConnection['kind'][] }): JSX.Elem
                 'border-top': `1.5px ${KIND_DASH[kind] ? 'dashed' : 'solid'} ${KIND_COLOR[kind]}`,
               }}
             />
-            {kind}
+            {t(`link.rel.${kind}`)}
           </span>
         )}
       </For>
@@ -165,10 +197,43 @@ export function wrapTitle(s: string, maxChars: number, maxLines: number): string
 }
 
 export default function ArgumentFlowGraph(props: Props): JSX.Element {
-  const nodeY = (i: number) => TOP_PAD + i * (NODE_H + ROW_GAP);
+  // Which section nodes have their exit-marker band expanded (collapsed default).
+  const [openExits, setOpenExits] = createSignal(new Set<number>());
+  const toggleExits = (idx: number) =>
+    setOpenExits((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  const pickExit = (ex: SectionExit) => {
+    if (props.onPickExit) {
+      props.onPickExit(ex);
+      return;
+    }
+    const t = linkTarget(ex.target);
+    if (!t.href) return;
+    if (t.external) window.open(t.href, '_blank', 'noopener');
+    else window.location.href = t.href;
+  };
+
+  // Accumulated vertical layout: every node is NODE_H tall, plus a reserved band
+  // below it when its exit markers are expanded, so the chips never overlap the
+  // next node. Reading openExits() makes the whole layout reflow reactively.
+  const layout = createMemo(() => {
+    const ys: number[] = [];
+    let y = TOP_PAD;
+    props.nodes.forEach((n, i) => {
+      ys[i] = y;
+      const exits = n.exits ?? [];
+      const band = exits.length && openExits().has(n.index) ? EXIT_TOP + exits.length * EXIT_H : 0;
+      y += NODE_H + band + ROW_GAP;
+    });
+    return { ys, total: props.nodes.length ? y - ROW_GAP + TOP_PAD : 0 };
+  });
+  const nodeY = (i: number) => layout().ys[i] ?? TOP_PAD;
   const rowMidY = (i: number) => nodeY(i) + NODE_H / 2;
-  const height = () =>
-    TOP_PAD * 2 + props.nodes.length * NODE_H + (props.nodes.length - 1) * ROW_GAP;
+  const height = () => layout().total;
 
   // Map section index -> array position, so a SUBSET of the daf's sections (one
   // sugya group) lays out compactly in rows 0..k while connections still arrive
@@ -319,77 +384,222 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
               const cy = () => nodeY(i()) + NODE_H / 2;
               const lines = () => wrapTitle(n.title, TITLE_CHARS, TITLE_LINES);
               const select = () => props.onSelect(n.index);
+              const exits = () => n.exits ?? [];
+              const isOpen = () => openExits().has(n.index);
               return (
-                // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
-                <g
-                  role="button"
-                  tabindex={0}
-                  style={{ cursor: 'pointer' }}
-                  onClick={select}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      select();
-                    }
-                  }}
-                >
-                  <title>{`${n.index + 1}. ${n.title} — click for voices`}</title>
-                  <rect
-                    x={LEFT_PAD}
-                    y={nodeY(i())}
-                    width={NODE_W}
-                    height={NODE_H}
-                    rx={10}
-                    ry={10}
-                    fill={active() ? '#fdf2f2' : '#ffffff'}
-                    stroke={active() ? '#8a2a2b' : '#e4e0d4'}
-                    stroke-width={active() ? 1.75 : 1}
-                    filter="url(#flow-card-shadow)"
-                  />
-                  <circle
-                    cx={badgeCX}
-                    cy={cy()}
-                    r={11}
-                    fill={active() ? '#8a2a2b' : '#f2eee4'}
-                    stroke={active() ? '#8a2a2b' : '#e4e0d4'}
-                    stroke-width={1}
-                  />
-                  <text
-                    x={badgeCX}
-                    y={cy()}
-                    text-anchor="middle"
-                    dominant-baseline="central"
-                    font-size="11"
-                    font-weight="700"
-                    font-family="system-ui, -apple-system, sans-serif"
-                    fill={active() ? '#ffffff' : '#8a2a2b'}
+                <>
+                  {/* biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram */}
+                  <g
+                    role="button"
+                    tabindex={0}
+                    style={{ cursor: 'pointer' }}
+                    onClick={select}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        select();
+                      }
+                    }}
                   >
-                    {n.index + 1}
-                  </text>
-                  <For each={lines()}>
-                    {(line, li) => (
+                    <title>{`${n.index + 1}. ${n.title} — click for voices`}</title>
+                    <rect
+                      x={LEFT_PAD}
+                      y={nodeY(i())}
+                      width={NODE_W}
+                      height={NODE_H}
+                      rx={10}
+                      ry={10}
+                      fill={active() ? '#fdf2f2' : '#ffffff'}
+                      stroke={active() ? '#8a2a2b' : '#e4e0d4'}
+                      stroke-width={active() ? 1.75 : 1}
+                      filter="url(#flow-card-shadow)"
+                    />
+                    <circle
+                      cx={badgeCX}
+                      cy={cy()}
+                      r={11}
+                      fill={active() ? '#8a2a2b' : '#f2eee4'}
+                      stroke={active() ? '#8a2a2b' : '#e4e0d4'}
+                      stroke-width={1}
+                    />
+                    <text
+                      x={badgeCX}
+                      y={cy()}
+                      text-anchor="middle"
+                      dominant-baseline="central"
+                      font-size="11"
+                      font-weight="700"
+                      font-family="system-ui, -apple-system, sans-serif"
+                      fill={active() ? '#ffffff' : '#8a2a2b'}
+                    >
+                      {n.index + 1}
+                    </text>
+                    <For each={lines()}>
+                      {(line, li) => (
+                        <text
+                          x={titleX}
+                          y={cy() + (li() - (lines().length - 1) / 2) * LINE_H}
+                          // Left-align the title block at titleX in BOTH languages. SVG
+                          // text-anchor is direction-relative: with direction=rtl,
+                          // anchor="start" pins the text's RIGHT edge to titleX so the
+                          // title flows left over the number badge and clips at the card
+                          // edge. anchor="end" pins the LEFT edge to titleX instead, so
+                          // Hebrew sits to the right of the badge like the English does.
+                          text-anchor={lang() === 'he' ? 'end' : 'start'}
+                          dominant-baseline="central"
+                          font-size="12"
+                          font-weight="600"
+                          font-family="system-ui, -apple-system, sans-serif"
+                          fill="#2a2723"
+                          direction={lang() === 'he' ? 'rtl' : 'ltr'}
+                        >
+                          {line}
+                        </text>
+                      )}
+                    </For>
+                  </g>
+                  {/* Exit markers: collapsed ⤳N badge at the node's top-right →
+                    click to expand a chip per off-node connection, in a band
+                    reserved below the node (the layout reflows). */}
+                  <Show when={exits().length}>
+                    {/* biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram */}
+                    <g
+                      role="button"
+                      tabindex={0}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => toggleExits(n.index)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggleExits(n.index);
+                        }
+                      }}
+                    >
+                      <title>{`${exits().length} connection${exits().length > 1 ? 's' : ''} elsewhere — click to ${isOpen() ? 'hide' : 'show'}`}</title>
+                      <rect
+                        x={LEFT_PAD + NODE_W - BADGE_W - 7}
+                        y={nodeY(i()) + 6}
+                        width={BADGE_W}
+                        height={BADGE_H}
+                        rx={7}
+                        ry={7}
+                        fill={isOpen() ? MARKER_INK : '#ffffff'}
+                        stroke={MARKER_INK}
+                        stroke-width={1.25}
+                      />
                       <text
-                        x={titleX}
-                        y={cy() + (li() - (lines().length - 1) / 2) * LINE_H}
-                        // Left-align the title block at titleX in BOTH languages. SVG
-                        // text-anchor is direction-relative: with direction=rtl,
-                        // anchor="start" pins the text's RIGHT edge to titleX so the
-                        // title flows left over the number badge and clips at the card
-                        // edge. anchor="end" pins the LEFT edge to titleX instead, so
-                        // Hebrew sits to the right of the badge like the English does.
-                        text-anchor={lang() === 'he' ? 'end' : 'start'}
+                        x={LEFT_PAD + NODE_W - BADGE_W / 2 - 7}
+                        y={nodeY(i()) + 6 + BADGE_H / 2 + 0.5}
+                        text-anchor="middle"
                         dominant-baseline="central"
-                        font-size="12"
-                        font-weight="600"
-                        font-family="system-ui, -apple-system, sans-serif"
-                        fill="#2a2723"
-                        direction={lang() === 'he' ? 'rtl' : 'ltr'}
+                        font-size="10"
+                        font-weight="700"
+                        font-family="system-ui, sans-serif"
+                        fill={isOpen() ? '#ffffff' : MARKER_INK}
                       >
-                        {line}
+                        {`⤳ ${exits().length}`}
                       </text>
-                    )}
-                  </For>
-                </g>
+                    </g>
+                    <Show when={isOpen()}>
+                      <For each={exits()}>
+                        {(ex, j) => {
+                          const top = () => nodeY(i()) + NODE_H + EXIT_TOP + j() * EXIT_H;
+                          const ch = EXIT_H - 3;
+                          const midY = () => top() + ch / 2;
+                          const chipX = LEFT_PAD + EXIT_INDENT;
+                          const chipW = NODE_W - EXIT_INDENT - 6;
+                          const accent = EXIT_FAMILY_COLOR[ex.family] ?? MARKER_INK;
+                          const tag = EXIT_FAMILY_TAG[ex.family] ?? ex.family;
+                          const tagW = tag.length * 5.4 + 12;
+                          const tgt = linkTarget(ex.target);
+                          const refMax = Math.max(8, Math.floor((chipW - tagW - 32) / 5.4));
+                          const refText =
+                            tgt.label.length > refMax
+                              ? `${tgt.label.slice(0, refMax - 1)}…`
+                              : tgt.label;
+                          const clickable = !!props.onPickExit || tgt.navigable;
+                          const inner = (
+                            <>
+                              <title>{`${ex.relation} — ${tgt.label}${tgt.navigable ? ' (open)' : ''}`}</title>
+                              <rect
+                                x={chipX}
+                                y={top()}
+                                width={chipW}
+                                height={ch}
+                                rx={6}
+                                ry={6}
+                                fill="#ffffff"
+                                stroke="#e4e0d4"
+                                stroke-width={1}
+                              />
+                              <rect x={chipX} y={top()} width={3} height={ch} fill={accent} />
+                              <text
+                                x={chipX + 11}
+                                y={midY()}
+                                dominant-baseline="central"
+                                font-size="10"
+                                fill="#9a948a"
+                              >
+                                ↗
+                              </text>
+                              <text
+                                x={chipX + 22}
+                                y={midY()}
+                                dominant-baseline="central"
+                                font-size="10.5"
+                                font-weight="500"
+                                font-family="system-ui, sans-serif"
+                                fill="#2a2723"
+                              >
+                                {refText}
+                              </text>
+                              <rect
+                                x={chipX + chipW - tagW - 5}
+                                y={top() + 2.5}
+                                width={tagW}
+                                height={ch - 5}
+                                rx={5}
+                                ry={5}
+                                fill={accent}
+                                fill-opacity={0.14}
+                              />
+                              <text
+                                x={chipX + chipW - tagW / 2 - 5}
+                                y={midY()}
+                                text-anchor="middle"
+                                dominant-baseline="central"
+                                font-size="8.5"
+                                font-weight="650"
+                                font-family="system-ui, sans-serif"
+                                fill={accent}
+                              >
+                                {tag}
+                              </text>
+                            </>
+                          );
+                          if (!clickable) return <g>{inner}</g>;
+                          return (
+                            // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
+                            <g
+                              role="button"
+                              tabindex={0}
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => pickExit(ex)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  pickExit(ex);
+                                }
+                              }}
+                            >
+                              {inner}
+                            </g>
+                          );
+                        }}
+                      </For>
+                    </Show>
+                  </Show>
+                </>
               );
             }}
           </For>
@@ -431,7 +641,7 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                     'border-top': `2px ${KIND_DASH[kind] ? 'dashed' : 'solid'} ${KIND_COLOR[kind]}`,
                   }}
                 />
-                {kind}
+                {t(`link.rel.${kind}`)}
               </span>
             )}
           </For>

@@ -101,6 +101,18 @@ describe('alwaysHebraizeBlock — renders every canonical term in its display or
   });
 });
 
+// Every canonical term must carry a Hebrew gloss too — that is the tooltip
+// surface in Hebrew mode (so a Hebrew reader hovering a term gets a Hebrew
+// explanation, not the English `gloss`). Locks future additions in.
+describe('canonical terms carry a Hebrew gloss', () => {
+  for (const term of CANONICAL_HEBREW_TERMS) {
+    it(`${term.hebrew} has a non-empty Hebrew gloss in Hebrew script`, () => {
+      expect(term.glossHe.trim().length).toBeGreaterThan(0);
+      expect(term.glossHe).toMatch(/[֐-׿]/); // contains Hebrew letters
+    });
+  }
+});
+
 describe('canonicalDictEntries — closes the historical drift gaps', () => {
   const d = canonicalDictEntries();
   it('includes pidyon haben (was missing from the dict)', () => {

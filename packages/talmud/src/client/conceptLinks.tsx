@@ -32,6 +32,7 @@ import { Portal } from 'solid-js/web';
 import type { Term } from '../lib/terms/registry';
 import { Hebraized } from './Hebraized';
 import { stripEchoParens } from './hebraize';
+import { lang } from './i18n';
 
 /** The surfaces a reader might actually SEE for a term in prose: the Hebrew
  *  script (the dominant form after hebraization) and the English label, if any.
@@ -51,6 +52,14 @@ export function surfacesOf(t: Term): string[] {
  *  else the romanization, else the Hebrew itself. */
 export function termLabel(t: Term): string {
   return t.en || t.translit || t.hebrew;
+}
+
+/** The gloss/meaning shown in the active language: the authored Hebrew gloss in
+ *  Hebrew mode (falling back to the English gloss for per-daf concepts, whose
+ *  single gloss is already in the daf-enrichment's language), the English gloss
+ *  otherwise. */
+export function termGloss(t: Term): string {
+  return lang() === 'he' ? (t.glossHe ?? t.gloss) : t.gloss;
 }
 
 /** A compiled term matcher: a regex over the term surfaces + a lowercased
@@ -324,6 +333,13 @@ function ConceptMention(props: { value: string; term: Term }): JSX.Element {
     setPos({ left, top: flipUp ? a.top - gap - r.height : below });
   };
 
+  // The tooltip reads in the active language's direction: in Hebrew mode the
+  // Hebrew term is the heading and the romanization a muted aside (the reverse
+  // of English mode), and the meaning is the authored Hebrew gloss.
+  const heMode = (): boolean => lang() === 'he';
+  const heading = (): string => (heMode() ? props.term.hebrew : termLabel(props.term));
+  const subheading = (): string => (heMode() ? (props.term.translit ?? '') : props.term.hebrew);
+
   return (
     // biome-ignore lint/a11y/useSemanticElements: inline span inside flowing prose; a button element would break text layout and selection/copy
     <span
@@ -331,7 +347,7 @@ function ConceptMention(props: { value: string; term: Term }): JSX.Element {
       style={termStyle}
       tabIndex={0}
       role="button"
-      aria-label={`${termLabel(props.term)}: ${props.term.gloss}`}
+      aria-label={`${heading()}: ${termGloss(props.term)}`}
       onMouseEnter={openTip}
       onMouseLeave={() => setOpen(false)}
       onFocus={openTip}
@@ -344,18 +360,28 @@ function ConceptMention(props: { value: string; term: Term }): JSX.Element {
           {/* biome-ignore lint/a11y/useKeyWithClickEvents: tooltip body; onClick only stops propagation — there is no activation behavior to mirror on the keyboard */}
           <span
             ref={place}
-            style={{ ...tooltipStyle, left: `${pos().left}px`, top: `${pos().top}px` }}
-            dir="ltr"
+            style={{
+              ...tooltipStyle,
+              'text-align': heMode() ? 'right' : 'left',
+              left: `${pos().left}px`,
+              top: `${pos().top}px`,
+            }}
+            dir={heMode() ? 'rtl' : 'ltr'}
             onClick={(e) => e.stopPropagation()}
           >
-            <span style={{ 'font-weight': 600 }}>{termLabel(props.term)}</span>
-            <Show when={props.term.hebrew && props.term.hebrew !== termLabel(props.term)}>
-              <span dir="rtl" style={{ 'margin-left': '0.35rem', color: '#cbd5e1' }}>
-                {props.term.hebrew}
+            <span style={{ 'font-weight': 600 }} dir={heMode() ? 'rtl' : 'ltr'}>
+              {heading()}
+            </span>
+            <Show when={subheading() && subheading() !== heading()}>
+              <span
+                dir={heMode() ? 'ltr' : 'rtl'}
+                style={{ 'margin-inline-start': '0.35rem', color: '#cbd5e1' }}
+              >
+                {subheading()}
               </span>
             </Show>
             <span style={{ display: 'block', 'margin-top': '0.25rem', color: '#e5e7eb' }}>
-              {props.term.gloss}
+              {termGloss(props.term)}
             </span>
           </span>
         </Portal>

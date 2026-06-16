@@ -39,6 +39,33 @@ const LEGACY_CITY_NAMES = [
   'Shekanziv',
 ];
 
+// High-confidence sites added from the 2026-06 Shas backlog research
+// (Sandbox/2026-06-16-backlog-research/findings.md). Like the legacy names,
+// each must survive a projected rebuild — a guard against a future window/coord
+// change silently dropping one (e.g. tripping the edge-distance check).
+const RESEARCHED_CITY_NAMES = [
+  // Eretz Yisrael / Levant
+  'Dan',
+  'Arav',
+  'Migdal',
+  'Maon',
+  'Shihin',
+  'Antipatris',
+  'Shiloh',
+  'Jaffa',
+  'Ono',
+  'Bethel',
+  'Beit Horon',
+  'Jericho',
+  'Gibeon',
+  'Beitar',
+  'Gath',
+  "Ke'ila",
+  'Gaza',
+  // Bavel / Mesopotamia
+  'Nineveh',
+];
+
 const PATH_RE = /^M-?\d+(\.\d+)?,-?\d+(\.\d+)?(L-?\d+(\.\d+)?,-?\d+(\.\d+)?)+Z?$/;
 
 describe('geoShapes (generated)', () => {
@@ -88,6 +115,13 @@ describe('geoShapes (generated)', () => {
     const names = new Set(GEO_CITIES.map((c) => c.name));
     for (const legacy of LEGACY_CITY_NAMES) {
       expect(names.has(legacy), `legacy city lost: ${legacy}`).toBe(true);
+    }
+  });
+
+  it('every researched city survives the projected rebuild', () => {
+    const names = new Set(GEO_CITIES.map((c) => c.name));
+    for (const city of RESEARCHED_CITY_NAMES) {
+      expect(names.has(city), `researched city lost: ${city}`).toBe(true);
     }
   });
 

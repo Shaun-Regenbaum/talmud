@@ -35,7 +35,11 @@ export type LinkRelation =
   // A commentary spine (Rashi / Tosafot / a rishon) glossing the daf text it
   // sits over. Not a flow relation — it's the cross-spine edge from a
   // commentary spine into the Gemara. See `glossLinks`.
-  | 'glosses';
+  | 'glosses'
+  // A daf codified in a halachic code (Mishneh Torah / Tur / Shulchan Arukh).
+  // Not a flow relation — the cross-spine edge from the Gemara INTO a code
+  // spine. Emitted by the halacha producer; rendered like `cites`.
+  | 'codifies';
 
 /** Runtime membership test for the LinkRelation union (for validating an
  *  untyped `kind` string from an enrichment's JSON output). */
@@ -48,6 +52,7 @@ const LINK_RELATIONS: ReadonlySet<string> = new Set<LinkRelation>([
   'contrasts',
   'generalizes',
   'glosses',
+  'codifies',
 ]);
 export function isLinkRelation(kind: string): kind is LinkRelation {
   return LINK_RELATIONS.has(kind);

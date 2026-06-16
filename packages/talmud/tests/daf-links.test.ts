@@ -122,6 +122,50 @@ describe('dafLinks — the unified link layer of a daf', () => {
     ]);
   });
 
+  it('emits a pesuk cites link into Tanach + a halacha codifies link into the code spine', () => {
+    const out = dafLinks(DAF, {
+      continuesTo: null,
+      items: [],
+      flowEdges: [],
+      sectionStartSegs: [],
+      pesukim: [
+        { verseRef: 'Genesis 19:5', startSegIdx: 4 },
+        { verseRef: 'not a verse' }, // unparseable → dropped
+      ],
+      halacha: [
+        { ref: 'Mishneh Torah, Reading the Shema 1:1', segStart: 4 },
+        { ref: 'Sefer Mitzvot Gadol, Positive Commandments 18' }, // non-codifier → dropped
+      ],
+    });
+    expect(out).toEqual([
+      {
+        via: 'pesuk',
+        source: coordForSeg(DAF, 4),
+        relation: 'cites',
+        targets: [{ spine: 'tanach', tractate: 'Genesis', page: '19', seg: 5 }],
+        note: 'Genesis 19:5',
+      },
+      {
+        via: 'halacha',
+        source: coordForSeg(DAF, 4),
+        relation: 'codifies',
+        targets: [{ spine: 'mishneh-torah', tractate: 'Reading the Shema', page: '1', seg: 1 }],
+        note: 'Mishneh Torah, Reading the Shema 1:1',
+      },
+    ]);
+  });
+
+  it('sources a pesuk at the whole daf when it has no segment', () => {
+    const out = dafLinks(DAF, {
+      continuesTo: null,
+      items: [],
+      flowEdges: [],
+      sectionStartSegs: [],
+      pesukim: [{ verseRef: 'Exodus 12:2' }],
+    });
+    expect(out[0]).toMatchObject({ via: 'pesuk', source: dafCoord(DAF) });
+  });
+
   it('combines all sources in order: bridge, cites, flow, then commentary', () => {
     const out = dafLinks(DAF, {
       continuesTo: { tractate: 'Shabbat', page: '126a' },
