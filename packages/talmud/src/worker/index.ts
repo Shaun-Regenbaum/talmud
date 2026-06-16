@@ -1624,6 +1624,13 @@ function canonicalTractateName(slug: string): string {
   return TRACTATE_OPTIONS.find((o) => slugTractate(o.value) === s)?.value ?? slug;
 }
 
+// Hard cap on dapim swept per /api/spine-view request: each warmed daf costs ~a
+// dozen KV reads (sections + per-section voices + flow + cross + bridge +
+// parallels), and Cloudflare caps a request at 1000 subrequests. The fan-out is
+// already gated onto warmed dapim; this bounds the worst case (a fully-warmed
+// tractate). A per-tractate snapshot shelf warmed by cron is the O(1) follow-up.
+const SPINE_VIEW_MAX_DAPIM = 60;
+
 app.get('/api/spine-view/:tractate', async (c) => {
   const tractate = c.req.param('tractate');
   if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
@@ -1634,7 +1641,19 @@ app.get('/api/spine-view/:tractate', async (c) => {
   // the read-only bundle reads cold-miss everything.
   const canonical = canonicalTractateName(tractate);
   const pages = [...iterAmudim(tractate)];
-  const raw = await mapPool(pages, 24, async (page) => {
+  const nextOf = new Map(pages.map((p, i) => [p, pages[i + 1] ?? null] as const));
+  // Gate the per-daf fan-out onto dapim that ACTUALLY have an argument mark
+  // (sections). Reading every cold amud blows the 1000-subrequest limit — the
+  // route 500s and the flow panel never renders. computeCoverage is a cheap
+  // key-presence sweep (a handful of KV `list`s); cold dapim are skipped (they
+  // have no sections and would be dropped below anyway). On a probe failure, fall
+  // back to all pages (best-effort).
+  const cov = await computeCoverage(c.env.CACHE, tractate).catch(() => null);
+  const warmed = cov ? new Set(cov.rows.filter((r) => r.cells.argument).map((r) => r.page)) : null;
+  const withSections = warmed ? pages.filter((p) => warmed.has(p)) : pages;
+  const truncated = withSections.length > SPINE_VIEW_MAX_DAPIM;
+  const sweep = truncated ? withSections.slice(0, SPINE_VIEW_MAX_DAPIM) : withSections;
+  const raw = await mapPool(sweep, 24, async (page) => {
     const secs = await readSectionRabbis(c.env, tractate, page);
     const flow = await readFlowConnections(c.env, tractate, page);
     const cross = await readCachedCrossFlow(c.env, tractate, page);
@@ -1673,11 +1692,12 @@ app.get('/api/spine-view/:tractate', async (c) => {
       continues: bridge?.continues === true,
     };
   });
-  // nextPage = the adjacent amud (iterAmudim order), so cross-daf + continuity
-  // edges have a target daf to point at.
-  const dapim = raw.map((d, i) => ({ ...d, nextPage: pages[i + 1] ?? null }));
-  // Only dapim that actually have sections (a flow graph needs nodes).
-  return c.json({ tractate, dapim: dapim.filter((d) => d.sections.length > 0) });
+  // nextPage = the adjacent amud (iterAmudim order, via nextOf since `sweep` is a
+  // gated subset of `pages`), so cross-daf + continuity edges have a target daf.
+  const dapim = raw.map((d) => ({ ...d, nextPage: nextOf.get(d.page) ?? null }));
+  // Only dapim that actually have sections (a flow graph needs nodes). `truncated`
+  // tells the client the sweep was bounded (more warmed dapim exist than shown).
+  return c.json({ tractate, dapim: dapim.filter((d) => d.sections.length > 0), truncated });
 });
 
 // On-demand compute (or cache hit) of one daf's cross-daf flow, returned both as

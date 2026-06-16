@@ -99,7 +99,7 @@ async function fetchCoverage(tractate: string): Promise<CoverageReport> {
 
 async function fetchSpineView(
   tractate: string,
-): Promise<{ tractate: string; dapim: SpineViewDaf[] }> {
+): Promise<{ tractate: string; dapim: SpineViewDaf[]; truncated?: boolean }> {
   const r = await fetch(`/api/spine-view/${encodeURIComponent(tractate)}`);
   if (!r.ok) {
     const body = await r.json().catch(() => ({}));
@@ -108,7 +108,9 @@ async function fetchSpineView(
   return r.json();
 }
 
-const FLOW_VIEW_CAP = 40; // keep the stitched render light; note when truncated
+// Render budget for the stitched flow graph. >= the server's SPINE_VIEW_MAX_DAPIM
+// so the client never re-truncates the (already-bounded) server payload.
+const FLOW_VIEW_CAP = 64;
 
 export function SpineCoveragePage(): JSX.Element {
   const [tractate, setTractate] = createSignal(routeTractate());
@@ -408,9 +410,12 @@ export function SpineCoveragePage(): JSX.Element {
                           fallback={`whole tractate — ${v().dapim.length} dapim, one node each; tinted = has cross-daf links. Click a daf for detail.`}
                         >
                           showing {capped().length} of {shown().length} dapim{' '}
-                          {shown().length > FLOW_VIEW_CAP ? '(capped)' : ''} &middot; {crossCount()}{' '}
-                          cross-daf arrows (thicker lines span the page break) &middot;{' '}
-                          {connectivity().done}/{connectivity().total} boundaries connected
+                          {v().truncated || shown().length > FLOW_VIEW_CAP
+                            ? '(bounded — warm more dapim to extend) '
+                            : ''}
+                          &middot; {crossCount()} cross-daf arrows (thicker lines span the page
+                          break) &middot; {connectivity().done}/{connectivity().total} boundaries
+                          connected
                           {connectivity().done < connectivity().total
                             ? ' (dashed = not computed yet)'
                             : ''}{' '}
