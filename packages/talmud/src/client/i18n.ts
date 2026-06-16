@@ -214,6 +214,38 @@ const CATALOG = {
   'link.rel.generalizes': { en: 'generalizes', he: 'מכליל' },
   'link.rel.glosses': { en: 'glosses', he: 'מפרש' },
 
+  // — Spine flow graph (whole-tractate overview, SpineFlowGraph) —
+  'spine.corpus.bavli': { en: 'Bavli', he: 'בבלי' },
+  'spine.corpus.yeru': { en: 'ירושלמי', he: 'ירושלמי' },
+  'spine.corpus.here': { en: 'this tractate', he: 'מסכת זו' },
+  'spine.crossCold': { en: 'cross-daf link not computed yet', he: 'קישור בין־דפי טרם חושב' },
+  'spine.tip.parallelsCold': {
+    en: 'parallels not computed yet for this daf (warm it to see its cross-text links)',
+    he: 'מקבילות טרם חושבו לדף זה (חממו כדי לראות קישורים בין־טקסטואליים)',
+  },
+  'spine.tip.traceRabbi': {
+    en: 'trace {name} across the tractate',
+    he: 'עקבו אחר {name} לאורך המסכת',
+  },
+  'spine.tip.parallels.one': {
+    en: '{count} parallel elsewhere — click to {action}',
+    he: 'מקבילה אחת במקום אחר — לחצו ל{action}',
+  },
+  'spine.tip.parallels.other': {
+    en: '{count} parallels elsewhere — click to {action}',
+    he: '{count} מקבילות במקומות אחרים — לחצו ל{action}',
+  },
+  'spine.action.show': { en: 'show', he: 'הצגה' },
+  'spine.action.hide': { en: 'hide', he: 'הסתרה' },
+  'spine.tip.openInReader': { en: 'open in reader', he: 'פתחו בקורא' },
+  'spine.tip.yeruCard': {
+    en: 'Yerushalmi — see the daf’s Yerushalmi card',
+    he: 'ירושלמי — ראו בכרטיס הירושלמי של הדף',
+  },
+  'spine.tip.node.one': { en: '{count} section', he: 'מקטע אחד' },
+  'spine.tip.node.other': { en: '{count} sections', he: '{count} מקטעים' },
+  'spine.tip.node.crossSuffix': { en: ' · cross-daf links', he: ' · קישורים בין־דפי' },
+
   // — Whole-daf background (terms/concepts a reader needs) —
   'background.chip': { en: 'Background', he: 'רקע' },
   'background.title': { en: 'Background', he: 'רקע' },

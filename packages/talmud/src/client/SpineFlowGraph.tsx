@@ -14,7 +14,9 @@
  */
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 import { dafTarget } from '../lib/context/linkTarget';
+import { dafRefHe, pageLabelHe } from '../lib/sefref/tractates';
 import { type FlowConnection, KIND_COLOR, KIND_DASH, wrapTitle } from './ArgumentFlowGraph';
+import { lang, t } from './i18n';
 
 type Kind = FlowConnection['kind'];
 
@@ -78,7 +80,19 @@ const HILITE = '#b8860b';
 // stays here: it carries 'here' (same tractate as the daf in view), a view-local
 // distinction the context-free resolver doesn't make.
 const corpusTag = (c: ExitMark['corpus']): string =>
-  c === 'yeru' ? 'ירושלמי' : c === 'bavli' ? 'Bavli' : 'this tractate';
+  c === 'yeru'
+    ? t('spine.corpus.yeru')
+    : c === 'bavli'
+      ? t('spine.corpus.bavli')
+      : t('spine.corpus.here');
+// A daf page label in the active language: the Hebrew daf form ('מז.') in he
+// mode, the raw slug ('47a') in en. Used for every page label + tooltip ref.
+const dafPageLabel = (page: string): string => (lang() === 'he' ? pageLabelHe(page) : page);
+// An exit chip's target reference: a Bavli daf (corpus 'here'/'bavli') reads as
+// the Hebrew daf form in he mode; a Yerushalmi ref keeps its own string (no
+// Hebrew daf shape).
+const exitRefLabel = (ex: ExitMark): string =>
+  lang() === 'he' && ex.corpus !== 'yeru' ? dafRefHe(ex.tractate, ex.page) : ex.ref;
 const corpusFill = (c: ExitMark['corpus']): string =>
   c === 'yeru' ? '#0e7490' : c === 'bavli' ? '#ece9e1' : '#f3f1ea';
 const corpusInk = (c: ExitMark['corpus']): string => (c === 'yeru' ? '#ffffff' : '#57534e');
@@ -466,7 +480,7 @@ export default function SpineFlowGraph(props: {
                         font-family="system-ui, -apple-system, sans-serif"
                         fill="#8a2a2b"
                       >
-                        {h.page}
+                        {dafPageLabel(h.page)}
                       </text>
                       <Show when={h.parallelsCold}>
                         <text
@@ -477,10 +491,7 @@ export default function SpineFlowGraph(props: {
                           fill="#c4bdab"
                           style={{ cursor: 'default' }}
                         >
-                          <title>
-                            parallels not computed yet for this daf (warm it to see its cross-text
-                            links)
-                          </title>
+                          <title>{t('spine.tip.parallelsCold')}</title>
                           ⤳?
                         </text>
                       </Show>
@@ -494,7 +505,7 @@ export default function SpineFlowGraph(props: {
                           font-family="system-ui, -apple-system, sans-serif"
                           fill="#b0a894"
                         >
-                          cross-daf link not computed yet
+                          {t('spine.crossCold')}
                         </text>
                       </Show>
                     </>
@@ -514,7 +525,7 @@ export default function SpineFlowGraph(props: {
                       stroke-dasharray={KIND_DASH[e.kind]}
                       marker-end={`url(#spine-arrow-${e.kind})`}
                     >
-                      <title>{`${e.fromPage} §${e.fromSec + 1} ${e.kind}${e.cross ? ` ${e.toPage}` : ''} §${e.toSec + 1}${e.note ? ` — ${e.note}` : ''}`}</title>
+                      <title>{`${dafPageLabel(e.fromPage)} §${e.fromSec + 1} ${t(`link.rel.${e.kind}`)}${e.cross ? ` ${dafPageLabel(e.toPage)}` : ''} §${e.toSec + 1}${e.note ? ` — ${e.note}` : ''}`}</title>
                     </path>
                   )}
                 </For>
@@ -627,7 +638,7 @@ export default function SpineFlowGraph(props: {
                                     }
                                   }}
                                 >
-                                  <title>{`trace ${c.full} across the tractate`}</title>
+                                  <title>{t('spine.tip.traceRabbi', { name: c.full })}</title>
                                   {c.name}
                                 </text>
                               );
@@ -668,7 +679,19 @@ export default function SpineFlowGraph(props: {
                                     }
                                   }}
                                 >
-                                  <title>{`${exits.length} parallel${exits.length > 1 ? 's' : ''} elsewhere — click to ${isOpen() ? 'hide' : 'show'}`}</title>
+                                  <title>
+                                    {t(
+                                      exits.length === 1
+                                        ? 'spine.tip.parallels.one'
+                                        : 'spine.tip.parallels.other',
+                                      {
+                                        count: exits.length,
+                                        action: isOpen()
+                                          ? t('spine.action.hide')
+                                          : t('spine.action.show'),
+                                      },
+                                    )}
+                                  </title>
                                   <rect
                                     x={bx}
                                     y={by}
@@ -707,14 +730,15 @@ export default function SpineFlowGraph(props: {
                                         8,
                                         Math.floor((chipW - tagW - 32) / 5.4),
                                       );
+                                      const refFull = exitRefLabel(ex);
                                       const refText =
-                                        ex.ref.length > refMax
-                                          ? `${ex.ref.slice(0, refMax - 1)}…`
-                                          : ex.ref;
+                                        refFull.length > refMax
+                                          ? `${refFull.slice(0, refMax - 1)}…`
+                                          : refFull;
                                       const nav = dafTarget(ex).navigable;
                                       const inner = (
                                         <>
-                                          <title>{`${ex.relation} — ${ex.ref}${nav ? ' (open in reader)' : ' (Yerushalmi — see the daf’s Yerushalmi card)'}`}</title>
+                                          <title>{`${t(`link.rel.${ex.relation}`)} — ${refFull}${nav ? ` (${t('spine.tip.openInReader')})` : ` (${t('spine.tip.yeruCard')})`}`}</title>
                                           <rect
                                             x={chipX}
                                             y={top}
@@ -850,7 +874,7 @@ export default function SpineFlowGraph(props: {
                       stroke-dasharray={KIND_DASH[e.kind]}
                       marker-end={`url(#ov-arrow-${e.kind})`}
                     >
-                      <title>{`${e.from} ${e.kind} ${e.to}`}</title>
+                      <title>{`${dafPageLabel(e.from)} ${t(`link.rel.${e.kind}`)} ${dafPageLabel(e.to)}`}</title>
                     </path>
                   )}
                 </For>
@@ -873,7 +897,7 @@ export default function SpineFlowGraph(props: {
                           }
                         }}
                       >
-                        <title>{`${page} — ${meta.sections} sections${meta.hasCross ? ' · cross-daf links' : ''}`}</title>
+                        <title>{`${dafPageLabel(page)} — ${t(meta.sections === 1 ? 'spine.tip.node.one' : 'spine.tip.node.other', { count: meta.sections })}${meta.hasCross ? t('spine.tip.node.crossSuffix') : ''}`}</title>
                         <rect
                           x={OV_LEFT}
                           y={yTop}
@@ -894,7 +918,7 @@ export default function SpineFlowGraph(props: {
                           font-family="system-ui, sans-serif"
                           fill="#8a2a2b"
                         >
-                          {page}
+                          {dafPageLabel(page)}
                         </text>
                         <For each={Array.from({ length: Math.min(meta.sections, 8) })}>
                           {(_item, di) => (
