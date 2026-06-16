@@ -359,10 +359,16 @@ export function StatementBand(props: {
           const pick = () => props.onSelect?.(s.id);
           const roleLabel = s.role.toUpperCase();
           const roleW = roleLabel.length * 6 + 13;
-          const speakerBudget = Math.max(
-            3,
-            Math.floor((swNode - 14 - roleW - (s.side ? 14 : 8) - 6) / 6),
-          );
+          // `side` is a grouping tag — usually a letter (A/B/…) but legitimately a
+          // word too ("support-A", see STMT_SIDE_COLOR). It used to render CENTRED
+          // on the node's right edge, so a multi-char side spilled past it into the
+          // lane gutter. Fix: right-anchor it INSIDE the node (so it can never
+          // overflow), reserve its REAL width from the speaker budget (so it can't
+          // collide with the speaker), and only ellipsize a pathologically long one.
+          const sideRaw = s.side ?? '';
+          const sideText = sideRaw.length > 12 ? `${sideRaw.slice(0, 11)}…` : sideRaw;
+          const sideW = sideText ? sideText.length * 6 + 12 : 4;
+          const speakerBudget = Math.max(3, Math.floor((swNode - 13 - roleW - sideW - 6) / 6));
           const speakerText =
             (s.speaker || '').length > speakerBudget
               ? `${(s.speaker || '').slice(0, speakerBudget - 1)}…`
@@ -430,18 +436,19 @@ export function StatementBand(props: {
                 <title>{s.speaker || ''}</title>
                 {speakerText}
               </text>
-              <Show when={s.side}>
+              <Show when={sideText}>
                 <text
-                  x={sx + swNode - 9}
+                  x={sx + swNode - 8}
                   y={top() + sh / 2}
-                  text-anchor="middle"
+                  text-anchor="end"
                   dominant-baseline="central"
                   font-size="9.5"
                   font-weight="700"
                   font-family={STMT_FONT}
                   fill={STMT_SIDE_COLOR[s.side ?? ''] ?? '#888'}
                 >
-                  {s.side}
+                  <title>{sideRaw}</title>
+                  {sideText}
                 </text>
               </Show>
             </g>

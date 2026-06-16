@@ -976,6 +976,23 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   // miss/error) — either way the map should stop waiting and render.
   const flowResolved = (): boolean => flowRun.state === 'ready';
 
+  // Once the maps have rendered for THIS daf, never flicker back to the
+  // "Mapping the discussion…" spinner mid-interaction: a transient resource
+  // refresh (e.g. flowRun briefly leaving 'ready' while the synthesis is still
+  // pending, so the gate momentarily has neither input) must not re-hide a map
+  // the reader is already using. Latch readiness per daf-key; it resets when the
+  // daf or language actually changes (where a fresh load IS wanted).
+  const dafKey = (): string => `${props.tractate}|${props.page}|${lang()}`;
+  const [readyKey, setReadyKey] = createSignal<string | null>(null);
+  createEffect(() => {
+    if (mapsState(sections().length, props.synthesisResolved || flowResolved()) === 'ready') {
+      setReadyKey(dafKey());
+    }
+  });
+  const mapsReady = (): boolean =>
+    readyKey() === dafKey() ||
+    mapsState(sections().length, props.synthesisResolved || flowResolved()) === 'ready';
+
   // The daf-level flow leaf's section connections. Prefer the flow bundled in
   // the synthesis deps (free once the synthesis resolves); otherwise the
   // independently-fetched flow. Empty = a daf that legitimately has no section
@@ -1167,7 +1184,7 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
             page break. Until the flow resolves we have no connections, so we
             show a loading state rather than disconnected, link-less nodes. */}
       <Show
-        when={mapsState(sections().length, props.synthesisResolved || flowResolved()) === 'ready'}
+        when={mapsReady()}
         fallback={
           <div
             style={{
