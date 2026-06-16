@@ -109,17 +109,22 @@ const STMT_RAIL_X = LEFT_PAD + 11; // x of the left thread rail (inside the inde
 // the nested sub-nodes read as part of the one map. Elegance comes from restraint
 // (muted role caps, a quiet side letter, hairline rules), not a different face.
 const STMT_FONT = 'system-ui, -apple-system, sans-serif';
-// Statement-relation palette — deliberately NOT the section-flow KIND_COLOR (a
-// 'cites' between statements means something different than between sections).
-const STMT_REL_COLOR: Record<string, string> = {
-  opposes: '#b91c1c',
-  'responds-to': '#0369a1',
-  resolves: '#15803d',
-  supports: '#0891b2',
-  cites: '#475569',
-  continues: '#94a3b8',
+// Statement relationships speak the SAME relation language as the section-flow
+// links: each StatementRelation maps to its section LinkRelation kin, so statement
+// edges reuse KIND_COLOR / KIND_DASH and the link.rel.* labels — one coherent
+// vocabulary at both zooms (relations between statements follow the links sections
+// have to each other). Opposition reads as the section's `contrasts`; a response
+// continues the thread; a support is an evidential `depends-on`. (Bracket-vs-thread
+// routing still keys on the precise statement relation; only colour/label follow.)
+const STMT_REL_AS_LINK: Record<string, FlowConnection['kind']> = {
+  opposes: 'contrasts',
+  'responds-to': 'continues',
+  resolves: 'resolves',
+  supports: 'depends-on',
+  cites: 'cites',
+  continues: 'continues',
 };
-const STMT_REL_DASH: Record<string, string> = { opposes: '4 3' };
+const stmtRelKind = (rel: string): FlowConnection['kind'] => STMT_REL_AS_LINK[rel] ?? 'continues';
 const STMT_SIDE_COLOR: Record<string, string> = {
   A: '#1d4ed8',
   B: '#b91c1c',
@@ -284,13 +289,6 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
     n.index === props.activeIndex && n.statements ? n.statements : [];
   const stmtLinksOf = (n: FlowNode): StatementLink[] =>
     n.index === props.activeIndex && n.statementLinks ? n.statementLinks : [];
-  // Statement-relation kinds drawn in this group (for the legend) — only the
-  // focused section contributes links, so this is non-empty only there.
-  const stmtRelsPresent = (): string[] => {
-    const seen = new Set<string>();
-    for (const n of props.nodes) for (const l of stmtLinksOf(n)) seen.add(l.relation);
-    return Object.keys(STMT_REL_COLOR).filter((r) => seen.has(r));
-  };
   const stmtsBandOf = (n: FlowNode): number => {
     const s = stmtsOf(n);
     return s.length ? STMT_TOP + s.length * STMT_H : 0;
@@ -365,6 +363,9 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
   const kindsPresent = (): FlowConnection['kind'][] => {
     const seen = new Set<FlowConnection['kind']>();
     for (const e of edges()) seen.add(e.kind);
+    // Statement edges speak the same relation language — fold their (mapped) kinds
+    // into the one legend so section↔section and statement↔statement read alike.
+    for (const n of props.nodes) for (const l of stmtLinksOf(n)) seen.add(stmtRelKind(l.relation));
     return (Object.keys(KIND_COLOR) as FlowConnection['kind'][]).filter((k) => seen.has(k));
   };
 
@@ -706,8 +707,9 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                         const yC = (k: number) => baseY + k * STMT_H + sh / 2;
                         const sx = LEFT_PAD + STMT_INDENT;
                         const swNode = NODE_W - STMT_INDENT - STMT_RGUT;
-                        const color = STMT_REL_COLOR[lnk.relation] ?? '#94a3b8';
-                        const dash = STMT_REL_DASH[lnk.relation];
+                        const relKind = stmtRelKind(lnk.relation);
+                        const color = KIND_COLOR[relKind];
+                        const dash = KIND_DASH[relKind];
                         // Stagger concurrent edges of the same family so they don't
                         // overlap on one line: opposition brackets fan out into the
                         // right gutter, response threads into the left rail.
@@ -912,46 +914,6 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                   }}
                 />
                 {t(`link.rel.${kind}`)}
-              </span>
-            )}
-          </For>
-        </div>
-      </Show>
-      {/* Statement-relation legend — only when the focused section's statement
-          edges are drawn (threads + opposition bracket). */}
-      <Show when={stmtRelsPresent().length > 0}>
-        <div
-          style={{
-            display: 'flex',
-            'flex-wrap': 'wrap',
-            gap: '0.35rem 0.45rem',
-            'margin-top': '0.4rem',
-          }}
-        >
-          <For each={stmtRelsPresent()}>
-            {(rel) => (
-              <span
-                style={{
-                  display: 'inline-flex',
-                  'align-items': 'center',
-                  gap: '0.35rem',
-                  padding: '0.12rem 0.5rem',
-                  background: '#faf8f3',
-                  border: '1px solid #ece7db',
-                  'border-radius': '999px',
-                  'font-size': '0.66rem',
-                  color: '#6b6661',
-                }}
-              >
-                <span
-                  style={{
-                    display: 'inline-block',
-                    width: '16px',
-                    height: 0,
-                    'border-top': `2px ${STMT_REL_DASH[rel] ? 'dashed' : 'solid'} ${STMT_REL_COLOR[rel]}`,
-                  }}
-                />
-                {t(`stmt.rel.${rel}`)}
               </span>
             )}
           </For>
