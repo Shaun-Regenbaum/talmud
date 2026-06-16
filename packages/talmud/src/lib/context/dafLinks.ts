@@ -10,6 +10,13 @@
  * Pure: the worker gathers the inputs (bridge verdict, context pool, cached flow
  * edges, section ranges) and calls this. The first real CONSUMER of the link
  * layer — `GET /api/links/:tractate/:page` returns `dafLinks(...)`.
+ *
+ * LAYER BOUNDARY: this is the COORD-level link graph (sections / dapim / spines).
+ * Statement-level relations (opposes / responds-to between argument-moves WITHIN a
+ * section — typing/statementSpine.ts) live BELOW coord granularity and deliberately
+ * do NOT compose into this graph: doing so would force `opposes`/`responds-to` into
+ * the core LinkRelation or lossily flatten them to `contrasts`. Statements COMPOSE
+ * by nesting inside a section (a coord-level node), not by fusing their edges here.
  */
 
 import { type AnchorCoord, coordForSeg, type DafRef, dafCoord } from '@corpus/core/context/coord';

@@ -1740,7 +1740,10 @@ app.get('/api/statement-spine/:tractate/:page', async (c) => {
       };
     }),
   );
-  return c.json({ tractate, page, sections: out });
+  // movesComputed lets the client tell COLD (argument-move marks not warmed yet —
+  // every section's spine is empty, show "not computed yet") from a section that
+  // legitimately has no sub-statements. Without it an empty band reads as broken.
+  return c.json({ tractate, page, sections: out, movesComputed: allMoves.length > 0 });
 });
 
 // On-demand compute (or cache hit) of one daf's cross-daf flow, returned both as

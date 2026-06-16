@@ -934,22 +934,34 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
     spine: StatementSpineData;
     moves: ArgumentMoveInstance[];
   };
+  type SpinesResp = { sections: SectionSpine[]; movesComputed: boolean; failed?: boolean };
   const [spines] = createResource(
     () => `${props.tractate}|${props.page}`,
-    async (): Promise<SectionSpine[]> => {
+    async (): Promise<SpinesResp> => {
       try {
         const r = await fetch(
           `/api/statement-spine/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}`,
         );
-        if (!r.ok) return [];
-        return ((await r.json()) as { sections?: SectionSpine[] }).sections ?? [];
+        if (!r.ok) return { sections: [], movesComputed: false, failed: true };
+        const j = (await r.json()) as { sections?: SectionSpine[]; movesComputed?: boolean };
+        return { sections: j.sections ?? [], movesComputed: !!j.movesComputed };
       } catch {
-        return [];
+        return { sections: [], movesComputed: false, failed: true };
       }
     },
   );
   const focusedSpine = (): SectionSpine | undefined =>
-    (spines() ?? []).find((s) => s.index === focused());
+    (spines()?.sections ?? []).find((s) => s.index === focused());
+  // A focused section with no statement nodes: distinguish a fetch failure / cold
+  // (moves not computed) from a section that genuinely has none — so the band is
+  // never just silently empty when you click it.
+  const focusedEmptyReason = (): 'loading' | 'failed' | 'cold' | 'none' | null => {
+    if (focused() == null || !focusedSpine() || (focusedSpine()?.spine.nodes.length ?? 0) > 0)
+      return null;
+    if (spines.loading) return 'loading';
+    if (spines()?.failed) return 'failed';
+    return spines()?.movesComputed ? 'none' : 'cold';
+  };
   // The selected statement WITHIN the focused section — its per-move detail
   // (synthesis + Q&A) renders below the map. Clears when the focused section
   // changes; the daf-side highlight is owned by the detail card's header.
@@ -1178,6 +1190,23 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
                 highlightedMoveId={highlightedMove()}
                 onHighlightMove={onHighlightMove}
               />
+            </div>
+          )}
+        </Show>
+        {/* A focused section with no statements is never silently blank — say why. */}
+        <Show when={focusedEmptyReason()}>
+          {(reason) => (
+            <div
+              style={{
+                'margin-top': '0.5rem',
+                'padding-top': '0.7rem',
+                'border-top': '1px solid #ece9df',
+                color: '#999',
+                'font-style': 'italic',
+                'font-size': '0.85rem',
+              }}
+            >
+              {t(`overview.stmt.${reason()}`)}
             </div>
           )}
         </Show>

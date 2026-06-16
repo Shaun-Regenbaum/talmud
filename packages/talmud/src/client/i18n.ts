@@ -206,6 +206,20 @@ const CATALOG = {
     en: 'Select a statement above to see it here.',
     he: 'בחרו אמירה למעלה כדי לראותה כאן.',
   },
+  // Why a focused section's statement band is empty (never silently blank).
+  'overview.stmt.loading': { en: 'Loading statements…', he: 'טוען אמירות…' },
+  'overview.stmt.failed': {
+    en: "Couldn't load statements — try reloading.",
+    he: 'טעינת האמירות נכשלה — נסו לרענן.',
+  },
+  'overview.stmt.cold': {
+    en: 'Statements for this daf aren’t computed yet.',
+    he: 'האמירות לדף זה טרם חושבו.',
+  },
+  'overview.stmt.none': {
+    en: 'This section has no sub-statements.',
+    he: 'אין למקטע זה תת-אמירות.',
+  },
   // Link-relation labels (the unified link layer, src/lib/context/link.ts).
   'link.rel.cites': { en: 'cites', he: 'מצטט' },
   'link.rel.continues': { en: 'continues', he: 'ממשיך' },
