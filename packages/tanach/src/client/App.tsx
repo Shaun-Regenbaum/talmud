@@ -425,7 +425,23 @@ export function App(): JSX.Element {
   onMount(() => {
     const clear = () => setWordSel(null);
     window.addEventListener('scroll', clear, { passive: true });
-    onCleanup(() => window.removeEventListener('scroll', clear));
+    // Dismiss the gloss popup on click-away or Escape. A fresh selection still
+    // works: the mousedown clears the old popup, the following mouseup
+    // (onTextSelect) opens a new one for the new selection.
+    const onPointerDown = (e: MouseEvent) => {
+      if ((e.target as HTMLElement | null)?.closest('.xlate-pop')) return;
+      setWordSel(null);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setWordSel(null);
+    };
+    window.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('keydown', onKey);
+    onCleanup(() => {
+      window.removeEventListener('scroll', clear);
+      window.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('keydown', onKey);
+    });
   });
   createEffect(() => {
     chapterKey();
@@ -796,7 +812,10 @@ export function App(): JSX.Element {
                       fallback={<p class="comm-muted">No commentary on this verse.</p>}
                     >
                       {(cm) => {
-                        const useEn = loc().lang === 'en' && cm.enText.length > 0;
+                        // The rishonim themselves always show in the Hebrew /
+                        // Aramaic original (the English is a weak translation);
+                        // fall back to English only when no Hebrew is available.
+                        const useEn = cm.he.length === 0;
                         return (
                           <section class="comm-entry">
                             <h4 class="comm-name">{loc().lang === 'he' ? cm.heName : cm.en}</h4>
@@ -818,13 +837,7 @@ export function App(): JSX.Element {
                   <p class="comm-muted">Finding Talmud passages…</p>
                 </Show>
                 <Show when={gemara()}>
-                  {(g) => (
-                    <PassageList
-                      passages={g().passages}
-                      lang={loc().lang}
-                      empty="Not cited in the Talmud."
-                    />
-                  )}
+                  {(g) => <PassageList passages={g().passages} empty="Not cited in the Talmud." />}
                 </Show>
               </Show>
 
@@ -849,11 +862,7 @@ export function App(): JSX.Element {
                 </Show>
                 <Show when={midrash()}>
                   {(md) => (
-                    <PassageList
-                      passages={md().passages}
-                      lang={loc().lang}
-                      empty="No midrash on this verse."
-                    />
+                    <PassageList passages={md().passages} empty="No midrash on this verse." />
                   )}
                 </Show>
               </Show>
@@ -867,14 +876,15 @@ export function App(): JSX.Element {
 
 function PassageList(props: {
   passages: { ref: string; he: string; en: string }[];
-  lang: 'en' | 'he';
   empty: string;
 }): JSX.Element {
   return (
     <For each={props.passages} fallback={<p class="comm-muted">{props.empty}</p>}>
       {(p) => {
-        const text = props.lang === 'en' ? p.en || p.he : p.he || p.en;
-        const ltr = props.lang === 'en' && !!p.en;
+        // Source passages (Gemara / Midrash) always show the Hebrew / Aramaic
+        // original; fall back to English only when Sefaria has no Hebrew text.
+        const text = p.he || p.en;
+        const ltr = !p.he && !!p.en;
         return (
           <div class="gem-entry">
             <a
