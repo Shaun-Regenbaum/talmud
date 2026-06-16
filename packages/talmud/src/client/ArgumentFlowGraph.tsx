@@ -114,7 +114,8 @@ const STMT_FONT = 'system-ui, -apple-system, sans-serif';
 // edges reuse KIND_COLOR / KIND_DASH and the link.rel.* labels — one coherent
 // vocabulary at both zooms (relations between statements follow the links sections
 // have to each other). Opposition reads as the section's `contrasts`; a response
-// continues the thread; a support is an evidential `depends-on`. (Bracket-vs-thread
+// continues the thread; a `supports` keeps its own evidential colour (the section
+// vocabulary has no kin for it — see STMT_SUPPORTS_COLOR). (Bracket-vs-thread
 // routing still keys on the precise statement relation; only colour/label follow.)
 //
 // DEFERRED (future cache-version bump): the canonical unified vocabulary (per a
@@ -132,11 +133,15 @@ const STMT_REL_AS_LINK: Record<string, FlowConnection['kind']> = {
   opposes: 'contrasts',
   'responds-to': 'continues',
   resolves: 'resolves',
-  supports: 'depends-on',
   cites: 'cites',
   continues: 'continues',
 };
 const stmtRelKind = (rel: string): FlowConnection['kind'] => STMT_REL_AS_LINK[rel] ?? 'continues';
+// `supports` (raya / proof) has no section-flow kin — the section vocabulary lacks
+// it (see the deferred note above). So it gets its OWN evidential colour + label
+// rather than the old, direction-REVERSED alias to `depends-on` (evidence-FOR vs
+// prerequisite-OF). Display-only; the native section-level `supports` is deferred.
+const STMT_SUPPORTS_COLOR = '#0891b2';
 const STMT_SIDE_COLOR: Record<string, string> = {
   A: '#1d4ed8',
   B: '#b91c1c',
@@ -377,9 +382,15 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
     for (const e of edges()) seen.add(e.kind);
     // Statement edges speak the same relation language — fold their (mapped) kinds
     // into the one legend so section↔section and statement↔statement read alike.
-    for (const n of props.nodes) for (const l of stmtLinksOf(n)) seen.add(stmtRelKind(l.relation));
+    // `supports` is the exception (no section kin); it gets its own legend entry.
+    for (const n of props.nodes)
+      for (const l of stmtLinksOf(n))
+        if (l.relation !== 'supports') seen.add(stmtRelKind(l.relation));
     return (Object.keys(KIND_COLOR) as FlowConnection['kind'][]).filter((k) => seen.has(k));
   };
+  // `supports` rides its own evidential colour, so it needs its own legend entry.
+  const hasSupports = (): boolean =>
+    props.nodes.some((n) => stmtLinksOf(n).some((l) => l.relation === 'supports'));
 
   // Squared connector through the right gutter: out of the source's right edge,
   // a gently rounded corner into a long straight vertical run at the lane's x,
@@ -719,9 +730,10 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                         const yC = (k: number) => baseY + k * STMT_H + sh / 2;
                         const sx = LEFT_PAD + STMT_INDENT;
                         const swNode = NODE_W - STMT_INDENT - STMT_RGUT;
+                        const isSupport = lnk.relation === 'supports';
                         const relKind = stmtRelKind(lnk.relation);
-                        const color = KIND_COLOR[relKind];
-                        const dash = KIND_DASH[relKind];
+                        const color = isSupport ? STMT_SUPPORTS_COLOR : KIND_COLOR[relKind];
+                        const dash = isSupport ? undefined : KIND_DASH[relKind];
                         // Stagger concurrent edges of the same family so they don't
                         // overlap on one line: opposition brackets fan out into the
                         // right gutter, response threads into the left rail.
@@ -893,7 +905,7 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
       {/* Legend: color + dash → connection kind (only the kinds in use).
           Suppressed when the parent renders one shared legend for several
           stacked graphs (hideLegend). */}
-      <Show when={!props.hideLegend && kindsPresent().length > 0}>
+      <Show when={!props.hideLegend && (kindsPresent().length > 0 || hasSupports())}>
         <div
           style={{
             display: 'flex',
@@ -929,6 +941,32 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
               </span>
             )}
           </For>
+          {/* `supports` has no section kin — its own evidential legend entry. */}
+          <Show when={hasSupports()}>
+            <span
+              style={{
+                display: 'inline-flex',
+                'align-items': 'center',
+                gap: '0.35rem',
+                padding: '0.12rem 0.5rem',
+                background: '#faf8f3',
+                border: '1px solid #ece7db',
+                'border-radius': '999px',
+                'font-size': '0.66rem',
+                color: '#6b6661',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: '16px',
+                  height: 0,
+                  'border-top': `2px solid ${STMT_SUPPORTS_COLOR}`,
+                }}
+              />
+              {t('stmt.rel.supports')}
+            </span>
+          </Show>
         </div>
       </Show>
     </Show>

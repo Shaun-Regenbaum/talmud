@@ -216,8 +216,10 @@ const CATALOG = {
   'link.rel.generalizes': { en: 'generalizes', he: 'מכליל' },
   'link.rel.glosses': { en: 'glosses', he: 'מפרש' },
   'link.rel.codifies': { en: 'codified in', he: 'נפסק ב' },
-  // (Statement edges reuse the section link.rel.* labels — they speak the same
-  // relation language, mapped via STMT_REL_AS_LINK in ArgumentFlowGraph.)
+  // Statement edges reuse the section link.rel.* labels (mapped via STMT_REL_AS_LINK
+  // in ArgumentFlowGraph) — except `supports`, which has no section kin and keeps
+  // its own evidential label.
+  'stmt.rel.supports': { en: 'supports', he: 'תומך' },
 
   // — Spine flow graph (whole-tractate overview, SpineFlowGraph) —
   'spine.corpus.bavli': { en: 'Bavli', he: 'בבלי' },
