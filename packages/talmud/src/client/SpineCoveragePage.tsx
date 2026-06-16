@@ -1,6 +1,16 @@
-import { createMemo, createResource, createSignal, For, type JSX, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  type JSX,
+  Show,
+} from 'solid-js';
 import { TRACTATE_OPTIONS } from '../lib/sefref/tractates';
+import type { StatementSpine } from '../lib/typing/statementSpine';
 import { connectionKinds, FlowLegend } from './ArgumentFlowGraph';
+import { ArgumentMoveCard, type ArgumentMoveInstance } from './ArgumentSidebar';
 import SpineFlowGraph, { type SpineViewDaf } from './SpineFlowGraph';
 
 /**
@@ -142,6 +152,62 @@ export function SpineCoveragePage(): JSX.Element {
   const [flowMode, setFlowMode] = createSignal<'detail' | 'overview'>(
     fourthSeg() === 'overview' ? 'overview' : 'detail',
   );
+
+  // Statement drill-in (same as the reader Overview, lifted to the tractate map):
+  // click a section to focus it -> its statement spine expands in the map; click a
+  // statement -> its per-move detail shows below. Demand-fetches /api/statement-spine
+  // for the focused daf only (one fetch, exactly like the reader — no tractate sweep).
+  type SectionSpine = { index: number; spine: StatementSpine; moves: ArgumentMoveInstance[] };
+  const [focusedSec, setFocusedSec] = createSignal<{ page: string; index: number } | null>(null);
+  const [selectedStmt, setSelectedStmt] = createSignal<string | null>(null);
+  createEffect(() => {
+    void tractate();
+    setFocusedSec(null);
+  });
+  createEffect(() => {
+    void focusedSec();
+    setSelectedStmt(null);
+  });
+  const [spineDaf] = createResource(
+    () => (focusedSec() ? `${tractate()}|${focusedSec()!.page}` : null),
+    async (key: string): Promise<SectionSpine[]> => {
+      const [t, p] = key.split('|');
+      try {
+        const r = await fetch(
+          `/api/statement-spine/${encodeURIComponent(t)}/${encodeURIComponent(p)}`,
+        );
+        if (!r.ok) return [];
+        return ((await r.json()) as { sections?: SectionSpine[] }).sections ?? [];
+      } catch {
+        return [];
+      }
+    },
+  );
+  const activeKey = (): string | null =>
+    focusedSec() ? `${focusedSec()!.page}#${focusedSec()!.index}` : null;
+  const focusedSecSpine = createMemo((): SectionSpine | undefined =>
+    (spineDaf() ?? []).find((s) => s.index === focusedSec()?.index),
+  );
+  const selectedMove = (): ArgumentMoveInstance | undefined =>
+    focusedSecSpine()?.moves.find((m) => m.fields.id === selectedStmt());
+  // Inject the focused section's statements/links into the dapim handed to the map.
+  const withStatements = (dapim: SpineViewDaf[]): SpineViewDaf[] => {
+    const f = focusedSec();
+    const sp = focusedSecSpine();
+    if (!f || !sp) return dapim;
+    return dapim.map((d) =>
+      d.page !== f.page
+        ? d
+        : {
+            ...d,
+            sections: d.sections.map((s) =>
+              s.index !== f.index
+                ? s
+                : { ...s, statements: sp.spine.nodes, statementLinks: sp.spine.links },
+            ),
+          },
+    );
+  };
 
   const go = (t: string) => {
     const slug = t.trim().toLowerCase().replace(/\s+/g, '_');
@@ -484,12 +550,41 @@ export function SpineCoveragePage(): JSX.Element {
                         }}
                       </Show>
                       <SpineFlowGraph
-                        dapim={(flowMode() === 'overview' ? v().dapim : capped()) as SpineViewDaf[]}
+                        dapim={
+                          // Statements only nest in the detail map; the overview model
+                          // ignores them, so skip the per-section reconstruction there.
+                          flowMode() === 'overview'
+                            ? (v().dapim as SpineViewDaf[])
+                            : withStatements(capped() as SpineViewDaf[])
+                        }
                         mode={flowMode()}
                         highlight={trace()}
                         onRabbi={(slug) => setTrace((prev) => (prev === slug ? null : slug))}
                         onPickDaf={() => setFlowMode('detail')}
+                        activeKey={activeKey()}
+                        onSelectSection={(page, index) =>
+                          setFocusedSec((prev) =>
+                            prev?.page === page && prev?.index === index ? null : { page, index },
+                          )
+                        }
+                        selectedStatementId={selectedStmt()}
+                        onSelectStatement={setSelectedStmt}
                       />
+                      {/* The selected statement's detail (per-move synthesis + Q&A) —
+                          the SAME card the reader uses. keyed so it re-mounts per pick. */}
+                      <Show keyed when={selectedMove()}>
+                        {(m) => (
+                          <div style={{ 'margin-top': '0.6rem', 'max-width': '640px' }}>
+                            <ArgumentMoveCard
+                              move={m}
+                              tractate={tractate()}
+                              page={focusedSec()?.page ?? ''}
+                              highlightedMoveId={null}
+                              onHighlightMove={() => {}}
+                            />
+                          </div>
+                        )}
+                      </Show>
                     </div>
                   );
                 }}

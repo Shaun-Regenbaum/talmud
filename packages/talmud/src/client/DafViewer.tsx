@@ -2422,13 +2422,11 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (!a?.sections[index]) return;
     clearCommentarySelection();
     setActiveRabbi(null);
-    const content = { kind: 'argument', section: a.sections[index], index } as const;
-    // Drilling in from the Overview (a flow-graph node, or a gutter click while
-    // the Overview is open) keeps the Overview underneath so the card's back
-    // chip returns to it — the two are one stack: Overview = entry point,
-    // section card = deep dive. Any other entry replaces outright.
-    if (sidebar()?.kind === 'argument-overview') pushSidebar(content);
-    else setSidebar(content);
+    // The section is the Overview FOCUSED on that section — its statement spine
+    // renders in place under the map (no separate pushed card). Opening a section
+    // from anywhere (a flow-graph node, a gutter marker, a reader chip) lands in
+    // the one Overview view, focused on it.
+    setSidebar({ kind: 'argument-overview', focus: index });
     setLastInteractedCard('argument');
   };
 

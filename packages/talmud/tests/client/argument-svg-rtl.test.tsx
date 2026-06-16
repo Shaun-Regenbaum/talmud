@@ -8,7 +8,6 @@
 import { render } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import ArgumentFlowGraph from '../../src/client/ArgumentFlowGraph';
-import ArgumentVoiceMap from '../../src/client/ArgumentVoiceMap';
 import { setLang } from '../../src/client/i18n';
 
 beforeEach(() => setLang('en'));
@@ -49,31 +48,5 @@ describe('ArgumentFlowGraph — Hebrew section titles align off the badge', () =
     const titleTexts = textsWithContent(container, 'Gemara');
     expect(titleTexts.length).toBeGreaterThan(0);
     for (const t of titleTexts) expect(t.getAttribute('text-anchor')).toBe('start');
-  });
-});
-
-describe('ArgumentVoiceMap — Hebrew voice names align off the colour badge', () => {
-  const data = {
-    voices: [{ name: 'Rav Meir', nameHe: 'רב מאיר', role: 'originator', side: 'a', stance: '' }],
-    edges: [],
-  };
-
-  it('he mode: name text-anchor is "end" with direction rtl', () => {
-    setLang('he');
-    const { container } = render(() => <ArgumentVoiceMap data={data} />);
-    const nameTexts = textsWithContent(container, 'מאיר');
-    expect(nameTexts.length).toBeGreaterThan(0);
-    for (const t of nameTexts) {
-      expect(t.getAttribute('text-anchor')).toBe('end');
-      expect(t.getAttribute('direction')).toBe('rtl');
-    }
-  });
-
-  it('en mode: name text-anchor stays "start"', () => {
-    setLang('en');
-    const { container } = render(() => <ArgumentVoiceMap data={data} />);
-    const nameTexts = textsWithContent(container, 'Meir');
-    expect(nameTexts.length).toBeGreaterThan(0);
-    for (const t of nameTexts) expect(t.getAttribute('text-anchor')).toBe('start');
   });
 });

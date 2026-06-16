@@ -202,6 +202,24 @@ const CATALOG = {
   'overview.crossRefs': { en: 'Cross-references', he: 'הפניות' },
   'overview.mapping': { en: 'Mapping the discussion…', he: 'ממפה את הסוגיה…' },
   'overview.goToDaf': { en: 'Go to {daf}', he: 'מעבר ל{daf}' },
+  'overview.statementHint': {
+    en: 'Select a statement above to see it here.',
+    he: 'בחרו אמירה למעלה כדי לראותה כאן.',
+  },
+  // Why a focused section's statement band is empty (never silently blank).
+  'overview.stmt.loading': { en: 'Loading statements…', he: 'טוען אמירות…' },
+  'overview.stmt.failed': {
+    en: "Couldn't load statements — try reloading.",
+    he: 'טעינת האמירות נכשלה — נסו לרענן.',
+  },
+  'overview.stmt.cold': {
+    en: 'Statements for this daf aren’t computed yet.',
+    he: 'האמירות לדף זה טרם חושבו.',
+  },
+  'overview.stmt.none': {
+    en: 'This section has no sub-statements.',
+    he: 'אין למקטע זה תת-אמירות.',
+  },
   // Link-relation labels (the unified link layer, src/lib/context/link.ts).
   'link.rel.cites': { en: 'cites', he: 'מצטט' },
   'link.rel.continues': { en: 'continues', he: 'ממשיך' },
@@ -212,6 +230,10 @@ const CATALOG = {
   'link.rel.generalizes': { en: 'generalizes', he: 'מכליל' },
   'link.rel.glosses': { en: 'glosses', he: 'מפרש' },
   'link.rel.codifies': { en: 'codified in', he: 'נפסק ב' },
+  // Statement edges reuse the section link.rel.* labels (mapped via STMT_REL_AS_LINK
+  // in ArgumentFlowGraph) — except `supports`, which has no section kin and keeps
+  // its own evidential label.
+  'stmt.rel.supports': { en: 'supports', he: 'תומך' },
 
   // — Spine flow graph (whole-tractate overview, SpineFlowGraph) —
   'spine.corpus.bavli': { en: 'Bavli', he: 'בבלי' },

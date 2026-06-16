@@ -12,6 +12,7 @@
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 import { linkTarget } from '../lib/context/linkTarget';
 import type { SectionExit } from '../lib/context/sectionExits';
+import type { StatementLink, StatementNode } from '../lib/typing/statementSpine';
 import { lang, t } from './i18n';
 
 export interface FlowConnection {
@@ -36,6 +37,14 @@ export interface FlowNode {
    *  pesukim, halacha) — rendered as a click-to-expand exit-marker band. The
    *  spine's links projected onto the section that owns them. */
   exits?: SectionExit[];
+  /** This section's statement spine (voices/moves). Rendered as nested sub-nodes
+   *  in an indented band below the node when it's the focused (active) section —
+   *  the in-map drill-in. */
+  statements?: StatementNode[];
+  /** The statement spine's edges (role-derived + voices-mapped). Drawn between
+   *  the nested sub-nodes: response/resolution threads on the left rail, an
+   *  opposition bracket on the right — only on the focused section. */
+  statementLinks?: StatementLink[];
 }
 
 interface Props {
@@ -50,6 +59,10 @@ interface Props {
    *  (our reader for a daf, the Tanach app for a pasuk); an inert target
    *  (halacha) does nothing without a handler. */
   onPickExit?: (ex: SectionExit) => void;
+  /** The selected statement (move) id in the focused section; clicking a nested
+   *  statement node selects it (its detail renders below the map). */
+  selectedStatementId?: string | null;
+  onSelectStatement?: (id: string) => void;
 }
 
 const NODE_W = 310;
@@ -84,6 +97,70 @@ const EXIT_INDENT = 26;
 const BADGE_W = 30;
 const BADGE_H = 15;
 const MARKER_INK = '#9a7b4f';
+// Nested statement nodes (the focused section's voices/moves): indented sub-nodes
+// in a band below the section node, deterministic height like the exit band.
+const STMT_TOP = 6;
+const STMT_H = 33; // a little breathing room — let the statements read like a text, not a list
+const STMT_INDENT = 24; // left gutter — response/resolution threads route here
+const STMT_RGUT = 14; // right gutter — opposition brackets route here
+const STMT_STRIPE = 3; // left accent-stripe width on a nested statement node
+// Statement labels + speakers use the SAME system-sans as the section nodes, so
+// the nested sub-nodes read as part of the one map. Elegance comes from restraint
+// (muted role caps, a quiet side letter, hairline rules), not a different face.
+const STMT_FONT = 'system-ui, -apple-system, sans-serif';
+// Statement relationships speak the SAME relation language as the section-flow
+// links: each StatementRelation maps to its section LinkRelation kin, so statement
+// edges reuse KIND_COLOR / KIND_DASH and the link.rel.* labels — one coherent
+// vocabulary at both zooms (relations between statements follow the links sections
+// have to each other). Opposition reads as the section's `contrasts`; a response
+// continues the thread; a `supports` keeps its own evidential colour (the section
+// vocabulary has no kin for it — see STMT_SUPPORTS_COLOR). (Bracket-vs-thread
+// routing still keys on the precise statement relation; only colour/label follow.)
+//
+// DEFERRED (future cache-version bump): the canonical unified vocabulary (per a
+// design panel) is — dialectic: continues / resolves / opposes / supports;
+// reference: cites / parallels / depends-on / generalizes. Two display approxes
+// here are lossy: `supports`->depends-on is DIRECTION-REVERSED (evidence-FOR vs
+// prerequisite-OF — the bigger one; a FREE client fix is to give statement
+// `supports` its own evidential colour+label instead of aliasing depends-on), and
+// opposition is merely double-named (`contrasts` at section, `opposes` here).
+// `responds-to`->continues is a DELIBERATE merge, not lossy. To derive natively
+// (not remap), the producer work is benchmark-gated + cold-misses Shas: add a
+// section-level `supports` kind and split the conflated `cites` in
+// argument-overview.flow, then bump its recipe. Keep the display remap for now.
+const STMT_REL_AS_LINK: Record<string, FlowConnection['kind']> = {
+  opposes: 'contrasts',
+  'responds-to': 'continues',
+  resolves: 'resolves',
+  cites: 'cites',
+  continues: 'continues',
+};
+const stmtRelKind = (rel: string): FlowConnection['kind'] => STMT_REL_AS_LINK[rel] ?? 'continues';
+// `supports` (raya / proof) has no section-flow kin — the section vocabulary lacks
+// it (see the deferred note above). So it gets its OWN evidential colour + label
+// rather than the old, direction-REVERSED alias to `depends-on` (evidence-FOR vs
+// prerequisite-OF). Display-only; the native section-level `supports` is deferred.
+const STMT_SUPPORTS_COLOR = '#0891b2';
+const STMT_SIDE_COLOR: Record<string, string> = {
+  A: '#1d4ed8',
+  B: '#b91c1c',
+  C: '#92400e',
+  'support-A': '#1d4ed8',
+  'support-B': '#b91c1c',
+};
+const STMT_ROLE_COLOR: Record<string, string> = {
+  opening: '#475569',
+  question: '#0369a1',
+  answer: '#15803d',
+  objection: '#b91c1c',
+  rejection: '#9f1239',
+  'supporting-evidence': '#0891b2',
+  resolution: '#15803d',
+  digression: '#a16207',
+  shift: '#7c3aed',
+  other: '#64748b',
+};
+const stmtRoleColor = (role: string): string => STMT_ROLE_COLOR[role] ?? STMT_ROLE_COLOR.other;
 const EXIT_FAMILY_COLOR: Record<string, string> = {
   parallel: KIND_COLOR.parallels,
   citation: KIND_COLOR.cites,
@@ -201,6 +278,180 @@ export function wrapTitle(s: string, maxChars: number, maxLines: number): string
   return lines.length ? lines : [''];
 }
 
+/** Reserved height of a section's nested-statement band (0 when none). */
+export function statementBandHeight(count: number): number {
+  return count > 0 ? STMT_TOP + count * STMT_H : 0;
+}
+
+/**
+ * The nested statement nodes + their edges, drawn in a band starting at `topY`
+ * under a section node spanning [nodeX, nodeX+nodeW]. Response/resolution threads
+ * route on a left rail, the opposition bracket on a right gutter (relation colours
+ * follow the section link palette; `supports` keeps its own evidential hue).
+ * Shared by the per-daf map (ArgumentFlowGraph) and the tractate map
+ * (SpineFlowGraph) so the two stay in sync — the in-map statement drill-in.
+ */
+export function StatementBand(props: {
+  statements: StatementNode[];
+  links: StatementLink[];
+  nodeX: number;
+  nodeW: number;
+  topY: number;
+  selectedId?: string | null;
+  onSelect?: (id: string) => void;
+}): JSX.Element {
+  const sx = props.nodeX + STMT_INDENT;
+  const swNode = props.nodeW - STMT_INDENT - STMT_RGUT;
+  const sh = STMT_H - 5;
+  const yTop = (k: number) => props.topY + STMT_TOP + k * STMT_H;
+  const yC = (k: number) => yTop(k) + sh / 2;
+  return (
+    <>
+      {/* Statement edges (under the nodes): threads on the LEFT rail, opposition
+          brackets on the RIGHT gutter — the spine.links drawn. */}
+      <Show when={props.links.length}>
+        <For each={props.links}>
+          {(lnk) => {
+            const kf = props.statements.findIndex((s) => s.id === lnk.from);
+            const kt = props.statements.findIndex((s) => s.id === lnk.to);
+            if (kf < 0 || kt < 0 || kf === kt) return null;
+            const isSupport = lnk.relation === 'supports';
+            const relKind = stmtRelKind(lnk.relation);
+            const color = isSupport ? STMT_SUPPORTS_COLOR : KIND_COLOR[relKind];
+            const dash = isSupport ? undefined : KIND_DASH[relKind];
+            // Stagger concurrent same-family edges so they don't overlap on one line.
+            const isOpp = lnk.relation === 'opposes';
+            const ord = props.links
+              .filter((l) => (l.relation === 'opposes') === isOpp)
+              .indexOf(lnk);
+            if (isOpp) {
+              const bx = Math.min(sx + swNode + STMT_RGUT - 2, sx + swNode + 5 + ord * 3);
+              return (
+                <path
+                  d={`M ${sx + swNode} ${yC(kf)} L ${bx} ${yC(kf)} L ${bx} ${yC(kt)} L ${sx + swNode} ${yC(kt)}`}
+                  fill="none"
+                  stroke={color}
+                  stroke-width={1.5}
+                  stroke-dasharray={dash}
+                  stroke-linejoin="round"
+                />
+              );
+            }
+            const railX = Math.max(props.nodeX + 3, props.nodeX + 11 - (ord % 4) * 3);
+            return (
+              <path
+                d={`M ${sx} ${yC(kf)} L ${railX} ${yC(kf)} L ${railX} ${yC(kt)} L ${sx} ${yC(kt)}`}
+                fill="none"
+                stroke={color}
+                stroke-width={1.5}
+                stroke-linejoin="round"
+              />
+            );
+          }}
+        </For>
+      </Show>
+      {/* Nested statement nodes: the focused section's voices/moves. */}
+      <For each={props.statements}>
+        {(s, k) => {
+          const top = () => yTop(k());
+          const accent = STMT_SIDE_COLOR[s.side ?? ''] ?? stmtRoleColor(s.role);
+          const sel = () => props.selectedId === s.id;
+          const pick = () => props.onSelect?.(s.id);
+          const roleLabel = s.role.toUpperCase();
+          const roleW = roleLabel.length * 6 + 13;
+          const speakerBudget = Math.max(
+            3,
+            Math.floor((swNode - 14 - roleW - (s.side ? 14 : 8) - 6) / 6),
+          );
+          const speakerText =
+            (s.speaker || '').length > speakerBudget
+              ? `${(s.speaker || '').slice(0, speakerBudget - 1)}…`
+              : s.speaker || '';
+          return (
+            // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
+            <g
+              role="button"
+              tabindex={0}
+              style={{ cursor: 'pointer' }}
+              onClick={pick}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  pick();
+                }
+              }}
+            >
+              <title>{`${s.role}${s.speaker ? ` — ${s.speaker}` : ''}`}</title>
+              {/* Rounded card with a left accent stripe (the SVG analog of CSS
+                  border-left): accent rect under a left-inset body of the same radius,
+                  then a hairline outline — the stripe wraps the corners cleanly. */}
+              <rect x={sx} y={top()} width={swNode} height={sh} rx={6} ry={6} fill={accent} />
+              <rect
+                x={sx + STMT_STRIPE}
+                y={top()}
+                width={swNode - STMT_STRIPE}
+                height={sh}
+                rx={6}
+                ry={6}
+                fill={sel() ? '#fdf2f2' : '#ffffff'}
+              />
+              <rect
+                x={sx}
+                y={top()}
+                width={swNode}
+                height={sh}
+                rx={6}
+                ry={6}
+                fill="none"
+                stroke={sel() ? '#8a2a2b' : '#e7e2d6'}
+                stroke-width={sel() ? 1.5 : 1}
+              />
+              <text
+                x={sx + 13}
+                y={top() + sh / 2}
+                dominant-baseline="central"
+                font-size="8"
+                font-weight="600"
+                letter-spacing="0.07em"
+                font-family={STMT_FONT}
+                fill={stmtRoleColor(s.role)}
+                fill-opacity={0.78}
+              >
+                {roleLabel}
+              </text>
+              <text
+                x={sx + 13 + roleW}
+                y={top() + sh / 2}
+                dominant-baseline="central"
+                font-size="12"
+                font-family={STMT_FONT}
+                fill="#2a2520"
+              >
+                <title>{s.speaker || ''}</title>
+                {speakerText}
+              </text>
+              <Show when={s.side}>
+                <text
+                  x={sx + swNode - 9}
+                  y={top() + sh / 2}
+                  text-anchor="middle"
+                  dominant-baseline="central"
+                  font-size="9.5"
+                  font-weight="700"
+                  font-family={STMT_FONT}
+                  fill={STMT_SIDE_COLOR[s.side ?? ''] ?? '#888'}
+                >
+                  {s.side}
+                </text>
+              </Show>
+            </g>
+          );
+        }}
+      </For>
+    </>
+  );
+}
+
 export default function ArgumentFlowGraph(props: Props): JSX.Element {
   // Which section nodes have their exit-marker band expanded (collapsed default).
   const [openExits, setOpenExits] = createSignal(new Set<number>());
@@ -222,23 +473,51 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
     else window.location.href = t.href;
   };
 
-  // Accumulated vertical layout: every node is NODE_H tall, plus a reserved band
-  // below it when its exit markers are expanded, so the chips never overlap the
-  // next node. Reading openExits() makes the whole layout reflow reactively.
+  // Reserved bands below a node: its expanded exit markers, and — for the focused
+  // section — its nested statement nodes. Both deterministic heights, so the
+  // accumulated layout below just sums them and the rest of the map reflows.
+  const exitsBandOf = (n: FlowNode): number => {
+    const ex = n.exits ?? [];
+    return ex.length && openExits().has(n.index) ? EXIT_TOP + ex.length * EXIT_H : 0;
+  };
+  const stmtsOf = (n: FlowNode): StatementNode[] =>
+    n.index === props.activeIndex && n.statements ? n.statements : [];
+  const stmtLinksOf = (n: FlowNode): StatementLink[] =>
+    n.index === props.activeIndex && n.statementLinks ? n.statementLinks : [];
+  const stmtsBandOf = (n: FlowNode): number => {
+    const s = stmtsOf(n);
+    return s.length ? STMT_TOP + s.length * STMT_H : 0;
+  };
+
+  // Accumulated vertical layout: every node is NODE_H tall, plus its reserved
+  // bands (exits, then the focused section's statements). Reading openExits() /
+  // activeIndex makes the whole layout reflow reactively.
   const layout = createMemo(() => {
     const ys: number[] = [];
     let y = TOP_PAD;
     props.nodes.forEach((n, i) => {
       ys[i] = y;
-      const exits = n.exits ?? [];
-      const band = exits.length && openExits().has(n.index) ? EXIT_TOP + exits.length * EXIT_H : 0;
-      y += NODE_H + band + ROW_GAP;
+      y += NODE_H + exitsBandOf(n) + stmtsBandOf(n) + ROW_GAP;
     });
     return { ys, total: props.nodes.length ? y - ROW_GAP + TOP_PAD : 0 };
   });
   const nodeY = (i: number) => layout().ys[i] ?? TOP_PAD;
   const rowMidY = (i: number) => nodeY(i) + NODE_H / 2;
   const height = () => layout().total;
+
+  // The array position of the focused (expanded) section in THIS group, or -1.
+  const expandedPos = (): number => props.nodes.findIndex((n) => n.index === props.activeIndex);
+  const nodeBandBottom = (i: number): number => {
+    const n = props.nodes[i];
+    return nodeY(i) + NODE_H + exitsBandOf(n) + stmtsBandOf(n);
+  };
+  // Where a section-flow edge anchors on a node. An edge LEAVING the expanded
+  // section exits from just below its statement band — so the flow appears to
+  // thread OUT of the statements into the next section, not skip across them.
+  const edgeAnchorY = (i: number, isSource: boolean): number =>
+    isSource && i === expandedPos() && stmtsBandOf(props.nodes[i]) > 0
+      ? nodeBandBottom(i) - 4
+      : rowMidY(i);
 
   // Map section index -> array position, so a SUBSET of the daf's sections (one
   // sugya group) lays out compactly in rows 0..k while connections still arrive
@@ -279,8 +558,17 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
   const kindsPresent = (): FlowConnection['kind'][] => {
     const seen = new Set<FlowConnection['kind']>();
     for (const e of edges()) seen.add(e.kind);
+    // Statement edges speak the same relation language — fold their (mapped) kinds
+    // into the one legend so section↔section and statement↔statement read alike.
+    // `supports` is the exception (no section kin); it gets its own legend entry.
+    for (const n of props.nodes)
+      for (const l of stmtLinksOf(n))
+        if (l.relation !== 'supports') seen.add(stmtRelKind(l.relation));
     return (Object.keys(KIND_COLOR) as FlowConnection['kind'][]).filter((k) => seen.has(k));
   };
+  // `supports` rides its own evidential colour, so it needs its own legend entry.
+  const hasSupports = (): boolean =>
+    props.nodes.some((n) => stmtLinksOf(n).some((l) => l.relation === 'supports'));
 
   // Squared connector through the right gutter: out of the source's right edge,
   // a gently rounded corner into a long straight vertical run at the lane's x,
@@ -289,8 +577,8 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
   // short horizontal or vertical leg.
   const edgePath = (c: FlowConnection, lane: number): string => {
     const x = laneX(lane);
-    const y1 = rowMidY(c.from);
-    const y2 = rowMidY(c.to);
+    const y1 = edgeAnchorY(c.from, true);
+    const y2 = edgeAnchorY(c.to, false);
     const rightX = LEFT_PAD + NODE_W;
     const dir = y2 >= y1 ? 1 : -1;
     const r = Math.min(CORNER_R, x - rightX, Math.abs(y2 - y1) / 2);
@@ -605,6 +893,15 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                       </For>
                     </Show>
                   </Show>
+                  <StatementBand
+                    statements={stmtsOf(n)}
+                    links={stmtLinksOf(n)}
+                    nodeX={LEFT_PAD}
+                    nodeW={NODE_W}
+                    topY={nodeY(i()) + NODE_H + exitsBandOf(n)}
+                    selectedId={props.selectedStatementId}
+                    onSelect={props.onSelectStatement}
+                  />
                 </>
               );
             }}
@@ -615,7 +912,7 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
       {/* Legend: color + dash → connection kind (only the kinds in use).
           Suppressed when the parent renders one shared legend for several
           stacked graphs (hideLegend). */}
-      <Show when={!props.hideLegend && kindsPresent().length > 0}>
+      <Show when={!props.hideLegend && (kindsPresent().length > 0 || hasSupports())}>
         <div
           style={{
             display: 'flex',
@@ -651,6 +948,32 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
               </span>
             )}
           </For>
+          {/* `supports` has no section kin — its own evidential legend entry. */}
+          <Show when={hasSupports()}>
+            <span
+              style={{
+                display: 'inline-flex',
+                'align-items': 'center',
+                gap: '0.35rem',
+                padding: '0.12rem 0.5rem',
+                background: '#faf8f3',
+                border: '1px solid #ece7db',
+                'border-radius': '999px',
+                'font-size': '0.66rem',
+                color: '#6b6661',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: '16px',
+                  height: 0,
+                  'border-top': `2px solid ${STMT_SUPPORTS_COLOR}`,
+                }}
+              />
+              {t('stmt.rel.supports')}
+            </span>
+          </Show>
         </div>
       </Show>
     </Show>

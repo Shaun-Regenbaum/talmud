@@ -36,11 +36,14 @@ import { type DerivationSource, parseBavliRef } from '../lib/halacha/codifiers';
 import { adjacentAmud } from '../lib/sefref/amudim';
 import { dafRefHe, pageLabelHe } from '../lib/sefref/tractates';
 import type { Term } from '../lib/terms/registry';
-import { voicesMapEligible, voicesShowFallback, voicesShowMap } from '../lib/typing/profile';
+import {
+  buildStatementSpine,
+  type StatementSpine as StatementSpineData,
+} from '../lib/typing/statementSpine';
+import type { ArgumentVoicesData } from '../lib/typing/voices';
 import { deriveVoiceEdges } from '../lib/typing/voices';
 import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
 import ArgumentNarrative from './ArgumentNarrative';
-import ArgumentVoiceMap, { type ArgumentVoicesData } from './ArgumentVoiceMap';
 import { type BackgroundGroup, orderBackgroundGroups } from './backgroundGroups';
 import { ChartTableView } from './ChartTableView';
 import CodificationMap from './CodificationMap';
@@ -61,6 +64,7 @@ import RabbiLineageTree, {
 import RabbiObservations from './RabbiObservations';
 import RabbiTrajectoryMap, { type LocationInference } from './RabbiTrajectoryMap';
 import { HebraizedWithRabbis, RabbiLinkProvider } from './rabbiLinks';
+import { StatementSpine } from './StatementSpine';
 import type {
   AggadataStory,
   ChartTable,
@@ -205,16 +209,11 @@ function useVoicesGate(
       (p) => p.unit.startSegIdx === s.startSegIdx && p.unit.endSegIdx === s.endSegIdx,
     );
   };
-  // The three decisions are pure functions in src/lib/typing/profile.ts
-  // (voicesMapEligible / voicesShowMap / voicesShowFallback) so the gate logic
-  // is unit-tested against the regressions it fixes (Chullin 2a hallucination,
-  // Gittin 90a warming race); here we just bind them to the reactive profile.
-  const mapEligible = (): boolean => voicesMapEligible(profile());
-  const showVoiceMap = (voices: ArgumentVoicesData | null): boolean =>
-    voicesShowMap(profile(), voices);
-  const showFallback = (voices: ArgumentVoicesData | null, resolved: boolean): boolean =>
-    voicesShowFallback(profile(), voices, resolved);
-  return { profile, mapEligible, showVoiceMap, showFallback };
+  // Only `primary` (the aggadata-vs-dialectic split) is consumed now that the
+  // statement spine replaced the old voice-map / dialectic-flow gate. The pure
+  // gate functions (voicesMapEligible / voicesShowMap / voicesShowFallback) stay
+  // in profile.ts with their tests, for the day the spine itself reads them.
+  return { profile };
 }
 
 export type SidebarContent =
@@ -228,7 +227,7 @@ export type SidebarContent =
   | { kind: 'place'; place: PlaceInstance }
   | { kind: 'voice-group'; group: { name: string; nameHe: string; bio: string } }
   | { kind: 'rishonim'; instance: RishonimInstance; index: number }
-  | { kind: 'argument-overview' }
+  | { kind: 'argument-overview'; focus?: number }
   | { kind: 'daf-background' }
   | { kind: 'tidbit' }
   | { kind: 'biyun' }
@@ -431,7 +430,7 @@ function _RabbiRow(props: {
 //          move's segment range on the daf.
 // ===========================================================================
 
-interface ArgumentMoveInstance {
+export interface ArgumentMoveInstance {
   startSegIdx: number;
   endSegIdx: number;
   fields: {
@@ -466,7 +465,7 @@ const ROLE_COLORS: Record<string, string> = {
   other: '#64748b',
 };
 
-function ArgumentMoveCard(props: {
+export function ArgumentMoveCard(props: {
   move: ArgumentMoveInstance;
   tractate: string;
   page: string;
@@ -605,118 +604,6 @@ function ArgumentMoveCard(props: {
   );
 }
 
-/** Compact dialectical move-flow for pure-dialectic sections (שקלא וטריא) — the
- *  third section-typing view, alongside the dispute voice graph and the
- *  narrative beats. Shows the section's moves as an ordered, role-colored
- *  sequence (question -> answer -> objection -> resolution …), click-to-highlight
- *  on the daf. Where the voices graph is wrong (no real dispute) and the
- *  narrative view is wrong (not a story), THIS is the fit-for-purpose view. */
-function ArgumentMoveFlow(props: {
-  moves: ArgumentMoveInstance[];
-  highlightedMoveId: string | null;
-  onHighlightMove: (move: ArgumentMoveInstance | null) => void;
-}): JSX.Element {
-  return (
-    <div style={{ 'margin-top': '0.6rem' }}>
-      <div
-        style={{
-          'font-size': '0.7rem',
-          'text-transform': 'uppercase',
-          'letter-spacing': '0.08em',
-          color: '#999',
-          'margin-bottom': '0.4rem',
-          display: 'flex',
-          'align-items': 'center',
-          gap: '0.4rem',
-        }}
-      >
-        Dialectic
-        <span
-          dir="rtl"
-          lang="he"
-          style={{
-            'font-family': '"Mekorot Vilna", serif',
-            'font-size': '0.8rem',
-            color: '#666',
-            'text-transform': 'none',
-            'letter-spacing': 0,
-          }}
-        >
-          שקלא וטריא
-        </span>
-      </div>
-      <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.15rem' }}>
-        <For each={props.moves}>
-          {(m) => {
-            const f = m.fields;
-            const color = ROLE_COLORS[f.role] ?? '#64748b';
-            const isActive = () => props.highlightedMoveId === f.id;
-            const toggleMove = () => props.onHighlightMove(isActive() ? null : m);
-            return (
-              // biome-ignore lint/a11y/useSemanticElements: inline-styled flex row with a baseline-aligned Hebrew excerpt; a native button's UA styles (border, font, centering) would alter the reader layout
-              <div
-                onClick={toggleMove}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    toggleMove();
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                title="Highlight this move on the daf"
-                style={{
-                  display: 'flex',
-                  'align-items': 'baseline',
-                  gap: '0.45rem',
-                  cursor: 'pointer',
-                  padding: '0.2rem 0.4rem',
-                  'border-radius': '4px',
-                  'border-left': `3px solid ${color}`,
-                  background: isActive() ? '#fff7ed' : '#fafaf7',
-                }}
-              >
-                <span
-                  style={{
-                    'flex-shrink': 0,
-                    'font-size': '0.62rem',
-                    'text-transform': 'uppercase',
-                    'letter-spacing': '0.05em',
-                    'font-weight': 600,
-                    color,
-                    'min-width': '5.5rem',
-                  }}
-                >
-                  {moveKindLabel(f.role)}
-                </span>
-                <span style={{ 'flex-shrink': 0, color: '#555', 'font-size': '0.74rem' }}>
-                  {f.voice}
-                </span>
-                <span
-                  dir="rtl"
-                  lang="he"
-                  style={{
-                    flex: 1,
-                    'min-width': 0,
-                    'white-space': 'nowrap',
-                    overflow: 'hidden',
-                    'text-overflow': 'ellipsis',
-                    'font-family': '"Mekorot Vilna", serif',
-                    'font-size': '0.8rem',
-                    color: '#777',
-                  }}
-                >
-                  {f.excerpt}
-                </span>
-              </div>
-            );
-          }}
-        </For>
-      </div>
-    </div>
-  );
-}
-
 // ===========================================================================
 // Argument (in-depth, per-section) card — recipe blocks.
 // ---------------------------------------------------------------------------
@@ -780,6 +667,18 @@ function ArgumentDetail(props: SpecialBlockProps): JSX.Element {
     });
   });
 
+  // The unified statement spine: this section's moves + voices folded into ONE
+  // graph (typing/statementSpine). It degenerates by topology — a linear chain
+  // when there's no dispute (the old "dialectic" view), branching where two named
+  // statements oppose (the old "voices" view) — so one renderer replaces the
+  // former voice-map / dialectic-flow gate. Built client-side from the already-
+  // resolved deps/anchors (no extra fetch); null until the moves anchor lands.
+  const statementSpine = createMemo(() => {
+    const moves = sectionMoves();
+    if (!moves || moves.length === 0) return null;
+    return buildStatementSpine({ moves, voices: voicesData() });
+  });
+
   // Clear the highlighted move + reader range when the section changes.
   createEffect(() => {
     void props.instanceKey;
@@ -805,57 +704,64 @@ function ArgumentDetail(props: SpecialBlockProps): JSX.Element {
 
   return (
     <>
-      <Show when={voicesGate.showVoiceMap(voicesData()) && voicesData()}>
-        {(data) => (
-          <div style={{ position: 'relative' }}>
-            <InspectDot
-              instanceKey={props.instanceKey}
-              leafId="argument.voices"
-              style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }}
-            />
-            <ArgumentVoiceMap data={data()} onClickVoice={onPushRabbi()} />
-          </div>
-        )}
-      </Show>
-      {/* `synthesisResolved` lets the gate tell "still loading" from "settled, no
-          dispute" so a missing/invalid voices graph falls back cleanly. */}
-      <Show when={voicesGate.showFallback(voicesData(), props.synthesisResolved)}>
-        <Show
-          when={voicesGate.profile()?.primary === 'aggadata'}
-          fallback={
-            <Show when={sectionMoves()}>
-              {(moves) => (
-                <ArgumentMoveFlow
-                  moves={moves()}
-                  highlightedMoveId={highlightedMoveId()}
-                  onHighlightMove={handleHighlightMove}
+      {/* One view, two topologies. An aggadata section stays a NARRATIVE (a story
+          isn't a dispute or a שקלא-וטריא); everything else renders as the single
+          statement spine — linear when it's a progression, branching when named
+          voices oppose. This replaces the old voice-map / dialectic-flow gate. */}
+      <Show
+        when={voicesGate.profile()?.primary === 'aggadata'}
+        fallback={
+          <Show when={statementSpine()}>
+            {(sp) => (
+              <div style={{ position: 'relative' }}>
+                <InspectDot
+                  instanceKey={props.instanceKey}
+                  leafId="argument.voices"
+                  style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }}
                 />
-              )}
-            </Show>
+                <StatementSpine
+                  spine={sp()}
+                  onPushRabbi={onPushRabbi()}
+                  onHighlight={(r) =>
+                    props.onHighlightRange?.(
+                      r
+                        ? {
+                            start: r.start,
+                            end: r.end,
+                            key: `stmt-${r.start}-${r.tokenStart ?? 0}`,
+                            tokenStart: r.tokenStart,
+                            tokenEnd: r.tokenEnd,
+                          }
+                        : null,
+                    )
+                  }
+                />
+              </div>
+            )}
+          </Show>
+        }
+      >
+        <ArgumentNarrative
+          section={section()}
+          tractate={props.tractate}
+          page={props.page}
+          onHighlight={(r) =>
+            props.onHighlightRange?.(
+              r
+                ? {
+                    start: r.start,
+                    end: r.end,
+                    key: `beat-${r.start}-${r.tokenStart ?? 0}`,
+                    tokenStart: r.tokenStart,
+                    tokenEnd: r.tokenEnd,
+                  }
+                : null,
+            )
           }
-        >
-          <ArgumentNarrative
-            section={section()}
-            tractate={props.tractate}
-            page={props.page}
-            onHighlight={(r) =>
-              props.onHighlightRange?.(
-                r
-                  ? {
-                      start: r.start,
-                      end: r.end,
-                      key: `beat-${r.start}-${r.tokenStart ?? 0}`,
-                      tokenStart: r.tokenStart,
-                      tokenEnd: r.tokenEnd,
-                    }
-                  : null,
-              )
-            }
-          />
-        </Show>
+        />
       </Show>
-      {/* Dialectical move list — hidden on narrative-primary sections, where the
-          anchored beat list in the narrative view above IS the move layer. */}
+      {/* Per-move detail cards (with Q&A) — kept below the spine for non-narrative
+          sections; folding the Q&A into the spine is a follow-up. */}
       <Show when={voicesGate.profile()?.primary !== 'aggadata' && sectionMoves()}>
         {(moves) => (
           <div style={{ 'margin-top': '1rem' }}>
@@ -994,8 +900,20 @@ export function mapsState(
 // ===========================================================================
 function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   const sections = (): Section[] => (props.extras?.sections as Section[]) ?? [];
-  const onOpenArgument = (): ((index: number) => void) | undefined =>
-    props.extras?.onOpenArgument as ((index: number) => void) | undefined;
+
+  // The focused section (array index) whose statement spine shows below the map.
+  // Clicking a map node sets it — the deep-dive happens IN PLACE under the map
+  // (the "extra"), not in a separate pushed card. Seeded from the incoming `focus`
+  // (a gutter marker / reader chip that opened a specific section) or the first
+  // section; re-syncs when a new section is opened from the daf, while a local map
+  // click (which doesn't change `focus`/daf) is left alone.
+  const incomingFocus = (): number | undefined => props.extras?.focus as number | undefined;
+  const [focused, setFocused] = createSignal(incomingFocus() ?? 0);
+  createEffect(() => {
+    void props.tractate;
+    void props.page;
+    setFocused(incomingFocus() ?? 0);
+  });
 
   // The daf-level flow leaf's section connections. Empty until the synthesis
   // resolves; `props.synthesisResolved` is the "flow resolved" gate (a daf can
@@ -1007,12 +925,84 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
     return flow && Array.isArray(flow.connections) ? flow.connections : [];
   });
 
-  // Clicking a section node drills straight into that section's full argument
-  // card. The card is pushed ONTO the Overview (see openArgument in DafViewer),
-  // so its back chip returns here — the Overview is the entry point and the
-  // section card the deep dive, one navigation stack. The daf's section range is
-  // painted by the argument card itself, so there's no separate highlight here.
-  const openSection = (i: number) => onOpenArgument()?.(i);
+  // The daf's statement spines (one per section), built server-side from the
+  // cached moves + voices (GET /api/statement-spine). The map's "extra" reads the
+  // focused section's spine from here — the single source the #spine view pulls.
+  type SectionSpine = {
+    index: number;
+    title: string;
+    spine: StatementSpineData;
+    moves: ArgumentMoveInstance[];
+  };
+  type SpinesResp = { sections: SectionSpine[]; movesComputed: boolean; failed?: boolean };
+  const [spines] = createResource(
+    () => `${props.tractate}|${props.page}`,
+    async (): Promise<SpinesResp> => {
+      try {
+        const r = await fetch(
+          `/api/statement-spine/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}`,
+        );
+        if (!r.ok) return { sections: [], movesComputed: false, failed: true };
+        const j = (await r.json()) as { sections?: SectionSpine[]; movesComputed?: boolean };
+        return { sections: j.sections ?? [], movesComputed: !!j.movesComputed };
+      } catch {
+        return { sections: [], movesComputed: false, failed: true };
+      }
+    },
+  );
+  const focusedSpine = (): SectionSpine | undefined =>
+    (spines()?.sections ?? []).find((s) => s.index === focused());
+  // A focused section with no statement nodes: distinguish a fetch failure / cold
+  // (moves not computed) from a section that genuinely has none — so the band is
+  // never just silently empty when you click it.
+  const focusedEmptyReason = (): 'loading' | 'failed' | 'cold' | 'none' | null => {
+    if (focused() == null || !focusedSpine() || (focusedSpine()?.spine.nodes.length ?? 0) > 0)
+      return null;
+    if (spines.loading) return 'loading';
+    if (spines()?.failed) return 'failed';
+    return spines()?.movesComputed ? 'none' : 'cold';
+  };
+  // The selected statement WITHIN the focused section — its per-move detail
+  // (synthesis + Q&A) renders below the map. Clears when the focused section
+  // changes; the daf-side highlight is owned by the detail card's header.
+  const [selectedStmt, setSelectedStmt] = createSignal<string | null>(null);
+  const [highlightedMove, setHighlightedMove] = createSignal<string | null>(null);
+  createEffect(() => {
+    void focused();
+    setSelectedStmt(null);
+    setHighlightedMove(null);
+    props.onHighlightRange?.(null);
+  });
+  const selectedMove = (): ArgumentMoveInstance | undefined =>
+    focusedSpine()?.moves.find((m) => m.fields.id === selectedStmt());
+  const onHighlightMove = (m: ArgumentMoveInstance | null): void => {
+    setHighlightedMove(m ? m.fields.id : null);
+    props.onHighlightRange?.(
+      m
+        ? {
+            start: m.startSegIdx,
+            end: m.endSegIdx,
+            key: m.fields.id,
+            tokenStart: m.fields.tokenStart,
+            tokenEnd: m.fields.tokenEnd,
+          }
+        : null,
+    );
+  };
+  // Clicking a statement node selects it (its detail shows below) AND highlights
+  // its range on the daf in one gesture — the move carries tokenStart/tokenEnd
+  // for word-precise highlighting.
+  const selectStatement = (id: string): void => {
+    setSelectedStmt(id);
+    onHighlightMove(focusedSpine()?.moves.find((m) => m.fields.id === id) ?? null);
+  };
+  // Bring the detail into view when it (re)mounts on a new selection — matters on
+  // mobile, where the detail sits well below the map; block:'nearest' is a no-op
+  // when it's already visible (desktop).
+  const scrollDetailIntoView = (el?: HTMLElement): void => {
+    if (!el || typeof requestAnimationFrame !== 'function') return;
+    requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+  };
 
   // Split the daf's sections into discussion maps. With no flow yet (cold), each
   // section is its own group; once the flow loads they merge into real sugyot.
@@ -1151,6 +1141,11 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
               index: i,
               title: sections()[i].title,
               exits: sectionExits()?.[sections()[i].startSegIdx ?? -1] ?? [],
+              // The focused section carries its statement spine, rendered as
+              // nested sub-nodes under the node (the in-map drill-in) + its edges
+              // (response threads + opposition bracket) drawn between them.
+              statements: i === focused() ? focusedSpine()?.spine.nodes : undefined,
+              statementLinks: i === focused() ? focusedSpine()?.spine.links : undefined,
             }));
             return (
               <div style={{ 'margin-bottom': '0.7rem' }}>
@@ -1160,8 +1155,10 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
                 <ArgumentFlowGraph
                   nodes={grpNodes}
                   connections={connections()}
-                  activeIndex={null}
-                  onSelect={openSection}
+                  activeIndex={focused()}
+                  onSelect={setFocused}
+                  selectedStatementId={selectedStmt()}
+                  onSelectStatement={selectStatement}
                 />
                 <Show when={hasLast && bridge()?.toNext}>
                   {crossLabel(t('overview.continuesOnto', { page: pageRef(bridge()!.next) }))}
@@ -1170,6 +1167,49 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
             );
           }}
         </For>
+        {/* The "extra": the SELECTED statement's full detail below the map — its
+            per-move synthesis + Q&A (the same card the moves list used). Clicking
+            a nested statement node above selects it; the card's header toggles the
+            daf-side highlight. */}
+        {/* keyed: re-mount ArgumentMoveCard per selected statement so its synthesis
+            + Q&A (which capture the move at setup) update when the selection changes. */}
+        <Show keyed when={selectedMove()}>
+          {(m) => (
+            <div
+              ref={(el) => scrollDetailIntoView(el)}
+              style={{
+                'margin-top': '0.5rem',
+                'padding-top': '0.7rem',
+                'border-top': '1px solid #ece9df',
+              }}
+            >
+              <ArgumentMoveCard
+                move={m}
+                tractate={props.tractate}
+                page={props.page}
+                highlightedMoveId={highlightedMove()}
+                onHighlightMove={onHighlightMove}
+              />
+            </div>
+          )}
+        </Show>
+        {/* A focused section with no statements is never silently blank — say why. */}
+        <Show when={focusedEmptyReason()}>
+          {(reason) => (
+            <div
+              style={{
+                'margin-top': '0.5rem',
+                'padding-top': '0.7rem',
+                'border-top': '1px solid #ece9df',
+                color: '#999',
+                'font-style': 'italic',
+                'font-size': '0.85rem',
+              }}
+            >
+              {t(`overview.stmt.${reason()}`)}
+            </div>
+          )}
+        </Show>
       </Show>
     </Show>
   );
@@ -3221,7 +3261,10 @@ export const CARD_DEFS: Partial<Record<SidebarContent['kind'], CardDef>> = {
     // overview cache key (which would cold-miss all of Shas).
     synthInstance: () => ({ fields: {} }),
     forwardHighlight: true,
-    extras: (ctx) => ({ sections: ctx.dafSections, onOpenArgument: ctx.onOpenArgument }),
+    extras: (ctx) => ({
+      sections: ctx.dafSections,
+      focus: (ctx.content as Extract<SidebarContent, { kind: 'argument-overview' }>).focus,
+    }),
   },
   // Whole-daf essay cards: header + synthesis only (the essay renders through
   // the registerMarkRenderer seam). Display instance carries the localized
