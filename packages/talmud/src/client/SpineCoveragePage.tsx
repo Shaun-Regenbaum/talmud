@@ -160,8 +160,9 @@ export function SpineCoveragePage(): JSX.Element {
   );
   const activeKey = (): string | null =>
     focusedSec() ? `${focusedSec()!.page}#${focusedSec()!.index}` : null;
-  const focusedSecSpine = (): SectionSpine | undefined =>
-    (spineDaf() ?? []).find((s) => s.index === focusedSec()?.index);
+  const focusedSecSpine = createMemo((): SectionSpine | undefined =>
+    (spineDaf() ?? []).find((s) => s.index === focusedSec()?.index),
+  );
   const selectedMove = (): ArgumentMoveInstance | undefined =>
     focusedSecSpine()?.moves.find((m) => m.fields.id === selectedStmt());
   // Inject the focused section's statements/links into the dapim handed to the map.
@@ -474,9 +475,13 @@ export function SpineCoveragePage(): JSX.Element {
                         }}
                       </Show>
                       <SpineFlowGraph
-                        dapim={withStatements(
-                          (flowMode() === 'overview' ? v().dapim : capped()) as SpineViewDaf[],
-                        )}
+                        dapim={
+                          // Statements only nest in the detail map; the overview model
+                          // ignores them, so skip the per-section reconstruction there.
+                          flowMode() === 'overview'
+                            ? (v().dapim as SpineViewDaf[])
+                            : withStatements(capped() as SpineViewDaf[])
+                        }
                         mode={flowMode()}
                         highlight={trace()}
                         onRabbi={(slug) => setTrace((prev) => (prev === slug ? null : slug))}

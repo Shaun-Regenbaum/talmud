@@ -297,11 +297,26 @@ export default function SpineFlowGraph(props: {
       }
     }
 
-    const mid = (key: string) => (nodeY.get(key) ?? 0) + (nodeH.get(key) ?? NODE_H) / 2;
+    // Where a section-flow edge anchors vertically. An edge LEAVING the focused
+    // (expanded) section exits from just below its statement band, so the flow
+    // threads OUT of the statements into the next section — mirroring the per-daf
+    // ArgumentFlowGraph's edgeAnchorY. Incoming edges keep the node-center anchor
+    // (the same intentional enter-center / exit-bottom asymmetry). Lane packing
+    // below uses these same anchors, so a tall expanded section can't share a lane
+    // with an edge it actually overlaps.
+    const edgeAnchorY = (key: string, isSource: boolean) => {
+      const yTop = nodeY.get(key) ?? 0;
+      const baseH = nodeH.get(key) ?? NODE_H;
+      if (isSource && props.activeKey === key) {
+        const band = statementBandHeight((nodeStatements.get(key) ?? []).length);
+        if (band > 0) return yTop + baseH + (nodeBand.get(key) ?? 0) + band - 4;
+      }
+      return yTop + baseH / 2;
+    };
     const lanes = assignLanesY(
       edges.map((e) => ({
-        lo: Math.min(mid(e.from), mid(e.to)),
-        hi: Math.max(mid(e.from), mid(e.to)),
+        lo: Math.min(edgeAnchorY(e.from, true), edgeAnchorY(e.to, false)),
+        hi: Math.max(edgeAnchorY(e.from, true), edgeAnchorY(e.to, false)),
       })),
     );
     const laneCount = lanes.length ? Math.max(...lanes) + 1 : 0;
@@ -322,7 +337,7 @@ export default function SpineFlowGraph(props: {
       edges,
       lanes,
       width,
-      mid,
+      edgeAnchorY,
     };
   });
 
@@ -553,7 +568,11 @@ export default function SpineFlowGraph(props: {
                 <For each={m.edges}>
                   {(e, i) => (
                     <path
-                      d={edgePath(m.mid(e.from), m.mid(e.to), m.lanes[i()])}
+                      d={edgePath(
+                        m.edgeAnchorY(e.from, true),
+                        m.edgeAnchorY(e.to, false),
+                        m.lanes[i()],
+                      )}
                       fill="none"
                       stroke={KIND_COLOR[e.kind] ?? '#888'}
                       stroke-width={e.cross ? 2.25 : 1.5}
@@ -694,7 +713,7 @@ export default function SpineFlowGraph(props: {
                                     onKeyDown={(e) => {
                                       if (e.key === 'Enter' || e.key === ' ') {
                                         e.preventDefault();
-                                        trace();
+                                        trace(e);
                                       }
                                     }}
                                   >
