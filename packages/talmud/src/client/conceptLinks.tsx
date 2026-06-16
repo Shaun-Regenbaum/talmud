@@ -31,6 +31,7 @@ import {
 import { Portal } from 'solid-js/web';
 import type { Term } from '../lib/terms/registry';
 import { Hebraized } from './Hebraized';
+import { stripEchoParens } from './hebraize';
 import { lang } from './i18n';
 
 /** The surfaces a reader might actually SEE for a term in prose: the Hebrew
@@ -397,10 +398,15 @@ export function ConceptText(props: {
   text: string | undefined | null;
   matcher: ConceptMatcher | null;
 }): JSX.Element {
-  // Strip every-but-first inline gloss before tokenizing, then tokenize the
-  // cleaned text so each remaining mention still gets its tooltip.
+  // Strip every-but-first inline gloss, then collapse redundant Hebrew echoes
+  // (e.g. "a טרפה (טריפה)" — a double-Hebrew gloss), THEN tokenize so each
+  // remaining mention still gets its tooltip. stripEchoParens must run on the
+  // whole contiguous string here, not just per-fragment in Hebraized below: when
+  // the parenthetical restates a term whose Hebrew matches a registry surface,
+  // tokenizeWithMatcher pulls that paren out as its own concept mention, so the
+  // "term (term)" pair would never reach Hebraized's echo strip intact.
   const parts = createMemo(() => {
-    const cleaned = firstMentionGloss(props.text ?? '', props.matcher);
+    const cleaned = stripEchoParens(firstMentionGloss(props.text ?? '', props.matcher));
     return tokenizeWithMatcher(cleaned, props.matcher);
   });
   return (
