@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildConceptMatcher, firstMentionGloss, glossKey } from '../src/client/conceptLinks';
+import {
+  buildConceptMatcher,
+  firstMentionGloss,
+  glossKey,
+  tokenizeWithMatcher,
+} from '../src/client/conceptLinks';
+import { hebraize, stripEchoParens } from '../src/client/hebraize';
 import { globalTerms, type Term } from '../src/lib/terms/registry';
 
 // A glossary term is glossed inline on its FIRST mention in a prose unit and
@@ -130,5 +136,49 @@ describe('firstMentionGloss', () => {
       buildConceptMatcher(globalTerms()),
     );
     expect(out).toBe('A הלכה (binding law) here; another הלכה there.');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ConceptText render path — the contiguous prose must have its Hebrew echoes
+// collapsed BEFORE tokenization. Reproduces the reported "double Hebrew" bug:
+// "a טרפה (טריפה)". The parenthetical טריפה matches the registry surface for
+// treif, so tokenizeWithMatcher would pull it out as its own concept mention —
+// meaning the "term (term)" pair never reaches the per-fragment echo strip in
+// Hebraized. ConceptText therefore runs stripEchoParens on the whole string
+// first. This mirrors ConceptText's parts() memo exactly.
+// ---------------------------------------------------------------------------
+
+function renderLikeConceptText(text: string): string {
+  const matcher = buildConceptMatcher(globalTerms());
+  const cleaned = stripEchoParens(firstMentionGloss(text, matcher));
+  // Text parts go through Hebraized (hebraize); concept parts render raw.
+  return tokenizeWithMatcher(cleaned, matcher)
+    .map((p) => (p.kind === 'text' ? hebraize(p.value) : p.value))
+    .join('');
+}
+
+describe('ConceptText render path — collapses double-Hebrew across the tokenize boundary', () => {
+  it('collapses male/chaser echo whose paren matches a registry surface', () => {
+    // טרפה (defective) inline, טריפה (full) in the paren — the reported leak.
+    expect(renderLikeConceptText('renders the animal a טרפה (טריפה).')).toBe(
+      'renders the animal a טרפה.',
+    );
+  });
+
+  it('collapses an identical Hebrew echo where both sides match a surface', () => {
+    // Both spell טריפה fully; both tokenize as concepts, so only a whole-string
+    // pass can collapse them.
+    expect(renderLikeConceptText('a טריפה (טריפה).')).toBe('a טריפה.');
+  });
+
+  it('keeps a genuine Hebrew clarification that adds new words', () => {
+    expect(renderLikeConceptText('the מלא צואר (מלא צואר וחוץ לצואר) case')).toBe(
+      'the מלא צואר (מלא צואר וחוץ לצואר) case',
+    );
+  });
+
+  it('keeps a Form B English→Hebrew gloss', () => {
+    expect(renderLikeConceptText('the court (בית דין) ruled.')).toBe('the court (בית דין) ruled.');
   });
 });

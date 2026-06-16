@@ -37,6 +37,13 @@ const ECHO_STRIP: Array<[string, string]> = [
   ['cited by חז״ל (חז״ל) as', 'cited by חז״ל as'],
   // Place names also echo.
   ['at יבנה (יבנה) the council met', 'at יבנה the council met'],
+  // Male/chaser (plene vs defective) echoes — the term and its paren restatement
+  // differ only by a matres-lectionis yud/vav, so a char-for-char backref misses
+  // them. These are the reported "double Hebrew" leaks (Chullin extra-lobe daf).
+  ['renders the animal a טרפה (טריפה).', 'renders the animal a טרפה.'],
+  ['the animal a טריפה (טרפה).', 'the animal a טריפה.'],
+  // Same word, defective vs full vav (skeleton "שלמ", long enough to trust).
+  ['ends with שלום (שלם) upon', 'ends with שלום upon'],
   // English-on-both-sides echoes (rarer but same bug class).
   ['the Mishnah (Mishnah) records', 'the Mishnah records'],
   // Multiple echoes in one string.
@@ -105,6 +112,12 @@ const ECHO_PRESERVE: string[] = [
   // Two ADJACENT but DIFFERENT parentheticals — not a doubled echo, leave both.
   'compare (ביאת השמש) (צאת הכוכבים) here',
   'a (sunset) (nightfall) distinction',
+  // Short-word skeleton collisions — distinct words that share a matres-stripped
+  // skeleton (בית/בת, מום/מים, דין/דן). The male/chaser match is gated on a
+  // minimum skeleton length precisely so these genuine clarifications survive.
+  'a בית (בת) here',
+  'a מום (מים) blemish',
+  'the דין (דן) ruling',
 ];
 
 describe('stripEchoParens — preserves non-echo parens', () => {
