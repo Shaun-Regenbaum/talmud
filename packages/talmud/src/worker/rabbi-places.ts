@@ -42,13 +42,28 @@ export interface RabbiResolution {
 // cantillation, drop parenthetical disambiguators (`רב (שם אמורא)` ->
 // `רב`), strip punctuation, collapse whitespace.
 function normalizeHeForResolve(s: string): string {
-  return s
-    .replace(/[֑-ׇ]/g, '')
-    .replace(/\([^)]*\)/g, ' ') // remove parenthetical groups entirely
-    .replace(/\[[^\]]*\]/g, ' ') // same for square-bracket groups
-    .replace(/[.,:;?!"'״׳()[\]{}]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return (
+    s
+      .replace(/[֑-ׇ]/g, '')
+      .replace(/\([^)]*\)/g, ' ') // remove parenthetical groups entirely
+      .replace(/\[[^\]]*\]/g, ' ') // same for square-bracket groups
+      // Geresh title shorthand: the daf/mark emits "ר' חייא" but the dataset stores
+      // the full "רבי חייא", so the apostrophe form must expand to רבי BEFORE the
+      // punctuation strip below (which would otherwise leave a bare "ר" token that
+      // never matches). Parity with rabbi-graph's normalizeHeName — the two Hebrew
+      // resolvers had drifted, leaving the production path (resolveRabbi -> the
+      // unknown-rabbi backlog) missing every "ר' X" that the graph path resolved.
+      // Anchored at start. Applied to BOTH sides (query + the BY_CANONICAL_HE
+      // build): all but one dataset canonicalHe are full forms (no-op); the lone
+      // geresh entry, רַ' אבהו, folds to רבי אבהו with no collision, so both ר' אבהו
+      // and רבי אבהו now resolve to rabbi-abahu. Unambiguous: ר' conventionally
+      // abbreviates רבי (Rav is spelled out רב). Gershayim pairs (ר"מ / ר"נ) stay
+      // out — they need context, handled by the upstream expandAbbreviations layer.
+      .replace(/^ר['׳]\s+/, 'רבי ')
+      .replace(/[.,:;?!"'״׳()[\]{}]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 // Precomputed: normalized canonicalHe -> slug. Used to resolve from the Hebrew
