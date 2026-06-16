@@ -85,7 +85,14 @@ const PANEL_H: JSX.CSSProperties = {
 function routeTractate(): string {
   const raw = window.location.hash.replace(/^#/, '');
   const parts = raw.split('/');
-  return (parts[1] || 'berakhot').toLowerCase();
+  // The hash route (#spine/<tractate>) wins; otherwise fall back to the
+  // ?tractate= query param so a deep link like ?tractate=Chullin&page=47b#spine
+  // (the form the reader/align pages use) opens that tractate rather than the
+  // berakhot default. Title-case query values are slugged.
+  if (parts[1]) return parts[1].toLowerCase();
+  const q = new URLSearchParams(window.location.search).get('tractate');
+  if (q?.trim()) return q.trim().toLowerCase().replace(/\s+/g, '_');
+  return 'berakhot';
 }
 
 async function fetchCoverage(tractate: string): Promise<CoverageReport> {

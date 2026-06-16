@@ -163,9 +163,10 @@ export function assignLanes(connections: FlowConnection[]): number[] {
 const LINE_H = 15; // px between wrapped title lines
 const TITLE_CHARS = 40; // approx chars per line at NODE_W / 12px system font
 // Narrower budget for a node that carries an exit badge (top-right): the title's
-// first line must clip BEFORE the ⤳N badge (≈ titleX..badge-left ≈ 235px) instead
-// of running under it. wrapTitle already ellipsizes the overflow.
-const TITLE_CHARS_EXIT = 32;
+// first line must clip well BEFORE the ⤳N badge instead of kissing it. The char
+// estimate runs generous for proper-name titles, so leave real margin; wrapTitle
+// ellipsizes the overflow and the full title stays in the hover tooltip.
+const TITLE_CHARS_EXIT = 28;
 const TITLE_LINES = 2; // wrap to at most this many lines, then ellipsize
 
 /** Greedy word-wrap to at most `maxLines` lines of ~`maxChars` each, ellipsizing
