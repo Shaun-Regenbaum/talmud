@@ -56,6 +56,7 @@ import { runPasses } from '../lib/check/passes';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import { type DafLink, dafLinks } from '../lib/context/dafLinks';
 import { talmudParallelsToLinks, yerushalmiToLinks } from '../lib/context/parallels';
+import { type SectionExit, sectionExits } from '../lib/context/sectionExits';
 import { dafSpine } from '../lib/context/spine';
 import { spineLinks } from '../lib/context/spineLinks';
 import { buildGeoModel, type GeoEnrichment, type RabbiGeoSource } from '../lib/geographyModel';
@@ -1153,7 +1154,15 @@ app.get('/api/links/:tractate/:page', async (c) => {
     pesukim,
     halacha,
   });
-  return c.json({ tractate, page, count: links.length, links });
+  // Per-section exit marks: the section-grained projection the reader places as
+  // markers on each argument-map node. Keyed by section start seg so the client
+  // joins regardless of node order. Additive — `links` is unchanged.
+  const exits = sectionExits(sectionStartSegs, links);
+  const sectionExitsByStart: Record<number, SectionExit[]> = {};
+  sectionStartSegs.forEach((start, i) => {
+    if (exits[i].length) sectionExitsByStart[start] = exits[i];
+  });
+  return c.json({ tractate, page, count: links.length, links, sectionExits: sectionExitsByStart });
 });
 
 /** Producer nodes over the LIVE registry (KV-over-code via listProducers), so
