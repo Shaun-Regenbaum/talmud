@@ -12,7 +12,7 @@
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 import { linkTarget } from '../lib/context/linkTarget';
 import type { SectionExit } from '../lib/context/sectionExits';
-import type { StatementNode } from '../lib/typing/statementSpine';
+import type { StatementLink, StatementNode } from '../lib/typing/statementSpine';
 import { lang, t } from './i18n';
 
 export interface FlowConnection {
@@ -41,6 +41,10 @@ export interface FlowNode {
    *  in an indented band below the node when it's the focused (active) section —
    *  the in-map drill-in. */
   statements?: StatementNode[];
+  /** The statement spine's edges (role-derived + voices-mapped). Drawn between
+   *  the nested sub-nodes: response/resolution threads on the left rail, an
+   *  opposition bracket on the right — only on the focused section. */
+  statementLinks?: StatementLink[];
 }
 
 interface Props {
@@ -97,8 +101,21 @@ const MARKER_INK = '#9a7b4f';
 // in a band below the section node, deterministic height like the exit band.
 const STMT_TOP = 6;
 const STMT_H = 28;
-const STMT_INDENT = 24;
+const STMT_INDENT = 24; // left gutter — response/resolution threads route here
+const STMT_RGUT = 14; // right gutter — opposition brackets route here
 const STMT_STRIPE = 4; // left accent-stripe width on a nested statement node
+const STMT_RAIL_X = LEFT_PAD + 11; // x of the left thread rail (inside the indent)
+// Statement-relation palette — deliberately NOT the section-flow KIND_COLOR (a
+// 'cites' between statements means something different than between sections).
+const STMT_REL_COLOR: Record<string, string> = {
+  opposes: '#b91c1c',
+  'responds-to': '#0369a1',
+  resolves: '#15803d',
+  supports: '#0891b2',
+  cites: '#475569',
+  continues: '#94a3b8',
+};
+const STMT_REL_DASH: Record<string, string> = { opposes: '4 3' };
 const STMT_SIDE_COLOR: Record<string, string> = {
   A: '#1d4ed8',
   B: '#b91c1c',
@@ -261,6 +278,8 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
   };
   const stmtsOf = (n: FlowNode): StatementNode[] =>
     n.index === props.activeIndex && n.statements ? n.statements : [];
+  const stmtLinksOf = (n: FlowNode): StatementLink[] =>
+    n.index === props.activeIndex && n.statementLinks ? n.statementLinks : [];
   const stmtsBandOf = (n: FlowNode): number => {
     const s = stmtsOf(n);
     return s.length ? STMT_TOP + s.length * STMT_H : 0;
@@ -646,6 +665,52 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                       </For>
                     </Show>
                   </Show>
+                  {/* Statement edges (under the nodes): response/resolution threads
+                      on the LEFT rail, opposition brackets on the RIGHT gutter —
+                      the spine.links drawn, folding dialectic (threads) + dispute
+                      (bracket) into the one map. */}
+                  <Show when={stmtLinksOf(n).length}>
+                    <For each={stmtLinksOf(n)}>
+                      {(lnk) => {
+                        const stmts = stmtsOf(n);
+                        const kf = stmts.findIndex((s) => s.id === lnk.from);
+                        const kt = stmts.findIndex((s) => s.id === lnk.to);
+                        if (kf < 0 || kt < 0 || kf === kt) return null;
+                        const baseY = nodeY(i()) + NODE_H + exitsBandOf(n) + STMT_TOP;
+                        const sh = STMT_H - 5;
+                        const yC = (k: number) => baseY + k * STMT_H + sh / 2;
+                        const sx = LEFT_PAD + STMT_INDENT;
+                        const swNode = NODE_W - STMT_INDENT - STMT_RGUT;
+                        const color = STMT_REL_COLOR[lnk.relation] ?? '#94a3b8';
+                        const dash = STMT_REL_DASH[lnk.relation];
+                        if (lnk.relation === 'opposes') {
+                          // Bracket on the right gutter joining the two disputed sides.
+                          const bx = sx + swNode + 7;
+                          return (
+                            <path
+                              d={`M ${sx + swNode} ${yC(kf)} L ${bx} ${yC(kf)} L ${bx} ${yC(kt)} L ${sx + swNode} ${yC(kt)}`}
+                              fill="none"
+                              stroke={color}
+                              stroke-width={1.5}
+                              stroke-dasharray={dash}
+                              stroke-linejoin="round"
+                            />
+                          );
+                        }
+                        // Thread on the left rail: the actor's statement back to the
+                        // one it responds to / resolves / supports / cites.
+                        return (
+                          <path
+                            d={`M ${sx} ${yC(kf)} L ${STMT_RAIL_X} ${yC(kf)} L ${STMT_RAIL_X} ${yC(kt)} L ${sx} ${yC(kt)}`}
+                            fill="none"
+                            stroke={color}
+                            stroke-width={1.5}
+                            stroke-linejoin="round"
+                          />
+                        );
+                      }}
+                    </For>
+                  </Show>
                   {/* Nested statement nodes: the focused section's voices/moves,
                       indented under the node — the in-map drill-in. Click one to
                       select it (its detail renders below the map). */}
@@ -656,12 +721,22 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                           nodeY(i()) + NODE_H + exitsBandOf(n) + STMT_TOP + k() * STMT_H;
                         const sh = STMT_H - 5;
                         const sx = LEFT_PAD + STMT_INDENT;
-                        const sw = NODE_W - STMT_INDENT;
+                        const sw = NODE_W - STMT_INDENT - STMT_RGUT;
                         const accent = STMT_SIDE_COLOR[s.side ?? ''] ?? stmtRoleColor(s.role);
                         const sel = () => props.selectedStatementId === s.id;
                         const pickStmt = () => props.onSelectStatement?.(s.id);
                         const roleLabel = s.role.toUpperCase();
                         const roleW = roleLabel.length * 5.6 + 10;
+                        // Truncate the speaker to the room left after the role label
+                        // and the side badge so a long name can't overflow the node.
+                        const speakerBudget = Math.max(
+                          3,
+                          Math.floor((sw - 12 - roleW - (s.side ? 24 : 8) - 6) / 6),
+                        );
+                        const speakerText =
+                          (s.speaker || '').length > speakerBudget
+                            ? `${(s.speaker || '').slice(0, speakerBudget - 1)}…`
+                            : s.speaker || '';
                         return (
                           // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
                           <g
@@ -730,7 +805,8 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                               font-family="system-ui, sans-serif"
                               fill="#2a2723"
                             >
-                              {s.speaker || ''}
+                              <title>{s.speaker || ''}</title>
+                              {speakerText}
                             </text>
                             <Show when={s.side}>
                               <rect

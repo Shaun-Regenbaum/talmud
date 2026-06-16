@@ -1122,8 +1122,10 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
               title: sections()[i].title,
               exits: sectionExits()?.[sections()[i].startSegIdx ?? -1] ?? [],
               // The focused section carries its statement spine, rendered as
-              // nested sub-nodes under the node (the in-map drill-in).
+              // nested sub-nodes under the node (the in-map drill-in) + its edges
+              // (response threads + opposition bracket) drawn between them.
               statements: i === focused() ? focusedSpine()?.spine.nodes : undefined,
+              statementLinks: i === focused() ? focusedSpine()?.spine.links : undefined,
             }));
             return (
               <div style={{ 'margin-bottom': '0.7rem' }}>
