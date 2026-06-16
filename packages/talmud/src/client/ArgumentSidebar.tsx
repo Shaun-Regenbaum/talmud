@@ -990,6 +990,13 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
     setSelectedStmt(id);
     onHighlightMove(focusedSpine()?.moves.find((m) => m.fields.id === id) ?? null);
   };
+  // Bring the detail into view when it (re)mounts on a new selection — matters on
+  // mobile, where the detail sits well below the map; block:'nearest' is a no-op
+  // when it's already visible (desktop).
+  const scrollDetailIntoView = (el?: HTMLElement): void => {
+    if (!el || typeof requestAnimationFrame !== 'function') return;
+    requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+  };
 
   // Split the daf's sections into discussion maps. With no flow yet (cold), each
   // section is its own group; once the flow loads they merge into real sugyot.
@@ -1158,9 +1165,12 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
             per-move synthesis + Q&A (the same card the moves list used). Clicking
             a nested statement node above selects it; the card's header toggles the
             daf-side highlight. */}
-        <Show when={selectedMove()}>
+        {/* keyed: re-mount ArgumentMoveCard per selected statement so its synthesis
+            + Q&A (which capture the move at setup) update when the selection changes. */}
+        <Show keyed when={selectedMove()}>
           {(m) => (
             <div
+              ref={(el) => scrollDetailIntoView(el)}
               style={{
                 'margin-top': '0.5rem',
                 'padding-top': '0.7rem',
@@ -1168,7 +1178,7 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
               }}
             >
               <ArgumentMoveCard
-                move={m()}
+                move={m}
                 tractate={props.tractate}
                 page={props.page}
                 highlightedMoveId={highlightedMove()}

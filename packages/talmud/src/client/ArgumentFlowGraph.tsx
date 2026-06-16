@@ -105,9 +105,10 @@ const STMT_INDENT = 24; // left gutter — response/resolution threads route her
 const STMT_RGUT = 14; // right gutter — opposition brackets route here
 const STMT_STRIPE = 3; // left accent-stripe width on a nested statement node
 const STMT_RAIL_X = LEFT_PAD + 11; // x of the left thread rail (inside the indent)
-// Elegant serif for the statement labels + speakers — Koren-leaning, classic and
-// timeless, distinct from the system-sans chrome. Falls back through fine serifs.
-const STMT_SERIF = "'Frank Ruhl Libre', 'Palatino Linotype', Palatino, Georgia, serif";
+// Statement labels + speakers use the SAME system-sans as the section nodes, so
+// the nested sub-nodes read as part of the one map. Elegance comes from restraint
+// (muted role caps, a quiet side letter, hairline rules), not a different face.
+const STMT_FONT = 'system-ui, -apple-system, sans-serif';
 // Statement-relation palette — deliberately NOT the section-flow KIND_COLOR (a
 // 'cites' between statements means something different than between sections).
 const STMT_REL_COLOR: Record<string, string> = {
@@ -761,12 +762,12 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                         const sel = () => props.selectedStatementId === s.id;
                         const pickStmt = () => props.onSelectStatement?.(s.id);
                         const roleLabel = s.role.toUpperCase();
-                        // Letterspaced serif caps for the role — wider per-char than
-                        // plain sans, so budget the speaker around it + the side mark.
-                        const roleW = roleLabel.length * 6.4 + 14;
+                        // Letterspaced sans caps for the role; budget the speaker
+                        // around it + the side mark so a long name can't overflow.
+                        const roleW = roleLabel.length * 6 + 13;
                         const speakerBudget = Math.max(
                           3,
-                          Math.floor((sw - 14 - roleW - (s.side ? 14 : 8) - 6) / 6.4),
+                          Math.floor((sw - 14 - roleW - (s.side ? 14 : 8) - 6) / 6),
                         );
                         const speakerText =
                           (s.speaker || '').length > speakerBudget
@@ -821,7 +822,7 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                               stroke={sel() ? '#8a2a2b' : '#e7e2d6'}
                               stroke-width={sel() ? 1.5 : 1}
                             />
-                            {/* Role — letterspaced serif caps, muted; the accent
+                            {/* Role — letterspaced sans caps, muted; the accent
                                 stripe carries the colour, so the label stays quiet. */}
                             <text
                               x={sx + 13}
@@ -829,20 +830,20 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                               dominant-baseline="central"
                               font-size="8"
                               font-weight="600"
-                              letter-spacing="0.1em"
-                              font-family={STMT_SERIF}
+                              letter-spacing="0.07em"
+                              font-family={STMT_FONT}
                               fill={stmtRoleColor(s.role)}
-                              fill-opacity={0.82}
+                              fill-opacity={0.78}
                             >
                               {roleLabel}
                             </text>
-                            {/* Speaker — the daf's serif, in ink. */}
+                            {/* Speaker — same sans as the section titles, in ink. */}
                             <text
                               x={sx + 13 + roleW}
                               y={sTop() + sh / 2}
                               dominant-baseline="central"
-                              font-size="12.5"
-                              font-family={STMT_SERIF}
+                              font-size="12"
+                              font-family={STMT_FONT}
                               fill="#2a2520"
                             >
                               <title>{s.speaker || ''}</title>
@@ -855,9 +856,9 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                                 y={sTop() + sh / 2}
                                 text-anchor="middle"
                                 dominant-baseline="central"
-                                font-size="10"
-                                font-weight="600"
-                                font-family={STMT_SERIF}
+                                font-size="9.5"
+                                font-weight="700"
+                                font-family={STMT_FONT}
                                 fill={STMT_SIDE_COLOR[s.side ?? ''] ?? '#888'}
                               >
                                 {s.side}
