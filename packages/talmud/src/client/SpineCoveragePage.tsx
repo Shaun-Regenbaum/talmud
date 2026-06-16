@@ -104,10 +104,16 @@ async function fetchCoverage(tractate: string): Promise<CoverageReport> {
   return r.json();
 }
 
-async function fetchSpineView(
-  tractate: string,
-): Promise<{ tractate: string; dapim: SpineViewDaf[]; truncated?: boolean }> {
-  const r = await fetch(`/api/spine-view/${encodeURIComponent(tractate)}`);
+async function fetchSpineView(tractate: string): Promise<{
+  tractate: string;
+  dapim: SpineViewDaf[];
+  truncated?: boolean;
+  fromShelf?: boolean;
+  builtAt?: number;
+}> {
+  // Prefer the cron-built snapshot shelf (O(1), un-bounded); on a miss the server
+  // falls back to the bounded live build (truncated:true past 60 warmed dapim).
+  const r = await fetch(`/api/spine-view/${encodeURIComponent(tractate)}?cached=1`);
   if (!r.ok) {
     const body = await r.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `HTTP ${r.status}`);
@@ -419,6 +425,9 @@ export function SpineCoveragePage(): JSX.Element {
                           showing {capped().length} of {shown().length} dapim{' '}
                           {v().truncated || shown().length > FLOW_VIEW_CAP
                             ? '(bounded — warm more dapim to extend) '
+                            : ''}
+                          {v().fromShelf && v().builtAt
+                            ? `· snapshot ${Math.max(0, Math.round((Date.now() - (v().builtAt ?? 0)) / 60000))}m old `
                             : ''}
                           &middot; {crossCount()} cross-daf arrows (thicker lines span the page
                           break) &middot; {connectivity().done}/{connectivity().total} boundaries

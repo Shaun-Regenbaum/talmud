@@ -293,3 +293,19 @@ export function keyForCrossFlow(tractate: string, page: string): string {
 export function keyForSpineLinks(tractate: string): string {
   return `spine-links:v1:${slugTractate(tractate)}`;
 }
+
+/** Per-tractate spine-VIEW snapshot SHELF — the materialized whole-tractate flow
+ *  graph the warm-cron builds incrementally, served O(1) (no fan-out, no 60-daf
+ *  bound) by `GET /api/spine-view/:t?cached=1`. Tractate-only, slug-normalised,
+ *  mirroring {@link keyForSpineLinks}. */
+export function keyForSpineView(tractate: string): string {
+  return `spine-view:v1:${slugTractate(tractate)}`;
+}
+
+/** The cron's per-tractate ACCUMULATOR for the spine-view shelf — a
+ *  `Record<page, node>` map RMW-merged one window of dapim at a time, then
+ *  projected onto {@link keyForSpineView} at end-of-tractate-pass. Internal to the
+ *  builder; never served. */
+export function keyForSpineViewAcc(tractate: string): string {
+  return `spine-view-acc:v1:${slugTractate(tractate)}`;
+}

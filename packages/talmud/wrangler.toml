@@ -74,6 +74,12 @@ OBSERVATIONS_WARM_SHAS = "1"
 # emails. A no-op once latched. To re-run, delete the dafyomi-warm-cursor:v1 KV
 # key. Feeds study notes + poskim into the halacha cards Shas-wide.
 DAFYOMI_WARM_SHAS = "1"
+# When "1", the warm cron incrementally materializes the per-tractate spine-view
+# snapshot shelf (spine-view:v1:{tractate}) — a window of warmed dapim per tick,
+# published at end-of-tractate-pass — so GET /api/spine-view?cached=1 serves the
+# whole tractate's flow graph in one KV get (O(1), no 60-daf bound). Perpetual:
+# each pass re-derives from current pieces. To reset, delete spine-view-cursor:v1.
+SPINE_VIEW_WARM_SHAS = "1"
 # Zone ids for the Usage-page activity tracker. Not secret. COMMA-SEPARATED:
 # the app is served on two zones (shaunregenbaum.com + talmud.dev) and
 # src/worker/cf-zone-analytics.ts queries each, then merges the daily rows so

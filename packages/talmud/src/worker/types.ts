@@ -65,6 +65,9 @@ export interface Bindings {
   // When '1', the background Sefaria Shas walk also enqueues rabbi.observations
   // per amud (full reverse-index backfill). OFF by default — see WarmEnv.
   OBSERVATIONS_WARM_SHAS?: string;
+  // When '1', the warm-cron incrementally builds the per-tractate spine-view
+  // snapshot shelf (a window of warmed dapim per tick). OFF by default.
+  SPINE_VIEW_WARM_SHAS?: string;
   // Dynamic Worker Loader binding (wrangler.toml `worker_loaders`). Spins up the
   // isolated sandbox the code-mode MCP `execute` tool runs in. Optional: when
   // unset, GET/POST /mcp returns 503 and the rest of the worker is unaffected.

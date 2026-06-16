@@ -29,6 +29,9 @@ import {
   keyForSaCommentary,
   keyForSefariaBundle,
   keyForSefariaSegments,
+  keyForSpineLinks,
+  keyForSpineView,
+  keyForSpineViewAcc,
   keyForTalmudParallels,
   keyForTranslate,
   keyForYerushalmi,
@@ -127,5 +130,11 @@ describe('content + rabbi caches — byte-exact contract', () => {
     expect(keyForRabbiObs('abaye', 'berakhot:2a')).toBe('rabbi-obs:v1:abaye:berakhot:2a');
     expect(keyForRabbiObsDirty('abaye')).toBe('rabbi-obs-dirty:v1:abaye');
     expect(prefixForRabbiObs('abaye')).toBe('rabbi-obs:v1:abaye:');
+  });
+  it('spine tractate shelves: slug-normalised, tractate-only', () => {
+    expect(keyForSpineLinks('Berakhot')).toBe('spine-links:v1:berakhot');
+    expect(keyForSpineView('Berakhot')).toBe('spine-view:v1:berakhot');
+    expect(keyForSpineView('Bava Kamma')).toBe('spine-view:v1:bava_kamma');
+    expect(keyForSpineViewAcc('Bava Kamma')).toBe('spine-view-acc:v1:bava_kamma');
   });
 });
