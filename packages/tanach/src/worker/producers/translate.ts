@@ -48,6 +48,38 @@ export const TRANSLATE_SCHEMA = {
   },
 };
 
+/**
+ * The gloss is a single short phrase, so we ask for plain text rather than a
+ * strict json_schema — the cheap Flash model behind this route does not reliably
+ * honour strict structured output and was silently returning unparseable content
+ * (empty -> 502 "No translation" on every lookup). Tolerate every shape we might
+ * still get back: plain text, a markdown code fence, a raw JSON object, or a
+ * quoted string, so a well-formed answer is never dropped on the floor.
+ */
+function extractGloss(raw: string): string {
+  let s = (raw ?? '').trim();
+  if (!s) return '';
+  // Strip a leading/trailing markdown code fence.
+  s = s
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/, '')
+    .trim();
+  // If the model wrapped it as {"translation": "..."}, pull the field out.
+  if (s.startsWith('{')) {
+    try {
+      const obj = JSON.parse(s) as { translation?: unknown };
+      if (typeof obj.translation === 'string') s = obj.translation;
+    } catch {
+      /* not JSON after all; fall through to the raw text */
+    }
+  }
+  // Drop surrounding quotes the model sometimes adds, and collapse whitespace.
+  return s
+    .replace(/^["']+|["']+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export async function translateHebrew(
   env: LLMEnv,
   q: string,
@@ -60,18 +92,10 @@ export async function translateHebrew(
     ],
     max_tokens: 120,
     temperature: 0.2,
-    response_format: { type: 'json_schema', json_schema: TRANSLATE_SCHEMA },
     tag: 'tanach:translate',
   });
 
-  let translation = '';
-  try {
-    translation = String(
-      (JSON.parse(res.content) as { translation?: string }).translation ?? '',
-    ).trim();
-  } catch {
-    /* leave empty */
-  }
+  const translation = extractGloss(res.content);
 
   return {
     translation,
