@@ -312,6 +312,40 @@ export function rabbiCandidates(name: string, nameHe?: string): string[] {
   return [...prefix];
 }
 
+/** A homonym candidate, summarized for the AI-pin prompt: the registry's
+ *  canonical name, generation tier, region, and the (name-resolved) edges that
+ *  tell the model who this particular bearer studied with / disputed. The
+ *  edges are the deciding signal — the famous "Rabbi Shimon" (bar Yochai) is
+ *  the one whose teacher is Rabbi Akiva. */
+export interface RabbiCandidateSummary {
+  slug: string;
+  canonical: string;
+  generation: string | null;
+  region: string | null;
+  teachers: string[];
+  students: string[];
+  colleagues: string[];
+}
+
+/** Summarize each homonym candidate for the disambiguation prompt. Edge slugs
+ *  are resolved to display names; an empty list means the registry node has no
+ *  curated edges. */
+export function rabbiCandidateSummaries(name: string, nameHe?: string): RabbiCandidateSummary[] {
+  const names = (slugs: string[] | undefined): string[] => (slugs ?? []).map((s) => slugToName(s));
+  return rabbiCandidates(name, nameHe).map((slug) => {
+    const n = DATA.nodes[slug];
+    return {
+      slug,
+      canonical: n?.canonical ?? slugToName(slug),
+      generation: n?.generation ?? null,
+      region: n?.region ?? null,
+      teachers: names(n?.teachers),
+      students: names(n?.students),
+      colleagues: names(n?.colleagues),
+    };
+  });
+}
+
 export type ResolveBasis = 'unique' | 'relational' | 'generation' | 'ambiguous' | 'none';
 export interface ResolvedRabbi {
   slug: string | null;

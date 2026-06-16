@@ -1,0 +1,131 @@
+{
+  "_doc": "Labeled benchmark for the EXPERIMENTAL rabbi.identity.pin disambiguator. The 14 cases are every UNIQUE mention in Berakhot 2a-11b (tests/fixtures/berakhot-rabbi-casts.json) that the deterministic grounder returns 'ambiguous' for — i.e. exactly the cases the pin fires on. category: 'clear' = a textbook stam/identity with one right answer (scored for accuracy); 'hard' = scholarly-ambiguous without the daf text (report-only, not scored); 'decline' = the correct figure is NOT among the candidates, or genuinely undecidable, so the pin SHOULD return null/low. accept = acceptable slugs (arrays cover registry-duplicate nodes that are the SAME person). Run via: pnpm --filter talmud test:int (RUN_PIN_BENCH=1 + .dev.vars env).",
+  "cases": [
+    {
+      "daf": "3a",
+      "name": "Rabbi Eliezer",
+      "nameHe": "דר' אליעזר",
+      "generation": "tanna-2",
+      "category": "clear",
+      "accept": ["rabbi-eliezer-b-hyrcanus"],
+      "note": "stam tannaitic Rabbi Eliezer = R' Eliezer b. Hyrcanus (the Great)"
+    },
+    {
+      "daf": "3b",
+      "name": "Rabbi Yehoshua",
+      "nameHe": "רבי יהושע",
+      "generation": "tanna-2",
+      "category": "clear",
+      "accept": ["rabbi-yehoshua-b-hananyah", "rabbi-yehoshua-b-hananiah"],
+      "note": "stam tannaitic Rabbi Yehoshua = R' Yehoshua b. Hananyah (registry has a dup node)"
+    },
+    {
+      "daf": "7a",
+      "name": "Rabbi Shmuel bar Nachmani",
+      "nameHe": "ר' שמואל בר נחמני",
+      "generation": "amora-ey-2",
+      "category": "clear",
+      "accept": ["rabbi-shmuel-b-nahmani", "rabbi-shmuel-bar-nachmani"],
+      "note": "full name; ambiguous only because of a registry dup node (same person)"
+    },
+    {
+      "daf": "7a",
+      "name": "Rabbi Yishmael b. Elisha",
+      "nameHe": "רבי ישמעאל",
+      "generation": "unknown",
+      "category": "clear",
+      "accept": ["rabbi-yishmael-b-elisha", "rabbi-yishmael-b-elisha-2"],
+      "note": "full name; registry dup node (same person)"
+    },
+    {
+      "daf": "7b",
+      "name": "Rabbi Elazar",
+      "nameHe": "ר' אלעזר",
+      "generation": "tanna-4",
+      "category": "hard",
+      "accept": ["rabbi-elazar-b-pedat"],
+      "note": "Bavli stam R' Elazar = b. Pedat (amora); but tagged tanna-4 and undecidable without the daf cast (R' Chanina/R' Yochanan)"
+    },
+    {
+      "daf": "8b",
+      "name": "Shmuel",
+      "nameHe": "שמואל",
+      "generation": "amora-bavel-1",
+      "category": "clear",
+      "accept": ["shmuel-(amora)"],
+      "note": "the famous Amora Shmuel of Nehardea, not Shmuel the Little (a Tanna)"
+    },
+    {
+      "daf": "9a",
+      "name": "Rabbi Shimon",
+      "nameHe": "ר\"ש",
+      "generation": "tanna-4",
+      "category": "clear",
+      "accept": ["shimon-bar-yochai"],
+      "note": "stam tannaitic Rabbi Shimon = R' Shimon bar Yochai (the motivating case)"
+    },
+    {
+      "daf": "9b",
+      "name": "Rabbi Yehoshua",
+      "nameHe": "ר' יהושע",
+      "generation": "tanna-2",
+      "category": "clear",
+      "accept": ["rabbi-yehoshua-b-hananyah", "rabbi-yehoshua-b-hananiah"],
+      "note": "stam tannaitic Rabbi Yehoshua = R' Yehoshua b. Hananyah"
+    },
+    {
+      "daf": "9b",
+      "name": "Rabbi Shmuel bar Nachmani",
+      "nameHe": "רבי שמואל בר נחמני",
+      "generation": "unknown",
+      "category": "clear",
+      "accept": ["rabbi-shmuel-b-nahmani", "rabbi-shmuel-bar-nachmani"],
+      "note": "full name; registry dup node"
+    },
+    {
+      "daf": "10a",
+      "name": "Rav Yehuda",
+      "nameHe": "(רבי) יהודה",
+      "generation": "amora-bavel-2",
+      "category": "decline",
+      "accept": [],
+      "note": "stam Rav Yehuda = Rav Yehuda b. Yechezkel (Pumbedita) — but that node is NOT among the candidates, so the pin should decline rather than pick a minor Rav Yehuda"
+    },
+    {
+      "daf": "10a",
+      "name": "Rabbi Eliezer",
+      "nameHe": "רבי (אליעזר)",
+      "generation": "tanna-2",
+      "category": "clear",
+      "accept": ["rabbi-eliezer-b-hyrcanus"],
+      "note": "stam tannaitic Rabbi Eliezer = R' Eliezer b. Hyrcanus"
+    },
+    {
+      "daf": "11a",
+      "name": "Rabbi Ya'akov",
+      "nameHe": "ר' יעקב",
+      "generation": "amora-bavel-3",
+      "category": "decline",
+      "accept": [],
+      "note": "no textbook stam among the listed minor R' Yaakovs; genuinely undecidable without the daf text"
+    },
+    {
+      "daf": "11a",
+      "name": "Rabbi Oshaya",
+      "nameHe": "רבי אושעיא",
+      "generation": "unknown",
+      "category": "clear",
+      "accept": ["rabbi-oshaya", "rabbi-oshaya-2"],
+      "note": "registry dup node (same person)"
+    },
+    {
+      "daf": "11b",
+      "name": "Rabbi Elazar",
+      "nameHe": "רבי אלעזר",
+      "generation": "tanna-4",
+      "category": "hard",
+      "accept": ["rabbi-elazar-b-pedat"],
+      "note": "Bavli stam R' Elazar = b. Pedat; undecidable without the daf cast"
+    }
+  ]
+}

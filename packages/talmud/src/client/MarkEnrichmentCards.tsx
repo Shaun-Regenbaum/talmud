@@ -226,7 +226,7 @@ function enrichmentActivityKey(
 // mark+instance, e.g. "Chullin:11a:0:Source for rov") in the id so clicking
 // rapidly between halacha topics, or between halacha and rabbi, surfaces
 // every in-flight job separately in the panel.
-async function runEnrichment(
+export async function runEnrichment(
   enrichmentId: string,
   tractate: string,
   page: string,

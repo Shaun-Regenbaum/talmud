@@ -48,6 +48,7 @@ import { type BackgroundGroup, orderBackgroundGroups } from './backgroundGroups'
 import { ChartTableView } from './ChartTableView';
 import CodificationMap from './CodificationMap';
 import { buildConceptMatcher, ConceptLinkProvider } from './conceptLinks';
+import { devModeActive } from './DevModeShelf';
 import type { IdentifiedRabbi } from './dafContext';
 import { type CodificationData, codeMapFromCodification, SIDE_COLOR } from './flow/codeMapLayout';
 import { GeographyMap } from './GeographyMap';
@@ -55,7 +56,7 @@ import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './genera
 import { Hebraized } from './Hebraized';
 import { type CatalogKey, lang, t } from './i18n';
 import { CorpusBadge } from './LinkRef';
-import { InspectDot, registerMarkRenderer } from './MarkEnrichmentCards';
+import { InspectDot, registerMarkRenderer, runEnrichment } from './MarkEnrichmentCards';
 import type { GeographyData, GeographyEvidence } from './RabbiGeographyCard';
 import RabbiLineageTree, {
   type RelationshipsData,
@@ -1629,6 +1630,16 @@ async function fetchPasuk(ref: string): Promise<PasukDetail> {
 
 const EMPTY_GEN_MAP: Map<string, GenerationId> = new Map();
 
+// Output of the EXPERIMENTAL rabbi.identity.pin producer — an IdentifiedRabbi
+// plus the disambiguation verdict (genSource 'ai-pin' on a confident pick,
+// 'ambiguous'/'none' otherwise). Mirrors the worker's RabbiPin.
+interface RabbiPin extends IdentifiedRabbi {
+  genSource?: string;
+  confidence?: string;
+  reason?: string;
+  homonyms?: number;
+}
+
 // Formatted identity meta: generation label + era + region + places, with the
 // generation-color dot. Prefers the resolved rabbi.identity (deps) over the
 // possibly-stub instance the rabbi was opened with.
@@ -1639,10 +1650,38 @@ function RabbiMeta(props: SpecialBlockProps): JSX.Element {
     const i = props.deps['rabbi.identity'] as IdentifiedRabbi | undefined;
     return i && typeof i.name === 'string' ? i : undefined;
   };
-  const gen = () => GENERATION_BY_ID[f().generation as GenerationId];
-  const effRegion = (): string => identity()?.region ?? str(f().region);
-  const effPlaces = (): string[] =>
-    identity()?.places ?? (f().places as string[] | undefined) ?? [];
+  const homonymCount = (): number =>
+    typeof f().homonyms === 'number' ? (f().homonyms as number) : 0;
+  // EXPERIMENTAL (dev-mode only): when the grounder gave up on this homonym,
+  // ask rabbi.identity.pin to choose the most-likely bearer. A confident pin
+  // lets the header agree with the bio prose (which already names the famous
+  // bearer) instead of showing "generation uncertain". Off in production until
+  // benchmarked — the producer is never warmed and not a synthesis dep, so this
+  // is the only place that runs it, and only in dev-mode.
+  const pinEnabled = (): boolean =>
+    devModeActive() && f().genSource === 'ambiguous' && homonymCount() > 1;
+  const [pinRes] = createResource(
+    () => (pinEnabled() ? { t: props.tractate, p: props.page, key: props.instanceKey } : null),
+    async (src) => {
+      const r = await runEnrichment('rabbi.identity.pin', src.t, src.p, f(), src.key);
+      return r.parsed as RabbiPin;
+    },
+  );
+  // The pin only OVERRIDES the honest verdict when it confidently chose a real
+  // bearer ('ai-pin' + slug); a decline / low-confidence lean leaves the honest
+  // "uncertain" line untouched.
+  const pin = (): RabbiPin | undefined => {
+    const r = pinRes();
+    return r && r.genSource === 'ai-pin' && r.slug ? r : undefined;
+  };
+  const effGenId = (): GenerationId => (pin()?.generation ?? f().generation) as GenerationId;
+  const gen = () => GENERATION_BY_ID[effGenId()];
+  const effRegion = (): string => pin()?.region ?? identity()?.region ?? str(f().region);
+  const effPlaces = (): string[] => {
+    const pp = pin()?.places;
+    if (pp && pp.length > 0) return pp;
+    return identity()?.places ?? (f().places as string[] | undefined) ?? [];
+  };
   const regionLabel = (): string =>
     effRegion() === 'israel'
       ? t('geography.eretzYisrael')
@@ -1660,12 +1699,15 @@ function RabbiMeta(props: SpecialBlockProps): JSX.Element {
     if (pl.length > 0) parts.push(pl.join(', '));
     return parts;
   };
-  // Homonym uncertainty: grounding refused to pin this name (genSource
-  // 'ambiguous') because several registry rabbis share it — say so instead of
-  // leaving an unexplained gray "unknown" era.
+  // Homonym note: a confident dev-mode pin reads as "most likely X (N share the
+  // name)"; otherwise grounding's honest "generation uncertain — N share this
+  // name" (the bare name couldn't be pinned, so don't leave an unexplained gray
+  // "unknown" era).
   const homonymNote = (): string | null => {
-    const n = f().homonyms;
-    if (f().genSource !== 'ambiguous' || typeof n !== 'number' || n <= 1) return null;
+    const n = homonymCount();
+    if (f().genSource !== 'ambiguous' || n <= 1) return null;
+    const p = pin();
+    if (p) return t('rabbi.generationLikely', { name: p.name, count: n });
     return t('rabbi.generationUncertain', { count: n });
   };
   return (
@@ -1702,7 +1744,9 @@ function RabbiMeta(props: SpecialBlockProps): JSX.Element {
           <div
             style={{
               'font-size': '0.74rem',
-              color: '#8a6d1a',
+              // calmer gray for a resolved "most likely" pin; amber for the
+              // honest "uncertain" warning.
+              color: pin() ? '#6b7280' : '#8a6d1a',
               'line-height': 1.5,
               'margin-top': metaParts().length > 0 ? '0.2rem' : '0',
             }}

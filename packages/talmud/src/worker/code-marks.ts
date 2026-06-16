@@ -1398,6 +1398,50 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
+// rabbi.identity.pin — EXPERIMENTAL homonym disambiguator. Runs ONLY when the
+// deterministic grounder gave up ('ambiguous': several registry rabbis share
+// the bare name and the daf's cast didn't single one out). The model picks the
+// single most-likely bearer from the candidate set, WITH a confidence — so the
+// reader's card can stop saying "generation uncertain" and agree with the bio
+// prose (which already pins the famous bearer). The call is made directly in
+// computeRabbiPin (worker/index.ts); this prompt + schema drive that call. The
+// enrichment def's own prompt is a placeholder that never executes.
+export const RABBI_PIN_SYSTEM_PROMPT = `You are a Talmud scholar disambiguating a sage's bare name to ONE historical figure. The deterministic resolver could not pin it: several rabbis in the registry share this name. You will receive the bare name, the list of candidate figures (each with generation, region, and known teachers/students/colleagues), and the OTHER rabbis named on the same daf.
+
+Pick the SINGLE candidate the name most likely denotes, OR decline. Use, in order of weight:
+1. The classical "stam" conventions — a bare name, unqualified, conventionally denotes one specific figure (e.g. an unqualified "Rabbi Shimon" in tannaitic material is Rabbi Shimon bar Yochai, the student of Rabbi Akiva; "Rabbi Meir", "Rabbi Yehuda" likewise denote the famous Akiva students). Apply only the well-established conventions.
+2. The co-occurring rabbis on the daf — if a candidate's teachers/students/colleagues include rabbis named on this daf, that is strong evidence for that candidate.
+3. Generation plausibility — a Tanna whose ruling is discussed by a named Amora is a normal pattern; do not reject a candidate merely because a later Amora is on the daf.
+
+Output STRICT JSON only:
+
+{
+  "slug": "the chosen candidate's slug, EXACTLY as given in the candidate list — or null to decline",
+  "confidence": "high | medium | low",
+  "reason": "one short sentence naming the deciding signal (a stam convention, a co-rabbi edge, etc.)"
+}
+
+Rules:
+- "slug" MUST be one of the provided candidate slugs, or null. Never invent a slug.
+- confidence 'high' only for a textbook stam convention OR a clear co-rabbi edge match. 'medium' for a reasonable lean. 'low' (or null slug) when the bare name is genuinely ambiguous here — declining is correct and expected; a wrong confident pin is worse than an honest "uncertain".`;
+
+// Small schema for the disambiguation CALL (computeRabbiPin). The enrichment's
+// cached output is the JOINED identity (see RABBI_PIN_DEF_OUTPUT_SCHEMA).
+export const RABBI_PIN_OUTPUT_SCHEMA = {
+  name: 'rabbi_identity_pin',
+  strict: true,
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['slug', 'confidence', 'reason'],
+    properties: {
+      slug: { type: ['string', 'null'] },
+      confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+      reason: { type: 'string' },
+    },
+  },
+} as const;
+
 // Shared user prompt template for the five leaf rabbi enrichments. The
 // synthesis has its own template that consumes depends.
 // Daf-agnostic leaves (bio / philosophy / relationships / classification /
@@ -2011,6 +2055,58 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     },
     { mode: 'augment-content', scope: 'global', defHash: 'rabbi.identity-v1', cacheVersion: '1' },
   ),
+  // rabbi.identity.pin — EXPERIMENTAL homonym disambiguator (scope LOCAL, so it
+  // is keyed per daf+name — no collision with the global rabbi.identity key).
+  // Short-circuited in computeRabbiPin: for an 'ambiguous' instance it asks the
+  // model to pick the most-likely bearer + confidence; otherwise a no-op.
+  // DEV-GATE: it is NOT in any mark's deep-warm surface (WARM_SURFACE) and NOT a
+  // dependency of rabbi.synthesis, so prod warming never runs it. The ONLY
+  // caller is the dev-mode RabbiMeta (client), so the recall-first pin doesn't
+  // reach production readers until it is benchmarked against the deterministic
+  // honest-grounding it overrides. category 'experimental' documents that.
+  {
+    id: 'rabbi.identity.pin',
+    label: 'Identity pin (homonym)',
+    description:
+      'EXPERIMENTAL. When grounding is ambiguous, AI-picks the most-likely bearer of a shared name + confidence, joined to rabbi-places.json. Lets the card pin a specific sage instead of "generation uncertain".',
+    target_mark: 'rabbi',
+    mode: 'augment-content',
+    scope: 'local',
+    extractor: {
+      kind: 'llm',
+      // Placeholders — the real call is made in computeRabbiPin (worker/index.ts);
+      // this def is short-circuited and its prompt never executes.
+      system_prompt: '(short-circuited: see computeRabbiPin)',
+      user_prompt_template: '(homonym pin for {{mark_input.name}})',
+      output_schema: {
+        name: 'rabbi_identity_pin_joined',
+        strict: false,
+        schema: {
+          type: 'object',
+          additionalProperties: true,
+          required: ['slug', 'confidence'],
+          properties: {
+            slug: { type: ['string', 'null'] },
+            confidence: { type: 'string' },
+            reason: { type: 'string' },
+            genSource: { type: 'string' },
+            name: { type: 'string' },
+            nameHe: { type: 'string' },
+            generation: { type: 'string' },
+            region: { type: ['string', 'null'] },
+            places: { type: 'array', items: { type: 'string' } },
+          },
+        },
+      },
+      thinking_off: true,
+    },
+    status: 'promoted',
+    category: 'experimental',
+    def_hash: 'rabbi.identity.pin-v1',
+    cache_version: '1',
+    source: 'code',
+    updated_at: NOW,
+  },
   // Synthesis — the user-facing card. Depends on the leaves plus the
   // gemara text and the full rabbi instance list (so the prompt can name
   // OTHER rabbis on the same daf).
