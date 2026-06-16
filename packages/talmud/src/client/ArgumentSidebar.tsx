@@ -37,7 +37,10 @@ import { adjacentAmud } from '../lib/sefref/amudim';
 import { dafRefHe, pageLabelHe } from '../lib/sefref/tractates';
 import type { Term } from '../lib/terms/registry';
 import { voicesMapEligible, voicesShowFallback, voicesShowMap } from '../lib/typing/profile';
-import { buildStatementSpine } from '../lib/typing/statementSpine';
+import {
+  buildStatementSpine,
+  type StatementSpine as StatementSpineData,
+} from '../lib/typing/statementSpine';
 import { deriveVoiceEdges } from '../lib/typing/voices';
 import ArgumentFlowGraph, { type FlowConnection } from './ArgumentFlowGraph';
 import ArgumentNarrative from './ArgumentNarrative';
@@ -903,8 +906,19 @@ export function mapsState(
 // ===========================================================================
 function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   const sections = (): Section[] => (props.extras?.sections as Section[]) ?? [];
-  const onOpenArgument = (): ((index: number) => void) | undefined =>
-    props.extras?.onOpenArgument as ((index: number) => void) | undefined;
+  const onPushRabbi = (): ((name: string) => void) =>
+    (props.extras?.onPushRabbi as (name: string) => void) ?? (() => {});
+
+  // The focused section (array index) whose statement spine shows below the map.
+  // Clicking a map node sets it — the deep-dive happens IN PLACE under the map
+  // (the "extra"), not in a separate pushed card. Defaults to the first section
+  // and resets on a daf change so the overview always opens with something shown.
+  const [focused, setFocused] = createSignal(0);
+  createEffect(() => {
+    void props.tractate;
+    void props.page;
+    setFocused(0);
+  });
 
   // The daf-level flow leaf's section connections. Empty until the synthesis
   // resolves; `props.synthesisResolved` is the "flow resolved" gate (a daf can
@@ -916,12 +930,31 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
     return flow && Array.isArray(flow.connections) ? flow.connections : [];
   });
 
-  // Clicking a section node drills straight into that section's full argument
-  // card. The card is pushed ONTO the Overview (see openArgument in DafViewer),
-  // so its back chip returns here — the Overview is the entry point and the
-  // section card the deep dive, one navigation stack. The daf's section range is
-  // painted by the argument card itself, so there's no separate highlight here.
-  const openSection = (i: number) => onOpenArgument()?.(i);
+  // The daf's statement spines (one per section), built server-side from the
+  // cached moves + voices (GET /api/statement-spine). The map's "extra" reads the
+  // focused section's spine from here — the single source the #spine view pulls.
+  const [spines] = createResource(
+    () => `${props.tractate}|${props.page}`,
+    async (): Promise<{ index: number; title: string; spine: StatementSpineData }[]> => {
+      try {
+        const r = await fetch(
+          `/api/statement-spine/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}`,
+        );
+        if (!r.ok) return [];
+        return (
+          (
+            (await r.json()) as {
+              sections?: { index: number; title: string; spine: StatementSpineData }[];
+            }
+          ).sections ?? []
+        );
+      } catch {
+        return [];
+      }
+    },
+  );
+  const focusedSpine = (): { title: string; spine: StatementSpineData } | undefined =>
+    (spines() ?? []).find((s) => s.index === focused());
 
   // Split the daf's sections into discussion maps. With no flow yet (cold), each
   // section is its own group; once the flow loads they merge into real sugyot.
@@ -1069,8 +1102,8 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
                 <ArgumentFlowGraph
                   nodes={grpNodes}
                   connections={connections()}
-                  activeIndex={null}
-                  onSelect={openSection}
+                  activeIndex={focused()}
+                  onSelect={setFocused}
                 />
                 <Show when={hasLast && bridge()?.toNext}>
                   {crossLabel(t('overview.continuesOnto', { page: pageRef(bridge()!.next) }))}
@@ -1079,6 +1112,38 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
             );
           }}
         </For>
+        {/* The "extra": the focused section's statement spine, IN PLACE under the
+            map (no pushed card). Clicking a map node above refocuses it. */}
+        <Show when={focusedSpine()}>
+          {(fs) => (
+            <div
+              style={{
+                'margin-top': '0.4rem',
+                'padding-top': '0.8rem',
+                'border-top': '1px solid #ece9df',
+              }}
+            >
+              <StatementSpine
+                spine={fs().spine}
+                title={fs().title}
+                onPushRabbi={onPushRabbi()}
+                onHighlight={(r) =>
+                  props.onHighlightRange?.(
+                    r
+                      ? {
+                          start: r.start,
+                          end: r.end,
+                          key: `stmt-${r.start}-${r.tokenStart ?? 0}`,
+                          tokenStart: r.tokenStart,
+                          tokenEnd: r.tokenEnd,
+                        }
+                      : null,
+                  )
+                }
+              />
+            </div>
+          )}
+        </Show>
       </Show>
     </Show>
   );
@@ -3130,7 +3195,11 @@ export const CARD_DEFS: Partial<Record<SidebarContent['kind'], CardDef>> = {
     // overview cache key (which would cold-miss all of Shas).
     synthInstance: () => ({ fields: {} }),
     forwardHighlight: true,
-    extras: (ctx) => ({ sections: ctx.dafSections, onOpenArgument: ctx.onOpenArgument }),
+    extras: (ctx) => ({
+      sections: ctx.dafSections,
+      onOpenArgument: ctx.onOpenArgument,
+      onPushRabbi: ctx.onPushRabbi,
+    }),
   },
   // Whole-daf essay cards: header + synthesis only (the essay renders through
   // the registerMarkRenderer seam). Display instance carries the localized
