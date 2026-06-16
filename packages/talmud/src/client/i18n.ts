@@ -200,8 +200,6 @@ const CATALOG = {
   'overview.continuesFrom': { en: '↑ continues from {page}', he: '↑ המשך מדף {page}' },
   'overview.continuesOnto': { en: 'continues onto {page} ↓', he: 'ממשיך לדף {page} ↓' },
   'overview.crossRefs': { en: 'Cross-references', he: 'הפניות' },
-  'overview.connections': { en: 'Connections', he: 'קשרים' },
-  'overview.withinFlow': { en: 'within-daf flow', he: 'מהלך פנימי בדף' },
   'overview.mapping': { en: 'Mapping the discussion…', he: 'ממפה את הסוגיה…' },
   'overview.goToDaf': { en: 'Go to {daf}', he: 'מעבר ל{daf}' },
   // Link-relation labels (the unified link layer, src/lib/context/link.ts).
@@ -213,6 +211,7 @@ const CATALOG = {
   'link.rel.contrasts': { en: 'contrasts', he: 'מנוגד' },
   'link.rel.generalizes': { en: 'generalizes', he: 'מכליל' },
   'link.rel.glosses': { en: 'glosses', he: 'מפרש' },
+  'link.rel.codifies': { en: 'codified in', he: 'נפסק ב' },
 
   // — Spine flow graph (whole-tractate overview, SpineFlowGraph) —
   'spine.corpus.bavli': { en: 'Bavli', he: 'בבלי' },

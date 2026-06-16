@@ -16,8 +16,16 @@ describe('linkCorpus', () => {
       'commentary',
     );
   });
-  it('falls back to other for Tanakh verses / unknown corpora', () => {
+  it('falls back to other for spine-less Tanakh verses / unknown corpora', () => {
     expect(linkCorpus({ tractate: 'Genesis', page: '1:1', seg: -1 })).toBe('other');
+  });
+  it('classifies a pasuk on the tanach spine', () => {
+    expect(linkCorpus({ spine: 'tanach', tractate: 'Genesis', page: '19', seg: 5 })).toBe('tanach');
+  });
+  it('classifies a codifier ref on a code spine', () => {
+    expect(
+      linkCorpus({ spine: 'mishneh-torah', tractate: 'Reading the Shema', page: '1', seg: 1 }),
+    ).toBe('halacha');
   });
 });
 
@@ -28,6 +36,7 @@ describe('linkTarget', () => {
       corpus: 'bavli',
       navigable: true,
       href: '?tractate=Berakhot&page=13a',
+      external: false,
     });
   });
   it('url-encodes a multi-word tractate', () => {
@@ -50,6 +59,33 @@ describe('linkTarget', () => {
     expect(t.navigable).toBe(false);
     expect(t.label).toBe('Rashi · Berakhot 2a');
   });
+  it('makes a pasuk navigable cross-app to the Tanach reader (new tab)', () => {
+    const t = linkTarget({ spine: 'tanach', tractate: 'Genesis', page: '19', seg: 5 });
+    expect(t).toEqual({
+      label: 'Genesis 19:5',
+      corpus: 'tanach',
+      navigable: true,
+      href: 'https://tanach.shaunregenbaum.com/?book=Genesis&chapter=19',
+      external: true,
+    });
+  });
+  it('labels a codifier ref by author + ref, inert (the card is the home)', () => {
+    const t = linkTarget({
+      spine: 'mishneh-torah',
+      tractate: 'Reading the Shema',
+      page: '1',
+      seg: 1,
+    });
+    expect(t.corpus).toBe('halacha');
+    expect(t.navigable).toBe(false);
+    expect(t.href).toBeNull();
+    expect(t.external).toBe(false);
+    expect(t.label).toBe('Rambam · Reading the Shema 1:1');
+  });
+  it('handles a section-less codifier ref (Mishnah Berurah, siman only)', () => {
+    const t = linkTarget({ spine: 'mishnah-berurah', tractate: '', page: '235', seg: 1 });
+    expect(t.label).toBe('Mishnah Berurah · 235:1');
+  });
 });
 
 describe('dafTarget', () => {
@@ -59,6 +95,7 @@ describe('dafTarget', () => {
       corpus: 'bavli',
       navigable: true,
       href: '?tractate=Pesachim&page=50a',
+      external: false,
     });
   });
 });

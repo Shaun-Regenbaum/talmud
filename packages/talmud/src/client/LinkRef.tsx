@@ -24,6 +24,10 @@ import { lang, t } from './i18n';
 const CORPUS_BADGE: Partial<Record<LinkCorpus, { label: string; bg: string; fg: string }>> = {
   yerushalmi: { label: 'ירושלמי', bg: '#0e7490', fg: '#ffffff' },
   commentary: { label: 'commentary', bg: '#ece9e1', fg: '#57534e' },
+  // A codifier ref (Rambam / Shulchan Arukh / …) — the rich view is the halacha
+  // card; the chip just marks the codification. (A pasuk reads for itself, like
+  // a Bavli daf, so 'tanach' gets no badge.)
+  halacha: { label: 'הלכה', bg: '#7c2d12', fg: '#ffffff' },
 };
 
 const BASE: JSX.CSSProperties = {
@@ -98,8 +102,15 @@ export function LinkRef(props: { coord: AnchorCoord }): JSX.Element {
       }
     >
       {(href) => (
-        // A real href (relative `?tractate=&page=`) so middle-click / open-in-new-tab work.
-        <a style={NAV} href={href()} title={t('overview.goToDaf', { daf: label() })}>
+        // A real href: relative `?tractate=&page=` for our reader (middle-click /
+        // open-in-new-tab work), or an absolute cross-app URL (a pasuk → the
+        // Tanach reader), which opens in a new tab.
+        <a
+          style={NAV}
+          href={href()}
+          {...(target().external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          title={target().external ? label() : t('overview.goToDaf', { daf: label() })}
+        >
           {label()}
           <CorpusBadge corpus={target().corpus} />
         </a>
