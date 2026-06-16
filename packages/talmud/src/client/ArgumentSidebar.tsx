@@ -430,7 +430,7 @@ function _RabbiRow(props: {
 //          move's segment range on the daf.
 // ===========================================================================
 
-interface ArgumentMoveInstance {
+export interface ArgumentMoveInstance {
   startSegIdx: number;
   endSegIdx: number;
   fields: {
@@ -465,7 +465,7 @@ const ROLE_COLORS: Record<string, string> = {
   other: '#64748b',
 };
 
-function ArgumentMoveCard(props: {
+export function ArgumentMoveCard(props: {
   move: ArgumentMoveInstance;
   tractate: string;
   page: string;

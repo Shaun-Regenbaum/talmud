@@ -15,7 +15,15 @@
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 import { dafTarget } from '../lib/context/linkTarget';
 import { dafRefHe, pageLabelHe } from '../lib/sefref/tractates';
-import { type FlowConnection, KIND_COLOR, KIND_DASH, wrapTitle } from './ArgumentFlowGraph';
+import type { StatementLink, StatementNode } from '../lib/typing/statementSpine';
+import {
+  type FlowConnection,
+  KIND_COLOR,
+  KIND_DASH,
+  StatementBand,
+  statementBandHeight,
+  wrapTitle,
+} from './ArgumentFlowGraph';
 import { lang, t } from './i18n';
 
 type Kind = FlowConnection['kind'];
@@ -37,7 +45,16 @@ export interface ExitMark {
 export interface SpineViewDaf {
   page: string;
   nextPage: string | null;
-  sections: { index: number; title: string; rabbis: SectionRabbi[]; exits?: ExitMark[] }[];
+  sections: {
+    index: number;
+    title: string;
+    rabbis: SectionRabbi[];
+    exits?: ExitMark[];
+    /** This section's statement spine — rendered as a nested StatementBand under
+     *  the node when it's the focused section (activeKey). Same as the per-daf map. */
+    statements?: StatementNode[];
+    statementLinks?: StatementLink[];
+  }[];
   flow: FlowConnection[];
   cross: { fromSection: number; toSection: number; relation: string; note?: string }[];
   /** deterministic daf-continuity bridge: does the sugya carry into the next daf? */
@@ -142,6 +159,14 @@ export default function SpineFlowGraph(props: {
    *  in our reader (`?tractate=&page=`); a non-Bavli target (Yerushalmi) is
    *  non-navigable. */
   onPickExit?: (ex: ExitMark) => void;
+  /** The focused section, as its node key `${page}#${index}` (indices repeat
+   *  across dapim, so a bare index won't do). Its statement band expands in place. */
+  activeKey?: string | null;
+  onSelectSection?: (page: string, index: number) => void;
+  /** The selected statement (move id) within the focused section + its setter —
+   *  clicking a nested statement node selects it (detail renders below the map). */
+  selectedStatementId?: string | null;
+  onSelectStatement?: (id: string) => void;
 }): JSX.Element {
   const pickExit = (ex: ExitMark) => {
     if (props.onPickExit) {
@@ -170,6 +195,9 @@ export default function SpineFlowGraph(props: {
     const nodeRabbis = new Map<string, SectionRabbi[]>();
     const nodeExits = new Map<string, ExitMark[]>();
     const nodeBand = new Map<string, number>(); // reserved height for an open exits band
+    const nodeStatements = new Map<string, StatementNode[]>();
+    const nodeStatementLinks = new Map<string, StatementLink[]>();
+    const nodeStmtTop = new Map<string, number>(); // y where the statement band starts
     const dafHeaders: { page: string; y: number; pending: boolean; parallelsCold: boolean }[] = [];
     let y = TOP_PAD;
     for (const d of props.dapim) {
@@ -196,9 +224,16 @@ export default function SpineFlowGraph(props: {
         nodeExits.set(key, exits);
         // Reflow: an expanded box reserves a vertical band for its chips, so they
         // never overlap the next box (reading openExits() makes this reactive).
-        const band = exits.length && openExits().has(key) ? EXIT_TOP + exits.length * EXIT_H : 0;
-        nodeBand.set(key, band);
-        y += h + band + ROW_GAP;
+        const exitsBand =
+          exits.length && openExits().has(key) ? EXIT_TOP + exits.length * EXIT_H : 0;
+        nodeBand.set(key, exitsBand);
+        // The focused section expands its statement spine in a band below the node
+        // (+ any open exits band); reserve its height so the next node clears it.
+        const stmts = props.activeKey === key ? (s.statements ?? []) : [];
+        nodeStatements.set(key, stmts);
+        nodeStatementLinks.set(key, props.activeKey === key ? (s.statementLinks ?? []) : []);
+        nodeStmtTop.set(key, y + h + exitsBand);
+        y += h + exitsBand + statementBandHeight(stmts.length) + ROW_GAP;
       });
       y += DAF_GAP;
     }
@@ -279,6 +314,9 @@ export default function SpineFlowGraph(props: {
       nodeRabbis,
       nodeExits,
       nodeBand,
+      nodeStatements,
+      nodeStatementLinks,
+      nodeStmtTop,
       dafHeaders,
       height,
       edges,
@@ -539,6 +577,12 @@ export default function SpineFlowGraph(props: {
                     const lines = wrapTitle(m.nodeTitle.get(key) ?? '', TITLE_CHARS, TITLE_LINES);
                     const num = m.nodeNum.get(key) ?? 0;
                     const lit = () => hl() !== null && rabbis.some((r) => r.slug === hl());
+                    // page#index for the statement drill-in (focus + its band).
+                    const [pg, idxStr] = key.split('#');
+                    const secIdx = Number(idxStr);
+                    const active = () => props.activeKey === key;
+                    const focusSection = () => props.onSelectSection?.(pg, secIdx);
+                    const stmts = () => m.nodeStatements.get(key) ?? [];
                     // Lay rabbi chips left-to-right, keeping each WITHIN the box.
                     // (The old filter only checked the START x, so a long name —
                     // "Rabbi Elazar b. Azaryah" — overflowed the right edge.) Stop
@@ -563,270 +607,308 @@ export default function SpineFlowGraph(props: {
                       cx += name.length * 5.4 + 12;
                     }
                     return (
-                      <g>
-                        <title>{`${num}. ${m.nodeTitle.get(key) ?? ''}`}</title>
-                        <rect
-                          x={LEFT_PAD}
-                          y={yTop}
-                          width={NODE_W}
-                          height={h}
-                          rx={10}
-                          ry={10}
-                          fill={lit() ? '#fffaf0' : '#ffffff'}
-                          stroke={lit() ? HILITE : '#e4e0d4'}
-                          stroke-width={lit() ? 2 : 1}
-                          filter="url(#spine-card-shadow)"
-                        />
-                        <circle
-                          cx={LEFT_PAD + 18}
-                          cy={cyTitle}
-                          r={11}
-                          fill="#f2eee4"
-                          stroke="#e4e0d4"
-                          stroke-width={1}
-                        />
-                        <text
-                          x={LEFT_PAD + 18}
-                          y={cyTitle}
-                          text-anchor="middle"
-                          dominant-baseline="central"
-                          font-size="11"
-                          font-weight="700"
-                          font-family="system-ui, sans-serif"
-                          fill="#8a2a2b"
+                      <>
+                        {/* biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram */}
+                        <g
+                          role="button"
+                          tabindex={0}
+                          style={{ cursor: 'pointer' }}
+                          onClick={focusSection}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              focusSection();
+                            }
+                          }}
                         >
-                          {num}
-                        </text>
-                        <For each={lines}>
-                          {(line, li) => (
-                            <text
-                              x={LEFT_PAD + 38}
-                              y={cyTitle + (li() - (lines.length - 1) / 2) * LINE_H}
-                              text-anchor="start"
-                              dominant-baseline="central"
-                              font-size="12"
-                              font-weight="600"
-                              font-family="system-ui, sans-serif"
-                              fill="#2a2723"
-                            >
-                              {line}
-                            </text>
-                          )}
-                        </For>
-                        <Show when={rabbis.length}>
-                          <For each={chips}>
-                            {(c) => {
-                              const on = () => hl() === c.slug;
-                              const trace = () => props.onRabbi?.(c.slug);
-                              return (
-                                // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
-                                <text
-                                  x={c.x}
-                                  y={yTop + h - 8}
-                                  font-size="9.5"
-                                  font-weight={on() ? 700 : 500}
-                                  font-family="system-ui, sans-serif"
-                                  fill={on() ? HILITE : '#8a7a55'}
-                                  style={{ cursor: 'pointer' }}
-                                  role="button"
-                                  tabindex={0}
-                                  onClick={trace}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                      e.preventDefault();
-                                      trace();
-                                    }
-                                  }}
-                                >
-                                  <title>{t('spine.tip.traceRabbi', { name: c.full })}</title>
-                                  {c.name}
-                                </text>
-                              );
-                            }}
+                          <title>{`${num}. ${m.nodeTitle.get(key) ?? ''}`}</title>
+                          <rect
+                            x={LEFT_PAD}
+                            y={yTop}
+                            width={NODE_W}
+                            height={h}
+                            rx={10}
+                            ry={10}
+                            fill={active() ? '#fdf2f2' : lit() ? '#fffaf0' : '#ffffff'}
+                            stroke={active() ? '#8a2a2b' : lit() ? HILITE : '#e4e0d4'}
+                            stroke-width={active() || lit() ? 2 : 1}
+                            filter="url(#spine-card-shadow)"
+                          />
+                          <circle
+                            cx={LEFT_PAD + 18}
+                            cy={cyTitle}
+                            r={11}
+                            fill="#f2eee4"
+                            stroke="#e4e0d4"
+                            stroke-width={1}
+                          />
+                          <text
+                            x={LEFT_PAD + 18}
+                            y={cyTitle}
+                            text-anchor="middle"
+                            dominant-baseline="central"
+                            font-size="11"
+                            font-weight="700"
+                            font-family="system-ui, sans-serif"
+                            fill="#8a2a2b"
+                          >
+                            {num}
+                          </text>
+                          <For each={lines}>
+                            {(line, li) => (
+                              <text
+                                x={LEFT_PAD + 38}
+                                y={cyTitle + (li() - (lines.length - 1) / 2) * LINE_H}
+                                text-anchor="start"
+                                dominant-baseline="central"
+                                font-size="12"
+                                font-weight="600"
+                                font-family="system-ui, sans-serif"
+                                fill="#2a2723"
+                              >
+                                {line}
+                              </text>
+                            )}
                           </For>
-                          <Show when={hiddenRabbis > 0}>
-                            <text
-                              x={cx}
-                              y={yTop + h - 8}
-                              font-size="9.5"
-                              font-weight={500}
-                              font-family="system-ui, sans-serif"
-                              fill="#b0a894"
-                            >
-                              {`+${hiddenRabbis}`}
-                            </text>
-                          </Show>
-                        </Show>
-                        {/* cross-text exits: collapsed ⤳N badge → click to expand a chip per parallel */}
-                        <Show when={(m.nodeExits.get(key) ?? []).length}>
-                          {(() => {
-                            const exits = m.nodeExits.get(key) ?? [];
-                            const isOpen = () => openExits().has(key);
-                            const bx = LEFT_PAD + NODE_W - BADGE_W - 7;
-                            const by = yTop + 6;
-                            return (
-                              <>
-                                {/* biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram */}
-                                <g
-                                  role="button"
-                                  tabindex={0}
-                                  style={{ cursor: 'pointer' }}
-                                  onClick={() => toggleExits(key)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                      e.preventDefault();
-                                      toggleExits(key);
-                                    }
-                                  }}
-                                >
-                                  <title>
-                                    {t(
-                                      exits.length === 1
-                                        ? 'spine.tip.parallels.one'
-                                        : 'spine.tip.parallels.other',
-                                      {
-                                        count: exits.length,
-                                        action: isOpen()
-                                          ? t('spine.action.hide')
-                                          : t('spine.action.show'),
-                                      },
-                                    )}
-                                  </title>
-                                  <rect
-                                    x={bx}
-                                    y={by}
-                                    width={BADGE_W}
-                                    height={BADGE_H}
-                                    rx={7}
-                                    ry={7}
-                                    fill={isOpen() ? PARALLEL : '#ffffff'}
-                                    stroke={PARALLEL}
-                                    stroke-width={1.5}
-                                  />
+                          <Show when={rabbis.length}>
+                            <For each={chips}>
+                              {(c) => {
+                                const on = () => hl() === c.slug;
+                                const trace = (e?: Event) => {
+                                  e?.stopPropagation(); // don't also focus the section
+                                  props.onRabbi?.(c.slug);
+                                };
+                                return (
+                                  // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
                                   <text
-                                    x={bx + BADGE_W / 2}
-                                    y={by + BADGE_H / 2 + 0.5}
-                                    text-anchor="middle"
-                                    dominant-baseline="central"
-                                    font-size="10"
-                                    font-weight="700"
+                                    x={c.x}
+                                    y={yTop + h - 8}
+                                    font-size="9.5"
+                                    font-weight={on() ? 700 : 500}
                                     font-family="system-ui, sans-serif"
-                                    fill={isOpen() ? '#ffffff' : PARALLEL}
-                                  >
-                                    {`⤳ ${exits.length}`}
-                                  </text>
-                                </g>
-                                <Show when={isOpen()}>
-                                  <For each={exits}>
-                                    {(ex, j) => {
-                                      const top = yTop + h + EXIT_TOP + j() * EXIT_H;
-                                      const ch = EXIT_H - 3;
-                                      const cy = top + ch / 2;
-                                      const chipX = LEFT_PAD + EXIT_INDENT;
-                                      const chipW = NODE_W - EXIT_INDENT - 6;
-                                      const tag = corpusTag(ex.corpus);
-                                      const tagW = tag.length * 5.4 + 12;
-                                      const refMax = Math.max(
-                                        8,
-                                        Math.floor((chipW - tagW - 32) / 5.4),
-                                      );
-                                      const refFull = exitRefLabel(ex);
-                                      const refText =
-                                        refFull.length > refMax
-                                          ? `${refFull.slice(0, refMax - 1)}…`
-                                          : refFull;
-                                      const nav = dafTarget(ex).navigable;
-                                      const inner = (
-                                        <>
-                                          <title>{`${t(`link.rel.${ex.relation}`)} — ${refFull}${nav ? ` (${t('spine.tip.openInReader')})` : ` (${t('spine.tip.yeruCard')})`}`}</title>
-                                          <rect
-                                            x={chipX}
-                                            y={top}
-                                            width={chipW}
-                                            height={ch}
-                                            rx={6}
-                                            ry={6}
-                                            fill="#ffffff"
-                                            stroke="#e4e0d4"
-                                            stroke-width={1}
-                                          />
-                                          <rect
-                                            x={chipX}
-                                            y={top}
-                                            width={3}
-                                            height={ch}
-                                            fill={PARALLEL}
-                                          />
-                                          <text
-                                            x={chipX + 11}
-                                            y={cy}
-                                            dominant-baseline="central"
-                                            font-size="10"
-                                            fill="#9a948a"
-                                          >
-                                            ↗
-                                          </text>
-                                          <text
-                                            x={chipX + 22}
-                                            y={cy}
-                                            dominant-baseline="central"
-                                            font-size="10.5"
-                                            font-weight="500"
-                                            font-family="system-ui, sans-serif"
-                                            fill="#2a2723"
-                                          >
-                                            {refText}
-                                          </text>
-                                          <rect
-                                            x={chipX + chipW - tagW - 5}
-                                            y={top + 2.5}
-                                            width={tagW}
-                                            height={ch - 5}
-                                            rx={5}
-                                            ry={5}
-                                            fill={corpusFill(ex.corpus)}
-                                          />
-                                          <text
-                                            x={chipX + chipW - tagW / 2 - 5}
-                                            y={cy}
-                                            text-anchor="middle"
-                                            dominant-baseline="central"
-                                            font-size="8.5"
-                                            font-weight="650"
-                                            font-family="system-ui, sans-serif"
-                                            fill={corpusInk(ex.corpus)}
-                                          >
-                                            {tag}
-                                          </text>
-                                        </>
-                                      );
-                                      // Bavli → clickable (opens in our reader); Yerushalmi → informative only.
-                                      if (!nav) return <g>{inner}</g>;
-                                      return (
-                                        // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
-                                        <g
-                                          role="button"
-                                          tabindex={0}
-                                          style={{ cursor: 'pointer' }}
-                                          onClick={() => pickExit(ex)}
-                                          onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                              e.preventDefault();
-                                              pickExit(ex);
-                                            }
-                                          }}
-                                        >
-                                          {inner}
-                                        </g>
-                                      );
+                                    fill={on() ? HILITE : '#8a7a55'}
+                                    style={{ cursor: 'pointer' }}
+                                    role="button"
+                                    tabindex={0}
+                                    onClick={trace}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        trace();
+                                      }
                                     }}
-                                  </For>
-                                </Show>
-                              </>
-                            );
-                          })()}
+                                  >
+                                    <title>{t('spine.tip.traceRabbi', { name: c.full })}</title>
+                                    {c.name}
+                                  </text>
+                                );
+                              }}
+                            </For>
+                            <Show when={hiddenRabbis > 0}>
+                              <text
+                                x={cx}
+                                y={yTop + h - 8}
+                                font-size="9.5"
+                                font-weight={500}
+                                font-family="system-ui, sans-serif"
+                                fill="#b0a894"
+                              >
+                                {`+${hiddenRabbis}`}
+                              </text>
+                            </Show>
+                          </Show>
+                          {/* cross-text exits: collapsed ⤳N badge → click to expand a chip per parallel */}
+                          <Show when={(m.nodeExits.get(key) ?? []).length}>
+                            {(() => {
+                              const exits = m.nodeExits.get(key) ?? [];
+                              const isOpen = () => openExits().has(key);
+                              const bx = LEFT_PAD + NODE_W - BADGE_W - 7;
+                              const by = yTop + 6;
+                              return (
+                                <>
+                                  {/* biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram */}
+                                  <g
+                                    role="button"
+                                    tabindex={0}
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleExits(key);
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        toggleExits(key);
+                                      }
+                                    }}
+                                  >
+                                    <title>
+                                      {t(
+                                        exits.length === 1
+                                          ? 'spine.tip.parallels.one'
+                                          : 'spine.tip.parallels.other',
+                                        {
+                                          count: exits.length,
+                                          action: isOpen()
+                                            ? t('spine.action.hide')
+                                            : t('spine.action.show'),
+                                        },
+                                      )}
+                                    </title>
+                                    <rect
+                                      x={bx}
+                                      y={by}
+                                      width={BADGE_W}
+                                      height={BADGE_H}
+                                      rx={7}
+                                      ry={7}
+                                      fill={isOpen() ? PARALLEL : '#ffffff'}
+                                      stroke={PARALLEL}
+                                      stroke-width={1.5}
+                                    />
+                                    <text
+                                      x={bx + BADGE_W / 2}
+                                      y={by + BADGE_H / 2 + 0.5}
+                                      text-anchor="middle"
+                                      dominant-baseline="central"
+                                      font-size="10"
+                                      font-weight="700"
+                                      font-family="system-ui, sans-serif"
+                                      fill={isOpen() ? '#ffffff' : PARALLEL}
+                                    >
+                                      {`⤳ ${exits.length}`}
+                                    </text>
+                                  </g>
+                                  <Show when={isOpen()}>
+                                    <For each={exits}>
+                                      {(ex, j) => {
+                                        const top = yTop + h + EXIT_TOP + j() * EXIT_H;
+                                        const ch = EXIT_H - 3;
+                                        const cy = top + ch / 2;
+                                        const chipX = LEFT_PAD + EXIT_INDENT;
+                                        const chipW = NODE_W - EXIT_INDENT - 6;
+                                        const tag = corpusTag(ex.corpus);
+                                        const tagW = tag.length * 5.4 + 12;
+                                        const refMax = Math.max(
+                                          8,
+                                          Math.floor((chipW - tagW - 32) / 5.4),
+                                        );
+                                        const refFull = exitRefLabel(ex);
+                                        const refText =
+                                          refFull.length > refMax
+                                            ? `${refFull.slice(0, refMax - 1)}…`
+                                            : refFull;
+                                        const nav = dafTarget(ex).navigable;
+                                        const inner = (
+                                          <>
+                                            <title>{`${t(`link.rel.${ex.relation}`)} — ${refFull}${nav ? ` (${t('spine.tip.openInReader')})` : ` (${t('spine.tip.yeruCard')})`}`}</title>
+                                            <rect
+                                              x={chipX}
+                                              y={top}
+                                              width={chipW}
+                                              height={ch}
+                                              rx={6}
+                                              ry={6}
+                                              fill="#ffffff"
+                                              stroke="#e4e0d4"
+                                              stroke-width={1}
+                                            />
+                                            <rect
+                                              x={chipX}
+                                              y={top}
+                                              width={3}
+                                              height={ch}
+                                              fill={PARALLEL}
+                                            />
+                                            <text
+                                              x={chipX + 11}
+                                              y={cy}
+                                              dominant-baseline="central"
+                                              font-size="10"
+                                              fill="#9a948a"
+                                            >
+                                              ↗
+                                            </text>
+                                            <text
+                                              x={chipX + 22}
+                                              y={cy}
+                                              dominant-baseline="central"
+                                              font-size="10.5"
+                                              font-weight="500"
+                                              font-family="system-ui, sans-serif"
+                                              fill="#2a2723"
+                                            >
+                                              {refText}
+                                            </text>
+                                            <rect
+                                              x={chipX + chipW - tagW - 5}
+                                              y={top + 2.5}
+                                              width={tagW}
+                                              height={ch - 5}
+                                              rx={5}
+                                              ry={5}
+                                              fill={corpusFill(ex.corpus)}
+                                            />
+                                            <text
+                                              x={chipX + chipW - tagW / 2 - 5}
+                                              y={cy}
+                                              text-anchor="middle"
+                                              dominant-baseline="central"
+                                              font-size="8.5"
+                                              font-weight="650"
+                                              font-family="system-ui, sans-serif"
+                                              fill={corpusInk(ex.corpus)}
+                                            >
+                                              {tag}
+                                            </text>
+                                          </>
+                                        );
+                                        // Bavli → clickable (opens in our reader); Yerushalmi → informative only.
+                                        if (!nav) return <g>{inner}</g>;
+                                        return (
+                                          // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
+                                          <g
+                                            role="button"
+                                            tabindex={0}
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              pickExit(ex);
+                                            }}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                pickExit(ex);
+                                              }
+                                            }}
+                                          >
+                                            {inner}
+                                          </g>
+                                        );
+                                      }}
+                                    </For>
+                                  </Show>
+                                </>
+                              );
+                            })()}
+                          </Show>
+                        </g>
+                        {/* The focused section's statement spine, nested below it —
+                          the same StatementBand the per-daf map uses. */}
+                        <Show when={stmts().length}>
+                          <StatementBand
+                            statements={stmts()}
+                            links={m.nodeStatementLinks.get(key) ?? []}
+                            nodeX={LEFT_PAD}
+                            nodeW={NODE_W}
+                            topY={m.nodeStmtTop.get(key) ?? yTop}
+                            selectedId={props.selectedStatementId}
+                            onSelect={props.onSelectStatement}
+                          />
                         </Show>
-                      </g>
+                      </>
                     );
                   }}
                 </For>
