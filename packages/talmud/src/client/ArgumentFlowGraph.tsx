@@ -98,6 +98,7 @@ const MARKER_INK = '#9a7b4f';
 const STMT_TOP = 6;
 const STMT_H = 28;
 const STMT_INDENT = 24;
+const STMT_STRIPE = 4; // left accent-stripe width on a nested statement node
 const STMT_SIDE_COLOR: Record<string, string> = {
   A: '#1d4ed8',
   B: '#b91c1c',
@@ -676,6 +677,11 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                             }}
                           >
                             <title>{`${s.role}${s.speaker ? ` — ${s.speaker}` : ''}`}</title>
+                            {/* Rounded card with a left accent stripe — the SVG analog
+                                of CSS border-left: an accent-filled rounded rect under
+                                a left-inset body rect of the SAME radius, so the stripe
+                                wraps the rounded corners cleanly (no pinched tips), then
+                                a hairline border outline on top. */}
                             <rect
                               x={sx}
                               y={sTop()}
@@ -683,22 +689,27 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                               height={sh}
                               rx={6}
                               ry={6}
-                              fill={sel() ? '#fdf2f2' : '#ffffff'}
-                              stroke={sel() ? '#8a2a2b' : '#e4e0d4'}
-                              stroke-width={sel() ? 1.75 : 1}
+                              fill={accent}
                             />
-                            {/* Accent bar clipped to the card's rounded shape so its
-                                corners follow the rounding instead of poking past it. */}
-                            <clipPath id={`stmt-clip-${n.index}-${k()}`}>
-                              <rect x={sx} y={sTop()} width={sw} height={sh} rx={6} ry={6} />
-                            </clipPath>
+                            <rect
+                              x={sx + STMT_STRIPE}
+                              y={sTop()}
+                              width={sw - STMT_STRIPE}
+                              height={sh}
+                              rx={6}
+                              ry={6}
+                              fill={sel() ? '#fdf2f2' : '#ffffff'}
+                            />
                             <rect
                               x={sx}
                               y={sTop()}
-                              width={3.5}
+                              width={sw}
                               height={sh}
-                              fill={accent}
-                              clip-path={`url(#stmt-clip-${n.index}-${k()})`}
+                              rx={6}
+                              ry={6}
+                              fill="none"
+                              stroke={sel() ? '#8a2a2b' : '#e4e0d4'}
+                              stroke-width={sel() ? 1.75 : 1}
                             />
                             <text
                               x={sx + 12}
