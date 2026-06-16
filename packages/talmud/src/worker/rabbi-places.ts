@@ -21,6 +21,10 @@ export interface RabbiPlacesEntry {
   bioSource?: 'sefaria' | 'wikipedia' | null;
   image?: string | null;
   wiki?: string | null;
+  /** Set on entries NOT from the Sefaria scrape — e.g. AI-researched additions
+   *  for sages missing from Sefaria's PersonTopic export. Audit trail; also lets
+   *  a future build-rabbi-places.py regen know which entries to re-merge. */
+  provenance?: string | null;
 }
 
 export interface RabbiPlacesFile {

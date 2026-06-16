@@ -178,6 +178,24 @@ describe('resolveRabbi — production-path coverage over the Berakhot fixture', 
   });
 });
 
+// AI-researched sages added from the 2026-06 backlog research (provenance
+// 'ai-research-2026-06'): genuine Bavli figures absent from the Sefaria-sourced
+// dataset. These previously resolved to null and flooded the unknown-rabbi
+// backlog. Guards that the additions stay resolvable.
+describe('resolveRabbi — verified-absent sages added to the dataset', () => {
+  const ADDED: Array<[string, string, string]> = [
+    ['Avtalyon', 'אבטליון', 'avtalyon'],
+    ['Bar Hedya', 'בר הדיא', 'bar-hedya'],
+    ['Rachava', 'רחבא', 'rahava-of-pumbedita'],
+    ['Yochanan ben Dehavai', 'יוחנן בן דהבאי', 'rabbi-yochanan-ben-dahavai'],
+  ];
+  for (const [name, nameHe, slug] of ADDED) {
+    it(`${name} (${nameHe}) resolves to ${slug}`, () => {
+      expect(resolveRabbi(name, nameHe)?.slug).toBe(slug);
+    });
+  }
+});
+
 describe('resolveRabbiByName — patronymic-fallback safety', () => {
   it('does NOT collapse "Rabbah bar X" to bare "Rabbah"', () => {
     // Bug B precondition: bare "Rabbah" in the aliasIndex points at
