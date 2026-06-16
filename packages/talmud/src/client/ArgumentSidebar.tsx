@@ -50,7 +50,7 @@ import { type CodificationData, codeMapFromCodification, SIDE_COLOR } from './fl
 import { GeographyMap } from './GeographyMap';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
 import { Hebraized } from './Hebraized';
-import { lang, t } from './i18n';
+import { type CatalogKey, lang, t } from './i18n';
 import { CorpusBadge, LinkRef } from './LinkRef';
 import { InspectDot, registerMarkRenderer } from './MarkEnrichmentCards';
 import type { GeographyData, GeographyEvidence } from './RabbiGeographyCard';
@@ -1890,7 +1890,9 @@ function HalachaCodification(props: SpecialBlockProps): JSX.Element {
   };
   const map = () => {
     const cod = codification();
-    return cod ? codeMapFromCodification(cod, `${props.tractate} ${props.page}`) : null;
+    const dafRef =
+      lang() === 'he' ? dafRefHe(props.tractate, props.page) : `${props.tractate} ${props.page}`;
+    return cod ? codeMapFromCodification(cod, dafRef) : null;
   };
   return (
     <Show when={map()}>
@@ -2213,10 +2215,10 @@ async function fetchDerivation(args: {
   return j.sources ?? [];
 }
 
-const DERIVATION_ROLE_LABEL: Record<DerivationSource['role'], string> = {
-  primary: 'primary source',
-  related: 'related',
-  root: 'scriptural root',
+const DERIVATION_ROLE_KEY: Record<DerivationSource['role'], CatalogKey> = {
+  primary: 'halacha.role.primary',
+  related: 'halacha.role.related',
+  root: 'halacha.role.root',
 };
 
 // `parseBavliRef` (imported from lib/halacha/codifiers) turns a Bavli source
@@ -2273,6 +2275,15 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
             {(s) => {
               // Bavli sources (other than the current daf) navigate to that daf.
               const target = s.kind === 'bavli' && !s.isCurrent ? parseBavliRef(s.ref) : null;
+              // In Hebrew mode a Bavli ref reads as the Hebrew daf form; Tanakh /
+              // Yerushalmi refs keep their own string (no Hebrew daf shape).
+              const refLabel = (): string => {
+                if (lang() === 'he' && s.kind === 'bavli') {
+                  const p = parseBavliRef(s.ref);
+                  if (p) return dafRefHe(p.tractate, p.page);
+                }
+                return s.ref;
+              };
               const rowStyle: JSX.CSSProperties = {
                 display: 'flex',
                 'align-items': 'baseline',
@@ -2295,7 +2306,7 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
                       color: '#2a2723',
                     }}
                   >
-                    {s.ref}
+                    {refLabel()}
                   </span>
                   {/* Corpus badge — shared with the overview chips. Only the
                       Yerushalmi shows one; Bavli + Tanakh read for themselves. */}
@@ -2309,7 +2320,7 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
                       color: '#9a958a',
                     }}
                   >
-                    {DERIVATION_ROLE_LABEL[s.role]}
+                    {t(DERIVATION_ROLE_KEY[s.role])}
                   </span>
                   <Show when={s.isCurrent}>
                     <span
@@ -2325,7 +2336,7 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
                         'flex-shrink': 0,
                       }}
                     >
-                      YOU ARE HERE
+                      {t('halacha.youAreHere')}
                     </span>
                   </Show>
                   <Show when={target}>
@@ -2352,7 +2363,7 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
                       e.preventDefault();
                       navigateToDaf(target!);
                     }}
-                    title={t('overview.goToDaf', { daf: s.ref })}
+                    title={t('overview.goToDaf', { daf: refLabel() })}
                     style={rowStyle}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = '#8a2a2b';
@@ -3124,31 +3135,59 @@ function RishonimSources(props: SpecialBlockProps): JSX.Element {
             }}
           >
             <summary style={{ cursor: 'pointer', 'font-weight': 500, color: '#1f2937' }}>
-              {c.work}
-              <Show when={c.workHe}>
+              {/* In Hebrew mode the Hebrew work name leads (serif, rtl) and the
+                  English is the muted aside; in English mode the reverse. The
+                  Sefaria sourceRef ("Rashi on Chullin 47b:1:1") is English-only
+                  and pure breadcrumb, so it's dropped in Hebrew mode. */}
+              <Show
+                when={lang() === 'he'}
+                fallback={
+                  <>
+                    {c.work}
+                    <Show when={c.workHe}>
+                      <span
+                        style={{
+                          'margin-left': '0.4rem',
+                          color: '#94a3b8',
+                          'font-size': '0.78rem',
+                          'font-family': '"Mekorot Vilna", serif',
+                        }}
+                        dir="rtl"
+                        lang="he"
+                      >
+                        {c.workHe}
+                      </span>
+                    </Show>
+                  </>
+                }
+              >
+                <span dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif' }}>
+                  {c.workHe || c.work}
+                </span>
+                <Show when={c.workHe && c.work}>
+                  <span
+                    style={{
+                      'margin-inline-start': '0.4rem',
+                      color: '#94a3b8',
+                      'font-size': '0.78rem',
+                    }}
+                  >
+                    {c.work}
+                  </span>
+                </Show>
+              </Show>
+              <Show when={c.sourceRef && lang() !== 'he'}>
                 <span
                   style={{
                     'margin-left': '0.4rem',
-                    color: '#94a3b8',
-                    'font-size': '0.78rem',
-                    'font-family': '"Mekorot Vilna", serif',
+                    color: '#cbd5e1',
+                    'font-size': '0.7rem',
+                    'font-family': 'ui-monospace, Menlo, monospace',
                   }}
-                  dir="rtl"
-                  lang="he"
                 >
-                  {c.workHe}
+                  {c.sourceRef}
                 </span>
               </Show>
-              <span
-                style={{
-                  'margin-left': '0.4rem',
-                  color: '#cbd5e1',
-                  'font-size': '0.7rem',
-                  'font-family': 'ui-monospace, Menlo, monospace',
-                }}
-              >
-                {c.sourceRef}
-              </span>
             </summary>
             <Show when={c.textHe}>
               <p

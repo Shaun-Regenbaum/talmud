@@ -921,6 +921,16 @@ const CATALOG = {
   'source.tur': { en: 'Tur', he: 'טור' },
   'source.shulchanAruch': { en: 'Shulchan Aruch', he: 'שולחן ערוך' },
   'source.rema': { en: 'Rema', he: 'רמ״א' },
+  // Codification-map node labels (the lineage cards: Gemara → Rambam → … → Rema).
+  'source.gemara': { en: 'Gemara', he: 'גמרא' },
+  'source.rambam': { en: 'Rambam', he: 'רמב״ם' },
+  'source.mechaber': { en: 'Mechaber', he: 'מחבר' },
+  'source.badge': { en: 'source', he: 'מקור' },
+  // Halacha derivation (מקורות בש״ס) source-role badges + the current-daf marker.
+  'halacha.role.primary': { en: 'primary source', he: 'מקור עיקרי' },
+  'halacha.role.related': { en: 'related', he: 'קשור' },
+  'halacha.role.root': { en: 'scriptural root', he: 'מקור מן הכתוב' },
+  'halacha.youAreHere': { en: 'You are here', he: 'אתם כאן' },
   // Dispute axis chips (מחלוקות).
   'axis.mechaber-rema': { en: 'Mechaber–Rema', he: 'מחבר–רמ״א' },
   'axis.ashkenaz-sefarad': { en: 'Ashkenaz–Sefarad', he: 'אשכנז–ספרד' },
