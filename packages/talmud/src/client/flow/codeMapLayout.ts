@@ -10,6 +10,8 @@
  * edges, so the two maps read as one component language.
  */
 
+import type { CatalogKey } from '../i18n';
+
 /** Which dispute side a node sits on → its badge / spine-dot colour. Mirrors
  *  ArgumentVoiceMap's side palette (A blue, B red) plus a green "source" for the
  *  gemara node and a slate "neutral" for an undisputed codifier. */
@@ -68,14 +70,20 @@ export function gutterEdgePath(y1: number, y2: number, rightX: number, laneX: nu
 /** One node in the lineage (a codifier, or the gemara source at the top). */
 export interface CodeMapNode {
   id: string;
-  /** Authority handle shown bold (e.g. "Rambam", "Shulchan Aruch", "Gemara"). */
+  /** Authority handle shown bold (e.g. "Rambam", "Shulchan Aruch", "Gemara").
+   *  English fallback; prefer `labelKey` for the localized surface. */
   label: string;
+  /** i18n catalog key for the authority handle, so the card localizes (Hebrew
+   *  mode shows "רמב״ם" / "גמרא" rather than the English label). */
+  labelKey?: CatalogKey;
   /** Citation shown in link-blue (e.g. "OC 235:3"). */
   ref?: string;
   /** A short, plain ruling line under the heading. */
   ruling?: string;
-  /** Small uppercase tag after the label (e.g. "source"). */
+  /** Small uppercase tag after the label (e.g. "source"). English fallback. */
   era?: string;
+  /** i18n catalog key for the `era` tag, so it localizes too. */
+  eraKey?: CatalogKey;
   /** Dispute side → badge / spine-dot colour. */
   side: NodeSide;
   /** Optional practice chip (Sephardi / Ashkenazi / accepted-by-all). */
@@ -118,30 +126,49 @@ export function codeMapFromCodification(
   dafRef: string,
 ): { nodes: CodeMapNode[]; edges: CodeMapEdge[] } {
   const nodes: CodeMapNode[] = [
-    { id: 'gemara', label: 'Gemara', ref: dafRef, era: 'source', side: 'source' },
+    {
+      id: 'gemara',
+      label: 'Gemara',
+      labelKey: 'source.gemara',
+      ref: dafRef,
+      era: 'source',
+      eraKey: 'source.badge',
+      side: 'source',
+    },
   ];
   const edges: CodeMapEdge[] = [];
   // The Mechaber/Rema split only makes sense when the Shulchan Aruch is present
   // (Rema glosses it). A Rema without an SA node has nothing to disagree with.
   const disputed = hasRef(d.rema) && hasRef(d.shulchanAruch);
-  const spine: Array<[keyof CodificationData, string]> = [
-    ['mishnehTorah', 'Rambam'],
-    ['tur', 'Tur'],
-    ['shulchanAruch', disputed ? 'Mechaber' : 'Shulchan Aruch'],
+  const spine: Array<[keyof CodificationData, string, CatalogKey]> = [
+    ['mishnehTorah', 'Rambam', 'source.rambam'],
+    ['tur', 'Tur', 'source.tur'],
+    [
+      'shulchanAruch',
+      disputed ? 'Mechaber' : 'Shulchan Aruch',
+      disputed ? 'source.mechaber' : 'source.shulchanAruch',
+    ],
   ];
   let prev = 'gemara';
   let firstCodifier = true;
-  for (const [key, label] of spine) {
+  for (const [key, label, labelKey] of spine) {
     const r = d[key] as CodificationRuling | null;
     if (!hasRef(r)) continue;
     const side: NodeSide = disputed && key === 'shulchanAruch' ? 'a' : 'neutral';
-    nodes.push({ id: key, label, ref: r.ref, ruling: r.ruling, side });
+    nodes.push({ id: key, label, labelKey, ref: r.ref, ruling: r.ruling, side });
     edges.push({ from: prev, to: key, kind: firstCodifier ? 'cites' : 'transmits' });
     prev = key;
     firstCodifier = false;
   }
   if (disputed) {
-    nodes.push({ id: 'rema', label: 'Rema', ref: d.rema!.ref, ruling: d.rema!.ruling, side: 'b' });
+    nodes.push({
+      id: 'rema',
+      label: 'Rema',
+      labelKey: 'source.rema',
+      ref: d.rema!.ref,
+      ruling: d.rema!.ruling,
+      side: 'b',
+    });
     edges.push({ from: 'shulchanAruch', to: 'rema', kind: 'disagrees' });
   }
   return { nodes, edges };

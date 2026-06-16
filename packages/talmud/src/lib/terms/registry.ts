@@ -36,6 +36,10 @@ export interface Term {
   en?: string;
   /** Short English meaning (tooltip + first-mention gloss). */
   gloss: string;
+  /** Short Hebrew meaning, for the tooltip in Hebrew mode. Present on globals
+   *  (authored in CANONICAL_HEBREW_TERMS); per-daf concepts leave it unset —
+   *  their `gloss` is already in the daf-enrichment's language. */
+  glossHe?: string;
   /** Per-term display policy (see TermDisplay). */
   display: TermDisplay;
   /** Glossary grouping. */
@@ -72,6 +76,7 @@ export function globalTerms(): Term[] {
     variants: t.variants ? [...t.variants] : undefined,
     en: t.en,
     gloss: t.gloss,
+    glossHe: t.glossHe,
     display: t.display,
     category: t.category,
     scope: 'global' as const,
