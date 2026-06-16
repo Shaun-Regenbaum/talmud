@@ -103,7 +103,7 @@ import {
   type TypeProfile,
   type UnitRange,
 } from '../lib/typing/profile';
-import { buildStatementSpine } from '../lib/typing/statementSpine';
+import { buildStatementSpine, crossSectionStatementFlow } from '../lib/typing/statementSpine';
 import { deriveVoiceEdges } from '../lib/typing/voices';
 import {
   alignOutlineToSegments,
@@ -1783,6 +1783,64 @@ app.get('/api/statement-spine/:tractate/:page', async (c) => {
   // every section's spine is empty, show "not computed yet") from a section that
   // legitimately has no sub-statements. Without it an empty band reads as broken.
   return c.json({ tractate, page, sections: out, movesComputed: allMoves.length > 0 });
+});
+
+// Deterministic section→section connections derived from the STATEMENT dialectic
+// (read-only, no compute). The `argument-overview.flow` AI producer frequently
+// returns NO edges on a long technical sugya even when its sections plainly answer
+// / object to one another (e.g. Pesachim 2a: 0 AI edges, yet a 6-link kushya-terutz
+// chain). `crossSectionStatementFlow` lifts the daf-global statement walk's typed
+// cross-section links to the section grain, so the Overview map can connect the
+// boxes the AI flow left disconnected. The client merges these UNDER the AI flow
+// (AI keeps final say on any pair it already covers). Cheap: reads cached
+// argument-move + argument.voices, builds the spine in-process, no LLM, no write.
+app.get('/api/derived-flow/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
+  if (!c.env.CACHE) return c.json({ error: 'no CACHE binding in this environment' }, 503);
+
+  const sections = (await readMarkInstances(c.env, 'argument', tractate, page))
+    .filter((s) => typeof s.startSegIdx === 'number' && typeof s.endSegIdx === 'number')
+    .sort((a, b) => (a.startSegIdx as number) - (b.startSegIdx as number));
+  const allMoves: MoveLike[] = (await readMarkInstances(c.env, 'argument-move', tractate, page))
+    .filter((m) => typeof m.startSegIdx === 'number' && typeof m.endSegIdx === 'number')
+    .map((m) => ({
+      startSegIdx: m.startSegIdx as number,
+      endSegIdx: m.endSegIdx as number,
+      fields: m.fields ?? {},
+    }));
+  const voicesDef = findCodeEnrichment('argument.voices');
+
+  // Per-section {index, range, moves, voices} — moves sliced to the section, the
+  // section's voices graph read from cache (same key readSectionRabbis uses).
+  const secData = await Promise.all(
+    sections.map(async (sec, index) => {
+      const startSegIdx = sec.startSegIdx as number;
+      const endSegIdx = sec.endSegIdx as number;
+      const moves = selectSectionMoves(allMoves, { startSegIdx, endSegIdx });
+      let voices: ReturnType<typeof deriveVoiceEdges> | null = null;
+      if (voicesDef) {
+        const vhit = await readCachedResult(
+          c.env,
+          keyForEnrichment(voicesDef, await instanceIdOf(sec), { tractate, page }),
+        );
+        if (vhit?.parsed) voices = deriveVoiceEdges(vhit.parsed);
+      }
+      return {
+        index,
+        startSegIdx,
+        endSegIdx,
+        moves,
+        voices: voices as Parameters<typeof crossSectionStatementFlow>[0][number]['voices'],
+      };
+    }),
+  );
+
+  const derived = crossSectionStatementFlow(secData);
+  // movesComputed false → argument-move marks not warmed yet; the client shouldn't
+  // treat an empty `derived` as "no connections" (it just isn't computed).
+  return c.json({ tractate, page, derived, movesComputed: allMoves.length > 0 });
 });
 
 // Incremental per-tractate spine-view snapshot builder — the cron payoff. A full
