@@ -116,6 +116,18 @@ const STMT_FONT = 'system-ui, -apple-system, sans-serif';
 // have to each other). Opposition reads as the section's `contrasts`; a response
 // continues the thread; a support is an evidential `depends-on`. (Bracket-vs-thread
 // routing still keys on the precise statement relation; only colour/label follow.)
+//
+// DEFERRED (future cache-version bump): the canonical unified vocabulary (per a
+// design panel) is — dialectic: continues / resolves / opposes / supports;
+// reference: cites / parallels / depends-on / generalizes. Two display approxes
+// here are lossy: `supports`->depends-on is DIRECTION-REVERSED (evidence-FOR vs
+// prerequisite-OF — the bigger one; a FREE client fix is to give statement
+// `supports` its own evidential colour+label instead of aliasing depends-on), and
+// opposition is merely double-named (`contrasts` at section, `opposes` here).
+// `responds-to`->continues is a DELIBERATE merge, not lossy. To derive natively
+// (not remap), the producer work is benchmark-gated + cold-misses Shas: add a
+// section-level `supports` kind and split the conflated `cites` in
+// argument-overview.flow, then bump its recipe. Keep the display remap for now.
 const STMT_REL_AS_LINK: Record<string, FlowConnection['kind']> = {
   opposes: 'contrasts',
   'responds-to': 'continues',
