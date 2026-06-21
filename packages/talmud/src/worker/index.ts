@@ -5671,55 +5671,62 @@ app.get('/api/admin/llm-cost', async (c) => {
       { calls: number; cost: number; costInEst: number; costOutEst: number }
     > = {};
 
-    for (const key of keys) {
-      const raw = await cache.get(key);
-      if (!raw) continue;
-      let r: LlmCostRec;
-      try {
-        r = JSON.parse(raw) as LlmCostRec;
-      } catch {
-        continue;
-      }
-      if (since && r.ts < since) continue;
-      calls++;
-      if (typeof r.cost === 'number') {
-        totalCost += r.cost;
-        callsWithCost++;
-      }
-      if (typeof r.cost_in_est === 'number') totalCostInEst += r.cost_in_est;
-      if (typeof r.cost_out_est === 'number') totalCostOutEst += r.cost_out_est;
-      if (typeof r.prompt_tokens === 'number') promptTokens += r.prompt_tokens;
-      if (typeof r.completion_tokens === 'number') completionTokens += r.completion_tokens;
-      if (r.ts < minTs) minTs = r.ts;
-      if (r.ts > maxTs) maxTs = r.ts;
-      const m = byModel[r.model] ?? { calls: 0, cost: 0, promptTokens: 0, completionTokens: 0 };
-      byModel[r.model] = m;
-      m.calls++;
-      m.cost += r.cost ?? 0;
-      m.promptTokens += r.prompt_tokens ?? 0;
-      m.completionTokens += r.completion_tokens ?? 0;
-      const t = byTag[r.tag] ?? { calls: 0, cost: 0 };
-      byTag[r.tag] = t;
-      t.calls++;
-      t.cost += r.cost ?? 0;
-      const kindKey = r.kind ?? 'untagged';
-      const k = byKind[kindKey] ?? { calls: 0, cost: 0 };
-      byKind[kindKey] = k;
-      k.calls++;
-      k.cost += r.cost ?? 0;
-      if (r.tractate && r.page) {
-        const dafKey = `${r.tractate}:${r.page}`;
-        const d = byDaf[dafKey] ?? {
-          calls: 0,
-          cost: 0,
-          costInEst: 0,
-          costOutEst: 0,
-        };
-        byDaf[dafKey] = d;
-        d.calls++;
-        d.cost += r.cost ?? 0;
-        d.costInEst += r.cost_in_est ?? 0;
-        d.costOutEst += r.cost_out_est ?? 0;
+    // Read in parallel batches. 1000 sequential KV gets at ~25ms each took ~25s
+    // and tripped the request time limit (a 1102 after the memory fixes). Batched,
+    // one scan finishes in well under a second; the batch size keeps in-flight
+    // memory trivial.
+    const READ_BATCH = 50;
+    for (let bi = 0; bi < keys.length; bi += READ_BATCH) {
+      const raws = await Promise.all(keys.slice(bi, bi + READ_BATCH).map((k) => cache.get(k)));
+      for (const raw of raws) {
+        if (!raw) continue;
+        let r: LlmCostRec;
+        try {
+          r = JSON.parse(raw) as LlmCostRec;
+        } catch {
+          continue;
+        }
+        if (since && r.ts < since) continue;
+        calls++;
+        if (typeof r.cost === 'number') {
+          totalCost += r.cost;
+          callsWithCost++;
+        }
+        if (typeof r.cost_in_est === 'number') totalCostInEst += r.cost_in_est;
+        if (typeof r.cost_out_est === 'number') totalCostOutEst += r.cost_out_est;
+        if (typeof r.prompt_tokens === 'number') promptTokens += r.prompt_tokens;
+        if (typeof r.completion_tokens === 'number') completionTokens += r.completion_tokens;
+        if (r.ts < minTs) minTs = r.ts;
+        if (r.ts > maxTs) maxTs = r.ts;
+        const m = byModel[r.model] ?? { calls: 0, cost: 0, promptTokens: 0, completionTokens: 0 };
+        byModel[r.model] = m;
+        m.calls++;
+        m.cost += r.cost ?? 0;
+        m.promptTokens += r.prompt_tokens ?? 0;
+        m.completionTokens += r.completion_tokens ?? 0;
+        const t = byTag[r.tag] ?? { calls: 0, cost: 0 };
+        byTag[r.tag] = t;
+        t.calls++;
+        t.cost += r.cost ?? 0;
+        const kindKey = r.kind ?? 'untagged';
+        const k = byKind[kindKey] ?? { calls: 0, cost: 0 };
+        byKind[kindKey] = k;
+        k.calls++;
+        k.cost += r.cost ?? 0;
+        if (r.tractate && r.page) {
+          const dafKey = `${r.tractate}:${r.page}`;
+          const d = byDaf[dafKey] ?? {
+            calls: 0,
+            cost: 0,
+            costInEst: 0,
+            costOutEst: 0,
+          };
+          byDaf[dafKey] = d;
+          d.calls++;
+          d.cost += r.cost ?? 0;
+          d.costInEst += r.cost_in_est ?? 0;
+          d.costOutEst += r.cost_out_est ?? 0;
+        }
       }
     }
 
