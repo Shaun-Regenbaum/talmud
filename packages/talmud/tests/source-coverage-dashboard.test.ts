@@ -57,6 +57,14 @@ const CLASSIFICATION: Record<string, Classification> = {
     role: 'dashboard',
     note: 'dafyomi.co.il corpus (per-daf, sub-types fanned out)',
   },
+  keyForTalmudParallels: {
+    role: 'dashboard',
+    note: 'Mesorat HaShas Talmud↔Talmud parallels (Sefaria)',
+  },
+  keyForCommentaryWorks: {
+    role: 'dashboard',
+    note: 'commentary-spine works list (Sefaria links-with-text)',
+  },
 
   // --- Raw intermediate fetches behind a surfaced source --------------------
   keyForSefariaBundle: {
@@ -68,18 +76,10 @@ const CLASSIFICATION: Record<string, Classification> = {
     note: 'raw Sefaria segments — rolled into the gemara row',
   },
 
-  // --- Per-daf source content NOT yet surfaced (candidates to add) ----------
-  keyForTalmudParallels: {
-    role: 'not-source',
-    note: 'CANDIDATE: Mesorat HaShas Talmud↔Talmud parallels (Sefaria) — per-daf, not surfaced',
-  },
-  keyForCommentaryWorks: {
-    role: 'not-source',
-    note: 'CANDIDATE: per-daf commentary-spine works list (Sefaria) — not surfaced',
-  },
+  // --- Derived per-daf computations (not a fetched source) ------------------
   keyForMesorah: {
     role: 'not-source',
-    note: 'CANDIDATE: per-daf rabbi-transmission mesorah (Sefaria) — not surfaced',
+    note: 'derived rabbi-transmission chains (computed from the skeleton + rabbi-graph), not a fetched source',
   },
 
   // --- Per-ref caches (not keyed per daf) -----------------------------------

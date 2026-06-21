@@ -245,6 +245,16 @@ const nonEmptyValue: AlignPredicate = (v) => {
   return true;
 };
 
+// Commentary-works (keyForCommentaryWorks) caches an OBJECT
+// `{ works: CommentaryWork[], tractate, page, fetchedAt }` (or `{ error }`), so
+// nonEmptyValue would read every non-error fetch as "aligned" (the wrapper keys
+// are always present). Aligned = it actually carries at least one work.
+const alignedCommentaryWorks: AlignPredicate = (v) => {
+  if (!v || failed(v)) return false;
+  const d = v as { works?: unknown[] };
+  return Array.isArray(d.works) && d.works.length > 0;
+};
+
 // DafYomi content types (Kollel Iyun HaDaf), in display order. See
 // src/lib/sefref/dafyomi/masechtos.ts (DafyomiContentType).
 const DAFYOMI_TYPES = [
@@ -561,6 +571,10 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     yeruAligned,
     halRefsAligned,
     topicsAligned,
+    parallelsCount,
+    commWorksCount,
+    parallelsAligned,
+    commWorksAligned,
     dyTypes,
   ] = await Promise.all([
     countPrefix(cache, 'hb:v2:'),
@@ -586,6 +600,12 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     sampleAligned(cache, 'yerushalmi:v1:', nonEmptyValue),
     sampleAligned(cache, 'halacha-refs:v3:', nonEmptyValue),
     sampleAligned(cache, 'daf-topics:v1:', nonEmptyValue),
+    // Talmud↔Talmud parallels (Mesorat HaShas, Sefaria) + the broad commentary
+    // -spine works list (Sefaria links-with-text). Both per-daf source fetches.
+    countPrefix(cache, 'talmud-parallels:v1:'),
+    countPrefix(cache, 'commentaries:v1:'),
+    sampleAligned(cache, 'talmud-parallels:v1:', nonEmptyValue),
+    sampleAligned(cache, 'commentaries:v1:', alignedCommentaryWorks),
     sampleDafyomiTypes(cache),
   ]);
   const dafyomiAligned: AlignedSample | null =
@@ -622,6 +642,8 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     sefariaRow('yerushalmi', yeruCount, yeruAligned),
     sefariaRow('halacha-refs', halRefsCount, halRefsAligned),
     sefariaRow('daf-topics', topicsCount, topicsAligned),
+    sefariaRow('talmud-parallels', parallelsCount, parallelsAligned),
+    sefariaRow('commentary-works', commWorksCount, commWorksAligned),
     {
       id: 'dy',
       origin: 'DY',
