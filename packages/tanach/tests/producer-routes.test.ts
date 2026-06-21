@@ -24,7 +24,7 @@ vi.mock('@corpus/core/llm/llm', async (importOriginal) => {
 });
 
 import { runLLM } from '@corpus/core/llm/llm';
-import app from '../src/worker/index';
+import { app } from '../src/worker/index';
 
 const runLLMMock = vi.mocked(runLLM);
 
