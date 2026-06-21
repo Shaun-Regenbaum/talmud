@@ -5,6 +5,7 @@ import { render } from 'solid-js/web';
 import '@corpus/ui/tokens.css';
 import '@corpus/ui/themes/talmud.css';
 import '@corpus/ui/geomap.css';
+import '@corpus/ui/loadprogress.css';
 import App from './App';
 import { installGlobalErrorLogger } from './missLog';
 
