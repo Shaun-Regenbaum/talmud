@@ -113,7 +113,9 @@ export async function fetchWorkerOutcomes(
       return { configured: true, ok: false, error: `HTTP ${res.status}`, scriptName };
     }
     const json = (await res.json()) as {
-      data?: { viewer?: { accounts?: Array<{ workersInvocationsAdaptiveGroups?: InvocationGroup[] }> } };
+      data?: {
+        viewer?: { accounts?: Array<{ workersInvocationsAdaptiveGroups?: InvocationGroup[] }> };
+      };
       errors?: Array<{ message?: string }>;
     };
     if (json.errors && json.errors.length > 0) {
