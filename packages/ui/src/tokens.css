@@ -28,9 +28,18 @@
   --surface: #ffffff;
   --surface-sunk: rgba(0, 0, 0, 0.04);
 
-  /* ---- type ---- */
+  /* ---- type ----
+   * --font-ui and --font-serif are SHARED across every app (one chrome sans,
+   * one English reading serif) — the English reading experience is identical
+   * everywhere. Only --font-hebrew (the Hebrew face) is themed per app, since
+   * that's the real per-corpus difference (tanach: Frank Ruhl; talmud: Mekorot
+   * Vilna). Themes therefore override --font-hebrew + the palette, NOT these.
+   *
+   * --font-serif names Spectral; each app must load it (tanach does via its
+   * index.html; talmud loads it when it adopts @corpus/ui). Georgia is the
+   * fallback until then. */
   --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-serif: Georgia, "Times New Roman", serif;
+  --font-serif: "Spectral", Georgia, "Times New Roman", serif;
   --font-hebrew: serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 

@@ -21,9 +21,10 @@
   --surface: #ffffff;
   --surface-sunk: rgba(122, 92, 46, 0.08);
 
-  /* ---- type ---- */
-  /* --font-ui inherits the shared sans default (chrome is sans now). */
-  --font-serif: "Spectral", "Frank Ruhl Libre", Georgia, serif;
+  /* ---- type ----
+   * --font-ui (chrome sans) and --font-serif (English reading serif, Spectral)
+   * are inherited from tokens.css UNCHANGED — they're shared across apps. Only
+   * the Hebrew face is tanach's own. */
   --font-hebrew: "Frank Ruhl Libre", "Noto Serif Hebrew", serif;
 
   /* ---- tanach-specific surfaces ---- */

@@ -22,9 +22,12 @@
   --surface: #ffffff;
   --surface-sunk: rgba(138, 42, 43, 0.06);
 
-  /* ---- type ---- */
-  /* --font-ui inherits the shared sans default (talmud chrome is already sans). */
-  --font-serif: Georgia, "Times New Roman", serif;
+  /* ---- type ----
+   * --font-ui (chrome sans) and --font-serif (English reading serif, Spectral)
+   * are inherited from tokens.css UNCHANGED — shared across apps, so talmud's
+   * English prose matches tanach's. When talmud adopts @corpus/ui it must load
+   * Spectral (a <link>/@import, as tanach does) so --font-serif resolves to it
+   * rather than the Georgia fallback. Only the Hebrew faces are talmud's own. */
   --font-hebrew: "Mekorot Vilna", serif;
   --font-rashi: "Mekorot Rashi", "Mekorot Vilna", serif;
 }
