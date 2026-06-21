@@ -77,7 +77,20 @@ export async function fetchCommentaryWorks(
   }
   if (!res.ok) return { error: `Sefaria ${res.status}` };
 
-  const raw = (await res.json()) as Array<{
+  // Sefaria's links endpoint normally returns an array, but on some refs it
+  // returns an error OBJECT (or non-JSON) with a 200 — which used to crash the
+  // rishonim mark with "raw is not iterable" and hard-fail the queue job.
+  // Guard the shape so a bad response degrades to a clean error instead.
+  let parsed: unknown;
+  try {
+    parsed = await res.json();
+  } catch (err) {
+    return { error: `Sefaria links non-JSON: ${String(err)}` };
+  }
+  if (!Array.isArray(parsed)) {
+    return { error: `Sefaria links non-array response (${typeof parsed})` };
+  }
+  const raw = parsed as Array<{
     ref?: string;
     sourceRef?: string;
     anchorRef?: string;

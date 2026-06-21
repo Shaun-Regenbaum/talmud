@@ -6970,7 +6970,11 @@ app.get('/api/references/:tractate/:page', async (c) => {
   try {
     const res = await fetch(url, { headers: { accept: 'application/json' } });
     if (!res.ok) return c.json({ error: `Sefaria ${res.status}` }, 502);
-    const raw = (await res.json()) as Array<{
+    // Guard the shape: Sefaria sometimes returns an error object (not an array)
+    // with a 200, which would otherwise crash the iteration below.
+    const parsed = (await res.json()) as unknown;
+    if (!Array.isArray(parsed)) return c.json({ error: 'Sefaria non-array links' }, 502);
+    const raw = parsed as Array<{
       ref?: string;
       sourceRef?: string;
       anchorRef?: string;
