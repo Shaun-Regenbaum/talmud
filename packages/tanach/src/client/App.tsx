@@ -1,3 +1,8 @@
+import { Button } from '@corpus/ui/Button';
+import { Drawer } from '@corpus/ui/Drawer';
+import { LangToggle } from '@corpus/ui/LangToggle';
+import { Pill, PillRow } from '@corpus/ui/Pill';
+import { Prose } from '@corpus/ui/Prose';
 import {
   createEffect,
   createMemo,
@@ -643,42 +648,26 @@ export function App(): JSX.Element {
           </button>
         </Show>
 
-        {/* biome-ignore lint/a11y/useSemanticElements: a fieldset would bring UA margin/padding/min-inline-size and change the toggle's layout; div+role="group" carries the same semantics */}
-        <div class="lang-toggle" role="group" aria-label="Language">
-          <button
-            type="button"
-            classList={{ active: loc().lang === 'en' }}
-            onClick={() => update({ lang: 'en' })}
-          >
-            EN
-          </button>
-          <button
-            type="button"
-            classList={{ active: loc().lang === 'he' }}
-            onClick={() => update({ lang: 'he' })}
-          >
-            עב
-          </button>
-        </div>
+        <LangToggle lang={loc().lang} onChange={(lang) => update({ lang })} />
 
         <a class="usage-link" href="/usage" title="LLM usage">
           usage
         </a>
 
         <div class="chapter-nav">
-          <button
-            type="button"
+          <Button
             disabled={loc().chapter <= 1}
             onClick={() => goto(loc().book, loc().chapter - 1)}
+            aria-label="Previous chapter"
           >
             ‹
-          </button>
+          </Button>
           <span class="chapter-label">
             {loc().lang === 'he' ? hebrewNumeral(loc().chapter) : `ch. ${loc().chapter}`}
           </span>
-          <button type="button" onClick={() => goto(loc().book, loc().chapter + 1)}>
+          <Button onClick={() => goto(loc().book, loc().chapter + 1)} aria-label="Next chapter">
             ›
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -707,20 +696,15 @@ export function App(): JSX.Element {
       <Show when={loc().view === 'scroll' && data()}>
         {(ch) => (
           <main class="scroll-main" ref={(el) => (scrollMain = el)}>
-            <div class="perek-pills">
+            <PillRow>
               <For each={PEREK_PILLS}>
                 {(p) => (
-                  <button
-                    type="button"
-                    class="perek-pill"
-                    classList={{ active: perekPill() === p.id }}
-                    onClick={() => openPill(p.id)}
-                  >
+                  <Pill active={perekPill() === p.id} onClick={() => openPill(p.id)}>
                     {p.label}
-                  </button>
+                  </Pill>
                 )}
               </For>
-            </div>
+            </PillRow>
             {/* biome-ignore lint/a11y/noStaticElementInteractions: scripture prose surface; onMouseUp is text-selection word lookup and onClick is a pointer convenience delegated to verse-number spans inside innerHTML — a role would mis-announce running text */}
             {/* biome-ignore lint/a11y/useKeyWithClickEvents: the click target (.vnum spans inside innerHTML) is not focusable; the same verse drawers are keyboard-reachable via the gutter <button>s (evt-margin / vgutter) */}
             <div
@@ -832,158 +816,137 @@ export function App(): JSX.Element {
           verse-source drawer, mutually exclusive with it */}
       <Show when={perekPill()} keyed>
         {(pill) => (
-          <aside class="comm-drawer perek-drawer" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
-            <header class="comm-head">
-              <span class="comm-ref">
-                {loc().lang === 'he'
-                  ? `${heBook(loc().book)} ${hebrewNumeral(loc().chapter)}`
-                  : `${loc().book} ${loc().chapter}`}
-              </span>
-              <span class="comm-kind">{PILL_KIND[pill]}</span>
-              <button
-                type="button"
-                class="comm-close"
-                onClick={() => setPerekPill(null)}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </header>
-            <div class="comm-body">
-              <Show when={pill === 'overview'}>
-                <Show when={overview.loading}>
-                  <p class="comm-muted">Reading the chapter…</p>
-                </Show>
-                <Show when={currentOverview()}>
-                  {(o) => {
-                    const he = loc().lang === 'he';
-                    const title = he ? o().titleHe || o().titleEn : o().titleEn || o().titleHe;
-                    const body = he ? o().he || o().en : o().en || o().he;
-                    return (
-                      <section class="perek-overview">
-                        <Show when={title}>
-                          <h3 class="perek-title">{title}</h3>
-                        </Show>
-                        <p class="perek-prose" dir={he ? 'rtl' : 'ltr'}>
-                          {body}
-                        </p>
-                      </section>
-                    );
-                  }}
-                </Show>
-                {/* fetched but failed (overview() is null, not undefined) */}
-                <Show when={!overview.loading && overview() === null}>
-                  <p class="comm-muted">Couldn't load the overview — try reopening.</p>
-                </Show>
+          <Drawer
+            dir={loc().lang === 'he' ? 'rtl' : 'ltr'}
+            title={
+              loc().lang === 'he'
+                ? `${heBook(loc().book)} ${hebrewNumeral(loc().chapter)}`
+                : `${loc().book} ${loc().chapter}`
+            }
+            label={PILL_KIND[pill]}
+            onClose={() => setPerekPill(null)}
+          >
+            <Show when={pill === 'overview'}>
+              <Show when={overview.loading}>
+                <p class="comm-muted">Reading the chapter…</p>
               </Show>
-            </div>
-          </aside>
+              <Show when={currentOverview()}>
+                {(o) => (
+                  <section class="perek-overview">
+                    <Show
+                      when={
+                        loc().lang === 'he'
+                          ? o().titleHe || o().titleEn
+                          : o().titleEn || o().titleHe
+                      }
+                    >
+                      {(title) => <h3 class="perek-title">{title()}</h3>}
+                    </Show>
+                    <Prose en={o().en} he={o().he} lang={loc().lang} />
+                  </section>
+                )}
+              </Show>
+              {/* fetched but failed (overview() is null, not undefined) */}
+              <Show when={!overview.loading && overview() === null}>
+                <p class="comm-muted">Couldn't load the overview — try reopening.</p>
+              </Show>
+            </Show>
+          </Drawer>
         )}
       </Show>
 
       {/* Classic commentary drawer (click a verse number) */}
       <Show when={source()} keyed>
         {(s) => (
-          <aside class="comm-drawer" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
-            <header class="comm-head">
-              <span class="comm-ref">
-                {loc().lang === 'he'
-                  ? `${heBook(loc().book)} ${hebrewNumeral(loc().chapter)}:${hebrewNumeral(s.verse)}`
-                  : `${loc().book} ${loc().chapter}:${s.verse}`}
-              </span>
-              <span class="comm-kind">{SECTION_TITLE[s.kind]}</span>
-              <button
-                type="button"
-                class="comm-close"
-                onClick={() => setSource(null)}
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </header>
-            <div class="comm-body">
-              <Show when={s.kind === 'rishonim'}>
-                <Show when={richSet().has(s.verse)}>
-                  <section class="comm-synth">
-                    <h4 class="comm-synth-name">Synthesis</h4>
-                    <Show when={synthesis.loading}>
-                      <p class="comm-muted">Synthesizing the commentators…</p>
-                    </Show>
-                    <Show when={synthesis()}>
-                      {(sy) => (
-                        <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
-                          {loc().lang === 'he' ? sy().he || sy().en : sy().en || sy().he}
-                        </p>
-                      )}
-                    </Show>
-                  </section>
-                </Show>
-                <Show when={commentary.loading}>
-                  <p class="comm-muted">Loading commentary…</p>
-                </Show>
-                <Show when={commentary()}>
-                  {(d) => (
-                    <For
-                      each={d().commentaries}
-                      fallback={<p class="comm-muted">No commentary on this verse.</p>}
-                    >
-                      {(cm) => {
-                        // The rishonim themselves always show in the Hebrew /
-                        // Aramaic original (the English is a weak translation);
-                        // fall back to English only when no Hebrew is available.
-                        const useEn = cm.he.length === 0;
-                        return (
-                          <section class="comm-entry">
-                            <h4 class="comm-name">{loc().lang === 'he' ? cm.heName : cm.en}</h4>
-                            <For each={useEn ? cm.enText : cm.he}>
-                              {(seg) => (
-                                <p class="comm-text" dir={useEn ? 'ltr' : 'rtl'} innerHTML={seg} />
-                              )}
-                            </For>
-                          </section>
-                        );
-                      }}
-                    </For>
-                  )}
-                </Show>
+          <Drawer
+            dir={loc().lang === 'he' ? 'rtl' : 'ltr'}
+            title={
+              loc().lang === 'he'
+                ? `${heBook(loc().book)} ${hebrewNumeral(loc().chapter)}:${hebrewNumeral(s.verse)}`
+                : `${loc().book} ${loc().chapter}:${s.verse}`
+            }
+            label={SECTION_TITLE[s.kind]}
+            onClose={() => setSource(null)}
+          >
+            <Show when={s.kind === 'rishonim'}>
+              <Show when={richSet().has(s.verse)}>
+                <section class="comm-synth">
+                  <h4 class="comm-synth-name">Synthesis</h4>
+                  <Show when={synthesis.loading}>
+                    <p class="comm-muted">Synthesizing the commentators…</p>
+                  </Show>
+                  <Show when={synthesis()}>
+                    {(sy) => (
+                      <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
+                        {loc().lang === 'he' ? sy().he || sy().en : sy().en || sy().he}
+                      </p>
+                    )}
+                  </Show>
+                </section>
               </Show>
+              <Show when={commentary.loading}>
+                <p class="comm-muted">Loading commentary…</p>
+              </Show>
+              <Show when={commentary()}>
+                {(d) => (
+                  <For
+                    each={d().commentaries}
+                    fallback={<p class="comm-muted">No commentary on this verse.</p>}
+                  >
+                    {(cm) => {
+                      // The rishonim themselves always show in the Hebrew /
+                      // Aramaic original (the English is a weak translation);
+                      // fall back to English only when no Hebrew is available.
+                      const useEn = cm.he.length === 0;
+                      return (
+                        <section class="comm-entry">
+                          <h4 class="comm-name">{loc().lang === 'he' ? cm.heName : cm.en}</h4>
+                          <For each={useEn ? cm.enText : cm.he}>
+                            {(seg) => (
+                              <p class="comm-text" dir={useEn ? 'ltr' : 'rtl'} innerHTML={seg} />
+                            )}
+                          </For>
+                        </section>
+                      );
+                    }}
+                  </For>
+                )}
+              </Show>
+            </Show>
 
-              <Show when={s.kind === 'gemara'}>
-                <Show when={gemara.loading}>
-                  <p class="comm-muted">Finding Talmud passages…</p>
-                </Show>
-                <Show when={gemara()}>
-                  {(g) => <PassageList passages={g().passages} empty="Not cited in the Talmud." />}
-                </Show>
+            <Show when={s.kind === 'gemara'}>
+              <Show when={gemara.loading}>
+                <p class="comm-muted">Finding Talmud passages…</p>
               </Show>
+              <Show when={gemara()}>
+                {(g) => <PassageList passages={g().passages} empty="Not cited in the Talmud." />}
+              </Show>
+            </Show>
 
-              <Show when={s.kind === 'midrash'}>
-                <Show when={(idxByVerse().get(s.verse)?.midrash ?? 0) >= MIDRASH_MIN}>
-                  <section class="comm-synth">
-                    <h4 class="comm-synth-name">Synthesis</h4>
-                    <Show when={midrashSynth.loading}>
-                      <p class="comm-muted">Synthesizing the midrashim…</p>
-                    </Show>
-                    <Show when={midrashSynth()}>
-                      {(sy) => (
-                        <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
-                          {loc().lang === 'he' ? sy().he || sy().en : sy().en || sy().he}
-                        </p>
-                      )}
-                    </Show>
-                  </section>
-                </Show>
-                <Show when={midrash.loading}>
-                  <p class="comm-muted">Loading midrash…</p>
-                </Show>
-                <Show when={midrash()}>
-                  {(md) => (
-                    <PassageList passages={md().passages} empty="No midrash on this verse." />
-                  )}
-                </Show>
+            <Show when={s.kind === 'midrash'}>
+              <Show when={(idxByVerse().get(s.verse)?.midrash ?? 0) >= MIDRASH_MIN}>
+                <section class="comm-synth">
+                  <h4 class="comm-synth-name">Synthesis</h4>
+                  <Show when={midrashSynth.loading}>
+                    <p class="comm-muted">Synthesizing the midrashim…</p>
+                  </Show>
+                  <Show when={midrashSynth()}>
+                    {(sy) => (
+                      <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
+                        {loc().lang === 'he' ? sy().he || sy().en : sy().en || sy().he}
+                      </p>
+                    )}
+                  </Show>
+                </section>
               </Show>
-            </div>
-          </aside>
+              <Show when={midrash.loading}>
+                <p class="comm-muted">Loading midrash…</p>
+              </Show>
+              <Show when={midrash()}>
+                {(md) => <PassageList passages={md().passages} empty="No midrash on this verse." />}
+              </Show>
+            </Show>
+          </Drawer>
         )}
       </Show>
     </div>

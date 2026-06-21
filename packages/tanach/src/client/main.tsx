@@ -3,6 +3,7 @@ import { render } from 'solid-js/web';
 // so styles.css resolves the canonical vars (and the theme's overrides).
 import '@corpus/ui/tokens.css';
 import '@corpus/ui/themes/tanach.css';
+import '@corpus/ui/components.css';
 import { App } from './App.tsx';
 import { UsagePage } from './UsagePage.tsx';
 import './styles.css';

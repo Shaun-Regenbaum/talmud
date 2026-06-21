@@ -1,0 +1,9 @@
+{
+  "//": "Solid component lib: override the base's app-only ambient types (Workers/Vite) — these components need only DOM (from lib) + solid-js (via jsxImportSource).",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": []
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist"]
+}
