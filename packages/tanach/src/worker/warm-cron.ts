@@ -24,10 +24,12 @@ import {
   type TanachRunCtx,
 } from './run-ports.ts';
 
-const CURSOR_KEY = 'tanach-warm-cursor:v1';
+// v2: the producer set gained `tidbit`; bumping forces a fresh walk so the new
+// producer warms across the current parsha (the rest cache-hit for free).
+const CURSOR_KEY = 'tanach-warm-cursor:v2';
 /** Chapter-level enrichments that power the reader's pills + section labels.
  *  Per-verse pieces (note / commentary / midrash / …) stay on-demand. */
-const PRODUCERS = ['overview', 'geography', 'events'] as const;
+const PRODUCERS = ['overview', 'geography', 'tidbit', 'events'] as const;
 /** Entries warmed per tick — small so one invocation stays well within the
  *  scheduled CPU/subrequest budget even when every entry is cold. */
 const BATCH = 4;

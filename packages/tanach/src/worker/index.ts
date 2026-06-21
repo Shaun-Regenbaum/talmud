@@ -253,6 +253,48 @@ app.get('/api/geography/:book/:chapter', async (c) => {
   return c.json({ book, chapter: Number(chapter), places });
 });
 
+// Perek tidbit (whole-chapter enrichment): ONE curated "did you notice…" — the
+// against-the-grain reading the Overview deliberately leaves out — opened from
+// the reader's "Tidbit" pill. Chapter-scoped (tidbit:v1:{book}:{chapter}).
+app.get('/api/tidbit/:book/:chapter', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter)) return c.json({ error: `Bad chapter: ${chapter}` }, 400);
+
+  const ref = `${book} ${chapter}`;
+  const rc: TanachRunCtx = { env: c.env, ctx: c.executionCtx, ref };
+  let artifact: StoredArtifact;
+  try {
+    artifact = await runTanachEnrichment(rc, 'tidbit', book, chapter, { id: 'perek' });
+  } catch (e) {
+    return runErrorResponse(c, e);
+  }
+  const p = artifact.parsed as {
+    flavor?: string;
+    titleEn?: string;
+    titleHe?: string;
+    en?: string;
+    he?: string;
+    textConfidence?: string;
+    readingConfidence?: string;
+  } | null;
+  // Deterministic per (book, chapter), lang-independent, already KV-cached
+  // server-side — browser-cache it so re-opening the pill is instant.
+  c.header('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
+  return c.json({
+    book,
+    chapter: Number(chapter),
+    flavor: String(p?.flavor ?? '').trim(),
+    titleEn: String(p?.titleEn ?? '').trim(),
+    titleHe: String(p?.titleHe ?? '').trim(),
+    en: String(p?.en ?? '').trim(),
+    he: String(p?.he ?? '').trim(),
+    textConfidence: String(p?.textConfidence ?? '').trim(),
+    readingConfidence: String(p?.readingConfidence ?? '').trim(),
+  });
+});
+
 // This week's Torah portion (parashat hashavua), from Sefaria's calendar.
 // Returns the parsha name + the book/chapter it starts at, so the reader can
 // jump straight there. Cached ~6h (it only changes on Shabbat).

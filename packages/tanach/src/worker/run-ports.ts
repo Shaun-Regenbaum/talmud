@@ -108,6 +108,8 @@ const KEY_TEMPLATES: Record<string, KeyTemplate> = {
   // Chapter-scoped like overview (one geography per chapter; instance ignored).
   // v2: the output now carries per-place verse numbers (for click-to-highlight).
   geography: { key: (a: TanachAddress) => `geography:v2:${a.unit?.work}:${a.unit?.unit}` },
+  // Chapter-scoped like overview/geography (one tidbit per chapter; instance ignored).
+  tidbit: { key: (a: TanachAddress) => `tidbit:v1:${a.unit?.work}:${a.unit?.unit}` },
   synthesis: {
     key: (a: TanachAddress) => `synthesis:v1:${a.unit?.work}:${a.unit?.unit}:${a.verse}`,
   },
@@ -150,8 +152,8 @@ export function enrichmentAddress(
     const [start, end] = instanceId.split('-');
     return { unit, instanceId, start, end };
   }
-  // Chapter-scoped (overview / geography): key uses only {work}:{unit}.
-  if (id === 'overview' || id === 'geography') {
+  // Chapter-scoped (overview / geography / tidbit): key uses only {work}:{unit}.
+  if (id === 'overview' || id === 'geography' || id === 'tidbit') {
     return { unit, instanceId };
   }
   return { unit, instanceId, verse: instanceId };
@@ -369,6 +371,7 @@ const RESOLVE_PORTS: ResolveInputsPorts<TanachRunCtx, TanachEnrichmentDef, Tanac
     id === 'note' ||
     id === 'overview' ||
     id === 'geography' ||
+    id === 'tidbit' ||
     id === 'synthesis' ||
     id === 'midrash-synthesis'
       ? enrichRunDefOf(id)
@@ -557,11 +560,13 @@ const RUN_PORTS: RunProducerPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkD
     // gate their emptiness upstream (source resolvers raise 404 when there's
     // nothing to synthesize).
     enrichmentPostParse: (_rc, a) => {
-      if (a.def.id !== 'overview' || a.parse_error || !a.parsed) return;
+      // overview + tidbit share the title/en/he shape; reject an empty-but-valid
+      // generation so it isn't pinned (truncated JSON parses to blank fields).
+      if ((a.def.id !== 'overview' && a.def.id !== 'tidbit') || a.parse_error || !a.parsed) return;
       const p = a.parsed as { titleEn?: string; en?: string; he?: string };
       const empty =
         !String(p.titleEn ?? '').trim() && !String(p.en ?? '').trim() && !String(p.he ?? '').trim();
-      if (empty) throw new Error('overview: empty generation (not caching)');
+      if (empty) throw new Error(`${a.def.id}: empty generation (not caching)`);
     },
   },
 };
@@ -584,7 +589,7 @@ export async function runTanachEvents(
 
 export async function runTanachEnrichment(
   rc: TanachRunCtx,
-  id: 'note' | 'overview' | 'geography' | 'synthesis' | 'midrash-synthesis',
+  id: 'note' | 'overview' | 'geography' | 'tidbit' | 'synthesis' | 'midrash-synthesis',
   book: string,
   chapter: string,
   /** The instance the enrichment is FOR. Its `id` field is the legacy key

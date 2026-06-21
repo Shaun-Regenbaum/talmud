@@ -36,6 +36,7 @@ import {
 import { NOTE_SCHEMA, NOTE_SYSTEM, NOTE_USER_TEMPLATE } from './note.ts';
 import { OVERVIEW_SCHEMA, OVERVIEW_SYSTEM, OVERVIEW_USER_TEMPLATE } from './overview.ts';
 import { SYNTHESIS_SCHEMA, SYNTHESIS_SYSTEM, SYNTHESIS_USER_TEMPLATE } from './synthesis.ts';
+import { TIDBIT_SCHEMA, TIDBIT_SYSTEM, TIDBIT_USER_TEMPLATE } from './tidbit.ts';
 import { TRANSLATE_SCHEMA, TRANSLATE_SYSTEM, TRANSLATE_USER_TEMPLATE } from './translate.ts';
 
 export type TanachProducerId =
@@ -43,6 +44,7 @@ export type TanachProducerId =
   | 'note'
   | 'overview'
   | 'geography'
+  | 'tidbit'
   | 'synthesis'
   | 'midrash-synthesis'
   | 'translate';
@@ -103,6 +105,20 @@ const geographyExtractor: TanachLLMExtractor = {
   max_tokens: 900,
   temperature: 0.2,
   tag: 'tanach:geography',
+};
+
+const tidbitExtractor: TanachLLMExtractor = {
+  kind: 'llm',
+  system_prompt: TIDBIT_SYSTEM,
+  user_prompt_template: TIDBIT_USER_TEMPLATE,
+  output_schema: TIDBIT_SCHEMA,
+  // Bilingual prose, richer than the overview (2-3 short paragraphs each lang),
+  // so a touch more headroom than overview's 1400 to avoid mid-string truncation.
+  max_tokens: 1800,
+  // A shade warmer than the plain overview (0.3): the tidbit wants a genuinely
+  // non-obvious reading, not a safe restatement — but still grounded.
+  temperature: 0.45,
+  tag: 'tanach:tidbit',
 };
 
 const synthesisExtractor: TanachLLMExtractor = {
@@ -202,6 +218,22 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     cacheVersion: '1',
     source: 'code',
   },
+  tidbit: {
+    id: 'tidbit',
+    label: 'Perek tidbit',
+    description: 'ONE curated "did you notice…" for a whole chapter (the against-the-grain read)',
+    kind: 'enrichment',
+    inputs: [{ source: 'chapter-verses' }],
+    recipe: { extractor: tidbitExtractor },
+    // Chapter-scoped like overview/geography — one per chapter; the key template
+    // ignores the instance (tidbit:v1:{book}:{chapter}).
+    anchoring: { behavior: 'inherits', precision: 'unit', spine: 'tanach' },
+    cardinality: 'one',
+    scope: 'local',
+    key_shape: 'enrich', // nominal — template owns tidbit:v1:{book}:{chapter}
+    cacheVersion: '1',
+    source: 'code',
+  },
   synthesis: {
     id: 'synthesis',
     label: 'Commentary synthesis',
@@ -285,7 +317,7 @@ export function markRunDefOf(id: 'events'): TanachMarkDef {
 }
 
 export function enrichRunDefOf(
-  id: 'note' | 'overview' | 'geography' | 'synthesis' | 'midrash-synthesis',
+  id: 'note' | 'overview' | 'geography' | 'tidbit' | 'synthesis' | 'midrash-synthesis',
 ): TanachEnrichmentDef {
   const p = TANACH_PRODUCERS[id];
   const ext = p.recipe.extractor as TanachLLMExtractor;
