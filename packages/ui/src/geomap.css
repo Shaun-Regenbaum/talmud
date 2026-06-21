@@ -91,6 +91,11 @@
 .geomap-site:focus {
   outline: none;
 }
+/* invisible but clickable: enlarges the tap/click target around small dots */
+.geomap-hit {
+  fill: transparent;
+  pointer-events: all;
+}
 .geomap-dot {
   fill: var(--dot-fill, #fff);
   stroke: var(--dot-stroke, var(--accent));
