@@ -283,6 +283,8 @@ import {
 import { readUsageSummary, recordUsage } from './usage-rollup';
 import {
   getWarmTotal,
+  halachaWarmProgressProcessed,
+  readHalachaWarmCursor,
   readSefariaWarmCursor,
   readWarmCursor,
   runWarmCron,
@@ -5838,9 +5840,11 @@ app.get('/api/admin/warm-status', async (c) => {
   if (!cache) return c.json({ error: 'no cache binding' }, 503);
   const cursor = await readWarmCursor(cache);
   const sefariaCursor = await readSefariaWarmCursor(cache);
+  const halachaCursor = await readHalachaWarmCursor(cache);
   const total = getWarmTotal();
   const processed = warmProgressProcessed(cursor);
   const sefariaProcessed = sefariaWarmProgressProcessed(sefariaCursor);
+  const halachaProcessed = halachaWarmProgressProcessed(halachaCursor);
   return c.json({
     done: cursor.done === true,
     tractateIdx: cursor.tractateIdx,
@@ -5855,6 +5859,14 @@ app.get('/api/admin/warm-status', async (c) => {
       total,
       percent: total === 0 ? 0 : Math.round((sefariaProcessed / total) * 1000) / 10,
       wraps: sefariaCursor.wraps ?? 0,
+    },
+    halacha: {
+      tractateIdx: halachaCursor.tractateIdx,
+      amudIdx: halachaCursor.amudIdx,
+      processed: halachaProcessed,
+      total,
+      percent: total === 0 ? 0 : Math.round((halachaProcessed / total) * 1000) / 10,
+      wraps: halachaCursor.wraps ?? 0,
     },
   });
 });

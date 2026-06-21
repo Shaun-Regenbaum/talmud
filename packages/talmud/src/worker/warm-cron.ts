@@ -14,6 +14,7 @@ import { listDafyomiMasechtos } from '../lib/sefref/dafyomi/masechtos';
 import { TRACTATE_IDS } from '../lib/sefref/hebrewbooks/client';
 import {
   keyForDafyomi,
+  keyForHalachaRefs,
   keyForHebrewBooks,
   keyForSefariaBundle,
   keyForSefariaSegments,
@@ -22,6 +23,7 @@ import {
 import { computeCacheStats, writeCachedCacheStats } from './cache-stats';
 import {
   getDafyomiContentCached,
+  getHalachaRefsCached,
   getHebrewBooksDafCached,
   getSefariaPageCached,
   getSefariaSegmentsCached,
@@ -32,8 +34,16 @@ import type { JobMessage } from './types';
 
 const CURSOR_KEY = 'warm-cursor:v1';
 const SEFARIA_CURSOR_KEY = 'warm-cursor-sefaria:v1';
+const HALACHA_CURSOR_KEY = 'halacha-warm-cursor:v1';
 const BATCH_SIZE = 20;
 const FETCH_SLEEP_MS = 1000;
+// Halacha refs fan out internally: one getRelated + up to maxPerBook (6) getText
+// PER codifier work, all in parallel — a single amud can burst 30-50 Sefaria
+// subrequests. So this phase uses a much smaller per-tick batch than the Sefaria
+// phase to stay well under the Workers per-invocation subrequest cap and to keep
+// the parallel bursts polite to Sefaria. ~5 amudim/tick × 12 ticks/hr ≈ a
+// ~4-day full pass over Shas.
+const HALACHA_BATCH = 5;
 
 const TRACTATES = Object.keys(TRACTATE_IDS);
 const AMUDIM_BY_TRACTATE: string[][] = TRACTATES.map((t) => [...iterAmudim(t)]);
@@ -70,6 +80,13 @@ export interface WarmEnv {
    *  fan-out + pesukim) to extract across the whole shas. Set via wrangler.toml
    *  [vars] once you're ready to pay for the backfill. */
   OBSERVATIONS_WARM_SHAS?: string;
+  /** When '1', a small independent phase walks all of Shas filling the
+   *  halacha-refs source cache (Sefaria codifier links + their text) — the
+   *  source behind the halacha card + GET /api/halacha-text. Sefaria-only, no
+   *  LLM. OFF by default: it's a multi-day, getText-heavy Sefaria fill; set via
+   *  wrangler.toml [vars] when you're ready to run it. Lifts the ~3% coverage
+   *  (lazy/on-demand today) to the real halacha density of Shas. */
+  HALACHA_WARM_SHAS?: string;
 }
 
 export function getWarmTotal(): number {
@@ -305,6 +322,11 @@ export async function runWarmCron(env: WarmEnv): Promise<void> {
   // Gradual dafyomi.co.il ingestion (gated, self-latching). Independent phase.
   await runDafyomiBackfill(env);
 
+  // Gradual halacha-refs source fill (gated). Independent + small-batch because
+  // each amud bursts many Sefaria getText calls. Runs every tick regardless of
+  // the HB/Sefaria phase progress below.
+  await runHalachaPhase(env);
+
   const cursor = await readWarmCursor(cache);
   if (!cursor.done) {
     await runHbPhase(env, cursor);
@@ -458,5 +480,88 @@ async function runSefariaPhase(env: WarmEnv): Promise<void> {
   const elapsed = Date.now() - start;
   console.log(
     `[warm-cron] Sefaria processed=${processed} fetched=${fetched} elapsed=${elapsed}ms cursor=${tractateIdx}:${amudIdx} wraps=${wraps}`,
+  );
+}
+
+interface HalachaWarmCursor {
+  tractateIdx: number;
+  amudIdx: number;
+  /** Full passes over Shas (incremented on wrap), mirroring the Sefaria cursor. */
+  wraps?: number;
+}
+
+async function readHalachaCursor(cache: KVNamespace): Promise<HalachaWarmCursor> {
+  const raw = await cache.get(HALACHA_CURSOR_KEY);
+  if (!raw) return { tractateIdx: 0, amudIdx: 0, wraps: 0 };
+  try {
+    return JSON.parse(raw) as HalachaWarmCursor;
+  } catch {
+    return { tractateIdx: 0, amudIdx: 0, wraps: 0 };
+  }
+}
+
+export async function readHalachaWarmCursor(cache: KVNamespace): Promise<HalachaWarmCursor> {
+  return readHalachaCursor(cache);
+}
+
+export function halachaWarmProgressProcessed(cursor: HalachaWarmCursor): number {
+  let n = 0;
+  for (let i = 0; i < cursor.tractateIdx && i < AMUDIM_BY_TRACTATE.length; i++) {
+    n += AMUDIM_BY_TRACTATE[i].length;
+  }
+  n += cursor.amudIdx;
+  return Math.min(n, TOTAL_AMUDIM);
+}
+
+/**
+ * Gated by HALACHA_WARM_SHAS='1'. Walks all of Shas a few amudim per tick,
+ * filling the `halacha-refs` source cache (Sefaria codifier links + their text)
+ * that backs the halacha card and GET /api/halacha-text. Each amud bursts many
+ * Sefaria getText calls (up to maxPerBook per codifier work), so the batch is
+ * small. Empty bundles (dapim with no codifier link) are cached too, so the walk
+ * is idempotent (skip-if-cached) and `/usage` coverage settles at the real
+ * halacha density of Shas rather than the ~3% the lazy/on-demand path showed.
+ * 30-day TTL like the other Sefaria sources, so the cursor wraps and refills.
+ */
+export async function runHalachaPhase(env: WarmEnv): Promise<void> {
+  if (env.HALACHA_WARM_SHAS !== '1' || !env.CACHE) return;
+  const cache = env.CACHE;
+  const cursor = await readHalachaCursor(cache);
+  let { tractateIdx, amudIdx, wraps = 0 } = cursor;
+  let processed = 0;
+  let fetched = 0;
+  const start = Date.now();
+
+  while (processed < HALACHA_BATCH) {
+    while (tractateIdx < TRACTATES.length && amudIdx >= AMUDIM_BY_TRACTATE[tractateIdx].length) {
+      tractateIdx++;
+      amudIdx = 0;
+    }
+    if (tractateIdx >= TRACTATES.length) {
+      wraps++;
+      tractateIdx = 0;
+      amudIdx = 0;
+      console.log(`[warm-cron] halacha pass ${wraps} complete — wrapping`);
+    }
+
+    const tractate = TRACTATES[tractateIdx];
+    const amud = AMUDIM_BY_TRACTATE[tractateIdx][amudIdx];
+    // Skip if already cached (incl. an empty bundle for a no-halacha daf), so a
+    // pass only pays Sefaria for the dapim it hasn't filled yet.
+    const hit = await cache.get(keyForHalachaRefs(tractate, amud));
+    if (hit === null) {
+      await getHalachaRefsCached(cache, tractate, amud);
+      fetched++;
+      await new Promise((r) => setTimeout(r, FETCH_SLEEP_MS));
+    }
+
+    amudIdx++;
+    processed++;
+  }
+
+  await cache.put(HALACHA_CURSOR_KEY, JSON.stringify({ tractateIdx, amudIdx, wraps }));
+  const elapsed = Date.now() - start;
+  console.log(
+    `[warm-cron] halacha processed=${processed} fetched=${fetched} elapsed=${elapsed}ms cursor=${tractateIdx}:${amudIdx} wraps=${wraps}`,
   );
 }
