@@ -192,6 +192,10 @@ app.get('/api/overview/:book/:chapter', async (c) => {
     en?: string;
     he?: string;
   } | null;
+  // Deterministic per (book, chapter) and lang-independent (both langs in the
+  // body) — and already KV-cached server-side. Let the browser cache it too so
+  // re-opening the pill / navigating back is instant instead of a worker hit.
+  c.header('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
   return c.json({
     book,
     chapter: Number(chapter),
@@ -242,6 +246,9 @@ app.get('/api/geography/:book/:chapter', async (c) => {
       seen.add(key);
       return true;
     });
+  // Deterministic per (book, chapter), lang-independent, already KV-cached
+  // server-side — let the browser cache it so re-opening Geography is instant.
+  c.header('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
   return c.json({ book, chapter: Number(chapter), places });
 });
 
