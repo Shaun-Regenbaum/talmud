@@ -1156,6 +1156,7 @@ const CATALOG = {
     he: 'לחצו על חכם כדי לעקוב אחר מסלולו',
   },
   'geography.trajectory.clear': { en: 'clear', he: 'נקה' },
+  'geography.trajectory.tracing': { en: 'Tracing {name}', he: 'מסלול {name}' },
 
   // — Translation popup —
   'translation.loading': { en: 'Translating…', he: 'מתרגם…' },

@@ -124,6 +124,31 @@
   stroke-linejoin: round;
   pointer-events: none;
 }
+
+/* trajectory drill-down: the base markers dim, a numbered path draws on top */
+.geomap-dim {
+  opacity: 0.18;
+  transition: opacity 0.15s ease;
+}
+.geomap-traj-path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  opacity: 0.85;
+}
+.geomap-traj-badge {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+}
+.geomap-traj-num {
+  font-family: var(--font-ui);
+  font-size: 9px;
+  font-weight: 700;
+  fill: #fff;
+  pointer-events: none;
+}
 .geomap-he .geomap-label {
   font-family: var(--font-hebrew);
   font-size: 13.5px;

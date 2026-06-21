@@ -17,7 +17,7 @@ import {
   TIDBIT_RECIPE,
   YERUSHALMI_RECIPE,
 } from '@corpus/core/sidebar/recipe';
-import { GeoMap, type GeoPoint } from '@corpus/ui/GeoMap';
+import { GeoMap, type GeoPoint, type GeoTrajectoryStop } from '@corpus/ui/GeoMap';
 import {
   createEffect,
   createMemo,
@@ -2818,7 +2818,7 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
       const slug = m.dots
         .find((d) => d.city.name === cityName)
         ?.rabbis.find((r) => r.name === rabbiName)?.slug;
-      ex()?.onHighlightSingleRabbi(rabbiName, slug ?? undefined);
+      drillInto(rabbiName, slug ?? undefined);
       return;
     }
     const dot = m.dots.find((d) => d.city.name === p.id);
@@ -2834,6 +2834,32 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
   };
 
   const [hoveredMover, setHoveredMover] = createSignal<string | null>(null);
+
+  // Trajectory drill-down: clicking a sage (or a migration row) traces that
+  // rabbi's life-path on the map (the numbered overlay GeoMap draws), dimming
+  // everyone else. Resolve the trajectory's stops to coordinates from
+  // GEO_CITIES; dedupe consecutive same-city stops; renumber 1..n.
+  const [drillRabbi, setDrillRabbi] = createSignal<string | null>(null);
+  const drillInto = (name: string, slug?: string) => {
+    ex()?.onHighlightSingleRabbi(name, slug);
+    setDrillRabbi(name);
+  };
+  const trajectory = createMemo<GeoTrajectoryStop[] | undefined>(() => {
+    const name = drillRabbi();
+    if (!name) return undefined;
+    const tr = model()?.trajectories?.find((t) => t.name === name);
+    if (!tr) return undefined;
+    const stops: GeoTrajectoryStop[] = [];
+    let lastCity: string | null = null;
+    for (const s of tr.stops) {
+      if (!s.cityName || s.cityName === lastCity) continue;
+      const city = GEO_CITY_LATLNG.get(s.cityName);
+      if (!city || typeof city.lat !== 'number' || typeof city.lng !== 'number') continue;
+      lastCity = s.cityName;
+      stops.push({ lat: city.lat, lng: city.lng, seq: stops.length + 1, label: s.cityName });
+    }
+    return stops.length ? stops : undefined;
+  });
 
   return (
     <Show
@@ -2873,7 +2899,39 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
         layerToggle={false}
         selected={ex()?.activeLocation ?? undefined}
         onSelect={onSelect}
+        trajectory={trajectory()}
       />
+      {/* drill-down header: which sage's path is traced + a clear control */}
+      <Show when={drillRabbi() && trajectory()}>
+        <div
+          style={{
+            display: 'flex',
+            'align-items': 'center',
+            'justify-content': 'space-between',
+            'margin-top': '0.35rem',
+            'font-size': '0.74rem',
+            color: 'var(--accent)',
+          }}
+        >
+          <span>{t('geography.trajectory.tracing', { name: drillRabbi() ?? '' })}</span>
+          <button
+            type="button"
+            onClick={() => setDrillRabbi(null)}
+            style={{
+              border: '1px solid var(--line)',
+              'border-radius': '4px',
+              background: 'var(--surface)',
+              color: 'var(--muted)',
+              cursor: 'pointer',
+              'font-family': 'var(--font-ui)',
+              'font-size': '0.7rem',
+              padding: '0.1rem 0.5rem',
+            }}
+          >
+            {t('geography.trajectory.clear')}
+          </button>
+        </div>
+      </Show>
       {/* counts + the migration list — chrome that lived in the old map's
           surrounding section, kept in the same place around the new map. */}
       <div
@@ -2930,7 +2988,7 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
                 setHoveredMover(null);
                 ex()?.onHoverRabbi(null);
               };
-              const go = () => ex()?.onHighlightSingleRabbi(row.name, row.slug ?? undefined);
+              const go = () => drillInto(row.name, row.slug ?? undefined);
               return (
                 // biome-ignore lint/a11y/useSemanticElements: a native <button> would inject UA layout into this tight inline-styled row; role+tabindex+keydown carry the same semantics
                 <div

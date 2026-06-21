@@ -48,6 +48,15 @@ export interface GeoRegion {
 }
 export type GeoLayer = 'water' | 'rivers' | 'regions' | 'routes' | 'sites' | 'labels';
 
+/** An ordered stop on a numbered drill-down path (e.g. a sage's life route). */
+export interface GeoTrajectoryStop {
+  lat: number;
+  lng: number;
+  /** Badge number (1-based); falls back to position when omitted. */
+  seq?: number;
+  label?: string;
+}
+
 export interface GeoMapProps {
   bbox: GeoBBox;
   points: GeoPoint[];
@@ -63,6 +72,10 @@ export interface GeoMapProps {
   onSelect?: (p: GeoPoint) => void;
   /** id of the currently-selected point. */
   selected?: string;
+  /** When set, draws a NUMBERED life-path (stops connected + numbered badges)
+   *  and dims the regular markers — a drill-down overlay (e.g. one sage's
+   *  journey). Clear it to return to the full map. */
+  trajectory?: GeoTrajectoryStop[];
 }
 
 /** Standard viewports apps can reuse. */
@@ -171,6 +184,22 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
   );
   const routes = createMemo(() => (props.routes ?? []).map((rt) => lineD(rt.pts, proj().project)));
 
+  // Trajectory drill-down: the ordered stops projected, plus the connecting
+  // path. When present, the regular markers dim so the numbered path reads.
+  const trajActive = () => (props.trajectory?.length ?? 0) > 0;
+  const trajStops = createMemo(() =>
+    (props.trajectory ?? []).map((s, i) => ({
+      xy: proj().project(s.lng, s.lat),
+      seq: s.seq ?? i + 1,
+      label: s.label,
+    })),
+  );
+  const trajPath = createMemo(() => {
+    const pts = trajStops();
+    if (pts.length < 2) return '';
+    return `M${pts.map((s) => s.xy.map((n) => n.toFixed(1)).join(',')).join('L')}`;
+  });
+
   const labelFor = (p: GeoPoint) => (he() ? p.nameHe || p.name : p.name);
   // RTL labels sit left of the marker (flipping to the right near the left
   // edge); LTR to the right (flipping left near the right edge).
@@ -234,62 +263,85 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
           <For each={routes()}>{(d) => <path class="geomap-route" d={d} />}</For>
         </Show>
         <Show when={layers().sites}>
-          <For each={sites()}>
-            {(s) => {
-              const g = labelGeom(s.xy[0]);
-              const interactive = !!props.onSelect;
-              return (
-                // biome-ignore lint/a11y/noStaticElementInteractions: an SVG <g> marker can't be a real <button>; role + tabindex + keydown below make it a proper, keyboard-operable button
-                <g
-                  class="geomap-site"
-                  classList={{
-                    selected: !!props.selected && props.selected === s.p.id,
-                    interactive,
-                  }}
-                  role={interactive ? 'button' : undefined}
-                  tabindex={interactive ? 0 : undefined}
-                  aria-label={interactive ? labelFor(s.p) : undefined}
-                  onClick={() => props.onSelect?.(s.p)}
-                  onKeyDown={(e) => {
-                    if (interactive && (e.key === 'Enter' || e.key === ' ')) {
-                      e.preventDefault();
-                      props.onSelect?.(s.p);
-                    }
-                  }}
-                >
-                  <Show when={!!props.selected && props.selected === s.p.id}>
+          {/* base markers dim while a trajectory drill-down is active */}
+          <g classList={{ 'geomap-dim': trajActive() }}>
+            <For each={sites()}>
+              {(s) => {
+                const g = labelGeom(s.xy[0]);
+                const interactive = !!props.onSelect;
+                return (
+                  // biome-ignore lint/a11y/noStaticElementInteractions: an SVG <g> marker can't be a real <button>; role + tabindex + keydown below make it a proper, keyboard-operable button
+                  <g
+                    class="geomap-site"
+                    classList={{
+                      selected: !!props.selected && props.selected === s.p.id,
+                      interactive,
+                    }}
+                    role={interactive ? 'button' : undefined}
+                    tabindex={interactive ? 0 : undefined}
+                    aria-label={interactive ? labelFor(s.p) : undefined}
+                    onClick={() => props.onSelect?.(s.p)}
+                    onKeyDown={(e) => {
+                      if (interactive && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        props.onSelect?.(s.p);
+                      }
+                    }}
+                  >
+                    <Show when={!!props.selected && props.selected === s.p.id}>
+                      <circle
+                        class="geomap-halo"
+                        cx={s.xy[0]}
+                        cy={s.xy[1]}
+                        r={s.p.star ? 7.5 : 6.5}
+                      />
+                    </Show>
                     <circle
-                      class="geomap-halo"
+                      class="geomap-dot"
+                      classList={{ star: !!s.p.star }}
+                      style={
+                        s.p.color
+                          ? { '--dot-fill': s.p.color, '--dot-stroke': '#ffffff' }
+                          : undefined
+                      }
                       cx={s.xy[0]}
                       cy={s.xy[1]}
-                      r={s.p.star ? 7.5 : 6.5}
+                      r={s.p.star ? 4.5 : 3.5}
                     />
-                  </Show>
-                  <circle
-                    class="geomap-dot"
-                    classList={{ star: !!s.p.star }}
-                    style={
-                      s.p.color ? { '--dot-fill': s.p.color, '--dot-stroke': '#ffffff' } : undefined
-                    }
-                    cx={s.xy[0]}
-                    cy={s.xy[1]}
-                    r={s.p.star ? 4.5 : 3.5}
-                  />
-                  <Show when={layers().labels && labelFor(s.p)}>
-                    <text
-                      class="geomap-label"
-                      x={g.x}
-                      y={s.xy[1] + 3}
-                      text-anchor={g.anchor}
-                      direction={g.dir}
-                    >
-                      {labelFor(s.p)}
-                    </text>
-                  </Show>
-                </g>
-              );
-            }}
-          </For>
+                    <Show when={layers().labels && labelFor(s.p)}>
+                      <text
+                        class="geomap-label"
+                        x={g.x}
+                        y={s.xy[1] + 3}
+                        text-anchor={g.anchor}
+                        direction={g.dir}
+                      >
+                        {labelFor(s.p)}
+                      </text>
+                    </Show>
+                  </g>
+                );
+              }}
+            </For>
+          </g>
+        </Show>
+        {/* the numbered drill-down path on top */}
+        <Show when={trajActive()}>
+          <g class="geomap-traj">
+            <Show when={trajPath()}>
+              <path class="geomap-traj-path" d={trajPath()} />
+            </Show>
+            <For each={trajStops()}>
+              {(s) => (
+                <>
+                  <circle class="geomap-traj-badge" cx={s.xy[0]} cy={s.xy[1]} r="8" />
+                  <text class="geomap-traj-num" x={s.xy[0]} y={s.xy[1] + 3} text-anchor="middle">
+                    {s.seq}
+                  </text>
+                </>
+              )}
+            </For>
+          </g>
         </Show>
       </svg>
     </div>
