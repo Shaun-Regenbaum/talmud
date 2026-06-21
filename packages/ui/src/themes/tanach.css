@@ -1,0 +1,37 @@
+/*
+ * @corpus/ui — Tanach theme.
+ *
+ * Tanach's identity on the shared token vocabulary: a warm brown / parchment
+ * palette, Spectral as the Latin reading serif, Frank Ruhl Libre for Hebrew.
+ * Imported after tokens.css; overrides only the values, never the names.
+ *
+ * `--ink` is kept as an alias of `--fg` so the existing tanach stylesheet
+ * (which referenced --ink) keeps resolving while it migrates onto the shared
+ * vocabulary.
+ */
+
+:root {
+  /* ---- colour ---- */
+  --bg: #faf8f3;
+  --fg: #1a1a1a;
+  --muted: #6b6b6b;
+  --line: #e3e0d8;
+  --accent: #7a5c2e;
+  --accent-strong: #5f4722;
+  --surface: #ffffff;
+  --surface-sunk: rgba(122, 92, 46, 0.08);
+
+  /* ---- type ----
+   * --font-ui (chrome sans) and --font-serif (English reading serif, Spectral)
+   * are inherited from tokens.css UNCHANGED — they're shared across apps. Only
+   * the Hebrew face is tanach's own. */
+  --font-hebrew: "Frank Ruhl Libre", "Noto Serif Hebrew", serif;
+
+  /* ---- tanach-specific surfaces ---- */
+  --parchment: #f3e7c9;
+  --parchment-edge: #e6d3a6;
+  --stam: #2a1c0c;
+
+  /* ---- back-compat alias (tanach styles referenced --ink) ---- */
+  --ink: var(--fg);
+}

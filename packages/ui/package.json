@@ -1,0 +1,15 @@
+{
+  "name": "@corpus/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared design system for the corpus apps (talmud, tanach): canonical CSS design tokens + per-app theme overrides, and (later) a Solid component kit. Logic stays in @corpus/core; this is the look-and-feel layer both apps import.",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    "./tokens.css": "./src/tokens.css",
+    "./themes/talmud.css": "./src/themes/talmud.css",
+    "./themes/tanach.css": "./src/themes/tanach.css"
+  }
+}
