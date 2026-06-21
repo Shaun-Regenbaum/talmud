@@ -105,6 +105,8 @@ const KEY_TEMPLATES: Record<string, KeyTemplate> = {
   // Chapter-scoped: the key ignores the instance (there's one overview per
   // chapter), so enrichmentAddress('overview', …) carries no verse/range.
   overview: { key: (a: TanachAddress) => `overview:v1:${a.unit?.work}:${a.unit?.unit}` },
+  // Chapter-scoped like overview (one geography per chapter; instance ignored).
+  geography: { key: (a: TanachAddress) => `geography:v1:${a.unit?.work}:${a.unit?.unit}` },
   synthesis: {
     key: (a: TanachAddress) => `synthesis:v1:${a.unit?.work}:${a.unit?.unit}:${a.verse}`,
   },
@@ -147,8 +149,8 @@ export function enrichmentAddress(
     const [start, end] = instanceId.split('-');
     return { unit, instanceId, start, end };
   }
-  // Chapter-scoped (overview): the key template uses only {work}:{unit}.
-  if (id === 'overview') {
+  // Chapter-scoped (overview / geography): key uses only {work}:{unit}.
+  if (id === 'overview' || id === 'geography') {
     return { unit, instanceId };
   }
   return { unit, instanceId, verse: instanceId };
@@ -363,7 +365,11 @@ const RESOLVE_PORTS: ResolveInputsPorts<TanachRunCtx, TanachEnrichmentDef, Tanac
   // exist; nothing declares {enrichment}/{mark} deps today, but the lookups
   // are real so the recursion closes through core if one ever does.
   loadEnrichmentDef: async (_rc, id) =>
-    id === 'note' || id === 'overview' || id === 'synthesis' || id === 'midrash-synthesis'
+    id === 'note' ||
+    id === 'overview' ||
+    id === 'geography' ||
+    id === 'synthesis' ||
+    id === 'midrash-synthesis'
       ? enrichRunDefOf(id)
       : null,
   loadMarkDef: async (_rc, id) => (id === 'events' ? markRunDefOf(id) : null),
@@ -577,7 +583,7 @@ export async function runTanachEvents(
 
 export async function runTanachEnrichment(
   rc: TanachRunCtx,
-  id: 'note' | 'overview' | 'synthesis' | 'midrash-synthesis',
+  id: 'note' | 'overview' | 'geography' | 'synthesis' | 'midrash-synthesis',
   book: string,
   chapter: string,
   /** The instance the enrichment is FOR. Its `id` field is the legacy key
