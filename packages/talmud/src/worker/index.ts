@@ -5631,13 +5631,23 @@ app.get('/api/admin/llm-cost', async (c) => {
     });
   }
   const payload = await coalesce(reportKey, async () => {
+    // Hard cap the scan. Each request reads every ledger key sequentially, so a
+    // large ledger (heavy warming) made one scan take ~25s and exhaust the
+    // isolate — outcome `exceededMemory`, which kills the WHOLE isolate and so
+    // took out co-tenant reader requests too (collateral 1101s). The coalesce +
+    // 45s cache above stops a concurrent stampede, but a single scan must also be
+    // bounded: 1000 entries (one list page) completes in ~2s well within limits.
+    // `truncated` signals the partial total; full-history accuracy wants an
+    // incremental background rollup (reading only new entries since a checkpoint)
+    // rather than rescanning the whole ledger per request — tracked as follow-up.
+    const SCAN_CAP = 1000;
     const keys: string[] = [];
     let cursor: string | undefined;
     do {
       const res = await cache.list({ prefix, cursor, limit: 1000 });
       for (const k of res.keys) keys.push(k.name);
       cursor = res.list_complete ? undefined : res.cursor;
-    } while (cursor && keys.length < 10000);
+    } while (cursor && keys.length < SCAN_CAP);
 
     let totalCost = 0;
     let totalCostInEst = 0;
@@ -5738,7 +5748,7 @@ app.get('/api/admin/llm-cost', async (c) => {
       byTag,
       byKind,
       byDaf,
-      truncated: keys.length >= 10000,
+      truncated: keys.length >= SCAN_CAP,
     };
     const json = JSON.stringify(result);
     // Short TTL: the dashboard polls "what just ran"; 45s is fresh enough and
