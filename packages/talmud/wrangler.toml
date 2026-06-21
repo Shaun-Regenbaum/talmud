@@ -117,14 +117,23 @@ binding = "ENRICHMENT_QUEUE"
 queue = "enrichment-jobs"
 max_batch_size = 1
 max_batch_timeout = 1
-# Bumped 2 → 10 → 50. Each LLM enrichment is a separate Worker invocation
-# (queue handler), so concurrency caps simultaneous LLM workloads, not
-# CPU on a single isolate. The previous cap of 2 made warming a 167-page
-# corpus prohibitively slow (~4-7h), and 10 still throttled full-Shas
-# anchor warming to ~12h. AI Gateway handles backpressure if any single
-# provider rate-limits; runLLM's per-call retry chain rides out 429s
-# within a single job's lifecycle so queue-level retries aren't burned.
-max_concurrency = 50
+# History: 2 → 10 → 50, each bump chasing warming THROUGHPUT (the old note
+# reasoned concurrency "caps LLM workloads, not CPU on a single isolate"). That
+# missed the real per-isolate constraint: MEMORY. Concurrent queue invocations
+# can be co-scheduled on ONE isolate, and each cold generation materialized the
+# daf's source bundles (multi-MB on a dense daf) → 50-wide blew the hard 128 MB
+# isolate limit, killed the isolate, and every co-tenant request (incl. plain
+# HTTP /api/run) came back `error code: 1101`. That was the cold-daf OOM.
+#
+# Now that per-job source memory is bounded (rishonim capped at the cache
+# boundary #440; concurrent same-daf loads coalesced to one copy #439), peak
+# isolate memory is ~ max_concurrency × per-job footprint. 16 keeps the worst
+# case (all co-scheduled + dense) comfortably under 128 MB while still warming
+# far faster than the old 10 (~12h full-Shas). Raise only alongside a measured
+# drop in per-job footprint — warming speed is a background concern; a reader
+# OOM is not. AI Gateway + runLLM's per-call retry ride out provider 429s within
+# a job, so queue-level retries aren't burned.
+max_concurrency = 16
 max_retries = 1
 
 [[kv_namespaces]]
