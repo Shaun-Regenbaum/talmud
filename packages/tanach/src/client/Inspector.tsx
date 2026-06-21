@@ -7,6 +7,7 @@
  */
 
 import { Drawer } from '@corpus/ui/Drawer';
+import { fmtCost, fmtMs, InspectorRow } from '@corpus/ui/InspectorRow';
 import { createResource, For, type JSX, Show } from 'solid-js';
 
 interface RunRow {
@@ -24,13 +25,6 @@ interface ChapterRuns {
   chapter: number;
   runs: RunRow[];
   totals: { count: number; cached: number; cost: number; coldMs: number };
-}
-
-function fmtMs(ms: number): string {
-  return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${Math.round(ms)}ms`;
-}
-function fmtCost(usd: number): string {
-  return usd >= 0.01 || usd === 0 ? `$${usd.toFixed(3)}` : `$${usd.toFixed(4)}`;
 }
 
 export function Inspector(props: {
@@ -68,29 +62,13 @@ export function Inspector(props: {
               fallback={<p class="comm-muted">Nothing cached yet for this chapter.</p>}
             >
               {(run) => (
-                <div class="inspect-row">
-                  <span
-                    class="inspect-dot"
-                    classList={{ hit: run.cached }}
-                    title={run.cached ? 'cached' : 'not cached'}
-                  />
-                  <span class="inspect-label">
-                    {run.label}
-                    <Show when={run.instance}>
-                      {(inst) => <span class="inspect-inst"> · {inst()}</span>}
-                    </Show>
-                  </span>
-                  <span class="inspect-meta">
-                    <Show when={run.cached} fallback={<span class="inspect-miss">miss</span>}>
-                      <Show when={run.coldMs}>
-                        {(ms) => <span class="inspect-ms">{fmtMs(ms())}</span>}
-                      </Show>
-                      <Show when={run.cost != null}>
-                        <span class="inspect-cost">{fmtCost(run.cost ?? 0)}</span>
-                      </Show>
-                    </Show>
-                  </span>
-                </div>
+                <InspectorRow
+                  cached={run.cached}
+                  label={run.label}
+                  instance={run.instance}
+                  coldMs={run.coldMs}
+                  cost={run.cost}
+                />
               )}
             </For>
           </>

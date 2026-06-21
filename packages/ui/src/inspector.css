@@ -1,0 +1,62 @@
+/*
+ * @corpus/ui — inspect panel styles (the per-piece rows + the totals header),
+ * shared by every corpus app's "inspect" surface. Driven by the shared design
+ * tokens. The panel shell (a Drawer / dock) and the data are the app's.
+ */
+
+.inspect-totals {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  padding: 2px 0 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+.inspect-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  font-family: var(--font-ui);
+  font-size: 13px;
+}
+.inspect-row + .inspect-row {
+  border-top: 1px dashed var(--line);
+}
+.inspect-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--line);
+}
+.inspect-dot.hit {
+  background: #3f9d52;
+}
+.inspect-label {
+  flex: 1;
+  min-width: 0;
+  color: var(--fg);
+}
+.inspect-inst {
+  color: var(--muted);
+}
+.inspect-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.inspect-ms {
+  color: var(--muted);
+}
+.inspect-cost {
+  color: var(--accent);
+}
+.inspect-miss {
+  color: var(--muted);
+  font-style: italic;
+}

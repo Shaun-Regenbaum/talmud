@@ -17,13 +17,16 @@
     "./components.css": "./src/components.css",
     "./geomap.css": "./src/geomap.css",
     "./loadprogress.css": "./src/loadprogress.css",
+    "./inspector.css": "./src/inspector.css",
+    "./format": "./src/format.ts",
     "./Pill": "./src/Pill.tsx",
     "./Drawer": "./src/Drawer.tsx",
     "./Button": "./src/Button.tsx",
     "./Prose": "./src/Prose.tsx",
     "./LangToggle": "./src/LangToggle.tsx",
     "./GeoMap": "./src/GeoMap.tsx",
-    "./LoadProgress": "./src/LoadProgress.tsx"
+    "./LoadProgress": "./src/LoadProgress.tsx",
+    "./InspectorRow": "./src/InspectorRow.tsx"
   },
   "peerDependencies": {
     "solid-js": "^1.9.0"

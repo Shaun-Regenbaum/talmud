@@ -5,7 +5,13 @@
  * node icon, and the small formatters. One source of truth so the two surfaces
  * can never drift in their graph maths or visuals.
  */
+import { fmtCost, fmtMs } from '@corpus/ui/format';
 import { For, type JSX, Match, Show, Switch } from 'solid-js';
+
+// Display formatters now live in @corpus/ui (single source of truth, shared
+// with tanach's inspect panel); re-exported so existing run-tree imports keep
+// resolving. The format is unchanged.
+export { fmtCost, fmtMs };
 
 export type Authority = 'human' | 'rule' | 'ai';
 export type Staleness = 'fresh' | 'stale-recipe' | 'stale-inputs' | 'unknown';
@@ -66,10 +72,6 @@ export interface RunResult {
   resolved?: { system_prompt: string; user_prompt: string };
 }
 
-export const fmtMs = (ms: number | null | undefined): string =>
-  ms == null ? '—' : ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 0)}s`;
-export const fmtCost = (c: number | null | undefined): string =>
-  typeof c === 'number' ? `$${c.toFixed(4)}` : '$0';
 export const prettifyId = (id: string): string =>
   id
     .split(/[.-]/)
