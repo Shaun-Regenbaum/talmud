@@ -5764,9 +5764,12 @@ app.get('/api/admin/llm-cost', async (c) => {
       truncated: keys.length >= SCAN_CAP,
     };
     const json = JSON.stringify(result);
-    // Short TTL: the dashboard polls "what just ran"; 45s is fresh enough and
-    // collapses a burst of polls into one scan.
-    await cache.put(reportKey, json, { expirationTtl: 45 });
+    // Short TTL collapses a burst of dashboard polls into one scan. 60s is the
+    // Cloudflare KV MINIMUM (a put with ttl < 60 throws "Invalid expiration_ttl",
+    // which is what made #450's cache silently never populate — so every request
+    // re-scanned and the OOM persisted). Keep it at exactly the floor for
+    // freshness.
+    await cache.put(reportKey, json, { expirationTtl: 60 });
     return json;
   });
   return new Response(payload, {
