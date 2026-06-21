@@ -315,6 +315,16 @@ export function App(): JSX.Element {
     { v: number; top: number; left: number; side: 'left' | 'right'; kinds: SourceKind[] }[]
   >([]);
   const [reflow, setReflow] = createSignal(0);
+  const bumpReflow = () => setReflow((n) => n + 1);
+  // Re-measure on ANY geometry change of the text band. The reading column is
+  // CSS multi-column (column-count: 2), which rebalances as fonts + content
+  // settle — moving verses near the column break into the other column AFTER
+  // the initial measure. A one-shot fonts.ready + double-rAF misses that late
+  // reflow and strands the margin labels/icons at stale positions (e.g. piled
+  // at the bottom). A ResizeObserver on the band catches every reflow.
+  const bandObserver =
+    typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => bumpReflow()) : null;
+  onCleanup(() => bandObserver?.disconnect());
 
   const measure = () => {
     if (loc().view !== 'scroll' || !scrollMain || !scrollBand) {
@@ -394,10 +404,9 @@ export function App(): JSX.Element {
   };
 
   onMount(() => {
-    const bump = () => setReflow((n) => n + 1);
-    window.addEventListener('resize', bump);
-    document.fonts?.ready.then(bump);
-    onCleanup(() => window.removeEventListener('resize', bump));
+    window.addEventListener('resize', bumpReflow);
+    document.fonts?.ready.then(bumpReflow);
+    onCleanup(() => window.removeEventListener('resize', bumpReflow));
   });
 
   createEffect(() => {
@@ -827,7 +836,11 @@ export function App(): JSX.Element {
             <div
               class="scroll-band"
               dir="rtl"
-              ref={(el) => (scrollBand = el)}
+              ref={(el) => {
+                scrollBand = el;
+                bandObserver?.disconnect();
+                if (el) bandObserver?.observe(el);
+              }}
               onMouseUp={onTextSelect}
               onClick={onTextClick}
             >
