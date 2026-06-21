@@ -2739,13 +2739,16 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
 
   const pieces: Record<string, DafViewPiece> = {};
   const enumerated: EnumeratedPiece[] = [];
+  const markCached = new Map<string, boolean>();
   const depsOf = (res: RunResult | null) =>
     (res as { deps_resolved?: Record<string, unknown> } | null)?.deps_resolved;
 
-  // Marks — one cache entry each.
+  // Marks — one cache entry each. (Awaited before the enrichments pass below, so
+  // markCached is populated when the per-instance cold check reads it.)
   await Promise.all(
     CODE_MARKS.map(async (def) => {
       const res = await readCachedResult(c.env, keyForMark(def, tractate, page, lang));
+      markCached.set(def.id, !!res);
       enumerated.push({ producerId: def.id, cold: !res });
       if (res) {
         pieces[pieceKey(def.id)] = {
@@ -2765,7 +2768,11 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
       const perInstance = !!targetMark && markAnchorById.get(targetMark) !== 'whole-daf';
       if (perInstance) {
         const insts = instancesByMark.get(targetMark as string) ?? [];
-        let anyCold = insts.length === 0; // no instances surfaced yet → still cold
+        // Zero instances is "cold" ONLY if the parent mark itself isn't cached
+        // yet (still warming). A cached-but-empty mark (this daf genuinely has no
+        // pesukim/aggadata/…) is COMPLETE — nothing to render — so it must not
+        // hold the whole view in the soft-cache tier forever.
+        let anyCold = insts.length === 0 ? !markCached.get(targetMark as string) : false;
         await Promise.all(
           insts.map(async (inst) => {
             const instanceId = await instanceIdOf(inst);
