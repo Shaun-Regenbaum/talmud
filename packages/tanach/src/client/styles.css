@@ -1,13 +1,7 @@
-:root {
-  --ink: #1a1a1a;
-  --muted: #6b6b6b;
-  --line: #e3e0d8;
-  --bg: #faf8f3;
-  --accent: #7a5c2e;
-  --parchment: #f3e7c9;
-  --parchment-edge: #e6d3a6;
-  --stam: #2a1c0c;
-}
+/* Design tokens + the tanach palette/fonts come from @corpus/ui (imported in
+   main.tsx: tokens.css + themes/tanach.css). This sheet only consumes them:
+   --bg/--fg/--ink/--muted/--line/--accent/--parchment*, and the type split
+   --font-ui (chrome) / --font-serif (Latin reading) / --font-hebrew. */
 
 * {
   box-sizing: border-box;
@@ -17,7 +11,8 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: "Spectral", "Frank Ruhl Libre", Georgia, serif;
+  /* reading prose is the serif (Spectral); chrome opts into --font-ui below */
+  font-family: var(--font-serif);
   line-height: 1.6;
 }
 
@@ -32,6 +27,8 @@ body {
 }
 
 /* ---- top bar ---- */
+/* All top-bar chrome (brand, selects, buttons, toggles — they use
+   font-family: inherit) renders in the shared UI sans, not the reading serif. */
 .topbar {
   position: sticky;
   top: 0;
@@ -41,6 +38,7 @@ body {
   padding: 12px 20px;
   background: var(--bg);
   border-bottom: 1px solid var(--line);
+  font-family: var(--font-ui);
   z-index: 10;
 }
 .brand {
@@ -146,7 +144,7 @@ body {
   max-width: 900px;
   margin: 0 auto;
   color: var(--ink);
-  font-family: "Frank Ruhl Libre", serif;
+  font-family: var(--font-hebrew);
   font-size: 16px;
   line-height: 1.6;
   column-count: 2;
@@ -483,6 +481,7 @@ body {
   color: var(--ink);
 }
 .note-pop-label {
+  font-family: var(--font-ui);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -519,13 +518,13 @@ body {
   }
 }
 .perek-pill {
-  font-family: inherit;
+  font-family: var(--font-ui);
   font-size: 12px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   padding: 5px 14px;
   border: 1px solid var(--parchment-edge);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--parchment);
   color: var(--accent);
   cursor: pointer;
@@ -557,7 +556,7 @@ body {
 }
 .perek-title[dir="rtl"],
 .perek-drawer[dir="rtl"] .perek-title {
-  font-family: "Frank Ruhl Libre", serif;
+  font-family: var(--font-hebrew);
 }
 .perek-prose {
   margin: 0;
@@ -566,7 +565,7 @@ body {
   color: var(--ink);
 }
 .perek-prose[dir="rtl"] {
-  font-family: "Frank Ruhl Libre", serif;
+  font-family: var(--font-hebrew);
   font-size: 17px;
 }
 
@@ -587,7 +586,7 @@ body {
   pointer-events: none;
 }
 .xlate-pop .xlate-he {
-  font-family: "Frank Ruhl Libre", serif;
+  font-family: var(--font-hebrew);
   font-size: 15px;
   color: #e9d9b8;
   white-space: nowrap;
@@ -669,6 +668,7 @@ body {
   border-bottom: 0;
 }
 .comm-name {
+  font-family: var(--font-ui);
   margin: 0 0 6px;
   font-size: 12px;
   text-transform: uppercase;
@@ -683,7 +683,7 @@ body {
   color: var(--ink);
 }
 .comm-text[dir="rtl"] {
-  font-family: "Frank Ruhl Libre", serif;
+  font-family: var(--font-hebrew);
   font-size: 16px;
 }
 .comm-muted {
@@ -705,7 +705,7 @@ body {
   border-radius: 50%;
   background: var(--accent);
   color: #fff;
-  font-family: "Frank Ruhl Libre", serif;
+  font-family: var(--font-hebrew);
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
@@ -727,6 +727,7 @@ body {
   margin: 8px 0 6px;
 }
 .comm-synth-name {
+  font-family: var(--font-ui);
   margin: 0 0 6px;
   font-size: 12px;
   text-transform: uppercase;
@@ -741,7 +742,7 @@ body {
   color: var(--ink);
 }
 .comm-synth-text[dir="rtl"] {
-  font-family: "Frank Ruhl Libre", serif;
+  font-family: var(--font-hebrew);
   font-size: 16px;
 }
 
@@ -769,7 +770,7 @@ body {
   border: 1px solid #fbf8f1;
   border-radius: 50%;
   color: #fff;
-  font-family: "Frank Ruhl Libre", serif;
+  font-family: var(--font-hebrew);
   font-size: 9px;
   font-weight: 700;
   line-height: 1;
@@ -837,7 +838,7 @@ body {
   color: var(--muted);
 }
 .gem-text[dir="rtl"] {
-  font-family: "Frank Ruhl Libre", serif;
+  font-family: var(--font-hebrew);
   font-size: 15px;
 }
 
@@ -854,6 +855,7 @@ body {
   gap: 10px;
 }
 .comm-kind {
+  font-family: var(--font-ui);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;

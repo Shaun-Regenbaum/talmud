@@ -1,0 +1,45 @@
+/*
+ * @corpus/ui — canonical design tokens.
+ *
+ * One variable vocabulary shared by every corpus app (talmud, tanach). An app
+ * imports this FIRST, then a theme file (themes/<app>.css) that overrides the
+ * values for its own identity — palette + Hebrew typeface — without renaming a
+ * single token. Components and stylesheets reference only these vars, so the
+ * two apps stop drifting.
+ *
+ * The values here are neutral DEFAULTS (a theme is expected to override the
+ * colour + Hebrew-font tokens). The split that ends the "everything in one
+ * serif" look:
+ *   --font-ui      chrome — buttons, nav, pills, labels (a clean sans)
+ *   --font-serif   running READING prose in Latin script (English notes)
+ *   --font-hebrew  Hebrew scripture + Hebrew reading text (a theme sets the face)
+ *   --font-mono    numerics / code
+ */
+
+:root {
+  /* ---- colour (themes override) ---- */
+  --bg: #fafaf7;
+  --fg: #1a1a1a;
+  --muted: #6b6b6b;
+  --line: #e5e3dc;
+  --accent: #8a2a2b;
+  --accent-strong: #6f2122;
+  /* a tinted surface for raised cards / pills (themes refine) */
+  --surface: #ffffff;
+  --surface-sunk: rgba(0, 0, 0, 0.04);
+
+  /* ---- type ---- */
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-hebrew: serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* ---- shape ---- */
+  --radius: 6px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+
+  /* ---- elevation ---- */
+  --shadow-pop: 0 10px 34px rgba(40, 30, 12, 0.16);
+  --shadow-drawer: -10px 0 34px rgba(40, 30, 12, 0.14);
+}

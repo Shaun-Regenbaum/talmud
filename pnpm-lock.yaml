@@ -96,6 +96,9 @@ importers:
       '@corpus/core':
         specifier: workspace:*
         version: link:../core
+      '@corpus/ui':
+        specifier: workspace:*
+        version: link:../ui
       hono:
         specifier: ^4.6.0
         version: 4.12.14
@@ -127,6 +130,8 @@ importers:
       wrangler:
         specifier: ^4.90.1
         version: 4.90.1(@cloudflare/workers-types@4.20260511.1)
+
+  packages/ui: {}
 
 packages:
 

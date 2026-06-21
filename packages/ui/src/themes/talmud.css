@@ -1,0 +1,30 @@
+/*
+ * @corpus/ui — Talmud theme.
+ *
+ * Talmud's identity on the shared token vocabulary: the maroon palette and the
+ * self-hosted Mekorot Vilna / Rashi Hebrew faces. Imported after tokens.css.
+ *
+ * NOTE: this theme exists so the vocabulary is symmetric, but the talmud app
+ * does NOT consume @corpus/ui yet — that adoption is a later step (it already
+ * defines these values inline). Wiring talmud onto these tokens, then onto the
+ * shared component kit, is its own change. The @font-face declarations for
+ * Mekorot stay in the talmud app (it self-hosts the .ttf files).
+ */
+
+:root {
+  /* ---- colour ---- */
+  --bg: #fafaf7;
+  --fg: #1a1a1a;
+  --muted: #6b6b6b;
+  --line: #e5e3dc;
+  --accent: #8a2a2b;
+  --accent-strong: #6f2122;
+  --surface: #ffffff;
+  --surface-sunk: rgba(138, 42, 43, 0.06);
+
+  /* ---- type ---- */
+  /* --font-ui inherits the shared sans default (talmud chrome is already sans). */
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-hebrew: "Mekorot Vilna", serif;
+  --font-rashi: "Mekorot Rashi", "Mekorot Vilna", serif;
+}
