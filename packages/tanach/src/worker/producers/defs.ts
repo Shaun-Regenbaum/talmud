@@ -226,12 +226,12 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     inputs: [{ source: 'chapter-verses' }],
     recipe: { extractor: tidbitExtractor },
     // Chapter-scoped like overview/geography — one per chapter; the key template
-    // ignores the instance (tidbit:v1:{book}:{chapter}).
+    // ignores the instance (tidbit:v2:{book}:{chapter}).
     anchoring: { behavior: 'inherits', precision: 'unit', spine: 'tanach' },
     cardinality: 'one',
     scope: 'local',
-    key_shape: 'enrich', // nominal — template owns tidbit:v1:{book}:{chapter}
-    cacheVersion: '1',
+    key_shape: 'enrich', // nominal — template owns tidbit:v2:{book}:{chapter}
+    cacheVersion: '2',
     source: 'code',
   },
   synthesis: {
