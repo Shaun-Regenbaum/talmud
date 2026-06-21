@@ -12,12 +12,11 @@
  * the built Solid client (the ASSETS binding, SPA fallback).
  */
 
-import { flattenPieces, pickV3Version } from '@corpus/core/sefaria/client';
+import { flattenPieces } from '@corpus/core/sefaria/client';
 import type { StoredArtifact } from '@corpus/core/store/envelope';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { isBook } from '../lib/books.ts';
-import { COMMENTATORS } from '../lib/commentators.ts';
 import { lookupPlace } from './gazetteer.ts';
 import { chapterRuns } from './inspect.ts';
 import type { EventSection } from './producers/events.ts';
@@ -25,6 +24,7 @@ import { translateHebrew } from './producers/translate.ts';
 import type { TanachEnv, TanachRunCtx } from './run-ports.ts';
 import { runTanachEnrichment, runTanachEvents, TanachSourceError } from './run-ports.ts';
 import { asVerses, fetchPassages, fetchVerseCommentaries, sefaria } from './sefaria-sources.ts';
+import { computeSourcesIndex } from './sources-index.ts';
 import { readUsage, recordUsage } from './usage.ts';
 import { runTanachWarm } from './warm-cron.ts';
 
@@ -488,95 +488,7 @@ app.get('/api/sources-index/:book/:chapter', async (c) => {
   if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
   if (!/^\d+$/.test(chapter)) return c.json({ error: 'Bad chapter' }, 400);
 
-  const key = `srcidx:v4:${book}:${chapter}`;
-  const cached = await c.env.CACHE.get(key);
-  if (cached) return c.json(JSON.parse(cached));
-
-  // Per verse: how many commentators, and the total weight (chars of Hebrew
-  // commentary) — volume is a better "richness" signal than count, since in the
-  // Torah almost every verse has several commentators.
-  const acc = new Map<number, { n: number; w: number }>();
-  await Promise.all(
-    COMMENTATORS.map(async (cm) => {
-      try {
-        const v3 = await sefaria.getTextV3(`${cm.title} on ${book} ${chapter}`);
-        const heArr = (() => {
-          const he = pickV3Version(v3.versions, 'he');
-          return Array.isArray(he) ? (he as unknown[]) : [];
-        })();
-        for (let i = 0; i < heArr.length; i++) {
-          const segs = flattenPieces(heArr[i]).map((x) => x.replace(/<[^>]+>/g, '').trim());
-          const chars = segs.join('').length;
-          if (!chars) continue;
-          const e = acc.get(i + 1) ?? { n: 0, w: 0 };
-          e.n += 1;
-          e.w += chars;
-          acc.set(i + 1, e);
-        }
-      } catch {
-        /* commentator absent on this book */
-      }
-    }),
-  );
-  // Talmud + Midrash citation counts per verse, from one chapter-wide links
-  // fetch (Sefaria's link graph). Heavy for the busiest chapters (~6MB) —
-  // best-effort: on failure the icons just don't show, the drawers still work.
-  const gem = new Map<number, number>();
-  const mid = new Map<number, number>();
-  try {
-    const r = await fetch(
-      `https://www.sefaria.org/api/links/${encodeURIComponent(`${book} ${chapter}`)}?with_text=0`,
-    );
-    type Link = { category?: string; anchorVerse?: number; sourceRef?: string; ref?: string };
-    const links = (await r.json()) as Link[];
-    const gemSeen = new Map<number, Set<string>>();
-    const midSeen = new Map<number, Set<string>>();
-    for (const l of Array.isArray(links) ? links : []) {
-      const v = l.anchorVerse;
-      if (!v) continue;
-      const ref = l.sourceRef || l.ref;
-      if (!ref) continue;
-      if (l.category === 'Talmud') {
-        const s = gemSeen.get(v) ?? new Set<string>();
-        s.add(ref);
-        gemSeen.set(v, s);
-      } else if (l.category === 'Midrash') {
-        const s = midSeen.get(v) ?? new Set<string>();
-        s.add(ref);
-        midSeen.set(v, s);
-      }
-    }
-    gemSeen.forEach((s, v) => {
-      gem.set(v, s.size);
-    });
-    midSeen.forEach((s, v) => {
-      mid.set(v, s.size);
-    });
-  } catch {
-    /* links too heavy / unavailable — skip gemara+midrash counts */
-  }
-
-  const entries = [...acc.entries()].sort((a, b) => a[0] - b[0]);
-  // "rich" = many commentators AND in the top fraction of this chapter by volume.
-  const weights = entries.map(([, e]) => e.w).sort((a, b) => a - b);
-  const cutoff = weights.length ? weights[Math.floor(weights.length * 0.6)] : 0;
-  // union of verses that have any source so gemara/midrash-only verses still appear
-  const allVerses = new Set<number>([...acc.keys(), ...gem.keys(), ...mid.keys()]);
-  const verses = [...allVerses]
-    .sort((a, b) => a - b)
-    .map((verse) => {
-      const e = acc.get(verse) ?? { n: 0, w: 0 };
-      return {
-        verse,
-        rishonim: e.n,
-        rich: e.n >= 3 && e.w >= cutoff,
-        gemara: gem.get(verse) ?? 0,
-        midrash: mid.get(verse) ?? 0,
-      };
-    });
-  const payload = { book, chapter: Number(chapter), verses };
-  c.executionCtx.waitUntil(c.env.CACHE.put(key, JSON.stringify(payload)).then(() => undefined));
-  return c.json(payload);
+  return c.json(await computeSourcesIndex(c.env.CACHE, book, chapter));
 });
 
 // Reverse Gemara lookup: how a verse is used in the Talmud (Sefaria's link
