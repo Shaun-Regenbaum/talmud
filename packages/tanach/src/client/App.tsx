@@ -25,6 +25,7 @@ import {
 } from '../lib/sources.ts';
 import { ChapterLoadProgress } from './ChapterLoadProgress.tsx';
 import { reportLoad, resetChapterLoad } from './chapterLoad.ts';
+import { Inspector } from './Inspector.tsx';
 import { MikraotGedolot } from './MikraotGedolot.tsx';
 
 interface Verse {
@@ -566,10 +567,21 @@ export function App(): JSX.Element {
   // panel). Opening a pill lazily fetches its enrichment (warm in KV after the
   // first reader); the resource only fires while its pill is open.
   const [perekPill, setPerekPill] = createSignal<PerekPill | null>(null);
+  // The inspector (what's cached for this chapter + cost) — another tenant of
+  // the one fixed right panel, so it's mutually exclusive with the pills and
+  // the verse-source drawer.
+  const [inspectOpen, setInspectOpen] = createSignal(false);
   const openPill = (id: PerekPill) => {
     setSource(null);
     setSelected(null);
+    setInspectOpen(false);
     setPerekPill((cur) => (cur === id ? null : id));
+  };
+  const toggleInspect = () => {
+    setSource(null);
+    setSelected(null);
+    setPerekPill(null);
+    setInspectOpen((v) => !v);
   };
   const [overview] = createResource(
     () => (perekPill() === 'overview' ? chapterKey() : undefined),
@@ -586,13 +598,17 @@ export function App(): JSX.Element {
     const o = overview();
     return o && o.book === loc().book && o.chapter === loc().chapter ? o : null;
   });
-  // Opening a verse-source drawer closes any open pill (one right panel).
+  // Opening a verse-source drawer closes any open pill / inspector (one panel).
   createEffect(() => {
-    if (source()) setPerekPill(null);
+    if (source()) {
+      setPerekPill(null);
+      setInspectOpen(false);
+    }
   });
   createEffect(() => {
     chapterKey();
     setPerekPill(null);
+    setInspectOpen(false);
   });
 
   // ---- Chapter load bar feed ----
@@ -687,6 +703,15 @@ export function App(): JSX.Element {
         <a class="usage-link" href="/usage" title="LLM usage">
           usage
         </a>
+        <button
+          type="button"
+          class="usage-link inspect-link"
+          classList={{ active: inspectOpen() }}
+          onClick={toggleInspect}
+          title="Inspect this chapter's cache + cost"
+        >
+          inspect
+        </button>
 
         <div class="chapter-nav">
           <Button
@@ -842,6 +867,15 @@ export function App(): JSX.Element {
             </Show>
           </div>
         )}
+      </Show>
+
+      {/* Inspector drawer (what's cached for this chapter + cost) */}
+      <Show when={inspectOpen()}>
+        <Inspector
+          book={loc().book}
+          chapter={loc().chapter}
+          onClose={() => setInspectOpen(false)}
+        />
       </Show>
 
       {/* Perek-level pill drawer (Overview, …) — same fixed right panel as the

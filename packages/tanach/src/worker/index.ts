@@ -18,6 +18,7 @@ import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { isBook } from '../lib/books.ts';
 import { COMMENTATORS } from '../lib/commentators.ts';
+import { chapterRuns } from './inspect.ts';
 import type { EventSection } from './producers/events.ts';
 import { translateHebrew } from './producers/translate.ts';
 import type { TanachEnv, TanachRunCtx } from './run-ports.ts';
@@ -582,6 +583,18 @@ app.get('/api/midrash-synthesis/:book/:chapter/:verse', async (c) => {
 
 // Self-tracked LLM usage (totals + per-producer + recent calls).
 app.get('/api/usage', async (c) => c.json(await readUsage(c.env.CACHE)));
+
+// Inspector: what's cached for a chapter + each piece's cost/time. Enumerates
+// the producers' deterministic keys (the cache is the index) — the two
+// chapter-level pieces by exact key, the per-instance ones by KV prefix list —
+// and reads the telemetry off each StoredArtifact envelope. Read-only.
+app.get('/api/chapter-runs/:book/:chapter', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter)) return c.json({ error: `Bad chapter: ${chapter}` }, 400);
+  return c.json(await chapterRuns(c.env.CACHE, book, chapter));
+});
 
 // Everything else: serve the built SPA (static assets + index.html fallback).
 app.get('*', (c) => c.env.ASSETS.fetch(c.req.raw));
