@@ -2833,6 +2833,8 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
       );
   };
 
+  const [hoveredMover, setHoveredMover] = createSignal<string | null>(null);
+
   return (
     <Show
       when={hasMap()}
@@ -2872,6 +2874,120 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
         selected={ex()?.activeLocation ?? undefined}
         onSelect={onSelect}
       />
+      {/* counts + the migration list — chrome that lived in the old map's
+          surrounding section, kept in the same place around the new map. */}
+      <div
+        style={{
+          display: 'flex',
+          'justify-content': 'space-between',
+          'margin-top': '0.45rem',
+          'font-size': '0.78rem',
+          color: 'var(--muted)',
+        }}
+      >
+        <span>
+          {t('geography.eretzYisrael')}:{' '}
+          <strong style={{ color: 'var(--fg)' }}>{model()?.israelCount ?? 0}</strong>
+        </span>
+        <span>
+          {t('geography.bavel')}:{' '}
+          <strong style={{ color: '#92400e' }}>{model()?.bavelCount ?? 0}</strong>
+        </span>
+      </div>
+      <Show when={(model()?.moverRows.length ?? 0) > 0}>
+        <div
+          style={{
+            'margin-top': '0.4rem',
+            'padding-top': '0.4rem',
+            'border-top': '1px dashed var(--line)',
+            display: 'flex',
+            'flex-direction': 'column',
+            gap: '0.1rem',
+          }}
+        >
+          <div
+            style={{
+              color: 'var(--muted)',
+              'font-size': '0.64rem',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.06em',
+              'margin-bottom': '0.15rem',
+            }}
+          >
+            {t('geography.migration')}
+          </div>
+          <For each={model()?.moverRows ?? []}>
+            {(row) => {
+              const fromB = row.direction === 'bavel->israel';
+              const arrow = row.direction === 'both' ? '↔' : '→';
+              const fromLabel = fromB ? 'B' : 'E';
+              const toLabel = fromB ? 'E' : 'B';
+              const enter = () => {
+                setHoveredMover(row.name);
+                ex()?.onHoverRabbi(row.name);
+              };
+              const leave = () => {
+                setHoveredMover(null);
+                ex()?.onHoverRabbi(null);
+              };
+              const go = () => ex()?.onHighlightSingleRabbi(row.name, row.slug ?? undefined);
+              return (
+                // biome-ignore lint/a11y/useSemanticElements: a native <button> would inject UA layout into this tight inline-styled row; role+tabindex+keydown carry the same semantics
+                <div
+                  role="button"
+                  tabIndex={0}
+                  title={`${fromB ? t('geography.bavel') : t('geography.eretzYisrael')} ${arrow} ${fromB ? t('geography.eretzYisrael') : t('geography.bavel')} — ${row.name}`}
+                  onMouseEnter={enter}
+                  onMouseLeave={leave}
+                  onFocus={enter}
+                  onBlur={leave}
+                  onClick={go}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      go();
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    'align-items': 'center',
+                    gap: '0.3rem',
+                    padding: '0.15rem 0.3rem',
+                    'border-radius': '4px',
+                    cursor: 'pointer',
+                    'white-space': 'nowrap',
+                    'font-size': '0.74rem',
+                    'background-color':
+                      hoveredMover() === row.name ? 'var(--surface-sunk)' : 'transparent',
+                    transition: 'background-color 120ms',
+                  }}
+                >
+                  <span
+                    style={{
+                      'font-family': 'var(--font-mono)',
+                      'font-size': '0.7rem',
+                      'flex-shrink': 0,
+                    }}
+                  >
+                    <span style={{ color: fromB ? '#92400e' : 'var(--fg)', 'font-weight': 700 }}>
+                      {fromLabel}
+                    </span>{' '}
+                    {arrow}{' '}
+                    <span style={{ color: fromB ? 'var(--fg)' : '#92400e', 'font-weight': 700 }}>
+                      {toLabel}
+                    </span>
+                  </span>
+                  <span
+                    style={{ color: 'var(--fg)', overflow: 'hidden', 'text-overflow': 'ellipsis' }}
+                  >
+                    {row.name}
+                  </span>
+                </div>
+              );
+            }}
+          </For>
+        </div>
+      </Show>
     </Show>
   );
 }
