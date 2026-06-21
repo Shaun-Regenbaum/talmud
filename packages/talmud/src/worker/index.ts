@@ -60,7 +60,7 @@ import { type SectionExit, sectionExits } from '../lib/context/sectionExits';
 import { dafSpine } from '../lib/context/spine';
 import { spineLinks } from '../lib/context/spineLinks';
 import { buildGeoModel, type GeoEnrichment, type RabbiGeoSource } from '../lib/geographyModel';
-import { buildDerivation } from '../lib/halacha/codifiers';
+import { buildCodificationChain, buildDerivation } from '../lib/halacha/codifiers';
 import {
   buildRabbiEnrichUserMessage,
   type LocalRabbiInput,
@@ -1098,6 +1098,33 @@ app.get('/api/derivation/:tractate/:page', async (c) => {
   const linkLists = await Promise.all(refs.map((r) => getCodeSourcesCached(c.env.CACHE, r)));
   const sources = buildDerivation(linkLists.flat(), { tractate, page });
   return c.json({ sources });
+});
+
+// Halacha SOURCE TEXTS: the actual codifier text behind the codification card,
+// grouped into the deterministic codifier lineage (Rambam → Tur → Shulchan Aruch
+// + secondary glosses). The full Hebrew/English is ALREADY cached in the
+// halacha-refs bundle (it grounds the codification enrichment) — this only
+// surfaces it for the reader. Read-only, no LLM. HTML stripped for display; the
+// cached bundle (and the grounding prompt) keep the raw markup.
+app.get('/api/halacha-text/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
+  const bundle = await getHalachaRefsCached(c.env.CACHE, tractate, page).catch(() => undefined);
+  const nodes = buildCodificationChain(bundle, { includeSecondary: true }).map((n) => ({
+    id: n.id,
+    label: n.label,
+    short: n.short,
+    tier: n.tier,
+    einMishpat: n.einMishpat,
+    refs: n.refs.map((r) => ({
+      ref: r.ref,
+      hebrew: stripHtmlServer(r.hebrew ?? ''),
+      english: stripHtmlServer(r.english ?? ''),
+      einMishpat: !!r.einMishpat,
+    })),
+  }));
+  return c.json({ tractate, page, nodes });
 });
 
 app.get('/api/links/:tractate/:page', async (c) => {

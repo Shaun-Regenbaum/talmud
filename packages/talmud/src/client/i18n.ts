@@ -969,6 +969,11 @@ const CATALOG = {
 
   // — Halacha body —
   'halacha.codification': { en: 'Codification', he: 'פסיקה' },
+  'halacha.sourceTexts': { en: 'Source texts', he: 'לשון המקור' },
+  'halacha.sourceTexts.none': {
+    en: 'No codifier text cached for this daf yet',
+    he: 'לשון המקור עדיין לא נטענה לדף זה',
+  },
   'halacha.derivation': { en: 'Talmudic sources', he: 'מקורות בש״ס' },
   'halacha.note': { en: 'Note', he: 'הערה' },
   'halacha.dispute': { en: 'Where practice splits', he: 'היכן ההלכה נחלקת' },
