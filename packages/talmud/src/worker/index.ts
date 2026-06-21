@@ -172,6 +172,13 @@ import { aiMatchToSegments } from './context-match';
 import { collectContext, type SourceTiming } from './context-providers';
 import { dafCostReport } from './daf-cost';
 import { recordEnrichmentDafIndex, recordMarkDafIndex } from './daf-index';
+import {
+  type DafViewPiece,
+  dafViewCacheControl,
+  dafViewCompleteness,
+  type EnumeratedPiece,
+  pieceKey,
+} from './daf-view';
 import { getRabbiEntryOr404, readJsonBody } from './http-helpers';
 import {
   aggregateProbes,
@@ -2698,6 +2705,123 @@ async function dafGroupsFromIndex(
     marks,
   };
 }
+
+// GET /api/daf-view/:tractate/:page — the warm read path (Phase 1). Returns ALL
+// currently-cached pieces' CONTENT for the daf in ONE response (read-only; never
+// generates), with completeness-aware Cache-Control so a fully-warm daf is
+// served from the edge. The client renders warm pieces from this single fetch
+// instead of firing ~16 /api/run calls; `cold` lists what still needs
+// generation (the cold path keeps the existing per-piece machinery). See
+// daf-view.ts. Enumeration mirrors the /api/daf-runs probe path (marks +
+// whole-daf + per-instance local enrichments; the `argument` per-section facets
+// are deferred for the same dual-instance reason).
+app.get('/api/daf-view/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
+
+  const iid = await instanceIdOf({ fields: {} });
+  const markAnchorById = new Map(CODE_MARKS.map((m) => [m.id, (m as { anchor?: string }).anchor]));
+  const localEnrichments = CODE_ENRICHMENTS.filter(
+    (e) => e.scope === 'local' && e.target_mark !== 'argument',
+  );
+  const perInstanceTargets = new Set(
+    localEnrichments
+      .map((e) => e.target_mark)
+      .filter((m): m is string => !!m && markAnchorById.get(m) !== 'whole-daf'),
+  );
+  const instancesByMark = new Map<string, RawInstance[]>();
+  await Promise.all(
+    [...perInstanceTargets].map(async (mid) => {
+      instancesByMark.set(mid, await readMarkInstances(c.env, mid, tractate, page));
+    }),
+  );
+
+  const pieces: Record<string, DafViewPiece> = {};
+  const enumerated: EnumeratedPiece[] = [];
+  const depsOf = (res: RunResult | null) =>
+    (res as { deps_resolved?: Record<string, unknown> } | null)?.deps_resolved;
+
+  // Marks — one cache entry each.
+  await Promise.all(
+    CODE_MARKS.map(async (def) => {
+      const res = await readCachedResult(c.env, keyForMark(def, tractate, page, lang));
+      enumerated.push({ producerId: def.id, cold: !res });
+      if (res) {
+        pieces[pieceKey(def.id)] = {
+          producerId: def.id,
+          kind: 'mark',
+          label: def.label ?? def.id,
+          parsed: res.parsed,
+        };
+      }
+    }),
+  );
+
+  // Enrichments — whole-daf (single entry) + per-instance (one per target instance).
+  await Promise.all(
+    localEnrichments.map(async (def) => {
+      const targetMark = def.target_mark;
+      const perInstance = !!targetMark && markAnchorById.get(targetMark) !== 'whole-daf';
+      if (perInstance) {
+        const insts = instancesByMark.get(targetMark as string) ?? [];
+        let anyCold = insts.length === 0; // no instances surfaced yet → still cold
+        await Promise.all(
+          insts.map(async (inst) => {
+            const instanceId = await instanceIdOf(inst);
+            const res = await readCachedResult(
+              c.env,
+              keyForEnrichment(def, instanceId, { tractate, page }, undefined, lang),
+            );
+            if (res) {
+              pieces[pieceKey(def.id, instanceId)] = {
+                producerId: def.id,
+                kind: 'enrichment',
+                label: def.label,
+                instanceId,
+                instanceLabel: instanceLabel((inst as { fields?: Record<string, unknown> }).fields),
+                parsed: res.parsed,
+                deps_resolved: depsOf(res),
+              };
+            } else {
+              anyCold = true;
+            }
+          }),
+        );
+        enumerated.push({ producerId: def.id, cold: anyCold });
+      } else {
+        const res = await readCachedResult(
+          c.env,
+          keyForEnrichment(def, iid, { tractate, page }, undefined, lang),
+        );
+        enumerated.push({ producerId: def.id, cold: !res });
+        if (res) {
+          pieces[pieceKey(def.id)] = {
+            producerId: def.id,
+            kind: 'enrichment',
+            label: def.label,
+            parsed: res.parsed,
+            deps_resolved: depsOf(res),
+          };
+        }
+      }
+    }),
+  );
+
+  const { complete, cold } = dafViewCompleteness(enumerated);
+  c.header('Cache-Control', dafViewCacheControl(complete));
+  c.header('x-daf-view', complete ? 'complete' : 'partial');
+  return c.json({
+    tractate,
+    page,
+    lang,
+    complete,
+    total: enumerated.length,
+    cached: Object.keys(pieces).length,
+    cold,
+    pieces,
+  });
+});
 
 app.get('/api/daf-runs/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
