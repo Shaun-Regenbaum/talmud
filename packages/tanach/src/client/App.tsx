@@ -176,6 +176,19 @@ interface SectionNote {
   en: string;
   he: string;
 }
+/** A whole-chapter pill the reader can open from the perek-pills row. Only
+ *  'overview' exists today; 'geography' and 'tidbit' join it as siblings. */
+type PerekPill = 'overview';
+interface Overview {
+  titleEn: string;
+  titleHe: string;
+  en: string;
+  he: string;
+}
+/** The perek-pills, in display order. Adding geography/tidbit is a one-line
+ *  edit here plus their resource + drawer body. */
+const PEREK_PILLS: { id: PerekPill; label: string }[] = [{ id: 'overview', label: 'Overview' }];
+const PILL_KIND: Record<PerekPill, string> = { overview: 'Overview' };
 interface CommentaryEntry {
   key: string;
   en: string;
@@ -539,6 +552,32 @@ export function App(): JSX.Element {
     setSource(null);
   });
 
+  // Perek-level pills (Overview, …): a chapter-scoped drawer, mutually
+  // exclusive with the verse-source drawer (both are the same fixed right
+  // panel). Opening a pill lazily fetches its enrichment (warm in KV after the
+  // first reader); the resource only fires while its pill is open.
+  const [perekPill, setPerekPill] = createSignal<PerekPill | null>(null);
+  const openPill = (id: PerekPill) => {
+    setSource(null);
+    setSelected(null);
+    setPerekPill((cur) => (cur === id ? null : id));
+  };
+  const [overview] = createResource(
+    () => (perekPill() === 'overview' ? chapterKey() : undefined),
+    async (k) => {
+      const res = await fetch(`/api/overview/${encodeURIComponent(k.book)}/${k.chapter}`);
+      return res.ok ? ((await res.json()) as Overview) : null;
+    },
+  );
+  // Opening a verse-source drawer closes any open pill (one right panel).
+  createEffect(() => {
+    if (source()) setPerekPill(null);
+  });
+  createEffect(() => {
+    chapterKey();
+    setPerekPill(null);
+  });
+
   return (
     <div
       class="app"
@@ -658,6 +697,20 @@ export function App(): JSX.Element {
       <Show when={loc().view === 'scroll' && data()}>
         {(ch) => (
           <main class="scroll-main" ref={(el) => (scrollMain = el)}>
+            <div class="perek-pills">
+              <For each={PEREK_PILLS}>
+                {(p) => (
+                  <button
+                    type="button"
+                    class="perek-pill"
+                    classList={{ active: perekPill() === p.id }}
+                    onClick={() => openPill(p.id)}
+                  >
+                    {p.label}
+                  </button>
+                )}
+              </For>
+            </div>
             {/* biome-ignore lint/a11y/noStaticElementInteractions: scripture prose surface; onMouseUp is text-selection word lookup and onClick is a pointer convenience delegated to verse-number spans inside innerHTML — a role would mis-announce running text */}
             {/* biome-ignore lint/a11y/useKeyWithClickEvents: the click target (.vnum spans inside innerHTML) is not focusable; the same verse drawers are keyboard-reachable via the gutter <button>s (evt-margin / vgutter) */}
             <div
@@ -762,6 +815,55 @@ export function App(): JSX.Element {
               <span class="xlate-en">{translation() ?? '—'}</span>
             </Show>
           </div>
+        )}
+      </Show>
+
+      {/* Perek-level pill drawer (Overview, …) — same fixed right panel as the
+          verse-source drawer, mutually exclusive with it */}
+      <Show when={perekPill()} keyed>
+        {(pill) => (
+          <aside class="comm-drawer perek-drawer" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
+            <header class="comm-head">
+              <span class="comm-ref">
+                {loc().lang === 'he'
+                  ? `${heBook(loc().book)} ${hebrewNumeral(loc().chapter)}`
+                  : `${loc().book} ${loc().chapter}`}
+              </span>
+              <span class="comm-kind">{PILL_KIND[pill]}</span>
+              <button
+                type="button"
+                class="comm-close"
+                onClick={() => setPerekPill(null)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </header>
+            <div class="comm-body">
+              <Show when={pill === 'overview'}>
+                <Show when={overview.loading}>
+                  <p class="comm-muted">Reading the chapter…</p>
+                </Show>
+                <Show when={overview()}>
+                  {(o) => {
+                    const he = loc().lang === 'he';
+                    const title = he ? o().titleHe || o().titleEn : o().titleEn || o().titleHe;
+                    const body = he ? o().he || o().en : o().en || o().he;
+                    return (
+                      <section class="perek-overview">
+                        <Show when={title}>
+                          <h3 class="perek-title">{title}</h3>
+                        </Show>
+                        <p class="perek-prose" dir={he ? 'rtl' : 'ltr'}>
+                          {body}
+                        </p>
+                      </section>
+                    );
+                  }}
+                </Show>
+              </Show>
+            </div>
+          </aside>
         )}
       </Show>
 

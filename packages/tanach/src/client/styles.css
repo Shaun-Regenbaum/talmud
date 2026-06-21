@@ -502,6 +502,74 @@ body {
   font-style: italic;
 }
 
+/* perek-level pills (Overview, …): a centered row of chips at the top of the
+   chapter, each opening the perek drawer. The chapter analogue of the Talmud
+   reader's whole-daf header chips. */
+.perek-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 900px;
+  margin: 0 auto 18px;
+}
+@media (max-width: 1240px) {
+  .perek-pills {
+    max-width: 620px;
+  }
+}
+.perek-pill {
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border: 1px solid var(--parchment-edge);
+  border-radius: 999px;
+  background: var(--parchment);
+  color: var(--accent);
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease,
+    border-color 0.12s ease;
+}
+.perek-pill:hover {
+  border-color: var(--accent);
+}
+.perek-pill.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* perek drawer (an Overview/Geography/Tidbit pill) — reuses the comm-drawer
+   shell; the body holds the chapter-level enrichment */
+.perek-overview {
+  padding: 6px 0 12px;
+}
+.perek-title {
+  margin: 0 0 10px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.perek-title[dir="rtl"],
+.perek-drawer[dir="rtl"] .perek-title {
+  font-family: "Frank Ruhl Libre", serif;
+}
+.perek-prose {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.68;
+  color: var(--ink);
+}
+.perek-prose[dir="rtl"] {
+  font-family: "Frank Ruhl Libre", serif;
+  font-size: 17px;
+}
+
 /* word/phrase translation gloss (text selection) */
 .xlate-pop {
   position: fixed;

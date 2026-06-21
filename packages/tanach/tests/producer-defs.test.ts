@@ -22,12 +22,13 @@ describe('tanach spine registry', () => {
   });
 });
 
-describe('the five producers as core Producer objects', () => {
-  it('declares all five with their model shapes', () => {
+describe('the six producers as core Producer objects', () => {
+  it('declares all six with their model shapes', () => {
     expect(Object.keys(TANACH_PRODUCERS).sort()).toEqual([
       'events',
       'midrash-synthesis',
       'note',
+      'overview',
       'synthesis',
       'translate',
     ]);
@@ -57,6 +58,17 @@ describe('the five producers as core Producer objects', () => {
       expect(TANACH_PRODUCERS[id].scope).toBe('local');
     }
 
+    const overview = TANACH_PRODUCERS.overview;
+    expect(overview.kind).toBe('enrichment');
+    expect(overview.anchoring).toEqual({
+      behavior: 'inherits',
+      precision: 'unit', // whole-chapter scoped
+      spine: 'tanach',
+    });
+    expect(overview.cardinality).toBe('one');
+    expect(overview.scope).toBe('local');
+    expect(overview.cacheVersion).toBe('1'); // overview:v1:*
+
     const translate = TANACH_PRODUCERS.translate;
     expect(translate.anchoring.behavior).toBe('inherits');
     expect(translate.scope).toBe('global');
@@ -66,6 +78,7 @@ describe('the five producers as core Producer objects', () => {
     const knobs: Record<string, { max_tokens: number; temperature: number; tag: string }> = {
       events: { max_tokens: 900, temperature: 0.2, tag: 'tanach:events' },
       note: { max_tokens: 700, temperature: 0.3, tag: 'tanach:note' },
+      overview: { max_tokens: 700, temperature: 0.3, tag: 'tanach:overview' },
       synthesis: { max_tokens: 800, temperature: 0.3, tag: 'tanach:synthesis' },
       'midrash-synthesis': { max_tokens: 800, temperature: 0.35, tag: 'tanach:midrash-synthesis' },
       translate: { max_tokens: 120, temperature: 0.2, tag: 'tanach:translate' },
@@ -101,6 +114,10 @@ describe('the five producers as core Producer objects', () => {
     expect(note.mark).toBe('events');
     expect(note.dependencies).toEqual(['section-verses']);
     expect(note.system_prompt.length).toBeGreaterThan(50);
+
+    const overview = enrichRunDefOf('overview');
+    expect(overview.dependencies).toEqual(['chapter-verses']);
+    expect(overview.system_prompt.length).toBeGreaterThan(50);
 
     const synth = enrichRunDefOf('synthesis');
     expect(synth.dependencies).toEqual(['verse-text', 'commentaries']);

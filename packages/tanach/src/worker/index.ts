@@ -164,6 +164,42 @@ app.get('/api/events/:book/:chapter', async (c) => {
   return c.json({ book, chapter: Number(chapter), ref, sections: parsed?.sections ?? [] });
 });
 
+// Perek overview (whole-chapter enrichment): a short bilingual orienting
+// overview — a descriptive title + a few sentences on what the chapter is
+// about — opened from the reader's "Overview" pill. Runs through the core
+// runProducer; chapter-scoped, so the markInput's `id` ('perek') is nominal —
+// the key template owns the bytes (overview:v1:{book}:{chapter}), one entry
+// per chapter.
+app.get('/api/overview/:book/:chapter', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter)) return c.json({ error: `Bad chapter: ${chapter}` }, 400);
+
+  const ref = `${book} ${chapter}`;
+  const rc: TanachRunCtx = { env: c.env, ctx: c.executionCtx, ref };
+  let artifact: StoredArtifact;
+  try {
+    artifact = await runTanachEnrichment(rc, 'overview', book, chapter, { id: 'perek' });
+  } catch (e) {
+    return runErrorResponse(c, e);
+  }
+  const p = artifact.parsed as {
+    titleEn?: string;
+    titleHe?: string;
+    en?: string;
+    he?: string;
+  } | null;
+  return c.json({
+    book,
+    chapter: Number(chapter),
+    titleEn: String(p?.titleEn ?? '').trim(),
+    titleHe: String(p?.titleHe ?? '').trim(),
+    en: String(p?.en ?? '').trim(),
+    he: String(p?.he ?? '').trim(),
+  });
+});
+
 // This week's Torah portion (parashat hashavua), from Sefaria's calendar.
 // Returns the parsha name + the book/chapter it starts at, so the reader can
 // jump straight there. Cached ~6h (it only changes on Shabbat).
