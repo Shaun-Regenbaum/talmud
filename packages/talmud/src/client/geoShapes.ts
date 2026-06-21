@@ -34,6 +34,9 @@ export interface GeoCity {
   /** Projected local coordinates (0..width / 0..height of the region shape). */
   x: number;
   y: number;
+  /** Real coordinates (for the shared @corpus/ui GeoMap, which re-projects). */
+  lat: number;
+  lng: number;
   /** True when the ancient site's identification is uncertain — the dot is a
    *  reasoned guess near the attested neighborhood. */
   approx?: boolean;
@@ -83,6 +86,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 44.0,
     y: 14.1,
+    lat: 33.27,
+    lng: 35.203,
   },
   {
     name: 'Gush Halav',
@@ -91,6 +96,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 52.9,
     y: 24.8,
+    lat: 33.022,
+    lng: 35.448,
   },
   {
     name: "Peki'in",
@@ -99,6 +106,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 48.6,
     y: 26.7,
+    lat: 32.977,
+    lng: 35.331,
   },
   {
     name: 'Akko',
@@ -107,6 +116,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 39.5,
     y: 28.8,
+    lat: 32.927,
+    lng: 35.082,
   },
   {
     name: 'Sikhnin',
@@ -115,6 +126,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 47.4,
     y: 31.5,
+    lat: 32.864,
+    lng: 35.297,
   },
   {
     name: 'Arbel',
@@ -123,6 +136,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 54.8,
     y: 33.8,
+    lat: 32.811,
+    lng: 35.499,
     approx: true,
   },
   {
@@ -132,8 +147,19 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 42.8,
     y: 34.0,
+    lat: 32.806,
+    lng: 35.17,
   },
-  { name: 'Usha', nameHe: 'אושא', aliases: ['usha'], region: 'israel', x: 42.8, y: 34.3 },
+  {
+    name: 'Usha',
+    nameHe: 'אושא',
+    aliases: ['usha'],
+    region: 'israel',
+    x: 42.8,
+    y: 34.3,
+    lat: 32.8,
+    lng: 35.17,
+  },
   {
     name: 'Tiberias',
     nameHe: 'טבריה',
@@ -141,6 +167,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 55.9,
     y: 34.5,
+    lat: 32.795,
+    lng: 35.53,
   },
   {
     name: 'Tzipori',
@@ -149,6 +177,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 46.7,
     y: 36.3,
+    lat: 32.752,
+    lng: 35.279,
   },
   {
     name: "Beit She'arim",
@@ -157,6 +187,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 41.3,
     y: 38.5,
+    lat: 32.702,
+    lng: 35.13,
   },
   {
     name: 'Caesarea',
@@ -165,6 +197,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 32.6,
     y: 47.1,
+    lat: 32.5,
+    lng: 34.892,
   },
   {
     name: "Beit She'an",
@@ -173,6 +207,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 54.7,
     y: 47.3,
+    lat: 32.497,
+    lng: 35.497,
   },
   {
     name: 'Shechem',
@@ -181,6 +217,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 45.8,
     y: 59.1,
+    lat: 32.221,
+    lng: 35.254,
   },
   {
     name: 'Bnei Brak',
@@ -189,6 +227,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 30.5,
     y: 65.1,
+    lat: 32.081,
+    lng: 34.834,
   },
   {
     name: 'Lod',
@@ -197,6 +237,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 32.7,
     y: 70.7,
+    lat: 31.951,
+    lng: 34.896,
   },
   {
     name: 'Yavneh',
@@ -205,6 +247,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 27.0,
     y: 73.8,
+    lat: 31.878,
+    lng: 34.739,
   },
   {
     name: 'Jerusalem',
@@ -213,6 +257,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 45.1,
     y: 78.1,
+    lat: 31.778,
+    lng: 35.235,
   },
   {
     name: 'Ashkelon',
@@ -221,6 +267,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 20.9,
     y: 82.8,
+    lat: 31.669,
+    lng: 34.571,
   },
   {
     name: 'Tekoa',
@@ -229,6 +277,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 47.2,
     y: 84.2,
+    lat: 31.636,
+    lng: 35.291,
     approx: true,
   },
   {
@@ -238,6 +288,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 40.0,
     y: 88.6,
+    lat: 31.532,
+    lng: 35.095,
   },
   {
     name: 'Nisibis',
@@ -246,6 +298,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 8.0,
     y: 9.8,
+    lat: 37.075,
+    lng: 41.218,
   },
   {
     name: 'Nehardea',
@@ -254,6 +308,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 48.1,
     y: 94.6,
+    lat: 33.4,
+    lng: 43.3,
     approx: true,
   },
   {
@@ -263,6 +319,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 57.3,
     y: 95.8,
+    lat: 33.35,
+    lng: 43.78,
   },
   {
     name: 'Baghdad',
@@ -271,6 +329,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 68.4,
     y: 96.7,
+    lat: 33.31,
+    lng: 44.36,
   },
   {
     name: 'Sichra',
@@ -279,6 +339,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 75.0,
     y: 99.2,
+    lat: 33.2,
+    lng: 44.7,
     approx: true,
   },
   {
@@ -288,6 +350,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 72.1,
     y: 101.5,
+    lat: 33.1,
+    lng: 44.55,
     approx: true,
   },
   {
@@ -297,6 +361,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 72.7,
     y: 101.7,
+    lat: 33.094,
+    lng: 44.581,
   },
   {
     name: 'Pum Nahara',
@@ -305,6 +371,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 65.4,
     y: 110.8,
+    lat: 32.7,
+    lng: 44.2,
     approx: true,
   },
   {
@@ -314,6 +382,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 78.8,
     y: 113.1,
+    lat: 32.6,
+    lng: 44.9,
     approx: true,
   },
   {
@@ -323,9 +393,20 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 69.2,
     y: 115.4,
+    lat: 32.5,
+    lng: 44.4,
     approx: true,
   },
-  { name: 'Nippur', nameHe: 'ניפור', aliases: ['nippur'], region: 'bavel', x: 85.2, y: 123.9 },
+  {
+    name: 'Nippur',
+    nameHe: 'ניפור',
+    aliases: ['nippur'],
+    region: 'bavel',
+    x: 85.2,
+    y: 123.9,
+    lat: 32.13,
+    lng: 45.23,
+  },
   {
     name: 'Hini',
     nameHe: 'היני',
@@ -333,6 +414,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 73.0,
     y: 125.8,
+    lat: 32.05,
+    lng: 44.6,
     approx: true,
   },
   {
@@ -342,9 +425,20 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 71.1,
     y: 129.2,
+    lat: 31.9,
+    lng: 44.5,
     approx: true,
   },
-  { name: 'Sura', nameHe: 'סורא', aliases: ['sura'], region: 'bavel', x: 70.2, y: 129.7 },
+  {
+    name: 'Sura',
+    nameHe: 'סורא',
+    aliases: ['sura'],
+    region: 'bavel',
+    x: 70.2,
+    y: 129.7,
+    lat: 31.88,
+    lng: 44.45,
+  },
   {
     name: 'Naresh',
     nameHe: 'נרש',
@@ -352,6 +446,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 72.1,
     y: 135.0,
+    lat: 31.65,
+    lng: 44.55,
     approx: true,
   },
   {
@@ -361,6 +457,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 65.4,
     y: 137.3,
+    lat: 31.55,
+    lng: 44.2,
     approx: true,
   },
   {
@@ -370,6 +468,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'bavel',
     x: 45.2,
     y: 26.3,
+    lat: 36.3594,
+    lng: 43.1528,
   },
   {
     name: 'Dan',
@@ -378,6 +478,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 60.4,
     y: 15.0,
+    lat: 33.249,
+    lng: 35.652,
   },
   {
     name: 'Arav',
@@ -386,6 +488,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 48.9,
     y: 32.1,
+    lat: 32.8506,
+    lng: 35.3389,
   },
   {
     name: 'Migdal',
@@ -402,6 +506,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 55.5,
     y: 32.8,
+    lat: 32.8345,
+    lng: 35.5179,
   },
   {
     name: 'Maon',
@@ -410,6 +516,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 56.0,
     y: 34.5,
+    lat: 32.7944,
+    lng: 35.5333,
   },
   {
     name: 'Shihin',
@@ -418,6 +526,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 46.5,
     y: 35.7,
+    lat: 32.7681,
+    lng: 35.2737,
   },
   {
     name: 'Antipatris',
@@ -426,6 +536,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 33.8,
     y: 64.2,
+    lat: 32.103,
+    lng: 34.9249,
   },
   {
     name: 'Shiloh',
@@ -434,6 +546,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 47.1,
     y: 66.2,
+    lat: 32.0556,
+    lng: 35.2895,
   },
   {
     name: 'Jaffa',
@@ -442,6 +556,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 27.5,
     y: 66.3,
+    lat: 32.0522,
+    lng: 34.7531,
   },
   {
     name: 'Ono',
@@ -450,6 +566,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 31.7,
     y: 67.5,
+    lat: 32.0244,
+    lng: 34.8686,
   },
   {
     name: 'Bethel',
@@ -458,6 +576,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 45.4,
     y: 71.9,
+    lat: 31.9228,
+    lng: 35.2414,
   },
   {
     name: 'Beit Horon',
@@ -474,6 +594,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 40.9,
     y: 73.8,
+    lat: 31.8772,
+    lng: 35.1186,
   },
   {
     name: 'Jericho',
@@ -482,6 +604,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 52.8,
     y: 74.1,
+    lat: 31.8711,
+    lng: 35.4439,
   },
   {
     name: 'Gibeon',
@@ -490,6 +614,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 43.2,
     y: 75.1,
+    lat: 31.8475,
+    lng: 35.1834,
   },
   {
     name: 'Beitar',
@@ -498,6 +624,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 41.5,
     y: 80.1,
+    lat: 31.73,
+    lng: 35.1356,
   },
   {
     name: 'Gath',
@@ -506,6 +634,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 30.9,
     y: 81.2,
+    lat: 31.7042,
+    lng: 34.8469,
   },
   {
     name: "Ke'ila",
@@ -514,6 +644,8 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 36.7,
     y: 85.1,
+    lat: 31.6137,
+    lng: 35.0036,
   },
   {
     name: 'Gaza',
@@ -522,5 +654,7 @@ export const GEO_CITIES: GeoCity[] = [
     region: 'israel',
     x: 16.9,
     y: 89.4,
+    lat: 31.5133,
+    lng: 34.4634,
   },
 ];

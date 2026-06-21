@@ -65,7 +65,7 @@ describe('GeographyMapBlock — loading vs empty fallback', () => {
     expect(text).not.toContain(t('geography.loading'));
   });
 
-  it('renders the map (two region SVGs) when the model is non-empty, even mid-load', () => {
+  it('renders the shared GeoMap when the model is non-empty, even mid-load', () => {
     const model = buildGeoModel(
       [{ name: 'Rav Huna', slug: 'rav-huna', identity: { places: ['Sura'], region: 'bavel' } }],
       [{ name: 'Sura' }],
@@ -74,7 +74,10 @@ describe('GeographyMapBlock — loading vs empty fallback', () => {
     // loading still true — a non-empty model must NOT be hidden behind the
     // loading line; partial-but-present beats a spinner.
     const { container } = render(() => Block(blockProps(baseExtras({ model, loading: true }))));
-    expect(container.querySelectorAll('svg').length).toBe(2);
+    // One shared @corpus/ui GeoMap (replacing the old two region SVGs), with
+    // Sura's city anchor + Rav Huna's generation dot placed on it.
+    expect(container.querySelectorAll('svg.geomap-svg').length).toBe(1);
+    expect(container.querySelectorAll('.geomap-dot').length).toBeGreaterThanOrEqual(2);
     const text = container.textContent ?? '';
     expect(text).not.toContain(t('geography.loading'));
     expect(text).not.toContain(t('geography.empty'));

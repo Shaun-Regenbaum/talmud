@@ -22,10 +22,11 @@ describe('tanach spine registry', () => {
   });
 });
 
-describe('the six producers as core Producer objects', () => {
-  it('declares all six with their model shapes', () => {
+describe('the seven producers as core Producer objects', () => {
+  it('declares all seven with their model shapes', () => {
     expect(Object.keys(TANACH_PRODUCERS).sort()).toEqual([
       'events',
+      'geography',
       'midrash-synthesis',
       'note',
       'overview',
@@ -79,6 +80,7 @@ describe('the six producers as core Producer objects', () => {
       events: { max_tokens: 900, temperature: 0.2, tag: 'tanach:events' },
       note: { max_tokens: 700, temperature: 0.3, tag: 'tanach:note' },
       overview: { max_tokens: 1400, temperature: 0.3, tag: 'tanach:overview' },
+      geography: { max_tokens: 900, temperature: 0.2, tag: 'tanach:geography' },
       synthesis: { max_tokens: 800, temperature: 0.3, tag: 'tanach:synthesis' },
       'midrash-synthesis': { max_tokens: 800, temperature: 0.35, tag: 'tanach:midrash-synthesis' },
       translate: { max_tokens: 120, temperature: 0.2, tag: 'tanach:translate' },
@@ -118,6 +120,10 @@ describe('the six producers as core Producer objects', () => {
     const overview = enrichRunDefOf('overview');
     expect(overview.dependencies).toEqual(['chapter-verses']);
     expect(overview.system_prompt.length).toBeGreaterThan(50);
+
+    const geography = enrichRunDefOf('geography');
+    expect(geography.dependencies).toEqual(['chapter-verses']);
+    expect(geography.system_prompt.length).toBeGreaterThan(50);
 
     const synth = enrichRunDefOf('synthesis');
     expect(synth.dependencies).toEqual(['verse-text', 'commentaries']);

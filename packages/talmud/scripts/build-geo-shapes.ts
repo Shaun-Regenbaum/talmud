@@ -892,6 +892,10 @@ async function main(): Promise<void> {
       `region: ${JSON.stringify(c.region)}`,
       `x: ${fmt(x)}`,
       `y: ${fmt(y)}`,
+      // Real coordinates, carried alongside the projected x/y so the shared
+      // @corpus/ui GeoMap (which projects to its own bbox) can place the dot.
+      `lat: ${c.lat}`,
+      `lng: ${c.lon}`,
     ];
     if (c.approx) fields.push('approx: true');
     return `  { ${fields.join(', ')} },`;
@@ -953,6 +957,9 @@ export interface GeoCity {
   /** Projected local coordinates (0..width / 0..height of the region shape). */
   x: number;
   y: number;
+  /** Real coordinates (for the shared @corpus/ui GeoMap, which re-projects). */
+  lat: number;
+  lng: number;
   /** True when the ancient site's identification is uncertain — the dot is a
    *  reasoned guess near the attested neighborhood. */
   approx?: boolean;

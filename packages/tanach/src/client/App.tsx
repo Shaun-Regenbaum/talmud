@@ -1,5 +1,6 @@
 import { Button } from '@corpus/ui/Button';
 import { Drawer } from '@corpus/ui/Drawer';
+import { type GeoBBox, GeoMap } from '@corpus/ui/GeoMap';
 import { LangToggle } from '@corpus/ui/LangToggle';
 import { Pill, PillRow } from '@corpus/ui/Pill';
 import { Prose } from '@corpus/ui/Prose';
@@ -186,7 +187,7 @@ interface SectionNote {
 }
 /** A whole-chapter pill the reader can open from the perek-pills row. Only
  *  'overview' exists today; 'geography' and 'tidbit' join it as siblings. */
-type PerekPill = 'overview';
+type PerekPill = 'overview' | 'geography';
 interface Overview {
   book: string;
   chapter: number;
@@ -195,10 +196,44 @@ interface Overview {
   en: string;
   he: string;
 }
-/** The perek-pills, in display order. Adding geography/tidbit is a one-line
- *  edit here plus their resource + drawer body. */
-const PEREK_PILLS: { id: PerekPill; label: string }[] = [{ id: 'overview', label: 'Overview' }];
-const PILL_KIND: Record<PerekPill, string> = { overview: 'Overview' };
+interface GeoPlace {
+  en: string;
+  he: string;
+  lat: number;
+  lng: number;
+}
+interface PerekGeography {
+  book: string;
+  chapter: number;
+  places: GeoPlace[];
+}
+/** The perek-pills, in display order. Adding tidbit is a one-line edit here
+ *  plus its resource + drawer body. */
+const PEREK_PILLS: { id: PerekPill; label: string }[] = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'geography', label: 'Geography' },
+];
+const PILL_KIND: Record<PerekPill, string> = { overview: 'Overview', geography: 'Geography' };
+
+/** Frame a perek's places: fit the map bbox to the points (with padding + a
+ *  minimum span so a lone place isn't a single point). Falls back to Israel. */
+function fitBbox(places: GeoPlace[]): GeoBBox {
+  if (!places.length) return { lonMin: 34, lonMax: 36.3, latMin: 29.4, latMax: 33.6 };
+  const lats = places.map((p) => p.lat);
+  const lngs = places.map((p) => p.lng);
+  const latMin = Math.min(...lats);
+  const latMax = Math.max(...lats);
+  const lngMin = Math.min(...lngs);
+  const lngMax = Math.max(...lngs);
+  const padLat = Math.max((latMax - latMin) * 0.3, 0.7);
+  const padLng = Math.max((lngMax - lngMin) * 0.3, 0.7);
+  return {
+    latMin: latMin - padLat,
+    latMax: latMax + padLat,
+    lonMin: lngMin - padLng,
+    lonMax: lngMax + padLng,
+  };
+}
 interface CommentaryEntry {
   key: string;
   en: string;
@@ -590,6 +625,20 @@ export function App(): JSX.Element {
       return res.ok ? ((await res.json()) as Overview) : null;
     },
   );
+  const [geography] = createResource(
+    () => (perekPill() === 'geography' ? chapterKey() : undefined),
+    async (k) => {
+      const res = await fetch(`/api/geography/${encodeURIComponent(k.book)}/${k.chapter}`);
+      return res.ok ? ((await res.json()) as PerekGeography) : null;
+    },
+  );
+  // Only the geography for the chapter on screen (createResource retains the
+  // previous chapter's value across a refetch — same guard as the overview).
+  const currentGeography = createMemo(() => {
+    if (geography.loading) return null;
+    const g = geography();
+    return g && g.book === loc().book && g.chapter === loc().chapter ? g : null;
+  });
   // createResource keeps the PREVIOUS chapter's value during a refetch, so the
   // drawer must not render it: only show the overview once it has loaded AND
   // its echoed book/chapter match the chapter on screen (else show loading).
@@ -915,6 +964,35 @@ export function App(): JSX.Element {
               {/* fetched but failed (overview() is null, not undefined) */}
               <Show when={!overview.loading && overview() === null}>
                 <p class="comm-muted">Couldn't load the overview — try reopening.</p>
+              </Show>
+            </Show>
+            <Show when={pill === 'geography'}>
+              <Show when={geography.loading}>
+                <p class="comm-muted">Mapping the chapter…</p>
+              </Show>
+              <Show when={currentGeography()}>
+                {(g) => (
+                  <Show
+                    when={g().places.length}
+                    fallback={<p class="comm-muted">No mapped places in this chapter.</p>}
+                  >
+                    <GeoMap
+                      bbox={fitBbox(g().places)}
+                      points={g().places.map((p) => ({
+                        id: p.en,
+                        name: p.en,
+                        nameHe: p.he,
+                        lat: p.lat,
+                        lng: p.lng,
+                      }))}
+                      lang={loc().lang}
+                      height={460}
+                    />
+                  </Show>
+                )}
+              </Show>
+              <Show when={!geography.loading && geography() === null}>
+                <p class="comm-muted">Couldn't load the geography — try reopening.</p>
               </Show>
             </Show>
           </Drawer>

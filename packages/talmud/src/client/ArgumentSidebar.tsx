@@ -17,6 +17,7 @@ import {
   TIDBIT_RECIPE,
   YERUSHALMI_RECIPE,
 } from '@corpus/core/sidebar/recipe';
+import { GeoMap, type GeoPoint, type GeoTrajectoryStop } from '@corpus/ui/GeoMap';
 import {
   createEffect,
   createMemo,
@@ -50,8 +51,8 @@ import CodificationMap from './CodificationMap';
 import { buildConceptMatcher, ConceptLinkProvider } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
 import { type CodificationData, codeMapFromCodification, SIDE_COLOR } from './flow/codeMapLayout';
-import { GeographyMap } from './GeographyMap';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
+import { GEO_CITIES } from './geoShapes';
 import { Hebraized } from './Hebraized';
 import { type CatalogKey, lang, t } from './i18n';
 import { CorpusBadge } from './LinkRef';
@@ -2758,10 +2759,108 @@ export interface GeographyExtras {
   onHighlightPlace: (cityName: string | null) => void;
 }
 
+// Real coordinates by canonical city name (the runtime GEO_CITIES now carry
+// lat/lng — see geoShapes.ts). Re-resolving here keeps the client independent
+// of whether a server-cached DafGeoModel included lat/lng.
+const GEO_CITY_LATLNG = new Map(GEO_CITIES.map((c) => [c.name, c] as const));
+const GEO_CITY_COLOR = '#6b7280'; // neutral grey for the city anchor dot
+const GEO_GEN_FALLBACK = '#9ca3af';
+// Babylonia + Eretz Yisrael, widened to keep the northern outliers (Nisibis,
+// Nineveh) and the western coast (Tyre) on-frame.
+const TALMUD_GEO_BBOX = { lonMin: 34, lonMax: 46.5, latMin: 30.5, latMax: 37.5 };
+
 function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
   const ex = (): GeographyExtras | undefined => props.extras as GeographyExtras | undefined;
   const model = (): DafGeoModel | null => ex()?.model ?? null;
   const hasMap = (): boolean => !!model() && !model()!.empty;
+
+  // Build the shared GeoMap's points from the daf geography model: one grey
+  // anchor dot per city (labelled, the cluster centre) plus one generation-
+  // coloured satellite per sage there (unlabelled; GeoMap de-overlaps them).
+  const points = createMemo<GeoPoint[]>(() => {
+    const m = model();
+    if (!m) return [];
+    const gen = ex()?.generationByName ?? null;
+    const out: GeoPoint[] = [];
+    for (const dot of m.dots) {
+      const city = GEO_CITY_LATLNG.get(dot.city.name) ?? dot.city;
+      if (typeof city.lat !== 'number' || typeof city.lng !== 'number') continue;
+      out.push({
+        id: dot.city.name,
+        name: dot.city.name,
+        nameHe: dot.city.nameHe,
+        lat: city.lat,
+        lng: city.lng,
+        color: GEO_CITY_COLOR,
+      });
+      for (const r of dot.rabbis) {
+        const g = gen?.get(r.name);
+        const color = (g && GENERATION_BY_ID[g]?.color) || GEO_GEN_FALLBACK;
+        out.push({
+          id: `${dot.city.name}::${r.name}`,
+          name: '',
+          lat: city.lat,
+          lng: city.lng,
+          color,
+        });
+      }
+    }
+    return out;
+  });
+
+  const onSelect = (p: GeoPoint) => {
+    const m = model();
+    if (!m || !p.id) return;
+    const sep = p.id.indexOf('::');
+    if (sep >= 0) {
+      const cityName = p.id.slice(0, sep);
+      const rabbiName = p.id.slice(sep + 2);
+      const slug = m.dots
+        .find((d) => d.city.name === cityName)
+        ?.rabbis.find((r) => r.name === rabbiName)?.slug;
+      drillInto(rabbiName, slug ?? undefined);
+      return;
+    }
+    const dot = m.dots.find((d) => d.city.name === p.id);
+    if (!dot) return;
+    // Mirror the old map's click: a city the daf mentions highlights the inline
+    // .city-marker spans; otherwise highlight that city's sages.
+    if (dot.mentions > 0 && dot.mentionNames.length) ex()?.onHighlightPlace(dot.mentionNames[0]);
+    else
+      ex()?.onHighlightLocation(
+        dot.city.name,
+        dot.rabbis.map((r) => r.name),
+      );
+  };
+
+  const [hoveredMover, setHoveredMover] = createSignal<string | null>(null);
+
+  // Trajectory drill-down: clicking a sage (or a migration row) traces that
+  // rabbi's life-path on the map (the numbered overlay GeoMap draws), dimming
+  // everyone else. Resolve the trajectory's stops to coordinates from
+  // GEO_CITIES; dedupe consecutive same-city stops; renumber 1..n.
+  const [drillRabbi, setDrillRabbi] = createSignal<string | null>(null);
+  const drillInto = (name: string, slug?: string) => {
+    ex()?.onHighlightSingleRabbi(name, slug);
+    setDrillRabbi(name);
+  };
+  const trajectory = createMemo<GeoTrajectoryStop[] | undefined>(() => {
+    const name = drillRabbi();
+    if (!name) return undefined;
+    const tr = model()?.trajectories?.find((t) => t.name === name);
+    if (!tr) return undefined;
+    const stops: GeoTrajectoryStop[] = [];
+    let lastCity: string | null = null;
+    for (const s of tr.stops) {
+      if (!s.cityName || s.cityName === lastCity) continue;
+      const city = GEO_CITY_LATLNG.get(s.cityName);
+      if (!city || typeof city.lat !== 'number' || typeof city.lng !== 'number') continue;
+      lastCity = s.cityName;
+      stops.push({ lat: city.lat, lng: city.lng, seq: stops.length + 1, label: s.cityName });
+    }
+    return stops.length ? stops : undefined;
+  });
+
   return (
     <Show
       when={hasMap()}
@@ -2792,17 +2891,161 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
         </Show>
       }
     >
-      <GeographyMap
-        model={model()!}
-        layout="column"
-        activeLocation={ex()?.activeLocation ?? null}
-        activePlace={ex()?.activePlace ?? null}
-        generationByName={ex()?.generationByName ?? null}
-        onHighlightLocation={(c, r) => ex()?.onHighlightLocation(c, r)}
-        onHighlightSingleRabbi={(n, s) => ex()?.onHighlightSingleRabbi(n, s)}
-        onHoverRabbi={(n) => ex()?.onHoverRabbi(n)}
-        onHighlightPlace={(n) => ex()?.onHighlightPlace(n)}
+      <GeoMap
+        bbox={TALMUD_GEO_BBOX}
+        points={points()}
+        lang={lang() === 'he' ? 'he' : 'en'}
+        height={520}
+        layerToggle={false}
+        selected={ex()?.activeLocation ?? undefined}
+        onSelect={onSelect}
+        trajectory={trajectory()}
       />
+      {/* drill-down header: which sage's path is traced + a clear control */}
+      <Show when={drillRabbi() && trajectory()}>
+        <div
+          style={{
+            display: 'flex',
+            'align-items': 'center',
+            'justify-content': 'space-between',
+            'margin-top': '0.35rem',
+            'font-size': '0.74rem',
+            color: 'var(--accent)',
+          }}
+        >
+          <span>{t('geography.trajectory.tracing', { name: drillRabbi() ?? '' })}</span>
+          <button
+            type="button"
+            onClick={() => setDrillRabbi(null)}
+            style={{
+              border: '1px solid var(--line)',
+              'border-radius': '4px',
+              background: 'var(--surface)',
+              color: 'var(--muted)',
+              cursor: 'pointer',
+              'font-family': 'var(--font-ui)',
+              'font-size': '0.7rem',
+              padding: '0.1rem 0.5rem',
+            }}
+          >
+            {t('geography.trajectory.clear')}
+          </button>
+        </div>
+      </Show>
+      {/* counts + the migration list — chrome that lived in the old map's
+          surrounding section, kept in the same place around the new map. */}
+      <div
+        style={{
+          display: 'flex',
+          'justify-content': 'space-between',
+          'margin-top': '0.45rem',
+          'font-size': '0.78rem',
+          color: 'var(--muted)',
+        }}
+      >
+        <span>
+          {t('geography.eretzYisrael')}:{' '}
+          <strong style={{ color: 'var(--fg)' }}>{model()?.israelCount ?? 0}</strong>
+        </span>
+        <span>
+          {t('geography.bavel')}:{' '}
+          <strong style={{ color: '#92400e' }}>{model()?.bavelCount ?? 0}</strong>
+        </span>
+      </div>
+      <Show when={(model()?.moverRows.length ?? 0) > 0}>
+        <div
+          style={{
+            'margin-top': '0.4rem',
+            'padding-top': '0.4rem',
+            'border-top': '1px dashed var(--line)',
+            display: 'flex',
+            'flex-direction': 'column',
+            gap: '0.1rem',
+          }}
+        >
+          <div
+            style={{
+              color: 'var(--muted)',
+              'font-size': '0.64rem',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.06em',
+              'margin-bottom': '0.15rem',
+            }}
+          >
+            {t('geography.migration')}
+          </div>
+          <For each={model()?.moverRows ?? []}>
+            {(row) => {
+              const fromB = row.direction === 'bavel->israel';
+              const arrow = row.direction === 'both' ? '↔' : '→';
+              const fromLabel = fromB ? 'B' : 'E';
+              const toLabel = fromB ? 'E' : 'B';
+              const enter = () => {
+                setHoveredMover(row.name);
+                ex()?.onHoverRabbi(row.name);
+              };
+              const leave = () => {
+                setHoveredMover(null);
+                ex()?.onHoverRabbi(null);
+              };
+              const go = () => drillInto(row.name, row.slug ?? undefined);
+              return (
+                // biome-ignore lint/a11y/useSemanticElements: a native <button> would inject UA layout into this tight inline-styled row; role+tabindex+keydown carry the same semantics
+                <div
+                  role="button"
+                  tabIndex={0}
+                  title={`${fromB ? t('geography.bavel') : t('geography.eretzYisrael')} ${arrow} ${fromB ? t('geography.eretzYisrael') : t('geography.bavel')} — ${row.name}`}
+                  onMouseEnter={enter}
+                  onMouseLeave={leave}
+                  onFocus={enter}
+                  onBlur={leave}
+                  onClick={go}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      go();
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    'align-items': 'center',
+                    gap: '0.3rem',
+                    padding: '0.15rem 0.3rem',
+                    'border-radius': '4px',
+                    cursor: 'pointer',
+                    'white-space': 'nowrap',
+                    'font-size': '0.74rem',
+                    'background-color':
+                      hoveredMover() === row.name ? 'var(--surface-sunk)' : 'transparent',
+                    transition: 'background-color 120ms',
+                  }}
+                >
+                  <span
+                    style={{
+                      'font-family': 'var(--font-mono)',
+                      'font-size': '0.7rem',
+                      'flex-shrink': 0,
+                    }}
+                  >
+                    <span style={{ color: fromB ? '#92400e' : 'var(--fg)', 'font-weight': 700 }}>
+                      {fromLabel}
+                    </span>{' '}
+                    {arrow}{' '}
+                    <span style={{ color: fromB ? 'var(--fg)' : '#92400e', 'font-weight': 700 }}>
+                      {toLabel}
+                    </span>
+                  </span>
+                  <span
+                    style={{ color: 'var(--fg)', overflow: 'hidden', 'text-overflow': 'ellipsis' }}
+                  >
+                    {row.name}
+                  </span>
+                </div>
+              );
+            }}
+          </For>
+        </div>
+      </Show>
     </Show>
   );
 }

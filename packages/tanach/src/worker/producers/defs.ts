@@ -27,6 +27,7 @@
 import type { Producer } from '@corpus/core/model/producer';
 import type { EnrichmentRunDef, MarkRunDef } from '@corpus/core/run/run-producer';
 import { EVENTS_SCHEMA, EVENTS_SYSTEM, EVENTS_USER_TEMPLATE } from './events.ts';
+import { GEOGRAPHY_SCHEMA, GEOGRAPHY_SYSTEM, GEOGRAPHY_USER_TEMPLATE } from './geography.ts';
 import {
   MIDRASH_SYNTH_SCHEMA,
   MIDRASH_SYNTH_SYSTEM,
@@ -41,6 +42,7 @@ export type TanachProducerId =
   | 'events'
   | 'note'
   | 'overview'
+  | 'geography'
   | 'synthesis'
   | 'midrash-synthesis'
   | 'translate';
@@ -91,6 +93,16 @@ const overviewExtractor: TanachLLMExtractor = {
   max_tokens: 1400,
   temperature: 0.3,
   tag: 'tanach:overview',
+};
+
+const geographyExtractor: TanachLLMExtractor = {
+  kind: 'llm',
+  system_prompt: GEOGRAPHY_SYSTEM,
+  user_prompt_template: GEOGRAPHY_USER_TEMPLATE,
+  output_schema: GEOGRAPHY_SCHEMA,
+  max_tokens: 900,
+  temperature: 0.2,
+  tag: 'tanach:geography',
 };
 
 const synthesisExtractor: TanachLLMExtractor = {
@@ -170,6 +182,23 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     cardinality: 'one',
     scope: 'local',
     key_shape: 'enrich', // nominal — template owns overview:v1:{book}:{chapter}
+    cacheVersion: '1',
+    source: 'code',
+  },
+  geography: {
+    id: 'geography',
+    label: 'Perek geography',
+    description:
+      'The places a whole chapter names or is set in (the LLM names them; coords from the gazetteer)',
+    kind: 'enrichment',
+    inputs: [{ source: 'chapter-verses' }],
+    recipe: { extractor: geographyExtractor },
+    // Chapter-scoped like overview — one per chapter; the key template ignores
+    // the instance (geography:v1:{book}:{chapter}).
+    anchoring: { behavior: 'inherits', precision: 'unit', spine: 'tanach' },
+    cardinality: 'one',
+    scope: 'local',
+    key_shape: 'enrich', // nominal — template owns geography:v1:{book}:{chapter}
     cacheVersion: '1',
     source: 'code',
   },
@@ -256,7 +285,7 @@ export function markRunDefOf(id: 'events'): TanachMarkDef {
 }
 
 export function enrichRunDefOf(
-  id: 'note' | 'overview' | 'synthesis' | 'midrash-synthesis',
+  id: 'note' | 'overview' | 'geography' | 'synthesis' | 'midrash-synthesis',
 ): TanachEnrichmentDef {
   const p = TANACH_PRODUCERS[id];
   const ext = p.recipe.extractor as TanachLLMExtractor;

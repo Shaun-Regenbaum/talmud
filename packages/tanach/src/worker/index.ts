@@ -18,6 +18,7 @@ import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { isBook } from '../lib/books.ts';
 import { COMMENTATORS } from '../lib/commentators.ts';
+import { lookupPlace } from './gazetteer.ts';
 import { chapterRuns } from './inspect.ts';
 import type { EventSection } from './producers/events.ts';
 import { translateHebrew } from './producers/translate.ts';
@@ -199,6 +200,44 @@ app.get('/api/overview/:book/:chapter', async (c) => {
     en: String(p?.en ?? '').trim(),
     he: String(p?.he ?? '').trim(),
   });
+});
+
+// Perek geography (whole-chapter enrichment): the places a chapter names or is
+// set in, for the reader's Geography pill. The LLM only NAMES the places (en +
+// he); coordinates come deterministically from the bundled OpenBible gazetteer
+// (lookupPlace) — a named place we can't locate is omitted (place-or-omit). So
+// the cached artifact is just the AI's place names; coords are a fresh join.
+app.get('/api/geography/:book/:chapter', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter)) return c.json({ error: `Bad chapter: ${chapter}` }, 400);
+
+  const ref = `${book} ${chapter}`;
+  const rc: TanachRunCtx = { env: c.env, ctx: c.executionCtx, ref };
+  let artifact: StoredArtifact;
+  try {
+    artifact = await runTanachEnrichment(rc, 'geography', book, chapter, { id: 'perek' });
+  } catch (e) {
+    return runErrorResponse(c, e);
+  }
+  const parsed = artifact.parsed as { places?: { en?: string; he?: string }[] } | null;
+  const seen = new Set<string>();
+  const places = (parsed?.places ?? [])
+    .map((p) => {
+      const en = String(p?.en ?? '').trim();
+      const g = en ? lookupPlace(en) : null;
+      if (!g) return null;
+      return { en, he: String(p?.he ?? '').trim(), lat: g.lat, lng: g.lng };
+    })
+    .filter((p): p is { en: string; he: string; lat: number; lng: number } => {
+      if (!p) return false;
+      const key = `${p.lat},${p.lng}`; // dedupe places that resolve to one point
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  return c.json({ book, chapter: Number(chapter), places });
 });
 
 // This week's Torah portion (parashat hashavua), from Sefaria's calendar.
