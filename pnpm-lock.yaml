@@ -38,6 +38,9 @@ importers:
       '@corpus/core':
         specifier: workspace:*
         version: link:../core
+      '@corpus/ui':
+        specifier: workspace:*
+        version: link:../ui
       '@hono/mcp':
         specifier: ^0.3.0
         version: 0.3.0(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3))(hono-rate-limiter@0.5.3(hono@4.12.14))(hono@4.12.14)(zod@4.4.3)

@@ -28,6 +28,7 @@
     "@chenglou/pretext": "^0.0.5",
     "@cloudflare/codemode": "^0.3.8",
     "@corpus/core": "workspace:*",
+    "@corpus/ui": "workspace:*",
     "@hono/mcp": "^0.3.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "daf-renderer": "^1.1.4",

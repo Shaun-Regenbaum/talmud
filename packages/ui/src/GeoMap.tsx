@@ -24,12 +24,15 @@ export interface GeoBBox {
 export interface GeoPoint {
   /** Stable id (for selection + keys). */
   id?: string;
+  /** Label; empty string renders no label (e.g. a clustered satellite dot). */
   name: string;
   nameHe?: string;
   lat: number;
   lng: number;
-  /** Emphasised marker (filled). */
+  /** Emphasised marker (filled with the accent). */
   star?: boolean;
+  /** Per-point marker fill (e.g. a generation colour). Overrides the default. */
+  color?: string;
 }
 export interface GeoRoute {
   name?: string;
@@ -140,11 +143,27 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
     const b = props.bbox;
     return lng >= b.lonMin && lng <= b.lonMax && lat >= b.latMin && lat <= b.latMax;
   };
-  const sites = createMemo(() =>
-    props.points
-      .filter((p) => inView(p.lng, p.lat))
-      .map((p) => ({ p, xy: proj().project(p.lng, p.lat) })),
-  );
+  // Project points, then DE-OVERLAP co-located ones (many points at the same
+  // place — e.g. several sages in one city): spiral the group around its centre
+  // with a sunflower/golden-angle pattern so each marker is distinct. Index 0
+  // of a group stays at the centre (the labelled "anchor", e.g. the city dot);
+  // the rest fan out. Single points are untouched.
+  const GOLDEN = 2.39996323; // golden angle (radians)
+  const SPIRAL_STEP = 7; // px between successive ring radii
+  const sites = createMemo(() => {
+    const visible = props.points.filter((p) => inView(p.lng, p.lat));
+    const groups = new Map<string, number>(); // location key -> running index
+    return visible.map((p) => {
+      const [x, y] = proj().project(p.lng, p.lat);
+      const key = `${p.lat.toFixed(3)},${p.lng.toFixed(3)}`;
+      const i = groups.get(key) ?? 0;
+      groups.set(key, i + 1);
+      if (i === 0) return { p, xy: [x, y] as [number, number] };
+      const r = SPIRAL_STEP * Math.sqrt(i);
+      const a = i * GOLDEN;
+      return { p, xy: [x + r * Math.cos(a), y + r * Math.sin(a)] as [number, number] };
+    });
+  });
   const regions = createMemo(() =>
     (props.regions ?? [])
       .filter((r) => inView(r.lng, r.lat))
@@ -238,14 +257,25 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
                     }
                   }}
                 >
+                  <Show when={!!props.selected && props.selected === s.p.id}>
+                    <circle
+                      class="geomap-halo"
+                      cx={s.xy[0]}
+                      cy={s.xy[1]}
+                      r={s.p.star ? 7.5 : 6.5}
+                    />
+                  </Show>
                   <circle
                     class="geomap-dot"
                     classList={{ star: !!s.p.star }}
+                    style={
+                      s.p.color ? { '--dot-fill': s.p.color, '--dot-stroke': '#ffffff' } : undefined
+                    }
                     cx={s.xy[0]}
                     cy={s.xy[1]}
                     r={s.p.star ? 4.5 : 3.5}
                   />
-                  <Show when={layers().labels}>
+                  <Show when={layers().labels && labelFor(s.p)}>
                     <text
                       class="geomap-label"
                       x={g.x}

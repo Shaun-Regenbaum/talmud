@@ -17,6 +17,7 @@ import {
   TIDBIT_RECIPE,
   YERUSHALMI_RECIPE,
 } from '@corpus/core/sidebar/recipe';
+import { GeoMap, type GeoPoint } from '@corpus/ui/GeoMap';
 import {
   createEffect,
   createMemo,
@@ -50,8 +51,8 @@ import CodificationMap from './CodificationMap';
 import { buildConceptMatcher, ConceptLinkProvider } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
 import { type CodificationData, codeMapFromCodification, SIDE_COLOR } from './flow/codeMapLayout';
-import { GeographyMap } from './GeographyMap';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
+import { GEO_CITIES } from './geoShapes';
 import { Hebraized } from './Hebraized';
 import { type CatalogKey, lang, t } from './i18n';
 import { CorpusBadge } from './LinkRef';
@@ -2758,10 +2759,80 @@ export interface GeographyExtras {
   onHighlightPlace: (cityName: string | null) => void;
 }
 
+// Real coordinates by canonical city name (the runtime GEO_CITIES now carry
+// lat/lng — see geoShapes.ts). Re-resolving here keeps the client independent
+// of whether a server-cached DafGeoModel included lat/lng.
+const GEO_CITY_LATLNG = new Map(GEO_CITIES.map((c) => [c.name, c] as const));
+const GEO_CITY_COLOR = '#6b7280'; // neutral grey for the city anchor dot
+const GEO_GEN_FALLBACK = '#9ca3af';
+// Babylonia + Eretz Yisrael, widened to keep the northern outliers (Nisibis,
+// Nineveh) and the western coast (Tyre) on-frame.
+const TALMUD_GEO_BBOX = { lonMin: 34, lonMax: 46.5, latMin: 30.5, latMax: 37.5 };
+
 function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
   const ex = (): GeographyExtras | undefined => props.extras as GeographyExtras | undefined;
   const model = (): DafGeoModel | null => ex()?.model ?? null;
   const hasMap = (): boolean => !!model() && !model()!.empty;
+
+  // Build the shared GeoMap's points from the daf geography model: one grey
+  // anchor dot per city (labelled, the cluster centre) plus one generation-
+  // coloured satellite per sage there (unlabelled; GeoMap de-overlaps them).
+  const points = createMemo<GeoPoint[]>(() => {
+    const m = model();
+    if (!m) return [];
+    const gen = ex()?.generationByName ?? null;
+    const out: GeoPoint[] = [];
+    for (const dot of m.dots) {
+      const city = GEO_CITY_LATLNG.get(dot.city.name) ?? dot.city;
+      if (typeof city.lat !== 'number' || typeof city.lng !== 'number') continue;
+      out.push({
+        id: dot.city.name,
+        name: dot.city.name,
+        nameHe: dot.city.nameHe,
+        lat: city.lat,
+        lng: city.lng,
+        color: GEO_CITY_COLOR,
+      });
+      for (const r of dot.rabbis) {
+        const g = gen?.get(r.name);
+        const color = (g && GENERATION_BY_ID[g]?.color) || GEO_GEN_FALLBACK;
+        out.push({
+          id: `${dot.city.name}::${r.name}`,
+          name: '',
+          lat: city.lat,
+          lng: city.lng,
+          color,
+        });
+      }
+    }
+    return out;
+  });
+
+  const onSelect = (p: GeoPoint) => {
+    const m = model();
+    if (!m || !p.id) return;
+    const sep = p.id.indexOf('::');
+    if (sep >= 0) {
+      const cityName = p.id.slice(0, sep);
+      const rabbiName = p.id.slice(sep + 2);
+      const slug = m.dots
+        .find((d) => d.city.name === cityName)
+        ?.rabbis.find((r) => r.name === rabbiName)?.slug;
+      ex()?.onHighlightSingleRabbi(rabbiName, slug ?? undefined);
+      return;
+    }
+    const dot = m.dots.find((d) => d.city.name === p.id);
+    if (!dot) return;
+    // Mirror the old map's click: a city the daf mentions highlights the inline
+    // .city-marker spans; otherwise highlight that city's sages.
+    if (dot.mentions > 0 && dot.mentionNames.length) ex()?.onHighlightPlace(dot.mentionNames[0]);
+    else
+      ex()?.onHighlightLocation(
+        dot.city.name,
+        dot.rabbis.map((r) => r.name),
+      );
+  };
+
   return (
     <Show
       when={hasMap()}
@@ -2792,16 +2863,14 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
         </Show>
       }
     >
-      <GeographyMap
-        model={model()!}
-        layout="column"
-        activeLocation={ex()?.activeLocation ?? null}
-        activePlace={ex()?.activePlace ?? null}
-        generationByName={ex()?.generationByName ?? null}
-        onHighlightLocation={(c, r) => ex()?.onHighlightLocation(c, r)}
-        onHighlightSingleRabbi={(n, s) => ex()?.onHighlightSingleRabbi(n, s)}
-        onHoverRabbi={(n) => ex()?.onHoverRabbi(n)}
-        onHighlightPlace={(n) => ex()?.onHighlightPlace(n)}
+      <GeoMap
+        bbox={TALMUD_GEO_BBOX}
+        points={points()}
+        lang={lang() === 'he' ? 'he' : 'en'}
+        height={520}
+        layerToggle={false}
+        selected={ex()?.activeLocation ?? undefined}
+        onSelect={onSelect}
       />
     </Show>
   );

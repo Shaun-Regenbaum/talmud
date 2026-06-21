@@ -92,16 +92,23 @@
   outline: none;
 }
 .geomap-dot {
-  fill: #fff;
-  stroke: var(--accent);
+  fill: var(--dot-fill, #fff);
+  stroke: var(--dot-stroke, var(--accent));
   stroke-width: 2;
 }
 .geomap-dot.star {
-  fill: var(--accent);
+  --dot-fill: var(--accent);
 }
-.geomap-site.interactive:hover .geomap-dot,
-.geomap-site.selected .geomap-dot {
-  fill: var(--accent);
+/* selection / hover / keyboard focus: a halo ring, so it reads regardless of
+   the marker's own (possibly coloured) fill */
+.geomap-halo {
+  fill: none;
+  stroke: var(--accent-strong);
+  stroke-width: 2;
+  opacity: 0.85;
+}
+.geomap-site.interactive:hover .geomap-dot {
+  stroke: var(--accent-strong);
 }
 .geomap-site:focus-visible .geomap-dot {
   stroke: var(--accent-strong);
