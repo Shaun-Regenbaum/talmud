@@ -5,6 +5,7 @@ import '@corpus/ui/tokens.css';
 import '@corpus/ui/themes/tanach.css';
 import '@corpus/ui/components.css';
 import '@corpus/ui/geomap.css';
+import '@corpus/ui/loadprogress.css';
 import { App } from './App.tsx';
 import { UsagePage } from './UsagePage.tsx';
 import './styles.css';

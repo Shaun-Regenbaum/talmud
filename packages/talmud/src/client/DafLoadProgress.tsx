@@ -1,24 +1,24 @@
 /**
- * Unified daf-load progress bar. Replaces the scatter of per-anchor spinners
- * with ONE slim sticky bar + a single status line describing what's still
- * loading. Combines two cohorts into one fraction:
+ * Daf-load progress — the talmud adapter over the shared @corpus/ui LoadProgress
+ * bar. Replaces the scatter of per-anchor spinners with ONE slim sticky bar +
+ * a single status line. Combines two cohorts into one fraction:
  *
  *   1. Anchor extraction — the mark runs (rabbi/argument/pesukim/…), read from
  *      markStatuses().
  *   2. Section prefetch — the syntheses + suggested-questions warmed by
  *      dafPrefetch, read from prefetchProgress().
  *
- * Auto-hides shortly after everything completes. On a fully-warm daf (all KV
- * cache hits) it barely flickers; on a cold daf it tracks the real work.
+ * All the talmud-specific math (the 30/70 phase weighting, the cache-snapshot
+ * grounding, the t()-driven labels, the pause/failure notice) lives here; the
+ * shared component owns the render + the auto-show/hide behaviour.
  */
 
-import { createEffect, createMemo, createSignal, type JSX, onCleanup, Show } from 'solid-js';
+import { LoadProgress, type LoadProgressNotice } from '@corpus/ui/LoadProgress';
+import { createMemo, type JSX } from 'solid-js';
 import { loadNotice, prefetchProgress } from './dafPrefetch';
 import { dafCacheProgress } from './dafRunsStore';
 import { t } from './i18n';
 import { markStatuses } from './MarksRegistryPanel';
-
-const COMPLETE_LINGER_MS = 700;
 
 interface DafLoadProgressProps {
   /** When true, render for the mobile bottom shelf: no sticky/top pinning
@@ -47,8 +47,6 @@ export default function DafLoadProgress(props: DafLoadProgressProps = {}): JSX.E
   // anchor extraction then snapping backwards when the prefetch cohort appears.
   // Anchors occupy the first 30%; section prefetch the remaining 70%.
   const ANCHOR_WEIGHT = 30;
-  // The client warm engine (anchors + prefetch) drives the smooth, low-latency
-  // live climb — the part that made this bar more reliable than the waterfall.
   const enginePercent = createMemo(() => {
     const { m, pf } = combined();
     if (m.total === 0 && pf.total === 0) return 0;
@@ -65,8 +63,7 @@ export default function DafLoadProgress(props: DafLoadProgressProps = {}): JSX.E
   // Inspect waterfall reads — so the two can't disagree about what's loaded (a
   // warm revisit with a full cache reads ~100% at once). max() so the snapshot
   // only ever ADVANCES the bar; it never drags the live climb backward on a cold
-  // load, where the snapshot lags the warm. (Stale cross-daf rows are guarded in
-  // the store, so this fraction is always for the current daf.)
+  // load, where the snapshot lags the warm.
   const percent = createMemo(() => Math.max(enginePercent(), dafCacheProgress().pct));
 
   const label = createMemo(() => {
@@ -84,151 +81,26 @@ export default function DafLoadProgress(props: DafLoadProgressProps = {}): JSX.E
     return t('dafLoad.upToDate');
   });
 
-  // Visibility: show whenever there's incomplete work; linger briefly at 100%
-  // so the fill animation reads as "done" before the bar slides away.
-  const [visible, setVisible] = createSignal(false);
-  let hideTimer: ReturnType<typeof setTimeout> | undefined;
-  createEffect(() => {
+  const loading = () => {
     const c = combined();
-    const incomplete = c.marksLoading || c.prefetchActive;
-    if (incomplete) {
-      if (hideTimer) {
-        clearTimeout(hideTimer);
-        hideTimer = undefined;
-      }
-      setVisible(true);
-    } else if (visible()) {
-      // All done — linger then hide.
-      if (hideTimer) clearTimeout(hideTimer);
-      hideTimer = setTimeout(() => setVisible(false), COMPLETE_LINGER_MS);
-    }
-  });
-  onCleanup(() => {
-    if (hideTimer) clearTimeout(hideTimer);
-  });
+    return c.marksLoading || c.prefetchActive;
+  };
 
   // Top-level notice: a budget pause or a wave of failures, so generation
-  // problems don't read as a silently-stuck bar. Persists (independent of the
-  // bar's auto-hide) until the next daf clears the cohort.
-  const notice = createMemo(() => loadNotice(prefetchProgress()));
+  // problems don't read as a silently-stuck bar.
+  const notice = createMemo<LoadProgressNotice | null>(() => {
+    const kind = loadNotice(prefetchProgress());
+    if (!kind) return null;
+    return { kind, text: kind === 'paused' ? t('dafLoad.paused') : t('dafLoad.failed') };
+  });
 
   return (
-    <>
-      <Show when={notice()}>
-        {(kind) => (
-          <div
-            role="status"
-            aria-live="polite"
-            style={{
-              display: 'flex',
-              'align-items': 'center',
-              gap: '0.4rem',
-              ...(props.embedded
-                ? { position: 'static' as const }
-                : { position: 'sticky' as const, top: 0, 'z-index': 50 }),
-              width: '100%',
-              'box-sizing': 'border-box',
-              padding: '0.4rem 0.55rem',
-              'margin-bottom': props.embedded ? '0' : '0.5rem',
-              'border-radius': '4px',
-              border: `1px solid ${kind() === 'paused' ? '#f59e0b' : '#ef4444'}`,
-              background: kind() === 'paused' ? '#fffbeb' : '#fef2f2',
-              color: kind() === 'paused' ? '#92400e' : '#b91c1c',
-              'font-family': 'system-ui, -apple-system, sans-serif',
-              'font-size': '0.72rem',
-              'line-height': 1.4,
-            }}
-          >
-            <span aria-hidden="true">{kind() === 'paused' ? '⏸' : '⚠'}</span>
-            <span>{kind() === 'paused' ? t('dafLoad.paused') : t('dafLoad.failed')}</span>
-          </div>
-        )}
-      </Show>
-      <Show when={visible() && !notice()}>
-        <div
-          role="status"
-          aria-live="polite"
-          style={{
-            // Default: pinned directly above the daf — rendered inside the daf
-            // body column so it's exactly the daf's width, and sticky so it
-            // stays above the daf as the reader scrolls. Parchment background so
-            // daf text scrolling underneath doesn't bleed through.
-            // Embedded (mobile shelf): the shelf is already fixed, so render
-            // flat with no sticky pinning and no bottom margin.
-            ...(props.embedded
-              ? { position: 'static' as const }
-              : { position: 'sticky' as const, top: 0, 'z-index': 50 }),
-            width: '100%',
-            'box-sizing': 'border-box',
-            background: 'var(--bg)',
-            padding: '0.4rem 0.25rem',
-            'margin-bottom': props.embedded ? '0' : '0.5rem',
-            'font-family': 'system-ui, -apple-system, sans-serif',
-            'font-size': '0.72rem',
-            color: 'var(--muted)',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              'align-items': 'center',
-              gap: '0.45rem',
-              'margin-bottom': '0.3rem',
-            }}
-          >
-            <span
-              style={{
-                display: 'inline-block',
-                width: '0.6rem',
-                height: '0.6rem',
-                'border-radius': '50%',
-                border: '2px solid var(--line)',
-                'border-top-color': 'var(--accent)',
-                animation: 'daf-spin 0.8s linear infinite',
-                'flex-shrink': 0,
-              }}
-            />
-            <span
-              style={{
-                flex: 1,
-                'min-width': 0,
-                'white-space': 'nowrap',
-                overflow: 'hidden',
-                'text-overflow': 'ellipsis',
-                'letter-spacing': '0.01em',
-              }}
-            >
-              {label()}
-            </span>
-            <span
-              style={{ 'font-variant-numeric': 'tabular-nums', color: '#a39a8c', 'flex-shrink': 0 }}
-              aria-hidden="true"
-            >
-              {percent()}%
-            </span>
-          </div>
-          {/* track — thin parchment rule that fills with the accent */}
-          <div
-            style={{
-              height: '2px',
-              background: 'var(--line)',
-              'border-radius': '1px',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                height: '100%',
-                width: `${percent()}%`,
-                background: 'var(--accent)',
-                'border-radius': '1px',
-                transition: 'width 0.4s ease',
-                opacity: 0.8,
-              }}
-            />
-          </div>
-        </div>
-      </Show>
-    </>
+    <LoadProgress
+      percent={percent}
+      label={label}
+      loading={loading}
+      notice={notice}
+      embedded={props.embedded}
+    />
   );
 }
