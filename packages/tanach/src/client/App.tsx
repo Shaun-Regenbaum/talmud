@@ -180,6 +180,8 @@ interface SectionNote {
  *  'overview' exists today; 'geography' and 'tidbit' join it as siblings. */
 type PerekPill = 'overview';
 interface Overview {
+  book: string;
+  chapter: number;
   titleEn: string;
   titleHe: string;
   en: string;
@@ -569,6 +571,14 @@ export function App(): JSX.Element {
       return res.ok ? ((await res.json()) as Overview) : null;
     },
   );
+  // createResource keeps the PREVIOUS chapter's value during a refetch, so the
+  // drawer must not render it: only show the overview once it has loaded AND
+  // its echoed book/chapter match the chapter on screen (else show loading).
+  const currentOverview = createMemo(() => {
+    if (overview.loading) return null;
+    const o = overview();
+    return o && o.book === loc().book && o.chapter === loc().chapter ? o : null;
+  });
   // Opening a verse-source drawer closes any open pill (one right panel).
   createEffect(() => {
     if (source()) setPerekPill(null);
@@ -844,7 +854,7 @@ export function App(): JSX.Element {
                 <Show when={overview.loading}>
                   <p class="comm-muted">Reading the chapter…</p>
                 </Show>
-                <Show when={overview()}>
+                <Show when={currentOverview()}>
                   {(o) => {
                     const he = loc().lang === 'he';
                     const title = he ? o().titleHe || o().titleEn : o().titleEn || o().titleHe;
@@ -860,6 +870,10 @@ export function App(): JSX.Element {
                       </section>
                     );
                   }}
+                </Show>
+                {/* fetched but failed (overview() is null, not undefined) */}
+                <Show when={!overview.loading && overview() === null}>
+                  <p class="comm-muted">Couldn't load the overview — try reopening.</p>
                 </Show>
               </Show>
             </div>

@@ -84,7 +84,11 @@ const overviewExtractor: TanachLLMExtractor = {
   system_prompt: OVERVIEW_SYSTEM,
   user_prompt_template: OVERVIEW_USER_TEMPLATE,
   output_schema: OVERVIEW_SCHEMA,
-  max_tokens: 700,
+  // Headroom for a BILINGUAL title + summary: the note producer's 700 is for a
+  // single-language note, but EN + HE together (Hebrew is token-dense) on a
+  // long chapter overran it and truncated the JSON mid-string -> parse failure
+  // -> empty card. 1400 comfortably fits both halves.
+  max_tokens: 1400,
   temperature: 0.3,
   tag: 'tanach:overview',
 };

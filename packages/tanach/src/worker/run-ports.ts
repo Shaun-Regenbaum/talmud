@@ -543,7 +543,19 @@ const RUN_PORTS: RunProducerPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkD
     },
     enrichmentPreResolve: async () => null,
     enrichmentPostResolve: async () => ({}),
-    enrichmentPostParse: () => {},
+    // Reject an empty-but-valid-JSON generation so runProducer skips the cache
+    // write (the cache-gate only checks parse_error, so an all-empty result
+    // would otherwise be pinned and served forever). Throwing here means the
+    // next request regenerates. Scoped to overview — the per-verse producers
+    // gate their emptiness upstream (source resolvers raise 404 when there's
+    // nothing to synthesize).
+    enrichmentPostParse: (_rc, a) => {
+      if (a.def.id !== 'overview' || a.parse_error || !a.parsed) return;
+      const p = a.parsed as { titleEn?: string; en?: string; he?: string };
+      const empty =
+        !String(p.titleEn ?? '').trim() && !String(p.en ?? '').trim() && !String(p.he ?? '').trim();
+      if (empty) throw new Error('overview: empty generation (not caching)');
+    },
   },
 };
 

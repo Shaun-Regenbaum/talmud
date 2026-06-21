@@ -78,7 +78,7 @@ describe('the six producers as core Producer objects', () => {
     const knobs: Record<string, { max_tokens: number; temperature: number; tag: string }> = {
       events: { max_tokens: 900, temperature: 0.2, tag: 'tanach:events' },
       note: { max_tokens: 700, temperature: 0.3, tag: 'tanach:note' },
-      overview: { max_tokens: 700, temperature: 0.3, tag: 'tanach:overview' },
+      overview: { max_tokens: 1400, temperature: 0.3, tag: 'tanach:overview' },
       synthesis: { max_tokens: 800, temperature: 0.3, tag: 'tanach:synthesis' },
       'midrash-synthesis': { max_tokens: 800, temperature: 0.35, tag: 'tanach:midrash-synthesis' },
       translate: { max_tokens: 120, temperature: 0.2, tag: 'tanach:translate' },
