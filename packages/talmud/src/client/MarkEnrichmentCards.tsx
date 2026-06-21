@@ -29,6 +29,7 @@ import {
 } from 'solid-js';
 import { trackAI } from './aiActivity';
 import { devModeActive } from './DevModeShelf';
+import { dafViewWholeDafResult } from './dafViewStore';
 import {
   isAbort,
   isPausedBody,
@@ -543,6 +544,19 @@ export default function MarkEnrichmentCards(props: Props) {
         );
         if (cached) {
           applyResult(d, s, cached);
+          continue;
+        }
+        // Second tier: the materialized daf-view (one fetch on daf open). Serves
+        // WHOLE-DAF pieces (keyed by producer id) so they render without their
+        // own /api/run. Best-effort + guaranteed-correct key — a miss (view not
+        // loaded, or a per-instance piece) just falls through to the fetch below.
+        const fromView = dafViewWholeDafResult(d.id, props.tractate, props.page, curLang);
+        if (fromView) {
+          runResultCache.set(
+            runCacheKey(d.id, props.tractate, props.page, props.instanceKey, curLang),
+            fromView,
+          );
+          applyResult(d, s, fromView);
           continue;
         }
         const cur = runs()[d.id];
