@@ -6,7 +6,7 @@
  * only symptom readers saw was `error code: 1101`. The structural fix (rishonim
  * cap #440, coalescing #439, consumer concurrency #441) makes that outcome
  * improbable — but a future source-growth regression could push it back. This
- * watch closes the loop: it polls Cloudflare's `workersInvocationsAdaptive`
+ * watch closes the loop: it polls Cloudflare's `workersInvocationsAdaptiveGroups`
  * analytics each 5-min cron tick and emails when an isolate-fatal outcome
  * appears, so the next regression is caught in minutes, not from user reports.
  *
@@ -30,7 +30,7 @@ const QUERY = `
 query WorkerHealth($accountTag: string!, $script: string!, $start: Time!, $end: Time!) {
   viewer {
     accounts(filter: { accountTag: $accountTag }) {
-      workersInvocationsAdaptive(
+      workersInvocationsAdaptiveGroups(
         limit: 100
         filter: { scriptName: $script, datetime_geq: $start, datetime_leq: $end }
       ) {
@@ -113,7 +113,7 @@ export async function fetchWorkerOutcomes(
       return { configured: true, ok: false, error: `HTTP ${res.status}`, scriptName };
     }
     const json = (await res.json()) as {
-      data?: { viewer?: { accounts?: Array<{ workersInvocationsAdaptive?: InvocationGroup[] }> } };
+      data?: { viewer?: { accounts?: Array<{ workersInvocationsAdaptiveGroups?: InvocationGroup[] }> } };
       errors?: Array<{ message?: string }>;
     };
     if (json.errors && json.errors.length > 0) {
@@ -128,7 +128,7 @@ export async function fetchWorkerOutcomes(
         scriptName,
       };
     }
-    const groups = json.data?.viewer?.accounts?.[0]?.workersInvocationsAdaptive ?? [];
+    const groups = json.data?.viewer?.accounts?.[0]?.workersInvocationsAdaptiveGroups ?? [];
     return {
       configured: true,
       ok: true,
