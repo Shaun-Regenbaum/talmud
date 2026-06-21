@@ -34,6 +34,7 @@ import {
   isPausedBody,
   isServiceUnavailableError,
   PAUSED_ERROR,
+  parseRunJson,
   QUEUE_PRIORITY,
   RequestQueue,
   type RunResult,
@@ -155,6 +156,26 @@ const POLL_INTERVAL_MS = 1500;
 // users don't see the synthesis card time out before the worker finishes.
 const POLL_TIMEOUT_MS = 600_000;
 
+// Short backoffs (ms) for retrying ONLY the initial POST when the edge returns
+// a non-JSON error page (isolate recycled / OOM). One transient blip then
+// self-heals instead of failing the card. Once a job is `pending`, polling
+// takes over and is NOT retried here (it would re-enqueue generation).
+const RUN_POST_BACKOFF_MS = [500, 1500];
+
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const id = setTimeout(resolve, ms);
+    signal?.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(id);
+        reject(new DOMException('Aborted', 'AbortError'));
+      },
+      { once: true },
+    );
+  });
+}
+
 async function runEnrichmentImpl(
   enrichmentId: string,
   tractate: string,
@@ -162,19 +183,35 @@ async function runEnrichmentImpl(
   markInput: unknown,
   signal?: AbortSignal,
 ): Promise<RunResult> {
-  const r = await fetch('/api/run', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      enrichment_id: enrichmentId,
-      tractate,
-      page,
-      mark_input: markInput,
-      lang: lang(),
-    }),
-    signal,
+  const body = JSON.stringify({
+    enrichment_id: enrichmentId,
+    tractate,
+    page,
+    mark_input: markInput,
+    lang: lang(),
   });
-  const j = (await r.json()) as RunResponse | { error?: string };
+  let r: Response;
+  let j: RunResponse | { error?: string };
+  for (let attempt = 0; ; attempt++) {
+    r = await fetch('/api/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      signal,
+    });
+    try {
+      j = (await parseRunJson(r)) as RunResponse | { error?: string };
+      break;
+    } catch (err) {
+      // parseRunJson throws a service-unavailable error only when the body is
+      // NON-JSON — i.e. a Cloudflare edge page (1101 / empty 5xx) from a
+      // recycled or OOM'd isolate. Retry a couple of times on a short backoff;
+      // any other failure (abort, genuine 4xx with a JSON body) rethrows.
+      if (isAbort(err) || attempt >= RUN_POST_BACKOFF_MS.length || !isServiceUnavailableError(err))
+        throw err;
+      await sleep(RUN_POST_BACKOFF_MS[attempt], signal);
+    }
+  }
   if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
   if (!r.ok && r.status !== 202) {
     throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
@@ -247,7 +284,15 @@ async function pollJob(runId: string, cacheKey?: string, signal?: AbortSignal): 
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
     const r = await fetch(`/api/run-status/${encodeURIComponent(runId)}${qs}`, { signal });
-    const j = (await r.json()) as RunResponse | { status: 'pending' };
+    let j: RunResponse | { status: 'pending' };
+    try {
+      j = (await parseRunJson(r)) as RunResponse | { status: 'pending' };
+    } catch (err) {
+      if (isAbort(err)) throw err;
+      // A transient non-JSON edge error (isolate recycled mid-poll). The job may
+      // still be running server-side, so keep polling instead of failing the card.
+      continue;
+    }
     if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
     if ('status' in j) {
       if (j.status === 'ok') return (j as { result: RunResult }).result;
@@ -258,17 +303,17 @@ async function pollJob(runId: string, cacheKey?: string, signal?: AbortSignal): 
   throw new Error(`job ${runId} timed out after ${POLL_TIMEOUT_MS / 1000}s`);
 }
 
-// The Cloudflare queue consumer runs at max_concurrency=50 and the run route's
-// cache-hit hot-path is a single KV read, so the browser can dispatch well
-// beyond the old value of 4 — the bottleneck on a warmed daf was this client
-// gate, not the server. 16 fills a page's section/move/anchor cards ~4× faster
-// vs the old 4 (cache hits especially). Upper-bound note: on a COLD page each
-// in-flight slot can enqueue a job that fans out (×5 for argument-move), so 16
-// → up to ~80 concurrent OpenRouter calls from one tab. 16 is the practical
-// ceiling — push higher and cold loads risk OpenRouter 429s with no real gain
-// (a viewport rarely shows >16 cards needing fetch; the rest are
-// scroll-deferred). Watching for errors at 16; the 429 path already falls back.
-const enrichmentQueue = new RequestQueue(16);
+// On a WARM daf each run is a single KV read, so a high gate just fills cards
+// faster. But on a COLD daf each in-flight slot triggers a fresh generation
+// that loads the daf's heavy source slices (the rishonim commentary bundle is
+// several MB on a dense daf) into the SHARED Cloudflare isolate. At 16 those
+// concurrent loads blew the hard 128 MB per-isolate memory limit — the isolate
+// was killed and every in-flight card got `error code: 1101`. 6 keeps warm-daf
+// fill snappy (a viewport rarely shows >6 cards needing fetch) while cutting
+// the cold-daf memory pressure well under the limit; the server now also
+// coalesces same-daf slice loads, so concurrent runs share one copy instead
+// of N.
+const enrichmentQueue = new RequestQueue(6);
 
 /**
  * Enqueue one enrichment run on the shared queue from OUTSIDE this component

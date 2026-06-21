@@ -3,9 +3,52 @@ import {
   isAbort,
   isServiceUnavailableError,
   PAUSED_ERROR,
+  parseRunJson,
   QUEUE_PRIORITY,
   RequestQueue,
 } from '../src/client/enrichmentQueue';
+
+// Regression guard for the "every card fails with `JSON.parse: unexpected
+// character at line 1 column 1`" incident: when a Cloudflare isolate is
+// recycled or OOMs, /api/run returns a NON-JSON edge page. A bare r.json()
+// crashed; parseRunJson must turn that into a calm, retryable error instead.
+describe('parseRunJson', () => {
+  it('returns the parsed body for valid JSON (ok and handled-error alike)', async () => {
+    const ok = await parseRunJson(new Response(JSON.stringify({ status: 'ok', result: 1 })));
+    expect(ok).toEqual({ status: 'ok', result: 1 });
+    // A genuine 4xx with a JSON body must still parse (so its real error surfaces).
+    const bad = await parseRunJson(
+      new Response(JSON.stringify({ error: 'bad input' }), { status: 400 }),
+    );
+    expect(bad).toEqual({ error: 'bad input' });
+  });
+
+  it('throws a transient/retryable error for a Cloudflare 1101 edge page', async () => {
+    const r = new Response('error code: 1101', {
+      status: 500,
+      headers: { 'content-type': 'text/plain' },
+    });
+    await expect(parseRunJson(r)).rejects.toThrow();
+    const err = await parseRunJson(new Response('error code: 1101', { status: 500 })).catch(
+      (e) => e,
+    );
+    // Must be classified transient — NOT a raw parse crash — so the UI shows a
+    // retry state and callers retry instead of failing every card.
+    expect(isServiceUnavailableError(err)).toBe(true);
+  });
+
+  it('throws a transient error for an empty 5xx body', async () => {
+    const err = await parseRunJson(new Response('', { status: 503 })).catch((e) => e);
+    expect(isServiceUnavailableError(err)).toBe(true);
+  });
+
+  it('throws a transient error for an HTML gateway page', async () => {
+    const err = await parseRunJson(
+      new Response('<!DOCTYPE html><title>502 Bad Gateway</title>', { status: 502 }),
+    ).catch((e) => e);
+    expect(isServiceUnavailableError(err)).toBe(true);
+  });
+});
 
 describe('isServiceUnavailableError', () => {
   it('flags AI-provider outages / timeouts (calm "try later" states)', () => {

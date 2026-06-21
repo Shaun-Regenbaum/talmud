@@ -89,6 +89,32 @@ export function isServiceUnavailableError(err: unknown): boolean {
   return SERVICE_UNAVAILABLE_RE.test(msg);
 }
 
+/**
+ * Parse a `/api/run` or `/api/run-status` response body as JSON, defensively.
+ *
+ * When a Cloudflare isolate is recycled or exceeds its 128 MB memory limit
+ * (a cold dense daf opening many heavy generations at once), the edge returns
+ * an error PAGE — `error code: 1101`, or an empty 5xx — with a NON-JSON body.
+ * A bare `r.json()` then throws "unexpected character at line 1 column 1",
+ * which surfaced to readers as every card failing simultaneously with a raw
+ * parse stack. Detect the non-JSON body and throw a calm message that
+ * `isServiceUnavailableError` classifies as transient, so the UI shows a
+ * "try again" state and callers can retry instead of crashing.
+ */
+export async function parseRunJson(r: Response): Promise<unknown> {
+  const text = await r.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    const snippet = text.trim().replace(/\s+/g, ' ').slice(0, 80);
+    // "temporarily unavailable" + the HTTP status both match
+    // SERVICE_UNAVAILABLE_RE, so this is treated as a retryable blip, never a bug.
+    throw new Error(
+      `Server temporarily unavailable (HTTP ${r.status}${snippet ? `: ${snippet}` : ''})`,
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Client-side result cache
 // ---------------------------------------------------------------------------
