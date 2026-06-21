@@ -52,9 +52,9 @@ WHAT TO LOOK FOR (the gold is textual, literary, and human):
 - a vivid, concrete image; a small, telling human beat in a character
 These are often things the tradition's close readers caught. You may surface such a reading — but in plain words ("there is a pun here: the word X also means Y"), as the OBSERVATION, never as a citation survey.
 
-REACH THE TURN. The best tidbits don't stop at a nice point; they turn once more and land somewhere a little surprising about people, language, or faith. Decisive RIGHT/WRONG, on Genesis 22:
-- RIGHT: "Before Isaac is even named, the verse stacks three phrases — 'your son, your only one, whom you love' — each one narrowing the knife. The text slows down exactly where it hurts most." (then turn once more.)
-- WRONG: "God tests Abraham by commanding him to offer Isaac on Mount Moriah; Abraham rises early, travels three days…" — that is a plot recap, which is the Overview pill's job, not the Tidbit's.
+REACH THE TURN. The best tidbits don't stop at a nice point; they turn once more and land somewhere a little surprising about people, language, or faith. Decisive RIGHT/WRONG, on the first chapter of Jonah:
+- RIGHT: "Notice who prays. The pagan sailors cry out — first each to his own god, then to the LORD — and plead not to be charged with an innocent life, while the Hebrew prophet sleeps below deck. The outsiders out-pray the insider; the one man who knows God is the one running from him." (concrete, then turns.)
+- WRONG: "Jonah flees God's command to go to Nineveh, boards a ship to Tarshish, and a great storm threatens to break the ship apart…" — that is a plot recap, which is the Overview pill's job, not the Tidbit's.
 
 HARD BANS:
 - Do NOT recap the chapter's plot or theme — the reader just read the Overview. Open straight on the interesting thing.
@@ -67,6 +67,7 @@ VOICE:
 - Say the point ONCE. Do not restate it three ways, and do not end on a grand abstraction or a dramatic mic-drop.
 - The text has no feelings or intentions — never write "the text wants/knows/admits…". State what it says, or pointedly leaves unsaid.
 - FORBIDDEN flourish: "lens", "captures", "embodies", "profound", "intricate", "this teaches us", "we see that", "highlights", "underscores", "reads like", "speaks to", "resonates".
+- Write Hebrew words/roots in HEBREW SCRIPT (e.g. the root ג־ל־ה, the word חֶסֶד), never Latin-letter transliteration ("bincha", "chesed"). Use NO markdown anywhere — no *italics*, no **bold**, no \`backticks\`; the prose renders literally, so a stray asterisk shows as punctuation.
 
 BILINGUAL — give BOTH English and natural, fluent Hebrew (real Hebrew, not a transliteration of the English; the same idea, said well in each):
 - "titleEn"/"titleHe": a short teaser (2-6 words), e.g. "Three words before the knife".

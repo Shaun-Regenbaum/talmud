@@ -109,7 +109,9 @@ const KEY_TEMPLATES: Record<string, KeyTemplate> = {
   // v2: the output now carries per-place verse numbers (for click-to-highlight).
   geography: { key: (a: TanachAddress) => `geography:v2:${a.unit?.work}:${a.unit?.unit}` },
   // Chapter-scoped like overview/geography (one tidbit per chapter; instance ignored).
-  tidbit: { key: (a: TanachAddress) => `tidbit:v1:${a.unit?.work}:${a.unit?.unit}` },
+  // v2: prompt tuned (Hebrew script over transliteration, no markdown, worked
+  // example swapped off a Torah chapter) — bump regenerates with the new recipe.
+  tidbit: { key: (a: TanachAddress) => `tidbit:v2:${a.unit?.work}:${a.unit?.unit}` },
   synthesis: {
     key: (a: TanachAddress) => `synthesis:v1:${a.unit?.work}:${a.unit?.unit}:${a.verse}`,
   },

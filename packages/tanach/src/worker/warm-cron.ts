@@ -28,8 +28,9 @@ import {
 } from './run-ports.ts';
 import { computeSourcesIndex, readSourcesIndex } from './sources-index.ts';
 
-// v3: the work-list gained the sources index + per-verse synthesis/midrash.
-const CURSOR_KEY = 'tanach-warm-cursor:v3';
+// v4: tidbit prompt bumped to v2 — reset the done-set so the cron re-warms the
+// parsha's tidbits (regenerated under the new recipe; everything else cache-hits).
+const CURSOR_KEY = 'tanach-warm-cursor:v4';
 /** Chapter-level enrichments that power the reader's pills + section labels. */
 const CHAPTER_PRODUCERS = ['overview', 'geography', 'tidbit', 'events'] as const;
 /** Entries warmed per tick — small so one invocation stays well within the
