@@ -146,6 +146,39 @@ export async function getSefariaPageCached(
   }
 }
 
+// Per-comment text caps for the rishonim bundle. A handful of long
+// commentators (Shita Mekubetzet, Maharsha, …) can each run to tens of
+// thousands of chars; concatenating the full Hebrew+English of every comment on
+// a dense daf is what drove a generation job's in-memory footprint to several
+// MB and OOM'd the shared isolate (and produced the ~1.2M-token prompts of
+// #433). Capping each comment at THIS cache boundary bounds the bundle — and
+// everything derived from it (the commentaries slice, the context items) — to
+// (#comments × cap), regardless of how dense the daf is. Caps are generous, so
+// ordinary comments are untouched and short verbatim quotes stay within them.
+// This trims source TEXT only, never cache keys, so existing cached enrichment
+// OUTPUT is unaffected — only fresh runs see the trim (same policy as the
+// prompt-side cap in run-sources.ts / #433).
+const RISHON_PER_COMMENT_HE = 8_000;
+const RISHON_PER_COMMENT_EN = 10_000;
+
+function capCommentText(s: string, max: number): string {
+  return s && s.length > max ? `${s.slice(0, max).trimEnd()} …[trimmed]` : s;
+}
+
+/** Bound each comment's HE/EN text. Returns the SAME array when nothing exceeds
+ *  the caps (the common case), so already-short dapim pay no allocation. */
+export function capRishonimBundle(bundle: RishonimBundle): RishonimBundle {
+  let changed = false;
+  const out = bundle.map((c) => {
+    const hebrew = capCommentText(c.hebrew ?? '', RISHON_PER_COMMENT_HE);
+    const english = capCommentText(c.english ?? '', RISHON_PER_COMMENT_EN);
+    if (hebrew === c.hebrew && english === c.english) return c;
+    changed = true;
+    return { ...c, hebrew, english };
+  });
+  return changed ? out : bundle;
+}
+
 export async function getRishonimCached(
   cache: KVNamespace | undefined,
   tractate: string,
@@ -161,9 +194,13 @@ export async function getRishonimCached(
   const key = keyForRishonim(tractate, page);
   const hit = await readCache<RishonimBundle>(cache, key);
   track?.onCache?.(hit ? 'hit' : 'miss');
-  if (hit) return hit;
+  // Cap on read AND write: a fresh fetch stores the bounded bundle (no version
+  // bump, so no Shas-wide re-warm); an older full entry is still bounded in the
+  // object we RETAIN through the multi-second LLM call (the sustained memory
+  // pressure), even though its KV value stays full until it next refreshes.
+  if (hit) return capRishonimBundle(hit);
   try {
-    const data = await sefariaAPI.fetchRishonim(tractate, page);
+    const data = capRishonimBundle(await sefariaAPI.fetchRishonim(tractate, page));
     await writeCache(cache, key, data);
     return data;
   } catch {
