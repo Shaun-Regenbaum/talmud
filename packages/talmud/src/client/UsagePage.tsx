@@ -1716,7 +1716,14 @@ function ShasEstimate(props: { est: ReturnType<typeof estimateShasCost> }): JSX.
                   </td>
                   <td style={numCell}>{fmtUsd(p.unitUsd)}</td>
                   <td style={{ ...numCell, color: '#999' }}>
-                    {p.instancesPerAmud > 1.05 ? `${p.instancesPerAmud.toFixed(1)}×` : '1×'}
+                    {/* Demand-driven (.qa) producers are keyed per user question,
+                        not per amud, so a per-amud rate is meaningless and they
+                        are not projected across shas. */}
+                    {p.demandDriven
+                      ? '—'
+                      : p.instancesPerAmud > 1.05
+                        ? `${p.instancesPerAmud.toFixed(1)}×`
+                        : '1×'}
                   </td>
                   <td style={{ ...numCell, color: '#2a8a42' }}>{fmtUsd(p.incurredUsd)}</td>
                   <td style={numCell}>{fmtUsd(p.remainingUsd)}</td>

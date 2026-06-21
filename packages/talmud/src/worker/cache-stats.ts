@@ -147,6 +147,9 @@ export interface EnrichmentCacheRow {
   cache_version: string;
   count: number; // entries at the CURRENT cache_version (English)
   heCount: number; // entries at the CURRENT cache_version, Hebrew (:he)
+  /** Local scope only: distinct dapim cached at the current version (EN). The
+   *  exact warmed-amud denominator for the shas-cost projection. */
+  coverageDapim?: number;
   versions: Record<string, number>;
   staleCount: number;
 }
@@ -396,8 +399,16 @@ async function countPrefix(cache: KVNamespace, prefix: string): Promise<number> 
  * colon-delimited segment of what remains. The trailing colon in `prefix`
  * keeps `mark:argument:` from matching `mark:argument-move:…`.
  */
-async function countByVersion(cache: KVNamespace, prefix: string): Promise<Record<string, number>> {
+/** Per-version key tallies for one producer prefix: total `counts`, plus
+ *  `dapim` = distinct dapim each version is cached on (exact for daf-scoped
+ *  keys; callers read it only for local-scope producers, where the trailing
+ *  `<tractate>:<page>` is always present). */
+async function countByVersion(
+  cache: KVNamespace,
+  prefix: string,
+): Promise<{ counts: Record<string, number>; dapim: Record<string, number> }> {
   const counts: Record<string, number> = {};
+  const dafSets: Record<string, Set<string>> = {};
   let cursor: string | undefined;
   for (;;) {
     const res = (await cache.list({ prefix, cursor, limit: 1000 })) as {
@@ -414,12 +425,26 @@ async function countByVersion(cache: KVNamespace, prefix: string): Promise<Recor
       // so the usage page can report EN vs HE coverage separately.
       const bucket = segs[1] === 'he' ? `${version}:he` : version;
       counts[bucket] = (counts[bucket] ?? 0) + 1;
+      // Distinct-daf tracking: the daf is the trailing `<tractate>:<page>`,
+      // after stripping an optional `q_<hash>` qualifier. Global keys (no daf)
+      // yield a spurious pair, but those are gated out at the read site (local
+      // scope only). This is the exact warmed-amud denominator for the cost
+      // model — independent of any other producer's coverage.
+      const tail = segs[segs.length - 1]?.startsWith('q_') ? segs.slice(0, -1) : segs;
+      if (tail.length >= 2) {
+        const daf = `${tail[tail.length - 2]}:${tail[tail.length - 1]}`;
+        const set = dafSets[bucket] ?? new Set<string>();
+        set.add(daf);
+        dafSets[bucket] = set;
+      }
     }
     if (res.list_complete) break;
     cursor = res.cursor;
     if (!cursor) break;
   }
-  return counts;
+  const dapim: Record<string, number> = {};
+  for (const [b, s] of Object.entries(dafSets)) dapim[b] = s.size;
+  return { counts, dapim };
 }
 
 function staleSum(versions: Record<string, number>, current: string): number {
@@ -701,7 +726,7 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   for (const e of enrichDefs) for (const dep of e.dependencies) addDep(e.target_mark, dep);
 
   const marks: MarkCacheRow[] = markDefs.map((m, i) => {
-    const versions = markVersions[i];
+    const versions = markVersions[i].counts;
     const count = versions[m.cache_version] ?? 0;
     const heCount = versions[`${m.cache_version}:he`] ?? 0;
     return {
@@ -720,9 +745,14 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   });
 
   const enrichments: EnrichmentCacheRow[] = enrichDefs.map((e, i) => {
-    const versions = enrichVersions[i];
+    const versions = enrichVersions[i].counts;
     const count = versions[e.cache_version] ?? 0;
     const heCount = versions[`${e.cache_version}:he`] ?? 0;
+    // Distinct dapim this enrichment is cached on at the current version (EN).
+    // Local scope only — global/spine keys carry no daf, so the figure would be
+    // spurious and the cost model must fall back to its frontier proxy for them.
+    const coverageDapim =
+      e.scope === 'local' ? (enrichVersions[i].dapim[e.cache_version] ?? 0) : undefined;
     return {
       id: e.id,
       label: e.label,
@@ -732,6 +762,7 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
       cache_version: e.cache_version,
       count,
       heCount,
+      coverageDapim,
       versions,
       staleCount: staleSum(versions, e.cache_version),
     };
