@@ -5617,114 +5617,137 @@ app.get('/api/admin/llm-cost', async (c) => {
   }
 
   const since = parseInt(c.req.query('since') ?? '0', 10) || 0;
-  const keys: string[] = [];
-  let cursor: string | undefined;
-  do {
-    const res = await cache.list({ prefix, cursor, limit: 1000 });
-    for (const k of res.keys) keys.push(k.name);
-    cursor = res.list_complete ? undefined : res.cursor;
-  } while (cursor && keys.length < 10000);
-
-  let totalCost = 0;
-  let totalCostInEst = 0;
-  let totalCostOutEst = 0;
-  let calls = 0;
-  let callsWithCost = 0;
-  let promptTokens = 0;
-  let completionTokens = 0;
-  let minTs = Number.POSITIVE_INFINITY;
-  let maxTs = 0;
-  const byModel: Record<
-    string,
-    { calls: number; cost: number; promptTokens: number; completionTokens: number }
-  > = {};
-  const byTag: Record<string, { calls: number; cost: number }> = {};
-  const byKind: Record<string, { calls: number; cost: number }> = {};
-  // Per-daf recent spend (7-day ledger window). The permanent per-daf record is
-  // the cache-entry cost stamp; this is the live drill-down for what just ran.
-  const byDaf: Record<
-    string,
-    { calls: number; cost: number; costInEst: number; costOutEst: number }
-  > = {};
-
-  for (const key of keys) {
-    const raw = await cache.get(key);
-    if (!raw) continue;
-    let r: LlmCostRec;
-    try {
-      r = JSON.parse(raw) as LlmCostRec;
-    } catch {
-      continue;
-    }
-    if (since && r.ts < since) continue;
-    calls++;
-    if (typeof r.cost === 'number') {
-      totalCost += r.cost;
-      callsWithCost++;
-    }
-    if (typeof r.cost_in_est === 'number') totalCostInEst += r.cost_in_est;
-    if (typeof r.cost_out_est === 'number') totalCostOutEst += r.cost_out_est;
-    if (typeof r.prompt_tokens === 'number') promptTokens += r.prompt_tokens;
-    if (typeof r.completion_tokens === 'number') completionTokens += r.completion_tokens;
-    if (r.ts < minTs) minTs = r.ts;
-    if (r.ts > maxTs) maxTs = r.ts;
-    const m = byModel[r.model] ?? { calls: 0, cost: 0, promptTokens: 0, completionTokens: 0 };
-    byModel[r.model] = m;
-    m.calls++;
-    m.cost += r.cost ?? 0;
-    m.promptTokens += r.prompt_tokens ?? 0;
-    m.completionTokens += r.completion_tokens ?? 0;
-    const t = byTag[r.tag] ?? { calls: 0, cost: 0 };
-    byTag[r.tag] = t;
-    t.calls++;
-    t.cost += r.cost ?? 0;
-    const kindKey = r.kind ?? 'untagged';
-    const k = byKind[kindKey] ?? { calls: 0, cost: 0 };
-    byKind[kindKey] = k;
-    k.calls++;
-    k.cost += r.cost ?? 0;
-    if (r.tractate && r.page) {
-      const dafKey = `${r.tractate}:${r.page}`;
-      const d = byDaf[dafKey] ?? {
-        calls: 0,
-        cost: 0,
-        costInEst: 0,
-        costOutEst: 0,
-      };
-      byDaf[dafKey] = d;
-      d.calls++;
-      d.cost += r.cost ?? 0;
-      d.costInEst += r.cost_in_est ?? 0;
-      d.costOutEst += r.cost_out_est ?? 0;
-    }
+  // This endpoint scans up to 10k ledger entries with sequential KV reads — a
+  // heavy per-request workload. A polling /usage dashboard (or several open at
+  // once) fired it concurrently, and N simultaneous scans on one isolate blew
+  // the 128 MB limit (exceededMemory -> 1101, killing co-tenant reader requests).
+  // Serve a short-lived cached aggregate and coalesce concurrent recomputes onto
+  // ONE scan, so a cache-miss stampede can't recur.
+  const reportKey = `llmcost-report:v1:${since}`;
+  const cachedReport = await cache.get(reportKey);
+  if (cachedReport) {
+    return new Response(cachedReport, {
+      headers: { 'content-type': 'application/json', 'x-cache': 'hit' },
+    });
   }
+  const payload = await coalesce(reportKey, async () => {
+    const keys: string[] = [];
+    let cursor: string | undefined;
+    do {
+      const res = await cache.list({ prefix, cursor, limit: 1000 });
+      for (const k of res.keys) keys.push(k.name);
+      cursor = res.list_complete ? undefined : res.cursor;
+    } while (cursor && keys.length < 10000);
 
-  const round = (n: number) => Math.round(n * 1e6) / 1e6;
-  for (const m of Object.values(byModel)) m.cost = round(m.cost);
-  for (const t of Object.values(byTag)) t.cost = round(t.cost);
-  for (const k of Object.values(byKind)) k.cost = round(k.cost);
-  for (const d of Object.values(byDaf)) {
-    d.cost = round(d.cost);
-    d.costInEst = round(d.costInEst);
-    d.costOutEst = round(d.costOutEst);
-  }
+    let totalCost = 0;
+    let totalCostInEst = 0;
+    let totalCostOutEst = 0;
+    let calls = 0;
+    let callsWithCost = 0;
+    let promptTokens = 0;
+    let completionTokens = 0;
+    let minTs = Number.POSITIVE_INFINITY;
+    let maxTs = 0;
+    const byModel: Record<
+      string,
+      { calls: number; cost: number; promptTokens: number; completionTokens: number }
+    > = {};
+    const byTag: Record<string, { calls: number; cost: number }> = {};
+    const byKind: Record<string, { calls: number; cost: number }> = {};
+    // Per-daf recent spend (7-day ledger window). The permanent per-daf record is
+    // the cache-entry cost stamp; this is the live drill-down for what just ran.
+    const byDaf: Record<
+      string,
+      { calls: number; cost: number; costInEst: number; costOutEst: number }
+    > = {};
 
-  return c.json({
-    totalCostUsd: round(totalCost),
-    // List-price input/output split (est) — OpenRouter bills one number, so the
-    // in/out ratio is estimated; totalCostUsd stays billed-authoritative.
-    estInputCostUsd: round(totalCostInEst),
-    estOutputCostUsd: round(totalCostOutEst),
-    calls,
-    callsWithCost,
-    promptTokens,
-    completionTokens,
-    window: { from: calls ? minTs : null, to: calls ? maxTs : null },
-    byModel,
-    byTag,
-    byKind,
-    byDaf,
-    truncated: keys.length >= 10000,
+    for (const key of keys) {
+      const raw = await cache.get(key);
+      if (!raw) continue;
+      let r: LlmCostRec;
+      try {
+        r = JSON.parse(raw) as LlmCostRec;
+      } catch {
+        continue;
+      }
+      if (since && r.ts < since) continue;
+      calls++;
+      if (typeof r.cost === 'number') {
+        totalCost += r.cost;
+        callsWithCost++;
+      }
+      if (typeof r.cost_in_est === 'number') totalCostInEst += r.cost_in_est;
+      if (typeof r.cost_out_est === 'number') totalCostOutEst += r.cost_out_est;
+      if (typeof r.prompt_tokens === 'number') promptTokens += r.prompt_tokens;
+      if (typeof r.completion_tokens === 'number') completionTokens += r.completion_tokens;
+      if (r.ts < minTs) minTs = r.ts;
+      if (r.ts > maxTs) maxTs = r.ts;
+      const m = byModel[r.model] ?? { calls: 0, cost: 0, promptTokens: 0, completionTokens: 0 };
+      byModel[r.model] = m;
+      m.calls++;
+      m.cost += r.cost ?? 0;
+      m.promptTokens += r.prompt_tokens ?? 0;
+      m.completionTokens += r.completion_tokens ?? 0;
+      const t = byTag[r.tag] ?? { calls: 0, cost: 0 };
+      byTag[r.tag] = t;
+      t.calls++;
+      t.cost += r.cost ?? 0;
+      const kindKey = r.kind ?? 'untagged';
+      const k = byKind[kindKey] ?? { calls: 0, cost: 0 };
+      byKind[kindKey] = k;
+      k.calls++;
+      k.cost += r.cost ?? 0;
+      if (r.tractate && r.page) {
+        const dafKey = `${r.tractate}:${r.page}`;
+        const d = byDaf[dafKey] ?? {
+          calls: 0,
+          cost: 0,
+          costInEst: 0,
+          costOutEst: 0,
+        };
+        byDaf[dafKey] = d;
+        d.calls++;
+        d.cost += r.cost ?? 0;
+        d.costInEst += r.cost_in_est ?? 0;
+        d.costOutEst += r.cost_out_est ?? 0;
+      }
+    }
+
+    const round = (n: number) => Math.round(n * 1e6) / 1e6;
+    for (const m of Object.values(byModel)) m.cost = round(m.cost);
+    for (const t of Object.values(byTag)) t.cost = round(t.cost);
+    for (const k of Object.values(byKind)) k.cost = round(k.cost);
+    for (const d of Object.values(byDaf)) {
+      d.cost = round(d.cost);
+      d.costInEst = round(d.costInEst);
+      d.costOutEst = round(d.costOutEst);
+    }
+
+    const result = {
+      totalCostUsd: round(totalCost),
+      // List-price input/output split (est) — OpenRouter bills one number, so the
+      // in/out ratio is estimated; totalCostUsd stays billed-authoritative.
+      estInputCostUsd: round(totalCostInEst),
+      estOutputCostUsd: round(totalCostOutEst),
+      calls,
+      callsWithCost,
+      promptTokens,
+      completionTokens,
+      window: { from: calls ? minTs : null, to: calls ? maxTs : null },
+      byModel,
+      byTag,
+      byKind,
+      byDaf,
+      truncated: keys.length >= 10000,
+    };
+    const json = JSON.stringify(result);
+    // Short TTL: the dashboard polls "what just ran"; 45s is fresh enough and
+    // collapses a burst of polls into one scan.
+    await cache.put(reportKey, json, { expirationTtl: 45 });
+    return json;
+  });
+  return new Response(payload, {
+    headers: { 'content-type': 'application/json', 'x-cache': 'miss' },
   });
 });
 
