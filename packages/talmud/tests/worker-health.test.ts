@@ -54,7 +54,11 @@ function envWith(opts: {
   const fetchStub = vi.fn(async () => {
     const body = opts.graphqlError
       ? { errors: [{ message: opts.graphqlError }] }
-      : { data: { viewer: { accounts: [{ workersInvocationsAdaptive: opts.groups ?? [] }] } } };
+      : {
+          data: {
+            viewer: { accounts: [{ workersInvocationsAdaptiveGroups: opts.groups ?? [] }] },
+          },
+        };
     return new Response(JSON.stringify(body), { status: 200 });
   });
   return { env, fetchStub, kv };
