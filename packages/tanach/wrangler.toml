@@ -42,3 +42,9 @@ HOURLY_CUSTOM_BUDGET_USD = "5"
 
 # Secret (set with `wrangler secret put OPENROUTER_API_KEY`; locally via
 # packages/tanach/.dev.vars): OPENROUTER_API_KEY.
+
+# Warm-cron: keep this week's parsha's chapter enrichments hot (warm-cron.ts).
+# Every 30 min — a fresh parsha warms over a few ticks, then the cursor latches
+# and ticks are no-ops until the parsha changes.
+[triggers]
+crons = ["*/30 * * * *"]

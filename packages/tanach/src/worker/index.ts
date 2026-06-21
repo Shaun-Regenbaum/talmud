@@ -26,6 +26,7 @@ import type { TanachEnv, TanachRunCtx } from './run-ports.ts';
 import { runTanachEnrichment, runTanachEvents, TanachSourceError } from './run-ports.ts';
 import { asVerses, fetchPassages, fetchVerseCommentaries, sefaria } from './sefaria-sources.ts';
 import { readUsage, recordUsage } from './usage.ts';
+import { runTanachWarm } from './warm-cron.ts';
 
 interface Env extends TanachEnv {
   ASSETS: Fetcher;
@@ -650,4 +651,15 @@ app.get('/api/chapter-runs/:book/:chapter', async (c) => {
 // Everything else: serve the built SPA (static assets + index.html fallback).
 app.get('*', (c) => c.env.ASSETS.fetch(c.req.raw));
 
-export default app;
+// The Hono app, named, for tests (app.request(...)). The runtime entry is the
+// default export below.
+export { app };
+
+// fetch (the Hono app) + scheduled (the warm-cron that keeps this week's
+// parsha's chapter enrichments hot — see warm-cron.ts).
+export default {
+  fetch: (req: Request, env: Env, ctx: ExecutionContext) => app.fetch(req, env, ctx),
+  scheduled: (_controller: ScheduledController, env: Env, ctx: ExecutionContext) => {
+    ctx.waitUntil(runTanachWarm(env, ctx));
+  },
+};
