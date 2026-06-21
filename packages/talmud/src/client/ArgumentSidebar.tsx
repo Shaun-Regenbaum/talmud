@@ -2041,9 +2041,151 @@ function HalachaCodification(props: SpecialBlockProps): JSX.Element {
             />
           </div>
           <CodificationMap nodes={m().nodes} edges={m().edges} />
+          <HalachaSourceTexts tractate={props.tractate} page={props.page} />
         </div>
       )}
     </Show>
+  );
+}
+
+// One codifier's grounded source texts (the real Sefaria text already cached in
+// the halacha-refs bundle), as returned by GET /api/halacha-text.
+interface HalachaTextRef {
+  ref: string;
+  hebrew: string;
+  english: string;
+  einMishpat: boolean;
+}
+interface HalachaTextNode {
+  id: string;
+  label: string;
+  short: string;
+  tier: string;
+  einMishpat: boolean;
+  refs: HalachaTextRef[];
+}
+
+// A collapsed "source texts" disclosure under the codification map: the actual
+// Mishneh Torah / Tur / Shulchan Aruch (+ secondary) text the card is built
+// from. Lazily fetched on first open (the bundle is already warm whenever a
+// codification card shows, so this is a cache hit), so the default view stays
+// uncluttered.
+function HalachaSourceTexts(props: { tractate: string; page: string }): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const [nodes] = createResource(
+    () => (open() ? `${props.tractate}|${props.page}` : false),
+    async (): Promise<HalachaTextNode[]> => {
+      try {
+        const r = await fetch(
+          `/api/halacha-text/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}`,
+        );
+        if (!r.ok) return [];
+        return ((await r.json()) as { nodes?: HalachaTextNode[] }).nodes ?? [];
+      } catch {
+        return [];
+      }
+    },
+  );
+  const muted: JSX.CSSProperties = {
+    'font-size': '0.72rem',
+    color: '#aaa',
+    'margin-top': '0.4rem',
+  };
+  return (
+    <div style={{ 'margin-top': '0.6rem' }}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          'font-size': '0.66rem',
+          'text-transform': 'uppercase',
+          'letter-spacing': '0.06em',
+          color: '#888',
+          background: 'none',
+          border: 'none',
+          padding: '0',
+          cursor: 'pointer',
+          display: 'flex',
+          'align-items': 'center',
+          gap: '0.35rem',
+        }}
+      >
+        <span>{open() ? '▾' : '▸'}</span>
+        <span>{t('halacha.sourceTexts')}</span>
+      </button>
+      <Show when={open()}>
+        <Show when={!nodes.loading} fallback={<div style={muted}>…</div>}>
+          <Show
+            when={(nodes() ?? []).length > 0}
+            fallback={<div style={muted}>{t('halacha.sourceTexts.none')}</div>}
+          >
+            <div
+              style={{
+                'margin-top': '0.45rem',
+                display: 'flex',
+                'flex-direction': 'column',
+                gap: '0.7rem',
+              }}
+            >
+              <For each={nodes()}>
+                {(node) => (
+                  <div>
+                    <div style={{ 'font-size': '0.7rem', 'font-weight': 600, color: '#555' }}>
+                      {node.label}
+                    </div>
+                    <For each={node.refs}>
+                      {(r) => (
+                        <div
+                          style={{
+                            'margin-top': '0.35rem',
+                            'border-left': '2px solid #eee',
+                            'padding-left': '0.5rem',
+                          }}
+                        >
+                          <div style={{ 'font-size': '0.64rem', color: '#3a6ea5' }}>
+                            {r.ref}
+                            <Show when={r.einMishpat}>
+                              <span style={{ color: '#b8860b', 'margin-left': '0.4rem' }}>
+                                · Ein Mishpat
+                              </span>
+                            </Show>
+                          </div>
+                          <Show when={r.hebrew}>
+                            <p
+                              dir="rtl"
+                              style={{
+                                margin: '0.2rem 0 0',
+                                'font-size': '0.86rem',
+                                'line-height': '1.7',
+                                'text-align': 'right',
+                              }}
+                            >
+                              {r.hebrew}
+                            </p>
+                          </Show>
+                          <Show when={r.english}>
+                            <p
+                              style={{
+                                margin: '0.2rem 0 0',
+                                'font-size': '0.74rem',
+                                'line-height': '1.5',
+                                color: '#666',
+                              }}
+                            >
+                              {r.english}
+                            </p>
+                          </Show>
+                        </div>
+                      )}
+                    </For>
+                  </div>
+                )}
+              </For>
+            </div>
+          </Show>
+        </Show>
+      </Show>
+    </div>
   );
 }
 
