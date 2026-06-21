@@ -158,6 +158,7 @@ import {
   writeCachedCacheStats,
 } from './cache-stats';
 import { fetchZoneActivity } from './cf-zone-analytics';
+import { coalesce } from './coalesce';
 import {
   CODE_ENRICHMENTS,
   CODE_MARKS,
@@ -3165,76 +3166,87 @@ app.delete('/api/enrichments/:id', async (c) => {
 // other run paths too).
 const SLICE_TTL_S = 30 * 24 * 3600;
 
-async function getGemaraSlice(
+// Coalesced across concurrent same-daf callers: a cold daf-open fires many
+// runs at once and each would otherwise parse its own copy of the daf text
+// into the shared isolate. The result is read-only to all callers.
+function getGemaraSlice(
   env: Bindings,
   tractate: string,
   page: string,
   bypass: boolean,
 ): Promise<GemaraSlice> {
-  const cache = env.CACHE;
-  const key = keyForGemara(tractate, page);
-  if (cache && !bypass) {
-    const cached = await cache.get(key);
-    if (cached) {
-      try {
-        return JSON.parse(cached) as GemaraSlice;
-      } catch {
-        /* fall through */
+  return coalesce(`slice:gemara:${tractate}:${page}:${bypass}`, async () => {
+    const cache = env.CACHE;
+    const key = keyForGemara(tractate, page);
+    if (cache && !bypass) {
+      const cached = await cache.get(key);
+      if (cached) {
+        try {
+          return JSON.parse(cached) as GemaraSlice;
+        } catch {
+          /* fall through */
+        }
       }
     }
-  }
-  const [hb, sef, segs] = await Promise.all([
-    getHebrewBooksDafCached(cache, tractate, page),
-    getSefariaPageCached(cache, tractate, page),
-    getSefariaSegmentsCached(cache, tractate, page),
-  ]);
-  const slice: GemaraSlice = {
-    tractate,
-    page,
-    hebrew: hb?.main ?? sef?.mainText.hebrew ?? '',
-    english: sef?.mainText.english ?? '',
-    segments_he: (segs?.he ?? []).map(stripHtmlServer),
-    segments_en: (segs?.en ?? []).map(stripHtmlServer),
-  };
-  if (cache) await cache.put(key, JSON.stringify(slice), { expirationTtl: SLICE_TTL_S });
-  return slice;
+    const [hb, sef, segs] = await Promise.all([
+      getHebrewBooksDafCached(cache, tractate, page),
+      getSefariaPageCached(cache, tractate, page),
+      getSefariaSegmentsCached(cache, tractate, page),
+    ]);
+    const slice: GemaraSlice = {
+      tractate,
+      page,
+      hebrew: hb?.main ?? sef?.mainText.hebrew ?? '',
+      english: sef?.mainText.english ?? '',
+      segments_he: (segs?.he ?? []).map(stripHtmlServer),
+      segments_en: (segs?.en ?? []).map(stripHtmlServer),
+    };
+    if (cache) await cache.put(key, JSON.stringify(slice), { expirationTtl: SLICE_TTL_S });
+    return slice;
+  });
 }
 
-async function getCommentariesSlice(
+// The single biggest per-run source object: the full rishonim commentary
+// bundle runs to several MB on a dense daf. Coalesced so concurrent same-daf
+// runs share ONE parsed copy in the isolate instead of each materializing its
+// own (the root of the 128 MB OOM on cold dapim). Read-only to all callers.
+function getCommentariesSlice(
   env: Bindings,
   tractate: string,
   page: string,
   bypass: boolean,
 ): Promise<CommentariesSlice> {
-  const cache = env.CACHE;
-  const key = keyForCommentaries(tractate, page);
-  if (cache && !bypass) {
-    const cached = await cache.get(key);
-    if (cached) {
-      try {
-        return JSON.parse(cached) as CommentariesSlice;
-      } catch {
-        /* fall through */
+  return coalesce(`slice:commentaries:${tractate}:${page}:${bypass}`, async () => {
+    const cache = env.CACHE;
+    const key = keyForCommentaries(tractate, page);
+    if (cache && !bypass) {
+      const cached = await cache.get(key);
+      if (cached) {
+        try {
+          return JSON.parse(cached) as CommentariesSlice;
+        } catch {
+          /* fall through */
+        }
       }
     }
-  }
-  // Rishonim now arrive as per-comment, segment-anchored entries; collapse them
-  // back into the per-commentator { hebrew, english, ref } map this slice
-  // exposes to enrichment prompts (joining a commentator's comments in order).
-  const bundle = await getRishonimCached(cache, tractate, page);
-  const by_commentator: Record<string, { hebrew: string; english: string; ref: string }> = {};
-  for (const c of bundle ?? []) {
-    const ex = by_commentator[c.label];
-    if (ex) {
-      ex.hebrew = `${ex.hebrew} ${c.hebrew}`.trim();
-      ex.english = `${ex.english} ${c.english}`.trim();
-    } else {
-      by_commentator[c.label] = { hebrew: c.hebrew, english: c.english, ref: c.ref };
+    // Rishonim now arrive as per-comment, segment-anchored entries; collapse them
+    // back into the per-commentator { hebrew, english, ref } map this slice
+    // exposes to enrichment prompts (joining a commentator's comments in order).
+    const bundle = await getRishonimCached(cache, tractate, page);
+    const by_commentator: Record<string, { hebrew: string; english: string; ref: string }> = {};
+    for (const c of bundle ?? []) {
+      const ex = by_commentator[c.label];
+      if (ex) {
+        ex.hebrew = `${ex.hebrew} ${c.hebrew}`.trim();
+        ex.english = `${ex.english} ${c.english}`.trim();
+      } else {
+        by_commentator[c.label] = { hebrew: c.hebrew, english: c.english, ref: c.ref };
+      }
     }
-  }
-  const slice: CommentariesSlice = { tractate, page, by_commentator };
-  if (cache) await cache.put(key, JSON.stringify(slice), { expirationTtl: SLICE_TTL_S });
-  return slice;
+    const slice: CommentariesSlice = { tractate, page, by_commentator };
+    if (cache) await cache.put(key, JSON.stringify(slice), { expirationTtl: SLICE_TTL_S });
+    return slice;
+  });
 }
 
 /** Cap a long passage so the prompt stays bounded — a whole Yerushalmi halacha

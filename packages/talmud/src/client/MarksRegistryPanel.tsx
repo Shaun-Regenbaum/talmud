@@ -41,6 +41,7 @@ import {
 } from 'solid-js';
 import { trackAI } from './aiActivity';
 import { devModeActive } from './DevModeShelf';
+import { parseRunJson } from './enrichmentQueue';
 import { lang } from './i18n';
 import type {
   MarkDef as RendererMarkDef,
@@ -346,7 +347,10 @@ async function postAndAwait(body: unknown): Promise<RunResult> {
     headers: { 'Content-Type': 'application/json', ...studioHeaders() },
     body: JSON.stringify(body),
   });
-  const j = (await r.json()) as RunResponse | { error?: string };
+  // parseRunJson surfaces a non-JSON edge error page (1101 / empty 5xx from a
+  // recycled or OOM'd isolate) as a clean retryable error instead of a raw
+  // JSON.parse crash.
+  const j = (await parseRunJson(r)) as RunResponse | { error?: string };
   if (!r.ok && r.status !== 202) {
     throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
   }
@@ -365,7 +369,14 @@ async function pollJob(runId: string, cacheKey?: string): Promise<RunResult> {
   while (Date.now() - start < POLL_TIMEOUT_MS) {
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
     const r = await fetch(`/api/run-status/${encodeURIComponent(runId)}${qs}`);
-    const j = (await r.json()) as RunResponse;
+    let j: RunResponse;
+    try {
+      j = (await parseRunJson(r)) as RunResponse;
+    } catch {
+      // Transient non-JSON edge error mid-poll; the job may still be running
+      // server-side, so keep polling rather than failing.
+      continue;
+    }
     if ('status' in j) {
       if (j.status === 'ok') return (j as { result: RunResult }).result;
       if (j.status === 'error') throw new Error((j as { error: string }).error);
