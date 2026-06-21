@@ -615,6 +615,11 @@ const CATALOG = {
   'usage.src.yerushalmi': { en: 'Yerushalmi', he: 'ירושלמי' },
   'usage.src.halacha-refs': { en: 'Halacha', he: 'הלכה' },
   'usage.src.daf-topics': { en: 'Topics', he: 'נושאים' },
+  'usage.src.talmud-parallels': {
+    en: 'Parallel sugyot (Mesorat HaShas)',
+    he: 'סוגיות מקבילות (מסורת הש״ס)',
+  },
+  'usage.src.commentary-works': { en: 'Commentaries (all works)', he: 'מפרשים (כל החיבורים)' },
   'usage.src.dy': { en: 'DafYomi notes (all)', he: 'הערות דף יומי (הכול)' },
   'usage.src.dy.insights': { en: 'Insights', he: 'תובנות' },
   'usage.src.dy.background': { en: 'Background', he: 'רקע' },
