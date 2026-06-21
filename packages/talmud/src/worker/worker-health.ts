@@ -33,7 +33,6 @@ query WorkerHealth($accountTag: string!, $script: string!, $start: Time!, $end: 
       workersInvocationsAdaptive(
         limit: 100
         filter: { scriptName: $script, datetime_geq: $start, datetime_leq: $end }
-        orderBy: [count_DESC]
       ) {
         count
         dimensions { status }
