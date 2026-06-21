@@ -245,6 +245,41 @@ describe('partition-clean', () => {
     expect(issues).toEqual([]);
   });
 
+  it('dedupe-instances drops an exact duplicate at the source, so partition-clean stays clean', async () => {
+    const dup = {
+      startSegIdx: 3,
+      endSegIdx: 4,
+      fields: { id: '3-4_0', excerpt: 'אמר רבא הלכה', endExcerpt: 'כרבי יהודה' },
+    };
+    const { parsed, issues } = await runPasses(
+      ['dedupe-instances', 'partition-clean'],
+      { instances: [dup, { ...dup, fields: { ...dup.fields } }] },
+      ctx({ defId: 'argument-move' }),
+    );
+    expect((parsed as { instances: unknown[] }).instances).toHaveLength(1);
+    expect(issues).toEqual([]); // the duplicate was removed before the check ran
+  });
+
+  it('dedupe-instances keeps two distinct moves that share a range + opener', async () => {
+    const a = {
+      startSegIdx: 6,
+      endSegIdx: 6,
+      fields: { id: '6-6_0', excerpt: 'תא שמע', endExcerpt: 'פטור' },
+    };
+    const b = {
+      startSegIdx: 6,
+      endSegIdx: 6,
+      fields: { id: '6-6_1', excerpt: 'תא שמע', endExcerpt: 'חייב' },
+    };
+    const { parsed, issues } = await runPasses(
+      ['dedupe-instances', 'partition-clean'],
+      { instances: [a, b] },
+      ctx({ defId: 'argument-move' }),
+    );
+    expect((parsed as { instances: unknown[] }).instances).toHaveLength(2); // both survive
+    expect(issues).toEqual([]);
+  });
+
   it('flags overlapping section ranges only for the argument mark, and only soft (a shared boundary can be legitimate)', async () => {
     const overlapping = {
       instances: [

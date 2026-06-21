@@ -168,6 +168,41 @@ function instancesOf(parsed: unknown): RangeInstance[] {
   return Array.isArray(arr) ? (arr as RangeInstance[]) : [];
 }
 
+/** The identity shared by the `duplicate-instance` check and the
+ *  `dedupe-instances` transform, so they can never drift. A TRUE duplicate is
+ *  the same move slot (deterministic id), same range, same start+end excerpt;
+ *  two legitimate moves that merely share a segment and a formulaic opening
+ *  (תא שמע / אמר רבא) differ on id / end anchor / order and so survive. */
+function duplicateInstanceKey(inst: RangeInstance): string {
+  const ex = typeof inst.fields?.excerpt === 'string' ? normalizeHebrew(inst.fields.excerpt) : '';
+  const endEx =
+    typeof inst.fields?.endExcerpt === 'string' ? normalizeHebrew(inst.fields.endExcerpt) : '';
+  const id = typeof inst.fields?.id === 'string' ? inst.fields.id : '';
+  return `${id}|${inst.startSegIdx}|${inst.endSegIdx}|${ex}|${endEx}`;
+}
+
+/** dedupe-instances (transform) — drop instances the `duplicate-instance` check
+ *  would flag as emitted-twice, keeping the first. Using the SAME identity as
+ *  the check means it can only ever remove an instance the check would reject —
+ *  never a legitimately-distinct move. Run it AFTER the re-anchor transform so
+ *  it dedupes the FINAL anchored ranges the validator will see; that way a
+ *  doubled LLM emission can never hard-block the cache write (which pins the
+ *  card) nor inflate the per-move enrichment fan-out. */
+function dedupeInstances(parsed: unknown): unknown {
+  const insts = instancesOf(parsed);
+  if (insts.length < 2) return parsed;
+  const seen = new Set<string>();
+  const out: RangeInstance[] = [];
+  for (const inst of insts) {
+    const key = duplicateInstanceKey(inst);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(inst);
+  }
+  if (out.length === insts.length) return parsed; // nothing dropped
+  return { ...(parsed as object), instances: out };
+}
+
 /** anchor-verbatim — the instance's `excerpt` can actually be located in the
  *  segment it was anchored to, USING THE SAME MATCHER THAT PLACED IT. The
  *  re-anchorers (reanchorArgumentMove / -Pesukim / -Aggadata) call findExcerpt,
@@ -383,22 +418,15 @@ const partitionClean: PostPass = {
           detail: `${s}-${e}`,
         });
       }
-      // True-duplicate identity, not just range+opener: two legitimate moves can
-      // share a segment and a formulaic opening (תא שמע / אמר רבא) yet differ in
-      // their deterministic id, end anchor, or order. Keying on those avoids
-      // hard-blocking a correct output while still catching a genuinely emitted-
-      // twice instance (same id ⇒ same move slot).
-      const ex =
-        typeof inst.fields?.excerpt === 'string' ? normalizeHebrew(inst.fields.excerpt) : '';
-      const endEx =
-        typeof inst.fields?.endExcerpt === 'string' ? normalizeHebrew(inst.fields.endExcerpt) : '';
-      const id = typeof inst.fields?.id === 'string' ? inst.fields.id : '';
-      const key = `${id}|${s}|${e}|${ex}|${endEx}`;
+      // True-duplicate identity, not just range+opener (see duplicateInstanceKey):
+      // the `dedupe-instances` transform removes these at the source using the
+      // SAME key, so a producer listing that pass never reaches this check.
+      const key = duplicateInstanceKey(inst);
       if (seen.has(key))
         issues.push({
           kind: 'duplicate-instance',
           severity: severityOf('duplicate-instance', ctx.defId),
-          match: ex || undefined,
+          match: typeof inst.fields?.excerpt === 'string' ? inst.fields.excerpt : undefined,
           index: typeof s === 'number' ? s : -1,
         });
       else seen.add(key);
@@ -542,6 +570,7 @@ export const PASSES: Record<string, PostPass> = {
     phase: 'transform',
     run: (parsed) => ({ parsed: deriveVoiceEdges(parsed) }),
   },
+  'dedupe-instances': transform('dedupe-instances', (p) => dedupeInstances(p)),
   'yerushalmi-floor': yerushalmiFloorPass,
   'hebrew-excerpt': hebrewExcerpt,
   'hebrew-gloss': hebrewGloss,

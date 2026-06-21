@@ -3726,7 +3726,15 @@ CODE_MARKS.push({
     fan_out_over: 'argument',
   },
   dependencies: ['gemara', { mark: 'argument' }],
-  passes: ['reanchor-argument-move', 'anchor-verbatim', 'partition-clean'],
+  // dedupe-instances runs AFTER reanchor (so it sees the final anchored ranges
+  // the partition-clean validator will check) and BEFORE the validators — a
+  // doubled LLM emission is dropped at the source instead of hard-failing the
+  // `duplicate-instance` check and pinning the card. Cache version is
+  // intentionally NOT bumped: the dedupe is backward-compatible (it only removes
+  // instances the check already rejected) and a Shas-wide re-warm of this core
+  // mark is not worth it for rare duplicates — cold/re-warmed dapim pick it up,
+  // and the handful of currently-pinned dapim heal on a cheap targeted re-warm.
+  passes: ['reanchor-argument-move', 'dedupe-instances', 'anchor-verbatim', 'partition-clean'],
   status: 'promoted',
   def_hash: 'argument-move-v9',
   cache_version: '9',

@@ -18,7 +18,12 @@ import { CODE_ENRICHMENTS, CODE_MARKS } from '../../src/worker/code-marks';
 describe('declarative pass wiring', () => {
   const markChecks: Record<string, string[]> = {
     argument: ['reanchor-argument', 'anchor-verbatim', 'partition-clean'],
-    'argument-move': ['reanchor-argument-move', 'anchor-verbatim', 'partition-clean'],
+    'argument-move': [
+      'reanchor-argument-move',
+      'dedupe-instances',
+      'anchor-verbatim',
+      'partition-clean',
+    ],
     pesukim: ['reanchor-pesukim', 'anchor-verbatim'],
     aggadata: ['reanchor-aggadata', 'anchor-verbatim'],
   };
