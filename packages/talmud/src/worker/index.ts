@@ -4677,6 +4677,23 @@ function enrichmentRecipe(def: EnrichmentDefinition): { extractor: unknown } {
   };
 }
 
+// Marks whose anchor is the whole daf (one daf-level note, not a per-instance
+// extractor). Their enrichments analyse the whole daf, so they must always run
+// and cache at the single canonical {fields:{}} instance.
+const WHOLE_DAF_MARK_IDS: ReadonlySet<string> = new Set(
+  CODE_MARKS.filter((m) => (m as { anchor?: string }).anchor === 'whole-daf').map((m) => m.id),
+);
+
+/** True for a whole-daf enrichment: a local enrichment whose target mark is a
+ *  whole-daf note (daf-background.concepts, argument-overview.flow, tidbit.essay,
+ *  biyun.essay). Such an enrichment has exactly one instance per daf, so
+ *  runEnrichmentOnce keys it to the canonical {fields:{}} instance for every
+ *  caller. Exported for the regression test that pins this set. */
+export function isWholeDafEnrichment(def: EnrichmentDefinition): boolean {
+  const targetMark = (def as { target_mark?: string }).target_mark;
+  return def.scope === 'local' && !!targetMark && WHOLE_DAF_MARK_IDS.has(targetMark);
+}
+
 async function runEnrichmentOnce(
   rc: RunCtx,
   def: EnrichmentDefinition,
@@ -4691,7 +4708,16 @@ async function runEnrichmentOnce(
    *  template as {{user_question}}. */
   userQuestion?: string,
 ): Promise<RunResultEnrichment> {
-  const res = (await runProducer(RUN_PORTS, rc, 'enrich', def, tractate, page, markInput, {
+  // Collapse whole-daf enrichments to the canonical {fields:{}} instance no
+  // matter who calls them. The dependency walk runs an enrichment dep with the
+  // PARENT's markInput (producer-run.ts), so a whole-daf enrichment pulled in by
+  // a per-section (argument.synthesis) or per-rabbi (rabbi.synthesis) producer
+  // would otherwise re-run and re-cache under a fresh key per section/rabbi —
+  // dozens of redundant runs/daf of the identical whole-daf result (e.g.
+  // daf-background.concepts fired ~22x/daf). Keying every caller to one instance
+  // makes them share one cache entry; idempotent for callers already passing it.
+  const effInput = isWholeDafEnrichment(def) ? { fields: {} } : markInput;
+  const res = (await runProducer(RUN_PORTS, rc, 'enrich', def, tractate, page, effInput, {
     bypassCache,
     lang: rc.lang,
     modelOverride,
@@ -4703,7 +4729,7 @@ async function runEnrichmentOnce(
   if (!res.cache_hit && rc.env.CACHE && def.scope === 'local' && !userQuestion) {
     fireDafIndex(
       rc,
-      recordEnrichmentDafIndex(rc.env.CACHE, def.id, tractate, page, markInput, rc.lang, res),
+      recordEnrichmentDafIndex(rc.env.CACHE, def.id, tractate, page, effInput, rc.lang, res),
     );
   }
   return res;
