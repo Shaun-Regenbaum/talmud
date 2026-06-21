@@ -5640,14 +5640,20 @@ app.get('/api/admin/llm-cost', async (c) => {
     // `truncated` signals the partial total; full-history accuracy wants an
     // incremental background rollup (reading only new entries since a checkpoint)
     // rather than rescanning the whole ledger per request — tracked as follow-up.
-    const SCAN_CAP = 1000;
+    // SCAN_CAP also has to respect the per-request SUBREQUEST limit (~1000): each
+    // ledger entry is one KV get, plus the list + cache get/put. 800 leaves
+    // headroom so a full scan can't throw "too many subrequests" (which surfaced
+    // as a 500 once batching made the reads fast enough to reach the cap). Match
+    // the list page size so the first page can't overshoot the cap.
+    const SCAN_CAP = 800;
     const keys: string[] = [];
     let cursor: string | undefined;
     do {
-      const res = await cache.list({ prefix, cursor, limit: 1000 });
+      const res = await cache.list({ prefix, cursor, limit: SCAN_CAP });
       for (const k of res.keys) keys.push(k.name);
       cursor = res.list_complete ? undefined : res.cursor;
     } while (cursor && keys.length < SCAN_CAP);
+    if (keys.length > SCAN_CAP) keys.length = SCAN_CAP;
 
     let totalCost = 0;
     let totalCostInEst = 0;
