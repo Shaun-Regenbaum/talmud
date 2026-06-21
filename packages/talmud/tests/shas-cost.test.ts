@@ -108,6 +108,53 @@ describe('estimateShasCost', () => {
     expect(flow.remainingUsd).toBeCloseTo(0.2); // 20 of 100 amudim still owed
   });
 
+  it('uses the producer own coverageDapim as the exact denominator (beats the proxy)', () => {
+    // Fan-out enrichment cached on 500 distinct dapim with 6000 entries = 12x.
+    // Its target mark is VERSION-SKEWED (re-warmed only 200 dapim), so the old
+    // proxy would read 6000 / 200 = 30x. coverageDapim pins the true 6000/500.
+    const input = baseInput({
+      amudim: 2711,
+      byEnrichment: { 'rabbi.relationships.evidence': { costUsd: 12, pricedCalls: 6000 } }, // $0.002
+      marks: [
+        { id: 'argument', count: 600 },
+        { id: 'rabbi', count: 200 },
+      ],
+      enrichments: [
+        {
+          id: 'rabbi.relationships.evidence',
+          count: 6000,
+          target_mark: 'rabbi',
+          coverageDapim: 500,
+        },
+      ],
+    });
+    const ev = estimateShasCost(input).byProducer.find(
+      (p) => p.id === 'rabbi.relationships.evidence',
+    )!;
+    expect(ev.instancesPerAmud).toBeCloseTo(12); // 6000/500, NOT 6000/200 = 30
+    expect(ev.fullShasUsd).toBeCloseTo(0.002 * 12 * 2711);
+  });
+
+  it('does not project demand-driven .qa producers across shas', () => {
+    const input = baseInput({
+      byEnrichment: { 'pesukim.qa': { costUsd: 0.5, pricedCalls: 100 } }, // $0.005/call
+      enrichments: [{ id: 'pesukim.qa', count: 100, coverageDapim: 40 }],
+    });
+    const qa = estimateShasCost(input).byProducer.find((p) => p.id === 'pesukim.qa')!;
+    expect(qa.demandDriven).toBe(true);
+    expect(qa.incurredUsd).toBeCloseTo(0.5); // real spend kept
+    expect(qa.fullShasUsd).toBeCloseTo(0.5); // == incurred, NOT projected forward
+    expect(qa.remainingUsd).toBe(0); // no phantom "remaining"
+  });
+
+  it('still projects a normal (non-.qa) enrichment and flags it not demand-driven', () => {
+    const com = estimateShasCost(baseInput()).byProducer.find(
+      (p) => p.id === 'argument-move.commentaries',
+    )!;
+    expect(com.demandDriven).toBe(false);
+    expect(com.remainingUsd).toBeGreaterThanOrEqual(0);
+  });
+
   it('keeps mark and enrichment coverage separate even if ids collide', () => {
     const input = baseInput({
       byMark: { foo: { costUsd: 1, pricedCalls: 100 } },

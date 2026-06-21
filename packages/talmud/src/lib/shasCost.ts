@@ -12,9 +12,19 @@
  *
  * The hard part is that one cumulative cache count conflates two things — how
  * often a producer fires per amud (its multiplicity) and how many amudim it has
- * been warmed on. We separate them with a `frontier`: the most-covered mark's
- * count is a proxy for "amudim that have been through the pipeline at all"
- * (every amud that's warmed fires the core marks). Then:
+ * been warmed on. The clean separator is the producer's OWN distinct-daf
+ * coverage (`coverageDapim`, supplied by cache-stats): warmedAmudim =
+ * coverageDapim, so multiplicity = count / coverageDapim exactly, with no
+ * dependence on any other producer. When that is present we use it directly.
+ *
+ * When it is absent we fall back to a `frontier` proxy: the most-covered mark's
+ * count stands in for "amudim that have been through the pipeline at all" (every
+ * warmed amud fires the core marks). This proxy is fragile — it divides one
+ * producer's count by ANOTHER producer's coverage, so a version-skew between an
+ * enrichment and its target mark distorts the rate (the rabbi.*.evidence
+ * pathology: the rabbi mark re-warmed a small subset after a version bump, so
+ * dividing the broadly-warmed evidence count by the mark's small coverage read
+ * ~3x too high). Hence coverageDapim is strongly preferred. Fallback rules:
  *
  *   - A mark caches once per amud, so its multiplicity is 1 and warmedAmudim =
  *     min(count, frontier).
@@ -32,18 +42,22 @@
  *     mark). If target_mark coverage is missing, we fall back to the frontier.
  *
  * Method (per producer):
- *   frontier         = min(amudim, max mark coverageCount)  // amudim warmed at all
+ *   frontier         = min(amudim, max mark coverageCount)  // fallback only
  *   unitUsd          = costUsd / pricedCalls   // avg $/priced call (window-independent)
- *   warmedAmudim     = distinct amudim warmed (see rules above)
+ *   warmedAmudim     = coverageDapim, else the frontier proxy (see rules above)
  *   instancesPerAmud = coverageCount / warmedAmudim         // >= 1
  *   fullShasUsd      = unitUsd * instancesPerAmud * amudim
  *   incurredUsd      = unitUsd * coverageCount              // est. cost to reach current coverage
  *   remainingUsd     = max(0, fullShasUsd - incurredUsd)
  *       Positive whenever warmedAmudim < amudim, so the lightly-warmed long tail
  *       — and a partly-warmed fan-out — still owe a pass.
- *       Residual caveat: a fan-out enrichment with count <= frontier reads as
- *       once-per-amud, so its remaining is a lower bound until it crosses the
- *       frontier. Conservative, and acceptable for an estimate.
+ *       Residual caveat: in the fallback path a fan-out enrichment with count <=
+ *       frontier reads as once-per-amud, so its remaining is a lower bound until
+ *       it crosses the frontier. Conservative, and acceptable for an estimate.
+ *
+ * Demand-driven exclusion: `.qa` answerers are keyed per user question, not per
+ * amud — there is no shas to warm — so they are NOT projected (fullShas =
+ * incurred, remaining = 0). Their real incurred spend still appears.
  *
  * Workers-AI gross-up: the in-app price table covers OpenRouter models but
  * leaves Workers-AI (`@cf/*`) at $0, so per-producer unitUsd misses that spend.
@@ -70,8 +84,15 @@ export interface CoverageRowLike {
   id: string;
   count: number;
   /** Enrichment only: the mark it fires off of (used as the warmed-amud
-   *  denominator for proven fan-outs). Ignored for marks. */
+   *  denominator for proven fan-outs ONLY when `coverageDapim` is absent).
+   *  Ignored for marks. */
   target_mark?: string;
+  /** Distinct dapim this producer is actually cached on, at the current cache
+   *  version (English). When present this is the EXACT warmed-amud denominator —
+   *  it makes `count / warmedAmudim` the true avg instances-per-warmed-daf,
+   *  independent of the target mark's (possibly version-skewed) coverage. The
+   *  target-mark proxy below is only a fallback for when this is unknown. */
+  coverageDapim?: number;
 }
 
 /** An AI Gateway per-model row (subset) for the Workers-AI gross-up. */
@@ -106,6 +127,10 @@ export interface ProducerCost {
   incurredUsd: number;
   /** Est. cost still to pay to finish shas, priced terms. */
   remainingUsd: number;
+  /** Demand-driven producer (a `.qa` answerer keyed per user question): there is
+   *  no shas to warm, so it is NOT projected forward — fullShasUsd === incurredUsd
+   *  and remainingUsd === 0. Its `instancesPerAmud` is informational only. */
+  demandDriven: boolean;
 }
 
 export interface ShasCostTotals {
@@ -162,6 +187,16 @@ export function estimateShasCost(input: ShasCostInput): ShasCostEstimate {
     row?: CoverageRowLike,
   ): number => {
     if (count <= 0) return 0;
+    // EXACT denominator when cache-stats supplies the producer's own distinct-daf
+    // coverage: instancesPerAmud = count / coverageDapim is the true avg
+    // instances-per-warmed-daf. This is independent of the target mark, so it
+    // does not distort when the mark and enrichment are at different warming
+    // frontiers (e.g. the rabbi mark bumped a cache version and re-warmed only a
+    // subset while rabbi.relationships.evidence stayed broadly warmed — the proxy
+    // below then divided by the smaller mark coverage and overstated the rate).
+    const cd = row?.coverageDapim;
+    if (typeof cd === 'number' && cd > 0) return Math.min(cd, amudim || cd);
+    // Fallback (no per-producer daf coverage): the original frontier heuristic.
     if (kind === 'mark' || count <= frontier) return Math.min(count, frontier); // once-per-amud reading
     // count > frontier => provably a fan-out. Use its target_mark coverage as
     // the distinct-amud denominator, clamped to the frontier; fall back to the
@@ -185,9 +220,14 @@ export function estimateShasCost(input: ShasCostInput): ShasCostEstimate {
       const count = row?.count ?? 0;
       const warmedAmudim = warmedAmudimFor(kind, count, row);
       const instancesPerAmud = count > 0 && warmedAmudim > 0 ? count / warmedAmudim : 1;
-      const fullShasUsd = unitUsd * instancesPerAmud * amudim;
       const incurredUsd = unitUsd * count;
-      const remainingUsd = Math.max(0, fullShasUsd - incurredUsd);
+      // `.qa` answerers are keyed per user QUESTION, not per amud — there is no
+      // shas to warm, so projecting a per-amud fire-rate across all of shas is
+      // meaningless (it invented a large phantom "remaining"). Count their real
+      // incurred spend, but do not project: fullShas = incurred, remaining = 0.
+      const demandDriven = kind === 'enrichment' && id.endsWith('.qa');
+      const fullShasUsd = demandDriven ? incurredUsd : unitUsd * instancesPerAmud * amudim;
+      const remainingUsd = demandDriven ? 0 : Math.max(0, fullShasUsd - incurredUsd);
       rows.push({
         id,
         kind,
@@ -197,6 +237,7 @@ export function estimateShasCost(input: ShasCostInput): ShasCostEstimate {
         fullShasUsd,
         incurredUsd,
         remainingUsd,
+        demandDriven,
       });
     }
   };
