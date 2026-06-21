@@ -314,7 +314,7 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
   // of a group stays at the centre (the labelled "anchor", e.g. the city dot);
   // the rest fan out. Single points are untouched.
   const GOLDEN = 2.39996323; // golden angle (radians)
-  const SPIRAL_STEP = 7; // px between successive ring radii
+  const SPIRAL_STEP = 9; // px between successive ring radii (room for bigger dots)
   const sites = createMemo(() => {
     const visible = props.points.filter((p) => inView(p.lng, p.lat));
     const groups = new Map<string, number>(); // location key -> running index
@@ -455,12 +455,17 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
                         }
                       }}
                     >
+                      {/* a generous transparent hit-area so the small dot is
+                          easy to click/tap (the visible marker stays compact) */}
+                      <Show when={interactive}>
+                        <circle class="geomap-hit" cx={s.xy[0]} cy={s.xy[1]} r={11} />
+                      </Show>
                       <Show when={!!props.selected && props.selected === s.p.id}>
                         <circle
                           class="geomap-halo"
                           cx={s.xy[0]}
                           cy={s.xy[1]}
-                          r={s.p.star ? 7.5 : 6.5}
+                          r={s.p.star ? 9.5 : 8.5}
                         />
                       </Show>
                       <circle
@@ -473,7 +478,7 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
                         }
                         cx={s.xy[0]}
                         cy={s.xy[1]}
-                        r={s.p.star ? 4.5 : 3.5}
+                        r={s.p.star ? 6.5 : 5.5}
                       />
                       <Show when={layers().labels && labelFor(s.p)}>
                         <text
