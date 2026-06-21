@@ -33,10 +33,17 @@ import {
   MIDRASH_SYNTH_USER_TEMPLATE,
 } from './midrash.ts';
 import { NOTE_SCHEMA, NOTE_SYSTEM, NOTE_USER_TEMPLATE } from './note.ts';
+import { OVERVIEW_SCHEMA, OVERVIEW_SYSTEM, OVERVIEW_USER_TEMPLATE } from './overview.ts';
 import { SYNTHESIS_SCHEMA, SYNTHESIS_SYSTEM, SYNTHESIS_USER_TEMPLATE } from './synthesis.ts';
 import { TRANSLATE_SCHEMA, TRANSLATE_SYSTEM, TRANSLATE_USER_TEMPLATE } from './translate.ts';
 
-export type TanachProducerId = 'events' | 'note' | 'synthesis' | 'midrash-synthesis' | 'translate';
+export type TanachProducerId =
+  | 'events'
+  | 'note'
+  | 'overview'
+  | 'synthesis'
+  | 'midrash-synthesis'
+  | 'translate';
 
 /** The recipe extractor every tanach producer carries: an LLM call with fixed
  *  prompts + a strict JSON schema + the exact call knobs the legacy producer
@@ -70,6 +77,20 @@ const noteExtractor: TanachLLMExtractor = {
   max_tokens: 700,
   temperature: 0.3,
   tag: 'tanach:note',
+};
+
+const overviewExtractor: TanachLLMExtractor = {
+  kind: 'llm',
+  system_prompt: OVERVIEW_SYSTEM,
+  user_prompt_template: OVERVIEW_USER_TEMPLATE,
+  output_schema: OVERVIEW_SCHEMA,
+  // Headroom for a BILINGUAL title + summary: the note producer's 700 is for a
+  // single-language note, but EN + HE together (Hebrew is token-dense) on a
+  // long chapter overran it and truncated the JSON mid-string -> parse failure
+  // -> empty card. 1400 comfortably fits both halves.
+  max_tokens: 1400,
+  temperature: 0.3,
+  tag: 'tanach:overview',
 };
 
 const synthesisExtractor: TanachLLMExtractor = {
@@ -131,6 +152,24 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     cardinality: 'per-input',
     scope: 'local',
     key_shape: 'enrich', // nominal — template owns note:v1:{book}:{chapter}:{start}-{end}
+    cacheVersion: '1',
+    source: 'code',
+  },
+  overview: {
+    id: 'overview',
+    label: 'Perek overview',
+    description: 'A short bilingual orienting overview of a whole chapter (title + summary)',
+    kind: 'enrichment',
+    inputs: [{ source: 'chapter-verses' }],
+    recipe: { extractor: overviewExtractor },
+    // inherits: the overview sits at the chapter the reader is on. Chapter-
+    // scoped — one per chapter, no per-instance variation (the key template
+    // ignores the instance; see run-ports.ts overview:v1:{book}:{chapter}).
+    // 'unit' = the whole-chapter level (the analogue of a daf's whole-page).
+    anchoring: { behavior: 'inherits', precision: 'unit', spine: 'tanach' },
+    cardinality: 'one',
+    scope: 'local',
+    key_shape: 'enrich', // nominal — template owns overview:v1:{book}:{chapter}
     cacheVersion: '1',
     source: 'code',
   },
@@ -217,7 +256,7 @@ export function markRunDefOf(id: 'events'): TanachMarkDef {
 }
 
 export function enrichRunDefOf(
-  id: 'note' | 'synthesis' | 'midrash-synthesis',
+  id: 'note' | 'overview' | 'synthesis' | 'midrash-synthesis',
 ): TanachEnrichmentDef {
   const p = TANACH_PRODUCERS[id];
   const ext = p.recipe.extractor as TanachLLMExtractor;
