@@ -15,11 +15,13 @@
     "./themes/talmud.css": "./src/themes/talmud.css",
     "./themes/tanach.css": "./src/themes/tanach.css",
     "./components.css": "./src/components.css",
+    "./geomap.css": "./src/geomap.css",
     "./Pill": "./src/Pill.tsx",
     "./Drawer": "./src/Drawer.tsx",
     "./Button": "./src/Button.tsx",
     "./Prose": "./src/Prose.tsx",
-    "./LangToggle": "./src/LangToggle.tsx"
+    "./LangToggle": "./src/LangToggle.tsx",
+    "./GeoMap": "./src/GeoMap.tsx"
   },
   "peerDependencies": {
     "solid-js": "^1.9.0"

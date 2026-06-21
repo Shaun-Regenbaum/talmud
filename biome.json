@@ -9,7 +9,9 @@
       "!**/static",
       "!Sandbox",
       "!**/scripts/out",
-      "!**/src/lib/data"
+      "!**/src/lib/data",
+      "!**/src/geo/basemap.ts",
+      "!**/*.geojson"
     ]
   },
   "formatter": {

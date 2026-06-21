@@ -1,0 +1,123 @@
+/*
+ * @corpus/ui — GeoMap styles. A clean atlas look driven by the shared tokens.
+ * Imported once per app alongside components.css.
+ */
+
+.geomap {
+  --geo-land: #e7e1d2;
+  --geo-land-edge: #cbbfa3;
+  --geo-sea: #d3e0e8;
+  --geo-river: #7ba6c9;
+  --geo-dry: #efeadd;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.geomap-layers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.geomap-chip {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  padding: 3px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+}
+.geomap-chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.geomap-svg {
+  width: 100%;
+  height: auto;
+  background: var(--geo-sea);
+  border: 1px solid var(--geo-land-edge);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 24px rgba(60, 40, 12, 0.1);
+}
+.geomap-drybg {
+  fill: var(--geo-dry);
+}
+.geomap-land {
+  fill: var(--geo-land);
+  stroke: var(--geo-land-edge);
+  stroke-width: 0.6;
+  stroke-linejoin: round;
+}
+.geomap-lake {
+  fill: var(--geo-sea);
+  stroke: var(--geo-river);
+  stroke-width: 0.4;
+}
+.geomap-river {
+  fill: none;
+  stroke: var(--geo-river);
+  stroke-width: 1.1;
+  opacity: 0.8;
+  stroke-linecap: round;
+}
+.geomap-region {
+  fill: var(--muted);
+  opacity: 0.5;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+.geomap-he .geomap-region {
+  font-family: var(--font-hebrew);
+  font-size: 15px;
+  letter-spacing: 0.06em;
+}
+.geomap-route {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-dasharray: 5 4;
+  opacity: 0.8;
+}
+.geomap-site.interactive {
+  cursor: pointer;
+}
+.geomap-site:focus {
+  outline: none;
+}
+.geomap-dot {
+  fill: #fff;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.geomap-dot.star {
+  fill: var(--accent);
+}
+.geomap-site.interactive:hover .geomap-dot,
+.geomap-site.selected .geomap-dot {
+  fill: var(--accent);
+}
+.geomap-site:focus-visible .geomap-dot {
+  stroke: var(--accent-strong);
+  stroke-width: 3;
+}
+.geomap-label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  fill: var(--fg);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.geomap-he .geomap-label {
+  font-family: var(--font-hebrew);
+  font-size: 13.5px;
+}
