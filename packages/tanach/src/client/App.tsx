@@ -998,6 +998,7 @@ export function App(): JSX.Element {
                       }))}
                       lang={loc().lang}
                       height={460}
+                      expandable
                       selected={selectedPlaceId()}
                       onSelect={(pt) => {
                         const place = g().places.find((p) => p.en === pt.id);

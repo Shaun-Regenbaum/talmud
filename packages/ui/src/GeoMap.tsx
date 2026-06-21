@@ -12,7 +12,18 @@
  * given. Styling: `.geomap*` in geomap.css (shared tokens).
  */
 
-import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  on,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
+import { Portal } from 'solid-js/web';
 import { BASEMAP } from './geo/basemap.ts';
 
 export interface GeoBBox {
@@ -80,6 +91,12 @@ export interface GeoMapProps {
   trajectory?: GeoTrajectoryStop[];
   /** Click a numbered trajectory badge (makes them interactive buttons). */
   onTrajectoryStop?: (stop: GeoTrajectoryStop, index: number) => void;
+  /** Enable wheel-zoom + drag-pan (used by the expanded modal). The inline map
+   *  leaves this off and stays static. */
+  panZoom?: boolean;
+  /** Show an "expand" affordance; clicking it (or the empty map) opens a large,
+   *  pannable/zoomable copy in a modal. Off inside the modal itself. */
+  expandable?: boolean;
 }
 
 /** Standard viewports apps can reuse. */
@@ -144,7 +161,12 @@ function projection(bbox: GeoBBox, height: number) {
     (lng - bbox.lonMin) * k * scale,
     (bbox.latMax - lat) * scale,
   ];
-  return { project, W: +W.toFixed(1), H: height };
+  // Inverse of project — maps a viewBox px back to lon/lat (drives pan + zoom).
+  const unproject = (x: number, y: number): [number, number] => [
+    bbox.lonMin + x / (k * scale),
+    bbox.latMax - y / scale,
+  ];
+  return { project, unproject, W: +W.toFixed(1), H: height, k, scale };
 }
 
 const ringD = (ring: number[][], project: (a: number, b: number) => [number, number]) =>
@@ -168,7 +190,105 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
   const height = () => props.height ?? 560;
   const he = () => props.lang === 'he';
 
-  const proj = createMemo(() => projection(props.bbox, height()));
+  // Pan/zoom override (modal only): the wheel + drag mutate this bbox. Null =
+  // follow props.bbox. Reset on every incoming bbox change (a preset/auto-fit
+  // switch) so external framing always wins over a stale pan/zoom.
+  const [dynBbox, setDynBbox] = createSignal<GeoBBox | null>(null);
+  createEffect(
+    on(
+      () => props.bbox,
+      () => setDynBbox(null),
+    ),
+  );
+  const activeBbox = (): GeoBBox => (props.panZoom ? (dynBbox() ?? props.bbox) : props.bbox);
+
+  const proj = createMemo(() => projection(activeBbox(), height()));
+
+  let svgEl: SVGSVGElement | undefined;
+  // Client px (clientX/Y) -> viewBox coords (the svg is width:100%, viewBox 0..W).
+  const toView = (clientX: number, clientY: number): [number, number] => {
+    const p = proj();
+    const r = svgEl?.getBoundingClientRect();
+    if (!r) return [p.W / 2, p.H / 2];
+    if (!r.width || !r.height) return [p.W / 2, p.H / 2];
+    return [((clientX - r.left) / r.width) * p.W, ((clientY - r.top) / r.height) * p.H];
+  };
+  // Zoom about a viewBox point, preserving aspect; clamp the lat-span so you
+  // can't zoom past a street or out past the region.
+  const zoomAt = (sx: number, sy: number, rawFactor: number) => {
+    const b = activeBbox();
+    const curLat = b.latMax - b.latMin;
+    const targetLat = Math.min(Math.max(curLat * rawFactor, 0.12), 22);
+    const factor = targetLat / curLat;
+    if (factor === 1) return;
+    const [lng, lat] = projection(b, height()).unproject(sx, sy);
+    const lonSpan = (b.lonMax - b.lonMin) * factor;
+    const latSpan = curLat * factor;
+    const lonMin = lng - ((lng - b.lonMin) / (b.lonMax - b.lonMin)) * lonSpan;
+    const latMin = lat - ((lat - b.latMin) / curLat) * latSpan;
+    setDynBbox({ lonMin, lonMax: lonMin + lonSpan, latMin, latMax: latMin + latSpan });
+  };
+  const onWheel = (e: WheelEvent) => {
+    if (!props.panZoom) return;
+    e.preventDefault();
+    const [sx, sy] = toView(e.clientX, e.clientY);
+    zoomAt(sx, sy, e.deltaY < 0 ? 1 / 1.15 : 1.15);
+  };
+  // wheel must be a non-passive listener to preventDefault the page scroll
+  onMount(() => {
+    const el = svgEl;
+    if (!props.panZoom || !el) return;
+    const h = (e: WheelEvent) => onWheel(e);
+    el.addEventListener('wheel', h, { passive: false });
+    onCleanup(() => el.removeEventListener('wheel', h));
+  });
+  let drag: { x: number; y: number } | null = null;
+  const onPointerDown = (e: PointerEvent) => {
+    if (!props.panZoom) return;
+    drag = { x: e.clientX, y: e.clientY };
+    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e: PointerEvent) => {
+    if (!props.panZoom || !drag) return;
+    const p = proj();
+    const r = svgEl?.getBoundingClientRect();
+    if (!r) return;
+    const dxView = ((e.clientX - drag.x) / r.width) * p.W;
+    const dyView = ((e.clientY - drag.y) / r.height) * p.H;
+    drag = { x: e.clientX, y: e.clientY };
+    const b = activeBbox();
+    const dLon = dxView / (p.k * p.scale);
+    const dLat = dyView / p.scale;
+    setDynBbox({
+      lonMin: b.lonMin - dLon,
+      lonMax: b.lonMax - dLon,
+      latMin: b.latMin + dLat,
+      latMax: b.latMax + dLat,
+    });
+  };
+  const endDrag = () => {
+    drag = null;
+  };
+  const zoomButton = (dir: 'in' | 'out') => {
+    const p = proj();
+    zoomAt(p.W / 2, p.H / 2, dir === 'in' ? 1 / 1.5 : 1.5);
+  };
+
+  // Expand-to-modal (inline map only): an internal large, pannable copy.
+  const [modalOpen, setModalOpen] = createSignal(false);
+  const canExpand = () => props.expandable && !props.panZoom;
+  // Open on a click that isn't a pin/badge/control (those stopPropagation).
+  const onMapClick = () => {
+    if (canExpand()) setModalOpen(true);
+  };
+  onMount(() => {
+    if (!props.expandable || props.panZoom) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setModalOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    onCleanup(() => document.removeEventListener('keydown', onKey));
+  });
 
   const land = createMemo(() => BASEMAP.land.map((r) => ringD(r, proj().project)));
   const lakes = createMemo(() => BASEMAP.lakes.map((r) => ringD(r, proj().project)));
@@ -266,152 +386,235 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
           </For>
         </div>
       </Show>
-      <svg
-        class="geomap-svg"
-        viewBox={`0 0 ${proj().W} ${proj().H}`}
-        width={proj().W}
-        height={proj().H}
-        preserveAspectRatio="xMidYMid meet"
-        role="img"
-        aria-label="Map"
-      >
-        <Show when={!layers().water}>
-          <rect x="0" y="0" width={proj().W} height={proj().H} class="geomap-drybg" />
-        </Show>
-        <For each={land()}>{(d) => <path class="geomap-land" d={d} />}</For>
-        <Show when={layers().water}>
-          <For each={lakes()}>{(d) => <path class="geomap-lake" d={d} />}</For>
-        </Show>
-        <Show when={layers().rivers}>
-          <For each={rivers()}>{(d) => <path class="geomap-river" d={d} />}</For>
-        </Show>
-        <Show when={layers().regions}>
-          <For each={regions()}>
-            {(r) => (
-              <text class="geomap-region" x={r.xy[0]} y={r.xy[1]} text-anchor="middle">
-                {he() ? r.r.nameHe || r.r.name : r.r.name}
-              </text>
-            )}
-          </For>
-        </Show>
-        <Show when={layers().routes}>
-          <For each={routes()}>{(d) => <path class="geomap-route" d={d} />}</For>
-        </Show>
-        <Show when={layers().sites}>
-          {/* base markers dim while a trajectory drill-down is active */}
-          <g classList={{ 'geomap-dim': trajActive() }}>
-            <For each={sites()}>
-              {(s) => {
-                const g = labelGeom(s.xy[0]);
-                const interactive = !!props.onSelect;
-                return (
-                  // biome-ignore lint/a11y/noStaticElementInteractions: an SVG <g> marker can't be a real <button>; role + tabindex + keydown below make it a proper, keyboard-operable button
-                  <g
-                    class="geomap-site"
-                    classList={{
-                      selected: !!props.selected && props.selected === s.p.id,
-                      interactive,
-                    }}
-                    role={interactive ? 'button' : undefined}
-                    tabindex={interactive ? 0 : undefined}
-                    aria-label={interactive ? labelFor(s.p) : undefined}
-                    onClick={() => props.onSelect?.(s.p)}
-                    onKeyDown={(e) => {
-                      if (interactive && (e.key === 'Enter' || e.key === ' ')) {
-                        e.preventDefault();
+      <div class="geomap-stage">
+        {/* biome-ignore lint/a11y/useKeyWithClickEvents: clicking the empty map opens the expand modal as a mouse convenience; the labelled Expand button is the keyboard-accessible equivalent */}
+        <svg
+          ref={svgEl}
+          class="geomap-svg"
+          classList={{ 'geomap-grab': !!props.panZoom, 'geomap-zoomable': canExpand() }}
+          viewBox={`0 0 ${proj().W} ${proj().H}`}
+          width={proj().W}
+          height={proj().H}
+          preserveAspectRatio="xMidYMid meet"
+          role="img"
+          aria-label="Map"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerLeave={endDrag}
+          onClick={onMapClick}
+        >
+          <Show when={!layers().water}>
+            <rect x="0" y="0" width={proj().W} height={proj().H} class="geomap-drybg" />
+          </Show>
+          <For each={land()}>{(d) => <path class="geomap-land" d={d} />}</For>
+          <Show when={layers().water}>
+            <For each={lakes()}>{(d) => <path class="geomap-lake" d={d} />}</For>
+          </Show>
+          <Show when={layers().rivers}>
+            <For each={rivers()}>{(d) => <path class="geomap-river" d={d} />}</For>
+          </Show>
+          <Show when={layers().regions}>
+            <For each={regions()}>
+              {(r) => (
+                <text class="geomap-region" x={r.xy[0]} y={r.xy[1]} text-anchor="middle">
+                  {he() ? r.r.nameHe || r.r.name : r.r.name}
+                </text>
+              )}
+            </For>
+          </Show>
+          <Show when={layers().routes}>
+            <For each={routes()}>{(d) => <path class="geomap-route" d={d} />}</For>
+          </Show>
+          <Show when={layers().sites}>
+            {/* base markers dim while a trajectory drill-down is active */}
+            <g classList={{ 'geomap-dim': trajActive() }}>
+              <For each={sites()}>
+                {(s) => {
+                  const g = labelGeom(s.xy[0]);
+                  const interactive = !!props.onSelect;
+                  return (
+                    // biome-ignore lint/a11y/noStaticElementInteractions: an SVG <g> marker can't be a real <button>; role + tabindex + keydown below make it a proper, keyboard-operable button
+                    <g
+                      class="geomap-site"
+                      classList={{
+                        selected: !!props.selected && props.selected === s.p.id,
+                        interactive,
+                      }}
+                      role={interactive ? 'button' : undefined}
+                      tabindex={interactive ? 0 : undefined}
+                      aria-label={interactive ? labelFor(s.p) : undefined}
+                      onClick={(e) => {
+                        e.stopPropagation();
                         props.onSelect?.(s.p);
-                      }
-                    }}
-                  >
-                    <Show when={!!props.selected && props.selected === s.p.id}>
+                      }}
+                      onKeyDown={(e) => {
+                        if (interactive && (e.key === 'Enter' || e.key === ' ')) {
+                          e.preventDefault();
+                          props.onSelect?.(s.p);
+                        }
+                      }}
+                    >
+                      <Show when={!!props.selected && props.selected === s.p.id}>
+                        <circle
+                          class="geomap-halo"
+                          cx={s.xy[0]}
+                          cy={s.xy[1]}
+                          r={s.p.star ? 7.5 : 6.5}
+                        />
+                      </Show>
                       <circle
-                        class="geomap-halo"
+                        class="geomap-dot"
+                        classList={{ star: !!s.p.star }}
+                        style={
+                          s.p.color
+                            ? { '--dot-fill': s.p.color, '--dot-stroke': '#ffffff' }
+                            : undefined
+                        }
                         cx={s.xy[0]}
                         cy={s.xy[1]}
-                        r={s.p.star ? 7.5 : 6.5}
+                        r={s.p.star ? 4.5 : 3.5}
                       />
-                    </Show>
-                    <circle
-                      class="geomap-dot"
-                      classList={{ star: !!s.p.star }}
-                      style={
-                        s.p.color
-                          ? { '--dot-fill': s.p.color, '--dot-stroke': '#ffffff' }
-                          : undefined
-                      }
-                      cx={s.xy[0]}
-                      cy={s.xy[1]}
-                      r={s.p.star ? 4.5 : 3.5}
-                    />
-                    <Show when={layers().labels && labelFor(s.p)}>
-                      <text
-                        class="geomap-label"
-                        x={g.x}
-                        y={s.xy[1] + 3}
-                        text-anchor={g.anchor}
-                        direction={g.dir}
-                      >
-                        {labelFor(s.p)}
-                      </text>
-                    </Show>
-                  </g>
-                );
-              }}
-            </For>
-          </g>
-        </Show>
-        {/* the numbered drill-down path on top */}
-        <Show when={trajActive()}>
-          <g class="geomap-traj">
-            <Show when={trajPath()}>
-              <path class="geomap-traj-path" d={trajPath()} />
-            </Show>
-            <For each={trajStops()}>
-              {(s) => {
-                const interactive = !!props.onTrajectoryStop;
-                return (
-                  // biome-ignore lint/a11y/noStaticElementInteractions: an SVG <g> badge can't be a real <button>; role + tabindex + keydown make it keyboard-operable
-                  <g
-                    class="geomap-traj-stop"
-                    classList={{ active: s.active, interactive }}
-                    role={interactive ? 'button' : undefined}
-                    tabindex={interactive ? 0 : undefined}
-                    aria-label={interactive ? s.label || `Stop ${s.seq}` : undefined}
-                    onClick={() => props.onTrajectoryStop?.(s.stop, s.index)}
-                    onKeyDown={(e) => {
-                      if (interactive && (e.key === 'Enter' || e.key === ' ')) {
-                        e.preventDefault();
+                      <Show when={layers().labels && labelFor(s.p)}>
+                        <text
+                          class="geomap-label"
+                          x={g.x}
+                          y={s.xy[1] + 3}
+                          text-anchor={g.anchor}
+                          direction={g.dir}
+                        >
+                          {labelFor(s.p)}
+                        </text>
+                      </Show>
+                    </g>
+                  );
+                }}
+              </For>
+            </g>
+          </Show>
+          {/* the numbered drill-down path on top */}
+          <Show when={trajActive()}>
+            <g class="geomap-traj">
+              <Show when={trajPath()}>
+                <path class="geomap-traj-path" d={trajPath()} />
+              </Show>
+              <For each={trajStops()}>
+                {(s) => {
+                  const interactive = !!props.onTrajectoryStop;
+                  return (
+                    // biome-ignore lint/a11y/noStaticElementInteractions: an SVG <g> badge can't be a real <button>; role + tabindex + keydown make it keyboard-operable
+                    <g
+                      class="geomap-traj-stop"
+                      classList={{ active: s.active, interactive }}
+                      role={interactive ? 'button' : undefined}
+                      tabindex={interactive ? 0 : undefined}
+                      aria-label={interactive ? s.label || `Stop ${s.seq}` : undefined}
+                      onClick={(e) => {
+                        e.stopPropagation();
                         props.onTrajectoryStop?.(s.stop, s.index);
-                      }
-                    }}
-                  >
-                    <circle
-                      class="geomap-traj-badge"
-                      classList={{ active: s.active }}
-                      cx={s.xy[0]}
-                      cy={s.xy[1]}
-                      r="8"
-                    />
-                    <text class="geomap-traj-num" x={s.xy[0]} y={s.xy[1] + 3} text-anchor="middle">
-                      {s.seq}
-                    </text>
-                    <Show when={s.active && s.label}>
+                      }}
+                      onKeyDown={(e) => {
+                        if (interactive && (e.key === 'Enter' || e.key === ' ')) {
+                          e.preventDefault();
+                          props.onTrajectoryStop?.(s.stop, s.index);
+                        }
+                      }}
+                    >
+                      <circle
+                        class="geomap-traj-badge"
+                        classList={{ active: s.active }}
+                        cx={s.xy[0]}
+                        cy={s.xy[1]}
+                        r="8"
+                      />
                       <text
-                        class="geomap-traj-label"
+                        class="geomap-traj-num"
                         x={s.xy[0]}
-                        y={s.xy[1] + 19}
+                        y={s.xy[1] + 3}
                         text-anchor="middle"
                       >
-                        {s.label}
+                        {s.seq}
                       </text>
-                    </Show>
-                  </g>
-                );
-              }}
-            </For>
-          </g>
+                      <Show when={s.active && s.label}>
+                        <text
+                          class="geomap-traj-label"
+                          x={s.xy[0]}
+                          y={s.xy[1] + 19}
+                          text-anchor="middle"
+                        >
+                          {s.label}
+                        </text>
+                      </Show>
+                    </g>
+                  );
+                }}
+              </For>
+            </g>
+          </Show>
+        </svg>
+        <Show when={canExpand()}>
+          <button
+            type="button"
+            class="geomap-expand"
+            title="Expand map"
+            aria-label="Expand map"
+            onClick={() => setModalOpen(true)}
+          >
+            {'⤢'}
+          </button>
         </Show>
-      </svg>
+        <Show when={props.panZoom}>
+          <div class="geomap-zoom">
+            <button type="button" aria-label="Zoom in" onClick={() => zoomButton('in')}>
+              +
+            </button>
+            <button type="button" aria-label="Zoom out" onClick={() => zoomButton('out')}>
+              {'−'}
+            </button>
+            <button type="button" aria-label="Reset view" onClick={() => setDynBbox(null)}>
+              {'⌂'}
+            </button>
+          </div>
+        </Show>
+      </div>
+      <Show when={modalOpen()}>
+        <Portal>
+          {/* biome-ignore lint/a11y/useKeyWithClickEvents: backdrop click-to-dismiss only when the backdrop itself is clicked; Esc + the labelled Close button are the keyboard paths */}
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: a backdrop is a presentational scrim, not a control */}
+          <div
+            class="geomap-modal-backdrop"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setModalOpen(false);
+            }}
+          >
+            <div class="geomap-modal" role="dialog" aria-modal="true" aria-label="Map">
+              <button
+                type="button"
+                class="geomap-modal-close"
+                aria-label="Close map"
+                onClick={() => setModalOpen(false)}
+              >
+                {'×'}
+              </button>
+              <GeoMap
+                bbox={props.bbox}
+                points={props.points}
+                routes={props.routes}
+                regions={props.regions}
+                lang={props.lang}
+                layers={props.layers}
+                layerToggle={true}
+                onSelect={props.onSelect}
+                selected={props.selected}
+                trajectory={props.trajectory}
+                onTrajectoryStop={props.onTrajectoryStop}
+                panZoom={true}
+                height={680}
+              />
+            </div>
+          </div>
+        </Portal>
+      </Show>
     </div>
   );
 }

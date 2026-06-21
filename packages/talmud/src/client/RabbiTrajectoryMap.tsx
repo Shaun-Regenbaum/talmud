@@ -152,10 +152,20 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
       ];
     });
   });
-  // Auto-frame the path: a pure-Bavel rabbi fits Bavel, a pure-EY one fits EY,
-  // a migrant fits the whole journey across both. minSpan keeps a single-stop
-  // rabbi from zooming to street level.
-  const mapBbox = createMemo(() => fitBbox(trajStops(), GEO_BBOX.nearEast, { minSpan: 1.4 }));
+  // Auto-frame the path. A migrant's stops span both regions, and fitting ALL
+  // of them zooms out so far the badges are an unreadable smear (the path still
+  // draws toward the off-screen region, and the detail list + expand modal show
+  // every stop) — so when both regions are present we frame the BUSIER one.
+  // Single-region rabbis just fit their stops. (lng 39 splits EY from Bavel.)
+  const mapBbox = createMemo(() => {
+    const stops = trajStops();
+    const bavel = stops.filter((s) => s.lng >= 39);
+    const ey = stops.filter((s) => s.lng < 39);
+    if (bavel.length && ey.length) {
+      return fitBbox(bavel.length >= ey.length ? bavel : ey, GEO_BBOX.nearEast, { minSpan: 1.4 });
+    }
+    return fitBbox(stops, GEO_BBOX.nearEast, { minSpan: 1.4 });
+  });
   const onTrajectoryStop = (s: GeoTrajectoryStop) => {
     const p = placed().find((pp) => pp.num === s.seq);
     if (p) pick(p);
@@ -192,6 +202,7 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
           lang={lang() === 'he' ? 'he' : 'en'}
           height={300}
           layerToggle={false}
+          expandable
           trajectory={trajStops()}
           onTrajectoryStop={onTrajectoryStop}
         />

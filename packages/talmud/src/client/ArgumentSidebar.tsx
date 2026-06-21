@@ -2871,17 +2871,32 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
   // full-region view wasted space); 'bavel'/'ey' zoom to a region. Drilling a
   // sage temporarily fits the map to that rabbi's whole path.
   const [view, setView] = createSignal<'fit' | 'bavel' | 'ey'>('fit');
+  // When a daf has sages in BOTH regions, fitting ALL of them zooms out so far
+  // the two clusters are unreadable. So "fit" frames the BUSIER region; the
+  // region presets (labelled with their counts) make the other obviously
+  // reachable. One region -> just fit it. (lng 39 cleanly splits EY from Bavel.)
+  const fitPoints = (): GeoPoint[] => {
+    const m = model();
+    const iC = m?.israelCount ?? 0;
+    const bC = m?.bavelCount ?? 0;
+    if (iC > 0 && bC > 0) {
+      const wantBavel = bC > iC;
+      return points().filter((p) => (wantBavel ? p.lng >= 39 : p.lng < 39));
+    }
+    return points();
+  };
   const mapBbox = createMemo(() => {
     const traj = trajectory();
     if (traj) return fitBbox(traj, TALMUD_GEO_BBOX, { minSpan: 1.2 });
     if (view() === 'bavel') return GEO_BBOX.bavel;
     if (view() === 'ey') return GEO_BBOX.israel;
-    return fitBbox(points(), TALMUD_GEO_BBOX, { minSpan: 1.2 });
+    return fitBbox(fitPoints(), TALMUD_GEO_BBOX, { minSpan: 1.2 });
   });
-  const VIEW_PRESETS: { id: 'fit' | 'bavel' | 'ey'; label: string }[] = [
-    { id: 'fit', label: t('geography.view.fit') },
-    { id: 'bavel', label: t('geography.bavel') },
-    { id: 'ey', label: t('geography.eretzYisrael') },
+  // Counts ride on the region presets so the un-framed region is clearly there.
+  const viewPresets = (): { id: 'fit' | 'bavel' | 'ey'; label: string; count: number | null }[] => [
+    { id: 'fit', label: t('geography.view.fit'), count: null },
+    { id: 'bavel', label: t('geography.bavel'), count: model()?.bavelCount ?? 0 },
+    { id: 'ey', label: t('geography.eretzYisrael'), count: model()?.israelCount ?? 0 },
   ];
 
   return (
@@ -2918,7 +2933,7 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
           drilling a sage's path, which fits the map to that path) */}
       <Show when={!trajectory()}>
         <div style={{ display: 'flex', gap: '4px', 'margin-bottom': '6px' }}>
-          <For each={VIEW_PRESETS}>
+          <For each={viewPresets()}>
             {(preset) => (
               <button
                 type="button"
@@ -2936,6 +2951,7 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
                 }}
               >
                 {preset.label}
+                {preset.count ? ` · ${preset.count}` : ''}
               </button>
             )}
           </For>
@@ -2947,6 +2963,7 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
         lang={lang() === 'he' ? 'he' : 'en'}
         height={520}
         layerToggle={false}
+        expandable
         selected={ex()?.activeLocation ?? undefined}
         onSelect={onSelect}
         trajectory={trajectory()}
