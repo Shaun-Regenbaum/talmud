@@ -23,7 +23,7 @@ describe('tanach spine registry', () => {
 });
 
 describe('the seven producers as core Producer objects', () => {
-  it('declares all seven with their model shapes', () => {
+  it('declares all eight with their model shapes', () => {
     expect(Object.keys(TANACH_PRODUCERS).sort()).toEqual([
       'events',
       'geography',
@@ -31,6 +31,7 @@ describe('the seven producers as core Producer objects', () => {
       'note',
       'overview',
       'synthesis',
+      'tidbit',
       'translate',
     ]);
 
@@ -70,6 +71,16 @@ describe('the seven producers as core Producer objects', () => {
     expect(overview.scope).toBe('local');
     expect(overview.cacheVersion).toBe('1'); // overview:v1:*
 
+    const tidbit = TANACH_PRODUCERS.tidbit;
+    expect(tidbit.kind).toBe('enrichment');
+    expect(tidbit.anchoring).toEqual({
+      behavior: 'inherits',
+      precision: 'unit', // whole-chapter scoped
+      spine: 'tanach',
+    });
+    expect(tidbit.cardinality).toBe('one');
+    expect(tidbit.scope).toBe('local');
+
     const translate = TANACH_PRODUCERS.translate;
     expect(translate.anchoring.behavior).toBe('inherits');
     expect(translate.scope).toBe('global');
@@ -81,6 +92,7 @@ describe('the seven producers as core Producer objects', () => {
       note: { max_tokens: 700, temperature: 0.3, tag: 'tanach:note' },
       overview: { max_tokens: 1400, temperature: 0.3, tag: 'tanach:overview' },
       geography: { max_tokens: 900, temperature: 0.2, tag: 'tanach:geography' },
+      tidbit: { max_tokens: 1800, temperature: 0.45, tag: 'tanach:tidbit' },
       synthesis: { max_tokens: 800, temperature: 0.3, tag: 'tanach:synthesis' },
       'midrash-synthesis': { max_tokens: 800, temperature: 0.35, tag: 'tanach:midrash-synthesis' },
       translate: { max_tokens: 120, temperature: 0.2, tag: 'tanach:translate' },
@@ -124,6 +136,10 @@ describe('the seven producers as core Producer objects', () => {
     const geography = enrichRunDefOf('geography');
     expect(geography.dependencies).toEqual(['chapter-verses']);
     expect(geography.system_prompt.length).toBeGreaterThan(50);
+
+    const tidbit = enrichRunDefOf('tidbit');
+    expect(tidbit.dependencies).toEqual(['chapter-verses']);
+    expect(tidbit.system_prompt.length).toBeGreaterThan(50);
 
     const synth = enrichRunDefOf('synthesis');
     expect(synth.dependencies).toEqual(['verse-text', 'commentaries']);

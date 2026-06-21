@@ -185,9 +185,8 @@ interface SectionNote {
   en: string;
   he: string;
 }
-/** A whole-chapter pill the reader can open from the perek-pills row. Only
- *  'overview' exists today; 'geography' and 'tidbit' join it as siblings. */
-type PerekPill = 'overview' | 'geography';
+/** A whole-chapter pill the reader can open from the perek-pills row. */
+type PerekPill = 'overview' | 'geography' | 'tidbit';
 interface Overview {
   book: string;
   chapter: number;
@@ -209,13 +208,28 @@ interface PerekGeography {
   chapter: number;
   places: GeoPlace[];
 }
-/** The perek-pills, in display order. Adding tidbit is a one-line edit here
- *  plus its resource + drawer body. */
+interface PerekTidbit {
+  book: string;
+  chapter: number;
+  flavor: string;
+  titleEn: string;
+  titleHe: string;
+  en: string;
+  he: string;
+  textConfidence: string;
+  readingConfidence: string;
+}
+/** The perek-pills, in display order. */
 const PEREK_PILLS: { id: PerekPill; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'geography', label: 'Geography' },
+  { id: 'tidbit', label: 'Tidbit' },
 ];
-const PILL_KIND: Record<PerekPill, string> = { overview: 'Overview', geography: 'Geography' };
+const PILL_KIND: Record<PerekPill, string> = {
+  overview: 'Overview',
+  geography: 'Geography',
+  tidbit: 'Tidbit',
+};
 
 interface CommentaryEntry {
   key: string;
@@ -626,6 +640,20 @@ export function App(): JSX.Element {
       return res.ok ? ((await res.json()) as PerekGeography) : null;
     },
   );
+  const [tidbit] = createResource(
+    () => (perekPill() === 'tidbit' ? chapterKey() : undefined),
+    async (k) => {
+      const res = await fetch(`/api/tidbit/${encodeURIComponent(k.book)}/${k.chapter}`);
+      return res.ok ? ((await res.json()) as PerekTidbit) : null;
+    },
+  );
+  // Only the tidbit for the chapter on screen (createResource retains the prior
+  // value across a refetch — same guard as overview/geography).
+  const currentTidbit = createMemo(() => {
+    if (tidbit.loading) return null;
+    const t = tidbit();
+    return t && t.book === loc().book && t.chapter === loc().chapter ? t : null;
+  });
   // Only the geography for the chapter on screen (createResource retains the
   // previous chapter's value across a refetch — same guard as the overview).
   const currentGeography = createMemo(() => {
@@ -1025,6 +1053,40 @@ export function App(): JSX.Element {
               </Show>
               <Show when={!geography.loading && geography() === null}>
                 <p class="comm-muted">Couldn't load the geography — try reopening.</p>
+              </Show>
+            </Show>
+            <Show when={pill === 'tidbit'}>
+              <Show when={tidbit.loading}>
+                <p class="comm-muted">Finding the tidbit…</p>
+              </Show>
+              <Show when={currentTidbit()}>
+                {(t) => (
+                  <section class="perek-overview perek-tidbit">
+                    <Show
+                      when={
+                        loc().lang === 'he'
+                          ? t().titleHe || t().titleEn
+                          : t().titleEn || t().titleHe
+                      }
+                    >
+                      {(title) => <h3 class="perek-title">{title()}</h3>}
+                    </Show>
+                    <Prose en={t().en} he={t().he} lang={loc().lang} />
+                    <Show when={t().flavor || t().readingConfidence}>
+                      <p class="tidbit-meta">
+                        <Show when={t().flavor}>
+                          {(f) => <span class="tidbit-flavor">{f().replace('-', ' ')}</span>}
+                        </Show>
+                        <Show when={t().readingConfidence}>
+                          {(rc) => <span class="tidbit-conf">reading: {rc()}</span>}
+                        </Show>
+                      </p>
+                    </Show>
+                  </section>
+                )}
+              </Show>
+              <Show when={!tidbit.loading && tidbit() === null}>
+                <p class="comm-muted">Couldn't load the tidbit — try reopening.</p>
               </Show>
             </Show>
           </Drawer>
