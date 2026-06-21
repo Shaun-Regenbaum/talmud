@@ -313,26 +313,42 @@ body {
   }
 }
 
-/* usage link + page */
+/* usage + inspect topbar utilities: tidy pill-style controls (was a dotted
+   underline; the <button> showed the browser's default focus rectangle). */
 .usage-link {
+  font-family: var(--font-ui);
   font-size: 13px;
   color: var(--muted);
   text-decoration: none;
-  border-bottom: 1px dotted var(--line);
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  background: none;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
 }
 .usage-link:hover {
   color: var(--accent);
+  background: var(--surface-sunk);
+}
+.usage-link:focus {
+  outline: none;
+}
+.usage-link:focus-visible {
+  outline: none;
+  border-color: var(--accent);
 }
 /* the "inspect" topbar toggle is a button styled like the usage link */
 .inspect-link {
   font-family: var(--font-ui);
-  background: none;
-  cursor: pointer;
-  padding: 0;
 }
 .inspect-link.active {
   color: var(--accent);
-  border-bottom-color: var(--accent);
+  background: var(--surface-sunk);
+  border-color: var(--line);
 }
 
 /* inspector drawer: one row per cached/missed producer piece */
