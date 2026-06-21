@@ -64,14 +64,46 @@ function gemaraSliceToVars(s: GemaraSlice): Record<string, unknown> {
   };
 }
 
-function commentariesSliceToString(s: CommentariesSlice): string {
+// The full rishonim of a dense daf (e.g. Bava Metzia 2b) run to well over a
+// million tokens — enough to blow past the model's 1,048,576-token context
+// limit and HARD-FAIL the whole enrichment (a 400, so the daf got no synthesis
+// at all). Cap the commentary text fed into prompts: per-commentator caps keep
+// every commentator represented; the total budget is the backstop. Limits are
+// generous so ordinary dapim are unaffected (their text is well under), and the
+// cap never touches cache keys (those derive from markInput+recipe, not source
+// text) — so existing cached output is untouched and only re-runs see the trim.
+const COMMENTARY_PER_WORK_HE = 12_000;
+const COMMENTARY_PER_WORK_EN = 16_000;
+const COMMENTARY_TOTAL_BUDGET = 360_000;
+
+function capText(s: string, max: number): string {
+  const clean = (s ?? '').trim();
+  return clean.length > max ? `${clean.slice(0, max).trimEnd()} …[trimmed]` : clean;
+}
+
+export function commentariesSliceToString(s: CommentariesSlice): string {
   const names = Object.keys(s.by_commentator).sort();
-  return names
-    .map((n) => {
-      const row = s.by_commentator[n];
-      return `[${n}]\n${row.hebrew}\n${row.english}`.trim();
-    })
-    .join('\n\n---\n\n');
+  const parts: string[] = [];
+  let used = 0;
+  let omitted = 0;
+  for (const n of names) {
+    if (used >= COMMENTARY_TOTAL_BUDGET) {
+      omitted++;
+      continue;
+    }
+    const row = s.by_commentator[n];
+    const block = `[${n}]\n${capText(row.hebrew, COMMENTARY_PER_WORK_HE)}\n${capText(
+      row.english,
+      COMMENTARY_PER_WORK_EN,
+    )}`.trim();
+    parts.push(block);
+    used += block.length;
+  }
+  // Never silently truncate: tell the model (and the inspector) what was dropped.
+  if (omitted > 0) {
+    parts.push(`[… ${omitted} further commentaries omitted to fit the context budget]`);
+  }
+  return parts.join('\n\n---\n\n');
 }
 
 /**
