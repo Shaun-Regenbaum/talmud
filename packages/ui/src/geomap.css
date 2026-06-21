@@ -141,6 +141,18 @@
   fill: var(--accent);
   stroke: var(--bg);
   stroke-width: 1.5;
+  transition: r 0.12s ease;
+}
+.geomap-traj-stop.interactive {
+  cursor: pointer;
+}
+.geomap-traj-stop.interactive:focus {
+  outline: none;
+}
+.geomap-traj-stop.interactive:focus-visible .geomap-traj-badge,
+.geomap-traj-badge.active {
+  stroke: var(--fg);
+  stroke-width: 2;
 }
 .geomap-traj-num {
   font-family: var(--font-ui);
@@ -148,6 +160,20 @@
   font-weight: 700;
   fill: #fff;
   pointer-events: none;
+}
+.geomap-traj-label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--fg);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 3px;
+  pointer-events: none;
+}
+.geomap-he .geomap-traj-label {
+  font-family: var(--font-hebrew);
+  font-size: 12.5px;
 }
 .geomap-he .geomap-label {
   font-family: var(--font-hebrew);

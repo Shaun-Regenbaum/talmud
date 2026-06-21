@@ -55,6 +55,8 @@ export interface GeoTrajectoryStop {
   /** Badge number (1-based); falls back to position when omitted. */
   seq?: number;
   label?: string;
+  /** Emphasised stop (e.g. the "you are here" / selected node). */
+  active?: boolean;
 }
 
 export interface GeoMapProps {
@@ -76,6 +78,8 @@ export interface GeoMapProps {
    *  and dims the regular markers — a drill-down overlay (e.g. one sage's
    *  journey). Clear it to return to the full map. */
   trajectory?: GeoTrajectoryStop[];
+  /** Click a numbered trajectory badge (makes them interactive buttons). */
+  onTrajectoryStop?: (stop: GeoTrajectoryStop, index: number) => void;
 }
 
 /** Standard viewports apps can reuse. */
@@ -84,7 +88,35 @@ export const GEO_BBOX = {
   israel: { lonMin: 34, lonMax: 36.3, latMin: 29.4, latMax: 33.6 },
   // Babylonia + Eretz Yisrael — the talmudic world.
   bavelToEy: { lonMin: 33.5, lonMax: 46.5, latMin: 30.5, latMax: 35.5 },
+  // Bavel alone (the academies cluster) — for a zoom preset.
+  bavel: { lonMin: 42.5, lonMax: 45.6, latMin: 31, latMax: 34 },
 } satisfies Record<string, GeoBBox>;
+
+/** Fit a bbox to a set of points (with padding + a minimum span so a lone or
+ *  tightly-clustered set isn't a pinprick). Falls back when there are none. */
+export function fitBbox(
+  pts: { lat: number; lng: number }[],
+  fallback: GeoBBox = GEO_BBOX.israel,
+  opts?: { padFrac?: number; minSpan?: number },
+): GeoBBox {
+  if (!pts.length) return fallback;
+  const padFrac = opts?.padFrac ?? 0.3;
+  const minSpan = opts?.minSpan ?? 0.7;
+  const lats = pts.map((p) => p.lat);
+  const lngs = pts.map((p) => p.lng);
+  const latMin = Math.min(...lats);
+  const latMax = Math.max(...lats);
+  const lngMin = Math.min(...lngs);
+  const lngMax = Math.max(...lngs);
+  const padLat = Math.max((latMax - latMin) * padFrac, minSpan);
+  const padLng = Math.max((lngMax - lngMin) * padFrac, minSpan);
+  return {
+    latMin: latMin - padLat,
+    latMax: latMax + padLat,
+    lonMin: lngMin - padLng,
+    lonMax: lngMax + padLng,
+  };
+}
 
 const LAYER_LABELS: Record<GeoLayer, string> = {
   water: 'Seas',
@@ -192,6 +224,9 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
       xy: proj().project(s.lng, s.lat),
       seq: s.seq ?? i + 1,
       label: s.label,
+      active: !!s.active,
+      stop: s,
+      index: i,
     })),
   );
   const trajPath = createMemo(() => {
@@ -332,14 +367,47 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
               <path class="geomap-traj-path" d={trajPath()} />
             </Show>
             <For each={trajStops()}>
-              {(s) => (
-                <>
-                  <circle class="geomap-traj-badge" cx={s.xy[0]} cy={s.xy[1]} r="8" />
-                  <text class="geomap-traj-num" x={s.xy[0]} y={s.xy[1] + 3} text-anchor="middle">
-                    {s.seq}
-                  </text>
-                </>
-              )}
+              {(s) => {
+                const interactive = !!props.onTrajectoryStop;
+                return (
+                  // biome-ignore lint/a11y/noStaticElementInteractions: an SVG <g> badge can't be a real <button>; role + tabindex + keydown make it keyboard-operable
+                  <g
+                    class="geomap-traj-stop"
+                    classList={{ active: s.active, interactive }}
+                    role={interactive ? 'button' : undefined}
+                    tabindex={interactive ? 0 : undefined}
+                    aria-label={interactive ? s.label || `Stop ${s.seq}` : undefined}
+                    onClick={() => props.onTrajectoryStop?.(s.stop, s.index)}
+                    onKeyDown={(e) => {
+                      if (interactive && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        props.onTrajectoryStop?.(s.stop, s.index);
+                      }
+                    }}
+                  >
+                    <circle
+                      class="geomap-traj-badge"
+                      classList={{ active: s.active }}
+                      cx={s.xy[0]}
+                      cy={s.xy[1]}
+                      r="8"
+                    />
+                    <text class="geomap-traj-num" x={s.xy[0]} y={s.xy[1] + 3} text-anchor="middle">
+                      {s.seq}
+                    </text>
+                    <Show when={s.active && s.label}>
+                      <text
+                        class="geomap-traj-label"
+                        x={s.xy[0]}
+                        y={s.xy[1] + 19}
+                        text-anchor="middle"
+                      >
+                        {s.label}
+                      </text>
+                    </Show>
+                  </g>
+                );
+              }}
             </For>
           </g>
         </Show>
