@@ -293,6 +293,7 @@ import {
   warmProgressProcessed,
 } from './warm-cron';
 import { lookupGloss } from './word-glosses';
+import { checkWorkerHealthAndAlert, fetchWorkerOutcomes } from './worker-health';
 import { runYomiWarmCron } from './yomi-cron';
 
 // `Bindings` and `JobMessage` now live in ./types (a neutral module so route
@@ -6872,6 +6873,13 @@ app.get('/api/usage/health', (c) =>
   ),
 );
 
+// Read-only worker-invocation outcomes (last 15m) from Cloudflare analytics —
+// the same dataset the OOM alert watches. Surfaces `exceededMemory` &c. so the
+// isolate-fatal class is verifiable on demand, and lets the GraphQL field names
+// be confirmed against the live account (the cron alert degrades quietly if the
+// token lacks scope; this route shows exactly why).
+app.get('/api/worker-health', async (c) => c.json(await fetchWorkerOutcomes(c.env, 15)));
+
 // Check off / restore a bug report (by its timestamp id). Toggles membership in
 // the dismissed set; the backlog payload splits reports into active vs. done
 // from it. Open + reversible — it's dev triage, not destructive.
@@ -11122,12 +11130,17 @@ export default {
           },
         ),
       );
+      // Independent health watch: alert if an isolate-fatal outcome
+      // (exceededMemory — the cold-daf OOM) appeared in the last window.
+      // Self-contained + best-effort; never throws into the cron.
+      ctx.waitUntil(checkWorkerHealthAndAlert(wrapped, Date.now()));
     }
   },
   // Queue consumer — wrangler.toml binds queue=enrichment-jobs to this
-  // export. Each message is one /api/run job. max_concurrency=2 caps
-  // simultaneous LLM workloads; max_batch_size=1 means one job per
-  // invocation (no batching), which keeps memory bounded per worker.
+  // export. Each message is one /api/run job. max_concurrency (wrangler.toml,
+  // currently 16) caps simultaneous LLM workloads AND simultaneous memory on a
+  // shared isolate; max_batch_size=1 means one job per invocation (no batching),
+  // which keeps memory bounded per worker.
   queue: async (
     batch: MessageBatch<JobMessage>,
     env: Bindings,
