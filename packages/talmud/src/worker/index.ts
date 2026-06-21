@@ -2788,6 +2788,7 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
                 instanceId,
                 instanceLabel: instanceLabel((inst as { fields?: Record<string, unknown> }).fields),
                 parsed: res.parsed,
+                content: res.content,
                 deps_resolved: depsOf(res),
               };
             } else {
@@ -2808,6 +2809,7 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
             kind: 'enrichment',
             label: def.label,
             parsed: res.parsed,
+            content: res.content,
             deps_resolved: depsOf(res),
           };
         }

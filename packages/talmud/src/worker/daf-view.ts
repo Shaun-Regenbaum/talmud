@@ -28,6 +28,9 @@ export interface DafViewPiece {
   instanceLabel?: string;
   /** The structured output the card renders from (RunResult.parsed). */
   parsed: unknown;
+  /** Raw model output (RunResult.content) — the generic fallback renderer reads
+   *  it; included so a client can build a faithful RunResult from the view. */
+  content?: string;
   /** Aggregate enrichments: each dependency's parsed output (RunResult.deps_resolved). */
   deps_resolved?: Record<string, unknown>;
 }
