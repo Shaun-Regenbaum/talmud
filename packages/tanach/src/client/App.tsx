@@ -23,6 +23,8 @@ import {
   type SourceVerse,
   verseKinds,
 } from '../lib/sources.ts';
+import { ChapterLoadProgress } from './ChapterLoadProgress.tsx';
+import { reportLoad, resetChapterLoad } from './chapterLoad.ts';
 import { MikraotGedolot } from './MikraotGedolot.tsx';
 
 interface Verse {
@@ -593,6 +595,38 @@ export function App(): JSX.Element {
     setPerekPill(null);
   });
 
+  // ---- Chapter load bar feed ----
+  // Reset first (this effect is created before the reporters, so on a chapter
+  // change it runs first and clears the previous chapter's entries); then each
+  // piece reports its state. The always-on chapter pieces key by a stable id so
+  // they overwrite across chapters; the overview reports only while its pill is
+  // open (its resource keeps a stale value across chapters otherwise).
+  createEffect(() => {
+    chapterKey();
+    resetChapterLoad();
+  });
+  createEffect(() => {
+    if (data.loading) reportLoad('text', 'Text', 'loading');
+    else if (data.error) reportLoad('text', 'Text', 'error');
+    else if (data()) reportLoad('text', 'Text', 'ok');
+  });
+  createEffect(() => {
+    if (events.loading) reportLoad('events', 'Sections', 'loading');
+    else if (events.error) reportLoad('events', 'Sections', 'error');
+    else if (events()) reportLoad('events', 'Sections', 'ok');
+  });
+  createEffect(() => {
+    if (sourcesIndex.loading) reportLoad('sources', 'Sources', 'loading');
+    else if (sourcesIndex.error) reportLoad('sources', 'Sources', 'error');
+    else if (sourcesIndex() !== undefined) reportLoad('sources', 'Sources', 'ok');
+  });
+  createEffect(() => {
+    if (perekPill() !== 'overview') return;
+    if (overview.loading) reportLoad('overview', 'Overview', 'loading');
+    else if (overview.error) reportLoad('overview', 'Overview', 'error');
+    else if (overview()) reportLoad('overview', 'Overview', 'ok');
+  });
+
   return (
     <div
       class="app"
@@ -671,9 +705,7 @@ export function App(): JSX.Element {
         </div>
       </header>
 
-      <Show when={data.loading}>
-        <p class="status">Loading…</p>
-      </Show>
+      <ChapterLoadProgress />
       <Show when={data.error}>
         <p class="status error">{(data.error as Error)?.message}</p>
       </Show>
