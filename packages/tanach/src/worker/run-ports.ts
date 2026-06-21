@@ -106,7 +106,8 @@ const KEY_TEMPLATES: Record<string, KeyTemplate> = {
   // chapter), so enrichmentAddress('overview', …) carries no verse/range.
   overview: { key: (a: TanachAddress) => `overview:v1:${a.unit?.work}:${a.unit?.unit}` },
   // Chapter-scoped like overview (one geography per chapter; instance ignored).
-  geography: { key: (a: TanachAddress) => `geography:v1:${a.unit?.work}:${a.unit?.unit}` },
+  // v2: the output now carries per-place verse numbers (for click-to-highlight).
+  geography: { key: (a: TanachAddress) => `geography:v2:${a.unit?.work}:${a.unit?.unit}` },
   synthesis: {
     key: (a: TanachAddress) => `synthesis:v1:${a.unit?.work}:${a.unit?.unit}:${a.verse}`,
   },

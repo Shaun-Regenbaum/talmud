@@ -221,16 +221,21 @@ app.get('/api/geography/:book/:chapter', async (c) => {
   } catch (e) {
     return runErrorResponse(c, e);
   }
-  const parsed = artifact.parsed as { places?: { en?: string; he?: string }[] } | null;
+  const parsed = artifact.parsed as {
+    places?: { en?: string; he?: string; verses?: number[] }[];
+  } | null;
   const seen = new Set<string>();
   const places = (parsed?.places ?? [])
     .map((p) => {
       const en = String(p?.en ?? '').trim();
       const g = en ? lookupPlace(en) : null;
       if (!g) return null;
-      return { en, he: String(p?.he ?? '').trim(), lat: g.lat, lng: g.lng };
+      const verses = Array.isArray(p?.verses)
+        ? p.verses.filter((v) => Number.isInteger(v) && v >= 1)
+        : [];
+      return { en, he: String(p?.he ?? '').trim(), lat: g.lat, lng: g.lng, verses };
     })
-    .filter((p): p is { en: string; he: string; lat: number; lng: number } => {
+    .filter((p): p is { en: string; he: string; lat: number; lng: number; verses: number[] } => {
       if (!p) return false;
       const key = `${p.lat},${p.lng}`; // dedupe places that resolve to one point
       if (seen.has(key)) return false;

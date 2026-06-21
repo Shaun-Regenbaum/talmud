@@ -17,7 +17,13 @@ import {
   TIDBIT_RECIPE,
   YERUSHALMI_RECIPE,
 } from '@corpus/core/sidebar/recipe';
-import { GeoMap, type GeoPoint, type GeoTrajectoryStop } from '@corpus/ui/GeoMap';
+import {
+  fitBbox,
+  GEO_BBOX,
+  GeoMap,
+  type GeoPoint,
+  type GeoTrajectoryStop,
+} from '@corpus/ui/GeoMap';
 import {
   createEffect,
   createMemo,
@@ -2861,6 +2867,23 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
     return stops.length ? stops : undefined;
   });
 
+  // View: 'fit' auto-frames the daf's rabbis (the dots cluster, so the fixed
+  // full-region view wasted space); 'bavel'/'ey' zoom to a region. Drilling a
+  // sage temporarily fits the map to that rabbi's whole path.
+  const [view, setView] = createSignal<'fit' | 'bavel' | 'ey'>('fit');
+  const mapBbox = createMemo(() => {
+    const traj = trajectory();
+    if (traj) return fitBbox(traj, TALMUD_GEO_BBOX, { minSpan: 1.2 });
+    if (view() === 'bavel') return GEO_BBOX.bavel;
+    if (view() === 'ey') return GEO_BBOX.israel;
+    return fitBbox(points(), TALMUD_GEO_BBOX, { minSpan: 1.2 });
+  });
+  const VIEW_PRESETS: { id: 'fit' | 'bavel' | 'ey'; label: string }[] = [
+    { id: 'fit', label: t('geography.view.fit') },
+    { id: 'bavel', label: t('geography.bavel') },
+    { id: 'ey', label: t('geography.eretzYisrael') },
+  ];
+
   return (
     <Show
       when={hasMap()}
@@ -2891,8 +2914,35 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
         </Show>
       }
     >
+      {/* zoom presets: fit to the rabbis, or jump to a region (disabled while
+          drilling a sage's path, which fits the map to that path) */}
+      <Show when={!trajectory()}>
+        <div style={{ display: 'flex', gap: '4px', 'margin-bottom': '6px' }}>
+          <For each={VIEW_PRESETS}>
+            {(preset) => (
+              <button
+                type="button"
+                onClick={() => setView(preset.id)}
+                style={{
+                  'font-family': 'var(--font-ui)',
+                  'font-size': '0.66rem',
+                  'letter-spacing': '0.03em',
+                  padding: '2px 9px',
+                  border: `1px solid ${view() === preset.id ? 'var(--accent)' : 'var(--line)'}`,
+                  'border-radius': '999px',
+                  background: view() === preset.id ? 'var(--accent)' : 'var(--surface)',
+                  color: view() === preset.id ? '#fff' : 'var(--muted)',
+                  cursor: 'pointer',
+                }}
+              >
+                {preset.label}
+              </button>
+            )}
+          </For>
+        </div>
+      </Show>
       <GeoMap
-        bbox={TALMUD_GEO_BBOX}
+        bbox={mapBbox()}
         points={points()}
         lang={lang() === 'he' ? 'he' : 'en'}
         height={520}

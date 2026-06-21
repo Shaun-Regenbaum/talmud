@@ -19,6 +19,9 @@ export interface PerekPlace {
   en: string;
   /** Hebrew name as it appears in the text (for the map label). */
   he: string;
+  /** Verse number(s) in the chapter where the place is named — so clicking the
+   *  map pin can highlight the text it came from. */
+  verses: number[];
 }
 
 export const GEOGRAPHY_SYSTEM = [
@@ -34,6 +37,9 @@ export const GEOGRAPHY_SYSTEM = [
   '  Use the standard spelling, not a variant — it is used to look the place up.',
   '- "he" is the Hebrew name AS IT APPEARS in the text (with nikud if present):',
   '  "חֶבְרוֹן", "בְּאֵר שֶׁבַע", "אוּר", "חָרָן", "מִצְרַיִם".',
+  '- "verses" is the verse NUMBER(s) in this chapter where the place is named',
+  '  (the leading numbers in the supplied text). Usually one; list every verse',
+  '  it is named in if more than one.',
   '- Do NOT include people, tribes, or peoples — only physical places.',
   '- Do NOT invent coordinates or places not in the text.',
   '- Return them in the order they first appear.',
@@ -56,10 +62,11 @@ export const GEOGRAPHY_SCHEMA = {
         items: {
           type: 'object',
           additionalProperties: false,
-          required: ['en', 'he'],
+          required: ['en', 'he', 'verses'],
           properties: {
             en: { type: 'string' },
             he: { type: 'string' },
+            verses: { type: 'array', items: { type: 'integer', minimum: 1 } },
           },
         },
       },

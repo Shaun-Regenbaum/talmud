@@ -1,6 +1,6 @@
 import { Button } from '@corpus/ui/Button';
 import { Drawer } from '@corpus/ui/Drawer';
-import { type GeoBBox, GeoMap } from '@corpus/ui/GeoMap';
+import { fitBbox, GeoMap } from '@corpus/ui/GeoMap';
 import { LangToggle } from '@corpus/ui/LangToggle';
 import { Pill, PillRow } from '@corpus/ui/Pill';
 import { Prose } from '@corpus/ui/Prose';
@@ -201,6 +201,8 @@ interface GeoPlace {
   he: string;
   lat: number;
   lng: number;
+  /** Verse number(s) where the place is named — clicking the pin highlights them. */
+  verses: number[];
 }
 interface PerekGeography {
   book: string;
@@ -215,25 +217,6 @@ const PEREK_PILLS: { id: PerekPill; label: string }[] = [
 ];
 const PILL_KIND: Record<PerekPill, string> = { overview: 'Overview', geography: 'Geography' };
 
-/** Frame a perek's places: fit the map bbox to the points (with padding + a
- *  minimum span so a lone place isn't a single point). Falls back to Israel. */
-function fitBbox(places: GeoPlace[]): GeoBBox {
-  if (!places.length) return { lonMin: 34, lonMax: 36.3, latMin: 29.4, latMax: 33.6 };
-  const lats = places.map((p) => p.lat);
-  const lngs = places.map((p) => p.lng);
-  const latMin = Math.min(...lats);
-  const latMax = Math.max(...lats);
-  const lngMin = Math.min(...lngs);
-  const lngMax = Math.max(...lngs);
-  const padLat = Math.max((latMax - latMin) * 0.3, 0.7);
-  const padLng = Math.max((lngMax - lngMin) * 0.3, 0.7);
-  return {
-    latMin: latMin - padLat,
-    latMax: latMax + padLat,
-    lonMin: lngMin - padLng,
-    lonMax: lngMax + padLng,
-  };
-}
 interface CommentaryEntry {
   key: string;
   en: string;
@@ -506,11 +489,13 @@ export function App(): JSX.Element {
     setWordSel(null);
   });
 
-  // Highlight the relevant verses: a section's range (note popover) or the
-  // single verse whose source drawer is open (rishonim / gemara / midrash).
+  // Highlight the relevant verses: a section's range (note popover), the single
+  // verse whose source drawer is open (rishonim / gemara / midrash), or the
+  // verse(s) a clicked Geography place is named in.
   createEffect(() => {
     const sel = selected();
     const src = source();
+    const pv = new Set(placeVerses());
     paragraphs();
     requestAnimationFrame(() => {
       if (!scrollBand) return;
@@ -521,7 +506,7 @@ export function App(): JSX.Element {
         const vn = Number(e.dataset.vn);
         const inNote = sel && vn >= sel.start && vn <= sel.end;
         const inSource = src && vn === src.verse;
-        if (inNote || inSource) e.classList.add('hl');
+        if (inNote || inSource || pv.has(vn)) e.classList.add('hl');
       });
     });
   });
@@ -638,6 +623,32 @@ export function App(): JSX.Element {
     if (geography.loading) return null;
     const g = geography();
     return g && g.book === loc().book && g.chapter === loc().chapter ? g : null;
+  });
+  // Clicking a Geography place pin highlights the verse(s) it's named in (and
+  // scrolls to the first), the way clicking a place works on the Talmud daf.
+  const [placeVerses, setPlaceVerses] = createSignal<number[]>([]);
+  const [selectedPlaceId, setSelectedPlaceId] = createSignal<string | undefined>();
+  const highlightPlace = (verses: number[]) => {
+    setPlaceVerses(verses);
+    const first = verses.slice().sort((a, b) => a - b)[0];
+    if (!first) return;
+    requestAnimationFrame(() => {
+      scrollBand
+        ?.querySelector(`.vtext[data-vn="${first}"]`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  };
+  const clearPlace = () => {
+    setPlaceVerses([]);
+    setSelectedPlaceId(undefined);
+  };
+  // Clear the place highlight when the geography pill closes or the chapter changes.
+  createEffect(() => {
+    chapterKey();
+    clearPlace();
+  });
+  createEffect(() => {
+    if (perekPill() !== 'geography') clearPlace();
   });
   // createResource keeps the PREVIOUS chapter's value during a refetch, so the
   // drawer must not render it: only show the overview once it has loaded AND
@@ -987,6 +998,13 @@ export function App(): JSX.Element {
                       }))}
                       lang={loc().lang}
                       height={460}
+                      selected={selectedPlaceId()}
+                      onSelect={(pt) => {
+                        const place = g().places.find((p) => p.en === pt.id);
+                        if (!place) return;
+                        setSelectedPlaceId(pt.id);
+                        highlightPlace(place.verses);
+                      }}
                     />
                   </Show>
                 )}

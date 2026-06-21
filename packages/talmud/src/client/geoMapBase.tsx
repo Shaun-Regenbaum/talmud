@@ -78,6 +78,28 @@ export function stopPosition(stop: TrajectoryStop): { x: number; y: number } | n
   return null;
 }
 
+/** Real-world lat/lng of a trajectory stop — the @corpus/ui GeoMap re-projects
+ *  these. Mirrors stopPosition: known city coords, else the region's lat/lng
+ *  centroid, else null (unplottable). Non-null exactly when stopPosition is. */
+export function stopLatLng(stop: TrajectoryStop): { lat: number; lng: number } | null {
+  if (stop.cityName) {
+    const c = CITY_BY_NAME.get(stop.cityName);
+    if (c) return { lat: c.lat, lng: c.lng };
+  }
+  if (stop.region === 'israel' || stop.region === 'bavel') {
+    const cities = GEO_CITIES.filter((c) => c.region === stop.region);
+    if (!cities.length) return null;
+    let lat = 0;
+    let lng = 0;
+    for (const c of cities) {
+      lat += c.lat;
+      lng += c.lng;
+    }
+    return { lat: lat / cities.length, lng: lng / cities.length };
+  }
+  return null;
+}
+
 /** A positioned, numbered stop (index in the full ordered trajectory). */
 export interface PlacedStop {
   /** Representative stop (the first at this spot) — drives the badge + position. */

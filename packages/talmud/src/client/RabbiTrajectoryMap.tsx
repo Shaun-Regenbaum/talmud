@@ -1,28 +1,21 @@
 /**
  * Per-rabbi places MAP — the map-first replacement for the old vertical
- * "Places — Timeline". A rabbi's life is drawn as a numbered path across the
- * same two region maps the whole-daf geography card uses (shared geoMapBase),
- * built from the one shared builder (buildTrajectory). Clicking a numbered stop
- * opens its detail below the maps: the life-stage, the context sentence, the
- * on-daf evidence ("show on daf"), and the "you are here" marker for the
- * current sugya.
+ * "Places — Timeline". A rabbi's life is drawn as a numbered path on the shared
+ * @corpus/ui GeoMap (the SAME real-coordinate atlas the whole-daf geography card
+ * uses), built from the one shared builder (buildTrajectory). Clicking a
+ * numbered badge opens its detail below the map: the life-stage, the context
+ * sentence, the on-daf evidence ("show on daf"), and the "you are here" marker
+ * for the current sugya.
  *
  * Replaces RabbiPlacesTimeline: same data + evidence + location, map instead of
  * a list.
  */
 
+import { fitBbox, GEO_BBOX, GeoMap, type GeoTrajectoryStop } from '@corpus/ui/GeoMap';
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 import { buildTrajectory, type TrajectoryStop } from '../lib/geographyModel';
-import {
-  collapsePlaced,
-  type PlacedStop,
-  RegionMapCard,
-  regionTint,
-  TRAJ_COLOR,
-  TrajectoryBadges,
-} from './geoMapBase';
-import { BAVEL_SHAPE, ISRAEL_SHAPE } from './geoShapes';
-import { t } from './i18n';
+import { collapsePlaced, type PlacedStop, regionTint, stopLatLng, TRAJ_COLOR } from './geoMapBase';
+import { lang, t } from './i18n';
 import type { GeographyData, GeographyEvidence } from './RabbiGeographyCard';
 
 export interface LocationInference {
@@ -60,10 +53,6 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
   // Stops we can actually plot — the detail card + default selection key off
   // these so a numbered badge is always reachable.
   const positioned = (): PlacedStop[] => placed().filter((p) => p.pos);
-  // Only render a region's map when the rabbi actually has a stop there — a
-  // pure-Bavel rabbi shows just Bavel; a pure-Eretz-Yisrael one just that.
-  const showIsrael = (): boolean => positioned().some((p) => p.stop.region === 'israel');
-  const showBavel = (): boolean => positioned().some((p) => p.stop.region === 'bavel');
 
   const evidenceByKey = (): Map<string, GeographyEvidence> => {
     const m = new Map<string, GeographyEvidence>();
@@ -143,6 +132,35 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
     return r === 'unknown' ? t('region.unknown') : t('region.other');
   };
 
+  // The numbered life-path drawn on the shared GeoMap: one stop per placed node
+  // (in life order), positioned by real lat/lng; the open node is `active` so
+  // its badge rings and labels. seq === the PlacedStop num, so a badge click
+  // maps straight back to its node.
+  const trajStops = createMemo<GeoTrajectoryStop[]>(() => {
+    const active = activeNum();
+    return placed().flatMap((p) => {
+      const ll = stopLatLng(p.stop);
+      if (!ll) return [];
+      return [
+        {
+          lat: ll.lat,
+          lng: ll.lng,
+          seq: p.num,
+          label: p.stop.place,
+          active: p.num === active,
+        },
+      ];
+    });
+  });
+  // Auto-frame the path: a pure-Bavel rabbi fits Bavel, a pure-EY one fits EY,
+  // a migrant fits the whole journey across both. minSpan keeps a single-stop
+  // rabbi from zooming to street level.
+  const mapBbox = createMemo(() => fitBbox(trajStops(), GEO_BBOX.nearEast, { minSpan: 1.4 }));
+  const onTrajectoryStop = (s: GeoTrajectoryStop) => {
+    const p = placed().find((pp) => pp.num === s.seq);
+    if (p) pick(p);
+  };
+
   return (
     <Show when={positioned().length > 0}>
       <div
@@ -166,41 +184,17 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
           {t('rabbi.places.title')}
         </div>
 
-        {/* The region maps, stacked — only those the rabbi actually visited. */}
-        <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.4rem' }}>
-          <Show when={showIsrael()}>
-            <RegionMapCard
-              shape={ISRAEL_SHAPE}
-              heading={t('geography.eretzYisrael')}
-              headingColor="#1f2937"
-              aria={t('geography.eretzYisrael.aria')}
-              layout="column"
-            >
-              <TrajectoryBadges
-                placed={placed()}
-                region="israel"
-                onPick={pick}
-                activeNum={activeNum()}
-              />
-            </RegionMapCard>
-          </Show>
-          <Show when={showBavel()}>
-            <RegionMapCard
-              shape={BAVEL_SHAPE}
-              heading={t('geography.bavel')}
-              headingColor="#1e40af"
-              aria={t('geography.bavel.aria')}
-              layout="column"
-            >
-              <TrajectoryBadges
-                placed={placed()}
-                region="bavel"
-                onPick={pick}
-                activeNum={activeNum()}
-              />
-            </RegionMapCard>
-          </Show>
-        </div>
+        {/* The life-path on the shared real-coordinate atlas — auto-framed to
+            wherever the rabbi lived. Clicking a numbered badge opens its node. */}
+        <GeoMap
+          bbox={mapBbox()}
+          points={[]}
+          lang={lang() === 'he' ? 'he' : 'en'}
+          height={300}
+          layerToggle={false}
+          trajectory={trajStops()}
+          onTrajectoryStop={onTrajectoryStop}
+        />
 
         {/* Detail card for the open node — renders EVERY event collapsed at that
             spot (e.g. moved-to + studied + notable in one city) so nothing the

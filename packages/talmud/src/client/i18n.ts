@@ -1151,6 +1151,7 @@ const CATALOG = {
   'geography.euphrates': { en: 'Euphrates', he: 'פרת' },
   'geography.tigris': { en: 'Tigris', he: 'חידקל' },
   'geography.migration': { en: 'Migration', he: 'הגירה' },
+  'geography.view.fit': { en: 'Fit', he: 'הכל' },
   'geography.trajectory.hint': {
     en: 'click a rabbi to trace their path',
     he: 'לחצו על חכם כדי לעקוב אחר מסלולו',
