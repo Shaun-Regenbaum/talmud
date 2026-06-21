@@ -10,10 +10,10 @@ import {
 describe('parseOutcomes', () => {
   it('folds invocation groups into a status -> count map', () => {
     const m = parseOutcomes([
-      { count: 100, dimensions: { status: 'success' } },
-      { count: 3, dimensions: { status: 'exceededMemory' } },
-      { count: 2, dimensions: { status: 'exceededMemory' } }, // accumulates
-      { count: 5, dimensions: {} }, // no status -> ignored
+      { sum: { requests: 100 }, dimensions: { status: 'success' } },
+      { sum: { requests: 3 }, dimensions: { status: 'exceededMemory' } },
+      { sum: { requests: 2 }, dimensions: { status: 'exceededMemory' } }, // accumulates
+      { sum: { requests: 5 }, dimensions: {} }, // no status -> ignored
     ]);
     expect(m).toEqual({ success: 100, exceededMemory: 5 });
   });
@@ -34,7 +34,7 @@ describe('fatalCount', () => {
 
 // A minimal env + fetch stub so the alert path is testable without the network.
 function envWith(opts: {
-  groups?: Array<{ count: number; dimensions: { status: string } }>;
+  groups?: Array<{ sum: { requests: number }; dimensions: { status: string } }>;
   graphqlError?: string;
   configured?: boolean;
   kv?: Map<string, string>;
@@ -56,7 +56,7 @@ function envWith(opts: {
       ? { errors: [{ message: opts.graphqlError }] }
       : {
           data: {
-            viewer: { accounts: [{ workersInvocationsAdaptiveGroups: opts.groups ?? [] }] },
+            viewer: { accounts: [{ workersInvocationsAdaptive: opts.groups ?? [] }] },
           },
         };
     return new Response(JSON.stringify(body), { status: 200 });
@@ -87,8 +87,8 @@ describe('checkWorkerHealthAndAlert', () => {
     const sent: unknown[] = [];
     const { env, fetchStub } = envWith({
       groups: [
-        { count: 500, dimensions: { status: 'success' } },
-        { count: 4, dimensions: { status: 'exceededMemory' } },
+        { sum: { requests: 500 }, dimensions: { status: 'success' } },
+        { sum: { requests: 4 }, dimensions: { status: 'exceededMemory' } },
       ],
       email: (m) => sent.push(m),
     });
@@ -104,7 +104,7 @@ describe('checkWorkerHealthAndAlert', () => {
   it('stays silent when there are no fatal outcomes', async () => {
     const sent: unknown[] = [];
     const { env, fetchStub } = envWith({
-      groups: [{ count: 500, dimensions: { status: 'success' } }],
+      groups: [{ sum: { requests: 500 }, dimensions: { status: 'success' } }],
       email: (m) => sent.push(m),
     });
     vi.stubGlobal('fetch', fetchStub);

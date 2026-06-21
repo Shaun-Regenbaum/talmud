@@ -6,7 +6,7 @@
  * only symptom readers saw was `error code: 1101`. The structural fix (rishonim
  * cap #440, coalescing #439, consumer concurrency #441) makes that outcome
  * improbable — but a future source-growth regression could push it back. This
- * watch closes the loop: it polls Cloudflare's `workersInvocationsAdaptiveGroups`
+ * watch closes the loop: it polls Cloudflare's `workersInvocationsAdaptive`
  * analytics each 5-min cron tick and emails when an isolate-fatal outcome
  * appears, so the next regression is caught in minutes, not from user reports.
  *
@@ -30,11 +30,11 @@ const QUERY = `
 query WorkerHealth($accountTag: string!, $script: string!, $start: Time!, $end: Time!) {
   viewer {
     accounts(filter: { accountTag: $accountTag }) {
-      workersInvocationsAdaptiveGroups(
+      workersInvocationsAdaptive(
         limit: 100
         filter: { scriptName: $script, datetime_geq: $start, datetime_leq: $end }
       ) {
-        count
+        sum { requests }
         dimensions { status }
       }
     }
@@ -42,7 +42,9 @@ query WorkerHealth($accountTag: string!, $script: string!, $start: Time!, $end: 
 }`;
 
 interface InvocationGroup {
-  count?: number;
+  // workersInvocationsAdaptive is sampling-adjusted; `sum.requests` is the
+  // estimated invocation count for the group (there is no top-level `count`).
+  sum?: { requests?: number };
   dimensions?: { status?: string };
 }
 
@@ -72,7 +74,7 @@ export function parseOutcomes(groups: InvocationGroup[]): Record<string, number>
   for (const g of groups) {
     const status = g.dimensions?.status;
     if (!status) continue;
-    byStatus[status] = (byStatus[status] ?? 0) + (g.count ?? 0);
+    byStatus[status] = (byStatus[status] ?? 0) + (g.sum?.requests ?? 0);
   }
   return byStatus;
 }
@@ -114,7 +116,7 @@ export async function fetchWorkerOutcomes(
     }
     const json = (await res.json()) as {
       data?: {
-        viewer?: { accounts?: Array<{ workersInvocationsAdaptiveGroups?: InvocationGroup[] }> };
+        viewer?: { accounts?: Array<{ workersInvocationsAdaptive?: InvocationGroup[] }> };
       };
       errors?: Array<{ message?: string }>;
     };
@@ -130,7 +132,7 @@ export async function fetchWorkerOutcomes(
         scriptName,
       };
     }
-    const groups = json.data?.viewer?.accounts?.[0]?.workersInvocationsAdaptiveGroups ?? [];
+    const groups = json.data?.viewer?.accounts?.[0]?.workersInvocationsAdaptive ?? [];
     return {
       configured: true,
       ok: true,
