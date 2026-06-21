@@ -1,0 +1,165 @@
+/*
+ * @corpus/ui — component-kit styles.
+ *
+ * The look for the shared Solid components (Pill, Drawer, Button, Prose,
+ * LangToggle), all driven by the design tokens. An app imports this once
+ * (after tokens.css + its theme). Components carry only structure + class
+ * names; this sheet owns the appearance, so both apps render them identically
+ * (modulo the themed tokens — palette + Hebrew face).
+ *
+ * Component-level tokens use var(--x, fallback) so an app can refine a piece
+ * (e.g. tanach's parchment pills) without the component knowing.
+ */
+
+/* ---- Pill (PillRow) ---- */
+.ui-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 900px;
+  margin: 0 auto 18px;
+}
+@media (max-width: 1240px) {
+  .ui-pill-row {
+    max-width: 620px;
+  }
+}
+.ui-pill {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border: 1px solid var(--pill-border, var(--line));
+  border-radius: var(--radius-pill);
+  background: var(--pill-bg, var(--surface-sunk));
+  color: var(--accent);
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    color 0.12s ease,
+    border-color 0.12s ease;
+}
+.ui-pill:hover {
+  border-color: var(--accent);
+}
+.ui-pill.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ---- Drawer ---- */
+.ui-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(420px, 92vw);
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  box-shadow: var(--shadow-drawer);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+}
+.ui-drawer-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+.ui-drawer-ref {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.ui-drawer-kind {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  font-weight: 600;
+}
+.ui-drawer-close {
+  margin-inline-start: auto;
+  border: 0;
+  background: none;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+.ui-drawer-close:hover {
+  color: var(--fg);
+}
+.ui-drawer-body {
+  overflow-y: auto;
+  padding: 6px 18px 32px;
+}
+
+/* ---- Button (standard bordered control) ---- */
+.ui-button {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg);
+  cursor: pointer;
+  transition:
+    border-color 0.12s ease,
+    background-color 0.12s ease,
+    color 0.12s ease;
+}
+.ui-button:hover:not(:disabled):not(.active) {
+  border-color: var(--accent);
+}
+.ui-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.ui-button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ---- Prose (bilingual reading block) ---- */
+.ui-prose {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.68;
+  color: var(--fg);
+}
+.ui-prose[dir="rtl"] {
+  font-family: var(--font-hebrew);
+  font-size: 17px;
+}
+
+/* ---- LangToggle (EN / עב segmented) ---- */
+.ui-lang-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.ui-lang-toggle button {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  padding: 5px 10px;
+  border: 0;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+}
+.ui-lang-toggle button.active {
+  background: var(--accent);
+  color: #fff;
+}

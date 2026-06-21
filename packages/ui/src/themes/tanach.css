@@ -32,6 +32,10 @@
   --parchment-edge: #e6d3a6;
   --stam: #2a1c0c;
 
+  /* ---- component refinements: pills keep tanach's parchment chip look ---- */
+  --pill-bg: var(--parchment);
+  --pill-border: var(--parchment-edge);
+
   /* ---- back-compat alias (tanach styles referenced --ink) ---- */
   --ink: var(--fg);
 }

@@ -3,13 +3,29 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Shared design system for the corpus apps (talmud, tanach): canonical CSS design tokens + per-app theme overrides, and (later) a Solid component kit. Logic stays in @corpus/core; this is the look-and-feel layer both apps import.",
+  "description": "Shared design system for the corpus apps (talmud, tanach): canonical CSS design tokens + per-app theme overrides, and a Solid component kit (Drawer, Pill, Button, Prose, LangToggle). Logic stays in @corpus/core; this is the look-and-feel layer both apps import.",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
   "sideEffects": [
     "**/*.css"
   ],
   "exports": {
     "./tokens.css": "./src/tokens.css",
     "./themes/talmud.css": "./src/themes/talmud.css",
-    "./themes/tanach.css": "./src/themes/tanach.css"
+    "./themes/tanach.css": "./src/themes/tanach.css",
+    "./components.css": "./src/components.css",
+    "./Pill": "./src/Pill.tsx",
+    "./Drawer": "./src/Drawer.tsx",
+    "./Button": "./src/Button.tsx",
+    "./Prose": "./src/Prose.tsx",
+    "./LangToggle": "./src/LangToggle.tsx"
+  },
+  "peerDependencies": {
+    "solid-js": "^1.9.0"
+  },
+  "devDependencies": {
+    "solid-js": "^1.9.0",
+    "typescript": "^5.7.0"
   }
 }
