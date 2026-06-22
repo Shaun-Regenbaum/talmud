@@ -44,11 +44,20 @@ const [view, setView] = createSignal<{ key: string; pieces: Record<string, DafVi
   null,
 );
 
+// The most recently REQUESTED daf-view key. A load only writes the signal if its
+// key is still the latest — so a slow/failed load for a daf the user already
+// navigated away from can never clobber the view of the daf now on screen.
+let latestKey = '';
+
 /**
- * Fire-and-forget: load the materialized view for a daf and stash it. Called as
- * early as possible on daf open so it's usually ready by the time a whole-daf
- * card would otherwise fetch. Best-effort — any failure leaves the store empty
- * and cards fetch per-piece as before.
+ * Load the materialized view for a daf and stash it. Called as early as possible
+ * on daf open so it's ready by the time a card would otherwise fetch.
+ *
+ * The signal ALWAYS settles — on success with the pieces, on failure/timeout
+ * with an empty view. That matters because cards gate their `/api/run` on
+ * `dafViewLoaded`: settling-even-on-failure guarantees the gate resolves (cards
+ * fall through and fetch as before) instead of hanging forever. Fail-safe: an
+ * empty view just means every lookup misses and the card fetches per-piece.
  */
 export async function loadDafView(
   tractate: string,
@@ -56,13 +65,28 @@ export async function loadDafView(
   lang: 'en' | 'he',
 ): Promise<void> {
   const key = dafKey(tractate, page, lang);
+  latestKey = key;
+  // Only write the signal if THIS is still the daf the reader is on.
+  const settle = (pieces: Record<string, DafViewPiece>) => {
+    if (latestKey === key) setView({ key, pieces });
+  };
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15000);
   try {
-    const r = await fetch(`/api/daf-view/${encodeURIComponent(tractate)}/${page}?lang=${lang}`);
-    if (!r.ok) return;
+    const r = await fetch(`/api/daf-view/${encodeURIComponent(tractate)}/${page}?lang=${lang}`, {
+      signal: ctrl.signal,
+    });
+    if (!r.ok) {
+      settle({});
+      return;
+    }
     const j = (await r.json()) as DafViewPayload;
-    setView({ key, pieces: j.pieces ?? {} });
+    settle(j.pieces ?? {});
   } catch {
-    /* best-effort: leave the store as-is */
+    // Network error / abort / timeout: settle empty so the gate resolves.
+    settle({});
+  } finally {
+    clearTimeout(timer);
   }
 }
 

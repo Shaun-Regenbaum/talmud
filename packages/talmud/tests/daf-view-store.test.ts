@@ -80,6 +80,61 @@ describe('loadDafView + dafViewWholeDafResult', () => {
   });
 });
 
+// The card effect gates its /api/run on dafViewLoaded(). For that gate to be
+// fail-safe (never hang a card), loadDafView MUST settle the loaded flag even
+// when the fetch fails — the card then falls through and fetches as before.
+describe('loadDafView fail-safe settle', () => {
+  it('marks the view LOADED even on an HTTP error (so the card gate resolves)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('{}', { status: 500 })),
+    );
+    await loadDafView('Berakhot', '4a', 'en');
+    expect(dafViewLoaded('Berakhot', '4a', 'en')).toBe(true); // settled...
+    expect(dafViewWholeDafResult('tidbit', 'Berakhot', '4a', 'en')).toBeUndefined(); // ...but empty
+  });
+
+  it('marks the view LOADED even when fetch throws (network error)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new Error('network down');
+      }),
+    );
+    await loadDafView('Berakhot', '4b', 'en');
+    expect(dafViewLoaded('Berakhot', '4b', 'en')).toBe(true);
+  });
+});
+
+// A slow load for a daf the reader already left must never overwrite the view of
+// the daf now on screen (the user navigates while a fetch is in flight).
+describe('loadDafView latest-key guard', () => {
+  it('a stale load resolving LAST does not clobber the current daf', async () => {
+    const resolvers: Record<string, (r: Response) => void> = {};
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (url: string) =>
+          new Promise<Response>((res) => {
+            resolvers[url.includes('/52a') ? 'stale' : 'current'] = res;
+          }),
+      ),
+    );
+    const pStale = loadDafView('Chullin', '52a', 'en'); // reader was here
+    const pCurrent = loadDafView('Chullin', '53a', 'en'); // ...then navigated here
+    const body = (id: string) =>
+      new Response(JSON.stringify({ pieces: { tidbit: piece({ producerId: id }) } }), {
+        status: 200,
+      });
+    // current resolves first, the stale one resolves AFTER (the race we guard).
+    resolvers.current(body('current'));
+    resolvers.stale(body('stale'));
+    await Promise.all([pStale, pCurrent]);
+    expect(dafViewLoaded('Chullin', '53a', 'en')).toBe(true); // current view stands
+    expect(dafViewLoaded('Chullin', '52a', 'en')).toBe(false); // stale never took over
+  });
+});
+
 describe('dafViewLoaded', () => {
   function stubFetch(payload: unknown) {
     vi.stubGlobal(

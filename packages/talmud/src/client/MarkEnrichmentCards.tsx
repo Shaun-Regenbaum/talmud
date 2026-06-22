@@ -563,10 +563,18 @@ export default function MarkEnrichmentCards(props: Props) {
           applyResult(d, s, cached);
           continue;
         }
+        // Wait for the materialized daf-view to settle before firing /api/run.
+        // It's ONE fetch that serves every cached piece; firing per-card before
+        // it lands just races it and wastes a request (the warm-daf fan-out the
+        // view was meant to eliminate). This effect re-runs when the view settles
+        // (viewReady is a tracked read above). Fail-safe: loadDafView ALWAYS
+        // settles (empty on failure), so a hit becomes possible OR we fall
+        // through and fetch as before — the gate never hangs.
+        if (!viewReady) continue;
         // Second tier: the materialized daf-view (one fetch on daf open). Serves
         // WHOLE-DAF pieces (keyed by producer id) so they render without their
-        // own /api/run. Best-effort + guaranteed-correct key — a miss (view not
-        // loaded, or a per-instance piece) just falls through to the fetch below.
+        // own /api/run. Best-effort + guaranteed-correct key — a miss (a
+        // per-instance piece) just falls through to the per-instance tier below.
         const fromView = dafViewWholeDafResult(d.id, props.tractate, props.page, curLang);
         if (fromView) {
           runResultCache.set(
@@ -577,24 +585,21 @@ export default function MarkEnrichmentCards(props: Props) {
           continue;
         }
         // Third tier: PER-INSTANCE daf-view pieces (keyed producerId::instanceId).
-        // Only when the view is loaded (a hit is possible) — and gate on the
-        // instanceId hash: if it hasn't settled, wait (this effect re-runs when it
-        // does) rather than fetch-then-miss. The hash settles in ~1ms, so the gate
-        // is imperceptible; if the view isn't loaded we skip the gate and fetch as
-        // today. Fail-safe: any miss falls through to the fetch below.
-        if (viewReady) {
-          if (iid === undefined) continue; // hash not settled yet — re-runs on settle
-          const fromInstance = iid
-            ? dafViewPieceResult(d.id, iid, props.tractate, props.page, curLang)
-            : undefined;
-          if (fromInstance) {
-            runResultCache.set(
-              runCacheKey(d.id, props.tractate, props.page, props.instanceKey, curLang),
-              fromInstance,
-            );
-            applyResult(d, s, fromInstance);
-            continue;
-          }
+        // The view is loaded here (gated above), so a hit is possible — gate on
+        // the instanceId hash: if it hasn't settled, wait (this effect re-runs
+        // when it does) rather than fetch-then-miss. The hash settles in ~1ms, so
+        // the gate is imperceptible. Fail-safe: any miss falls through to fetch.
+        if (iid === undefined) continue; // hash not settled yet — re-runs on settle
+        const fromInstance = iid
+          ? dafViewPieceResult(d.id, iid, props.tractate, props.page, curLang)
+          : undefined;
+        if (fromInstance) {
+          runResultCache.set(
+            runCacheKey(d.id, props.tractate, props.page, props.instanceKey, curLang),
+            fromInstance,
+          );
+          applyResult(d, s, fromInstance);
+          continue;
         }
         const cur = runs()[d.id];
         if (cur && cur.kind !== 'idle' && cur.stamp === s) continue;
