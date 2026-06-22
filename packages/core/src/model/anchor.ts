@@ -48,6 +48,21 @@ export function isRange(p: AnchorPoint | AnchorRange): p is AnchorRange {
   return 'start' in p;
 }
 
+/**
+ * The anchor for a piece that sits on an ENTITY spine (`entity:rabbi`,
+ * `entity:place`) rather than a text position — a one-level address whose single
+ * path component is the entity id. `precision:'unit'` (the whole entity is the
+ * addressable unit; entity spines are unordered, so there is no finer grain).
+ *
+ * `id` MUST be the canonical identity slug (cache/keys `slugId`) so the anchor's
+ * id is byte-identical to the global enrichment's cache `instance_id` — the
+ * invariant that lets these pieces be expressed on a spine WITHOUT changing any
+ * cache key. `via` records how the placement was earned (defaults to 'entity').
+ */
+export function entityAnchor(spineId: string, id: string, via = 'entity'): Anchor {
+  return { spine: spineId, span: [{ path: [id] }], precision: 'unit', via };
+}
+
 const PRECISION_RANK: Record<AnchorPrecision, number> = {
   token: 5,
   segment: 4,

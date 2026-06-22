@@ -174,7 +174,13 @@ export async function instanceIdOf(markInput: unknown): Promise<string> {
   return await shortHash(JSON.stringify(markInput ?? null));
 }
 
-function slugId(s: string): string {
+/** The canonical identity slug for a mark instance / entity. This is the SAME
+ *  function {@link instanceIdOf} applies to a rabbi/place name to derive the
+ *  cache `instance_id` (e.g. "Rav Huna" → "rav_huna"), so it is also the path
+ *  component an `entity:*` spine address uses — keeping an entity anchor's id
+ *  byte-identical to the cache key's instance_id (see model/anchor.entityAnchor
+ *  and the talmud spine registry). Exported so there is ONE slug, not two. */
+export function slugId(s: string): string {
   return s
     .toLowerCase()
     .replace(/[^a-z0-9._-]+/g, '_')
