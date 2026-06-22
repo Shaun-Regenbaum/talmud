@@ -5,8 +5,9 @@
  * node icon, and the small formatters. One source of truth so the two surfaces
  * can never drift in their graph maths or visuals.
  */
-import { fmtCost, fmtMs } from '@corpus/ui/format';
+
 import { For, type JSX, Match, Show, Switch } from 'solid-js';
+import { fmtCost, fmtMs } from './format.ts';
 
 // Display formatters now live in @corpus/ui (single source of truth, shared
 // with tanach's inspect panel); re-exported so existing run-tree imports keep
