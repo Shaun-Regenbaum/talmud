@@ -17,6 +17,7 @@
  * falls back to a generic key/value dump of the parsed JSON.
  */
 
+import { instanceIdOf } from '@corpus/core/cache/keys';
 import {
   createEffect,
   createResource,
@@ -29,7 +30,7 @@ import {
 } from 'solid-js';
 import { trackAI } from './aiActivity';
 import { devModeActive } from './DevModeShelf';
-import { dafViewWholeDafResult } from './dafViewStore';
+import { dafViewLoaded, dafViewPieceResult, dafViewWholeDafResult } from './dafViewStore';
 import {
   isAbort,
   isPausedBody,
@@ -527,6 +528,17 @@ export default function MarkEnrichmentCards(props: Props) {
     controller.signal.addEventListener('abort', onAbort, { once: true });
   };
 
+  // Server instance id (the `instanceIdOf` hash the daf-view stores per-instance
+  // pieces under) for THIS card's instance. Computed async (recomputed if the
+  // instance changes); '' on the rare hash error so the gate below still
+  // resolves and the card fetches. `undefined` = not settled yet.
+  const [instIid, setInstIid] = createSignal<string | undefined>(undefined);
+  createEffect(() => {
+    const inst = props.instance;
+    setInstIid(undefined);
+    void instanceIdOf(inst).then(setInstIid, () => setInstIid(''));
+  });
+
   createEffect(() => {
     const list = matching();
     if (list.length === 0) return;
@@ -535,6 +547,11 @@ export default function MarkEnrichmentCards(props: Props) {
     // language the request was actually fired with (not whatever lang is active
     // when the promise resolves, which may have flipped mid-flight).
     const curLang = lang();
+    // Tracked reads (outside untrack) so this effect re-runs when the daf-view
+    // loads or the instance-id hash settles — that's what lets per-instance
+    // cards render from the view instead of fetching.
+    const iid = instIid();
+    const viewReady = dafViewLoaded(props.tractate, props.page, curLang);
     const controller = new AbortController();
     onCleanup(() => controller.abort());
     untrack(() => {
@@ -558,6 +575,26 @@ export default function MarkEnrichmentCards(props: Props) {
           );
           applyResult(d, s, fromView);
           continue;
+        }
+        // Third tier: PER-INSTANCE daf-view pieces (keyed producerId::instanceId).
+        // Only when the view is loaded (a hit is possible) — and gate on the
+        // instanceId hash: if it hasn't settled, wait (this effect re-runs when it
+        // does) rather than fetch-then-miss. The hash settles in ~1ms, so the gate
+        // is imperceptible; if the view isn't loaded we skip the gate and fetch as
+        // today. Fail-safe: any miss falls through to the fetch below.
+        if (viewReady) {
+          if (iid === undefined) continue; // hash not settled yet — re-runs on settle
+          const fromInstance = iid
+            ? dafViewPieceResult(d.id, iid, props.tractate, props.page, curLang)
+            : undefined;
+          if (fromInstance) {
+            runResultCache.set(
+              runCacheKey(d.id, props.tractate, props.page, props.instanceKey, curLang),
+              fromInstance,
+            );
+            applyResult(d, s, fromInstance);
+            continue;
+          }
         }
         const cur = runs()[d.id];
         if (cur && cur.kind !== 'idle' && cur.stamp === s) continue;

@@ -97,3 +97,31 @@ export function dafViewWholeDafResult(
   const piece = v.pieces[producerId];
   return piece ? synthRunResult(piece) : undefined;
 }
+
+/** True once the view has loaded for THIS daf+lang (reactive: reads the view
+ *  signal). Per-instance card priming gates on this — only worth computing the
+ *  instanceId hash + checking the view when a hit is actually possible. */
+export function dafViewLoaded(tractate: string, page: string, lang: 'en' | 'he'): boolean {
+  const v = view();
+  return !!v && v.key === dafKey(tractate, page, lang);
+}
+
+/**
+ * A synthetic RunResult for a PER-INSTANCE piece, keyed `producerId::instanceId`
+ * (the server's pieceKey for per-instance enrichments). `instanceId` is the
+ * caller's `instanceIdOf(instance)` (the same async hash the server keyed by).
+ * Undefined → not loaded for this daf, or this instance isn't cached → the
+ * caller fetches as today.
+ */
+export function dafViewPieceResult(
+  producerId: string,
+  instanceId: string,
+  tractate: string,
+  page: string,
+  lang: 'en' | 'he',
+): RunResult | undefined {
+  const v = view();
+  if (!v || v.key !== dafKey(tractate, page, lang)) return undefined;
+  const piece = v.pieces[`${producerId}::${instanceId}`];
+  return piece ? synthRunResult(piece) : undefined;
+}
