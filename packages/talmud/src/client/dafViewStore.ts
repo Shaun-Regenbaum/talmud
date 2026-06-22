@@ -15,6 +15,7 @@
  * or lacks a piece, the caller just fetches as before — no behaviour change.
  */
 
+import { instanceIdOf } from '@corpus/core/cache/keys';
 import { createSignal } from 'solid-js';
 import type { RunResult } from './enrichmentQueue';
 
@@ -49,9 +50,15 @@ const [view, setView] = createSignal<{ key: string; pieces: Record<string, DafVi
 // navigated away from can never clobber the view of the daf now on screen.
 let latestKey = '';
 
+// In-flight load promise per daf key, so concurrent callers (DafViewer's open
+// effect + the prefetcher) share ONE fetch instead of racing two. Cleared once
+// the load settles.
+const inflight = new Map<string, Promise<void>>();
+
 /**
  * Load the materialized view for a daf and stash it. Called as early as possible
- * on daf open so it's ready by the time a card would otherwise fetch.
+ * on daf open so it's ready by the time a card would otherwise fetch. Concurrent
+ * calls for the same daf share one in-flight fetch.
  *
  * The signal ALWAYS settles — on success with the pieces, on failure/timeout
  * with an empty view. That matters because cards gate their `/api/run` on
@@ -59,12 +66,24 @@ let latestKey = '';
  * fall through and fetch as before) instead of hanging forever. Fail-safe: an
  * empty view just means every lookup misses and the card fetches per-piece.
  */
-export async function loadDafView(
+export function loadDafView(tractate: string, page: string, lang: 'en' | 'he'): Promise<void> {
+  const key = dafKey(tractate, page, lang);
+  const existing = inflight.get(key);
+  if (existing) return existing;
+  const run = doLoadDafView(key, tractate, page, lang);
+  inflight.set(key, run);
+  void run.finally(() => {
+    if (inflight.get(key) === run) inflight.delete(key);
+  });
+  return run;
+}
+
+async function doLoadDafView(
+  key: string,
   tractate: string,
   page: string,
   lang: 'en' | 'he',
 ): Promise<void> {
-  const key = dafKey(tractate, page, lang);
   latestKey = key;
   // Only write the signal if THIS is still the daf the reader is on.
   const settle = (pieces: Record<string, DafViewPiece>) => {
@@ -88,6 +107,41 @@ export async function loadDafView(
   } finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * Resolve once the view for this daf+lang has SETTLED (loaded, or failed-empty).
+ * Short-circuits if it's already settled; otherwise shares the in-flight load.
+ * The prefetcher awaits this so it can consult the view before deciding what to
+ * warm. Fail-safe: on failure the view is empty, so callers just proceed.
+ */
+export function ensureDafView(tractate: string, page: string, lang: 'en' | 'he'): Promise<void> {
+  const key = dafKey(tractate, page, lang);
+  const v = view();
+  if (v && v.key === key) return Promise.resolve();
+  return loadDafView(tractate, page, lang);
+}
+
+/**
+ * Is a piece already present in the loaded view for this daf? Checks the whole-daf
+ * key (bare producer id) first, then the per-instance key (`producerId::iid`,
+ * where iid is `instanceIdOf(instance)` — the same hash the server keyed by).
+ * Used by the prefetcher to SKIP warming pieces the view already serves (so a
+ * warm daf no longer fans out N redundant /api/run). Returns false when the view
+ * isn't loaded for this daf — caller proceeds as before (fail-safe).
+ */
+export async function dafViewHas(
+  producerId: string,
+  instance: unknown,
+  tractate: string,
+  page: string,
+  lang: 'en' | 'he',
+): Promise<boolean> {
+  const v = view();
+  if (!v || v.key !== dafKey(tractate, page, lang)) return false;
+  if (v.pieces[producerId]) return true; // whole-daf piece
+  const iid = await instanceIdOf(instance);
+  return !!v.pieces[`${producerId}::${iid}`];
 }
 
 /** Build a faithful RunResult from a stored view piece (cache_hit, so the card

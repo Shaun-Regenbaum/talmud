@@ -1,9 +1,12 @@
+import { instanceIdOf } from '@corpus/core/cache/keys';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   type DafViewPiece,
+  dafViewHas,
   dafViewLoaded,
   dafViewPieceResult,
   dafViewWholeDafResult,
+  ensureDafView,
   loadDafView,
   synthRunResult,
 } from '../src/client/dafViewStore';
@@ -103,6 +106,77 @@ describe('loadDafView fail-safe settle', () => {
     );
     await loadDafView('Berakhot', '4b', 'en');
     expect(dafViewLoaded('Berakhot', '4b', 'en')).toBe(true);
+  });
+});
+
+// The prefetcher consults dafViewHas to SKIP warming pieces the view already
+// serves — the fix that collapses the warm-daf /api/run fan-out. It must match
+// both the whole-daf key (bare id) and the per-instance key (id::instanceIdOf).
+describe('dafViewHas (prefetch skip predicate)', () => {
+  function stubFetch(payload: unknown) {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify(payload), { status: 200 })),
+    );
+  }
+
+  it('true for a whole-daf piece already in the view', async () => {
+    stubFetch({ pieces: { 'tidbit.essay': piece({ producerId: 'tidbit.essay' }) } });
+    await loadDafView('Chullin', '52a', 'en');
+    expect(await dafViewHas('tidbit.essay', { fields: {} }, 'Chullin', '52a', 'en')).toBe(true);
+  });
+
+  it('true for a per-instance piece keyed by the real instanceIdOf hash', async () => {
+    const inst = { fields: { name: 'Rabbi Akiva' } };
+    const iid = await instanceIdOf(inst); // the same hash the server keys by
+    stubFetch({
+      pieces: { [`rabbi.synthesis::${iid}`]: piece({ producerId: 'rabbi.synthesis' }) },
+    });
+    await loadDafView('Chullin', '52a', 'en');
+    expect(await dafViewHas('rabbi.synthesis', inst, 'Chullin', '52a', 'en')).toBe(true);
+  });
+
+  it('false when the piece is absent (cold) — prefetcher warms it', async () => {
+    stubFetch({ pieces: { 'tidbit.essay': piece({ producerId: 'tidbit.essay' }) } });
+    await loadDafView('Chullin', '52a', 'en');
+    expect(
+      await dafViewHas('halacha.synthesis', { fields: { topic: 'x' } }, 'Chullin', '52a', 'en'),
+    ).toBe(false);
+  });
+
+  it('false when no view is loaded for this daf (fail-safe: prefetcher proceeds)', async () => {
+    expect(await dafViewHas('tidbit.essay', { fields: {} }, 'Sanhedrin', '90a', 'en')).toBe(false);
+  });
+});
+
+describe('ensureDafView', () => {
+  it('shares ONE fetch across concurrent callers (DafViewer + prefetcher)', async () => {
+    const spy = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ pieces: { tidbit: piece({ producerId: 'tidbit' }) } }), {
+          status: 200,
+        }),
+    );
+    vi.stubGlobal('fetch', spy);
+    await Promise.all([
+      ensureDafView('Nazir', '2a', 'en'),
+      ensureDafView('Nazir', '2a', 'en'),
+      loadDafView('Nazir', '2a', 'en'),
+    ]);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not re-fetch once the view is already loaded', async () => {
+    const spy = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ pieces: { tidbit: piece({ producerId: 'tidbit' }) } }), {
+          status: 200,
+        }),
+    );
+    vi.stubGlobal('fetch', spy);
+    await loadDafView('Nazir', '3a', 'en');
+    await ensureDafView('Nazir', '3a', 'en'); // already settled → no fetch
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 });
 

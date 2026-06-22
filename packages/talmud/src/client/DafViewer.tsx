@@ -806,15 +806,17 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   createEffect(() => {
     const t = tractate();
     const p = page();
+    const l = lang();
     const statuses = markStatuses();
     const relevant = statuses.filter((s) => s.kind !== 'idle');
     if (relevant.length === 0) return; // no marks enabled / loaded yet
     if (relevant.some((s) => s.kind === 'loading')) return; // anchors not done
     const runs = markRunsByMarkId();
     // The Overview is promoted to readers, so warm its flow on every daf load
-    // (cache-respecting — a hit on already-warmed dapim costs nothing).
+    // (cache-respecting — a hit on already-warmed dapim costs nothing). Keyed on
+    // lang too, so an EN↔HE switch re-evaluates against the view for that lang.
     const sig =
-      `${t}:${p}:ov|` +
+      `${t}:${p}:${l}:ov|` +
       Object.entries(runs)
         .map(
           ([m, r]) =>
@@ -824,7 +826,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         .join(',');
     if (sig === lastPrefetchSig) return;
     lastPrefetchSig = sig;
-    prefetchDaf(t, p, runs, { overview: true });
+    prefetchDaf(t, p, runs, { overview: true, lang: l });
   });
 
   // Comprehensively pre-warm the adjacent dapim on idle so navigating either
