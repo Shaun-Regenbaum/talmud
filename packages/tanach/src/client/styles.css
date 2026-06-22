@@ -356,6 +356,21 @@ body {
    see inspector.css. (.inspect-link below is tanach-only chrome.) */
 /* The /usage page is the shared @corpus/ui UsagePage — see usage.css. */
 
+/* the build-provenance DAG opened under a clicked waterfall row (the DAG canvas
+   itself is the shared @corpus/ui RunTreeDag) */
+.inspect-dag {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.inspect-dag-head {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
 /* this-week's-parsha button + EN/HE language toggle (like the Talmud reader) */
 .parsha-btn {
   font-family: inherit;

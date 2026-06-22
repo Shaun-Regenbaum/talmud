@@ -29,6 +29,7 @@
     "./LoadProgress": "./src/LoadProgress.tsx",
     "./InspectorRow": "./src/InspectorRow.tsx",
     "./RunTree": "./src/RunTree.tsx",
+    "./RunTreeDag": "./src/RunTreeDag.tsx",
     "./RunWaterfall": "./src/RunWaterfall.tsx",
     "./UsagePage": "./src/UsagePage.tsx"
   },

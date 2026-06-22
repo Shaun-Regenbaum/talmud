@@ -26,6 +26,7 @@
 
 import type { Producer } from '@corpus/core/model/producer';
 import type { EnrichmentRunDef, MarkRunDef } from '@corpus/core/run/run-producer';
+import type { ProducerDef } from '@corpus/core/telemetry/runtree';
 import { EVENTS_SCHEMA, EVENTS_SYSTEM, EVENTS_USER_TEMPLATE } from './events.ts';
 import { GEOGRAPHY_SCHEMA, GEOGRAPHY_SYSTEM, GEOGRAPHY_USER_TEMPLATE } from './geography.ts';
 import {
@@ -304,6 +305,37 @@ export interface TanachEnrichmentDef extends EnrichmentRunDef {
 
 function sourceDeps(p: Producer): string[] {
   return p.inputs.flatMap((i) => ('source' in i ? [i.source] : []));
+}
+
+/** EVERY input that is a build dependency, as a dependency id: a source name, or
+ *  the producer it consumes. Unlike sourceDeps this keeps `{ producer }` inputs,
+ *  so a producer→producer dependency becomes a real DAG edge (and flips
+ *  isExpandable) instead of being silently dropped — the id resolves to a
+ *  producer node when it matches a registry id, else a source leaf. `{ spine }`
+ *  inputs are the addressing space, not a built input, so they are not edges. */
+export function inputDeps(p: Pick<Producer, 'inputs'>): string[] {
+  return p.inputs.flatMap((i) =>
+    'source' in i ? [i.source] : 'producer' in i ? [i.producer] : [],
+  );
+}
+
+/**
+ * Project the registry into the minimal `ProducerDef[]` the core run-tree
+ * derivation (`@corpus/core/telemetry/runtree` buildRunTree / isExpandable)
+ * consumes: id + label + producerKind + the dependency ids (ALL inputs, via
+ * inputDeps). Every tanach producer's inputs are SOURCES today (none consumes
+ * another producer), so `isExpandable` derives `false` for all of them — the
+ * inspector's lack of a DAG drill-down is a property of THIS registry, not a
+ * hard-coded flag. The day a tanach producer takes another producer as input,
+ * inputDeps surfaces that edge and it flips on its own.
+ */
+export function tanachProducerDefs(): ProducerDef[] {
+  return Object.values(TANACH_PRODUCERS).map((p) => ({
+    id: p.id,
+    label: p.label,
+    dependencies: inputDeps(p),
+    producerKind: p.kind.startsWith('mark') ? 'mark' : 'enrichment',
+  }));
 }
 
 export function markRunDefOf(id: 'events'): TanachMarkDef {
