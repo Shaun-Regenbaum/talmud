@@ -18,7 +18,8 @@
     "./sefaria/*": "./src/sefaria/*.ts",
     "./model/*": "./src/model/*.ts",
     "./store/*": "./src/store/*.ts",
-    "./run/*": "./src/run/*.ts"
+    "./run/*": "./src/run/*.ts",
+    "./telemetry/*": "./src/telemetry/*.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260511.1",

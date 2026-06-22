@@ -6,72 +6,25 @@
  * can never drift in their graph maths or visuals.
  */
 
+import type { Authority, RunTree, Staleness, TreeNode } from '@corpus/core/telemetry/types';
 import { For, type JSX, Match, Show, Switch } from 'solid-js';
 import { fmtCost, fmtMs } from './format.ts';
 
+// The run-tree DATA shapes are the canonical model in @corpus/core/telemetry
+// (both apps derive them); re-exported here so existing @corpus/ui/RunTree
+// consumers keep resolving. The render below uses the imported types.
+export type {
+  Authority,
+  RunResult,
+  RunTree,
+  Staleness,
+  TreeNode,
+  TreeNodeInput,
+} from '@corpus/core/telemetry/types';
 // Display formatters now live in @corpus/ui (single source of truth, shared
 // with tanach's inspect panel); re-exported so existing run-tree imports keep
 // resolving. The format is unchanged.
 export { fmtCost, fmtMs };
-
-export type Authority = 'human' | 'rule' | 'ai';
-export type Staleness = 'fresh' | 'stale-recipe' | 'stale-inputs' | 'unknown';
-/** Per-input freshness from the worker: did this dependency's content hash
- *  move since the node was generated? */
-export interface TreeNodeInput {
-  sourceKey: string;
-  status: 'same' | 'changed' | 'unknown';
-}
-export interface TreeNode {
-  id: string;
-  label: string;
-  kind: 'source' | 'llm' | 'computed';
-  producer?: 'mark' | 'enrichment';
-  model?: string;
-  cached: boolean;
-  cold_ms: number | null;
-  cost: number | null;
-  tokens: number | null;
-  /** Per-instance producers report the warmed fraction; absent on whole-daf /
-   *  single-entry nodes (which carry one cached entry, not a per-instance set). */
-  instances?: { total: number; cached: number };
-  // additive provenance/staleness fields (absent on older payloads + source
-  // leaves; null when nothing is cached) — every consumer must tolerate absence
-  authority?: Authority | null;
-  staleness?: Staleness | null;
-  createdAt?: string | null;
-  recipeHash?: string | null;
-  inputs?: TreeNodeInput[];
-  inputsChanged?: string[];
-}
-export interface RunTree {
-  root: string;
-  tractate: string;
-  page: string;
-  lang: string;
-  nodes: Record<string, TreeNode>;
-  edges: Array<[string, string]>;
-  /** For a per-instance ROOT opened without a pinned instance: its instance list
-   *  so the dock can offer a picker (each chip re-opens the piece with that
-   *  instance to inspect its content). Absent on whole-daf roots. */
-  rootInstances?: Array<{ label: string; instance: unknown }>;
-  totals: {
-    count: number;
-    llm: number;
-    source: number;
-    cached: number;
-    cold_ms: number;
-    cost: number;
-  };
-}
-export interface RunResult {
-  content?: string;
-  model?: string;
-  usage?: { total_tokens?: number; cost?: number } | null;
-  elapsed_ms?: number;
-  cache_hit?: boolean;
-  resolved?: { system_prompt: string; user_prompt: string };
-}
 
 export const prettifyId = (id: string): string =>
   id
