@@ -83,8 +83,10 @@ describe('fetchWorkerOutcomes', () => {
 });
 
 describe('checkWorkerHealthAndAlert', () => {
-  it('emails once when an isolate-fatal outcome appears, then dedupes within the hour', async () => {
+  it('emails once per day (deduped within the day, re-alerts the next day)', async () => {
     const sent: unknown[] = [];
+    // One env → its CACHE (KV) persists across calls, so the dedupe key set on
+    // the first alert is seen by later calls.
     const { env, fetchStub } = envWith({
       groups: [
         { sum: { requests: 500 }, dimensions: { status: 'success' } },
@@ -93,11 +95,14 @@ describe('checkWorkerHealthAndAlert', () => {
       email: (m) => sent.push(m),
     });
     vi.stubGlobal('fetch', fetchStub);
-    const now = 1_000_000_000_000;
-    await checkWorkerHealthAndAlert(env, now);
-    await checkWorkerHealthAndAlert(env, now + 60_000); // same hour bucket
-    vi.unstubAllGlobals();
+    const day = 86_400_000;
+    const t0 = 1_000_000_000_000;
+    await checkWorkerHealthAndAlert(env, t0);
+    await checkWorkerHealthAndAlert(env, t0 + 3_600_000); // +1h, same day → deduped
     expect(sent).toHaveLength(1);
+    await checkWorkerHealthAndAlert(env, t0 + day); // next day → re-alerts
+    vi.unstubAllGlobals();
+    expect(sent).toHaveLength(2);
     expect((sent[0] as { subject: string }).subject).toContain('isolate-fatal');
   });
 
