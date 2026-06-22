@@ -19,7 +19,7 @@ import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { isBook } from '../lib/books.ts';
 import { lookupPlace } from './gazetteer.ts';
-import { chapterRuns } from './inspect.ts';
+import { chapterRuns, chapterRunTree } from './inspect.ts';
 import type { EventSection } from './producers/events.ts';
 import { translateHebrew } from './producers/translate.ts';
 import type { TanachEnv, TanachRunCtx } from './run-ports.ts';
@@ -606,6 +606,25 @@ app.get('/api/chapter-runs/:book/:chapter', async (c) => {
   if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
   if (!/^\d+$/.test(chapter)) return c.json({ error: `Bad chapter: ${chapter}` }, 400);
   return c.json(await chapterRuns(c.env.CACHE, book, chapter));
+});
+
+// GET /api/run-tree/:book/:chapter/:id[?inst=…&lang=…] — the build PROVENANCE of
+// ONE piece as its forward dependency DAG, derived by core buildRunTree over the
+// tanach producer registry and draped with the root's cached telemetry. The same
+// shape talmud's /api/run-tree returns, so both feed the shared @corpus/ui DAG.
+// Read-only; a piece with nothing cached reports cached:false. `inst` is the raw
+// instance tail (verse / range) for a per-instance piece.
+app.get('/api/run-tree/:book/:chapter/:id', async (c) => {
+  const book = c.req.param('book');
+  const chapter = c.req.param('chapter');
+  const id = c.req.param('id');
+  if (!isBook(book)) return c.json({ error: `Unknown book: ${book}` }, 400);
+  if (!/^\d+$/.test(chapter)) return c.json({ error: `Bad chapter: ${chapter}` }, 400);
+  const inst = c.req.query('inst') ?? null;
+  const lang = c.req.query('lang') === 'he' ? 'he' : 'en';
+  const tree = await chapterRunTree(c.env.CACHE, book, chapter, id, inst, lang);
+  if (!tree) return c.json({ error: `Unknown producer: ${id}` }, 404);
+  return c.json(tree);
 });
 
 // Everything else: serve the built SPA (static assets + index.html fallback).

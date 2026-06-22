@@ -975,6 +975,7 @@ export function App(): JSX.Element {
         <Inspector
           book={loc().book}
           chapter={loc().chapter}
+          lang={loc().lang}
           onClose={() => setInspectOpen(false)}
         />
       </Show>
