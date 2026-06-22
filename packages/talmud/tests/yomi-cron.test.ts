@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { JobMessage } from '../src/worker/types';
+import type { DafWarmParams } from '../src/worker/workflow-warm';
 import { runYomiWarmCron } from '../src/worker/yomi-cron';
 
 // Sefaria's calendar shape for "tomorrow is Berakhot 12".
@@ -19,6 +20,18 @@ function collectJobs() {
   return { sent, queue };
 }
 
+function collectWorkflows() {
+  const created: DafWarmParams[] = [];
+  let n = 0;
+  const wf = {
+    create: async ({ params }: { params: DafWarmParams }) => {
+      created.push(params);
+      return { id: `wf-${n++}` };
+    },
+  } as unknown as Workflow<DafWarmParams>;
+  return { created, wf };
+}
+
 describe('runYomiWarmCron', () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>;
 
@@ -34,6 +47,38 @@ describe('runYomiWarmCron', () => {
 
   afterEach(() => {
     fetchSpy.mockRestore();
+  });
+
+  // The primary path: a bound Workflow warms each daf via memory-safe per-step
+  // invocations instead of a queue fan-out of mark + deep-warm jobs.
+  describe('with the DafWarmWorkflow bound (primary path)', () => {
+    it('triggers ONE Workflow per (amud, language) and NO mark/deep-warm queue jobs', async () => {
+      const { sent, queue } = collectJobs();
+      const { created, wf } = collectWorkflows();
+      await runYomiWarmCron({ ENRICHMENT_QUEUE: queue, DAF_WARM_WORKFLOW: wf });
+
+      // 2 amudim x 2 languages = 4 Workflow instances.
+      expect(created.length).toBe(4);
+      expect(created.map((p) => `${p.page}:${p.lang}`).sort()).toEqual([
+        '12a:en',
+        '12a:he',
+        '12b:en',
+        '12b:he',
+      ]);
+      // The heavy generation no longer goes through the queue.
+      expect(sent.filter((j) => j.mark_id).length).toBe(0);
+      expect(sent.filter((j) => j.warm_deep).length).toBe(0);
+    });
+
+    it('STILL enqueues rabbi.observations (daf-level reverse-index the Workflow does not warm)', async () => {
+      const { sent, queue } = collectJobs();
+      const { wf } = collectWorkflows();
+      await runYomiWarmCron({ ENRICHMENT_QUEUE: queue, DAF_WARM_WORKFLOW: wf });
+
+      const obs = sent.filter((j) => j.enrichment_id === 'rabbi.observations');
+      expect(obs.map((j) => j.page).sort()).toEqual(['12a', '12b']);
+      expect(obs.every((j) => (j.mark_input as { id?: string })?.id === 'daf')).toBe(true);
+    });
   });
 
   it('deep-warms the prose surface in BOTH languages (en + he parity)', async () => {
