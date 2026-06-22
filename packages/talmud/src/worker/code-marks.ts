@@ -2072,6 +2072,10 @@ export const CODE_ENRICHMENTS: EnrichmentDefinition[] = [
     target_mark: 'rabbi',
     mode: 'augment-content',
     scope: 'local',
+    // Lazy: fetched on-demand the first time a reader opens an ambiguous-homonym
+    // card (never in a warm surface), so an uncached pin must not mark the daf's
+    // view incomplete and block its hard edge cache.
+    demand_driven: true,
     extractor: {
       kind: 'llm',
       // Placeholders — the real call is made in computeRabbiPin (worker/index.ts);

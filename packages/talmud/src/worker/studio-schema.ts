@@ -461,6 +461,14 @@ export interface EnrichmentDefinition {
    *  MAX_LINT_ATTEMPTS). NOT part of def_hash / the cache key. */
   passes?: string[];
 
+  /** This enrichment is computed only ON DEMAND (when a reader opens the specific
+   *  card), never proactively warmed — e.g. the lazy homonym pin, or a
+   *  user-question-parameterized `.qa`. Such pieces must NOT count toward a daf's
+   *  materialized-view completeness (an uncached one is expected, not "cold"), so
+   *  a fully-warmed daf can still earn the hard edge cache. NOT part of def_hash /
+   *  the cache key. */
+  demand_driven?: boolean;
+
   extractor: Extractor;
 
   status: MarkStatus;
