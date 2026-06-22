@@ -8,10 +8,16 @@ import '@corpus/ui/geomap.css';
 import '@corpus/ui/loadprogress.css';
 import '@corpus/ui/inspector.css';
 import '@corpus/ui/usage.css';
+import { AlignPage } from './AlignPage.tsx';
 import { App } from './App.tsx';
 import { UsagePage } from './UsagePage.tsx';
 import './styles.css';
 
 const root = document.getElementById('root');
-const isUsage = window.location.pathname.replace(/\/+$/, '') === '/usage';
-if (root) render(() => (isUsage ? <UsagePage /> : <App />), root);
+const path = window.location.pathname.replace(/\/+$/, '');
+const page = () => {
+  if (path === '/usage') return <UsagePage />;
+  if (path === '/align') return <AlignPage />;
+  return <App />;
+};
+if (root) render(page, root);
