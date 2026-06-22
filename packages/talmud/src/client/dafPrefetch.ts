@@ -21,6 +21,7 @@
  */
 
 import { createSignal } from 'solid-js';
+import { dafViewHas, ensureDafView } from './dafViewStore';
 import { isAbort, isPausedError } from './enrichmentQueue';
 import { enqueueEnrichmentRun } from './MarkEnrichmentCards';
 
@@ -146,9 +147,10 @@ export function prefetchDaf(
   tractate: string,
   page: string,
   marks: Record<string, MarkRun | undefined>,
-  opts?: { overview?: boolean },
+  opts?: { overview?: boolean; lang?: 'en' | 'he' },
 ): void {
   const dafKey = `${tractate}:${page}`;
+  const lang = opts?.lang ?? 'en';
   const myGen = ++gen;
   // Supersede any previous cohort: abort it so its tasks vacate the shared
   // queue, then arm a fresh controller for this daf's tasks.
@@ -226,59 +228,78 @@ export function prefetchDaf(
   });
   if (tasks.length === 0) return;
 
-  for (const t of tasks) {
-    // Resolve with the error (or null) so we can classify the outcome — a card
-    // still generates on open, but a budget pause or a wave of failures should
-    // surface in the bar instead of filling silently.
-    void enqueueEnrichmentRun(
-      t.enrichmentId,
-      tractate,
-      page,
-      t.instance,
-      t.instanceKey,
-      controller.signal,
-    )
-      .then(
-        () => null,
-        (err: unknown) => err,
-      )
-      .then((err: unknown) => {
-        if (myGen !== gen || controller.signal.aborted || isAbort(err)) return; // superseded / navigated away
-        const paused = isPausedError(err);
-        const failed = err != null && !paused;
-        setProgress((p) => {
-          if (p.dafKey !== dafKey) return p;
-          const done = p.done + 1;
-          return {
-            ...p,
-            dafKey,
-            total: p.total,
-            done,
-            paused: p.paused || paused,
-            failed: p.failed + (failed ? 1 : 0),
-            currentLabel: done < p.total ? (FRIENDLY[t.enrichmentId] ?? 'dafLoad.sections') : null,
-          };
-        });
-      });
-  }
+  // Bump the bar for one finished (or skipped-because-already-warm) task.
+  const markDone = (enrichmentId: string, paused: boolean, failed: boolean) => {
+    setProgress((p) => {
+      if (p.dafKey !== dafKey) return p;
+      const done = p.done + 1;
+      return {
+        ...p,
+        dafKey,
+        total: p.total,
+        done,
+        paused: p.paused || paused,
+        failed: p.failed + (failed ? 1 : 0),
+        currentLabel: done < p.total ? (FRIENDLY[enrichmentId] ?? 'dafLoad.sections') : null,
+      };
+    });
+  };
 
-  // Reverse-index capture (rabbi.observations) — one daf-level run, fired LAST
-  // and deliberately NOT counted in the visible progress bar: it's an internal
-  // deterministic collect step, not a card the reader opens. Enqueued after the
-  // synthesis tasks so it sits at the back of the LOW queue and runs once they
-  // (incl. rabbi.location, which it reads from cache for the high-confidence
-  // place tier) have landed. Correctness doesn't depend on ordering — it pulls
-  // its mark deps in regardless. mark_input { id: 'daf' } shares the canonical
-  // daf-level cache key with the cron path. Only when the daf has rabbis.
-  const rabbiParsed = marks.rabbi?.parsed as { instances?: MarkInstance[] } | undefined;
-  if (Array.isArray(rabbiParsed?.instances) && rabbiParsed.instances.length > 0) {
-    void enqueueEnrichmentRun(
-      'rabbi.observations',
-      tractate,
-      page,
-      { id: 'daf' },
-      'rabbi.observations:daf',
-      controller.signal,
-    ).catch(() => undefined);
-  }
+  // Warm only what the materialized view doesn't already serve. We wait for the
+  // view to settle first (one fetch, shared with DafViewer's open), then for each
+  // task: if the view already has the piece, count it done and skip the /api/run
+  // (the card renders it from the view) — on a warm daf that's ALL of them, so
+  // the old N-wide fan-out collapses to ~zero. A miss (cold daf, or view failed
+  // to load) enqueues as before. Generation/abort guards drop a superseded daf.
+  void (async () => {
+    await ensureDafView(tractate, page, lang);
+    if (myGen !== gen || controller.signal.aborted) return;
+    for (const t of tasks) {
+      if (myGen !== gen || controller.signal.aborted) return;
+      if (await dafViewHas(t.enrichmentId, t.instance, tractate, page, lang)) {
+        markDone(t.enrichmentId, false, false); // already warm — no request
+        continue;
+      }
+      // Resolve with the error (or null) so we can classify the outcome — a card
+      // still generates on open, but a budget pause or a wave of failures should
+      // surface in the bar instead of filling silently.
+      void enqueueEnrichmentRun(
+        t.enrichmentId,
+        tractate,
+        page,
+        t.instance,
+        t.instanceKey,
+        controller.signal,
+      )
+        .then(
+          () => null,
+          (err: unknown) => err,
+        )
+        .then((err: unknown) => {
+          if (myGen !== gen || controller.signal.aborted || isAbort(err)) return; // superseded / navigated away
+          const paused = isPausedError(err);
+          const failed = err != null && !paused;
+          markDone(t.enrichmentId, paused, failed);
+        });
+    }
+
+    // Reverse-index capture (rabbi.observations) — one daf-level run, deliberately
+    // NOT counted in the visible progress bar: it's an internal deterministic
+    // collect step, not a card the reader opens. Skipped when the view already has
+    // it. mark_input { id: 'daf' } shares the canonical daf-level cache key with
+    // the cron path. Only when the daf has rabbis.
+    const rabbiParsed = marks.rabbi?.parsed as { instances?: MarkInstance[] } | undefined;
+    if (Array.isArray(rabbiParsed?.instances) && rabbiParsed.instances.length > 0) {
+      if (!(await dafViewHas('rabbi.observations', { id: 'daf' }, tractate, page, lang))) {
+        void enqueueEnrichmentRun(
+          'rabbi.observations',
+          tractate,
+          page,
+          { id: 'daf' },
+          'rabbi.observations:daf',
+          controller.signal,
+        ).catch(() => undefined);
+      }
+    }
+  })();
 }
