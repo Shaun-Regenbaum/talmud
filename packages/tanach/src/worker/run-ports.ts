@@ -49,13 +49,13 @@ import { ArtifactStore } from '@corpus/core/store/artifact-store';
 import type { StoredArtifact } from '@corpus/core/store/envelope';
 import type { ArtifactAddress, KeyTemplate, ProducerKeyInfo } from '@corpus/core/store/key-schemes';
 import { templateKeyScheme } from '@corpus/core/store/key-schemes';
+import type { UsageEntry } from '@corpus/core/telemetry/types';
 import type { TanachEnrichmentDef, TanachMarkDef } from './producers/defs.ts';
 import { enrichRunDefOf, markRunDefOf } from './producers/defs.ts';
 import type { EventSection } from './producers/events.ts';
 import { versesForPrompt } from './producers/events.ts';
 import type { SourcePassage, VerseCommentary } from './sefaria-sources.ts';
 import { asVerses, fetchPassages, fetchVerseCommentaries, sefaria } from './sefaria-sources.ts';
-import type { UsageEntry } from './usage.ts';
 import { recordUsage as recordUsageEntry } from './usage.ts';
 
 export interface TanachEnv extends LLMEnv {
@@ -506,17 +506,21 @@ const RUN_PORTS: RunProducerPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkD
   recordUsage: (rc, args) => {
     const usage = args.result.usage as LLMUsage | null | undefined;
     const model = args.result.model ?? '';
+    const billed = usage && typeof usage.cost === 'number' ? usage.cost : null;
+    // The in/out split is from the price table (the provider bills one total) —
+    // it's the content-in vs content-out proportion the usage page surfaces.
+    const { costInUsd, costOutUsd } = costSplitUsd(model, usage);
     const entry: UsageEntry = {
       ts: Date.now(),
       ref: rc.ref,
       producer: args.id,
       model,
-      in: usage?.prompt_tokens ?? 0,
-      out: usage?.completion_tokens ?? 0,
-      // Prefer the provider's BILLED cost (u.cost) when the gateway returns it —
-      // the price-table estimate can diverge (it undercounts on some models). Fall
-      // back to the estimate only when no billed figure is available.
-      cost: usage && typeof usage.cost === 'number' ? usage.cost : costUsd(model, usage),
+      tokensIn: usage?.prompt_tokens ?? 0,
+      tokensOut: usage?.completion_tokens ?? 0,
+      // Prefer the provider's BILLED cost; fall back to the price-table estimate.
+      costUsd: billed ?? costUsd(model, usage),
+      costInUsd,
+      costOutUsd,
     };
     rc.ctx.waitUntil(recordUsageEntry(rc.env.CACHE, entry));
   },

@@ -204,9 +204,10 @@ describe('fresh runs — legacy response shape + legacy prompts + envelope write
     expect(stored.provenance.producerId).toBe('events');
     expect(stored.cost.tokensIn).toBe(100);
 
-    // The usage ledger got the legacy-shaped entry.
-    const usage = JSON.parse(kv.map.get('usage:v1') ?? 'null');
-    expect(usage.byProducer.events.calls).toBe(1);
+    // The usage ledger (core telemetry shape, usage:v2) folded the call in.
+    const usage = JSON.parse(kv.map.get('usage:v2') ?? 'null');
+    expect(usage.summary.byProducer.events.calls).toBe(1);
+    expect(usage.summary.byRef['Genesis 1'].calls).toBe(1);
     expect(usage.recent[0].ref).toBe('Genesis 1');
 
     // And the envelope SERVES the next request with the LLM dead again.

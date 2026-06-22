@@ -12,6 +12,7 @@
  * the built Solid client (the ASSETS binding, SPA fallback).
  */
 
+import { costSplitUsd } from '@corpus/core/llm/pricing';
 import { flattenPieces } from '@corpus/core/sefaria/client';
 import type { StoredArtifact } from '@corpus/core/store/envelope';
 import type { Context } from 'hono';
@@ -415,9 +416,14 @@ app.get('/api/translate', async (c) => {
         ref: norm.slice(0, 40),
         producer: 'translate',
         model: result.model,
-        in: result.inTokens,
-        out: result.outTokens,
-        cost: result.costUsd,
+        tokensIn: result.inTokens,
+        tokensOut: result.outTokens,
+        costUsd: result.costUsd,
+        // Same price table that gave costUsd, split into the in/out buckets.
+        ...costSplitUsd(result.model, {
+          prompt_tokens: result.inTokens,
+          completion_tokens: result.outTokens,
+        }),
       }),
     ]).then(() => undefined),
   );

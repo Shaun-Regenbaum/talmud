@@ -18,6 +18,7 @@
     "./geomap.css": "./src/geomap.css",
     "./loadprogress.css": "./src/loadprogress.css",
     "./inspector.css": "./src/inspector.css",
+    "./usage.css": "./src/usage.css",
     "./format": "./src/format.ts",
     "./Pill": "./src/Pill.tsx",
     "./Drawer": "./src/Drawer.tsx",
@@ -28,7 +29,8 @@
     "./LoadProgress": "./src/LoadProgress.tsx",
     "./InspectorRow": "./src/InspectorRow.tsx",
     "./RunTree": "./src/RunTree.tsx",
-    "./RunWaterfall": "./src/RunWaterfall.tsx"
+    "./RunWaterfall": "./src/RunWaterfall.tsx",
+    "./UsagePage": "./src/UsagePage.tsx"
   },
   "peerDependencies": {
     "solid-js": "^1.9.0"
