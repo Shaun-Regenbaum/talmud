@@ -1,14 +1,14 @@
 /**
- * Chapter inspector — a panel listing what's cached for the open chapter and
- * what each piece cost, the tanach analogue of the talmud reader's Inspect
- * waterfall. Reads GET /api/chapter-runs/:book/:chapter (the cache is the
- * index) and renders one row per producer piece: a hit/miss dot, its label
- * (+ verse/range), generation time, and cost. Rendered in the shared <Drawer>.
+ * Chapter inspector — the build-provenance WATERFALL for the open chapter, the
+ * tanach analogue of the talmud reader's Inspect waterfall (same shared
+ * @corpus/ui/RunWaterfall renderer). Reads GET /api/chapter-runs/:book/:chapter
+ * (the cache is the index) and ranks each producer piece by cold-build time,
+ * with its cost + cache status. Rendered in the shared <Drawer>.
  */
 
 import { Drawer } from '@corpus/ui/Drawer';
-import { fmtCost, fmtMs, InspectorRow } from '@corpus/ui/InspectorRow';
-import { createResource, For, type JSX, Show } from 'solid-js';
+import { RunWaterfall, type WaterfallRow } from '@corpus/ui/RunWaterfall';
+import { createResource, type JSX, Show } from 'solid-js';
 
 interface RunRow {
   id: string;
@@ -40,6 +40,20 @@ export function Inspector(props: {
     },
   );
 
+  // The chapter's producer runs as waterfall rows. `events` is a mark; the rest
+  // are enrichments (drives the run-tree icon).
+  const rows = (): WaterfallRow[] =>
+    (runs()?.runs ?? []).map((r) => ({
+      id: `${r.id}:${r.instance ?? ''}`,
+      label: r.label,
+      instance: r.instance,
+      cached: r.cached,
+      coldMs: r.coldMs,
+      cost: r.cost,
+      tokens: r.tokens,
+      variant: r.id === 'events' ? 'mark' : 'enrichment',
+    }));
+
   return (
     <Drawer
       title={`${props.book} ${props.chapter}`}
@@ -52,26 +66,11 @@ export function Inspector(props: {
       </Show>
       <Show when={runs()}>
         {(r) => (
-          <>
-            <div class="inspect-totals">
-              {r().totals.cached}/{r().totals.count} cached · {fmtCost(r().totals.cost)} ·{' '}
-              {fmtMs(r().totals.coldMs)}
-            </div>
-            <For
-              each={r().runs}
-              fallback={<p class="comm-muted">Nothing cached yet for this chapter.</p>}
-            >
-              {(run) => (
-                <InspectorRow
-                  cached={run.cached}
-                  label={run.label}
-                  instance={run.instance}
-                  coldMs={run.coldMs}
-                  cost={run.cost}
-                />
-              )}
-            </For>
-          </>
+          <RunWaterfall
+            rows={rows()}
+            totals={r().totals}
+            emptyLabel="Nothing cached yet for this chapter."
+          />
         )}
       </Show>
     </Drawer>
