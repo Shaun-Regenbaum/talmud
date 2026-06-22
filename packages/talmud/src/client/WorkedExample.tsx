@@ -1,9 +1,9 @@
 /**
- * "Show, don't tell": the four primitives demonstrated on a real daf. The
- * reader steps spine -> anchor -> artifact -> producer and each step layers
- * onto the SAME spine — rendered as the daf's sections (titled cards, a shorter
- * cousin of the #spine statement view). Click a section to anchor it; the
- * chosen section IS the artifact (a real `argument` mark instance).
+ * "Show, don't tell": the four primitives demonstrated on a real daf. A spine
+ * IS the text, so the left panel shows the actual daf — Berakhot 2a's segments,
+ * small, each with its address. The reader steps spine -> anchor -> artifact ->
+ * producer; choosing a section (a real `argument` span) highlights it on the
+ * text, and that section IS the artifact.
  */
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 import { familyColor } from './HowItWorksGraph';
@@ -16,17 +16,17 @@ const STEPS: { key: StepKey; label: string; caption: string }[] = [
   {
     key: 'spine',
     label: 'Spine',
-    caption: 'A spine is an addressable text. Here it is, broken into its sections — pick one.',
+    caption: 'A spine is the actual text — an ordered, addressable sequence of segments.',
   },
   {
     key: 'anchor',
     label: 'Anchor',
-    caption: 'An anchor says where a piece sits: a span of the spine, at some precision.',
+    caption: 'An anchor says where a piece sits: a span of the text, at some precision.',
   },
   {
     key: 'artifact',
     label: 'Artifact',
-    caption: 'That section is itself an artifact — a typed body, its anchor, and provenance.',
+    caption: 'A piece anchored to that span is an artifact — a body, its anchor, and provenance.',
   },
   {
     key: 'producer',
@@ -36,6 +36,7 @@ const STEPS: { key: StepKey; label: string; caption: string }[] = [
 ];
 
 const PRECISION = ['token', 'segment', 'division', 'unit', 'work'];
+const HE_FONT = '"Mekorot Vilna", "Cardo", "SBL Hebrew", serif';
 
 function chipStyle(active: boolean, color: string): JSX.CSSProperties {
   return {
@@ -58,10 +59,18 @@ export function WorkedExample(props: {
   const [step, setStep] = createSignal<StepKey>('spine');
   const [activeIdx, setActiveIdx] = createSignal(0);
 
+  const segCount = (): number => Math.max(props.example.segsHe.length, props.example.segsEn.length);
   const sections = (): Section[] => props.example.sections;
-  const active = (): Section | undefined => sections().find((s) => s.idx === activeIdx());
-  const accent = (): string => familyColor(props.example.producerId);
+
+  // The span currently anchored. A real argument section when we have them;
+  // otherwise a small default span so the text spine still demonstrates anchoring.
+  const span = (): Section => {
+    const secs = sections();
+    if (secs.length) return secs[Math.min(activeIdx(), secs.length - 1)];
+    return { idx: 0, title: 'A span of the daf', startSeg: 0, endSeg: Math.min(2, segCount() - 1) };
+  };
   const highlight = (): boolean => step() !== 'spine';
+  const accent = (): string => familyColor(props.example.producerId);
 
   const producerNode = createMemo(() => props.graph.byId.get(props.example.producerId));
   const authority = (): string =>
@@ -70,10 +79,12 @@ export function WorkedExample(props: {
     props.graph.edges.filter((e) => e.from === props.example.producerId).map((e) => e.to),
   );
 
-  const pickSection = (idx: number): void => {
+  const pick = (idx: number): void => {
     setActiveIdx(idx);
     if (step() === 'spine') setStep('anchor');
   };
+  const segText = (i: number): string => props.example.segsHe[i] || props.example.segsEn[i] || '';
+  const segIsHe = (i: number): boolean => !!props.example.segsHe[i];
 
   return (
     <div>
@@ -112,7 +123,7 @@ export function WorkedExample(props: {
       {/* caption — the only prose, one line */}
       <p
         style={{
-          margin: '0 0 0.7rem',
+          margin: '0 0 0.6rem',
           color: '#333',
           'font-size': '0.9rem',
           'min-height': '1.4rem',
@@ -121,8 +132,32 @@ export function WorkedExample(props: {
         {STEPS.find((s) => s.key === step())?.caption}
       </p>
 
+      {/* section chips — pick the span to anchor (only when the daf is warm) */}
+      <Show when={sections().length}>
+        <div
+          style={{
+            display: 'flex',
+            'flex-wrap': 'wrap',
+            gap: '0.3rem',
+            'margin-bottom': '0.55rem',
+          }}
+        >
+          <For each={sections()}>
+            {(sec) => (
+              <button
+                type="button"
+                onClick={() => pick(sec.idx)}
+                style={chipStyle(highlight() && sec.idx === activeIdx(), accent())}
+              >
+                {sec.idx + 1}. {sec.title}
+              </button>
+            )}
+          </For>
+        </div>
+      </Show>
+
       <div style={{ display: 'grid', gap: '1rem', 'align-items': 'start' }} class="hiw-example">
-        {/* the spine, as section cards */}
+        {/* the spine = the actual text */}
         <div
           style={{
             border: '1px solid var(--line)',
@@ -143,75 +178,58 @@ export function WorkedExample(props: {
           >
             spine: bavli · {props.example.tractate} {props.example.page}
           </div>
-          <div style={{ padding: '0.5rem' }}>
+          <div style={{ 'max-height': '300px', overflow: 'auto' }}>
             <Show
-              when={sections().length}
+              when={segCount() > 0}
               fallback={
-                <p style={{ color: 'var(--muted)', 'font-size': '0.82rem', margin: '0.3rem' }}>
-                  Loading sections…
+                <p
+                  style={{ color: 'var(--muted)', 'font-size': '0.8rem', margin: '0.6rem 0.7rem' }}
+                >
+                  Loading the text…
                 </p>
               }
             >
-              <For each={sections()}>
-                {(sec) => {
-                  const on = (): boolean => highlight() && sec.idx === activeIdx();
+              <For each={Array.from({ length: segCount() }, (_, i) => i)}>
+                {(i) => {
+                  const on = (): boolean =>
+                    highlight() && i >= span().startSeg && i <= span().endSeg;
                   return (
-                    <button
-                      type="button"
-                      onClick={() => pickSection(sec.idx)}
+                    <div
                       style={{
                         display: 'flex',
-                        'align-items': 'flex-start',
-                        gap: '0.55rem',
-                        width: '100%',
-                        'text-align': 'left',
-                        cursor: 'pointer',
-                        'margin-bottom': '0.4rem',
-                        padding: '0.5rem 0.6rem',
-                        'border-radius': '8px',
-                        border: `1px solid ${on() ? accent() : 'var(--line)'}`,
-                        'border-left': `3px solid ${on() ? accent() : 'transparent'}`,
-                        background: on() ? `${accent()}10` : '#fff',
+                        gap: '0.5rem',
+                        padding: '0.18rem 0.6rem',
+                        'border-left': on() ? `3px solid ${accent()}` : '3px solid transparent',
+                        background: on() ? `${accent()}12` : 'transparent',
+                        opacity: highlight() && !on() ? 0.4 : 1,
                       }}
                     >
                       <span
                         style={{
+                          'font-family': 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                          'font-size': '0.62rem',
+                          color: on() ? accent() : '#bbb',
+                          'min-width': '1.3rem',
+                          'text-align': 'right',
                           'flex-shrink': 0,
-                          width: '1.5rem',
-                          height: '1.5rem',
-                          'border-radius': '50%',
-                          border: `1px solid ${accent()}66`,
-                          color: accent(),
-                          display: 'inline-flex',
-                          'align-items': 'center',
-                          'justify-content': 'center',
-                          'font-size': '0.72rem',
-                          'font-weight': 700,
-                          'font-variant-numeric': 'tabular-nums',
+                          'padding-top': '0.15rem',
+                          'font-weight': on() ? 700 : 400,
                         }}
                       >
-                        {sec.idx + 1}
+                        {i}
                       </span>
-                      <span style={{ 'min-width': 0 }}>
-                        <span
-                          style={{ 'font-size': '0.85rem', 'line-height': 1.35, color: '#1f2937' }}
-                        >
-                          {sec.title}
-                        </span>
-                        <span
-                          style={{
-                            display: 'block',
-                            'font-family': 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                            'font-size': '0.66rem',
-                            color: '#9a958a',
-                            'margin-top': '0.15rem',
-                          }}
-                        >
-                          seg {sec.startSeg}
-                          {sec.endSeg !== sec.startSeg ? `–${sec.endSeg}` : ''}
-                        </span>
+                      <span
+                        dir={segIsHe(i) ? 'rtl' : 'ltr'}
+                        style={{
+                          'font-family': segIsHe(i) ? HE_FONT : 'inherit',
+                          'font-size': '0.74rem',
+                          'line-height': 1.5,
+                          color: '#333',
+                        }}
+                      >
+                        {segText(i)}
                       </span>
-                    </button>
+                    </div>
                   );
                 }}
               </For>
@@ -226,8 +244,8 @@ export function WorkedExample(props: {
               <Row k="kind" v="text (ordered)" />
               <Row k="address" v={`[${props.example.tractate}, ${props.example.page}, n]`} mono />
               <p style={note}>
-                The whole daf is the path with the segment left off. Each section is a span of it —
-                click one to anchor it.
+                The text itself, addressable by segment. The whole daf is just the path with the
+                segment left off. Pick a section above to anchor a piece to it.
               </p>
             </Panel>
           </Show>
@@ -237,11 +255,7 @@ export function WorkedExample(props: {
               <Row k="spine" v="bavli" mono />
               <Row
                 k="span"
-                v={
-                  active()
-                    ? `[${props.example.page}, seg ${active()?.startSeg}–${active()?.endSeg}]`
-                    : '[2a, seg n]'
-                }
+                v={`[${props.example.page}, seg ${span().startSeg}${span().endSeg !== span().startSeg ? `–${span().endSeg}` : ''}]`}
                 mono
               />
               <Row k="precision" v="segment" mono />
@@ -278,7 +292,7 @@ export function WorkedExample(props: {
                   'flex-wrap': 'wrap',
                 }}
               >
-                <strong style={{ color: accent() }}>{active()?.title ?? 'a section'}</strong>
+                <strong style={{ color: accent() }}>{span().title}</strong>
                 <span style={chipStyle(false, accent())}>mark-instance</span>
               </div>
               <p
@@ -290,7 +304,7 @@ export function WorkedExample(props: {
                 }}
               >
                 A section the <code style={mono}>{props.example.producerId}</code> mark discovered
-                on this daf — a typed body pinned to where it sits.
+                on this daf — a typed body pinned to where it sits in the text.
               </p>
               <div
                 style={{
@@ -308,7 +322,8 @@ export function WorkedExample(props: {
                     producer: {props.example.producerId}
                   </span>
                   <span style={chipStyle(false, '#6b7280')}>
-                    anchor: [{props.example.page}, seg {active()?.startSeg}–{active()?.endSeg}]
+                    anchor: [{props.example.page}, seg {span().startSeg}
+                    {span().endSeg !== span().startSeg ? `–${span().endSeg}` : ''}]
                   </span>
                 </div>
               </div>
