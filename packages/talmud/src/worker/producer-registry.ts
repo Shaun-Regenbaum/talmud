@@ -104,21 +104,14 @@ export function richMarkFromKvDef(kv: KvMarkDefinition): SchemaMarkDefinition {
 }
 
 // ---------------------------------------------------------------------------
-// Flat KV enrichment def ↔ rich (studio-schema) def. The old loadEnrichmentDef
-// returned the flat KV def VERBATIM (the runner consumes the flat shape), so
-// unlike marks there was no synthesis to copy — this pair exists so the KV def
-// can ride through the Producer projection and come back byte-identical:
-//   flat ─richEnrichmentFromKvDef→ rich ─producerFromEnrichment→ Producer
-//        ─enrichmentFromProducer→ rich ─kvEnrichmentFromRichDef→ flat (verbatim)
-// Synthesis constants mirror the mark synthesis (status 'draft', def_hash
-// 'kv') plus mode 'augment-content' (KV enrichments are per-instance prompt
-// experiments; the old code never assigned them a mode at all — the constant
-// only shapes Producer metadata and is stripped again by the inverse, so no
-// behavior changes). Unknown KV-authored extra fields ride along verbatim
-// (→ Producer.legacy.rest), preserving the old "return kv verbatim" contract;
-// the one unrepresentable case is an extra whose name collides with a rich
-// field (mode/target_mark/extractor/…) — impossible via the CRUD, which
-// validates + strips extras on write.
+// Flat KV enrichment def → rich (studio-schema) def, so a KV-authored def can
+// ride through the Producer projection (flat ─richEnrichmentFromKvDef→ rich
+// ─producerFromEnrichment→ Producer). Synthesis constants mirror the mark
+// synthesis (status 'draft', def_hash 'kv') plus mode 'augment-content' (KV
+// enrichments are per-instance prompt experiments; the old code never assigned
+// them a mode — the constant only shapes Producer metadata). Unknown
+// KV-authored extra fields ride along verbatim (→ Producer.legacy.rest),
+// preserving the old "return kv verbatim" contract.
 // ---------------------------------------------------------------------------
 
 const KV_ENRICHMENT_FLAT_FIELDS = new Set([
@@ -137,24 +130,6 @@ const KV_ENRICHMENT_FLAT_FIELDS = new Set([
   'output_schema',
   'thinking_off',
   'reasoning_effort',
-  'cache_version',
-  'source',
-  'updated_at',
-]);
-
-const RICH_ENRICHMENT_FIELDS = new Set([
-  'id',
-  'label',
-  'description',
-  'category',
-  'target_mark',
-  'mode',
-  'scope',
-  'dependencies',
-  'passes',
-  'extractor',
-  'status',
-  'def_hash',
   'cache_version',
   'source',
   'updated_at',
@@ -189,35 +164,6 @@ export function richEnrichmentFromKvDef(kv: KvEnrichmentDefinition): SchemaEnric
     source: kv.source,
     updated_at: kv.updated_at,
   } as SchemaEnrichmentDefinition;
-}
-
-/** Exact inverse of {@link richEnrichmentFromKvDef}: strips the synthesis
- *  constants (mode/status/def_hash) and unnests the LLM extractor back into
- *  the flat prompt fields. Only ever applied to KV-resolved defs, whose
- *  extractor is always the 'llm' shape the synthesis built. */
-export function kvEnrichmentFromRichDef(def: SchemaEnrichmentDefinition): KvEnrichmentDefinition {
-  const llm = def.extractor as LLMExtractor;
-  return {
-    ...restExcept(def, RICH_ENRICHMENT_FIELDS),
-    id: def.id,
-    label: def.label,
-    ...ownKey(def, 'description'),
-    mark: def.target_mark,
-    scope: def.scope,
-    ...ownKey(def, 'dependencies'),
-    ...ownKey(def, 'passes'),
-    system_prompt: llm.system_prompt,
-    user_prompt_template: llm.user_prompt_template,
-    ...ownKey(llm, 'system_prompt_he'),
-    ...ownKey(llm, 'user_prompt_template_he'),
-    ...ownKey(llm, 'model'),
-    ...ownKey(llm, 'output_schema'),
-    ...ownKey(llm, 'thinking_off'),
-    ...ownKey(llm, 'reasoning_effort'),
-    cache_version: def.cache_version,
-    source: def.source,
-    updated_at: def.updated_at,
-  } as KvEnrichmentDefinition;
 }
 
 // ---------------------------------------------------------------------------
