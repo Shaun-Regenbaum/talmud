@@ -1,5 +1,58 @@
 import { describe, expect, it } from 'vitest';
-import { wholeDafEnrichmentIds } from '../src/worker/workflow-warm';
+import { perInstanceEnrichments, wholeDafEnrichmentIds } from '../src/worker/workflow-warm';
+
+const MARKS = [
+  { id: 'argument-overview', anchor: 'whole-daf' },
+  { id: 'daf-background', anchor: 'whole-daf' },
+  { id: 'tidbit', anchor: 'whole-daf' },
+  { id: 'argument', anchor: 'segment' },
+  { id: 'pesukim', anchor: 'segment' },
+  { id: 'rabbi', anchor: 'name' },
+];
+
+// The two selectors must PARTITION the local enrichments: whole-daf vs
+// per-instance, with `argument` excluded from both. If a producer leaked into
+// both (or neither), the Workflow would double-run or skip it.
+describe('perInstanceEnrichments', () => {
+  it('returns {id,targetMark} for non-whole-daf, non-argument local enrichments', () => {
+    const out = perInstanceEnrichments(MARKS, [
+      { id: 'pesukim.synthesis', scope: 'local', target_mark: 'pesukim' },
+      { id: 'rabbi.synthesis', scope: 'local', target_mark: 'rabbi' },
+    ]);
+    expect(out).toEqual([
+      { id: 'pesukim.synthesis', targetMark: 'pesukim' },
+      { id: 'rabbi.synthesis', targetMark: 'rabbi' },
+    ]);
+  });
+
+  it('EXCLUDES whole-daf, argument, global, and no-target enrichments', () => {
+    const out = perInstanceEnrichments(MARKS, [
+      { id: 'tidbit.essay', scope: 'local', target_mark: 'tidbit' }, // whole-daf
+      { id: 'argument.synthesis', scope: 'local', target_mark: 'argument' }, // argument
+      { id: 'rabbi.identity', scope: 'global', target_mark: 'rabbi' }, // global
+      { id: 'standalone', scope: 'local' }, // no target
+    ]);
+    expect(out).toEqual([]);
+  });
+
+  it('partitions cleanly vs wholeDafEnrichmentIds (no overlap, argument in neither)', () => {
+    const enrichments = [
+      { id: 'argument-overview.synthesis', scope: 'local', target_mark: 'argument-overview' },
+      { id: 'pesukim.synthesis', scope: 'local', target_mark: 'pesukim' },
+      { id: 'argument.synthesis', scope: 'local', target_mark: 'argument' },
+    ];
+    const whole = new Set(wholeDafEnrichmentIds(MARKS, enrichments));
+    const perInst = new Set(perInstanceEnrichments(MARKS, enrichments).map((e) => e.id));
+    // disjoint
+    for (const id of whole) expect(perInst.has(id)).toBe(false);
+    // argument excluded from both
+    expect(whole.has('argument.synthesis')).toBe(false);
+    expect(perInst.has('argument.synthesis')).toBe(false);
+    // each non-argument piece is in exactly one bucket
+    expect(whole.has('argument-overview.synthesis')).toBe(true);
+    expect(perInst.has('pesukim.synthesis')).toBe(true);
+  });
+});
 
 // The warm Workflow's step list. It must include exactly the WHOLE-DAF
 // enrichments (target mark is whole-daf, or none) and exclude per-instance ones —
