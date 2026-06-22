@@ -10,7 +10,7 @@
  * This renders DEFINITIONS (what connects to what), not cached instances — it
  * never calls /api/run.
  */
-import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { orthogonalEdgePath } from './flow/orthogonalEdge';
 import { ancestorsOf, connectedClosure, type Graph, type GraphNode } from './howItWorks/graphModel';
 import { ACCENTS } from './sidebar/primitives';
@@ -114,127 +114,248 @@ export function HowItWorksGraph(props: Props): JSX.Element {
     return !lit || (lit.has(from) && lit.has(to));
   };
 
+  // Zoom + pan. userZoom null = "fit to width" (the default, so the whole
+  // graph is visible on open). Grab-to-pan drags the scroll container.
+  let containerEl: HTMLDivElement | undefined;
+  const [containerW, setContainerW] = createSignal(0);
+  const [userZoom, setUserZoom] = createSignal<number | null>(null);
+  const fitScale = (): number => {
+    const cw = containerW();
+    const bw = layout().width;
+    if (!cw || !bw) return 1;
+    return Math.min(1, Math.max(0.3, (cw - 4) / bw));
+  };
+  const k = (): number => userZoom() ?? fitScale();
+  const bump = (factor: number): void => {
+    const next = Math.min(2, Math.max(0.3, k() * factor));
+    setUserZoom(Number(next.toFixed(2)));
+  };
+
+  onMount(() => {
+    if (!containerEl) return;
+    setContainerW(containerEl.clientWidth);
+    if (typeof ResizeObserver === 'undefined') return; // e.g. jsdom
+    const ro = new ResizeObserver(() => setContainerW(containerEl?.clientWidth ?? 0));
+    ro.observe(containerEl);
+    onCleanup(() => ro.disconnect());
+  });
+
+  // Pan only when the drag starts on empty SVG canvas (target is the <svg>),
+  // so node clicks/hovers are untouched.
+  let panning = false;
+  let sx = 0;
+  let sy = 0;
+  let sl = 0;
+  let st = 0;
+  const onPointerDown = (e: PointerEvent): void => {
+    if ((e.target as Element)?.tagName?.toLowerCase() !== 'svg' || !containerEl) return;
+    panning = true;
+    sx = e.clientX;
+    sy = e.clientY;
+    sl = containerEl.scrollLeft;
+    st = containerEl.scrollTop;
+    containerEl.setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e: PointerEvent): void => {
+    if (!panning || !containerEl) return;
+    containerEl.scrollLeft = sl - (e.clientX - sx);
+    containerEl.scrollTop = st - (e.clientY - sy);
+  };
+  const endPan = (): void => {
+    panning = false;
+  };
+
+  const toolBtn: JSX.CSSProperties = {
+    border: '1px solid var(--line)',
+    background: '#fff',
+    'border-radius': '6px',
+    width: '1.8rem',
+    height: '1.8rem',
+    cursor: 'pointer',
+    'font-size': '0.95rem',
+    'line-height': 1,
+    color: 'var(--fg)',
+  };
+
   return (
-    <div
-      style={{
-        border: '1px solid var(--line)',
-        'border-radius': '10px',
-        background: '#fcfbf8',
-        overflow: 'auto',
-        'max-height': '74vh',
-      }}
-    >
-      <svg
-        width={layout().width}
-        height={layout().height}
-        viewBox={`0 0 ${layout().width} ${layout().height}`}
-        role="img"
-        aria-label="Producer dependency graph"
-        style={{ display: 'block', 'min-width': '100%' }}
+    <div>
+      {/* zoom toolbar */}
+      <div
+        style={{
+          display: 'flex',
+          'align-items': 'center',
+          gap: '0.3rem',
+          'margin-bottom': '0.4rem',
+        }}
       >
-        <defs>
-          <For each={layout().colors}>
-            {(color) => (
-              <marker
-                id={arrowId(color)}
-                viewBox="0 0 6 6"
-                refX="5"
-                refY="3"
-                markerWidth="5"
-                markerHeight="5"
-                orient="auto-start-reverse"
-              >
-                <path d="M 0 0 L 6 3 L 0 6 z" fill={color} />
-              </marker>
-            )}
-          </For>
-        </defs>
-
-        {/* Connectors behind the nodes. */}
-        <For each={layout().edges}>
-          {(e) => {
-            const a = (): Placed => layout().placed.get(e.from) as Placed;
-            const b = (): Placed => layout().placed.get(e.to) as Placed;
-            const color = (): string => familyColor(b().node.family);
-            const lit = (): boolean => edgeLit(e.from, e.to);
-            return (
-              <Show when={a() && b()}>
-                <path
-                  d={orthogonalEdgePath(
-                    { x: a().x, y: a().y, w: NODE_W, h: NODE_H },
-                    { x: b().x, y: b().y, w: NODE_W, h: NODE_H },
-                  )}
-                  fill="none"
-                  stroke={color()}
-                  stroke-width={lit() ? 1.8 : 1.1}
-                  stroke-dasharray={e.target ? '3 3' : undefined}
-                  marker-end={`url(#${arrowId(color())})`}
-                  opacity={lit() ? (litSet() ? 0.95 : 0.5) : 0.08}
-                />
-              </Show>
-            );
+        <button type="button" style={toolBtn} onClick={() => bump(1 / 1.25)} aria-label="Zoom out">
+          −
+        </button>
+        <button type="button" style={toolBtn} onClick={() => bump(1.25)} aria-label="Zoom in">
+          +
+        </button>
+        <span
+          style={{
+            'font-size': '0.72rem',
+            color: 'var(--muted)',
+            'font-variant-numeric': 'tabular-nums',
+            'min-width': '2.6rem',
+            'text-align': 'center',
           }}
-        </For>
+        >
+          {Math.round(k() * 100)}%
+        </span>
+        <button
+          type="button"
+          style={{ ...toolBtn, width: 'auto', padding: '0 0.55rem' }}
+          onClick={() => setUserZoom(null)}
+          aria-label="Fit to width"
+        >
+          Fit
+        </button>
+        <button
+          type="button"
+          style={{ ...toolBtn, width: 'auto', padding: '0 0.55rem' }}
+          onClick={() => setUserZoom(1)}
+          aria-label="Reset zoom to 100%"
+        >
+          100%
+        </button>
+        <span
+          style={{ 'font-size': '0.7rem', color: 'var(--muted)', 'margin-inline-start': 'auto' }}
+        >
+          drag the canvas to pan
+        </span>
+      </div>
 
-        {/* Nodes. */}
-        <For each={[...layout().placed.values()]}>
-          {(p) => {
-            const n = p.node;
-            const color = familyColor(n.family);
-            const isSel = (): boolean => props.selectedId === n.id;
-            const lit = (): boolean => nodeLit(n.id);
-            const fill = (): string =>
-              n.kind === 'source' ? '#eef1ee' : isSel() ? color : '#ffffff';
-            const textColor = (): string =>
-              n.kind === 'source' ? '#475569' : isSel() ? '#fff' : '#1f2937';
-            return (
-              // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
-              <g
-                role="button"
-                tabindex={0}
-                aria-pressed={isSel()}
-                aria-label={`${n.kind} ${n.id}`}
-                style={{ cursor: 'pointer', opacity: lit() ? 1 : 0.22 }}
-                onMouseEnter={() => setHovered(n.id)}
-                onMouseLeave={() => setHovered(null)}
-                onFocus={() => setHovered(n.id)}
-                onBlur={() => setHovered(null)}
-                onClick={() => props.onSelect(isSel() ? null : n.id)}
-                onKeyDown={(ev) => {
-                  if (ev.key === 'Enter' || ev.key === ' ') {
-                    ev.preventDefault();
-                    props.onSelect(isSel() ? null : n.id);
-                  }
-                }}
-              >
-                <title>{n.id}</title>
-                <rect
-                  x={p.x}
-                  y={p.y}
-                  width={NODE_W}
-                  height={NODE_H}
-                  rx={n.kind === 'source' ? 14 : 6}
-                  fill={fill()}
-                  stroke={color}
-                  stroke-width={isSel() ? 2 : n.kind === 'enrichment' ? 1 : 1.4}
-                  stroke-dasharray={n.kind === 'enrichment' && !isSel() ? '4 2' : undefined}
-                />
-                <text
-                  x={p.x + NODE_W / 2}
-                  y={p.y + NODE_H / 2}
-                  text-anchor="middle"
-                  dominant-baseline="central"
-                  font-size="11.5"
-                  font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
-                  fill={textColor()}
+      <div
+        ref={containerEl}
+        style={{
+          border: '1px solid var(--line)',
+          'border-radius': '10px',
+          background: '#fcfbf8',
+          overflow: 'auto',
+          'max-height': '82vh',
+          cursor: 'grab',
+          'touch-action': 'none',
+        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endPan}
+        onPointerLeave={endPan}
+      >
+        <svg
+          width={layout().width * k()}
+          height={layout().height * k()}
+          viewBox={`0 0 ${layout().width} ${layout().height}`}
+          role="img"
+          aria-label="Producer dependency graph"
+          style={{ display: 'block' }}
+        >
+          <defs>
+            <For each={layout().colors}>
+              {(color) => (
+                <marker
+                  id={arrowId(color)}
+                  viewBox="0 0 6 6"
+                  refX="5"
+                  refY="3"
+                  markerWidth="5"
+                  markerHeight="5"
+                  orient="auto-start-reverse"
                 >
-                  {truncate(n.id, 24)}
-                </text>
-              </g>
-            );
-          }}
-        </For>
-      </svg>
+                  <path d="M 0 0 L 6 3 L 0 6 z" fill={color} />
+                </marker>
+              )}
+            </For>
+          </defs>
+
+          {/* Connectors behind the nodes. */}
+          <For each={layout().edges}>
+            {(e) => {
+              const a = (): Placed => layout().placed.get(e.from) as Placed;
+              const b = (): Placed => layout().placed.get(e.to) as Placed;
+              const color = (): string => familyColor(b().node.family);
+              const lit = (): boolean => edgeLit(e.from, e.to);
+              return (
+                <Show when={a() && b()}>
+                  <path
+                    d={orthogonalEdgePath(
+                      { x: a().x, y: a().y, w: NODE_W, h: NODE_H },
+                      { x: b().x, y: b().y, w: NODE_W, h: NODE_H },
+                    )}
+                    fill="none"
+                    stroke={color()}
+                    stroke-width={lit() ? 1.8 : 1.1}
+                    stroke-dasharray={e.target ? '3 3' : undefined}
+                    marker-end={`url(#${arrowId(color())})`}
+                    opacity={lit() ? (litSet() ? 0.95 : 0.5) : 0.08}
+                  />
+                </Show>
+              );
+            }}
+          </For>
+
+          {/* Nodes. */}
+          <For each={[...layout().placed.values()]}>
+            {(p) => {
+              const n = p.node;
+              const color = familyColor(n.family);
+              const isSel = (): boolean => props.selectedId === n.id;
+              const lit = (): boolean => nodeLit(n.id);
+              const fill = (): string =>
+                n.kind === 'source' ? '#eef1ee' : isSel() ? color : '#ffffff';
+              const textColor = (): string =>
+                n.kind === 'source' ? '#475569' : isSel() ? '#fff' : '#1f2937';
+              return (
+                // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
+                <g
+                  role="button"
+                  tabindex={0}
+                  aria-pressed={isSel()}
+                  aria-label={`${n.kind} ${n.id}`}
+                  style={{ cursor: 'pointer', opacity: lit() ? 1 : 0.22 }}
+                  onMouseEnter={() => setHovered(n.id)}
+                  onMouseLeave={() => setHovered(null)}
+                  onFocus={() => setHovered(n.id)}
+                  onBlur={() => setHovered(null)}
+                  onClick={() => props.onSelect(isSel() ? null : n.id)}
+                  onKeyDown={(ev) => {
+                    if (ev.key === 'Enter' || ev.key === ' ') {
+                      ev.preventDefault();
+                      props.onSelect(isSel() ? null : n.id);
+                    }
+                  }}
+                >
+                  <title>{n.id}</title>
+                  <rect
+                    x={p.x}
+                    y={p.y}
+                    width={NODE_W}
+                    height={NODE_H}
+                    rx={n.kind === 'source' ? 14 : 6}
+                    fill={fill()}
+                    stroke={color}
+                    stroke-width={isSel() ? 2 : n.kind === 'enrichment' ? 1 : 1.4}
+                    stroke-dasharray={n.kind === 'enrichment' && !isSel() ? '4 2' : undefined}
+                  />
+                  <text
+                    x={p.x + NODE_W / 2}
+                    y={p.y + NODE_H / 2}
+                    text-anchor="middle"
+                    dominant-baseline="central"
+                    font-size="11.5"
+                    font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
+                    fill={textColor()}
+                  >
+                    {truncate(n.id, 24)}
+                  </text>
+                </g>
+              );
+            }}
+          </For>
+        </svg>
+      </div>
     </div>
   );
 }
