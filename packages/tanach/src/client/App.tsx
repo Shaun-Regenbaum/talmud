@@ -800,6 +800,13 @@ export function App(): JSX.Element {
         <a class="usage-link" href="/usage" title="LLM usage">
           usage
         </a>
+        <a
+          class="usage-link"
+          href={`/align?book=${encodeURIComponent(loc().book)}&chapter=${loc().chapter}`}
+          title="Alignment workbench: pieces aligned to the chapter's verses"
+        >
+          align
+        </a>
         <button
           type="button"
           class="usage-link inspect-link"
