@@ -303,7 +303,12 @@ import {
 } from './warm-cron';
 import { lookupGloss } from './word-glosses';
 import { checkWorkerHealthAndAlert, fetchWorkerOutcomes } from './worker-health';
-import { type DafWarmParams, perInstanceEnrichments, wholeDafEnrichmentIds } from './workflow-warm';
+import {
+  type DafWarmParams,
+  dafGenSentinelKey,
+  perInstanceEnrichments,
+  wholeDafEnrichmentIds,
+} from './workflow-warm';
 import { runYomiWarmCron } from './yomi-cron';
 
 // `Bindings` and `JobMessage` now live in ./types (a neutral module so route
@@ -3217,6 +3222,38 @@ app.post('/api/admin/workflow-warm/:tractate/:page', async (c) => {
   const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
   const instance = await wf.create({ params: { tractate, page, lang } });
   return c.json({ ok: true, id: instance.id, tractate, page, lang });
+});
+
+// The generation coordinator's trigger (Phase 2 foundation): kick off ONE
+// per-daf warm Workflow, single-flighted via a short KV sentinel so N concurrent
+// readers trigger ONE generation, not N. Open (readers call it) but budget-gated
+// and rate-limited by the sentinel (one Workflow per daf+lang per 15 min). The
+// Workflow generates the daf's pieces as bounded per-step invocations; the reader
+// sees them fill in via /api/daf-view. (The client cutover + streaming render are
+// the next step; this is the verifiable backend the coordinator is built on.)
+app.post('/api/daf-generate/:tractate/:page', async (c) => {
+  const wf = c.env.DAF_WARM_WORKFLOW;
+  if (!wf) return c.json({ error: 'DAF_WARM_WORKFLOW binding not available' }, 503);
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
+  const gate = await checkBudget(c.env, { custom: false });
+  if (!gate.ok) {
+    return c.json({ generating: false, paused: true, error: pauseErrorMessage(gate.scope) });
+  }
+  const cache = c.env.CACHE;
+  const sentinel = dafGenSentinelKey(tractate, page, lang);
+  // Single-flight: if a generation is already in flight for this daf, return it
+  // rather than starting a duplicate. (A rare simultaneous-first-hit race may
+  // start two; the 2nd's steps mostly cache-hit the 1st's output — a no-op. A
+  // Durable Object would make this atomic; the sentinel is good enough here.)
+  if (cache) {
+    const inflight = await cache.get(sentinel);
+    if (inflight) return c.json({ generating: true, already: true, instanceId: inflight });
+  }
+  const instance = await wf.create({ params: { tractate, page, lang } });
+  if (cache) await cache.put(sentinel, instance.id, { expirationTtl: 900 });
+  return c.json({ generating: true, instanceId: instance.id });
 });
 
 app.post('/api/admin/rewarm/:id/:tractate/:page', async (c) => {
