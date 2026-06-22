@@ -16,9 +16,18 @@
  *
  * Wiring the reserved 'external' anchor of the four-primitive model: until now no
  * spine consumed a non-Gemara target. These do.
+ *
+ * Entity spines ('entity:rabbi', 'entity:place') are the registries the "global"
+ * rabbi/place enrichments belong to — one position per entity, addressed by its
+ * identity slug. They are UNORDERED (kind:'entity'); their single level is the
+ * id, normalized through the SAME `slugId` the cache uses for an enrichment's
+ * `instance_id`, so an entity anchor's id is byte-identical to the cached key
+ * (e.g. entity:rabbi/'rav_huna' ⇄ enrich:rabbi.bio:5:rav_huna). No cache key
+ * changes — this only gives those pieces an honest place to sit.
  */
 
-import { createSpineRegistry, type SpineDef } from '@corpus/core/model/spine';
+import { slugId } from '@corpus/core/cache/keys';
+import { createSpineRegistry, type RefPart, type SpineDef } from '@corpus/core/model/spine';
 import { CODIFIERS } from '../lib/halacha/codifiers.ts';
 
 const codifierSpines: SpineDef[] = CODIFIERS.map((c) => ({
@@ -28,8 +37,24 @@ const codifierSpines: SpineDef[] = CODIFIERS.map((c) => ({
   levels: ['section', 'chapter', 'entry'],
 }));
 
+/** entity:* spines: one level (the id), slugged to the cache's instance_id.
+ *  NB: matches instanceIdOf byte-for-byte for the real inputs (English
+ *  `fields.name`); a degenerate/Hebrew-only name would slug to "_" here while
+ *  instanceIdOf falls back to a hash — not a corpus case (rabbi/place marks
+ *  always carry an English name), and the authoritative id downstream is
+ *  instanceIdOf's output, not a raw name run back through this. */
+const entitySpine = (id: string, label: string): SpineDef => ({
+  id,
+  kind: 'entity',
+  label,
+  levels: ['id'],
+  normalizePath: (path: RefPart[]) => [slugId(String(path[0]))],
+});
+
 export const talmudSpines = createSpineRegistry([
   { id: 'bavli', kind: 'text', label: 'Talmud Bavli', levels: ['tractate', 'page', 'seg'] },
   { id: 'tanach', kind: 'text', label: 'Tanach', levels: ['book', 'chapter', 'verse'] },
   ...codifierSpines,
+  entitySpine('entity:rabbi', 'Rabbi'),
+  entitySpine('entity:place', 'Place'),
 ]);
