@@ -84,7 +84,7 @@ export function WorkedExample(props: {
     if (step() === 'spine') setStep('anchor');
   };
   const segText = (i: number): string => props.example.segsHe[i] || props.example.segsEn[i] || '';
-  const segIsHe = (i: number): boolean => !!props.example.segsHe[i];
+  const anyHe = (): boolean => props.example.segsHe.some(Boolean);
 
   return (
     <div>
@@ -178,58 +178,57 @@ export function WorkedExample(props: {
           >
             spine: bavli · {props.example.tractate} {props.example.page}
           </div>
-          <div style={{ 'max-height': '300px', overflow: 'auto' }}>
+          <div
+            dir={anyHe() ? 'rtl' : 'ltr'}
+            lang={anyHe() ? 'he' : undefined}
+            style={{
+              'max-height': '300px',
+              overflow: 'auto',
+              padding: '0.7rem 0.85rem',
+              'font-family': anyHe() ? HE_FONT : 'inherit',
+              'font-size': '0.82rem',
+              'line-height': 2,
+              'text-align': 'justify',
+              color: '#333',
+            }}
+          >
             <Show
               when={segCount() > 0}
               fallback={
-                <p
-                  style={{ color: 'var(--muted)', 'font-size': '0.8rem', margin: '0.6rem 0.7rem' }}
-                >
+                <p style={{ color: 'var(--muted)', 'font-size': '0.8rem', margin: 0 }}>
                   Loading the text…
                 </p>
               }
             >
+              {/* One continuous block of text (like #align); each segment is an
+                  inline run prefixed by a small marker, and the anchored span is
+                  tinted in place. */}
               <For each={Array.from({ length: segCount() }, (_, i) => i)}>
                 {(i) => {
                   const on = (): boolean =>
                     highlight() && i >= span().startSeg && i <= span().endSeg;
                   return (
-                    <div
+                    <span
                       style={{
-                        display: 'flex',
-                        gap: '0.5rem',
-                        padding: '0.18rem 0.6rem',
-                        'border-left': on() ? `3px solid ${accent()}` : '3px solid transparent',
-                        background: on() ? `${accent()}12` : 'transparent',
-                        opacity: highlight() && !on() ? 0.4 : 1,
+                        background: on() ? `${accent()}22` : 'transparent',
+                        'border-radius': on() ? '3px' : undefined,
+                        'box-shadow': on() ? `0 0 0 2px ${accent()}22` : undefined,
+                        opacity: highlight() && !on() ? 0.38 : 1,
                       }}
                     >
-                      <span
+                      <sup
                         style={{
                           'font-family': 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                          'font-size': '0.62rem',
-                          color: on() ? accent() : '#bbb',
-                          'min-width': '1.3rem',
-                          'text-align': 'right',
-                          'flex-shrink': 0,
-                          'padding-top': '0.15rem',
+                          'font-size': '0.58em',
+                          color: on() ? accent() : '#c0bbb0',
+                          'margin-inline-end': '0.1rem',
                           'font-weight': on() ? 700 : 400,
                         }}
                       >
                         {i}
-                      </span>
-                      <span
-                        dir={segIsHe(i) ? 'rtl' : 'ltr'}
-                        style={{
-                          'font-family': segIsHe(i) ? HE_FONT : 'inherit',
-                          'font-size': '0.74rem',
-                          'line-height': 1.5,
-                          color: '#333',
-                        }}
-                      >
-                        {segText(i)}
-                      </span>
-                    </div>
+                      </sup>
+                      {segText(i)}{' '}
+                    </span>
                   );
                 }}
               </For>
