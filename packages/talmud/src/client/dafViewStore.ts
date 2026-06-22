@@ -32,6 +32,8 @@ export interface DafViewPiece {
 
 interface DafViewPayload {
   complete?: boolean;
+  cached?: number;
+  total?: number;
   pieces?: Record<string, DafViewPiece>;
 }
 
@@ -41,9 +43,37 @@ function dafKey(tractate: string, page: string, lang: 'en' | 'he'): string {
 
 // Keyed by daf so a view loaded for a previous daf is never served for the
 // current one (the user navigates while a fetch is in flight).
-const [view, setView] = createSignal<{ key: string; pieces: Record<string, DafViewPiece> } | null>(
-  null,
-);
+const [view, setViewRaw] = createSignal<{
+  key: string;
+  pieces: Record<string, DafViewPiece>;
+} | null>(null);
+
+// Bumped on every view write. Card effects read this (tracked) so they re-run as
+// the cold-generation poll fills the view in — the progressive-render signal.
+// (The view's KEY stays constant while pieces grow, so dafViewLoaded alone
+// wouldn't re-fire the effect; the version does.)
+const [viewVersion, setViewVersion] = createSignal(0);
+function setView(v: { key: string; pieces: Record<string, DafViewPiece> } | null): void {
+  setViewRaw(v);
+  setViewVersion((n) => n + 1);
+}
+
+/** Reactive view-write counter — read it in a card effect to re-render as the
+ *  cold-generation poll delivers more pieces. */
+export function dafViewVersion(): number {
+  return viewVersion();
+}
+
+// Which daf key is currently VIEW-DRIVEN: a cold-generation Workflow is in flight
+// and the reader renders from the polling view (cards must NOT fire their own
+// /api/run). null when no generation is active (warm, settled, or fell back).
+const [genKey, setGenKey] = createSignal<string | null>(null);
+
+/** True while a cold daf is rendering from the Workflow + view-poll. Cards and
+ *  the prefetcher read this (reactive) to suppress their own /api/run fan-out. */
+export function isViewDriven(tractate: string, page: string, lang: 'en' | 'he'): boolean {
+  return genKey() === dafKey(tractate, page, lang);
+}
 
 // The most recently REQUESTED daf-view key. A load only writes the signal if its
 // key is still the latest — so a slow/failed load for a daf the user already
@@ -53,7 +83,7 @@ let latestKey = '';
 // In-flight load promise per daf key, so concurrent callers (DafViewer's open
 // effect + the prefetcher) share ONE fetch instead of racing two. Cleared once
 // the load settles.
-const inflight = new Map<string, Promise<void>>();
+const inflight = new Map<string, Promise<DafViewPayload | null>>();
 
 /**
  * Load the materialized view for a daf and stash it. Called as early as possible
@@ -66,11 +96,16 @@ const inflight = new Map<string, Promise<void>>();
  * fall through and fetch as before) instead of hanging forever. Fail-safe: an
  * empty view just means every lookup misses and the card fetches per-piece.
  */
-export function loadDafView(tractate: string, page: string, lang: 'en' | 'he'): Promise<void> {
+export function loadDafView(
+  tractate: string,
+  page: string,
+  lang: 'en' | 'he',
+): Promise<DafViewPayload | null> {
   const key = dafKey(tractate, page, lang);
   const existing = inflight.get(key);
   if (existing) return existing;
-  const run = doLoadDafView(key, tractate, page, lang);
+  latestKey = key;
+  const run = fetchViewOnce(key, tractate, page, lang);
   inflight.set(key, run);
   void run.finally(() => {
     if (inflight.get(key) === run) inflight.delete(key);
@@ -78,14 +113,19 @@ export function loadDafView(tractate: string, page: string, lang: 'en' | 'he'): 
   return run;
 }
 
-async function doLoadDafView(
+/**
+ * Fetch the view once, settle the signal (latest-key guarded so a stale daf can't
+ * clobber the current one), and RETURN the payload (so callers can read
+ * `complete`/`cached`). The signal ALWAYS settles — empty on any failure — so the
+ * card gate (`dafViewLoaded`) can't hang. Does NOT touch `latestKey` (entry
+ * points own that); the cold-generation poll reuses this each tick.
+ */
+async function fetchViewOnce(
   key: string,
   tractate: string,
   page: string,
   lang: 'en' | 'he',
-): Promise<void> {
-  latestKey = key;
-  // Only write the signal if THIS is still the daf the reader is on.
+): Promise<DafViewPayload | null> {
   const settle = (pieces: Record<string, DafViewPiece>) => {
     if (latestKey === key) setView({ key, pieces });
   };
@@ -97,13 +137,14 @@ async function doLoadDafView(
     });
     if (!r.ok) {
       settle({});
-      return;
+      return null;
     }
     const j = (await r.json()) as DafViewPayload;
     settle(j.pieces ?? {});
+    return j;
   } catch {
-    // Network error / abort / timeout: settle empty so the gate resolves.
     settle({});
+    return null;
   } finally {
     clearTimeout(timer);
   }
@@ -115,11 +156,92 @@ async function doLoadDafView(
  * The prefetcher awaits this so it can consult the view before deciding what to
  * warm. Fail-safe: on failure the view is empty, so callers just proceed.
  */
-export function ensureDafView(tractate: string, page: string, lang: 'en' | 'he'): Promise<void> {
+export function ensureDafView(
+  tractate: string,
+  page: string,
+  lang: 'en' | 'he',
+): Promise<DafViewPayload | null> {
   const key = dafKey(tractate, page, lang);
   const v = view();
-  if (v && v.key === key) return Promise.resolve();
+  if (v && v.key === key) return Promise.resolve(null);
   return loadDafView(tractate, page, lang);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Open a daf for rendering: load its view once, and if it's INCOMPLETE (cold),
+ * drive it from the parallel Workflow instead of letting the cards/prefetcher fan
+ * out their own /api/run. Fires the single-flight POST /api/daf-generate, then
+ * re-polls the view so cards fill in progressively (they read dafViewVersion).
+ *
+ * Fail-safe by construction — view-driven mode is dropped (cards fall back to
+ * their own fetch) whenever generation can't be trusted to finish:
+ *   - the generate trigger fails / is budget-paused (never enters view-driven);
+ *   - the cached-piece count stalls for ~32s (a stuck producer);
+ *   - a 12-minute hard cap elapses;
+ *   - the reader navigates away.
+ */
+export async function openDafView(
+  tractate: string,
+  page: string,
+  lang: 'en' | 'he',
+): Promise<void> {
+  const key = dafKey(tractate, page, lang);
+  const first = await loadDafView(tractate, page, lang);
+  if (latestKey !== key) return; // navigated away mid-load
+  if (!first || first.complete) return; // warm (or load failed → cards fetch as today)
+
+  // Optimistically enter view-driven BEFORE the async trigger resolves, so the
+  // prefetcher (firing around now) sees it and suppresses its fan-out.
+  setGenKey(key);
+  let triggered = false;
+  try {
+    const r = await fetch(
+      `/api/daf-generate/${encodeURIComponent(tractate)}/${page}?lang=${lang}`,
+      {
+        method: 'POST',
+      },
+    );
+    const resp = r.ok ? ((await r.json()) as { generating?: boolean }) : null;
+    triggered = !!resp?.generating;
+  } catch {
+    triggered = false;
+  }
+  if (!triggered) {
+    // Couldn't kick generation (paused/error/network) — leave view-driven so the
+    // cards fall back to their own /api/run exactly as before.
+    if (genKey() === key) setGenKey(null);
+    return;
+  }
+
+  try {
+    const POLL_MS = 8000;
+    const HARD_CAP_MS = 12 * 60 * 1000;
+    const STALL_LIMIT = 4; // ~32s with no new pieces → assume stuck, fall back
+    const deadline = Date.now() + HARD_CAP_MS;
+    let lastCached = -1;
+    let stalls = 0;
+    while (Date.now() < deadline) {
+      await sleep(POLL_MS);
+      if (latestKey !== key) return; // navigated away
+      const payload = await fetchViewOnce(key, tractate, page, lang);
+      if (latestKey !== key) return;
+      if (payload?.complete) return; // fully generated
+      const cached = payload?.cached ?? lastCached;
+      if (cached > lastCached) {
+        lastCached = cached;
+        stalls = 0;
+      } else {
+        stalls += 1;
+      }
+      if (stalls >= STALL_LIMIT) return; // stuck → drop view-driven, cards fetch
+    }
+  } finally {
+    if (genKey() === key) setGenKey(null);
+  }
 }
 
 /**
