@@ -1,3 +1,4 @@
+import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from 'cloudflare:workers';
 import { slugTractate } from '@corpus/core/cache/keys';
 import { continuationLink, type FlowEdge } from '@corpus/core/context/link';
 import { coordLabel } from '@corpus/core/context/types';
@@ -302,6 +303,7 @@ import {
 } from './warm-cron';
 import { lookupGloss } from './word-glosses';
 import { checkWorkerHealthAndAlert, fetchWorkerOutcomes } from './worker-health';
+import { type DafWarmParams, wholeDafEnrichmentIds } from './workflow-warm';
 import { runYomiWarmCron } from './yomi-cron';
 
 // `Bindings` and `JobMessage` now live in ./types (a neutral module so route
@@ -3202,6 +3204,21 @@ app.get('/api/stale/:id/:tractate/:page', async (c) => {
 // served — they regenerate via a surface member's dependency resolution or on
 // their next read. Trusted + budget-gated. Intended flow: edit a prompt →
 // `/api/stale` shows `stale` → call this → the cascade regenerates.
+// Phase 3 (step 1): trigger the warm Workflow for a daf (trusted). Generates the
+// daf's whole-daf pieces as separate per-step invocations (bounded per-step
+// memory) and returns the workflow instance id. Additive — does not touch the
+// queue/run/reader paths. Inspect progress with `wrangler workflows instances`.
+app.post('/api/admin/workflow-warm/:tractate/:page', async (c) => {
+  if (!isTrustedRequest(c)) return c.json({ error: 'studio auth required' }, 403);
+  const wf = c.env.DAF_WARM_WORKFLOW;
+  if (!wf) return c.json({ error: 'DAF_WARM_WORKFLOW binding not available' }, 503);
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
+  const instance = await wf.create({ params: { tractate, page, lang } });
+  return c.json({ ok: true, id: instance.id, tractate, page, lang });
+});
+
 app.post('/api/admin/rewarm/:id/:tractate/:page', async (c) => {
   if (!isTrustedRequest(c)) return c.json({ error: 'studio auth required' }, 403);
   if (!c.env.ENRICHMENT_QUEUE)
@@ -11288,6 +11305,46 @@ async function processEnrichmentJob(
       totalMs,
       ...(enqueueTs ? { queueWaitMs: t0 - enqueueTs } : {}),
     });
+  }
+}
+
+// Phase 3 (step 1): the warm Workflow. Generates a daf's whole-daf pieces as
+// SEPARATE checkpointed steps — each step.do() is its own invocation with its own
+// 128 MB budget, so per-step memory can't pile up the way one monolithic
+// generation job does. Reuses runEnrichmentOnce (the exact fn the queue uses) so
+// it writes byte-identical cache keys — it cannot force a re-warm, and an
+// already-cached piece is a no-op (runEnrichmentOnce returns the cached value).
+// Additive: only POST /api/admin/workflow-warm reaches it; the live queue / run /
+// reader paths are untouched. Step 1 = whole-daf surface; per-instance is later.
+export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams> {
+  override async run(event: WorkflowEvent<DafWarmParams>, step: WorkflowStep): Promise<void> {
+    const { tractate, page } = event.payload;
+    const lang: 'en' | 'he' = event.payload.lang === 'he' ? 'he' : 'en';
+    const wrapped = wrapEnv(this.env);
+    const ids = wholeDafEnrichmentIds(
+      CODE_MARKS.map((m) => ({ id: m.id, anchor: (m as { anchor?: string }).anchor })),
+      CODE_ENRICHMENTS.map((e) => ({ id: e.id, scope: e.scope, target_mark: e.target_mark })),
+    );
+    for (const id of ids) {
+      await step.do(`warm:${id}`, async () => {
+        const def = await loadEnrichmentDef(wrapped, id);
+        if (!def) return { id, skipped: 'no-def' };
+        // No ExecutionContext in a Workflow step — collect the generation's
+        // fire-and-forget waitUntil work (usage/cost telemetry) and await it
+        // within the step so it isn't dropped when the step returns.
+        const pending: Promise<unknown>[] = [];
+        const ctx = {
+          waitUntil: (p: Promise<unknown>) => {
+            pending.push(Promise.resolve(p));
+          },
+          passThroughOnException: () => {},
+        } as unknown as ExecutionContext;
+        const rc: RunCtx = { env: wrapped, url: 'https://localhost/internal', ctx, lang };
+        const res = await runEnrichmentOnce(rc, def, tractate, page, { fields: {} }, false);
+        await Promise.allSettled(pending);
+        return { id, cached: res.cache_hit ?? false, model: res.model };
+      });
+    }
   }
 }
 

@@ -109,6 +109,16 @@ HOURLY_CUSTOM_BUDGET_USD = "10"
 # the message and writes the result to KV under `job:{runId}`. Client polls
 # /api/run-status/:runId. Decouples client requests from LLM latency
 # and stops workerd from dying on parallel long-fetches in dev.
+# Phase 3 (step 1): generation as a Cloudflare Workflow. The warm Workflow
+# generates a daf's whole-daf pieces as separate checkpointed STEPS — each step
+# its own invocation with its own 128 MB budget, so the per-step memory can't pile
+# up the way one monolithic generation job does. Additive: triggered by
+# POST /api/admin/workflow-warm; the live queue/run/reader paths are untouched.
+[[workflows]]
+name = "daf-warm"
+binding = "DAF_WARM_WORKFLOW"
+class_name = "DafWarmWorkflow"
+
 [[queues.producers]]
 queue = "enrichment-jobs"
 binding = "ENRICHMENT_QUEUE"

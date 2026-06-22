@@ -4,6 +4,7 @@
 // helper module creates a cycle — these neutral types break that.
 
 import type { EmailBinding } from './warm-cron';
+import type { DafWarmParams } from './workflow-warm';
 
 /** Queue message for one enrichment/mark run. `/api/run` enqueues a JobMessage;
  *  the queue consumer (bottom of index.ts) runs the LLM chain and writes the
@@ -62,6 +63,9 @@ export interface Bindings {
   // of index.ts. /api/run enqueues a JobMessage; the queue consumer
   // runs the LLM chain and writes the result to KV under `job:{runId}`.
   ENRICHMENT_QUEUE?: Queue<JobMessage>;
+  // Phase 3 (step 1): the warm Workflow binding — generates a daf's whole-daf
+  // pieces as per-step invocations. Triggered by POST /api/admin/workflow-warm.
+  DAF_WARM_WORKFLOW?: Workflow<DafWarmParams>;
   // When '1', the background Sefaria Shas walk also enqueues rabbi.observations
   // per amud (full reverse-index backfill). OFF by default — see WarmEnv.
   OBSERVATIONS_WARM_SHAS?: string;
