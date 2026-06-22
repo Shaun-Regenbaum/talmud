@@ -23,6 +23,9 @@ export interface EnrichmentLike {
   id: string;
   scope?: string;
   target_mark?: string;
+  /** Computed only on demand (e.g. a user-question `.qa`, or the lazy homonym
+   *  pin) — never proactively warmed, so the warm Workflow skips it. */
+  demand_driven?: boolean;
 }
 
 /**
@@ -30,12 +33,13 @@ export interface EnrichmentLike {
  * whole-daf (or which declare no target mark). Same bucketing rule the daf-view
  * uses to separate whole-daf from per-instance pieces, so the two stay in sync.
  * Per-instance enrichments are intentionally excluded here (step 1 warms the
- * whole-daf surface; per-instance fan-out is a later step).
+ * whole-daf surface; per-instance fan-out is a later step). Demand-driven
+ * enrichments are skipped — they're generated only when a reader asks.
  */
 export function wholeDafEnrichmentIds(marks: MarkLike[], enrichments: EnrichmentLike[]): string[] {
   const anchorById = new Map(marks.map((m) => [m.id, m.anchor]));
   return enrichments
-    .filter((e) => e.scope === 'local')
+    .filter((e) => e.scope === 'local' && !e.demand_driven)
     .filter((e) => !e.target_mark || anchorById.get(e.target_mark) === 'whole-daf')
     .map((e) => e.id);
 }
@@ -44,9 +48,11 @@ export function wholeDafEnrichmentIds(marks: MarkLike[], enrichments: Enrichment
  * Per-instance local enrichments (one cached entry per target-mark instance):
  * scope local, target mark is NOT whole-daf, and NOT `argument` (its dual
  * display/synth instance shape needs separate handling — the same exclusion the
- * daf-view and /api/daf-runs carry). The warm Workflow generates one step per
- * (enrichment, instance) for these. Returns {id, targetMark} so the caller can
- * read the target mark's instances.
+ * daf-view and /api/daf-runs carry). DEMAND-DRIVEN enrichments are skipped: a
+ * user-question `.qa` or the lazy homonym pin is generated only when the reader
+ * asks, so warming it Shas-wide is pure waste (and it can't be keyed without the
+ * question). The warm Workflow generates one step per (enrichment, instance) for
+ * what remains. Returns {id, targetMark} so the caller can read the instances.
  */
 export function perInstanceEnrichments(
   marks: MarkLike[],
@@ -54,7 +60,7 @@ export function perInstanceEnrichments(
 ): { id: string; targetMark: string }[] {
   const anchorById = new Map(marks.map((m) => [m.id, m.anchor]));
   return enrichments
-    .filter((e) => e.scope === 'local')
+    .filter((e) => e.scope === 'local' && !e.demand_driven)
     .filter(
       (e) =>
         !!e.target_mark &&

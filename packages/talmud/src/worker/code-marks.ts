@@ -1817,6 +1817,9 @@ function makeEnrichment(
      *  default). When set, thinking is left ON and reasoning_effort is passed
      *  through. Use for heavy cross-section reasoning (argument-overview.flow). */
     reasoningEffort?: 'low' | 'medium' | 'high';
+    /** Computed only ON DEMAND (e.g. a user-question-parameterized `.qa`), never
+     *  proactively warmed. Excluded from warm generation + view completeness. */
+    demandDriven?: boolean;
   },
 ): EnrichmentDefinition {
   return {
@@ -1828,6 +1831,7 @@ function makeEnrichment(
     scope: opts.scope,
     dependencies: opts.dependencies,
     ...(opts.passes ? { passes: opts.passes } : {}),
+    ...(opts.demandDriven ? { demand_driven: true } : {}),
     extractor: {
       kind: 'llm',
       ...(opts.model ? { model: opts.model } : {}),
@@ -4188,6 +4192,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'argument-move.commentaries' },
         { mark: 'argument-move' },
       ],
+      demandDriven: true, // user-question parameterized — generated on demand, never warmed
       defHash: 'argument-move.qa-v5',
       cacheVersion: '5',
       model: ARGUMENT_PRO_MODEL,
@@ -5973,6 +5978,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'pesukim.synthesis' },
         { mark: 'pesukim' },
       ],
+      demandDriven: true, // user-question parameterized — generated on demand, never warmed
       defHash: 'pesukim.qa-v3',
       cacheVersion: '3',
       model: ARGUMENT_PRO_MODEL,
@@ -6589,6 +6595,7 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'aggadata.synthesis' },
         { mark: 'aggadata' },
       ],
+      demandDriven: true, // user-question parameterized — generated on demand, never warmed
       defHash: 'aggadata.qa-v1',
       cacheVersion: '1',
       model: ARGUMENT_PRO_MODEL,
