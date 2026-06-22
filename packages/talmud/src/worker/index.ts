@@ -2734,13 +2734,19 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
 
   const iid = await instanceIdOf({ fields: {} });
   const markAnchorById = new Map(CODE_MARKS.map((m) => [m.id, (m as { anchor?: string }).anchor]));
-  // Argument section enrichments (argument.synthesis) ARE enumerated: the per-
-  // instance path keys them by instanceIdOf(instance), which for an argument
-  // section resolves to slug(fields.title) — the same key the client computes
-  // from argumentSynthInstance(section) (title is preserved through the section
-  // adapter). This is the slug(title) join already proven by /api/daf-runs. So a
-  // warm daf's argument cards render from the view instead of fanning out.
-  const localEnrichments = CODE_ENRICHMENTS.filter((e) => e.scope === 'local');
+  // Argument SECTION enrichments are excluded EXCEPT argument.synthesis. It's the
+  // only one warmed at load (the prefetch + DEEP_WARM_PLAN) and keyed by
+  // slug(fields.title) — the same key the client computes from
+  // argumentSynthInstance(section) (title is preserved through the section
+  // adapter), the slug(title) join already proven by /api/daf-runs. Including it
+  // lets a warm daf's argument cards render from the view instead of fanning out.
+  // The others (argument.voices / argument.narrative / argument.background) are
+  // demand-driven / dev-only — not fired at load and not in any warm surface — so
+  // counting them would wrongly mark a daf incomplete (e.g. argument.narrative is
+  // dev-only on-demand) and deny it the hard edge cache.
+  const localEnrichments = CODE_ENRICHMENTS.filter(
+    (e) => e.scope === 'local' && (e.target_mark !== 'argument' || e.id === 'argument.synthesis'),
+  );
   const perInstanceTargets = new Set(
     localEnrichments
       .map((e) => e.target_mark)
