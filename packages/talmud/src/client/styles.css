@@ -171,6 +171,15 @@ main {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 0.8rem;
 }
+/* The worked example's spine | panel split; stacks on phones. */
+.hiw-example {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+}
+@media (max-width: 700px) {
+  .hiw-example {
+    grid-template-columns: 1fr;
+  }
+}
 @media (max-width: 900px) {
   .hiw-layout {
     grid-template-columns: 1fr;
