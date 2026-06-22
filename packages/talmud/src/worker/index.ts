@@ -170,6 +170,7 @@ import {
 import { fetchCommentaryWorks, registerCommentaryRoutes } from './commentary';
 import { aiMatchToSegments } from './context-match';
 import { collectContext, type SourceTiming } from './context-providers';
+import { cronHeavyPhase } from './cron-schedule';
 import { dafCostReport } from './daf-cost';
 import { recordEnrichmentDafIndex, recordMarkDafIndex } from './daf-index';
 import {
@@ -1899,7 +1900,11 @@ app.get('/api/derived-flow/:tractate/:page', async (c) => {
 // pass, so newly-warmed dapim + human edits flow in on the next lap. Gated by
 // SPINE_VIEW_WARM_SHAS.
 const SPINE_VIEW_CURSOR_KEY = 'spine-view-cursor:v1';
-const SPINE_VIEW_WINDOW = 20; // warmed dapim built per tick (~240 KV reads)
+// Dapim built per tick. Each build loads a daf's pieces, and they run
+// concurrently, so this is the spine-snapshot's peak-memory knob. 10 (was 20)
+// keeps the build spike well within the isolate even though the phase now also
+// runs alone on its own rotated tick (see cron-schedule.ts).
+const SPINE_VIEW_WINDOW = 10;
 interface SpineViewCursor {
   tractateIdx: number;
   amudIdx: number; // index into the WARMED-pages list of the current tractate
@@ -11302,13 +11307,16 @@ export default {
         runBacklogBackfill(wrapped, (n, nHe, g) => enrichRabbi(n, nHe, g as GenerationId)).then(
           async (r) => {
             if (r) return; // backfill ran this tick — give it the full budget
-            // Connect-only cross-daf sweep first (bounded + cheap, so it always
-            // makes a little progress), then the source warm cron uses the rest.
-            await runConnectSweep(wrapped).catch(() => {});
-            await runWarmCron(wrapped);
-            // Last (and self-gated by SPINE_VIEW_WARM_SHAS): build a window of the
-            // per-tractate spine-view snapshot shelf from the now-warmed pieces.
-            await runSpineViewSnapshot(wrapped);
+            // Run ONE heavy phase per tick, rotating, so a single 5-min
+            // invocation never holds connect-sweep + warm-cron + spine-snapshot
+            // memory at once (their stacked footprint was the suspected source of
+            // the sporadic exceededMemory cron OOMs). Each phase is
+            // cursor-resumable, so every-3rd-tick just paces the background
+            // warming — nothing is skipped. See cron-schedule.ts.
+            const phase = cronHeavyPhase(controller.scheduledTime || Date.now());
+            if (phase === 'connect') await runConnectSweep(wrapped).catch(() => {});
+            else if (phase === 'warm') await runWarmCron(wrapped);
+            else await runSpineViewSnapshot(wrapped);
           },
         ),
       );
