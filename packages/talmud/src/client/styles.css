@@ -126,6 +126,78 @@ main {
   }
 }
 
+/* #howitworks guided walkthrough: sticky chapter rail beside the content. */
+.hiw-layout {
+  display: grid;
+  grid-template-columns: 184px minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+.hiw-rail {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+}
+.hiw-rail ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.hiw-rail button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-left: 2px solid transparent;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0 6px 6px 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.hiw-rail button.is-active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: #f3ede4;
+  font-weight: 600;
+}
+.hiw-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.8rem;
+}
+@media (max-width: 900px) {
+  .hiw-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .hiw-rail {
+    position: static;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.4rem;
+  }
+  .hiw-rail ol {
+    flex-direction: row;
+    gap: 0.25rem;
+  }
+  .hiw-rail button {
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 6px 6px 0 0;
+  }
+  .hiw-rail button.is-active {
+    border-left-color: transparent;
+    border-bottom-color: var(--accent);
+  }
+}
+
 header {
   border-bottom: 1px solid var(--line);
   padding-bottom: 1rem;
