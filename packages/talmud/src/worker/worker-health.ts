@@ -171,11 +171,15 @@ export async function checkWorkerHealthAndAlert(env: HealthEnv, nowMs: number): 
 
     const cache = env.CACHE;
     const email = env.EMAIL;
-    const hourBucket = Math.floor(nowMs / 3_600_000);
-    const dedupeKey = `health-alert:fatal:${hourBucket}`;
+    // One alert per DAY per status class. These outcomes are sporadic (a heavy
+    // cron tick / a dense cold daf trips one occasionally), so an hourly alert
+    // just spammed the inbox without adding signal — a daily digest says "it
+    // happened again today" once, which is all the alert needs to convey.
+    const dayBucket = Math.floor(nowMs / 86_400_000);
+    const dedupeKey = `health-alert:fatal:${dayBucket}`;
     if (cache) {
       const already = await cache.get(dedupeKey);
-      if (already) return; // already alerted this hour
+      if (already) return; // already alerted today
     }
     if (email) {
       const lines = Object.entries(outcomes.byStatus ?? {})
@@ -196,7 +200,7 @@ export async function checkWorkerHealthAndAlert(env: HealthEnv, nowMs: number): 
       });
     }
     if (cache) {
-      await cache.put(dedupeKey, '1', { expirationTtl: 3_600 });
+      await cache.put(dedupeKey, '1', { expirationTtl: 86_400 });
     }
   } catch (err) {
     console.error('[health] checkWorkerHealthAndAlert failed:', err);
