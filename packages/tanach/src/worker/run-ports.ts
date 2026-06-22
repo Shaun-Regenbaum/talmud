@@ -513,7 +513,10 @@ const RUN_PORTS: RunProducerPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkD
       model,
       in: usage?.prompt_tokens ?? 0,
       out: usage?.completion_tokens ?? 0,
-      cost: costUsd(model, usage),
+      // Prefer the provider's BILLED cost (u.cost) when the gateway returns it —
+      // the price-table estimate can diverge (it undercounts on some models). Fall
+      // back to the estimate only when no billed figure is available.
+      cost: usage && typeof usage.cost === 'number' ? usage.cost : costUsd(model, usage),
     };
     rc.ctx.waitUntil(recordUsageEntry(rc.env.CACHE, entry));
   },

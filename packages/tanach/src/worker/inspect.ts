@@ -68,7 +68,8 @@ export function telemetryOf(
     // pre-envelope payloads — not a real model.
     model: env.model && env.model !== 'legacy-cache' ? env.model : null,
     coldMs: env.elapsed_ms || null,
-    cost: cost ? (cost.estimatedUsd ?? cost.billedUsd ?? null) : null,
+    // Prefer the provider's billed cost; fall back to the price-table estimate.
+    cost: cost ? (cost.billedUsd ?? cost.estimatedUsd ?? null) : null,
     tokens: cost ? cost.tokensIn + cost.tokensOut : null,
   };
 }
