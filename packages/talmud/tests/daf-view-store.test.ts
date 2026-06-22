@@ -7,7 +7,9 @@ import {
   dafViewPieceResult,
   dafViewWholeDafResult,
   ensureDafView,
+  isViewDriven,
   loadDafView,
+  openDafView,
   synthRunResult,
 } from '../src/client/dafViewStore';
 // The SERVER's key function — the client lookups must agree with it byte-for-byte
@@ -316,5 +318,91 @@ describe('client lookups agree with the server pieceKey format', () => {
     expect(
       dafViewPieceResult('pesukim.synthesis', 'abc123', 'Chullin', '52a', 'en')?.cache_hit,
     ).toBe(true);
+  });
+});
+
+// Phase B: the cold-path cutover. openDafView loads the view; if the daf is cold
+// it fires POST /api/daf-generate and re-polls the view (view-driven), so cards
+// render from the Workflow instead of fanning out. The crucial property is that
+// view-driven mode ALWAYS releases — on completion, generate-failure, a stall,
+// or navigation — so cards can never be stuck waiting forever.
+describe('openDafView (cold-path, view-driven)', () => {
+  // Route fetches by URL so one stub serves daf-view + daf-generate.
+  function routeFetch(opts: {
+    generate: { generating: boolean };
+    view: (callIdx: number) => { complete?: boolean; cached?: number; pieces?: unknown };
+  }) {
+    let viewCalls = 0;
+    const spy = vi.fn(async (url: string, _init?: RequestInit) => {
+      const u = String(url);
+      if (u.includes('/api/daf-generate')) {
+        return new Response(JSON.stringify(opts.generate), { status: 200 });
+      }
+      const body = opts.view(viewCalls++);
+      return new Response(JSON.stringify(body), { status: 200 });
+    });
+    vi.stubGlobal('fetch', spy);
+    return spy;
+  }
+
+  it('WARM daf: never triggers generation, never goes view-driven', async () => {
+    const spy = routeFetch({
+      generate: { generating: true },
+      view: () => ({ complete: true, pieces: {} }),
+    });
+    await openDafView('Warm', '2a', 'en');
+    expect(isViewDriven('Warm', '2a', 'en')).toBe(false);
+    expect(spy.mock.calls.some(([u]) => String(u).includes('/api/daf-generate'))).toBe(false);
+  });
+
+  it('COLD daf: triggers generation, goes view-driven, releases on complete', async () => {
+    vi.useFakeTimers();
+    try {
+      // first view call cold; the poll's view call reports complete.
+      routeFetch({
+        generate: { generating: true },
+        view: (i) =>
+          i === 0
+            ? { complete: false, cached: 1, pieces: {} }
+            : { complete: true, cached: 9, pieces: {} },
+      });
+      const p = openDafView('Cold', '3a', 'en');
+      await vi.advanceTimersByTimeAsync(50); // flush initial load + generate trigger
+      expect(isViewDriven('Cold', '3a', 'en')).toBe(true);
+      await vi.advanceTimersByTimeAsync(9000); // drive one poll → complete
+      await p;
+      expect(isViewDriven('Cold', '3a', 'en')).toBe(false); // released
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('COLD daf but generation PAUSED (generating:false): never goes view-driven (cards fetch)', async () => {
+    routeFetch({
+      generate: { generating: false },
+      view: () => ({ complete: false, cached: 0, pieces: {} }),
+    });
+    await openDafView('Paused', '4a', 'en');
+    expect(isViewDriven('Paused', '4a', 'en')).toBe(false);
+  });
+
+  it('releases view-driven when the cached count STALLS (a stuck producer)', async () => {
+    vi.useFakeTimers();
+    try {
+      // always incomplete, cached count never grows → stall detection fires.
+      routeFetch({
+        generate: { generating: true },
+        view: () => ({ complete: false, cached: 2, pieces: {} }),
+      });
+      const p = openDafView('Stuck', '5a', 'en');
+      await vi.advanceTimersByTimeAsync(50);
+      expect(isViewDriven('Stuck', '5a', 'en')).toBe(true);
+      // 4 stall polls (STALL_LIMIT) at 8s each → released.
+      await vi.advanceTimersByTimeAsync(8000 * 5);
+      await p;
+      expect(isViewDriven('Stuck', '5a', 'en')).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

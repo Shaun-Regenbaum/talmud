@@ -37,7 +37,7 @@ import DafLoadProgress from './DafLoadProgress';
 import { readDevMode, setDevModeActive } from './DevModeShelf';
 import { cancelPrefetch, prefetchDaf } from './dafPrefetch';
 import { setDafRunsTarget } from './dafRunsStore';
-import { loadDafView } from './dafViewStore';
+import { openDafView } from './dafViewStore';
 import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { GutterIcons, type GutterKind } from './GutterIcons';
 import { GutterOverlay } from './GutterOverlay';
@@ -471,12 +471,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const ref = createMemo<Ref>(() => ({ tractate: tractate(), page: page() }));
   const [daf] = createResource(ref, fetchDaf);
 
-  // Phase 1: load the materialized daf-view (ONE fetch = all of a daf's cached
-  // pieces) as early as the daf itself, so whole-daf cards (Overview, …) render
-  // from it instead of each firing its own /api/run. Best-effort — a miss just
-  // means the card fetches as before (see dafViewStore).
+  // Open the materialized daf-view as early as the daf itself: load the cached
+  // pieces in ONE fetch so warm cards render from it, and if the daf is COLD,
+  // drive generation from the parallel Workflow (POST /api/daf-generate) +
+  // re-poll the view so cards fill in progressively — instead of each card
+  // fanning out its own /api/run. Best-effort + fail-safe (see openDafView).
   createEffect(() => {
-    void loadDafView(tractate(), page(), lang());
+    void openDafView(tractate(), page(), lang());
   });
 
   // Per-daf rabbi list — derived from the `rabbi` mark run (see dafRabbis()

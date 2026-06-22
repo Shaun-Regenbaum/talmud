@@ -21,7 +21,7 @@
  */
 
 import { createSignal } from 'solid-js';
-import { dafViewHas, ensureDafView } from './dafViewStore';
+import { dafViewHas, ensureDafView, isViewDriven } from './dafViewStore';
 import { isAbort, isPausedError } from './enrichmentQueue';
 import { enqueueEnrichmentRun } from './MarkEnrichmentCards';
 
@@ -254,6 +254,15 @@ export function prefetchDaf(
   void (async () => {
     await ensureDafView(tractate, page, lang);
     if (myGen !== gen || controller.signal.aborted) return;
+    // Cold daf in view-driven mode: the parallel Workflow (POST /api/daf-generate,
+    // kicked by openDafView) is generating every piece. Do NOT fan out our own
+    // /api/run — mark the cohort done and let the view-poll fill the cards in. If
+    // generation later stalls/fails, openDafView drops view-driven and the cards
+    // fetch any straggler themselves.
+    if (isViewDriven(tractate, page, lang)) {
+      for (const t of tasks) markDone(t.enrichmentId, false, false);
+      return;
+    }
     for (const t of tasks) {
       if (myGen !== gen || controller.signal.aborted) return;
       if (await dafViewHas(t.enrichmentId, t.instance, tractate, page, lang)) {

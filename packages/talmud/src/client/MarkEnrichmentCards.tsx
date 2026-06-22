@@ -30,7 +30,13 @@ import {
 } from 'solid-js';
 import { trackAI } from './aiActivity';
 import { devModeActive } from './DevModeShelf';
-import { dafViewLoaded, dafViewPieceResult, dafViewWholeDafResult } from './dafViewStore';
+import {
+  dafViewLoaded,
+  dafViewPieceResult,
+  dafViewVersion,
+  dafViewWholeDafResult,
+  isViewDriven,
+} from './dafViewStore';
 import {
   isAbort,
   isPausedBody,
@@ -552,6 +558,12 @@ export default function MarkEnrichmentCards(props: Props) {
     // cards render from the view instead of fetching.
     const iid = instIid();
     const viewReady = dafViewLoaded(props.tractate, props.page, curLang);
+    // Tracked reads: re-run as the cold-generation poll fills the view in
+    // (dafViewVersion bumps per poll), and when view-driven mode flips off (the
+    // daf finished / stalled / timed out) so we then fall through and fetch any
+    // straggler. On a cold daf we render entirely from the Workflow + poll.
+    dafViewVersion();
+    const viewDriven = isViewDriven(props.tractate, props.page, curLang);
     const controller = new AbortController();
     onCleanup(() => controller.abort());
     untrack(() => {
@@ -599,6 +611,17 @@ export default function MarkEnrichmentCards(props: Props) {
             fromInstance,
           );
           applyResult(d, s, fromInstance);
+          continue;
+        }
+        // Cold daf, view-driven: the parallel Workflow is generating every piece
+        // (POST /api/daf-generate) and the poll fills the view in. WAIT for it
+        // rather than firing our own /api/run — that's the no-fan-out cutover.
+        // Show a loading state meanwhile. When generation settles (complete /
+        // stalled / timed out) viewDriven flips off and this effect re-runs and
+        // falls through to fetch any straggler. (viewDriven is a tracked read.)
+        if (viewDriven) {
+          const prev = runs()[d.id];
+          if (!prev || prev.kind === 'idle') setRun(d.id, { kind: 'loading', stamp: s });
           continue;
         }
         const cur = runs()[d.id];
