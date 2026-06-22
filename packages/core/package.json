@@ -13,7 +13,6 @@
     "./registry/*": "./src/registry/*.ts",
     "./sidebar/*": "./src/sidebar/*.ts",
     "./llm/*": "./src/llm/*.ts",
-    "./studio/*": "./src/studio/*.ts",
     "./cache/*": "./src/cache/*.ts",
     "./sefaria/*": "./src/sefaria/*.ts",
     "./model/*": "./src/model/*.ts",

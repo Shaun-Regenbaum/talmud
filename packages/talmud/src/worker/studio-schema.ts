@@ -59,9 +59,7 @@ import type { SidebarRecipe } from '@corpus/core/sidebar/recipe';
 //
 // The SHAPES are owned by @corpus/core/model/compat (the Legacy* structural
 // types the four-primitive bridges project from) and re-exported here under
-// their original studio names, so consumer imports are unchanged. The
-// anchor→render COMPATIBLE matrix stays in this file — render kinds are
-// app-side.
+// their original studio names, so consumer imports are unchanged.
 // ===========================================================================
 
 /** The seven anchor kinds:
@@ -198,19 +196,6 @@ export type RenderConfig =
   | VisualizationRenderConfig
   | ConnectionRenderConfig
   | ChipRenderConfig;
-
-/** Anchor × Render compatibility — enforced by validateMark. Adding a row to
- *  this matrix opens a new combination; the corresponding renderer must
- *  handle it. */
-export const COMPATIBLE: Readonly<Record<AnchorKind, RenderKind[]>> = {
-  segment: ['row-tag', 'inline'],
-  'segment-range': ['gutter+sidebar', 'inline'],
-  phrase: ['inline', 'meta-component'],
-  'multi-anchor': ['connection', 'gutter+sidebar'],
-  'cross-daf': ['inline', 'meta-component'],
-  external: ['inline', 'meta-component'],
-  'whole-daf': ['chip', 'visualization'],
-};
 
 // ===========================================================================
 // Extractor — how a mark's instances are computed.
@@ -535,20 +520,6 @@ export interface MarkRunOutput {
 }
 
 // ===========================================================================
-// Validation — runtime + compile-time guards.
-// ===========================================================================
-
-export const ID_RE = /^[a-z][a-z0-9._-]{0,63}$/i;
-
-export function isValidId(s: unknown): s is string {
-  return typeof s === 'string' && ID_RE.test(s);
-}
-
-export function isCompatible(anchor: AnchorKind, render: RenderKind): boolean {
-  return COMPATIBLE[anchor]?.includes(render) ?? false;
-}
-
-// ===========================================================================
 // AUTHORING CHECKLIST — what to ask the user when they propose a new mark.
 // ===========================================================================
 /*
@@ -577,7 +548,7 @@ correct the ones I got wrong.
 
   6. render       — pick from { inline, gutter+sidebar, row-tag,
                     meta-component, overlay, visualization, connection, chip }.
-                    Confirm against COMPATIBLE matrix. Defaults by anchor:
+                    Defaults by anchor:
                       phrase        → inline
                       segment-range → gutter+sidebar
                       segment       → row-tag
