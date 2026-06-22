@@ -3,6 +3,7 @@ import { AlignPage } from './AlignPage';
 import { AttributionsPage } from './AttributionsPage';
 import Compare from './Compare';
 import DafViewer from './DafViewer';
+import { HowItWorksPage } from './HowItWorksPage';
 import { McpPage } from './McpPage';
 import PretextSpike from './PretextSpike';
 import { SagesPage } from './SagesPage';
@@ -78,7 +79,14 @@ export default function App() {
                                             when={
                                               route() === 'spine' || route().startsWith('spine/')
                                             }
-                                            fallback={<DafViewer />}
+                                            fallback={
+                                              <Show
+                                                when={route() === 'howitworks'}
+                                                fallback={<DafViewer />}
+                                              >
+                                                <HowItWorksPage />
+                                              </Show>
+                                            }
                                           >
                                             <SpineCoveragePage />
                                           </Show>
