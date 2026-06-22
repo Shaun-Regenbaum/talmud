@@ -40,6 +40,30 @@ export function wholeDafEnrichmentIds(marks: MarkLike[], enrichments: Enrichment
     .map((e) => e.id);
 }
 
+/**
+ * Per-instance local enrichments (one cached entry per target-mark instance):
+ * scope local, target mark is NOT whole-daf, and NOT `argument` (its dual
+ * display/synth instance shape needs separate handling — the same exclusion the
+ * daf-view and /api/daf-runs carry). The warm Workflow generates one step per
+ * (enrichment, instance) for these. Returns {id, targetMark} so the caller can
+ * read the target mark's instances.
+ */
+export function perInstanceEnrichments(
+  marks: MarkLike[],
+  enrichments: EnrichmentLike[],
+): { id: string; targetMark: string }[] {
+  const anchorById = new Map(marks.map((m) => [m.id, m.anchor]));
+  return enrichments
+    .filter((e) => e.scope === 'local')
+    .filter(
+      (e) =>
+        !!e.target_mark &&
+        e.target_mark !== 'argument' &&
+        anchorById.get(e.target_mark) !== 'whole-daf',
+    )
+    .map((e) => ({ id: e.id, targetMark: e.target_mark as string }));
+}
+
 /** Params passed to the warm Workflow. */
 export interface DafWarmParams {
   tractate: string;

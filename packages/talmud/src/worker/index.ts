@@ -303,7 +303,7 @@ import {
 } from './warm-cron';
 import { lookupGloss } from './word-glosses';
 import { checkWorkerHealthAndAlert, fetchWorkerOutcomes } from './worker-health';
-import { type DafWarmParams, wholeDafEnrichmentIds } from './workflow-warm';
+import { type DafWarmParams, perInstanceEnrichments, wholeDafEnrichmentIds } from './workflow-warm';
 import { runYomiWarmCron } from './yomi-cron';
 
 // `Bindings` and `JobMessage` now live in ./types (a neutral module so route
@@ -11321,17 +11321,24 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
     const { tractate, page } = event.payload;
     const lang: 'en' | 'he' = event.payload.lang === 'he' ? 'he' : 'en';
     const wrapped = wrapEnv(this.env);
-    const ids = wholeDafEnrichmentIds(
-      CODE_MARKS.map((m) => ({ id: m.id, anchor: (m as { anchor?: string }).anchor })),
-      CODE_ENRICHMENTS.map((e) => ({ id: e.id, scope: e.scope, target_mark: e.target_mark })),
-    );
-    for (const id of ids) {
-      await step.do(`warm:${id}`, async () => {
-        const def = await loadEnrichmentDef(wrapped, id);
-        if (!def) return { id, skipped: 'no-def' };
-        // No ExecutionContext in a Workflow step — collect the generation's
-        // fire-and-forget waitUntil work (usage/cost telemetry) and await it
-        // within the step so it isn't dropped when the step returns.
+    const marksLite = CODE_MARKS.map((m) => ({
+      id: m.id,
+      anchor: (m as { anchor?: string }).anchor,
+    }));
+    const enrichLite = CODE_ENRICHMENTS.map((e) => ({
+      id: e.id,
+      scope: e.scope,
+      target_mark: e.target_mark,
+    }));
+
+    // Each producer runs in its OWN step.do() — its own invocation, its own
+    // 128 MB budget — so the daf's full dependency tree generates with bounded
+    // per-step memory instead of one monolithic job. No ExecutionContext exists
+    // in a Workflow step, so collect the generation's fire-and-forget telemetry
+    // (waitUntil) and await it within the step rather than dropping it.
+    type StepResult = { id: string; cached?: boolean; skipped?: string; iid?: string };
+    const runStep = (name: string, fn: (rc: RunCtx) => Promise<StepResult>): Promise<StepResult> =>
+      step.do(name, async () => {
         const pending: Promise<unknown>[] = [];
         const ctx = {
           waitUntil: (p: Promise<unknown>) => {
@@ -11340,10 +11347,48 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
           passThroughOnException: () => {},
         } as unknown as ExecutionContext;
         const rc: RunCtx = { env: wrapped, url: 'https://localhost/internal', ctx, lang };
-        const res = await runEnrichmentOnce(rc, def, tractate, page, { fields: {} }, false);
+        const out = await fn(rc);
         await Promise.allSettled(pending);
-        return { id, cached: res.cache_hit ?? false, model: res.model };
+        return out;
       });
+
+    // 1) Marks first — enrichments depend on them, so doing them as steps means
+    //    each enrichment step finds its mark already cached instead of
+    //    regenerating it inline (the per-step decomposition of the DAG).
+    for (const m of CODE_MARKS) {
+      await runStep(`mark:${m.id}`, async (rc) => {
+        const def = await loadMarkDef(wrapped, m.id);
+        if (!def) return { id: m.id, skipped: 'no-def' };
+        const res = await runMarkOnce(rc, def, tractate, page, false);
+        return { id: m.id, cached: res.cache_hit ?? false };
+      });
+    }
+
+    // 2) Whole-daf enrichments ({fields:{}}).
+    for (const id of wholeDafEnrichmentIds(marksLite, enrichLite)) {
+      await runStep(`enrich:${id}`, async (rc) => {
+        const def = await loadEnrichmentDef(wrapped, id);
+        if (!def) return { id, skipped: 'no-def' };
+        const res = await runEnrichmentOnce(rc, def, tractate, page, { fields: {} }, false);
+        return { id, cached: res.cache_hit ?? false };
+      });
+    }
+
+    // 3) Per-instance enrichments — one step per (enrichment, target instance).
+    //    Instances come from the now-cached target mark (step 1). This read + the
+    //    instanceId hash run in the orchestration (cheap + deterministic) so they
+    //    replay identically — Workflow step NAMES must be stable across replays.
+    for (const { id, targetMark } of perInstanceEnrichments(marksLite, enrichLite)) {
+      const def = await loadEnrichmentDef(wrapped, id);
+      if (!def) continue;
+      const insts = await readMarkInstances(wrapped, targetMark, tractate, page);
+      for (const inst of insts) {
+        const iid = await instanceIdOf(inst);
+        await runStep(`enrich:${id}:${iid}`, async (rc) => {
+          const res = await runEnrichmentOnce(rc, def, tractate, page, inst, false);
+          return { id, iid, cached: res.cache_hit ?? false };
+        });
+      }
     }
   }
 }
