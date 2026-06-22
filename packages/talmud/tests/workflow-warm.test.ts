@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { perInstanceEnrichments, wholeDafEnrichmentIds } from '../src/worker/workflow-warm';
+import {
+  dafGenSentinelKey,
+  perInstanceEnrichments,
+  wholeDafEnrichmentIds,
+} from '../src/worker/workflow-warm';
 
 const MARKS = [
   { id: 'argument-overview', anchor: 'whole-daf' },
@@ -111,5 +115,35 @@ describe('wholeDafEnrichmentIds', () => {
 
   it('is empty for an empty registry', () => {
     expect(wholeDafEnrichmentIds([], [])).toEqual([]);
+  });
+});
+
+// The /api/daf-generate single-flight sentinel. N concurrent readers of the
+// same daf+lang MUST land on the same key (so they coalesce onto one Workflow),
+// and EN/HE must differ (they generate distinct pieces). A silent prefix/format
+// change here would break single-flight (every reader starts its own Workflow),
+// so the format is pinned byte-for-byte.
+describe('dafGenSentinelKey', () => {
+  it('is byte-stable per (tractate, page, lang)', () => {
+    expect(dafGenSentinelKey('Berakhot', '2a', 'en')).toBe('dafgen:v1:Berakhot:2a:en');
+    expect(dafGenSentinelKey('Chullin', '52a', 'he')).toBe('dafgen:v1:Chullin:52a:he');
+  });
+
+  it('is identical for the same daf+lang (so concurrent readers coalesce)', () => {
+    expect(dafGenSentinelKey('Shabbat', '21b', 'en')).toBe(
+      dafGenSentinelKey('Shabbat', '21b', 'en'),
+    );
+  });
+
+  it('differs by language (EN and HE generate distinct pieces)', () => {
+    expect(dafGenSentinelKey('Shabbat', '21b', 'en')).not.toBe(
+      dafGenSentinelKey('Shabbat', '21b', 'he'),
+    );
+  });
+
+  it('differs by daf (no cross-daf coalescing)', () => {
+    expect(dafGenSentinelKey('Shabbat', '21a', 'en')).not.toBe(
+      dafGenSentinelKey('Shabbat', '21b', 'en'),
+    );
   });
 });

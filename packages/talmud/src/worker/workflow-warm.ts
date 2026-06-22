@@ -70,3 +70,15 @@ export interface DafWarmParams {
   page: string;
   lang: 'en' | 'he';
 }
+
+/**
+ * The single-flight sentinel key for /api/daf-generate. N concurrent readers of
+ * the same daf+lang must compute the SAME key so they coalesce onto one in-flight
+ * Workflow instead of starting N. Versioned (`v1`) so the format can evolve
+ * without colliding with stale entries. Per (tractate, page, lang) — language is
+ * part of the key because EN and HE generate distinct pieces. Kept byte-stable by
+ * the test suite: a silent prefix/format change would break single-flight.
+ */
+export function dafGenSentinelKey(tractate: string, page: string, lang: 'en' | 'he'): string {
+  return `dafgen:v1:${tractate}:${page}:${lang}`;
+}
