@@ -34,9 +34,17 @@ describe('HowItWorksPage', () => {
         } else if (u.includes('/api/marks')) {
           body = { marks: [{ id: 'rabbi', label: 'Rabbi', dependencies: ['gemara'] }] };
         } else if (u.includes('/api/daf-view')) {
-          body = { pieces: {} };
-        } else if (u.includes('/api/daf')) {
-          body = { mainSegmentsEn: ['seg zero'], mainSegmentsHe: ['שלום'] };
+          body = {
+            pieces: {
+              argument: {
+                parsed: {
+                  instances: [
+                    { startSegIdx: 0, endSegIdx: 4, fields: { title: 'Opening Mishnah' } },
+                  ],
+                },
+              },
+            },
+          };
         }
         return { ok: true, json: async () => body } as Response;
       }),
@@ -58,9 +66,19 @@ describe('HowItWorksPage', () => {
     // chapter rail labels (render synchronously)
     expect(text).toContain('The model, shown');
     expect(text).toContain('The build graph');
-    // a lifecycle step (renders synchronously, independent of the fetch)
-    expect(text).toContain('Resolve inputs');
+    expect(text).toContain('Every enrichment');
+    expect(text).toContain('Caching & freshness');
     expect(root.querySelector('.hiw-rail')).toBeTruthy();
+    root.remove();
+  });
+
+  it('renders the worked-example section cards once the daf-view resolves', async () => {
+    const root = document.createElement('div');
+    document.body.appendChild(root);
+    dispose = render(() => <HowItWorksPage />, root);
+    // let the registry + daf-view resources resolve and Solid flush
+    await new Promise((r) => setTimeout(r, 30));
+    expect(root.textContent ?? '').toContain('Opening Mishnah');
     root.remove();
   });
 });
