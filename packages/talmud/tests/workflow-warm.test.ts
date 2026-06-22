@@ -41,6 +41,15 @@ describe('perInstanceEnrichments', () => {
     expect(out).toEqual([]);
   });
 
+  it('EXCLUDES demand-driven enrichments (.qa, the lazy pin) — never warmed', () => {
+    const out = perInstanceEnrichments(MARKS, [
+      { id: 'pesukim.synthesis', scope: 'local', target_mark: 'pesukim' }, // warmed
+      { id: 'pesukim.qa', scope: 'local', target_mark: 'pesukim', demand_driven: true }, // on-demand
+      { id: 'rabbi.identity.pin', scope: 'local', target_mark: 'rabbi', demand_driven: true }, // lazy
+    ]);
+    expect(out).toEqual([{ id: 'pesukim.synthesis', targetMark: 'pesukim' }]);
+  });
+
   it('partitions cleanly vs wholeDafEnrichmentIds (no overlap, argument in neither)', () => {
     const enrichments = [
       { id: 'argument-overview.synthesis', scope: 'local', target_mark: 'argument-overview' },

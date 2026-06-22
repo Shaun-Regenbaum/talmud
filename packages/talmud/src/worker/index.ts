@@ -11383,6 +11383,7 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
       id: e.id,
       scope: e.scope,
       target_mark: e.target_mark,
+      demand_driven: (e as { demand_driven?: boolean }).demand_driven,
     }));
 
     // Each producer runs in its OWN step.do() — its own invocation, its own
