@@ -1,13 +1,14 @@
 // @vitest-environment jsdom
-import { render } from '@solidjs/testing-library';
-import { describe, expect, it } from 'vitest';
+
 import {
   AuthorityBadge,
   ProvenanceSection,
   StalenessDot,
   stalenessTitle,
   type TreeNode,
-} from '../../src/client/runTreeShared';
+} from '@corpus/ui/RunTree';
+import { render } from '@solidjs/testing-library';
+import { describe, expect, it } from 'vitest';
 
 describe('stalenessTitle', () => {
   it('names WHY for each verdict', () => {

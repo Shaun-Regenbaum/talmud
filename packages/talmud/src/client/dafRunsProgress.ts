@@ -5,7 +5,7 @@
  * Solid's SSR build under vitest). The store re-exports these.
  */
 
-import type { Authority, Staleness } from './runTreeShared';
+import type { Authority, Staleness } from '@corpus/ui/RunTree';
 
 export interface DafRun {
   id: string;

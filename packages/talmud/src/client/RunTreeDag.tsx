@@ -12,16 +12,7 @@
  * the dock is under active development; fold both onto a shared component once
  * that settles.
  */
-import {
-  createEffect,
-  createMemo,
-  createResource,
-  createSignal,
-  For,
-  type JSX,
-  Show,
-} from 'solid-js';
-import { lang } from './i18n';
+
 import {
   ACTIVE_STROKE,
   AuthorityBadge,
@@ -50,7 +41,17 @@ import {
   TOP_PAD,
   type TreeNode,
   variantOf,
-} from './runTreeShared';
+} from '@corpus/ui/RunTree';
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  type JSX,
+  Show,
+} from 'solid-js';
+import { lang } from './i18n';
 
 export function RunTreeDag(props: {
   tractate: string;

@@ -17,32 +17,6 @@
  */
 
 import {
-  createEffect,
-  createMemo,
-  createResource,
-  createSignal,
-  For,
-  type JSX,
-  onCleanup,
-  Show,
-} from 'solid-js';
-import {
-  type AnchorGroup as AnchorGroupT,
-  type DafRun,
-  dafRunGroups,
-  dafRunMarks,
-  dafRunRows,
-  dafRunsLoading,
-  liveCounts,
-  liveLoading,
-  pieceToRun,
-  refetchDafRuns,
-  WHOLE_DAF_ANCHOR,
-} from './dafRunsStore';
-import { lang } from './i18n';
-import { inspectRequest } from './inspectBridge';
-import { AnchorTypeIcon, anchorTypeOf } from './inspectVocab';
-import {
   ACTIVE_STROKE,
   AuthorityBadge,
   BADGE_LLM,
@@ -72,7 +46,33 @@ import {
   TOP_PAD,
   type TreeNode,
   variantOf,
-} from './runTreeShared';
+} from '@corpus/ui/RunTree';
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  Show,
+} from 'solid-js';
+import {
+  type AnchorGroup as AnchorGroupT,
+  type DafRun,
+  dafRunGroups,
+  dafRunMarks,
+  dafRunRows,
+  dafRunsLoading,
+  liveCounts,
+  liveLoading,
+  pieceToRun,
+  refetchDafRuns,
+  WHOLE_DAF_ANCHOR,
+} from './dafRunsStore';
+import { lang } from './i18n';
+import { inspectRequest } from './inspectBridge';
+import { AnchorTypeIcon, anchorTypeOf } from './inspectVocab';
 
 // DafRun (the shared snapshot row) is imported from dafRunsStore — the load bar
 // reads the same rows, so the two surfaces can't drift.

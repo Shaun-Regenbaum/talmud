@@ -1,6 +1,6 @@
+import { variantOf } from '@corpus/ui/RunTree';
 import { describe, expect, it } from 'vitest';
 import { anchorTypeOf } from '../src/client/inspectVocab';
-import { variantOf } from '../src/client/runTreeShared';
 
 describe('anchorTypeOf — traditional labels for the anchor types', () => {
   it('maps mark ids to the traditional terms (falls back to the id)', () => {
