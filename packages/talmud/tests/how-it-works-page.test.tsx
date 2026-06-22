@@ -45,6 +45,12 @@ describe('HowItWorksPage', () => {
               },
             },
           };
+        } else if (u.includes('/api/daf')) {
+          // checked AFTER /api/daf-view (which also contains "/api/daf")
+          body = {
+            mainSegmentsHe: ['מאימתי קורין', 'את שמע'],
+            mainSegmentsEn: ['From when', 'do we recite'],
+          };
         }
         return { ok: true, json: async () => body } as Response;
       }),

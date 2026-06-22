@@ -1,19 +1,16 @@
 /**
- * Real data for the "show, don't tell" worked example on #howitworks. Pulls the
- * actual sections of a daf (Berakhot 2a) so the page demonstrates
- * spine -> anchor -> artifact -> producer on live content — a shorter cousin of
- * the #spine statement view.
- *
- * The sections are the real `argument` mark instances (each a titled span of
- * the daf), read from /api/daf-view. They double as the artifact in the walk:
- * a discovered section IS an artifact.
+ * Real data for the "show, don't tell" worked example on #howitworks. A spine
+ * IS the text, so we show the actual daf: Berakhot 2a's ordered segments
+ * (/api/daf), with the real `argument` sections (/api/daf-view) as the spans a
+ * piece can anchor to. The page demonstrates spine -> anchor -> artifact ->
+ * producer on this live content.
  */
 import { createResource, type Resource } from 'solid-js';
 
 const TRACTATE = 'berakhot';
 const PAGE = '2a';
 
-/** Strip Sefaria/HebrewBooks markup so a title is plain text. */
+/** Strip Sefaria/HebrewBooks markup so a segment/title is plain text. */
 export function stripHtml(s: string): string {
   return s
     .replace(/<[^>]*>/g, '')
@@ -34,8 +31,10 @@ export interface Section {
 export interface WorkedExample {
   tractate: string;
   page: string;
-  /** The producer that discovers these sections. */
+  /** The producer that discovers the sections. */
   producerId: string;
+  segsHe: string[];
+  segsEn: string[];
   sections: Section[];
 }
 
@@ -48,7 +47,7 @@ interface RawInstance {
   fields?: Record<string, unknown>;
 }
 
-/** Pure: project a /api/daf-view response into the section cards. */
+/** Pure: project a /api/daf-view response into the section spans. */
 export function sectionsFromView(view: unknown): Section[] {
   const pieces = (view as { pieces?: Record<string, { parsed?: unknown }> })?.pieces;
   const parsed = pieces?.argument?.parsed as { instances?: RawInstance[] } | undefined;
@@ -63,14 +62,25 @@ export function sectionsFromView(view: unknown): Section[] {
 }
 
 async function fetchExample(): Promise<WorkedExample> {
-  let sections: Section[] = [];
-  try {
-    const res = await fetch(`/api/daf-view/${TRACTATE}/${PAGE}`);
-    if (res.ok) sections = sectionsFromView(await res.json());
-  } catch {
-    sections = [];
+  const [dafR, viewR] = await Promise.allSettled([
+    fetch(`/api/daf/${TRACTATE}/${PAGE}?source=sefaria`),
+    fetch(`/api/daf-view/${TRACTATE}/${PAGE}`),
+  ]);
+
+  let segsHe: string[] = [];
+  let segsEn: string[] = [];
+  if (dafR.status === 'fulfilled' && dafR.value.ok) {
+    const j = (await dafR.value.json()) as { mainSegmentsHe?: string[]; mainSegmentsEn?: string[] };
+    segsHe = (j.mainSegmentsHe ?? []).map(stripHtml);
+    segsEn = (j.mainSegmentsEn ?? []).map(stripHtml);
   }
-  return { tractate: TRACTATE, page: PAGE, producerId: 'argument', sections };
+
+  let sections: Section[] = [];
+  if (viewR.status === 'fulfilled' && viewR.value.ok) {
+    sections = sectionsFromView(await viewR.value.json());
+  }
+
+  return { tractate: TRACTATE, page: PAGE, producerId: 'argument', segsHe, segsEn, sections };
 }
 
 export function useWorkedExample(): Resource<WorkedExample> {
