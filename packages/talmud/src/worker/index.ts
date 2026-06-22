@@ -27,6 +27,7 @@ import {
 import { rawDependenciesOf } from '@corpus/core/model/compat';
 import type { Authority } from '@corpus/core/model/provenance';
 import {
+  dependencyId,
   forwardSubgraph,
   producerNodesFrom,
   reverseDependencyIndex,
@@ -306,7 +307,9 @@ import { checkWorkerHealthAndAlert, fetchWorkerOutcomes } from './worker-health'
 import {
   type DafWarmParams,
   dafGenSentinelKey,
+  parallelMap,
   perInstanceEnrichments,
+  topoTiers,
   wholeDafEnrichmentIds,
 } from './workflow-warm';
 import { runYomiWarmCron } from './yomi-cron';
@@ -11403,43 +11406,88 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
         return out;
       });
 
-    // 1) Marks first — enrichments depend on them, so doing them as steps means
-    //    each enrichment step finds its mark already cached instead of
-    //    regenerating it inline (the per-step decomposition of the DAG).
-    for (const m of CODE_MARKS) {
-      await runStep(`mark:${m.id}`, async (rc) => {
-        const def = await loadMarkDef(wrapped, m.id);
-        if (!def) return { id: m.id, skipped: 'no-def' };
-        const res = await runMarkOnce(rc, def, tractate, page, false);
-        return { id: m.id, cached: res.cache_hit ?? false };
-      });
+    // Producers within a PHASE run in dependency TIERS, each tier's steps fanned
+    // out concurrently (bounded). Tiering guarantees every dep is already cached
+    // by an earlier tier, so parallelism never makes two steps regenerate the
+    // same uncached dep. This is what makes a cold daf generate in minutes (vs the
+    // ~30-60 min fully-sequential walk) while staying per-step memory-bounded.
+    const STEP_CONCURRENCY = 8;
+    const markDepsOf = (id: string): string[] => {
+      const def = CODE_MARKS.find((m) => m.id === id);
+      return (def?.dependencies ?? []).map((d) => dependencyId(d)).filter((x): x is string => !!x);
+    };
+    const enrichDepsOf = (id: string): string[] => {
+      const def = CODE_ENRICHMENTS.find((e) => e.id === id);
+      return (def?.dependencies ?? []).map((d) => dependencyId(d)).filter((x): x is string => !!x);
+    };
+
+    // 1) Marks first — enrichments depend on them. Tiered so a computed mark
+    //    (e.g. geography, which reads the rabbi + places marks) runs after its
+    //    mark deps; independent extractor marks in the same tier run concurrently.
+    for (const tier of topoTiers(
+      CODE_MARKS.map((m) => m.id),
+      markDepsOf,
+    )) {
+      await parallelMap(tier, STEP_CONCURRENCY, (mid) =>
+        runStep(`mark:${mid}`, async (rc) => {
+          const def = await loadMarkDef(wrapped, mid);
+          if (!def) return { id: mid, skipped: 'no-def' };
+          const res = await runMarkOnce(rc, def, tractate, page, false);
+          return { id: mid, cached: res.cache_hit ?? false };
+        }),
+      );
     }
 
-    // 2) Whole-daf enrichments ({fields:{}}).
-    for (const id of wholeDafEnrichmentIds(marksLite, enrichLite)) {
-      await runStep(`enrich:${id}`, async (rc) => {
-        const def = await loadEnrichmentDef(wrapped, id);
-        if (!def) return { id, skipped: 'no-def' };
-        const res = await runEnrichmentOnce(rc, def, tractate, page, { fields: {} }, false);
-        return { id, cached: res.cache_hit ?? false };
-      });
+    // 2) Whole-daf enrichments ({fields:{}}), in dependency tiers (e.g.
+    //    argument-overview.flow before the synthesis that consumes it).
+    for (const tier of topoTiers(wholeDafEnrichmentIds(marksLite, enrichLite), enrichDepsOf)) {
+      await parallelMap(tier, STEP_CONCURRENCY, (id) =>
+        runStep(`enrich:${id}`, async (rc) => {
+          const def = await loadEnrichmentDef(wrapped, id);
+          if (!def) return { id, skipped: 'no-def' };
+          const res = await runEnrichmentOnce(rc, def, tractate, page, { fields: {} }, false);
+          return { id, cached: res.cache_hit ?? false };
+        }),
+      );
     }
 
     // 3) Per-instance enrichments — one step per (enrichment, target instance).
-    //    Instances come from the now-cached target mark (step 1). This read + the
-    //    instanceId hash run in the orchestration (cheap + deterministic) so they
-    //    replay identically — Workflow step NAMES must be stable across replays.
-    for (const { id, targetMark } of perInstanceEnrichments(marksLite, enrichLite)) {
-      const def = await loadEnrichmentDef(wrapped, id);
-      if (!def) continue;
-      const insts = await readMarkInstances(wrapped, targetMark, tractate, page);
-      for (const inst of insts) {
-        const iid = await instanceIdOf(inst);
-        await runStep(`enrich:${id}:${iid}`, async (rc) => {
-          const res = await runEnrichmentOnce(rc, def, tractate, page, inst, false);
-          return { id, iid, cached: res.cache_hit ?? false };
-        });
+    //    Processed in enrichment dependency tiers (e.g. argument-move.synthesis
+    //    before argument-move.suggested-questions), and within a tier ALL
+    //    (enrichment, instance) steps fan out concurrently — two instances of one
+    //    enrichment are always independent, and cross-enrichment deps are already
+    //    satisfied by an earlier tier, so there is no double-generation. Instance
+    //    reads + the instanceId hash run in the orchestration (deterministic) so
+    //    step NAMES replay identically across Workflow restarts.
+    const perInst = perInstanceEnrichments(marksLite, enrichLite);
+    const byId = new Map(perInst.map((p) => [p.id, p.targetMark]));
+    for (const tier of topoTiers(
+      perInst.map((p) => p.id),
+      enrichDepsOf,
+    )) {
+      type Unit = {
+        id: string;
+        def: NonNullable<Awaited<ReturnType<typeof loadEnrichmentDef>>>;
+        inst: unknown;
+        iid: string;
+      };
+      const units: Unit[] = [];
+      for (const id of tier) {
+        const def = await loadEnrichmentDef(wrapped, id);
+        if (!def) continue;
+        const targetMark = byId.get(id);
+        if (!targetMark) continue;
+        const insts = await readMarkInstances(wrapped, targetMark, tractate, page);
+        for (const inst of insts) {
+          units.push({ id, def, inst, iid: await instanceIdOf(inst) });
+        }
       }
+      await parallelMap(units, STEP_CONCURRENCY, (u) =>
+        runStep(`enrich:${u.id}:${u.iid}`, async (rc) => {
+          const res = await runEnrichmentOnce(rc, u.def, tractate, page, u.inst, false);
+          return { id: u.id, iid: u.iid, cached: res.cache_hit ?? false };
+        }),
+      );
     }
   }
 }
