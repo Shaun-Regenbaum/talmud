@@ -20,6 +20,7 @@
 
 import { instanceIdOf } from './cache-keys';
 import type { JobMessage } from './types';
+import type { DafWarmParams } from './workflow-warm';
 
 const SEFARIA_CALENDAR_URL = 'https://www.sefaria.org/api/calendars';
 const WARM_MARKS = ['rabbi', 'argument', 'halacha', 'aggadata', 'yerushalmi', 'pesukim'] as const;
@@ -102,6 +103,10 @@ async function warmRunId(
 interface YomiCronEnv {
   CACHE?: KVNamespace;
   ENRICHMENT_QUEUE?: Queue<JobMessage>;
+  /** The per-daf generation Workflow. When bound, the daily warm runs each daf's
+   *  marks + enrichments as bounded per-step Workflow invocations (memory-safe,
+   *  parallel) instead of a queue fan-out of mark + deep-warm jobs. */
+  DAF_WARM_WORKFLOW?: Workflow<DafWarmParams>;
 }
 
 export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
@@ -121,7 +126,26 @@ export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
   const pages = [`${daf}a`, `${daf}b`];
   const jobs: Promise<void>[] = [];
   const queue = env.ENRICHMENT_QUEUE;
-  const enqueue = async (markId: string, page: string, lang: 'en' | 'he'): Promise<void> => {
+  const wf = env.DAF_WARM_WORKFLOW;
+
+  // Trigger the per-daf generation Workflow for one language: it generates the
+  // daf's marks -> whole-daf -> per-instance enrichments as bounded per-step
+  // invocations (parallel, memory-safe) — the same surface the legacy per-mark +
+  // deep-warm jobs warmed, but without the queue fan-out that risked an isolate
+  // OOM on a dense daf.
+  const triggerWorkflow = async (page: string, lang: 'en' | 'he'): Promise<void> => {
+    if (!wf) return;
+    try {
+      const inst = await wf.create({ params: { tractate, page, lang } });
+      console.log(`[yomi-cron] DafWarmWorkflow lang=${lang} ${tractate}/${page} id=${inst.id}`);
+    } catch (e) {
+      console.error(`[yomi-cron] DafWarmWorkflow lang=${lang} ${tractate}/${page} failed:`, e);
+    }
+  };
+
+  // Legacy fallback (only when the Workflow binding is somehow unavailable):
+  // enqueue a mark / deep-warm job onto the queue, exactly as before.
+  const enqueueMark = async (markId: string, page: string, lang: 'en' | 'he'): Promise<void> => {
     const runId = await warmRunId(markId, tractate, page, lang);
     const job: JobMessage = {
       runId,
@@ -132,24 +156,32 @@ export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
     };
     try {
       await queue.send(job);
-      console.log(
-        `[yomi-cron] enqueued mark=${markId} lang=${lang} ${tractate}/${page} runId=${runId}`,
-      );
     } catch (e) {
-      console.error(
-        `[yomi-cron] enqueue mark=${markId} lang=${lang} ${tractate}/${page} failed:`,
-        e,
-      );
+      console.error(`[yomi-cron] enqueue mark=${markId} ${tractate}/${page} failed:`, e);
     }
   };
-  for (const page of pages) {
-    for (const markId of WARM_MARKS) jobs.push(enqueue(markId, page, 'en'));
-    // Second pass: Hebrew structural marks so HE readers hit a warm :he cache.
-    for (const markId of WARM_MARKS_HE) jobs.push(enqueue(markId, page, 'he'));
-    // Reverse-index capture — enqueued last; it depends on the marks above and
-    // pulls any not-yet-warmed ones (incl. argument-move) via dependency
-    // resolution, so it runs only once they've landed. mark_input { id: 'daf' }
-    // keys the canonical daf-level cache the browse-path prefetch shares.
+  const enqueueDeepWarm = async (page: string, lang: 'en' | 'he'): Promise<void> => {
+    const deepRunId = (await warmRunId('warm-deep', tractate, page, lang))
+      .replace(/[^a-zA-Z0-9._:-]+/g, '_')
+      .slice(0, 200);
+    const deepJob: JobMessage = {
+      runId: deepRunId,
+      warm_deep: true,
+      tractate,
+      page,
+      ...(lang === 'he' ? { lang: 'he' } : {}),
+    };
+    try {
+      await queue.send(deepJob);
+    } catch (e) {
+      console.error(`[yomi-cron] enqueue deep-warm lang=${lang} ${tractate}/${page} failed:`, e);
+    }
+  };
+
+  // Reverse-index capture (rabbi.observations) — stays on the queue: it warms the
+  // DAF-LEVEL { id: 'daf' } aggregation key (the browse-path prefetch shares it),
+  // which the Workflow's per-rabbi enumeration does not produce.
+  const enqueueObservations = async (page: string): Promise<void> => {
     const obsRunId = await warmRunId('rabbi.observations', tractate, page);
     const obsJob: JobMessage = {
       runId: obsRunId,
@@ -158,54 +190,30 @@ export async function runYomiWarmCron(env: YomiCronEnv): Promise<void> {
       tractate,
       page,
     };
-    jobs.push(
-      env.ENRICHMENT_QUEUE.send(obsJob)
-        .then(() => {
-          console.log(
-            `[yomi-cron] enqueued rabbi.observations ${tractate}/${page} runId=${obsRunId}`,
-          );
-        })
-        .catch((e) => {
-          console.error(`[yomi-cron] enqueue rabbi.observations ${tractate}/${page} failed:`, e);
-        }),
-    );
-    // Deep-warm the daf so the section-typing views + reader-facing prose are
-    // ready for the daf-yomi crowd — notably argument.narrative on story
-    // sections, which the deep-warm path pre-warms only for narrative-primary
-    // sections (cache-respecting, so the marks above are reused, not re-paid).
-    // Warm BOTH languages: the prose enrichments (synthesis, narrative,
-    // suggested-questions, essays) and, transitively via dependency resolution,
-    // every rabbi-card leaf enrichment (rabbi.synthesis -> rabbi.bio/.geography/
-    // .relationships/...) are language-specific. Without the :he pass a Hebrew
-    // reader regenerates the entire prose surface on first open even though the
-    // structure is warm. One full deep-warm per language per daily daf.
-    for (const lang of ['en', 'he'] as const) {
-      const deepRunId = (await warmRunId('warm-deep', tractate, page, lang))
-        .replace(/[^a-zA-Z0-9._:-]+/g, '_')
-        .slice(0, 200);
-      const deepJob: JobMessage = {
-        runId: deepRunId,
-        warm_deep: true,
-        tractate,
-        page,
-        ...(lang === 'he' ? { lang: 'he' } : {}),
-      };
-      jobs.push(
-        env.ENRICHMENT_QUEUE.send(deepJob)
-          .then(() => {
-            console.log(
-              `[yomi-cron] enqueued deep-warm lang=${lang} ${tractate}/${page} runId=${deepRunId}`,
-            );
-          })
-          .catch((e) => {
-            console.error(
-              `[yomi-cron] enqueue deep-warm lang=${lang} ${tractate}/${page} failed:`,
-              e,
-            );
-          }),
-      );
+    try {
+      await queue.send(obsJob);
+    } catch (e) {
+      console.error(`[yomi-cron] enqueue rabbi.observations ${tractate}/${page} failed:`, e);
     }
+  };
+
+  for (const page of pages) {
+    if (wf) {
+      // Memory-safe parallel path: one Workflow per language warms the full
+      // mark + enrichment surface for that daf.
+      for (const lang of ['en', 'he'] as const) jobs.push(triggerWorkflow(page, lang));
+    } else {
+      // Fallback to the legacy queue fan-out (mark jobs + a per-language deep-warm)
+      // if the Workflow binding is missing.
+      console.warn('[yomi-cron] DAF_WARM_WORKFLOW unavailable; falling back to queue warm');
+      for (const markId of WARM_MARKS) jobs.push(enqueueMark(markId, page, 'en'));
+      for (const markId of WARM_MARKS_HE) jobs.push(enqueueMark(markId, page, 'he'));
+      for (const lang of ['en', 'he'] as const) jobs.push(enqueueDeepWarm(page, lang));
+    }
+    jobs.push(enqueueObservations(page));
   }
   await Promise.allSettled(jobs);
-  console.log(`[yomi-cron] enqueued ${jobs.length} warm job(s) for ${tractate} ${daf}`);
+  console.log(
+    `[yomi-cron] warmed ${tractate} ${daf} via ${wf ? 'DafWarmWorkflow' : 'queue fallback'} (${jobs.length} task(s))`,
+  );
 }
