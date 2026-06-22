@@ -2778,6 +2778,10 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
     localEnrichments.map(async (def) => {
       const targetMark = def.target_mark;
       const perInstance = !!targetMark && markAnchorById.get(targetMark) !== 'whole-daf';
+      // Demand-driven (lazy) enrichments are fetched only when a reader opens the
+      // card — an uncached one is expected, so it must not count against the daf's
+      // view completeness (which gates the hard edge cache).
+      const demandDriven = (def as { demand_driven?: boolean }).demand_driven === true;
       if (perInstance) {
         const insts = instancesByMark.get(targetMark as string) ?? [];
         // Zero instances is "cold" ONLY if the parent mark itself isn't cached
@@ -2808,13 +2812,13 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
             }
           }),
         );
-        enumerated.push({ producerId: def.id, cold: anyCold });
+        enumerated.push({ producerId: def.id, cold: anyCold, demandDriven });
       } else {
         const res = await readCachedResult(
           c.env,
           keyForEnrichment(def, iid, { tractate, page }, undefined, lang),
         );
-        enumerated.push({ producerId: def.id, cold: !res });
+        enumerated.push({ producerId: def.id, cold: !res, demandDriven });
         if (res) {
           pieces[pieceKey(def.id)] = {
             producerId: def.id,

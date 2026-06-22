@@ -64,4 +64,26 @@ describe('dafViewCompleteness', () => {
   it('an empty registry is trivially complete', () => {
     expect(dafViewCompleteness([])).toEqual({ complete: true, cold: [] });
   });
+
+  it('IGNORES a cold demand-driven producer (lazy pin must not block completeness)', () => {
+    // The real bug: rabbi.identity.pin is fetched on-demand, so it's uncached on
+    // an otherwise fully-warm daf — it must not flip complete to false (which
+    // would deny the daf its hard edge cache).
+    const r = dafViewCompleteness([
+      { producerId: 'rabbi', cold: false },
+      { producerId: 'tidbit', cold: false },
+      { producerId: 'rabbi.identity.pin', cold: true, demandDriven: true },
+    ]);
+    expect(r.complete).toBe(true);
+    expect(r.cold).toEqual([]);
+  });
+
+  it('still flags a cold NON-demand-driven producer alongside a demand-driven one', () => {
+    const r = dafViewCompleteness([
+      { producerId: 'rabbi.identity.pin', cold: true, demandDriven: true },
+      { producerId: 'tidbit', cold: true },
+    ]);
+    expect(r.complete).toBe(false);
+    expect(r.cold).toEqual(['tidbit']);
+  });
 });

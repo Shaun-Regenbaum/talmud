@@ -78,14 +78,22 @@ export interface EnumeratedPiece {
   /** Expected to have content but none cached (for per-instance: not all
    *  instances cached). */
   cold: boolean;
+  /** Computed only on demand (never proactively warmed) — excluded from the
+   *  completeness verdict + the cold list, so one uncached lazy piece (e.g. the
+   *  homonym pin) can't keep a fully-warmed daf out of the hard edge cache. */
+  demandDriven?: boolean;
 }
 
 /** Roll enumerated producers up into the view's completeness verdict + cold list
- *  (deduped, since a per-instance producer contributes one entry per instance). */
+ *  (deduped, since a per-instance producer contributes one entry per instance).
+ *  Demand-driven producers are ignored: they're fetched lazily when the reader
+ *  opens that card, so an uncached one is expected, not "cold". */
 export function dafViewCompleteness(items: EnumeratedPiece[]): {
   complete: boolean;
   cold: string[];
 } {
-  const cold = [...new Set(items.filter((i) => i.cold).map((i) => i.producerId))];
+  const cold = [
+    ...new Set(items.filter((i) => i.cold && !i.demandDriven).map((i) => i.producerId)),
+  ];
   return { complete: cold.length === 0, cold };
 }
