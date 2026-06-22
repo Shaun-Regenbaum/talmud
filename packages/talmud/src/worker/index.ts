@@ -2734,9 +2734,13 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
 
   const iid = await instanceIdOf({ fields: {} });
   const markAnchorById = new Map(CODE_MARKS.map((m) => [m.id, (m as { anchor?: string }).anchor]));
-  const localEnrichments = CODE_ENRICHMENTS.filter(
-    (e) => e.scope === 'local' && e.target_mark !== 'argument',
-  );
+  // Argument section enrichments (argument.synthesis) ARE enumerated: the per-
+  // instance path keys them by instanceIdOf(instance), which for an argument
+  // section resolves to slug(fields.title) — the same key the client computes
+  // from argumentSynthInstance(section) (title is preserved through the section
+  // adapter). This is the slug(title) join already proven by /api/daf-runs. So a
+  // warm daf's argument cards render from the view instead of fanning out.
+  const localEnrichments = CODE_ENRICHMENTS.filter((e) => e.scope === 'local');
   const perInstanceTargets = new Set(
     localEnrichments
       .map((e) => e.target_mark)

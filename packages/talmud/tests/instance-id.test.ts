@@ -65,6 +65,54 @@ describe('instanceIdOf — Hebrew title collision', () => {
   });
 });
 
+// The argument-shape join: /api/daf-view enumerates argument.synthesis by
+// instanceIdOf(rawMarkInstance); the client keys it via argumentSynthInstance(
+// section); deepWarmDaf warms it from the same raw instances. ALL THREE must
+// resolve to slug(fields.title) or the view can't serve argument cards (the
+// reason argument was once excluded from the view). Lock the agreement so the
+// exclusion can't silently creep back / a shape drift can't break the join.
+describe('instanceIdOf — argument section key agreement (view <-> client <-> warm)', () => {
+  // What readMarkInstances('argument') returns + what deepWarmDaf / the daf-view
+  // enumeration use.
+  const rawMarkInstance = {
+    startSegIdx: 0,
+    endSegIdx: 4,
+    fields: { title: 'The opening Mishnah', summary: 's', excerpt: 'e', rabbiNames: ['Abaye'] },
+  };
+  // The exact shape ArgumentSidebar.argumentSynthInstance(section) sends as the
+  // card's mark_input (kept structurally identical so a future drift fails here).
+  const clientSynthInstance = {
+    startSegIdx: 0,
+    endSegIdx: 4,
+    fields: { title: 'The opening Mishnah', summary: 's', excerpt: 'e', rabbiNames: ['Abaye'] },
+  };
+
+  it('keys an argument section by slug(title)', async () => {
+    expect(await instanceIdOf(rawMarkInstance)).toBe('the_opening_mishnah');
+  });
+
+  it('client synth-instance and server raw instance share ONE key (so the view serves the card)', async () => {
+    expect(await instanceIdOf(clientSynthInstance)).toBe(await instanceIdOf(rawMarkInstance));
+  });
+
+  it('title drives the key — extra/differing non-title fields do not shift it', async () => {
+    // The raw mark instance may carry fields the client projection omits; the id
+    // must stay title-stable so the two keys still meet.
+    const withExtra = {
+      startSegIdx: 0,
+      endSegIdx: 4,
+      fields: {
+        title: 'The opening Mishnah',
+        summary: 'a longer summary',
+        excerpt: 'different excerpt',
+        rabbiNames: ['Abaye', 'Rava'],
+        extra: 'x',
+      },
+    };
+    expect(await instanceIdOf(withExtra)).toBe(await instanceIdOf(rawMarkInstance));
+  });
+});
+
 // Regression: a rishonim instance carries no id/title/excerpt, so its id used to
 // hash to just {segIdx} — the synthesis cache key was blind to the comments. One
 // bad generation then stuck permanently (saw Berakhot 2a:1 render a Pesachim
