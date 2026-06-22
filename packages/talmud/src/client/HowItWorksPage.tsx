@@ -350,27 +350,6 @@ export function DeepDive(props: {
 
 // ── content ────────────────────────────────────────────────────────────────
 
-const STEPS: { n: string; title: string; body: string }[] = [
-  { n: '1', title: 'Resolve inputs', body: 'Walk the dependency graph into prompt variables.' },
-  {
-    n: '2',
-    title: 'Render + call',
-    body: 'Fill the prompt, pick the model, call it (or run a computed branch).',
-  },
-  {
-    n: '3',
-    title: 'Parse + check',
-    body: 'Parse JSON; transforms repair, validators gate the write.',
-  },
-  { n: '4', title: 'Stamp provenance', body: 'Record authority, inputs (hashed), model, cost.' },
-  {
-    n: '5',
-    title: 'Store',
-    body: 'Write under a frozen key, no TTL. Human edits are never clobbered.',
-  },
-  { n: '6', title: 'Render', body: 'The view composes from the cached artifact.' },
-];
-
 const CACHE_FACTS: { title: string; body: JSX.Element }[] = [
   {
     title: 'Frozen keys',
@@ -405,7 +384,6 @@ const CACHE_FACTS: { title: string; body: JSX.Element }[] = [
 const CHAPTERS: { id: string; title: string }[] = [
   { id: 'thesis', title: 'The idea' },
   { id: 'model', title: 'The model, shown' },
-  { id: 'lifecycle', title: 'How a piece is built' },
   { id: 'graph', title: 'The build graph' },
   { id: 'enrichments', title: 'Every enrichment' },
   { id: 'freshness', title: 'Caching & freshness' },
@@ -571,81 +549,7 @@ export function HowItWorksPage(): JSX.Element {
             </Show>
           </section>
 
-          {/* 3 — lifecycle */}
-          <section id="lifecycle" ref={registerSection('lifecycle')} style={sectionStyle}>
-            <h2 style={h2}>How a piece is built</h2>
-            <p style={{ ...lead, color: 'var(--muted)', 'font-size': '0.85rem' }}>
-              One function — <Mono>runProducer</Mono> — runs every producer the same way.
-            </p>
-            <div
-              style={{
-                display: 'flex',
-                'flex-wrap': 'wrap',
-                gap: '0.5rem',
-                'align-items': 'stretch',
-              }}
-            >
-              <For each={STEPS}>
-                {(step, i) => (
-                  <>
-                    <div
-                      style={{
-                        flex: '1 1 150px',
-                        border: '1px solid var(--line)',
-                        'border-radius': '8px',
-                        background: '#fff',
-                        padding: '0.6rem 0.7rem',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          'align-items': 'center',
-                          gap: '0.4rem',
-                          'margin-bottom': '0.25rem',
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: '1.3rem',
-                            height: '1.3rem',
-                            'border-radius': '50%',
-                            background: 'var(--accent)',
-                            color: '#fff',
-                            display: 'inline-flex',
-                            'align-items': 'center',
-                            'justify-content': 'center',
-                            'font-size': '0.74rem',
-                            'font-weight': 700,
-                          }}
-                        >
-                          {step.n}
-                        </span>
-                        <strong style={{ 'font-size': '0.85rem' }}>{step.title}</strong>
-                      </div>
-                      <p
-                        style={{
-                          margin: 0,
-                          'font-size': '0.78rem',
-                          'line-height': 1.45,
-                          color: '#555',
-                        }}
-                      >
-                        {step.body}
-                      </p>
-                    </div>
-                    <Show when={i() < STEPS.length - 1}>
-                      <span style={{ 'align-self': 'center', color: '#cbb', 'font-size': '1rem' }}>
-                        →
-                      </span>
-                    </Show>
-                  </>
-                )}
-              </For>
-            </div>
-          </section>
-
-          {/* 4 — the build graph */}
+          {/* 3 — the build graph */}
           <section id="graph" ref={registerSection('graph')} style={sectionStyle}>
             <h2 style={h2}>The build graph</h2>
             <p style={{ ...lead, color: 'var(--muted)', 'font-size': '0.85rem' }}>
