@@ -27,7 +27,7 @@
  * `user_question` in the body.
  */
 
-import { createResource, createSignal, For, type JSX, onMount, Show } from 'solid-js';
+import { createEffect, createResource, createSignal, For, type JSX, onMount, Show } from 'solid-js';
 import { trackAI } from './aiActivity';
 import {
   isPausedBody,
@@ -318,6 +318,22 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
       }
     >
   >({});
+
+  // This panel is reused across instances when the parent card is kept mounted
+  // and only its instance prop changes (e.g. switching between two aggadata
+  // stories / pesukim in the sidebar — the card is keyed on kind, not instance).
+  // The resources below re-key on instanceId(), but these fold/draft signals do
+  // not, so reset them on instance change — otherwise the previous instance's
+  // expanded state and opened answers bleed into the next one.
+  createEffect(() => {
+    void props.instanceId;
+    setExpanded(false);
+    setShowAll(false);
+    setAskingOpen(false);
+    setAskText('');
+    setAskError(null);
+    setOpenAnswers({});
+  });
 
   // Two parallel resources, both gated on `expanded` so we don't pay
   // anything until the user opens the panel for the first time.

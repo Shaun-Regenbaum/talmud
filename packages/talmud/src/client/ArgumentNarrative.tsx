@@ -7,7 +7,7 @@
  * an LLM call only when a dev opens a narrative section.
  */
 
-import { createResource, createSignal, For, type JSX, Show } from 'solid-js';
+import { createEffect, createResource, createSignal, For, type JSX, Show } from 'solid-js';
 import { lang } from './i18n';
 
 interface Actor {
@@ -113,6 +113,16 @@ export default function ArgumentNarrative(props: {
     () => runNarrative(props.tractate, props.page, props.section),
   );
   const [activeBeat, setActiveBeat] = createSignal<number | null>(null);
+  // The argument card reuses this component across section switches (it's keyed on
+  // card kind, not the section), so reset the active beat + clear any daf
+  // highlight when the section changes — otherwise the previous section's beat
+  // selection bleeds into the next one.
+  createEffect(() => {
+    void props.section.startSegIdx;
+    void props.section.endSegIdx;
+    setActiveBeat(null);
+    props.onHighlight?.(null);
+  });
 
   return (
     <div style={{ 'margin-top': '0.6rem' }}>
