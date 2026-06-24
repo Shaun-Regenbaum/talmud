@@ -11434,7 +11434,17 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
     // by an earlier tier, so parallelism never makes two steps regenerate the
     // same uncached dep. This is what makes a cold daf generate in minutes (vs the
     // ~30-60 min fully-sequential walk) while staying per-step memory-bounded.
-    const STEP_CONCURRENCY = 8;
+    //
+    // A tier's steps run concurrently in THIS isolate (the "own budget" only holds
+    // across suspension points), so this width is the peak concurrent in-isolate
+    // generation — the source-heavy ones (rishonim/commentary) are what trip the
+    // 128 MB cap. coalesce.ts shares same-daf source slices across them, but 6 is
+    // the conservative "safe concurrency" the reader /api/run gate also landed on
+    // (#439, 16->6) — a cheap memory margin for the cold-gen path against the
+    // intermittent exceededMemory alert, costing only slightly slower cold dapim
+    // (a background, reader-progressive path). The `[mem] warm-tier` width
+    // breadcrumb above attributes a future OOM to (daf, phase, width).
+    const STEP_CONCURRENCY = 6;
     const markDepsOf = (id: string): string[] => {
       const def = CODE_MARKS.find((m) => m.id === id);
       return (def?.dependencies ?? []).map((d) => dependencyId(d)).filter((x): x is string => !!x);
