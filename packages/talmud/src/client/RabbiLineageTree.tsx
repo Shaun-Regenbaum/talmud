@@ -15,7 +15,7 @@
  * Hebrew/Aramaic span on the daf via onHighlightRange.
  */
 
-import { createSignal, For, type JSX, Show } from 'solid-js';
+import { createEffect, createSignal, For, type JSX, Show } from 'solid-js';
 import { type EdgeRect, orthogonalEdgePath } from './flow/orthogonalEdge';
 import {
   GENERATION_BY_ID,
@@ -383,6 +383,18 @@ function partnerPath(from: LaidNode, to: LaidNode): string {
 export default function RabbiLineageTree(props: Props): JSX.Element {
   const [expanded, setExpanded] = createSignal(false);
   const [activeEvidenceKey, setActiveEvidenceKey] = createSignal<string | null>(null);
+
+  // Same reuse hazard as RabbiTrajectoryMap: this tree is kept mounted across
+  // rabbi switches (warm-daf deps refill synchronously, so the wrapping <Show>
+  // never remounts us), which would otherwise bleed the previous rabbi's
+  // expand + active-evidence selection into the next rabbi's lineage. Reset
+  // when the subject changes. (The highlight itself is cleared by the
+  // RabbiLineage special block's instanceKey effect.)
+  createEffect(() => {
+    void props.subjectName;
+    setExpanded(false);
+    setActiveEvidenceKey(null);
+  });
 
   const evidenceByPerson = (): Map<string, RelationshipsEvidence> => {
     const m = new Map<string, RelationshipsEvidence>();
