@@ -219,8 +219,6 @@ export function findOptimalAlignment(
     if (score > 0.7) break;
   }
 
-  console.log('Best alignment offset:', bestOffset, 'with score:', bestScore.toFixed(3));
-
   // Create aligned pairs using dynamic programming approach
   const pairs: WordPair[] = [];
   let sefariaIdx = 0;
@@ -428,13 +426,6 @@ export function alignTexts(sefariaText: string, hebrewBooksText: string, maxLeng
   const sefariaWords = sefariaText.split(/\s+/).filter((w) => w.length > 0);
   const hebrewBooksWords = hebrewBooksText.split(/\s+/).filter((w) => w.length > 0);
 
-  console.log('Aligning texts:', {
-    sefariaWords: sefariaWords.length,
-    hebrewBooksWords: hebrewBooksWords.length,
-    sefariaPreview: sefariaText.substring(0, 100),
-    hebrewBooksPreview: hebrewBooksText.substring(0, 100),
-  });
-
   // Find optimal alignment
   const alignment = findOptimalAlignment(sefariaWords, hebrewBooksWords, maxLength);
 
@@ -447,13 +438,6 @@ export function alignTexts(sefariaText: string, hebrewBooksText: string, maxLeng
 
   // Calculate statistics
   const statistics = calculateMatchStatistics(wordComparison, alignment.score);
-
-  console.log('Alignment complete:', {
-    offset: alignment.offset,
-    alignedLength: alignment.pairs.length,
-    score: `${(alignment.score * 100).toFixed(1)}%`,
-    statistics,
-  });
 
   return {
     alignment,
