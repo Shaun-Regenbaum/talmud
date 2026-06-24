@@ -1115,7 +1115,11 @@ async function readFlowConnections(
 app.get('/api/derivation/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
-  const refs = c.req.queries('ref') ?? [];
+  // Cap the ref count: `ref` is an unbounded query param, and a cache MISS turns
+  // each into a Sefaria subrequest — an unbounded `Promise.all` over them is a
+  // subrequest-exhaustion / DoS vector on this public GET. A daf's halacha card
+  // sends only its handful of codifier refs, so 50 is far above real use.
+  const refs = (c.req.queries('ref') ?? []).slice(0, 50);
   if (refs.length === 0) return c.json({ sources: [] });
   const linkLists = await Promise.all(refs.map((r) => getCodeSourcesCached(c.env.CACHE, r)));
   const sources = buildDerivation(linkLists.flat(), { tractate, page });
@@ -5735,17 +5739,6 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
     cursor = res.list_complete ? undefined : res.cursor;
   } while (cursor && keys.length < 5000);
 
-  const slices: ObservationSlice[] = [];
-  for (const key of keys) {
-    const raw = await cache.get(key);
-    if (!raw) continue;
-    try {
-      slices.push(JSON.parse(raw) as ObservationSlice);
-    } catch {
-      /* skip corrupt slice */
-    }
-  }
-
   const typeFilter = typeFilterEarly || undefined;
   const minDafs = minEarly;
   const RANK: Record<string, number> = { high: 3, medium: 2, low: 1 };
@@ -5758,19 +5751,43 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
     { type: string; payload: unknown; dafs: number; confidence: string }
   >();
   const observations: Array<Record<string, unknown>> = [];
-  for (const s of slices) {
-    for (const o of s.observations) {
-      byType[o.type] = (byType[o.type] ?? 0) + 1;
-      const prev = freq.get(o.hash);
-      if (prev) {
-        prev.dafs += 1;
-        if ((RANK[o.confidence] ?? 0) > (RANK[prev.confidence] ?? 0))
-          prev.confidence = o.confidence;
-      } else {
-        freq.set(o.hash, { type: o.type, payload: o.payload, dafs: 1, confidence: o.confidence });
+
+  // Read the per-daf slices in bounded PARALLEL batches and FOLD each into the
+  // accumulators immediately, discarding the slice. A prolific rabbi (Rav has
+  // ~1600 daf-slices) thus never holds the whole slice array at once — its flat
+  // observation list can be many MB — and the reads run concurrently instead of
+  // ~1600 serial KV gets (which risked the isolate CPU/time limit). dafCount +
+  // name are folded in the same pass.
+  const READ_BATCH = 50;
+  let dafCount = 0;
+  let name = '';
+  let nameHe = '';
+  for (let i = 0; i < keys.length; i += READ_BATCH) {
+    const raws = await Promise.all(keys.slice(i, i + READ_BATCH).map((k) => cache.get(k)));
+    for (const raw of raws) {
+      if (!raw) continue;
+      let s: ObservationSlice;
+      try {
+        s = JSON.parse(raw) as ObservationSlice;
+      } catch {
+        continue; // skip corrupt slice
       }
-      if (!summary && (!typeFilter || o.type === typeFilter)) {
-        observations.push({ ...o, tractate: s.tractate, page: s.page });
+      dafCount++;
+      if (!name && s.name) name = s.name;
+      if (!nameHe && s.nameHe) nameHe = s.nameHe;
+      for (const o of s.observations) {
+        byType[o.type] = (byType[o.type] ?? 0) + 1;
+        const prev = freq.get(o.hash);
+        if (prev) {
+          prev.dafs += 1;
+          if ((RANK[o.confidence] ?? 0) > (RANK[prev.confidence] ?? 0))
+            prev.confidence = o.confidence;
+        } else {
+          freq.set(o.hash, { type: o.type, payload: o.payload, dafs: 1, confidence: o.confidence });
+        }
+        if (!summary && (!typeFilter || o.type === typeFilter)) {
+          observations.push({ ...o, tractate: s.tractate, page: s.page });
+        }
       }
     }
   }
@@ -5780,9 +5797,9 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
 
   const body = {
     slug,
-    name: slices[0]?.name ?? slug,
-    nameHe: slices[0]?.nameHe ?? '',
-    dafCount: slices.length,
+    name: name || slug,
+    nameHe,
+    dafCount,
     byType,
     aggregated,
     observations,
