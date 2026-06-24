@@ -24,7 +24,6 @@
     "warm:skeleton:shas": "node scripts/warm-skeleton-shas.mjs"
   },
   "dependencies": {
-    "@cfworker/json-schema": "^4.1.1",
     "@chenglou/pretext": "^0.0.5",
     "@cloudflare/codemode": "^0.3.8",
     "@corpus/core": "workspace:*",
@@ -33,7 +32,6 @@
     "@modelcontextprotocol/sdk": "^1.29.0",
     "daf-renderer": "^1.1.4",
     "hono": "^4.6.0",
-    "hono-rate-limiter": "^0.5.3",
     "node-html-parser": "^7.1.0",
     "solid-js": "^1.9.0",
     "zod": "^4.4.3"
