@@ -64,7 +64,11 @@ export default function DafLoadProgress(props: DafLoadProgressProps = {}): JSX.E
   // warm revisit with a full cache reads ~100% at once). max() so the snapshot
   // only ever ADVANCES the bar; it never drags the live climb backward on a cold
   // load, where the snapshot lags the warm.
-  const percent = createMemo(() => Math.max(enginePercent(), dafCacheProgress().pct));
+  // Final clamp to [0,100]: the shared bar renders this verbatim as both the
+  // "N%" label and the fill width, so neither cohort's math may push it over 100.
+  const percent = createMemo(() =>
+    Math.min(100, Math.max(enginePercent(), dafCacheProgress().pct)),
+  );
 
   const label = createMemo(() => {
     const c = combined();

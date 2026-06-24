@@ -92,5 +92,12 @@ export function cacheProgressOf(rows: DafRun[]): { total: number; cached: number
     total += r.instances?.total ?? 1;
     cached += r.instances?.cached ?? (r.cached ? 1 : 0);
   }
-  return { total, cached, pct: total > 0 ? Math.round((cached / total) * 100) : 0 };
+  // Clamp: per-instance `cached` can briefly overshoot `total` when the instance
+  // count and the cached-instance count come from snapshots taken a beat apart, so
+  // a raw ratio can read >100%. A progress fraction is never meaningfully over 100.
+  return {
+    total,
+    cached,
+    pct: total > 0 ? Math.min(100, Math.round((cached / total) * 100)) : 0,
+  };
 }

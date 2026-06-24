@@ -2849,16 +2849,38 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
   const { complete, cold } = dafViewCompleteness(enumerated);
   c.header('Cache-Control', dafViewCacheControl(complete));
   c.header('x-daf-view', complete ? 'complete' : 'partial');
-  return c.json({
+  // [mem] instrumentation — daf-view is the prime OOM suspect: it materializes
+  // every cached piece (incl. each per-instance enrichment's `deps_resolved`) for
+  // one daf in memory, and a reader repolls it every ~8s through the cold-gen
+  // window, so dense dapim can co-tenant several MB-scale materializations on one
+  // 128 MB isolate. Serialize once (same cost as c.json), expose the size on
+  // headers (so any daf is measurable on demand), and emit a breadcrumb —
+  // Workers Observability (head_sampling_rate=1) captures it, so after an
+  // exceededMemory alert the largest payloads in the window are queryable, and a
+  // suspiciously large one is logged at WARN (`[mem] daf-view-large`) for a
+  // trivial filter. Pure observability — no behaviour change.
+  const pieceCount = Object.keys(pieces).length;
+  const payload = JSON.stringify({
     tractate,
     page,
     lang,
     complete,
     total: enumerated.length,
-    cached: Object.keys(pieces).length,
+    cached: pieceCount,
     cold,
     pieces,
   });
+  const bytes = payload.length;
+  const DAF_VIEW_LARGE_BYTES = 1_500_000;
+  const large = bytes >= DAF_VIEW_LARGE_BYTES;
+  c.header('x-daf-view-pieces', String(pieceCount));
+  c.header('x-daf-view-bytes', String(bytes));
+  c.header('content-type', 'application/json; charset=UTF-8');
+  console[large ? 'warn' : 'log'](
+    `[mem] daf-view${large ? '-large' : ''}`,
+    JSON.stringify({ t: tractate, p: page, lang, pieces: pieceCount, bytes, complete }),
+  );
+  return c.body(payload);
 });
 
 app.get('/api/daf-runs/:tractate/:page', async (c) => {
@@ -11429,6 +11451,21 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
       CODE_MARKS.map((m) => m.id),
       markDepsOf,
     )) {
+      // [mem] breadcrumb — a tier's steps run concurrently in THIS isolate (the
+      // "own budget" only holds across suspension points), so `width` is the peak
+      // concurrent in-isolate generation that coalesce.ts must dedupe source
+      // slices across. Attributes a cold-gen OOM to (daf, phase, width).
+      console.log(
+        '[mem] warm-tier',
+        JSON.stringify({
+          phase: 'marks',
+          t: tractate,
+          p: page,
+          lang,
+          width: tier.length,
+          conc: STEP_CONCURRENCY,
+        }),
+      );
       await parallelMap(tier, STEP_CONCURRENCY, (mid) =>
         runStep(`mark:${mid}`, async (rc) => {
           const def = await loadMarkDef(wrapped, mid);
@@ -11442,6 +11479,17 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
     // 2) Whole-daf enrichments ({fields:{}}), in dependency tiers (e.g.
     //    argument-overview.flow before the synthesis that consumes it).
     for (const tier of topoTiers(wholeDafEnrichmentIds(marksLite, enrichLite), enrichDepsOf)) {
+      console.log(
+        '[mem] warm-tier',
+        JSON.stringify({
+          phase: 'whole-daf',
+          t: tractate,
+          p: page,
+          lang,
+          width: tier.length,
+          conc: STEP_CONCURRENCY,
+        }),
+      );
       await parallelMap(tier, STEP_CONCURRENCY, (id) =>
         runStep(`enrich:${id}`, async (rc) => {
           const def = await loadEnrichmentDef(wrapped, id);
@@ -11483,6 +11531,17 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
           units.push({ id, def, inst, iid: await instanceIdOf(inst) });
         }
       }
+      console.log(
+        '[mem] warm-tier',
+        JSON.stringify({
+          phase: 'per-instance',
+          t: tractate,
+          p: page,
+          lang,
+          width: units.length,
+          conc: STEP_CONCURRENCY,
+        }),
+      );
       await parallelMap(units, STEP_CONCURRENCY, (u) =>
         runStep(`enrich:${u.id}:${u.iid}`, async (rc) => {
           const res = await runEnrichmentOnce(rc, u.def, tractate, page, u.inst, false);
