@@ -107,12 +107,3 @@ export function* iterAmudim(tractate: string): Generator<string> {
     if (a) yield a;
   }
 }
-
-export function amudCount(tractate: string): number {
-  const end = TRACTATE_END_AMUD[tractate.toLowerCase()];
-  if (!end) return 0;
-  const endNum = amudToNumber(end);
-  const startNum = amudToNumber(START_AMUD);
-  if (endNum == null || startNum == null) return 0;
-  return endNum - startNum + 1;
-}
