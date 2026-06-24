@@ -12,7 +12,7 @@
  */
 
 import { fitBbox, GEO_BBOX, GeoMap, type GeoTrajectoryStop } from '@corpus/ui/GeoMap';
-import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 import { buildTrajectory, type TrajectoryStop } from '../lib/geographyModel';
 import { collapsePlaced, type PlacedStop, regionTint, stopLatLng, TRAJ_COLOR } from './geoMapBase';
 import { lang, t } from './i18n';
@@ -48,6 +48,18 @@ const EVIDENCE_BORDER = '#eab308';
 export default function RabbiTrajectoryMap(props: Props): JSX.Element {
   const [activeEvidenceKey, setActiveEvidenceKey] = createSignal<string | null>(null);
   const [picked, setPicked] = createSignal<number | null>(null);
+
+  // The geography special block REUSES this component across rabbi switches: on a
+  // warm daf the next rabbi's deps refill synchronously, so the wrapping <Show>
+  // never toggles to remount us, and these interaction signals (plus any daf
+  // highlight we painted) would otherwise carry the PREVIOUS rabbi's selection
+  // into the new card. Reset them whenever the rabbi (its geography data) changes.
+  createEffect(() => {
+    void props.data;
+    setPicked(null);
+    setActiveEvidenceKey(null);
+    props.onHighlightRange?.(null);
+  });
 
   const placed = (): PlacedStop[] => collapsePlaced(buildTrajectory(props.data));
   // Stops we can actually plot — the detail card + default selection key off
