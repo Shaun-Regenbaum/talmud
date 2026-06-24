@@ -26,9 +26,6 @@ importers:
 
   packages/talmud:
     dependencies:
-      '@cfworker/json-schema':
-        specifier: ^4.1.1
-        version: 4.1.1
       '@chenglou/pretext':
         specifier: ^0.0.5
         version: 0.0.5
@@ -53,9 +50,6 @@ importers:
       hono:
         specifier: ^4.6.0
         version: 4.12.14
-      hono-rate-limiter:
-        specifier: ^0.5.3
-        version: 0.5.3(hono@4.12.14)
       node-html-parser:
         specifier: ^7.1.0
         version: 7.1.0
@@ -2246,7 +2240,8 @@ snapshots:
     dependencies:
       css-tree: 3.2.1
 
-  '@cfworker/json-schema@4.1.1': {}
+  '@cfworker/json-schema@4.1.1':
+    optional: true
 
   '@chenglou/pretext@0.0.5': {}
 
