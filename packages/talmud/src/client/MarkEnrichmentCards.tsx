@@ -37,6 +37,7 @@ import {
   dafViewWholeDafResult,
   isViewDriven,
 } from './dafViewStore';
+import { ErrorBadge } from './ErrorBadge';
 import {
   isAbort,
   isPausedBody,
@@ -887,19 +888,26 @@ export default function MarkEnrichmentCards(props: Props) {
     if (r.kind === 'error') {
       const paused = r.error === PAUSED_ERROR;
       const unavailable = !paused && isServiceUnavailableError(r.error);
-      // Both paused and provider-outage are calm, expected states — amber, plain
-      // text, localized. A genuine bug (parse/schema/unknown) stays loud (red mono).
+      // Both paused and provider-outage are calm, expected states (amber); a
+      // genuine bug (parse/schema/unknown) is loud (red). Either way the failure
+      // shows as a compact badge — not a block of text shoved into the reading
+      // flow — with the full message revealed on hover/focus (ErrorBadge).
       const calm = paused || unavailable;
       return (
-        <div
-          style={{
-            color: calm ? '#a16207' : '#c00',
-            'font-family': calm ? 'inherit' : 'monospace',
-            'font-size': '0.78rem',
-            padding: '0.4rem 0',
-          }}
-        >
-          {paused ? t('qa.error.paused') : unavailable ? t('enrich.error.unavailable') : r.error}
+        <div style={{ padding: '0.3rem 0' }}>
+          <ErrorBadge
+            tone={calm ? 'calm' : 'error'}
+            label={
+              paused
+                ? t('enrich.badge.paused')
+                : unavailable
+                  ? t('enrich.badge.unavailable')
+                  : t('enrich.badge.failed')
+            }
+            detail={
+              paused ? t('qa.error.paused') : unavailable ? t('enrich.error.unavailable') : r.error
+            }
+          />
         </div>
       );
     }

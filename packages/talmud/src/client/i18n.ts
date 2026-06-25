@@ -1306,6 +1306,10 @@ const CATALOG = {
     en: 'AI generation is temporarily unavailable. Please try again later or tomorrow.',
     he: 'יצירת התוכן בבינה מלאכותית אינה זמינה כרגע. נא לנסות שוב מאוחר יותר או מחר.',
   },
+  // Short labels for the compact failure badge (full message shows on hover).
+  'enrich.badge.failed': { en: "Couldn't load", he: 'טעינה נכשלה' },
+  'enrich.badge.paused': { en: 'Paused', he: 'מושהה' },
+  'enrich.badge.unavailable': { en: 'Unavailable', he: 'לא זמין' },
 
   // — First-time-user tutorial —
   'tutorial.help': { en: 'Help', he: 'עזרה' },
