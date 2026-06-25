@@ -53,6 +53,12 @@ export interface SourceRow {
   denom: number;
   percent: number;
   aligned: AlignedSample | null;
+  /** 'daf' (default): keyed per amud, so count/denom is a coverage fraction of
+   *  all dapim. 'entity': keyed per rabbi / per verse, so there is no daf
+   *  denominator — the UI shows the cached count + `unit` and no percentage. */
+  scope?: 'daf' | 'entity';
+  /** For scope 'entity': what each cached row is (e.g. 'rabbis', 'verses'). */
+  unit?: string;
 }
 
 export interface CacheStats {
@@ -600,6 +606,8 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     commWorksCount,
     parallelsAligned,
     commWorksAligned,
+    pasukCount,
+    rabbiEnrichedCount,
     dyTypes,
   ] = await Promise.all([
     countPrefix(cache, 'hb:v2:'),
@@ -631,6 +639,12 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     countPrefix(cache, 'commentaries:v1:'),
     sampleAligned(cache, 'talmud-parallels:v1:', nonEmptyValue),
     sampleAligned(cache, 'commentaries:v1:', alignedCommentaryWorks),
+    // Per-ENTITY source fetches (keyed per verse / per rabbi, not per daf) — no
+    // /dapim denominator, so the dashboard shows their cached counts. (Rabbi
+    // Wikipedia/Wikidata bios live in the bundled rabbi dataset — see the rabbi
+    // coverage block — not a per-rabbi KV cache, so they aren't sources here.)
+    countPrefix(cache, 'pasuk:v4:'), // Tanach verse text (Sefaria)
+    countPrefix(cache, 'rabbi-enriched:v1:'), // rabbi topic links (Sefaria)
     sampleDafyomiTypes(cache),
   ]);
   const dafyomiAligned: AlignedSample | null =
@@ -650,6 +664,18 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     denom: total,
     percent: pct(count, total),
     aligned,
+  });
+  // A per-entity source (per rabbi / per verse): no /dapim denominator, so it
+  // carries only its cached count + the unit it is counted in.
+  const entityRow = (id: string, origin: SourceOrigin, count: number, unit: string): SourceRow => ({
+    id,
+    origin,
+    count,
+    denom: 0,
+    percent: 0,
+    aligned: null,
+    scope: 'entity',
+    unit,
   });
   const sources: SourceRow[] = [
     {
@@ -693,6 +719,10 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
         aligned: null,
       };
     }),
+    // Per-ENTITY source fetches: keyed per verse / per rabbi, so there is no
+    // per-daf denominator — surfaced as cached counts (scope 'entity').
+    entityRow('pasuk', 'Sefaria', pasukCount, 'verses'),
+    entityRow('rabbi-enriched', 'Sefaria', rabbiEnrichedCount, 'rabbis'),
   ];
 
   const markDefs = await mergedMarks(cache);

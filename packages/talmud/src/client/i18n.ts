@@ -620,6 +620,8 @@ const CATALOG = {
     he: 'סוגיות מקבילות (מסורת הש״ס)',
   },
   'usage.src.commentary-works': { en: 'Commentaries (all works)', he: 'מפרשים (כל החיבורים)' },
+  'usage.src.pasuk': { en: 'Tanach verses', he: 'פסוקי תנ״ך' },
+  'usage.src.rabbi-enriched': { en: 'Rabbi topics', he: 'נושאי חכמים' },
   'usage.src.dy': { en: 'DafYomi notes (all)', he: 'הערות דף יומי (הכול)' },
   'usage.src.dy.insights': { en: 'Insights', he: 'תובנות' },
   'usage.src.dy.background': { en: 'Background', he: 'רקע' },
