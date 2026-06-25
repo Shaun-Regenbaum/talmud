@@ -1555,6 +1555,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     setArgumentMoveHighlight(null);
     setCommAnchorActive(null);
     setCommentaryAnchorIndex(null);
+    // The mobile "Layers" sheet is a transient overlay for THIS daf's marks; it
+    // shouldn't linger open over the next daf after navigation (the sidebar
+    // above already closes on daf change — keep the two consistent).
+    setLayersOpen(false);
   });
 
   // Close any open sidebar when the language flips. Its contents are being

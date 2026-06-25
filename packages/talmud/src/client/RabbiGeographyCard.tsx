@@ -10,7 +10,7 @@
  * the daf via onHighlightRange.
  */
 
-import { createSignal, For, type JSX, Show } from 'solid-js';
+import { createEffect, createSignal, For, type JSX, Show } from 'solid-js';
 import { t } from './i18n';
 
 // `seq` is the chronological life-order index from rabbi.geography (v4+),
@@ -97,6 +97,16 @@ function regionLabel(r: BirthPlace['region']): string {
 
 export default function RabbiGeographyCard(props: Props): JSX.Element {
   const [activeEvidenceKey, setActiveEvidenceKey] = createSignal<string | null>(null);
+
+  // When the card is reused for a different rabbi (props.data swaps), drop the
+  // previous rabbi's picked-evidence state and clear its daf highlight — the old
+  // key won't match any new row, so without this a stale highlight could linger.
+  // Mirrors RabbiTrajectoryMap's reset-on-data-change.
+  createEffect(() => {
+    void props.data;
+    setActiveEvidenceKey(null);
+    props.onHighlightRange?.(null);
+  });
 
   // Index evidence by kind + place so a chip can light up when this daf
   // references it. First-match wins (multiple evidence rows for the same
