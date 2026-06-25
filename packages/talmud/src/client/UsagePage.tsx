@@ -207,6 +207,9 @@ interface SourceRow {
   denom: number;
   percent: number;
   aligned?: AlignedSample | null;
+  /** 'entity' rows are keyed per rabbi/verse: count-only, no daf percentage. */
+  scope?: 'daf' | 'entity';
+  unit?: string;
 }
 
 interface CacheStats {
@@ -635,7 +638,8 @@ function OriginBadge(props: { origin: SourceOrigin }): JSX.Element {
 
 function SourceRowView(props: { row: SourceRow }): JSX.Element {
   const r = () => props.row;
-  const complete = () => r().percent >= 100;
+  const entity = () => r().scope === 'entity';
+  const complete = () => !entity() && r().percent >= 100;
   const aligned = () => r().aligned ?? null;
   const num = {
     padding: '0.45rem 0.5rem',
@@ -649,15 +653,30 @@ function SourceRowView(props: { row: SourceRow }): JSX.Element {
         <OriginBadge origin={r().origin} />
       </td>
       <td style={num}>
-        {fmtInt(r().count)} / {fmtInt(r().denom)}
+        <Show
+          when={entity()}
+          fallback={
+            <>
+              {fmtInt(r().count)} / {fmtInt(r().denom)}
+            </>
+          }
+        >
+          {fmtInt(r().count)}
+          <span style={{ color: '#999' }}> {r().unit}</span>
+        </Show>
       </td>
       <td style={{ padding: '0.45rem 0.5rem', width: '26%' }}>
-        <ProgressBar percent={r().percent} />
+        {/* Per-entity sources have no per-daf denominator, so no coverage bar. */}
+        <Show when={!entity()}>
+          <ProgressBar percent={r().percent} />
+        </Show>
       </td>
       <td style={{ ...num, color: complete() ? '#2a8a42' : '#333', 'white-space': 'nowrap' }}>
-        {r().percent.toFixed(1)}%
-        <Show when={complete()}>
-          <span style={{ 'margin-left': '0.3rem' }}>✓</span>
+        <Show when={!entity()} fallback={<span style={{ color: '#bbb' }}>—</span>}>
+          {r().percent.toFixed(1)}%
+          <Show when={complete()}>
+            <span style={{ 'margin-left': '0.3rem' }}>✓</span>
+          </Show>
         </Show>
       </td>
       <td style={{ ...num, color: '#555', 'white-space': 'nowrap' }}>
