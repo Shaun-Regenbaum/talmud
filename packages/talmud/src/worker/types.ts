@@ -57,6 +57,10 @@ export interface Bindings {
   // Cloudflare API token (Account Analytics: Read) for the AI Gateway cost
   // query in aigw-analytics.ts. Set via `wrangler secret put CF_ANALYTICS_TOKEN`.
   CF_ANALYTICS_TOKEN?: string;
+  // OpenRouter MANAGEMENT/provisioning key (not the inference key) for the
+  // authoritative billed-spend query in openrouter-cost.ts (/api/v1/activity +
+  // /credits). Set via `wrangler secret put OPENROUTER_PROVISIONING_KEY`.
+  OPENROUTER_PROVISIONING_KEY?: string;
   OPENROUTER_GATEWAY_PROVIDER?: string;
   DEFAULT_LLM_MODEL?: string;
   // Enrichment job queue — see wrangler.toml + queue handler at the bottom

@@ -806,9 +806,32 @@ const CATALOG = {
   // Reframed cost view: a billed total + our own windowed tracking.
   'usage.cost.billed.title': { en: 'Total spent', he: 'סך ההוצאה' },
   'usage.cost.billed.sub': {
-    en: 'billed by the provider · last 30 days',
-    he: 'מחויב על ידי הספק · 30 הימים האחרונים',
+    en: 'actually billed · last 30 days',
+    he: 'מה שחויב בפועל · 30 הימים האחרונים',
   },
+  'usage.stat.lifetime': { en: 'Lifetime', he: 'מאז ומתמיד' },
+  'usage.cost.lifetimeSub': { en: 'all-time on OpenRouter', he: 'מאז ומתמיד ב-OpenRouter' },
+  'usage.cost.gatewayApprox': {
+    en: 'approx · gateway-estimated',
+    he: 'משוער · לפי ה-Gateway',
+  },
+  'usage.cost.gatewayCompare.title': {
+    en: 'AI Gateway estimate: {cost}',
+    he: 'אומדן AI Gateway: {cost}',
+  },
+  'usage.cost.gatewayCompare.sub': {
+    en: 'gateway-computed · under-prices routed DeepSeek',
+    he: 'מחושב ב-Gateway · מתמחר בחסר את DeepSeek המנותב',
+  },
+  'usage.or.queryFailed': {
+    en: 'OpenRouter query failed: {error}',
+    he: 'שאילתת OpenRouter נכשלה: {error}',
+  },
+  'usage.or.notConfigured.before': {
+    en: 'Showing the AI Gateway estimate — it under-prices price-routed models. For the real billed total, set an OpenRouter management key via ',
+    he: 'מוצג אומדן ה-AI Gateway — הוא מתמחר בחסר מודלים מנותבים. לקבלת הסכום המחויב האמיתי, הגדירו מפתח ניהול של OpenRouter באמצעות ',
+  },
+  'usage.or.notConfigured.after': { en: '.', he: '.' },
   'usage.cost.tracked.title': { en: 'Our tracking', he: 'המעקב שלנו' },
   'usage.cost.tracked.sub': {
     en: 'priced models · per producer',
@@ -823,8 +846,8 @@ const CATALOG = {
   'usage.cost.winAll': { en: 'All time', he: 'מאז ומתמיד' },
   'usage.cost.winCalls': { en: '{count} calls', he: '{count} קריאות' },
   'usage.cost.converge': {
-    en: "Our 30-day tracking is {pct}% of the {billed} billed — the gap is Workers AI and other models the provider bills but we can't yet price per producer. The two should converge.",
-    he: 'המעקב שלנו ל-30 יום הוא {pct}% מתוך {billed} שחויבו — הפער הוא Workers AI ומודלים נוספים שהספק מחייב אך איננו מתמחרים לכל מפיק. השניים אמורים להתכנס.',
+    en: 'Our 30-day per-producer tracking is {pct}% of the {billed} billed. Both now use the real billed cost, so they should converge — the remaining gap is Workers AI (neuron-billed, unpriced here) plus older days still aging out of the window after the cost-source fix.',
+    he: 'המעקב שלנו לפי מפיק ל-30 יום הוא {pct}% מתוך {billed} שחויבו. שניהם משתמשים כעת בעלות המחויבת בפועל, ולכן הם אמורים להתכנס — הפער הנותר הוא Workers AI (מחויב בנוירונים, ללא תמחור כאן) וכן ימים ישנים שעדיין יוצאים מהחלון לאחר תיקון מקור העלות.',
   },
   'usage.aigw.queryFailed': {
     en: 'AI Gateway query failed: {error}',

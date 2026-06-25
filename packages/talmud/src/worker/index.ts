@@ -205,6 +205,7 @@ import {
 } from './inspect-anchors';
 import { noteLintAttempt, readLintFailures } from './lint-failures';
 import { ALIGN_MARKS } from './mark-categories';
+import { fetchOpenRouterCost } from './openrouter-cost';
 import {
   ARGUMENT_BRIDGE_OUTPUT_SCHEMA,
   ARGUMENT_CROSS_FLOW_OUTPUT_SCHEMA,
@@ -6711,17 +6712,28 @@ function captureLlmUsage(
     result: { model?: string; usage?: LLMUsage | null; parse_error?: string | null };
   },
 ): void {
-  const { input, output } = normalizeUsage(
-    args.result.usage as Parameters<typeof normalizeUsage>[0],
-  );
-  const cost = priceCostUsd(
-    args.result.model,
-    args.result.usage as Parameters<typeof priceCostUsd>[1],
-  );
-  const { costInUsd, costOutUsd } = costSplitUsd(
-    args.result.model,
-    args.result.usage as Parameters<typeof costSplitUsd>[1],
-  );
+  const usage = args.result.usage;
+  const { input, output } = normalizeUsage(usage as Parameters<typeof normalizeUsage>[0]);
+  // The REAL billed amount OpenRouter returns (we send `usage:{include:true}`),
+  // net of prompt-cache and at the actual routed-provider price. This is the
+  // truth — the list-price estimate below under-counts price-routed DeepSeek by
+  // multiples (V4 Pro routes to a third party well above its listed rate). Only
+  // fall back to the list-price estimate when no billed figure came back (e.g.
+  // Workers AI, or a response that dropped usage accounting).
+  const billed = typeof usage?.cost === 'number' ? usage.cost : null;
+  const estimate = priceCostUsd(args.result.model, usage as Parameters<typeof priceCostUsd>[1]);
+  const cost = billed ?? estimate;
+  // The in/out split is a list-price ESTIMATE (OpenRouter bills one number, no
+  // per-side breakdown). Scale it to the billed total so the two sides sum to
+  // the real cost while preserving the input-vs-output ratio from list prices.
+  const split = costSplitUsd(args.result.model, usage as Parameters<typeof costSplitUsd>[1]);
+  let { costInUsd, costOutUsd } = split;
+  if (billed != null && costInUsd != null && costOutUsd != null) {
+    const estSum = costInUsd + costOutUsd;
+    const scale = estSum > 0 ? billed / estSum : 0;
+    costInUsd *= scale;
+    costOutUsd *= scale;
+  }
   recordUsage(rc.env, rc.ctx, {
     ok: !args.result.parse_error,
     cacheHit: false,
@@ -6884,6 +6896,26 @@ async function loadAigwCached(
   );
   return fresh;
 }
+// Authoritative billed spend from OpenRouter's own ledger (the invoice), sub-
+// cached 5 min like the gateway figure. This is the real "Total spent" — the
+// gateway number under-prices price-routed DeepSeek (see openrouter-cost.ts).
+async function loadOpenRouterCostCached(
+  c: UsageCtx,
+  cache?: KVNamespace,
+): Promise<Awaited<ReturnType<typeof fetchOpenRouterCost>>> {
+  if (!cache) return fetchOpenRouterCost(c.env);
+  const raw = await cache.get('or-cost:v1');
+  if (raw) {
+    try {
+      return JSON.parse(raw) as Awaited<ReturnType<typeof fetchOpenRouterCost>>;
+    } catch {
+      /* recompute */
+    }
+  }
+  const fresh = await fetchOpenRouterCost(c.env);
+  c.executionCtx.waitUntil(cache.put('or-cost:v1', JSON.stringify(fresh), { expirationTtl: 300 }));
+  return fresh;
+}
 async function loadActivityCached(
   c: UsageCtx,
   cache?: KVNamespace,
@@ -6975,9 +7007,10 @@ async function buildTelemetrySection(cache?: KVNamespace) {
 }
 
 async function buildCostSection(c: UsageCtx, cache?: KVNamespace) {
-  const [selfTracked, aiGateway, telRaw] = await Promise.all([
+  const [selfTracked, aiGateway, openRouter, telRaw] = await Promise.all([
     cache ? readUsageSummary(cache) : null,
     loadAigwCached(c, cache),
+    loadOpenRouterCostCached(c, cache),
     cache ? cache.get('telemetry:v1:recent') : null,
   ]);
   // Cost avoided by serving cache hits, over the recent telemetry window. Each
@@ -6995,6 +7028,7 @@ async function buildCostSection(c: UsageCtx, cache?: KVNamespace) {
   return {
     selfTracked,
     aiGateway,
+    openRouter,
     costAvoided: { recentUsd: Math.round(avoidedUsd * 1e6) / 1e6, recentCalls: avoidedCalls },
   };
 }

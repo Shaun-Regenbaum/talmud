@@ -456,8 +456,10 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
     '/api/usage/cost': {
       get: {
         summary:
-          'Cost section: self-tracked spend (per model/mark/enrichment, input-vs-output split), AI Gateway billed cost, and recent cost-avoided-by-cache.',
-        responses: { '200': { description: '{ selfTracked, aiGateway, costAvoided }' } },
+          'Cost section: OpenRouter billed spend (authoritative, from /activity + lifetime /credits), self-tracked spend (per model/mark/enrichment, input-vs-output split), AI Gateway estimate (under-prices routed models), and recent cost-avoided-by-cache.',
+        responses: {
+          '200': { description: '{ selfTracked, aiGateway, openRouter, costAvoided }' },
+        },
       },
     },
     '/api/usage/telemetry': {
