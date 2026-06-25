@@ -256,9 +256,30 @@ interface TelemetrySection {
   recentErrors: RecentError[];
   totalCount: number;
 }
+interface OrModelRow {
+  model: string;
+  requests: number;
+  costUsd: number;
+  tokensIn: number;
+  tokensOut: number;
+}
+interface OrCost {
+  configured: boolean;
+  ok: boolean;
+  error?: string;
+  windowStart?: string;
+  windowEnd?: string;
+  days?: number;
+  requests?: number;
+  costUsd?: number;
+  lifetimeUsd?: number;
+  byModel?: OrModelRow[];
+  byDay?: Array<{ date: string; costUsd: number }>;
+}
 interface CostSectionData {
   selfTracked: UsageSummary | null;
   aiGateway: AigwCost;
+  openRouter?: OrCost;
   costAvoided?: { recentUsd: number; recentCalls: number };
 }
 interface BacklogSectionData {
@@ -1349,10 +1370,68 @@ function ActivitySection(props: { activity: ZoneActivity }): JSX.Element {
   );
 }
 
+/** Per-model cost table shared by the OpenRouter (billed) and AI Gateway
+ *  (gateway-estimated) breakdowns — both carry the same row shape. */
+function ModelCostTable(props: {
+  rows: Array<{
+    model: string;
+    requests: number;
+    tokensIn: number;
+    tokensOut: number;
+    costUsd: number;
+  }>;
+}): JSX.Element {
+  const cellNum = {
+    padding: '0.4rem 0.5rem',
+    'text-align': 'right',
+    'font-variant-numeric': 'tabular-nums',
+  } as const;
+  return (
+    <table style={tableStyle}>
+      <thead>
+        <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+          <th style={thStyle}>{t('usage.col.model')}</th>
+          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.requests')}</th>
+          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.tokens')}</th>
+          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cost')}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <For each={props.rows}>
+          {(m) => (
+            <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+              <td
+                style={{
+                  padding: '0.4rem 0.5rem',
+                  'font-family': 'monospace',
+                  'font-size': '0.8rem',
+                }}
+              >
+                {m.model}
+              </td>
+              <td style={cellNum}>{fmtInt(m.requests)}</td>
+              <td style={cellNum}>{fmtTokens(m.tokensIn + m.tokensOut)}</td>
+              <td style={cellNum}>{fmtUsd(m.costUsd)}</td>
+            </tr>
+          )}
+        </For>
+      </tbody>
+    </table>
+  );
+}
+
 function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefined }): JSX.Element {
   const aigw = () => props.cost.aiGateway;
+  const or = () => props.cost.openRouter;
   const self = () => props.cost.selfTracked;
   const avoided = () => props.cost.costAvoided;
+  // The authoritative billed number: OpenRouter's own ledger when wired up, else
+  // the AI Gateway figure (which under-prices price-routed DeepSeek).
+  const billedUsd = (): number | null => {
+    if (or()?.ok) return or()?.costUsd ?? null;
+    if (aigw().ok) return aigw().costUsd ?? null;
+    return null;
+  };
 
   // Per-producer estimate of the cost to warm ALL of shas at full depth. Each
   // producer's unit cost ($/priced call) is projected across its own fire-rate
@@ -1390,40 +1469,103 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
   const last30 = () => sumWindow(30);
   // How much of the provider's billed spend our 30-day tracking accounts for.
   const converge = () => {
-    const billed = aigw().ok ? (aigw().costUsd ?? 0) : 0;
+    const billed = billedUsd() ?? 0;
     if (billed <= 0) return null;
     return Math.round((last30().costUsd / billed) * 100);
   };
 
   return (
     <>
-      {/* Total spent — authoritative, billed by the provider. */}
+      {/* Total spent — authoritative, OpenRouter's own billed ledger. */}
       <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0.2rem 0 0.4rem' }}>
         {t('usage.cost.billed.title')}{' '}
         <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.cost.billed.sub')}</span>
       </h3>
       <Show
-        when={aigw().ok}
+        when={or()?.ok}
         fallback={
-          <p
-            style={{
-              color: aigw().configured ? '#c33' : '#888',
-              'font-size': '0.82rem',
-              background: '#fafafa',
-              padding: '0.5rem 0.7rem',
-              'border-radius': '4px',
-              border: '1px solid #eee',
-            }}
-          >
+          <>
+            {/* No provisioning key (or query failed): fall back to the AI Gateway
+                figure, but flag that it under-prices routed models. */}
             <Show
-              when={!aigw().configured}
-              fallback={t('usage.aigw.queryFailed', { error: aigw().error ?? '' })}
+              when={or() && !or()?.configured}
+              fallback={
+                <Show when={or()?.error}>
+                  <p style={{ color: '#c33', 'font-size': '0.8rem', margin: '0 0 0.4rem' }}>
+                    {t('usage.or.queryFailed', { error: or()?.error ?? '' })}
+                  </p>
+                </Show>
+              }
             >
-              {t('usage.aigw.notConfigured.before')}
-              <code>wrangler secret put CF_ANALYTICS_TOKEN</code>
-              {t('usage.aigw.notConfigured.after', { error: aigw().error ?? '' })}
+              <p
+                style={{
+                  color: '#8a6d00',
+                  'font-size': '0.8rem',
+                  background: '#fffdf2',
+                  padding: '0.5rem 0.7rem',
+                  'border-radius': '4px',
+                  border: '1px solid #f0e6c0',
+                  margin: '0 0 0.5rem',
+                }}
+              >
+                {t('usage.or.notConfigured.before')}
+                <code>wrangler secret put OPENROUTER_PROVISIONING_KEY</code>
+                {t('usage.or.notConfigured.after')}
+              </p>
             </Show>
-          </p>
+            <Show
+              when={aigw().ok}
+              fallback={
+                <p
+                  style={{
+                    color: aigw().configured ? '#c33' : '#888',
+                    'font-size': '0.82rem',
+                    background: '#fafafa',
+                    padding: '0.5rem 0.7rem',
+                    'border-radius': '4px',
+                    border: '1px solid #eee',
+                  }}
+                >
+                  <Show
+                    when={!aigw().configured}
+                    fallback={t('usage.aigw.queryFailed', { error: aigw().error ?? '' })}
+                  >
+                    {t('usage.aigw.notConfigured.before')}
+                    <code>wrangler secret put CF_ANALYTICS_TOKEN</code>
+                    {t('usage.aigw.notConfigured.after', { error: aigw().error ?? '' })}
+                  </Show>
+                </p>
+              }
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.6rem',
+                  'flex-wrap': 'wrap',
+                  'margin-bottom': '0.3rem',
+                }}
+              >
+                <StatCard
+                  label={t('usage.stat.totalCost')}
+                  value={fmtUsd(aigw().costUsd)}
+                  color="#2a8a42"
+                  sub={t('usage.cost.gatewayApprox')}
+                />
+                <StatCard label={t('usage.stat.requests')} value={fmtInt(aigw().requests ?? 0)} />
+                <StatCard label={t('usage.stat.tokensIn')} value={fmtTokens(aigw().tokensIn)} />
+                <StatCard label={t('usage.stat.tokensOut')} value={fmtTokens(aigw().tokensOut)} />
+              </div>
+              <Show when={(aigw().byModel?.length ?? 0) > 0}>
+                <Collapsible
+                  id="aigwByModel"
+                  title={t('usage.byModel')}
+                  sub={t('usage.byModel.sub', { count: fmtInt(aigw().byModel?.length ?? 0) })}
+                >
+                  <ModelCostTable rows={aigw().byModel ?? []} />
+                </Collapsible>
+              </Show>
+            </Show>
+          </>
         }
       >
         <div
@@ -1431,75 +1573,36 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
         >
           <StatCard
             label={t('usage.stat.totalCost')}
-            value={fmtUsd(aigw().costUsd)}
+            value={fmtUsd(or()?.costUsd)}
             color="#2a8a42"
           />
-          <StatCard label={t('usage.stat.requests')} value={fmtInt(aigw().requests ?? 0)} />
-          <StatCard label={t('usage.stat.tokensIn')} value={fmtTokens(aigw().tokensIn)} />
-          <StatCard label={t('usage.stat.tokensOut')} value={fmtTokens(aigw().tokensOut)} />
+          <Show when={typeof or()?.lifetimeUsd === 'number'}>
+            <StatCard
+              label={t('usage.stat.lifetime')}
+              value={fmtUsd(or()?.lifetimeUsd)}
+              sub={t('usage.cost.lifetimeSub')}
+            />
+          </Show>
+          <StatCard label={t('usage.stat.requests')} value={fmtInt(or()?.requests ?? 0)} />
         </div>
-        <Show when={(aigw().byModel?.length ?? 0) > 0}>
+        <Show when={(or()?.byModel?.length ?? 0) > 0}>
+          <Collapsible
+            id="orByModel"
+            title={t('usage.byModel')}
+            sub={t('usage.byModel.sub', { count: fmtInt(or()?.byModel?.length ?? 0) })}
+          >
+            <ModelCostTable rows={or()?.byModel ?? []} />
+          </Collapsible>
+        </Show>
+        {/* Demoted: the gateway figure, for comparison only — it under-prices
+            price-routed DeepSeek, so it reads low against the billed total above. */}
+        <Show when={aigw().ok}>
           <Collapsible
             id="aigwByModel"
-            title={t('usage.byModel')}
-            sub={t('usage.byModel.sub', { count: fmtInt(aigw().byModel?.length ?? 0) })}
+            title={t('usage.cost.gatewayCompare.title', { cost: fmtUsd(aigw().costUsd) })}
+            sub={t('usage.cost.gatewayCompare.sub')}
           >
-            <table style={tableStyle}>
-              <thead>
-                <tr
-                  style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}
-                >
-                  <th style={thStyle}>{t('usage.col.model')}</th>
-                  <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.requests')}</th>
-                  <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.tokens')}</th>
-                  <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cost')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <For each={aigw().byModel}>
-                  {(m) => (
-                    <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-                      <td
-                        style={{
-                          padding: '0.4rem 0.5rem',
-                          'font-family': 'monospace',
-                          'font-size': '0.8rem',
-                        }}
-                      >
-                        {m.model}
-                      </td>
-                      <td
-                        style={{
-                          padding: '0.4rem 0.5rem',
-                          'text-align': 'right',
-                          'font-variant-numeric': 'tabular-nums',
-                        }}
-                      >
-                        {fmtInt(m.requests)}
-                      </td>
-                      <td
-                        style={{
-                          padding: '0.4rem 0.5rem',
-                          'text-align': 'right',
-                          'font-variant-numeric': 'tabular-nums',
-                        }}
-                      >
-                        {fmtTokens(m.tokensIn + m.tokensOut)}
-                      </td>
-                      <td
-                        style={{
-                          padding: '0.4rem 0.5rem',
-                          'text-align': 'right',
-                          'font-variant-numeric': 'tabular-nums',
-                        }}
-                      >
-                        {fmtUsd(m.costUsd)}
-                      </td>
-                    </tr>
-                  )}
-                </For>
-              </tbody>
-            </table>
+            <ModelCostTable rows={aigw().byModel ?? []} />
           </Collapsible>
         </Show>
       </Show>
@@ -1605,7 +1708,7 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
               >
                 {t('usage.cost.converge', {
                   pct: String(converge()),
-                  billed: fmtUsd(aigw().costUsd),
+                  billed: fmtUsd(billedUsd() ?? undefined),
                 })}
               </p>
             </Show>
