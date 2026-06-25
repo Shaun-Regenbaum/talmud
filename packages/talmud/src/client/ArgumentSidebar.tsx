@@ -1099,29 +1099,47 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   // changes; the daf-side highlight is owned by the detail card's header.
   const [selectedStmt, setSelectedStmt] = createSignal<string | null>(null);
   const [highlightedMove, setHighlightedMove] = createSignal<string | null>(null);
-  // Focusing a section (a map-node click, or opening one from a gutter
-  // marker / reader chip) highlights that WHOLE section on the daf. The reader
-  // is in the Overview (kind 'argument-overview'), where DafViewer's section-
-  // wide paint never fires — that one is gated to the legacy 'argument' card —
-  // so without this the only highlight came from clicking a sub-statement.
-  // Clicking a statement node below narrows the highlight to that statement
-  // (selectStatement → onHighlightMove); selectedStmt is NOT a dependency of
-  // this effect, so the narrower highlight isn't clobbered. The section's seg
-  // range carries no token offsets, so the full span lights up.
+  // The focused section drives the daf highlight. Two effects, deliberately
+  // split so they don't fight:
+  //
+  //  1. Reset the per-statement selection when the FOCUS changes (a map-node
+  //     click). Depends ONLY on focused(), so a mere sections() reload (SWR /
+  //     daf-view refresh) can't wipe a statement the reader just picked.
+  //
+  //  2. Paint the WHOLE focused section on the daf — unless a statement is
+  //     selected, in which case its narrower move-range highlight (set by
+  //     onHighlightMove) owns the band. The reader sits in the Overview (kind
+  //     'argument-overview'), where DafViewer's own section-wide paint never
+  //     runs (that's gated to the legacy 'argument' card), so this is the only
+  //     section-highlight path. The paint is deferred one animation frame: on
+  //     the very first open, DafViewer.setSidebar clears the move band as the
+  //     card switches in, and that synchronous clear would otherwise wipe the
+  //     section highlight before it ever rendered. The frame is cancelled on
+  //     cleanup so a pending paint can't fire after the card closes or focus
+  //     moves on. The section's seg range carries no token offsets, so the
+  //     full span lights up.
   createEffect(() => {
-    const fi = focused();
+    void focused();
     setSelectedStmt(null);
     setHighlightedMove(null);
+  });
+  createEffect(() => {
+    const fi = focused();
+    if (selectedStmt() != null) return; // a selected statement owns the highlight
     const sec = sections()[fi];
-    if (sec && typeof sec.startSegIdx === 'number' && typeof sec.endSegIdx === 'number') {
-      props.onHighlightRange?.({
-        start: sec.startSegIdx,
-        end: sec.endSegIdx,
-        key: `section-${fi}`,
-      });
-    } else {
-      props.onHighlightRange?.(null);
+    const range =
+      sec && typeof sec.startSegIdx === 'number' && typeof sec.endSegIdx === 'number'
+        ? { start: sec.startSegIdx, end: sec.endSegIdx, key: `section-${fi}` }
+        : null;
+    const paint = () => {
+      if (focused() === fi && selectedStmt() == null) props.onHighlightRange?.(range);
+    };
+    if (typeof requestAnimationFrame !== 'function') {
+      paint();
+      return;
     }
+    const id = requestAnimationFrame(paint);
+    onCleanup(() => cancelAnimationFrame(id));
   });
   const selectedMove = (): ArgumentMoveInstance | undefined =>
     focusedSpine()?.moves.find((m) => m.fields.id === selectedStmt());
