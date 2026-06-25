@@ -1099,11 +1099,29 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   // changes; the daf-side highlight is owned by the detail card's header.
   const [selectedStmt, setSelectedStmt] = createSignal<string | null>(null);
   const [highlightedMove, setHighlightedMove] = createSignal<string | null>(null);
+  // Focusing a section (a map-node click, or opening one from a gutter
+  // marker / reader chip) highlights that WHOLE section on the daf. The reader
+  // is in the Overview (kind 'argument-overview'), where DafViewer's section-
+  // wide paint never fires — that one is gated to the legacy 'argument' card —
+  // so without this the only highlight came from clicking a sub-statement.
+  // Clicking a statement node below narrows the highlight to that statement
+  // (selectStatement → onHighlightMove); selectedStmt is NOT a dependency of
+  // this effect, so the narrower highlight isn't clobbered. The section's seg
+  // range carries no token offsets, so the full span lights up.
   createEffect(() => {
-    void focused();
+    const fi = focused();
     setSelectedStmt(null);
     setHighlightedMove(null);
-    props.onHighlightRange?.(null);
+    const sec = sections()[fi];
+    if (sec && typeof sec.startSegIdx === 'number' && typeof sec.endSegIdx === 'number') {
+      props.onHighlightRange?.({
+        start: sec.startSegIdx,
+        end: sec.endSegIdx,
+        key: `section-${fi}`,
+      });
+    } else {
+      props.onHighlightRange?.(null);
+    }
   });
   const selectedMove = (): ArgumentMoveInstance | undefined =>
     focusedSpine()?.moves.find((m) => m.fields.id === selectedStmt());
