@@ -629,6 +629,13 @@ const CATALOG = {
     en: 'Place coordinates (hand-curated)',
     he: 'נקודות ציון של מקומות (ידני)',
   },
+  'usage.src.rabbi-family': { en: 'Rabbi family relations', he: 'קשרי משפחה של חכמים' },
+  'usage.src.rabbi-hierarchy': { en: 'Rabbi teacher–student edges', he: 'קשרי רב–תלמיד' },
+  'usage.src.rabbi-orientation': { en: 'Rabbi orientation', he: 'נטיית החכמים' },
+  'usage.src.yerushalmi-curated': {
+    en: 'Yerushalmi parallels (curated)',
+    he: 'מקבילות ירושלמי (ידני)',
+  },
   'usage.src.dy': { en: 'DafYomi notes (all)', he: 'הערות דף יומי (הכול)' },
   'usage.src.dy.insights': { en: 'Insights', he: 'תובנות' },
   'usage.src.dy.background': { en: 'Background', he: 'רקע' },
