@@ -7209,7 +7209,16 @@ app.get('/api/usage/health', (c) =>
 // isolate-fatal class is verifiable on demand, and lets the GraphQL field names
 // be confirmed against the live account (the cron alert degrades quietly if the
 // token lacks scope; this route shows exactly why).
-app.get('/api/worker-health', async (c) => c.json(await fetchWorkerOutcomes(c.env, 15)));
+app.get('/api/worker-health', async (c) => {
+  // Report BOTH scripts since generation moved to talmud-gen. Top-level fields
+  // stay the reader's outcomes (backward-compatible shape); `generator` carries
+  // talmud-gen's — that's where the cold-daf OOMs land now.
+  const [reader, generator] = await Promise.all([
+    fetchWorkerOutcomes(c.env, 15, 'talmud'),
+    fetchWorkerOutcomes(c.env, 15, 'talmud-gen'),
+  ]);
+  return c.json({ ...reader, generator });
+});
 
 // Check off / restore a bug report (by its timestamp id). Toggles membership in
 // the dismissed set; the backlog payload splits reports into active vs. done
@@ -11617,6 +11626,21 @@ export default {
   fetch: (req: Request, env: Bindings, ctx: ExecutionContext) => app.fetch(req, wrapEnv(env), ctx),
   scheduled: (controller: ScheduledController, env: Bindings, ctx: ExecutionContext) => {
     const wrapped = wrapEnv(env);
+    // The reader (talmud) and the generator (talmud-gen) deploy the SAME entry
+    // file; WORKER_ROLE tells this handler which side it's running on so heavy
+    // warming stays OFF the reader's isolate pool. Reader (or unset) = run ONLY
+    // the lightweight health watch (it has CF_ANALYTICS_TOKEN; the generator
+    // does not). The health watch now covers BOTH scripts, so a generation OOM
+    // on talmud-gen is still alerted from here. See wrangler.generator.toml.
+    if (env.WORKER_ROLE !== 'generator') {
+      // Independent health watch: alert if an isolate-fatal outcome
+      // (exceededMemory — the cold-daf OOM) appeared in the last window.
+      // Self-contained + best-effort; never throws into the cron.
+      ctx.waitUntil(checkWorkerHealthAndAlert(wrapped, Date.now()));
+      return;
+    }
+
+    // Generator role: all the heavy warming, on talmud-gen's own isolates.
     if (controller.cron === YOMI_WARM_CRON) {
       ctx.waitUntil(runYomiWarmCron(wrapped));
     } else {
@@ -11642,10 +11666,6 @@ export default {
           },
         ),
       );
-      // Independent health watch: alert if an isolate-fatal outcome
-      // (exceededMemory — the cold-daf OOM) appeared in the last window.
-      // Self-contained + best-effort; never throws into the cron.
-      ctx.waitUntil(checkWorkerHealthAndAlert(wrapped, Date.now()));
     }
   },
   // Queue consumer — wrangler.toml binds queue=enrichment-jobs to this

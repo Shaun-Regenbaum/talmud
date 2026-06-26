@@ -157,24 +157,36 @@ export async function fetchWorkerOutcomes(
  * don't want one per cron tick). Best-effort and self-contained: any failure is
  * logged, never thrown into the cron.
  */
-export async function checkWorkerHealthAndAlert(env: HealthEnv, nowMs: number): Promise<void> {
+// The scripts the health watch covers. Generation moved to talmud-gen (its own
+// isolate pool), so the isolate-fatal OOMs that used to hit `talmud` now land on
+// `talmud-gen` — watch BOTH or the alert goes blind to the very failures it
+// exists to catch.
+export const WATCHED_SCRIPTS = ['talmud', 'talmud-gen'] as const;
+
+export async function checkWorkerHealthAndAlert(
+  env: HealthEnv,
+  nowMs: number,
+  scripts: readonly string[] = WATCHED_SCRIPTS,
+): Promise<void> {
   try {
-    const outcomes = await fetchWorkerOutcomes(env, 15);
-    if (!outcomes.ok) {
-      // Not configured / token scope / schema drift: stay quiet (no false alert),
-      // but log so the cause is visible. /api/worker-health surfaces it too.
-      if (outcomes.configured) console.warn('[health] outcomes query failed:', outcomes.error);
+    const results = await Promise.all(scripts.map((s) => fetchWorkerOutcomes(env, 15, s)));
+    const ok = results.filter((r) => r.ok);
+    if (ok.length === 0) {
+      // Every query failed (not configured / token scope / schema drift): stay
+      // quiet (no false alert), but log the first cause. /api/worker-health too.
+      const configured = results.find((r) => r.configured);
+      if (configured) console.warn('[health] outcomes query failed:', configured.error);
       return;
     }
-    const fatal = fatalCount(outcomes.byStatus);
+    const fatal = ok.reduce((n, r) => n + fatalCount(r.byStatus), 0);
     if (fatal <= 0) return;
 
     const cache = env.CACHE;
     const email = env.EMAIL;
-    // One alert per DAY per status class. These outcomes are sporadic (a heavy
-    // cron tick / a dense cold daf trips one occasionally), so an hourly alert
-    // just spammed the inbox without adding signal — a daily digest says "it
-    // happened again today" once, which is all the alert needs to convey.
+    // One alert per DAY. These outcomes are sporadic (a heavy cron tick / a dense
+    // cold daf trips one occasionally), so an hourly alert just spammed the inbox
+    // without adding signal — a daily digest says "it happened again today" once,
+    // which is all the alert needs to convey.
     const dayBucket = Math.floor(nowMs / 86_400_000);
     const dedupeKey = `health-alert:fatal:${dayBucket}`;
     if (cache) {
@@ -182,19 +194,30 @@ export async function checkWorkerHealthAndAlert(env: HealthEnv, nowMs: number): 
       if (already) return; // already alerted today
     }
     if (email) {
-      const lines = Object.entries(outcomes.byStatus ?? {})
-        .filter(([s]) => (FATAL_OUTCOMES as readonly string[]).includes(s))
-        .map(([s, n]) => `  ${s}: ${n}`)
+      // Per-script breakdown of the fatal outcomes, so the alert says WHICH
+      // worker OOMed (reader vs generator) at a glance.
+      const lines = ok
+        .map((r) => {
+          const perScript = Object.entries(r.byStatus ?? {})
+            .filter(([s]) => (FATAL_OUTCOMES as readonly string[]).includes(s))
+            .map(([s, n]) => `    ${s}: ${n}`)
+            .join('\n');
+          return perScript ? `  [${r.scriptName}]\n${perScript}` : '';
+        })
+        .filter(Boolean)
         .join('\n');
+      const window = ok[0];
       await email.send({
         from: 'health@shaunregenbaum.com',
         to: 'shaunregenbaum@gmail.com',
         subject: `[talmud] isolate-fatal outcome: ${fatal} in last 15m`,
         text:
-          `The talmud worker logged ${fatal} isolate-fatal invocation(s) in the last 15 minutes ` +
-          `(${outcomes.windowStart} → ${outcomes.windowEnd}):\n\n${lines}\n\n` +
+          `${fatal} isolate-fatal invocation(s) across ${scripts.join(' + ')} in the last 15 ` +
+          `minutes (${window.windowStart} → ${window.windowEnd}):\n\n${lines}\n\n` +
           `This is the class of failure behind the cold-daf OOM (exceededMemory → error code 1101 ` +
-          `for every co-tenant request). Check whether a recent change grew per-job source memory.\n\n` +
+          `for every co-tenant request on that isolate). Generation now runs on talmud-gen, so an ` +
+          `OOM there should NOT surface as a reader 1101 — but check whether a recent change grew ` +
+          `per-job source memory.\n\n` +
           `Live: https://talmud.shaunregenbaum.com/api/worker-health\n` +
           `Usage: https://talmud.shaunregenbaum.com/usage\n`,
       });

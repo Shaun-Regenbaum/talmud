@@ -12,14 +12,13 @@
 # talmud-gen now just retries its own job — it can never touch a reader isolate.
 #
 # Same entry file (src/worker/index.ts) as the reader; the two workers differ
-# only in BINDINGS + TRIGGERS (this config wires the consumer/crons/workflow;
-# the reader config does not). See wrangler.toml for the reader side.
-#
-# STAGED ROLLOUT — this is the PR-1a "idle" config: the worker exists (so its
-# OPENROUTER_API_KEY secret can be set on a real worker) but does NO work yet —
-# no queue consumer, no crons, no workflow host. PR-1b adds those three stanzas
-# here and removes them from wrangler.toml (the atomic cutover). Keeping it idle
-# means merging PR-1a is a zero-behaviour-change deploy.
+# only in BINDINGS + TRIGGERS — this config wires the queue CONSUMER, the warm/
+# yomi CRONS, and the DafWarmWorkflow HOST; wrangler.toml (the reader) wires
+# none of them and instead binds the Workflow cross-script. The secrets this
+# worker needs (OPENROUTER_API_KEY, CLOUDFLARE_ACCOUNT_ID — the AI-Gateway URL
+# is built from the account id) are set with `wrangler secret put -c
+# wrangler.generator.toml`; the inference key is in vault at
+# legacy/prod/talmud/openrouter-api-key.
 name = "talmud-gen"
 main = "src/worker/index.ts"
 compatibility_date = "2025-04-01"
@@ -53,6 +52,38 @@ SPINE_VIEW_WARM_SHAS = "1"
 # Spend budget — enforced at the runLLM chokepoint, which now lives here.
 DAILY_BUDGET_USD = "300"
 HOURLY_CUSTOM_BUDGET_USD = "10"
+# Role flag read by the shared scheduled() handler in index.ts: 'generator' runs
+# the heavy warm/yomi crons (here), 'reader' runs only the lightweight health
+# watch (in wrangler.toml). Keeps heavy warming off the reader's isolate pool.
+WORKER_ROLE = "generator"
+
+# The DafWarmWorkflow class is HOSTED here now (the reader binds to it
+# cross-script via script_name = "talmud-gen"). Each cold-daf generation runs as
+# this Workflow's checkpointed steps on the generator's isolates.
+#
+# NAME is "daf-warm-gen", NOT the reader's old "daf-warm": a workflow name is
+# owned by exactly one script, so reusing "daf-warm" while the live reader still
+# defines it could conflict at cutover. A fresh name owned by talmud-gen makes
+# the cutover deploy conflict-free in either direction; the old "daf-warm"
+# orphans harmlessly (short-lived cold-gen instances, no persistent state keyed
+# on the name). The binding var (DAF_WARM_WORKFLOW) is unchanged, so code is
+# untouched.
+[[workflows]]
+name = "daf-warm-gen"
+binding = "DAF_WARM_WORKFLOW"
+class_name = "DafWarmWorkflow"
+
+# Queue CONSUMER lives here (the reader is producer-only). This is the furnace
+# that used to co-tenant the reader's isolate. max_concurrency bounds how many
+# jobs the consumer pulls concurrently; with generation now isolated from
+# readers, an OOM here only retries its own job — it can never return 1101 to a
+# reader. (History of this number + the per-job memory model is in wrangler.toml.)
+[[queues.consumers]]
+queue = "enrichment-jobs"
+max_batch_size = 1
+max_batch_timeout = 1
+max_concurrency = 12
+max_retries = 1
 
 # Producer binding: deep-warm jobs re-enqueue downstream per-instance jobs, so
 # the generator is BOTH a producer and (in PR-1b) the consumer of this queue.
@@ -69,6 +100,12 @@ id = "f373689f767c477e98cf3b644a4d05bd"
 [observability]
 enabled = true
 head_sampling_rate = 1
+
+# Heavy warming runs HERE, off the reader. */5 rotates one heavy phase per tick
+# (connect-sweep / warm-cron / spine-view; see cron-schedule.ts); 0 3 pre-warms
+# tomorrow's Daf Yomi. The reader keeps only a */5 cron for the health watch.
+[triggers]
+crons = ["*/5 * * * *", "0 3 * * *"]
 
 [[send_email]]
 name = "EMAIL"

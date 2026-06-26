@@ -102,6 +102,9 @@ CF_ZONE_TAG = "4808b439c50e3a42494ae7e0b2fa1bec,af7b181368ea154cd40b55404b47d818
 # STUDIO_SECRET`); unset => everyone is treated as untrusted (fail-safe).
 DAILY_BUDGET_USD = "300"
 HOURLY_CUSTOM_BUDGET_USD = "10"
+# Role flag (see scheduled() in index.ts). 'reader' = run only the health watch
+# on the */5 cron; the talmud-gen worker sets 'generator' and runs heavy warming.
+WORKER_ROLE = "reader"
 
 # Cloudflare Queue — long-running enrichment jobs run in the consumer worker
 # instead of holding the producer's request invocation. Producer (POST
@@ -109,45 +112,33 @@ HOURLY_CUSTOM_BUDGET_USD = "10"
 # the message and writes the result to KV under `job:{runId}`. Client polls
 # /api/run-status/:runId. Decouples client requests from LLM latency
 # and stops workerd from dying on parallel long-fetches in dev.
-# Phase 3 (step 1): generation as a Cloudflare Workflow. The warm Workflow
-# generates a daf's whole-daf pieces as separate checkpointed STEPS — each step
-# its own invocation with its own 128 MB budget, so the per-step memory can't pile
-# up the way one monolithic generation job does. Additive: triggered by
-# POST /api/admin/workflow-warm; the live queue/run/reader paths are untouched.
+# The DafWarmWorkflow class is HOSTED by the talmud-gen worker now; the reader
+# only TRIGGERS it (POST /api/daf-generate, yomi-cron), so this is a CROSS-SCRIPT
+# binding (script_name). Generation runs on talmud-gen's isolates — see
+# wrangler.generator.toml and the OOM root-cause note below.
 [[workflows]]
-name = "daf-warm"
+name = "daf-warm-gen"
 binding = "DAF_WARM_WORKFLOW"
 class_name = "DafWarmWorkflow"
+script_name = "talmud-gen"
 
+# Producer ONLY. The reader enqueues enrichment jobs (POST /api/run, admin
+# rewarm) but does NOT consume them — the consumer lives in talmud-gen.
+#
+# WHY THE SPLIT: Cloudflare runs concurrent invocations of ONE script in SHARED
+# 128 MB isolates. When the queue consumer + DafWarmWorkflow + crons lived in
+# THIS script, a source-heavy generation job that blew 128 MB killed the isolate
+# and every co-tenant request on it — including reader requests, which came back
+# as `error code: 1101`. max_concurrency could only make that rarer; it cannot
+# stop the platform from co-scheduling same-script invocations onto one isolate.
+# Moving all generation to a SEPARATE script (talmud-gen) is the only hard
+# guarantee: a generation OOM there retries its own job and can never touch a
+# reader isolate. Live evidence (2026-06-26): 39 exceededMemory/24h on this
+# script, bursty and uncorrelated with reader load (busiest hour: 3,381 reads /
+# 1 OOM) — i.e. cold-daf generation sharing the reader's isolate pool.
 [[queues.producers]]
 queue = "enrichment-jobs"
 binding = "ENRICHMENT_QUEUE"
-
-[[queues.consumers]]
-queue = "enrichment-jobs"
-max_batch_size = 1
-max_batch_timeout = 1
-# History: 2 → 10 → 50, each bump chasing warming THROUGHPUT (the old note
-# reasoned concurrency "caps LLM workloads, not CPU on a single isolate"). That
-# missed the real per-isolate constraint: MEMORY. Concurrent queue invocations
-# can be co-scheduled on ONE isolate, and each cold generation materialized the
-# daf's source bundles (multi-MB on a dense daf) → 50-wide blew the hard 128 MB
-# isolate limit, killed the isolate, and every co-tenant request (incl. plain
-# HTTP /api/run) came back `error code: 1101`. That was the cold-daf OOM.
-#
-# Now that per-job source memory is bounded (rishonim capped at the cache
-# boundary #440; concurrent same-daf loads coalesced to one copy #439), peak
-# isolate memory is ~ max_concurrency × per-job footprint. 12 keeps the worst
-# case (all co-scheduled + dense) comfortably under 128 MB with extra headroom
-# against the sporadic co-located OOMs, while still warming far faster than the
-# old 10. Heavy per-daf generation is additionally being moved off the queue
-# onto the DafWarmWorkflow (bounded per-step memory) via /api/daf-generate, so
-# the queue no longer has to carry the worst-case dense daf at full width. Raise
-# only alongside a measured drop in per-job footprint — warming speed is a
-# background concern; a reader OOM is not. AI Gateway + runLLM's per-call retry
-# ride out provider 429s within a job, so queue-level retries aren't burned.
-max_concurrency = 12
-max_retries = 1
 
 [[kv_namespaces]]
 binding = "CACHE"
@@ -165,14 +156,13 @@ id = "f373689f767c477e98cf3b644a4d05bd"
 enabled = true
 head_sampling_rate = 1  # capture 100% of invocations
 
-# Background cache-warmer. Walks the full shas at ~1 amud/sec, 20 per run,
-# filling KV with no TTL. Latches to done when complete; bump warm-cursor:v1
-# key to force a re-walk. See src/worker/warm-cron.ts.
-#
-# Second cron (03:00 UTC daily) pre-warms tomorrow's Daf Yomi via
-# /api/run for the canonical mark set. See src/worker/yomi-cron.ts.
+# Reader keeps ONE lightweight cron: the */5 health watch (it has
+# CF_ANALYTICS_TOKEN; the generator does not). The shared scheduled() handler
+# reads WORKER_ROLE = "reader" (below) and runs ONLY checkWorkerHealthAndAlert,
+# which now watches BOTH scripts (talmud + talmud-gen). All heavy warming (the
+# shas walk + the 03:00 Daf-Yomi pre-warm) moved to talmud-gen's crons.
 [triggers]
-crons = ["*/5 * * * *", "0 3 * * *"]
+crons = ["*/5 * * * *"]
 
 # Cloudflare Email Service binding (env.EMAIL.send(...)). Same `remote = true`
 # auth path as [ai] above — needs fresh `wrangler login`. Used by

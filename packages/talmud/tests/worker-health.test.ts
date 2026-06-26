@@ -126,4 +126,42 @@ describe('checkWorkerHealthAndAlert', () => {
     vi.unstubAllGlobals();
     expect(sent).toHaveLength(0);
   });
+
+  it('watches BOTH talmud and talmud-gen and breaks the alert down per script', async () => {
+    // Generation moved to talmud-gen, so the OOM the alert exists to catch now
+    // lands there, not on the reader. The watch must query both.
+    const sent: Array<{ subject: string; text: string }> = [];
+    const kv = new Map<string, string>();
+    const env = {
+      CACHE: {
+        get: async (k: string) => kv.get(k) ?? null,
+        put: async (k: string, v: string) => void kv.set(k, v),
+      } as unknown as KVNamespace,
+      EMAIL: { send: async (m: { subject: string; text: string }) => void sent.push(m) },
+      CLOUDFLARE_ACCOUNT_ID: 'acct',
+      CF_ANALYTICS_TOKEN: 'tok',
+    };
+    // Script-aware stub: the reader is healthy; talmud-gen OOMed 9 times.
+    const fetchStub = vi.fn(async (_url: string, init: { body: string }) => {
+      const script = JSON.parse(init.body).variables.script as string;
+      const groups =
+        script === 'talmud-gen'
+          ? [{ sum: { requests: 9 }, dimensions: { status: 'exceededMemory' } }]
+          : [{ sum: { requests: 500 }, dimensions: { status: 'success' } }];
+      return new Response(
+        JSON.stringify({
+          data: { viewer: { accounts: [{ workersInvocationsAdaptive: groups }] } },
+        }),
+        { status: 200 },
+      );
+    });
+    vi.stubGlobal('fetch', fetchStub as unknown as typeof fetch);
+    await checkWorkerHealthAndAlert(env, 1_000_000_000_000);
+    vi.unstubAllGlobals();
+    expect(fetchStub).toHaveBeenCalledTimes(2); // one query per watched script
+    expect(sent).toHaveLength(1);
+    expect(sent[0].subject).toContain('9 in last 15m'); // fatal summed (reader 0 + gen 9)
+    expect(sent[0].text).toContain('[talmud-gen]');
+    expect(sent[0].text).toContain('exceededMemory: 9');
+  });
 });
