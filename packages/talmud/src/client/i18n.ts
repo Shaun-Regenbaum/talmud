@@ -629,6 +629,7 @@ const CATALOG = {
     en: 'Place coordinates (hand-curated)',
     he: 'נקודות ציון של מקומות (ידני)',
   },
+  'usage.src.basemap': { en: 'Map basemap (Natural Earth)', he: 'מפת בסיס (Natural Earth)' },
   'usage.src.rabbi-family': { en: 'Rabbi family relations', he: 'קשרי משפחה של חכמים' },
   'usage.src.rabbi-hierarchy': { en: 'Rabbi teacher–student edges', he: 'קשרי רב–תלמיד' },
   'usage.src.rabbi-orientation': { en: 'Rabbi orientation', he: 'נטיית החכמים' },
