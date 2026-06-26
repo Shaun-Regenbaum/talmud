@@ -20,6 +20,7 @@
  */
 
 import { GEO_CITIES } from '../client/geoShapes';
+import curatedYerushalmiData from '../lib/data/curated-yerushalmi-parallels.json';
 import rabbiFamilyData from '../lib/data/rabbi-family.json';
 import rabbiHierarchyData from '../lib/data/rabbi-hierarchy.json';
 import rabbiOrientationData from '../lib/data/rabbi-orientation.json';
@@ -856,6 +857,16 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     if (edgeCount > 0) withHierarchyEdges++;
   }
   const hierarchyDenom = withBio || HIERARCHY.totalNodes || 0;
+
+  // Curated/internal datasets we ship and use (not external fetches): the rabbi
+  // relationship graphs + the hand-curated Bavli<->Yerushalmi parallels. Tagged
+  // 'Custom' (our own data), counts only.
+  const curatedYeruCount =
+    (curatedYerushalmiData as { parallels?: unknown[] }).parallels?.length ?? 0;
+  sources.push(entityRow('rabbi-family', 'Custom', withFamily, 'rabbis'));
+  sources.push(entityRow('rabbi-hierarchy', 'Custom', totalEdges, 'edges'));
+  sources.push(entityRow('rabbi-orientation', 'Custom', withOrientation, 'rabbis'));
+  sources.push(entityRow('yerushalmi-curated', 'Custom', curatedYeruCount, 'parallels'));
 
   return {
     generatedAt: new Date().toISOString(),
