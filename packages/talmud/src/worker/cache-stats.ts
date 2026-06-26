@@ -19,7 +19,7 @@
  * short-circuits on `generatedAt < 60s ago`.
  */
 
-import { GEO_CITIES } from '../client/geoShapes';
+import { BAVEL_SHAPE, GEO_CITIES, ISRAEL_SHAPE } from '../client/geoShapes';
 import curatedYerushalmiData from '../lib/data/curated-yerushalmi-parallels.json';
 import rabbiFamilyData from '../lib/data/rabbi-family.json';
 import rabbiHierarchyData from '../lib/data/rabbi-hierarchy.json';
@@ -838,6 +838,15 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   // grounds the geography map. Babylonian academy towns (Sura, Pumbedita, …) +
   // Roman-era Galilee that no external Bible gazetteer covers.
   sources.push(entityRow('geo-coords', 'Custom', GEO_CITIES.length, 'places'));
+  // Cartographic basemap geometry (coastlines + rivers) clipped from public-
+  // domain Natural Earth and bundled in geoShapes.ts. Not "content" but a real
+  // external dataset we ship to draw the geography map — counted as vector paths.
+  const basemapPaths =
+    ISRAEL_SHAPE.landPaths.length +
+    ISRAEL_SHAPE.riverPaths.length +
+    BAVEL_SHAPE.landPaths.length +
+    BAVEL_SHAPE.riverPaths.length;
+  sources.push(entityRow('basemap', 'Custom', basemapPaths, 'map paths'));
 
   let withFamily = 0;
   for (const n of Object.values(FAMILY.nodes ?? {})) {
