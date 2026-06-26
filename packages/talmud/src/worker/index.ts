@@ -4140,7 +4140,16 @@ export async function computeGeographyModel(
 
 // Per-section fan-out concurrency. Each section call is small (~3-6 moves);
 // 5 in flight balances throughput against producer pressure / provider rate.
-const FAN_OUT_CONCURRENCY = 5;
+// Exported so tests/memory-budget-guard.test.ts can ratchet it — this is one of
+// the in-isolate fan-out widths that, if it crept up, would re-grow peak memory.
+export const FAN_OUT_CONCURRENCY = 5;
+
+// DafWarmWorkflow cold-gen tier width. A tier's step.do() callbacks run
+// concurrently in ONE isolate (the per-step 128 MB budget only holds across
+// suspension points), so this is the peak concurrent in-isolate generation on
+// talmud-gen — the source-heavy steps (rishonim/commentary) are what trip the
+// 128 MB cap. Module-scoped + exported so the memory-budget guard ratchets it.
+export const STEP_CONCURRENCY = 6;
 
 /**
  * Fan an LLM extractor out over the instances of a parent mark: one call per
@@ -11495,16 +11504,12 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
     // same uncached dep. This is what makes a cold daf generate in minutes (vs the
     // ~30-60 min fully-sequential walk) while staying per-step memory-bounded.
     //
-    // A tier's steps run concurrently in THIS isolate (the "own budget" only holds
-    // across suspension points), so this width is the peak concurrent in-isolate
-    // generation — the source-heavy ones (rishonim/commentary) are what trip the
-    // 128 MB cap. coalesce.ts shares same-daf source slices across them, but 6 is
-    // the conservative "safe concurrency" the reader /api/run gate also landed on
-    // (#439, 16->6) — a cheap memory margin for the cold-gen path against the
-    // intermittent exceededMemory alert, costing only slightly slower cold dapim
-    // (a background, reader-progressive path). The `[mem] warm-tier` width
-    // breadcrumb above attributes a future OOM to (daf, phase, width).
-    const STEP_CONCURRENCY = 6;
+    // STEP_CONCURRENCY (module-scoped, ratcheted by the memory-budget guard) is
+    // the per-tier in-isolate fan-out width. coalesce.ts shares same-daf source
+    // slices across the concurrent steps; 6 is the conservative "safe
+    // concurrency" the reader /api/run gate also landed on (#439, 16->6). The
+    // `[mem] warm-tier` width breadcrumb below attributes a future OOM to
+    // (daf, phase, width).
     const markDepsOf = (id: string): string[] => {
       const def = CODE_MARKS.find((m) => m.id === id);
       return (def?.dependencies ?? []).map((d) => dependencyId(d)).filter((x): x is string => !!x);
