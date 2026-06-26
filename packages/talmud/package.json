@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "ship": "bash ../../scripts/ship-guard.sh && vite build && wrangler deploy",
+    "ship:gen": "bash ../../scripts/ship-guard.sh && wrangler deploy -c wrangler.generator.toml",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

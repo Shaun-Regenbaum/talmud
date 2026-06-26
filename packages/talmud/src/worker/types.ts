@@ -90,4 +90,9 @@ export interface Bindings {
   // Spend-budget overrides (USD) read by ./budget. Default 300 / 10 when unset.
   DAILY_BUDGET_USD?: string;
   HOURLY_CUSTOM_BUDGET_USD?: string;
+  // Which deployment this is: "generator" (talmud-gen — queue consumer +
+  // DafWarmWorkflow host + heavy crons) or "reader"/unset (talmud — read-only,
+  // runs only the health-watch cron). Read by scheduled() in index.ts to route
+  // cron work to the right isolate pool. See wrangler.generator.toml.
+  WORKER_ROLE?: 'reader' | 'generator';
 }

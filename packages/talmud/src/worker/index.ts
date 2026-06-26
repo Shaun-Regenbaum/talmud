@@ -4140,7 +4140,16 @@ export async function computeGeographyModel(
 
 // Per-section fan-out concurrency. Each section call is small (~3-6 moves);
 // 5 in flight balances throughput against producer pressure / provider rate.
-const FAN_OUT_CONCURRENCY = 5;
+// Exported so tests/memory-budget-guard.test.ts can ratchet it — this is one of
+// the in-isolate fan-out widths that, if it crept up, would re-grow peak memory.
+export const FAN_OUT_CONCURRENCY = 5;
+
+// DafWarmWorkflow cold-gen tier width. A tier's step.do() callbacks run
+// concurrently in ONE isolate (the per-step 128 MB budget only holds across
+// suspension points), so this is the peak concurrent in-isolate generation on
+// talmud-gen — the source-heavy steps (rishonim/commentary) are what trip the
+// 128 MB cap. Module-scoped + exported so the memory-budget guard ratchets it.
+export const STEP_CONCURRENCY = 6;
 
 /**
  * Fan an LLM extractor out over the instances of a parent mark: one call per
@@ -7209,7 +7218,16 @@ app.get('/api/usage/health', (c) =>
 // isolate-fatal class is verifiable on demand, and lets the GraphQL field names
 // be confirmed against the live account (the cron alert degrades quietly if the
 // token lacks scope; this route shows exactly why).
-app.get('/api/worker-health', async (c) => c.json(await fetchWorkerOutcomes(c.env, 15)));
+app.get('/api/worker-health', async (c) => {
+  // Report BOTH scripts since generation moved to talmud-gen. Top-level fields
+  // stay the reader's outcomes (backward-compatible shape); `generator` carries
+  // talmud-gen's — that's where the cold-daf OOMs land now.
+  const [reader, generator] = await Promise.all([
+    fetchWorkerOutcomes(c.env, 15, 'talmud'),
+    fetchWorkerOutcomes(c.env, 15, 'talmud-gen'),
+  ]);
+  return c.json({ ...reader, generator });
+});
 
 // Check off / restore a bug report (by its timestamp id). Toggles membership in
 // the dismissed set; the backlog payload splits reports into active vs. done
@@ -11486,16 +11504,12 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
     // same uncached dep. This is what makes a cold daf generate in minutes (vs the
     // ~30-60 min fully-sequential walk) while staying per-step memory-bounded.
     //
-    // A tier's steps run concurrently in THIS isolate (the "own budget" only holds
-    // across suspension points), so this width is the peak concurrent in-isolate
-    // generation — the source-heavy ones (rishonim/commentary) are what trip the
-    // 128 MB cap. coalesce.ts shares same-daf source slices across them, but 6 is
-    // the conservative "safe concurrency" the reader /api/run gate also landed on
-    // (#439, 16->6) — a cheap memory margin for the cold-gen path against the
-    // intermittent exceededMemory alert, costing only slightly slower cold dapim
-    // (a background, reader-progressive path). The `[mem] warm-tier` width
-    // breadcrumb above attributes a future OOM to (daf, phase, width).
-    const STEP_CONCURRENCY = 6;
+    // STEP_CONCURRENCY (module-scoped, ratcheted by the memory-budget guard) is
+    // the per-tier in-isolate fan-out width. coalesce.ts shares same-daf source
+    // slices across the concurrent steps; 6 is the conservative "safe
+    // concurrency" the reader /api/run gate also landed on (#439, 16->6). The
+    // `[mem] warm-tier` width breadcrumb below attributes a future OOM to
+    // (daf, phase, width).
     const markDepsOf = (id: string): string[] => {
       const def = CODE_MARKS.find((m) => m.id === id);
       return (def?.dependencies ?? []).map((d) => dependencyId(d)).filter((x): x is string => !!x);
@@ -11617,6 +11631,21 @@ export default {
   fetch: (req: Request, env: Bindings, ctx: ExecutionContext) => app.fetch(req, wrapEnv(env), ctx),
   scheduled: (controller: ScheduledController, env: Bindings, ctx: ExecutionContext) => {
     const wrapped = wrapEnv(env);
+    // The reader (talmud) and the generator (talmud-gen) deploy the SAME entry
+    // file; WORKER_ROLE tells this handler which side it's running on so heavy
+    // warming stays OFF the reader's isolate pool. Reader (or unset) = run ONLY
+    // the lightweight health watch (it has CF_ANALYTICS_TOKEN; the generator
+    // does not). The health watch now covers BOTH scripts, so a generation OOM
+    // on talmud-gen is still alerted from here. See wrangler.generator.toml.
+    if (env.WORKER_ROLE !== 'generator') {
+      // Independent health watch: alert if an isolate-fatal outcome
+      // (exceededMemory — the cold-daf OOM) appeared in the last window.
+      // Self-contained + best-effort; never throws into the cron.
+      ctx.waitUntil(checkWorkerHealthAndAlert(wrapped, Date.now()));
+      return;
+    }
+
+    // Generator role: all the heavy warming, on talmud-gen's own isolates.
     if (controller.cron === YOMI_WARM_CRON) {
       ctx.waitUntil(runYomiWarmCron(wrapped));
     } else {
@@ -11642,10 +11671,6 @@ export default {
           },
         ),
       );
-      // Independent health watch: alert if an isolate-fatal outcome
-      // (exceededMemory — the cold-daf OOM) appeared in the last window.
-      // Self-contained + best-effort; never throws into the cron.
-      ctx.waitUntil(checkWorkerHealthAndAlert(wrapped, Date.now()));
     }
   },
   // Queue consumer — wrangler.toml binds queue=enrichment-jobs to this
