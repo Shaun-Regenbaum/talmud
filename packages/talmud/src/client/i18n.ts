@@ -625,6 +625,10 @@ const CATALOG = {
   'usage.src.rabbi-bio-sefaria': { en: 'Rabbi bios (Sefaria)', he: 'ביוגרפיות חכמים (ספריא)' },
   'usage.src.rabbi-bio-wiki': { en: 'Rabbi bios (Wikipedia)', he: 'ביוגרפיות חכמים (ויקיפדיה)' },
   'usage.src.rabbi-places': { en: 'Rabbi places', he: 'מקומות החכמים' },
+  'usage.src.geo-coords': {
+    en: 'Place coordinates (hand-curated)',
+    he: 'נקודות ציון של מקומות (ידני)',
+  },
   'usage.src.dy': { en: 'DafYomi notes (all)', he: 'הערות דף יומי (הכול)' },
   'usage.src.dy.insights': { en: 'Insights', he: 'תובנות' },
   'usage.src.dy.background': { en: 'Background', he: 'רקע' },
