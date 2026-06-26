@@ -19,6 +19,7 @@
  * short-circuits on `generatedAt < 60s ago`.
  */
 
+import { GEO_CITIES } from '../client/geoShapes';
 import rabbiFamilyData from '../lib/data/rabbi-family.json';
 import rabbiHierarchyData from '../lib/data/rabbi-hierarchy.json';
 import rabbiOrientationData from '../lib/data/rabbi-orientation.json';
@@ -42,7 +43,7 @@ import { getWarmTotal } from './warm-cron';
 export const CACHE_STATS_KEY = 'cache-stats:v8';
 const FRESH_MS = 60_000;
 
-export type SourceOrigin = 'HB' | 'Sefaria' | 'DY' | 'Wikipedia';
+export type SourceOrigin = 'HB' | 'Sefaria' | 'DY' | 'Wikipedia' | 'Custom';
 /** One named content piece in Content-In: where it comes from, how many dapim
  *  carry it, and (sampled) how many actually have content. `id` is stable; the
  *  UI maps it to a friendly label. */
@@ -832,6 +833,10 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     sources.push(entityRow('rabbi-bio-sefaria', 'Sefaria', withSefariaBio, 'rabbis'));
   sources.push(entityRow('rabbi-bio-wiki', 'Wikipedia', withWiki, 'rabbis'));
   sources.push(entityRow('rabbi-places', 'Sefaria', withPlaces, 'rabbis'));
+  // Hand-curated place coordinates (geoShapes.ts) — our own custom dataset that
+  // grounds the geography map. Babylonian academy towns (Sura, Pumbedita, …) +
+  // Roman-era Galilee that no external Bible gazetteer covers.
+  sources.push(entityRow('geo-coords', 'Custom', GEO_CITIES.length, 'places'));
 
   let withFamily = 0;
   for (const n of Object.values(FAMILY.nodes ?? {})) {

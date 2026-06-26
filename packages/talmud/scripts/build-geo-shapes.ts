@@ -279,14 +279,15 @@ const CITIES: CityDef[] = [
     lat: 37.075,
     lon: 41.218,
   },
-  // Nehardea: on the Euphrates near the Nahr Malka junction (Anbar region).
+  // Nehardea: on the Euphrates near the Nahr Malka junction, adjacent to Anbar
+  // (a short distance west of Fallujah/Pumbedita). ~33.374N, 43.710E.
   {
     name: 'Nehardea',
     nameHe: 'נהרדעא',
     aliases: ['nehardea', 'nehardeah', "neharde'a"],
     region: 'bavel',
-    lat: 33.4,
-    lon: 43.3,
+    lat: 33.374,
+    lon: 43.71,
     approx: true,
   },
   // Pumbedita = generally identified with modern Fallujah.
