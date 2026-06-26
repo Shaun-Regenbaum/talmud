@@ -1,0 +1,75 @@
+# talmud-gen — the GENERATION worker.
+#
+# WHY THIS EXISTS: Cloudflare runs concurrent invocations of ONE Worker script
+# in SHARED 128 MB isolates. The talmud reader and all heavy generation (queue
+# consumer + DafWarmWorkflow + warm/yomi crons) used to live in the same script,
+# so a source-heavy generation job that blew 128 MB killed the isolate and every
+# co-tenant request on it — including innocent reader requests, which came back
+# as `error code: 1101`. Concurrency knobs (max_concurrency, STEP_CONCURRENCY)
+# could only make that rarer; they cannot stop the platform from co-scheduling
+# invocations of the SAME script onto one isolate. The only hard guarantee is a
+# SEPARATE script: generation here, reading in `talmud`. A generation OOM on
+# talmud-gen now just retries its own job — it can never touch a reader isolate.
+#
+# Same entry file (src/worker/index.ts) as the reader; the two workers differ
+# only in BINDINGS + TRIGGERS (this config wires the consumer/crons/workflow;
+# the reader config does not). See wrangler.toml for the reader side.
+#
+# STAGED ROLLOUT — this is the PR-1a "idle" config: the worker exists (so its
+# OPENROUTER_API_KEY secret can be set on a real worker) but does NO work yet —
+# no queue consumer, no crons, no workflow host. PR-1b adds those three stanzas
+# here and removes them from wrangler.toml (the atomic cutover). Keeping it idle
+# means merging PR-1a is a zero-behaviour-change deploy.
+name = "talmud-gen"
+main = "src/worker/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+# No public surface: generation is invoked only by the queue/cron/workflow, never
+# by an HTTP route. Disabling workers.dev keeps the reader's API routes (which
+# this shared entry still exports as `fetch`) from being reachable on a public
+# talmud-gen.workers.dev URL. No custom domains, no [assets] — this worker never
+# serves the SPA.
+workers_dev = false
+
+# Same raised CPU ceiling as the reader — a queue job parsing a large LLM stream
+# can accumulate on-CPU time. Workers Paid allows up to 300_000ms (5 min).
+[limits]
+cpu_ms = 300000
+
+[ai]
+binding = "AI"
+remote = true
+
+[vars]
+AI_GATEWAY_ID = "talmud"
+DEFAULT_LLM_MODEL = "openrouter/deepseek/deepseek-v4-pro"
+OPENROUTER_GATEWAY_PROVIDER = "openrouter"
+# Background full-Shas backfills run from the GENERATOR's cron (PR-1b moves the
+# crons here). Same values as the reader carried.
+OBSERVATIONS_WARM_SHAS = "1"
+DAFYOMI_WARM_SHAS = "1"
+SPINE_VIEW_WARM_SHAS = "1"
+# Spend budget — enforced at the runLLM chokepoint, which now lives here.
+DAILY_BUDGET_USD = "300"
+HOURLY_CUSTOM_BUDGET_USD = "10"
+
+# Producer binding: deep-warm jobs re-enqueue downstream per-instance jobs, so
+# the generator is BOTH a producer and (in PR-1b) the consumer of this queue.
+[[queues.producers]]
+queue = "enrichment-jobs"
+binding = "ENRICHMENT_QUEUE"
+
+# Same KV cache namespace as the reader (byte-identical cache keys — the split is
+# orchestration-only, it changes NOTHING about what is cached or under what key).
+[[kv_namespaces]]
+binding = "CACHE"
+id = "f373689f767c477e98cf3b644a4d05bd"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[[send_email]]
+name = "EMAIL"
+remote = true

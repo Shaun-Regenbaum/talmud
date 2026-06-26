@@ -63,6 +63,13 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Generation worker FIRST: the reader binds to its DafWarmWorkflow
+      # cross-script (script_name = "talmud-gen"), so talmud-gen must exist
+      # before the reader deploy resolves that binding. No vite build — the
+      # generator serves no SPA (no [assets]); it only runs the queue consumer,
+      # crons, and the Workflow. See packages/talmud/wrangler.generator.toml.
+      - run: pnpm --filter talmud exec wrangler deploy -c wrangler.generator.toml
+
       - run: pnpm --filter talmud exec vite build
       - run: pnpm --filter talmud exec wrangler deploy
 
