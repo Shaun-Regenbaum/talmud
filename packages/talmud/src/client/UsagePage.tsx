@@ -199,7 +199,7 @@ interface EnrichmentRow {
   staleCount: number;
 }
 
-type SourceOrigin = 'HB' | 'Sefaria' | 'DY';
+type SourceOrigin = 'HB' | 'Sefaria' | 'DY' | 'Wikipedia';
 interface SourceRow {
   id: string;
   origin: SourceOrigin;
@@ -615,6 +615,7 @@ const ORIGIN_STYLE: Record<SourceOrigin, { fg: string; bg: string }> = {
   HB: { fg: '#6b7280', bg: '#f3f4f6' },
   Sefaria: { fg: '#1d4ed8', bg: '#eef2ff' },
   DY: { fg: '#7c3aed', bg: '#f3e8ff' },
+  Wikipedia: { fg: '#111827', bg: '#f3f4f6' },
 };
 function OriginBadge(props: { origin: SourceOrigin }): JSX.Element {
   const s = () => ORIGIN_STYLE[props.origin];

@@ -42,7 +42,7 @@ import { getWarmTotal } from './warm-cron';
 export const CACHE_STATS_KEY = 'cache-stats:v8';
 const FRESH_MS = 60_000;
 
-export type SourceOrigin = 'HB' | 'Sefaria' | 'DY';
+export type SourceOrigin = 'HB' | 'Sefaria' | 'DY' | 'Wikipedia';
 /** One named content piece in Content-In: where it comes from, how many dapim
  *  carry it, and (sampled) how many actually have content. `id` is stable; the
  *  UI maps it to a friendly label. */
@@ -823,6 +823,15 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   // on each bio. Until then report null so the UI can render
   // "— not tracked yet" rather than a misleading count.
   const withSefariaBio: number | null = bioSourceTracked > 0 ? withSefariaBioCount : null;
+
+  // Surface the BUNDLED rabbi dataset (rabbi-places.json) as Content-In source
+  // rows. These are external data we fetched once and baked in: biographies from
+  // Sefaria + Hebrew Wikipedia, and place names from Sefaria's person topics.
+  // Per-rabbi (not per-daf), so they show cached counts (scope 'entity').
+  if (withSefariaBio != null)
+    sources.push(entityRow('rabbi-bio-sefaria', 'Sefaria', withSefariaBio, 'rabbis'));
+  sources.push(entityRow('rabbi-bio-wiki', 'Wikipedia', withWiki, 'rabbis'));
+  sources.push(entityRow('rabbi-places', 'Sefaria', withPlaces, 'rabbis'));
 
   let withFamily = 0;
   for (const n of Object.values(FAMILY.nodes ?? {})) {
