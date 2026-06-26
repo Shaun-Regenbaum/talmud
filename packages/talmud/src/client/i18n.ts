@@ -145,6 +145,33 @@ const CATALOG = {
   'voices.legend.supports': { en: 'supports / responds', he: 'תומך / מגיב' },
   'voices.legend.opposes': { en: 'opposes', he: 'חולק' },
   'voices.legend.cites': { en: 'cites', he: 'מצטט' },
+
+  // — #voices page (daf-wide voice graph) —
+  'voices.page.title': { en: 'Voices', he: 'קולות' },
+  'voices.page.back': { en: 'back to daf', he: 'חזרה לדף' },
+  'voices.page.subtitle': {
+    en: 'Who argues, answers, and cites whom across the whole daf — every section’s voices stitched into one graph.',
+    he: 'מי חולק, משיב ומצטט את מי לאורך כל הדף — קולות כל המקטעים מאוחדים לגרף אחד.',
+  },
+  'voices.page.loading': { en: 'Loading the daf’s voices…', he: 'טוען את קולות הדף…' },
+  'voices.page.empty': {
+    en: 'No voices have been analyzed for this daf yet. Open the daf and browse its sections to generate them.',
+    he: 'עדיין לא נותחו קולות עבור דף זה. פִּתחו את הדף ועיינו במקטעים כדי לחשב אותם.',
+  },
+  'voices.page.openDaf': { en: 'Open the daf', he: 'פתיחת הדף' },
+  'voices.page.partial': {
+    en: '{done} of {total} sections analyzed — open the daf to warm the rest.',
+    he: '{done} מתוך {total} מקטעים נותחו — פִּתחו את הדף כדי לחשב את השאר.',
+  },
+  'voices.page.bySection': { en: 'By section', he: 'לפי מקטע' },
+  'voices.page.link': { en: 'Voice graph', he: 'גרף הקולות' },
+  'dafvoices.collective': { en: 'collective voice', he: 'קול קיבוצי' },
+  'dafvoices.sections': { en: 'sections', he: 'מקטעים' },
+  'dafvoices.rel.opposes': { en: 'opposes', he: 'חולק על' },
+  'dafvoices.rel.supports': { en: 'supports', he: 'תומך ב' },
+  'dafvoices.rel.responds-to': { en: 'responds to', he: 'משיב ל' },
+  'dafvoices.rel.cites': { en: 'cites', he: 'מצטט את' },
+  'dafvoices.rel.resolves': { en: 'resolves', he: 'מיישב את' },
   // Voice roles (argument taxonomy)
   'voice.role.originator': { en: 'originator', he: 'פותח' },
   'voice.role.questioner': { en: 'questioner', he: 'מקשה' },

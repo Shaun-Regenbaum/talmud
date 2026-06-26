@@ -3961,6 +3961,25 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               </a>
               {' · '}
               <a
+                href={`?tractate=${encodeURIComponent(tractate())}&page=${encodeURIComponent(page())}#voices`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const u = new URL(window.location.href);
+                  u.searchParams.set('tractate', tractate());
+                  u.searchParams.set('page', page());
+                  u.hash = 'voices';
+                  window.location.href = u.toString();
+                }}
+                style={{
+                  color: 'inherit',
+                  'text-decoration': 'none',
+                  'border-bottom': '1px dotted #bbb',
+                }}
+              >
+                {t('voices.page.link')}
+              </a>
+              {' · '}
+              <a
                 href="#mcp"
                 style={{
                   color: 'inherit',

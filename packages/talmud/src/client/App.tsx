@@ -12,6 +12,7 @@ import { SpineCoveragePage } from './SpineCoveragePage';
 import { TopBar } from './TopBar';
 import { TutorialPage } from './TutorialPage';
 import { UsagePage } from './UsagePage';
+import { VoicesPage } from './VoicesPage';
 
 function currentRoute() {
   // #sages/<slug> deep-links into SagesPage; treat the prefix as the route.
@@ -82,7 +83,17 @@ export default function App() {
                                             fallback={
                                               <Show
                                                 when={route() === 'howitworks'}
-                                                fallback={<DafViewer />}
+                                                fallback={
+                                                  <Show
+                                                    when={
+                                                      route() === 'voices' ||
+                                                      route().startsWith('voices/')
+                                                    }
+                                                    fallback={<DafViewer />}
+                                                  >
+                                                    <VoicesPage />
+                                                  </Show>
+                                                }
                                               >
                                                 <HowItWorksPage />
                                               </Show>
