@@ -3,7 +3,7 @@ import { slugTractate } from '@corpus/core/cache/keys';
 import { continuationLink, type FlowEdge } from '@corpus/core/context/link';
 import { coordLabel } from '@corpus/core/context/types';
 import { gatewayActive, gatewayStatus, wrapEnv } from '@corpus/core/llm/ai-gateway';
-import { classifyAiUnavailable } from '@corpus/core/llm/ai-status';
+import { aiUnavailableMessage, classifyAiUnavailable } from '@corpus/core/llm/ai-status';
 import {
   type BudgetScope,
   budgetStatus,
@@ -5368,6 +5368,38 @@ export function isExperimentalLlmWarm(job: { mark_id?: string; enrichment_id?: s
 }
 
 /**
+ * Cost-control pause: a configurable set of expensive producers (the
+ * `PAUSED_PRODUCERS` env var — comma/space-separated mark/enrichment ids) is
+ * held back from generating on cold, non-explicit reader loads to cap spend
+ * while the project is self-funded. Cached results still serve; a trusted
+ * explicit warm (bypass_cache / studio) still runs. Fully reversible: clear the
+ * env var to resume full generation. Kept in sync across wrangler.toml (reader)
+ * and wrangler.generator.toml (queue consumer).
+ */
+export function parsePausedProducers(env: { PAUSED_PRODUCERS?: string }): Set<string> {
+  const raw = env.PAUSED_PRODUCERS;
+  if (!raw) return new Set();
+  return new Set(
+    raw
+      .split(/[\s,]+/)
+      .map((s) => s.trim())
+      .filter(Boolean),
+  );
+}
+
+/** The paused producer id for a job (enrichment id takes precedence over mark
+ *  id), or null when nothing about the job is paused / nothing is configured. */
+export function costPausedProducerId(
+  env: { PAUSED_PRODUCERS?: string },
+  job: { mark_id?: string; enrichment_id?: string },
+): string | null {
+  const paused = parsePausedProducers(env);
+  if (paused.size === 0) return null;
+  const id = job.enrichment_id ?? job.mark_id;
+  return id && paused.has(id) ? id : null;
+}
+
+/**
  * POST /api/run — async producer.
  *
  * 1. Validate body.
@@ -5465,6 +5497,12 @@ app.post('/api/run', async (c) => {
   const rawWarmExperimental = (raw as { warm_experimental?: unknown }).warm_experimental === true;
   const explicitWarm = job.bypass_cache || (trusted && rawWarmExperimental);
   const skipExperimentalWarm = !explicitWarm && isExperimentalLlmWarm(job);
+  // Cost-control pause (PAUSED_PRODUCERS): like the experimental gate, but
+  // config-driven and reader-facing. On a cold, non-explicit load of a paused
+  // producer we serve any cached/stale value (the hot + SWR paths above/below)
+  // but never START a paid run — and surface the shared AI-paused banner
+  // (reason 'cost-control'). A trusted explicit warm still runs.
+  const costPaused = !explicitWarm ? costPausedProducerId(c.env, job) : null;
 
   // Stale-while-revalidate: on a version-bump miss, serve the PREVIOUS version's
   // cached value (tagged refreshing) while the new one recomputes in the
@@ -5505,7 +5543,11 @@ app.post('/api/run', async (c) => {
         // budget-paused stays stale until budget frees).
         const customRun = !!(job.enrichment_id.endsWith('.qa') && job.user_question);
         let refreshing = false;
-        if (!skipExperimentalWarm && (await checkBudget(c.env, { custom: customRun })).ok) {
+        if (
+          !skipExperimentalWarm &&
+          !costPaused &&
+          (await checkBudget(c.env, { custom: customRun })).ok
+        ) {
           job.runId = await makeRunId(job);
           await c.env.ENRICHMENT_QUEUE.send(job);
           refreshing = true;
@@ -5524,6 +5566,25 @@ app.post('/api/run', async (c) => {
   // "not generated" rather than polling a run that will never start.
   if (skipExperimentalWarm) {
     return c.json({ status: 'skipped', reason: 'experimental', experimental: true, warmed: false });
+  }
+
+  // Cold miss on a cost-paused producer: refuse the paid run and return the
+  // shared AI-paused envelope so the reader's banner explains why (reason
+  // 'cost-control'). `paused: true` routes it through the client's existing
+  // budget-pause handling (the card shows the paused state); cached hits above
+  // already served, and a trusted explicit warm bypassed this. Reversible via
+  // the PAUSED_PRODUCERS env var.
+  if (costPaused) {
+    return c.json(
+      {
+        status: 'error',
+        error: aiUnavailableMessage('cost-control'),
+        paused: true,
+        aiUnavailable: true as const,
+        reason: 'cost-control' as const,
+      },
+      503,
+    );
   }
 
   if (!c.env.ENRICHMENT_QUEUE) {
@@ -11404,6 +11465,17 @@ async function processEnrichmentJob(
       });
       console.log(
         `[queue] deep-warm ${job.tractate}/${job.page} lang=${rc.lang} marks=${stats.marks} enqueued=${stats.enqueued} skipped=${stats.skipped} bridges=${stats.bridges} cross=${stats.cross}`,
+      );
+      return;
+    }
+    // Cost-control backstop: never spend on a paused producer from a background
+    // enqueue (the adjacent-daf idle prefetch, deep-warm sub-jobs). The reader's
+    // on-demand path is already gated at /api/run (with the banner); these
+    // background jobs have no poller, so we just skip silently. A trusted
+    // bypass_cache warm still runs. Reversible via PAUSED_PRODUCERS.
+    if (!job.bypass_cache && costPausedProducerId(wrapped, job)) {
+      console.log(
+        `[queue] skip cost-paused ${job.enrichment_id ?? job.mark_id} ${job.tractate}/${job.page}`,
       );
       return;
     }

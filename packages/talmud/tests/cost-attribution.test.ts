@@ -24,9 +24,23 @@ describe('costSplitUsd', () => {
     expect((costInUsd ?? 0) + (costOutUsd ?? 0)).toBeCloseTo(total as number, 9);
   });
 
-  it('returns null for both sides on an unpriced model (Workers AI)', () => {
+  it('splits a priced Workers AI (@cf) model — @cf spend is no longer invisible', () => {
+    // kimi-k2.5 = $0.60 / $3.00 per 1M; recorded in MODEL_PRESETS so /usage + the
+    // budget guard see Workers AI spend instead of $0.
+    const { costInUsd, costOutUsd } = costSplitUsd('@cf/moonshotai/kimi-k2.5', {
+      prompt_tokens: 1000,
+      completion_tokens: 1000,
+    });
+    expect(costInUsd).toBeCloseTo(0.0006, 9);
+    expect(costOutUsd).toBeCloseTo(0.003, 9);
+  });
+
+  it('returns null for both sides on a model with no list price', () => {
     expect(
-      costSplitUsd('@cf/moonshotai/kimi-k2.5', { prompt_tokens: 1000, completion_tokens: 1000 }),
+      costSplitUsd('@cf/meta/llama-3.1-8b-instruct-fp8', {
+        prompt_tokens: 1000,
+        completion_tokens: 1000,
+      }),
     ).toEqual({ costInUsd: null, costOutUsd: null });
   });
 

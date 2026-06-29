@@ -102,6 +102,15 @@ CF_ZONE_TAG = "4808b439c50e3a42494ae7e0b2fa1bec,af7b181368ea154cd40b55404b47d818
 # STUDIO_SECRET`); unset => everyone is treated as untrusted (fail-safe).
 DAILY_BUDGET_USD = "300"
 HOURLY_CUSTOM_BUDGET_USD = "10"
+# Cost control: producer ids (mark/enrichment, comma-separated) PAUSED while the
+# project is self-funded. On a cold/uncomputed page these do NOT start a paid run
+# — the reader sees the shared "AI paused — sponsor" banner (reason
+# 'cost-control') instead, and any already-cached result still serves. The queue
+# consumer also skips background warms of them, so the daily Daf Yomi warm runs
+# leaner (its core cards still generate; these paused extras don't). Fully
+# reversible: set to "" to resume full generation. KEEP IN SYNC with
+# wrangler.generator.toml (the queue consumer reads this there).
+PAUSED_PRODUCERS = "tidbit.essay,daf-background.concepts,rishonim.synthesis,argument-move.suggested-questions,pesukim.suggested-questions,aggadata.suggested-questions"
 # Role flag (see scheduled() in index.ts). 'reader' = run only the health watch
 # on the */5 cron; the talmud-gen worker sets 'generator' and runs heavy warming.
 WORKER_ROLE = "reader"

@@ -20,6 +20,7 @@ export type AiUnavailableReason =
   | 'credits' // OpenRouter prepaid balance exhausted (HTTP 402)
   | 'daily-cap' // our daily spend cap reached (BudgetPausedError scope 'all')
   | 'hourly-cap' // our hourly custom-question cap reached (scope 'custom')
+  | 'cost-control' // a specific expensive producer is paused by config (PAUSED_PRODUCERS) to cap spend
   | 'rate-limit' // provider 429 (not our cap) — transient overload
   | 'provider'; // provider 5xx / upstream outage — transient
 
@@ -81,6 +82,8 @@ export function aiUnavailableMessage(reason: AiUnavailableReason): string {
       return "AI features are paused — today's AI budget has been reached. They'll be back tomorrow.";
     case 'hourly-cap':
       return "AI features are paused — this hour's AI budget has been reached. Try again shortly.";
+    case 'cost-control':
+      return 'This AI study note is paused to control costs right now.';
     case 'rate-limit':
       return 'AI features are busy right now. Please try again in a moment.';
     case 'provider':

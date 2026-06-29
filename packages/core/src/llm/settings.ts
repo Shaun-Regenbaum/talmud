@@ -37,20 +37,27 @@ export interface ModelPreset {
 }
 
 export const MODEL_PRESETS: ModelPreset[] = [
-  // Workers AI (@cf/*) bills in neurons, not per-token list prices — left
-  // unpriced; lean on the AI Gateway analytics figure for these.
+  // Workers AI (@cf/*) bills in neurons; the values below are Cloudflare's
+  // published per-1M-token list rates for each model, recorded so @cf spend is
+  // NOT invisible: pricing.ts reads them, so these calls show up on /usage and
+  // count against the budget guard (instead of recording as $0). The AI Gateway
+  // analytics figure stays authoritative; this is the self-tracked estimate.
   {
     id: '@cf/moonshotai/kimi-k2.5',
     vendor: 'Cloudflare/Moonshot',
     label: 'Kimi K2.5 (Workers AI)',
     notes:
-      'Free (neuron-billed) but dropped from prod over Workers AI concurrency limits — selectable, not the default/fallback',
+      '$0.60/$3.00 per 1M (neuron-billed). Dropped from prod over Workers AI concurrency limits — selectable, not the default/fallback',
+    inputPer1M: 0.6,
+    outputPer1M: 3.0,
   },
   {
     id: '@cf/google/gemma-4-26b-a4b-it',
     vendor: 'Cloudflare/Google',
     label: 'Gemma 4 26B (Workers AI)',
-    notes: 'Fast, no thinking; used for translate + era',
+    notes: '$0.10/$0.30 per 1M (neuron-billed). Fast, no thinking; used for translate + era',
+    inputPer1M: 0.1,
+    outputPer1M: 0.3,
   },
   {
     id: 'openrouter/deepseek/deepseek-v4-flash',
