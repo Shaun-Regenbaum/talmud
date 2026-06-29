@@ -44,12 +44,21 @@ const [status, setStatus] = createSignal<AiStatus | null>(null);
  *  gates whether a fresh failure is allowed to re-open the banner. */
 let dismissed = false;
 
+/** When the last failure was reported (epoch ms). A success only CLEARS the
+ *  banner once it has been failure-free for this grace window — otherwise the
+ *  reader's parallel card fan-out (some cards cached-OK, some 402) would flicker
+ *  the banner as successes and failures resolve within a second of each other.
+ *  After genuine recovery (a new daf with no failures) the next success clears. */
+let lastFailureAt = 0;
+const RECOVERY_GRACE_MS = 4000;
+
 /** Reactive accessor for the current AI-unavailable status (or null). */
 export const aiStatus = status;
 
 /** Flip the banner on for a known reason. No-op while the user has it dismissed
  *  (until `noteAiSuccess` resets that). */
 export function reportAiUnavailable(reason: AiUnavailableReason): void {
+  lastFailureAt = Date.now();
   if (dismissed) return;
   setStatus({ reason, at: Date.now() });
 }
@@ -68,11 +77,13 @@ export function noteAiResponse(body: unknown): boolean {
   return false;
 }
 
-/** AI worked — clear the banner and re-arm it for future failures. Call on any
- *  successful AI response. */
+/** AI worked — re-arm the banner for future failures, and clear it once AI has
+ *  recovered (no failure within the grace window). The grace check stops a
+ *  near-simultaneous success from clearing a banner a parallel failure just
+ *  raised. Call on any successful AI response. */
 export function noteAiSuccess(): void {
   dismissed = false;
-  if (status() !== null) setStatus(null);
+  if (status() !== null && Date.now() - lastFailureAt > RECOVERY_GRACE_MS) setStatus(null);
 }
 
 /** User closed the banner: hide it and keep it hidden until AI recovers. */

@@ -38,6 +38,7 @@ import { readDevMode, setDevModeActive } from './DevModeShelf';
 import { cancelPrefetch, prefetchDaf } from './dafPrefetch';
 import { setDafRunsTarget } from './dafRunsStore';
 import { openDafView } from './dafViewStore';
+import { isServiceUnavailableError } from './enrichmentQueue';
 import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { GutterIcons, type GutterKind } from './GutterIcons';
 import { GutterOverlay } from './GutterOverlay';
@@ -3602,8 +3603,14 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       </header>
 
       {/* Mark errors still surface explicitly — the progress bar abstracts
-          them into its count, but a failed anchor is worth naming. */}
-      <Show when={markStatuses().some((s) => s.kind === 'error')}>
+          them into its count, but a failed anchor is worth naming. AI-paused
+          failures (out of credits / cost cap / provider blip) are EXCLUDED:
+          they dump a raw provider string ("OpenRouter HTTP 402: …") and are
+          already explained by the shared AiStatusBanner, so naming each one here
+          is just noise. Genuine bugs still surface. */}
+      <Show
+        when={markStatuses().some((s) => s.kind === 'error' && !isServiceUnavailableError(s.error))}
+      >
         <section
           style={{
             'margin-bottom': '1rem',
@@ -3619,7 +3626,11 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             color: '#c33',
           }}
         >
-          <For each={markStatuses().filter((s) => s.kind === 'error')}>
+          <For
+            each={markStatuses().filter(
+              (s) => s.kind === 'error' && !isServiceUnavailableError(s.error),
+            )}
+          >
             {(s) => (
               <span>
                 {s.label || s.id}: {s.error}
