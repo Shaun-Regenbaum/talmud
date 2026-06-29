@@ -3,6 +3,7 @@ import { slugTractate } from '@corpus/core/cache/keys';
 import { continuationLink, type FlowEdge } from '@corpus/core/context/link';
 import { coordLabel } from '@corpus/core/context/types';
 import { gatewayActive, gatewayStatus, wrapEnv } from '@corpus/core/llm/ai-gateway';
+import { classifyAiUnavailable } from '@corpus/core/llm/ai-status';
 import {
   type BudgetScope,
   budgetStatus,
@@ -80,6 +81,7 @@ import { adjacentAmud, sefariaAPI, type TalmudPageData, TRACTATE_OPTIONS } from 
 import { iterAmudim, TRACTATE_END_AMUD } from '../lib/sefref/amudim';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { fetchHebrewBooksDaf } from '../lib/sefref/hebrewbooks/client';
+import { estimateShasCost } from '../lib/shasCost';
 import {
   type BridgeSection,
   buildBridgePrompt,
@@ -365,6 +367,16 @@ function pauseErrorMessage(scope?: BudgetScope): string {
   return scope === 'custom'
     ? 'Custom-question generation is paused for now (hourly budget reached). Please try again later.'
     : 'AI generation is paused for now (daily budget reached). Please try again tomorrow.';
+}
+
+/** Cross-app AI-unavailable fields for a budget pause, derived from scope. Spread
+ *  alongside the existing `paused`/`scope`/`retryAfter` so the shared client
+ *  banner (@corpus/ui, keyed off `aiUnavailable` + `reason`) lights up too. */
+function pausedAiFields(scope?: BudgetScope) {
+  return {
+    aiUnavailable: true as const,
+    reason: scope === 'custom' ? ('hourly-cap' as const) : ('daily-cap' as const),
+  };
 }
 
 function stripHtmlServer(html: string): string {
@@ -3283,7 +3295,12 @@ app.post('/api/daf-generate/:tractate/:page', async (c) => {
   const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
   const gate = await checkBudget(c.env, { custom: false });
   if (!gate.ok) {
-    return c.json({ generating: false, paused: true, error: pauseErrorMessage(gate.scope) });
+    return c.json({
+      generating: false,
+      paused: true,
+      error: pauseErrorMessage(gate.scope),
+      ...pausedAiFields(gate.scope),
+    });
   }
   const cache = c.env.CACHE;
   const sentinel = dafGenSentinelKey(tractate, page, lang);
@@ -5525,6 +5542,7 @@ app.post('/api/run', async (c) => {
         paused: true,
         scope: gate.scope,
         retryAfter: pauseRetryAfterSec(gate.until),
+        ...pausedAiFields(gate.scope),
       },
       429,
     );
@@ -6602,6 +6620,7 @@ app.post('/api/qa/ask', async (c) => {
         paused: true,
         scope: gate.scope,
         retryAfter: pauseRetryAfterSec(gate.until),
+        ...pausedAiFields(gate.scope),
       },
       429,
     );
@@ -7192,6 +7211,42 @@ app.get('/api/usage/cost', (c) =>
     buildCostSection(c, c.env.CACHE),
   ),
 );
+
+// GET /api/shas-cost — the headline "what would it cost to bring the whole shas
+// online at full depth" estimate, the SAME computation the /usage page shows
+// (estimateShasCost over the cost rollup + cache coverage). Surfaced as a tiny
+// public summary so the AI-paused banner can ground its sponsorship ask in the
+// real remaining figure rather than a hand-typed number. SWR-cached 6h: the
+// estimate drifts slowly and computeCacheStats scans dozens of KV prefixes.
+app.get('/api/shas-cost', (c) => {
+  const cache = c.env.CACHE;
+  if (!cache) return c.json({ error: 'no cache binding' }, 503);
+  return serveUsageSection(c, cache, 'shas-cost:v1', 6 * 60 * 60 * 1000, async () => {
+    const [cost, stats] = await Promise.all([
+      buildCostSection(c, cache),
+      readCachedCacheStats(cache).then((s) => s ?? computeCacheStats(cache)),
+    ]);
+    const self = cost.selfTracked;
+    if (!self || self.totals.costUsd <= 0) return { available: false as const };
+    const est = estimateShasCost({
+      amudim: stats.total,
+      byMark: self.byMark,
+      byEnrichment: self.byEnrichment,
+      marks: stats.marks,
+      enrichments: stats.enrichments,
+      gatewayByModel: cost.aiGateway?.byModel,
+    });
+    if (!est.available) return { available: false as const };
+    return {
+      available: true as const,
+      remainingUsd: est.grossed.remainingUsd,
+      fullShasUsd: est.grossed.fullShasUsd,
+      incurredUsd: est.grossed.incurredUsd,
+      perAmudUsd: est.grossed.perAmudUsd,
+      amudim: est.amudim,
+    };
+  });
+});
 app.get('/api/usage/telemetry', (c) =>
   serveUsageSection(c, c.env.CACHE, 'usage-telemetry:v1', 30_000, () =>
     buildTelemetrySection(c.env.CACHE),
@@ -11420,10 +11475,15 @@ async function processEnrichmentJob(
         paused: true,
         scope,
         total_ms: totalMs,
+        ...pausedAiFields(scope),
       });
       return;
     }
     const errorMsg = String((err as Error)?.message ?? err);
+    // Out-of-credits / provider outage surfaces here (it throws past the budget
+    // gate). Tag the polled job record so the client's shared banner can explain
+    // it instead of showing a bare failure.
+    const unavailable = classifyAiUnavailable(err);
     console.error(
       '[queue] job failed',
       job.runId,
@@ -11438,6 +11498,7 @@ async function processEnrichmentJob(
       status: 'error',
       error: errorMsg,
       total_ms: totalMs,
+      ...(unavailable ? { aiUnavailable: true as const, reason: unavailable.reason } : {}),
     });
     const enqueueTs = enqueueTsFromRunId(job.runId);
     await recordRecentJobError(env, {

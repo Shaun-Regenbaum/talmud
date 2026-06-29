@@ -163,3 +163,74 @@
   background: var(--accent);
   color: #fff;
 }
+
+/* ---- AiStatusBanner (AI-paused notice) ----
+ * A full-width strip in normal flow at the top of the app, so it pushes content
+ * down rather than overlapping a fixed/sticky top bar. Component tokens
+ * (--banner-*) fall back to a warm, low-alarm tint built from the theme. */
+.ui-banner {
+  width: 100%;
+  background: var(--banner-bg, var(--surface-sunk));
+  border-bottom: 1px solid var(--banner-border, var(--line));
+  color: var(--banner-fg, var(--fg));
+  font-family: var(--font-ui);
+}
+.ui-banner-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 9px 16px;
+}
+.ui-banner-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ui-banner-line {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--banner-fg, var(--fg));
+}
+.ui-banner-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-inline-end: 8px;
+  border-radius: 50%;
+  background: var(--banner-accent, var(--accent));
+  vertical-align: middle;
+}
+.ui-banner-hint {
+  color: var(--muted);
+}
+.ui-banner-sponsor {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.ui-banner-cta {
+  color: var(--banner-accent, var(--accent));
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+.ui-banner-cta:hover {
+  color: var(--accent-strong, var(--accent));
+}
+.ui-banner-close {
+  flex: none;
+  border: 0;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0 2px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.ui-banner-close:hover {
+  color: var(--banner-fg, var(--fg));
+}

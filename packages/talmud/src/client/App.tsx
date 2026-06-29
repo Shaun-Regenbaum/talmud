@@ -1,4 +1,5 @@
 import { createSignal, Show } from 'solid-js';
+import { AiPausedBanner } from './AiPausedBanner';
 import { AlignPage } from './AlignPage';
 import { AttributionsPage } from './AttributionsPage';
 import Compare from './Compare';
@@ -43,6 +44,9 @@ export default function App() {
 
   return (
     <>
+      {/* AI-paused notice (out of credits / cost cap) — shared across both apps;
+        shows above every route, including the daf reader. */}
+      <AiPausedBanner />
       {/* The daf page folds the EN/HE toggle into its own header; the floating
         bar covers the other routes. #tutorial is fully self-contained (and its
         Help button would be a no-op there), so it owns the whole viewport. */}

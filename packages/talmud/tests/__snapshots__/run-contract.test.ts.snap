@@ -84,8 +84,10 @@ exports[`POST /api/run — contract > d. experimental gate: cold miss on the cha
 
 exports[`POST /api/run — contract > e. budget paused: 429 with paused/scope/retryAfter, nothing enqueued 1`] = `
 {
+  "aiUnavailable": true,
   "error": "AI generation is paused for now (daily budget reached). Please try again tomorrow.",
   "paused": true,
+  "reason": "daily-cap",
   "retryAfter": "NORMALIZED",
   "scope": "all",
   "status": "error",
