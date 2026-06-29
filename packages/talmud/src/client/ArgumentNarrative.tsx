@@ -9,6 +9,7 @@
 
 import { createEffect, createResource, createSignal, For, type JSX, Show } from 'solid-js';
 import { lang } from './i18n';
+import { runProducer } from './runProducer';
 
 interface Actor {
   name: string;
@@ -39,55 +40,16 @@ const KIND_COLOR: Record<string, string> = {
   resolution: '#be123c',
 };
 
-const POLL_INTERVAL_MS = 1500;
-const POLL_TIMEOUT_MS = 90_000;
-
-async function pollJob(runId: string, cacheKey?: string): Promise<unknown> {
-  const start = Date.now();
-  const qs = cacheKey ? `?k=${encodeURIComponent(cacheKey)}` : '';
-  while (Date.now() - start < POLL_TIMEOUT_MS) {
-    await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-    const res = await fetch(`/api/run-status/${encodeURIComponent(runId)}${qs}`);
-    const j = (await res.json()) as {
-      status?: string;
-      result?: { parsed?: unknown };
-      error?: string;
-    };
-    if (j.status === 'ok') return j.result?.parsed;
-    if (j.status === 'error') throw new Error(j.error ?? 'narrative run failed');
-  }
-  throw new Error('narrative run timed out');
-}
-
 async function runNarrative(
   tractate: string,
   page: string,
   markInput: unknown,
 ): Promise<NarrativeData | null> {
-  const res = await fetch('/api/run', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      enrichment_id: 'argument.narrative',
-      tractate,
-      page,
-      mark_input: markInput,
-      lang: lang(),
-    }),
-  });
-  const j = (await res.json()) as {
-    status?: string;
-    runId?: string;
-    cacheKey?: string;
-    result?: { parsed?: unknown };
-    error?: string;
-  };
-  let parsed: unknown;
-  if (j.status === 'ok') parsed = j.result?.parsed;
-  else if (j.status === 'pending' && j.runId) parsed = await pollJob(j.runId, j.cacheKey);
-  else if (j.status === 'error') throw new Error(j.error ?? 'narrative run failed');
-  else parsed = j.result?.parsed;
-  const p = parsed as NarrativeData | undefined;
+  const result = await runProducer(
+    { enrichment_id: 'argument.narrative', tractate, page, mark_input: markInput, lang: lang() },
+    { pollTimeoutMs: 90_000 },
+  );
+  const p = result.parsed as NarrativeData | undefined;
   return p && Array.isArray(p.beats) ? p : null;
 }
 

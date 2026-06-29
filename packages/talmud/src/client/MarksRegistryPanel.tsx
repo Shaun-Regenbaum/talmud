@@ -27,7 +27,6 @@ import {
   reverseDependencyIndex,
 } from '@corpus/core/registry/depGraph';
 import type { SidebarRecipe } from '@corpus/core/sidebar/recipe';
-import { noteAiResponse } from '@corpus/ui/aiStatus';
 import {
   createEffect,
   createMemo,
@@ -42,12 +41,12 @@ import {
 } from 'solid-js';
 import { trackAI } from './aiActivity';
 import { devModeActive } from './DevModeShelf';
-import { parseRunJson } from './enrichmentQueue';
 import { lang } from './i18n';
 import type {
   MarkDef as RendererMarkDef,
   MarkRunOutput as RendererMarkRunOutput,
 } from './renderers/dispatch';
+import { runProducer } from './runProducer';
 import type { SeedMark } from './seed-marks';
 
 type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
@@ -312,20 +311,6 @@ async function fetchAll(): Promise<{
   };
 }
 
-// /api/run is now async (queue-backed). Three response shapes:
-//   { status: 'ok', result }                            ← cache hit, immediate
-//   { status: 'pending', runId, cacheKey? } (HTTP 202)  ← enqueued, poll run-status
-//   { status: 'error', error }
-// cacheKey is forwarded to run-status so the polling recovers the result
-// from the canonical cache when the queue consumer never wrote job:{runId}.
-type RunResponse =
-  | { status: 'ok'; result: RunResult; total_ms?: number }
-  | { status: 'pending'; runId: string; cacheKey?: string }
-  | { status: 'error'; error: string };
-
-const POLL_INTERVAL_MS = 1500;
-const POLL_TIMEOUT_MS = 180_000;
-
 /** Studio secret for the privileged /api/run knobs (bypass_cache here).
  *  The owner sets it once via
  *  `localStorage.setItem('talmud_studio_secret', '<secret>')` in the browser
@@ -342,57 +327,15 @@ function studioHeaders(): Record<string, string> {
   }
 }
 
-async function postAndAwait(body: unknown): Promise<RunResult> {
-  const r = await fetch('/api/run', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...studioHeaders() },
-    body: JSON.stringify(body),
-  });
-  // parseRunJson surfaces a non-JSON edge error page (1101 / empty 5xx from a
-  // recycled or OOM'd isolate) as a clean retryable error instead of a raw
-  // JSON.parse crash.
-  const j = (await parseRunJson(r)) as RunResponse | { error?: string };
-  // Raise the shared AI-paused banner if this is the { aiUnavailable, reason }
-  // envelope (budget pre-check pause) — mark runs fan out here, so without this
-  // a mark 402 only dumped a raw error and never reached the banner.
-  noteAiResponse(j);
-  if (!r.ok && r.status !== 202) {
-    throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
-  }
-  if ('status' in j) {
-    if (j.status === 'ok') return j.result;
-    if (j.status === 'error') throw new Error(j.error);
-    if (j.status === 'pending') return pollJob(j.runId, j.cacheKey);
-  }
-  // Back-compat: legacy synchronous shape — treat the whole body as RunResult.
-  return j as unknown as RunResult;
-}
-
-async function pollJob(runId: string, cacheKey?: string): Promise<RunResult> {
-  const start = Date.now();
-  const qs = cacheKey ? `?k=${encodeURIComponent(cacheKey)}` : '';
-  while (Date.now() - start < POLL_TIMEOUT_MS) {
-    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-    const r = await fetch(`/api/run-status/${encodeURIComponent(runId)}${qs}`);
-    let j: RunResponse;
-    try {
-      j = (await parseRunJson(r)) as RunResponse;
-    } catch {
-      // Transient non-JSON edge error mid-poll; the job may still be running
-      // server-side, so keep polling rather than failing.
-      continue;
-    }
-    // The queued job's error record carries { aiUnavailable, reason } when it
-    // failed out-of-credits (or hit a cap) — raise the banner from it.
-    noteAiResponse(j);
-    if ('status' in j) {
-      if (j.status === 'ok') return (j as { result: RunResult }).result;
-      if (j.status === 'error') throw new Error((j as { error: string }).error);
-      // pending — keep polling
-    }
-  }
-  throw new Error(`job ${runId} timed out after ${POLL_TIMEOUT_MS / 1000}s`);
-}
+// The studio panel runs marks/enrichments through the shared runProducer
+// (POST /api/run + poll run-status + banner), adding the studio secret header
+// (for the privileged bypass_cache knob) and a 3-min poll budget.
+// NB: this panel declares its own stricter RunResult (above) than the shared
+// RunResult runProducer returns; the cast preserves the implicit cast the old
+// JSON-shaped postAndAwait did. Unifying the two RunResult types is a separate
+// cleanup.
+const runStudio = async (body: Record<string, unknown>): Promise<RunResult> =>
+  (await runProducer(body, { headers: studioHeaders(), pollTimeoutMs: 180_000 })) as RunResult;
 
 // Output language threads into every run. The worker namespaces the :he cache
 // + selects the *_he prompt variant; the lang also tags the activityId so the
@@ -407,7 +350,7 @@ async function runMark(
   const activityId = `mark:${id}:${tractate}:${page}:${l}${bypassCache ? ':fresh' : ''}`;
   const label = `${id} · ${tractate} ${page}`;
   return trackAI(activityId, label, () =>
-    postAndAwait({ mark_id: id, tractate, page, bypass_cache: bypassCache, lang: l }),
+    runStudio({ mark_id: id, tractate, page, bypass_cache: bypassCache, lang: l }),
   );
 }
 
@@ -421,7 +364,7 @@ async function runEnrichment(
   const activityId = `enrichment:${id}:${tractate}:${page}:${l}${bypassCache ? ':fresh' : ''}`;
   const label = `${id} · ${tractate} ${page}`;
   return trackAI(activityId, label, () =>
-    postAndAwait({ enrichment_id: id, tractate, page, bypass_cache: bypassCache, lang: l }),
+    runStudio({ enrichment_id: id, tractate, page, bypass_cache: bypassCache, lang: l }),
   );
 }
 

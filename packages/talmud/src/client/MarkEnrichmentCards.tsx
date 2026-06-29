@@ -18,7 +18,6 @@
  */
 
 import { instanceIdOf } from '@corpus/core/cache/keys';
-import { noteAiResponse, noteAiSuccess } from '@corpus/ui/aiStatus';
 import {
   createEffect,
   createResource,
@@ -29,7 +28,6 @@ import {
   Show,
   untrack,
 } from 'solid-js';
-import { trackAI } from './aiActivity';
 import { devModeActive } from './DevModeShelf';
 import {
   dafViewLoaded,
@@ -41,10 +39,8 @@ import {
 import { ErrorBadge } from './ErrorBadge';
 import {
   isAbort,
-  isPausedBody,
   isServiceUnavailableError,
   PAUSED_ERROR,
-  parseRunJson,
   QUEUE_PRIORITY,
   RequestQueue,
   type RunResult,
@@ -54,6 +50,7 @@ import {
 import { lang, t } from './i18n';
 import { requestInspect } from './inspectBridge';
 import { HebraizedWithRabbis as Hebraized } from './rabbiLinks';
+import { runProducer } from './runProducer';
 
 // Single global "which card has the inspector open?" signal — keyed by the
 // card's instanceKey. Only one drawer at a time across the whole page.
@@ -144,21 +141,6 @@ async function fetchEnrichments(): Promise<EnrichmentDef[]> {
   return j.enrichments;
 }
 
-// Worker's run endpoint returns one of:
-//   { status: 'ok', result: RunResult, total_ms? }            ← cache hit, immediate
-//   { status: 'pending', runId: string, cacheKey?: string }   ← enqueued, poll
-//   { status: 'error', error: string }
-//
-// `cacheKey` (when present) is the canonical KV key that runEnrichmentOnce
-// writes to right before the queue handler writes `job:{runId}`. The
-// polling helper passes it back so run-status can recover the result via
-// canonical cache if the consumer was terminated in that write gap.
-type RunResponse =
-  | { status: 'ok'; result: RunResult; total_ms?: number }
-  | { status: 'pending'; runId: string; cacheKey?: string }
-  | { status: 'error'; error: string };
-
-const POLL_INTERVAL_MS = 1500;
 // Cold-page syntheses (e.g. pesukim.synthesis) can run 60+ seconds end-to-end
 // once their leaves + anchor marks queue behind other in-flight jobs. With
 // client enrichmentQueue concurrency=4 and ~5–10 instances per page, the
@@ -171,75 +153,6 @@ const POLL_TIMEOUT_MS = 600_000;
 // self-heals instead of failing the card. Once a job is `pending`, polling
 // takes over and is NOT retried here (it would re-enqueue generation).
 const RUN_POST_BACKOFF_MS = [500, 1500];
-
-function sleep(ms: number, signal?: AbortSignal): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const id = setTimeout(resolve, ms);
-    signal?.addEventListener(
-      'abort',
-      () => {
-        clearTimeout(id);
-        reject(new DOMException('Aborted', 'AbortError'));
-      },
-      { once: true },
-    );
-  });
-}
-
-async function runEnrichmentImpl(
-  enrichmentId: string,
-  tractate: string,
-  page: string,
-  markInput: unknown,
-  signal?: AbortSignal,
-): Promise<RunResult> {
-  const body = JSON.stringify({
-    enrichment_id: enrichmentId,
-    tractate,
-    page,
-    mark_input: markInput,
-    lang: lang(),
-  });
-  let r: Response;
-  let j: RunResponse | { error?: string };
-  for (let attempt = 0; ; attempt++) {
-    r = await fetch('/api/run', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-      signal,
-    });
-    try {
-      j = (await parseRunJson(r)) as RunResponse | { error?: string };
-      break;
-    } catch (err) {
-      // parseRunJson throws a service-unavailable error only when the body is
-      // NON-JSON — i.e. a Cloudflare edge page (1101 / empty 5xx) from a
-      // recycled or OOM'd isolate. Retry a couple of times on a short backoff;
-      // any other failure (abort, genuine 4xx with a JSON body) rethrows.
-      if (isAbort(err) || attempt >= RUN_POST_BACKOFF_MS.length || !isServiceUnavailableError(err))
-        throw err;
-      await sleep(RUN_POST_BACKOFF_MS[attempt], signal);
-    }
-  }
-  // Raise the shared AI-paused banner if the body is the { aiUnavailable, reason }
-  // envelope (budget pre-check pause, or a queued job that failed out-of-credits).
-  noteAiResponse(j);
-  if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
-  if (!r.ok && r.status !== 202) {
-    throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
-  }
-  if ('status' in j) {
-    if (j.status === 'ok') {
-      noteAiSuccess();
-      return j.result;
-    }
-    if (j.status === 'error') throw new Error(j.error);
-    if (j.status === 'pending') return pollJob(j.runId, j.cacheKey, signal);
-  }
-  // Legacy/synchronous shape — treat the whole body as RunResult for back-compat.
-  return j as unknown as RunResult;
-}
 
 // Builds the activity-store id + label for an enrichment run. Pulled out
 // of runEnrichment() so the request queue can mark the entry `queued` the
@@ -288,39 +201,19 @@ export async function runEnrichment(
   signal?: AbortSignal,
 ): Promise<RunResult> {
   const { id, label } = enrichmentActivityKey(enrichmentId, tractate, page, markInput, instanceKey);
-  return trackAI(id, label, () =>
-    runEnrichmentImpl(enrichmentId, tractate, page, markInput, signal),
+  // Delegate POST + poll + banner to the shared runProducer; this component keeps
+  // only its fan-out concerns (the queue below, the result cache, per-card abort).
+  // A couple of short POST retries cover a recycled-isolate edge page on a cold,
+  // dense daf; the 10-min poll budget covers a slow cold generation.
+  return runProducer(
+    { enrichment_id: enrichmentId, tractate, page, mark_input: markInput, lang: lang() },
+    {
+      signal,
+      postRetryBackoffs: RUN_POST_BACKOFF_MS,
+      pollTimeoutMs: POLL_TIMEOUT_MS,
+      activity: { id, label },
+    },
   );
-}
-
-async function pollJob(runId: string, cacheKey?: string, signal?: AbortSignal): Promise<RunResult> {
-  const start = Date.now();
-  const qs = cacheKey ? `?k=${encodeURIComponent(cacheKey)}` : '';
-  while (Date.now() - start < POLL_TIMEOUT_MS) {
-    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-    if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
-    const r = await fetch(`/api/run-status/${encodeURIComponent(runId)}${qs}`, { signal });
-    let j: RunResponse | { status: 'pending' };
-    try {
-      j = (await parseRunJson(r)) as RunResponse | { status: 'pending' };
-    } catch (err) {
-      if (isAbort(err)) throw err;
-      // A transient non-JSON edge error (isolate recycled mid-poll). The job may
-      // still be running server-side, so keep polling instead of failing the card.
-      continue;
-    }
-    noteAiResponse(j);
-    if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
-    if ('status' in j) {
-      if (j.status === 'ok') {
-        noteAiSuccess();
-        return (j as { result: RunResult }).result;
-      }
-      if (j.status === 'error') throw new Error((j as { error: string }).error);
-      // pending — continue polling
-    }
-  }
-  throw new Error(`job ${runId} timed out after ${POLL_TIMEOUT_MS / 1000}s`);
 }
 
 // On a WARM daf each run is a single KV read, so a high gate just fills cards
