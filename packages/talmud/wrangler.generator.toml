@@ -52,6 +52,10 @@ SPINE_VIEW_WARM_SHAS = "1"
 # Spend budget — enforced at the runLLM chokepoint, which now lives here.
 DAILY_BUDGET_USD = "300"
 HOURLY_CUSTOM_BUDGET_USD = "10"
+# Cost control — the queue consumer (hosted here) skips background warms of these
+# paused producers. KEEP IN SYNC with wrangler.toml (the reader gates /api/run +
+# shows the banner from the same list). Set to "" to resume full generation.
+PAUSED_PRODUCERS = "tidbit.essay,daf-background.concepts,rishonim.synthesis,argument-move.suggested-questions,pesukim.suggested-questions,aggadata.suggested-questions"
 # Role flag read by the shared scheduled() handler in index.ts: 'generator' runs
 # the heavy warm/yomi crons (here), 'reader' runs only the lightweight health
 # watch (in wrangler.toml). Keeps heavy warming off the reader's isolate pool.

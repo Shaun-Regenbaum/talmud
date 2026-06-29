@@ -90,6 +90,13 @@ export interface Bindings {
   // Spend-budget overrides (USD) read by ./budget. Default 300 / 10 when unset.
   DAILY_BUDGET_USD?: string;
   HOURLY_CUSTOM_BUDGET_USD?: string;
+  // Cost control: comma/space-separated producer ids (mark or enrichment) that
+  // are PAUSED on cold, non-explicit reader loads to cap spend. A paused
+  // producer's /api/run returns the shared AI-paused envelope (reason
+  // 'cost-control') instead of starting a paid run, and the queue consumer skips
+  // background warms of it; cached results still serve and a trusted bypass warm
+  // still runs. Empty/unset => nothing paused (full generation). Reversible.
+  PAUSED_PRODUCERS?: string;
   // Which deployment this is: "generator" (talmud-gen — queue consumer +
   // DafWarmWorkflow host + heavy crons) or "reader"/unset (talmud — read-only,
   // runs only the health-watch cron). Read by scheduled() in index.ts to route

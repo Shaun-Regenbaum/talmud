@@ -63,9 +63,19 @@ describe('computeSpendUsd', () => {
       }),
     ).toBeCloseTo(0.42, 6);
   });
-  it('returns 0 for unpriced (@cf/*) models with no billed cost', () => {
+  it('estimates spend for a priced Workers AI (@cf) model — no longer invisible', () => {
+    // gemma-4 = $0.10 / $0.30 per 1M; 1M in + 1M out = 0.40. @cf spend now counts
+    // against the budget instead of recording as $0.
     expect(
       computeSpendUsd('@cf/google/gemma-4-26b-a4b-it', {
+        prompt_tokens: 1_000_000,
+        completion_tokens: 1_000_000,
+      }),
+    ).toBeCloseTo(0.4, 6);
+  });
+  it('returns 0 for a model with no list price and no billed cost', () => {
+    expect(
+      computeSpendUsd('@cf/meta/llama-3.1-8b-instruct-fp8', {
         prompt_tokens: 1000,
         completion_tokens: 1000,
       }),
@@ -169,16 +179,33 @@ describe('defensive re-derivation', () => {
 });
 
 describe('unpriced calls', () => {
-  it('do not move the counters', async () => {
+  it('do not move the counters (model with no list price)', async () => {
     const { kv, store } = makeFakeKV();
     const env: BudgetEnv = { CACHE: kv };
     await recordSpend(
       env,
-      { model: '@cf/google/gemma-4-26b-a4b-it', usage: { prompt_tokens: 9999 }, custom: true },
+      { model: '@cf/meta/llama-3.1-8b-instruct-fp8', usage: { prompt_tokens: 9999 }, custom: true },
       T,
     );
     expect(store.has(`budget:v1:total:${DAY}`)).toBe(false);
     expect(store.has(`budget:v1:custom:${HOUR}`)).toBe(false);
+  });
+});
+
+describe('priced Workers AI (@cf) calls', () => {
+  it('move the counters — @cf spend is tracked against the budget', async () => {
+    const { kv, store } = makeFakeKV();
+    const env: BudgetEnv = { CACHE: kv };
+    await recordSpend(
+      env,
+      {
+        model: '@cf/google/gemma-4-26b-a4b-it',
+        usage: { prompt_tokens: 1_000_000, completion_tokens: 1_000_000 },
+        custom: false,
+      },
+      T,
+    );
+    expect(store.has(`budget:v1:total:${DAY}`)).toBe(true);
   });
 });
 

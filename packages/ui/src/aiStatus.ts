@@ -18,6 +18,7 @@ export type AiUnavailableReason =
   | 'credits'
   | 'daily-cap'
   | 'hourly-cap'
+  | 'cost-control'
   | 'rate-limit'
   | 'provider';
 

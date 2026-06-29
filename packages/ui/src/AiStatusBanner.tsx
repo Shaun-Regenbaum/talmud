@@ -36,6 +36,7 @@ const SPEND_REASONS: ReadonlySet<AiUnavailableReason> = new Set([
   'credits',
   'daily-cap',
   'hourly-cap',
+  'cost-control',
 ]);
 
 function headline(reason: AiUnavailableReason): string {
@@ -46,6 +47,8 @@ function headline(reason: AiUnavailableReason): string {
       return "AI features are paused for today — there's a daily spending cap that keeps this project sustainable.";
     case 'hourly-cap':
       return "AI features are paused briefly — there's an hourly spending limit to keep costs in check.";
+    case 'cost-control':
+      return 'Some AI study notes are paused on not-yet-computed pages to keep this project affordable.';
     case 'rate-limit':
       return 'AI features are busy right now — please try again in a moment.';
     case 'provider':
