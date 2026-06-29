@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { isExperimentalLlmWarm } from '../src/worker/index';
+import {
+  DEEP_WARM_PLAN,
+  isExperimentalLlmWarm,
+  WHOLE_DAF_WARM_ENRICHMENTS,
+} from '../src/worker/index';
 
 // The /api/run gate: experimental, LLM-backed cards must never lazy-warm. Only
 // an explicit trusted warm (bypass_cache / warm_experimental) enqueues their
@@ -31,5 +35,42 @@ describe('isExperimentalLlmWarm — experimental cards do not lazy-warm', () => 
     expect(isExperimentalLlmWarm({})).toBe(false);
     expect(isExperimentalLlmWarm({ mark_id: 'does-not-exist' })).toBe(false);
     expect(isExperimentalLlmWarm({ enrichment_id: 'does-not-exist' })).toBe(false);
+  });
+});
+
+// The deep-warm path (deepWarmDaf, fired for both neighbours of every viewed
+// daf via /api/warm-daf) used to enqueue biyun.essay unconditionally — the one
+// default flow that paid for an experimental card. The gate now skips
+// experimental LLM enrichments on a default warm (only an explicit re-warm
+// cascade targets them), so by default ONLY visible producers are generated.
+describe('default deep-warm generates only visible (non-experimental) producers', () => {
+  // The default neighbour deep-warm passes `only === undefined`, so the gate the
+  // loop applies is exactly this predicate. Mirror it here over the static list.
+  const defaultWarmed = WHOLE_DAF_WARM_ENRICHMENTS.filter(
+    (eid) => !isExperimentalLlmWarm({ enrichment_id: eid }),
+  );
+
+  it('the whole-daf warm list still carries biyun.essay (for explicit re-warm)', () => {
+    expect(WHOLE_DAF_WARM_ENRICHMENTS).toContain('biyun.essay');
+  });
+
+  it('a default deep-warm skips biyun.essay (experimental)', () => {
+    expect(defaultWarmed).not.toContain('biyun.essay');
+  });
+
+  it('a default deep-warm still warms the visible whole-daf chips', () => {
+    expect(defaultWarmed).toEqual([
+      'argument-overview.flow',
+      'argument-overview.synthesis',
+      'tidbit.essay',
+    ]);
+  });
+
+  it('no per-section deep-warm enrichment is experimental', () => {
+    for (const eids of Object.values(DEEP_WARM_PLAN)) {
+      for (const eid of eids) {
+        expect(isExperimentalLlmWarm({ enrichment_id: eid })).toBe(false);
+      }
+    }
   });
 });
