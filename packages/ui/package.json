@@ -20,6 +20,8 @@
     "./inspector.css": "./src/inspector.css",
     "./usage.css": "./src/usage.css",
     "./format": "./src/format.ts",
+    "./aiStatus": "./src/aiStatus.ts",
+    "./AiStatusBanner": "./src/AiStatusBanner.tsx",
     "./Pill": "./src/Pill.tsx",
     "./Drawer": "./src/Drawer.tsx",
     "./Button": "./src/Button.tsx",

@@ -27,6 +27,7 @@
  * `user_question` in the body.
  */
 
+import { noteAiResponse, noteAiSuccess } from '@corpus/ui/aiStatus';
 import { createEffect, createResource, createSignal, For, type JSX, onMount, Show } from 'solid-js';
 import { trackAI } from './aiActivity';
 import {
@@ -110,12 +111,16 @@ async function runEnrichmentDirect(
     body: JSON.stringify(body),
   });
   const j = (await r.json()) as RunResponse | { error?: string };
+  noteAiResponse(j);
   if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
   if (!r.ok && r.status !== 202) {
     throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
   }
   if ('status' in j) {
-    if (j.status === 'ok') return j.result;
+    if (j.status === 'ok') {
+      noteAiSuccess();
+      return j.result;
+    }
     if (j.status === 'error') throw new Error(j.error);
     if (j.status === 'pending') return pollJob(j.runId, j.cacheKey);
   }
@@ -129,9 +134,13 @@ async function pollJob(runId: string, cacheKey?: string): Promise<RunResultLike>
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
     const r = await fetch(`/api/run-status/${encodeURIComponent(runId)}${qs}`);
     const j = (await r.json()) as RunResponse | { status: 'pending' };
+    noteAiResponse(j);
     if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
     if ('status' in j) {
-      if (j.status === 'ok') return (j as { result: RunResultLike }).result;
+      if (j.status === 'ok') {
+        noteAiSuccess();
+        return (j as { result: RunResultLike }).result;
+      }
       if (j.status === 'error') throw new Error((j as { error: string }).error);
     }
   }

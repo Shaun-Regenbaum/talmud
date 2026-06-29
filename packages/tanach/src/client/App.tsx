@@ -1,3 +1,5 @@
+import { AiStatusBanner } from '@corpus/ui/AiStatusBanner';
+import { aiStatus, noteAiResponse, noteAiSuccess } from '@corpus/ui/aiStatus';
 import { Button } from '@corpus/ui/Button';
 import { Drawer } from '@corpus/ui/Drawer';
 import { fitBbox, GeoMap } from '@corpus/ui/GeoMap';
@@ -476,7 +478,15 @@ export function App(): JSX.Element {
     const res = await fetch(
       `/api/translate?q=${encodeURIComponent(w.he)}&ctx=${encodeURIComponent(w.ctx)}`,
     );
-    return res.ok ? (((await res.json()) as { translation?: string }).translation ?? null) : null;
+    if (res.ok) {
+      noteAiSuccess();
+      return ((await res.json()) as { translation?: string }).translation ?? null;
+    }
+    // A paused AI service (out of credits / cost cap) comes back as the shared
+    // { aiUnavailable, reason } envelope: raise the banner that explains it
+    // rather than leaving the popup showing a bare "—".
+    noteAiResponse(await res.json().catch(() => null));
+    return null;
   });
   const onTextSelect = () => {
     const g = window.getSelection();
@@ -748,6 +758,14 @@ export function App(): JSX.Element {
         'view-mikraot': loc().view === 'mikraot',
       }}
     >
+      <AiStatusBanner
+        sponsor={() => ({
+          message:
+            'This is a self-funded project (about $300/week of AI). If you would like to help keep its AI features running, get in touch.',
+          ctaLabel: 'Sponsor / get in touch',
+          ctaHref: 'mailto:shaunregenbaum@gmail.com?subject=Sponsoring%20the%20Tanach%20project',
+        })}
+      />
       <header class="topbar">
         <span class="brand">Tanach</span>
         <select
@@ -971,7 +989,9 @@ export function App(): JSX.Element {
               <span class="xlate-en muted">…</span>
             </Show>
             <Show when={!translation.loading}>
-              <span class="xlate-en">{translation() ?? '—'}</span>
+              <span class="xlate-en" classList={{ muted: !translation() && !!aiStatus() }}>
+                {translation() ?? (aiStatus() ? 'AI paused' : '—')}
+              </span>
             </Show>
           </div>
         )}

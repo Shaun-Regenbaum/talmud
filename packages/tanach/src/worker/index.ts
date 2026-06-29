@@ -12,6 +12,7 @@
  * the built Solid client (the ASSETS binding, SPA fallback).
  */
 
+import { aiUnavailableMessage, classifyAiUnavailable } from '@corpus/core/llm/ai-status';
 import { costSplitUsd } from '@corpus/core/llm/pricing';
 import { flattenPieces } from '@corpus/core/sefaria/client';
 import type { StoredArtifact } from '@corpus/core/store/envelope';
@@ -41,7 +42,22 @@ const app = new Hono<{ Bindings: Env }>();
  *  the legacy `Producer failed: …` 502. */
 function runErrorResponse(c: Context<{ Bindings: Env }>, e: unknown) {
   if (e instanceof TanachSourceError) return c.json({ error: e.message }, e.status);
+  const ai = aiUnavailableResponse(c, e);
+  if (ai) return ai;
   return c.json({ error: `Producer failed: ${(e as Error).message}` }, 502);
+}
+
+/** When a failure is an "AI features paused" state (out of credits, daily/hourly
+ *  cost cap, provider blip), respond with a stable envelope the client banner
+ *  recognises (`aiUnavailable` + `reason`), at 503. Returns null for ordinary
+ *  failures so the caller falls back to its usual error response. */
+function aiUnavailableResponse(c: Context<{ Bindings: Env }>, e: unknown) {
+  const u = classifyAiUnavailable(e);
+  if (!u) return null;
+  return c.json(
+    { error: aiUnavailableMessage(u.reason), aiUnavailable: true as const, reason: u.reason },
+    503,
+  );
 }
 
 app.get('/api/chapter/:book/:chapter', async (c) => {
@@ -404,6 +420,8 @@ app.get('/api/translate', async (c) => {
   try {
     result = await translateHebrew(c.env, q, ctx);
   } catch (e) {
+    const ai = aiUnavailableResponse(c, e);
+    if (ai) return ai;
     return c.json({ error: `Translate failed: ${(e as Error).message}` }, 502);
   }
   if (!result.translation) return c.json({ error: 'No translation' }, 502);

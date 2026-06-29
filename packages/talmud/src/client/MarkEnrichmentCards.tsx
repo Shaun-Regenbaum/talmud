@@ -18,6 +18,7 @@
  */
 
 import { instanceIdOf } from '@corpus/core/cache/keys';
+import { noteAiResponse, noteAiSuccess } from '@corpus/ui/aiStatus';
 import {
   createEffect,
   createResource,
@@ -221,12 +222,18 @@ async function runEnrichmentImpl(
       await sleep(RUN_POST_BACKOFF_MS[attempt], signal);
     }
   }
+  // Raise the shared AI-paused banner if the body is the { aiUnavailable, reason }
+  // envelope (budget pre-check pause, or a queued job that failed out-of-credits).
+  noteAiResponse(j);
   if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
   if (!r.ok && r.status !== 202) {
     throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
   }
   if ('status' in j) {
-    if (j.status === 'ok') return j.result;
+    if (j.status === 'ok') {
+      noteAiSuccess();
+      return j.result;
+    }
     if (j.status === 'error') throw new Error(j.error);
     if (j.status === 'pending') return pollJob(j.runId, j.cacheKey, signal);
   }
@@ -302,9 +309,13 @@ async function pollJob(runId: string, cacheKey?: string, signal?: AbortSignal): 
       // still be running server-side, so keep polling instead of failing the card.
       continue;
     }
+    noteAiResponse(j);
     if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
     if ('status' in j) {
-      if (j.status === 'ok') return (j as { result: RunResult }).result;
+      if (j.status === 'ok') {
+        noteAiSuccess();
+        return (j as { result: RunResult }).result;
+      }
       if (j.status === 'error') throw new Error((j as { error: string }).error);
       // pending — continue polling
     }
