@@ -41,6 +41,7 @@ import {
 } from 'solid-js';
 import { trackAI } from './aiActivity';
 import { devModeActive } from './DevModeShelf';
+import type { RunResult } from './enrichmentQueue';
 import { lang } from './i18n';
 import type {
   MarkDef as RendererMarkDef,
@@ -153,36 +154,6 @@ export interface MarkStatusEntry {
 const [globalMarkStatuses, setGlobalMarkStatuses] = createSignal<MarkStatusEntry[]>([]);
 export function markStatuses() {
   return globalMarkStatuses();
-}
-
-export interface RunResult {
-  content: string;
-  reasoning?: string;
-  parsed: unknown;
-  parse_error: string | null;
-  model: LLMModelId;
-  transport: string;
-  attempts: number;
-  usage: {
-    prompt_tokens?: number;
-    completion_tokens?: number;
-    total_tokens?: number;
-    cost?: number;
-  } | null;
-  elapsed_ms: number;
-  resolved: { system_prompt: string; user_prompt: string };
-  total_ms: number;
-  /** True when the worker served this from the KV cache (no LLM call). On a
-   *  hit total_ms is injected as 0, but elapsed_ms still carries the original
-   *  generation time from when the result was first computed. */
-  cache_hit?: boolean;
-  /** "Serve-but-don't-write" — the worker assembled this result while a
-   *  dependency wasn't ready yet (e.g. the geography computed mark read the
-   *  rabbi/places mark caches before they warmed) and so did NOT pin it to the
-   *  cache. The run loop treats a transient result as not-yet-final and
-   *  re-fires the mark once its dependency marks reach 'ok', so the empty model
-   *  isn't left pinned in the UI until a manual reload. */
-  transient?: boolean;
 }
 
 export type RunState =
@@ -330,12 +301,10 @@ function studioHeaders(): Record<string, string> {
 // The studio panel runs marks/enrichments through the shared runProducer
 // (POST /api/run + poll run-status + banner), adding the studio secret header
 // (for the privileged bypass_cache knob) and a 3-min poll budget.
-// NB: this panel declares its own stricter RunResult (above) than the shared
-// RunResult runProducer returns; the cast preserves the implicit cast the old
-// JSON-shaped postAndAwait did. Unifying the two RunResult types is a separate
-// cleanup.
-const runStudio = async (body: Record<string, unknown>): Promise<RunResult> =>
-  (await runProducer(body, { headers: studioHeaders(), pollTimeoutMs: 180_000 })) as RunResult;
+// The studio panel runs through the shared runProducer, adding the studio secret
+// header (for the privileged bypass_cache knob) and a 3-min poll budget.
+const runStudio = (body: Record<string, unknown>): Promise<RunResult> =>
+  runProducer(body, { headers: studioHeaders(), pollTimeoutMs: 180_000 });
 
 // Output language threads into every run. The worker namespaces the :he cache
 // + selects the *_he prompt variant; the lang also tags the activityId so the

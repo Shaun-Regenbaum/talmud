@@ -8,8 +8,8 @@
 // decision behind that effect.
 
 import { describe, expect, it } from 'vitest';
+import type { RunResult } from '../src/client/enrichmentQueue';
 import {
-  type RunResult,
   type RunState,
   shouldRefireTransientMark,
   TRANSIENT_REFIRE_CAP,

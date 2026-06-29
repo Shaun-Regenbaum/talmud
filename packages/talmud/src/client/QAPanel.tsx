@@ -29,7 +29,7 @@
 
 import { createEffect, createResource, createSignal, For, type JSX, onMount, Show } from 'solid-js';
 import { trackAI } from './aiActivity';
-import { isPausedError, isServiceUnavailableError } from './enrichmentQueue';
+import { isPausedError, isServiceUnavailableError, type RunResult } from './enrichmentQueue';
 import { Hebraized } from './Hebraized';
 import { hebraize } from './hebraize';
 import { lang, t } from './i18n';
@@ -73,17 +73,13 @@ interface QAAnswer {
   confidence: 'high' | 'medium' | 'low';
 }
 
-interface RunResultLike {
-  parsed: unknown;
-  content: string;
-}
 async function runEnrichmentDirect(
   enrichmentId: string,
   tractate: string,
   page: string,
   markInput: unknown,
   userQuestion?: string,
-): Promise<RunResultLike> {
+): Promise<RunResult> {
   const body: Record<string, unknown> = {
     enrichment_id: enrichmentId,
     tractate,
