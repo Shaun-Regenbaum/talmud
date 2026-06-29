@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { splitOuterWhitespace } from '../src/worker/index';
+import { splitOuterWhitespace } from '../src/worker/hebraize-route';
 
 // ---------------------------------------------------------------------------
 // splitOuterWhitespace — preserves the leading/trailing whitespace that
