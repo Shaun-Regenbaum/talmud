@@ -27,18 +27,13 @@
  * `user_question` in the body.
  */
 
-import { noteAiResponse, noteAiSuccess } from '@corpus/ui/aiStatus';
 import { createEffect, createResource, createSignal, For, type JSX, onMount, Show } from 'solid-js';
 import { trackAI } from './aiActivity';
-import {
-  isPausedBody,
-  isPausedError,
-  isServiceUnavailableError,
-  PAUSED_ERROR,
-} from './enrichmentQueue';
+import { isPausedError, isServiceUnavailableError } from './enrichmentQueue';
 import { Hebraized } from './Hebraized';
 import { hebraize } from './hebraize';
 import { lang, t } from './i18n';
+import { runProducer } from './runProducer';
 import { tutorialPrefetch } from './tutorial';
 
 export interface QAPanelProps {
@@ -82,14 +77,6 @@ interface RunResultLike {
   parsed: unknown;
   content: string;
 }
-type RunResponse =
-  | { status: 'ok'; result: RunResultLike }
-  | { status: 'pending'; runId: string; cacheKey?: string }
-  | { status: 'error'; error: string };
-
-const POLL_INTERVAL_MS = 1500;
-const POLL_TIMEOUT_MS = 300_000;
-
 async function runEnrichmentDirect(
   enrichmentId: string,
   tractate: string,
@@ -105,46 +92,7 @@ async function runEnrichmentDirect(
     lang: lang(),
   };
   if (userQuestion) body.user_question = userQuestion;
-  const r = await fetch('/api/run', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const j = (await r.json()) as RunResponse | { error?: string };
-  noteAiResponse(j);
-  if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
-  if (!r.ok && r.status !== 202) {
-    throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
-  }
-  if ('status' in j) {
-    if (j.status === 'ok') {
-      noteAiSuccess();
-      return j.result;
-    }
-    if (j.status === 'error') throw new Error(j.error);
-    if (j.status === 'pending') return pollJob(j.runId, j.cacheKey);
-  }
-  return j as unknown as RunResultLike;
-}
-
-async function pollJob(runId: string, cacheKey?: string): Promise<RunResultLike> {
-  const start = Date.now();
-  const qs = cacheKey ? `?k=${encodeURIComponent(cacheKey)}` : '';
-  while (Date.now() - start < POLL_TIMEOUT_MS) {
-    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-    const r = await fetch(`/api/run-status/${encodeURIComponent(runId)}${qs}`);
-    const j = (await r.json()) as RunResponse | { status: 'pending' };
-    noteAiResponse(j);
-    if (isPausedBody(j)) throw new Error(PAUSED_ERROR);
-    if ('status' in j) {
-      if (j.status === 'ok') {
-        noteAiSuccess();
-        return (j as { result: RunResultLike }).result;
-      }
-      if (j.status === 'error') throw new Error((j as { error: string }).error);
-    }
-  }
-  throw new Error(`qa job ${runId} timed out`);
+  return runProducer(body, { pollTimeoutMs: 300_000 });
 }
 
 async function fetchSuggested(
