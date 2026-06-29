@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { sanitizeHebraizeOutput } from '../src/worker/index';
+import { sanitizeHebraizeOutput } from '../src/worker/hebraize-route';
 
 // ---------------------------------------------------------------------------
 // sanitizeHebraizeOutput — the deterministic guard applied to the /api/hebraize
