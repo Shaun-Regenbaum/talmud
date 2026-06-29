@@ -14,6 +14,8 @@ import { queueActivity } from './aiActivity';
 
 export interface RunResult {
   content: string;
+  /** The model's chain-of-thought, when the producer ran a thinking model. */
+  reasoning?: string;
   parsed: unknown;
   parse_error: string | null;
   model: string;
@@ -48,6 +50,12 @@ export interface RunResult {
    *  cache write — who decided (human/rule/ai), producer + recipe hash, input
    *  refs, cost. Absent on entries written before the stamp existed. */
   provenance?: Provenance;
+  /** "Serve-but-don't-write" — the worker assembled this while a dependency
+   *  wasn't ready yet (e.g. a computed mark read its source mark caches before
+   *  they warmed) and so did NOT pin it. The marks-registry run loop treats a
+   *  transient `ok` as not-yet-final and re-fires once the deps settle, so the
+   *  empty model isn't left pinned until a manual reload. */
+  transient?: boolean;
 }
 
 /** True for an AbortError (DOMException or any error whose name is set). */
