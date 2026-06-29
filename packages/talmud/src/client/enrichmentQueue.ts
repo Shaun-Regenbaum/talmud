@@ -78,7 +78,7 @@ export function isPausedError(err: unknown): boolean {
 // poll timeout. Deliberately narrow: a parse/schema/validation error is a real
 // bug and should still surface loudly.
 const SERVICE_UNAVAILABLE_RE =
-  /openrouter|user not found|no endpoints|HTTP\s*40[13]\b|HTTP\s*5\d\d\b|InferenceUpstreamError|timed out|fetch failed|network|temporarily unavailable|AiError|budget exhausted/i;
+  /openrouter|insufficient credits|user not found|no endpoints|HTTP\s*40[123]\b|HTTP\s*5\d\d\b|InferenceUpstreamError|timed out|fetch failed|network|temporarily unavailable|AiError|budget exhausted/i;
 
 /** True when an error string / Error signals the AI service is unavailable
  *  (provider auth/outage/timeout) rather than a genuine bug. Excludes the

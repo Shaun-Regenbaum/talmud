@@ -13,6 +13,7 @@
  * shared component owns the render + the auto-show/hide behaviour.
  */
 
+import { aiStatus } from '@corpus/ui/aiStatus';
 import { LoadProgress, type LoadProgressNotice } from '@corpus/ui/LoadProgress';
 import { createMemo, type JSX } from 'solid-js';
 import { loadNotice, prefetchProgress } from './dafPrefetch';
@@ -93,6 +94,10 @@ export default function DafLoadProgress(props: DafLoadProgressProps = {}): JSX.E
   // Top-level notice: a budget pause or a wave of failures, so generation
   // problems don't read as a silently-stuck bar.
   const notice = createMemo<LoadProgressNotice | null>(() => {
+    // When the shared AI-paused banner is up it's the single, clear explanation
+    // (out of credits / cost cap) — don't also show the generic "couldn't be
+    // generated" / "paused" line, which would just repeat it.
+    if (aiStatus()) return null;
     const kind = loadNotice(prefetchProgress());
     if (!kind) return null;
     return { kind, text: kind === 'paused' ? t('dafLoad.paused') : t('dafLoad.failed') };

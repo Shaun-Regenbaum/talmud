@@ -27,6 +27,7 @@ import {
   reverseDependencyIndex,
 } from '@corpus/core/registry/depGraph';
 import type { SidebarRecipe } from '@corpus/core/sidebar/recipe';
+import { noteAiResponse } from '@corpus/ui/aiStatus';
 import {
   createEffect,
   createMemo,
@@ -351,6 +352,10 @@ async function postAndAwait(body: unknown): Promise<RunResult> {
   // recycled or OOM'd isolate) as a clean retryable error instead of a raw
   // JSON.parse crash.
   const j = (await parseRunJson(r)) as RunResponse | { error?: string };
+  // Raise the shared AI-paused banner if this is the { aiUnavailable, reason }
+  // envelope (budget pre-check pause) — mark runs fan out here, so without this
+  // a mark 402 only dumped a raw error and never reached the banner.
+  noteAiResponse(j);
   if (!r.ok && r.status !== 202) {
     throw new Error((j as { error?: string }).error ?? `HTTP ${r.status}`);
   }
@@ -377,6 +382,9 @@ async function pollJob(runId: string, cacheKey?: string): Promise<RunResult> {
       // server-side, so keep polling rather than failing.
       continue;
     }
+    // The queued job's error record carries { aiUnavailable, reason } when it
+    // failed out-of-credits (or hit a cap) — raise the banner from it.
+    noteAiResponse(j);
     if ('status' in j) {
       if (j.status === 'ok') return (j as { result: RunResult }).result;
       if (j.status === 'error') throw new Error((j as { error: string }).error);
