@@ -14,9 +14,11 @@
  *      raw count only.
  *
  * Reads are expensive (each prefix is paginated via kv.list at 1000 keys
- * per page), so callers should memoize the result. We stash the latest
- * result under CACHE_STATS_KEY and the /api/admin/cache-stats endpoint
- * short-circuits on `generatedAt < 60s ago`.
+ * per page) and the value samples hold real cached entries in memory, so
+ * computeCacheStats runs ONLY from the generator's warm cron (warm-cron
+ * refreshStats), which stashes the result under CACHE_STATS_KEY. The reader's
+ * /api/admin/cache-stats serves that copy verbatim and never recomputes —
+ * the scan has OOM'd reader isolates (128 MB).
  */
 
 import { BAVEL_SHAPE, GEO_CITIES, ISRAEL_SHAPE } from '../client/geoShapes';
@@ -42,7 +44,6 @@ import { getWarmTotal } from './warm-cron';
 // sub-source + each DafYomi content type), tagged with its origin (HB/Sefaria/
 // DY). The old 4-bucket `source` is kept for back-compat.
 export const CACHE_STATS_KEY = 'cache-stats:v8';
-const FRESH_MS = 60_000;
 
 export type SourceOrigin = 'HB' | 'Sefaria' | 'DY' | 'Wikipedia' | 'Custom';
 /** One named content piece in Content-In: where it comes from, how many dapim
@@ -280,6 +281,23 @@ const DAFYOMI_TYPES = [
   'revach',
 ] as const;
 
+// Read KV values in small sequential batches, streaming each raw value to
+// `onValue` and dropping it immediately. One Promise.all over hundreds of keys
+// holds every value in memory at once — with large values (hb HTML pages,
+// commentary bundles) that peak has OOM'd 128 MB isolates.
+const VALUE_READ_BATCH = 25;
+
+async function readValuesBatched(
+  cache: KVNamespace,
+  keys: string[],
+  onValue: (raw: string) => void,
+): Promise<void> {
+  for (let i = 0; i < keys.length; i += VALUE_READ_BATCH) {
+    const raws = await Promise.all(keys.slice(i, i + VALUE_READ_BATCH).map((k) => cache.get(k)));
+    for (const raw of raws) if (raw != null) onValue(raw);
+  }
+}
+
 /**
  * Sample DafYomi entries once and tally, per content type, how many of the
  * sampled dapim carry it (in either amud, with a non-empty block). Also reports
@@ -306,20 +324,18 @@ async function sampleDafyomiTypes(
     if (res.list_complete || !res.cursor) break;
     cursor = res.cursor;
   }
-  const raws = await Promise.all(keys.map((k) => cache.get(k)));
   const byType: Record<string, number> = {};
   let sampled = 0;
   let alignedAny = 0;
-  for (const raw of raws) {
-    if (raw == null) continue;
+  await readValuesBatched(cache, keys, (raw) => {
     sampled++;
     let v: unknown;
     try {
       v = JSON.parse(raw);
     } catch {
-      continue;
+      return;
     }
-    if (failed(v)) continue;
+    if (failed(v)) return;
     const d = v as { amudim?: { a?: Record<string, unknown>; b?: Record<string, unknown> } };
     const present = new Set<string>();
     for (const amud of [d.amudim?.a, d.amudim?.b]) {
@@ -331,7 +347,7 @@ async function sampleDafyomiTypes(
     }
     if (present.size > 0) alignedAny++;
     for (const t of present) byType[t] = (byType[t] ?? 0) + 1;
-  }
+  });
   return { sampled, alignedAny, byType };
 }
 
@@ -364,20 +380,18 @@ export async function sampleAligned(
     cursor = res.cursor;
   }
   if (keys.length === 0) return null;
-  const raws = await Promise.all(keys.map((k) => cache.get(k)));
   let sampled = 0;
   let aligned = 0;
-  for (const raw of raws) {
-    if (raw == null) continue;
+  await readValuesBatched(cache, keys, (raw) => {
     sampled++;
     let v: unknown;
     try {
       v = JSON.parse(raw);
     } catch {
-      continue;
+      return;
     }
     if (isAligned(v)) aligned++;
-  }
+  });
   if (sampled === 0) return null;
   return { sampled, aligned, pct: Math.round((aligned / sampled) * 1000) / 10 };
 }
@@ -591,26 +605,15 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     dafyomiCount,
     obsSlices,
     obsRabbis,
-    hbAligned,
-    gemaraAligned,
-    commentariesAligned,
     rishonimCount,
     mishnaCount,
     yeruCount,
     halRefsCount,
     topicsCount,
-    rishonimAligned,
-    mishnaAligned,
-    yeruAligned,
-    halRefsAligned,
-    topicsAligned,
     parallelsCount,
     commWorksCount,
-    parallelsAligned,
-    commWorksAligned,
     pasukCount,
     rabbiEnrichedCount,
-    dyTypes,
   ] = await Promise.all([
     countPrefix(cache, 'hb:v2:'),
     countPrefix(cache, 'ctx:gemara:v1:'),
@@ -619,36 +622,47 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     // `rabbi-obs:v1:` matches slice keys only (dirty keys are `rabbi-obs-dirty:v1:`).
     countPrefix(cache, 'rabbi-obs:v1:'),
     countPrefix(cache, 'rabbi-obs-dirty:v1:'),
-    // Sampled "% aligned" per source — bounded value reads, not a full scan.
-    sampleAligned(cache, 'hb:v2:', alignedHebrewBooks),
-    sampleAligned(cache, 'ctx:gemara:v1:', alignedGemara),
-    sampleAligned(cache, 'ctx:commentaries:v1:', alignedCommentaries),
-    // Extra Sefaria sub-sources (raw array/map values — nonEmptyValue = the daf
-    // actually has a mishnah / yerushalmi parallel / rishonim / refs / topics).
+    // Extra Sefaria sub-sources.
     countPrefix(cache, 'rishonim:v4:'),
     countPrefix(cache, 'mishna-bundle:v1:'),
     countPrefix(cache, 'yerushalmi:v1:'),
     countPrefix(cache, 'halacha-refs:v3:'),
     countPrefix(cache, 'daf-topics:v1:'),
-    sampleAligned(cache, 'rishonim:v4:', nonEmptyValue),
-    sampleAligned(cache, 'mishna-bundle:v1:', nonEmptyValue),
-    sampleAligned(cache, 'yerushalmi:v1:', nonEmptyValue),
-    sampleAligned(cache, 'halacha-refs:v3:', nonEmptyValue),
-    sampleAligned(cache, 'daf-topics:v1:', nonEmptyValue),
     // Talmud↔Talmud parallels (Mesorat HaShas, Sefaria) + the broad commentary
     // -spine works list (Sefaria links-with-text). Both per-daf source fetches.
     countPrefix(cache, 'talmud-parallels:v1:'),
     countPrefix(cache, 'commentaries:v1:'),
-    sampleAligned(cache, 'talmud-parallels:v1:', nonEmptyValue),
-    sampleAligned(cache, 'commentaries:v1:', alignedCommentaryWorks),
     // Per-ENTITY source fetches (keyed per verse / per rabbi, not per daf) — no
     // /dapim denominator, so the dashboard shows their cached counts. (Rabbi
     // Wikipedia/Wikidata bios live in the bundled rabbi dataset — see the rabbi
     // coverage block — not a per-rabbi KV cache, so they aren't sources here.)
     countPrefix(cache, 'pasuk:v4:'), // Tanach verse text (Sefaria)
     countPrefix(cache, 'rabbi-enriched:v1:'), // rabbi topic links (Sefaria)
-    sampleDafyomiTypes(cache),
   ]);
+
+  // Sampled "% aligned" per source — bounded value reads, not a full scan.
+  // Run SEQUENTIALLY, unlike the metadata-only counts above: each sample reads
+  // hundreds of real cached values (hb HTML pages, commentary bundles), and
+  // running all of them in one Promise.all held ~3000 values simultaneously —
+  // the peak that OOM'd 128 MB isolates and left this scan failing for days.
+  // Sequential samples + sub-batched reads bound the peak to one small batch.
+  const hbAligned = await sampleAligned(cache, 'hb:v2:', alignedHebrewBooks);
+  const gemaraAligned = await sampleAligned(cache, 'ctx:gemara:v1:', alignedGemara);
+  const commentariesAligned = await sampleAligned(
+    cache,
+    'ctx:commentaries:v1:',
+    alignedCommentaries,
+  );
+  // Raw array/map values — nonEmptyValue = the daf actually has a mishnah /
+  // yerushalmi parallel / rishonim / refs / topics.
+  const rishonimAligned = await sampleAligned(cache, 'rishonim:v4:', nonEmptyValue);
+  const mishnaAligned = await sampleAligned(cache, 'mishna-bundle:v1:', nonEmptyValue);
+  const yeruAligned = await sampleAligned(cache, 'yerushalmi:v1:', nonEmptyValue);
+  const halRefsAligned = await sampleAligned(cache, 'halacha-refs:v3:', nonEmptyValue);
+  const topicsAligned = await sampleAligned(cache, 'daf-topics:v1:', nonEmptyValue);
+  const parallelsAligned = await sampleAligned(cache, 'talmud-parallels:v1:', nonEmptyValue);
+  const commWorksAligned = await sampleAligned(cache, 'commentaries:v1:', alignedCommentaryWorks);
+  const dyTypes = await sampleDafyomiTypes(cache);
   const dafyomiAligned: AlignedSample | null =
     dyTypes.sampled > 0
       ? {
@@ -943,12 +957,6 @@ export async function readCachedCacheStats(cache: KVNamespace): Promise<CacheSta
   } catch {
     return null;
   }
-}
-
-export function isFresh(stats: CacheStats): boolean {
-  const t = Date.parse(stats.generatedAt);
-  if (Number.isNaN(t)) return false;
-  return Date.now() - t < FRESH_MS;
 }
 
 export async function writeCachedCacheStats(cache: KVNamespace, stats: CacheStats): Promise<void> {

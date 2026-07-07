@@ -337,6 +337,12 @@ export async function runWarmCron(env: WarmEnv): Promise<void> {
   // so the phase loops forever instead of latching done: any entry that
   // expires gets refilled on the next walk-through.
   await runSefariaPhase(env);
+  // This cron (on the generator) is the ONLY writer of the cache-stats copy:
+  // the reader serves it verbatim and never recomputes, because the scan has
+  // OOM'd reader isolates. Without this call nothing refreshes it post-HB —
+  // the copy once sat 8 days stale while the reader's old SWR backstop
+  // OOM-failed on every attempt.
+  await refreshStats(cache);
 }
 
 async function runHbPhase(env: WarmEnv, cursor: WarmCursor): Promise<void> {

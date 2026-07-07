@@ -152,13 +152,7 @@ import {
   qualifierHash,
   recipeHash,
 } from './cache-keys';
-import {
-  cacheGcTargets,
-  computeCacheStats,
-  isFresh,
-  readCachedCacheStats,
-  writeCachedCacheStats,
-} from './cache-stats';
+import { cacheGcTargets, readCachedCacheStats } from './cache-stats';
 import { fetchZoneActivity } from './cf-zone-analytics';
 import { coalesce } from './coalesce';
 import {
@@ -6336,31 +6330,14 @@ app.post('/api/admin/strip-ttl', async (c) => {
 app.get('/api/admin/cache-stats', async (c) => {
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'no cache binding' }, 503);
+  // Serve the generator-maintained copy verbatim, stale or not. The READER
+  // never runs computeCacheStats: the scan holds thousands of KV values and
+  // has OOM'd reader isolates (128 MB) — the generator's warm cron owns
+  // refresh (warm-cron refreshStats), same split as the queue/workflow work.
+  // The copy is written without TTL, so once populated a miss can't recur.
   const cached = await readCachedCacheStats(cache);
-  // Stale-while-revalidate: computeCacheStats scans dozens of KV prefixes and
-  // can take several seconds, so never block a page load on it once we have
-  // ANY cached copy. Serve the cached value immediately; if it's past the 60s
-  // freshness window, recompute in the background so the next load is fresh.
-  // (A cron also refreshes this, so the background recompute is just a backstop
-  // for gaps between cron runs.) Only a true cold miss blocks on the scan.
-  if (cached) {
-    if (!isFresh(cached)) {
-      c.executionCtx.waitUntil(
-        (async () => {
-          try {
-            const fresh = await computeCacheStats(cache);
-            await writeCachedCacheStats(cache, fresh);
-          } catch (err) {
-            console.warn('[cache-stats] background refresh failed:', err);
-          }
-        })(),
-      );
-    }
-    return c.json(cached);
-  }
-  const stats = await computeCacheStats(cache);
-  await writeCachedCacheStats(cache, stats);
-  return c.json(stats);
+  if (cached) return c.json(cached);
+  return c.json({ error: 'cache stats not yet computed (generator cron populates them)' }, 503);
 });
 
 // GC orphaned cache entries (those left at a superseded cache_version after a
@@ -7277,17 +7254,20 @@ app.get('/api/usage/cost', (c) =>
 // (estimateShasCost over the cost rollup + cache coverage). Surfaced as a tiny
 // public summary so the AI-paused banner can ground its sponsorship ask in the
 // real remaining figure rather than a hand-typed number. SWR-cached 6h: the
-// estimate drifts slowly and computeCacheStats scans dozens of KV prefixes.
+// estimate drifts slowly (coverage comes from the cron-maintained stats copy).
 app.get('/api/shas-cost', (c) => {
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'no cache binding' }, 503);
   return serveUsageSection(c, cache, 'shas-cost:v1', 6 * 60 * 60 * 1000, async () => {
     const [cost, stats] = await Promise.all([
       buildCostSection(c, cache),
-      readCachedCacheStats(cache).then((s) => s ?? computeCacheStats(cache)),
+      // Cron-maintained copy only — never computeCacheStats on the reader
+      // (the scan has OOM'd reader isolates). Missing only on a fresh
+      // namespace; degrade the same way as "no cost data yet".
+      readCachedCacheStats(cache),
     ]);
     const self = cost.selfTracked;
-    if (!self || self.totals.costUsd <= 0) return { available: false as const };
+    if (!stats || !self || self.totals.costUsd <= 0) return { available: false as const };
     const est = estimateShasCost({
       amudim: stats.total,
       byMark: self.byMark,
@@ -7397,7 +7377,10 @@ app.get('/api/usage/daf/:tractate/:page', (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
   return serveUsageSection(c, cache, `usage-daf:v1:${tractate}:${page}`, 60_000, async () => {
-    const stats = (await readCachedCacheStats(cache)) ?? (await computeCacheStats(cache));
+    // Cron-maintained copy only — never computeCacheStats on the reader (the
+    // scan has OOM'd reader isolates). Throwing keeps the miss uncached.
+    const stats = await readCachedCacheStats(cache);
+    if (!stats) throw new Error('cache stats not yet computed (generator cron populates them)');
     return dafCostReport(cache, stats.marks, tractate, page);
   });
 });
