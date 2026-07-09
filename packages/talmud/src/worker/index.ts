@@ -114,6 +114,7 @@ import {
   type YerushalmiFloorGroup,
 } from '../lib/yerushalmiAlign';
 import { type CuratedYerushalmiParallel, curatedParallelsForDaf } from '../lib/yerushalmiParallels';
+import { clearAiDown, isHardAiPause, noteAiDown, readAiDown, transportProvesAiUp } from './ai-down';
 import { fetchGatewayCost } from './aigw-analytics';
 import { runBacklogBackfill } from './backfill-backlog';
 import { gcStaleCache } from './cache-gc';
@@ -5489,6 +5490,9 @@ app.post('/api/run', async (c) => {
   // warm_experimental flag.
   const rawWarmExperimental = (raw as { warm_experimental?: unknown }).warm_experimental === true;
   const explicitWarm = job.bypass_cache || (trusted && rawWarmExperimental);
+  // Carry the exemption to the consumer: a trusted explicit run must survive
+  // the ai-down circuit breaker end-to-end (route gate AND consumer gate).
+  if (explicitWarm) job.explicit = true;
   const skipExperimentalWarm = !explicitWarm && isExperimentalLlmWarm(job);
   // Cost-control pause (PAUSED_PRODUCERS): like the experimental gate, but
   // config-driven and reader-facing. On a cold, non-explicit load of a paused
@@ -5539,6 +5543,7 @@ app.post('/api/run', async (c) => {
         if (
           !skipExperimentalWarm &&
           !costPaused &&
+          (explicitWarm || !(await readAiDown(c.env.CACHE))) &&
           (await checkBudget(c.env, { custom: customRun })).ok
         ) {
           job.runId = await makeRunId(job);
@@ -5578,6 +5583,28 @@ app.post('/api/run', async (c) => {
       },
       503,
     );
+  }
+
+  // Provider-down circuit breaker: while the sentinel is up (out of credits,
+  // key spending cap, provider outage — raised by the queue consumer's failure
+  // classification) a cold run cannot succeed, so answer with the explained
+  // paused envelope NOW instead of enqueueing a doomed job the client would
+  // poll for minutes. Cached/SWR content already served above; a trusted
+  // explicit warm still goes through (it is the recovery probe).
+  if (!explicitWarm) {
+    const down = await readAiDown(c.env.CACHE);
+    if (down) {
+      return c.json(
+        {
+          status: 'error',
+          error: aiUnavailableMessage(down.reason),
+          paused: true,
+          aiUnavailable: true as const,
+          reason: down.reason,
+        },
+        503,
+      );
+    }
   }
 
   if (!c.env.ENRICHMENT_QUEUE) {
@@ -11326,6 +11353,27 @@ async function processEnrichmentJob(
     cache.put(jobKey, JSON.stringify(payload), { expirationTtl: 3600 });
 
   try {
+    // Circuit breaker: under a HARD spend pause (credits / key limit) the LLM
+    // call cannot succeed until a human acts, so fail the job immediately with
+    // the explained envelope — pollers resolve in one tick instead of watching
+    // the queue churn. A deep-warm skips on ANY pause: it is a pure LLM fan-out
+    // of dozens of children, so even a 60s blip would flood the queue with
+    // failures. Ordinary jobs still try under a soft pause (they may land after
+    // the blip), and trusted explicit re-runs always try — they probe recovery.
+    if (!job.bypass_cache && !job.explicit) {
+      const down = await readAiDown(cache);
+      if (down && (isHardAiPause(down.reason) || job.warm_deep)) {
+        console.log(`[queue] skip (ai-down: ${down.reason})`, job.runId);
+        await writeResult({
+          status: 'error',
+          error: aiUnavailableMessage(down.reason),
+          paused: true,
+          aiUnavailable: true as const,
+          reason: down.reason,
+        });
+        return;
+      }
+    }
     if (job.warm_deep) {
       const only = job.rewarm_only?.length ? new Set(job.rewarm_only) : undefined;
       // Staleness-driven re-warm: evict the FULL cascade's entries (incl.
@@ -11363,6 +11411,10 @@ async function processEnrichmentJob(
         return;
       }
       const result = await runMarkOnce(rc, def, job.tractate, job.page, job.bypass_cache === true);
+      // A fresh LLM generation (not a cache hit, not a deterministic/computed
+      // producer) proves the provider recovered — lower the circuit breaker
+      // instead of waiting out its TTL.
+      if (!result.cache_hit && transportProvesAiUp(result.transport)) await clearAiDown(cache, t0);
       await writeResult({
         status: 'ok',
         result: { kind: 'mark', ...result, definition: def, total_ms: Date.now() - t0 },
@@ -11402,6 +11454,9 @@ async function processEnrichmentJob(
       undefined,
       job.user_question,
     );
+    // Same recovery signal as the mark branch: a fresh LLM generation lowers
+    // the circuit breaker.
+    if (!result.cache_hit && transportProvesAiUp(result.transport)) await clearAiDown(cache, t0);
     await writeResult({
       status: 'ok',
       result: { kind: 'enrichment', ...result, definition: def, total_ms: Date.now() - t0 },
@@ -11431,8 +11486,10 @@ async function processEnrichmentJob(
     const errorMsg = String((err as Error)?.message ?? err);
     // Out-of-credits / provider outage surfaces here (it throws past the budget
     // gate). Tag the polled job record so the client's shared banner can explain
-    // it instead of showing a bare failure.
+    // it instead of showing a bare failure — and raise the ai-down sentinel so
+    // the enqueue paths fail fast instead of feeding the queue more doomed work.
     const unavailable = classifyAiUnavailable(err);
+    if (unavailable) await noteAiDown(cache, unavailable.reason);
     console.error(
       '[queue] job failed',
       job.runId,
