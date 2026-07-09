@@ -19,6 +19,11 @@ export interface JobMessage {
   model_override?: string;
   mark_input?: unknown;
   bypass_cache?: boolean;
+  /** Trusted explicit run (bypass_cache or a studio warm_experimental): exempt
+   *  from the ai-down circuit breaker at the consumer, so a deliberate re-run
+   *  can probe recovery while the sentinel is still up. Set server-side only —
+   *  public callers can't reach the knobs that imply it. */
+  explicit?: boolean;
   /** Free-text input that becomes part of the enrichment's cache key (via
    *  qualifierHash) and is exposed to its prompt as {{user_question}}. Used
    *  by argument-move.qa today. Empty/undefined means a vanilla run. */
