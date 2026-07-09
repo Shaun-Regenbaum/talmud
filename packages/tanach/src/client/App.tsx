@@ -636,27 +636,38 @@ export function App(): JSX.Element {
     setPerekPill(null);
     setInspectOpen((v) => !v);
   };
+  // Pill fetches share the translate popup's error discipline: a failure body
+  // may be the worker's { aiUnavailable, reason } envelope (spend pause, key
+  // limit, provider outage) — feed it to the shared banner so the reader learns
+  // WHY instead of a bare "couldn't load"; a success re-arms/clears the banner.
+  const fetchPill = async <T,>(url: string): Promise<T | null> => {
+    const res = await fetch(url);
+    if (res.ok) {
+      noteAiSuccess();
+      return (await res.json()) as T;
+    }
+    noteAiResponse(await res.json().catch(() => null));
+    return null;
+  };
   const [overview] = createResource(
     () => (perekPill() === 'overview' ? chapterKey() : undefined),
-    async (k) => {
-      const res = await fetch(`/api/overview/${encodeURIComponent(k.book)}/${k.chapter}`);
-      return res.ok ? ((await res.json()) as Overview) : null;
-    },
+    (k) => fetchPill<Overview>(`/api/overview/${encodeURIComponent(k.book)}/${k.chapter}`),
   );
   const [geography] = createResource(
     () => (perekPill() === 'geography' ? chapterKey() : undefined),
-    async (k) => {
-      const res = await fetch(`/api/geography/${encodeURIComponent(k.book)}/${k.chapter}`);
-      return res.ok ? ((await res.json()) as PerekGeography) : null;
-    },
+    (k) => fetchPill<PerekGeography>(`/api/geography/${encodeURIComponent(k.book)}/${k.chapter}`),
   );
   const [tidbit] = createResource(
     () => (perekPill() === 'tidbit' ? chapterKey() : undefined),
-    async (k) => {
-      const res = await fetch(`/api/tidbit/${encodeURIComponent(k.book)}/${k.chapter}`);
-      return res.ok ? ((await res.json()) as PerekTidbit) : null;
-    },
+    (k) => fetchPill<PerekTidbit>(`/api/tidbit/${encodeURIComponent(k.book)}/${k.chapter}`),
   );
+  // Drawer copy for a failed pill fetch. "Try reopening" is only honest advice
+  // for a transient blip — while AI is paused (banner up), reopening cannot
+  // help, so say what's actually happening instead.
+  const pillError = (what: string) =>
+    aiStatus()
+      ? `AI generation is paused right now, so the ${what} for this chapter isn't available yet. Chapters that were already generated still work.`
+      : `Couldn't load the ${what} — try reopening.`;
   // Only the tidbit for the chapter on screen (createResource retains the prior
   // value across a refetch — same guard as overview/geography).
   const currentTidbit = createMemo(() => {
@@ -1043,7 +1054,7 @@ export function App(): JSX.Element {
               </Show>
               {/* fetched but failed (overview() is null, not undefined) */}
               <Show when={!overview.loading && overview() === null}>
-                <p class="comm-muted">Couldn't load the overview — try reopening.</p>
+                <p class="comm-muted">{pillError('overview')}</p>
               </Show>
             </Show>
             <Show when={pill === 'geography'}>
@@ -1080,7 +1091,7 @@ export function App(): JSX.Element {
                 )}
               </Show>
               <Show when={!geography.loading && geography() === null}>
-                <p class="comm-muted">Couldn't load the geography — try reopening.</p>
+                <p class="comm-muted">{pillError('geography')}</p>
               </Show>
             </Show>
             <Show when={pill === 'tidbit'}>
@@ -1114,7 +1125,7 @@ export function App(): JSX.Element {
                 )}
               </Show>
               <Show when={!tidbit.loading && tidbit() === null}>
-                <p class="comm-muted">Couldn't load the tidbit — try reopening.</p>
+                <p class="comm-muted">{pillError('tidbit')}</p>
               </Show>
             </Show>
           </Drawer>

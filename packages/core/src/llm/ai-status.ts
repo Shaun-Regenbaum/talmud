@@ -18,6 +18,7 @@ import { LLMError } from './llm-error';
 
 export type AiUnavailableReason =
   | 'credits' // OpenRouter prepaid balance exhausted (HTTP 402)
+  | 'key-limit' // the API key's own periodic spending cap tripped (OpenRouter 403 "Key limit exceeded")
   | 'daily-cap' // our daily spend cap reached (BudgetPausedError scope 'all')
   | 'hourly-cap' // our hourly custom-question cap reached (scope 'custom')
   | 'cost-control' // a specific expensive producer is paused by config (PAUSED_PRODUCERS) to cap spend
@@ -38,6 +39,13 @@ export interface AiUnavailable {
 const CREDITS_RE =
   /insufficient credits|out of credits|requires more credits|add more (credits|using)/i;
 
+// OpenRouter returns 403 with "Key limit exceeded (weekly limit)" when the API
+// key's own spending cap trips — credits exist, but the key refuses to spend
+// them. A bare 403 (a genuine auth/permission error) must NOT match, so the
+// message is the signal, same fallback rationale as CREDITS_RE. This bit prod
+// for days as unexplained "random" load failures before it was classified.
+const KEY_LIMIT_RE = /key limit exceeded/i;
+
 /**
  * Map an error to an AI-unavailable reason, or `null` when it is an ordinary
  * failure (a real bug, a 4xx that isn't payment, a malformed request) that
@@ -53,14 +61,16 @@ export function classifyAiUnavailable(err: unknown): AiUnavailable | null {
   }
   if (err instanceof LLMError) {
     if (err.status === 402 || CREDITS_RE.test(err.message)) return { reason: 'credits' };
+    if (KEY_LIMIT_RE.test(err.message)) return { reason: 'key-limit' };
     if (err.status === 429) return { reason: 'rate-limit' };
     if (err.status >= 500) return { reason: 'provider' };
     return null; // other 4xx: client/config error, not a spend pause
   }
   // Foreign throwable (raw fetch / provider body re-thrown without a status):
-  // last-resort sniff for the out-of-credits signal only.
+  // last-resort sniff for the spend-pause signals only.
   const msg = err instanceof Error ? err.message : typeof err === 'string' ? err : '';
   if (CREDITS_RE.test(msg)) return { reason: 'credits' };
+  if (KEY_LIMIT_RE.test(msg)) return { reason: 'key-limit' };
   return null;
 }
 
@@ -78,6 +88,8 @@ export function aiUnavailableMessage(reason: AiUnavailableReason): string {
   switch (reason) {
     case 'credits':
       return 'AI features are paused — the project is out of AI credits right now.';
+    case 'key-limit':
+      return "AI features are paused — this period's AI spending limit has been reached. They'll be back when the budget resets.";
     case 'daily-cap':
       return "AI features are paused — today's AI budget has been reached. They'll be back tomorrow.";
     case 'hourly-cap':

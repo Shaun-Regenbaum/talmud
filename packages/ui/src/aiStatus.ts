@@ -16,6 +16,7 @@ import { createSignal } from 'solid-js';
 
 export type AiUnavailableReason =
   | 'credits'
+  | 'key-limit'
   | 'daily-cap'
   | 'hourly-cap'
   | 'cost-control'

@@ -34,6 +34,7 @@ export interface AiStatusBannerProps {
 /** Reasons where a spending-related sponsor ask is appropriate. */
 const SPEND_REASONS: ReadonlySet<AiUnavailableReason> = new Set([
   'credits',
+  'key-limit',
   'daily-cap',
   'hourly-cap',
   'cost-control',
@@ -43,6 +44,8 @@ function headline(reason: AiUnavailableReason): string {
   switch (reason) {
     case 'credits':
       return 'AI features are paused — the project is out of AI credits right now.';
+    case 'key-limit':
+      return "AI features are paused — this period's AI spending limit has been reached, to keep the project sustainable.";
     case 'daily-cap':
       return "AI features are paused for today — there's a daily spending cap that keeps this project sustainable.";
     case 'hourly-cap':
@@ -61,6 +64,7 @@ function headline(reason: AiUnavailableReason): string {
 function resumeHint(reason: AiUnavailableReason): string | null {
   if (reason === 'daily-cap') return "They'll be back tomorrow.";
   if (reason === 'hourly-cap') return 'Back within the hour.';
+  if (reason === 'key-limit') return "They'll be back when the budget resets.";
   return null;
 }
 

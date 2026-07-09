@@ -23,6 +23,27 @@ describe('classifyAiUnavailable', () => {
     expect(classifyAiUnavailable(err)).toEqual({ reason: 'credits' });
   });
 
+  it('maps OpenRouter 403 "Key limit exceeded" to key-limit', () => {
+    // The exact shape prod emitted when the key's weekly cap tripped (2026-07).
+    const err = new LLMError(
+      403,
+      'OpenRouter HTTP 403: {"error":{"message":"Key limit exceeded (weekly limit). Manage it using https://openrouter.ai/...","code":403}}',
+    );
+    expect(classifyAiUnavailable(err)).toEqual({ reason: 'key-limit' });
+  });
+
+  it('maps a re-wrapped key-limit message without a status to key-limit', () => {
+    // tanach's producer path wraps the LLMError, losing the type + status.
+    const err = new Error(
+      'Producer failed: OpenRouter HTTP 403: Key limit exceeded (weekly limit).',
+    );
+    expect(classifyAiUnavailable(err)).toEqual({ reason: 'key-limit' });
+  });
+
+  it('does NOT treat a bare 403 (real auth error) as a spend pause', () => {
+    expect(classifyAiUnavailable(new LLMError(403, 'OpenRouter HTTP 403: forbidden'))).toBeNull();
+  });
+
   it('maps the daily budget pause to daily-cap and carries the lift time', () => {
     const err = new BudgetPausedError('all', 1_700_000_000_000, 'daily spend over trip');
     expect(classifyAiUnavailable(err)).toEqual({
@@ -58,6 +79,7 @@ describe('classifyAiUnavailable', () => {
   it('has a message for every reason', () => {
     const reasons: AiUnavailableReason[] = [
       'credits',
+      'key-limit',
       'daily-cap',
       'hourly-cap',
       'rate-limit',
