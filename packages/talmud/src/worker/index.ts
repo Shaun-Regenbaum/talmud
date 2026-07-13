@@ -3296,6 +3296,22 @@ app.post('/api/daf-generate/:tractate/:page', async (c) => {
       ...pausedAiFields(gate.scope),
     });
   }
+  // Provider-down circuit breaker: out-of-credits / key-cap / provider outage
+  // is NOT a budget pause, so the gate above passes while every Workflow step
+  // is doomed to fail. Without this check a cold daf spawns a Workflow that
+  // churns 402s, and the client sits in view-driven mode (its /api/run fan-out
+  // — the only path that raises the AI-paused banner — suppressed) until the
+  // ~40s stall detector gives up. Answer with the explained envelope NOW.
+  const down = await readAiDown(c.env.CACHE);
+  if (down) {
+    return c.json({
+      generating: false,
+      paused: true,
+      error: aiUnavailableMessage(down.reason),
+      aiUnavailable: true as const,
+      reason: down.reason,
+    });
+  }
   const cache = c.env.CACHE;
   const sentinel = dafGenSentinelKey(tractate, page, lang);
   // Single-flight: if a generation is already in flight for this daf, return it

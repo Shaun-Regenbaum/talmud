@@ -1,4 +1,5 @@
 import { instanceIdOf } from '@corpus/core/cache/keys';
+import { aiStatus } from '@corpus/ui/aiStatus';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   type DafViewPiece,
@@ -329,7 +330,7 @@ describe('client lookups agree with the server pieceKey format', () => {
 describe('openDafView (cold-path, view-driven)', () => {
   // Route fetches by URL so one stub serves daf-view + daf-generate.
   function routeFetch(opts: {
-    generate: { generating: boolean };
+    generate: { generating: boolean } & Record<string, unknown>;
     view: (callIdx: number) => { complete?: boolean; cached?: number; pieces?: unknown };
   }) {
     let viewCalls = 0;
@@ -384,6 +385,17 @@ describe('openDafView (cold-path, view-driven)', () => {
     });
     await openDafView('Paused', '4a', 'en');
     expect(isViewDriven('Paused', '4a', 'en')).toBe(false);
+  });
+
+  it('COLD daf + AI DOWN: the refused trigger raises the shared AI-paused banner in one round-trip', async () => {
+    expect(aiStatus()).toBeNull();
+    routeFetch({
+      generate: { generating: false, paused: true, aiUnavailable: true, reason: 'credits' },
+      view: () => ({ complete: false, cached: 0, pieces: {} }),
+    });
+    await openDafView('Down', '6a', 'en');
+    expect(isViewDriven('Down', '6a', 'en')).toBe(false); // cards fall back to /api/run
+    expect(aiStatus()?.reason).toBe('credits'); // and the banner is already up
   });
 
   it('releases view-driven when the cached count STALLS (a stuck producer)', async () => {
