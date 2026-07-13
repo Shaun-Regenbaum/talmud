@@ -11568,6 +11568,16 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
     type StepResult = { id: string; cached?: boolean; skipped?: string; iid?: string };
     const runStep = (name: string, fn: (rc: RunCtx) => Promise<StepResult>): Promise<StepResult> =>
       step.do(name, async () => {
+        // Provider-down circuit breaker, workflow leg. While the sentinel is up
+        // every LLM call here is doomed (out of credits / key cap / outage), so
+        // skip the step instead of letting the Workflow engine churn retries —
+        // and when a failure CLASSIFIES as AI-unavailable, raise the sentinel so
+        // the enqueue gates (/api/run, /api/daf-generate) fail fast for the next
+        // reader. Without this leg the sentinel only rises from queue traffic,
+        // which the view-driven reader path no longer produces. Cached steps are
+        // no-ops anyway, so skipping them while down loses nothing.
+        const down = await readAiDown(this.env.CACHE);
+        if (down) return { id: name, skipped: `ai-down:${down.reason}` };
         const pending: Promise<unknown>[] = [];
         const ctx = {
           waitUntil: (p: Promise<unknown>) => {
@@ -11576,9 +11586,17 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
           passThroughOnException: () => {},
         } as unknown as ExecutionContext;
         const rc: RunCtx = { env: wrapped, url: 'https://localhost/internal', ctx, lang };
-        const out = await fn(rc);
-        await Promise.allSettled(pending);
-        return out;
+        try {
+          const out = await fn(rc);
+          await Promise.allSettled(pending);
+          return out;
+        } catch (err) {
+          const unavailable = classifyAiUnavailable(err);
+          if (!unavailable) throw err;
+          await noteAiDown(this.env.CACHE, unavailable.reason);
+          await Promise.allSettled(pending);
+          return { id: name, skipped: `ai-unavailable:${unavailable.reason}` };
+        }
       });
 
     // Producers within a PHASE run in dependency TIERS, each tier's steps fanned
