@@ -17,6 +17,7 @@ import {
   TIDBIT_RECIPE,
   YERUSHALMI_RECIPE,
 } from '@corpus/core/sidebar/recipe';
+import { noteAiResponse } from '@corpus/ui/aiStatus';
 import {
   fitBbox,
   GEO_BBOX,
@@ -926,6 +927,9 @@ async function fetchOverviewFlow(
     runId?: string;
     cacheKey?: string;
   };
+  // Raise the shared AI-paused banner on a refused/failed run (this bespoke
+  // poll predates runProducer, which does this for every other surface).
+  noteAiResponse(j);
   if (j.status === 'ok') return read(j.result);
   if (j.status === 'pending' && j.runId) {
     const start = Date.now();
@@ -934,6 +938,7 @@ async function fetchOverviewFlow(
       await new Promise((res) => setTimeout(res, 1500));
       const s = await fetch(`/api/run-status/${encodeURIComponent(j.runId)}${qs}`);
       const sj = (await s.json()) as { status?: string; result?: unknown };
+      noteAiResponse(sj);
       if (sj.status === 'ok') return read(sj.result);
       if (sj.status === 'error') return null;
     }

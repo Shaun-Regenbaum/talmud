@@ -16,6 +16,7 @@
  */
 
 import { instanceIdOf } from '@corpus/core/cache/keys';
+import { noteAiResponse } from '@corpus/ui/aiStatus';
 import { createSignal } from 'solid-js';
 import type { RunResult } from './enrichmentQueue';
 
@@ -205,7 +206,12 @@ export async function openDafView(
         method: 'POST',
       },
     );
-    const resp = r.ok ? ((await r.json()) as { generating?: boolean }) : null;
+    // Parse the body even on a non-2xx: a refused trigger carries the AI-paused
+    // envelope (out of credits / budget cap / provider down) — raise the shared
+    // banner in THIS round-trip instead of leaving the reader to discover it via
+    // the cards' /api/run fallback.
+    const resp = (await r.json().catch(() => null)) as { generating?: boolean } | null;
+    if (resp) noteAiResponse(resp);
     triggered = !!resp?.generating;
   } catch {
     triggered = false;
