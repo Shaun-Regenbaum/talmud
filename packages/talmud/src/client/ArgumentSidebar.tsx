@@ -841,6 +841,15 @@ export function argumentSynthInstance(section: Section): unknown {
 // between DISTINCT sugyot, so they don't merge sections into the same map.
 const SUGYA_BINDING_KINDS = new Set(['continues', 'resolves', 'depends-on']);
 
+// Muted "nothing here yet" line. A plain paragraph, NOT HebrewProse: the copy is
+// localized (English in the EN UI), and HebrewProse's hard dir="rtl" pushed the
+// English sentence's period to the wrong side. dir="auto" follows the language.
+const EMPTY_STATE_STYLE: JSX.CSSProperties = {
+  margin: '0.6rem 0 0',
+  color: '#999',
+  'font-size': '0.85rem',
+};
+
 /** Partition a daf's argument sections into discussion groups (sugyot) as
  *  CONTIGUOUS runs in daf order. The daf is linear, so a sugya is a run of
  *  consecutive sections; a boundary falls between section b-1 and b only where
@@ -1267,9 +1276,9 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
     <Show
       when={sections().length > 0}
       fallback={
-        <HebrewProse size="0.85rem" color="#999" margin="0.6rem 0 0">
+        <p dir="auto" style={EMPTY_STATE_STYLE}>
           {t('overview.empty')}
-        </HebrewProse>
+        </p>
       }
     >
       {/* One flow-graph map per discussion. Multiple maps = multiple sugyot on
@@ -1487,9 +1496,9 @@ function DafBackgroundGroups(props: SpecialBlockProps): JSX.Element {
         <BackgroundGroups groups={groups()} />
       </Show>
       <Show when={props.synthesisResolved && groups().length === 0}>
-        <HebrewProse size="0.85rem" color="#999" margin="0.6rem 0 0">
+        <p dir="auto" style={EMPTY_STATE_STYLE}>
           {t('background.empty')}
-        </HebrewProse>
+        </p>
       </Show>
     </>
   );
