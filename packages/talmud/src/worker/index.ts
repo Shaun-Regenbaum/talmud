@@ -5003,9 +5003,17 @@ const WHOLE_DAF_MARK_IDS: ReadonlySet<string> = new Set(
  *  whole-daf note (daf-background.concepts, argument-overview.flow, tidbit.essay,
  *  biyun.essay). Such an enrichment has exactly one instance per daf, so
  *  runEnrichmentOnce keys it to the canonical {fields:{}} instance for every
- *  caller. Exported for the regression test that pins this set. */
+ *  caller. MUST read BOTH def shapes: rich code defs carry `target_mark`, but
+ *  the KV-flat shape loadEnrichmentDef returns renames it to `mark`
+ *  (adaptCodeEnrichment) — and the DEPENDENCY walk loads defs through exactly
+ *  that loader, so reading only `target_mark` silently disabled the collapse
+ *  for every dep run: each per-section/per-rabbi parent re-ran and re-cached
+ *  daf-background.concepts under its own instance key (~20 paid runs per daf
+ *  of one identical whole-daf piece — the #426 leak, resurfaced through the
+ *  flat shape). Exported for the regression test that pins this set. */
 export function isWholeDafEnrichment(def: EnrichmentDefinition): boolean {
-  const targetMark = (def as { target_mark?: string }).target_mark;
+  const d = def as { target_mark?: string; mark?: string };
+  const targetMark = d.target_mark ?? d.mark;
   return def.scope === 'local' && !!targetMark && WHOLE_DAF_MARK_IDS.has(targetMark);
 }
 
