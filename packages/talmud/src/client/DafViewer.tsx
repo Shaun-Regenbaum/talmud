@@ -38,7 +38,6 @@ import { readDevMode, setDevModeActive } from './DevModeShelf';
 import { cancelPrefetch, prefetchDaf } from './dafPrefetch';
 import { setDafRunsTarget } from './dafRunsStore';
 import { openDafView } from './dafViewStore';
-import { isServiceUnavailableError } from './enrichmentQueue';
 import { ensureMasechetIncipit } from './ensureMasechetIncipit';
 import { GutterIcons, type GutterKind } from './GutterIcons';
 import { GutterOverlay } from './GutterOverlay';
@@ -3602,43 +3601,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         </span>
       </header>
 
-      {/* Mark errors still surface explicitly — the progress bar abstracts
-          them into its count, but a failed anchor is worth naming. AI-paused
-          failures (out of credits / cost cap / provider blip) are EXCLUDED:
-          they dump a raw provider string ("OpenRouter HTTP 402: …") and are
-          already explained by the shared AiStatusBanner, so naming each one here
-          is just noise. Genuine bugs still surface. */}
-      <Show
-        when={markStatuses().some((s) => s.kind === 'error' && !isServiceUnavailableError(s.error))}
-      >
-        <section
-          style={{
-            'margin-bottom': '1rem',
-            'max-width': '720px',
-            'margin-left': 'auto',
-            'margin-right': 'auto',
-            display: 'flex',
-            gap: '0.75rem',
-            'flex-wrap': 'wrap',
-            'align-items': 'center',
-            'justify-content': 'center',
-            'font-size': '0.75rem',
-            color: '#c33',
-          }}
-        >
-          <For
-            each={markStatuses().filter(
-              (s) => s.kind === 'error' && !isServiceUnavailableError(s.error),
-            )}
-          >
-            {(s) => (
-              <span>
-                {s.label || s.id}: {s.error}
-              </span>
-            )}
-          </For>
-        </section>
-      </Show>
+      {/* No raw error strip here: pause/outage states are the AiStatusBanner's
+          job, and genuine mark failures fold into the load bar's localized
+          notice (DafLoadProgress) — raw sentinel/provider strings ("Rabbis:
+          BUDGET_PAUSED") must never render in the reader. */}
 
       <div class="daf-layout">
         <div class="daf-cluster">
