@@ -79,6 +79,17 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
       'mark, take an instance from result.parsed.instances, then run an enrichment',
       'with enrichment_id + mark_input = that instance, polling each time.',
       '',
+      'FAST PATH: for a daf that is already generated, GET /api/daf-view/{t}/{p}',
+      'returns EVERY cached piece in one response — prefer it over per-piece',
+      '/api/run. For a cold daf, POST /api/daf-generate starts ONE parallel',
+      'generation Workflow (concurrent callers coalesce) and /api/daf-view fills',
+      'in progressively as pieces land.',
+      '',
+      'AI-PAUSED: when generation is paused (out of credits, budget cap, provider',
+      'down), /api/run, /api/run-status and /api/daf-generate answer',
+      '{ paused: true, aiUnavailable: true, reason } instead of generating.',
+      'Cached reads always still serve.',
+      '',
       'ACCESS: open and read-focused. You can read page data and run the',
       'registered marks/enrichments shown here. A few advanced run options are',
       'reserved and return an authorization error; stick to the documented fields.',
@@ -109,6 +120,42 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
           },
         ],
         responses: { '200': { description: 'TalmudPageData' } },
+      },
+    },
+
+    '/api/daf-view/{tractate}/{page}': {
+      get: {
+        summary: 'ONE-SHOT READ: every cached piece for a daf in a single response.',
+        description:
+          'The materialized daf view (edge-cached when complete). Returns { complete, cached, total, ' +
+          'pieces } — pieces keyed by producer id (whole-daf) or "producerId::instanceId" (per-instance), ' +
+          'each { producerId, kind, label, parsed, content?, deps_resolved? }. Prefer this over N /api/run ' +
+          'calls when reading a daf that is already generated. lang=he for the Hebrew pieces.',
+        parameters: [
+          tractate,
+          page,
+          {
+            name: 'lang',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['he'] },
+            description: 'Hebrew pieces instead of English.',
+          },
+        ],
+        responses: { '200': { description: '{ complete, cached, total, pieces }' } },
+      },
+    },
+
+    '/api/daf-generate/{tractate}/{page}': {
+      post: {
+        summary: 'Trigger cold-daf generation (single-flighted parallel Workflow).',
+        description:
+          'Starts ONE per-daf generation Workflow (concurrent callers coalesce via a 15-min sentinel); ' +
+          'poll /api/daf-view to watch pieces land. Returns { generating: true, instanceId } — or, when ' +
+          'generation is refused, { generating: false, paused: true, aiUnavailable: true, reason } ' +
+          '(budget cap, out of credits, provider down). Spends real LLM budget on a cold daf.',
+        parameters: [tractate, page],
+        responses: { '200': { description: '{ generating, instanceId? } | paused envelope' } },
       },
     },
 
@@ -438,6 +485,201 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
           },
         ],
         responses: { '200': { description: '{ ref, he, en, ... }' } },
+      },
+    },
+
+    '/api/links/{tractate}/{page}': {
+      get: {
+        summary: "The daf's whole link graph in the shared Link vocabulary.",
+        description:
+          'Every edge the system knows for this daf — relations: cites | continues | resolves | ' +
+          'depends-on | parallels | contrasts | generalizes — with source coordinates. Read-only.',
+        parameters: [tractate, page],
+        responses: {
+          '200': { description: '{ count, links: [{ source, link }], sectionExits }' },
+        },
+      },
+    },
+
+    '/api/bridge/{tractate}/{page}': {
+      get: {
+        summary: 'Cross-daf continuity: does the discussion continue from/onto the adjacent daf?',
+        parameters: [tractate, page],
+        responses: { '200': { description: 'Bridge verdict + `link` (a continues Link)' } },
+      },
+    },
+
+    '/api/derived-flow/{tractate}/{page}': {
+      get: {
+        summary: 'Deterministic cross-section flow edges derived from the statement dialectic.',
+        description:
+          'Section→section connections (responds-to/resolves/…) computed in-process from cached ' +
+          'argument-move + argument.voices — no LLM, no writes. The client merges these UNDER the AI ' +
+          'flow graph (AI keeps final say on pairs it covers).',
+        parameters: [tractate, page],
+        responses: {
+          '200': { description: '{ derived: [{ fromSection, toSection, relation }] }' },
+        },
+      },
+    },
+
+    '/api/statement-spine/{tractate}/{page}': {
+      get: {
+        summary: 'Per-section statement spine: statements as nodes, dialectic roles as links.',
+        description:
+          "Folds each argument section's moves + voices into one graph (`dispute` = a real machloket). " +
+          'Cached reads only — never computes.',
+        parameters: [tractate, page],
+        responses: { '200': { description: 'Statement spine graph per section' } },
+      },
+    },
+
+    '/api/spine-view/{tractate}': {
+      get: {
+        summary: 'Whole-tractate flow-graph snapshot (the #spine page data).',
+        parameters: [
+          tractate,
+          {
+            name: 'cached',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['1'] },
+            description: 'Serve the last materialized snapshot (one KV read, no sweep).',
+          },
+        ],
+        responses: { '200': { description: 'Tractate spine view' } },
+      },
+    },
+
+    '/api/spine-coverage/{tractate}': {
+      get: {
+        summary: 'Which producers already have a cached piece, per daf, across a tractate.',
+        description: 'Read-only KV enumeration — computes nothing. The coverage punchcard.',
+        parameters: [tractate],
+        responses: { '200': { description: 'Per-daf producer coverage' } },
+      },
+    },
+
+    '/api/stale/{id}/{tractate}/{page}': {
+      get: {
+        summary: 'Freshness verdict for a producer on a daf: fresh | stale | unknown | miss.',
+        description:
+          'Compares the stored recipe_hash against the current producer recipe. `unknown` = cached ' +
+          'before hashes existed; `miss` = nothing cached. Whole-daf instance scope. lang=he supported.',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+            description: 'Producer id (e.g. "argument-overview.synthesis").',
+          },
+          tractate,
+          page,
+        ],
+        responses: { '200': { description: '{ status, cached_recipe, current_recipe }' } },
+      },
+    },
+
+    '/api/dependents/{id}': {
+      get: {
+        summary: 'Reverse-dependency cascade: if this producer changes, what must re-warm?',
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+            description: 'Producer id or source id (e.g. "gemara").',
+          },
+        ],
+        responses: { '200': { description: '{ dependents: [...] } (transitive, live registry)' } },
+      },
+    },
+
+    '/api/daf-runs/{tractate}/{page}': {
+      get: {
+        summary: 'Inspector waterfall: per-piece cached/cost/model status for a daf.',
+        parameters: [tractate, page],
+        responses: { '200': { description: 'Per-producer run/cache records' } },
+      },
+    },
+
+    '/api/run-tree/{tractate}/{page}/{id}': {
+      get: {
+        summary:
+          "A piece's dependency tree (the DAG the run resolved), with cache status per node.",
+        parameters: [
+          tractate,
+          page,
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+            description: 'Producer id. Whole-daf instances only.',
+          },
+        ],
+        responses: { '200': { description: 'Dependency tree with per-node cached/telemetry' } },
+      },
+    },
+
+    '/api/entity/rabbi/{slug}': {
+      get: {
+        summary: 'The entity piece for a rabbi (global enrichments lifted onto the entity spine).',
+        parameters: [slug],
+        responses: { '200': { description: 'Rabbi entity piece' } },
+      },
+    },
+
+    '/api/entity/place/{name}': {
+      get: {
+        summary: 'The entity piece for a place.',
+        parameters: [
+          {
+            name: 'name',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+            description: 'Place name as it appears in the places mark.',
+          },
+        ],
+        responses: { '200': { description: 'Place entity piece' } },
+      },
+    },
+
+    '/api/halacha-text/{tractate}/{page}': {
+      get: {
+        summary: 'Full Hebrew/English codifier texts (Rambam/Tur/SA) cited from this daf.',
+        description: 'Served from the cached halacha-refs bundle. Read-only, no LLM.',
+        parameters: [tractate, page],
+        responses: {
+          '200': {
+            description: '{ nodes: [{ label, tier, refs: [{ ref, hebrew, english }] }] }',
+          },
+        },
+      },
+    },
+
+    '/api/yerushalmi/{tractate}/{page}': {
+      get: {
+        summary: 'Bavli↔Yerushalmi parallel for the daf (grounded via the shared mishnah).',
+        parameters: [tractate, page],
+        responses: { '200': { description: 'Yerushalmi parallel text + grounding' } },
+      },
+    },
+
+    '/api/shas-cost': {
+      get: {
+        summary: 'Live estimate of the remaining cost to generate all of Shas at full depth.',
+        responses: { '200': { description: '{ available, remainingUsd, ... } (SWR-cached 6h)' } },
+      },
+    },
+
+    '/api/worker-health': {
+      get: {
+        summary: 'Recent Worker invocation outcomes (exceededMemory etc.) for both scripts.',
+        responses: { '200': { description: 'Outcome counts from CF analytics' } },
       },
     },
 
