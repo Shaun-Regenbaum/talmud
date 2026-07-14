@@ -830,32 +830,23 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     prefetchDaf(t, p, runs, { overview: true, lang: l });
   });
 
-  // Comprehensively pre-warm the adjacent dapim on idle so navigating either
-  // direction lands on a fully-cached page: the assembled text (instant render)
-  // plus a server-side deep-warm (marks + every per-instance enrichment up to
-  // suggested-questions, cache-respecting). Fired ~2.5s after the daf settles
-  // and aborted on daf change so we don't warm a page the reader has left.
-  // lang() is tracked so a language switch re-warms the neighbours in the new
-  // language.
+  // Prefetch the adjacent dapim's assembled TEXT on idle (zero LLM cost) so
+  // forward/back navigation renders instantly. Deliberately NO deep-warm here:
+  // it used to also POST /api/warm-daf for both neighbours, which on a COLD
+  // neighbour is a full paid generation (~a dollar-plus per daf) for a page the
+  // reader may never open — browsing one cold daf could bill for three. A cold
+  // neighbour now generates only when actually opened (openDafView's
+  // single-flight Workflow + progressive render). Fired ~2.5s after the daf
+  // settles and aborted on daf change so we don't fetch a page the reader left.
   createEffect(() => {
     const t = tractate();
     const p = page();
-    const l = lang();
     const controller = new AbortController();
     const timer = setTimeout(() => {
       for (const np of [nextPage(p), prevPage(p)]) {
-        // Prime the assembled-daf cache (zero LLM cost) for instant render.
         void fetch(`/api/daf/${encodeURIComponent(t)}/${np}`, { signal: controller.signal }).catch(
           () => {},
         );
-        // Deep-warm marks + enrichments (cache-respecting — a settled neighbour
-        // is just KV reads).
-        void fetch('/api/warm-daf', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tractate: t, page: np, lang: l }),
-          signal: controller.signal,
-        }).catch(() => {});
       }
     }, 2500);
     onCleanup(() => {
