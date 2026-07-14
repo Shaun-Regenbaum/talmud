@@ -299,6 +299,7 @@ import {
   sefariaWarmProgressProcessed,
   warmProgressProcessed,
 } from './warm-cron';
+import { checkWholeDafLeakAndAlert } from './whole-daf-leak-watch';
 import { lookupGloss } from './word-glosses';
 import { checkWorkerHealthAndAlert, fetchWorkerOutcomes } from './worker-health';
 import {
@@ -11794,6 +11795,10 @@ export default {
       // (exceededMemory — the cold-daf OOM) appeared in the last window.
       // Self-contained + best-effort; never throws into the cron.
       ctx.waitUntil(checkWorkerHealthAndAlert(wrapped, Date.now()));
+      // Whole-daf cache-key leak sentinel: alert if any whole-daf enrichment
+      // key exists under a non-canonical instance id (the #426/#534 silent
+      // ~20x-per-daf spend class). Same best-effort contract.
+      ctx.waitUntil(checkWholeDafLeakAndAlert(wrapped, Date.now()));
       return;
     }
 
