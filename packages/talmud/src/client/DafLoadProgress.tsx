@@ -18,6 +18,7 @@ import { LoadProgress, type LoadProgressNotice } from '@corpus/ui/LoadProgress';
 import { createMemo, type JSX } from 'solid-js';
 import { loadNotice, prefetchProgress } from './dafPrefetch';
 import { dafCacheProgress } from './dafRunsStore';
+import { isServiceUnavailableError, PAUSED_ERROR } from './enrichmentQueue';
 import { t } from './i18n';
 import { markStatuses } from './MarksRegistryPanel';
 
@@ -99,8 +100,18 @@ export default function DafLoadProgress(props: DafLoadProgressProps = {}): JSX.E
     // generated" / "paused" line, which would just repeat it.
     if (aiStatus()) return null;
     const kind = loadNotice(prefetchProgress());
-    if (!kind) return null;
-    return { kind, text: kind === 'paused' ? t('dafLoad.paused') : t('dafLoad.failed') };
+    if (kind) {
+      return { kind, text: kind === 'paused' ? t('dafLoad.paused') : t('dafLoad.failed') };
+    }
+    // Genuine mark failures land here too (the reader used to render them as a
+    // raw red "Rabbis: BUDGET_PAUSED" strip — never again): paused/outage marks
+    // are the banner's story and stay quiet, anything else gets the same
+    // localized "couldn't be generated" line as a failed prefetch wave.
+    const markFailed = markStatuses().some(
+      (m) => m.kind === 'error' && m.error !== PAUSED_ERROR && !isServiceUnavailableError(m.error),
+    );
+    if (markFailed) return { kind: 'failed', text: t('dafLoad.failed') };
+    return null;
   });
 
   return (
