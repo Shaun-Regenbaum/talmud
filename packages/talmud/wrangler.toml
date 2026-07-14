@@ -110,7 +110,7 @@ HOURLY_CUSTOM_BUDGET_USD = "10"
 # leaner (its core cards still generate; these paused extras don't). Fully
 # reversible: set to "" to resume full generation. KEEP IN SYNC with
 # wrangler.generator.toml (the queue consumer reads this there).
-PAUSED_PRODUCERS = "tidbit.essay,daf-background.concepts,rishonim.synthesis,argument-move.suggested-questions,pesukim.suggested-questions,aggadata.suggested-questions"
+PAUSED_PRODUCERS = "tidbit.essay,rishonim.synthesis,argument-move.suggested-questions,pesukim.suggested-questions,aggadata.suggested-questions"
 # Role flag (see scheduled() in index.ts). 'reader' = run only the health watch
 # on the */5 cron; the talmud-gen worker sets 'generator' and runs heavy warming.
 WORKER_ROLE = "reader"
