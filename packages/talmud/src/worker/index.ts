@@ -5476,6 +5476,20 @@ app.post('/api/run', async (c) => {
     lang: body.lang === 'he' ? 'he' : undefined,
   };
 
+  // Whole-daf enrichments have exactly ONE instance per daf: collapse whatever
+  // mark_input the caller sent (usually none) to the canonical {fields:{}}
+  // BEFORE any key/id derivation, so the hot-path cache check, the SWR read,
+  // the runId, and the returned polling cacheKey all target the entry the
+  // consumer actually writes (runEnrichmentOnce applies the same collapse).
+  // Without this a bare POST /api/run on an already-cached whole-daf enrichment
+  // missed the hot path (instanceIdOf(undefined) is a different hash) and took
+  // a pointless queue round-trip, and its ?k= fallback named a key that is
+  // never written.
+  if (job.enrichment_id) {
+    const wdDef = await loadEnrichmentDef(c.env, job.enrichment_id);
+    if (wdDef && isWholeDafEnrichment(wdDef)) job.mark_input = { fields: {} };
+  }
+
   // Hot path: canonical cache hit short-circuits the queue entirely. The
   // store read maps a corrupt entry to a miss (same as the old inline parse),
   // so a corrupt cache falls through to enqueue exactly as before.

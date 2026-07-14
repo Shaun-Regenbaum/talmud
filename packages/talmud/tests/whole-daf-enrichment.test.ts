@@ -72,3 +72,17 @@ describe('isWholeDafEnrichment — which enrichments collapse to {fields:{}}', (
     expect(isWholeDafEnrichment(flat as unknown as EnrichmentDefinition)).toBe(true);
   });
 });
+
+// The canonical whole-daf instance hash the entire collapse scheme converges
+// on. The KV cleanups keep exactly this id; the /api/run route collapses bare
+// mark_input to {fields:{}} so its keys land here too. If instanceIdOf's
+// derivation ever changes, every guard above silently targets the wrong key —
+// this pins it byte-for-byte, alongside the undefined-input hash whose
+// divergence caused the bare-run miss.
+describe('canonical whole-daf instance id', () => {
+  it('instanceIdOf({fields:{}}) is the pinned canonical hash', async () => {
+    const { instanceIdOf } = await import('@corpus/core/cache/keys');
+    expect(await instanceIdOf({ fields: {} })).toBe('f35cd02cd97b');
+    expect(await instanceIdOf(undefined)).not.toBe('f35cd02cd97b');
+  });
+});
