@@ -302,9 +302,10 @@ import {
 import { lookupGloss } from './word-glosses';
 import { checkWorkerHealthAndAlert, fetchWorkerOutcomes } from './worker-health';
 import {
+  createDagPool,
   type DafWarmParams,
   dafGenSentinelKey,
-  parallelMap,
+  expandInlineDeps,
   perInstanceEnrichments,
   topoTiers,
   wholeDafEnrichmentIds,
@@ -11599,18 +11600,22 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
         }
       });
 
-    // Producers within a PHASE run in dependency TIERS, each tier's steps fanned
-    // out concurrently (bounded). Tiering guarantees every dep is already cached
-    // by an earlier tier, so parallelism never makes two steps regenerate the
-    // same uncached dep. This is what makes a cold daf generate in minutes (vs the
-    // ~30-60 min fully-sequential walk) while staying per-step memory-bounded.
+    // ONE dependency-DAG pool for the whole daf (replaces the marks → whole-daf
+    // → per-instance phase barriers and the per-tier chunk barriers): every
+    // producer starts the moment its OWN declared deps are done and a slot is
+    // free, so a slot never idles at an artificial boundary. Strictly ordered
+    // where a dependency actually exists — a node is released only when every
+    // declared dep has completed, so concurrent steps still never regenerate a
+    // shared uncached dep.
     //
     // STEP_CONCURRENCY (module-scoped, ratcheted by the memory-budget guard) is
-    // the per-tier in-isolate fan-out width. coalesce.ts shares same-daf source
-    // slices across the concurrent steps; 6 is the conservative "safe
-    // concurrency" the reader /api/run gate also landed on (#439, 16->6). The
-    // `[mem] warm-tier` width breadcrumb below attributes a future OOM to
-    // (daf, phase, width).
+    // the pool width — the peak concurrent in-isolate generation. Concurrent
+    // steps share THIS isolate's 128 MB (the per-step "own budget" only holds
+    // across suspension points), so the cap is a memory ceiling; coalesce.ts
+    // dedupes same-daf source slices across the concurrent steps. 6 is the
+    // conservative "safe concurrency" the reader /api/run gate also landed on
+    // (#439, 16->6). The `[mem] warm-dag` breadcrumb attributes a future OOM to
+    // (daf, node count, width).
     const markDepsOf = (id: string): string[] => {
       const def = CODE_MARKS.find((m) => m.id === id);
       return (def?.dependencies ?? []).map((d) => dependencyId(d)).filter((x): x is string => !!x);
@@ -11620,53 +11625,115 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
       return (def?.dependencies ?? []).map((d) => dependencyId(d)).filter((x): x is string => !!x);
     };
 
-    // 1) Marks first — enrichments depend on them. Tiered so a computed mark
-    //    (e.g. geography, which reads the rabbi + places marks) runs after its
-    //    mark deps; independent extractor marks in the same tier run concurrently.
-    for (const tier of topoTiers(
-      CODE_MARKS.map((m) => m.id),
-      markDepsOf,
-    )) {
-      // [mem] breadcrumb — a tier's steps run concurrently in THIS isolate (the
-      // "own budget" only holds across suspension points), so `width` is the peak
-      // concurrent in-isolate generation that coalesce.ts must dedupe source
-      // slices across. Attributes a cold-gen OOM to (daf, phase, width).
-      console.log(
-        '[mem] warm-tier',
-        JSON.stringify({
-          phase: 'marks',
-          t: tractate,
-          p: page,
-          lang,
-          width: tier.length,
-          conc: STEP_CONCURRENCY,
-        }),
-      );
-      await parallelMap(tier, STEP_CONCURRENCY, (mid) =>
-        runStep(`mark:${mid}`, async (rc) => {
+    // Node ids are BARE producer ids (so dependency declarations map directly);
+    // per-instance units are `${enrichmentId}::${iid}`. Step names are unchanged
+    // from the tiered scheduler (`mark:x`, `enrich:x`, `enrich:x:iid`) — replay
+    // caches by name, and names never depend on completion timing.
+    const pool = createDagPool(STEP_CONCURRENCY);
+    const perInst = perInstanceEnrichments(marksLite, enrichLite);
+    const wholeDaf = wholeDafEnrichmentIds(marksLite, enrichLite);
+    const perInstByMark = new Map<string, string[]>();
+    for (const p of perInst) {
+      perInstByMark.set(p.targetMark, [...(perInstByMark.get(p.targetMark) ?? []), p.id]);
+    }
+    const perInstIds = new Set(perInst.map((p) => p.id));
+
+    // Declare EVERY node id before adding any: the pool gates a dep only if the
+    // id is already known at add() time, so without this a dep on a node
+    // registered later in this same batch would be dropped (geography is added
+    // before its `places` dep in CODE_MARKS order). Per-instance enrichments are
+    // declared as FUTURE group nodes: their units exist only after their target
+    // mark runs, but static nodes that depend on one (biyun.essay ←
+    // pesukim.synthesis/halacha.synthesis/…) must WAIT for all units instead of
+    // regenerating them inline inside one heavy step.
+    for (const m of marksLite) pool.declare(m.id);
+    for (const id of wholeDaf) pool.declare(id);
+    for (const p of perInst) pool.declare(p.id);
+
+    // A dep on a producer the warm never generates (the excluded `argument`
+    // per-instance family, e.g. biyun.essay ← argument.synthesis) is resolved
+    // INLINE by the dependent's run — which may regenerate it and, transitively,
+    // ITS inputs (argument.synthesis reads the argument-move mark). Gate the
+    // dependent on those in-graph transitive inputs instead, so inline
+    // regeneration only ever reads already-cached pieces — the guarantee the
+    // marks-before-enrichments phase barrier used to provide.
+    const graphIds = new Set<string>([
+      ...marksLite.map((m) => m.id),
+      ...wholeDaf,
+      ...perInst.map((p) => p.id),
+    ]);
+    const enrichMeta = (id: string): { targetMark?: string; deps: string[] } | undefined => {
+      const e = CODE_ENRICHMENTS.find((x) => x.id === id);
+      return e ? { targetMark: e.target_mark, deps: enrichDepsOf(id) } : undefined;
+    };
+    const gateDeps = (deps: string[]): string[] =>
+      expandInlineDeps(deps, (id) => graphIds.has(id), enrichMeta);
+
+    // Fan a completed mark out into its per-instance units. Runs in the
+    // orchestrator (not inside a step): instance reads + the instanceId hash are
+    // deterministic, so unit step NAMES replay identically across restarts.
+    // Enrichments are added in dependency order (topoTiers) so a same-mark dep
+    // (aggadata.synthesis ← aggadata.background) can reference its sibling
+    // unit ids; each enrichment then gets a no-slot "group" node that completes
+    // when all its units have, fulfilling the declare() above.
+    const addUnitsForMark = async (mid: string): Promise<void> => {
+      const eids = perInstByMark.get(mid);
+      if (!eids || eids.length === 0) return;
+      const insts = await readMarkInstances(wrapped, mid, tractate, page);
+      const withIds: { inst: unknown; iid: string }[] = [];
+      for (const inst of insts) withIds.push({ inst, iid: await instanceIdOf(inst) });
+      for (const tier of topoTiers(eids, enrichDepsOf)) {
+        for (const eid of tier) {
+          const def = await loadEnrichmentDef(wrapped, eid);
+          const unitIds: string[] = [];
+          if (def) {
+            // A dep on a SAME-mark per-instance enrichment binds per instance
+            // (the run resolves it with this unit's own mark_input); everything
+            // else (marks, whole-daf enrichments, other groups) binds by bare id.
+            const sameMark = new Set(eids);
+            const unitDeps = (iid: string): string[] =>
+              enrichDepsOf(eid).flatMap((d) =>
+                sameMark.has(d) ? [`${d}::${iid}`] : gateDeps([d]),
+              );
+            for (const { inst, iid } of withIds) {
+              const uid = `${eid}::${iid}`;
+              pool.add(uid, unitDeps(iid), () =>
+                runStep(`enrich:${eid}:${iid}`, async (rc) => {
+                  const res = await runEnrichmentOnce(rc, def, tractate, page, inst, false);
+                  return { id: eid, iid, cached: res.cache_hit ?? false };
+                }),
+              );
+              unitIds.push(uid);
+            }
+          }
+          pool.add(eid, unitIds); // the group marker (also fulfills a no-def/no-instance declare)
+        }
+      }
+    };
+
+    // Marks: the step, then the per-instance fan-out for that mark — inside the
+    // node's run, so units register before the mark counts as complete.
+    for (const m of marksLite) {
+      const mid = m.id;
+      pool.add(mid, markDepsOf(mid), async () => {
+        await runStep(`mark:${mid}`, async (rc) => {
           const def = await loadMarkDef(wrapped, mid);
           if (!def) return { id: mid, skipped: 'no-def' };
           const res = await runMarkOnce(rc, def, tractate, page, false);
           return { id: mid, cached: res.cache_hit ?? false };
-        }),
-      );
+        });
+        await addUnitsForMark(mid);
+      });
     }
 
-    // 2) Whole-daf enrichments ({fields:{}}), in dependency tiers (e.g.
-    //    argument-overview.flow before the synthesis that consumes it).
-    for (const tier of topoTiers(wholeDafEnrichmentIds(marksLite, enrichLite), enrichDepsOf)) {
-      console.log(
-        '[mem] warm-tier',
-        JSON.stringify({
-          phase: 'whole-daf',
-          t: tractate,
-          p: page,
-          lang,
-          width: tier.length,
-          conc: STEP_CONCURRENCY,
-        }),
-      );
-      await parallelMap(tier, STEP_CONCURRENCY, (id) =>
+    // Whole-daf enrichments ({fields:{}}). Deps on marks/whole-daf nodes gate
+    // directly; deps on a per-instance enrichment gate on its declared group. A
+    // dep the pool doesn't know (source ids, never-warmed producers like the
+    // excluded `argument` family) is dropped and resolves inline at run time,
+    // exactly as before.
+    for (const id of wholeDaf) {
+      if (perInstIds.has(id)) continue; // defensive: ids are disjoint by construction
+      pool.add(id, gateDeps(enrichDepsOf(id)), () =>
         runStep(`enrich:${id}`, async (rc) => {
           const def = await loadEnrichmentDef(wrapped, id);
           if (!def) return { id, skipped: 'no-def' };
@@ -11676,55 +11743,17 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
       );
     }
 
-    // 3) Per-instance enrichments — one step per (enrichment, target instance).
-    //    Processed in enrichment dependency tiers (e.g. argument-move.synthesis
-    //    before argument-move.suggested-questions), and within a tier ALL
-    //    (enrichment, instance) steps fan out concurrently — two instances of one
-    //    enrichment are always independent, and cross-enrichment deps are already
-    //    satisfied by an earlier tier, so there is no double-generation. Instance
-    //    reads + the instanceId hash run in the orchestration (deterministic) so
-    //    step NAMES replay identically across Workflow restarts.
-    const perInst = perInstanceEnrichments(marksLite, enrichLite);
-    const byId = new Map(perInst.map((p) => [p.id, p.targetMark]));
-    for (const tier of topoTiers(
-      perInst.map((p) => p.id),
-      enrichDepsOf,
-    )) {
-      type Unit = {
-        id: string;
-        def: NonNullable<Awaited<ReturnType<typeof loadEnrichmentDef>>>;
-        inst: unknown;
-        iid: string;
-      };
-      const units: Unit[] = [];
-      for (const id of tier) {
-        const def = await loadEnrichmentDef(wrapped, id);
-        if (!def) continue;
-        const targetMark = byId.get(id);
-        if (!targetMark) continue;
-        const insts = await readMarkInstances(wrapped, targetMark, tractate, page);
-        for (const inst of insts) {
-          units.push({ id, def, inst, iid: await instanceIdOf(inst) });
-        }
-      }
-      console.log(
-        '[mem] warm-tier',
-        JSON.stringify({
-          phase: 'per-instance',
-          t: tractate,
-          p: page,
-          lang,
-          width: units.length,
-          conc: STEP_CONCURRENCY,
-        }),
-      );
-      await parallelMap(units, STEP_CONCURRENCY, (u) =>
-        runStep(`enrich:${u.id}:${u.iid}`, async (rc) => {
-          const res = await runEnrichmentOnce(rc, u.def, tractate, page, u.inst, false);
-          return { id: u.id, iid: u.iid, cached: res.cache_hit ?? false };
-        }),
-      );
-    }
+    console.log(
+      '[mem] warm-dag',
+      JSON.stringify({
+        t: tractate,
+        p: page,
+        lang,
+        marks: marksLite.length,
+        conc: STEP_CONCURRENCY,
+      }),
+    );
+    await pool.drain();
   }
 }
 

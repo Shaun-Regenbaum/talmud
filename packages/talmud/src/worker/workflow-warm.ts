@@ -123,20 +123,163 @@ export function topoTiers(ids: string[], depsOf: (id: string) => string[]): stri
 }
 
 /**
- * Run `fn` over `items` with bounded concurrency (sequential chunks of `limit`).
- * Used to fan out Workflow steps within a tier without launching an unbounded
- * number of concurrent step.do() invocations. Order of results matches input.
+ * Expand dependency ids for the warm DAG: a dep the pool KNOWS passes through
+ * unchanged, but a dep on a producer the warm never generates (today: the
+ * excluded `argument` per-instance family) is replaced by that producer's
+ * in-graph TRANSITIVE inputs — its target mark plus its own declared deps,
+ * recursively. The dependent's run resolves the excluded producer INLINE
+ * (regenerating it if uncached), and that inline walk reads the expanded
+ * inputs; gating on them preserves the old phase-barrier guarantee (inline
+ * regeneration only ever consumes already-cached pieces, so it can never race
+ * a scheduled step over the same uncached dependency). Unknown non-producer
+ * ids (source ids like 'gemara') expand to nothing, as before.
  */
-export async function parallelMap<T, R>(
-  items: T[],
-  limit: number,
-  fn: (item: T, index: number) => Promise<R>,
-): Promise<R[]> {
-  const out: R[] = [];
-  for (let i = 0; i < items.length; i += limit) {
-    const chunk = items.slice(i, i + limit);
-    const res = await Promise.all(chunk.map((item, j) => fn(item, i + j)));
-    out.push(...res);
-  }
+export function expandInlineDeps(
+  deps: string[],
+  known: (id: string) => boolean,
+  producerMeta: (id: string) => { targetMark?: string; deps: string[] } | undefined,
+): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const visit = (id: string): void => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    if (known(id)) {
+      out.push(id);
+      return;
+    }
+    const meta = producerMeta(id);
+    if (!meta) return; // a source id — read from caches inline, nothing to gate
+    if (meta.targetMark) visit(meta.targetMark);
+    for (const d of meta.deps) visit(d);
+  };
+  for (const id of deps) visit(id);
   return out;
+}
+
+/**
+ * Bounded-width dependency-DAG scheduler — the warm Workflow's step pump.
+ *
+ * Replaces the phase barriers (marks → whole-daf → per-instance) and the
+ * per-tier chunked fan-out with ONE pool: every node starts the moment its OWN
+ * declared dependencies are done and a slot is free, so no slot ever idles at a
+ * batch, tier, or phase boundary. The width cap is unchanged (the caller passes
+ * STEP_CONCURRENCY) — concurrent steps share the workflow isolate's 128 MB, so
+ * the cap is a memory ceiling, not a scheduling choice.
+ *
+ * Semantics (strict — ordering is preserved exactly where a dependency exists):
+ * - `add(id, deps, run)` registers a runnable node. Deps referencing ids the
+ *   pool does not know (source ids like 'gemara', producers the warm never
+ *   generates) are dropped — the same out-of-set rule topoTiers used; the
+ *   runtime dependency walk resolves those inline as before.
+ * - `declare(id)` registers a FUTURE node: anything depending on it waits until
+ *   a later `add` fulfills it. Used for per-instance work that can only be
+ *   enumerated after its target mark runs — a static node that depends on a
+ *   per-instance enrichment (e.g. biyun.essay ← pesukim.synthesis) then waits
+ *   for ALL of its units instead of regenerating them inline in one step.
+ * - `add` with no `run` is a completion marker (a "group" node): it completes,
+ *   without occupying a slot, once its deps are done.
+ * - `add` may be called while draining (from inside a node's run) — that is how
+ *   a mark fans out its per-instance units.
+ * - A node failure stops new starts; in-flight nodes settle; drain() rejects.
+ *   Dependents of a failed node never run.
+ * - Deterministic: nodes are scanned in insertion order, names never depend on
+ *   completion timing (Workflow replay caches steps by name).
+ */
+export interface DagPool {
+  declare(id: string): void;
+  add(id: string, deps: string[], run?: () => Promise<unknown>): void;
+  /** Drain the pool; resolves when every declared+added node is done. Call once,
+   *  after the static nodes are added. */
+  drain(): Promise<void>;
+}
+
+interface DagNode {
+  deps: string[];
+  run?: () => Promise<unknown>;
+  status: 'declared' | 'pending' | 'running' | 'done';
+}
+
+export function createDagPool(limit: number): DagPool {
+  const nodes = new Map<string, DagNode>();
+  let inFlight = 0;
+  let failure: unknown;
+  let settle: { resolve: () => void; reject: (e: unknown) => void } | undefined;
+
+  const isDone = (id: string): boolean => nodes.get(id)?.status === 'done';
+
+  function declare(id: string): void {
+    if (!nodes.has(id)) nodes.set(id, { deps: [], status: 'declared' });
+  }
+
+  function add(id: string, deps: string[], run?: () => Promise<unknown>): void {
+    const existing = nodes.get(id);
+    if (existing && existing.status !== 'declared') throw new Error(`dag: duplicate node ${id}`);
+    const gated = deps.filter((d) => d !== id && nodes.has(d));
+    nodes.set(id, { deps: gated, run, status: 'pending' });
+    pump();
+  }
+
+  function start(n: DagNode): void {
+    n.status = 'running';
+    inFlight++;
+    void (n.run as () => Promise<unknown>)().then(
+      () => {
+        n.status = 'done';
+        inFlight--;
+        pump();
+      },
+      (err: unknown) => {
+        failure = failure ?? err ?? new Error('dag: node failed');
+        inFlight--;
+        pump();
+      },
+    );
+  }
+
+  function pump(): void {
+    if (!settle) return; // not draining yet — pre-drain adds just register
+    if (failure) {
+      if (inFlight === 0) settle.reject(failure);
+      return;
+    }
+    // Scan until a full pass makes no progress: complete free "group" markers,
+    // start runnable nodes while a slot is open. Insertion order = determinism.
+    let progressed = true;
+    while (progressed) {
+      progressed = false;
+      for (const n of nodes.values()) {
+        if (n.status !== 'pending' || !n.deps.every(isDone)) continue;
+        if (!n.run) {
+          n.status = 'done';
+          progressed = true;
+        } else if (inFlight < limit) {
+          start(n);
+          progressed = true;
+        }
+      }
+    }
+    if (inFlight > 0) return; // completions will re-pump
+    const stuck: string[] = [];
+    for (const [id, n] of nodes) if (n.status !== 'done') stuck.push(id);
+    if (stuck.length === 0) settle.resolve();
+    // Nothing running, nothing ready, nodes remain: an unfulfilled declare() or
+    // an unsatisfiable dep. Fail loudly rather than hang the workflow.
+    else
+      settle.reject(
+        new Error(
+          `dag: stalled with ${stuck.length} unrunnable node(s): ${stuck.slice(0, 8).join(', ')}`,
+        ),
+      );
+  }
+
+  function drain(): Promise<void> {
+    if (settle) return Promise.reject(new Error('dag: drain() called twice'));
+    return new Promise<void>((resolve, reject) => {
+      settle = { resolve, reject };
+      pump();
+    });
+  }
+
+  return { declare, add, drain };
 }
