@@ -12,10 +12,14 @@ describe('defaultDeepseekProviderPrefs', () => {
     });
   });
 
-  it('keeps flash on plain price-sorting (third parties undercut first-party)', () => {
+  it('prefers first-party for flash too (cache reads beat cheaper uncached hosts)', () => {
     const p = defaultDeepseekProviderPrefs('deepseek/deepseek-v4-flash');
-    expect(p).toEqual({ sort: 'price', allow_fallbacks: true, require_parameters: true });
-    expect(p?.order).toBeUndefined();
+    expect(p).toEqual({
+      order: ['deepseek'],
+      sort: 'price',
+      allow_fallbacks: true,
+      require_parameters: true,
+    });
   });
 
   it('covers other deepseek slugs with the first-party preference', () => {

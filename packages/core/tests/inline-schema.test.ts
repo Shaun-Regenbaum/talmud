@@ -65,11 +65,10 @@ describe('inlineSchemaForFirstParty', () => {
     expect(messages[0].content).toContain(JSON.stringify(raw));
   });
 
-  it('leaves flash untouched (hosts support json_schema and are already cheap)', () => {
-    const input = msgs();
-    const out = inlineSchemaForFirstParty('deepseek/deepseek-v4-flash', input, JSON_SCHEMA_RF);
-    expect(out.response_format).toBe(JSON_SCHEMA_RF);
-    expect(out.messages).toBe(input);
+  it('converts flash too (first-party-preferred like every deepseek slug)', () => {
+    const out = inlineSchemaForFirstParty('deepseek/deepseek-v4-flash', msgs(), JSON_SCHEMA_RF);
+    expect(out.response_format).toEqual({ type: 'json_object' });
+    expect(out.messages[0].content).toContain('conform to this JSON Schema');
   });
 
   it('leaves non-deepseek slugs untouched', () => {
