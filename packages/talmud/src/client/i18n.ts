@@ -170,6 +170,47 @@ const CATALOG = {
   'dafvoices.rel.opposes': { en: 'opposes', he: 'חולק על' },
   'dafvoices.rel.supports': { en: 'supports', he: 'תומך ב' },
   'dafvoices.rel.responds-to': { en: 'responds to', he: 'משיב ל' },
+  'network.page.title': { en: 'Sage network', he: 'רשת החכמים' },
+  'network.page.blurb': {
+    en: 'Who a sage argues with, cites, answers, and supports — learned from the voice graphs of every analyzed daf, with the dapim as receipts.',
+    he: 'עם מי החכם חולק, את מי הוא מצטט ולמי הוא משיב — מתוך גרפי הקולות של כל דף שנותח, עם הדפים כאסמכתאות.',
+  },
+  'network.page.coverage': {
+    en: 'Built from {dapim} dapim ({edges} connections so far).',
+    he: 'נבנה מ־{dapim} דפים ({edges} קשרים עד כה).',
+  },
+  'network.page.search': { en: 'Search a sage…', he: 'חיפוש חכם…' },
+  'network.page.pickOne': {
+    en: 'Search for a sage to see their circle.',
+    he: 'חפשו חכם כדי לראות את מעגל הקשרים שלו.',
+  },
+  'network.page.building': {
+    en: 'The Shas-wide network is still being built — check back soon.',
+    he: 'רשת הש״ס עדיין נבנית — נסו שוב בקרוב.',
+  },
+  'network.page.notInGraph': {
+    en: 'No voice-graph sightings for this sage yet (coverage grows as more dapim are analyzed).',
+    he: 'אין עדיין תצפיות לחכם זה (הכיסוי גדל ככל שמנותחים עוד דפים).',
+  },
+  'network.page.meta': {
+    en: 'speaks in {sections} sections · {partners} partners',
+    he: 'מדבר ב־{sections} קטעים · {partners} בני שיח',
+  },
+  'network.page.newlyConnected': {
+    en: 'first relationships for this sage',
+    he: 'קשרים ראשונים לחכם זה',
+  },
+  'network.page.sagePage': { en: 'Sage page', he: 'דף החכם' },
+  'network.page.noEdges': {
+    en: 'Appears on analyzed dapim, but no confident partner edges yet.',
+    he: 'מופיע בדפים שנותחו, אך עדיין ללא קשרים ודאיים.',
+  },
+  'network.page.chipTitle': {
+    en: '{weight} sightings ({strict} strict)',
+    he: '{weight} תצפיות ({strict} ודאיות)',
+  },
+  'network.page.showDafs': { en: 'dapim ({n})', he: 'דפים ({n})' },
+  'network.page.hideDafs': { en: 'hide', he: 'הסתרה' },
   'dafvoices.rel.cites': { en: 'cites', he: 'מצטט את' },
   'dafvoices.rel.resolves': { en: 'resolves', he: 'מיישב את' },
   // Voice roles (argument taxonomy)

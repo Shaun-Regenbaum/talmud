@@ -4,6 +4,7 @@ import { AlignPage } from './AlignPage';
 import { AttributionsPage } from './AttributionsPage';
 import Compare from './Compare';
 import DafViewer from './DafViewer';
+import { EgoNetworkPage } from './EgoNetworkPage';
 import { HowItWorksPage } from './HowItWorksPage';
 import { McpPage } from './McpPage';
 import PretextSpike from './PretextSpike';
@@ -93,7 +94,17 @@ export default function App() {
                                                       route() === 'voices' ||
                                                       route().startsWith('voices/')
                                                     }
-                                                    fallback={<DafViewer />}
+                                                    fallback={
+                                                      <Show
+                                                        when={
+                                                          route() === 'network' ||
+                                                          route().startsWith('network/')
+                                                        }
+                                                        fallback={<DafViewer />}
+                                                      >
+                                                        <EgoNetworkPage />
+                                                      </Show>
+                                                    }
                                                   >
                                                     <VoicesPage />
                                                   </Show>
