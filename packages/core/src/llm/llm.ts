@@ -84,7 +84,7 @@ export interface LLMCallOptions {
   /**
    * OpenRouter provider routing. When unset, `openrouter/deepseek/*` models
    * default to defaultDeepseekProviderPrefs (first-party-preferred for
-   * non-flash slugs, price-sorted otherwise). Pass an explicit object to
+   * every DeepSeek slug). Pass an explicit object to
    * override, or `null` to opt out and take OpenRouter's default
    * load-balancer. Ignored for `@cf/*`.
    */
@@ -435,20 +435,18 @@ async function callWorkersAI(
  * Default OpenRouter routing for DeepSeek slugs (undefined for everything
  * else — non-DeepSeek models take OpenRouter's load-balancer).
  *
- * First-party DeepSeek is the list-cheapest host for every deepseek model
- * EXCEPT v4-flash (third parties undercut its $0.14/M by ~35%), and it is the
- * ONLY host with working prompt caching (`supports_implicit_caching` is false
- * on all 16 third-party endpoints; first-party cache reads are $0.0036/M pro /
- * $0.0028/M flash — ~99% off). So:
+ * First-party DeepSeek is the ONLY host with working prompt caching
+ * (`supports_implicit_caching` is false on all 16 third-party endpoints;
+ * first-party cache reads are $0.0036/M pro / $0.0028/M flash — ~99% off).
  *
- *   - non-flash: `order: ['deepseek']` puts first-party first DETERMINISTICALLY.
- *     Price-sorting alone would usually pick it too (it's cheapest), but
- *     price-sort flaps between hosts as quotes move, and every flap fragments
- *     the prefix cache — stable routing is worth more than an occasional
- *     cheaper quote once shared-prefix prompts land.
- *   - flash: keep price-sorting (cheaper third parties win today). Flips to
- *     first-party-preferred together with the shared-prefix prompt work, when
- *     cache reads make first-party the effective cheapest.
+ * Every DeepSeek slug gets `order: ['deepseek']` — first-party first,
+ * DETERMINISTICALLY. Price-sort alone flaps between hosts as quotes move,
+ * and every flap fragments the prefix cache. For pro, first-party is also
+ * the list-cheapest host outright. For flash, third parties undercut the
+ * $0.14/M list by ~35% ($0.09 DeepInfra) — but with shared-prefix prompts
+ * landing, first-party's $0.0028/M cache reads beat any uncached third-party
+ * rate the moment a meaningful fraction of input hits the cache (breakeven
+ * ~36% at DeepInfra's price; warm bursts sit far above that).
  *
  * `require_parameters` keeps structured-output calls on endpoints that honor
  * response_format/json_schema (first-party lacks `structured_outputs`, so
@@ -466,19 +464,22 @@ export function defaultDeepseekProviderPrefs(orSlug: string):
     }
   | undefined {
   if (!orSlug.startsWith('deepseek/')) return undefined;
-  const base = { sort: 'price' as const, allow_fallbacks: true, require_parameters: true };
-  if (orSlug.includes('flash')) return base;
-  return { order: ['deepseek'], ...base };
+  return {
+    order: ['deepseek'],
+    sort: 'price' as const,
+    allow_fallbacks: true,
+    require_parameters: true,
+  };
 }
 
 /**
  * First-party DeepSeek — the only host with working prompt caching, and the
- * list-cheapest non-flash endpoint ($0.435/M vs $0.71-1.74 on third parties)
+ * list-cheapest pro endpoint ($0.435/M vs $0.71-1.74 on third parties)
  * — does not support `structured_outputs`. A `json_schema` response_format +
  * `require_parameters` therefore routes every schema-shaped call past it,
  * which in practice was most of the v4-pro traffic (effective rate ~$1.20/M).
  *
- * For slugs whose default routing prefers first-party (non-flash DeepSeek),
+ * For slugs whose default routing prefers first-party (every DeepSeek slug),
  * convert the request into what first-party CAN honor:
  *   - `json_object` mode — syntactically valid JSON guaranteed, supported by
  *     first-party and by every fallback host. (DeepSeek's json_object also
@@ -499,7 +500,7 @@ export function inlineSchemaForFirstParty(
   messages: LLMMessage[],
   response_format: LLMCallOptions['response_format'],
 ): { messages: LLMMessage[]; response_format: LLMCallOptions['response_format'] } {
-  const prefersFirstParty = orSlug.startsWith('deepseek/') && !orSlug.includes('flash');
+  const prefersFirstParty = orSlug.startsWith('deepseek/');
   if (!prefersFirstParty || response_format?.type !== 'json_schema') {
     return { messages, response_format };
   }
@@ -549,8 +550,8 @@ async function callOpenRouterGateway(
     throw new LLMError(503, 'OPENROUTER_API_KEY not set', { cls: NEITHER });
   const t0 = Date.now();
   const orSlug = model.replace(/^openrouter\//, '');
-  // json_schema -> json_object + inlined schema for first-party-preferred
-  // DeepSeek slugs (no-op for everything else). Must run before the body is
+  // json_schema -> json_object + inlined schema for DeepSeek slugs (no-op
+  // for everything else). Must run before the body is
   // assembled so promptChars and the sent messages agree.
   const { messages, response_format } = inlineSchemaForFirstParty(
     orSlug,
@@ -585,8 +586,8 @@ async function callOpenRouterGateway(
   }
   // Provider routing. An explicit opts.provider always wins; pass `null` to
   // opt out and take OpenRouter's default load-balancer. Otherwise DeepSeek
-  // slugs take defaultDeepseekProviderPrefs (first-party-preferred for
-  // non-flash, price-sorted for flash — rationale on the helper).
+  // slugs take defaultDeepseekProviderPrefs (first-party-preferred —
+  // rationale on the helper).
   const explicitProvider = (opts as { provider?: unknown }).provider;
   if (explicitProvider !== undefined) {
     if (explicitProvider !== null) body.provider = explicitProvider;
