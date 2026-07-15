@@ -471,6 +471,56 @@ export function defaultDeepseekProviderPrefs(orSlug: string):
   return { order: ['deepseek'], ...base };
 }
 
+/**
+ * First-party DeepSeek — the only host with working prompt caching, and the
+ * list-cheapest non-flash endpoint ($0.435/M vs $0.71-1.74 on third parties)
+ * — does not support `structured_outputs`. A `json_schema` response_format +
+ * `require_parameters` therefore routes every schema-shaped call past it,
+ * which in practice was most of the v4-pro traffic (effective rate ~$1.20/M).
+ *
+ * For slugs whose default routing prefers first-party (non-flash DeepSeek),
+ * convert the request into what first-party CAN honor:
+ *   - `json_object` mode — syntactically valid JSON guaranteed, supported by
+ *     first-party and by every fallback host. (DeepSeek's json_object also
+ *     requires the prompt to mention JSON — the injected text satisfies it.)
+ *   - the schema inlined at the END of the system message, so the model
+ *     still sees the exact expected shape. The injected block is byte-stable
+ *     per producer (schema JSON is deterministic), which keeps the system
+ *     message a stable prefix for provider-side prompt caching.
+ *
+ * Structural conformance shifts from provider-side grammar to the model plus
+ * the existing parse/checks gate — a parse failure blocks the cache write and
+ * is counted/observable, so a regression here is visible, not silent.
+ * Flash and non-DeepSeek slugs are untouched (their hosts support
+ * json_schema and are already cheap).
+ */
+export function inlineSchemaForFirstParty(
+  orSlug: string,
+  messages: LLMMessage[],
+  response_format: LLMCallOptions['response_format'],
+): { messages: LLMMessage[]; response_format: LLMCallOptions['response_format'] } {
+  const prefersFirstParty = orSlug.startsWith('deepseek/') && !orSlug.includes('flash');
+  if (!prefersFirstParty || response_format?.type !== 'json_schema') {
+    return { messages, response_format };
+  }
+  // output_schema values are OpenAI-style wrappers ({ name, strict, schema });
+  // inline the inner JSON Schema. Tolerate a raw schema passed directly.
+  const wrapper = response_format.json_schema as { schema?: unknown } | null | undefined;
+  const schema =
+    wrapper && typeof wrapper === 'object' && wrapper.schema !== undefined
+      ? wrapper.schema
+      : wrapper;
+  const guidance = `\n\nReturn ONLY a single JSON object — no markdown fences, no commentary. It must conform to this JSON Schema:\n${JSON.stringify(schema)}`;
+  const idx = messages.findIndex((m) => m.role === 'system');
+  const out = messages.slice();
+  if (idx >= 0) {
+    out[idx] = { ...out[idx], content: out[idx].content + guidance };
+  } else {
+    out.unshift({ role: 'system', content: guidance.trimStart() });
+  }
+  return { messages: out, response_format: { type: 'json_object' } };
+}
+
 function openRouterGatewayUrl(env: LLMEnv): string {
   const account = env.CLOUDFLARE_ACCOUNT_ID;
   const gateway = env.AI_GATEWAY_ID;
@@ -497,17 +547,25 @@ async function callOpenRouterGateway(
 ): Promise<Omit<LLMResult, 'attempts'>> {
   if (!env.OPENROUTER_API_KEY)
     throw new LLMError(503, 'OPENROUTER_API_KEY not set', { cls: NEITHER });
-  const promptChars = opts.messages.reduce((s, m) => s + m.content.length, 0);
   const t0 = Date.now();
   const orSlug = model.replace(/^openrouter\//, '');
+  // json_schema -> json_object + inlined schema for first-party-preferred
+  // DeepSeek slugs (no-op for everything else). Must run before the body is
+  // assembled so promptChars and the sent messages agree.
+  const { messages, response_format } = inlineSchemaForFirstParty(
+    orSlug,
+    opts.messages,
+    opts.response_format,
+  );
+  const promptChars = messages.reduce((s, m) => s + m.content.length, 0);
 
   const body: Record<string, unknown> = {
     model: orSlug,
-    messages: opts.messages,
+    messages,
     max_tokens: opts.max_tokens,
     temperature: opts.temperature ?? DEFAULT_TEMPERATURE,
   };
-  if (opts.response_format) body.response_format = opts.response_format;
+  if (response_format) body.response_format = response_format;
   // Ask OpenRouter to return billed cost (USD, net of prompt-cache discounts)
   // in the response `usage` object. Drives the cost ledger / /api/admin/llm-cost.
   body.usage = { include: true };
