@@ -5981,6 +5981,10 @@ interface LlmCostRec {
   prompt_tokens: number | null;
   completion_tokens: number | null;
   total_tokens: number | null;
+  /** Prompt-cache hits: subset of prompt_tokens billed at the cache-read rate.
+   *  Additive — null on entries written before it existed AND on endpoints
+   *  without prompt caching. */
+  cached_tokens?: number | null;
   // Attribution (additive; null on entries written before it existed).
   cost_in_est?: number | null;
   cost_out_est?: number | null;
@@ -6059,11 +6063,18 @@ app.get('/api/admin/llm-cost', async (c) => {
     let callsWithCost = 0;
     let promptTokens = 0;
     let completionTokens = 0;
+    let cachedTokens = 0;
     let minTs = Number.POSITIVE_INFINITY;
     let maxTs = 0;
     const byModel: Record<
       string,
-      { calls: number; cost: number; promptTokens: number; completionTokens: number }
+      {
+        calls: number;
+        cost: number;
+        promptTokens: number;
+        completionTokens: number;
+        cachedTokens: number;
+      }
     > = {};
     const byTag: Record<string, { calls: number; cost: number }> = {};
     const byKind: Record<string, { calls: number; cost: number }> = {};
@@ -6099,14 +6110,22 @@ app.get('/api/admin/llm-cost', async (c) => {
         if (typeof r.cost_out_est === 'number') totalCostOutEst += r.cost_out_est;
         if (typeof r.prompt_tokens === 'number') promptTokens += r.prompt_tokens;
         if (typeof r.completion_tokens === 'number') completionTokens += r.completion_tokens;
+        if (typeof r.cached_tokens === 'number') cachedTokens += r.cached_tokens;
         if (r.ts < minTs) minTs = r.ts;
         if (r.ts > maxTs) maxTs = r.ts;
-        const m = byModel[r.model] ?? { calls: 0, cost: 0, promptTokens: 0, completionTokens: 0 };
+        const m = byModel[r.model] ?? {
+          calls: 0,
+          cost: 0,
+          promptTokens: 0,
+          completionTokens: 0,
+          cachedTokens: 0,
+        };
         byModel[r.model] = m;
         m.calls++;
         m.cost += r.cost ?? 0;
         m.promptTokens += r.prompt_tokens ?? 0;
         m.completionTokens += r.completion_tokens ?? 0;
+        m.cachedTokens += r.cached_tokens ?? 0;
         const t = byTag[r.tag] ?? { calls: 0, cost: 0 };
         byTag[r.tag] = t;
         t.calls++;
@@ -6153,6 +6172,9 @@ app.get('/api/admin/llm-cost', async (c) => {
       callsWithCost,
       promptTokens,
       completionTokens,
+      // Prompt-cache hit volume (subset of promptTokens billed at cache-read
+      // rates). cachedTokens / promptTokens = the live cache hit rate.
+      cachedTokens,
       window: { from: calls ? minTs : null, to: calls ? maxTs : null },
       byModel,
       byTag,
@@ -6872,6 +6894,7 @@ function captureLlmUsage(
     model: args.result.model ?? null,
     tokensIn: input,
     tokensOut: output,
+    tokensCached: usage?.prompt_tokens_details?.cached_tokens ?? 0,
     costUsd: cost,
     costInUsd,
     costOutUsd,

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { readUsageSummary, recordUsage, type UsageDelta } from '../src/worker/usage-rollup';
+import {
+  readUsageSummary,
+  recordUsage,
+  todayUtc,
+  type UsageDelta,
+} from '../src/worker/usage-rollup';
 
 // Prefix-aware in-memory KV — usage-rollup lists `usage:daily:v1:*` and does a
 // read-modify-write per record, so the fake must support get/put + prefix list.
@@ -91,6 +96,103 @@ describe('usage-rollup with cost split', () => {
     expect(s.byModel['openrouter/deepseek/deepseek-v4-flash'].calls).toBe(2);
     expect(s.byMark.rabbi.calls).toBe(1);
     expect(s.byEnrichment['rabbi.synthesis'].calls).toBe(1);
+  });
+
+  it('accumulates prompt-cache hit tokens per bucket', async () => {
+    const { kv } = makeFakeKV();
+    const env = { CACHE: kv };
+    await record(env, [
+      priced({ markId: 'rabbi', tokensIn: 4000, tokensCached: 3712 }),
+      priced({ markId: 'rabbi', tokensIn: 4000 }), // endpoint without caching: field absent
+      priced({ enrichmentId: 'rabbi.synthesis', tokensIn: 2000, tokensCached: 1500 }),
+    ]);
+    const s = await readUsageSummary(kv);
+    expect(s.totals.tokensCached).toBe(5212);
+    expect(s.totals.tokensIn).toBe(10000);
+    expect(s.byMark.rabbi.tokensCached).toBe(3712);
+    expect(s.byEnrichment['rabbi.synthesis'].tokensCached).toBe(1500);
+    expect(s.byModel['openrouter/deepseek/deepseek-v4-flash'].tokensCached).toBe(5212);
+  });
+
+  it('coalesces tokensCached over rollup docs stored before the field existed', async () => {
+    const { kv, store } = makeFakeKV();
+    const env = { CACHE: kv };
+    // A pre-tokensCached daily doc, as it exists in KV today.
+    store.set(
+      `usage:daily:v1:${todayUtc()}`,
+      JSON.stringify({
+        date: todayUtc(),
+        errors: 0,
+        cacheHits: 0,
+        calls: 1,
+        tokensIn: 1000,
+        tokensOut: 100,
+        costUsd: 0.001,
+        costInUsd: 0.0007,
+        costOutUsd: 0.0003,
+        pricedCalls: 1,
+        unpricedCalls: 0,
+        byModel: {},
+        byMark: {
+          rabbi: {
+            calls: 1,
+            tokensIn: 1000,
+            tokensOut: 100,
+            costUsd: 0.001,
+            costInUsd: 0.0007,
+            costOutUsd: 0.0003,
+            pricedCalls: 1,
+            unpricedCalls: 0,
+          },
+        },
+        byEnrichment: {},
+      }),
+    );
+    await record(env, [priced({ markId: 'rabbi', tokensIn: 4000, tokensCached: 3000 })]);
+    const s = await readUsageSummary(kv);
+    expect(s.totals.calls).toBe(2);
+    expect(s.totals.tokensCached).toBe(3000);
+    expect(s.byMark.rabbi.tokensCached).toBe(3000);
+    expect(s.byMark.rabbi.tokensIn).toBe(5000);
+  });
+
+  it('normalizes tokensCached onto series entries read from old docs', async () => {
+    const { kv, store } = makeFakeKV();
+    // A historical (read-only) doc from before the field existed.
+    store.set(
+      'usage:daily:v1:2026-01-01',
+      JSON.stringify({
+        date: '2026-01-01',
+        errors: 0,
+        cacheHits: 0,
+        calls: 1,
+        tokensIn: 1000,
+        tokensOut: 100,
+        costUsd: 0.001,
+        costInUsd: 0.0007,
+        costOutUsd: 0.0003,
+        pricedCalls: 1,
+        unpricedCalls: 0,
+        byModel: {},
+        byMark: {
+          rabbi: {
+            calls: 1,
+            tokensIn: 1000,
+            tokensOut: 100,
+            costUsd: 0.001,
+            costInUsd: 0.0007,
+            costOutUsd: 0.0003,
+            pricedCalls: 1,
+            unpricedCalls: 0,
+          },
+        },
+        byEnrichment: {},
+      }),
+    );
+    const s = await readUsageSummary(kv);
+    expect(s.series[0].tokensCached).toBe(0);
+    expect(s.series[0].byMark.rabbi.tokensCached).toBe(0);
+    expect(s.totals.tokensCached).toBe(0);
   });
 
   it('counts unpriced calls without inflating cost, and tracks errors/cache hits', async () => {
