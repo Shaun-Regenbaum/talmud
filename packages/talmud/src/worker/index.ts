@@ -35,6 +35,11 @@ import {
   transitiveDependents,
 } from '@corpus/core/registry/depGraph';
 import {
+  buildDafPreamble,
+  pointerizeDafVars,
+  prependPreamble,
+} from '@corpus/core/run/daf-preamble';
+import {
   type ResolvedInputs,
   type ResolveInputsPorts,
   resolveInputs,
@@ -4209,35 +4214,42 @@ async function runExtractorFannedOut(
     ? dedupeByRange(rawInstances as Array<Partial<{ startSegIdx: number; endSegIdx: number }>>)
     : rawInstances;
 
+  // Shared-prefix restructure: the whole-daf context becomes the byte-stable
+  // leading block of EVERY fan-out call (same preamble the single-call and
+  // enrichment paths send), so per-section calls share the cache prefix with
+  // each other and with every other producer on this daf. Daf-text vars are
+  // pointerized; the narrowed per-section slice below then overwrites
+  // segments_he — the section text is instance-specific and stays inline.
+  const contextPreamble = buildDafPreamble(baseVars);
+  const pointeredBase = contextPreamble ? pointerizeDafVars(baseVars) : baseVars;
+
   const renderAndCall = async (
     anchorsOverride: Record<string, unknown>,
     maxTokens: number,
     segRange?: { start: number; end: number },
   ) => {
-    const callVars: Record<string, unknown> = { ...baseVars, anchors: anchorsOverride };
-    // Fan-out scoping: when this call covers a single section, send only that
-    // section's Hebrew segments instead of the whole amud. Pre-number the lines
-    // with their GLOBAL segment index (the exact [N] labels renderTemplate emits
-    // for the full array) so excerpt anchoring and the section-range move ids
-    // stay valid; passing a string makes renderTemplate skip its array path and
-    // emit it verbatim. Cuts (sections-1)x the amud's Hebrew per daf — the
-    // section text is the only large payload that was duplicated across calls.
+    const callVars: Record<string, unknown> = { ...pointeredBase, anchors: anchorsOverride };
+    // Fan-out scoping: when this call covers a single section, send that
+    // section's Hebrew segments inline. Pre-number the lines with their GLOBAL
+    // segment index (the exact [N] labels renderTemplate emits for the full
+    // array — and that the preamble uses) so excerpt anchoring and the
+    // section-range move ids stay valid; passing a string makes renderTemplate
+    // skip its array path and emit it verbatim. An out-of-range section (data
+    // drift between the parent mark and the slice) keeps the pointer — the
+    // full text is in the preamble.
     if (segRange && Array.isArray(baseVars.segments_he)) {
       const full = baseVars.segments_he as string[];
       const sliced = full.map((s, i) => `[${i}] ${s}`).slice(segRange.start, segRange.end + 1);
-      // Only narrow when the range actually selects segments. An out-of-range
-      // section (data drift between the parent mark and the slice) falls back
-      // to the full amud rather than sending an empty source.
       if (sliced.length > 0) callVars.segments_he = sliced.join('\n');
     }
     const systemPrompt = renderTemplate(ext.system_prompt, callVars);
     const userPrompt = renderTemplate(ext.user_prompt_template, callVars);
     const r = await runLLM(rc.env, {
       ...llmOptsBase,
-      messages: [
+      messages: prependPreamble(contextPreamble, [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
-      ],
+      ]),
       max_tokens: maxTokens,
     } as Parameters<typeof runLLM>[1]);
     return { r, systemPrompt, userPrompt };
@@ -4483,14 +4495,18 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
         userPrompt: fanned.userPromptSample,
       };
     }
-    const systemPrompt = renderTemplate(a.sysTpl, a.vars);
-    const userPrompt = renderTemplate(a.usrTpl, a.vars);
+    // Shared-prefix restructure (see daf-preamble.ts): canonical daf block
+    // first, pointerized daf vars in the producer template.
+    const contextPreamble = buildDafPreamble(a.vars);
+    const promptVars = contextPreamble ? pointerizeDafVars(a.vars) : a.vars;
+    const systemPrompt = renderTemplate(a.sysTpl, promptVars);
+    const userPrompt = renderTemplate(a.usrTpl, promptVars);
     const result = await runLLM(rc.env, {
       ...llmOptsBase,
-      messages: [
+      messages: prependPreamble(contextPreamble, [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
-      ],
+      ]),
       max_tokens: 16000,
     });
     return { result, systemPrompt, userPrompt };
@@ -4500,10 +4516,12 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
     const model = (a.modelOverride as LLMModelId | undefined) ?? def.model;
     return runLLM(rc.env, {
       ...(model ? { model } : {}),
-      messages: [
+      // Preamble-first as its OWN system message: a byte-identical complete
+      // leading message is what reliably prefix-caches across producers.
+      messages: prependPreamble(a.contextPreamble, [
         { role: 'system', content: a.systemPrompt },
         { role: 'user', content: a.userPrompt },
-      ],
+      ]),
       max_tokens: 16000,
       temperature: 0.2,
       response_format: def.output_schema

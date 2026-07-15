@@ -45,6 +45,22 @@ describe('inlineSchemaForFirstParty', () => {
     expect(messages[0].content).toMatch(/JSON/);
   });
 
+  it('appends to the LAST system message, never the leading preamble', () => {
+    const input: LLMMessage[] = [
+      { role: 'system', content: 'DAF PREAMBLE' },
+      { role: 'system', content: 'You are the extractor.' },
+      { role: 'user', content: 'Extract.' },
+    ];
+    const { messages } = inlineSchemaForFirstParty(
+      'deepseek/deepseek-v4-pro',
+      input,
+      JSON_SCHEMA_RF,
+    );
+    expect(messages[0].content).toBe('DAF PREAMBLE');
+    expect(messages[1].content).toContain('conform to this JSON Schema');
+    expect(messages[2].content).toBe('Extract.');
+  });
+
   it('prepends a system message when none exists', () => {
     const { messages } = inlineSchemaForFirstParty(
       'deepseek/deepseek-v4-pro',
