@@ -113,6 +113,7 @@ const CLASSIFICATION: Record<string, Classification> = {
   keyForRabbiBioBySlug: { role: 'not-source', note: 'per-rabbi global bio enrichment' },
   keyForRabbiBioOnDaf: { role: 'not-source', note: 'per-rabbi per-daf bio synthesis' },
   keyForRabbiGraph: { role: 'not-source', note: 'rabbi aggregate blob' },
+  keyForRabbiVoiceGraph: { role: 'not-source', note: 'learned voice-graph aggregate blob' },
   keyForRabbiCohort: { role: 'not-source', note: 'rabbi aggregate blob' },
   keyForRabbiPlacesIndex: { role: 'not-source', note: 'rabbi aggregate blob' },
   keyForRabbiAcademyRoster: { role: 'not-source', note: 'rabbi aggregate blob' },

@@ -47,6 +47,8 @@ OPENROUTER_GATEWAY_PROVIDER = "openrouter"
 # Background full-Shas backfills run from the GENERATOR's cron (PR-1b moves the
 # crons here). Same values as the reader carried.
 OBSERVATIONS_WARM_SHAS = "1"
+# Incremental Shas-wide voice-graph fold (warm-cron); consulted on the generator only.
+VOICE_GRAPH_WARM_SHAS = "1"
 DAFYOMI_WARM_SHAS = "1"
 SPINE_VIEW_WARM_SHAS = "1"
 # Spend budget — enforced at the runLLM chokepoint, which now lives here.

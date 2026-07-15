@@ -254,6 +254,11 @@ export function keyForRabbiBioOnDaf(
 export function keyForRabbiGraph(): string {
   return 'rabbi-graph:v1';
 }
+/** The learned Shas-wide rabbi voice graph (voice-graph.ts / warm-cron fold).
+ *  Distinct from rabbi-graph:v1 (the compiled curated teacher/student blob). */
+export function keyForRabbiVoiceGraph(): string {
+  return 'rabbi-voice-graph:v1';
+}
 export function keyForRabbiCohort(): string {
   return 'rabbi-cohort:v1';
 }

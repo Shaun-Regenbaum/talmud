@@ -701,6 +701,15 @@ export function lookupRelationshipsBySlug(slug: string, displayName?: string): L
   };
 }
 
+/** Curated hierarchy edge count for a slug (teachers+students+colleagues).
+ *  0 for unknown slugs and for the ~940 registry nodes without curated edges —
+ *  the population the learned voice graph exists to connect. */
+export function curatedEdgeCount(slug: string): number {
+  const n = DATA.nodes[slug];
+  if (!n) return 0;
+  return (n.teachers?.length ?? 0) + (n.students?.length ?? 0) + (n.colleagues?.length ?? 0);
+}
+
 /** Diagnostic — coverage stats for the loaded graph. */
 export function graphStats(): {
   totalNodes: number;
