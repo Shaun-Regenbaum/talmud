@@ -145,6 +145,7 @@ import {
   keyForRabbiObs,
   keyForRabbiObsDirty,
   keyForRabbiPlacesIndex,
+  keyForRabbiVoiceGraph,
   keyForRabbiWikiBio,
   keyForRabbiWikidata,
   keyForReferences,
@@ -294,14 +295,17 @@ import {
   recordUnknownRabbi,
 } from './unknown-registry';
 import { readUsageSummary, recordUsage } from './usage-rollup';
+import { egoSlice, type VoiceGraphBlob } from './voice-graph';
 import {
   getWarmTotal,
   halachaWarmProgressProcessed,
   readHalachaWarmCursor,
   readSefariaWarmCursor,
   readWarmCursor,
+  runVoiceGraphBackfill,
   runWarmCron,
   sefariaWarmProgressProcessed,
+  VOICE_GRAPH_STATE_KEY,
   warmProgressProcessed,
 } from './warm-cron';
 import { checkWholeDafLeakAndAlert } from './whole-daf-leak-watch';
@@ -10268,6 +10272,84 @@ app.get('/api/admin/rabbi-cohort', async (c) => {
   const hit = await c.env.CACHE.get(keyForRabbiCohort());
   if (!hit) return c.json({ error: 'not compiled' }, 404);
   return c.json(JSON.parse(hit));
+});
+
+// ---------------------------------------------------------------------------
+// Learned rabbi voice graph — the Shas-wide fold of every cached
+// argument.voices section (voice-graph.ts + warm-cron incremental walk).
+// Public reads; the step/rebuild mutations are studio-gated.
+
+app.get('/api/rabbi-network', async (c) => {
+  if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
+  const hit = await c.env.CACHE.get(keyForRabbiVoiceGraph());
+  if (!hit) return c.json({ error: 'not compiled' }, 404);
+  const blob = JSON.parse(hit) as VoiceGraphBlob;
+  const { nodes, edges, ...meta } = blob;
+  return c.json({ ...meta, nodes: Object.keys(nodes).length, edges: Object.keys(edges).length });
+});
+
+app.get('/api/rabbi-network/:slug', async (c) => {
+  if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
+  const hit = await c.env.CACHE.get(keyForRabbiVoiceGraph());
+  if (!hit) return c.json({ error: 'not compiled' }, 404);
+  const blob = JSON.parse(hit) as VoiceGraphBlob;
+  const slug = c.req.param('slug');
+  const ego = egoSlice(blob, slug);
+  if (!ego) return c.json({ error: 'not in the voice graph yet', dapim: blob.dapim }, 404);
+  return c.json({ type: 'rabbi', id: slug, builtAt: blob.builtAt, dapim: blob.dapim, ...ego });
+});
+
+app.get('/api/admin/voice-graph/status', async (c) => {
+  if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
+  const [state, blob] = await Promise.all([
+    c.env.CACHE.get(VOICE_GRAPH_STATE_KEY),
+    c.env.CACHE.get(keyForRabbiVoiceGraph()),
+  ]);
+  // Collapse the heavy graph payloads to counts — status is a meta view.
+  const meta = (raw: string | null) => {
+    if (!raw) return null;
+    try {
+      const b = JSON.parse(raw) as Record<string, unknown> & {
+        nodes?: object;
+        edges?: object;
+        dafsSeen?: object;
+        staging?: { nodes?: object; edges?: object; dafsSeen?: object } & Record<string, unknown>;
+      };
+      const shrink = (o: Record<string, unknown>) => {
+        const { nodes, edges, dafsSeen, ...rest } = o as {
+          nodes?: object;
+          edges?: object;
+          dafsSeen?: object;
+        } & Record<string, unknown>;
+        return {
+          ...rest,
+          ...(nodes ? { nodes: Object.keys(nodes).length } : {}),
+          ...(edges ? { edges: Object.keys(edges).length } : {}),
+          ...(dafsSeen ? { dapimSeen: Object.keys(dafsSeen).length } : {}),
+        };
+      };
+      return b.staging ? { ...shrink(b), staging: shrink(b.staging) } : shrink(b);
+    } catch {
+      return null;
+    }
+  };
+  return c.json({ state: meta(state), blob: meta(blob) });
+});
+
+app.post('/api/admin/voice-graph/step', async (c) => {
+  if (!isTrustedRequest(c)) return c.json({ error: 'studio auth required' }, 403);
+  const result = await runVoiceGraphBackfill(c.env, { force: true });
+  return c.json({ result });
+});
+
+app.post('/api/admin/voice-graph/rebuild', async (c) => {
+  if (!isTrustedRequest(c)) return c.json({ error: 'studio auth required' }, 403);
+  if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
+  await c.env.CACHE.delete(VOICE_GRAPH_STATE_KEY);
+  return c.json({
+    ok: true,
+    note: 'state cleared; next warm ticks (or /step) rebuild from scratch',
+  });
 });
 
 app.get('/api/admin/rabbi-places-index', async (c) => {

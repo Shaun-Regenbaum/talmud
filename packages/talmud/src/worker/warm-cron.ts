@@ -12,15 +12,19 @@
 import { iterAmudim } from '../lib/sefref/amudim';
 import { listDafyomiMasechtos } from '../lib/sefref/dafyomi/masechtos';
 import { TRACTATE_IDS } from '../lib/sefref/hebrewbooks/client';
+import { dafFromCacheKey } from './backfill-backlog';
 import {
   keyForDafyomi,
   keyForHalachaRefs,
   keyForHebrewBooks,
+  keyForRabbiVoiceGraph,
   keyForSefariaBundle,
   keyForSefariaSegments,
   keyForTalmudParallels,
+  slugDaf,
 } from './cache-keys';
 import { computeCacheStats, writeCachedCacheStats } from './cache-stats';
+import { CODE_ENRICHMENTS, CODE_MARKS } from './code-marks';
 import {
   getDafyomiContentCached,
   getHalachaRefsCached,
@@ -31,6 +35,14 @@ import {
   getYerushalmiCached,
 } from './source-cache';
 import type { JobMessage } from './types';
+import {
+  type CastItem,
+  emptyVoiceGraphStaging,
+  finalizeVoiceGraph,
+  foldSection,
+  groundVoices,
+  type VoiceGraphStaging,
+} from './voice-graph';
 
 const CURSOR_KEY = 'warm-cursor:v1';
 const SEFARIA_CURSOR_KEY = 'warm-cursor-sefaria:v1';
@@ -80,6 +92,13 @@ export interface WarmEnv {
    *  fan-out + pesukim) to extract across the whole shas. Set via wrangler.toml
    *  [vars] once you're ready to pay for the backfill. */
   OBSERVATIONS_WARM_SHAS?: string;
+  /** When '1', an incremental phase folds every cached argument.voices
+   *  section across Shas into the learned rabbi voice graph
+   *  (rabbi-voice-graph:v1) — one KV list page per warm tick, cursor-resumable,
+   *  self-latching when the full prefix has been walked. Coverage grows as more
+   *  dapim get warmed; to rebuild against newer coverage, delete the
+   *  voice-graph-cursor:v1 + staging keys (or POST /api/admin/voice-graph/rebuild). */
+  VOICE_GRAPH_WARM_SHAS?: string;
   /** When '1', a small independent phase walks all of Shas filling the
    *  halacha-refs source cache (Sefaria codifier links + their text) — the
    *  source behind the halacha card + GET /api/halacha-text. Sefaria-only, no
@@ -215,6 +234,190 @@ async function runObservationsBackfill(env: WarmEnv): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// Shas-wide rabbi voice graph — incremental, cursor-resumable, self-refreshing.
+//
+// Gated by VOICE_GRAPH_WARM_SHAS='1'. Walks the cached argument.voices prefix
+// one KV list page per warm tick, grounds each section's speakers against the
+// daf's rabbi-mark cast (groundRabbiNames — the reader's resolver), and folds
+// the section dispute edges into an accumulating state; when the list
+// completes, the graph is finalized into rabbi-voice-graph:v1 and the state
+// latches done — until the latch EXPIRES (VOICE_GRAPH_REBUILD_AFTER_MS), at
+// which point a fresh walk starts so the graph tracks growing daf coverage.
+//
+// Failure safety: ALL walk state (accumulated staging + list cursor + input
+// producer versions) lives in ONE KV key written exactly once per folded page,
+// so "page folded" and "cursor advanced" commit atomically — a failed tick
+// replays at most the current page into a state that does NOT yet include it.
+// The final tick writes the blob BEFORE the done-state; if the done-state
+// write fails, the last page replays and re-finalizes to identical content.
+// A producer cache_version bump (argument.voices or the rabbi mark) resets the
+// walk rather than mixing input versions in one accumulation.
+//
+// Subrequest budget per tick: one list page (VOICE_GRAPH_LIST_LIMIT value
+// reads) + one rabbi-mark read per distinct daf on the page + one state write
+// — worst case ~2×limit + a handful, comfortably under the cap alongside the
+// other warm phases. Pure fold logic lives in voice-graph.ts.
+// ---------------------------------------------------------------------------
+export const VOICE_GRAPH_STATE_KEY = 'voice-graph-state:v1';
+const VOICE_GRAPH_LIST_LIMIT = 120;
+/** A completed graph is rebuilt from scratch after this long, folding in
+ *  whatever new dapim were warmed since. */
+const VOICE_GRAPH_REBUILD_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
+
+interface VoiceGraphState {
+  /** Input producer versions this walk reads — a bump resets the walk. */
+  inputs: { voices: string; rabbi: string };
+  staging?: VoiceGraphStaging;
+  cursor?: string;
+  done?: boolean;
+  builtAt?: number;
+  scanned?: number;
+}
+
+function voiceGraphInputs(): { voices: string; rabbi: string } {
+  return {
+    voices: CODE_ENRICHMENTS.find((e) => e.id === 'argument.voices')?.cache_version ?? '',
+    rabbi: CODE_MARKS.find((m) => m.id === 'rabbi')?.cache_version ?? '',
+  };
+}
+
+function rabbiMarkKey(rabbiVersion: string, tractate: string, page: string): string {
+  return `mark:rabbi:${rabbiVersion}:${slugDaf(tractate, page)}`;
+}
+
+/** The daf's grounded rabbi cast (names + generations) as resolution context. */
+async function readRabbiCast(
+  cache: KVNamespace,
+  rabbiVersion: string,
+  tractate: string,
+  page: string,
+): Promise<CastItem[]> {
+  const raw = await cache.get(rabbiMarkKey(rabbiVersion, tractate, page));
+  if (!raw) return [];
+  try {
+    const parsed = (JSON.parse(raw) as { parsed?: { instances?: unknown } }).parsed;
+    const insts = Array.isArray(parsed?.instances) ? parsed.instances : [];
+    const out: CastItem[] = [];
+    for (const inst of insts) {
+      const f = (inst as { fields?: Record<string, unknown> })?.fields;
+      const name = typeof f?.name === 'string' ? f.name.trim() : '';
+      if (!name) continue;
+      out.push({
+        name,
+        nameHe: typeof f?.nameHe === 'string' ? f.nameHe : undefined,
+        generation: typeof f?.generation === 'string' ? f.generation : undefined,
+      });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+/** One page of the walk. Exported for the admin /step route (force) and called
+ *  every warm tick when gated on. Returns null when gated off / no CACHE. */
+export async function runVoiceGraphBackfill(
+  env: WarmEnv,
+  opts?: { force?: boolean },
+): Promise<{ done: boolean; scanned: number } | null> {
+  if (!opts?.force && env.VOICE_GRAPH_WARM_SHAS !== '1') return null;
+  const cache = env.CACHE;
+  if (!cache) return null;
+
+  const inputs = voiceGraphInputs();
+  let state: VoiceGraphState | null = null;
+  const rawState = await cache.get(VOICE_GRAPH_STATE_KEY);
+  if (rawState) {
+    try {
+      state = JSON.parse(rawState) as VoiceGraphState;
+    } catch {
+      /* reset */
+    }
+  }
+  // Reset when the input producer versions changed (never mix versions in one
+  // accumulation) or when a completed build has aged out.
+  if (state && (state.inputs?.voices !== inputs.voices || state.inputs?.rabbi !== inputs.rabbi)) {
+    state = null;
+  }
+  if (state?.done) {
+    const age = Date.now() - (state.builtAt ?? 0);
+    if (age < VOICE_GRAPH_REBUILD_AFTER_MS) return { done: true, scanned: state.scanned ?? 0 };
+    state = null; // latch expired — start a fresh walk over the grown coverage
+  }
+  const staging: VoiceGraphStaging = state?.staging ?? emptyVoiceGraphStaging(Date.now());
+
+  const res = await cache.list({
+    prefix: `enrich:argument.voices:${inputs.voices}:`,
+    cursor: state?.cursor,
+    limit: VOICE_GRAPH_LIST_LIMIT,
+  });
+  // Group this page's EN keys by daf so each daf's cast is read once.
+  // dafFromCacheKey skips the :he: namespace (EN is canonical — counting both
+  // langs would double every sighting).
+  const byDaf = new Map<string, { tractate: string; page: string; keys: string[] }>();
+  for (const k of res.keys) {
+    const daf = dafFromCacheKey(k.name);
+    if (!daf) continue;
+    const label = `${daf.tractate} ${daf.page}`;
+    const group = byDaf.get(label) ?? { ...daf, keys: [] };
+    group.keys.push(k.name);
+    byDaf.set(label, group);
+  }
+  for (const [label, group] of byDaf) {
+    const cast = await readRabbiCast(cache, inputs.rabbi, group.tractate, group.page);
+    for (const key of group.keys) {
+      const raw = await cache.get(key);
+      staging.scannedKeys++;
+      if (!raw) continue;
+      let parsed: unknown = null;
+      try {
+        parsed = (JSON.parse(raw) as { parsed?: unknown }).parsed ?? null;
+      } catch {
+        /* skip corrupt */
+      }
+      if (!parsed || typeof parsed !== 'object') continue;
+      const voices = (parsed as { voices?: unknown }).voices;
+      const grounded = groundVoices(Array.isArray(voices) ? voices : [], cast);
+      foldSection(staging, parsed, grounded, label);
+    }
+  }
+
+  if (res.list_complete) {
+    // Blob first, done-state second: if the state write fails, the last page
+    // replays into a staging that does not include it and re-finalizes to the
+    // same blob — idempotent.
+    const blob = finalizeVoiceGraph(staging, Date.now());
+    await cache.put(keyForRabbiVoiceGraph(), JSON.stringify({ ...blob, inputs }));
+    await cache.put(
+      VOICE_GRAPH_STATE_KEY,
+      JSON.stringify({
+        inputs,
+        done: true,
+        builtAt: blob.builtAt,
+        scanned: staging.scannedKeys,
+      } satisfies VoiceGraphState),
+    );
+    console.log(
+      `[warm-cron] voice graph COMPLETE — ${blob.dapim} dapim, ` +
+        `${Object.keys(blob.nodes).length} rabbis, ${Object.keys(blob.edges).length} edges, ` +
+        `${blob.newlyConnected} newly connected`,
+    );
+    return { done: true, scanned: staging.scannedKeys };
+  }
+
+  // The ONE commit point per page: accumulated staging + advanced cursor
+  // together, atomically.
+  await cache.put(
+    VOICE_GRAPH_STATE_KEY,
+    JSON.stringify({ inputs, staging, cursor: res.cursor } satisfies VoiceGraphState),
+  );
+  console.log(
+    `[warm-cron] voice graph progress: scanned=${staging.scannedKeys} sections=${staging.sections}`,
+  );
+  return { done: false, scanned: staging.scannedKeys };
+}
+
+// ---------------------------------------------------------------------------
 // Dafyomi.co.il (Kollel Iyun HaDaf) gradual ingestion — gated, self-latching.
 //
 // Gated by DAFYOMI_WARM_SHAS='1'. Walks all dafyomi-mapped masechtos (Chullin +
@@ -321,6 +524,9 @@ export async function runWarmCron(env: WarmEnv): Promise<void> {
 
   // Gradual dafyomi.co.il ingestion (gated, self-latching). Independent phase.
   await runDafyomiBackfill(env);
+
+  // Incremental rabbi voice-graph fold (gated, cursor-resumable, self-latching).
+  await runVoiceGraphBackfill(env);
 
   // Gradual halacha-refs source fill (gated). Independent + small-batch because
   // each amud bursts many Sefaria getText calls. Runs every tick regardless of

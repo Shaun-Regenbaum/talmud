@@ -21,6 +21,7 @@ import {
   keyForRabbiObs,
   keyForRabbiObsDirty,
   keyForRabbiPlacesIndex,
+  keyForRabbiVoiceGraph,
   keyForRabbiWikiBio,
   keyForRabbiWikidata,
   keyForReferences,
@@ -123,6 +124,7 @@ describe('content + rabbi caches — byte-exact contract', () => {
   it('rabbi aggregate blobs: fixed keys, no params', () => {
     expect(keyForRabbiGraph()).toBe('rabbi-graph:v1');
     expect(keyForRabbiCohort()).toBe('rabbi-cohort:v1');
+    expect(keyForRabbiVoiceGraph()).toBe('rabbi-voice-graph:v1');
     expect(keyForRabbiPlacesIndex()).toBe('rabbi-places-index:v1');
     expect(keyForRabbiAcademyRoster()).toBe('rabbi-academy-roster:v1');
   });
