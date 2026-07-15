@@ -25,6 +25,7 @@ import {
 } from './cache-keys';
 import { computeCacheStats, writeCachedCacheStats } from './cache-stats';
 import { CODE_ENRICHMENTS, CODE_MARKS } from './code-marks';
+import { withoutLearnedAdjacency } from './rabbi-graph';
 import {
   getDafyomiContentCached,
   getHalachaRefsCached,
@@ -377,7 +378,12 @@ export async function runVoiceGraphBackfill(
       }
       if (!parsed || typeof parsed !== 'object') continue;
       const voices = (parsed as { voices?: unknown }).voices;
-      const grounded = groundVoices(Array.isArray(voices) ? voices : [], cast);
+      // Curated-only grounding: the source graph must be a deterministic
+      // function of its inputs, never of whatever learned adjacency a reused
+      // isolate happened to have loaded (see withoutLearnedAdjacency).
+      const grounded = withoutLearnedAdjacency(() =>
+        groundVoices(Array.isArray(voices) ? voices : [], cast),
+      );
       foldSection(staging, parsed, grounded, label);
     }
   }

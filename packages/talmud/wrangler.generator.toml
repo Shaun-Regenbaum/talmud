@@ -49,6 +49,8 @@ OPENROUTER_GATEWAY_PROVIDER = "openrouter"
 OBSERVATIONS_WARM_SHAS = "1"
 # Incremental Shas-wide voice-graph fold (warm-cron); consulted on the generator only.
 VOICE_GRAPH_WARM_SHAS = "1"
+# Learned voice-graph adjacency in the rabbi resolver (benchmark-gated: bench held, 0 flips, +2 resolutions).
+LEARNED_ADJACENCY = "1"
 DAFYOMI_WARM_SHAS = "1"
 SPINE_VIEW_WARM_SHAS = "1"
 # Spend budget — enforced at the runLLM chokepoint, which now lives here.

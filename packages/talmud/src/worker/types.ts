@@ -80,6 +80,9 @@ export interface Bindings {
   OBSERVATIONS_WARM_SHAS?: string;
   /** '1' enables the incremental Shas-wide voice-graph fold (warm-cron). */
   VOICE_GRAPH_WARM_SHAS?: string;
+  /** '1' feeds the learned voice-graph adjacency into the rabbi resolver's
+   *  relational homonym scoring (benchmark-gated; see rabbi-resolve-bench). */
+  LEARNED_ADJACENCY?: string;
   // When '1', the warm-cron incrementally builds the per-tractate spine-view
   // snapshot shelf (a window of warmed dapim per tick). OFF by default.
   SPINE_VIEW_WARM_SHAS?: string;

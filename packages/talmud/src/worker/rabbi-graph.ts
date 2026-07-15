@@ -352,6 +352,33 @@ export interface ResolvedRabbi {
   basis: ResolveBasis;
 }
 
+/** Learned adjacency from the Shas-wide voice graph (rabbi-voice-graph:v1):
+ *  slug -> the slugs it demonstrably interacts with on real dapim. Built from
+ *  STRICT-tier voice edges only (both endpoints resolved 'unique'), so this
+ *  evidence cannot itself contain homonym guesses — using it to pin homonyms
+ *  cannot self-reinforce an earlier wrong pin. Injected at runtime by
+ *  index.ts (ensureLearnedAdjacency); null = not loaded / feature off, and
+ *  resolution behaves exactly as before. */
+let LEARNED_ADJ: ReadonlyMap<string, ReadonlySet<string>> | null = null;
+
+export function setLearnedAdjacency(adj: ReadonlyMap<string, ReadonlySet<string>> | null): void {
+  LEARNED_ADJ = adj;
+}
+
+/** Run `fn` with the learned adjacency forced OFF, restoring it after. The
+ *  voice-graph fold uses this so the SOURCE graph is a deterministic function
+ *  of its inputs (curated-only grounding), never of whatever adjacency a
+ *  reused isolate happened to have loaded. `fn` must be synchronous. */
+export function withoutLearnedAdjacency<T>(fn: () => T): T {
+  const prev = LEARNED_ADJ;
+  LEARNED_ADJ = null;
+  try {
+    return fn();
+  } finally {
+    LEARNED_ADJ = prev;
+  }
+}
+
 /** A relational win must beat the runner-up by this many shared edges. A
  *  1-edge "win" is exactly what incidental co-presence produces (e.g. Rav
  *  appearing in another sugya on the daf handed Rav Kahana to the early
@@ -365,7 +392,9 @@ const RELATIONAL_MARGIN = 2;
  *  - 1 candidate          → it ('unique').
  *  - >1 (a homonym)       → disambiguate by DAF EVIDENCE: score each candidate
  *    by how many of the co-occurring rabbis on the daf sit in its registry
- *    teacher/student/colleague edges. A candidate wins 'relational' only when
+ *    teacher/student/colleague edges — or, when the learned voice-graph
+ *    adjacency is loaded (setLearnedAdjacency), in its strict-tier learned
+ *    interaction set. A candidate wins 'relational' only when
  *    its score clears the runner-up by RELATIONAL_MARGIN — a single shared
  *    edge is routinely incidental co-presence on a multi-sugya daf, not
  *    identification. On a candidate set that itself SPANS generations (the
@@ -400,17 +429,17 @@ export function resolveRabbiSlug(
   const scoreOf = new Map<string, number>();
   for (const slug of cands) {
     const node = DATA.nodes[slug];
-    if (!node) {
-      scoreOf.set(slug, 0);
-      continue;
-    }
     const nbrs = new Set<string>([
-      ...(node.teachers ?? []),
-      ...(node.students ?? []),
-      ...(node.colleagues ?? []),
+      ...(node?.teachers ?? []),
+      ...(node?.students ?? []),
+      ...(node?.colleagues ?? []),
     ]);
+    // Learned voice-graph neighbors extend the curated ones; a co-rabbi
+    // counts once whether curated, learned, or both — the margin + veto
+    // semantics below are unchanged.
+    const learned = LEARNED_ADJ?.get(slug);
     let score = 0;
-    for (const cs of coSlugs) if (nbrs.has(cs)) score++;
+    for (const cs of coSlugs) if (nbrs.has(cs) || learned?.has(cs)) score++;
     scoreOf.set(slug, score);
   }
   const ranked = [...scoreOf.entries()].sort((a, b) => b[1] - a[1]);

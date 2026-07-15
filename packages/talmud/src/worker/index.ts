@@ -228,6 +228,7 @@ import {
   type RabbiCandidateSummary,
   type RelationshipsData,
   rabbiCandidateSummaries,
+  setLearnedAdjacency,
 } from './rabbi-graph';
 import {
   buildObservationSlices,
@@ -295,7 +296,7 @@ import {
   recordUnknownRabbi,
 } from './unknown-registry';
 import { readUsageSummary, recordUsage } from './usage-rollup';
-import { egoSlice, type VoiceGraphBlob } from './voice-graph';
+import { buildLearnedAdjacency, egoSlice, type VoiceGraphBlob } from './voice-graph';
 import {
   getWarmTotal,
   halachaWarmProgressProcessed,
@@ -1366,11 +1367,61 @@ interface SectionRabbi {
   slug: string;
   name: string;
 }
+// ---------------------------------------------------------------------------
+// Learned adjacency for the rabbi resolver. Gated by LEARNED_ADJACENCY='1';
+// loads rabbi-voice-graph:v1 at most once per TTL per isolate (negative
+// results cached too — a missing blob costs one KV read per TTL, not per
+// grounding). The resolver falls back to curated-only behaviour whenever the
+// adjacency isn't loaded.
+let learnedAdjacencyCheckedAt = 0;
+let learnedAdjacencyLoad: Promise<void> | null = null;
+const LEARNED_ADJACENCY_TTL_MS = 10 * 60 * 1000;
+
+async function ensureLearnedAdjacency(env: Bindings): Promise<void> {
+  if (env.LEARNED_ADJACENCY !== '1' || !env.CACHE) {
+    // Gate off (or no KV): resolution must be curated-only, even in a reused
+    // isolate that loaded an adjacency before a rollback.
+    setLearnedAdjacency(null);
+    return;
+  }
+  const now = Date.now();
+  if (now - learnedAdjacencyCheckedAt < LEARNED_ADJACENCY_TTL_MS) return;
+  // Single-flight: concurrent cold requests await the SAME load instead of
+  // racing past a pre-stamped timestamp with no adjacency installed.
+  if (!learnedAdjacencyLoad) {
+    const cache = env.CACHE;
+    learnedAdjacencyLoad = (async () => {
+      try {
+        const raw = await cache.get(keyForRabbiVoiceGraph());
+        if (!raw) {
+          setLearnedAdjacency(null); // blob deleted => back to curated-only
+          return;
+        }
+        const blob = JSON.parse(raw) as VoiceGraphBlob;
+        if (!blob || typeof blob.edges !== 'object') {
+          console.warn('[learned-adjacency] malformed rabbi-voice-graph blob; keeping last-good');
+          return;
+        }
+        const adj = buildLearnedAdjacency(blob.edges);
+        setLearnedAdjacency(adj);
+        console.log(`[learned-adjacency] loaded: ${adj.size} rabbis (builtAt=${blob.builtAt})`);
+      } catch (e) {
+        console.warn('[learned-adjacency] load failed; keeping last-good:', e);
+      } finally {
+        learnedAdjacencyCheckedAt = Date.now();
+        learnedAdjacencyLoad = null;
+      }
+    })();
+  }
+  await learnedAdjacencyLoad;
+}
+
 async function readSectionRabbis(
   env: Bindings,
   tractate: string,
   page: string,
 ): Promise<{ start: number; title: string; rabbis: SectionRabbi[] }[]> {
+  await ensureLearnedAdjacency(env);
   const insts = await readMarkInstances(env, 'argument', tractate, page).catch(() => []);
   const voicesDef = findCodeEnrichment('argument.voices');
   // The daf's full rabbi cast (from the rabbi mark): names supply the relational
@@ -4656,6 +4707,7 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
     markPostParse: async (rc, a) => {
       let parsed = a.parsed;
       if (parsed && a.def.id === 'rabbi') {
+        await ensureLearnedAdjacency(rc.env);
         parsed = postProcessRabbi(parsed, stripHtmlServer(String(a.vars.hebrew ?? '')));
         // Ground each rabbi's generation through the registry (relational homonym
         // disambiguation off the daf's cast): authoritative era when identified,
