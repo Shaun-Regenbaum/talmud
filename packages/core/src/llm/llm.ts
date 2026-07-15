@@ -59,6 +59,12 @@ export interface LLMUsage {
    *  `usage: { include: true }`. Accounts for prompt-cache discounts. Absent
    *  on Workers AI (`@cf/*`) calls, which aren't billed per-token here. */
   cost?: number;
+  /** Prompt-cache accounting, passed through by OpenRouter and OpenAI-compat
+   *  providers. `cached_tokens` is the portion of `prompt_tokens` (a subset,
+   *  not additional tokens) billed at the provider's cache-read rate instead
+   *  of the full input price. Absent when the routed endpoint doesn't support
+   *  prompt caching. */
+  prompt_tokens_details?: { cached_tokens?: number } | null;
 }
 
 export interface LLMCallOptions {
@@ -316,6 +322,10 @@ async function recordLLMCost(
       prompt_tokens: u?.prompt_tokens ?? input ?? null,
       completion_tokens: u?.completion_tokens ?? output ?? null,
       total_tokens: u?.total_tokens ?? null,
+      // Prompt-cache hits (subset of prompt_tokens billed at the cache-read
+      // rate). Null on endpoints without caching — distinguishes "no caching
+      // available" from a genuine zero-hit call.
+      cached_tokens: u?.prompt_tokens_details?.cached_tokens ?? null,
       // Structured attribution — null when the caller didn't supply it.
       kind: a?.kind ?? null,
       producer_id: a?.producerId ?? null,

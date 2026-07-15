@@ -63,6 +63,9 @@ interface UsageBucket {
   calls: number;
   tokensIn: number;
   tokensOut: number;
+  /** Prompt-cache hits (subset of tokensIn); optional — absent on aggregates
+   *  computed before the field existed. */
+  tokensCached?: number;
   costUsd: number;
   costInUsd?: number;
   costOutUsd?: number;
@@ -305,6 +308,9 @@ interface LlmCostData {
   totalCostUsd: number;
   estInputCostUsd?: number;
   estOutputCostUsd?: number;
+  /** Prompt-cache hit volume over the 7-day ledger window (subset of prompt
+   *  tokens billed at cache-read rates); absent on pre-field cached reports. */
+  cachedTokens?: number;
   byDaf?: Record<string, DafLedgerBucket>;
   byKind?: Record<string, { calls: number; cost: number }>;
 }

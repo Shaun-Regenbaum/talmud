@@ -27,6 +27,9 @@ export interface UsageDelta {
   model: string | null;
   tokensIn: number;
   tokensOut: number;
+  /** Prompt-cache hits: the subset of tokensIn billed at the provider's
+   *  cache-read rate (~1-10% of list). 0/absent on endpoints without caching. */
+  tokensCached?: number;
   /** null when the model has no known list price (Workers AI etc.). */
   costUsd: number | null;
   /** List-price estimate split (input-side / output-side dollars) so the
@@ -42,6 +45,9 @@ export interface UsageBucket {
   calls: number;
   tokensIn: number;
   tokensOut: number;
+  /** Prompt-cache hits (subset of tokensIn). Additive field — reads as 0 on
+   *  rollup docs stored before it existed. tokensCached / tokensIn = hit rate. */
+  tokensCached: number;
   costUsd: number; // sum of priced calls only (billed-or-est total)
   costInUsd: number; // est input-side dollars
   costOutUsd: number; // est output-side dollars
@@ -63,6 +69,7 @@ function emptyBucket(): UsageBucket {
     calls: 0,
     tokensIn: 0,
     tokensOut: 0,
+    tokensCached: 0,
     costUsd: 0,
     costInUsd: 0,
     costOutUsd: 0,
@@ -75,6 +82,8 @@ function applyToBucket(b: UsageBucket, d: UsageDelta): void {
   b.calls += 1;
   b.tokensIn += d.tokensIn;
   b.tokensOut += d.tokensOut;
+  // `b` may be a bucket parsed from a pre-tokensCached rollup doc — coalesce.
+  b.tokensCached = (b.tokensCached ?? 0) + (d.tokensCached ?? 0);
   if (d.costUsd != null) {
     b.costUsd += d.costUsd;
     b.costInUsd += d.costInUsd ?? 0;
@@ -165,6 +174,7 @@ function mergeBucketInto(
     t.calls += b.calls;
     t.tokensIn += b.tokensIn;
     t.tokensOut += b.tokensOut;
+    t.tokensCached += b.tokensCached ?? 0;
     t.costUsd += b.costUsd;
     t.costInUsd += b.costInUsd ?? 0;
     t.costOutUsd += b.costOutUsd ?? 0;
@@ -205,10 +215,17 @@ export async function readUsageSummary(cache: KVNamespace, days = 120): Promise<
     } catch {
       continue;
     }
+    // Normalize docs stored before additive fields existed, so `series`
+    // entries actually satisfy the declared shape (consumers chart them raw).
+    r.tokensCached ??= 0;
+    for (const split of [r.byModel, r.byMark, r.byEnrichment]) {
+      for (const b of Object.values(split ?? {})) b.tokensCached ??= 0;
+    }
     series.push(r);
     totals.calls += r.calls;
     totals.tokensIn += r.tokensIn;
     totals.tokensOut += r.tokensOut;
+    totals.tokensCached += r.tokensCached ?? 0;
     totals.costUsd += r.costUsd;
     totals.costInUsd += r.costInUsd ?? 0;
     totals.costOutUsd += r.costOutUsd ?? 0;
