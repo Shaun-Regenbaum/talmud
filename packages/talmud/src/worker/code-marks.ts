@@ -3769,16 +3769,20 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
+// Prompt ordering rule (cache tiering): everything constant for the DAF
+// (gemara pointer, the rishonim block) comes BEFORE the per-move instance, so
+// the ~15-30 per-move calls of one daf share a byte-identical prefix through
+// the big commentaries block and read it at the provider cache-hit price.
 const ARGUMENT_MOVE_COMMENTARIES_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
-
-THIS move:
-{{mark_input}}
 
 Hebrew source for the daf:
 {{gemara_he}}
 
 Rashi + Tosafot + other rishonim:
 {{commentaries}}
+
+THIS move:
+{{mark_input}}
 
 Produce the commentary digest for THIS move per the schema.`;
 
@@ -3801,10 +3805,10 @@ HARD RULES:
 
 ${HEBREW_GLOSS_STYLE}`;
 
+// Same cache-tiering order as the commentaries template: daf-constant blocks
+// (move list, gemara pointer, rabbi list) first, THIS move + its per-move
+// digest last.
 const ARGUMENT_MOVE_SYNTHESIS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
-
-THIS move:
-{{mark_input}}
 
 All moves on this daf (use to identify what THIS move responds to / supports / objects to):
 {{anchors.argument-move}}
@@ -3812,11 +3816,14 @@ All moves on this daf (use to identify what THIS move responds to / supports / o
 Hebrew source for the daf:
 {{gemara_he}}
 
-Commentary digest for THIS move (use to weave a single brief commentary clause if it sharpens the synthesis; do NOT enumerate):
-{{depends.argument-move.commentaries}}
-
 Rabbis identified on the daf:
 {{anchors.rabbi}}
+
+THIS move:
+{{mark_input}}
+
+Commentary digest for THIS move (use to weave a single brief commentary clause if it sharpens the synthesis; do NOT enumerate):
+{{depends.argument-move.commentaries}}
 
 Compose ONE tight paragraph about THIS move per the schema.`;
 
@@ -3964,14 +3971,14 @@ ${HEBREW_NATIVE_STYLE}`;
 
 const ARGUMENT_MOVE_COMMENTARIES_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
-ה-move הזה:
-{{mark_input}}
-
 מקור עברי לדף:
 {{gemara_he}}
 
 רש"י + תוספות + ראשונים נוספים:
 {{commentaries}}
+
+ה-move הזה:
+{{mark_input}}
 
 הפק את תקציר הפירוש עבור ה-move הזה לפי הסכימה.`;
 
@@ -3994,20 +4001,20 @@ ${HEBREW_NATIVE_STYLE}`;
 
 const ARGUMENT_MOVE_SYNTHESIS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
-ה-move הזה:
-{{mark_input}}
-
 כל ה-moves בדף זה (השתמש כדי לזהות על מה ה-move הזה מגיב / תומך / מקשה):
 {{anchors.argument-move}}
 
 מקור עברי לדף:
 {{gemara_he}}
 
-תקציר פירוש ל-move הזה (השתמש כדי לשזור פסוקית פירוש קצרה אחת אם היא מחדדת את ה-synthesis; אל תמנה):
-{{depends.argument-move.commentaries}}
-
 חכמים שזוהו בדף:
 {{anchors.rabbi}}
+
+ה-move הזה:
+{{mark_input}}
+
+תקציר פירוש ל-move הזה (השתמש כדי לשזור פסוקית פירוש קצרה אחת אם היא מחדדת את ה-synthesis; אל תמנה):
+{{depends.argument-move.commentaries}}
 
 חבר פסקה הדוקה אחת על ה-move הזה לפי הסכימה.`;
 
