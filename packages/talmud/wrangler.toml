@@ -70,6 +70,8 @@ OPENROUTER_GATEWAY_PROVIDER = "openrouter"
 OBSERVATIONS_WARM_SHAS = "1"
 # Incremental Shas-wide voice-graph fold (warm-cron); consulted on the generator only.
 VOICE_GRAPH_WARM_SHAS = "1"
+# Learned voice-graph adjacency in the rabbi resolver (benchmark-gated: bench held, 0 flips, +2 resolutions).
+LEARNED_ADJACENCY = "1"
 # Gradual dafyomi.co.il (Kollel Iyun HaDaf) ingestion. When "1", the warm cron
 # walks all of Shas a couple dapim per 5-min tick (hub-driven live fetch, then
 # KV-cached forever — gentle, ~4-5 days for a full pass), then latches done and

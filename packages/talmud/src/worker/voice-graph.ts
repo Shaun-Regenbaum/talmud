@@ -220,6 +220,32 @@ export function finalizeVoiceGraph(staging: VoiceGraphStaging, builtAt: number):
   return { ...rest, builtAt, dapim: Object.keys(dafsSeen).length, newlyConnected };
 }
 
+/** Build the resolver's learned adjacency from a voice-graph blob: symmetric
+ *  slug -> neighbor-set over STRICT-tier edges only (both endpoints resolved
+ *  'unique'), thresholded at minStrict distinct section sightings. Weight
+ *  (which includes relational/generation-grounded sightings) is deliberately
+ *  NOT used — see the module header on circularity. */
+export function buildLearnedAdjacency(
+  edges: Record<string, Pick<VoiceEdgeAgg, 'from' | 'to' | 'strict'>>,
+  minStrict = 2,
+): Map<string, Set<string>> {
+  const adj = new Map<string, Set<string>>();
+  const add = (a: string, b: string) => {
+    let set = adj.get(a);
+    if (!set) {
+      set = new Set();
+      adj.set(a, set);
+    }
+    set.add(b);
+  };
+  for (const e of Object.values(edges)) {
+    if (!e || e.strict < minStrict) continue;
+    add(e.from, e.to);
+    add(e.to, e.from);
+  }
+  return adj;
+}
+
 export interface EgoEdge extends VoiceEdgeAgg {
   /** The other endpoint, with display info resolved from the blob nodes. */
   other: { slug: string; name: string; generation: string | null };
