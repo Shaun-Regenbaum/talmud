@@ -4524,6 +4524,11 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
       // Custom Q&A enrichments (<mark>.qa) count against the hourly custom-question
       // budget; everything else only against the daily total. See ./budget.
       cost_class: def.id.endsWith('.qa') ? 'custom-question' : undefined,
+      // .qa prompts carry the reader's typed question — the one producer path
+      // with user content. Keep those requests off providers that may retain
+      // or train on inputs (the account-level OpenRouter privacy setting
+      // allows training providers for the public-domain enrichment traffic).
+      data_collection: def.id.endsWith('.qa') ? ('deny' as const) : undefined,
     });
   },
   // Post-generation processing via the standardized check layer
