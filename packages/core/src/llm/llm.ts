@@ -83,17 +83,27 @@ export interface LLMCallOptions {
   stream?: boolean;
   /**
    * OpenRouter provider routing. When unset, `openrouter/deepseek/*` models
-   * default to `{ sort: 'price', allow_fallbacks: true, require_parameters: true }`
-   * — cheapest qualifying endpoint first (see the routing block in
-   * callOpenRouterGateway). Pass an explicit object to override, or `null` to
-   * opt out and take OpenRouter's default load-balancer. Ignored for `@cf/*`.
+   * default to defaultDeepseekProviderPrefs (first-party-preferred for
+   * non-flash slugs, price-sorted otherwise). Pass an explicit object to
+   * override, or `null` to opt out and take OpenRouter's default
+   * load-balancer. Ignored for `@cf/*`.
    */
   provider?: {
     order?: string[];
     allow_fallbacks?: boolean;
     sort?: 'price' | 'throughput' | 'latency';
     require_parameters?: boolean;
+    data_collection?: 'deny' | 'allow';
   } | null;
+  /**
+   * Per-request data-policy restriction, merged into the provider routing
+   * block (explicit or default). 'deny' keeps the request off providers that
+   * may retain or train on inputs — REQUIRED on any call whose prompt carries
+   * user-typed content (custom Q&A), since the account-level OpenRouter
+   * privacy setting allows training providers for the public-domain
+   * enrichment traffic. Ignored for `@cf/*`.
+   */
+  data_collection?: 'deny' | 'allow';
   /**
    * Skip the Cloudflare AI Gateway's prompt cache for this request. Sends
    * `cf-aig-skip-cache: true` on the OpenRouter Universal Endpoint call. Use
@@ -421,6 +431,46 @@ async function callWorkersAI(
 // Transport: OpenRouter via CF AI Gateway Universal Endpoint
 // ---------------------------------------------------------------------------
 
+/**
+ * Default OpenRouter routing for DeepSeek slugs (undefined for everything
+ * else — non-DeepSeek models take OpenRouter's load-balancer).
+ *
+ * First-party DeepSeek is the list-cheapest host for every deepseek model
+ * EXCEPT v4-flash (third parties undercut its $0.14/M by ~35%), and it is the
+ * ONLY host with working prompt caching (`supports_implicit_caching` is false
+ * on all 16 third-party endpoints; first-party cache reads are $0.0036/M pro /
+ * $0.0028/M flash — ~99% off). So:
+ *
+ *   - non-flash: `order: ['deepseek']` puts first-party first DETERMINISTICALLY.
+ *     Price-sorting alone would usually pick it too (it's cheapest), but
+ *     price-sort flaps between hosts as quotes move, and every flap fragments
+ *     the prefix cache — stable routing is worth more than an occasional
+ *     cheaper quote once shared-prefix prompts land.
+ *   - flash: keep price-sorting (cheaper third parties win today). Flips to
+ *     first-party-preferred together with the shared-prefix prompt work, when
+ *     cache reads make first-party the effective cheapest.
+ *
+ * `require_parameters` keeps structured-output calls on endpoints that honor
+ * response_format/json_schema (first-party lacks `structured_outputs`, so
+ * json_schema calls fall past it to the cheapest qualifying host — the
+ * json_object migration that moves them onto first-party ships separately,
+ * eval-gated). `allow_fallbacks` preserves availability when first-party is
+ * congested or filtered.
+ */
+export function defaultDeepseekProviderPrefs(orSlug: string):
+  | {
+      order?: string[];
+      allow_fallbacks: boolean;
+      sort: 'price';
+      require_parameters: boolean;
+    }
+  | undefined {
+  if (!orSlug.startsWith('deepseek/')) return undefined;
+  const base = { sort: 'price' as const, allow_fallbacks: true, require_parameters: true };
+  if (orSlug.includes('flash')) return base;
+  return { order: ['deepseek'], ...base };
+}
+
 function openRouterGatewayUrl(env: LLMEnv): string {
   const account = env.CLOUDFLARE_ACCOUNT_ID;
   const gateway = env.AI_GATEWAY_ID;
@@ -476,24 +526,24 @@ async function callOpenRouterGateway(
     body.stream_options = { include_usage: true };
   }
   // Provider routing. An explicit opts.provider always wins; pass `null` to
-  // opt out and take OpenRouter's default load-balancer. Otherwise, for any
-  // DeepSeek slug we route cheapest-endpoint-first:
-  //   - V4 Pro: DeepSeek's own endpoint is the cheapest ($0.435/$0.87), so
-  //     price-sorting keeps Pro on first-party.
-  //   - V4 Flash: third-party providers (Baidu / DeepInfra / Cloudflare,
-  //     ~$0.10/$0.20) undercut DeepSeek's own Flash ($0.14/$0.28) by ~30-40%,
-  //     so price-sorting moves Flash to the cheaper endpoint.
-  // `require_parameters` keeps routing to providers that honor everything we
-  // send (response_format / json_schema / reasoning) so structured-output
-  // marks never land on an endpoint that silently drops the schema — if no
-  // cheaper provider qualifies it just falls back to DeepSeek, costing nothing.
-  // `allow_fallbacks` preserves availability under congestion (the reason
-  // hard-pinning was originally removed).
+  // opt out and take OpenRouter's default load-balancer. Otherwise DeepSeek
+  // slugs take defaultDeepseekProviderPrefs (first-party-preferred for
+  // non-flash, price-sorted for flash — rationale on the helper).
   const explicitProvider = (opts as { provider?: unknown }).provider;
   if (explicitProvider !== undefined) {
     if (explicitProvider !== null) body.provider = explicitProvider;
-  } else if (orSlug.startsWith('deepseek/')) {
-    body.provider = { sort: 'price', allow_fallbacks: true, require_parameters: true };
+  } else {
+    const prefs = defaultDeepseekProviderPrefs(orSlug);
+    if (prefs) body.provider = prefs;
+  }
+  // Per-request data-policy restriction composes with whatever routing block
+  // resulted above (including none), so a QA call keeps its protection even
+  // when a caller passed explicit routing prefs.
+  if (opts.data_collection) {
+    body.provider = {
+      ...((body.provider as Record<string, unknown> | undefined) ?? {}),
+      data_collection: opts.data_collection,
+    };
   }
 
   const url = openRouterGatewayUrl(env);
