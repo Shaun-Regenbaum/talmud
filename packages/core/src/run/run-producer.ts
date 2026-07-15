@@ -41,6 +41,7 @@ import { instanceIdOf, normalizeQualifier, qualifierHash } from '../cache/keys.t
 import type { CostStamp, InputRef, Provenance } from '../model/provenance.ts';
 import { authorityForTransport } from '../model/provenance.ts';
 import type { StoredArtifact } from '../store/envelope.ts';
+import { buildDafPreamble, pointerizeDafVars } from './daf-preamble.ts';
 import type { ResolvedInputs, RunDependency } from './producer-run.ts';
 
 export type RunLang = 'en' | 'he';
@@ -174,7 +175,9 @@ export interface RunProducerPorts<
     },
   ): Promise<{ result: LLMResultLike; systemPrompt: string; userPrompt: string }>;
   /** The enrichment LLM call (host owns options: model override / reasoning /
-   *  cost_class / attribution). Prompts are already rendered by core. */
+   *  cost_class / attribution). Prompts are already rendered by core. When
+   *  `contextPreamble` is non-null the host must send it as the LEADING
+   *  system content (see daf-preamble.ts — it is the shared cache prefix). */
   enrichmentLLM(
     ctx: Ctx,
     args: {
@@ -186,6 +189,7 @@ export interface RunProducerPorts<
       page: string;
       bypassCache: boolean;
       modelOverride?: string;
+      contextPreamble?: string | null;
     },
   ): Promise<LLMResultLike>;
   /** The post-generation check layer (the host fetches whatever context its
@@ -611,8 +615,15 @@ export async function runProducer<
       useHe && edef.user_prompt_template_he
         ? edef.user_prompt_template_he
         : edef.user_prompt_template;
-    systemPrompt = ports.renderTemplate(sysTpl, vars);
-    userPrompt = ports.renderTemplate(usrTpl, vars);
+    // Shared-prefix restructure: the daf text moves into a canonical leading
+    // preamble (byte-identical across producers and languages, so provider
+    // prompt caching engages) and the in-template daf vars render as a short
+    // pointer instead of a second copy. Daf-agnostic producers (no segment
+    // arrays in vars) get null and are untouched.
+    const contextPreamble = buildDafPreamble(vars);
+    const promptVars = contextPreamble ? pointerizeDafVars(vars) : vars;
+    systemPrompt = ports.renderTemplate(sysTpl, promptVars);
+    userPrompt = ports.renderTemplate(usrTpl, promptVars);
     result = await ports.enrichmentLLM(ctx, {
       def: edef,
       systemPrompt,
@@ -622,6 +633,7 @@ export async function runProducer<
       page,
       bypassCache,
       modelOverride: opts.modelOverride,
+      contextPreamble,
     });
   }
 

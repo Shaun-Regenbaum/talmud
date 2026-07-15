@@ -512,7 +512,17 @@ export function inlineSchemaForFirstParty(
       ? wrapper.schema
       : wrapper;
   const guidance = `\n\nReturn ONLY a single JSON object — no markdown fences, no commentary. It must conform to this JSON Schema:\n${JSON.stringify(schema)}`;
-  const idx = messages.findIndex((m) => m.role === 'system');
+  // Append to the LAST system message: message 0 may be the shared daf-context
+  // preamble (see run/daf-preamble.ts), which must stay byte-identical across
+  // producers or the provider prefix cache splits. The producer-instruction
+  // system message is the right home — schema text is producer-constant.
+  let idx = -1;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === 'system') {
+      idx = i;
+      break;
+    }
+  }
   const out = messages.slice();
   if (idx >= 0) {
     out[idx] = { ...out[idx], content: out[idx].content + guidance };
