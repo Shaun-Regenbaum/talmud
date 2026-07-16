@@ -69,7 +69,6 @@ export function SageCoverageStrip(props: { slug: string; generation: string | nu
     });
   });
 
-  const maxSage = () => Math.max(1, ...cells().map((c) => c.sage));
   const sageTotal = () => obs()?.dafCount ?? 0;
   const tractatesWithSage = () => cells().filter((c) => c.sage > 0).length;
   const hasDenominator = () => net()?.dapimByTractate != null;
@@ -102,8 +101,15 @@ export function SageCoverageStrip(props: { slug: string; generation: string | nu
           >
             <For each={cells()}>
               {(c) => {
+                // Height = DENSITY: the share of this masechet's dapim where the
+                // sage appears. Width is already the masechet's size, so bar
+                // AREA tracks the absolute count while height answers "how
+                // present is he HERE" — a small masechet he saturates stands
+                // as tall as a big one he dominates.
                 const h = () =>
-                  c.sage > 0 ? 4 + (BAR_AREA - 8) * (c.sage / maxSage()) : BASELINE_H;
+                  c.sage > 0 && c.total > 0
+                    ? 4 + (BAR_AREA - 8) * Math.min(1, c.sage / c.total)
+                    : BASELINE_H;
                 const analyzedFrac = () =>
                   c.analyzed != null && c.total > 0 ? Math.min(1, c.analyzed / c.total) : 0;
                 const title = () =>
@@ -152,7 +158,7 @@ export function SageCoverageStrip(props: { slug: string; generation: string | nu
                       />
                     </Show>
                     {/* count on top of meaningful bars */}
-                    <Show when={c.sage > 0 && c.sage / maxSage() > 0.35}>
+                    <Show when={c.sage > 0 && c.total > 0 && c.sage / c.total > 0.3}>
                       <span
                         style={{
                           position: 'absolute',
