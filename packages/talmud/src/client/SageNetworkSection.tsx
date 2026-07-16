@@ -34,7 +34,7 @@ import {
   legibleTextColor,
 } from './generations';
 import { lang, t } from './i18n';
-import { arcPath, barSegments, layoutSageArcs, shortGenLabel } from './sageArcLayout';
+import { ARC_BAND, arcPath, barSegments, layoutSageArcs, shortGenLabel } from './sageArcLayout';
 
 const SUPPORTS_COLOR = '#0891b2';
 const AXIS_INK = '#c9c2b2';
@@ -129,9 +129,10 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
               );
               const anyExpanded = () =>
                 layout().groups.some((g) => g.expanded && g.dots.length > 0);
-              const axisY = () => TOP_PAD + Math.max(layout().maxAbove, 26) + 12;
-              const labelsY = () =>
-                axisY() + layout().maxBelow + (anyExpanded() ? 22 + NAME_BAND : 28);
+              // Constant vertical envelope (ARC_BAND) — a 3-partner sage's
+              // diagram stands as tall as Rava's, so pages compare directly.
+              const axisY = () => TOP_PAD + ARC_BAND + 12;
+              const labelsY = () => axisY() + ARC_BAND + (anyExpanded() ? 22 + NAME_BAND : 28);
               const barsY = () => labelsY() + LABEL_H;
               const height = () => barsY() + BAR_H + BOTTOM_PAD;
               const maxGroupTotal = () => layout().groups.reduce((m, g) => Math.max(m, g.total), 1);
@@ -179,6 +180,19 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                         role="img"
                         aria-label={t('network.arc.aria', { name: wire.node.name })}
                       >
+                        {/* click-away resets the drill-down to the default view */}
+                        <Show when={expandedGen() && !layout().autoExpanded}>
+                          {/* biome-ignore lint/a11y/noStaticElementInteractions: pointer-only click-away dismiss; keyboard users collapse via the generation label/pill toggles or the Show-all button */}
+                          <rect
+                            x={0}
+                            y={0}
+                            width={layout().width}
+                            height={height()}
+                            fill="transparent"
+                            onClick={() => setExpandedGen(null)}
+                          />
+                        </Show>
+
                         {/* direction hints, centered on the diagram */}
                         <text
                           x={layout().width / 2}
@@ -191,7 +205,7 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                         </text>
                         <text
                           x={layout().width / 2}
-                          y={axisY() + layout().maxBelow + 11}
+                          y={axisY() + ARC_BAND + 11}
                           font-size="9"
                           fill="#a89e8a"
                           text-anchor="middle"
@@ -207,7 +221,7 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                                 x={g.x}
                                 y={TOP_PAD + 4}
                                 width={g.width}
-                                height={axisY() + layout().maxBelow - TOP_PAD + 4}
+                                height={axisY() + ARC_BAND - TOP_PAD + 4}
                                 rx={10}
                                 fill="#8a6d3b"
                                 opacity="0.06"
@@ -369,9 +383,9 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                                         style={{ cursor: 'pointer' }}
                                       />
                                       <text
-                                        transform={`rotate(40 ${d.x} ${axisY() + layout().maxBelow + 22})`}
+                                        transform={`rotate(40 ${d.x} ${axisY() + ARC_BAND + 22})`}
                                         x={d.x}
-                                        y={axisY() + layout().maxBelow + 22}
+                                        y={axisY() + ARC_BAND + 22}
                                         font-size="9"
                                         fill={dimSlug(d.row.other.slug) ? '#c8c2b4' : '#555'}
                                         text-anchor="start"

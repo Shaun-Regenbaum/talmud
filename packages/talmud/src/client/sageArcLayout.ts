@@ -20,7 +20,11 @@ import { GENERATION_IDS } from './generations';
 export const AUTO_EXPAND_MAX = 8;
 export const ARC_MAX_PARTNERS_PER_GEN = 14; // fan cap inside one expanded generation
 
-const DOT_GAP = 34; // px between partner dots inside an EXPANDED generation
+const DOT_GAP = 34; // px between partner dots inside a manually EXPANDED generation
+/** Auto-expanded (small-network) pages use compact spacing so dots sit WITHIN
+ *  the fixed slots — their default ruler matches every other page exactly
+ *  whenever a generation holds <= 2 partners. */
+const DOT_GAP_COMPACT = 22;
 const GROUP_PAD = 16;
 const COLLAPSED_W = 64; // fixed width of a trunked (collapsed) generation group
 const EDGE_PAD = 20;
@@ -33,12 +37,27 @@ const TRUNK_MIN = 2.5;
 const TRUNK_MAX = 13;
 const FAN_MIN = 1.5;
 const FAN_MAX = 5.5;
-const ARC_HEIGHT_RATIO = 0.32;
-const ARC_RY_MIN = 16;
-const ARC_RY_MAX = 120;
+// Flattened arc profile: height is loosely tied to span but tightly clamped,
+// so long arcs read as wide flat ribbons and short ones still rise visibly —
+// and every sage's diagram lands in the same vertical envelope (ARC_BAND).
+const ARC_HEIGHT_RATIO = 0.45;
+const ARC_RY_MIN = 26;
+const ARC_RY_MAX = 68;
+/** The constant vertical band reserved above and below the axis. */
+export const ARC_BAND = 74;
 
 const GEN_ORDER = new Map<string, number>(GENERATION_IDS.map((id, i) => [id, i]));
 const UNKNOWN_ORDER = GENERATION_IDS.length;
+
+// The FIXED axis: every talmudic generation (zugim..savora) always renders, in
+// the same order with the same slot width, so any two sages' diagrams are
+// directly comparable — a late Bavel sage's cluster visibly sits at the far
+// right of the same ruler an early tanna's sits at the left of. Post-talmudic
+// generations (geonim+) and the unknown '?' slot are appended only when a
+// partner actually lives there.
+const SAVORA_IDX = GENERATION_IDS.indexOf('savora' as (typeof GENERATION_IDS)[number]);
+const FIXED_TIMELINE: (string | null)[] =
+  SAVORA_IDX >= 0 ? GENERATION_IDS.slice(0, SAVORA_IDX + 1) : [...GENERATION_IDS];
 
 export function genOrder(gen: string | null | undefined): number {
   return gen ? (GEN_ORDER.get(gen) ?? UNKNOWN_ORDER) : UNKNOWN_ORDER;
@@ -116,7 +135,9 @@ export function layoutSageArcs(
     byGen.set(g, arr);
   }
   if (!byGen.has(centerGen ?? null)) byGen.set(centerGen ?? null, []);
-  const genKeys = [...byGen.keys()].sort((a, b) => genOrder(a) - genOrder(b));
+  const slotSet = new Set<string | null>(FIXED_TIMELINE);
+  for (const g of byGen.keys()) slotSet.add(g);
+  const genKeys = [...slotSet].sort((a, b) => genOrder(a) - genOrder(b));
   const centerOrder = genOrder(centerGen ?? null);
 
   const maxGenTotal = Math.max(
@@ -150,18 +171,32 @@ export function layoutSageArcs(
     }
 
     const slots = expanded ? drawn.length : drawn.length > 0 ? 1 : 0;
+    const gap = autoExpanded ? DOT_GAP_COMPACT : DOT_GAP;
+    // Uniform slot width when collapsed — empty or not, CENTER INCLUDED — so
+    // the ruler is byte-identical on every sage's page. Auto-expanded pages
+    // use compact spacing and the collapsed-style center so their DEFAULT view
+    // shares the exact ruler too; only a slot with 3+ partners (or a manual
+    // expansion) stretches.
+    const compactCenter = isCenterGroup && (!expanded || autoExpanded);
     const innerW = expanded
-      ? Math.max(0, slots - 1) * DOT_GAP
-      : slots > 0
-        ? Math.max(0, COLLAPSED_W - GROUP_PAD * 2)
-        : 0;
-    const width =
-      GROUP_PAD * 2 + innerW + (isCenterGroup ? CENTER_EXTRA + (slots > 0 ? DOT_GAP : 0) : 0);
+      ? Math.max(0, slots - 1) * gap + (compactCenter && slots > 0 ? 28 : 0)
+      : Math.max(0, COLLAPSED_W - GROUP_PAD * 2);
+    const width = Math.max(
+      COLLAPSED_W,
+      GROUP_PAD * 2 + innerW + (isCenterGroup && expanded && !autoExpanded ? CENTER_EXTRA + DOT_GAP : 0),
+    );
     const start = x;
     let slotX = start + GROUP_PAD;
     if (isCenterGroup) {
-      centerX = slotX;
-      slotX += DOT_GAP + CENTER_EXTRA;
+      if (expanded && !autoExpanded) {
+        centerX = slotX;
+        slotX += DOT_GAP + CENTER_EXTRA;
+      } else {
+        // Compact center: the sage's dot sits left in the uniform slot; any
+        // partner dots (auto-expanded) or the pill start to its right.
+        centerX = start + 18;
+        slotX = start + 46;
+      }
     }
 
     const total = members.reduce((s, r) => s + r.totalWeight, 0);
@@ -174,11 +209,11 @@ export function layoutSageArcs(
     if (expanded) {
       for (const row of drawn) {
         dots.push({ row, x: slotX, r: scaled(row.totalWeight, maxPartnerW, MIN_R, MAX_R) });
-        slotX += DOT_GAP;
+        slotX += gap;
       }
     } else if (drawn.length > 0) {
       pill = {
-        x: start + width / 2 + (isCenterGroup ? CENTER_EXTRA / 2 : 0),
+        x: isCenterGroup ? start + width - 18 : start + width / 2,
         r: scaled(members.length, maxPartnerCount, PILL_MIN_R, PILL_MAX_R),
         partnerCount: members.length,
       };

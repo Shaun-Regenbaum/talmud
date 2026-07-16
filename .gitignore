@@ -35,3 +35,4 @@ Thumbs.db
 *.swp
 *.swo
 __pycache__/
+*.local.test.ts
