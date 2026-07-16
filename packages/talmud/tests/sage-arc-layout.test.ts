@@ -123,9 +123,37 @@ describe('layoutSageArcs — small networks', () => {
     expect(hx).toBeGreaterThan(lx);
   });
 
-  it('creates the center generation group even with no partners in it', () => {
+  it('always renders the full fixed timeline (zugim through savora)', () => {
     const l = layoutSageArcs('savora', [row('x', 'tanna-1', 1)]);
-    expect(l.groups.map((g) => g.gen)).toEqual(['tanna-1', 'savora']);
+    const gens = l.groups.map((g) => g.gen);
+    expect(gens[0]).toBe('zugim');
+    expect(gens[gens.length - 1]).toBe('savora');
+    expect(gens).toContain('amora-bavel-8');
+    expect(l.groups.length).toBeGreaterThanOrEqual(21);
+  });
+
+  it('the ruler is identical across sages in the default view', () => {
+    const a = layoutSageArcs('tanna-2', [row('p1', 'tanna-4', 3)], null);
+    const b = layoutSageArcs('amora-bavel-6', [row('p2', 'amora-ey-1', 5)], null);
+    // autoExpanded kicks in for tiny networks, so force-collapse comparison:
+    // both have <= AUTO_EXPAND_MAX rows, so compare group geometry only for
+    // larger synthetic sets.
+    const many = (gen: string) =>
+      Array.from({ length: 10 }, (_, i) => row(`m${i}`, 'amora-ey-2', i + 1));
+    const bigA = layoutSageArcs('tanna-2', many('a'), null);
+    const bigB = layoutSageArcs('amora-bavel-6', many('b'), null);
+    expect(bigA.groups.map((g) => [g.gen, g.x, g.width])).toEqual(
+      bigB.groups.map((g) => [g.gen, g.x, g.width]),
+    );
+    expect(bigA.width).toBe(bigB.width);
+    expect(a.groups.length).toBe(b.groups.length);
+    // …and an auto-expanded (small) page shares the exact same ruler as a
+    // trunked page whenever no generation holds 3+ partners.
+    const small = layoutSageArcs('amora-bavel-6', [row('s1', 'amora-bavel-4', 2)], null);
+    expect(small.autoExpanded).toBe(true);
+    expect(small.groups.map((g) => [g.gen, g.x, g.width])).toEqual(
+      bigA.groups.map((g) => [g.gen, g.x, g.width]),
+    );
   });
 });
 
