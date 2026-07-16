@@ -183,7 +183,9 @@ export function layoutSageArcs(
       : Math.max(0, COLLAPSED_W - GROUP_PAD * 2);
     const width = Math.max(
       COLLAPSED_W,
-      GROUP_PAD * 2 + innerW + (isCenterGroup && expanded && !autoExpanded ? CENTER_EXTRA + DOT_GAP : 0),
+      GROUP_PAD * 2 +
+        innerW +
+        (isCenterGroup && expanded && !autoExpanded ? CENTER_EXTRA + DOT_GAP : 0),
     );
     const start = x;
     let slotX = start + GROUP_PAD;
