@@ -171,18 +171,19 @@ const CATALOG = {
   'dafvoices.rel.supports': { en: 'supports', he: 'תומך ב' },
   'dafvoices.rel.responds-to': { en: 'responds to', he: 'משיב ל' },
   'network.page.title': { en: 'Sage network', he: 'רשת החכמים' },
-  'network.page.blurb': {
-    en: 'Who a sage argues with, cites, answers, and supports — learned from the voice graphs of every analyzed daf, with the dapim as receipts.',
-    he: 'עם מי החכם חולק, את מי הוא מצטט ולמי הוא משיב — מתוך גרפי הקולות של כל דף שנותח, עם הדפים כאסמכתאות.',
+  'network.page.coverageShort': {
+    en: 'from {dapim} analyzed dapim',
+    he: 'מתוך {dapim} דפים שנותחו',
   },
-  'network.page.coverage': {
-    en: 'Built from {dapim} dapim ({edges} connections so far).',
-    he: 'נבנה מ־{dapim} דפים ({edges} קשרים עד כה).',
+  'network.arc.aria': {
+    en: 'Arc diagram of {name}\u2019s interactions by generation',
+    he: 'תרשים קשתות של קשרי {name} לפי דורות',
   },
-  'network.page.search': { en: 'Search a sage…', he: 'חיפוש חכם…' },
-  'network.page.pickOne': {
-    en: 'Search for a sage to see their circle.',
-    he: 'חפשו חכם כדי לראות את מעגל הקשרים שלו.',
+  'network.arc.outgoing': { en: '↑ {name} → others', he: '↑ {name} ← אחרים' },
+  'network.arc.incoming': { en: '↓ others → {name}', he: '↓ אחרים ← {name}' },
+  'network.arc.overflow': {
+    en: '+{n} weaker ties not drawn (all listed below)',
+    he: '+{n} קשרים חלשים שאינם מצוירים (כולם ברשימה למטה)',
   },
   'network.page.building': {
     en: 'The Shas-wide network is still being built — check back soon.',
@@ -200,7 +201,6 @@ const CATALOG = {
     en: 'first relationships for this sage',
     he: 'קשרים ראשונים לחכם זה',
   },
-  'network.page.sagePage': { en: 'Sage page', he: 'דף החכם' },
   'network.page.noEdges': {
     en: 'Appears on analyzed dapim, but no confident partner edges yet.',
     he: 'מופיע בדפים שנותחו, אך עדיין ללא קשרים ודאיים.',
