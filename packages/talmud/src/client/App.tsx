@@ -4,7 +4,6 @@ import { AlignPage } from './AlignPage';
 import { AttributionsPage } from './AttributionsPage';
 import Compare from './Compare';
 import DafViewer from './DafViewer';
-import { EgoNetworkPage } from './EgoNetworkPage';
 import { HowItWorksPage } from './HowItWorksPage';
 import { McpPage } from './McpPage';
 import PretextSpike from './PretextSpike';
@@ -34,6 +33,12 @@ function currentRoute() {
   if (raw === 'help') {
     window.location.hash = 'tutorial';
     return 'tutorial';
+  }
+  if (raw === 'network' || raw.startsWith('network/')) {
+    // The ego network moved into the sage page; old links land on #sages.
+    const slug = raw.startsWith('network/') ? raw.slice('network/'.length) : '';
+    window.location.hash = slug ? `sages/${slug}` : 'sages';
+    return 'sages';
   }
   if (raw === 'sages' || raw.startsWith('sages/')) return 'sages';
   return raw;
@@ -94,17 +99,7 @@ export default function App() {
                                                       route() === 'voices' ||
                                                       route().startsWith('voices/')
                                                     }
-                                                    fallback={
-                                                      <Show
-                                                        when={
-                                                          route() === 'network' ||
-                                                          route().startsWith('network/')
-                                                        }
-                                                        fallback={<DafViewer />}
-                                                      >
-                                                        <EgoNetworkPage />
-                                                      </Show>
-                                                    }
+                                                    fallback={<DafViewer />}
                                                   >
                                                     <VoicesPage />
                                                   </Show>

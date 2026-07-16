@@ -7,6 +7,7 @@
  */
 import { createMemo, createResource, createSignal, For, type JSX, Show } from 'solid-js';
 import { t } from './i18n';
+import { SageNetworkSection } from './SageNetworkSection';
 import { type IndexRow, isHebrewQuery, normalize, scoreRow } from './sageSearch';
 
 interface IndexResp {
@@ -495,12 +496,6 @@ function SageDetail(props: {
     <article class="sage-detail">
       <header class="sage-head">
         <div class="sage-head-titles">
-          <a
-            href={`#network/${props.slug}`}
-            style={{ float: 'inline-end', 'font-size': '0.8rem', color: '#8a2a2b' }}
-          >
-            {t('network.page.title')} →
-          </a>
           <Show when={unified()?.canonical.en} fallback={<h2 class="sage-name">{props.slug}</h2>}>
             <h2 class="sage-name">
               {unified()!.canonical.en}
@@ -520,6 +515,8 @@ function SageDetail(props: {
           ×
         </button>
       </header>
+
+      <SageNetworkSection slug={props.slug} />
 
       <Show when={unified.loading && !unified()}>
         <div class="sage-loading">{t('sages.detail.loadingSage')}</div>
