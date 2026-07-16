@@ -196,8 +196,8 @@ const CATALOG = {
   'dafvoices.rel.responds-to': { en: 'responds to', he: 'משיב ל' },
   'coverage.title': { en: 'Where in Shas', he: 'היכן בש״ס' },
   'coverage.summary': {
-    en: 'Observed on {dapim} dapim across {masechtot} masechtot — taller bars = appears more often.',
-    he: 'נצפה ב־{dapim} דפים ב־{masechtot} מסכתות — עמודה גבוהה יותר = מופיע לעיתים קרובות יותר.',
+    en: 'Observed on {dapim} dapim across {masechtot} masechtot — bar height = share of that masechet\u2019s dapim.',
+    he: 'נצפה ב־{dapim} דפים ב־{masechtot} מסכתות — גובה העמודה = חלקו מדפי אותה מסכת.',
   },
   'coverage.analyzedNote': {
     en: 'The darker band marks dapim with full voice analysis ({analyzed} Shas-wide) — sage sightings come from the wider mark pipeline, so fills can exceed the band.',
