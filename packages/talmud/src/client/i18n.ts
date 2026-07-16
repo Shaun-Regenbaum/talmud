@@ -175,16 +175,27 @@ const CATALOG = {
     en: 'from {dapim} analyzed dapim',
     he: 'מתוך {dapim} דפים שנותחו',
   },
+  'network.arc.hint': {
+    en: 'Arcs are bundled by generation — click a generation to open it.',
+    he: 'הקשתות מקובצות לפי דורות — לחצו על דור כדי לפתוח אותו.',
+  },
+  'network.arc.expand': { en: 'Show the {n} sages of {gen}', he: 'הצגת {n} חכמי {gen}' },
+  'network.arc.collapse': { en: 'Collapse {gen}', he: 'צמצום {gen}' },
+  'network.arc.outWord': { en: 'outgoing', he: 'יוצא' },
+  'network.arc.inWord': { en: 'incoming', he: 'נכנס' },
+  'network.arc.kindLegend': { en: 'bars & chips:', he: 'פסים ותוויות:' },
+  'network.arc.fanOverflow': {
+    en: '+{n} weaker ties not drawn in the expanded generation (all listed below)',
+    he: '+{n} קשרים חלשים שאינם מצוירים בדור הפתוח (כולם ברשימה למטה)',
+  },
+  'network.rows.filtered': { en: 'Showing {gen} only.', he: 'מוצג {gen} בלבד.' },
+  'network.rows.showAll': { en: 'Show all', he: 'הצגת הכול' },
   'network.arc.aria': {
     en: 'Arc diagram of {name}\u2019s interactions by generation',
     he: 'תרשים קשתות של קשרי {name} לפי דורות',
   },
   'network.arc.outgoing': { en: '↑ {name} → others', he: '↑ {name} ← אחרים' },
   'network.arc.incoming': { en: '↓ others → {name}', he: '↓ אחרים ← {name}' },
-  'network.arc.overflow': {
-    en: '+{n} weaker ties not drawn (all listed below)',
-    he: '+{n} קשרים חלשים שאינם מצוירים (כולם ברשימה למטה)',
-  },
   'network.page.building': {
     en: 'The Shas-wide network is still being built — check back soon.',
     he: 'רשת הש״ס עדיין נבנית — נסו שוב בקרוב.',

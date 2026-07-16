@@ -1,29 +1,40 @@
 /**
- * The sage-page network section: an ego-centric ARC DIAGRAM on a
- * generation-ordered (chronological) axis, plus the partner rows with daf
- * receipts. Data: GET /api/rabbi-network/:slug (the learned Shas-wide voice
- * graph).
+ * The sage-page network section — trunked generational arc diagram + partner
+ * rows. Data: GET /api/rabbi-network/:slug (the learned Shas-wide voice graph).
  *
- * Reading the diagram: the sage sits on the axis in their own generation;
- * every partner is a dot in ITS generation (era colors — the app's rabbi
- * spectrum). Arcs ABOVE the axis are what this sage does to others
- * (opposes / cites / …); arcs BELOW are what others do to them — direction
- * needs no arrowheads. Thickness = distinct section sightings. Relation kinds
- * wear the app-wide flow palette; because two of those tokens are close grays,
- * identity is never color-alone here: legend, native tooltips, and the text
- * chips in the rows below all restate the kind.
+ * Levels of abstraction (see sageArcLayout.ts):
+ *   L1  one era-colored trunk per generation per direction (out above the
+ *       axis, in below); a cluster pill per generation sized by partner count;
+ *       a stacked relation-kind bar under each generation.
+ *   L2  click a generation (pill or label) to fan it open into named partner
+ *       dots; the partner rows below filter to it. Small networks auto-expand.
+ *   L3  a partner's rows expand into daf receipts; dots and names link to the
+ *       partner's sage page.
+ *
+ * Relation kinds are encoded in the stacked bars + row chips (with a legend);
+ * arcs carry era + direction + volume only — that separation is what keeps a
+ * 60-partner sage readable.
  */
-import { createMemo, createResource, createSignal, For, type JSX, Show } from 'solid-js';
-import { KIND_COLOR, KIND_DASH, stmtRelKind } from './ArgumentFlowGraph';
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  For,
+  type JSX,
+  Show,
+} from 'solid-js';
+import { KIND_COLOR, stmtRelKind } from './ArgumentFlowGraph';
 import { type EgoRow, type EgoWire, groupEgoEdges, splitDafLabel } from './egoNetwork';
 import {
   colorForGeneration,
   GENERATION_BY_ID,
   type GenerationInfo,
   generationLabelHe,
+  legibleTextColor,
 } from './generations';
 import { lang, t } from './i18n';
-import { arcPath, barSegments, layoutArcs } from './sageArcLayout';
+import { arcPath, barSegments, layoutSageArcs, shortGenLabel } from './sageArcLayout';
 
 const SUPPORTS_COLOR = '#0891b2';
 const AXIS_INK = '#c9c2b2';
@@ -31,9 +42,6 @@ const REL_KINDS = ['opposes', 'responds-to', 'resolves', 'cites', 'supports'] as
 
 function relColor(kind: string): string {
   return kind === 'supports' ? SUPPORTS_COLOR : KIND_COLOR[stmtRelKind(kind)];
-}
-function relDash(kind: string): string | undefined {
-  return kind === 'supports' ? undefined : KIND_DASH[stmtRelKind(kind)];
 }
 
 function genLabel(generation: string | null): string {
@@ -43,18 +51,26 @@ function genLabel(generation: string | null): string {
   return lang() === 'he' ? generationLabelHe(info) : info.label;
 }
 
+/** Truncate at a word boundary so labels never end mid-word. */
+function truncateName(name: string, max = 24): string {
+  if (name.length <= max) return name;
+  const cut = name.lastIndexOf(' ', max - 1);
+  return `${name.slice(0, cut > 8 ? cut : max - 1)}…`;
+}
+
 function dafHref(label: string): string | null {
   const d = splitDafLabel(label);
   if (!d) return null;
   return `?tractate=${encodeURIComponent(d.tractate)}&page=${encodeURIComponent(d.page)}#daf`;
 }
 
-const GENERATION_BAR_INSET = 10;
+const GENERATION_BAR_INSET = 8;
 const TOP_PAD = 10;
 const LABEL_H = 15;
 const BAR_H = 22;
-const BAR_GAP = 2; // surface gap between stacked segments
+const BAR_GAP = 2;
 const BOTTOM_PAD = 8;
+const NAME_BAND = 86; // reserved for rotated partner-name labels when expanded
 
 export function SageNetworkSection(props: { slug: string }): JSX.Element {
   const [ego] = createResource(
@@ -75,9 +91,21 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
     return e && 'wire' in e && e.wire ? groupEgoEdges(e.wire.edges) : [];
   });
 
-  const [hover, setHover] = createSignal<string | null>(null);
+  const [hover, setHover] = createSignal<string | null>(null); // partner slug OR gen key `gen:<id>`
   const [openRow, setOpenRow] = createSignal<string | null>(null);
-  const dim = (slug: string) => hover() !== null && hover() !== slug;
+  const [expandedGen, setExpandedGen] = createSignal<string | null>(null);
+  createEffect(() => {
+    props.slug; // re-centering resets the drill-down + any open receipts
+    setExpandedGen(null);
+    setOpenRow(null);
+  });
+  const genKey = (gen: string | null) => `gen:${gen ?? '?'}`;
+  const expandKey = (gen: string | null) => gen ?? '?';
+  const dimGen = (gen: string | null) => hover() !== null && hover() !== genKey(gen);
+  const dimSlug = (slug: string | null) => hover() !== null && hover() !== slug && !(slug === null);
+
+  const toggleGen = (gen: string | null) =>
+    setExpandedGen((g) => (g === expandKey(gen) ? null : expandKey(gen)));
 
   return (
     <section class="sage-network" style={{ 'margin-top': '0.9rem' }}>
@@ -96,11 +124,22 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
             }
           >
             {(wire) => {
-              const layout = createMemo(() => layoutArcs(wire.node.generation, rows()));
+              const layout = createMemo(() =>
+                layoutSageArcs(wire.node.generation, rows(), expandedGen()),
+              );
+              const anyExpanded = () =>
+                layout().groups.some((g) => g.expanded && g.dots.length > 0);
               const axisY = () => TOP_PAD + Math.max(layout().maxAbove, 26) + 12;
-              const barsY = () => axisY() + layout().maxBelow + 14 + LABEL_H;
+              const labelsY = () =>
+                axisY() + layout().maxBelow + (anyExpanded() ? 22 + NAME_BAND : 28);
+              const barsY = () => labelsY() + LABEL_H;
               const height = () => barsY() + BAR_H + BOTTOM_PAD;
-              const maxTickTotal = () => layout().ticks.reduce((m, tk) => Math.max(m, tk.total), 1);
+              const maxGroupTotal = () => layout().groups.reduce((m, g) => Math.max(m, g.total), 1);
+              const visibleRows = () => {
+                const g = expandedGen();
+                if (!g || layout().autoExpanded) return rows();
+                return rows().filter((r) => (r.other.generation ?? '?') === g);
+              };
               return (
                 <div>
                   <p style={{ margin: '0 0 0.5rem', color: '#777', 'font-size': '0.8rem' }}>
@@ -126,7 +165,11 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                       </p>
                     }
                   >
-                    {/* the arc diagram */}
+                    <Show when={!layout().autoExpanded}>
+                      <p style={{ margin: '0 0 0.3rem', color: '#a89e8a', 'font-size': '0.75rem' }}>
+                        {t('network.arc.hint')}
+                      </p>
+                    </Show>
                     <div style={{ 'overflow-x': 'auto' }}>
                       <svg
                         viewBox={`0 0 ${layout().width} ${height()}`}
@@ -136,32 +179,61 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                         role="img"
                         aria-label={t('network.arc.aria', { name: wire.node.name })}
                       >
-                        {/* direction hints */}
-                        <text x={layout().center.x} y={TOP_PAD} font-size="9" fill="#a89e8a">
+                        {/* direction hints, centered on the diagram */}
+                        <text
+                          x={layout().width / 2}
+                          y={TOP_PAD}
+                          font-size="9"
+                          fill="#a89e8a"
+                          text-anchor="middle"
+                        >
                           {t('network.arc.outgoing', { name: wire.node.name })}
                         </text>
                         <text
-                          x={layout().center.x}
+                          x={layout().width / 2}
                           y={axisY() + layout().maxBelow + 11}
                           font-size="9"
                           fill="#a89e8a"
+                          text-anchor="middle"
                         >
                           {t('network.arc.incoming', { name: wire.node.name })}
                         </text>
 
-                        {/* arcs */}
-                        <For each={layout().arcs}>
+                        {/* expanded-group background band */}
+                        <For each={layout().groups}>
+                          {(g) => (
+                            <Show when={g.expanded && !layout().autoExpanded && g.dots.length > 0}>
+                              <rect
+                                x={g.x}
+                                y={TOP_PAD + 4}
+                                width={g.width}
+                                height={axisY() + layout().maxBelow - TOP_PAD + 4}
+                                rx={10}
+                                fill="#8a6d3b"
+                                opacity="0.06"
+                              />
+                            </Show>
+                          )}
+                        </For>
+
+                        {/* arcs: era-colored trunks + fans; direction = side */}
+                        <For each={layout().edges}>
                           {(a) => (
                             <path
                               d={arcPath(a, axisY())}
                               fill="none"
-                              stroke={relColor(a.chip.kind)}
+                              stroke={colorForGeneration(a.gen)}
                               stroke-width={a.stroke}
-                              stroke-dasharray={relDash(a.chip.kind)}
                               stroke-linecap="round"
-                              opacity={dim(a.slug) ? 0.12 : 0.6}
+                              opacity={
+                                (a.slug ? dimSlug(a.slug) : dimGen(a.gen))
+                                  ? 0.12
+                                  : a.kind === 'trunk'
+                                    ? 0.75
+                                    : 0.55
+                              }
                             >
-                              <title>{`${wire.node.name} ${a.chip.direction === 'out' ? '→' : '←'} ${t(`dafvoices.rel.${a.chip.kind}`)} ×${a.chip.weight}`}</title>
+                              <title>{`${genLabel(a.gen)} — ${a.above ? t('network.arc.outWord') : t('network.arc.inWord')} ×${a.weight}`}</title>
                             </path>
                           )}
                         </For>
@@ -175,36 +247,150 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                           stroke={AXIS_INK}
                           stroke-width="1"
                         />
-                        {/* generation group boundaries + labels + stacked bars */}
-                        <For each={layout().ticks}>
-                          {(tk) => {
-                            const barW = () => Math.max(0, tk.width - GENERATION_BAR_INSET * 2);
-                            const scale = () => (tk.total > 0 ? tk.total / maxTickTotal() : 0);
+
+                        {/* groups: boundaries, labels (click to expand), pills, dots, bars */}
+                        <For each={layout().groups}>
+                          {(g) => {
+                            const barW = () => Math.max(0, g.width - GENERATION_BAR_INSET * 2);
+                            const scale = () => (g.total > 0 ? g.total / maxGroupTotal() : 0);
+                            const clickable = () => !layout().autoExpanded && g.partnerCount > 0;
                             return (
                               <g>
                                 <line
-                                  x1={tk.x}
-                                  x2={tk.x}
+                                  x1={g.x}
+                                  x2={g.x}
                                   y1={axisY() - 4}
                                   y2={axisY() + 4}
                                   stroke={AXIS_INK}
                                   stroke-width="1"
                                 />
                                 <text
-                                  x={tk.x + tk.width / 2}
-                                  y={axisY() + layout().maxBelow + 14 + 10}
+                                  x={g.x + g.width / 2}
+                                  y={labelsY()}
                                   font-size="9.5"
-                                  fill="#8a8271"
+                                  font-weight={g.expanded && !layout().autoExpanded ? 700 : 400}
+                                  fill={clickable() ? '#8a6d3b' : '#8a8271'}
                                   text-anchor="middle"
+                                  style={{ cursor: clickable() ? 'pointer' : 'default' }}
+                                  role={clickable() ? 'button' : undefined}
+                                  tabindex={clickable() ? 0 : undefined}
+                                  aria-label={
+                                    clickable()
+                                      ? t(
+                                          g.expanded
+                                            ? 'network.arc.collapse'
+                                            : 'network.arc.expand',
+                                          {
+                                            gen: genLabel(g.gen),
+                                            n: g.partnerCount,
+                                          },
+                                        )
+                                      : undefined
+                                  }
+                                  onClick={() => clickable() && toggleGen(g.gen)}
+                                  onKeyDown={(ev) => {
+                                    if (clickable() && (ev.key === 'Enter' || ev.key === ' ')) {
+                                      ev.preventDefault();
+                                      toggleGen(g.gen);
+                                    }
+                                  }}
                                 >
-                                  {genLabel(tk.gen)}
+                                  {shortGenLabel(g.gen, lang() === 'he')}
+                                  {clickable() ? (g.expanded ? ' ×' : ` (${g.partnerCount})`) : ''}
                                 </text>
-                                {/* per-generation stacked breakdown (kind mix) */}
-                                <Show when={tk.total > 0}>
+
+                                {/* collapsed cluster pill (click to expand) */}
+                                <Show when={g.pill} keyed>
+                                  {(pill) => (
+                                    <g
+                                      role="button"
+                                      tabindex={0}
+                                      aria-label={t('network.arc.expand', {
+                                        gen: genLabel(g.gen),
+                                        n: pill.partnerCount,
+                                      })}
+                                      style={{ cursor: 'pointer' }}
+                                      opacity={dimGen(g.gen) ? 0.3 : 1}
+                                      onClick={() => toggleGen(g.gen)}
+                                      onKeyDown={(ev) => {
+                                        if (ev.key === 'Enter' || ev.key === ' ') {
+                                          ev.preventDefault();
+                                          toggleGen(g.gen);
+                                        }
+                                      }}
+                                      onMouseEnter={() => setHover(genKey(g.gen))}
+                                      onMouseLeave={() => setHover(null)}
+                                    >
+                                      <circle
+                                        cx={pill.x}
+                                        cy={axisY()}
+                                        r={pill.r}
+                                        fill={colorForGeneration(g.gen)}
+                                        stroke="#fff"
+                                        stroke-width="2"
+                                      />
+                                      <text
+                                        x={pill.x}
+                                        y={axisY() + 3}
+                                        font-size="8.5"
+                                        font-weight="700"
+                                        fill={legibleTextColor(colorForGeneration(g.gen))}
+                                        text-anchor="middle"
+                                      >
+                                        {pill.partnerCount}
+                                      </text>
+                                      <title>{`${genLabel(g.gen)} — ${pill.partnerCount} · ×${g.total}`}</title>
+                                    </g>
+                                  )}
+                                </Show>
+
+                                {/* expanded partner dots + rotated name labels */}
+                                <For each={g.dots}>
+                                  {(d) => (
+                                    <a
+                                      href={`#sages/${d.row.other.slug}`}
+                                      aria-label={d.row.other.name}
+                                      onMouseEnter={() => setHover(d.row.other.slug)}
+                                      onMouseLeave={() => setHover(null)}
+                                      onFocus={() => setHover(d.row.other.slug)}
+                                      onBlur={() => setHover(null)}
+                                    >
+                                      <circle
+                                        cx={d.x}
+                                        cy={axisY()}
+                                        r={d.r}
+                                        fill={colorForGeneration(d.row.other.generation)}
+                                        stroke="#fff"
+                                        stroke-width="2"
+                                        opacity={dimSlug(d.row.other.slug) ? 0.25 : 1}
+                                        style={{ cursor: 'pointer' }}
+                                      />
+                                      <text
+                                        transform={`rotate(40 ${d.x} ${axisY() + layout().maxBelow + 22})`}
+                                        x={d.x}
+                                        y={axisY() + layout().maxBelow + 22}
+                                        font-size="9"
+                                        fill={dimSlug(d.row.other.slug) ? '#c8c2b4' : '#555'}
+                                        text-anchor="start"
+                                        style={{
+                                          'paint-order': 'stroke',
+                                          stroke: '#fff',
+                                          'stroke-width': '3px',
+                                        }}
+                                      >
+                                        {truncateName(d.row.other.name)}
+                                      </text>
+                                      <title>{`${d.row.other.name} — ${genLabel(d.row.other.generation)} — ×${d.row.totalWeight}`}</title>
+                                    </a>
+                                  )}
+                                </For>
+
+                                {/* stacked relation-kind bar */}
+                                <Show when={g.total > 0}>
                                   {(() => {
                                     const totalW = barW() * scale();
-                                    const segs = barSegments(tk.byKind, tk.total, totalW, BAR_GAP);
-                                    const x0 = tk.x + tk.width / 2 - totalW / 2;
+                                    const segs = barSegments(g.byKind, g.total, totalW, BAR_GAP);
+                                    const x0 = g.x + g.width / 2 - totalW / 2;
                                     return (
                                       <For each={segs}>
                                         {(seg) => (
@@ -216,20 +402,20 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                                             rx={2}
                                             fill={relColor(seg.kind)}
                                           >
-                                            <title>{`${genLabel(tk.gen)} — ${t(`dafvoices.rel.${seg.kind}`)} ×${seg.weight}`}</title>
+                                            <title>{`${genLabel(g.gen)} — ${t(`dafvoices.rel.${seg.kind}`)} ×${seg.weight}`}</title>
                                           </rect>
                                         )}
                                       </For>
                                     );
                                   })()}
                                   <text
-                                    x={tk.x + tk.width / 2}
+                                    x={g.x + g.width / 2}
                                     y={barsY() + 17}
                                     font-size="8.5"
                                     fill="#a89e8a"
                                     text-anchor="middle"
                                   >
-                                    ×{tk.total}
+                                    ×{g.total}
                                   </text>
                                 </Show>
                               </g>
@@ -248,50 +434,24 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                         />
                         <text
                           x={layout().center.x}
-                          y={axisY() - layout().center.r - 4}
+                          y={axisY() - layout().center.r - 5}
                           font-size="10"
                           font-weight="700"
                           fill="#333"
                           text-anchor="middle"
+                          style={{ 'paint-order': 'stroke', stroke: '#fff', 'stroke-width': '3px' }}
                         >
                           {wire.node.name}
                         </text>
-
-                        {/* partner dots (links to their sage page) */}
-                        <For each={layout().dots}>
-                          {(d) => (
-                            <a
-                              href={`#sages/${d.row.other.slug}`}
-                              aria-label={d.row.other.name}
-                              onMouseEnter={() => setHover(d.row.other.slug)}
-                              onMouseLeave={() => setHover(null)}
-                              onFocus={() => setHover(d.row.other.slug)}
-                              onBlur={() => setHover(null)}
-                            >
-                              <circle
-                                cx={d.x}
-                                cy={axisY()}
-                                r={d.r}
-                                fill={colorForGeneration(d.row.other.generation)}
-                                stroke="#fff"
-                                stroke-width="2"
-                                opacity={dim(d.row.other.slug) ? 0.25 : 1}
-                                style={{ cursor: 'pointer' }}
-                              >
-                                <title>{`${d.row.other.name} — ${genLabel(d.row.other.generation)} — ×${d.row.totalWeight}`}</title>
-                              </circle>
-                            </a>
-                          )}
-                        </For>
                       </svg>
                     </div>
-                    <Show when={layout().overflow > 0}>
+                    <Show when={layout().fanOverflow > 0}>
                       <p style={{ margin: '0.2rem 0 0', color: '#a89e8a', 'font-size': '0.75rem' }}>
-                        {t('network.arc.overflow', { n: layout().overflow })}
+                        {t('network.arc.fanOverflow', { n: layout().fanOverflow })}
                       </p>
                     </Show>
 
-                    {/* legend: kinds (color+dash swatches) — identity never color-alone */}
+                    {/* legend for the relation-kind bars + row chips */}
                     <div
                       style={{
                         display: 'flex',
@@ -300,8 +460,10 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                         margin: '0.5rem 0 0.8rem',
                         'font-size': '0.75rem',
                         color: '#666',
+                        'align-items': 'center',
                       }}
                     >
+                      <span style={{ color: '#a89e8a' }}>{t('network.arc.kindLegend')}</span>
                       <For each={[...REL_KINDS]}>
                         {(k) => (
                           <span
@@ -311,17 +473,8 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                               gap: '0.3rem',
                             }}
                           >
-                            <svg width="22" height="8" aria-hidden="true">
-                              <line
-                                x1="1"
-                                y1="4"
-                                x2="21"
-                                y2="4"
-                                stroke={relColor(k)}
-                                stroke-width="2.5"
-                                stroke-dasharray={relDash(k)}
-                                stroke-linecap="round"
-                              />
+                            <svg width="14" height="8" aria-hidden="true">
+                              <rect x="1" y="1" width="12" height="6" rx="2" fill={relColor(k)} />
                             </svg>
                             {t(`dafvoices.rel.${k}`)}
                           </span>
@@ -329,9 +482,30 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                       </For>
                     </div>
 
-                    {/* partner rows: the textual ground truth with daf receipts */}
+                    {/* partner rows (filtered when a generation is expanded) */}
+                    <Show when={expandedGen() && !layout().autoExpanded}>
+                      <p style={{ margin: '0 0 0.4rem', 'font-size': '0.78rem', color: '#8a6d3b' }}>
+                        {t('network.rows.filtered', {
+                          gen: expandedGen() === '?' ? '?' : genLabel(expandedGen()),
+                        })}{' '}
+                        <button
+                          type="button"
+                          onClick={() => setExpandedGen(null)}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#8a2a2b',
+                            cursor: 'pointer',
+                            'font-size': '0.78rem',
+                            padding: 0,
+                          }}
+                        >
+                          {t('network.rows.showAll')}
+                        </button>
+                      </p>
+                    </Show>
                     <ol style={{ 'list-style': 'none', margin: 0, padding: 0 }}>
-                      <For each={rows()}>
+                      <For each={visibleRows()}>
                         {(row) => (
                           <li
                             onMouseEnter={() => setHover(row.other.slug)}

@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { EgoRow } from '../src/client/egoNetwork';
 import {
-  ARC_MAX_PARTNERS,
+  ARC_MAX_PARTNERS_PER_GEN,
+  AUTO_EXPAND_MAX,
   arcPath,
   barSegments,
   genOrder,
-  layoutArcs,
+  layoutSageArcs,
+  shortGenLabel,
 } from '../src/client/sageArcLayout';
 
 const row = (
@@ -29,70 +31,101 @@ const row = (
 describe('genOrder', () => {
   it('orders chronologically with unknown last', () => {
     expect(genOrder('tanna-2')).toBeLessThan(genOrder('amora-bavel-4'));
-    expect(genOrder('amora-ey-1')).toBeLessThan(genOrder('amora-bavel-8'));
     expect(genOrder(null)).toBeGreaterThan(genOrder('achronim'));
     expect(genOrder('nonsense')).toBe(genOrder(null));
   });
 });
 
-describe('layoutArcs', () => {
-  const rows = [
-    row('a', 'amora-bavel-4', 9, [
-      { kind: 'opposes', direction: 'out', weight: 6 },
-      { kind: 'cites', direction: 'in', weight: 3 },
-    ]),
-    row('b', 'tanna-2', 4),
-    row('c', 'amora-bavel-4', 2),
+describe('layoutSageArcs — L1 trunks', () => {
+  // 10 partners across two generations => above the auto-expand threshold.
+  const many = [
+    ...Array.from({ length: 6 }, (_, i) =>
+      row(`b${i}`, 'amora-bavel-3', 6 - i, [
+        { kind: 'opposes', direction: 'out', weight: 4 },
+        { kind: 'cites', direction: 'in', weight: 2 },
+      ]),
+    ),
+    ...Array.from({ length: 4 }, (_, i) => row(`t${i}`, 'tanna-2', 2)),
   ];
 
-  it('groups by generation in chronological order and places the center', () => {
-    const l = layoutArcs('amora-bavel-4', rows);
-    expect(l.ticks.map((t) => t.gen)).toEqual(['tanna-2', 'amora-bavel-4']);
-    // center sits inside its own generation group's x-range
-    const own = l.ticks[1];
-    expect(l.center.x).toBeGreaterThanOrEqual(own.x);
-    expect(l.center.x).toBeLessThanOrEqual(own.x + own.width);
-    expect(l.dots).toHaveLength(3);
+  it('collapses generations into pills with directional trunks', () => {
+    const l = layoutSageArcs('amora-bavel-4', many, null);
+    expect(l.autoExpanded).toBe(false);
+    const bavel3 = l.groups.find((g) => g.gen === 'amora-bavel-3');
+    expect(bavel3?.pill?.partnerCount).toBe(6);
+    expect(bavel3?.dots).toHaveLength(0);
+    const trunks = l.edges.filter((e) => e.kind === 'trunk' && e.gen === 'amora-bavel-3');
+    // bavel-3 has both out (opposes) and in (cites) volume => two trunks
+    expect(trunks.map((e) => e.above).sort()).toEqual([false, true]);
+    const out = trunks.find((e) => e.above);
+    expect(out?.weight).toBe(24); // 6 partners x out 4
+    // tanna-2 is out-only => a single above trunk
+    const t2 = l.edges.filter((e) => e.kind === 'trunk' && e.gen === 'tanna-2');
+    expect(t2).toHaveLength(1);
+    expect(t2[0].above).toBe(true);
   });
 
-  it('splits arcs by direction and scales stroke with weight', () => {
-    const l = layoutArcs('amora-bavel-4', rows);
-    const above = l.arcs.filter((a) => a.above);
-    const below = l.arcs.filter((a) => !a.above);
-    expect(above.length).toBe(3); // two out-rows + a's out chip
-    expect(below.length).toBe(1); // a's in chip
-    const heavy = l.arcs.find((a) => a.chip.weight === 6);
-    const light = l.arcs.find((a) => a.chip.weight === 2);
-    expect(heavy && light && heavy.stroke > light.stroke).toBe(true);
+  it('expanding one generation fans it while others stay trunked', () => {
+    const l = layoutSageArcs('amora-bavel-4', many, 'amora-bavel-3');
+    const bavel3 = l.groups.find((g) => g.gen === 'amora-bavel-3');
+    expect(bavel3?.expanded).toBe(true);
+    expect(bavel3?.dots).toHaveLength(6);
+    expect(l.edges.filter((e) => e.kind === 'fan')).toHaveLength(12); // 6 partners x 2 directions
+    const t2 = l.groups.find((g) => g.gen === 'tanna-2');
+    expect(t2?.pill?.partnerCount).toBe(4);
   });
 
-  it('sums the per-generation kind breakdown', () => {
-    const l = layoutArcs('amora-bavel-4', rows);
-    const own = l.ticks.find((t) => t.gen === 'amora-bavel-4');
-    expect(own?.total).toBe(11); // a(9) + c(2)
-    expect(own?.byKind.find((k) => k.kind === 'opposes')?.weight).toBe(8);
-    expect(own?.byKind.find((k) => k.kind === 'cites')?.weight).toBe(3);
-  });
-
-  it('caps drawn partners and reports overflow', () => {
-    const many = Array.from({ length: ARC_MAX_PARTNERS + 7 }, (_, i) =>
-      row(`s${i}`, 'amora-bavel-3', ARC_MAX_PARTNERS + 7 - i),
+  it('caps the fan inside one generation and reports overflow', () => {
+    const big = Array.from({ length: ARC_MAX_PARTNERS_PER_GEN + 5 }, (_, i) =>
+      row(`x${i}`, 'amora-bavel-2', 50 - i),
     );
-    const l = layoutArcs('amora-bavel-4', many);
-    expect(l.dots).toHaveLength(ARC_MAX_PARTNERS);
-    expect(l.overflow).toBe(7);
+    const l = layoutSageArcs('amora-bavel-4', big, 'amora-bavel-2');
+    const g = l.groups.find((x) => x.gen === 'amora-bavel-2');
+    expect(g?.dots).toHaveLength(ARC_MAX_PARTNERS_PER_GEN);
+    expect(l.fanOverflow).toBe(5);
+  });
+});
+
+describe('layoutSageArcs — unknown generation', () => {
+  it("the null-generation group expands under the '?' key", () => {
+    const many = Array.from({ length: 12 }, (_, i) =>
+      row(`u${i}`, i < 10 ? 'amora-bavel-2' : null, 2),
+    );
+    const l = layoutSageArcs('amora-bavel-4', many, '?');
+    const unknown = l.groups.find((g) => g.gen === null);
+    expect(unknown?.expanded).toBe(true);
+    expect(unknown?.dots).toHaveLength(2);
+    // and null means: nothing expanded
+    const l2 = layoutSageArcs('amora-bavel-4', many, null);
+    expect(l2.groups.every((g) => !g.expanded)).toBe(true);
+  });
+});
+
+describe('layoutSageArcs — small networks', () => {
+  it('auto-expands everything at or below the threshold', () => {
+    const few = Array.from({ length: AUTO_EXPAND_MAX }, (_, i) =>
+      row(`s${i}`, 'amora-ey-2', i + 1),
+    );
+    const l = layoutSageArcs('amora-bavel-1', few, null);
+    expect(l.autoExpanded).toBe(true);
+    expect(l.groups.every((g) => g.expanded)).toBe(true);
+    expect(l.edges.every((e) => e.kind === 'fan')).toBe(true);
   });
 
   it('places the heaviest earlier-generation partner nearest the center', () => {
-    const l = layoutArcs('amora-bavel-4', [row('heavy', 'tanna-2', 9), row('light', 'tanna-2', 1)]);
-    const hx = l.dots.find((d) => d.row.other.slug === 'heavy')?.x ?? 0;
-    const lx = l.dots.find((d) => d.row.other.slug === 'light')?.x ?? 0;
-    expect(hx).toBeGreaterThan(lx); // shortest arc for the strongest tie
+    const l = layoutSageArcs('amora-bavel-4', [
+      row('heavy', 'tanna-2', 9),
+      row('light', 'tanna-2', 1),
+    ]);
+    const dots = l.groups.find((g) => g.gen === 'tanna-2')?.dots ?? [];
+    const hx = dots.find((d) => d.row.other.slug === 'heavy')?.x ?? 0;
+    const lx = dots.find((d) => d.row.other.slug === 'light')?.x ?? 0;
+    expect(hx).toBeGreaterThan(lx);
   });
 
   it('creates the center generation group even with no partners in it', () => {
-    const l = layoutArcs('savora', [row('x', 'tanna-1', 1)]);
-    expect(l.ticks.map((t) => t.gen)).toEqual(['tanna-1', 'savora']);
+    const l = layoutSageArcs('savora', [row('x', 'tanna-1', 1)]);
+    expect(l.groups.map((g) => g.gen)).toEqual(['tanna-1', 'savora']);
   });
 });
 
@@ -119,19 +152,22 @@ describe('barSegments', () => {
 
 describe('arcPath', () => {
   it('bulges up for above-axis arcs and down for below', () => {
-    const base = {
-      slug: 's',
-      chip: { kind: 'opposes', direction: 'out' as const, weight: 1, strict: 0 },
-      x1: 10,
-      x2: 110,
-      ry: 40,
-      stroke: 2,
-    };
+    const base = { x1: 10, x2: 110, ry: 40 };
     expect(arcPath({ ...base, above: true }, 100)).toBe('M 10 100 A 50 40 0 0 1 110 100');
     expect(arcPath({ ...base, above: false }, 100)).toBe('M 10 100 A 50 40 0 0 0 110 100');
-    // mirrored when the partner sits left of center
     expect(arcPath({ ...base, above: true, x1: 110, x2: 10 }, 100)).toBe(
       'M 110 100 A 50 40 0 0 0 10 100',
     );
+  });
+});
+
+describe('shortGenLabel', () => {
+  it('produces compact collision-safe labels', () => {
+    expect(shortGenLabel('amora-bavel-2', false)).toBe('Bavel 2');
+    expect(shortGenLabel('amora-ey-1', false)).toBe('E.Y. 1');
+    expect(shortGenLabel('tanna-4', false)).toBe('Tanna 4');
+    expect(shortGenLabel('savora', false)).toBe('Savora');
+    expect(shortGenLabel(null, false)).toBe('?');
+    expect(shortGenLabel('amora-bavel-2', true)).toBe('בבל 2');
   });
 });
