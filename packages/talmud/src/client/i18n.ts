@@ -125,6 +125,7 @@ const CATALOG = {
   'dev.usageReports': { en: 'Usage & reports', he: 'שימוש ודוחות' },
   'dev.alignmentDebug': { en: 'Alignment debug', he: 'ניפוי יישור' },
   'dev.mcpGuide': { en: 'Connect via MCP', he: 'חיבור דרך MCP' },
+  'dev.people': { en: 'People', he: 'חכמים' },
 
   // — Argument sidebar —
   'argument.title': { en: 'Argument', he: 'סוגיה' },
@@ -146,25 +147,48 @@ const CATALOG = {
   'voices.legend.opposes': { en: 'opposes', he: 'חולק' },
   'voices.legend.cites': { en: 'cites', he: 'מצטט' },
 
-  // — #voices page (daf-wide voice graph) —
-  'voices.page.title': { en: 'Voices', he: 'קולות' },
-  'voices.page.back': { en: 'back to daf', he: 'חזרה לדף' },
-  'voices.page.subtitle': {
-    en: 'Who argues, answers, and cites whom across the whole daf — every section’s voices stitched into one graph.',
-    he: 'מי חולק, משיב ומצטט את מי לאורך כל הדף — קולות כל המקטעים מאוחדים לגרף אחד.',
+  // — #argument page (the daf argument graph; replaced the #voices page) —
+  'arggraph.link': { en: 'Argument graph', he: 'גרף הסוגיה' },
+  'arggraph.title': { en: 'Argument graph', he: 'גרף הסוגיה' },
+  'arggraph.back': { en: 'back to daf', he: 'חזרה לדף' },
+  'arggraph.subtitle': {
+    en: 'The daf’s argument, one section at a time: every statement in order, who says it, and how the statements and sections connect.',
+    he: 'מהלך הסוגיה בדף, מקטע אחר מקטע: כל אמירה כסדרה, מי אומר אותה, ואיך האמירות והמקטעים מתקשרים.',
   },
-  'voices.page.loading': { en: 'Loading the daf’s voices…', he: 'טוען את קולות הדף…' },
-  'voices.page.empty': {
-    en: 'No voices have been analyzed for this daf yet. Open the daf and browse its sections to generate them.',
-    he: 'עדיין לא נותחו קולות עבור דף זה. פִּתחו את הדף ועיינו במקטעים כדי לחשב אותם.',
+  'arggraph.loading': { en: 'Loading the daf’s argument…', he: 'טוען את מהלך הסוגיה…' },
+  'arggraph.empty': {
+    en: 'No argument sections have been analyzed for this daf yet. Open the daf and browse its sections to generate them.',
+    he: 'עדיין לא נותחו מקטעי סוגיה עבור דף זה. פִּתחו את הדף ועיינו במקטעים כדי לחשב אותם.',
   },
-  'voices.page.openDaf': { en: 'Open the daf', he: 'פתיחת הדף' },
-  'voices.page.partial': {
-    en: '{done} of {total} sections analyzed — open the daf to warm the rest.',
-    he: '{done} מתוך {total} מקטעים נותחו — פִּתחו את הדף כדי לחשב את השאר.',
+  'arggraph.openDaf': { en: 'Open the daf', he: 'פתיחת הדף' },
+  'arggraph.cold': {
+    en: 'Statements haven’t been extracted for this daf yet — showing the section structure without the statement detail. Open the daf to warm it.',
+    he: 'האמירות טרם חולצו עבור דף זה — מוצג מבנה המקטעים ללא פירוט האמירות. פִּתחו את הדף כדי לחשב אותן.',
   },
-  'voices.page.bySection': { en: 'By section', he: 'לפי מקטע' },
-  'voices.page.link': { en: 'Voice graph', he: 'גרף הקולות' },
+  'arggraph.people': { en: 'Who speaks on this daf', he: 'מי מדבר בדף' },
+  'arggraph.clearFocus': { en: 'clear', he: 'ניקוי' },
+  'arggraph.statement': { en: 'statement', he: 'אמירה' },
+  'arggraph.statements': { en: 'statements', he: 'אמירות' },
+  'arggraph.section': { en: 'section', he: 'מקטע' },
+  'arggraph.sections': { en: 'sections', he: 'מקטעים' },
+  'arggraph.section.none': {
+    en: 'No statement breakdown for this section yet.',
+    he: 'אין עדיין פירוט אמירות למקטע זה.',
+  },
+  'arggraph.dispute': { en: 'dispute', he: 'מחלוקת' },
+  'arggraph.derived': {
+    en: 'derived from the statement dialectic',
+    he: 'נגזר ממהלך האמירות',
+  },
+  'arggraph.linkFromVoices': {
+    en: 'from the model’s voice analysis',
+    he: 'מניתוח הקולות של המודל',
+  },
+  'arggraph.linkFromRoles': {
+    en: 'derived deterministically from move roles',
+    he: 'נגזר דטרמיניסטית מתפקידי המהלכים',
+  },
+  'arggraph.network': { en: 'Aggregate people network', he: 'רשת הדוברים המצרפית' },
   'dafvoices.collective': { en: 'collective voice', he: 'קול קיבוצי' },
   'dafvoices.sections': { en: 'sections', he: 'מקטעים' },
   'dafvoices.rel.opposes': { en: 'opposes', he: 'חולק על' },

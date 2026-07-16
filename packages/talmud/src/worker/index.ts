@@ -1914,7 +1914,11 @@ app.get('/api/statement-spine/:tractate/:page', async (c) => {
   // movesComputed lets the client tell COLD (argument-move marks not warmed yet —
   // every section's spine is empty, show "not computed yet") from a section that
   // legitimately has no sub-statements. Without it an empty band reads as broken.
-  return c.json({ tractate, page, sections: out, movesComputed: allMoves.length > 0 });
+  // `flow` is the cached AI section→section flow (readFlowConnections — read-only,
+  // empty when cold): the #argument page draws its cross-section connections from
+  // it without POSTing /api/run, keeping this endpoint's never-generates contract.
+  const flow = await readFlowConnections(c.env, tractate, page);
+  return c.json({ tractate, page, sections: out, movesComputed: allMoves.length > 0, flow });
 });
 
 // Deterministic section→section connections derived from the STATEMENT dialectic

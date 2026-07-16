@@ -3929,13 +3929,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               </a>
               {' · '}
               <a
-                href={`?tractate=${encodeURIComponent(tractate())}&page=${encodeURIComponent(page())}#voices`}
+                href={`?tractate=${encodeURIComponent(tractate())}&page=${encodeURIComponent(page())}#argument`}
                 onClick={(e) => {
                   e.preventDefault();
                   const u = new URL(window.location.href);
                   u.searchParams.set('tractate', tractate());
                   u.searchParams.set('page', page());
-                  u.hash = 'voices';
+                  u.hash = 'argument';
                   window.location.href = u.toString();
                 }}
                 style={{
@@ -3944,7 +3944,18 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
                   'border-bottom': '1px dotted #bbb',
                 }}
               >
-                {t('voices.page.link')}
+                {t('arggraph.link')}
+              </a>
+              {' · '}
+              <a
+                href="#sages"
+                style={{
+                  color: 'inherit',
+                  'text-decoration': 'none',
+                  'border-bottom': '1px dotted #bbb',
+                }}
+              >
+                {t('dev.people')}
               </a>
               {' · '}
               <a

@@ -21,6 +21,7 @@ import type {
 } from '../lib/typing/statementSpine';
 
 // Dialectic role → colour (matches the reader's ArgumentMoveFlow palette).
+// Exported: the #argument page paints its statement rows with the same palette.
 const ROLE_COLOR: Record<string, string> = {
   opening: '#475569',
   question: '#0369a1',
@@ -33,7 +34,7 @@ const ROLE_COLOR: Record<string, string> = {
   shift: '#7c3aed',
   other: '#64748b',
 };
-const roleColor = (role: string): string => ROLE_COLOR[role] ?? ROLE_COLOR.other;
+export const roleColor = (role: string): string => ROLE_COLOR[role] ?? ROLE_COLOR.other;
 
 // Position side → tint, so the two limbs of a מחלוקת read as opposing colours
 // (the same blue/red the VOICES map uses for Position A / Position B).
@@ -44,7 +45,7 @@ const SIDE_TINT: Record<string, string> = {
   'support-A': '#1d4ed8',
   'support-B': '#b91c1c',
 };
-const sideTint = (side?: string): string | undefined => (side ? SIDE_TINT[side] : undefined);
+export const sideTint = (side?: string): string | undefined => (side ? SIDE_TINT[side] : undefined);
 
 const RELATION_LABEL: Record<StatementLink['relation'], string> = {
   opposes: 'opposes',
