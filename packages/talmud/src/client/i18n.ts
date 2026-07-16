@@ -170,6 +170,15 @@ const CATALOG = {
   'dafvoices.rel.opposes': { en: 'opposes', he: 'חולק על' },
   'dafvoices.rel.supports': { en: 'supports', he: 'תומך ב' },
   'dafvoices.rel.responds-to': { en: 'responds to', he: 'משיב ל' },
+  'sages.missing.title': { en: 'Missing from the registry', he: 'חסרים במאגר' },
+  'sages.missing.unavailable': {
+    en: 'Backlog unavailable right now.',
+    he: 'הרשימה אינה זמינה כרגע.',
+  },
+  'sages.missing.note': {
+    en: '{total} distinct names were sighted on analyzed dapim but match no registry entry — the "needs a bio" worklist. Counts sampled from the first {scanned} records.',
+    he: '{total} שמות נצפו בדפים שנותחו אך אינם במאגר — רשימת העבודה של \u201cחסרה ביוגרפיה\u201d. הספירה מדגימה את {scanned} הרשומות הראשונות.',
+  },
   'network.page.title': { en: 'Sage network', he: 'רשת החכמים' },
   'network.page.coverageShort': {
     en: 'from {dapim} analyzed dapim',

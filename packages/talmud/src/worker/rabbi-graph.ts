@@ -23,6 +23,7 @@
  */
 
 import hierarchyData from '../lib/data/rabbi-hierarchy.json';
+import { isNonSageTopic } from '../lib/nonSageTopics';
 
 interface HierarchyNode {
   canonical: string;
@@ -201,6 +202,10 @@ function buildIndex(): IndexBuilt {
   const slugToCanonical = new Map<string, string>();
   for (const [slug, node] of Object.entries(DATA.nodes)) {
     slugToCanonical.set(slug, node.canonical);
+    // Non-sage topics (kabbalah concepts, liturgy — e.g. Hallel, whose Hebrew
+    // collides with Hillel) never enter the NAME indices: a daf name must not
+    // resolve to them, nor become a fake homonym because of them.
+    if (isNonSageTopic(slug, node.canonicalHe)) continue;
     const normCanonical = normalizeName(node.canonical);
     if (!nameToSlug.has(normCanonical)) nameToSlug.set(normCanonical, slug);
     // Also index the slug itself as a normalized name (slug → name form).
@@ -247,6 +252,7 @@ function findSlug(name: string, nameHe?: string, generation?: string): string | 
   //    safer fallthrough to LLM disambiguation).
   if (!slug && generation) {
     for (const [s, node] of Object.entries(DATA.nodes)) {
+      if (isNonSageTopic(s, node.canonicalHe)) continue;
       if (node.generation !== generation) continue;
       const nodeNorm = normalizeName(node.canonical);
       if (nodeNorm === norm || nodeNorm.startsWith(`${norm} `)) {
@@ -272,9 +278,9 @@ export function generationOf(slug: string): string | null {
 // Every (normalizedCanonical, slug) pair, built once — for enumerating ALL
 // registry nodes a name could refer to (homonym candidate set), not just the
 // first match findSlug returns.
-const NORM_INDEX: { norm: string; slug: string }[] = Object.entries(DATA.nodes).map(
-  ([slug, n]) => ({ norm: normalizeName(n.canonical), slug }),
-);
+const NORM_INDEX: { norm: string; slug: string }[] = Object.entries(DATA.nodes)
+  .filter(([slug, n]) => !isNonSageTopic(slug, n.canonicalHe))
+  .map(([slug, n]) => ({ norm: normalizeName(n.canonical), slug }));
 
 /** ALL registry nodes a name could denote. For a homonym like "Rav Kahana"
  *  this returns every Kahana node (Rav Kahana (II), Rav Kahana of Pum Nahara,
