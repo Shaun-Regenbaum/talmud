@@ -236,11 +236,12 @@ const CATALOG = {
   },
   'network.arc.expand': { en: 'Show the {n} sages of {gen}', he: 'הצגת {n} חכמי {gen}' },
   'network.arc.collapse': { en: 'Collapse {gen}', he: 'צמצום {gen}' },
-  'network.arc.kindLegend': { en: 'relations:', he: 'סוגי קשר:' },
-  'network.arc.trunkTitle': {
-    en: '{gen} — mostly {kind} ({kindWeight} of ×{total})',
-    he: '{gen} — בעיקר {kind} ({kindWeight} מתוך ×{total})',
+  'network.arc.val.debate': { en: 'debate (opposes, responds)', he: 'עימות (חולק, משיב)' },
+  'network.arc.val.support': {
+    en: 'support (cites, supports, resolves)',
+    he: 'הסתמכות (מצטט, תומך, מיישב)',
   },
+  'network.arc.kindLegend': { en: 'details:', he: 'פירוט:' },
   'network.arc.fanOverflow': {
     en: '+{n} weaker ties not drawn in the expanded generation (all listed below)',
     he: '+{n} קשרים חלשים שאינם מצוירים בדור הפתוח (כולם ברשימה למטה)',

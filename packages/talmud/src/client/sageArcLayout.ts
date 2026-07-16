@@ -47,6 +47,19 @@ const ARC_RY_MAX = 68;
 /** The constant vertical band reserved above and below the axis. */
 export const ARC_BAND = 74;
 
+/** The two trunk VALENCES: every relation kind is either dialectic
+ *  confrontation or constructive reliance. Each generation gets up to one
+ *  trunk per valence, so the overview reads "how much debate vs how much
+ *  support" per era; the full 5-kind mix stays in the stacked bars. */
+export type Valence = 'debate' | 'support';
+export const KIND_VALENCE: Record<string, Valence> = {
+  opposes: 'debate',
+  'responds-to': 'debate',
+  cites: 'support',
+  supports: 'support',
+  resolves: 'support',
+};
+
 const GEN_ORDER = new Map<string, number>(GENERATION_IDS.map((id, i) => [id, i]));
 const UNKNOWN_ORDER = GENERATION_IDS.length;
 
@@ -91,13 +104,17 @@ export interface ArcEdge {
   kind: 'trunk' | 'fan';
   gen: string | null; // target generation (hover keying at L1)
   slug: string | null; // partner slug (fan only)
-  /** Relation kind: the fan line's kind, or the trunk's DOMINANT kind — the
-   *  arc palette says what the relationship with that generation mostly IS
-   *  (era is already encoded by position on the fixed timeline). */
+  /** The fan line's relation kind (fans only). */
   rel: string | null;
-  /** Weight of `rel` specifically (= weight for fans; the dominant kind's
-   *  share for trunks — the tooltip says "mostly opposes ×30 of ×47"). */
+  /** The trunk's valence (trunks only): debate | support. */
+  valence: Valence | null;
+  /** Kind breakdown behind a trunk (weight-desc) — feeds the tooltip. */
+  parts: { kind: string; weight: number }[] | null;
+  /** Weight of `rel` for fans (= this kind's sightings with that partner). */
   relWeight: number;
+  /** Valence decides the side: debate arcs rise ABOVE the axis, support arcs
+   *  hang BELOW — position and color reinforce the same reading. */
+  above: boolean;
   x1: number;
   x2: number;
   ry: number;
@@ -259,39 +276,54 @@ export function layoutSageArcs(
   for (const g of groups) {
     if (!g.expanded && g.pill) {
       if (g.total <= 0) continue;
-      push({
-        kind: 'trunk',
-        gen: g.gen,
-        slug: null,
-        rel: g.byKind[0]?.kind ?? null,
-        relWeight: g.byKind[0]?.weight ?? 0,
-        x1: centerX,
-        x2: g.pill.x,
-        ry: ryFor(Math.abs(g.pill.x - centerX)),
-        stroke: scaled(g.total, maxGenTotal, TRUNK_MIN, TRUNK_MAX),
-        weight: g.total,
-      });
+      // Up to two trunks: the generation's DEBATE volume and its SUPPORT
+      // volume, nested so both stay readable.
+      for (const valence of ['debate', 'support'] as const) {
+        const parts = g.byKind.filter((k) => (KIND_VALENCE[k.kind] ?? 'support') === valence);
+        const w = parts.reduce((sum, k) => sum + k.weight, 0);
+        if (w <= 0) continue;
+        push({
+          kind: 'trunk',
+          gen: g.gen,
+          slug: null,
+          rel: null,
+          valence,
+          parts,
+          relWeight: w,
+          x1: centerX,
+          x2: g.pill.x,
+          ry: ryFor(Math.abs(g.pill.x - centerX)),
+          stroke: scaled(w, maxGenTotal, TRUNK_MIN, TRUNK_MAX),
+          weight: w,
+          above: valence === 'debate',
+        });
+      }
     } else if (g.expanded) {
       for (const d of g.dots) {
         // Merge the partner's chips by relation kind (directions summed —
         // the rows below keep the ←/→ split).
         const byRel = new Map<string, number>();
         for (const c of d.row.chips) byRel.set(c.kind, (byRel.get(c.kind) ?? 0) + c.weight);
-        let nest = 0;
+        let aboveN = 0;
+        let belowN = 0;
         for (const [rel, w] of [...byRel.entries()].sort((a, b) => b[1] - a[1])) {
+          const above = (KIND_VALENCE[rel] ?? 'support') === 'debate';
+          const nest = above ? aboveN++ : belowN++;
           push({
             kind: 'fan',
             gen: g.gen,
             slug: d.row.other.slug,
             rel,
+            valence: null,
+            parts: null,
             relWeight: w,
             x1: centerX,
             x2: d.x,
             ry: ryFor(Math.abs(d.x - centerX)) + nest * KIND_NEST_STEP,
             stroke: scaled(w, maxPartnerW, FAN_MIN, FAN_MAX),
             weight: w,
+            above,
           });
-          nest++;
         }
       }
     }
@@ -329,9 +361,10 @@ export function barSegments(
   return out;
 }
 
-/** SVG path for one arc: half-ellipse from (x1, axisY) to (x2, axisY). */
-export function arcPath(a: Pick<ArcEdge, 'x1' | 'x2' | 'ry'>, axisY: number): string {
-  const sweep = a.x2 > a.x1 ? 1 : 0;
+/** SVG path for one arc: half-ellipse from (x1) to (x2) — above the axis for
+ *  debate, below for support. */
+export function arcPath(a: Pick<ArcEdge, 'x1' | 'x2' | 'ry' | 'above'>, axisY: number): string {
+  const sweep = a.above ? (a.x2 > a.x1 ? 1 : 0) : a.x2 > a.x1 ? 0 : 1;
   const rx = Math.abs(a.x2 - a.x1) / 2;
   return `M ${a.x1} ${axisY} A ${rx} ${a.ry} 0 0 ${sweep} ${a.x2} ${axisY}`;
 }
