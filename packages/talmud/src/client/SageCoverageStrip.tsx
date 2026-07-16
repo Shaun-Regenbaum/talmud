@@ -1,16 +1,16 @@
 /**
- * Where in Shas does this sage speak? One cell per masechet in seder order,
- * cell width ∝ the masechet's size. Three nested layers per cell:
- *   base   — the whole masechet (what exists)
- *   middle — dapim we have AI-analyzed so far (the voice-graph denominator)
- *   fill   — dapim where THIS sage is observed (era-colored)
- * So "not yet analyzed" is always visible as the unfilled remainder — absence
- * of the sage in an unanalyzed masechet is honestly not evidence of absence.
+ * Where in Shas does this sage speak? A SKYLINE: one column per masechet in
+ * seder order (width ∝ the masechet's size), bar HEIGHT = how often the sage
+ * is observed there, normalized to their busiest masechet, in their era
+ * color. A masechet where they never appear stays a flat baseline. Once the
+ * voice-graph blob carries dapimByTractate, a darker underline per column
+ * shows how much of that masechet has been analyzed — so absence in a barely
+ * analyzed masechet is honestly not evidence of absence.
  *
  * Numerator: /api/rabbi-observations/:slug?summary=1 byTractate (10-min cached
- * fold of the per-daf observation slices). Denominator: dapimByTractate from
- * the Shas-wide voice-graph blob (appears after its next rebuild; the strip
- * degrades to sage-vs-total shading until then).
+ * fold of the per-daf observation slices, near-all-Shas coverage). Denominator:
+ * dapimByTractate from the Shas-wide voice-graph blob (appears after its next
+ * rebuild).
  */
 import { createMemo, createResource, For, type JSX, Show } from 'solid-js';
 import { iterAmudim } from '../lib/sefref/amudim';
@@ -31,9 +31,10 @@ interface NetworkSummary {
   dapimByTractate?: Record<string, number>;
 }
 
-const CELL_H = 26;
+const BAR_AREA = 44; // skyline height
+const BASELINE_H = 2;
 const PX_PER_AMUD = 0.24;
-const CELL_MIN_W = 10;
+const CELL_MIN_W = 12;
 
 export function SageCoverageStrip(props: { slug: string; generation: string | null }): JSX.Element {
   const [obs] = createResource(
@@ -68,6 +69,7 @@ export function SageCoverageStrip(props: { slug: string; generation: string | nu
     });
   });
 
+  const maxSage = () => Math.max(1, ...cells().map((c) => c.sage));
   const sageTotal = () => obs()?.dafCount ?? 0;
   const tractatesWithSage = () => cells().filter((c) => c.sage > 0).length;
   const hasDenominator = () => net()?.dapimByTractate != null;
@@ -100,9 +102,10 @@ export function SageCoverageStrip(props: { slug: string; generation: string | nu
           >
             <For each={cells()}>
               {(c) => {
+                const h = () =>
+                  c.sage > 0 ? 4 + (BAR_AREA - 8) * (c.sage / maxSage()) : BASELINE_H;
                 const analyzedFrac = () =>
-                  c.analyzed != null && c.total > 0 ? Math.min(1, c.analyzed / c.total) : 1;
-                const sageFrac = () => (c.total > 0 ? Math.min(1, c.sage / c.total) : 0);
+                  c.analyzed != null && c.total > 0 ? Math.min(1, c.analyzed / c.total) : 0;
                 const title = () =>
                   c.analyzed != null
                     ? t('coverage.cellTitle', {
@@ -118,54 +121,62 @@ export function SageCoverageStrip(props: { slug: string; generation: string | nu
                       });
                 return (
                   <div
-                    style={{ position: 'relative', width: `${c.w}px`, height: `${CELL_H}px` }}
+                    style={{ position: 'relative', width: `${c.w}px`, height: `${BAR_AREA}px` }}
                     title={title()}
                   >
-                    {/* whole masechet */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: '#efeadf',
-                        'border-radius': '3px',
-                      }}
-                    />
-                    {/* analyzed-so-far band */}
+                    {/* the skyline bar: height = sage's presence */}
                     <div
                       style={{
                         position: 'absolute',
                         left: 0,
+                        right: 0,
                         bottom: 0,
-                        top: 0,
-                        width: `${analyzedFrac() * 100}%`,
-                        background: '#d9d2c0',
-                        'border-radius': '3px',
+                        height: `${h()}px`,
+                        background: c.sage > 0 ? colorForGeneration(props.generation) : '#e4ddcc',
+                        'border-radius': '3px 3px 0 0',
                       }}
                     />
-                    {/* the sage */}
-                    <Show when={c.sage > 0}>
+                    {/* analyzed-so-far underline (denominator context) */}
+                    <Show when={analyzedFrac() > 0}>
                       <div
                         style={{
                           position: 'absolute',
                           left: 0,
-                          bottom: 0,
-                          top: 0,
-                          width: `${Math.max(6, sageFrac() * 100)}%`,
-                          background: colorForGeneration(props.generation),
-                          'border-radius': '3px',
+                          bottom: '-4px',
+                          height: '2.5px',
+                          width: `${analyzedFrac() * 100}%`,
+                          background: '#8a6d3b',
+                          'border-radius': '2px',
+                          opacity: 0.65,
                         }}
                       />
+                    </Show>
+                    {/* count on top of meaningful bars */}
+                    <Show when={c.sage > 0 && c.sage / maxSage() > 0.35}>
+                      <span
+                        style={{
+                          position: 'absolute',
+                          bottom: `${h() + 1}px`,
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          'font-size': '8px',
+                          color: '#8a8271',
+                        }}
+                      >
+                        {c.sage}
+                      </span>
                     </Show>
                     <span
                       style={{
                         position: 'absolute',
-                        top: `${CELL_H + 4}px`,
+                        top: `${BAR_AREA + 6}px`,
                         left: '2px',
                         'font-size': '8.5px',
                         color: c.sage > 0 ? '#555' : '#b6ae9c',
                         'white-space': 'nowrap',
                         transform: 'rotate(40deg)',
                         'transform-origin': 'top left',
+                        'text-shadow': '0 0 3px #fff, 0 0 3px #fff',
                       }}
                     >
                       {c.label}
