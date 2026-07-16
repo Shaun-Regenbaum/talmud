@@ -26,7 +26,7 @@ import {
   type JSX,
   Show,
 } from 'solid-js';
-import { KIND_COLOR, stmtRelKind } from './ArgumentFlowGraph';
+import { KIND_COLOR, KIND_DASH, stmtRelKind } from './ArgumentFlowGraph';
 import { type EgoRow, type EgoWire, groupEgoEdges, splitDafLabel } from './egoNetwork';
 import {
   colorForGeneration,
@@ -44,6 +44,9 @@ const REL_KINDS = ['opposes', 'responds-to', 'resolves', 'cites', 'supports'] as
 
 function relColor(kind: string): string {
   return kind === 'supports' ? SUPPORTS_COLOR : KIND_COLOR[stmtRelKind(kind)];
+}
+function relDash(kind: string): string | undefined {
+  return kind === 'supports' ? undefined : KIND_DASH[stmtRelKind(kind)];
 }
 
 function genLabel(generation: string | null): string {
@@ -220,6 +223,7 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                               fill="none"
                               stroke={a.rel ? relColor(a.rel) : colorForGeneration(a.gen)}
                               stroke-width={a.stroke}
+                              stroke-dasharray={a.rel ? relDash(a.rel) : undefined}
                               stroke-linecap="round"
                               opacity={
                                 (a.slug ? dimSlug(a.slug) : dimGen(a.gen))
@@ -229,7 +233,16 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                                     : 0.7
                               }
                             >
-                              <title>{`${genLabel(a.gen)}${a.rel ? ` — ${t(`dafvoices.rel.${a.rel}`)}` : ''} ×${a.weight}`}</title>
+                              <title>
+                                {a.kind === 'trunk' && a.rel
+                                  ? t('network.arc.trunkTitle', {
+                                      gen: genLabel(a.gen),
+                                      kind: t(`dafvoices.rel.${a.rel}`),
+                                      kindWeight: a.relWeight,
+                                      total: a.weight,
+                                    })
+                                  : `${genLabel(a.gen)}${a.rel ? ` — ${t(`dafvoices.rel.${a.rel}`)}` : ''} ×${a.weight}`}
+                              </title>
                             </path>
                           )}
                         </For>
