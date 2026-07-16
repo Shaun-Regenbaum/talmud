@@ -279,6 +279,93 @@ describe('POST /api/run — contract', () => {
   });
 });
 
+// The whole-daf cache-key collapse, exercised through the route wiring. The
+// collapse LOGIC is pinned by whole-daf-enrichment.test.ts; both real leaks
+// (#426, #534) regressed through plumbing that bypassed correct logic, so these
+// drive the /api/run handler itself: a whole-daf enrichment must key on the
+// canonical {fields:{}} instance for its hot-path check, its runId, its
+// polling cacheKey, and the enqueued job — no matter what mark_input arrives.
+// Route-side failure is cheap but user-visible (every bare run misses the hot
+// path, takes a queue round-trip, and polls a ?k= key that is never written —
+// the stuck-load-bar symptom, invisible to the KV leak sentinel); consumer-side
+// failure re-bills the identical piece per caller (~20x/daf).
+describe('POST /api/run — whole-daf collapse (leak regression)', () => {
+  const flowDef = CODE_ENRICHMENTS.find((e) => e.id === 'argument-overview.flow');
+  if (!flowDef) throw new Error('expected argument-overview.flow in CODE_ENRICHMENTS');
+  // Pinned byte-for-byte (with whole-daf-enrichment.test.ts): the canonical
+  // whole-daf instance hash and the instanceIdOf(undefined) hash a bare body
+  // would leak under — the exact fingerprint of the 41-key residue incident.
+  const CANON = 'f35cd02cd97b';
+  const NULL_HASH = '74234e98afe7';
+  const FLOW_KEY = keyForEnrichment(flowDef, CANON, { tractate: 'Berakhot', page: '5a' });
+
+  it('bare body (no mark_input): enqueues {fields:{}} and returns the canonical cacheKey', async () => {
+    const { env, send } = makeEnv();
+    const { status, json } = await postRun(env, {
+      enrichment_id: 'argument-overview.flow',
+      tractate: 'Berakhot',
+      page: '5a',
+    });
+    expect(status).toBe(202);
+    const body = json as { status: string; runId: string; cacheKey?: string };
+    expect(body.cacheKey).toBe(FLOW_KEY);
+    expect(body.cacheKey).not.toContain(NULL_HASH);
+    // The runId's instance segment must be the canonical hash too — run-status
+    // polling and the postmortem ring buffer parse it.
+    expect(body.runId).toMatch(
+      /^argument-overview\.flow:Berakhot:5a:f35cd02cd97b:noq:en:cached:\d+$/,
+    );
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send.mock.calls[0][0].mark_input).toEqual({ fields: {} });
+  });
+
+  it('bare body against a warmed canonical key: hot-path hit, nothing enqueued', async () => {
+    // THE #535 regression: before the route collapse, this exact request keyed
+    // on instanceIdOf(undefined), missed the warmed entry, and enqueued anyway.
+    const stored = { ...STORED_MARK_RESULT, parsed: { connections: [] } };
+    const { env, send } = makeEnv({ [FLOW_KEY]: JSON.stringify(stored) });
+    const { status, json } = await postRun(env, {
+      enrichment_id: 'argument-overview.flow',
+      tractate: 'Berakhot',
+      page: '5a',
+    });
+    expect(status).toBe(200);
+    expect(json).toEqual({
+      status: 'ok',
+      result: { ...stored, cache_hit: true, total_ms: 0 },
+    });
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('a caller-derived section mark_input is collapsed, not fanned out (#426/#534 class)', async () => {
+    const { env, send } = makeEnv();
+    const { status, json } = await postRun(env, {
+      enrichment_id: 'argument-overview.flow',
+      tractate: 'Berakhot',
+      page: '5a',
+      mark_input: { startSegIdx: 2, endSegIdx: 5, fields: { title: 'Some section title' } },
+    });
+    expect(status).toBe(202);
+    expect((json as { cacheKey?: string }).cacheKey).toBe(FLOW_KEY);
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send.mock.calls[0][0].mark_input).toEqual({ fields: {} });
+  });
+
+  it('control: a per-section enrichment keeps its mark_input verbatim', async () => {
+    const sectionInput = { startSegIdx: 2, endSegIdx: 5, fields: { title: 'Some section title' } };
+    const { env, send } = makeEnv();
+    const { status } = await postRun(env, {
+      enrichment_id: 'argument.synthesis',
+      tractate: 'Berakhot',
+      page: '5a',
+      mark_input: sectionInput,
+    });
+    expect(status).toBe(202);
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send.mock.calls[0][0].mark_input).toEqual(sectionInput);
+  });
+});
+
 describe('GET /api/run-status/:runId — contract', () => {
   it('serves the job record verbatim when job:{runId} exists', async () => {
     const record = { status: 'ok', result: { kind: 'mark', content: 'x', total_ms: 42 } };
