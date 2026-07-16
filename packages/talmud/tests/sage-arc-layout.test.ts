@@ -55,12 +55,20 @@ describe('layoutSageArcs — L1 trunks', () => {
     expect(bavel3?.pill?.partnerCount).toBe(6);
     expect(bavel3?.dots).toHaveLength(0);
     const trunks = l.edges.filter((e) => e.kind === 'trunk' && e.gen === 'amora-bavel-3');
-    expect(trunks).toHaveLength(1); // direction is row detail, not a diagram dimension
-    expect(trunks[0].weight).toBe(36); // 6 partners x (4 opposes + 2 cites)
-    expect(trunks[0].rel).toBe('opposes'); // the DOMINANT kind colors the trunk
-    expect(trunks[0].relWeight).toBe(24);
+    // one trunk per VALENCE: debate (opposes x24) + support (cites x12)
+    expect(trunks.map((e) => [e.valence, e.weight]).sort()).toEqual([
+      ['debate', 24],
+      ['support', 12],
+    ]);
+    expect(trunks.find((e) => e.valence === 'debate')?.parts).toEqual([
+      { kind: 'opposes', weight: 24 },
+    ]);
+    // side encodes valence: debate above the axis, support below
+    expect(trunks.find((e) => e.valence === 'debate')?.above).toBe(true);
+    expect(trunks.find((e) => e.valence === 'support')?.above).toBe(false);
     const t2 = l.edges.filter((e) => e.kind === 'trunk' && e.gen === 'tanna-2');
-    expect(t2).toHaveLength(1);
+    expect(t2).toHaveLength(1); // opposes-only fixture => debate trunk only
+    expect(t2[0].valence).toBe('debate');
   });
 
   it('expanding one generation fans it while others stay trunked', () => {
@@ -180,10 +188,13 @@ describe('barSegments', () => {
 });
 
 describe('arcPath', () => {
-  it('always bulges above the axis, mirrored for leftward partners', () => {
+  it('debate bulges above the axis, support below, mirrored for leftward partners', () => {
     const base = { x1: 10, x2: 110, ry: 40 };
-    expect(arcPath(base, 100)).toBe('M 10 100 A 50 40 0 0 1 110 100');
-    expect(arcPath({ ...base, x1: 110, x2: 10 }, 100)).toBe('M 110 100 A 50 40 0 0 0 10 100');
+    expect(arcPath({ ...base, above: true }, 100)).toBe('M 10 100 A 50 40 0 0 1 110 100');
+    expect(arcPath({ ...base, above: false }, 100)).toBe('M 10 100 A 50 40 0 0 0 110 100');
+    expect(arcPath({ ...base, above: true, x1: 110, x2: 10 }, 100)).toBe(
+      'M 110 100 A 50 40 0 0 0 10 100',
+    );
   });
 });
 

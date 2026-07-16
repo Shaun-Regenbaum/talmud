@@ -36,7 +36,14 @@ import {
   legibleTextColor,
 } from './generations';
 import { lang, t } from './i18n';
-import { ARC_BAND, arcPath, barSegments, layoutSageArcs, shortGenLabel } from './sageArcLayout';
+import {
+  ARC_BAND,
+  arcPath,
+  barSegments,
+  layoutSageArcs,
+  shortGenLabel,
+  type Valence,
+} from './sageArcLayout';
 
 const SUPPORTS_COLOR = '#0891b2';
 const AXIS_INK = '#c9c2b2';
@@ -48,6 +55,13 @@ function relColor(kind: string): string {
 function relDash(kind: string): string | undefined {
   return kind === 'supports' ? undefined : KIND_DASH[stmtRelKind(kind)];
 }
+/** Valence colors: debate in the opposition red, support in the evidential
+ *  teal — the strongest hue pair in the app palette. Side reinforces color:
+ *  debate arcs rise above the axis, support arcs hang below. */
+const VALENCE_COLOR: Record<Valence, string> = {
+  debate: KIND_COLOR.contrasts,
+  support: SUPPORTS_COLOR,
+};
 
 function genLabel(generation: string | null): string {
   if (!generation) return '?';
@@ -137,7 +151,7 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
               // Constant vertical envelope (ARC_BAND) — a 3-partner sage's
               // diagram stands as tall as Rava's, so pages compare directly.
               const axisY = () => TOP_PAD + ARC_BAND + 12;
-              const labelsY = () => axisY() + (anyExpanded() ? 16 + NAME_BAND : 26);
+              const labelsY = () => axisY() + ARC_BAND + (anyExpanded() ? 16 + NAME_BAND : 26);
               const barsY = () => labelsY() + LABEL_H;
               const height = () => barsY() + BAR_H + BOTTOM_PAD;
               const maxGroupTotal = () => layout().groups.reduce((m, g) => Math.max(m, g.total), 1);
@@ -206,7 +220,7 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                                 x={g.x}
                                 y={TOP_PAD + 4}
                                 width={g.width}
-                                height={axisY() - TOP_PAD + (anyExpanded() ? 14 : 4)}
+                                height={axisY() + ARC_BAND - TOP_PAD + (anyExpanded() ? 14 : 4)}
                                 rx={10}
                                 fill="#8a6d3b"
                                 opacity="0.06"
@@ -215,13 +229,20 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                           )}
                         </For>
 
-                        {/* arcs: era-colored trunks + fans; direction = side */}
+                        {/* arcs — debate above the axis, support below;
+                            trunks in valence colors, fans in kind colors */}
                         <For each={layout().edges}>
                           {(a) => (
                             <path
                               d={arcPath(a, axisY())}
                               fill="none"
-                              stroke={a.rel ? relColor(a.rel) : colorForGeneration(a.gen)}
+                              stroke={
+                                a.valence
+                                  ? VALENCE_COLOR[a.valence]
+                                  : a.rel
+                                    ? relColor(a.rel)
+                                    : colorForGeneration(a.gen)
+                              }
                               stroke-width={a.stroke}
                               stroke-dasharray={a.rel ? relDash(a.rel) : undefined}
                               stroke-linecap="round"
@@ -234,18 +255,37 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                               }
                             >
                               <title>
-                                {a.kind === 'trunk' && a.rel
-                                  ? t('network.arc.trunkTitle', {
-                                      gen: genLabel(a.gen),
-                                      kind: t(`dafvoices.rel.${a.rel}`),
-                                      kindWeight: a.relWeight,
-                                      total: a.weight,
-                                    })
+                                {a.valence
+                                  ? `${genLabel(a.gen)} — ${t(`network.arc.val.${a.valence}`)} ×${a.weight}: ${(
+                                      a.parts ?? []
+                                    )
+                                      .map((pt) => `${t(`dafvoices.rel.${pt.kind}`)} ×${pt.weight}`)
+                                      .join(', ')}`
                                   : `${genLabel(a.gen)}${a.rel ? ` — ${t(`dafvoices.rel.${a.rel}`)}` : ''} ×${a.weight}`}
                               </title>
                             </path>
                           )}
                         </For>
+
+                        {/* valence hints, centered */}
+                        <text
+                          x={layout().width / 2}
+                          y={TOP_PAD}
+                          font-size="9"
+                          fill={VALENCE_COLOR.debate}
+                          text-anchor="middle"
+                        >
+                          ↑ {t('network.arc.val.debate')}
+                        </text>
+                        <text
+                          x={layout().width / 2}
+                          y={axisY() + ARC_BAND + 10}
+                          font-size="9"
+                          fill={VALENCE_COLOR.support}
+                          text-anchor="middle"
+                        >
+                          ↓ {t('network.arc.val.support')}
+                        </text>
 
                         {/* axis */}
                         <line
@@ -378,9 +418,9 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                                         style={{ cursor: 'pointer' }}
                                       />
                                       <text
-                                        transform={`rotate(40 ${d.x} ${axisY() + 16})`}
+                                        transform={`rotate(40 ${d.x} ${axisY() + ARC_BAND + 16})`}
                                         x={d.x}
-                                        y={axisY() + 16}
+                                        y={axisY() + ARC_BAND + 16}
                                         font-size="9"
                                         fill={dimSlug(d.row.other.slug) ? '#c8c2b4' : '#555'}
                                         text-anchor="start"
@@ -475,7 +515,36 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                         'align-items': 'center',
                       }}
                     >
-                      <span style={{ color: '#a89e8a' }}>{t('network.arc.kindLegend')}</span>
+                      <For each={['debate', 'support'] as Valence[]}>
+                        {(v) => (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              'align-items': 'center',
+                              gap: '0.3rem',
+                              'font-weight': 600,
+                              color: VALENCE_COLOR[v],
+                            }}
+                          >
+                            <svg width="20" height="8" aria-hidden="true">
+                              <line
+                                x1="1"
+                                y1="4"
+                                x2="19"
+                                y2="4"
+                                stroke={VALENCE_COLOR[v]}
+                                stroke-width="4"
+                                stroke-linecap="round"
+                              />
+                            </svg>
+                            {v === 'debate' ? '↑ ' : '↓ '}
+                            {t(`network.arc.val.${v}`)}
+                          </span>
+                        )}
+                      </For>
+                      <span style={{ color: '#a89e8a', 'margin-inline-start': '0.5rem' }}>
+                        {t('network.arc.kindLegend')}
+                      </span>
                       <For each={[...REL_KINDS]}>
                         {(k) => (
                           <span
