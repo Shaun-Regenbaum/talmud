@@ -68,6 +68,7 @@ import { dafSpine } from '../lib/context/spine';
 import { spineLinks } from '../lib/context/spineLinks';
 import { buildGeoModel, type GeoEnrichment, type RabbiGeoSource } from '../lib/geographyModel';
 import { buildCodificationChain, buildDerivation } from '../lib/halacha/codifiers';
+import { isNonSageTopic } from '../lib/nonSageTopics';
 import {
   buildRabbiEnrichUserMessage,
   type LocalRabbiInput,
@@ -8901,7 +8902,7 @@ function isRabbinicEntry(r: RabbiPlacesEntry): boolean {
 
 app.get('/api/admin/rabbi-slugs', (c) => {
   const slugs = Object.entries(RABBI_PLACES.rabbis)
-    .filter(([, r]) => isRabbinicEntry(r))
+    .filter(([slug, r]) => !isNonSageTopic(slug, r.canonicalHe) && isRabbinicEntry(r))
     .map(([slug]) => slug);
   return c.json({ slugs, count: slugs.length });
 });
@@ -8911,7 +8912,7 @@ app.get('/api/admin/rabbi-slugs', (c) => {
 // Reads straight from the bundled rabbi-places.json — no cache lookup.
 app.get('/api/sages-index', (c) => {
   const rows = Object.entries(RABBI_PLACES.rabbis)
-    .filter(([, r]) => isRabbinicEntry(r))
+    .filter(([slug, r]) => !isNonSageTopic(slug, r.canonicalHe) && isRabbinicEntry(r))
     .map(([slug, r]) => ({
       slug,
       canonical: r.canonical,

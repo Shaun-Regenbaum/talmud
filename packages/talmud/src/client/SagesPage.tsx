@@ -125,6 +125,86 @@ async function getJSON<T>(url: string): Promise<T | null> {
   return res.json() as Promise<T>;
 }
 
+/* -------- missing-from-registry panel -------- */
+
+interface BacklogRabbi {
+  name: string;
+  nameHe?: string;
+  generation?: string;
+  count: number;
+  dafs: string[];
+}
+interface BacklogResp {
+  rabbis?: { total: number; scanned?: number; sample: BacklogRabbi[] };
+}
+
+/** Names the AI reliably reads as a distinct sage on real dapim but that match
+ *  NO registry entry — the "who needs a bio next" worklist. Data: the live
+ *  unknown-rabbi backlog (sampled; see the caption). */
+function MissingSagesPanel(): JSX.Element {
+  const [open, setOpen] = createSignal(false);
+  const [backlog] = createResource(open, async (o) => {
+    if (!o) return null;
+    const r = await fetch('/api/usage/backlog');
+    if (!r.ok) return { rabbis: undefined } satisfies BacklogResp; // unavailable, not loading
+    return (await r.json()) as BacklogResp;
+  });
+  const dafHref = (label: string) => {
+    const i = label.lastIndexOf(' ');
+    if (i <= 0) return '#';
+    return `?tractate=${encodeURIComponent(label.slice(0, i))}&page=${encodeURIComponent(label.slice(i + 1))}#daf`;
+  };
+  return (
+    <div class="sages-missing">
+      <button
+        type="button"
+        class="sages-missing-toggle"
+        aria-expanded={open()}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {open() ? '▾' : '▸'} {t('sages.missing.title')}
+      </button>
+      <Show when={open()}>
+        <Show when={backlog()} fallback={<div class="sages-empty">{t('sages.list.loading')}</div>}>
+          {(b) => (
+            <>
+              <Show when={!b().rabbis}>
+                <p class="sages-missing-note">{t('sages.missing.unavailable')}</p>
+              </Show>
+              <p class="sages-missing-note">
+                {t('sages.missing.note', {
+                  total: b().rabbis?.total ?? 0,
+                  scanned: b().rabbis?.scanned ?? 0,
+                })}
+              </p>
+              <For each={b().rabbis?.sample ?? []}>
+                {(r) => (
+                  <div class="sages-missing-row">
+                    <span class="sages-list-name">{r.name}</span>
+                    <Show when={r.nameHe}>
+                      <span class="sages-list-name-he">{r.nameHe}</span>
+                    </Show>
+                    <span class="sages-missing-count">×{r.count}</span>
+                    <span class="sages-missing-dafs">
+                      <For each={r.dafs.slice(0, 3)}>
+                        {(d) => (
+                          <a href={dafHref(d)} class="sages-missing-daf">
+                            {d}
+                          </a>
+                        )}
+                      </For>
+                    </span>
+                  </div>
+                )}
+              </For>
+            </>
+          )}
+        </Show>
+      </Show>
+    </div>
+  );
+}
+
 /* -------- page -------- */
 
 export function SagesPage(): JSX.Element {
@@ -383,6 +463,7 @@ export function SagesPage(): JSX.Element {
               {t('sages.list.cap', { count: ranked().length - 300 })}
             </div>
           </Show>
+          <MissingSagesPanel />
         </aside>
 
         <main class="sages-detail panel">
@@ -1140,6 +1221,13 @@ const SAGES_CSS = `
 
 .sages-list { padding: 0.5rem; max-height: 78vh; overflow-y: auto; }
 .sages-empty { color: #94a3b8; font-style: italic; font-size: 12.5px; padding: 1rem; text-align: center; }
+.sages-missing { border-top: 1px solid #e2e8f0; margin-top: 0.6rem; padding: 0.4rem 0.2rem; }
+.sages-missing-toggle { border: none; background: transparent; cursor: pointer; font-size: 12.5px; font-weight: 600; color: #8a6d3b; padding: 0.3rem 0.5rem; width: 100%; text-align: start; }
+.sages-missing-note { color: #94a3b8; font-size: 11.5px; margin: 0.2rem 0.5rem 0.5rem; line-height: 1.4; }
+.sages-missing-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35rem; padding: 0.25rem 0.5rem; font-size: 12.5px; border-bottom: 1px dashed #eef2f7; }
+.sages-missing-count { color: #8a6d3b; font-weight: 600; font-size: 11.5px; }
+.sages-missing-dafs { display: inline-flex; flex-wrap: wrap; gap: 0.3rem; }
+.sages-missing-daf { color: #64748b; font-size: 11px; text-decoration: none; border: 1px solid #e2e8f0; border-radius: 5px; padding: 0 0.3rem; }
 .sages-empty-large { padding: 3rem 1rem; font-size: 14px; }
 .sages-list-item { display: flex; flex-direction: column; gap: 0.15rem; align-items: flex-start; text-align: left; padding: 0.4rem 0.55rem; border: none; border-radius: 4px; background: transparent; cursor: pointer; width: 100%; box-sizing: border-box; }
 .sages-list-item:hover { background: #f1f5f9; }
