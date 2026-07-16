@@ -160,8 +160,6 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                               stroke-dasharray={relDash(a.chip.kind)}
                               stroke-linecap="round"
                               opacity={dim(a.slug) ? 0.12 : 0.6}
-                              onMouseEnter={() => setHover(a.slug)}
-                              onMouseLeave={() => setHover(null)}
                             >
                               <title>{`${wire.node.name} ${a.chip.direction === 'out' ? '→' : '←'} ${t(`dafvoices.rel.${a.chip.kind}`)} ×${a.chip.weight}`}</title>
                             </path>
@@ -262,7 +260,14 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                         {/* partner dots (links to their sage page) */}
                         <For each={layout().dots}>
                           {(d) => (
-                            <a href={`#sages/${d.row.other.slug}`} aria-label={d.row.other.name}>
+                            <a
+                              href={`#sages/${d.row.other.slug}`}
+                              aria-label={d.row.other.name}
+                              onMouseEnter={() => setHover(d.row.other.slug)}
+                              onMouseLeave={() => setHover(null)}
+                              onFocus={() => setHover(d.row.other.slug)}
+                              onBlur={() => setHover(null)}
+                            >
                               <circle
                                 cx={d.x}
                                 cy={axisY()}
@@ -272,8 +277,6 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                                 stroke-width="2"
                                 opacity={dim(d.row.other.slug) ? 0.25 : 1}
                                 style={{ cursor: 'pointer' }}
-                                onMouseEnter={() => setHover(d.row.other.slug)}
-                                onMouseLeave={() => setHover(null)}
                               >
                                 <title>{`${d.row.other.name} — ${genLabel(d.row.other.generation)} — ×${d.row.totalWeight}`}</title>
                               </circle>
