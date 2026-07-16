@@ -196,16 +196,20 @@ const CATALOG = {
   'dafvoices.rel.responds-to': { en: 'responds to', he: 'משיב ל' },
   'coverage.title': { en: 'Where in Shas', he: 'היכן בש״ס' },
   'coverage.summary': {
-    en: 'Observed on {dapim} dapim across {masechtot} masechtot (of {analyzed} analyzed so far).',
-    he: 'נצפה ב־{dapim} דפים ב־{masechtot} מסכתות (מתוך {analyzed} שנותחו עד כה).',
+    en: 'Observed on {dapim} dapim across {masechtot} masechtot.',
+    he: 'נצפה ב־{dapim} דפים ב־{masechtot} מסכתות.',
+  },
+  'coverage.analyzedNote': {
+    en: 'The darker band marks dapim with full voice analysis ({analyzed} Shas-wide) — sage sightings come from the wider mark pipeline, so fills can exceed the band.',
+    he: 'הרצועה הכהה מסמנת דפים עם ניתוח קולות מלא ({analyzed} בכל הש״ס) — תצפיות החכם מגיעות מצנרת רחבה יותר, ולכן המילוי עשוי לחרוג מהרצועה.',
   },
   'coverage.noDenominator': {
     en: 'Per-masechet analyzed counts appear after the next graph rebuild.',
     he: 'ספירת הניתוח למסכת תופיע לאחר הבנייה הבאה של הגרף.',
   },
   'coverage.cellTitle': {
-    en: '{masechet} — on {sage} of {analyzed} analyzed dapim ({total} total)',
-    he: '{masechet} — ב־{sage} מתוך {analyzed} דפים שנותחו ({total} סה״כ)',
+    en: '{masechet} — observed on {sage} dapim · {analyzed} voice-analyzed · {total} total',
+    he: '{masechet} — נצפה ב־{sage} דפים · {analyzed} נותחו · {total} סה״כ',
   },
   'coverage.cellTitleNoDenom': {
     en: '{masechet} — on {sage} dapim ({total} total)',

@@ -77,14 +77,15 @@ export function SageCoverageStrip(props: { slug: string; generation: string | nu
       <h3 style={{ margin: '0 0 0.2rem', 'font-size': '0.95rem' }}>{t('coverage.title')}</h3>
       <Show when={!obs.loading} fallback={<p class="sages-empty">{t('sages.list.loading')}</p>}>
         <p style={{ margin: '0 0 0.5rem', color: '#777', 'font-size': '0.8rem' }}>
-          {t('coverage.summary', {
-            dapim: sageTotal(),
-            masechtot: tractatesWithSage(),
-            analyzed: net()?.dapim ?? 0,
-          })}
-          <Show when={!hasDenominator()}>
+          {t('coverage.summary', { dapim: sageTotal(), masechtot: tractatesWithSage() })}
+          <Show
+            when={hasDenominator()}
+            fallback={<span style={{ color: '#a89e8a' }}> {t('coverage.noDenominator')}</span>}
+          >
             {' '}
-            <span style={{ color: '#a89e8a' }}>{t('coverage.noDenominator')}</span>
+            <span style={{ color: '#a89e8a' }}>
+              {t('coverage.analyzedNote', { analyzed: net()?.dapim ?? 0 })}
+            </span>
           </Show>
         </p>
         <div style={{ 'overflow-x': 'auto' }}>
