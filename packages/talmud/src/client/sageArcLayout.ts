@@ -91,7 +91,13 @@ export interface ArcEdge {
   kind: 'trunk' | 'fan';
   gen: string | null; // target generation (hover keying at L1)
   slug: string | null; // partner slug (fan only)
-  rel: string | null; // relation kind (fan only): opposes | cites | ...
+  /** Relation kind: the fan line's kind, or the trunk's DOMINANT kind — the
+   *  arc palette says what the relationship with that generation mostly IS
+   *  (era is already encoded by position on the fixed timeline). */
+  rel: string | null;
+  /** Weight of `rel` specifically (= weight for fans; the dominant kind's
+   *  share for trunks — the tooltip says "mostly opposes ×30 of ×47"). */
+  relWeight: number;
   x1: number;
   x2: number;
   ry: number;
@@ -257,7 +263,8 @@ export function layoutSageArcs(
         kind: 'trunk',
         gen: g.gen,
         slug: null,
-        rel: null,
+        rel: g.byKind[0]?.kind ?? null,
+        relWeight: g.byKind[0]?.weight ?? 0,
         x1: centerX,
         x2: g.pill.x,
         ry: ryFor(Math.abs(g.pill.x - centerX)),
@@ -277,6 +284,7 @@ export function layoutSageArcs(
             gen: g.gen,
             slug: d.row.other.slug,
             rel,
+            relWeight: w,
             x1: centerX,
             x2: d.x,
             ry: ryFor(Math.abs(d.x - centerX)) + nest * KIND_NEST_STEP,

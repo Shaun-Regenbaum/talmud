@@ -57,7 +57,8 @@ describe('layoutSageArcs — L1 trunks', () => {
     const trunks = l.edges.filter((e) => e.kind === 'trunk' && e.gen === 'amora-bavel-3');
     expect(trunks).toHaveLength(1); // direction is row detail, not a diagram dimension
     expect(trunks[0].weight).toBe(36); // 6 partners x (4 opposes + 2 cites)
-    expect(trunks[0].rel).toBeNull();
+    expect(trunks[0].rel).toBe('opposes'); // the DOMINANT kind colors the trunk
+    expect(trunks[0].relWeight).toBe(24);
     const t2 = l.edges.filter((e) => e.kind === 'trunk' && e.gen === 'tanna-2');
     expect(t2).toHaveLength(1);
   });
