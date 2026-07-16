@@ -37,6 +37,7 @@ const TRUNK_MIN = 2.5;
 const TRUNK_MAX = 13;
 const FAN_MIN = 1.5;
 const FAN_MAX = 5.5;
+const KIND_NEST_STEP = 6; // extra ry per additional relation kind on the same pair
 // Flattened arc profile: height is loosely tied to span but tightly clamped,
 // so long arcs read as wide flat ribbons and short ones still rise visibly —
 // and every sage's diagram lands in the same vertical envelope (ARC_BAND).
@@ -90,11 +91,11 @@ export interface ArcEdge {
   kind: 'trunk' | 'fan';
   gen: string | null; // target generation (hover keying at L1)
   slug: string | null; // partner slug (fan only)
+  rel: string | null; // relation kind (fan only): opposes | cites | ...
   x1: number;
   x2: number;
   ry: number;
   stroke: number;
-  above: boolean; // out = above, in = below
   weight: number;
 }
 
@@ -104,7 +105,6 @@ export interface ArcLayoutResult {
   groups: ArcGroup[];
   edges: ArcEdge[];
   maxAbove: number;
-  maxBelow: number;
   autoExpanded: boolean;
   /** Partners not drawn inside an expanded generation (fan cap). */
   fanOverflow: number;
@@ -239,60 +239,51 @@ export function layoutSageArcs(
   }
   const width = x + EDGE_PAD;
 
-  // Edges. Collapsed group => up to two TRUNKS (out above / in below) to its
-  // pill. Expanded group => one FAN line per partner per direction present,
-  // thickness from that partner's directional weight.
+  // Edges. Collapsed group => ONE trunk to its pill (total volume; direction
+  // is row-level detail, not a diagram dimension). Expanded group => the trunk
+  // splits into CATEGORY lines: one kind-colored arc per (partner, relation
+  // kind), nested per partner, thickness from that kind's weight.
   const edges: ArcEdge[] = [];
   let maxAbove = 0;
-  let maxBelow = 0;
   const push = (e: ArcEdge) => {
     edges.push(e);
-    if (e.above) maxAbove = Math.max(maxAbove, e.ry);
-    else maxBelow = Math.max(maxBelow, e.ry);
+    maxAbove = Math.max(maxAbove, e.ry);
   };
 
   for (const g of groups) {
     if (!g.expanded && g.pill) {
-      const members = byGen.get(g.gen) ?? [];
-      for (const above of [true, false]) {
-        const w = members.reduce(
-          (s, r) =>
-            s +
-            r.chips.reduce((cs, c) => cs + ((c.direction === 'out') === above ? c.weight : 0), 0),
-          0,
-        );
-        if (w <= 0) continue;
-        push({
-          kind: 'trunk',
-          gen: g.gen,
-          slug: null,
-          x1: centerX,
-          x2: g.pill.x,
-          ry: ryFor(Math.abs(g.pill.x - centerX)),
-          stroke: scaled(w, maxGenTotal, TRUNK_MIN, TRUNK_MAX),
-          above,
-          weight: w,
-        });
-      }
+      if (g.total <= 0) continue;
+      push({
+        kind: 'trunk',
+        gen: g.gen,
+        slug: null,
+        rel: null,
+        x1: centerX,
+        x2: g.pill.x,
+        ry: ryFor(Math.abs(g.pill.x - centerX)),
+        stroke: scaled(g.total, maxGenTotal, TRUNK_MIN, TRUNK_MAX),
+        weight: g.total,
+      });
     } else if (g.expanded) {
       for (const d of g.dots) {
-        for (const above of [true, false]) {
-          const w = d.row.chips.reduce(
-            (cs, c) => cs + ((c.direction === 'out') === above ? c.weight : 0),
-            0,
-          );
-          if (w <= 0) continue;
+        // Merge the partner's chips by relation kind (directions summed —
+        // the rows below keep the ←/→ split).
+        const byRel = new Map<string, number>();
+        for (const c of d.row.chips) byRel.set(c.kind, (byRel.get(c.kind) ?? 0) + c.weight);
+        let nest = 0;
+        for (const [rel, w] of [...byRel.entries()].sort((a, b) => b[1] - a[1])) {
           push({
             kind: 'fan',
             gen: g.gen,
             slug: d.row.other.slug,
+            rel,
             x1: centerX,
             x2: d.x,
-            ry: ryFor(Math.abs(d.x - centerX)),
+            ry: ryFor(Math.abs(d.x - centerX)) + nest * KIND_NEST_STEP,
             stroke: scaled(w, maxPartnerW, FAN_MIN, FAN_MAX),
-            above,
             weight: w,
           });
+          nest++;
         }
       }
     }
@@ -304,7 +295,6 @@ export function layoutSageArcs(
     groups,
     edges,
     maxAbove,
-    maxBelow,
     autoExpanded,
     fanOverflow,
   };
@@ -332,8 +322,8 @@ export function barSegments(
 }
 
 /** SVG path for one arc: half-ellipse from (x1, axisY) to (x2, axisY). */
-export function arcPath(a: Pick<ArcEdge, 'x1' | 'x2' | 'ry' | 'above'>, axisY: number): string {
-  const sweep = a.above ? (a.x2 > a.x1 ? 1 : 0) : a.x2 > a.x1 ? 0 : 1;
+export function arcPath(a: Pick<ArcEdge, 'x1' | 'x2' | 'ry'>, axisY: number): string {
+  const sweep = a.x2 > a.x1 ? 1 : 0;
   const rx = Math.abs(a.x2 - a.x1) / 2;
   return `M ${a.x1} ${axisY} A ${rx} ${a.ry} 0 0 ${sweep} ${a.x2} ${axisY}`;
 }

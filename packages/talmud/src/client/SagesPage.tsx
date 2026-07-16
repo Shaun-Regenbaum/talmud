@@ -7,6 +7,7 @@
  */
 import { createMemo, createResource, createSignal, For, type JSX, Show } from 'solid-js';
 import { t } from './i18n';
+import { SageCoverageStrip } from './SageCoverageStrip';
 import { SageNetworkSection } from './SageNetworkSection';
 import { type IndexRow, isHebrewQuery, normalize, scoreRow } from './sageSearch';
 
@@ -597,8 +598,6 @@ function SageDetail(props: {
         </button>
       </header>
 
-      <SageNetworkSection slug={props.slug} />
-
       <Show when={unified.loading && !unified()}>
         <div class="sage-loading">{t('sages.detail.loadingSage')}</div>
       </Show>
@@ -843,94 +842,9 @@ function SageDetail(props: {
         )}
       </Show>
 
-      {/* Wikipedia. Always renders so Run/Refresh stays reachable. */}
-      <Section
-        label={t('sages.section.wikipedia')}
-        actions={
-          <StageActions
-            stage="wiki-bio"
-            cached={!!wikiBio()}
-            running={!!stageRunning()['wiki-bio']}
-            error={stageError()['wiki-bio']}
-            onRun={runStage}
-          />
-        }
-      >
-        <Show
-          when={wikiBio()}
-          fallback={<p class="sage-empty-inline">{t('sages.wiki.noExtract')}</p>}
-        >
-          {(w) => (
-            <Show
-              when={w().enWiki || w().heWiki}
-              fallback={<p class="sage-empty-inline">{t('sages.wiki.noPage')}</p>}
-            >
-              <Show when={w().enWiki}>
-                {(p) => (
-                  <div class="wiki-block">
-                    <a class="wiki-link" href={p().url} target="_blank" rel="noopener noreferrer">
-                      {t('sages.wiki.enPrefix')} {p().title}
-                    </a>
-                    <p class="wiki-extract">{p().extract}</p>
-                  </div>
-                )}
-              </Show>
-              <Show when={w().heWiki}>
-                {(p) => (
-                  <div class="wiki-block">
-                    <a class="wiki-link" href={p().url} target="_blank" rel="noopener noreferrer">
-                      {t('sages.wiki.hePrefix')} {p().title}
-                    </a>
-                    <p class="wiki-extract" dir="rtl" lang="he">
-                      {p().extract}
-                    </p>
-                  </div>
-                )}
-              </Show>
-            </Show>
-          )}
-        </Show>
-      </Section>
+      <SageCoverageStrip slug={props.slug} generation={unified()?.generation ?? null} />
 
-      {/* Wikidata. Always renders so Run/Refresh stays reachable. */}
-      <Section
-        label={t('sages.section.wikidata')}
-        actions={
-          <StageActions
-            stage="wikidata"
-            cached={!!wikidata()}
-            running={!!stageRunning().wikidata}
-            error={stageError().wikidata}
-            onRun={runStage}
-          />
-        }
-      >
-        <Show
-          when={wikidata()}
-          fallback={<p class="sage-empty-inline">{t('sages.wikidata.noRecord')}</p>}
-        >
-          {(w) => (
-            <>
-              <div class="wd-head">
-                <a
-                  class="wd-qid"
-                  href={`https://www.wikidata.org/wiki/${w().qid}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {w().qid}
-                </a>
-                <Show when={w().birthYear || w().deathYear}>
-                  <span class="wd-years">
-                    {w().birthYear ?? '?'}–{w().deathYear ?? '?'}
-                  </span>
-                </Show>
-              </div>
-              <WikidataEdges rec={w()} />
-            </>
-          )}
-        </Show>
-      </Section>
+      <SageNetworkSection slug={props.slug} />
 
       {/* External refs. */}
       <Show when={hasAnyRefs(refs())}>
@@ -970,18 +884,113 @@ function SageDetail(props: {
         </Section>
       </Show>
 
-      <Show when={unified()}>
-        {(u) => (
-          <footer class="sage-foot">
-            <span>{t('sages.foot.enriched', { date: fmtDate(u().enrichedAt) })}</span>
-            <Show when={u().sources.length > 0}>
-              <span class="sage-foot-sources">
-                {t('sages.foot.sources', { sources: u().sources.join(', ') })}
-              </span>
-            </Show>
-          </footer>
-        )}
-      </Show>
+      {/* Operator tools — enrichment stages + provenance, tucked away so the
+          page reads as a rabbi profile first. */}
+      <details class="sage-ops">
+        <summary>{t('sages.ops.title')}</summary>
+
+        {/* Wikipedia. Always renders so Run/Refresh stays reachable. */}
+        <Section
+          label={t('sages.section.wikipedia')}
+          actions={
+            <StageActions
+              stage="wiki-bio"
+              cached={!!wikiBio()}
+              running={!!stageRunning()['wiki-bio']}
+              error={stageError()['wiki-bio']}
+              onRun={runStage}
+            />
+          }
+        >
+          <Show
+            when={wikiBio()}
+            fallback={<p class="sage-empty-inline">{t('sages.wiki.noExtract')}</p>}
+          >
+            {(w) => (
+              <Show
+                when={w().enWiki || w().heWiki}
+                fallback={<p class="sage-empty-inline">{t('sages.wiki.noPage')}</p>}
+              >
+                <Show when={w().enWiki}>
+                  {(p) => (
+                    <div class="wiki-block">
+                      <a class="wiki-link" href={p().url} target="_blank" rel="noopener noreferrer">
+                        {t('sages.wiki.enPrefix')} {p().title}
+                      </a>
+                      <p class="wiki-extract">{p().extract}</p>
+                    </div>
+                  )}
+                </Show>
+                <Show when={w().heWiki}>
+                  {(p) => (
+                    <div class="wiki-block">
+                      <a class="wiki-link" href={p().url} target="_blank" rel="noopener noreferrer">
+                        {t('sages.wiki.hePrefix')} {p().title}
+                      </a>
+                      <p class="wiki-extract" dir="rtl" lang="he">
+                        {p().extract}
+                      </p>
+                    </div>
+                  )}
+                </Show>
+              </Show>
+            )}
+          </Show>
+        </Section>
+
+        {/* Wikidata. Always renders so Run/Refresh stays reachable. */}
+        <Section
+          label={t('sages.section.wikidata')}
+          actions={
+            <StageActions
+              stage="wikidata"
+              cached={!!wikidata()}
+              running={!!stageRunning().wikidata}
+              error={stageError().wikidata}
+              onRun={runStage}
+            />
+          }
+        >
+          <Show
+            when={wikidata()}
+            fallback={<p class="sage-empty-inline">{t('sages.wikidata.noRecord')}</p>}
+          >
+            {(w) => (
+              <>
+                <div class="wd-head">
+                  <a
+                    class="wd-qid"
+                    href={`https://www.wikidata.org/wiki/${w().qid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {w().qid}
+                  </a>
+                  <Show when={w().birthYear || w().deathYear}>
+                    <span class="wd-years">
+                      {w().birthYear ?? '?'}–{w().deathYear ?? '?'}
+                    </span>
+                  </Show>
+                </div>
+                <WikidataEdges rec={w()} />
+              </>
+            )}
+          </Show>
+        </Section>
+
+        <Show when={unified()}>
+          {(u) => (
+            <footer class="sage-foot">
+              <span>{t('sages.foot.enriched', { date: fmtDate(u().enrichedAt) })}</span>
+              <Show when={u().sources.length > 0}>
+                <span class="sage-foot-sources">
+                  {t('sages.foot.sources', { sources: u().sources.join(', ') })}
+                </span>
+              </Show>
+            </footer>
+          )}
+        </Show>
+      </details>
     </article>
   );
 }
@@ -1221,6 +1230,8 @@ const SAGES_CSS = `
 
 .sages-list { padding: 0.5rem; max-height: 78vh; overflow-y: auto; }
 .sages-empty { color: #94a3b8; font-style: italic; font-size: 12.5px; padding: 1rem; text-align: center; }
+.sage-ops { border-top: 1px dashed #e2e8f0; margin-top: 1.2rem; padding-top: 0.6rem; }
+.sage-ops > summary { cursor: pointer; color: #94a3b8; font-size: 12px; font-weight: 600; }
 .sages-missing { border-top: 1px solid #e2e8f0; margin-top: 0.6rem; padding: 0.4rem 0.2rem; }
 .sages-missing-toggle { border: none; background: transparent; cursor: pointer; font-size: 12.5px; font-weight: 600; color: #8a6d3b; padding: 0.3rem 0.5rem; width: 100%; text-align: start; }
 .sages-missing-note { color: #94a3b8; font-size: 11.5px; margin: 0.2rem 0.5rem 0.5rem; line-height: 1.4; }

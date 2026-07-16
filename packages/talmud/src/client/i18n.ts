@@ -194,6 +194,24 @@ const CATALOG = {
   'dafvoices.rel.opposes': { en: 'opposes', he: 'חולק על' },
   'dafvoices.rel.supports': { en: 'supports', he: 'תומך ב' },
   'dafvoices.rel.responds-to': { en: 'responds to', he: 'משיב ל' },
+  'coverage.title': { en: 'Where in Shas', he: 'היכן בש״ס' },
+  'coverage.summary': {
+    en: 'Observed on {dapim} dapim across {masechtot} masechtot (of {analyzed} analyzed so far).',
+    he: 'נצפה ב־{dapim} דפים ב־{masechtot} מסכתות (מתוך {analyzed} שנותחו עד כה).',
+  },
+  'coverage.noDenominator': {
+    en: 'Per-masechet analyzed counts appear after the next graph rebuild.',
+    he: 'ספירת הניתוח למסכת תופיע לאחר הבנייה הבאה של הגרף.',
+  },
+  'coverage.cellTitle': {
+    en: '{masechet} — on {sage} of {analyzed} analyzed dapim ({total} total)',
+    he: '{masechet} — ב־{sage} מתוך {analyzed} דפים שנותחו ({total} סה״כ)',
+  },
+  'coverage.cellTitleNoDenom': {
+    en: '{masechet} — on {sage} dapim ({total} total)',
+    he: '{masechet} — ב־{sage} דפים ({total} סה״כ)',
+  },
+  'sages.ops.title': { en: 'Enrichment tools & sources', he: 'כלי העשרה ומקורות' },
   'sages.missing.title': { en: 'Missing from the registry', he: 'חסרים במאגר' },
   'sages.missing.unavailable': {
     en: 'Backlog unavailable right now.',
@@ -214,8 +232,6 @@ const CATALOG = {
   },
   'network.arc.expand': { en: 'Show the {n} sages of {gen}', he: 'הצגת {n} חכמי {gen}' },
   'network.arc.collapse': { en: 'Collapse {gen}', he: 'צמצום {gen}' },
-  'network.arc.outWord': { en: 'outgoing', he: 'יוצא' },
-  'network.arc.inWord': { en: 'incoming', he: 'נכנס' },
   'network.arc.kindLegend': { en: 'bars & chips:', he: 'פסים ותוויות:' },
   'network.arc.fanOverflow': {
     en: '+{n} weaker ties not drawn in the expanded generation (all listed below)',
@@ -227,8 +243,6 @@ const CATALOG = {
     en: 'Arc diagram of {name}\u2019s interactions by generation',
     he: 'תרשים קשתות של קשרי {name} לפי דורות',
   },
-  'network.arc.outgoing': { en: '↑ {name} → others', he: '↑ {name} ← אחרים' },
-  'network.arc.incoming': { en: '↓ others → {name}', he: '↓ אחרים ← {name}' },
   'network.page.building': {
     en: 'The Shas-wide network is still being built — check back soon.',
     he: 'רשת הש״ס עדיין נבנית — נסו שוב בקרוב.',

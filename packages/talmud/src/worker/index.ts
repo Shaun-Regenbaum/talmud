@@ -5977,6 +5977,8 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
   const RANK: Record<string, number> = { high: 3, medium: 2, low: 1 };
 
   const byType: Record<string, number> = {};
+  // Distinct dapim per tractate — feeds the sage-page coverage strip.
+  const byTractate: Record<string, number> = {};
   // Frequency across dafs, keyed by observation hash (same place/move/verse on
   // N dafs => dafs:N) — the signal a future "notable places" ranking needs.
   const freq = new Map<
@@ -6006,6 +6008,7 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
         continue; // skip corrupt slice
       }
       dafCount++;
+      byTractate[s.tractate] = (byTractate[s.tractate] ?? 0) + 1;
       if (!name && s.name) name = s.name;
       if (!nameHe && s.nameHe) nameHe = s.nameHe;
       for (const o of s.observations) {
@@ -6034,6 +6037,7 @@ app.get('/api/rabbi-observations/:slug', async (c) => {
     nameHe,
     dafCount,
     byType,
+    byTractate,
     aggregated,
     observations,
   };

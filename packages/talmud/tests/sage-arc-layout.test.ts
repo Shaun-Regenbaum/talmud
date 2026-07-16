@@ -40,7 +40,7 @@ describe('layoutSageArcs — L1 trunks', () => {
   // 10 partners across two generations => above the auto-expand threshold.
   const many = [
     ...Array.from({ length: 6 }, (_, i) =>
-      row(`b${i}`, 'amora-bavel-3', 6 - i, [
+      row(`b${i}`, 'amora-bavel-3', 6, [
         { kind: 'opposes', direction: 'out', weight: 4 },
         { kind: 'cites', direction: 'in', weight: 2 },
       ]),
@@ -48,21 +48,18 @@ describe('layoutSageArcs — L1 trunks', () => {
     ...Array.from({ length: 4 }, (_, i) => row(`t${i}`, 'tanna-2', 2)),
   ];
 
-  it('collapses generations into pills with directional trunks', () => {
+  it('collapses generations into pills with ONE total-volume trunk each', () => {
     const l = layoutSageArcs('amora-bavel-4', many, null);
     expect(l.autoExpanded).toBe(false);
     const bavel3 = l.groups.find((g) => g.gen === 'amora-bavel-3');
     expect(bavel3?.pill?.partnerCount).toBe(6);
     expect(bavel3?.dots).toHaveLength(0);
     const trunks = l.edges.filter((e) => e.kind === 'trunk' && e.gen === 'amora-bavel-3');
-    // bavel-3 has both out (opposes) and in (cites) volume => two trunks
-    expect(trunks.map((e) => e.above).sort()).toEqual([false, true]);
-    const out = trunks.find((e) => e.above);
-    expect(out?.weight).toBe(24); // 6 partners x out 4
-    // tanna-2 is out-only => a single above trunk
+    expect(trunks).toHaveLength(1); // direction is row detail, not a diagram dimension
+    expect(trunks[0].weight).toBe(36); // 6 partners x (4 opposes + 2 cites)
+    expect(trunks[0].rel).toBeNull();
     const t2 = l.edges.filter((e) => e.kind === 'trunk' && e.gen === 'tanna-2');
     expect(t2).toHaveLength(1);
-    expect(t2[0].above).toBe(true);
   });
 
   it('expanding one generation fans it while others stay trunked', () => {
@@ -70,7 +67,10 @@ describe('layoutSageArcs — L1 trunks', () => {
     const bavel3 = l.groups.find((g) => g.gen === 'amora-bavel-3');
     expect(bavel3?.expanded).toBe(true);
     expect(bavel3?.dots).toHaveLength(6);
-    expect(l.edges.filter((e) => e.kind === 'fan')).toHaveLength(12); // 6 partners x 2 directions
+    // the trunk splits into CATEGORY lines: 6 partners x 2 relation kinds
+    const fans = l.edges.filter((e) => e.kind === 'fan');
+    expect(fans).toHaveLength(12);
+    expect(new Set(fans.map((f) => f.rel))).toEqual(new Set(['opposes', 'cites']));
     const t2 = l.groups.find((g) => g.gen === 'tanna-2');
     expect(t2?.pill?.partnerCount).toBe(4);
   });
@@ -179,13 +179,10 @@ describe('barSegments', () => {
 });
 
 describe('arcPath', () => {
-  it('bulges up for above-axis arcs and down for below', () => {
+  it('always bulges above the axis, mirrored for leftward partners', () => {
     const base = { x1: 10, x2: 110, ry: 40 };
-    expect(arcPath({ ...base, above: true }, 100)).toBe('M 10 100 A 50 40 0 0 1 110 100');
-    expect(arcPath({ ...base, above: false }, 100)).toBe('M 10 100 A 50 40 0 0 0 110 100');
-    expect(arcPath({ ...base, above: true, x1: 110, x2: 10 }, 100)).toBe(
-      'M 110 100 A 50 40 0 0 0 10 100',
-    );
+    expect(arcPath(base, 100)).toBe('M 10 100 A 50 40 0 0 1 110 100');
+    expect(arcPath({ ...base, x1: 110, x2: 10 }, 100)).toBe('M 110 100 A 50 40 0 0 0 10 100');
   });
 });
 

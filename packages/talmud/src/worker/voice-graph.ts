@@ -72,6 +72,10 @@ export interface VoiceGraphStaging {
 export interface VoiceGraphBlob extends Omit<VoiceGraphStaging, 'dafsSeen'> {
   builtAt: number;
   dapim: number;
+  /** Analyzed dapim per tractate (display-name keys) — the denominator for
+   *  the sage-page coverage strip. Present from the first rebuild after this
+   *  field shipped; consumers must tolerate absence. */
+  dapimByTractate?: Record<string, number>;
   /** Nodes that gained voice edges while having ZERO curated hierarchy edges —
    *  the "filled blanks". */
   newlyConnected: number;
@@ -217,7 +221,20 @@ export function finalizeVoiceGraph(staging: VoiceGraphStaging, builtAt: number):
     node.curatedEdges = curatedEdgeCount(slug);
     if (node.curatedEdges === 0 && connected.has(slug)) newlyConnected++;
   }
-  return { ...rest, builtAt, dapim: Object.keys(dafsSeen).length, newlyConnected };
+  const dapimByTractate: Record<string, number> = {};
+  for (const label of Object.keys(dafsSeen)) {
+    const i = label.lastIndexOf(' ');
+    if (i <= 0) continue;
+    const tractate = label.slice(0, i);
+    dapimByTractate[tractate] = (dapimByTractate[tractate] ?? 0) + 1;
+  }
+  return {
+    ...rest,
+    builtAt,
+    dapim: Object.keys(dafsSeen).length,
+    dapimByTractate,
+    newlyConnected,
+  };
 }
 
 /** Build the resolver's learned adjacency from a voice-graph blob: symmetric
