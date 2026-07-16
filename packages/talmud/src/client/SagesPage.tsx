@@ -1256,8 +1256,8 @@ const SAGES_CSS = `
 .sages-list-region { text-transform: uppercase; letter-spacing: 0.04em; }
 .sages-list-cap { font-size: 10.5px; color: #94a3b8; padding: 0.6rem; font-style: italic; text-align: center; }
 
-.sages-detail { padding: 1rem 1.25rem; min-height: 200px; min-width: 0; }
-.sages-list { min-width: 0; }
+.sages-detail { padding: 1rem 1.25rem; min-height: 200px; min-width: 0; width: 100%; max-width: 100%; }
+.sages-list { min-width: 0; width: 100%; max-width: 100%; }
 .sage-detail { display: flex; flex-direction: column; gap: 0.75rem; }
 .sage-head { display: flex; align-items: flex-start; gap: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
 .sage-head-titles { flex: 1; min-width: 0; }
