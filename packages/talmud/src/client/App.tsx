@@ -1,6 +1,7 @@
 import { createSignal, Show } from 'solid-js';
 import { AiPausedBanner } from './AiPausedBanner';
 import { AlignPage } from './AlignPage';
+import { ArgumentGraphPage } from './ArgumentGraphPage';
 import { AttributionsPage } from './AttributionsPage';
 import Compare from './Compare';
 import DafViewer from './DafViewer';
@@ -13,7 +14,6 @@ import { SpineCoveragePage } from './SpineCoveragePage';
 import { TopBar } from './TopBar';
 import { TutorialPage } from './TutorialPage';
 import { UsagePage } from './UsagePage';
-import { VoicesPage } from './VoicesPage';
 
 function currentRoute() {
   // #sages/<slug> deep-links into SagesPage; treat the prefix as the route.
@@ -39,6 +39,11 @@ function currentRoute() {
     const slug = raw.startsWith('network/') ? raw.slice('network/'.length) : '';
     window.location.hash = slug ? `sages/${slug}` : 'sages';
     return 'sages';
+  }
+  if (raw === 'voices' || raw.startsWith('voices/')) {
+    // The voice graph grew into the argument graph; old links land there.
+    window.location.hash = 'argument';
+    return 'argument';
   }
   if (raw === 'sages' || raw.startsWith('sages/')) return 'sages';
   return raw;
@@ -96,12 +101,12 @@ export default function App() {
                                                 fallback={
                                                   <Show
                                                     when={
-                                                      route() === 'voices' ||
-                                                      route().startsWith('voices/')
+                                                      route() === 'argument' ||
+                                                      route().startsWith('argument/')
                                                     }
                                                     fallback={<DafViewer />}
                                                   >
-                                                    <VoicesPage />
+                                                    <ArgumentGraphPage />
                                                   </Show>
                                                 }
                                               >

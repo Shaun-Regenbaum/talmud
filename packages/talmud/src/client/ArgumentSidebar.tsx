@@ -44,6 +44,7 @@ import { type DerivationSource, parseBavliRef } from '../lib/halacha/codifiers';
 import { adjacentAmud } from '../lib/sefref/amudim';
 import { dafRefHe, pageLabelHe } from '../lib/sefref/tractates';
 import type { Term } from '../lib/terms/registry';
+import { mergeFlows } from '../lib/typing/flowMerge';
 import {
   buildStatementSpine,
   type StatementSpine as StatementSpineData,
@@ -1055,20 +1056,13 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
       | undefined;
     const ai: FlowConnection[] =
       flow && Array.isArray(flow.connections) ? flow.connections : (flowRun() ?? []);
-    const covered = new Set(ai.map((c) => `${Math.min(c.from, c.to)}|${Math.max(c.from, c.to)}`));
-    const merged = [...ai];
-    for (const d of derivedFlow() ?? []) {
-      const pairKey = `${Math.min(d.fromSection, d.toSection)}|${Math.max(d.fromSection, d.toSection)}`;
-      if (covered.has(pairKey)) continue; // the AI flow already connects this pair
-      covered.add(pairKey);
-      merged.push({
-        from: d.fromSection,
-        to: d.toSection,
-        kind: stmtRelKind(d.relation),
-        note: 'from the statement dialectic',
-      });
-    }
-    return merged;
+    const det: FlowConnection[] = (derivedFlow() ?? []).map((d) => ({
+      from: d.fromSection,
+      to: d.toSection,
+      kind: stmtRelKind(d.relation),
+      note: 'from the statement dialectic',
+    }));
+    return mergeFlows(ai, det);
   });
 
   // The daf's statement spines (one per section), built server-side from the

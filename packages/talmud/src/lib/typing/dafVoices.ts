@@ -5,7 +5,7 @@
  * as edges, accumulated across every section of the daf.
  *
  * Each section's `argument.voices` is a section-LOCAL dispute graph (who argues
- * with whom WITHIN that section). The #voices page stitches them: a voice that
+ * with whom WITHIN that section). The #argument page stitches them: a voice that
  * speaks in three sections is ONE node carrying all three; a relation seen in
  * two sections carries both. The result reads the whole daf as a single
  * conversation, and is the seed for the eventual Talmud-wide rabbi network
