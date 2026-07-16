@@ -11,9 +11,11 @@
  *   L3  a partner's rows expand into daf receipts; dots and names link to the
  *       partner's sage page.
  *
- * Relation kinds are encoded in the stacked bars + row chips (with a legend);
- * arcs carry era + direction + volume only — that separation is what keeps a
- * 60-partner sage readable.
+ * At the overview, arcs carry era + volume only (relation kinds live in the
+ * stacked bars + row chips); when a generation is opened, its trunk splits
+ * into kind-colored category lines — the palette appears exactly when it is
+ * examinable. Direction (who acts on whom) is row-chip detail (→/←), not a
+ * diagram dimension.
  */
 import {
   createEffect,
@@ -132,7 +134,7 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
               // Constant vertical envelope (ARC_BAND) — a 3-partner sage's
               // diagram stands as tall as Rava's, so pages compare directly.
               const axisY = () => TOP_PAD + ARC_BAND + 12;
-              const labelsY = () => axisY() + ARC_BAND + (anyExpanded() ? 22 + NAME_BAND : 28);
+              const labelsY = () => axisY() + (anyExpanded() ? 16 + NAME_BAND : 26);
               const barsY = () => labelsY() + LABEL_H;
               const height = () => barsY() + BAR_H + BOTTOM_PAD;
               const maxGroupTotal = () => layout().groups.reduce((m, g) => Math.max(m, g.total), 1);
@@ -193,26 +195,6 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                           />
                         </Show>
 
-                        {/* direction hints, centered on the diagram */}
-                        <text
-                          x={layout().width / 2}
-                          y={TOP_PAD}
-                          font-size="9"
-                          fill="#a89e8a"
-                          text-anchor="middle"
-                        >
-                          {t('network.arc.outgoing', { name: wire.node.name })}
-                        </text>
-                        <text
-                          x={layout().width / 2}
-                          y={axisY() + ARC_BAND + 11}
-                          font-size="9"
-                          fill="#a89e8a"
-                          text-anchor="middle"
-                        >
-                          {t('network.arc.incoming', { name: wire.node.name })}
-                        </text>
-
                         {/* expanded-group background band */}
                         <For each={layout().groups}>
                           {(g) => (
@@ -221,7 +203,7 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                                 x={g.x}
                                 y={TOP_PAD + 4}
                                 width={g.width}
-                                height={axisY() + ARC_BAND - TOP_PAD + 4}
+                                height={axisY() - TOP_PAD + (anyExpanded() ? 14 : 4)}
                                 rx={10}
                                 fill="#8a6d3b"
                                 opacity="0.06"
@@ -236,7 +218,7 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                             <path
                               d={arcPath(a, axisY())}
                               fill="none"
-                              stroke={colorForGeneration(a.gen)}
+                              stroke={a.rel ? relColor(a.rel) : colorForGeneration(a.gen)}
                               stroke-width={a.stroke}
                               stroke-linecap="round"
                               opacity={
@@ -244,10 +226,10 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                                   ? 0.12
                                   : a.kind === 'trunk'
                                     ? 0.75
-                                    : 0.55
+                                    : 0.7
                               }
                             >
-                              <title>{`${genLabel(a.gen)} — ${a.above ? t('network.arc.outWord') : t('network.arc.inWord')} ×${a.weight}`}</title>
+                              <title>{`${genLabel(a.gen)}${a.rel ? ` — ${t(`dafvoices.rel.${a.rel}`)}` : ''} ×${a.weight}`}</title>
                             </path>
                           )}
                         </For>
@@ -383,9 +365,9 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                                         style={{ cursor: 'pointer' }}
                                       />
                                       <text
-                                        transform={`rotate(40 ${d.x} ${axisY() + ARC_BAND + 22})`}
+                                        transform={`rotate(40 ${d.x} ${axisY() + 16})`}
                                         x={d.x}
-                                        y={axisY() + ARC_BAND + 22}
+                                        y={axisY() + 16}
                                         font-size="9"
                                         fill={dimSlug(d.row.other.slug) ? '#c8c2b4' : '#555'}
                                         text-anchor="start"
