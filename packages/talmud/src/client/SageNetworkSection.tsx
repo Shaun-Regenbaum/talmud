@@ -264,6 +264,8 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                                   stroke={AXIS_INK}
                                   stroke-width="1"
                                 />
+                                {/* biome-ignore lint/a11y/noStaticElementInteractions: SVG has no native button; role/tabindex/keydown are set whenever this label is clickable (clickable() gates all four together) */}
+                                {/* biome-ignore lint/a11y/useSemanticElements: a native <button> cannot live inside <svg>; foreignObject would break the diagram's coordinate layout */}
                                 <text
                                   x={g.x + g.width / 2}
                                   y={labelsY()}
@@ -302,6 +304,7 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                                 {/* collapsed cluster pill (click to expand) */}
                                 <Show when={g.pill} keyed>
                                   {(pill) => (
+                                    // biome-ignore lint/a11y/useSemanticElements: a native <button> cannot live inside <svg>; the group carries role=button + tabindex + Enter/Space handling
                                     <g
                                       role="button"
                                       tabindex={0}
