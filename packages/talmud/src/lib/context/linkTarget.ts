@@ -41,8 +41,10 @@ export interface LinkTarget {
  *  "<chapter>:<verse|halacha>", so the page shape disambiguates them. */
 const BAVLI_PAGE = /^\d+[ab]$/;
 
-/** The sister Tanach reader — a pasuk link opens the containing chapter there. */
-const TANACH_APP = 'https://tanach.shaunregenbaum.com';
+/** The sister Tanach reader — a pasuk link opens the containing chapter there.
+ *  Its canonical name: tanach.shaunregenbaum.com still resolves but redirects
+ *  here, so linking straight to tanach.dev saves readers the extra hop. */
+const TANACH_APP = 'https://tanach.dev';
 
 export function linkCorpus(c: AnchorCoord): LinkCorpus {
   // An external corpus spine the daf links INTO: a pasuk ('tanach') or a

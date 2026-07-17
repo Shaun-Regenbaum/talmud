@@ -36,6 +36,26 @@ interface Env extends TanachEnv {
 
 const app = new Hono<{ Bindings: Env }>();
 
+/** The public name. Every other hostname on this worker is an alias for it. */
+const CANONICAL_HOST = 'tanach.dev';
+/** Aliases that redirect to CANONICAL_HOST. www.tanach.dev is deliberately
+ *  absent — it is served as-is, same as it was before. */
+const LEGACY_HOSTS = new Set(['tanach.shaunregenbaum.com']);
+
+/**
+ * Send browsers on a legacy hostname to the canonical one, path and query
+ * intact, so the app has a single public name. /api/* is exempt and keeps
+ * answering on every hostname — it has callers (the Talmud app links here),
+ * and redirecting them would break live clients to buy nothing.
+ */
+app.use('*', async (c, next) => {
+  const url = new URL(c.req.url);
+  if (!LEGACY_HOSTS.has(url.hostname)) return next();
+  if (url.pathname.startsWith('/api/')) return next();
+  url.hostname = CANONICAL_HOST;
+  return c.redirect(url.toString(), 301);
+});
+
 /** Map a producer-run failure to the legacy route responses: a source error
  *  keeps its specific status + body (404 ref-not-found / not-enough-material,
  *  502 upstream fetch failures with their original messages); anything else is

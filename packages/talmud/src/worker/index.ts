@@ -567,6 +567,30 @@ interface DafSkeleton {
 
 const app = new Hono<{ Bindings: Bindings }>();
 
+/** The public name. Every other hostname on this worker is an alias for it. */
+const CANONICAL_HOST = 'talmud.dev';
+/** Aliases that redirect to CANONICAL_HOST. www.talmud.dev is deliberately
+ *  absent — it is served as-is, same as it was before. */
+const LEGACY_HOSTS = new Set(['talmud.shaunregenbaum.com']);
+
+/**
+ * Send browsers on a legacy hostname to the canonical one, path and query
+ * intact, so the app has a single public name.
+ *
+ * The machine surfaces are exempt and keep answering on every hostname: /mcp
+ * is POST-based (a redirect asks the client to re-issue the POST, which not
+ * every MCP client does) and /api/* has callers — the OpenAPI spec still
+ * advertises the legacy host as its server. Redirecting those would break
+ * live clients to buy nothing; only the browsing surface needs one name.
+ */
+app.use('*', async (c, next) => {
+  const url = new URL(c.req.url);
+  if (!LEGACY_HOSTS.has(url.hostname)) return next();
+  if (url.pathname === '/mcp' || url.pathname.startsWith('/api/')) return next();
+  url.hostname = CANONICAL_HOST;
+  return c.redirect(url.toString(), 301);
+});
+
 app.get('/api/health', (c) => c.json({ ok: true }));
 
 /**
