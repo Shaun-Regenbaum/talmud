@@ -22,6 +22,9 @@ describe('canonical host (tanach.dev)', () => {
     expect(res.headers.get('location')).toBe('https://tanach.dev/?book=Genesis&chapter=19');
   });
 
+  // The bare domain and /?book=… are the SPA's real entry points, and they map
+  // to the index.html asset — the case run_worker_first = ["/"] exists to route
+  // through the Worker so this redirect can fire at all.
   it('redirects the legacy root', async () => {
     const res = await fetchAs('https://tanach.shaunregenbaum.com/');
     expect(res.status).toBe(301);
