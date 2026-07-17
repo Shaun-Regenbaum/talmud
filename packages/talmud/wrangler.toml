@@ -23,12 +23,16 @@ routes = [
 directory = "./dist/client"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
-# The bare domain (and /?query, the SPA's real entry) maps to the index.html
-# asset, which Cloudflare would serve WITHOUT invoking the Worker — so the
-# legacy-host redirect in the Worker would never see it. Route just "/" through
-# the Worker first; hashed /assets/* stay on the CDN fast path untouched. The
-# `app.get('/')` route serves index.html for "/" on the canonical host.
-run_worker_first = ["/"]
+# run_worker_first as a PATTERN LIST is exclusive: ONLY matching paths invoke
+# the Worker — everything else is served from assets, with non-asset paths
+# falling back to index.html (SPA), the Worker never running. So the list must
+# name the Worker's entire live surface, not just the paths that need
+# worker-FIRST ordering: when it was just ["/"], every /api/* and /mcp request
+# returned the SPA shell and both apps' data layers went down (2026-07-17).
+# "/" is here so the legacy-host redirect fires on the bare domain (the
+# `app.get('/')` route hands it back to assets on the canonical host); hashed
+# /assets/* stay on the CDN fast path by not matching.
+run_worker_first = ["/", "/api/*", "/mcp"]
 
 # Raise the CPU ceiling well above the 30s default. Queue jobs that parse a
 # large LLM streaming response (argument-move on a long daf emits a big
