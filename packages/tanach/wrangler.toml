@@ -3,10 +3,15 @@ main = "src/worker/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Custom production domain. The shaunregenbaum.com zone is on the same account
-# as the Talmud app; wrangler provisions the DNS record + cert on deploy.
+# Custom production domains. The shaunregenbaum.com and tanach.dev zones are
+# both on the same account as this worker; wrangler provisions the DNS record +
+# cert on deploy. Same shape as talmud: one deployment, all hostnames identical.
 # (Top-level key — must precede any [table] header or TOML folds it into it.)
-routes = [{ pattern = "tanach.shaunregenbaum.com", custom_domain = true }]
+routes = [
+  { pattern = "tanach.shaunregenbaum.com", custom_domain = true },
+  { pattern = "tanach.dev", custom_domain = true },
+  { pattern = "www.tanach.dev", custom_domain = true }
+]
 
 # The Solid client is built into ./dist/client and served by the Worker via the
 # ASSETS binding; unmatched routes fall through to index.html (SPA).
