@@ -65,7 +65,7 @@ describe('linkTarget', () => {
       label: 'Genesis 19:5',
       corpus: 'tanach',
       navigable: true,
-      href: 'https://tanach.shaunregenbaum.com/?book=Genesis&chapter=19',
+      href: 'https://tanach.dev/?book=Genesis&chapter=19',
       external: true,
     });
   });
