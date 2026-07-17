@@ -593,6 +593,14 @@ app.use('*', async (c, next) => {
 
 app.get('/api/health', (c) => c.json({ ok: true }));
 
+// Serve the SPA shell for the bare domain. wrangler's run_worker_first = ["/"]
+// routes "/" through the Worker (so the redirect middleware above can see it on
+// the legacy host); on the canonical host the middleware falls through to here,
+// and we hand "/" back to the asset pipeline. Only "/" is affected — every
+// other path keeps its existing behaviour (assets from the CDN, unknown paths
+// still 404 through the router, not an SPA catch-all).
+app.get('/', (c) => c.env.ASSETS.fetch(c.req.raw));
+
 /**
  * Code-mode MCP server (Streamable HTTP) at /mcp. Exposes two tools — `search`
  * and `execute` — built from the curated OpenAPI spec (mcp-openapi.ts). The

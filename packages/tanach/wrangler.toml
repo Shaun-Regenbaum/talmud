@@ -19,6 +19,12 @@ routes = [
 directory = "./dist/client"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
+# The bare domain (and /?query, the SPA's real entry) maps to the index.html
+# asset, which Cloudflare would serve WITHOUT invoking the Worker — so the
+# legacy-host redirect in the Worker would never see it. Route just "/" through
+# the Worker first; hashed /assets/* stay on the CDN fast path untouched. The
+# catch-all `app.get('*')` serves index.html for "/" on the canonical host.
+run_worker_first = ["/"]
 
 [observability]
 enabled = true

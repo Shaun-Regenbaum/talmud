@@ -23,10 +23,19 @@ describe('canonical host (talmud.dev)', () => {
     expect(res.headers.get('location')).toBe('https://talmud.dev/Berakhot/2a?lang=he');
   });
 
+  // The bare domain and /?query are the SPA's real entry points, and they map
+  // to the index.html asset — the case run_worker_first = ["/"] exists to route
+  // through the Worker so this redirect can fire at all.
   it('redirects the legacy root', async () => {
     const res = await fetchAs('https://talmud.shaunregenbaum.com/');
     expect(res.status).toBe(301);
     expect(res.headers.get('location')).toBe('https://talmud.dev/');
+  });
+
+  it('redirects the legacy root with a query string, preserving it', async () => {
+    const res = await fetchAs('https://talmud.shaunregenbaum.com/?daf=Berakhot.2a');
+    expect(res.status).toBe(301);
+    expect(res.headers.get('location')).toBe('https://talmud.dev/?daf=Berakhot.2a');
   });
 
   it('serves the canonical host without redirecting', async () => {
