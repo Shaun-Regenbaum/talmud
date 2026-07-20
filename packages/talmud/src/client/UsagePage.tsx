@@ -1,6 +1,7 @@
 import { WorldBubbleMap } from '@corpus/ui/WorldBubbleMap';
 import { createMemo, createResource, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 import { estimateShasCost, type ProducerCost } from '../lib/shasCost';
+import { type Column, DataTable, HitChip, Meter, RankedBars, type RankedItem } from './DataTable';
 import { lang, t } from './i18n';
 
 interface PerEndpoint {
@@ -1789,69 +1790,57 @@ function ByProducerSection(props: {
           </For>
         </div>
         {/* Full attributed table */}
-        <table style={tableStyle}>
-          <thead>
-            <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-              <th style={thStyle}>{t('usage.shas.col.producer')}</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.calls')}</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.tokens')}</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cost')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <For each={rows()}>
-              {([id, b]) => (
-                <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-                  <td
-                    style={{
-                      padding: '0.3rem 0.5rem',
-                      'font-family': 'monospace',
-                      'font-size': '0.8rem',
-                    }}
-                  >
-                    {id}
-                  </td>
-                  <td
-                    style={{
-                      padding: '0.3rem 0.5rem',
-                      'text-align': 'right',
-                      'font-variant-numeric': 'tabular-nums',
-                      color: '#888',
-                    }}
-                  >
-                    {fmtInt(b.calls)}
-                  </td>
-                  <td
-                    style={{
-                      padding: '0.3rem 0.5rem',
-                      'text-align': 'right',
-                      'font-variant-numeric': 'tabular-nums',
-                      color: '#888',
-                    }}
-                  >
-                    {fmtTokens(b.tokensIn + b.tokensOut)}
-                  </td>
-                  <td
-                    style={{
-                      padding: '0.3rem 0.5rem',
-                      'text-align': 'right',
-                      'font-variant-numeric': 'tabular-nums',
-                    }}
-                  >
-                    {b.pricedCalls ? (
-                      fmtUsd(b.costUsd)
-                    ) : (
-                      <span style={{ color: '#bbb' }}>{t('usage.unpriced')}</span>
-                    )}
-                  </td>
-                </tr>
-              )}
-            </For>
-          </tbody>
-        </table>
+        <DataTable
+          columns={producerCols(() => Math.max(...rows().map(([, b]) => b.costUsd), 1e-9))}
+          rows={rows()}
+          initialSort={{ key: 'cost', dir: 'desc' }}
+          maxRows={20}
+        />
       </Show>
     </Collapsible>
   );
+}
+
+// Columns for the per-producer cost table (shared shape: [id, UsageBucket]).
+function producerCols(maxCost: () => number): Column<[string, UsageBucket]>[] {
+  return [
+    {
+      key: 'id',
+      header: t('usage.shas.col.producer'),
+      mono: true,
+      sortValue: ([id]) => id,
+      cell: ([id]) => id,
+    },
+    {
+      key: 'calls',
+      header: t('usage.col.calls'),
+      align: 'right',
+      muted: true,
+      sortValue: ([, b]) => b.calls,
+      cell: ([, b]) => fmtInt(b.calls),
+    },
+    {
+      key: 'tokens',
+      header: t('usage.col.tokens'),
+      align: 'right',
+      muted: true,
+      sortValue: ([, b]) => b.tokensIn + b.tokensOut,
+      cell: ([, b]) => fmtTokens(b.tokensIn + b.tokensOut),
+    },
+    {
+      key: 'cost',
+      header: t('usage.col.cost'),
+      align: 'right',
+      width: '11rem',
+      sortValue: ([, b]) => b.costUsd,
+      cell: ([, b]) =>
+        b.pricedCalls ? (
+          <Meter value={b.costUsd} max={maxCost()} text={fmtUsd(b.costUsd)} />
+        ) : (
+          <span style={{ color: '#bbb' }}>{t('usage.unpriced')}</span>
+        ),
+    },
+  ];
 }
 
 // The redesigned Cost tab: one authoritative total + a remaining-to-finish
@@ -1987,52 +1976,49 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
 
 /** Per-model cost table shared by the OpenRouter (billed) and AI Gateway
  *  (gateway-estimated) breakdowns — both carry the same row shape. */
-function ModelCostTable(props: {
-  rows: Array<{
-    model: string;
-    requests: number;
-    tokensIn: number;
-    tokensOut: number;
-    costUsd: number;
-  }>;
-}): JSX.Element {
-  const cellNum = {
-    padding: '0.4rem 0.5rem',
-    'text-align': 'right',
-    'font-variant-numeric': 'tabular-nums',
-  } as const;
-  return (
-    <table style={tableStyle}>
-      <thead>
-        <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-          <th style={thStyle}>{t('usage.col.model')}</th>
-          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.requests')}</th>
-          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.tokens')}</th>
-          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cost')}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <For each={props.rows}>
-          {(m) => (
-            <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-              <td
-                style={{
-                  padding: '0.4rem 0.5rem',
-                  'font-family': 'monospace',
-                  'font-size': '0.8rem',
-                }}
-              >
-                {m.model}
-              </td>
-              <td style={cellNum}>{fmtInt(m.requests)}</td>
-              <td style={cellNum}>{fmtTokens(m.tokensIn + m.tokensOut)}</td>
-              <td style={cellNum}>{fmtUsd(m.costUsd)}</td>
-            </tr>
-          )}
-        </For>
-      </tbody>
-    </table>
-  );
+type ModelRow = {
+  model: string;
+  requests: number;
+  tokensIn: number;
+  tokensOut: number;
+  costUsd: number;
+};
+function ModelCostTable(props: { rows: ModelRow[] }): JSX.Element {
+  const maxCost = () => Math.max(...props.rows.map((m) => m.costUsd), 1e-9);
+  const cols: Column<ModelRow>[] = [
+    {
+      key: 'model',
+      header: t('usage.col.model'),
+      mono: true,
+      sortValue: (m) => m.model,
+      cell: (m) => m.model,
+    },
+    {
+      key: 'requests',
+      header: t('usage.col.requests'),
+      align: 'right',
+      muted: true,
+      sortValue: (m) => m.requests,
+      cell: (m) => fmtInt(m.requests),
+    },
+    {
+      key: 'tokens',
+      header: t('usage.col.tokens'),
+      align: 'right',
+      muted: true,
+      sortValue: (m) => m.tokensIn + m.tokensOut,
+      cell: (m) => fmtTokens(m.tokensIn + m.tokensOut),
+    },
+    {
+      key: 'cost',
+      header: t('usage.col.cost'),
+      align: 'right',
+      width: '11rem',
+      sortValue: (m) => m.costUsd,
+      cell: (m) => <Meter value={m.costUsd} max={maxCost()} text={fmtUsd(m.costUsd)} />,
+    },
+  ];
+  return <DataTable columns={cols} rows={props.rows} initialSort={{ key: 'cost', dir: 'desc' }} />;
 }
 
 // The full billing detail — provider-billed vs gateway-estimated vs our own
@@ -2456,65 +2442,77 @@ function ShasEstimate(props: { est: ReturnType<typeof estimateShasCost> }): JSX.
 }
 
 // ---- Latency -------------------------------------------------------------
+type LatRow = { name: string; r: PerEndpoint };
 function LatencyTable(props: {
   title: string;
   hint?: string;
   rows: Array<[string, PerEndpoint]>;
 }): JSX.Element {
+  const rows = () => props.rows.filter(([, r]) => r.count > 0).map(([name, r]) => ({ name, r }));
+  const maxP95 = () => Math.max(1, ...rows().map((x) => x.r.p95Ms));
+  const cols: Column<LatRow>[] = [
+    {
+      key: 'name',
+      header: t('usage.col.name'),
+      mono: true,
+      sortValue: (x) => x.name,
+      cell: (x) => x.name,
+    },
+    {
+      key: 'calls',
+      header: t('usage.col.calls'),
+      align: 'right',
+      muted: true,
+      sortValue: (x) => x.r.count,
+      cell: (x) => fmtInt(x.r.count),
+    },
+    {
+      key: 'hit',
+      header: t('usage.col.cacheHit'),
+      align: 'right',
+      sortValue: (x) => x.r.cacheHitRate,
+      cell: (x) => <HitChip rate={x.r.cacheHitRate} />,
+    },
+    {
+      key: 'p50',
+      header: 'p50',
+      align: 'right',
+      muted: true,
+      sortValue: (x) => x.r.p50Ms,
+      cell: (x) => fmtMs(x.r.p50Ms),
+    },
+    {
+      key: 'p95',
+      header: 'p95',
+      align: 'right',
+      width: '12rem',
+      sortValue: (x) => x.r.p95Ms,
+      cell: (x) => (
+        <Meter
+          value={x.r.p95Ms}
+          max={maxP95()}
+          text={fmtMs(x.r.p95Ms)}
+          color={latColor(x.r.p95Ms)}
+        />
+      ),
+    },
+    {
+      key: 'err',
+      header: t('usage.col.errors'),
+      align: 'right',
+      sortValue: (x) => x.r.errorCount,
+      cell: (x) =>
+        x.r.errorCount ? (
+          <span style={{ color: '#9a3b30' }}>{x.r.errorCount}</span>
+        ) : (
+          <span style={{ color: '#ccc' }}>0</span>
+        ),
+    },
+  ];
   return (
-    <section style={{ 'margin-bottom': '1.6rem' }}>
+    <section style={{ 'margin-bottom': '1.4rem' }}>
       <SectionHeading title={props.title} hint={props.hint} />
-      <Show
-        when={props.rows.length > 0}
-        fallback={<p style={{ color: '#888' }}>{t('usage.noDataYet')}</p>}
-      >
-        <table style={tableStyle}>
-          <thead>
-            <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-              <th style={thStyle}>{t('usage.col.name')}</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.calls')}</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cacheHit')}</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>p50</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>p95</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.errors')}</th>
-              <th style={thStyle}>{t('usage.col.kinds')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <For each={props.rows}>
-              {([name, row]) => (
-                <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-                  <td style={{ padding: '0.4rem 0.5rem', 'font-family': 'monospace' }}>{name}</td>
-                  <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>{row.count}</td>
-                  <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>
-                    {row.count ? `${Math.round(row.cacheHitRate * 100)}%` : '—'}
-                  </td>
-                  <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>
-                    {row.count ? fmtMs(row.p50Ms) : '—'}
-                  </td>
-                  <td style={{ padding: '0.4rem 0.5rem', 'text-align': 'right' }}>
-                    {row.count ? fmtMs(row.p95Ms) : '—'}
-                  </td>
-                  <td
-                    style={{
-                      padding: '0.4rem 0.5rem',
-                      'text-align': 'right',
-                      color: row.errorCount ? '#c33' : '#888',
-                    }}
-                  >
-                    {row.errorCount}
-                  </td>
-                  <td style={{ padding: '0.4rem 0.5rem', 'font-size': '0.75rem', color: '#888' }}>
-                    {Object.entries(row.errorsByKind)
-                      .map(([k, n]) => `${k}:${n}`)
-                      .join(', ')}
-                  </td>
-                </tr>
-              )}
-            </For>
-          </tbody>
-        </table>
-      </Show>
+      <DataTable columns={cols} rows={rows()} initialSort={{ key: 'p95', dir: 'desc' }} />
     </section>
   );
 }
@@ -2807,115 +2805,6 @@ function latColor(p95Ms: number): string {
   return '#a04030';
 }
 
-// A horizontal p95-latency bar per producer, slowest first, coloured by
-// severity, with the p50 shown as a tick and hit% / calls trailing. A quick
-// "what's slow" read the detail tables below back up.
-function LatencyBars(props: {
-  title: string;
-  rows: Array<[string, PerEndpoint]>;
-  top?: number;
-}): JSX.Element {
-  const rows = createMemo(() =>
-    props.rows
-      .filter(([, r]) => r.count > 0)
-      .sort(([, a], [, b]) => b.p95Ms - a.p95Ms)
-      .slice(0, props.top ?? 15),
-  );
-  const max = () => Math.max(1, ...rows().map(([, r]) => r.p95Ms));
-  return (
-    <Show when={rows().length > 0}>
-      <div style={{ 'margin-bottom': '1.1rem' }}>
-        <SectionHeading title={props.title} hint={t('usage.latency.barsHint')} />
-        <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.28rem' }}>
-          <For each={rows()}>
-            {([name, r]) => (
-              <div
-                style={{
-                  display: 'flex',
-                  'align-items': 'center',
-                  gap: '0.55rem',
-                  'font-size': '0.8rem',
-                }}
-              >
-                <span
-                  style={{
-                    width: '11rem',
-                    'flex-shrink': 0,
-                    'font-family': 'monospace',
-                    'font-size': '0.75rem',
-                    overflow: 'hidden',
-                    'text-overflow': 'ellipsis',
-                    'white-space': 'nowrap',
-                  }}
-                  title={name}
-                >
-                  {name}
-                </span>
-                <div
-                  style={{
-                    flex: 1,
-                    height: '14px',
-                    background: '#f1efe9',
-                    'border-radius': '3px',
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}
-                >
-                  <div
-                    style={{
-                      position: 'absolute',
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: `${(r.p95Ms / max()) * 100}%`,
-                      background: latColor(r.p95Ms),
-                      'border-radius': '3px',
-                    }}
-                  />
-                  {/* p50 tick within the p95 span */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      bottom: 0,
-                      left: `${Math.min(100, (r.p50Ms / max()) * 100)}%`,
-                      width: '2px',
-                      background: 'rgba(0,0,0,0.32)',
-                    }}
-                    title={`p50 ${fmtMs(r.p50Ms)}`}
-                  />
-                </div>
-                <span
-                  style={{
-                    width: '4rem',
-                    'text-align': 'right',
-                    'font-variant-numeric': 'tabular-nums',
-                    color: '#555',
-                    'flex-shrink': 0,
-                  }}
-                >
-                  {fmtMs(r.p95Ms)}
-                </span>
-                <span
-                  style={{
-                    width: '6rem',
-                    'text-align': 'right',
-                    color: '#aaa',
-                    'font-size': '0.72rem',
-                    'flex-shrink': 0,
-                  }}
-                >
-                  {Math.round(r.cacheHitRate * 100)}% · {fmtInt(r.count)}
-                </span>
-              </div>
-            )}
-          </For>
-        </div>
-      </div>
-    </Show>
-  );
-}
-
 function SpeedSection(props: { telemetry: TelemetrySection }): JSX.Element {
   const d = () => props.telemetry;
   const endpointRows = () =>
@@ -2923,9 +2812,23 @@ function SpeedSection(props: { telemetry: TelemetrySection }): JSX.Element {
       .map(([k, v]) => [displayEndpoint(k), v] as [string, PerEndpoint])
       .sort(([a], [b]) => a.localeCompare(b));
   const producerRows = () => [...Object.entries(d().perMark), ...Object.entries(d().perEnrichment)];
+  // Slowest producers as a ranked p95 bar chart (p50 tick, hit%·calls sub).
+  const latencyItems = (): RankedItem[] =>
+    producerRows()
+      .filter(([, r]) => r.count > 0)
+      .map(([name, r]) => ({
+        label: name,
+        value: r.p95Ms,
+        tick: r.p50Ms,
+        color: latColor(r.p95Ms),
+        sub: `${Math.round(r.cacheHitRate * 100)}% · ${fmtInt(r.count)}`,
+      }));
   return (
     <Collapsible id="health.speed" title={t('usage.health.speed')} defaultOpen>
-      <LatencyBars title={t('usage.latency.slowest')} rows={producerRows()} />
+      <section style={{ 'margin-bottom': '1.1rem' }}>
+        <SectionHeading title={t('usage.latency.slowest')} hint={t('usage.latency.barsHint')} />
+        <RankedBars items={latencyItems()} fmt={fmtMs} top={15} />
+      </section>
       <LatencyTable
         title={t('usage.latency.byEndpoint', { count: d().totalCount })}
         rows={endpointRows()}
@@ -2998,117 +2901,203 @@ function CacheSection(props: {
         </Show>
       </div>
       <Show when={producerRows().length > 0}>
-        <table style={tableStyle}>
-          <thead>
-            <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-              <th style={thStyle}>{t('usage.col.name')}</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.calls')}</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cacheHit')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <For each={producerRows()}>
-              {([name, row]) => (
-                <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-                  <td style={{ padding: '0.35rem 0.5rem', 'font-family': 'monospace' }}>{name}</td>
-                  <td
-                    style={{
-                      padding: '0.35rem 0.5rem',
-                      'text-align': 'right',
-                      'font-variant-numeric': 'tabular-nums',
-                    }}
-                  >
-                    {row.count}
-                  </td>
-                  <td
-                    style={{
-                      padding: '0.35rem 0.5rem',
-                      'text-align': 'right',
-                      'font-variant-numeric': 'tabular-nums',
-                    }}
-                  >
-                    {Math.round(row.cacheHitRate * 100)}%
-                  </td>
-                </tr>
-              )}
-            </For>
-          </tbody>
-        </table>
+        <DataTable
+          columns={[
+            {
+              key: 'name',
+              header: t('usage.col.name'),
+              mono: true,
+              sortValue: ([name]) => name,
+              cell: ([name]) => name,
+            },
+            {
+              key: 'calls',
+              header: t('usage.col.calls'),
+              align: 'right',
+              muted: true,
+              sortValue: ([, r]) => r.count,
+              cell: ([, r]) => fmtInt(r.count),
+            },
+            {
+              key: 'hit',
+              header: t('usage.col.cacheHit'),
+              align: 'right',
+              sortValue: ([, r]) => r.cacheHitRate,
+              cell: ([, r]) => <HitChip rate={r.cacheHitRate} />,
+            },
+          ]}
+          rows={producerRows()}
+          initialSort={{ key: 'calls', dir: 'desc' }}
+          maxRows={15}
+        />
       </Show>
     </Collapsible>
   );
 }
 
 // ---- Health: Errors (recent telemetry + queue failures + lint) -----------
+// Bucket a raw provider/pipeline error into a short reason, so 30 near-identical
+// failures collapse into a handful of tallies (the "by reason" chart).
+function normalizeErrorReason(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes('402') || m.includes('credits')) return 'OpenRouter credits (402)';
+  if (m.includes('non-array')) return 'Sefaria non-array response';
+  if (m.includes('hard timeout') || m.includes('body read aborted')) return 'Hard timeout';
+  if (m.includes('429') || m.includes('rate-limit')) return 'Rate-limited (429)';
+  if (m.includes('parse') || m.includes('json')) return 'Parse / JSON error';
+  const first = msg.split('\n')[0];
+  return first.length > 48 ? `${first.slice(0, 48)}…` : first;
+}
+
 function ErrorsSection(props: {
   recentErrors: RecentError[];
   health: HealthSectionData;
 }): JSX.Element {
   const d = () => props.health;
   const recentErrors = () => props.recentErrors;
+
+  const recentCols: Column<RecentError>[] = [
+    {
+      key: 'when',
+      header: t('usage.errors.col.when'),
+      muted: true,
+      sortValue: (e) => e.ts,
+      cell: (e) => fmtTime(e.ts),
+    },
+    {
+      key: 'where',
+      header: t('usage.errors.col.where'),
+      mono: true,
+      sortValue: (e) => displayEndpoint(e.endpoint),
+      cell: (e) => (
+        <>
+          {displayEndpoint(e.endpoint)}
+          <Show when={e.mark_id || e.enrichment_id}>
+            <span style={{ color: '#999' }}> · {e.mark_id ?? e.enrichment_id}</span>
+          </Show>
+        </>
+      ),
+    },
+    {
+      key: 'daf',
+      header: t('usage.col.daf'),
+      muted: true,
+      cell: (e) => `${e.tractate ?? ''} ${e.page ?? ''}`.trim() || '—',
+    },
+    {
+      key: 'kind',
+      header: t('usage.errors.col.kind'),
+      sortValue: (e) => e.error_kind ?? '',
+      cell: (e) => (
+        <>
+          <span style={{ color: '#a04030' }}>{e.error_kind ?? t('usage.errorKind.other')}</span>
+          <Show when={e.model}>
+            <span style={{ color: '#aaa', 'font-size': '0.72rem' }}> ({e.model})</span>
+          </Show>
+        </>
+      ),
+    },
+  ];
+
+  const jobReasons = (): RankedItem[] => {
+    const tally = new Map<string, number>();
+    for (const e of d().jobErrors) {
+      const r = normalizeErrorReason(e.error);
+      tally.set(r, (tally.get(r) ?? 0) + 1);
+    }
+    return [...tally.entries()].map(([label, value]) => ({ label, value, color: '#a04030' }));
+  };
+  const jobCols: Column<JobError>[] = [
+    {
+      key: 'when',
+      header: t('usage.errors.col.when'),
+      muted: true,
+      sortValue: (e) => e.ts,
+      cell: (e) => fmtTime(e.ts),
+    },
+    {
+      key: 'job',
+      header: t('usage.errors.col.job'),
+      mono: true,
+      muted: true,
+      sortValue: (e) => e.kind,
+      cell: (e) => `${e.kind}${e.id ? `=${e.id}` : ''}`,
+    },
+    {
+      key: 'daf',
+      header: t('usage.col.daf'),
+      muted: true,
+      cell: (e) => `${e.tractate} ${e.page}`,
+    },
+    {
+      key: 'error',
+      header: t('usage.errors.col.error'),
+      sortValue: (e) => normalizeErrorReason(e.error),
+      cell: (e) => (
+        <div
+          style={{
+            color: '#a04030',
+            'font-family': 'monospace',
+            'font-size': '0.72rem',
+            'white-space': 'pre-wrap',
+            'word-break': 'break-word',
+          }}
+        >
+          {e.error}
+        </div>
+      ),
+    },
+  ];
+
+  const lintCountItems = (): RankedItem[] =>
+    Object.entries(d().lintFailures.counts).map(([label, value]) => ({
+      label,
+      value,
+      color: '#c99a2e',
+    }));
+  const lintCols: Column<LintFailure>[] = [
+    {
+      key: 'when',
+      header: t('usage.errors.col.when'),
+      muted: true,
+      sortValue: (f) => f.at,
+      cell: (f) => fmtTime(f.at),
+    },
+    {
+      key: 'producer',
+      header: t('usage.lint.col.producer'),
+      mono: true,
+      muted: true,
+      sortValue: (f) => f.enrichmentId,
+      cell: (f) => `${f.enrichmentId}${f.lang === 'he' ? ' · he' : ''}`,
+    },
+    {
+      key: 'daf',
+      header: t('usage.col.daf'),
+      muted: true,
+      cell: (f) => `${f.tractate} ${f.page}`,
+    },
+    {
+      key: 'issues',
+      header: t('usage.lint.col.issues'),
+      cell: (f) => <span style={{ color: '#a16207' }}>{f.issues.join(' · ')}</span>,
+    },
+  ];
+
   return (
     <Collapsible id="health.errors" title={t('usage.health.errors')} defaultOpen>
-      <section style={{ 'margin-bottom': '1.2rem' }}>
+      <section style={{ 'margin-bottom': '1.4rem' }}>
         <SectionHeading title={t('usage.recentErrors.title')} hint={t('usage.recentErrors.hint')} />
         <Show
           when={recentErrors().length > 0}
           fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}
         >
-          <table style={tableStyle}>
-            <thead>
-              <tr
-                style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}
-              >
-                <th style={thStyle}>{t('usage.errors.col.when')}</th>
-                <th style={thStyle}>{t('usage.errors.col.where')}</th>
-                <th style={thStyle}>{t('usage.col.daf')}</th>
-                <th style={thStyle}>{t('usage.errors.col.kind')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <For each={recentErrors()}>
-                {(e) => (
-                  <tr style={{ 'border-bottom': '1px solid #f4f4f4', 'vertical-align': 'top' }}>
-                    <td
-                      style={{
-                        padding: '0.35rem 0.5rem',
-                        color: '#999',
-                        'white-space': 'nowrap',
-                        'font-size': '0.75rem',
-                      }}
-                    >
-                      {fmtTime(e.ts)}
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.35rem 0.5rem',
-                        'font-family': 'monospace',
-                        'font-size': '0.76rem',
-                      }}
-                    >
-                      {displayEndpoint(e.endpoint)}
-                      <Show when={e.mark_id || e.enrichment_id}>
-                        <span style={{ color: '#999' }}> · {e.mark_id ?? e.enrichment_id}</span>
-                      </Show>
-                    </td>
-                    <td
-                      style={{ padding: '0.35rem 0.5rem', color: '#666', 'white-space': 'nowrap' }}
-                    >
-                      {e.tractate} {e.page}
-                    </td>
-                    <td style={{ padding: '0.35rem 0.5rem' }}>
-                      <span style={{ color: '#a04030' }}>
-                        {e.error_kind ?? t('usage.errorKind.other')}
-                      </span>
-                      <Show when={e.model}>
-                        <span style={{ color: '#aaa', 'font-size': '0.72rem' }}> ({e.model})</span>
-                      </Show>
-                    </td>
-                  </tr>
-                )}
-              </For>
-            </tbody>
-          </table>
+          <DataTable
+            columns={recentCols}
+            rows={recentErrors()}
+            initialSort={{ key: 'when', dir: 'desc' }}
+            maxRows={12}
+          />
         </Show>
       </section>
 
@@ -3121,65 +3110,16 @@ function ErrorsSection(props: {
           when={d().jobErrors.length > 0}
           fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}
         >
-          <table style={tableStyle}>
-            <thead>
-              <tr
-                style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}
-              >
-                <th style={thStyle}>{t('usage.errors.col.when')}</th>
-                <th style={thStyle}>{t('usage.errors.col.job')}</th>
-                <th style={thStyle}>{t('usage.col.daf')}</th>
-                <th style={thStyle}>{t('usage.errors.col.error')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <For each={d().jobErrors}>
-                {(e) => (
-                  <tr style={{ 'border-bottom': '1px solid #f4f4f4', 'vertical-align': 'top' }}>
-                    <td
-                      style={{
-                        padding: '0.4rem 0.5rem',
-                        color: '#999',
-                        'white-space': 'nowrap',
-                        'font-size': '0.75rem',
-                      }}
-                    >
-                      {fmtTime(e.ts)}
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.4rem 0.5rem',
-                        'font-family': 'monospace',
-                        'font-size': '0.76rem',
-                        color: '#555',
-                        'white-space': 'nowrap',
-                      }}
-                    >
-                      {e.kind}
-                      {e.id ? `=${e.id}` : ''}
-                    </td>
-                    <td
-                      style={{ padding: '0.4rem 0.5rem', color: '#666', 'white-space': 'nowrap' }}
-                    >
-                      {e.tractate} {e.page}
-                    </td>
-                    <td
-                      style={{
-                        padding: '0.4rem 0.5rem',
-                        color: '#a04030',
-                        'font-family': 'monospace',
-                        'font-size': '0.72rem',
-                        'white-space': 'pre-wrap',
-                        'word-break': 'break-word',
-                      }}
-                    >
-                      {e.error}
-                    </td>
-                  </tr>
-                )}
-              </For>
-            </tbody>
-          </table>
+          <div style={{ 'margin-bottom': '0.8rem' }}>
+            <SectionHeading title={t('usage.errors.byReason')} />
+            <RankedBars items={jobReasons()} fmt={(n) => String(n)} labelWidth="16rem" />
+          </div>
+          <DataTable
+            columns={jobCols}
+            rows={d().jobErrors}
+            initialSort={{ key: 'when', dir: 'desc' }}
+            maxRows={10}
+          />
         </Show>
       </section>
 
@@ -3189,73 +3129,21 @@ function ErrorsSection(props: {
           hint={t('usage.lintFailures.hint')}
         />
         <Show when={Object.keys(d().lintFailures.counts).length > 0}>
-          <div
-            style={{
-              display: 'flex',
-              gap: '0.4rem',
-              'flex-wrap': 'wrap',
-              'margin-bottom': '0.5rem',
-            }}
-          >
-            <For each={Object.entries(d().lintFailures.counts).sort((a, b) => b[1] - a[1])}>
-              {([id, n]) => (
-                <span
-                  style={{
-                    'font-size': '0.74rem',
-                    'font-family': 'monospace',
-                    padding: '0.15rem 0.45rem',
-                    background: '#fef3c7',
-                    border: '1px solid #fde68a',
-                    'border-radius': '999px',
-                    color: '#92400e',
-                  }}
-                >
-                  {id} · {n}
-                </span>
-              )}
-            </For>
+          <div style={{ 'margin-bottom': '0.8rem' }}>
+            <SectionHeading title={t('usage.lint.byProducer')} />
+            <RankedBars items={lintCountItems()} fmt={(n) => String(n)} labelWidth="14rem" />
           </div>
         </Show>
         <Show
           when={d().lintFailures.recent.length > 0}
           fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}
         >
-          <ul style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.8rem' }}>
-            <For each={d().lintFailures.recent}>
-              {(f) => (
-                <li style={{ padding: '0.4rem 0', 'border-bottom': '1px solid #f4f4f4' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '0.6rem',
-                      'flex-wrap': 'wrap',
-                      'margin-bottom': '0.15rem',
-                    }}
-                  >
-                    <span style={{ color: '#999', 'white-space': 'nowrap' }}>{fmtTime(f.at)}</span>
-                    <span style={{ 'font-family': 'monospace', color: '#555' }}>
-                      {f.enrichmentId}
-                    </span>
-                    <span style={{ color: '#666' }}>
-                      {f.tractate} {f.page}
-                      {f.lang === 'he' ? ' · he' : ''}
-                    </span>
-                    <span style={{ color: '#92400e' }}>×{f.attempts}</span>
-                  </div>
-                  <div
-                    style={{
-                      color: '#a16207',
-                      'font-family': 'monospace',
-                      'font-size': '0.74rem',
-                      'white-space': 'pre-wrap',
-                    }}
-                  >
-                    {f.issues.join(' · ')}
-                  </div>
-                </li>
-              )}
-            </For>
-          </ul>
+          <DataTable
+            columns={lintCols}
+            rows={d().lintFailures.recent}
+            initialSort={{ key: 'when', dir: 'desc' }}
+            maxRows={12}
+          />
         </Show>
       </section>
     </Collapsible>

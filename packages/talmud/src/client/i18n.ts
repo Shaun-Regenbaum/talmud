@@ -1115,6 +1115,13 @@ const CATALOG = {
   },
   'usage.latency.byMark': { en: 'Marks', he: 'סימונים' },
   'usage.latency.byMark.hint': { en: 'per mark, across all runs', he: 'לכל סימון, בכל ההרצות' },
+  'usage.table.empty': { en: 'Nothing yet.', he: 'עדיין ריק.' },
+  'usage.table.showMore': { en: 'Show all ({count} more)', he: 'הצג הכול (עוד {count})' },
+  'usage.table.showLess': { en: 'Show less', he: 'הצג פחות' },
+  'usage.errors.byReason': { en: 'By reason', he: 'לפי סיבה' },
+  'usage.lint.byProducer': { en: 'By producer', he: 'לפי מפיק' },
+  'usage.lint.col.issues': { en: 'Issues', he: 'בעיות' },
+  'usage.lint.col.producer': { en: 'Producer', he: 'מפיק' },
   'usage.latency.byEnrichment': { en: 'Enrichments', he: 'העשרות' },
   'usage.latency.byEnrichment.hint': {
     en: 'per enrichment, across all runs',
