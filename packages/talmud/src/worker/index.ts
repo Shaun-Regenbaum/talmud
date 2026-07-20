@@ -318,6 +318,7 @@ import {
   createDagPool,
   type DafWarmParams,
   dafGenSentinelKey,
+  dedupeInstancesByIid,
   expandInlineDeps,
   perInstanceEnrichments,
   topoTiers,
@@ -11943,8 +11944,10 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
       const eids = perInstByMark.get(mid);
       if (!eids || eids.length === 0) return;
       const insts = await readMarkInstances(wrapped, mid, tractate, page);
-      const withIds: { inst: unknown; iid: string }[] = [];
-      for (const inst of insts) withIds.push({ inst, iid: await instanceIdOf(inst) });
+      // Dedupe by instance id: the same iid can surface from two sections (a
+      // pasuk cited twice), and fanning out a second `<eid>::<iid>` node would
+      // throw `dag: duplicate node` and abort the whole daf's warm.
+      const withIds = await dedupeInstancesByIid(insts, (inst) => instanceIdOf(inst));
       for (const tier of topoTiers(eids, enrichDepsOf)) {
         for (const eid of tier) {
           const def = await loadEnrichmentDef(wrapped, eid);
