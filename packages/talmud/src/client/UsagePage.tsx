@@ -1297,7 +1297,7 @@ function ActivitySection(props: { activity: ZoneActivity }): JSX.Element {
               color: undefined as string | undefined,
             },
             { label: t('usage.activity.week'), w: totals()?.week, color: undefined },
-            { label: t('usage.activity.month'), w: totals()?.month, color: '#0066CC' },
+            { label: t('usage.activity.month'), w: totals()?.month, color: 'var(--accent)' },
           ]}
         >
           {(card) => {
@@ -1339,7 +1339,7 @@ function ActivitySection(props: { activity: ZoneActivity }): JSX.Element {
                   title={`${d.date}: ${fmtInt(d.requests)}`}
                   style={{
                     flex: '1 1 0',
-                    background: '#4b7bec',
+                    background: 'var(--accent)',
                     'border-radius': '2px 2px 0 0',
                     height: `${Math.max(2, (d.requests / maxDay()) * 100)}%`,
                     'min-width': '3px',
@@ -1448,7 +1448,7 @@ function LineChart(props: {
   const VBW = 900;
   const H = () => props.height ?? 190;
   const pad = { l: 56, r: 16, t: 14, b: 22 };
-  const color = () => props.color ?? '#1d4ed8';
+  const color = () => props.color ?? '#8a2a2b';
   const plotW = () => VBW - pad.l - pad.r;
   const plotH = () => H() - pad.t - pad.b;
   const pts = () => props.points;
@@ -1686,18 +1686,18 @@ function ChartCard(props: { title: string; sub?: string; children: JSX.Element }
 // Categorical palette for the per-producer stacked bar (distinct, colour-blind
 // friendly-ish, muted enough to read as a set).
 const PRODUCER_PALETTE = [
-  '#1d4ed8',
-  '#f5a623',
-  '#16a34a',
-  '#dc2626',
+  '#8a2a2b',
+  '#b3541e',
+  '#c99a2e',
+  '#5a7d4f',
+  '#2f6f7a',
+  '#4f46e5',
   '#9333ea',
-  '#0891b2',
   '#db2777',
   '#65a30d',
-  '#ea580c',
-  '#4f46e5',
-  '#0d9488',
-  '#b45309',
+  '#0891b2',
+  '#a04030',
+  '#6b7280',
 ];
 
 // Combined mark + enrichment spend: a stacked share bar (top producers + an
@@ -1876,28 +1876,38 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
   };
   const totalIsLifetime = () => typeof or()?.lifetimeUsd === 'number';
 
-  // Rolling 30-day cost per daf, and the projection to finish Shas from it.
+  // Rolling 30-day cost per daf (the recent unit rate).
   const perDaf30 = () => rollingCostPerDaf(series(), 30);
-  const totalAmudim = () => props.stats?.total ?? 0;
-  // Distinct amudim warmed so far ≈ the busiest mark's coverage (every warmed
-  // amud fires the core marks). Clamped to the shas total.
-  const warmedAmudim = () => {
-    const marks = props.stats?.marks ?? [];
-    const mx = marks.reduce((m, r) => Math.max(m, r.count), 0);
-    return Math.min(mx, totalAmudim() || mx);
+
+  // Cost to FINISH shas at full depth. Uses the per-producer projection (not
+  // "busiest-mark coverage"): every daf already has its anchor marks (~100%),
+  // but the deep enrichments — essays, syntheses — are far from complete, so
+  // "warmed" is really the fraction of the full-depth generation cost incurred,
+  // NOT the fraction of dapim that have anchors. This is exactly what
+  // estimateShasCost was written to capture (see src/lib/shasCost.ts).
+  const shasEst = createMemo(() => {
+    const s = self();
+    const st = props.stats;
+    if (!s || !st || s.totals.costUsd <= 0) return null;
+    const est = estimateShasCost({
+      amudim: st.total,
+      byMark: s.byMark,
+      byEnrichment: s.byEnrichment,
+      marks: st.marks,
+      enrichments: st.enrichments,
+      gatewayByModel: aigw().byModel,
+    });
+    return est.available ? est : null;
+  });
+  const ready = () => shasEst() != null;
+  const remainingUsd = () => shasEst()?.grossed.remainingUsd ?? null;
+  const fullShasUsd = () => shasEst()?.grossed.fullShasUsd ?? null;
+  // Full-depth completion by estimated generation cost (incurred / full).
+  const pctComplete = () => {
+    const e = shasEst();
+    if (!e || e.grossed.fullShasUsd <= 0) return null;
+    return Math.round((e.grossed.incurredUsd / e.grossed.fullShasUsd) * 100);
   };
-  const remainingAmudim = () => Math.max(0, totalAmudim() - warmedAmudim());
-  const remainingUsd = () => {
-    const rate = perDaf30();
-    // Needs both a rate and a loaded shas total; otherwise "—" (not a bogus $0).
-    if (rate == null || totalAmudim() <= 0) return null;
-    return rate * remainingAmudim();
-  };
-  const pctWarmed = () =>
-    totalAmudim() > 0 ? Math.round((warmedAmudim() / totalAmudim()) * 100) : 0;
-  // Cache-stats drives the shas denominator; until it loads (or if it fails) we
-  // can't size "remaining", so those cards read "—" rather than a bogus zero.
-  const hasStats = () => totalAmudim() > 0;
 
   // Chart series.
   const spendPoints = (): LinePoint[] =>
@@ -1928,8 +1938,8 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
           value={remainingUsd() != null ? fmtUsd(remainingUsd()) : '—'}
           color="#b3541e"
           sub={
-            hasStats()
-              ? t('usage.cost.remaining.sub', { count: fmtInt(remainingAmudim()) })
+            ready()
+              ? t('usage.cost.remaining.sub', { full: fmtUsd(fullShasUsd()) })
               : t('usage.cost.remaining.pending')
           }
         />
@@ -1940,16 +1950,9 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
         />
         <StatCard
           label={t('usage.cost.warmed')}
-          value={hasStats() ? `${pctWarmed()}%` : '—'}
-          color="#1d4ed8"
-          sub={
-            hasStats()
-              ? t('usage.cost.warmed.sub', {
-                  warmed: fmtInt(warmedAmudim()),
-                  total: fmtInt(totalAmudim()),
-                })
-              : t('usage.cost.warmed.pending')
-          }
+          value={pctComplete() != null ? `${pctComplete()}%` : '—'}
+          color="var(--accent)"
+          sub={ready() ? t('usage.cost.warmed.sub') : t('usage.cost.warmed.pending')}
         />
       </div>
 
@@ -2278,7 +2281,7 @@ function CostDetails(props: { cost: CostSectionData; stats: CacheStats | undefin
                 <StatCard
                   label={t('usage.stat.costAvoided')}
                   value={fmtUsd(avoided()!.recentUsd)}
-                  color="#1d4ed8"
+                  color="var(--accent)"
                   sub={t('usage.stat.costAvoided.sub', { count: fmtInt(avoided()!.recentCalls) })}
                 />
               </Show>
@@ -2797,14 +2800,132 @@ function displayEndpoint(name: string): string {
 }
 
 // ---- Health: Speed -------------------------------------------------------
+// p95-latency severity colours (warm, on-brand): fast / slow / very slow.
+function latColor(p95Ms: number): string {
+  if (p95Ms < 1000) return '#5a7d4f';
+  if (p95Ms < 10000) return '#c99a2e';
+  return '#a04030';
+}
+
+// A horizontal p95-latency bar per producer, slowest first, coloured by
+// severity, with the p50 shown as a tick and hit% / calls trailing. A quick
+// "what's slow" read the detail tables below back up.
+function LatencyBars(props: {
+  title: string;
+  rows: Array<[string, PerEndpoint]>;
+  top?: number;
+}): JSX.Element {
+  const rows = createMemo(() =>
+    props.rows
+      .filter(([, r]) => r.count > 0)
+      .sort(([, a], [, b]) => b.p95Ms - a.p95Ms)
+      .slice(0, props.top ?? 15),
+  );
+  const max = () => Math.max(1, ...rows().map(([, r]) => r.p95Ms));
+  return (
+    <Show when={rows().length > 0}>
+      <div style={{ 'margin-bottom': '1.1rem' }}>
+        <SectionHeading title={props.title} hint={t('usage.latency.barsHint')} />
+        <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.28rem' }}>
+          <For each={rows()}>
+            {([name, r]) => (
+              <div
+                style={{
+                  display: 'flex',
+                  'align-items': 'center',
+                  gap: '0.55rem',
+                  'font-size': '0.8rem',
+                }}
+              >
+                <span
+                  style={{
+                    width: '11rem',
+                    'flex-shrink': 0,
+                    'font-family': 'monospace',
+                    'font-size': '0.75rem',
+                    overflow: 'hidden',
+                    'text-overflow': 'ellipsis',
+                    'white-space': 'nowrap',
+                  }}
+                  title={name}
+                >
+                  {name}
+                </span>
+                <div
+                  style={{
+                    flex: 1,
+                    height: '14px',
+                    background: '#f1efe9',
+                    'border-radius': '3px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: `${(r.p95Ms / max()) * 100}%`,
+                      background: latColor(r.p95Ms),
+                      'border-radius': '3px',
+                    }}
+                  />
+                  {/* p50 tick within the p95 span */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      bottom: 0,
+                      left: `${Math.min(100, (r.p50Ms / max()) * 100)}%`,
+                      width: '2px',
+                      background: 'rgba(0,0,0,0.32)',
+                    }}
+                    title={`p50 ${fmtMs(r.p50Ms)}`}
+                  />
+                </div>
+                <span
+                  style={{
+                    width: '4rem',
+                    'text-align': 'right',
+                    'font-variant-numeric': 'tabular-nums',
+                    color: '#555',
+                    'flex-shrink': 0,
+                  }}
+                >
+                  {fmtMs(r.p95Ms)}
+                </span>
+                <span
+                  style={{
+                    width: '6rem',
+                    'text-align': 'right',
+                    color: '#aaa',
+                    'font-size': '0.72rem',
+                    'flex-shrink': 0,
+                  }}
+                >
+                  {Math.round(r.cacheHitRate * 100)}% · {fmtInt(r.count)}
+                </span>
+              </div>
+            )}
+          </For>
+        </div>
+      </div>
+    </Show>
+  );
+}
+
 function SpeedSection(props: { telemetry: TelemetrySection }): JSX.Element {
   const d = () => props.telemetry;
   const endpointRows = () =>
     Object.entries(d().perEndpoint)
       .map(([k, v]) => [displayEndpoint(k), v] as [string, PerEndpoint])
       .sort(([a], [b]) => a.localeCompare(b));
+  const producerRows = () => [...Object.entries(d().perMark), ...Object.entries(d().perEnrichment)];
   return (
     <Collapsible id="health.speed" title={t('usage.health.speed')} defaultOpen>
+      <LatencyBars title={t('usage.latency.slowest')} rows={producerRows()} />
       <LatencyTable
         title={t('usage.latency.byEndpoint', { count: d().totalCount })}
         rows={endpointRows()}
@@ -2861,7 +2982,7 @@ function CacheSection(props: {
         <StatCard
           label={t('usage.cacheStat.hitRate')}
           value={`${Math.round(overall().rate * 100)}%`}
-          color="#1d4ed8"
+          color="var(--accent)"
           sub={t('usage.cacheStat.hitRate.sub', {
             hits: fmtInt(overall().hits),
             calls: fmtInt(overall().calls),
@@ -2933,45 +3054,61 @@ function ErrorsSection(props: {
           when={recentErrors().length > 0}
           fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}
         >
-          <ul style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.8rem' }}>
-            <For each={recentErrors()}>
-              {(e) => (
-                <li
-                  style={{
-                    padding: '0.3rem 0',
-                    'border-bottom': '1px solid #f4f4f4',
-                    display: 'flex',
-                    gap: '0.6rem',
-                    'flex-wrap': 'wrap',
-                  }}
-                >
-                  <span style={{ color: '#999', 'white-space': 'nowrap' }}>{fmtTime(e.ts)}</span>
-                  <span style={{ 'font-family': 'monospace' }}>{displayEndpoint(e.endpoint)}</span>
-                  <Show when={e.mark_id}>
-                    <span style={{ 'font-family': 'monospace', color: '#555' }}>
-                      mark={e.mark_id}
-                    </span>
-                  </Show>
-                  <Show when={e.enrichment_id}>
-                    <span style={{ 'font-family': 'monospace', color: '#555' }}>
-                      enrich={e.enrichment_id}
-                    </span>
-                  </Show>
-                  <Show when={e.tractate || e.page}>
-                    <span style={{ color: '#666' }}>
+          <table style={tableStyle}>
+            <thead>
+              <tr
+                style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}
+              >
+                <th style={thStyle}>{t('usage.errors.col.when')}</th>
+                <th style={thStyle}>{t('usage.errors.col.where')}</th>
+                <th style={thStyle}>{t('usage.col.daf')}</th>
+                <th style={thStyle}>{t('usage.errors.col.kind')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <For each={recentErrors()}>
+                {(e) => (
+                  <tr style={{ 'border-bottom': '1px solid #f4f4f4', 'vertical-align': 'top' }}>
+                    <td
+                      style={{
+                        padding: '0.35rem 0.5rem',
+                        color: '#999',
+                        'white-space': 'nowrap',
+                        'font-size': '0.75rem',
+                      }}
+                    >
+                      {fmtTime(e.ts)}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.35rem 0.5rem',
+                        'font-family': 'monospace',
+                        'font-size': '0.76rem',
+                      }}
+                    >
+                      {displayEndpoint(e.endpoint)}
+                      <Show when={e.mark_id || e.enrichment_id}>
+                        <span style={{ color: '#999' }}> · {e.mark_id ?? e.enrichment_id}</span>
+                      </Show>
+                    </td>
+                    <td
+                      style={{ padding: '0.35rem 0.5rem', color: '#666', 'white-space': 'nowrap' }}
+                    >
                       {e.tractate} {e.page}
-                    </span>
-                  </Show>
-                  <span style={{ color: '#c33' }}>
-                    {e.error_kind ?? t('usage.errorKind.other')}
-                  </span>
-                  <Show when={e.model}>
-                    <span style={{ color: '#888', 'font-size': '0.75rem' }}>({e.model})</span>
-                  </Show>
-                </li>
-              )}
-            </For>
-          </ul>
+                    </td>
+                    <td style={{ padding: '0.35rem 0.5rem' }}>
+                      <span style={{ color: '#a04030' }}>
+                        {e.error_kind ?? t('usage.errorKind.other')}
+                      </span>
+                      <Show when={e.model}>
+                        <span style={{ color: '#aaa', 'font-size': '0.72rem' }}> ({e.model})</span>
+                      </Show>
+                    </td>
+                  </tr>
+                )}
+              </For>
+            </tbody>
+          </table>
         </Show>
       </section>
 
@@ -2984,41 +3121,65 @@ function ErrorsSection(props: {
           when={d().jobErrors.length > 0}
           fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}
         >
-          <ul style={{ 'list-style': 'none', padding: 0, margin: 0, 'font-size': '0.8rem' }}>
-            <For each={d().jobErrors}>
-              {(e) => (
-                <li style={{ padding: '0.4rem 0', 'border-bottom': '1px solid #f4f4f4' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '0.6rem',
-                      'flex-wrap': 'wrap',
-                      'margin-bottom': '0.15rem',
-                    }}
-                  >
-                    <span style={{ color: '#999', 'white-space': 'nowrap' }}>{fmtTime(e.ts)}</span>
-                    <span style={{ 'font-family': 'monospace', color: '#555' }}>
+          <table style={tableStyle}>
+            <thead>
+              <tr
+                style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}
+              >
+                <th style={thStyle}>{t('usage.errors.col.when')}</th>
+                <th style={thStyle}>{t('usage.errors.col.job')}</th>
+                <th style={thStyle}>{t('usage.col.daf')}</th>
+                <th style={thStyle}>{t('usage.errors.col.error')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <For each={d().jobErrors}>
+                {(e) => (
+                  <tr style={{ 'border-bottom': '1px solid #f4f4f4', 'vertical-align': 'top' }}>
+                    <td
+                      style={{
+                        padding: '0.4rem 0.5rem',
+                        color: '#999',
+                        'white-space': 'nowrap',
+                        'font-size': '0.75rem',
+                      }}
+                    >
+                      {fmtTime(e.ts)}
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.4rem 0.5rem',
+                        'font-family': 'monospace',
+                        'font-size': '0.76rem',
+                        color: '#555',
+                        'white-space': 'nowrap',
+                      }}
+                    >
                       {e.kind}
                       {e.id ? `=${e.id}` : ''}
-                    </span>
-                    <span style={{ color: '#666' }}>
+                    </td>
+                    <td
+                      style={{ padding: '0.4rem 0.5rem', color: '#666', 'white-space': 'nowrap' }}
+                    >
                       {e.tractate} {e.page}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      color: '#c33',
-                      'font-family': 'monospace',
-                      'font-size': '0.74rem',
-                      'white-space': 'pre-wrap',
-                    }}
-                  >
-                    {e.error}
-                  </div>
-                </li>
-              )}
-            </For>
-          </ul>
+                    </td>
+                    <td
+                      style={{
+                        padding: '0.4rem 0.5rem',
+                        color: '#a04030',
+                        'font-family': 'monospace',
+                        'font-size': '0.72rem',
+                        'white-space': 'pre-wrap',
+                        'word-break': 'break-word',
+                      }}
+                    >
+                      {e.error}
+                    </td>
+                  </tr>
+                )}
+              </For>
+            </tbody>
+          </table>
         </Show>
       </section>
 
@@ -3360,8 +3521,8 @@ export function UsagePage(): JSX.Element {
                   cursor: 'pointer',
                   'font-size': '0.88rem',
                   'font-weight': active() ? 600 : 400,
-                  color: active() ? '#1d4ed8' : '#666',
-                  'border-bottom': active() ? '2px solid #1d4ed8' : '2px solid transparent',
+                  color: active() ? 'var(--accent)' : '#666',
+                  'border-bottom': active() ? '2px solid var(--accent)' : '2px solid transparent',
                   'margin-bottom': '-1px',
                 }}
               >
