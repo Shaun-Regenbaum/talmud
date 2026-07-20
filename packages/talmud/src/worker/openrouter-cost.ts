@@ -122,8 +122,9 @@ export function aggregateActivity(rows: OrActivityRow[]): {
 async function fetchJson(
   url: string,
   token: string,
+  signal?: AbortSignal,
 ): Promise<{ ok: boolean; status: number; json: unknown }> {
-  const res = await fetch(url, { headers: { authorization: `Bearer ${token}` } });
+  const res = await fetch(url, { headers: { authorization: `Bearer ${token}` }, signal });
   let json: unknown = null;
   try {
     json = await res.json();
@@ -131,6 +132,50 @@ async function fetchJson(
     /* leave null */
   }
   return { ok: res.ok, status: res.status, json };
+}
+
+export interface OrBalance {
+  /** Do we have a provisioning key. */
+  configured: boolean;
+  /** Did the query succeed (a usable `remaining` is present). */
+  ok: boolean;
+  error?: string;
+  /** Spendable USD right now: `total_credits - total_usage`. */
+  remaining?: number;
+}
+
+/**
+ * Lean spendable-balance probe — just `/credits`, no activity ledger — for the
+ * AI-paused gate on the cold-generation entry paths. Kept separate from
+ * `fetchOpenRouterCost` (which also pulls the multi-KB `/activity` ledger for
+ * the /usage dashboard) so a request-path caller makes one small call with a
+ * short timeout. Degrades to `{ ok:false }` (unknown) on any failure — the
+ * caller must treat unknown as "don't block", never as "down".
+ */
+export async function fetchOpenRouterBalance(env: OrEnv): Promise<OrBalance> {
+  const token = env.OPENROUTER_PROVISIONING_KEY;
+  if (!token) return { configured: false, ok: false, error: 'not configured' };
+  try {
+    const { ok, status, json } = await fetchJson(
+      `${BASE}/credits`,
+      token,
+      AbortSignal.timeout(2500),
+    );
+    if (!ok) {
+      const msg = (json as { error?: { message?: string } })?.error?.message ?? `HTTP ${status}`;
+      return { configured: true, ok: false, error: String(msg).slice(0, 200) };
+    }
+    const d = (json as { data?: { total_credits?: number; total_usage?: number } })?.data;
+    if (!d || typeof d.total_credits !== 'number' || typeof d.total_usage !== 'number')
+      return { configured: true, ok: false, error: 'unexpected /credits shape' };
+    return { configured: true, ok: true, remaining: d.total_credits - d.total_usage };
+  } catch (err) {
+    return {
+      configured: true,
+      ok: false,
+      error: String((err as Error)?.message ?? err).slice(0, 200),
+    };
+  }
 }
 
 export async function fetchOpenRouterCost(env: OrEnv): Promise<OrCost> {

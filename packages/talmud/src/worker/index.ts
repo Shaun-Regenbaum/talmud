@@ -120,6 +120,7 @@ import {
   type YerushalmiFloorGroup,
 } from '../lib/yerushalmiAlign';
 import { type CuratedYerushalmiParallel, curatedParallelsForDaf } from '../lib/yerushalmiParallels';
+import { resolveAiDown } from './ai-credits';
 import { clearAiDown, isHardAiPause, noteAiDown, readAiDown, transportProvesAiUp } from './ai-down';
 import { fetchGatewayCost } from './aigw-analytics';
 import { runBacklogBackfill } from './backfill-backlog';
@@ -2957,6 +2958,13 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
   );
 
   const { complete, cold } = dafViewCompleteness(enumerated);
+  // On an INCOMPLETE view the client polls, waiting on cold pieces to generate.
+  // If AI spending is unavailable (out of credits / key cap / provider outage)
+  // those pieces will never fill, so carry the sentinel into the payload: the
+  // client's poll loop raises the shared "AI paused" banner and stops spinning
+  // instead of waiting out its 12-minute cap. Only read it when it matters (a
+  // complete, warm daf skips the KV read).
+  const viewDown = complete ? null : await readAiDown(c.env.CACHE);
   c.header('Cache-Control', dafViewCacheControl(complete));
   c.header('x-daf-view', complete ? 'complete' : 'partial');
   // [mem] instrumentation — daf-view is the prime OOM suspect: it materializes
@@ -2979,6 +2987,7 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
     cached: pieceCount,
     cold,
     pieces,
+    ...(viewDown ? { aiUnavailable: true as const, reason: viewDown.reason } : {}),
   });
   const bytes = payload.length;
   const DAF_VIEW_LARGE_BYTES = 1_500_000;
@@ -3400,8 +3409,11 @@ app.post('/api/daf-generate/:tractate/:page', async (c) => {
   // is doomed to fail. Without this check a cold daf spawns a Workflow that
   // churns 402s, and the client sits in view-driven mode (its /api/run fan-out
   // — the only path that raises the AI-paused banner — suppressed) until the
-  // ~40s stall detector gives up. Answer with the explained envelope NOW.
-  const down = await readAiDown(c.env.CACHE);
+  // ~40s stall detector gives up. `resolveAiDown` is AUTHORITATIVE: it consults
+  // the actual OpenRouter balance (cached), so out-of-credits is caught even in
+  // a quiet window where the reactive sentinel has expired. Answer with the
+  // explained envelope NOW.
+  const down = await resolveAiDown(c.env);
   if (down) {
     return c.json({
       generating: false,
@@ -5741,14 +5753,15 @@ app.post('/api/run', async (c) => {
     );
   }
 
-  // Provider-down circuit breaker: while the sentinel is up (out of credits,
-  // key spending cap, provider outage — raised by the queue consumer's failure
-  // classification) a cold run cannot succeed, so answer with the explained
-  // paused envelope NOW instead of enqueueing a doomed job the client would
-  // poll for minutes. Cached/SWR content already served above; a trusted
-  // explicit warm still goes through (it is the recovery probe).
+  // Provider-down circuit breaker: while AI spending is unavailable (out of
+  // credits, key spending cap, provider outage) a cold run cannot succeed, so
+  // answer with the explained paused envelope NOW instead of enqueueing a
+  // doomed job the client would poll for minutes. `resolveAiDown` is
+  // authoritative on the out-of-credits case (it checks the actual balance, not
+  // just the reactive sentinel). Cached/SWR content already served above; a
+  // trusted explicit warm still goes through (it is the recovery probe).
   if (!explicitWarm) {
-    const down = await readAiDown(c.env.CACHE);
+    const down = await resolveAiDown(c.env);
     if (down) {
       return c.json(
         {
