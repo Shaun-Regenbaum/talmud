@@ -228,12 +228,17 @@ export interface RunProducerPorts<
     lang: RunLang,
     cacheVersion: string,
   ): CostStamp;
-  /** Daily-rollup usage attribution for a fresh LLM call (fire-and-forget). */
+  /** Daily-rollup usage attribution for a fresh LLM call (fire-and-forget).
+   *  `tractate`/`page` identify the daf so the app can count distinct dapim
+   *  warmed per day (optional — an app that doesn't attribute per-daf ignores
+   *  them). */
   recordUsage(
     ctx: Ctx,
     args: {
       kind: 'mark' | 'enrichment';
       id: string;
+      tractate?: string;
+      page?: string;
       result: { model?: string; usage?: unknown; parse_error?: string | null };
     },
   ): void;
@@ -686,6 +691,8 @@ export async function runProducer<
     ports.recordUsage(ctx, {
       kind: 'mark',
       id: mdef.id,
+      tractate,
+      page,
       result: { model: result.model, usage: result.usage, parse_error },
     });
   } else {
@@ -759,6 +766,8 @@ export async function runProducer<
     ports.recordUsage(ctx, {
       kind: 'enrichment',
       id: edef.id,
+      tractate,
+      page,
       result: { model: result.model, usage: result.usage, parse_error },
     });
   }

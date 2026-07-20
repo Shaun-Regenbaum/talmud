@@ -11,6 +11,7 @@
       "!**/scripts/out",
       "!**/src/lib/data",
       "!**/src/geo/basemap.ts",
+      "!**/src/geo/worldmap.ts",
       "!**/src/worker/gazetteer.ts",
       "!**/*.geojson"
     ]

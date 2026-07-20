@@ -5,6 +5,7 @@ import { render } from 'solid-js/web';
 import '@corpus/ui/tokens.css';
 import '@corpus/ui/themes/talmud.css';
 import '@corpus/ui/geomap.css';
+import '@corpus/ui/worldbubblemap.css';
 import '@corpus/ui/loadprogress.css';
 // Shared component-kit styles — for now just the AI-paused banner's `.ui-banner`
 // (talmud's first @corpus/ui component); the rest are unused `.ui-*` classes.
