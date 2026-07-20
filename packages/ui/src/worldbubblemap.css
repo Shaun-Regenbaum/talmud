@@ -1,0 +1,82 @@
+/**
+ * @corpus/ui — WorldBubbleMap styles. Flat map: filled orange land (no borders),
+ * navy request bubbles, transparent ocean (so it sits on any page background).
+ * Colors are literal here (a deliberately fixed cartographic palette) rather
+ * than themed tokens — the look is the same in both apps.
+ */
+
+.wbmap {
+  width: 100%;
+}
+
+.wbmap-stage {
+  position: relative;
+  width: 100%;
+}
+
+.wbmap-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Fill == stroke so adjacent country rings read as one continuous landmass. */
+.wbmap-land {
+  fill: #f5a623;
+  stroke: #f5a623;
+  stroke-width: 0.6;
+  stroke-linejoin: round;
+}
+
+.wbmap-bubble {
+  fill: #262363;
+  fill-opacity: 0.82;
+  stroke: #ffffff;
+  stroke-width: 0.6;
+  stroke-opacity: 0.5;
+  cursor: pointer;
+  transition: fill-opacity 0.1s ease;
+}
+.wbmap-bubble.hot {
+  fill: #16143f;
+  fill-opacity: 1;
+  stroke-opacity: 0.9;
+}
+
+.wbmap-label {
+  fill: #16143f;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: #f5a623;
+  stroke-width: 2.4px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+/* Cursor-following tooltip (fixed to the viewport, offset off the pointer). */
+.wbmap-tip {
+  position: fixed;
+  z-index: 50;
+  transform: translate(12px, -50%);
+  pointer-events: none;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.28rem 0.55rem;
+  background: #16143f;
+  color: #fff;
+  border-radius: 5px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+.wbmap-tip-name {
+  font-weight: 600;
+}
+.wbmap-tip-num {
+  font-variant-numeric: tabular-nums;
+  color: #f5a623;
+}

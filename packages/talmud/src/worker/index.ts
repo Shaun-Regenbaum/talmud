@@ -4706,6 +4706,8 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
     captureLlmUsage(rc, {
       kind: args.kind,
       id: args.id,
+      tractate: args.tractate,
+      page: args.page,
       result: args.result as {
         model?: string;
         usage?: LLMUsage | null;
@@ -6996,6 +6998,8 @@ function captureLlmUsage(
   args: {
     kind: 'mark' | 'enrichment';
     id: string;
+    tractate?: string;
+    page?: string;
     result: { model?: string; usage?: LLMUsage | null; parse_error?: string | null };
   },
 ): void {
@@ -7033,6 +7037,8 @@ function captureLlmUsage(
     costOutUsd,
     markId: args.kind === 'mark' ? args.id : undefined,
     enrichmentId: args.kind === 'enrichment' ? args.id : undefined,
+    tractate: args.tractate,
+    page: args.page,
   });
 }
 

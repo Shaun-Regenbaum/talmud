@@ -39,6 +39,12 @@ export interface UsageDelta {
   costOutUsd?: number | null;
   markId?: string;
   enrichmentId?: string;
+  /** The daf this call was generating, so we can count DISTINCT dapim warmed
+   *  per day (the denominator for "cost per daf"). Deduped via a cheap sentinel
+   *  key — the daily doc only keeps the resulting integer, never the daf list,
+   *  so it stays small (see the module note). Absent on non-daf calls. */
+  tractate?: string;
+  page?: string;
 }
 
 export interface UsageBucket {
@@ -59,10 +65,21 @@ export interface DailyRollup extends UsageBucket {
   date: string;
   errors: number;
   cacheHits: number;
+  /** Distinct dapim that had at least one fresh (non-cached) LLM call this day —
+   *  the "cost per daf" denominator. ABSENT on rollup docs written before this
+   *  field existed; consumers treat undefined as "not measured" (and fall back
+   *  to an estimate) rather than 0, so the two are kept distinct. */
+  dafsWarmed?: number;
   byModel: Record<string, UsageBucket>;
   byMark: Record<string, UsageBucket>;
   byEnrichment: Record<string, UsageBucket>;
 }
+
+/** Sentinel key: one per (day, daf), TTL just past the day, so the FIRST fresh
+ *  call for a daf on a given day increments `dafsWarmed` and the rest don't.
+ *  Separate from the daily doc so that doc never holds the per-daf list. */
+const DAFSEEN_PREFIX = 'usage:dafseen:v1:';
+const DAFSEEN_TTL_S = 60 * 60 * 36;
 
 function emptyBucket(): UsageBucket {
   return {
@@ -103,6 +120,9 @@ function emptyRollup(date: string): DailyRollup {
     date,
     errors: 0,
     cacheHits: 0,
+    // Present (even at 0) on every doc written since the field landed, so a
+    // reader can tell a measured day (has the field) from a pre-field one.
+    dafsWarmed: 0,
     byModel: {},
     byMark: {},
     byEnrichment: {},
@@ -123,6 +143,24 @@ export function recordUsage(
 async function writeUsage(cache: KVNamespace, d: UsageDelta): Promise<void> {
   try {
     const date = todayUtc();
+    // Is this the first fresh call for this daf today? Check-and-set a cheap
+    // sentinel so `dafsWarmed` counts DISTINCT dapim, not calls. Racy (KV has no
+    // CAS) but only ever off by the odd double-count — fine for an estimate, and
+    // it keeps the daily doc from holding the per-daf list.
+    // Only FRESH generation counts as warming a daf. `dafsWarmed` is really
+    // "distinct dapim that triggered fresh generation today" — it includes a
+    // global enrichment fired from a daf (its cost lands in the same day's total
+    // and is attributed to that daf), so the cost-per-daf ratio stays internally
+    // consistent: every dollar counted has a daf, and each such daf is counted
+    // once. A cache hit is not fresh work, so it never bumps the count.
+    let firstDafToday = false;
+    if (!d.cacheHit && d.tractate && d.page) {
+      const seenKey = `${DAFSEEN_PREFIX}${date}:${d.tractate}:${d.page}`;
+      if (!(await cache.get(seenKey))) {
+        firstDafToday = true;
+        await cache.put(seenKey, '1', { expirationTtl: DAFSEEN_TTL_S });
+      }
+    }
     const key = PREFIX + date;
     const existing = await cache.get(key);
     const r: DailyRollup = existing ? (JSON.parse(existing) as DailyRollup) : emptyRollup(date);
@@ -130,6 +168,7 @@ async function writeUsage(cache: KVNamespace, d: UsageDelta): Promise<void> {
     applyToBucket(r, d);
     if (!d.ok) r.errors += 1;
     if (d.cacheHit) r.cacheHits += 1;
+    if (firstDafToday) r.dafsWarmed = (r.dafsWarmed ?? 0) + 1;
     // Splits.
     if (d.model) {
       const b = r.byModel[d.model] ?? emptyBucket();

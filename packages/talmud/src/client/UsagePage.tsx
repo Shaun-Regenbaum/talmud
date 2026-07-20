@@ -1,6 +1,7 @@
-import { createResource, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
+import { WorldBubbleMap } from '@corpus/ui/WorldBubbleMap';
+import { createMemo, createResource, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 import { estimateShasCost, type ProducerCost } from '../lib/shasCost';
-import { t } from './i18n';
+import { lang, t } from './i18n';
 
 interface PerEndpoint {
   count: number;
@@ -73,9 +74,21 @@ interface UsageBucket {
   unpricedCalls: number;
 }
 
+/** A daily rollup as the client charts it. `dafsWarmed` (distinct dapim with a
+ *  fresh LLM call that day) is present only on docs written since that field
+ *  landed — `undefined` on older days means "not measured, estimate it". */
+type DailySeries = { date: string; dafsWarmed?: number } & UsageBucket & {
+    errors: number;
+    cacheHits: number;
+    /** Per-mark split for the day. Used to ESTIMATE dapim warmed on days before
+     *  `dafsWarmed` was measured (a mark fires ~once per amud, so the busiest
+     *  mark's call count is a floor on distinct amudim touched that day). */
+    byMark?: Record<string, UsageBucket>;
+  };
+
 interface UsageSummary {
   totals: UsageBucket & { errors: number; cacheHits: number };
-  series: Array<{ date: string } & UsageBucket & { errors: number; cacheHits: number }>;
+  series: DailySeries[];
   byModel: Record<string, UsageBucket>;
   byMark: Record<string, UsageBucket>;
   byEnrichment: Record<string, UsageBucket>;
@@ -1246,7 +1259,6 @@ function ActivitySection(props: { activity: ZoneActivity }): JSX.Element {
   const byDay = () => a().byDay ?? [];
   const maxDay = () => Math.max(1, ...byDay().map((d) => d.requests));
   const byCountry = () => a().byCountry ?? [];
-  const countryTotal = () => byCountry().reduce((s, c) => s + c.requests, 0);
   return (
     <Show
       when={a().ok}
@@ -1346,46 +1358,491 @@ function ActivitySection(props: { activity: ZoneActivity }): JSX.Element {
             color: '#999',
             'text-transform': 'uppercase',
             'letter-spacing': '0.04em',
-            'margin-bottom': '0.2rem',
+            'margin-bottom': '0.4rem',
           }}
         >
           {t('usage.activity.fromWhere')}
+          <span style={{ 'text-transform': 'none', 'letter-spacing': 'normal', color: '#bbb' }}>
+            {'  ·  '}
+            {t('usage.activity.countryCount', { count: fmtInt(byCountry().length) })}
+          </span>
         </div>
+        <WorldBubbleMap
+          data={byCountry().map((c) => ({ code: c.country, requests: c.requests }))}
+          lang={lang()}
+        />
+      </Show>
+    </Show>
+  );
+}
+
+// ---- Cost: charts + headline --------------------------------------------
+
+// Short axis-label date ("Jul 20") from a YYYY-MM-DD key.
+function fmtDay(date: string): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return date;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' });
+}
+
+// Distinct amudim warmed on a day: the measured count when present, else an
+// estimate from the busiest mark (a mark fires ~once per amud). `measured`
+// flags which so the cost/daf chart can mark where the line stops estimating.
+function dafDenomForDay(day: DailySeries): { n: number; measured: boolean } {
+  if (typeof day.dafsWarmed === 'number') return { n: day.dafsWarmed, measured: true };
+  let mx = 0;
+  for (const b of Object.values(day.byMark ?? {})) mx = Math.max(mx, b.calls);
+  return { n: mx, measured: false };
+}
+
+interface DafCostPoint {
+  date: string;
+  cost: number;
+  amudim: number;
+  perDaf: number;
+  measured: boolean;
+}
+// Per-day cost-per-daf, dropping days with no attributable warming (so the line
+// isn't dragged to infinity / zero by idle days).
+function buildDafCostSeries(series: DailySeries[]): DafCostPoint[] {
+  const out: DafCostPoint[] = [];
+  for (const d of series) {
+    const { n, measured } = dafDenomForDay(d);
+    if (n <= 0 || d.costUsd <= 0) continue;
+    out.push({ date: d.date, cost: d.costUsd, amudim: n, perDaf: d.costUsd / n, measured });
+  }
+  return out;
+}
+
+// Rolling window (last `days`) blended cost-per-daf: total window spend over
+// total window amudim (measured where known, estimated otherwise).
+function rollingCostPerDaf(series: DailySeries[], days: number): number | null {
+  const w = series.slice(-days);
+  let cost = 0;
+  let amudim = 0;
+  for (const d of w) {
+    const { n } = dafDenomForDay(d);
+    if (n <= 0 || d.costUsd <= 0) continue;
+    cost += d.costUsd;
+    amudim += n;
+  }
+  return amudim > 0 ? cost / amudim : null;
+}
+
+interface LinePoint {
+  label: string;
+  value: number;
+  /** Estimated (vs measured) — drawn dashed/lighter. */
+  estimated?: boolean;
+}
+// A compact SVG line chart with a light area fill, a couple of gridlines, an
+// optional estimated-prefix (dashed) / measured-suffix (solid) split, and a
+// hover readout. Scales uniformly to the container width (viewBox + meet), so
+// markers stay circular.
+function LineChart(props: {
+  points: LinePoint[];
+  height?: number;
+  color?: string;
+  fmtValue: (n: number) => string;
+}): JSX.Element {
+  const VBW = 900;
+  const H = () => props.height ?? 190;
+  const pad = { l: 56, r: 16, t: 14, b: 22 };
+  const color = () => props.color ?? '#1d4ed8';
+  const plotW = () => VBW - pad.l - pad.r;
+  const plotH = () => H() - pad.t - pad.b;
+  const pts = () => props.points;
+  const yMax = () => Math.max(...pts().map((p) => p.value), 1e-9);
+  const xAt = (i: number) =>
+    pad.l + (pts().length <= 1 ? plotW() / 2 : (i / (pts().length - 1)) * plotW());
+  const yAt = (v: number) => pad.t + plotH() - (v / yMax()) * plotH();
+  // First measured index → boundary between the dashed (estimated) prefix and
+  // the solid (measured) suffix.
+  const boundary = createMemo(() => pts().findIndex((p) => !p.estimated));
+  const polyline = (from: number, to: number) =>
+    pts()
+      .slice(from, to + 1)
+      .map((p, k) => `${xAt(from + k).toFixed(1)},${yAt(p.value).toFixed(1)}`)
+      .join(' ');
+  const areaPath = () => {
+    const n = pts().length;
+    if (n < 2) return '';
+    const top = pts()
+      .map((p, i) => `${i === 0 ? 'M' : 'L'}${xAt(i).toFixed(1)},${yAt(p.value).toFixed(1)}`)
+      .join('');
+    return `${top}L${xAt(n - 1).toFixed(1)},${(pad.t + plotH()).toFixed(1)}L${xAt(0).toFixed(1)},${(pad.t + plotH()).toFixed(1)}Z`;
+  };
+  const grid = () => [0, 0.5, 1].map((f) => ({ v: yMax() * f, y: yAt(yMax() * f) }));
+  const xTicks = () => {
+    const n = pts().length;
+    if (n === 0) return [];
+    const idxs =
+      n <= 4 ? pts().map((_, i) => i) : [0, Math.floor(n / 3), Math.floor((2 * n) / 3), n - 1];
+    return [...new Set(idxs)].map((i) => ({ i, x: xAt(i), label: fmtDay(pts()[i].label) }));
+  };
+
+  let svgRef: SVGSVGElement | undefined;
+  const [hi, setHi] = createSignal<number | null>(null);
+  const onMove = (e: MouseEvent) => {
+    const r = svgRef?.getBoundingClientRect();
+    if (!r?.width || pts().length === 0) return;
+    const vbX = ((e.clientX - r.left) / r.width) * VBW;
+    const frac = (vbX - pad.l) / plotW();
+    const i = Math.round(frac * (pts().length - 1));
+    setHi(Math.max(0, Math.min(pts().length - 1, i)));
+  };
+  // Reactive so the readout tracks the hovered index (a plain Show on `hi != null`
+  // would only re-render on the null↔set edge, not index-to-index moves).
+  const readout = createMemo(() => {
+    const i = hi();
+    if (i == null) return null;
+    const p = pts()[i];
+    if (!p) return null;
+    const x = xAt(i);
+    const y = yAt(p.value);
+    const tipW = 96;
+    const tx = Math.max(pad.l, Math.min(VBW - pad.r - tipW, x - tipW / 2));
+    return { p, x, y, tipW, tx };
+  });
+
+  return (
+    <Show
+      when={pts().length >= 2}
+      fallback={
+        <p style={{ color: '#aaa', 'font-size': '0.8rem', padding: '0.6rem 0' }}>
+          {t('usage.chart.needData')}
+        </p>
+      }
+    >
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${VBW} ${H()}`}
+        width="100%"
+        height={H()}
+        preserveAspectRatio="xMidYMid meet"
+        style={{ display: 'block', 'max-width': '100%' }}
+        role="img"
+        aria-label="Time series"
+        onMouseMove={onMove}
+        onMouseLeave={() => setHi(null)}
+      >
+        <For each={grid()}>
+          {(g) => (
+            <>
+              <line x1={pad.l} x2={VBW - pad.r} y1={g.y} y2={g.y} stroke="#eee" stroke-width="1" />
+              <text
+                x={pad.l - 8}
+                y={g.y + 3}
+                text-anchor="end"
+                fill="#aaa"
+                font-size="10"
+                font-family="system-ui, sans-serif"
+              >
+                {props.fmtValue(g.v)}
+              </text>
+            </>
+          )}
+        </For>
+        <path d={areaPath()} fill={color()} fill-opacity="0.08" stroke="none" />
+        {/* estimated prefix (dashed) */}
+        <Show when={boundary() !== 0 && pts().some((p) => p.estimated)}>
+          <polyline
+            points={polyline(0, boundary() < 0 ? pts().length - 1 : boundary())}
+            fill="none"
+            stroke={color()}
+            stroke-opacity="0.5"
+            stroke-width="1.8"
+            stroke-dasharray="4 3"
+          />
+        </Show>
+        {/* measured suffix (solid) */}
+        <Show when={boundary() >= 0}>
+          <polyline
+            points={polyline(Math.max(0, boundary() === 0 ? 0 : boundary()), pts().length - 1)}
+            fill="none"
+            stroke={color()}
+            stroke-width="2"
+          />
+        </Show>
+        {/* estimate → measured divider */}
+        <Show when={boundary() > 0}>
+          <line
+            x1={xAt(boundary())}
+            x2={xAt(boundary())}
+            y1={pad.t}
+            y2={pad.t + plotH()}
+            stroke="#bbb"
+            stroke-width="1"
+            stroke-dasharray="2 2"
+          />
+          <text
+            x={xAt(boundary()) - 4}
+            y={pad.t + 9}
+            text-anchor="end"
+            fill="#bbb"
+            font-size="9"
+            font-family="system-ui, sans-serif"
+          >
+            {t('usage.chart.estimated')}
+          </text>
+          <text
+            x={xAt(boundary()) + 4}
+            y={pad.t + 9}
+            text-anchor="start"
+            fill="#999"
+            font-size="9"
+            font-family="system-ui, sans-serif"
+          >
+            {t('usage.chart.measured')}
+          </text>
+        </Show>
+        <For each={xTicks()}>
+          {(tk) => (
+            <text
+              x={tk.x}
+              y={H() - 6}
+              text-anchor="middle"
+              fill="#aaa"
+              font-size="10"
+              font-family="system-ui, sans-serif"
+            >
+              {tk.label}
+            </text>
+          )}
+        </For>
+        {/* hover readout */}
+        <Show when={readout()}>
+          {(h) => (
+            <>
+              <line
+                x1={h().x}
+                x2={h().x}
+                y1={pad.t}
+                y2={pad.t + plotH()}
+                stroke="#ccc"
+                stroke-width="1"
+              />
+              <circle
+                cx={h().x}
+                cy={h().y}
+                r="3.5"
+                fill={color()}
+                stroke="#fff"
+                stroke-width="1.5"
+              />
+              <g transform={`translate(${h().tx}, ${pad.t})`}>
+                <rect width={h().tipW} height="30" rx="4" fill="#16143f" opacity="0.92" />
+                <text x="8" y="12" fill="#fff" font-size="10" font-family="system-ui, sans-serif">
+                  {fmtDay(h().p.label)}
+                  {h().p.estimated ? ` · ${t('usage.chart.est')}` : ''}
+                </text>
+                <text
+                  x="8"
+                  y="24"
+                  fill="#f5a623"
+                  font-size="11"
+                  font-weight="600"
+                  font-family="system-ui, sans-serif"
+                >
+                  {props.fmtValue(h().p.value)}
+                </text>
+              </g>
+            </>
+          )}
+        </Show>
+      </svg>
+    </Show>
+  );
+}
+
+// A small titled chart card.
+function ChartCard(props: { title: string; sub?: string; children: JSX.Element }): JSX.Element {
+  return (
+    <div
+      style={{
+        flex: '1 1 380px',
+        'min-width': '300px',
+        padding: '0.7rem 0.85rem 0.5rem',
+        background: '#fff',
+        border: '1px solid #eee',
+        'border-radius': '8px',
+      }}
+    >
+      <div style={{ 'margin-bottom': '0.2rem' }}>
+        <span style={{ 'font-size': '0.8rem', 'font-weight': 600, color: '#444' }}>
+          {props.title}
+        </span>
+        <Show when={props.sub}>
+          <span style={{ 'font-size': '0.72rem', color: '#aaa', 'margin-left': '0.5rem' }}>
+            {props.sub}
+          </span>
+        </Show>
+      </div>
+      {props.children}
+    </div>
+  );
+}
+
+// Categorical palette for the per-producer stacked bar (distinct, colour-blind
+// friendly-ish, muted enough to read as a set).
+const PRODUCER_PALETTE = [
+  '#1d4ed8',
+  '#f5a623',
+  '#16a34a',
+  '#dc2626',
+  '#9333ea',
+  '#0891b2',
+  '#db2777',
+  '#65a30d',
+  '#ea580c',
+  '#4f46e5',
+  '#0d9488',
+  '#b45309',
+];
+
+// Combined mark + enrichment spend: a stacked share bar (top producers + an
+// "other" remainder) over the full attributed table.
+function ByProducerSection(props: {
+  byMark: Record<string, UsageBucket>;
+  byEnrichment: Record<string, UsageBucket>;
+}): JSX.Element {
+  const rows = createMemo(() =>
+    [...Object.entries(props.byMark), ...Object.entries(props.byEnrichment)]
+      .filter(([, b]) => b.costUsd > 0 || b.calls > 0)
+      .sort(([, a], [, b]) => b.costUsd - a.costUsd || b.calls - a.calls),
+  );
+  const total = () => rows().reduce((s, [, b]) => s + b.costUsd, 0);
+  const TOP = 12;
+  const segments = createMemo(() => {
+    const rs = rows();
+    const top = rs.slice(0, TOP).map(([id, b], i) => ({
+      id,
+      cost: b.costUsd,
+      color: PRODUCER_PALETTE[i % PRODUCER_PALETTE.length],
+    }));
+    const rest = rs.slice(TOP).reduce((s, [, b]) => s + b.costUsd, 0);
+    if (rest > 0) top.push({ id: t('usage.byProducer.other'), cost: rest, color: '#cbd5e1' });
+    return top;
+  });
+
+  return (
+    <Collapsible
+      id="byProducer"
+      title={t('usage.byProducer.title')}
+      sub={t('usage.byProducer.sub', { count: fmtInt(rows().length) })}
+    >
+      <Show
+        when={total() > 0}
+        fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.byDaf.empty')}</p>}
+      >
+        {/* Stacked share bar */}
+        <div
+          style={{
+            display: 'flex',
+            height: '22px',
+            'border-radius': '5px',
+            overflow: 'hidden',
+            border: '1px solid #eee',
+            'margin-bottom': '0.5rem',
+          }}
+        >
+          <For each={segments()}>
+            {(s) => (
+              <div
+                title={`${s.id} — ${fmtUsd(s.cost)} (${((s.cost / total()) * 100).toFixed(1)}%)`}
+                style={{
+                  width: `${(s.cost / total()) * 100}%`,
+                  background: s.color,
+                  'min-width': s.cost > 0 ? '2px' : '0',
+                }}
+              />
+            )}
+          </For>
+        </div>
+        {/* Legend */}
+        <div
+          style={{
+            display: 'flex',
+            'flex-wrap': 'wrap',
+            gap: '0.3rem 0.9rem',
+            'margin-bottom': '0.7rem',
+            'font-size': '0.74rem',
+            color: '#666',
+          }}
+        >
+          <For each={segments()}>
+            {(s) => (
+              <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.3rem' }}>
+                <span
+                  style={{
+                    width: '9px',
+                    height: '9px',
+                    'border-radius': '2px',
+                    background: s.color,
+                    'flex-shrink': 0,
+                  }}
+                />
+                <span style={{ 'font-family': 'monospace' }}>{s.id}</span>
+                <span style={{ color: '#aaa' }}>{((s.cost / total()) * 100).toFixed(0)}%</span>
+              </span>
+            )}
+          </For>
+        </div>
+        {/* Full attributed table */}
         <table style={tableStyle}>
+          <thead>
+            <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+              <th style={thStyle}>{t('usage.shas.col.producer')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.calls')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.tokens')}</th>
+              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cost')}</th>
+            </tr>
+          </thead>
           <tbody>
-            <For each={byCountry()}>
-              {(c) => (
+            <For each={rows()}>
+              {([id, b]) => (
                 <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-                  <td style={{ padding: '0.3rem 0.5rem' }}>
-                    {c.country || t('usage.activity.unknownCountry')}
+                  <td
+                    style={{
+                      padding: '0.3rem 0.5rem',
+                      'font-family': 'monospace',
+                      'font-size': '0.8rem',
+                    }}
+                  >
+                    {id}
                   </td>
                   <td
                     style={{
                       padding: '0.3rem 0.5rem',
                       'text-align': 'right',
                       'font-variant-numeric': 'tabular-nums',
-                      color: '#555',
+                      color: '#888',
                     }}
                   >
-                    {fmtInt(c.requests)}
+                    {fmtInt(b.calls)}
                   </td>
-                  <td style={{ padding: '0.3rem 0.5rem', width: '40%' }}>
-                    <div
-                      style={{
-                        height: '8px',
-                        background: '#f0f0f0',
-                        'border-radius': '3px',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: `${countryTotal() > 0 ? Math.min(100, (c.requests / countryTotal()) * 100) : 0}%`,
-                          height: '100%',
-                          background: '#4b7bec',
-                        }}
-                      />
-                    </div>
+                  <td
+                    style={{
+                      padding: '0.3rem 0.5rem',
+                      'text-align': 'right',
+                      'font-variant-numeric': 'tabular-nums',
+                      color: '#888',
+                    }}
+                  >
+                    {fmtTokens(b.tokensIn + b.tokensOut)}
+                  </td>
+                  <td
+                    style={{
+                      padding: '0.3rem 0.5rem',
+                      'text-align': 'right',
+                      'font-variant-numeric': 'tabular-nums',
+                    }}
+                  >
+                    {b.pricedCalls ? (
+                      fmtUsd(b.costUsd)
+                    ) : (
+                      <span style={{ color: '#bbb' }}>{t('usage.unpriced')}</span>
+                    )}
                   </td>
                 </tr>
               )}
@@ -1393,7 +1850,135 @@ function ActivitySection(props: { activity: ZoneActivity }): JSX.Element {
           </tbody>
         </table>
       </Show>
-    </Show>
+    </Collapsible>
+  );
+}
+
+// The redesigned Cost tab: one authoritative total + a remaining-to-finish
+// estimate, two time-series charts (spend, and cost-per-daf), then the
+// per-producer and (below, via ByDafCostTable) per-daf breakdowns, and the full
+// billing detail tucked into a collapsible.
+function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefined }): JSX.Element {
+  const self = () => props.cost.selfTracked;
+  const or = () => props.cost.openRouter;
+  const aigw = () => props.cost.aiGateway;
+  const series = () => self()?.series ?? [];
+
+  // The single headline number: lifetime billed (authoritative) when we have it,
+  // else the windowed billed figure, else our own tracked total, else gateway.
+  const totalUsd = (): number | null => {
+    if (typeof or()?.lifetimeUsd === 'number') return or()?.lifetimeUsd ?? null;
+    if (or()?.ok && typeof or()?.costUsd === 'number') return or()?.costUsd ?? null;
+    const st = self()?.totals.costUsd;
+    if (st && st > 0) return st;
+    if (aigw().ok && typeof aigw().costUsd === 'number') return aigw().costUsd ?? null;
+    return null;
+  };
+  const totalIsLifetime = () => typeof or()?.lifetimeUsd === 'number';
+
+  // Rolling 30-day cost per daf, and the projection to finish Shas from it.
+  const perDaf30 = () => rollingCostPerDaf(series(), 30);
+  const totalAmudim = () => props.stats?.total ?? 0;
+  // Distinct amudim warmed so far ≈ the busiest mark's coverage (every warmed
+  // amud fires the core marks). Clamped to the shas total.
+  const warmedAmudim = () => {
+    const marks = props.stats?.marks ?? [];
+    const mx = marks.reduce((m, r) => Math.max(m, r.count), 0);
+    return Math.min(mx, totalAmudim() || mx);
+  };
+  const remainingAmudim = () => Math.max(0, totalAmudim() - warmedAmudim());
+  const remainingUsd = () => {
+    const rate = perDaf30();
+    // Needs both a rate and a loaded shas total; otherwise "—" (not a bogus $0).
+    if (rate == null || totalAmudim() <= 0) return null;
+    return rate * remainingAmudim();
+  };
+  const pctWarmed = () =>
+    totalAmudim() > 0 ? Math.round((warmedAmudim() / totalAmudim()) * 100) : 0;
+  // Cache-stats drives the shas denominator; until it loads (or if it fails) we
+  // can't size "remaining", so those cards read "—" rather than a bogus zero.
+  const hasStats = () => totalAmudim() > 0;
+
+  // Chart series.
+  const spendPoints = (): LinePoint[] =>
+    series()
+      .filter((d) => d.costUsd > 0)
+      .map((d) => ({ label: d.date, value: d.costUsd }));
+  const dafCostPoints = (): LinePoint[] =>
+    buildDafCostSeries(series()).map((p) => ({
+      label: p.date,
+      value: p.perDaf,
+      estimated: !p.measured,
+    }));
+
+  return (
+    <>
+      {/* Headline */}
+      <div
+        style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.8rem' }}
+      >
+        <StatCard
+          label={t('usage.cost.total')}
+          value={fmtUsd(totalUsd())}
+          color="#2a8a42"
+          sub={totalIsLifetime() ? t('usage.cost.total.lifetime') : t('usage.cost.total.tracked')}
+        />
+        <StatCard
+          label={t('usage.cost.remaining')}
+          value={remainingUsd() != null ? fmtUsd(remainingUsd()) : '—'}
+          color="#b3541e"
+          sub={
+            hasStats()
+              ? t('usage.cost.remaining.sub', { count: fmtInt(remainingAmudim()) })
+              : t('usage.cost.remaining.pending')
+          }
+        />
+        <StatCard
+          label={t('usage.cost.perDaf30')}
+          value={perDaf30() != null ? fmtUsd(perDaf30()) : '—'}
+          sub={t('usage.cost.perDaf30.sub')}
+        />
+        <StatCard
+          label={t('usage.cost.warmed')}
+          value={hasStats() ? `${pctWarmed()}%` : '—'}
+          color="#1d4ed8"
+          sub={
+            hasStats()
+              ? t('usage.cost.warmed.sub', {
+                  warmed: fmtInt(warmedAmudim()),
+                  total: fmtInt(totalAmudim()),
+                })
+              : t('usage.cost.warmed.pending')
+          }
+        />
+      </div>
+
+      {/* Charts */}
+      <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '1rem' }}>
+        <ChartCard title={t('usage.chart.spend.title')} sub={t('usage.chart.spend.sub')}>
+          <LineChart points={spendPoints()} color="#2a8a42" fmtValue={fmtUsd} />
+        </ChartCard>
+        <ChartCard title={t('usage.chart.perDaf.title')} sub={t('usage.chart.perDaf.sub')}>
+          <LineChart points={dafCostPoints()} color="#b3541e" fmtValue={fmtUsd} />
+        </ChartCard>
+      </div>
+
+      {/* Per-producer breakdown (collapsed) */}
+      <Show when={self()}>
+        {(s) => <ByProducerSection byMark={s().byMark} byEnrichment={s().byEnrichment} />}
+      </Show>
+
+      {/* Per-daf table is rendered by ByDafCostTable (below CostSection). */}
+
+      {/* Full billing + projection detail (collapsed) */}
+      <Collapsible
+        id="cost.details"
+        title={t('usage.cost.detail.title')}
+        sub={t('usage.cost.detail.sub')}
+      >
+        <CostDetails cost={props.cost} stats={props.stats} />
+      </Collapsible>
+    </>
   );
 }
 
@@ -1447,7 +2032,11 @@ function ModelCostTable(props: {
   );
 }
 
-function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefined }): JSX.Element {
+// The full billing detail — provider-billed vs gateway-estimated vs our own
+// per-window tracking, plus the per-producer shas projection. Demoted below the
+// new headline + charts into a collapsible ("all over the place" is fine when
+// it's tucked away for whoever wants the receipts).
+function CostDetails(props: { cost: CostSectionData; stats: CacheStats | undefined }): JSX.Element {
   const aigw = () => props.cost.aiGateway;
   const or = () => props.cost.openRouter;
   const self = () => props.cost.selfTracked;
@@ -1739,16 +2328,6 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
                 })}
               </p>
             </Show>
-            <Show
-              when={Object.keys(s().byMark).length > 0 || Object.keys(s().byEnrichment).length > 0}
-            >
-              <CostBreakdown id="byMark" title={t('usage.byMark')} buckets={s().byMark} />
-              <CostBreakdown
-                id="byEnrichment"
-                title={t('usage.byEnrichment')}
-                buckets={s().byEnrichment}
-              />
-            </Show>
           </>
         )}
       </Show>
@@ -1873,79 +2452,6 @@ function ShasEstimate(props: { est: ReturnType<typeof estimateShasCost> }): JSX.
   );
 }
 
-function CostBreakdown(props: {
-  id: string;
-  title: string;
-  buckets: Record<string, UsageBucket>;
-}): JSX.Element {
-  const rows = () =>
-    Object.entries(props.buckets).sort(
-      ([, a], [, b]) => b.costUsd - a.costUsd || b.calls - a.calls,
-    );
-  return (
-    <Show when={rows().length > 0}>
-      <Collapsible
-        id={props.id}
-        title={props.title}
-        sub={t('usage.byModel.sub', { count: fmtInt(rows().length) })}
-      >
-        <table style={tableStyle}>
-          <tbody>
-            <For each={rows()}>
-              {([id, b]) => (
-                <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
-                  <td
-                    style={{
-                      padding: '0.3rem 0.5rem',
-                      'font-family': 'monospace',
-                      'font-size': '0.8rem',
-                    }}
-                  >
-                    {id}
-                  </td>
-                  <td
-                    style={{
-                      padding: '0.3rem 0.5rem',
-                      'text-align': 'right',
-                      'font-variant-numeric': 'tabular-nums',
-                      color: '#888',
-                    }}
-                  >
-                    {t('usage.callsCount', { count: fmtInt(b.calls) })}
-                  </td>
-                  <td
-                    style={{
-                      padding: '0.3rem 0.5rem',
-                      'text-align': 'right',
-                      'font-variant-numeric': 'tabular-nums',
-                      color: '#888',
-                    }}
-                  >
-                    {fmtTokens(b.tokensIn + b.tokensOut)}
-                  </td>
-                  <td
-                    style={{
-                      padding: '0.3rem 0.5rem',
-                      'text-align': 'right',
-                      'font-variant-numeric': 'tabular-nums',
-                    }}
-                  >
-                    {b.pricedCalls ? (
-                      fmtUsd(b.costUsd)
-                    ) : (
-                      <span style={{ color: '#bbb' }}>{t('usage.unpriced')}</span>
-                    )}
-                  </td>
-                </tr>
-              )}
-            </For>
-          </tbody>
-        </table>
-      </Collapsible>
-    </Show>
-  );
-}
-
 // ---- Latency -------------------------------------------------------------
 function LatencyTable(props: {
   title: string;
@@ -2021,7 +2527,7 @@ function sumVersions(vs: DafVersionCost[]): number {
 // One expandable row of the by-daf cost table. The byDaf ledger row gives the
 // RECENT spend (last 7 days, all kinds incl. source alignment); expanding fetches
 // /api/usage/daf/:t/:p for the PERMANENT per-mark current-vs-superseded stamps.
-function ByDafRow(props: { daf: string; bucket: DafLedgerBucket }): JSX.Element {
+function ByDafRow(props: { daf: string; bucket: DafLedgerBucket; maxCost: number }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const parts = () => {
     const i = props.daf.indexOf(':');
@@ -2065,7 +2571,37 @@ function ByDafRow(props: { daf: string; bucket: DafLedgerBucket }): JSX.Element 
         <td style={{ ...numCell, color: '#888' }}>
           {fmtUsd(props.bucket.costInEst)} / {fmtUsd(props.bucket.costOutEst)}
         </td>
-        <td style={{ ...numCell, 'font-weight': 600 }}>{fmtUsd(props.bucket.cost)}</td>
+        <td style={{ padding: '0.35rem 0.5rem', width: '30%' }}>
+          <div style={{ display: 'flex', 'align-items': 'center', gap: '0.5rem' }}>
+            <div
+              style={{
+                flex: 1,
+                height: '7px',
+                background: '#f0f0f0',
+                'border-radius': '3px',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  width: `${props.maxCost > 0 ? Math.min(100, (props.bucket.cost / props.maxCost) * 100) : 0}%`,
+                  height: '100%',
+                  background: '#b3541e',
+                }}
+              />
+            </div>
+            <span
+              style={{
+                'font-variant-numeric': 'tabular-nums',
+                'font-weight': 600,
+                'min-width': '3.5rem',
+                'text-align': 'right',
+              }}
+            >
+              {fmtUsd(props.bucket.cost)}
+            </span>
+          </div>
+        </td>
       </tr>
       <Show when={open()}>
         <tr style={{ background: '#fbfbfa' }}>
@@ -2223,6 +2759,7 @@ function ByDafCostTable(props: { llmCost: LlmCostData | undefined }): JSX.Elemen
       .sort(([, a], [, b]) => b.cost - a.cost || b.calls - a.calls)
       .slice(0, TOP);
   };
+  const maxCost = () => rows().reduce((m, [, b]) => Math.max(m, b.cost), 0);
   return (
     <Collapsible id="byDaf" title={t('usage.byDaf.title')} sub={t('usage.byDaf.sub')}>
       <Show
@@ -2235,11 +2772,13 @@ function ByDafCostTable(props: { llmCost: LlmCostData | undefined }): JSX.Elemen
               <th style={thStyle}>{t('usage.col.daf')}</th>
               <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.calls')}</th>
               <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.inOut')}</th>
-              <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cost')}</th>
+              <th style={thStyle}>{t('usage.col.cost')}</th>
             </tr>
           </thead>
           <tbody>
-            <For each={rows()}>{([daf, bucket]) => <ByDafRow daf={daf} bucket={bucket} />}</For>
+            <For each={rows()}>
+              {([daf, bucket]) => <ByDafRow daf={daf} bucket={bucket} maxCost={maxCost()} />}
+            </For>
           </tbody>
         </table>
       </Show>

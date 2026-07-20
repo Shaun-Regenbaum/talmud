@@ -227,3 +227,69 @@ describe('usage-rollup with cost split', () => {
     expect(s.totals.costUsd).toBeCloseTo(0.001, 9);
   });
 });
+
+describe('usage-rollup dafsWarmed (distinct dapim per day)', () => {
+  it('counts DISTINCT dapim, deduped across calls, ignoring daf-less calls', async () => {
+    const { kv } = makeFakeKV();
+    const env = { CACHE: kv };
+    await record(env, [
+      priced({ markId: 'rabbi', tractate: 'Berakhot', page: '2a' }),
+      // same daf, different producer → still one distinct daf
+      priced({ enrichmentId: 'rabbi.synthesis', tractate: 'Berakhot', page: '2a' }),
+      // a second distinct daf
+      priced({ markId: 'argument', tractate: 'Berakhot', page: '2b' }),
+      // a global/daf-less call must not bump the count
+      priced({ markId: 'places' }),
+    ]);
+    const s = await readUsageSummary(kv);
+    expect(s.series[0].dafsWarmed).toBe(2);
+  });
+
+  it('does not count a cache hit as warming a daf', async () => {
+    const { kv } = makeFakeKV();
+    const env = { CACHE: kv };
+    await record(env, [
+      priced({ markId: 'rabbi', tractate: 'Shabbat', page: '3a', cacheHit: true }),
+      priced({ markId: 'rabbi', tractate: 'Shabbat', page: '4a' }), // fresh → counts
+    ]);
+    const s = await readUsageSummary(kv);
+    expect(s.series[0].dafsWarmed).toBe(1);
+  });
+
+  it('marks feature-era docs (dafsWarmed present) even with no daf calls', async () => {
+    const { kv } = makeFakeKV();
+    const env = { CACHE: kv };
+    // A day with only a daf-less call: the doc still exists and carries the
+    // field (at 0) so a reader treats it as measured, not pre-field.
+    await record(env, [priced({ markId: 'places' })]);
+    const s = await readUsageSummary(kv);
+    expect(s.series[0].dafsWarmed).toBe(0);
+  });
+
+  it('leaves dafsWarmed undefined on docs written before the field existed', async () => {
+    const { kv, store } = makeFakeKV();
+    // A historical doc with no dafsWarmed — must stay undefined (an estimate
+    // signal), never coerced to 0 (which would read as a measured zero).
+    store.set(
+      'usage:daily:v1:2026-01-01',
+      JSON.stringify({
+        date: '2026-01-01',
+        errors: 0,
+        cacheHits: 0,
+        calls: 1,
+        tokensIn: 1000,
+        tokensOut: 100,
+        costUsd: 0.001,
+        costInUsd: 0.0007,
+        costOutUsd: 0.0003,
+        pricedCalls: 1,
+        unpricedCalls: 0,
+        byModel: {},
+        byMark: {},
+        byEnrichment: {},
+      }),
+    );
+    const s = await readUsageSummary(kv);
+    expect(s.series[0].dafsWarmed).toBeUndefined();
+  });
+});
