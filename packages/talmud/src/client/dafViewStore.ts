@@ -16,7 +16,7 @@
  */
 
 import { instanceIdOf } from '@corpus/core/cache/keys';
-import { noteAiResponse } from '@corpus/ui/aiStatus';
+import { type AiUnavailableReason, noteAiResponse } from '@corpus/ui/aiStatus';
 import { createSignal } from 'solid-js';
 import type { RunResult } from './enrichmentQueue';
 
@@ -36,6 +36,11 @@ interface DafViewPayload {
   cached?: number;
   total?: number;
   pieces?: Record<string, DafViewPiece>;
+  // Present only on an INCOMPLETE view when AI spending is unavailable (out of
+  // credits / key cap / provider outage): the cold pieces will never fill, so
+  // the poll loop raises the banner and bails instead of spinning to its cap.
+  aiUnavailable?: boolean;
+  reason?: AiUnavailableReason;
 }
 
 function dafKey(tractate: string, page: string, lang: 'en' | 'he'): string {
@@ -142,6 +147,10 @@ async function fetchViewOnce(
     }
     const j = (await r.json()) as DafViewPayload;
     settle(j.pieces ?? {});
+    // An incomplete view carrying the AI-paused sentinel raises the shared
+    // banner — so a reader who is mid-poll (already told `generating: true`)
+    // still learns AI is down instead of spinning silently.
+    noteAiResponse(j);
     return j;
   } catch {
     settle({});
@@ -236,6 +245,10 @@ export async function openDafView(
       const payload = await fetchViewOnce(key, tractate, page, lang);
       if (latestKey !== key) return;
       if (payload?.complete) return; // fully generated
+      // AI spending went unavailable mid-generation — the cold pieces can't
+      // fill, so stop polling (fetchViewOnce already raised the banner) and let
+      // the cards render their cached content instead of spinning to the cap.
+      if (payload?.aiUnavailable) return;
       const cached = payload?.cached ?? lastCached;
       if (cached > lastCached) {
         lastCached = cached;
