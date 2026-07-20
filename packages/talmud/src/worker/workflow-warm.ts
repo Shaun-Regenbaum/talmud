@@ -200,6 +200,34 @@ interface DagNode {
   status: 'declared' | 'pending' | 'running' | 'done';
 }
 
+/**
+ * Collapse a mark's instances to one entry per instance id (the value
+ * `instanceIdOf` derives, which IS the per-instance cache key). The SAME
+ * instance id legitimately surfaces more than once on a daf — e.g. a pasuk cited
+ * by two different sections yields two `pesukim` instances that both resolve to
+ * `leviticus_22_27`. They map to one cache key / one artifact, so the warm DAG
+ * must fan out ONE node for them: a second `pool.add("<eid>::<iid>")` throws
+ * `dag: duplicate node` and aborts the entire daf's generation (observed live on
+ * Chullin 81, where every warm errored at DAG build before any AI ran).
+ *
+ * First-wins: the deduped instance drives the single node, matching the existing
+ * cache-key semantics (both would have written the same key regardless).
+ */
+export async function dedupeInstancesByIid<T>(
+  insts: readonly T[],
+  iidOf: (inst: T) => Promise<string>,
+): Promise<{ inst: T; iid: string }[]> {
+  const out: { inst: T; iid: string }[] = [];
+  const seen = new Set<string>();
+  for (const inst of insts) {
+    const iid = await iidOf(inst);
+    if (seen.has(iid)) continue;
+    seen.add(iid);
+    out.push({ inst, iid });
+  }
+  return out;
+}
+
 export function createDagPool(limit: number): DagPool {
   const nodes = new Map<string, DagNode>();
   let inFlight = 0;

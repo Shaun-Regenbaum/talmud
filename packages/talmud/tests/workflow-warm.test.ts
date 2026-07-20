@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createDagPool,
   dafGenSentinelKey,
+  dedupeInstancesByIid,
   expandInlineDeps,
   perInstanceEnrichments,
   topoTiers,
@@ -456,5 +457,51 @@ describe('createDagPool', () => {
 
   it('an empty pool drains immediately', async () => {
     await expect(createDagPool(2).drain()).resolves.toBeUndefined();
+  });
+
+  // Regression: the whole-daf warm crashed on Chullin 81 with
+  // `dag: duplicate node pesukim.why-here::leviticus_22_27` — a pasuk cited by
+  // two sections yielded two instances with the same id, so the per-instance
+  // fan-out called pool.add() twice for the same uid and aborted the daf.
+  it('adding the same node id twice throws (the invariant behind the crash)', () => {
+    const pool = createDagPool(2);
+    pool.add('pesukim.why-here::leviticus_22_27', [], async () => {});
+    expect(() => pool.add('pesukim.why-here::leviticus_22_27', [], async () => {})).toThrow(
+      /duplicate node pesukim\.why-here::leviticus_22_27/,
+    );
+  });
+});
+
+describe('dedupeInstancesByIid', () => {
+  it('collapses instances that share an instance id (the daf-warm fix)', async () => {
+    // Two sections cite Lev 22:27; both instances resolve to the same iid.
+    const insts = [
+      { seg: 3, pasuk: 'leviticus_22_27' },
+      { seg: 9, pasuk: 'leviticus_22_28' },
+      { seg: 14, pasuk: 'leviticus_22_27' }, // duplicate iid from another section
+    ];
+    const out = await dedupeInstancesByIid(insts, async (i) => i.pasuk);
+    expect(out.map((o) => o.iid)).toEqual(['leviticus_22_27', 'leviticus_22_28']);
+    // First-wins: the surviving node carries the first instance's payload.
+    expect(out[0].inst).toEqual({ seg: 3, pasuk: 'leviticus_22_27' });
+  });
+
+  it('feeding deduped instances into the pool no longer throws', async () => {
+    const insts = [{ pasuk: 'leviticus_22_27' }, { pasuk: 'leviticus_22_27' }];
+    const withIds = await dedupeInstancesByIid(insts, async (i) => i.pasuk);
+    const pool = createDagPool(2);
+    // Exactly one node per unique iid — the fan-out the warm actually does.
+    for (const { iid } of withIds) pool.add(`pesukim.why-here::${iid}`, [], async () => {});
+    await expect(pool.drain()).resolves.toBeUndefined();
+  });
+
+  it('preserves order and passes instance ids through unchanged when all unique', async () => {
+    const insts = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+    const out = await dedupeInstancesByIid(insts, async (i) => i.id);
+    expect(out).toEqual([
+      { inst: { id: 'a' }, iid: 'a' },
+      { inst: { id: 'b' }, iid: 'b' },
+      { inst: { id: 'c' }, iid: 'c' },
+    ]);
   });
 });
