@@ -1,8 +1,9 @@
 /**
- * @corpus/ui — WorldBubbleMap styles. Flat map: filled orange land (no borders),
- * navy request bubbles, transparent ocean (so it sits on any page background).
- * Colors are literal here (a deliberately fixed cartographic palette) rather
- * than themed tokens — the look is the same in both apps.
+ * @corpus/ui — WorldBubbleMap styles. Flat map: filled land (no borders),
+ * request bubbles in the app's accent, transparent ocean (so it sits on any
+ * page background). Colors come from theme vars so each app self-brands —
+ * bubbles follow `--accent`; land + tooltip have neutral warm fallbacks that
+ * read on any theme. Override `--wbmap-*` to retune per app.
  */
 
 .wbmap {
@@ -22,35 +23,35 @@
 
 /* Fill == stroke so adjacent country rings read as one continuous landmass. */
 .wbmap-land {
-  fill: #f5a623;
-  stroke: #f5a623;
+  fill: var(--wbmap-land, #dcd2c0);
+  stroke: var(--wbmap-land, #dcd2c0);
   stroke-width: 0.6;
   stroke-linejoin: round;
 }
 
 .wbmap-bubble {
-  fill: #262363;
+  fill: var(--wbmap-bubble, var(--accent, #8a2a2b));
   fill-opacity: 0.82;
   stroke: #ffffff;
   stroke-width: 0.6;
-  stroke-opacity: 0.5;
+  stroke-opacity: 0.55;
   cursor: pointer;
   transition: fill-opacity 0.1s ease;
 }
 .wbmap-bubble.hot {
-  fill: #16143f;
+  fill: var(--wbmap-bubble-hot, var(--accent-strong, #6f2122));
   fill-opacity: 1;
-  stroke-opacity: 0.9;
+  stroke-opacity: 0.95;
 }
 
 .wbmap-label {
-  fill: #16143f;
+  fill: var(--wbmap-bubble-hot, var(--accent-strong, #6f2122));
   font-family: system-ui, -apple-system, sans-serif;
   font-size: 10px;
   font-weight: 600;
   paint-order: stroke;
-  stroke: #f5a623;
-  stroke-width: 2.4px;
+  stroke: var(--wbmap-land, #dcd2c0);
+  stroke-width: 2.6px;
   stroke-linejoin: round;
   pointer-events: none;
 }
@@ -65,7 +66,7 @@
   align-items: baseline;
   gap: 0.5rem;
   padding: 0.28rem 0.55rem;
-  background: #16143f;
+  background: var(--wbmap-tip-bg, #2a1113);
   color: #fff;
   border-radius: 5px;
   font-family: system-ui, -apple-system, sans-serif;
@@ -78,5 +79,5 @@
 }
 .wbmap-tip-num {
   font-variant-numeric: tabular-nums;
-  color: #f5a623;
+  color: var(--wbmap-tip-num, #e6b8a0);
 }
