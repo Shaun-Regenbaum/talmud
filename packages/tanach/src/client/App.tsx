@@ -5,7 +5,6 @@ import { Drawer } from '@corpus/ui/Drawer';
 import { fitBbox, GeoMap } from '@corpus/ui/GeoMap';
 import { LangToggle } from '@corpus/ui/LangToggle';
 import { Pill, PillRow } from '@corpus/ui/Pill';
-import { Prose } from '@corpus/ui/Prose';
 import {
   createEffect,
   createMemo,
@@ -182,16 +181,8 @@ interface SectionNote {
   en: string;
   he: string;
 }
-/** A whole-chapter pill the reader can open from the perek-pills row. */
-type PerekPill = 'parsha' | 'overview' | 'geography' | 'tidbit';
-interface Overview {
-  book: string;
-  chapter: number;
-  titleEn: string;
-  titleHe: string;
-  en: string;
-  he: string;
-}
+/** A reader-level pill opened from the row above the text. */
+type PerekPill = 'parsha' | 'geography';
 interface GeoPlace {
   en: string;
   he: string;
@@ -205,29 +196,14 @@ interface PerekGeography {
   chapter: number;
   places: GeoPlace[];
 }
-interface PerekTidbit {
-  book: string;
-  chapter: number;
-  flavor: string;
-  titleEn: string;
-  titleHe: string;
-  en: string;
-  he: string;
-  textConfidence: string;
-  readingConfidence: string;
-}
-/** The perek-pills, in display order. */
+/** Reader pills, in display order. */
 const PEREK_PILLS: { id: PerekPill; label: string }[] = [
   { id: 'parsha', label: 'Parsha' },
-  { id: 'overview', label: 'Overview' },
   { id: 'geography', label: 'Geography' },
-  { id: 'tidbit', label: 'Tidbit' },
 ];
 const PILL_KIND: Record<PerekPill, string> = {
   parsha: 'Parsha',
-  overview: 'Overview',
   geography: 'Geography',
-  tidbit: 'Tidbit',
 };
 
 interface CommentaryEntry {
@@ -638,7 +614,7 @@ export function App(): JSX.Element {
     setSource(null);
   });
 
-  // Perek-level pills (Overview, …): a chapter-scoped drawer, mutually
+  // Reader-level pills: one shared drawer, mutually
   // exclusive with the verse-source drawer (both are the same fixed right
   // panel). Opening a pill lazily fetches its enrichment (warm in KV after the
   // first reader); the resource only fires while its pill is open.
@@ -688,10 +664,6 @@ export function App(): JSX.Element {
     noteAiResponse(await res.json().catch(() => null));
     return null;
   };
-  const [overview] = createResource(
-    () => (perekPill() === 'overview' ? chapterKey() : undefined),
-    (k) => fetchPill<Overview>(`/api/overview/${encodeURIComponent(k.book)}/${k.chapter}`),
-  );
   const [parshaStudy] = createResource(
     () => (perekPill() === 'parsha' && parsha() ? parsha()?.ref : undefined),
     () => fetchPill<ParshaStudy>(`/api/parsha-study?loc=${inIsrael() ? 'israel' : 'diaspora'}`),
@@ -700,10 +672,6 @@ export function App(): JSX.Element {
     () => (perekPill() === 'geography' ? chapterKey() : undefined),
     (k) => fetchPill<PerekGeography>(`/api/geography/${encodeURIComponent(k.book)}/${k.chapter}`),
   );
-  const [tidbit] = createResource(
-    () => (perekPill() === 'tidbit' ? chapterKey() : undefined),
-    (k) => fetchPill<PerekTidbit>(`/api/tidbit/${encodeURIComponent(k.book)}/${k.chapter}`),
-  );
   // Drawer copy for a failed pill fetch. "Try reopening" is only honest advice
   // for a transient blip — while AI is paused (banner up), reopening cannot
   // help, so say what's actually happening instead.
@@ -711,15 +679,8 @@ export function App(): JSX.Element {
     aiStatus()
       ? `AI generation is paused right now, so the ${what} for this chapter isn't available yet. Chapters that were already generated still work.`
       : `Couldn't load the ${what} — try reopening.`;
-  // Only the tidbit for the chapter on screen (createResource retains the prior
-  // value across a refetch — same guard as overview/geography).
-  const currentTidbit = createMemo(() => {
-    if (tidbit.loading) return null;
-    const t = tidbit();
-    return t && t.book === loc().book && t.chapter === loc().chapter ? t : null;
-  });
   // Only the geography for the chapter on screen (createResource retains the
-  // previous chapter's value across a refetch — same guard as the overview).
+  // previous chapter's value across a refetch).
   const currentGeography = createMemo(() => {
     if (geography.loading) return null;
     const g = geography();
@@ -751,14 +712,6 @@ export function App(): JSX.Element {
   createEffect(() => {
     if (perekPill() !== 'geography') clearPlace();
   });
-  // createResource keeps the PREVIOUS chapter's value during a refetch, so the
-  // drawer must not render it: only show the overview once it has loaded AND
-  // its echoed book/chapter match the chapter on screen (else show loading).
-  const currentOverview = createMemo(() => {
-    if (overview.loading) return null;
-    const o = overview();
-    return o && o.book === loc().book && o.chapter === loc().chapter ? o : null;
-  });
   const currentParshaStudy = createMemo(() => {
     if (parshaStudy.loading) return null;
     const study = parshaStudy();
@@ -781,8 +734,7 @@ export function App(): JSX.Element {
   // Reset first (this effect is created before the reporters, so on a chapter
   // change it runs first and clears the previous chapter's entries); then each
   // piece reports its state. The always-on chapter pieces key by a stable id so
-  // they overwrite across chapters; the overview reports only while its pill is
-  // open (its resource keeps a stale value across chapters otherwise).
+  // they overwrite across chapters.
   createEffect(() => {
     chapterKey();
     resetChapterLoad();
@@ -801,12 +753,6 @@ export function App(): JSX.Element {
     if (sourcesIndex.loading) reportLoad('sources', 'Sources', 'loading');
     else if (sourcesIndex.error) reportLoad('sources', 'Sources', 'error');
     else if (sourcesIndex() !== undefined) reportLoad('sources', 'Sources', 'ok');
-  });
-  createEffect(() => {
-    if (perekPill() !== 'overview') return;
-    if (overview.loading) reportLoad('overview', 'Overview', 'loading');
-    else if (overview.error) reportLoad('overview', 'Overview', 'error');
-    else if (overview()) reportLoad('overview', 'Overview', 'ok');
   });
 
   return (
@@ -1066,7 +1012,7 @@ export function App(): JSX.Element {
         />
       </Show>
 
-      {/* Perek-level pill drawer (Overview, …) — same fixed right panel as the
+      {/* Reader-level pill drawer — same fixed right panel as the
           verse-source drawer, mutually exclusive with it */}
       <Show when={perekPill()} keyed>
         {(pill) => (
@@ -1108,31 +1054,6 @@ export function App(): JSX.Element {
                 <p class="comm-muted">{pillError('parsha overview')}</p>
               </Show>
             </Show>
-            <Show when={pill === 'overview'}>
-              <Show when={overview.loading}>
-                <p class="comm-muted">Reading the chapter…</p>
-              </Show>
-              <Show when={currentOverview()}>
-                {(o) => (
-                  <section class="perek-overview">
-                    <Show
-                      when={
-                        loc().lang === 'he'
-                          ? o().titleHe || o().titleEn
-                          : o().titleEn || o().titleHe
-                      }
-                    >
-                      {(title) => <h3 class="perek-title">{title()}</h3>}
-                    </Show>
-                    <Prose en={o().en} he={o().he} lang={loc().lang} />
-                  </section>
-                )}
-              </Show>
-              {/* fetched but failed (overview() is null, not undefined) */}
-              <Show when={!overview.loading && overview() === null}>
-                <p class="comm-muted">{pillError('overview')}</p>
-              </Show>
-            </Show>
             <Show when={pill === 'geography'}>
               <Show when={geography.loading}>
                 <p class="comm-muted">Mapping the chapter…</p>
@@ -1168,40 +1089,6 @@ export function App(): JSX.Element {
               </Show>
               <Show when={!geography.loading && geography() === null}>
                 <p class="comm-muted">{pillError('geography')}</p>
-              </Show>
-            </Show>
-            <Show when={pill === 'tidbit'}>
-              <Show when={tidbit.loading}>
-                <p class="comm-muted">Finding the tidbit…</p>
-              </Show>
-              <Show when={currentTidbit()}>
-                {(t) => (
-                  <section class="perek-overview perek-tidbit">
-                    <Show
-                      when={
-                        loc().lang === 'he'
-                          ? t().titleHe || t().titleEn
-                          : t().titleEn || t().titleHe
-                      }
-                    >
-                      {(title) => <h3 class="perek-title">{title()}</h3>}
-                    </Show>
-                    <Prose en={t().en} he={t().he} lang={loc().lang} />
-                    <Show when={t().flavor || t().readingConfidence}>
-                      <p class="tidbit-meta">
-                        <Show when={t().flavor}>
-                          {(f) => <span class="tidbit-flavor">{f().replace('-', ' ')}</span>}
-                        </Show>
-                        <Show when={t().readingConfidence}>
-                          {(rc) => <span class="tidbit-conf">reading: {rc()}</span>}
-                        </Show>
-                      </p>
-                    </Show>
-                  </section>
-                )}
-              </Show>
-              <Show when={!tidbit.loading && tidbit() === null}>
-                <p class="comm-muted">{pillError('tidbit')}</p>
               </Show>
             </Show>
           </Drawer>

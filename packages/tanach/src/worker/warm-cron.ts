@@ -1,14 +1,13 @@
 /**
  * Tanach warm-cron — keeps THIS WEEK'S parsha fully warm so a reader opening
- * the weekly portion never waits on a cold LLM, neither on the chapter pills
- * (Overview / Geography / Tidbit) + section anchors NOR on a verse's commentary
- * / midrash synthesis.
+ * the weekly portion never waits on a cold generation, from the whole-parsha
+ * map and visible chapter surfaces through verse commentary / midrash synthesis.
  *
  * Each tick resolves the current parsha (Sefaria's calendar), expands it to its
  * chapter range, and warms a small BATCH of the not-yet-done work, tracked by a
  * completed-set cursor:
  *
- *   1. chapter-level pills + section anchors (overview, geography, tidbit, events)
+ *   1. visible chapter-level surfaces + section anchors (geography, events)
  *   2. the per-chapter sources index (srcidx — no LLM; also gates step 3)
  *   3. per-VERSE deep content, gated by the index: commentary `synthesis` where
  *      there are commentators, `midrash-synthesis` where there is midrash.
@@ -31,8 +30,8 @@ import { computeSourcesIndex, readSourcesIndex } from './sources-index.ts';
 
 // v5: warm the whole-parsha overview before the chapter-level reader pieces.
 const CURSOR_KEY = 'tanach-warm-cursor:v5';
-/** Chapter-level enrichments that power the reader's pills + section labels. */
-const CHAPTER_PRODUCERS = ['overview', 'geography', 'tidbit', 'events'] as const;
+/** Chapter-level enrichments that power the visible reader + section labels. */
+const CHAPTER_PRODUCERS = ['geography', 'events'] as const;
 /** Entries warmed per tick — small so one invocation stays well within the
  *  scheduled CPU/subrequest budget even when every entry is cold. */
 const BATCH = 8;
@@ -68,17 +67,17 @@ async function readCursor(cache: KVNamespace): Promise<WarmCursor> {
   }
 }
 
-/** The ordered work-list. Pills + section anchors first (the visible surface),
+/** The ordered work-list. Visible surfaces + section anchors first,
  *  then the sources indexes, then the per-verse deep content gated by whichever
  *  indexes are already cached (an uncached chapter contributes a `srcindex`
  *  entry instead; its verses join the list once that index warms). */
 async function buildWorkList(cache: KVNamespace, parsha: WeeklyParsha): Promise<WarmEntry[]> {
-  const pills: WarmEntry[] = [{ kind: 'parsha', producer: 'parsha-overview' }];
+  const surfaces: WarmEntry[] = [{ kind: 'parsha', producer: 'parsha-overview' }];
   const indexes: WarmEntry[] = [];
   const verses: WarmEntry[] = [];
   for (let ch = parsha.startChapter; ch <= parsha.endChapter; ch++) {
     for (const producer of CHAPTER_PRODUCERS)
-      pills.push({ kind: 'chapter', producer, chapter: ch });
+      surfaces.push({ kind: 'chapter', producer, chapter: ch });
     const idx = await readSourcesIndex(cache, parsha.book, String(ch));
     if (!idx) {
       indexes.push({ kind: 'srcindex', chapter: ch });
@@ -91,7 +90,7 @@ async function buildWorkList(cache: KVNamespace, parsha: WeeklyParsha): Promise<
         verses.push({ kind: 'verse', producer: 'midrash-synthesis', chapter: ch, verse: v.verse });
     }
   }
-  return [...pills, ...indexes, ...verses];
+  return [...surfaces, ...indexes, ...verses];
 }
 
 async function warmEntry(

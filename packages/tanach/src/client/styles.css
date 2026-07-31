@@ -441,15 +441,11 @@ body {
   font-style: italic;
 }
 
-/* perek-level pills (Overview, …) now render via @corpus/ui's <Pill>/<PillRow>
+/* Reader-level pills render via @corpus/ui's <Pill>/<PillRow>
    (.ui-pill / .ui-pill-row in @corpus/ui/components.css). Tanach's parchment
    chip look is preserved through the --pill-bg / --pill-border theme tokens. */
 
-/* perek drawer body (rendered inside @corpus/ui's <Drawer>): the overview's
-   title heading. The prose itself is @corpus/ui's <Prose> (.ui-prose). */
-.perek-overview {
-  padding: 6px 0 12px;
-}
+/* Drawer title heading. The prose itself is @corpus/ui's <Prose> (.ui-prose). */
 .perek-title {
   margin: 0 0 10px;
   font-size: 20px;
@@ -784,28 +780,6 @@ body {
   margin-top: 10px;
   border-color: var(--accent);
   color: var(--accent);
-}
-
-/* tidbit footer: a small flavor tag + how-editorial-the-reading note */
-.tidbit-meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 14px 0 0;
-  padding-top: 10px;
-  border-top: 1px solid var(--line);
-  font-family: var(--font-ui);
-  font-size: 11px;
-  color: var(--muted);
-}
-.tidbit-flavor {
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-  color: var(--accent);
-}
-.tidbit-conf {
-  font-variant-numeric: tabular-nums;
 }
 
 /* word/phrase translation gloss (text selection) */

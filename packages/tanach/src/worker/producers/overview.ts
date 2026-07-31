@@ -11,7 +11,7 @@
  *
  * Strictly p'shat (plain, contextual sense) — the same discipline the events
  * and note producers keep. Interesting against-the-grain readings drawn from
- * midrash and the commentators belong to the (forthcoming) tidbit pill, not
+ * midrash and the commentators belong to deeper section-specific study, not
  * here; this pill is the plain orientation.
  *
  * This module carries the producer's RECIPE (prompts + schema); the run goes
