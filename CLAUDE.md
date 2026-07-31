@@ -44,7 +44,7 @@ Cross-cutting always: typed piece bodies, resilient anchors, provenance/confiden
 
 - `pnpm test` — Vitest unit suite. `pnpm test:int` — integration (hits a running worker).
 - `pnpm typecheck` — `tsc --noEmit`. Run it plus `pnpm test` before any PR.
-- `pnpm ship` — `vite build && wrangler deploy`, behind `scripts/ship-guard.sh`: it refuses to deploy unless the tracked tree is clean and HEAD's content matches `origin/master` (so prod can't silently diverge from master; a later deploy from another agent once clobbered shipped-but-unmerged work). Merge first, then ship. `SHIP_FORCE=1 pnpm ship` overrides when a divergent deploy is deliberate. Production is the custom domain **talmud.shaunregenbaum.com**. wrangler is authenticated in this environment.
+- `pnpm ship` — `vite build && wrangler deploy`, behind `scripts/ship-guard.sh`: it refuses to deploy unless the tracked tree is clean and HEAD's content matches `origin/master` (so prod can't silently diverge from master; a later deploy from another agent once clobbered shipped-but-unmerged work). Merge first, then ship. `SHIP_FORCE=1 pnpm ship` overrides when a divergent deploy is deliberate. Production is the custom domain **talmud.dev**. wrangler is authenticated in this environment.
 
 ## Multiple agents work this repo at once — isolate in a worktree
 

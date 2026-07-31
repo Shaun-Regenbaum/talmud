@@ -10,7 +10,7 @@ on:
       url:
         description: Worker URL to test against
         required: false
-        default: https://talmud.shaunregenbaum.com
+        default: https://talmud.dev
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -34,4 +34,4 @@ jobs:
 
       - run: pnpm --filter talmud test:int
         env:
-          TALMUD_URL: ${{ inputs.url || 'https://talmud.shaunregenbaum.com' }}
+          TALMUD_URL: ${{ inputs.url || 'https://talmud.dev' }}
