@@ -837,6 +837,34 @@ export function argumentSynthInstance(section: Section): unknown {
   };
 }
 
+/** The argument card's stable client-side run key. The overview reuses the
+ *  exact same key when it surfaces a focused section's existing synthesis, so
+ *  a paragraph already loaded/prefetched for the full argument card is reused
+ *  in memory as well as hitting the same server-side cache entry. */
+export function argumentInstanceKey(section: Section): string {
+  return `${section.startSegIdx}-${section.endSegIdx}-${section.title}`;
+}
+
+/** Parent-section focus shows the section synthesis; selecting a nested
+ *  statement swaps that slot to the move-specific synthesis + Q&A. */
+export function overviewShowsSectionSummary(selectedStatementId: string | null): boolean {
+  return selectedStatementId == null;
+}
+
+/** Clicking a parent section always returns selection to the parent level,
+ *  including when the user re-clicks the already-focused section. */
+export function overviewSelectionForSection(sectionIndex: number): {
+  focusedSectionIndex: number;
+  selectedStatementId: null;
+  highlightedMoveId: null;
+} {
+  return {
+    focusedSectionIndex: sectionIndex,
+    selectedStatementId: null,
+    highlightedMoveId: null,
+  };
+}
+
 // Flow kinds that bind two sections into ONE continuous discussion (sugya).
 // The others (parallels / contrasts / generalizes / cites) are cross-references
 // between DISTINCT sugyot, so they don't merge sections into the same map.
@@ -1172,6 +1200,12 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
     setSelectedStmt(id);
     onHighlightMove(focusedSpine()?.moves.find((m) => m.fields.id === id) ?? null);
   };
+  const selectSection = (sectionIndex: number): void => {
+    const selection = overviewSelectionForSection(sectionIndex);
+    setFocused(selection.focusedSectionIndex);
+    setSelectedStmt(selection.selectedStatementId);
+    setHighlightedMove(selection.highlightedMoveId);
+  };
   // Bring the detail into view when it (re)mounts on a new selection — matters on
   // mobile, where the detail sits well below the map; block:'nearest' is a no-op
   // when it's already visible (desktop).
@@ -1340,7 +1374,7 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
                   nodes={grpNodes()}
                   connections={connections()}
                   activeIndex={focused()}
-                  onSelect={setFocused}
+                  onSelect={selectSection}
                   selectedStatementId={selectedStmt()}
                   onSelectStatement={selectStatement}
                 />
@@ -1351,15 +1385,40 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
             );
           }}
         </For>
-        {/* The "extra": the SELECTED statement's full detail below the map — its
-            per-move synthesis + Q&A (the same card the moves list used). Clicking
-            a nested statement node above selects it; the card's header toggles the
-            daf-side highlight. */}
+        {/* The "extra" follows the map's selection level. Parent-section focus
+            gets the existing argument.synthesis paragraph — already prefetched
+            and explicitly written as a section overview, not a move recap.
+            Selecting a nested statement swaps this slot to its per-move
+            synthesis + Q&A. */}
+        <Show
+          keyed
+          when={overviewShowsSectionSummary(selectedStmt()) ? sections()[focused()] : undefined}
+        >
+          {(section) => (
+            <div
+              data-overview-detail="section"
+              style={{
+                'margin-top': '0.5rem',
+                'padding-top': '0.7rem',
+                'border-top': '1px solid #ece9df',
+              }}
+            >
+              <Synthesis
+                markId="argument"
+                instance={argumentSynthInstance(section)}
+                instanceKey={argumentInstanceKey(section)}
+                tractate={props.tractate}
+                page={props.page}
+              />
+            </div>
+          )}
+        </Show>
         {/* keyed: re-mount ArgumentMoveCard per selected statement so its synthesis
             + Q&A (which capture the move at setup) update when the selection changes. */}
         <Show keyed when={selectedMove()}>
           {(m) => (
             <div
+              data-overview-detail="move"
               ref={(el) => scrollDetailIntoView(el)}
               style={{
                 'margin-top': '0.5rem',
@@ -3391,7 +3450,7 @@ export function instanceKeyForContent(
     // Matches the old ArgumentBody synthesis instanceKey byte-for-byte so the
     // run cache stays warm across this conversion.
     case 'argument':
-      return `${content.section.startSegIdx}-${content.section.endSegIdx}-${content.section.title}`;
+      return argumentInstanceKey(content.section);
     case 'argument-overview':
       return `${tractate}/${page}/overview`;
     // Whole-daf essay/background cards — match the old *Body instanceKeys.
