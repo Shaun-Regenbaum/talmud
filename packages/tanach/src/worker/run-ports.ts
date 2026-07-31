@@ -50,6 +50,15 @@ import type { StoredArtifact } from '@corpus/core/store/envelope';
 import type { ArtifactAddress, KeyTemplate, ProducerKeyInfo } from '@corpus/core/store/key-schemes';
 import { templateKeyScheme } from '@corpus/core/store/key-schemes';
 import type { UsageEntry } from '@corpus/core/telemetry/types';
+import {
+  formatParshaRange,
+  normalizeParshaComposition,
+  type ParshaRange,
+  type ParshaSectionKind,
+  parseParshaRef,
+  pointInParsha,
+  sectionInParsha,
+} from '../lib/parsha.ts';
 import type { TanachEnrichmentDef, TanachMarkDef } from './producers/defs.ts';
 import { enrichRunDefOf, markRunDefOf } from './producers/defs.ts';
 import type { EventSection } from './producers/events.ts';
@@ -105,6 +114,8 @@ const KEY_TEMPLATES: Record<string, KeyTemplate> = {
   // Chapter-scoped: the key ignores the instance (there's one overview per
   // chapter), so enrichmentAddress('overview', …) carries no verse/range.
   overview: { key: (a: TanachAddress) => `overview:v1:${a.unit?.work}:${a.unit?.unit}` },
+  'parsha-overview': { key: (a: TanachAddress) => `parsha-overview:v1:${a.instanceId}` },
+  'parsha-thread': { key: (a: TanachAddress) => `parsha-thread:v1:${a.instanceId}` },
   // Chapter-scoped like overview (one geography per chapter; instance ignored).
   // v2: the output now carries per-place verse numbers (for click-to-highlight).
   geography: { key: (a: TanachAddress) => `geography:v2:${a.unit?.work}:${a.unit?.unit}` },
@@ -154,11 +165,27 @@ export function enrichmentAddress(
     const [start, end] = instanceId.split('-');
     return { unit, instanceId, start, end };
   }
+  // Parsha pieces key on their explicit ref/range instance rather than chapter.
+  if (id === 'parsha-overview' || id === 'parsha-thread') {
+    return { unit, instanceId };
+  }
   // Chapter-scoped (overview / geography / tidbit): key uses only {work}:{unit}.
   if (id === 'overview' || id === 'geography' || id === 'tidbit') {
     return { unit, instanceId };
   }
   return { unit, instanceId, verse: instanceId };
+}
+
+/** Guard an index-keyed parsha thread against a regenerated overview moving
+ *  that index to a different anchored passage. */
+export function enrichmentSectionRange(id: string, markInput: unknown): string | null {
+  if (id !== 'parsha-thread' || !markInput || typeof markInput !== 'object') return null;
+  const input = markInput as Record<string, unknown>;
+  const parts = [input.startChapter, input.startVerse, input.endChapter, input.endVerse].map(
+    Number,
+  );
+  if (!parts.every((part) => Number.isInteger(part) && part >= 1)) return null;
+  return `${parts[0]}:${parts[1]}-${parts[2]}:${parts[3]}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -249,6 +276,163 @@ const chapterVersesResolver: SourceResolver<TanachRunCtx> = async ({
   out.vars.max_verse = verses.length;
   out.vars.verses_text = versesText;
   recordSource(out, 'chapter-verses', versesText);
+};
+
+interface NumberedVerse {
+  chapter: number;
+  verse: number;
+  text: string;
+}
+
+function plainText(value: string): string {
+  return value
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function versesInRange(range: ParshaRange): Promise<NumberedVerse[]> {
+  const chapters = await Promise.all(
+    Array.from({ length: range.endChapter - range.startChapter + 1 }, (_, index) => {
+      const chapter = range.startChapter + index;
+      return fetchChapterText(range.book, String(chapter)).then((text) => ({ chapter, text }));
+    }),
+  );
+  const verses: NumberedVerse[] = [];
+  for (const { chapter, text } of chapters) {
+    const en = asVerses(text.text);
+    const he = asVerses(text.he);
+    const first = chapter === range.startChapter ? range.startVerse : 1;
+    const last = chapter === range.endChapter ? range.endVerse : Math.max(en.length, he.length);
+    for (let verse = first; verse <= last; verse++) {
+      const body = plainText(en[verse - 1] || he[verse - 1] || '');
+      if (body) verses.push({ chapter, verse, text: body });
+    }
+  }
+  return verses;
+}
+
+const parshaVersesResolver: SourceResolver<TanachRunCtx> = async ({ out, markInput }) => {
+  const input = markInput as { parshaRef?: string; parshaName?: string };
+  const range = input.parshaRef ? parseParshaRef(input.parshaRef) : null;
+  if (!range) throw new TanachSourceError(404, 'Unresolvable parsha range');
+  const verses = await versesInRange(range);
+  if (!verses.length) throw new TanachSourceError(404, 'No parsha text found');
+  const versesText = verses.map((v) => `${v.chapter}:${v.verse}. ${v.text}`).join('\n');
+  out.vars.parsha_name = input.parshaName ?? '';
+  out.vars.parsha_ref = input.parshaRef ?? '';
+  out.vars.verses_text = versesText;
+  out.vars.chapter_lengths = JSON.stringify(
+    Object.fromEntries(
+      [...new Set(verses.map((verse) => verse.chapter))].map((chapter) => [
+        chapter,
+        Math.max(
+          ...verses.filter((verse) => verse.chapter === chapter).map((verse) => verse.verse),
+        ),
+      ]),
+    ),
+  );
+  recordSource(out, 'parsha-verses', versesText);
+};
+
+interface ThreadSource {
+  ref: string;
+  label: string;
+  text: string;
+}
+
+const parshaThreadResolver: SourceResolver<TanachRunCtx> = async ({ out, markInput }) => {
+  const input = markInput as {
+    parshaName?: string;
+    parshaRef?: string;
+    titleEn?: string;
+    startChapter?: number;
+    startVerse?: number;
+    endChapter?: number;
+    endVerse?: number;
+  };
+  const parsha = input.parshaRef ? parseParshaRef(input.parshaRef) : null;
+  const section = {
+    startChapter: Number(input.startChapter),
+    startVerse: Number(input.startVerse),
+    endChapter: Number(input.endChapter),
+    endVerse: Number(input.endVerse),
+  };
+  if (!parsha || !sectionInParsha(parsha, section)) {
+    throw new TanachSourceError(404, 'Unresolvable parsha section');
+  }
+  const sectionRange: ParshaRange = { book: parsha.book, ...section };
+  const sectionRef = formatParshaRange(parsha.book, sectionRange);
+  const sefariaSectionRef = sectionRef.replace('–', '-');
+  const verses = await versesInRange(sectionRange);
+  if (!verses.length) throw new TanachSourceError(404, 'No section text found');
+  const versesText = verses.map((v) => `${v.chapter}:${v.verse}. ${v.text}`).join('\n');
+
+  const commentaryAnchors = [
+    verses[0],
+    verses[Math.floor(verses.length / 2)],
+    verses.at(-1),
+  ].filter(
+    (verse, index, all): verse is NumberedVerse =>
+      !!verse &&
+      all.findIndex(
+        (candidate) => candidate?.chapter === verse.chapter && candidate.verse === verse.verse,
+      ) === index,
+  );
+  const [commentaryGroups, talmud, midrash] = await Promise.all([
+    Promise.all(
+      commentaryAnchors.map(async (anchor) => ({
+        anchor,
+        commentaries: await fetchVerseCommentaries(
+          parsha.book,
+          String(anchor.chapter),
+          String(anchor.verse),
+        ).catch(() => []),
+      })),
+    ),
+    fetchPassages(sefariaSectionRef, 'Talmud', 4, true).catch(() => ({ count: 0, passages: [] })),
+    fetchPassages(sefariaSectionRef, 'Midrash', 4).catch(() => ({ count: 0, passages: [] })),
+  ]);
+  const sources: ThreadSource[] = [
+    ...commentaryGroups.flatMap(({ anchor, commentaries }) =>
+      commentaries.slice(0, 2).map((commentary) => ({
+        ref: `${commentary.en} on ${parsha.book} ${anchor.chapter}:${anchor.verse}`,
+        label: `${commentary.en} · ${anchor.chapter}:${anchor.verse}`,
+        text: plainText(
+          (commentary.enText.length ? commentary.enText : commentary.he).join(' '),
+        ).slice(0, 900),
+      })),
+    ),
+    ...talmud.passages.map((passage) => ({
+      ref: passage.ref,
+      label: passage.ref,
+      text: plainText(passage.en || passage.he).slice(0, 900),
+    })),
+    ...midrash.passages.map((passage) => ({
+      ref: passage.ref,
+      label: passage.ref,
+      text: plainText(passage.en || passage.he).slice(0, 900),
+    })),
+  ].filter((source) => source.ref && source.text);
+  const unique = [...new Map(sources.map((source) => [source.ref, source])).values()].slice(0, 10);
+  const sourcesText = unique.length
+    ? unique
+        .map(
+          (source, index) =>
+            `[S${index + 1}] REF: ${source.ref}\nSOURCE: ${source.label}\n${source.text}`,
+        )
+        .join('\n\n')
+    : 'No linked traditional sources were available. Build the idea from the Torah passage alone.';
+
+  out.vars.parsha_name = input.parshaName ?? '';
+  out.vars.parsha_ref = input.parshaRef ?? '';
+  out.vars.section_title = input.titleEn ?? '';
+  out.vars.section_ref = sectionRef;
+  out.vars.verses_text = versesText;
+  out.vars.sources_text = sourcesText;
+  out.vars.source_refs = JSON.stringify(unique.map((source) => source.ref));
+  recordSource(out, 'parsha-thread-material', `${versesText}\n\n${sourcesText}`);
 };
 
 /** The [start..end] verse slice + header for the note prompt. */
@@ -360,6 +544,8 @@ const midrashPassagesResolver: SourceResolver<TanachRunCtx> = async ({
 const RESOLVE_PORTS: ResolveInputsPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkDef> = {
   sources: {
     'chapter-verses': chapterVersesResolver,
+    'parsha-verses': parshaVersesResolver,
+    'parsha-thread-material': parshaThreadResolver,
     'section-verses': sectionVersesResolver,
     'verse-text': verseTextResolver,
     commentaries: commentariesResolver,
@@ -372,6 +558,8 @@ const RESOLVE_PORTS: ResolveInputsPorts<TanachRunCtx, TanachEnrichmentDef, Tanac
   loadEnrichmentDef: async (_rc, id) =>
     id === 'note' ||
     id === 'overview' ||
+    id === 'parsha-overview' ||
+    id === 'parsha-thread' ||
     id === 'geography' ||
     id === 'tidbit' ||
     id === 'synthesis' ||
@@ -432,8 +620,7 @@ const RUN_PORTS: RunProducerPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkD
         temperature: def.temperature,
       },
     }),
-  // No title-keyed section enrichments in tanach — keys are verse/range-exact.
-  sectionRange: () => null,
+  sectionRange: (def, markInput) => enrichmentSectionRange(def.id, markInput),
   resolveInputs: (rc, dependencies, book, chapter, markInput, bypassCache, parentChain) =>
     resolveInputs(
       RESOLVE_PORTS,
@@ -480,9 +667,122 @@ const RUN_PORTS: RunProducerPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkD
       tag: def.tag,
     });
   },
-  // No check layer in tanach (no def declares passes, so core never calls
-  // these — kept honest as no-ops rather than stubs that pretend to check).
-  runChecks: async (_rc, a) => ({ parsed: a.parsed, issues: [] }),
+  runChecks: async (_rc, a) => {
+    if (a.def.id === 'parsha-overview') {
+      const range = parseParshaRef(String(a.inputs.vars.parsha_ref ?? ''));
+      const parsed = (a.parsed ?? {}) as Record<string, unknown>;
+      if (!range) {
+        return { parsed, issues: [{ severity: 'hard', message: 'Invalid parsha range' }] };
+      }
+      let chapterLengths: Record<string, number> = {};
+      try {
+        chapterLengths = JSON.parse(String(a.inputs.vars.chapter_lengths ?? '{}')) as Record<
+          string,
+          number
+        >;
+      } catch {
+        // Missing internal source metadata rejects all generated anchors below.
+      }
+      const verseExists = (chapter: number, verse: number) => {
+        const lastVerse = Number(chapterLengths[String(chapter)] ?? 0);
+        return Number.isInteger(verse) && verse >= 1 && verse <= lastVerse;
+      };
+      const flow = (Array.isArray(parsed.flow) ? parsed.flow : [])
+        .filter((item): item is Record<string, unknown> => !!item && typeof item === 'object')
+        .map((item) => ({
+          startChapter: Number(item.startChapter),
+          startVerse: Number(item.startVerse),
+          endChapter: Number(item.endChapter),
+          endVerse: Number(item.endVerse),
+          kind: String(item.kind) as ParshaSectionKind,
+          titleEn: String(item.titleEn ?? '').trim(),
+          titleHe: String(item.titleHe ?? '').trim(),
+          summaryEn: String(item.summaryEn ?? '').trim(),
+          summaryHe: String(item.summaryHe ?? '').trim(),
+        }))
+        .filter(
+          (item) =>
+            ['narrative', 'law', 'discourse'].includes(item.kind) &&
+            item.titleEn &&
+            verseExists(item.startChapter, item.startVerse) &&
+            verseExists(item.endChapter, item.endVerse) &&
+            sectionInParsha(range, item),
+        )
+        .sort(
+          (left, right) =>
+            left.startChapter - right.startChapter || left.startVerse - right.startVerse,
+        )
+        .slice(0, 9);
+      const landmarks = (Array.isArray(parsed.landmarks) ? parsed.landmarks : [])
+        .filter((item): item is Record<string, unknown> => !!item && typeof item === 'object')
+        .map((item) => ({
+          chapter: Number(item.chapter),
+          verse: Number(item.verse),
+          labelEn: String(item.labelEn ?? '').trim(),
+          labelHe: String(item.labelHe ?? '').trim(),
+        }))
+        .filter(
+          (item) =>
+            item.labelEn && pointInParsha(range, item) && verseExists(item.chapter, item.verse),
+        )
+        .slice(0, 6);
+      const normalized = {
+        ...parsed,
+        titleEn: String(parsed.titleEn ?? '').trim(),
+        titleHe: String(parsed.titleHe ?? '').trim(),
+        overviewEn: String(parsed.overviewEn ?? '').trim(),
+        overviewHe: String(parsed.overviewHe ?? '').trim(),
+        composition: normalizeParshaComposition(parsed.composition),
+        flow,
+        landmarks,
+      };
+      const issues =
+        flow.length >= 3
+          ? []
+          : [{ severity: 'hard', message: 'Parsha flow has fewer than three anchored units' }];
+      return { parsed: normalized, issues };
+    }
+    if (a.def.id === 'parsha-thread') {
+      const parsed = (a.parsed ?? {}) as Record<string, unknown>;
+      let allowed = new Set<string>();
+      try {
+        allowed = new Set(JSON.parse(String(a.inputs.vars.source_refs ?? '[]')) as string[]);
+      } catch {
+        // Bad internal source metadata means no citations survive.
+      }
+      const sources = (Array.isArray(parsed.sources) ? parsed.sources : [])
+        .filter(
+          (source): source is Record<string, unknown> => !!source && typeof source === 'object',
+        )
+        .map((source) => ({
+          ref: String(source.ref ?? '').trim(),
+          labelEn: String(source.labelEn ?? '').trim(),
+          labelHe: String(source.labelHe ?? '').trim(),
+          contributionEn: String(source.contributionEn ?? '').trim(),
+          contributionHe: String(source.contributionHe ?? '').trim(),
+        }))
+        .filter((source) => allowed.has(source.ref))
+        .slice(0, 4);
+      const normalized = {
+        ...parsed,
+        titleEn: String(parsed.titleEn ?? '').trim(),
+        titleHe: String(parsed.titleHe ?? '').trim(),
+        questionEn: String(parsed.questionEn ?? '').trim(),
+        questionHe: String(parsed.questionHe ?? '').trim(),
+        insightEn: String(parsed.insightEn ?? '').trim(),
+        insightHe: String(parsed.insightHe ?? '').trim(),
+        dvarEn: String(parsed.dvarEn ?? '').trim(),
+        dvarHe: String(parsed.dvarHe ?? '').trim(),
+        sources,
+      };
+      const issues =
+        normalized.dvarEn || normalized.dvarHe
+          ? []
+          : [{ severity: 'hard', message: 'Parsha thread has no dvar Torah' }];
+      return { parsed: normalized, issues };
+    }
+    return { parsed: a.parsed, issues: [] };
+  },
   lintGate: async () => true,
   costStamp: (model, usage, lang, cacheVersion) => {
     const u = usage as LLMUsage | null | undefined;
@@ -569,12 +869,31 @@ const RUN_PORTS: RunProducerPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkD
     // gate their emptiness upstream (source resolvers raise 404 when there's
     // nothing to synthesize).
     enrichmentPostParse: (_rc, a) => {
-      // overview + tidbit share the title/en/he shape; reject an empty-but-valid
+      // Overview-like producers reject an empty-but-valid
       // generation so it isn't pinned (truncated JSON parses to blank fields).
-      if ((a.def.id !== 'overview' && a.def.id !== 'tidbit') || a.parse_error || !a.parsed) return;
-      const p = a.parsed as { titleEn?: string; en?: string; he?: string };
+      if (
+        !['overview', 'tidbit', 'parsha-overview', 'parsha-thread'].includes(a.def.id) ||
+        a.parse_error ||
+        !a.parsed
+      )
+        return;
+      const p = a.parsed as {
+        titleEn?: string;
+        en?: string;
+        he?: string;
+        overviewEn?: string;
+        overviewHe?: string;
+        dvarEn?: string;
+        dvarHe?: string;
+      };
       const empty =
-        !String(p.titleEn ?? '').trim() && !String(p.en ?? '').trim() && !String(p.he ?? '').trim();
+        !String(p.titleEn ?? '').trim() &&
+        !String(p.en ?? '').trim() &&
+        !String(p.he ?? '').trim() &&
+        !String(p.overviewEn ?? '').trim() &&
+        !String(p.overviewHe ?? '').trim() &&
+        !String(p.dvarEn ?? '').trim() &&
+        !String(p.dvarHe ?? '').trim();
       if (empty) throw new Error(`${a.def.id}: empty generation (not caching)`);
     },
   },
@@ -598,7 +917,15 @@ export async function runTanachEvents(
 
 export async function runTanachEnrichment(
   rc: TanachRunCtx,
-  id: 'note' | 'overview' | 'geography' | 'tidbit' | 'synthesis' | 'midrash-synthesis',
+  id:
+    | 'note'
+    | 'overview'
+    | 'parsha-overview'
+    | 'parsha-thread'
+    | 'geography'
+    | 'tidbit'
+    | 'synthesis'
+    | 'midrash-synthesis',
   book: string,
   chapter: string,
   /** The instance the enrichment is FOR. Its `id` field is the legacy key

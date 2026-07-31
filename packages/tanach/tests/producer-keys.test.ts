@@ -17,7 +17,11 @@ import { instanceIdOf } from '@corpus/core/cache/keys';
 import type { ProducerKeyInfo } from '@corpus/core/store/key-schemes';
 import { describe, expect, it } from 'vitest';
 import { enrichRunDefOf, markRunDefOf } from '../src/worker/producers/defs';
-import { enrichmentAddress, TANACH_KEY_SCHEME } from '../src/worker/run-ports';
+import {
+  enrichmentAddress,
+  enrichmentSectionRange,
+  TANACH_KEY_SCHEME,
+} from '../src/worker/run-ports';
 
 function info(
   def: { id: string; cache_version: string },
@@ -64,6 +68,34 @@ describe('key byte-parity with the legacy literals', () => {
     expect(
       TANACH_KEY_SCHEME.key(def, enrichmentAddress('midrash-synthesis', '2', 'Exodus', '3')),
     ).toBe('midrash-synth:v1:Exodus:3:2');
+  });
+
+  it('parsha pieces — keyed by the weekly range and selected flow index', async () => {
+    const overviewDef = info(enrichRunDefOf('parsha-overview'), 'enrich');
+    const overviewId = await instanceIdOf({ id: 'Deuteronomy 7:12-11:25' });
+    expect(
+      TANACH_KEY_SCHEME.key(
+        overviewDef,
+        enrichmentAddress('parsha-overview', overviewId, 'Deuteronomy', '7'),
+      ),
+    ).toBe('parsha-overview:v1:deuteronomy_7_12-11_25');
+
+    const threadDef = info(enrichRunDefOf('parsha-thread'), 'enrich');
+    const threadId = await instanceIdOf({ id: 'Deuteronomy 7:12-11:25#4' });
+    expect(
+      TANACH_KEY_SCHEME.key(
+        threadDef,
+        enrichmentAddress('parsha-thread', threadId, 'Deuteronomy', '7'),
+      ),
+    ).toBe('parsha-thread:v1:deuteronomy_7_12-11_25_4');
+    expect(
+      enrichmentSectionRange('parsha-thread', {
+        startChapter: 10,
+        startVerse: 12,
+        endChapter: 10,
+        endVerse: 22,
+      }),
+    ).toBe('10:12-10:22');
   });
 
   it('previousKey is null (no SWR decrement in the literal templates)', () => {

@@ -461,6 +461,331 @@ body {
   font-family: var(--font-hebrew);
 }
 
+/* Whole-parsha drawer: still the same reader panel, with a restrained map
+   vocabulary added inside it (composition strip, anchored flow, landmarks). */
+.parsha-study {
+  padding: 2px 0 24px;
+}
+.parsha-ref {
+  margin: 0 0 7px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.parsha-section {
+  padding: 18px 0 2px;
+  margin-top: 17px;
+  border-top: 1px solid var(--line);
+}
+.parsha-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-family: var(--font-ui);
+}
+.parsha-section-head h4 {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+  color: var(--ink);
+}
+.parsha-section-head span {
+  flex: none;
+  font-size: 10px;
+  color: var(--muted);
+}
+.ui-drawer[dir="rtl"] .parsha-section-head h4 {
+  font-family: var(--font-hebrew);
+  font-size: 14px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.parsha-composition {
+  display: flex;
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  background: var(--surface-sunk);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.parsha-composition > span {
+  display: block;
+  min-width: 0;
+}
+.parsha-composition-narrative,
+.parsha-dot-narrative,
+.parsha-flow-node-narrative {
+  background: var(--accent);
+}
+.parsha-composition-law,
+.parsha-dot-law,
+.parsha-flow-node-law {
+  background: #3f6d65;
+}
+.parsha-composition-discourse,
+.parsha-dot-discourse,
+.parsha-flow-node-discourse {
+  background: #bd8750;
+}
+.parsha-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 13px;
+  margin-top: 9px;
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  color: var(--muted);
+}
+.parsha-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.parsha-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.parsha-flow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.parsha-flow li {
+  position: relative;
+  padding: 0 0 10px 18px;
+}
+.parsha-flow li:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: 13px;
+  bottom: -2px;
+  left: 5px;
+  width: 1px;
+  background: var(--line);
+}
+.ui-drawer[dir="rtl"] .parsha-flow li {
+  padding: 0 18px 10px 0;
+}
+.ui-drawer[dir="rtl"] .parsha-flow li:not(:last-child)::before {
+  right: 5px;
+  left: auto;
+}
+.parsha-flow-card {
+  position: relative;
+  display: flex;
+  width: 100%;
+  gap: 11px;
+  padding: 8px 9px 9px;
+  text-align: left;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.ui-drawer[dir="rtl"] .parsha-flow-card {
+  text-align: right;
+}
+.parsha-flow-card:hover,
+.parsha-flow-card.active {
+  background: var(--surface-sunk);
+  border-color: var(--line);
+}
+.parsha-flow-node {
+  position: absolute;
+  top: 13px;
+  left: -16px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  box-sizing: content-box;
+}
+.ui-drawer[dir="rtl"] .parsha-flow-node {
+  right: -16px;
+  left: auto;
+}
+.parsha-flow-copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+}
+.parsha-flow-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 2px;
+  font-family: var(--font-ui);
+  font-size: 9.5px;
+  color: var(--accent);
+}
+.parsha-flow-meta b {
+  font-weight: 600;
+}
+.parsha-flow-meta i {
+  font-style: normal;
+  color: var(--muted);
+}
+.parsha-flow-copy strong {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.parsha-flow-copy small {
+  margin-top: 3px;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.ui-drawer[dir="rtl"] .parsha-flow-copy strong,
+.ui-drawer[dir="rtl"] .parsha-flow-copy small {
+  font-family: var(--font-hebrew);
+}
+.parsha-flow-actions {
+  display: flex;
+  gap: 7px;
+  padding: 3px 8px 7px;
+}
+.parsha-flow-actions button,
+.parsha-copy {
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  cursor: pointer;
+}
+.parsha-flow-actions button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+.parsha-landmarks {
+  display: grid;
+  gap: 6px;
+}
+.parsha-landmarks button {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  font-family: var(--font-serif);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.ui-drawer[dir="rtl"] .parsha-landmarks button {
+  text-align: right;
+  font-family: var(--font-hebrew);
+}
+.parsha-landmarks button:hover {
+  border-color: var(--accent);
+}
+.parsha-landmarks button span {
+  flex: none;
+  font-family: var(--font-ui);
+  font-size: 9.5px;
+  color: var(--accent);
+}
+.parsha-thread {
+  margin-top: 22px;
+  padding: 17px 15px 18px;
+  background: var(--surface-sunk);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.parsha-thread-kicker {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.parsha-thread > h4 {
+  margin: 0 0 14px;
+  font-size: 18px;
+  line-height: 1.3;
+}
+.parsha-thread-block {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.parsha-thread-block > span,
+.parsha-thread-sources > span {
+  display: block;
+  margin-bottom: 5px;
+  font-family: var(--font-ui);
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+  color: var(--accent);
+}
+.parsha-thread-block .ui-prose {
+  margin: 0;
+  font-size: 13.5px;
+}
+.parsha-thread-block.question .ui-prose {
+  font-weight: 600;
+}
+.parsha-thread-sources {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.parsha-thread-sources a {
+  display: block;
+  padding: 7px 0;
+  color: var(--ink);
+  text-decoration: none;
+}
+.parsha-thread-sources a + a {
+  border-top: 1px dotted var(--line);
+}
+.parsha-thread-sources a:hover b {
+  color: var(--accent);
+}
+.parsha-thread-sources b,
+.parsha-thread-sources small {
+  display: block;
+}
+.parsha-thread-sources b {
+  font-family: var(--font-ui);
+  font-size: 11px;
+}
+.parsha-thread-sources small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+.parsha-dvar-copy {
+  white-space: pre-line;
+}
+.parsha-copy {
+  margin-top: 10px;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* tidbit footer: a small flavor tag + how-editorial-the-reading note */
 .tidbit-meta {
   display: flex;

@@ -4,7 +4,7 @@
  * that a queue-less, registry-less app's producers fit the SAME shape the
  * talmud registry projects into.
  *
- * Five producers:
+ * Producer recipes for chapter, verse, and weekly-parsha study surfaces:
  *   events            — mark; discovers verse anchors on the tanach spine
  *   note              — enrichment; inherits its anchor from an events section
  *   synthesis         — enrichment; per-verse (commentary overview)
@@ -36,6 +36,14 @@ import {
 } from './midrash.ts';
 import { NOTE_SCHEMA, NOTE_SYSTEM, NOTE_USER_TEMPLATE } from './note.ts';
 import { OVERVIEW_SCHEMA, OVERVIEW_SYSTEM, OVERVIEW_USER_TEMPLATE } from './overview.ts';
+import {
+  PARSHA_OVERVIEW_SCHEMA,
+  PARSHA_OVERVIEW_SYSTEM,
+  PARSHA_OVERVIEW_USER_TEMPLATE,
+  PARSHA_THREAD_SCHEMA,
+  PARSHA_THREAD_SYSTEM,
+  PARSHA_THREAD_USER_TEMPLATE,
+} from './parsha.ts';
 import { SYNTHESIS_SCHEMA, SYNTHESIS_SYSTEM, SYNTHESIS_USER_TEMPLATE } from './synthesis.ts';
 import { TIDBIT_SCHEMA, TIDBIT_SYSTEM, TIDBIT_USER_TEMPLATE } from './tidbit.ts';
 import { TRANSLATE_SCHEMA, TRANSLATE_SYSTEM, TRANSLATE_USER_TEMPLATE } from './translate.ts';
@@ -44,6 +52,8 @@ export type TanachProducerId =
   | 'events'
   | 'note'
   | 'overview'
+  | 'parsha-overview'
+  | 'parsha-thread'
   | 'geography'
   | 'tidbit'
   | 'synthesis'
@@ -96,6 +106,26 @@ const overviewExtractor: TanachLLMExtractor = {
   max_tokens: 1400,
   temperature: 0.3,
   tag: 'tanach:overview',
+};
+
+const parshaOverviewExtractor: TanachLLMExtractor = {
+  kind: 'llm',
+  system_prompt: PARSHA_OVERVIEW_SYSTEM,
+  user_prompt_template: PARSHA_OVERVIEW_USER_TEMPLATE,
+  output_schema: PARSHA_OVERVIEW_SCHEMA,
+  max_tokens: 5200,
+  temperature: 0.25,
+  tag: 'tanach:parsha-overview',
+};
+
+const parshaThreadExtractor: TanachLLMExtractor = {
+  kind: 'llm',
+  system_prompt: PARSHA_THREAD_SYSTEM,
+  user_prompt_template: PARSHA_THREAD_USER_TEMPLATE,
+  output_schema: PARSHA_THREAD_SCHEMA,
+  max_tokens: 4200,
+  temperature: 0.35,
+  tag: 'tanach:parsha-thread',
 };
 
 const geographyExtractor: TanachLLMExtractor = {
@@ -200,6 +230,36 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     scope: 'local',
     key_shape: 'enrich', // nominal — template owns overview:v1:{book}:{chapter}
     cacheVersion: '1',
+    source: 'code',
+  },
+  'parsha-overview': {
+    id: 'parsha-overview',
+    label: 'Parsha overview',
+    description: 'A bilingual whole-parsha synopsis, composition map, flow, and landmarks',
+    kind: 'enrichment',
+    inputs: [{ source: 'parsha-verses' }],
+    recipe: { extractor: parshaOverviewExtractor },
+    anchoring: { behavior: 'aggregates', precision: 'division', spine: 'tanach' },
+    cardinality: 'one',
+    scope: 'local',
+    key_shape: 'enrich',
+    cacheVersion: '1',
+    passes: ['parsha-overview-shape'],
+    source: 'code',
+  },
+  'parsha-thread': {
+    id: 'parsha-thread',
+    label: 'Parsha study thread',
+    description: 'A grounded deeper insight and ready-to-share dvar Torah for one parsha unit',
+    kind: 'enrichment',
+    inputs: [{ source: 'parsha-thread-material' }],
+    recipe: { extractor: parshaThreadExtractor },
+    anchoring: { behavior: 'inherits', precision: 'segment', spine: 'tanach' },
+    cardinality: 'per-input',
+    scope: 'local',
+    key_shape: 'enrich',
+    cacheVersion: '1',
+    passes: ['parsha-thread-sources'],
     source: 'code',
   },
   geography: {
@@ -349,7 +409,15 @@ export function markRunDefOf(id: 'events'): TanachMarkDef {
 }
 
 export function enrichRunDefOf(
-  id: 'note' | 'overview' | 'geography' | 'tidbit' | 'synthesis' | 'midrash-synthesis',
+  id:
+    | 'note'
+    | 'overview'
+    | 'parsha-overview'
+    | 'parsha-thread'
+    | 'geography'
+    | 'tidbit'
+    | 'synthesis'
+    | 'midrash-synthesis',
 ): TanachEnrichmentDef {
   const p = TANACH_PRODUCERS[id];
   const ext = p.recipe.extractor as TanachLLMExtractor;
@@ -368,5 +436,6 @@ export function enrichRunDefOf(
     max_tokens: ext.max_tokens,
     temperature: ext.temperature,
     tag: ext.tag,
+    passes: p.passes,
   };
 }

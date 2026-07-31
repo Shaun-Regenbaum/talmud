@@ -19,7 +19,8 @@
  * Bump CURSOR_KEY to force a re-warm (e.g. a producer version bump).
  */
 
-import { isBook } from '../lib/books.ts';
+import type { WeeklyParsha } from '../lib/parsha.ts';
+import { currentParsha } from './parsha-calendar.ts';
 import {
   runTanachEnrichment,
   runTanachEvents,
@@ -28,9 +29,8 @@ import {
 } from './run-ports.ts';
 import { computeSourcesIndex, readSourcesIndex } from './sources-index.ts';
 
-// v4: tidbit prompt bumped to v2 — reset the done-set so the cron re-warms the
-// parsha's tidbits (regenerated under the new recipe; everything else cache-hits).
-const CURSOR_KEY = 'tanach-warm-cursor:v4';
+// v5: warm the whole-parsha overview before the chapter-level reader pieces.
+const CURSOR_KEY = 'tanach-warm-cursor:v5';
 /** Chapter-level enrichments that power the reader's pills + section labels. */
 const CHAPTER_PRODUCERS = ['overview', 'geography', 'tidbit', 'events'] as const;
 /** Entries warmed per tick — small so one invocation stays well within the
@@ -38,12 +38,14 @@ const CHAPTER_PRODUCERS = ['overview', 'geography', 'tidbit', 'events'] as const
 const BATCH = 8;
 
 type WarmEntry =
+  | { kind: 'parsha'; producer: 'parsha-overview' }
   | { kind: 'chapter'; producer: (typeof CHAPTER_PRODUCERS)[number]; chapter: number }
   | { kind: 'srcindex'; chapter: number }
   | { kind: 'verse'; producer: 'synthesis' | 'midrash-synthesis'; chapter: number; verse: number };
 
 /** Stable id for the completed-set cursor. */
 function entryId(e: WarmEntry): string {
+  if (e.kind === 'parsha') return `p:${e.producer}`;
   if (e.kind === 'chapter') return `c:${e.chapter}:${e.producer}`;
   if (e.kind === 'srcindex') return `i:${e.chapter}`;
   return `v:${e.chapter}:${e.producer}:${e.verse}`;
@@ -54,35 +56,6 @@ interface WarmCursor {
   ref: string;
   /** Entry ids already warmed (cache-respecting, so this only grows). */
   done: string[];
-}
-
-interface ParshaRange {
-  book: string;
-  startCh: number;
-  endCh: number;
-  ref: string;
-}
-
-/** This week's parsha as a chapter range, from Sefaria's calendar (diaspora).
- *  The ref looks like "Numbers 19:1-25:9" (a double parsha) or "Genesis 1:1-6:8";
- *  we take the book + the start..end chapters. null when unresolvable. */
-async function currentParsha(): Promise<ParshaRange | null> {
-  let cal: {
-    calendar_items?: Array<{ title?: { en?: string }; ref?: string }>;
-  };
-  try {
-    const r = await fetch('https://www.sefaria.org/api/calendars?diaspora=1');
-    cal = (await r.json()) as typeof cal;
-  } catch {
-    return null;
-  }
-  const p = (cal.calendar_items ?? []).find((it) => it?.title?.en === 'Parashat Hashavua');
-  const m = p?.ref?.match(/^(.+?)\s+(\d+):\d+(?:\s*-\s*(\d+):\d+)?/);
-  if (!p?.ref || !m || !isBook(m[1])) return null;
-  const startCh = Number(m[2]);
-  const endCh = m[3] ? Number(m[3]) : startCh;
-  if (!Number.isFinite(startCh) || !Number.isFinite(endCh) || endCh < startCh) return null;
-  return { book: m[1], startCh, endCh, ref: p.ref };
 }
 
 async function readCursor(cache: KVNamespace): Promise<WarmCursor> {
@@ -99,11 +72,11 @@ async function readCursor(cache: KVNamespace): Promise<WarmCursor> {
  *  then the sources indexes, then the per-verse deep content gated by whichever
  *  indexes are already cached (an uncached chapter contributes a `srcindex`
  *  entry instead; its verses join the list once that index warms). */
-async function buildWorkList(cache: KVNamespace, parsha: ParshaRange): Promise<WarmEntry[]> {
-  const pills: WarmEntry[] = [];
+async function buildWorkList(cache: KVNamespace, parsha: WeeklyParsha): Promise<WarmEntry[]> {
+  const pills: WarmEntry[] = [{ kind: 'parsha', producer: 'parsha-overview' }];
   const indexes: WarmEntry[] = [];
   const verses: WarmEntry[] = [];
-  for (let ch = parsha.startCh; ch <= parsha.endCh; ch++) {
+  for (let ch = parsha.startChapter; ch <= parsha.endChapter; ch++) {
     for (const producer of CHAPTER_PRODUCERS)
       pills.push({ kind: 'chapter', producer, chapter: ch });
     const idx = await readSourcesIndex(cache, parsha.book, String(ch));
@@ -124,22 +97,32 @@ async function buildWorkList(cache: KVNamespace, parsha: ParshaRange): Promise<W
 async function warmEntry(
   env: TanachEnv,
   ctx: ExecutionContext,
-  book: string,
+  parsha: WeeklyParsha,
   e: WarmEntry,
 ): Promise<void> {
   try {
+    if (e.kind === 'parsha') {
+      const rc: TanachRunCtx = { env, ctx, ref: parsha.ref };
+      await runTanachEnrichment(rc, e.producer, parsha.book, parsha.ref, {
+        id: parsha.ref,
+        parshaName: parsha.name,
+        parshaRef: parsha.ref,
+      });
+      return;
+    }
     if (e.kind === 'srcindex') {
-      await computeSourcesIndex(env.CACHE, book, String(e.chapter));
+      await computeSourcesIndex(env.CACHE, parsha.book, String(e.chapter));
       return;
     }
     if (e.kind === 'chapter') {
-      const rc: TanachRunCtx = { env, ctx, ref: `${book} ${e.chapter}` };
-      if (e.producer === 'events') await runTanachEvents(rc, book, String(e.chapter));
-      else await runTanachEnrichment(rc, e.producer, book, String(e.chapter), { id: 'perek' });
+      const rc: TanachRunCtx = { env, ctx, ref: `${parsha.book} ${e.chapter}` };
+      if (e.producer === 'events') await runTanachEvents(rc, parsha.book, String(e.chapter));
+      else
+        await runTanachEnrichment(rc, e.producer, parsha.book, String(e.chapter), { id: 'perek' });
       return;
     }
-    const rc: TanachRunCtx = { env, ctx, ref: `${book} ${e.chapter}:${e.verse}` };
-    await runTanachEnrichment(rc, e.producer, book, String(e.chapter), {
+    const rc: TanachRunCtx = { env, ctx, ref: `${parsha.book} ${e.chapter}:${e.verse}` };
+    await runTanachEnrichment(rc, e.producer, parsha.book, String(e.chapter), {
       id: String(e.verse),
       verse: String(e.verse),
     });
@@ -150,7 +133,7 @@ async function warmEntry(
 
 export async function runTanachWarm(env: TanachEnv, ctx: ExecutionContext): Promise<void> {
   if (!env.CACHE) return;
-  const parsha = await currentParsha();
+  const parsha = await currentParsha(env.CACHE, false).catch(() => null);
   if (!parsha) return;
 
   const entries = await buildWorkList(env.CACHE, parsha);
@@ -163,7 +146,7 @@ export async function runTanachWarm(env: TanachEnv, ctx: ExecutionContext): Prom
     if (warmed >= BATCH) break;
     const id = entryId(e);
     if (done.has(id)) continue;
-    await warmEntry(env, ctx, parsha.book, e);
+    await warmEntry(env, ctx, parsha, e);
     done.add(id);
     warmed++;
   }
