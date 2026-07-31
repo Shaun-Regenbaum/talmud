@@ -126,6 +126,8 @@ const CATALOG = {
   'dev.alignmentDebug': { en: 'Alignment debug', he: 'ניפוי יישור' },
   'dev.mcpGuide': { en: 'Connect via MCP', he: 'חיבור דרך MCP' },
   'dev.people': { en: 'People', he: 'חכמים' },
+  'dev.github': { en: 'GitHub', he: 'GitHub' },
+  'dev.tanach': { en: 'Tanach', he: 'תנ״ך' },
 
   // — Argument sidebar —
   'argument.title': { en: 'Argument', he: 'סוגיה' },
