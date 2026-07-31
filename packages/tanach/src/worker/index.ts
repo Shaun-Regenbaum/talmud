@@ -19,8 +19,17 @@ import type { StoredArtifact } from '@corpus/core/store/envelope';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { isBook } from '../lib/books.ts';
+import {
+  formatParshaRange,
+  normalizeParshaComposition,
+  type ParshaFlowSection,
+  type ParshaLandmark,
+  type ParshaThread,
+  type WeeklyParsha,
+} from '../lib/parsha.ts';
 import { lookupPlace } from './gazetteer.ts';
 import { chapterRuns, chapterRunTree } from './inspect.ts';
+import { currentParsha } from './parsha-calendar.ts';
 import type { EventSection } from './producers/events.ts';
 import { translateHebrew } from './producers/translate.ts';
 import type { TanachEnv, TanachRunCtx } from './run-ports.ts';
@@ -336,43 +345,131 @@ app.get('/api/tidbit/:book/:chapter', async (c) => {
 // Returns the parsha name + the book/chapter it starts at, so the reader can
 // jump straight there. Cached ~6h (it only changes on Shabbat).
 app.get('/api/parsha', async (c) => {
-  // The weekly reading desyncs between Israel and the Diaspora for a few weeks a
-  // year (when a yom tov falls on Shabbat outside Israel). Sefaria's calendar
-  // takes diaspora=1 (default) / diaspora=0 (Israel).
   const israel = c.req.query('loc') === 'israel';
-  const cacheKey = `parsha:current:${israel ? 'il' : 'gola'}`;
-  const cached = await c.env.CACHE.get(cacheKey);
-  if (cached) return c.json(JSON.parse(cached));
-
-  let cal: {
-    calendar_items?: Array<{
-      title?: { en?: string };
-      displayValue?: { en?: string; he?: string };
-      ref?: string;
-    }>;
-  };
+  let parsha: WeeklyParsha | null;
   try {
-    const r = await fetch(`https://www.sefaria.org/api/calendars?diaspora=${israel ? 0 : 1}`);
-    cal = (await r.json()) as typeof cal;
+    parsha = await currentParsha(c.env.CACHE, israel, (promise) =>
+      c.executionCtx.waitUntil(promise),
+    );
   } catch (e) {
     return c.json({ error: `Calendar fetch failed: ${(e as Error).message}` }, 502);
   }
-  const parsha = (cal.calendar_items ?? []).find((it) => it?.title?.en === 'Parashat Hashavua');
-  const m = parsha?.ref?.match(/^(.+?)\s+(\d+):/);
-  if (!parsha || !m || !isBook(m[1])) {
-    return c.json({ error: `No addressable parsha (ref: ${parsha?.ref ?? 'none'})` }, 502);
+  if (!parsha) return c.json({ error: 'No addressable parsha' }, 502);
+  return c.json(parsha);
+});
+
+// Whole-parsha orientation: one cached smart note for the current weekly
+// reading, spanning chapter boundaries. The route injects the calendar
+// identity and deterministic display refs around the producer's semantic map.
+app.get('/api/parsha-study', async (c) => {
+  const israel = c.req.query('loc') === 'israel';
+  let parsha: WeeklyParsha | null;
+  try {
+    parsha = await currentParsha(c.env.CACHE, israel, (promise) =>
+      c.executionCtx.waitUntil(promise),
+    );
+  } catch (e) {
+    return c.json({ error: `Calendar fetch failed: ${(e as Error).message}` }, 502);
   }
-  const payload = {
-    name: parsha.displayValue?.en ?? parsha.title?.en ?? 'Parsha',
-    heName: parsha.displayValue?.he ?? '',
-    ref: parsha.ref,
-    book: m[1],
-    chapter: Number(m[2]),
+  if (!parsha) return c.json({ error: 'No addressable parsha' }, 502);
+
+  const rc: TanachRunCtx = { env: c.env, ctx: c.executionCtx, ref: parsha.ref };
+  let artifact: StoredArtifact;
+  try {
+    artifact = await runTanachEnrichment(rc, 'parsha-overview', parsha.book, parsha.ref, {
+      id: parsha.ref,
+      parshaName: parsha.name,
+      parshaRef: parsha.ref,
+    });
+  } catch (e) {
+    return runErrorResponse(c, e);
+  }
+  const parsed = (artifact.parsed ?? {}) as {
+    titleEn?: string;
+    titleHe?: string;
+    overviewEn?: string;
+    overviewHe?: string;
+    composition?: unknown;
+    flow?: Omit<ParshaFlowSection, 'ref'>[];
+    landmarks?: Omit<ParshaLandmark, 'ref'>[];
   };
-  c.executionCtx.waitUntil(
-    c.env.CACHE.put(cacheKey, JSON.stringify(payload), { expirationTtl: 6 * 3600 }),
-  );
-  return c.json(payload);
+  const flow = (parsed.flow ?? []).map((section) => ({
+    ...section,
+    ref: formatParshaRange(parsha.book, section),
+  }));
+  const landmarks = (parsed.landmarks ?? []).map((landmark) => ({
+    ...landmark,
+    ref: `${parsha.book} ${landmark.chapter}:${landmark.verse}`,
+  }));
+  c.header('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
+  return c.json({
+    name: parsha.name,
+    heName: parsha.heName,
+    ref: parsha.ref,
+    book: parsha.book,
+    startChapter: parsha.startChapter,
+    titleEn: String(parsed.titleEn ?? '').trim(),
+    titleHe: String(parsed.titleHe ?? '').trim(),
+    overviewEn: String(parsed.overviewEn ?? '').trim(),
+    overviewHe: String(parsed.overviewHe ?? '').trim(),
+    composition: normalizeParshaComposition(parsed.composition),
+    flow,
+    landmarks,
+  });
+});
+
+// One selected flow unit -> grounded insight + source packet + dvar Torah.
+// The section index resolves through the cached overview, so clients cannot
+// float an unanchored passage into the thread producer.
+app.get('/api/parsha-thread/:section', async (c) => {
+  const rawSection = c.req.param('section');
+  if (!/^\d+$/.test(rawSection)) return c.json({ error: 'Bad parsha section' }, 400);
+  const sectionIndex = Number(rawSection);
+  const israel = c.req.query('loc') === 'israel';
+  let parsha: WeeklyParsha | null;
+  try {
+    parsha = await currentParsha(c.env.CACHE, israel, (promise) =>
+      c.executionCtx.waitUntil(promise),
+    );
+  } catch (e) {
+    return c.json({ error: `Calendar fetch failed: ${(e as Error).message}` }, 502);
+  }
+  if (!parsha) return c.json({ error: 'No addressable parsha' }, 502);
+
+  const rc: TanachRunCtx = { env: c.env, ctx: c.executionCtx, ref: parsha.ref };
+  let overview: StoredArtifact;
+  try {
+    overview = await runTanachEnrichment(rc, 'parsha-overview', parsha.book, parsha.ref, {
+      id: parsha.ref,
+      parshaName: parsha.name,
+      parshaRef: parsha.ref,
+    });
+  } catch (e) {
+    return runErrorResponse(c, e);
+  }
+  const sections =
+    (overview.parsed as { flow?: Omit<ParshaFlowSection, 'ref'>[] } | null)?.flow ?? [];
+  const section = sections[sectionIndex];
+  if (!section) return c.json({ error: 'Parsha section not found' }, 404);
+
+  let thread: StoredArtifact;
+  try {
+    thread = await runTanachEnrichment(rc, 'parsha-thread', parsha.book, parsha.ref, {
+      id: `${parsha.ref}#${sectionIndex}`,
+      parshaName: parsha.name,
+      parshaRef: parsha.ref,
+      ...section,
+    });
+  } catch (e) {
+    return runErrorResponse(c, e);
+  }
+  c.header('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
+  return c.json({
+    parsha: parsha.name,
+    parshaRef: parsha.ref,
+    section: { ...section, ref: formatParshaRange(parsha.book, section) },
+    ...((thread.parsed ?? {}) as ParshaThread),
+  });
 });
 
 // Section note (second producer, composes on events): a short bilingual p'shat

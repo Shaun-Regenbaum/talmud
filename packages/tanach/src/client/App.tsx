@@ -19,6 +19,7 @@ import {
 } from 'solid-js';
 import { BOOKS, SECTIONS, type Section } from '../lib/books.ts';
 import { hebrewNumeral } from '../lib/hebrew.ts';
+import type { ParshaStudy, WeeklyParsha } from '../lib/parsha.ts';
 import {
   KIND_GLYPH,
   MIDRASH_MIN,
@@ -30,6 +31,7 @@ import { ChapterLoadProgress } from './ChapterLoadProgress.tsx';
 import { reportLoad, resetChapterLoad } from './chapterLoad.ts';
 import { Inspector } from './Inspector.tsx';
 import { MikraotGedolot } from './MikraotGedolot.tsx';
+import { ParshaDrawer } from './ParshaDrawer.tsx';
 
 interface Verse {
   n: number;
@@ -152,13 +154,6 @@ interface EventSection {
   en: string;
   he: string;
 }
-interface Parsha {
-  name: string;
-  heName: string;
-  ref: string;
-  book: string;
-  chapter: number;
-}
 /** The Hebrew name of a book, for the Hebrew-mode chapter refs. */
 function heBook(name: string): string {
   return BOOKS.find((b) => b.name === name)?.he ?? name;
@@ -174,10 +169,10 @@ function inIsrael(): boolean {
   }
 }
 
-async function fetchParsha(): Promise<Parsha | null> {
+async function fetchParsha(): Promise<WeeklyParsha | null> {
   try {
     const res = await fetch(`/api/parsha?loc=${inIsrael() ? 'israel' : 'diaspora'}`);
-    return res.ok ? ((await res.json()) as Parsha) : null;
+    return res.ok ? ((await res.json()) as WeeklyParsha) : null;
   } catch {
     return null;
   }
@@ -188,7 +183,7 @@ interface SectionNote {
   he: string;
 }
 /** A whole-chapter pill the reader can open from the perek-pills row. */
-type PerekPill = 'overview' | 'geography' | 'tidbit';
+type PerekPill = 'parsha' | 'overview' | 'geography' | 'tidbit';
 interface Overview {
   book: string;
   chapter: number;
@@ -223,11 +218,13 @@ interface PerekTidbit {
 }
 /** The perek-pills, in display order. */
 const PEREK_PILLS: { id: PerekPill; label: string }[] = [
+  { id: 'parsha', label: 'Parsha' },
   { id: 'overview', label: 'Overview' },
   { id: 'geography', label: 'Geography' },
   { id: 'tidbit', label: 'Tidbit' },
 ];
 const PILL_KIND: Record<PerekPill, string> = {
+  parsha: 'Parsha',
   overview: 'Overview',
   geography: 'Geography',
   tidbit: 'Tidbit',
@@ -272,6 +269,11 @@ async function fetchEvents(loc: { book: string; chapter: number }): Promise<Even
 
 export function App(): JSX.Element {
   const [loc, setLoc] = createSignal(readUrl());
+  const [parshaFocus, setParshaFocus] = createSignal<{
+    book: string;
+    chapter: number;
+    verse: number;
+  } | null>(null);
 
   const writeUrl = (l: Loc) => {
     const p = new URLSearchParams({ book: l.book, chapter: String(l.chapter) });
@@ -529,6 +531,7 @@ export function App(): JSX.Element {
     const sel = selected();
     const src = source();
     const pv = new Set(placeVerses());
+    const focus = parshaFocus();
     paragraphs();
     requestAnimationFrame(() => {
       if (!scrollBand) return;
@@ -539,9 +542,29 @@ export function App(): JSX.Element {
         const vn = Number(e.dataset.vn);
         const inNote = sel && vn >= sel.start && vn <= sel.end;
         const inSource = src && vn === src.verse;
-        if (inNote || inSource || pv.has(vn)) e.classList.add('hl');
+        const inParshaFocus =
+          focus &&
+          focus.book === loc().book &&
+          focus.chapter === loc().chapter &&
+          focus.verse === vn;
+        if (inNote || inSource || inParshaFocus || pv.has(vn)) e.classList.add('hl');
       });
     });
+  });
+
+  createEffect(() => {
+    const focus = parshaFocus();
+    const chapter = data();
+    paragraphs();
+    if (!focus || !chapter || focus.book !== chapter.book || focus.chapter !== chapter.chapter)
+      return;
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        scrollBand
+          ?.querySelector(`.vtext[data-vn="${focus.verse}"]`)
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+      ),
+    );
   });
 
   // Verse-sources drawer: shows ONE source kind at a time (rishonim / gemara /
@@ -630,6 +653,22 @@ export function App(): JSX.Element {
     setInspectOpen(false);
     setPerekPill((cur) => (cur === id ? null : id));
   };
+  const openParshaText = (book: string, chapter: number, verse: number) => {
+    setParshaFocus({ book, chapter, verse });
+    setPerekPill(null);
+    goto(book, chapter);
+  };
+  const openWeeklyParsha = () => {
+    const weekly = parsha();
+    if (!weekly) return;
+    setSource(null);
+    setSelected(null);
+    setInspectOpen(false);
+    const alreadyThere = loc().book === weekly.book && loc().chapter === weekly.chapter;
+    goto(weekly.book, weekly.chapter);
+    if (alreadyThere) setPerekPill('parsha');
+    else queueMicrotask(() => setPerekPill('parsha'));
+  };
   const toggleInspect = () => {
     setSource(null);
     setSelected(null);
@@ -652,6 +691,10 @@ export function App(): JSX.Element {
   const [overview] = createResource(
     () => (perekPill() === 'overview' ? chapterKey() : undefined),
     (k) => fetchPill<Overview>(`/api/overview/${encodeURIComponent(k.book)}/${k.chapter}`),
+  );
+  const [parshaStudy] = createResource(
+    () => (perekPill() === 'parsha' && parsha() ? parsha()?.ref : undefined),
+    () => fetchPill<ParshaStudy>(`/api/parsha-study?loc=${inIsrael() ? 'israel' : 'diaspora'}`),
   );
   const [geography] = createResource(
     () => (perekPill() === 'geography' ? chapterKey() : undefined),
@@ -715,6 +758,11 @@ export function App(): JSX.Element {
     if (overview.loading) return null;
     const o = overview();
     return o && o.book === loc().book && o.chapter === loc().chapter ? o : null;
+  });
+  const currentParshaStudy = createMemo(() => {
+    if (parshaStudy.loading) return null;
+    const study = parshaStudy();
+    return study && study.ref === parsha()?.ref ? study : null;
   });
   // Opening a verse-source drawer closes any open pill / inspector (one panel).
   createEffect(() => {
@@ -804,7 +852,7 @@ export function App(): JSX.Element {
             <button
               type="button"
               class="parsha-btn"
-              onClick={() => goto(p().book, p().chapter)}
+              onClick={openWeeklyParsha}
               title={`This week's parsha — ${p().name} (${p().ref})`}
             >
               {loc().lang === 'he' ? p().heName || p().name : p().name}
@@ -1025,13 +1073,41 @@ export function App(): JSX.Element {
           <Drawer
             dir={loc().lang === 'he' ? 'rtl' : 'ltr'}
             title={
-              loc().lang === 'he'
-                ? `${heBook(loc().book)} ${hebrewNumeral(loc().chapter)}`
-                : `${loc().book} ${loc().chapter}`
+              pill === 'parsha'
+                ? loc().lang === 'he'
+                  ? parsha()?.heName || parsha()?.name || 'פרשה'
+                  : parsha()?.name || 'Parsha'
+                : loc().lang === 'he'
+                  ? `${heBook(loc().book)} ${hebrewNumeral(loc().chapter)}`
+                  : `${loc().book} ${loc().chapter}`
             }
             label={PILL_KIND[pill]}
             onClose={() => setPerekPill(null)}
           >
+            <Show when={pill === 'parsha'}>
+              <Show when={parsha.loading}>
+                <p class="comm-muted">Mapping this week's parsha…</p>
+              </Show>
+              <Show when={!parsha.loading && parsha() === null}>
+                <p class="comm-muted">Couldn't load this week's parsha. Try reopening.</p>
+              </Show>
+              <Show when={!!parsha() && parshaStudy.loading}>
+                <p class="comm-muted">Mapping this week's parsha…</p>
+              </Show>
+              <Show when={currentParshaStudy()}>
+                {(study) => (
+                  <ParshaDrawer
+                    study={study()}
+                    lang={loc().lang}
+                    location={inIsrael() ? 'israel' : 'diaspora'}
+                    onOpenText={openParshaText}
+                  />
+                )}
+              </Show>
+              <Show when={!parshaStudy.loading && parshaStudy() === null}>
+                <p class="comm-muted">{pillError('parsha overview')}</p>
+              </Show>
+            </Show>
             <Show when={pill === 'overview'}>
               <Show when={overview.loading}>
                 <p class="comm-muted">Reading the chapter…</p>

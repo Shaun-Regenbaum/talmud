@@ -22,14 +22,16 @@ describe('tanach spine registry', () => {
   });
 });
 
-describe('the seven producers as core Producer objects', () => {
-  it('declares all eight with their model shapes', () => {
+describe('the ten producers as core Producer objects', () => {
+  it('declares all ten with their model shapes', () => {
     expect(Object.keys(TANACH_PRODUCERS).sort()).toEqual([
       'events',
       'geography',
       'midrash-synthesis',
       'note',
       'overview',
+      'parsha-overview',
+      'parsha-thread',
       'synthesis',
       'tidbit',
       'translate',
@@ -71,6 +73,18 @@ describe('the seven producers as core Producer objects', () => {
     expect(overview.scope).toBe('local');
     expect(overview.cacheVersion).toBe('1'); // overview:v1:*
 
+    expect(TANACH_PRODUCERS['parsha-overview'].anchoring).toEqual({
+      behavior: 'aggregates',
+      precision: 'division',
+      spine: 'tanach',
+    });
+    expect(TANACH_PRODUCERS['parsha-overview'].inputs).toEqual([{ source: 'parsha-verses' }]);
+    expect(TANACH_PRODUCERS['parsha-thread'].anchoring).toEqual({
+      behavior: 'inherits',
+      precision: 'segment',
+      spine: 'tanach',
+    });
+
     const tidbit = TANACH_PRODUCERS.tidbit;
     expect(tidbit.kind).toBe('enrichment');
     expect(tidbit.anchoring).toEqual({
@@ -91,6 +105,12 @@ describe('the seven producers as core Producer objects', () => {
       events: { max_tokens: 900, temperature: 0.2, tag: 'tanach:events' },
       note: { max_tokens: 700, temperature: 0.3, tag: 'tanach:note' },
       overview: { max_tokens: 1400, temperature: 0.3, tag: 'tanach:overview' },
+      'parsha-overview': {
+        max_tokens: 5200,
+        temperature: 0.25,
+        tag: 'tanach:parsha-overview',
+      },
+      'parsha-thread': { max_tokens: 4200, temperature: 0.35, tag: 'tanach:parsha-thread' },
       geography: { max_tokens: 900, temperature: 0.2, tag: 'tanach:geography' },
       tidbit: { max_tokens: 1800, temperature: 0.45, tag: 'tanach:tidbit' },
       synthesis: { max_tokens: 800, temperature: 0.3, tag: 'tanach:synthesis' },
@@ -132,6 +152,9 @@ describe('the seven producers as core Producer objects', () => {
     const overview = enrichRunDefOf('overview');
     expect(overview.dependencies).toEqual(['chapter-verses']);
     expect(overview.system_prompt.length).toBeGreaterThan(50);
+
+    expect(enrichRunDefOf('parsha-overview').dependencies).toEqual(['parsha-verses']);
+    expect(enrichRunDefOf('parsha-thread').dependencies).toEqual(['parsha-thread-material']);
 
     const geography = enrichRunDefOf('geography');
     expect(geography.dependencies).toEqual(['chapter-verses']);
