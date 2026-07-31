@@ -6,7 +6,7 @@
  * reports its state into this tiny registry and the bar derives a fraction
  * from it. A piece enters the registry the moment it starts loading and is
  * "done" on ok/error, so the bar reflects BOTH the auto-loaded chapter pieces
- * (text, sections, sources) and any on-demand ones (the overview, a note) the
+ * (text, sections, sources) and any on-demand ones (such as a note) the
  * moment they fire. resetChapterLoad() clears it on chapter change so a stale
  * piece from the previous chapter never counts.
  */

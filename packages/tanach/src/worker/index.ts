@@ -301,7 +301,8 @@ app.get('/api/geography/:book/:chapter', async (c) => {
 
 // Perek tidbit (whole-chapter enrichment): ONE curated "did you notice…" — the
 // against-the-grain reading the Overview deliberately leaves out — opened from
-// the reader's "Tidbit" pill. Chapter-scoped (tidbit:v1:{book}:{chapter}).
+// available for future composed study surfaces. Chapter-scoped
+// (tidbit:v1:{book}:{chapter}).
 app.get('/api/tidbit/:book/:chapter', async (c) => {
   const book = c.req.param('book');
   const chapter = c.req.param('chapter');
