@@ -28,7 +28,7 @@ This is a pnpm workspace with two corpus apps and a shared engine:
 | Path | Purpose |
 | --- | --- |
 | `packages/talmud` | The Solid.js reader and Hono/Cloudflare Workers API at [talmud.dev](https://talmud.dev) |
-| `packages/tanach` | A sibling Tanach reader built on the same corpus model |
+| `packages/tanach` | The sibling [Tanach reader](https://tanach.dev), built on the same corpus model |
 | `packages/core` | Corpus-agnostic spines, anchors, artifacts, producers, context, caching, and runtime code |
 | `packages/ui` | Shared components and design tokens |
 

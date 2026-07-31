@@ -3968,6 +3968,32 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               >
                 {t('dev.mcpGuide')}
               </a>
+              {' · '}
+              <a
+                href="https://github.com/Shaun-Regenbaum/talmud"
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  color: 'inherit',
+                  'text-decoration': 'none',
+                  'border-bottom': '1px dotted #bbb',
+                }}
+              >
+                {t('dev.github')}
+              </a>
+              {' · '}
+              <a
+                href="https://tanach.dev"
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  color: 'inherit',
+                  'text-decoration': 'none',
+                  'border-bottom': '1px dotted #bbb',
+                }}
+              >
+                {t('dev.tanach')}
+              </a>
             </footer>
           </section>
 
