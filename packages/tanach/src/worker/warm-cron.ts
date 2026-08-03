@@ -18,9 +18,10 @@
  * Bump CURSOR_KEY to force a re-warm (e.g. a producer version bump).
  */
 
-import type { WeeklyParsha } from '../lib/parsha.ts';
+import type { ParshaFlowSection, WeeklyParsha } from '../lib/parsha.ts';
 import { currentParsha } from './parsha-calendar.ts';
 import {
+  parshaOverviewCacheKey,
   runTanachEnrichment,
   runTanachEvents,
   type TanachEnv,
@@ -28,8 +29,9 @@ import {
 } from './run-ports.ts';
 import { computeSourcesIndex, readSourcesIndex } from './sources-index.ts';
 
-// v5: warm the whole-parsha overview before the chapter-level reader pieces.
-const CURSOR_KEY = 'tanach-warm-cursor:v5';
+// v6: parsha overview recipe v2 (Hebrew term style + hover-hint terms pool)
+// plus per-section close readings — re-warm this week's parsha surfaces.
+const CURSOR_KEY = 'tanach-warm-cursor:v6';
 /** Chapter-level enrichments that power the visible reader + section labels. */
 const CHAPTER_PRODUCERS = ['geography', 'events'] as const;
 /** Entries warmed per tick — small so one invocation stays well within the
@@ -38,6 +40,7 @@ const BATCH = 8;
 
 type WarmEntry =
   | { kind: 'parsha'; producer: 'parsha-overview' }
+  | { kind: 'parsha-section'; index: number; section: Omit<ParshaFlowSection, 'ref'> }
   | { kind: 'chapter'; producer: (typeof CHAPTER_PRODUCERS)[number]; chapter: number }
   | { kind: 'srcindex'; chapter: number }
   | { kind: 'verse'; producer: 'synthesis' | 'midrash-synthesis'; chapter: number; verse: number };
@@ -45,6 +48,7 @@ type WarmEntry =
 /** Stable id for the completed-set cursor. */
 function entryId(e: WarmEntry): string {
   if (e.kind === 'parsha') return `p:${e.producer}`;
+  if (e.kind === 'parsha-section') return `s:${e.index}`;
   if (e.kind === 'chapter') return `c:${e.chapter}:${e.producer}`;
   if (e.kind === 'srcindex') return `i:${e.chapter}`;
   return `v:${e.chapter}:${e.producer}:${e.verse}`;
@@ -73,6 +77,16 @@ async function readCursor(cache: KVNamespace): Promise<WarmCursor> {
  *  entry instead; its verses join the list once that index warms). */
 async function buildWorkList(cache: KVNamespace, parsha: WeeklyParsha): Promise<WarmEntry[]> {
   const surfaces: WarmEntry[] = [{ kind: 'parsha', producer: 'parsha-overview' }];
+  // Per-section close readings, gated (like srcindex -> verses) on the cached
+  // overview map: an uncached overview contributes only the overview entry;
+  // its sections join the list on the tick after it warms.
+  const overview = (await cache.get(await parshaOverviewCacheKey(parsha), 'json')) as {
+    parsed?: { flow?: Omit<ParshaFlowSection, 'ref'>[] };
+  } | null;
+  for (const [index, section] of (overview?.parsed?.flow ?? []).entries()) {
+    if (Number.isInteger(section?.startChapter))
+      surfaces.push({ kind: 'parsha-section', index, section });
+  }
   const indexes: WarmEntry[] = [];
   const verses: WarmEntry[] = [];
   for (let ch = parsha.startChapter; ch <= parsha.endChapter; ch++) {
@@ -106,6 +120,16 @@ async function warmEntry(
         id: parsha.ref,
         parshaName: parsha.name,
         parshaRef: parsha.ref,
+      });
+      return;
+    }
+    if (e.kind === 'parsha-section') {
+      const rc: TanachRunCtx = { env, ctx, ref: parsha.ref };
+      await runTanachEnrichment(rc, 'parsha-section', parsha.book, parsha.ref, {
+        id: `${parsha.ref}#${e.index}`,
+        parshaName: parsha.name,
+        parshaRef: parsha.ref,
+        ...e.section,
       });
       return;
     }

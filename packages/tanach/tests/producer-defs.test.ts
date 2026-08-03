@@ -22,8 +22,8 @@ describe('tanach spine registry', () => {
   });
 });
 
-describe('the ten producers as core Producer objects', () => {
-  it('declares all ten with their model shapes', () => {
+describe('the eleven producers as core Producer objects', () => {
+  it('declares all eleven with their model shapes', () => {
     expect(Object.keys(TANACH_PRODUCERS).sort()).toEqual([
       'events',
       'geography',
@@ -31,6 +31,7 @@ describe('the ten producers as core Producer objects', () => {
       'note',
       'overview',
       'parsha-overview',
+      'parsha-section',
       'parsha-thread',
       'synthesis',
       'tidbit',
@@ -79,11 +80,22 @@ describe('the ten producers as core Producer objects', () => {
       spine: 'tanach',
     });
     expect(TANACH_PRODUCERS['parsha-overview'].inputs).toEqual([{ source: 'parsha-verses' }]);
+    expect(TANACH_PRODUCERS['parsha-overview'].cacheVersion).toBe('2'); // parsha-overview:v2:*
+    expect(TANACH_PRODUCERS['parsha-section'].anchoring).toEqual({
+      behavior: 'inherits',
+      precision: 'segment',
+      spine: 'tanach',
+    });
+    expect(TANACH_PRODUCERS['parsha-section'].inputs).toEqual([
+      { source: 'parsha-section-verses' },
+    ]);
+    expect(TANACH_PRODUCERS['parsha-section'].cardinality).toBe('per-input');
     expect(TANACH_PRODUCERS['parsha-thread'].anchoring).toEqual({
       behavior: 'inherits',
       precision: 'segment',
       spine: 'tanach',
     });
+    expect(TANACH_PRODUCERS['parsha-thread'].cacheVersion).toBe('2'); // parsha-thread:v2:*
 
     const tidbit = TANACH_PRODUCERS.tidbit;
     expect(tidbit.kind).toBe('enrichment');
@@ -106,10 +118,11 @@ describe('the ten producers as core Producer objects', () => {
       note: { max_tokens: 700, temperature: 0.3, tag: 'tanach:note' },
       overview: { max_tokens: 1400, temperature: 0.3, tag: 'tanach:overview' },
       'parsha-overview': {
-        max_tokens: 5200,
+        max_tokens: 5600,
         temperature: 0.25,
         tag: 'tanach:parsha-overview',
       },
+      'parsha-section': { max_tokens: 2800, temperature: 0.3, tag: 'tanach:parsha-section' },
       'parsha-thread': { max_tokens: 4200, temperature: 0.35, tag: 'tanach:parsha-thread' },
       geography: { max_tokens: 900, temperature: 0.2, tag: 'tanach:geography' },
       tidbit: { max_tokens: 1800, temperature: 0.45, tag: 'tanach:tidbit' },
@@ -154,6 +167,7 @@ describe('the ten producers as core Producer objects', () => {
     expect(overview.system_prompt.length).toBeGreaterThan(50);
 
     expect(enrichRunDefOf('parsha-overview').dependencies).toEqual(['parsha-verses']);
+    expect(enrichRunDefOf('parsha-section').dependencies).toEqual(['parsha-section-verses']);
     expect(enrichRunDefOf('parsha-thread').dependencies).toEqual(['parsha-thread-material']);
 
     const geography = enrichRunDefOf('geography');

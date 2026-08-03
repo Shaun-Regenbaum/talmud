@@ -40,6 +40,9 @@ import {
   PARSHA_OVERVIEW_SCHEMA,
   PARSHA_OVERVIEW_SYSTEM,
   PARSHA_OVERVIEW_USER_TEMPLATE,
+  PARSHA_SECTION_SCHEMA,
+  PARSHA_SECTION_SYSTEM,
+  PARSHA_SECTION_USER_TEMPLATE,
   PARSHA_THREAD_SCHEMA,
   PARSHA_THREAD_SYSTEM,
   PARSHA_THREAD_USER_TEMPLATE,
@@ -53,6 +56,7 @@ export type TanachProducerId =
   | 'note'
   | 'overview'
   | 'parsha-overview'
+  | 'parsha-section'
   | 'parsha-thread'
   | 'geography'
   | 'tidbit'
@@ -113,9 +117,22 @@ const parshaOverviewExtractor: TanachLLMExtractor = {
   system_prompt: PARSHA_OVERVIEW_SYSTEM,
   user_prompt_template: PARSHA_OVERVIEW_USER_TEMPLATE,
   output_schema: PARSHA_OVERVIEW_SCHEMA,
-  max_tokens: 5200,
+  // v2 adds the terms array on top of the bilingual map — a little more headroom.
+  max_tokens: 5600,
   temperature: 0.25,
   tag: 'tanach:parsha-overview',
+};
+
+const parshaSectionExtractor: TanachLLMExtractor = {
+  kind: 'llm',
+  system_prompt: PARSHA_SECTION_SYSTEM,
+  user_prompt_template: PARSHA_SECTION_USER_TEMPLATE,
+  output_schema: PARSHA_SECTION_SCHEMA,
+  // Bilingual 2-3 paragraph close reading + the terms array — roomier than the
+  // chapter overview (1400) but well under the whole-parsha map (5600).
+  max_tokens: 2800,
+  temperature: 0.3,
+  tag: 'tanach:parsha-section',
 };
 
 const parshaThreadExtractor: TanachLLMExtractor = {
@@ -243,8 +260,25 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     cardinality: 'one',
     scope: 'local',
     key_shape: 'enrich',
-    cacheVersion: '1',
+    // v2: prose follows PARSHA_HEBREW_STYLE and the output carries the terms
+    // pool for hover hints — bump regenerates this week's map with the new recipe.
+    cacheVersion: '2',
     passes: ['parsha-overview-shape'],
+    source: 'code',
+  },
+  'parsha-section': {
+    id: 'parsha-section',
+    label: 'Parsha close reading',
+    description: 'An in-depth bilingual close reading of one parsha flow unit',
+    kind: 'enrichment',
+    inputs: [{ source: 'parsha-section-verses' }],
+    recipe: { extractor: parshaSectionExtractor },
+    anchoring: { behavior: 'inherits', precision: 'segment', spine: 'tanach' },
+    cardinality: 'per-input',
+    scope: 'local',
+    key_shape: 'enrich',
+    cacheVersion: '1',
+    passes: ['parsha-section-shape'],
     source: 'code',
   },
   'parsha-thread': {
@@ -258,7 +292,9 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     cardinality: 'per-input',
     scope: 'local',
     key_shape: 'enrich',
-    cacheVersion: '1',
+    // v2: the thread prose follows PARSHA_HEBREW_STYLE too, so the whole
+    // drawer reads in one voice.
+    cacheVersion: '2',
     passes: ['parsha-thread-sources'],
     source: 'code',
   },
@@ -413,6 +449,7 @@ export function enrichRunDefOf(
     | 'note'
     | 'overview'
     | 'parsha-overview'
+    | 'parsha-section'
     | 'parsha-thread'
     | 'geography'
     | 'tidbit'
