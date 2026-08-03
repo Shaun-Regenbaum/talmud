@@ -260,9 +260,9 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     cardinality: 'one',
     scope: 'local',
     key_shape: 'enrich',
-    // v2: prose follows PARSHA_HEBREW_STYLE and the output carries the terms
-    // pool for hover hints — bump regenerates this week's map with the new recipe.
-    cacheVersion: '2',
+    // v3: PARSHA_HEBREW_STYLE tightened to the talmud reader's literal
+    // convention (dense Hebrew-first Form A; Hebrew inside quote marks).
+    cacheVersion: '3',
     passes: ['parsha-overview-shape'],
     source: 'code',
   },
@@ -277,7 +277,8 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     cardinality: 'per-input',
     scope: 'local',
     key_shape: 'enrich',
-    cacheVersion: '1',
+    // v2: the tightened PARSHA_HEBREW_STYLE (dense Hebrew-first prose).
+    cacheVersion: '2',
     passes: ['parsha-section-shape'],
     source: 'code',
   },
@@ -292,9 +293,9 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     cardinality: 'per-input',
     scope: 'local',
     key_shape: 'enrich',
-    // v2: the thread prose follows PARSHA_HEBREW_STYLE too, so the whole
-    // drawer reads in one voice.
-    cacheVersion: '2',
+    // v3: the tightened PARSHA_HEBREW_STYLE, so the whole drawer reads in
+    // one voice.
+    cacheVersion: '3',
     passes: ['parsha-thread-sources'],
     source: 'code',
   },
