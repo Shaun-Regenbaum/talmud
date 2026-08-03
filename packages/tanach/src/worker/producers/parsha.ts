@@ -10,18 +10,23 @@
  */
 export const PARSHA_HEBREW_STYLE = `STYLE — Hebrew + English mixing (apply UNIFORMLY across all English prose fields):
 
-Plain English is the BASE; Hebrew script is the anchor for the portion's own key words. Weave in Hebrew where a word is genuinely the text's term or a standing term of Jewish learning — not on every common word.
+English carries the grammar; HEBREW SCRIPT carries the content. Every key word or phrase of the passage itself, and every standing term of Jewish learning, appears AS Hebrew with a short English gloss in parens on first mention. A paragraph should carry SEVERAL Hebrew anchors — if a paragraph has fewer than two, you are under-hebraizing. Ordinary connective English ("the passage then", "the people must not") stays English; the nouns and verbs that carry the Torah's meaning go Hebrew.
 
-FORM A (DEFAULT) — Hebrew script first, English gloss in parens. Use for the passage's key words and technical terms:
-  "a ברכה (blessing) and a קללה (curse)", "the מקום אשר יבחר (place God will choose)", "מעשר שני (the second tithe)"
-FORM B — English first, Hebrew in parens. Use ONLY for proper nouns and standing English-first terms:
+FORM A (DEFAULT) — Hebrew script first, English gloss in parens. The passage's own words, legal/ritual terms, repeated key phrases:
+  "a ברכה (blessing) and a קללה (curse)", "each case opens with כי (if)", "the מסית (enticer) receives no pity", "burned כליל (entire, as a whole-offering)", "the עיר הנדחת (subverted town)", "מעשר שני (the second tithe)"
+FORM B — English first, Hebrew in parens. ONLY for proper nouns and standing English-first terms:
   "Mount Gerizim (הר גריזים)", "Passover (פסח)", "the Levite (הלוי)"
 
-GLOSS ONCE: gloss a term on its FIRST use in a field; write it bare afterwards.
+QUOTING THE VERSES: the Torah's words go in Hebrew script INSIDE the quote marks, English gloss in parens after — "תבער הרע מקרבך" (sweep out the evil from your midst), "וכל ישראל ישמעו ויראו" (all Israel will hear and be afraid).
+  WRONG: the phrase 'sweep out evil from your midst' (תבער הרע מקרבך) — an English quote with the Hebrew demoted to parens.
+  RIGHT: the refrain "תבער הרע מקרבך" (sweep out the evil from your midst).
+
+GLOSS ONCE: gloss a term on its FIRST use in a field; write it bare afterwards (the reader's hover hint covers every later mention).
 
 HARD RULES (output is rejected if violated):
 - NEVER write a transliteration — not in parens "(bracha)", not bare "maaser sheni". Hebrew script paired with an English meaning, always.
-- Verbatim quotes from the verses go in Hebrew script inside quote marks — never transliteration in quotes.
+- NEVER quote the Torah in English only, and never put the Hebrew of a quoted phrase in the parens — the Hebrew IS the quote; the English is the gloss.
+- Once the passage's Hebrew word for a thing is introduced (נביא, חרם, מצוות), keep using the Hebrew word — do not slide back into a fresh English translation of it.
 - Hebrew-language fields are natural Hebrew with NO parenthetical English glosses.
 - SCRIPT HYGIENE: emit ONLY English + Hebrew script (plus ordinary punctuation) — no other writing system, no emoji.`;
 
@@ -29,11 +34,11 @@ HARD RULES (output is rejected if violated):
 export const PARSHA_TERMS_RULE = `TERMS
 - Return every Hebrew term or phrase your English prose uses in the "terms" array: "he" is the exact Hebrew script as written in the prose, "en" is a short English meaning.
 - The reader's hover hints are built from this array, so the "he" spelling must match the prose exactly.
-- 4-12 terms; no duplicates; short phrases, never full sentences.`;
+- 6-16 terms; no duplicates; short phrases, never full sentences.`;
 
 const TERMS_SCHEMA = {
   type: 'array',
-  maxItems: 12,
+  maxItems: 16,
   items: {
     type: 'object',
     additionalProperties: false,

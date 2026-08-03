@@ -116,12 +116,14 @@ const KEY_TEMPLATES: Record<string, KeyTemplate> = {
   // Chapter-scoped: the key ignores the instance (there's one overview per
   // chapter), so enrichmentAddress('overview', …) carries no verse/range.
   overview: { key: (a: TanachAddress) => `overview:v1:${a.unit?.work}:${a.unit?.unit}` },
-  // v2: prose follows PARSHA_HEBREW_STYLE (Hebrew script + gloss-once) and the
-  // overview carries the terms pool for hover hints; the thread matches the
-  // same voice. One weekly parsha, so the bump re-pays cents, not dollars.
-  'parsha-overview': { key: (a: TanachAddress) => `parsha-overview:v2:${a.instanceId}` },
-  'parsha-section': { key: (a: TanachAddress) => `parsha-section:v1:${a.instanceId}` },
-  'parsha-thread': { key: (a: TanachAddress) => `parsha-thread:v2:${a.instanceId}` },
+  // overview v3 / section v2 / thread v3: PARSHA_HEBREW_STYLE tightened to the
+  // talmud reader's literal convention — Hebrew script is the DEFAULT surface
+  // for the passage's key words and quoted phrases (dense Form A; the English
+  // quote + Hebrew-in-parens inversion is rejected). One weekly parsha, so
+  // each bump re-pays cents, not dollars.
+  'parsha-overview': { key: (a: TanachAddress) => `parsha-overview:v3:${a.instanceId}` },
+  'parsha-section': { key: (a: TanachAddress) => `parsha-section:v2:${a.instanceId}` },
+  'parsha-thread': { key: (a: TanachAddress) => `parsha-thread:v3:${a.instanceId}` },
   // Chapter-scoped like overview (one geography per chapter; instance ignored).
   // v2: the output now carries per-place verse numbers (for click-to-highlight).
   geography: { key: (a: TanachAddress) => `geography:v2:${a.unit?.work}:${a.unit?.unit}` },

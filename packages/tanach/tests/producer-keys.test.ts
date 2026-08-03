@@ -78,7 +78,7 @@ describe('key byte-parity with the legacy literals', () => {
         overviewDef,
         enrichmentAddress('parsha-overview', overviewId, 'Deuteronomy', '7'),
       ),
-    ).toBe('parsha-overview:v2:deuteronomy_7_12-11_25');
+    ).toBe('parsha-overview:v3:deuteronomy_7_12-11_25');
 
     const sectionDef = info(enrichRunDefOf('parsha-section'), 'enrich');
     const sectionId = await instanceIdOf({ id: 'Deuteronomy 7:12-11:25#2' });
@@ -87,7 +87,7 @@ describe('key byte-parity with the legacy literals', () => {
         sectionDef,
         enrichmentAddress('parsha-section', sectionId, 'Deuteronomy', '7'),
       ),
-    ).toBe('parsha-section:v1:deuteronomy_7_12-11_25_2');
+    ).toBe('parsha-section:v2:deuteronomy_7_12-11_25_2');
 
     const threadDef = info(enrichRunDefOf('parsha-thread'), 'enrich');
     const threadId = await instanceIdOf({ id: 'Deuteronomy 7:12-11:25#4' });
@@ -96,7 +96,7 @@ describe('key byte-parity with the legacy literals', () => {
         threadDef,
         enrichmentAddress('parsha-thread', threadId, 'Deuteronomy', '7'),
       ),
-    ).toBe('parsha-thread:v2:deuteronomy_7_12-11_25_4');
+    ).toBe('parsha-thread:v3:deuteronomy_7_12-11_25_4');
     // Both index-keyed per-section pieces carry the range guard, so a
     // regenerated overview that moves an index invalidates the cached value.
     for (const id of ['parsha-section', 'parsha-thread'] as const) {

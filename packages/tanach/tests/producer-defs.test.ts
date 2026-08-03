@@ -80,7 +80,7 @@ describe('the eleven producers as core Producer objects', () => {
       spine: 'tanach',
     });
     expect(TANACH_PRODUCERS['parsha-overview'].inputs).toEqual([{ source: 'parsha-verses' }]);
-    expect(TANACH_PRODUCERS['parsha-overview'].cacheVersion).toBe('2'); // parsha-overview:v2:*
+    expect(TANACH_PRODUCERS['parsha-overview'].cacheVersion).toBe('3'); // parsha-overview:v3:*
     expect(TANACH_PRODUCERS['parsha-section'].anchoring).toEqual({
       behavior: 'inherits',
       precision: 'segment',
@@ -95,7 +95,7 @@ describe('the eleven producers as core Producer objects', () => {
       precision: 'segment',
       spine: 'tanach',
     });
-    expect(TANACH_PRODUCERS['parsha-thread'].cacheVersion).toBe('2'); // parsha-thread:v2:*
+    expect(TANACH_PRODUCERS['parsha-thread'].cacheVersion).toBe('3'); // parsha-thread:v3:*
 
     const tidbit = TANACH_PRODUCERS.tidbit;
     expect(tidbit.kind).toBe('enrichment');

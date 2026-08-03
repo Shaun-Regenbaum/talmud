@@ -29,9 +29,9 @@ import {
 } from './run-ports.ts';
 import { computeSourcesIndex, readSourcesIndex } from './sources-index.ts';
 
-// v6: parsha overview recipe v2 (Hebrew term style + hover-hint terms pool)
-// plus per-section close readings — re-warm this week's parsha surfaces.
-const CURSOR_KEY = 'tanach-warm-cursor:v6';
+// v7: parsha recipes tightened to the talmud-literal Hebrew style (dense
+// Hebrew-first prose) — re-warm this week's parsha surfaces.
+const CURSOR_KEY = 'tanach-warm-cursor:v7';
 /** Chapter-level enrichments that power the visible reader + section labels. */
 const CHAPTER_PRODUCERS = ['geography', 'events'] as const;
 /** Entries warmed per tick — small so one invocation stays well within the
