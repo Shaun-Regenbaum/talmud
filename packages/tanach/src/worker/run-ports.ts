@@ -57,7 +57,9 @@ import {
   type ParshaSectionKind,
   parseParshaRef,
   pointInParsha,
+  sanitizeParshaTerms,
   sectionInParsha,
+  type WeeklyParsha,
 } from '../lib/parsha.ts';
 import type { TanachEnrichmentDef, TanachMarkDef } from './producers/defs.ts';
 import { enrichRunDefOf, markRunDefOf } from './producers/defs.ts';
@@ -114,8 +116,12 @@ const KEY_TEMPLATES: Record<string, KeyTemplate> = {
   // Chapter-scoped: the key ignores the instance (there's one overview per
   // chapter), so enrichmentAddress('overview', …) carries no verse/range.
   overview: { key: (a: TanachAddress) => `overview:v1:${a.unit?.work}:${a.unit?.unit}` },
-  'parsha-overview': { key: (a: TanachAddress) => `parsha-overview:v1:${a.instanceId}` },
-  'parsha-thread': { key: (a: TanachAddress) => `parsha-thread:v1:${a.instanceId}` },
+  // v2: prose follows PARSHA_HEBREW_STYLE (Hebrew script + gloss-once) and the
+  // overview carries the terms pool for hover hints; the thread matches the
+  // same voice. One weekly parsha, so the bump re-pays cents, not dollars.
+  'parsha-overview': { key: (a: TanachAddress) => `parsha-overview:v2:${a.instanceId}` },
+  'parsha-section': { key: (a: TanachAddress) => `parsha-section:v1:${a.instanceId}` },
+  'parsha-thread': { key: (a: TanachAddress) => `parsha-thread:v2:${a.instanceId}` },
   // Chapter-scoped like overview (one geography per chapter; instance ignored).
   // v2: the output now carries per-place verse numbers (for click-to-highlight).
   geography: { key: (a: TanachAddress) => `geography:v2:${a.unit?.work}:${a.unit?.unit}` },
@@ -166,7 +172,7 @@ export function enrichmentAddress(
     return { unit, instanceId, start, end };
   }
   // Parsha pieces key on their explicit ref/range instance rather than chapter.
-  if (id === 'parsha-overview' || id === 'parsha-thread') {
+  if (id === 'parsha-overview' || id === 'parsha-section' || id === 'parsha-thread') {
     return { unit, instanceId };
   }
   // Chapter-scoped (overview / geography / tidbit): key uses only {work}:{unit}.
@@ -176,10 +182,26 @@ export function enrichmentAddress(
   return { unit, instanceId, verse: instanceId };
 }
 
-/** Guard an index-keyed parsha thread against a regenerated overview moving
- *  that index to a different anchored passage. */
+/** The overview's literal KV key for a weekly parsha — lets the warm-cron gate
+ *  per-section warming on whether the overview map is already cached. */
+export async function parshaOverviewCacheKey(parsha: WeeklyParsha): Promise<string> {
+  const def = enrichRunDefOf('parsha-overview');
+  const instanceId = await instanceIdOf({ id: parsha.ref });
+  return TANACH_KEY_SCHEME.key(
+    keyInfoOf(def, 'enrich'),
+    enrichmentAddress('parsha-overview', instanceId, parsha.book, parsha.ref),
+  );
+}
+
+/** Guard an index-keyed parsha piece (close reading / thread) against a
+ *  regenerated overview moving that index to a different anchored passage. */
 export function enrichmentSectionRange(id: string, markInput: unknown): string | null {
-  if (id !== 'parsha-thread' || !markInput || typeof markInput !== 'object') return null;
+  if (
+    (id !== 'parsha-thread' && id !== 'parsha-section') ||
+    !markInput ||
+    typeof markInput !== 'object'
+  )
+    return null;
   const input = markInput as Record<string, unknown>;
   const parts = [input.startChapter, input.startVerse, input.endChapter, input.endVerse].map(
     Number,
@@ -342,16 +364,27 @@ interface ThreadSource {
   text: string;
 }
 
-const parshaThreadResolver: SourceResolver<TanachRunCtx> = async ({ out, markInput }) => {
-  const input = markInput as {
-    parshaName?: string;
-    parshaRef?: string;
-    titleEn?: string;
-    startChapter?: number;
-    startVerse?: number;
-    endChapter?: number;
-    endVerse?: number;
-  };
+/** The markInput shape every per-section parsha producer receives: the route
+ *  spreads the anchored flow section over the parsha identity. */
+interface ParshaSectionInput {
+  parshaName?: string;
+  parshaRef?: string;
+  titleEn?: string;
+  startChapter?: number;
+  startVerse?: number;
+  endChapter?: number;
+  endVerse?: number;
+}
+
+/** Resolve + bound-check one flow section against its parsha, then fetch its
+ *  verse text — the shared front half of the section and thread resolvers. */
+async function resolveSectionPassage(input: ParshaSectionInput): Promise<{
+  parsha: ParshaRange;
+  sectionRange: ParshaRange;
+  sectionRef: string;
+  verses: NumberedVerse[];
+  versesText: string;
+}> {
   const parsha = input.parshaRef ? parseParshaRef(input.parshaRef) : null;
   const section = {
     startChapter: Number(input.startChapter),
@@ -364,10 +397,29 @@ const parshaThreadResolver: SourceResolver<TanachRunCtx> = async ({ out, markInp
   }
   const sectionRange: ParshaRange = { book: parsha.book, ...section };
   const sectionRef = formatParshaRange(parsha.book, sectionRange);
-  const sefariaSectionRef = sectionRef.replace('–', '-');
   const verses = await versesInRange(sectionRange);
   if (!verses.length) throw new TanachSourceError(404, 'No section text found');
   const versesText = verses.map((v) => `${v.chapter}:${v.verse}. ${v.text}`).join('\n');
+  return { parsha, sectionRange, sectionRef, verses, versesText };
+}
+
+/** The close-reading producer's input: just the section's own verses (no
+ *  source packet — the deep dive stays on p'shat; sources join at the thread). */
+const parshaSectionVersesResolver: SourceResolver<TanachRunCtx> = async ({ out, markInput }) => {
+  const input = markInput as ParshaSectionInput;
+  const { sectionRef, versesText } = await resolveSectionPassage(input);
+  out.vars.parsha_name = input.parshaName ?? '';
+  out.vars.parsha_ref = input.parshaRef ?? '';
+  out.vars.section_title = input.titleEn ?? '';
+  out.vars.section_ref = sectionRef;
+  out.vars.verses_text = versesText;
+  recordSource(out, 'parsha-section-verses', versesText);
+};
+
+const parshaThreadResolver: SourceResolver<TanachRunCtx> = async ({ out, markInput }) => {
+  const input = markInput as ParshaSectionInput;
+  const { parsha, sectionRef, verses, versesText } = await resolveSectionPassage(input);
+  const sefariaSectionRef = sectionRef.replace('–', '-');
 
   const commentaryAnchors = [
     verses[0],
@@ -545,6 +597,7 @@ const RESOLVE_PORTS: ResolveInputsPorts<TanachRunCtx, TanachEnrichmentDef, Tanac
   sources: {
     'chapter-verses': chapterVersesResolver,
     'parsha-verses': parshaVersesResolver,
+    'parsha-section-verses': parshaSectionVersesResolver,
     'parsha-thread-material': parshaThreadResolver,
     'section-verses': sectionVersesResolver,
     'verse-text': verseTextResolver,
@@ -559,6 +612,7 @@ const RESOLVE_PORTS: ResolveInputsPorts<TanachRunCtx, TanachEnrichmentDef, Tanac
     id === 'note' ||
     id === 'overview' ||
     id === 'parsha-overview' ||
+    id === 'parsha-section' ||
     id === 'parsha-thread' ||
     id === 'geography' ||
     id === 'tidbit' ||
@@ -735,11 +789,28 @@ const RUN_PORTS: RunProducerPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkD
         composition: normalizeParshaComposition(parsed.composition),
         flow,
         landmarks,
+        terms: sanitizeParshaTerms(parsed.terms),
       };
       const issues =
         flow.length >= 3
           ? []
           : [{ severity: 'hard', message: 'Parsha flow has fewer than three anchored units' }];
+      return { parsed: normalized, issues };
+    }
+    if (a.def.id === 'parsha-section') {
+      const parsed = (a.parsed ?? {}) as Record<string, unknown>;
+      const normalized = {
+        ...parsed,
+        titleEn: String(parsed.titleEn ?? '').trim(),
+        titleHe: String(parsed.titleHe ?? '').trim(),
+        en: String(parsed.en ?? '').trim(),
+        he: String(parsed.he ?? '').trim(),
+        terms: sanitizeParshaTerms(parsed.terms),
+      };
+      const issues =
+        normalized.en || normalized.he
+          ? []
+          : [{ severity: 'hard', message: 'Parsha close reading has no prose' }];
       return { parsed: normalized, issues };
     }
     if (a.def.id === 'parsha-thread') {
@@ -872,7 +943,9 @@ const RUN_PORTS: RunProducerPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkD
       // Overview-like producers reject an empty-but-valid
       // generation so it isn't pinned (truncated JSON parses to blank fields).
       if (
-        !['overview', 'tidbit', 'parsha-overview', 'parsha-thread'].includes(a.def.id) ||
+        !['overview', 'tidbit', 'parsha-overview', 'parsha-section', 'parsha-thread'].includes(
+          a.def.id,
+        ) ||
         a.parse_error ||
         !a.parsed
       )
@@ -921,6 +994,7 @@ export async function runTanachEnrichment(
     | 'note'
     | 'overview'
     | 'parsha-overview'
+    | 'parsha-section'
     | 'parsha-thread'
     | 'geography'
     | 'tidbit'

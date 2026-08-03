@@ -648,10 +648,66 @@ body {
 .ui-drawer[dir="rtl"] .parsha-flow-copy small {
   font-family: var(--font-hebrew);
 }
+/* The selected move's in-place close reading (deep dive under the card). */
+.parsha-flow-deep {
+  margin: 2px 0 4px;
+  padding: 4px 9px 2px;
+  border-left: 2px solid var(--line);
+}
+.ui-drawer[dir="rtl"] .parsha-flow-deep {
+  border-left: none;
+  border-right: 2px solid var(--line);
+}
+.parsha-flow-deep .ui-prose {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+/* An inline Hebrew term in English prose — dotted-underlined, hint on hover
+   (the talmud reader's concept-link treatment). */
+.parsha-term {
+  /* A span, not <bdi>, so it can carry role="button" — isolate manually. */
+  unicode-bidi: isolate;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--muted);
+  text-underline-offset: 2px;
+  cursor: help;
+}
+.parsha-term-tip {
+  position: fixed;
+  z-index: 1000;
+  max-width: 18rem;
+  transform: translate(-50%, -100%);
+  padding: 5px 9px 6px;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--surface);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  font-size: 11.5px;
+  line-height: 1.45;
+  pointer-events: none;
+}
+.parsha-term-tip.below {
+  transform: translate(-50%, 0);
+}
+.parsha-term-tip bdi {
+  display: block;
+  font-family: var(--font-hebrew);
+  font-weight: 600;
+}
+.parsha-term-tip span {
+  font-family: var(--font-ui);
+}
+
 .parsha-flow-actions {
   display: flex;
   gap: 7px;
   padding: 3px 8px 7px;
+}
+.parsha-flow-deep .parsha-flow-actions {
+  padding: 0 0 5px;
 }
 .parsha-flow-actions button,
 .parsha-copy {

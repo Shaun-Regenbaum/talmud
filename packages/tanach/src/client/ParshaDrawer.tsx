@@ -1,18 +1,24 @@
 import { aiStatus, noteAiResponse, noteAiSuccess } from '@corpus/ui/aiStatus';
 import { Prose } from '@corpus/ui/Prose';
 import { createEffect, createResource, createSignal, For, type JSX, Show } from 'solid-js';
-import type {
-  ParshaFlowSection,
-  ParshaSectionKind,
-  ParshaStudy,
-  ParshaThread,
+import {
+  type ParshaFlowSection,
+  type ParshaSectionKind,
+  type ParshaSectionStudy,
+  type ParshaStudy,
+  type ParshaThread,
+  sanitizeParshaTerms,
 } from '../lib/parsha.ts';
+import { TermedProse } from './TermedProse.tsx';
 
 export interface ParshaDrawerProps {
   study: ParshaStudy;
   lang: 'en' | 'he';
   location: 'israel' | 'diaspora';
   onOpenText: (book: string, chapter: number, verse: number) => void;
+  /** Highlight a flow section's verse range in the reader (null clears it).
+   *  Fires on selecting a move — the drawer stays open. */
+  onFocusRange: (section: ParshaFlowSection | null) => void;
 }
 
 const KIND_LABEL: Record<ParshaSectionKind, { en: string; he: string }> = {
@@ -30,7 +36,7 @@ function sourceUrl(ref: string): string {
 }
 
 export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
-  const [selected, setSelected] = createSignal(0);
+  const [selected, setSelected] = createSignal<number | null>(null);
   const [threadRequest, setThreadRequest] = createSignal<{ index: number } | null>(null);
   const [copied, setCopied] = createSignal(false);
   const [thread] = createResource(threadRequest, async ({ index }) => {
@@ -42,6 +48,20 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
     noteAiResponse(await response.json().catch(() => null));
     return null;
   });
+  // The selected move's in-depth close reading (cached server-side; warm-cron
+  // pre-warms it, so this is usually instant).
+  const [deep] = createResource(
+    () => (selected() === null ? null : { index: selected() as number }),
+    async ({ index }) => {
+      const response = await fetch(`/api/parsha-section/${index}?loc=${props.location}`);
+      if (response.ok) {
+        noteAiSuccess();
+        return (await response.json()) as ParshaSectionStudy;
+      }
+      noteAiResponse(await response.json().catch(() => null));
+      return null;
+    },
+  );
   let threadPanel: HTMLElement | undefined;
   createEffect(() => {
     if (!threadRequest()) return;
@@ -50,15 +70,28 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
     );
   });
 
+  // Selecting a move highlights its verse range in the reader and opens its
+  // close reading in place; selecting it again collapses and clears both.
   const choose = (index: number) => {
+    if (selected() === index) {
+      setSelected(null);
+      setThreadRequest(null);
+      props.onFocusRange(null);
+      return;
+    }
     setSelected(index);
     if (threadRequest()?.index !== index) setThreadRequest(null);
+    props.onFocusRange(props.study.flow[index] ?? null);
   };
 
   const buildThread = (index: number) => {
-    setSelected(index);
     setThreadRequest({ index });
   };
+
+  /** The hover-hint pool for a section's close reading: its own terms first
+   *  (they win a surface collision), then the whole-parsha pool. */
+  const deepTerms = (value: ParshaSectionStudy) =>
+    sanitizeParshaTerms([...(value.terms ?? []), ...(props.study.terms ?? [])]);
 
   const copyDvar = async () => {
     const value = thread();
@@ -69,13 +102,21 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
     window.setTimeout(() => setCopied(false), 1500);
   };
 
-  const selectedFlow = (): ParshaFlowSection | undefined => props.study.flow[selected()];
+  const selectedFlow = (): ParshaFlowSection | undefined => {
+    const index = selected();
+    return index === null ? undefined : props.study.flow[index];
+  };
 
   return (
     <section class="parsha-study">
       <p class="parsha-ref">{props.study.ref}</p>
       <h3 class="perek-title">{textFor(props.lang, props.study.titleEn, props.study.titleHe)}</h3>
-      <Prose en={props.study.overviewEn} he={props.study.overviewHe} lang={props.lang} />
+      <TermedProse
+        en={props.study.overviewEn}
+        he={props.study.overviewHe}
+        lang={props.lang}
+        terms={props.study.terms ?? []}
+      />
 
       <section class="parsha-section">
         <div class="parsha-section-head">
@@ -133,18 +174,55 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
                   </span>
                 </button>
                 <Show when={selected() === index()}>
-                  <div class="parsha-flow-actions">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        props.onOpenText(props.study.book, section.startChapter, section.startVerse)
-                      }
-                    >
-                      {props.lang === 'he' ? 'פתח בטקסט' : 'Open in the text'}
-                    </button>
-                    <button type="button" class="primary" onClick={() => buildThread(index())}>
-                      {props.lang === 'he' ? 'בנה דבר תורה' : 'Build a dvar Torah'}
-                    </button>
+                  <div class="parsha-flow-deep">
+                    <Show when={deep.loading}>
+                      <p class="comm-muted">
+                        {props.lang === 'he'
+                          ? 'קורא את הקטע מקרוב…'
+                          : 'Reading the passage closely…'}
+                      </p>
+                    </Show>
+                    {/* deep.error first: reading deep() while the resource is
+                        errored (a rejected fetch, not a non-ok status) would
+                        rethrow and break the drawer subtree. */}
+                    <Show when={!deep.loading && (deep.error || deep() === null)}>
+                      <p class="comm-muted">
+                        {aiStatus()
+                          ? props.lang === 'he'
+                            ? 'יצירת תוכן מושבתת כרגע.'
+                            : 'AI generation is paused right now.'
+                          : props.lang === 'he'
+                            ? 'לא הצלחנו לקרוא את הקטע. נסו שוב.'
+                            : "Couldn't read this passage. Try again."}
+                      </p>
+                    </Show>
+                    <Show when={!deep.loading && !deep.error && deep()}>
+                      {(value) => (
+                        <TermedProse
+                          en={value().en}
+                          he={value().he}
+                          lang={props.lang}
+                          terms={deepTerms(value())}
+                        />
+                      )}
+                    </Show>
+                    <div class="parsha-flow-actions">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          props.onOpenText(
+                            props.study.book,
+                            section.startChapter,
+                            section.startVerse,
+                          )
+                        }
+                      >
+                        {props.lang === 'he' ? 'פתח בטקסט' : 'Open in the text'}
+                      </button>
+                      <button type="button" class="primary" onClick={() => buildThread(index())}>
+                        {props.lang === 'he' ? 'בנה דבר תורה' : 'Build a dvar Torah'}
+                      </button>
+                    </div>
                   </div>
                 </Show>
               </li>

@@ -24,7 +24,9 @@ import {
   normalizeParshaComposition,
   type ParshaFlowSection,
   type ParshaLandmark,
+  type ParshaSectionStudy,
   type ParshaThread,
+  sanitizeParshaTerms,
   type WeeklyParsha,
 } from '../lib/parsha.ts';
 import { lookupPlace } from './gazetteer.ts';
@@ -393,6 +395,7 @@ app.get('/api/parsha-study', async (c) => {
     composition?: unknown;
     flow?: Omit<ParshaFlowSection, 'ref'>[];
     landmarks?: Omit<ParshaLandmark, 'ref'>[];
+    terms?: unknown;
   };
   const flow = (parsed.flow ?? []).map((section) => ({
     ...section,
@@ -416,14 +419,26 @@ app.get('/api/parsha-study', async (c) => {
     composition: normalizeParshaComposition(parsed.composition),
     flow,
     landmarks,
+    terms: sanitizeParshaTerms(parsed.terms),
   });
 });
 
-// One selected flow unit -> grounded insight + source packet + dvar Torah.
-// The section index resolves through the cached overview, so clients cannot
-// float an unanchored passage into the thread producer.
-app.get('/api/parsha-thread/:section', async (c) => {
-  const rawSection = c.req.param('section');
+/** Shared front half of the per-section routes (close reading / thread):
+ *  resolve the calendar parsha, run/read the cached overview, and pick the
+ *  anchored flow section by index — so a client can never float an unanchored
+ *  passage into a section-scoped producer. Returns a Response on failure. */
+async function resolveParshaSection(
+  c: Context<{ Bindings: Env }>,
+  rawSection: string,
+): Promise<
+  | {
+      parsha: WeeklyParsha;
+      rc: TanachRunCtx;
+      sectionIndex: number;
+      section: Omit<ParshaFlowSection, 'ref'>;
+    }
+  | Response
+> {
   if (!/^\d+$/.test(rawSection)) return c.json({ error: 'Bad parsha section' }, 400);
   const sectionIndex = Number(rawSection);
   const israel = c.req.query('loc') === 'israel';
@@ -452,6 +467,43 @@ app.get('/api/parsha-thread/:section', async (c) => {
     (overview.parsed as { flow?: Omit<ParshaFlowSection, 'ref'>[] } | null)?.flow ?? [];
   const section = sections[sectionIndex];
   if (!section) return c.json({ error: 'Parsha section not found' }, 404);
+  return { parsha, rc, sectionIndex, section };
+}
+
+// One selected flow unit -> an in-depth bilingual close reading (the
+// click-a-move surface), with the terms pool for hover hints.
+app.get('/api/parsha-section/:section', async (c) => {
+  const resolved = await resolveParshaSection(c, c.req.param('section'));
+  if (resolved instanceof Response) return resolved;
+  const { parsha, rc, sectionIndex, section } = resolved;
+
+  let study: StoredArtifact;
+  try {
+    study = await runTanachEnrichment(rc, 'parsha-section', parsha.book, parsha.ref, {
+      id: `${parsha.ref}#${sectionIndex}`,
+      parshaName: parsha.name,
+      parshaRef: parsha.ref,
+      ...section,
+    });
+  } catch (e) {
+    return runErrorResponse(c, e);
+  }
+  c.header('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
+  return c.json({
+    parsha: parsha.name,
+    parshaRef: parsha.ref,
+    section: { ...section, ref: formatParshaRange(parsha.book, section) },
+    ...((study.parsed ?? {}) as ParshaSectionStudy),
+  });
+});
+
+// One selected flow unit -> grounded insight + source packet + dvar Torah.
+// The section index resolves through the cached overview, so clients cannot
+// float an unanchored passage into the thread producer.
+app.get('/api/parsha-thread/:section', async (c) => {
+  const resolved = await resolveParshaSection(c, c.req.param('section'));
+  if (resolved instanceof Response) return resolved;
+  const { parsha, rc, sectionIndex, section } = resolved;
 
   let thread: StoredArtifact;
   try {

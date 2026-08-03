@@ -18,7 +18,7 @@ import {
 } from 'solid-js';
 import { BOOKS, SECTIONS, type Section } from '../lib/books.ts';
 import { hebrewNumeral } from '../lib/hebrew.ts';
-import type { ParshaStudy, WeeklyParsha } from '../lib/parsha.ts';
+import type { ParshaFlowSection, ParshaStudy, WeeklyParsha } from '../lib/parsha.ts';
 import {
   KIND_GLYPH,
   MIDRASH_MIN,
@@ -245,10 +245,15 @@ async function fetchEvents(loc: { book: string; chapter: number }): Promise<Even
 
 export function App(): JSX.Element {
   const [loc, setLoc] = createSignal(readUrl());
+  // The verse RANGE the parsha drawer is pointing at (a flow move, a landmark,
+  // or an "Open in the text" jump — a single verse is a degenerate range). The
+  // reader highlights whatever slice of it falls in the visible chapter.
   const [parshaFocus, setParshaFocus] = createSignal<{
     book: string;
-    chapter: number;
-    verse: number;
+    startChapter: number;
+    startVerse: number;
+    endChapter: number;
+    endVerse: number;
   } | null>(null);
 
   const writeUrl = (l: Loc) => {
@@ -518,11 +523,14 @@ export function App(): JSX.Element {
         const vn = Number(e.dataset.vn);
         const inNote = sel && vn >= sel.start && vn <= sel.end;
         const inSource = src && vn === src.verse;
+        const chapterNow = loc().chapter;
         const inParshaFocus =
           focus &&
           focus.book === loc().book &&
-          focus.chapter === loc().chapter &&
-          focus.verse === vn;
+          chapterNow >= focus.startChapter &&
+          chapterNow <= focus.endChapter &&
+          vn >= (chapterNow === focus.startChapter ? focus.startVerse : 1) &&
+          (chapterNow === focus.endChapter ? vn <= focus.endVerse : true);
         if (inNote || inSource || inParshaFocus || pv.has(vn)) e.classList.add('hl');
       });
     });
@@ -532,12 +540,12 @@ export function App(): JSX.Element {
     const focus = parshaFocus();
     const chapter = data();
     paragraphs();
-    if (!focus || !chapter || focus.book !== chapter.book || focus.chapter !== chapter.chapter)
+    if (!focus || !chapter || focus.book !== chapter.book || focus.startChapter !== chapter.chapter)
       return;
     requestAnimationFrame(() =>
       requestAnimationFrame(() =>
         scrollBand
-          ?.querySelector(`.vtext[data-vn="${focus.verse}"]`)
+          ?.querySelector(`.vtext[data-vn="${focus.startVerse}"]`)
           ?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
       ),
     );
@@ -630,9 +638,35 @@ export function App(): JSX.Element {
     setPerekPill((cur) => (cur === id ? null : id));
   };
   const openParshaText = (book: string, chapter: number, verse: number) => {
-    setParshaFocus({ book, chapter, verse });
+    setParshaFocus({
+      book,
+      startChapter: chapter,
+      startVerse: verse,
+      endChapter: chapter,
+      endVerse: verse,
+    });
     setPerekPill(null);
     goto(book, chapter);
+  };
+  // Selecting a flow move in the parsha drawer: highlight its whole verse
+  // range in the reader (navigating to its first chapter if needed) while the
+  // drawer STAYS OPEN alongside the close reading. Null clears the highlight.
+  const focusParshaSection = (section: ParshaFlowSection | null) => {
+    if (!section) {
+      setParshaFocus(null);
+      return;
+    }
+    const study = currentParshaStudy();
+    if (!study) return;
+    setParshaFocus({
+      book: study.book,
+      startChapter: section.startChapter,
+      startVerse: section.startVerse,
+      endChapter: section.endChapter,
+      endVerse: section.endVerse,
+    });
+    if (loc().book !== study.book || loc().chapter !== section.startChapter)
+      goto(study.book, section.startChapter);
   };
   const openWeeklyParsha = () => {
     const weekly = parsha();
@@ -724,9 +758,13 @@ export function App(): JSX.Element {
       setInspectOpen(false);
     }
   });
+  // A chapter change invalidates the chapter-scoped pills (overview /
+  // geography / tidbit) — but NOT the parsha drawer, which is parsha-scoped
+  // and deliberately navigates the reader across its chapters (a flow move's
+  // range highlight) while staying open.
   createEffect(() => {
     chapterKey();
-    setPerekPill(null);
+    setPerekPill((cur) => (cur === 'parsha' ? cur : null));
     setInspectOpen(false);
   });
 
@@ -1047,6 +1085,7 @@ export function App(): JSX.Element {
                     lang={loc().lang}
                     location={inIsrael() ? 'israel' : 'diaspora'}
                     onOpenText={openParshaText}
+                    onFocusRange={focusParshaSection}
                   />
                 )}
               </Show>

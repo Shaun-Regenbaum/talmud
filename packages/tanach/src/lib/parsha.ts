@@ -36,6 +36,14 @@ export interface ParshaLandmark {
   labelHe: string;
 }
 
+/** A Hebrew term the parsha prose uses inline (the talmud reader's gloss
+ *  convention): `he` is the exact Hebrew-script surface as written in the
+ *  prose, `en` the short English meaning shown as the hover hint. */
+export interface ParshaTerm {
+  he: string;
+  en: string;
+}
+
 export interface ParshaStudy {
   name: string;
   heName: string;
@@ -49,6 +57,16 @@ export interface ParshaStudy {
   composition: Record<ParshaSectionKind, number>;
   flow: ParshaFlowSection[];
   landmarks: ParshaLandmark[];
+  terms: ParshaTerm[];
+}
+
+/** The in-depth close reading of one flow section (the click-a-move surface). */
+export interface ParshaSectionStudy {
+  titleEn: string;
+  titleHe: string;
+  en: string;
+  he: string;
+  terms: ParshaTerm[];
 }
 
 export interface ParshaThreadSource {
@@ -130,6 +148,66 @@ export function sectionInParsha(
     section.endChapter > section.startChapter ||
     (section.endChapter === section.startChapter && section.endVerse >= section.startVerse)
   );
+}
+
+const HAS_HEBREW = /[\u0590-\u05FF]/;
+
+/** Keep only well-formed hover-hint terms: a Hebrew-script surface plus a short
+ *  English meaning, deduped by surface (first entry wins, so a section's own
+ *  terms can outrank the whole-parsha pool when concatenated ahead of it). */
+export function sanitizeParshaTerms(value: unknown, cap = 24): ParshaTerm[] {
+  const list = Array.isArray(value) ? value : [];
+  const seen = new Set<string>();
+  const out: ParshaTerm[] = [];
+  for (const item of list) {
+    if (!item || typeof item !== 'object') continue;
+    const he = String((item as Record<string, unknown>).he ?? '').trim();
+    const en = String((item as Record<string, unknown>).en ?? '').trim();
+    if (!he || !en || he.length > 60 || en.length > 120) continue;
+    if (!HAS_HEBREW.test(he) || HAS_HEBREW.test(en)) continue;
+    if (seen.has(he)) continue;
+    seen.add(he);
+    out.push({ he, en });
+  }
+  return out.slice(0, cap);
+}
+
+export interface TermMentionPart {
+  kind: 'text' | 'term';
+  value: string;
+  term?: ParshaTerm;
+}
+
+/** Split prose into plain-text and term-mention parts, matching ONLY the
+ *  Hebrew surfaces — the English meanings are everyday words ("blessing",
+ *  "curse") and matching them would mis-fire, whereas Hebrew script inside
+ *  English prose is unambiguous. Longest surface wins at a position; a match
+ *  must not touch adjacent Hebrew letters (so a prefixed form like הברכה is
+ *  left alone rather than half-underlined). Pure, shared with tests. */
+export function tokenizeTermMentions(
+  text: string,
+  terms: readonly ParshaTerm[],
+): TermMentionPart[] {
+  if (!text) return [];
+  const usable = terms.filter((t) => t.he && HAS_HEBREW.test(t.he));
+  if (!usable.length) return [{ kind: 'text', value: text }];
+  const bySurface = new Map<string, ParshaTerm>();
+  for (const t of usable) if (!bySurface.has(t.he)) bySurface.set(t.he, t);
+  const surfaces = [...bySurface.keys()]
+    .sort((a, b) => b.length - a.length)
+    .map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const re = new RegExp(`(?<![\\u0590-\\u05FF])(${surfaces.join('|')})(?![\\u0590-\\u05FF])`, 'gu');
+  const out: TermMentionPart[] = [];
+  let last = 0;
+  for (let m = re.exec(text); m !== null; m = re.exec(text)) {
+    const term = bySurface.get(m[1]);
+    if (!term) continue;
+    if (m.index > last) out.push({ kind: 'text', value: text.slice(last, m.index) });
+    out.push({ kind: 'term', value: m[1], term });
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out.push({ kind: 'text', value: text.slice(last) });
+  return out;
 }
 
 /** Normalize an editorial percentage estimate so the three visible bars total 100. */
