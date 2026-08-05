@@ -125,7 +125,10 @@ describe('checkWholeDafLeakAndAlert', () => {
   const day = 86_400_000;
   const CANON = 'f35cd02cd97b';
 
-  function fakeWorld(seed: Record<string, string>) {
+  function fakeWorld(
+    seed: Record<string, string>,
+    opts: { failGet?: string[]; failDelete?: string[] } = {},
+  ) {
     const store = new Map(Object.entries(seed));
     const deleted: string[] = [];
     const sent: { subject: string; text: string }[] = [];
@@ -134,11 +137,15 @@ describe('checkWholeDafLeakAndAlert', () => {
         keys: [...store.keys()].filter((k) => k.startsWith(prefix)).map((name) => ({ name })),
         list_complete: true,
       }),
-      get: async (key: string) => store.get(key) ?? null,
+      get: async (key: string) => {
+        if (opts.failGet?.includes(key)) throw new Error('kv get outage');
+        return store.get(key) ?? null;
+      },
       put: async (key: string, value: string) => {
         store.set(key, value);
       },
       delete: async (key: string) => {
+        if (opts.failDelete?.includes(key)) throw new Error('kv delete outage');
         store.delete(key);
         deleted.push(key);
       },
@@ -219,5 +226,83 @@ describe('checkWholeDafLeakAndAlert', () => {
     });
     await checkWholeDafLeakAndAlert(env, NOW);
     expect(sent).toHaveLength(0);
+  });
+
+  it('a failed value read still alerts (never silently passes as gone)', async () => {
+    const p = prefix();
+    const bad = `${p}rava:pesachim:6a`;
+    const { env, deleted, sent } = fakeWorld({ [bad]: envelope(48) }, { failGet: [bad] });
+
+    await checkWholeDafLeakAndAlert(env, NOW);
+
+    expect(deleted).toHaveLength(0); // unknown age → never evicted
+    expect(sent).toHaveLength(1);
+    expect(sent[0].subject).toContain('LEAK');
+    expect(sent[0].text).toContain('value read FAILED');
+    expect(sent[0].text).toContain('not fully healed');
+  });
+
+  it('a failed evict is not reported as self-healed', async () => {
+    const p = prefix();
+    const bad = `${p}rava:pesachim:6a`;
+    const { env, deleted, sent } = fakeWorld({ [bad]: envelope(48) }, { failDelete: [bad] });
+
+    await checkWholeDafLeakAndAlert(env, NOW);
+
+    expect(deleted).toHaveLength(0);
+    expect(sent).toHaveLength(1);
+    expect(sent[0].subject).toContain('LEAK');
+    expect(sent[0].text).toContain('residue, evict FAILED');
+    expect(sent[0].text).toContain('evict(s) failed');
+  });
+
+  it('a lone human-authored offender is not reported as self-healed', async () => {
+    const p = prefix();
+    const { env, deleted, sent } = fakeWorld({
+      [`${p}manual_note:shabbat:21a`]: envelope(60, 'human'),
+    });
+
+    await checkWholeDafLeakAndAlert(env, NOW);
+
+    expect(deleted).toHaveLength(0);
+    expect(sent).toHaveLength(1);
+    expect(sent[0].subject).toContain('LEAK');
+    expect(sent[0].text).toContain('human-authored key(s) kept');
+  });
+
+  it('a failed dedupe read fails OPEN — duplicate risk, never silence', async () => {
+    const p = prefix();
+    const dedupeKey = `health-alert:wholedaf-leak:${Math.floor(NOW / day)}`;
+    const { env, sent } = fakeWorld(
+      { [`${p}some_section_title:sanhedrin:74a`]: envelope(1) },
+      { failGet: [dedupeKey] },
+    );
+
+    await checkWholeDafLeakAndAlert(env, NOW);
+    expect(sent).toHaveLength(1);
+    expect(sent[0].subject).toContain('LEAK');
+  });
+
+  it('a live leak escalates past an earlier same-day residue email', async () => {
+    const p = prefix();
+    const { env, sent, store } = fakeWorld({
+      [`${p}rava:pesachim:6a`]: envelope(48),
+    });
+
+    // Morning tick: residue only → self-silencing email.
+    await checkWholeDafLeakAndAlert(env, NOW);
+    expect(sent).toHaveLength(1);
+    expect(sent[0].subject).toContain('auto-evicted');
+
+    // A live leak starts later the same day: must NOT stay suppressed.
+    store.set(`${p}some_section_title:sanhedrin:74a`, envelope(0.1));
+    await checkWholeDafLeakAndAlert(env, NOW + 3_600_000);
+    expect(sent).toHaveLength(2);
+    expect(sent[1].subject).toContain('LEAK');
+    expect(sent[1].subject).toContain('1 fresh');
+
+    // But the leak alert itself stays once-per-day.
+    await checkWholeDafLeakAndAlert(env, NOW + 7_200_000);
+    expect(sent).toHaveLength(2);
   });
 });

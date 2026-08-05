@@ -11,8 +11,9 @@
  * errors, the reader renders fine, money burns.
  *
  * So the health cron audits the invariant itself: list each whole-daf
- * enrichment's current-version keys and alert (once per day, same dedupe
- * pattern as the OOM watch) if ANY key carries a non-canonical instance id.
+ * enrichment's current-version keys and alert (once per day per severity —
+ * a live-leak alert may escalate past an earlier same-day residue email)
+ * if ANY key carries a non-canonical instance id.
  * A leaked key can only exist if some path ran without the collapse — catching
  * it within minutes of the first leaked write instead of at the next invoice.
  *
@@ -88,8 +89,11 @@ export interface OffenderVerdict {
   key: string;
   /** gone: vanished between list and read (already deleted). human: authored
    *  artifact, never touched. residue: old (or pre-provenance) — auto-evict.
-   *  fresh: young — the live-leak signal, kept in place. */
-  verdict: 'gone' | 'human' | 'residue' | 'fresh';
+   *  fresh: young — the live-leak signal, kept in place. error: the value
+   *  read THREW (caller-constructed, not from classifyOffender) — unknown age,
+   *  so never evicted and never counted as healed; the listing proved the key
+   *  exists, so it must still alert rather than pass as gone. */
+  verdict: 'gone' | 'human' | 'residue' | 'fresh' | 'error';
   createdAt: string | null;
   ageDays: number | null;
   evicted?: boolean;
@@ -133,9 +137,11 @@ function offenderLine(c: OffenderVerdict): string {
       ? 'FRESH — live leak?'
       : c.verdict === 'human'
         ? 'human-authored, kept'
-        : c.evicted
-          ? 'residue, auto-evicted'
-          : 'residue, evict FAILED';
+        : c.verdict === 'error'
+          ? 'value read FAILED — not aged, retries next tick'
+          : c.evicted
+            ? 'residue, auto-evicted'
+            : 'residue, evict FAILED';
   return `  ${c.key} — ${age} [${tag}]`;
 }
 
@@ -172,11 +178,14 @@ export async function checkWholeDafLeakAndAlert(env: LeakWatchEnv, nowMs: number
     // after the day's email has gone out.
     const offenders: OffenderVerdict[] = [];
     for (const key of found.slice(0, MAX_INSPECT_PER_TICK)) {
-      let raw: string | null = null;
+      let c: OffenderVerdict;
       try {
-        raw = await cache.get(key);
-      } catch {}
-      const c = classifyOffender(key, raw, nowMs);
+        c = classifyOffender(key, await cache.get(key), nowMs);
+      } catch {
+        // The listing proved this key exists, so a failed value read must NOT
+        // pass as gone-and-silent — surface it un-aged and un-evicted.
+        c = { key, verdict: 'error', createdAt: null, ageDays: null };
+      }
       if (c.verdict === 'gone') continue;
       if (c.verdict === 'residue') {
         try {
@@ -190,19 +199,45 @@ export async function checkWholeDafLeakAndAlert(env: LeakWatchEnv, nowMs: number
     if (offenders.length === 0 && uninspected === 0) return; // all already gone
 
     const fresh = offenders.filter((c) => c.verdict === 'fresh');
-    // Only claim self-healed when every offender was actually seen and aged as
-    // residue; uninspected keys could be fresh, so they keep the loud subject.
-    const selfHealed = fresh.length === 0 && uninspected === 0;
+    const evictFailed = offenders.filter((c) => c.verdict === 'residue' && !c.evicted).length;
+    const humans = offenders.filter((c) => c.verdict === 'human').length;
+    const errors = offenders.filter((c) => c.verdict === 'error').length;
+    // Only claim self-healed when every offender was actually seen, aged as
+    // residue, AND evicted; anything unknown or still standing (fresh keys,
+    // uninspected overflow, read errors, failed evicts, human keys) keeps the
+    // loud subject.
+    const selfHealed =
+      uninspected === 0 && offenders.every((c) => c.verdict === 'residue' && c.evicted);
+    const severity = selfHealed ? 'residue' : 'leak';
     console.error(
       '[leak-watch] non-canonical whole-daf keys:',
       found.length,
-      `fresh=${fresh.length}`,
+      `fresh=${fresh.length} severity=${severity}`,
       found.slice(0, 5),
     );
     const dayBucket = Math.floor(nowMs / 86_400_000);
     const dedupeKey = `health-alert:wholedaf-leak:${dayBucket}`;
-    if (await cache.get(dedupeKey)) return; // already alerted today
+    // Once per day per severity tier: a residue email must not suppress a
+    // live-leak alert that starts later the same day, so leak escalates over
+    // residue. (Any other stored value — e.g. legacy '1' — counts as leak.)
+    // Fail OPEN on this read: a transient KV flake must degrade toward a
+    // possible duplicate email, never toward silence. Concurrent-invocation
+    // races on the read-send-write sequence are accepted — one fast
+    // invocation per 5-min cron tick, and KV has no CAS to close them anyway.
+    let alreadySent: string | null = null;
+    try {
+      alreadySent = await cache.get(dedupeKey);
+    } catch {}
+    if (alreadySent && !(alreadySent === 'residue' && severity === 'leak')) return;
     if (env.EMAIL) {
+      const notHealedParts = [
+        evictFailed > 0 && `${evictFailed} evict(s) failed (retry next tick)`,
+        errors > 0 && `${errors} value read(s) failed (reclassified next tick)`,
+        humans > 0 &&
+          `${humans} human-authored key(s) kept — needs manual review, no human write path ` +
+            `should produce a non-canonical whole-daf key`,
+        uninspected > 0 && `${uninspected} past this tick's inspection cap (processed next ticks)`,
+      ].filter(Boolean);
       const verdictLine =
         fresh.length > 0
           ? `${fresh.length} key(s) are FRESH (younger than ${RESIDUE_MIN_AGE_DAYS}d) — a code ` +
@@ -215,11 +250,9 @@ export async function checkWholeDafLeakAndAlert(env: LeakWatchEnv, nowMs: number
             ? `All were RESIDUE (older than ${RESIDUE_MIN_AGE_DAYS}d — pre-fix stragglers a ` +
               `cleanup missed) and were auto-evicted. Leaked keys are unreachable (all read ` +
               `paths use the canonical instance id), so no action is needed and this alert ` +
-              `self-silences; any evict marked FAILED retries next tick.`
-            : `Every inspected key was RESIDUE (auto-evicted), but ${uninspected} offender(s) ` +
-              `exceeded this tick's inspection cap and are not yet aged — they process on the ` +
-              `next ticks. If this alert repeats tomorrow with FRESH keys, treat it as a live ` +
-              `leak.`;
+              `self-silences.`
+            : `No FRESH keys, but not fully healed: ${notHealedParts.join('; ')}. If FRESH ` +
+              `keys appear tomorrow, treat it as a live leak.`;
       await env.EMAIL.send({
         from: 'health@shaunregenbaum.com',
         to: 'shaunregenbaum@gmail.com',
@@ -236,7 +269,7 @@ export async function checkWholeDafLeakAndAlert(env: LeakWatchEnv, nowMs: number
           `Spend: https://talmud.shaunregenbaum.com/usage\n`,
       });
     }
-    await cache.put(dedupeKey, '1', { expirationTtl: 86_400 });
+    await cache.put(dedupeKey, severity, { expirationTtl: 86_400 });
   } catch (err) {
     console.error('[leak-watch] failed:', err);
   }
