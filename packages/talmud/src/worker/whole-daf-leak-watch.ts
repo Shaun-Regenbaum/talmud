@@ -16,8 +16,19 @@
  * A leaked key can only exist if some path ran without the collapse — catching
  * it within minutes of the first leaked write instead of at the next invoice.
  *
+ * Age matters: three times now (07-16: 41 keys, 08-05: 1 key) the alert fired
+ * on RESIDUE — pre-fix leaked keys that survived a cleanup sweep — and, with
+ * enrichment entries never expiring, one immortal straggler emails daily
+ * forever. So offenders are aged via their envelope's provenance.createdAt:
+ * ones older than RESIDUE_MIN_AGE_DAYS are auto-evicted (a non-canonical key
+ * is unreachable by construction — every read path derives the canonical
+ * instance id — so deleting it only silences the alert), while young ones are
+ * the live-leak signal and are kept in place as evidence, re-alerting daily.
+ *
  * Cost: one bounded KV list per producer per tick (~6 lists / 5 min), zero
- * reads of values. Pure classification helpers exported for tests.
+ * reads of values — except when offenders exist: then one bounded read (and
+ * possibly delete) per offender. Pure classification helpers exported for
+ * tests.
  */
 
 import { instanceIdOf } from '@corpus/core/cache/keys';
@@ -67,13 +78,71 @@ export function leakedKeys(names: string[], prefix: string, canonicalIid: string
   return out;
 }
 
+/** A leaked key at least this old is residue (a pre-fix straggler a cleanup
+ *  missed), not a live leak, and is safe to auto-evict. A LIVE leak announces
+ *  itself with keys written today; a week of margin keeps a slow-drip leak
+ *  alerting rather than being quietly swallowed. */
+export const RESIDUE_MIN_AGE_DAYS = 7;
+
+export interface OffenderVerdict {
+  key: string;
+  /** gone: vanished between list and read (already deleted). human: authored
+   *  artifact, never touched. residue: old (or pre-provenance) — auto-evict.
+   *  fresh: young — the live-leak signal, kept in place. */
+  verdict: 'gone' | 'human' | 'residue' | 'fresh';
+  createdAt: string | null;
+  ageDays: number | null;
+  evicted?: boolean;
+}
+
+/** Age one offender via its envelope's provenance. Pure: the raw KV value (or
+ *  null) comes in, the verdict comes out; the caller does the I/O. A value
+ *  with no parseable createdAt predates provenance stamping (#361) and is
+ *  ancient by definition → residue. */
+export function classifyOffender(key: string, raw: string | null, nowMs: number): OffenderVerdict {
+  if (raw === null) return { key, verdict: 'gone', createdAt: null, ageDays: null };
+  let createdAt: string | null = null;
+  let authority: string | null = null;
+  try {
+    const v = JSON.parse(raw) as { provenance?: { createdAt?: string; authority?: string } };
+    createdAt = v?.provenance?.createdAt ?? null;
+    authority = v?.provenance?.authority ?? null;
+  } catch {
+    // unparseable value: pre-envelope garbage, ages as "no createdAt"
+  }
+  const ts = createdAt === null ? Number.NaN : Date.parse(createdAt);
+  const ageDays = Number.isNaN(ts) ? null : (nowMs - ts) / 86_400_000;
+  if (authority === 'human') return { key, verdict: 'human', createdAt, ageDays };
+  const residue = ageDays === null || ageDays > RESIDUE_MIN_AGE_DAYS;
+  return { key, verdict: residue ? 'residue' : 'fresh', createdAt, ageDays };
+}
+
 const LIST_PAGE_LIMIT = 1000;
 const MAX_PAGES_PER_TARGET = 3;
+/** Bound on per-offender reads/deletes per tick; anything beyond waits for the
+ *  next tick (evictions shrink the list, so the window slides forward). */
+const MAX_INSPECT_PER_TICK = 50;
+
+function offenderLine(c: OffenderVerdict): string {
+  const age =
+    c.ageDays === null
+      ? 'age unknown (pre-provenance)'
+      : `written ${c.createdAt} (${Math.floor(c.ageDays)}d ago)`;
+  const tag =
+    c.verdict === 'fresh'
+      ? 'FRESH — live leak?'
+      : c.verdict === 'human'
+        ? 'human-authored, kept'
+        : c.evicted
+          ? 'residue, auto-evicted'
+          : 'residue, evict FAILED';
+  return `  ${c.key} — ${age} [${tag}]`;
+}
 
 /**
- * Audit every whole-daf enrichment's key family; email once per day if any
- * non-canonical key exists. Best-effort and self-contained: failures are
- * logged, never thrown into the cron.
+ * Audit every whole-daf enrichment's key family; age + auto-evict residue;
+ * email once per day if any non-canonical key existed. Best-effort and
+ * self-contained: failures are logged, never thrown into the cron.
  */
 export async function checkWholeDafLeakAndAlert(env: LeakWatchEnv, nowMs: number): Promise<void> {
   const cache = env.CACHE;
@@ -99,26 +168,71 @@ export async function checkWholeDafLeakAndAlert(env: LeakWatchEnv, nowMs: number
     }
     if (found.length === 0) return;
 
-    console.error('[leak-watch] non-canonical whole-daf keys:', found.length, found.slice(0, 5));
+    // Eviction runs every tick (not just on alert days) so residue drains even
+    // after the day's email has gone out.
+    const offenders: OffenderVerdict[] = [];
+    for (const key of found.slice(0, MAX_INSPECT_PER_TICK)) {
+      let raw: string | null = null;
+      try {
+        raw = await cache.get(key);
+      } catch {}
+      const c = classifyOffender(key, raw, nowMs);
+      if (c.verdict === 'gone') continue;
+      if (c.verdict === 'residue') {
+        try {
+          await cache.delete(key);
+          c.evicted = true;
+        } catch {}
+      }
+      offenders.push(c);
+    }
+    const uninspected = Math.max(0, found.length - MAX_INSPECT_PER_TICK);
+    if (offenders.length === 0 && uninspected === 0) return; // all already gone
+
+    const fresh = offenders.filter((c) => c.verdict === 'fresh');
+    // Only claim self-healed when every offender was actually seen and aged as
+    // residue; uninspected keys could be fresh, so they keep the loud subject.
+    const selfHealed = fresh.length === 0 && uninspected === 0;
+    console.error(
+      '[leak-watch] non-canonical whole-daf keys:',
+      found.length,
+      `fresh=${fresh.length}`,
+      found.slice(0, 5),
+    );
     const dayBucket = Math.floor(nowMs / 86_400_000);
     const dedupeKey = `health-alert:wholedaf-leak:${dayBucket}`;
     if (await cache.get(dedupeKey)) return; // already alerted today
     if (env.EMAIL) {
+      const verdictLine =
+        fresh.length > 0
+          ? `${fresh.length} key(s) are FRESH (younger than ${RESIDUE_MIN_AGE_DAYS}d) — a code ` +
+            `path is LEAKING NOW. Check isWholeDafEnrichment call sites (it must read BOTH def ` +
+            `shapes: target_mark and mark) and any new run path that derives a cache key from ` +
+            `raw mark_input. Diagnostic: one identical leaked iid across dafim = a constant ` +
+            `(null/undefined) input; many distinct iids = per-caller fan-out. Fresh keys are ` +
+            `kept in place as evidence; residue was auto-evicted.`
+          : selfHealed
+            ? `All were RESIDUE (older than ${RESIDUE_MIN_AGE_DAYS}d — pre-fix stragglers a ` +
+              `cleanup missed) and were auto-evicted. Leaked keys are unreachable (all read ` +
+              `paths use the canonical instance id), so no action is needed and this alert ` +
+              `self-silences; any evict marked FAILED retries next tick.`
+            : `Every inspected key was RESIDUE (auto-evicted), but ${uninspected} offender(s) ` +
+              `exceeded this tick's inspection cap and are not yet aged — they process on the ` +
+              `next ticks. If this alert repeats tomorrow with FRESH keys, treat it as a live ` +
+              `leak.`;
       await env.EMAIL.send({
         from: 'health@shaunregenbaum.com',
         to: 'shaunregenbaum@gmail.com',
-        subject: `[talmud] whole-daf cache-key LEAK: ${found.length} non-canonical key(s)`,
+        subject: selfHealed
+          ? `[talmud] whole-daf cache-key residue: ${found.length} key(s) auto-evicted`
+          : `[talmud] whole-daf cache-key LEAK: ${found.length} non-canonical key(s), ${fresh.length} fresh`,
         text:
           `${found.length} whole-daf enrichment cache key(s) exist under a NON-canonical ` +
-          `instance id — some code path is running a whole-daf enrichment with a caller-derived ` +
-          `instance instead of the {fields:{}} collapse. This is the #426/#534 leak class: the ` +
-          `identical piece regenerates (and bills) once per calling section/rabbi, ~20x per daf.\n\n` +
-          `First offenders:\n${found
-            .slice(0, 8)
-            .map((k) => `  ${k}`)
-            .join('\n')}\n\n` +
-          `Check isWholeDafEnrichment call sites (it must read BOTH def shapes: target_mark and ` +
-          `mark) and any new run path that derives a cache key from raw mark_input.\n` +
+          `instance id — the #426/#534 leak class: a whole-daf piece cached per calling ` +
+          `section/rabbi instead of the {fields:{}} collapse.\n\n${verdictLine}\n\n` +
+          `Offenders:\n${offenders.slice(0, 8).map(offenderLine).join('\n')}\n` +
+          `${offenders.length > 8 ? `  …plus ${offenders.length - 8} more inspected\n` : ''}` +
+          `${uninspected > 0 ? `  …plus ${uninspected} not yet inspected (next ticks)\n` : ''}\n` +
           `Spend: https://talmud.shaunregenbaum.com/usage\n`,
       });
     }
