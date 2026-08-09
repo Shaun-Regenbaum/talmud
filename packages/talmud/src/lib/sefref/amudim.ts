@@ -107,3 +107,38 @@ export function* iterAmudim(tractate: string): Generator<string> {
     if (a) yield a;
   }
 }
+
+/**
+ * Whether `page` names a real amud of `tractate`: known tractate, well-formed
+ * 'Na'/'Nb' page, and within [2a, end amud]. Note the end amud matters, not
+ * just the daf number — Megillah ends at 32a, so "Megillah 32b" is invalid.
+ * The gate for the generation entrances (/api/daf-generate, /api/run): an
+ * out-of-range page must never spawn a Workflow or a queue job — Sefaria
+ * answers such refs with a permanent error object, so every enqueued producer
+ * hard-fails on every retry, and the LLM steps bill for a page that doesn't
+ * exist.
+ */
+export function isValidAmud(tractate: string, page: string): boolean {
+  const end = TRACTATE_END_AMUD[tractate.toLowerCase()];
+  if (!end) return false;
+  const cur = amudToNumber(page.trim());
+  const endNum = amudToNumber(end);
+  const startNum = amudToNumber(START_AMUD);
+  if (cur == null || endNum == null || startNum == null) return false;
+  return cur >= startNum && cur <= endNum;
+}
+
+/**
+ * Clamp a candidate page into the tractate's real range: past the end -> the
+ * end amud, before 2a / malformed / unknown tractate -> unchanged (the
+ * caller's existing fallback applies). Reader nav uses this so "next" from
+ * the last amud stays put instead of walking onto a page that doesn't exist.
+ */
+export function clampAmud(tractate: string, page: string): string {
+  const end = TRACTATE_END_AMUD[tractate.toLowerCase()];
+  if (!end) return page;
+  const cur = amudToNumber(page.trim());
+  const endNum = amudToNumber(end);
+  if (cur == null || endNum == null) return page;
+  return cur > endNum ? end : page.trim();
+}

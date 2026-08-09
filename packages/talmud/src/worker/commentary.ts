@@ -48,7 +48,8 @@ export async function fetchCommentaryWorks(
   page: string,
   bypassCache = false,
 ): Promise<
-  { works: CommentaryWork[]; tractate: string; page: string; fetchedAt: string } | { error: string }
+  | { works: CommentaryWork[]; tractate: string; page: string; fetchedAt: string }
+  | { error: string; permanent?: boolean }
 > {
   const cache = env.CACHE;
   const cacheKey = keyForCommentaryWorks(tractate, page);
@@ -88,6 +89,17 @@ export async function fetchCommentaryWorks(
     return { error: `Sefaria links non-JSON: ${String(err)}` };
   }
   if (!Array.isArray(parsed)) {
+    // A 200 whose JSON is {"error": "..."} is Sefaria's DELIBERATE answer for
+    // a ref it can't resolve ("Megillah ends at Daf 32a.", "Could not find
+    // title in reference: Shekalim 2a") — deterministic for that ref, so
+    // retrying can never succeed. Flag it permanent so callers degrade to
+    // empty instead of throwing into a queue-retry loop. Any other non-array
+    // shape stays transient (throw -> retry).
+    const errMsg =
+      parsed !== null && typeof parsed === 'object' && 'error' in parsed
+        ? String((parsed as { error: unknown }).error)
+        : null;
+    if (errMsg) return { error: `Sefaria links ref error: ${errMsg}`, permanent: true };
     return { error: `Sefaria links non-array response (${typeof parsed})` };
   }
   const raw = parsed as Array<{
