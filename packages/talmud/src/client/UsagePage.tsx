@@ -1436,6 +1436,20 @@ interface LinePoint {
   /** Estimated (vs measured) — drawn dashed/lighter. */
   estimated?: boolean;
 }
+
+type ChartRange = '30' | '90' | 'all';
+// Keep only the trailing `days` days of a daily series (labels are YYYY-MM-DD,
+// so string comparison is chronological). Anchored to the newest point rather
+// than today, so a series that stopped updating still shows its own tail.
+function clipRecent(points: LinePoint[], days: number): LinePoint[] {
+  const last = points[points.length - 1];
+  if (!last) return points;
+  const end = new Date(`${last.label}T00:00:00Z`);
+  if (Number.isNaN(end.getTime())) return points;
+  end.setUTCDate(end.getUTCDate() - (days - 1));
+  const cutoff = end.toISOString().slice(0, 10);
+  return points.filter((p) => p.label >= cutoff);
+}
 // A compact SVG line chart with a light area fill, a couple of gridlines, an
 // optional estimated-prefix (dashed) / measured-suffix (solid) split, and a
 // hover readout. Scales uniformly to the container width (viewBox + meet), so
@@ -1684,6 +1698,45 @@ function ChartCard(props: { title: string; sub?: string; children: JSX.Element }
   );
 }
 
+// Small pill group selecting how far back the time charts look.
+function RangeToggle(props: { value: ChartRange; onChange: (r: ChartRange) => void }): JSX.Element {
+  const opts: ChartRange[] = ['30', '90', 'all'];
+  return (
+    <div
+      style={{
+        display: 'inline-flex',
+        gap: '2px',
+        background: '#f4f2ee',
+        border: '1px solid #e6e3dc',
+        'border-radius': '6px',
+        padding: '2px',
+      }}
+    >
+      <For each={opts}>
+        {(o) => (
+          <button
+            type="button"
+            onClick={() => props.onChange(o)}
+            style={{
+              border: 'none',
+              'border-radius': '4px',
+              padding: '0.12rem 0.5rem',
+              'font-size': '0.7rem',
+              'font-weight': props.value === o ? 600 : 400,
+              background: props.value === o ? '#fff' : 'transparent',
+              color: props.value === o ? '#444' : '#999',
+              'box-shadow': props.value === o ? '0 0 2px rgba(0,0,0,0.12)' : 'none',
+              cursor: 'pointer',
+            }}
+          >
+            {t(`usage.chart.range.${o}`)}
+          </button>
+        )}
+      </For>
+    </div>
+  );
+}
+
 // Categorical palette for the per-producer stacked bar (distinct, colour-blind
 // friendly-ish, muted enough to read as a set).
 const PRODUCER_PALETTE = [
@@ -1898,7 +1951,15 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
     return Math.round((e.grossed.incurredUsd / e.grossed.fullShasUsd) * 100);
   };
 
-  // Chart series.
+  // Chart series. Default to the recent window: early one-off spikes (bulk
+  // warming runs) otherwise pin the y-axis and flatten the recent data.
+  const [chartRange, setChartRange] = createSignal<ChartRange>('30');
+  const clip = (pts: LinePoint[]): LinePoint[] => {
+    const r = chartRange();
+    // A window with too few points falls through to the chart's own
+    // "not enough data" fallback rather than silently widening the range.
+    return r === 'all' ? pts : clipRecent(pts, Number(r));
+  };
   const spendPoints = (): LinePoint[] =>
     series()
       .filter((d) => d.costUsd > 0)
@@ -1909,6 +1970,10 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
       value: p.perDaf,
       estimated: !p.measured,
     }));
+  // Only offer the toggle when there is history beyond the smallest window.
+  const rangeUseful = (): boolean =>
+    clipRecent(spendPoints(), 30).length < spendPoints().length ||
+    clipRecent(dafCostPoints(), 30).length < dafCostPoints().length;
 
   return (
     <>
@@ -1946,12 +2011,17 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
       </div>
 
       {/* Charts */}
+      <Show when={rangeUseful()}>
+        <div style={{ display: 'flex', 'justify-content': 'flex-end', 'margin-bottom': '0.3rem' }}>
+          <RangeToggle value={chartRange()} onChange={setChartRange} />
+        </div>
+      </Show>
       <div style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '1rem' }}>
         <ChartCard title={t('usage.chart.spend.title')} sub={t('usage.chart.spend.sub')}>
-          <LineChart points={spendPoints()} color="#2a8a42" fmtValue={fmtUsd} />
+          <LineChart points={clip(spendPoints())} color="#2a8a42" fmtValue={fmtUsd} />
         </ChartCard>
         <ChartCard title={t('usage.chart.perDaf.title')} sub={t('usage.chart.perDaf.sub')}>
-          <LineChart points={dafCostPoints()} color="#b3541e" fmtValue={fmtUsd} />
+          <LineChart points={clip(dafCostPoints())} color="#b3541e" fmtValue={fmtUsd} />
         </ChartCard>
       </div>
 
