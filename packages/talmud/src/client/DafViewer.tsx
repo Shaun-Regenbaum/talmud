@@ -13,7 +13,7 @@ import { dedupeBy, partitionSections } from '../lib/argumentMoves';
 import { DafRenderer } from '../lib/daf-render';
 import type { DafGeoModel } from '../lib/geographyModel';
 import type { TalmudPageData } from '../lib/sefref';
-import { dafRefHe, TRACTATE_OPTIONS } from '../lib/sefref';
+import { clampAmud, dafRefHe, TRACTATE_OPTIONS } from '../lib/sefref';
 import { conceptToTerm, glossaryForDaf, type Term } from '../lib/terms/registry';
 import {
   ArgumentSidebar,
@@ -413,10 +413,14 @@ export interface DafViewerProps {
 
 export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const params = new URLSearchParams(window.location.search);
-  const [tractate, setTractate] = createSignal(
-    props.initialTractate ?? params.get('tractate') ?? 'Berakhot',
+  const initialTractate = props.initialTractate ?? params.get('tractate') ?? 'Berakhot';
+  const [tractate, setTractate] = createSignal(initialTractate);
+  // Clamp the arrival page too — a shared/stale URL past the tractate's end
+  // (?page=32b on Megillah) would otherwise open a page that doesn't exist
+  // and trigger generation for it.
+  const [page, setPage] = createSignal(
+    clampAmud(initialTractate, props.initialPage ?? params.get('page') ?? '2a'),
   );
-  const [page, setPage] = createSignal(props.initialPage ?? params.get('page') ?? '2a');
   const [active, setActive] = createSignal<ActiveWord | null>(null);
 
   // Daf sizing. On desktop, scale down for narrow viewports; on phones the
@@ -843,7 +847,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const p = page();
     const controller = new AbortController();
     const timer = setTimeout(() => {
-      for (const np of [nextPage(p), prevPage(p)]) {
+      // clampAmud folds an off-the-end neighbour back onto the current page;
+      // the Set drop skips it (nothing to prefetch past the tractate's end).
+      for (const np of new Set([clampAmud(t, nextPage(p)), clampAmud(t, prevPage(p))])) {
+        if (np === p) continue;
         void fetch(`/api/daf/${encodeURIComponent(t)}/${np}`, { signal: controller.signal }).catch(
           () => {},
         );
@@ -2616,9 +2623,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     window.history.replaceState({}, '', u.toString());
   };
 
+  // Clamp navigation to the tractate's real extent — "next" from Megillah 32a
+  // must not land on 32b (no such page; generating it bills a full daf of LLM
+  // calls that all fail on permanent Sefaria ref errors). Covers the arrow
+  // keys, the ‹/› buttons, the free daf-number input, and the amud toggle.
   const go = (p: string) => {
     clearActive();
-    setPage(p);
+    setPage(clampAmud(tractate(), p));
     syncUrl();
   };
 

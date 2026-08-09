@@ -83,7 +83,7 @@ import {
 } from '../lib/rabbi/types';
 import type { EntityPiece } from '../lib/registry/entity';
 import { adjacentAmud, sefariaAPI, type TalmudPageData, TRACTATE_OPTIONS } from '../lib/sefref';
-import { iterAmudim, TRACTATE_END_AMUD } from '../lib/sefref/amudim';
+import { isValidAmud, iterAmudim, TRACTATE_END_AMUD } from '../lib/sefref/amudim';
 import { getDafyomiMasechet } from '../lib/sefref/dafyomi/masechtos';
 import { fetchHebrewBooksDaf } from '../lib/sefref/hebrewbooks/client';
 import { estimateShasCost } from '../lib/shasCost';
@@ -3395,6 +3395,13 @@ app.post('/api/daf-generate/:tractate/:page', async (c) => {
   if (!wf) return c.json({ error: 'DAF_WARM_WORKFLOW binding not available' }, 503);
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
+  // A page outside the tractate's real extent (e.g. Megillah 32b — Megillah
+  // ends at 32a) must not spawn a Workflow: every Sefaria-backed step gets a
+  // permanent ref error, the queue retries hard-fail, and the LLM steps bill
+  // for a daf that doesn't exist. 404 now, before any budget/breaker checks.
+  if (!isValidAmud(tractate, page)) {
+    return c.json({ generating: false, error: `unknown daf: ${tractate} ${page}` }, 404);
+  }
   const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
   const gate = await checkBudget(c.env, { custom: false });
   if (!gate.ok) {
@@ -4132,7 +4139,15 @@ const isRishonTitle = (title: string): boolean =>
 const COMPUTED_FNS: Record<string, ComputedMarkFn> = {
   'rishonim-from-sefaria': async (env, tractate, page) => {
     const result = await fetchCommentaryWorks(env, tractate, page);
-    if ('error' in result) throw new Error(result.error);
+    // A permanent ref error (Sefaria has no such ref — e.g. Shekalim, which
+    // has no Bavli text under that title on Sefaria) can never succeed on
+    // retry: complete with an empty mark (cached; the chip just doesn't
+    // render) instead of hard-failing the queue job forever. Transient
+    // errors still throw so the queue retries.
+    if ('error' in result) {
+      if (result.permanent) return { instances: [] };
+      throw new Error(result.error);
+    }
     // Regroup by segment, filtering to the rishonim allowlist. Each instance
     // = one commented segment with the per-rishon comment payloads attached
     // for downstream synthesis.
@@ -4409,8 +4424,10 @@ async function runExtractorFannedOut(
       try {
         p = JSON.parse(r.content) as { instances?: unknown[] };
       } catch (err) {
+        // finish_reason distinguishes a max_tokens truncation ('length' — the
+        // section's moves outgrew the per-section cap) from model garbage.
         throw new Error(
-          `fan-out ${fanOutMarkId}: section JSON parse failed: ${String(err).slice(0, 120)}`,
+          `fan-out ${fanOutMarkId}: section JSON parse failed (finish=${r.finish_reason}): ${String(err).slice(0, 120)}`,
         );
       }
       if (Array.isArray(p.instances)) mergedInstances.push(...p.instances);
@@ -5571,6 +5588,12 @@ app.post('/api/run', async (c) => {
   const raw = parsed.value;
   const body = raw as Partial<JobMessage>;
   if (!body.tractate || !body.page) return c.json({ error: 'tractate and page required' }, 400);
+  // Same daf-extent gate as /api/daf-generate: a producer run on a page that
+  // doesn't exist is a doomed queue job (permanent Sefaria ref error on every
+  // retry) — refuse it at the entrance instead.
+  if (!isValidAmud(body.tractate, body.page)) {
+    return c.json({ error: `unknown daf: ${body.tractate} ${body.page}` }, 404);
+  }
 
   // Hijack lockdown: the privileged knobs let a caller run arbitrary prompts
   // (ad_hoc), pick an expensive model (model_override), or force fresh paid runs
