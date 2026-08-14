@@ -369,6 +369,48 @@ export function buildParshaMap(input: {
   return { totalVerses, units, landmarks, aliyot, chapters };
 }
 
+/** One move's place in the drawn column: where its stretch of the ribbon
+ *  actually is, and where its title can be written without landing on its
+ *  neighbour's. */
+export interface ParshaColumnRow {
+  index: number;
+  /** The ribbon segment — exactly proportional, never nudged. */
+  segTop: number;
+  segHeight: number;
+  /** The title's baseline row, pushed down where the segment is too short to
+   *  hold a line of text. */
+  labelTop: number;
+}
+
+/**
+ * Lay the portion out as a vertical column: the ribbon keeps true proportions
+ * (it is the map, and a nudged map lies), while the titles beside it are
+ * pushed down just enough to stay legible.
+ *
+ * A two-verse unit is four pixels tall on a 430px column — its title has to
+ * sit lower than its segment or overlap the next one. Each label therefore
+ * takes the later of its own segment top and `minGap` below the previous
+ * label, and the column grows if the last one runs past the bottom.
+ */
+export function layoutParshaColumn(
+  spans: readonly ParshaSpan[],
+  options: { totalVerses: number; height: number; minGap: number },
+): { rows: ParshaColumnRow[]; height: number } {
+  const { totalVerses, height, minGap } = options;
+  if (!(totalVerses > 0) || !(height > 0)) return { rows: [], height };
+  const rows: ParshaColumnRow[] = [];
+  let previous = Number.NEGATIVE_INFINITY;
+  for (const span of [...spans].sort((a, b) => a.offset - b.offset)) {
+    const segTop = (span.offset / totalVerses) * height;
+    const segHeight = (span.verses / totalVerses) * height;
+    const labelTop = Math.max(segTop, previous + minGap);
+    previous = labelTop;
+    rows.push({ index: span.index, segTop, segHeight, labelTop });
+  }
+  const last = rows.at(-1);
+  return { rows, height: last ? Math.max(height, last.labelTop + minGap) : height };
+}
+
 /**
  * The share of the PORTION each kind of reading takes, counted verse by verse
  * off the anchored units.

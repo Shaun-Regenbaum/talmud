@@ -522,29 +522,52 @@ body {
   background: #767c66;
 }
 
-/* ---- the parsha map ----
-   Layers stacked on one verse axis; everything inside is positioned by
-   inset-inline-start so the whole map mirrors under the Hebrew RTL drawer
-   (a Torah scroll runs the other way, and so should its map). */
-.parsha-map-aliyot,
-.parsha-map-strip,
-.parsha-map-pins,
-.parsha-map-chapters {
-  position: relative;
+/* ---- the parsha column ----
+   The portion unrolled down the drawer: four rails on one verse axis, laid out
+   with logical properties so the whole thing mirrors in the Hebrew drawer (a
+   scroll runs the other way, and so should its map). */
+.parsha-column {
+  display: flex;
   width: 100%;
 }
-.parsha-map-aliyot {
-  height: 13px;
-  margin-bottom: 4px;
+.parsha-column-chapters {
+  position: relative;
+  flex: none;
+  width: 22px;
 }
-.parsha-map-aliyot i {
+.parsha-column-chapters i {
   position: absolute;
-  top: 0;
-  bottom: 0;
+  inset-inline-end: 5px;
+  font-style: normal;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  color: var(--muted);
+  transform: translateY(-4px);
+}
+/* A hairline out to the aliyot rail, so the number reads as a position. */
+.parsha-column-chapters i::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: -5px;
+  top: 7px;
+  width: 4px;
+  height: 1px;
+  background: var(--line);
+}
+.parsha-column-aliyot {
+  position: relative;
+  flex: none;
+  width: 13px;
+}
+.parsha-column-aliyot i {
+  position: absolute;
+  inset-inline-start: 0;
+  width: 11px;
+  padding-top: 3px;
   font-style: normal;
   font-family: var(--font-hebrew);
-  font-size: 9.5px;
-  line-height: 12px;
+  font-size: 9px;
+  line-height: 1;
   text-align: center;
   color: var(--accent);
   background: var(--parchment);
@@ -552,94 +575,103 @@ body {
   border-radius: 2px;
   overflow: hidden;
 }
-.parsha-map-strip {
-  height: 30px;
+.parsha-column-ribbon {
+  position: relative;
+  flex: none;
+  width: 13px;
+  margin-inline: 3px 9px;
   background: var(--surface-sunk);
-  border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: 3px;
   overflow: hidden;
 }
-.parsha-map-unit {
+.parsha-column-seg {
   position: absolute;
-  top: 0;
-  bottom: 0;
+  inset-inline: 0;
   padding: 0;
-  font-family: var(--font-ui);
-  font-size: 10px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.94);
   border: none;
-  border-inline-end: 1px solid rgba(255, 255, 255, 0.55);
   cursor: pointer;
+  /* An INSET hairline, not a border: a border would grow the box and the
+     segment stacked beneath would paint over it, so a run of same-kind moves
+     would read as one undivided block. */
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.8);
 }
-.parsha-map-unit:last-child {
-  border-inline-end: none;
-}
-.parsha-map-unit:hover {
+.parsha-column-seg:hover {
   filter: brightness(1.12);
 }
-.parsha-map-unit.active {
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
+.parsha-column-seg.active {
+  box-shadow: inset 0 0 0 2px var(--fg);
 }
-/* The number is a correlation aid to the list below; it only fits on the
-   wider segments, and hiding it is better than clipping it. */
-.parsha-map-unit span {
-  display: block;
-  overflow: hidden;
-}
-.parsha-map-pins {
-  height: 11px;
-  margin-top: 4px;
-}
-.parsha-map-pin {
+.parsha-column-pin {
   position: absolute;
-  top: 0;
-  width: 7px;
-  height: 7px;
+  inset-inline-start: 50%;
+  width: 5px;
+  height: 5px;
+  margin-inline-start: -2.5px;
   padding: 0;
-  transform: translateX(-3.5px) rotate(45deg);
+  transform: rotate(45deg);
   background: var(--surface);
-  border: 1.5px solid var(--accent-strong);
+  border: 1px solid var(--accent-strong);
   cursor: pointer;
 }
-.parsha-map-pin:hover {
+.parsha-column-pin:hover {
   background: var(--accent);
 }
-.parsha-map-chapters {
-  height: 14px;
-  font-family: var(--font-ui);
-  font-size: 9.5px;
-  color: var(--muted);
+.parsha-column-titles {
+  position: relative;
+  flex: 1;
+  min-width: 0;
 }
-.parsha-map-chapters i {
+.parsha-column-title {
   position: absolute;
-  top: 3px;
-  font-style: normal;
-  transform: translateX(-50%);
+  inset-inline: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 0;
+  text-align: start;
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  cursor: pointer;
 }
-/* A hairline back up to the strip, so the number reads as a position on the
-   portion rather than a loose digit. */
-.parsha-map-chapters i::before {
+/* The connector back to the ribbon. */
+.parsha-column-title::before {
   content: "";
   position: absolute;
-  top: -4px;
-  inset-inline-start: 50%;
-  width: 1px;
-  height: 3px;
+  inset-inline-start: -9px;
+  top: 8px;
+  width: 7px;
+  height: 1px;
   background: var(--line);
 }
-.parsha-map-chapters i.first::before {
-  inset-inline-start: 0;
+.parsha-column-title .t {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.ui-drawer[dir="rtl"] .parsha-map-chapters i {
-  transform: translateX(50%);
+.ui-drawer[dir="rtl"] .parsha-column-title .t {
+  font-family: var(--font-hebrew);
+  font-size: 14.5px;
 }
-/* The opening chapter sits at the very edge, so it hangs inward instead. */
-.parsha-map-chapters i.first,
-.ui-drawer[dir="rtl"] .parsha-map-chapters i.first {
-  transform: none;
+.parsha-column-title .r {
+  flex: none;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
 }
+.parsha-column-title:hover .t,
+.parsha-column-title.active .t {
+  color: var(--accent-strong);
+}
+
 .parsha-legend {
   display: flex;
   flex-wrap: wrap;
@@ -668,11 +700,10 @@ body {
   position: relative;
 }
 
-/* ---- a flow move, collapsed ----
-   One row per move: a kind stripe, the title, its verse range. The row stands
-   as tall as its passage is long (min-height set inline from the map), so the
-   strip's proportions read again down the list. Clicking opens the move in
-   place. */
+/* ---- a flow move as a plain row ----
+   The fallback list, shown only when there is no map to draw (the book's
+   chapter lengths wouldn't resolve): a kind stripe, the title, its verse
+   range. Selecting one opens the same detail panel the column opens. */
 .parsha-band {
   position: relative;
   display: flex;
@@ -733,9 +764,9 @@ body {
   color: inherit;
 }
 
-/* The selected move's in-place close reading (deep dive under the card). */
+/* The selected move's close reading, opened under the column. */
 .parsha-flow-deep {
-  margin: 0 0 10px;
+  margin: 16px 0 4px;
   padding: 6px 9px 2px;
   border-left: 2px solid var(--line);
 }
@@ -756,7 +787,20 @@ body {
   letter-spacing: 0.03em;
   color: var(--accent);
 }
-/* The one-line summary, which the collapsed band leaves out. */
+/* The opened move names itself again — the column's own title is a small
+   label beside a ribbon, not a heading. */
+.parsha-flow-title {
+  margin: 0 0 4px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.ui-drawer[dir="rtl"] .parsha-flow-title {
+  font-family: var(--font-hebrew);
+  font-size: 16.5px;
+}
+/* The one-line summary, which the column leaves out. */
 .parsha-flow-summary {
   margin: 0 0 9px;
   font-family: var(--font-serif);
