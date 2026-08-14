@@ -1,4 +1,17 @@
-export type ParshaSectionKind = 'narrative' | 'law' | 'discourse';
+/** What KIND of reading a passage is — the one dimension the parsha map
+ *  colours by. Five values, not three: a Torah year that only knows narrative /
+ *  law / discourse paints Ha'azinu and the Song of the Sea as "discourse" and
+ *  the Pekudei inventory or the Bemidbar census as "law", which is the one
+ *  thing they are not. */
+export type ParshaSectionKind = 'narrative' | 'law' | 'discourse' | 'poetry' | 'records';
+
+export const PARSHA_KINDS: readonly ParshaSectionKind[] = [
+  'narrative',
+  'law',
+  'discourse',
+  'poetry',
+  'records',
+];
 
 export interface ParshaRange {
   book: string;
@@ -13,6 +26,10 @@ export interface WeeklyParsha extends ParshaRange {
   heName: string;
   ref: string;
   chapter: number;
+  /** The week's seven aliyot as Sefaria refs, from the calendar payload's
+   *  `extraDetails.aliyot`. Empty when the calendar omits them (or when a
+   *  pre-aliyot entry is still warm in KV). */
+  aliyot: string[];
 }
 
 export interface ParshaFlowSection {
@@ -44,6 +61,36 @@ export interface ParshaTerm {
   en: string;
 }
 
+/** Where a flow unit, a landmark, or an aliyah SITS in the portion, measured
+ *  in verses from its first verse. This is the whole map: every layer is an
+ *  offset plus a length on one 0..totalVerses axis, so the client draws them
+ *  without knowing anything about chapter lengths. */
+export interface ParshaSpan {
+  /** Index into the study's own `flow` / `landmarks` array. */
+  index: number;
+  offset: number;
+  verses: number;
+}
+
+export interface ParshaAliyahSpan extends ParshaSpan {
+  /** 1-7. Maftir is deliberately absent: it re-reads the end of the seventh
+   *  aliyah, so drawing it as an eighth band would double-count the portion. */
+  n: number;
+  ref: string;
+}
+
+/** The deterministic layer under the AI's flow — verse extents, the seven
+ *  aliyot, and where each chapter begins. Null when the book's chapter lengths
+ *  can't be resolved; the reader then falls back to the un-mapped list rather
+ *  than drawing a portion at made-up proportions. */
+export interface ParshaMap {
+  totalVerses: number;
+  units: ParshaSpan[];
+  landmarks: ParshaSpan[];
+  aliyot: ParshaAliyahSpan[];
+  chapters: { chapter: number; offset: number }[];
+}
+
 export interface ParshaStudy {
   name: string;
   heName: string;
@@ -54,7 +101,11 @@ export interface ParshaStudy {
   titleHe: string;
   overviewEn: string;
   overviewHe: string;
-  composition: Record<ParshaSectionKind, number>;
+  /** MEASURED from the anchored units (verses per kind), not asserted by the
+   *  model — so the legend can never disagree with the map above it. Empty
+   *  when there is no map to measure. */
+  composition: Partial<Record<ParshaSectionKind, number>>;
+  map: ParshaMap | null;
   flow: ParshaFlowSection[];
   landmarks: ParshaLandmark[];
   terms: ParshaTerm[];
@@ -210,16 +261,177 @@ export function tokenizeTermMentions(
   return out;
 }
 
-/** Normalize an editorial percentage estimate so the three visible bars total 100. */
-export function normalizeParshaComposition(value: unknown): Record<ParshaSectionKind, number> {
-  const input = (value ?? {}) as Partial<Record<ParshaSectionKind, unknown>>;
-  const raw = (['narrative', 'law', 'discourse'] as const).map((key) => {
-    const n = Number(input[key]);
-    return Number.isFinite(n) && n > 0 ? n : 0;
+/** How far into the portion a verse sits, counted in verses from its first —
+ *  the one coordinate every layer of the map shares. Null if the point falls
+ *  outside the portion or a chapter length is missing. `chapterLengths` is
+ *  1-indexed by chapter number (Sefaria's book shape). */
+export function verseOffset(
+  range: ParshaRange,
+  chapterLengths: readonly number[],
+  point: { chapter: number; verse: number },
+): number | null {
+  if (!pointInParsha(range, point)) return null;
+  // pointInParsha only bounds the point by the portion's ends, so a verse that
+  // doesn't exist in a chapter the portion passes THROUGH (18:99) would sail
+  // past it and place a span off the end of the strip.
+  const own = chapterLengths[point.chapter - 1];
+  if (!Number.isFinite(own) || point.verse > own) return null;
+  let offset = 0;
+  for (let chapter = range.startChapter; chapter < point.chapter; chapter++) {
+    const length = chapterLengths[chapter - 1];
+    if (!Number.isFinite(length) || length < 1) return null;
+    offset += chapter === range.startChapter ? length - range.startVerse + 1 : length;
+  }
+  return (
+    offset +
+    (point.chapter === range.startChapter ? point.verse - range.startVerse : point.verse - 1)
+  );
+}
+
+function spanOf(
+  range: ParshaRange,
+  chapterLengths: readonly number[],
+  section: Pick<ParshaRange, 'startChapter' | 'startVerse' | 'endChapter' | 'endVerse'>,
+  index: number,
+): ParshaSpan | null {
+  if (!sectionInParsha(range, section)) return null;
+  const start = verseOffset(range, chapterLengths, {
+    chapter: section.startChapter,
+    verse: section.startVerse,
   });
-  const total = raw.reduce((sum, n) => sum + n, 0);
-  if (!total) return { narrative: 0, law: 0, discourse: 100 };
-  const rounded = raw.map((n) => Math.round((n / total) * 100));
-  rounded[2] += 100 - rounded.reduce((sum, n) => sum + n, 0);
-  return { narrative: rounded[0], law: rounded[1], discourse: rounded[2] };
+  const end = verseOffset(range, chapterLengths, {
+    chapter: section.endChapter,
+    verse: section.endVerse,
+  });
+  if (start === null || end === null || end < start) return null;
+  return { index, offset: start, verses: end - start + 1 };
+}
+
+/**
+ * Lay the portion out on one verse axis: the AI's flow units, the landmarks,
+ * the seven aliyot, and the chapter starts, each as an offset + length. Pure —
+ * the route supplies the book's chapter lengths, everything else is arithmetic.
+ *
+ * Returns null when the portion itself can't be measured. Individual layers
+ * degrade independently: a unit that doesn't sit inside the portion is dropped
+ * from the map (it still renders in the list), and an unparseable aliyah ref
+ * costs only that band.
+ */
+export function buildParshaMap(input: {
+  range: ParshaRange;
+  chapterLengths: readonly number[];
+  flow: readonly Pick<
+    ParshaFlowSection,
+    'startChapter' | 'startVerse' | 'endChapter' | 'endVerse'
+  >[];
+  landmarks: readonly { chapter: number; verse: number }[];
+  aliyot: readonly string[];
+}): ParshaMap | null {
+  const { range, chapterLengths } = input;
+  const last = verseOffset(range, chapterLengths, {
+    chapter: range.endChapter,
+    verse: range.endVerse,
+  });
+  if (last === null) return null;
+  const totalVerses = last + 1;
+
+  const units: ParshaSpan[] = [];
+  input.flow.forEach((section, index) => {
+    const span = spanOf(range, chapterLengths, section, index);
+    if (span) units.push(span);
+  });
+
+  const landmarks: ParshaSpan[] = [];
+  input.landmarks.forEach((landmark, index) => {
+    const offset = verseOffset(range, chapterLengths, landmark);
+    if (offset !== null) landmarks.push({ index, offset, verses: 1 });
+  });
+
+  // The calendar lists seven aliyot plus maftir, and maftir re-reads the tail
+  // of the seventh — so only the seven divide the portion.
+  const aliyot: ParshaAliyahSpan[] = [];
+  input.aliyot.slice(0, 7).forEach((ref, index) => {
+    const parsed = parseParshaRef(ref);
+    if (!parsed || parsed.book !== range.book) return;
+    const span = spanOf(range, chapterLengths, parsed, index);
+    if (span) aliyot.push({ ...span, n: index + 1, ref });
+  });
+
+  const chapters: { chapter: number; offset: number }[] = [];
+  for (let chapter = range.startChapter; chapter <= range.endChapter; chapter++) {
+    const offset =
+      chapter === range.startChapter
+        ? 0
+        : verseOffset(range, chapterLengths, { chapter, verse: 1 });
+    if (offset !== null) chapters.push({ chapter, offset });
+  }
+
+  return { totalVerses, units, landmarks, aliyot, chapters };
+}
+
+/**
+ * The share of the PORTION each kind of reading takes, counted verse by verse
+ * off the anchored units.
+ *
+ * Deliberately painted rather than summed: units are supposed to tile the
+ * portion, but nothing forces them to. Summing unit lengths would double-count
+ * an overlap and would quietly renormalize a gap away — ten law verses in a
+ * hundred-verse portion reporting "law 100%". Painting each verse once (a
+ * later unit wins the overlap, exactly as it wins on the drawn strip) makes
+ * the percentages shares of the whole portion, so an incompletely covered
+ * portion honestly totals less than 100.
+ *
+ * Largest-remainder rounding, so a fully covered portion totals exactly 100
+ * and a kind with any verses at all never rounds away to nothing. Kinds with
+ * no verses are absent rather than zero.
+ */
+export function measureComposition(
+  totalVerses: number,
+  units: readonly { kind: ParshaSectionKind; offset: number; verses: number }[],
+): Partial<Record<ParshaSectionKind, number>> {
+  if (!(totalVerses > 0)) return {};
+  const painted: (ParshaSectionKind | undefined)[] = new Array(totalVerses);
+  for (const unit of units) {
+    if (!PARSHA_KINDS.includes(unit.kind) || !(unit.verses > 0)) continue;
+    const from = Math.max(0, unit.offset);
+    const to = Math.min(totalVerses, unit.offset + unit.verses);
+    for (let at = from; at < to; at += 1) painted[at] = unit.kind;
+  }
+  const verses = new Map<ParshaSectionKind, number>();
+  let counted = 0;
+  for (const kind of painted) {
+    if (!kind) continue;
+    verses.set(kind, (verses.get(kind) ?? 0) + 1);
+    counted += 1;
+  }
+  if (!counted) return {};
+  const shares = [...verses.entries()].map(([kind, n]) => {
+    const exact = (n / totalVerses) * 100;
+    const floor = Math.floor(exact);
+    return { kind, whole: Math.max(1, floor), remainder: exact - floor };
+  });
+  // Hand out whatever the floors left over (or claw back what the min-1 floor
+  // overspent) one point at a time, largest fractional part first. The target
+  // is the COVERED share, not a flat 100 — an uncovered stretch of the portion
+  // is left uncounted instead of being handed to whichever kind rounds best.
+  const target = Math.round((counted / totalVerses) * 100);
+  let slack = target - shares.reduce((sum, s) => sum + s.whole, 0);
+  const byRemainder = [...shares].sort((a, b) => b.remainder - a.remainder);
+  for (let step = 0; slack > 0 && step < 100; step += 1) {
+    byRemainder[step % byRemainder.length].whole += 1;
+    slack -= 1;
+  }
+  const bySize = [...shares].sort((a, b) => b.whole - a.whole);
+  for (let step = 0; slack < 0 && step < 100; step += 1) {
+    const share = bySize[step % bySize.length];
+    if (share.whole <= 1) continue;
+    share.whole -= 1;
+    slack += 1;
+  }
+  const out: Partial<Record<ParshaSectionKind, number>> = {};
+  for (const kind of PARSHA_KINDS) {
+    const share = shares.find((s) => s.kind === kind);
+    if (share) out[kind] = share.whole;
+  }
+  return out;
 }

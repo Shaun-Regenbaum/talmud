@@ -78,7 +78,7 @@ describe('key byte-parity with the legacy literals', () => {
         overviewDef,
         enrichmentAddress('parsha-overview', overviewId, 'Deuteronomy', '7'),
       ),
-    ).toBe('parsha-overview:v3:deuteronomy_7_12-11_25');
+    ).toBe('parsha-overview:v4:deuteronomy_7_12-11_25');
 
     const sectionDef = info(enrichRunDefOf('parsha-section'), 'enrich');
     const sectionId = await instanceIdOf({ id: 'Deuteronomy 7:12-11:25#2' });

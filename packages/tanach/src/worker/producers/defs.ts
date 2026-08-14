@@ -252,7 +252,7 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
   'parsha-overview': {
     id: 'parsha-overview',
     label: 'Parsha overview',
-    description: 'A bilingual whole-parsha synopsis, composition map, flow, and landmarks',
+    description: 'A bilingual whole-parsha synopsis, flow map, and landmarks',
     kind: 'enrichment',
     inputs: [{ source: 'parsha-verses' }],
     recipe: { extractor: parshaOverviewExtractor },
@@ -261,8 +261,11 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     scope: 'local',
     key_shape: 'enrich',
     // v3: PARSHA_HEBREW_STYLE tightened to the talmud reader's literal
-    // convention (dense Hebrew-first Form A; Hebrew inside quote marks).
-    cacheVersion: '3',
+    //     convention (dense Hebrew-first Form A; Hebrew inside quote marks).
+    // v4: the composition estimate is gone (the route now COUNTS the split off
+    //     the anchored units), `kind` gains poetry + records, and unit titles
+    //     are capped at 2-5 words so they fit the map's bands.
+    cacheVersion: '4',
     passes: ['parsha-overview-shape'],
     source: 'code',
   },

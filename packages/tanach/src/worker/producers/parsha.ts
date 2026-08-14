@@ -56,16 +56,19 @@ OVERVIEW
 - Explain its movement: what changes from the beginning to the end, rather than listing topics.
 - Stay on p'shat. Do not preach, survey commentators, or invent background.
 
-COMPOSITION
-- Estimate the share of the reading that is narrative, law, and discourse.
-- "discourse" includes exhortation, covenant speech, theology, blessing, rebuke, and extended instruction that is not a discrete law.
-- Return whole-number percentages totaling 100. This is an editorial map, not a scholarly statistic.
-
 FLOW
 - Divide the whole portion into 5-9 consecutive learning units.
 - Give exact numeric start/end chapter and verse anchors inside the supplied range.
-- Every unit gets one kind: narrative, law, or discourse; a short title; and a one-sentence summary showing how it advances the parsha.
+- Every unit gets one kind, a title of 2-5 words (it is read as a single line on a map, so keep it short and concrete), and a one-sentence summary showing how it advances the parsha.
 - Cover the portion in order without wandering outside its range. Prefer meaningful units over chapter boundaries.
+
+KIND — what sort of reading the unit is. Choose the one that dominates it:
+- narrative: something happens, in time — a scene, a journey, an incident.
+- law: a rule, a case, or a procedure the reader is to follow.
+- discourse: speech that is neither story nor statute — exhortation, covenant, rebuke, blessing, theology, extended instruction.
+- poetry: sustained verse — song, oracle, poetic blessing (שירת הים, האזינו, the oracles of בלעם).
+- records: a genealogy, a census, an inventory, or an itinerary — a passage whose substance is the list itself.
+The reader's map is coloured by this field, so a unit that is mostly a poem must not be filed as discourse, and a list of names or objects must not be filed as narrative or law.
 
 LANDMARKS
 - Name 3-6 scenes, commands, speeches, or verses a learner is especially likely to recognize or want to find again.
@@ -97,32 +100,13 @@ export const PARSHA_OVERVIEW_SCHEMA = {
   schema: {
     type: 'object',
     additionalProperties: false,
-    required: [
-      'titleEn',
-      'titleHe',
-      'overviewEn',
-      'overviewHe',
-      'composition',
-      'flow',
-      'landmarks',
-      'terms',
-    ],
+    required: ['titleEn', 'titleHe', 'overviewEn', 'overviewHe', 'flow', 'landmarks', 'terms'],
     properties: {
       titleEn: { type: 'string' },
       titleHe: { type: 'string' },
       overviewEn: { type: 'string' },
       overviewHe: { type: 'string' },
       terms: TERMS_SCHEMA,
-      composition: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['narrative', 'law', 'discourse'],
-        properties: {
-          narrative: { type: 'integer', minimum: 0, maximum: 100 },
-          law: { type: 'integer', minimum: 0, maximum: 100 },
-          discourse: { type: 'integer', minimum: 0, maximum: 100 },
-        },
-      },
       flow: {
         type: 'array',
         minItems: 5,
@@ -143,7 +127,10 @@ export const PARSHA_OVERVIEW_SCHEMA = {
           ],
           properties: {
             ...RANGE_PROPERTIES,
-            kind: { type: 'string', enum: ['narrative', 'law', 'discourse'] },
+            kind: {
+              type: 'string',
+              enum: ['narrative', 'law', 'discourse', 'poetry', 'records'],
+            },
             titleEn: { type: 'string' },
             titleHe: { type: 'string' },
             summaryEn: { type: 'string' },

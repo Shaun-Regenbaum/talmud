@@ -52,7 +52,7 @@ import { templateKeyScheme } from '@corpus/core/store/key-schemes';
 import type { UsageEntry } from '@corpus/core/telemetry/types';
 import {
   formatParshaRange,
-  normalizeParshaComposition,
+  PARSHA_KINDS,
   type ParshaRange,
   type ParshaSectionKind,
   parseParshaRef,
@@ -121,7 +121,10 @@ const KEY_TEMPLATES: Record<string, KeyTemplate> = {
   // for the passage's key words and quoted phrases (dense Form A; the English
   // quote + Hebrew-in-parens inversion is rejected). One weekly parsha, so
   // each bump re-pays cents, not dollars.
-  'parsha-overview': { key: (a: TanachAddress) => `parsha-overview:v3:${a.instanceId}` },
+  // overview v4: the composition estimate is gone (the route counts the split
+  // off the anchored units instead), `kind` gains poetry + records, and unit
+  // titles are capped at 2-5 words to fit the map's bands.
+  'parsha-overview': { key: (a: TanachAddress) => `parsha-overview:v4:${a.instanceId}` },
   'parsha-section': { key: (a: TanachAddress) => `parsha-section:v2:${a.instanceId}` },
   'parsha-thread': { key: (a: TanachAddress) => `parsha-thread:v3:${a.instanceId}` },
   // Chapter-scoped like overview (one geography per chapter; instance ignored).
@@ -758,7 +761,7 @@ const RUN_PORTS: RunProducerPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkD
         }))
         .filter(
           (item) =>
-            ['narrative', 'law', 'discourse'].includes(item.kind) &&
+            (PARSHA_KINDS as readonly string[]).includes(item.kind) &&
             item.titleEn &&
             verseExists(item.startChapter, item.startVerse) &&
             verseExists(item.endChapter, item.endVerse) &&
@@ -788,7 +791,6 @@ const RUN_PORTS: RunProducerPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkD
         titleHe: String(parsed.titleHe ?? '').trim(),
         overviewEn: String(parsed.overviewEn ?? '').trim(),
         overviewHe: String(parsed.overviewHe ?? '').trim(),
-        composition: normalizeParshaComposition(parsed.composition),
         flow,
         landmarks,
         terms: sanitizeParshaTerms(parsed.terms),
