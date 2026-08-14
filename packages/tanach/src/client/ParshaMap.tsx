@@ -1,21 +1,28 @@
 /**
- * The whole weekly portion as one object: a proportional strip of the parsha,
- * one segment per flow unit, coloured by what KIND of reading it is.
+ * The whole weekly portion as one column — the parsha turned on its side and
+ * unrolled down the drawer.
  *
- * Every layer sits on the same axis — verses from the portion's first verse —
- * so the drawing is pure arithmetic on `study.map`:
- *   aliyot rail   the week's seven divisions (from the calendar, not the model)
- *   the strip     the AI's flow units, at their true verse extents
- *   pins          landmarks, at their exact verse
- *   chapter ticks where 17, 18, 19 … begin
+ * Four rails share one axis (verses from the portion's first verse), so the
+ * drawing is arithmetic on `study.map` and nothing has to be correlated by eye:
+ *   chapters   where 17, 18, 19 … begin
+ *   aliyot     the week's seven divisions (from the calendar, not the model)
+ *   ribbon     the flow units at their true extents, coloured by kind, with
+ *              landmarks marked on them
+ *   titles     each move's name, written beside its own stretch of ribbon
  *
- * Segments are positioned absolutely rather than tiled, so a portion the model
- * left a gap in shows the gap instead of silently stretching its neighbours.
- * The strip is the flow list's other face: selecting here selects there.
+ * A move's title IS its segment — clicking either selects the move, and the
+ * detail opens below the column. The ribbon stays exactly proportional; only
+ * the titles are nudged apart (`layoutParshaColumn`), because a short unit
+ * cannot hold a line of text.
  */
 import { For, type JSX, Show } from 'solid-js';
 import { hebrewNumeral } from '../lib/hebrew.ts';
-import type { ParshaFlowSection, ParshaSectionKind, ParshaStudy } from '../lib/parsha.ts';
+import {
+  layoutParshaColumn,
+  type ParshaFlowSection,
+  type ParshaSectionKind,
+  type ParshaStudy,
+} from '../lib/parsha.ts';
 
 export const PARSHA_KIND_LABEL: Record<ParshaSectionKind, { en: string; he: string }> = {
   narrative: { en: 'Narrative', he: 'סיפור' },
@@ -29,6 +36,12 @@ export const PARSHA_KIND_LABEL: Record<ParshaSectionKind, { en: string; he: stri
  *  them, not the arbitrary order a given portion happens to use. */
 const LEGEND_ORDER: ParshaSectionKind[] = ['narrative', 'law', 'discourse', 'poetry', 'records'];
 
+/** The column's nominal height, and the least room a title needs. The column
+ *  grows past NOMINAL_H only when a portion's units are so lopsided that the
+ *  nudged titles run past the bottom. */
+const NOMINAL_H = 430;
+const MIN_LABEL_GAP = 24;
+
 export interface ParshaMapProps {
   study: ParshaStudy;
   lang: 'en' | 'he';
@@ -40,88 +53,79 @@ export interface ParshaMapProps {
 export function ParshaMap(props: ParshaMapProps): JSX.Element {
   const map = () => props.study.map;
   const total = () => map()?.totalVerses ?? 0;
-  const pct = (n: number) => `${(n / total()) * 100}%`;
   const unitAt = (index: number): ParshaFlowSection | undefined => props.study.flow[index];
-
-  /** Chapter numbers, thinned so two labels never sit on top of each other —
-   *  a portion that opens mid-chapter (Shoftim starts at 16:18) would
-   *  otherwise print "16 17" in the same few pixels. The opening chapter
-   *  always survives; a crowded later one is dropped. */
-  const chapterTicks = () => {
-    const total = map()?.totalVerses ?? 0;
-    const kept: { chapter: number; offset: number }[] = [];
-    for (const tick of map()?.chapters ?? []) {
-      const at = (tick.offset / total) * 100;
-      const previous = kept.at(-1);
-      if (previous && at - (previous.offset / total) * 100 < 5) continue;
-      kept.push(tick);
-    }
-    return kept;
-  };
-  const label = (kind: ParshaSectionKind) => PARSHA_KIND_LABEL[kind][props.lang];
   const shortRef = (ref: string) => ref.replace(`${props.study.book} `, '');
+  /** The reader's language, falling back to the other one rather than to an
+   *  empty label — both sides of every bilingual pair are optional in practice. */
+  const pick = (en: string, he: string) => (props.lang === 'he' ? he || en : en || he);
+  /** A verse offset as a pixel position down the drawn column. */
+  const y = (offset: number) => (offset / total()) * NOMINAL_H;
+
+  const column = () =>
+    layoutParshaColumn(map()?.units ?? [], {
+      totalVerses: total(),
+      height: NOMINAL_H,
+      minGap: MIN_LABEL_GAP,
+    });
 
   return (
     <Show when={map()}>
       {(value) => (
         <>
-          <Show when={value().aliyot.length}>
-            <div class="parsha-map-aliyot">
-              <For each={value().aliyot}>
-                {(aliyah) => (
-                  <i
-                    style={{ 'inset-inline-start': pct(aliyah.offset), width: pct(aliyah.verses) }}
-                    title={`${props.lang === 'he' ? 'עלייה' : 'Aliyah'} ${aliyah.n} · ${shortRef(aliyah.ref)}`}
-                  >
-                    {hebrewNumeral(aliyah.n)}
-                  </i>
-                )}
+          <div class="parsha-column" style={{ height: `${column().height}px` }}>
+            <div class="parsha-column-chapters">
+              <For each={value().chapters}>
+                {(tick) => <i style={{ top: `${y(tick.offset)}px` }}>{tick.chapter}</i>}
               </For>
             </div>
-          </Show>
 
-          <div class="parsha-map-strip">
-            <For each={value().units}>
-              {(span) => {
-                const unit = unitAt(span.index);
-                if (!unit) return null;
-                // An accessor, not a value: these rows are not recreated when
-                // the language changes (the units array is the same), so a
-                // snapshot would leave the tooltips in the old language.
-                const title = () =>
-                  props.lang === 'he' ? unit.titleHe || unit.titleEn : unit.titleEn;
-                return (
-                  <button
-                    type="button"
-                    class={`parsha-map-unit parsha-kind-${unit.kind}`}
-                    classList={{ active: props.selected === span.index }}
-                    style={{ 'inset-inline-start': pct(span.offset), width: pct(span.verses) }}
-                    title={`${title()} · ${shortRef(unit.ref)} · ${span.verses} ${
-                      props.lang === 'he' ? 'פסוקים' : 'verses'
-                    }`}
-                    aria-label={title()}
-                    onClick={() => props.onSelect(span.index)}
-                  >
-                    <span>{span.index + 1}</span>
-                  </button>
-                );
-              }}
-            </For>
-          </div>
+            <Show when={value().aliyot.length}>
+              <div class="parsha-column-aliyot">
+                <For each={value().aliyot}>
+                  {(aliyah) => (
+                    <i
+                      style={{
+                        top: `${y(aliyah.offset)}px`,
+                        height: `${Math.max(11, y(aliyah.verses) - 2)}px`,
+                      }}
+                      title={`${props.lang === 'he' ? 'עלייה' : 'Aliyah'} ${aliyah.n} · ${shortRef(aliyah.ref)}`}
+                    >
+                      {hebrewNumeral(aliyah.n)}
+                    </i>
+                  )}
+                </For>
+              </div>
+            </Show>
 
-          <Show when={value().landmarks.length}>
-            <div class="parsha-map-pins">
+            <div class="parsha-column-ribbon">
+              <For each={column().rows}>
+                {(row) => {
+                  const unit = unitAt(row.index);
+                  if (!unit) return null;
+                  const title = () => pick(unit.titleEn, unit.titleHe);
+                  return (
+                    <button
+                      type="button"
+                      class={`parsha-column-seg parsha-kind-${unit.kind}`}
+                      classList={{ active: props.selected === row.index }}
+                      style={{ top: `${row.segTop}px`, height: `${row.segHeight}px` }}
+                      title={`${title()} · ${shortRef(unit.ref)}`}
+                      aria-label={title()}
+                      onClick={() => props.onSelect(row.index)}
+                    />
+                  );
+                }}
+              </For>
               <For each={value().landmarks}>
                 {(pin) => {
                   const landmark = props.study.landmarks[pin.index];
                   if (!landmark) return null;
-                  const text = () =>
-                    props.lang === 'he' ? landmark.labelHe || landmark.labelEn : landmark.labelEn;
+                  const text = () => pick(landmark.labelEn, landmark.labelHe);
                   return (
                     <button
                       type="button"
-                      class="parsha-map-pin"
-                      style={{ 'inset-inline-start': pct(pin.offset + 0.5) }}
+                      class="parsha-column-pin"
+                      style={{ top: `${y(pin.offset + 0.5) - 3}px` }}
                       title={`${shortRef(landmark.ref)} · ${text()}`}
                       aria-label={text()}
                       onClick={() => props.onOpenVerse(landmark.chapter, landmark.verse)}
@@ -130,19 +134,31 @@ export function ParshaMap(props: ParshaMapProps): JSX.Element {
                 }}
               </For>
             </div>
-          </Show>
 
-          <div class="parsha-map-chapters">
-            <For each={chapterTicks()}>
-              {(tick) => (
-                <i
-                  classList={{ first: tick.offset === 0 }}
-                  style={{ 'inset-inline-start': pct(tick.offset) }}
-                >
-                  {tick.chapter}
-                </i>
-              )}
-            </For>
+            <div class="parsha-column-titles">
+              <For each={column().rows}>
+                {(row) => {
+                  const unit = unitAt(row.index);
+                  if (!unit) return null;
+                  return (
+                    <button
+                      type="button"
+                      class="parsha-column-title"
+                      classList={{ active: props.selected === row.index }}
+                      style={{ top: `${row.labelTop}px` }}
+                      onClick={() => props.onSelect(row.index)}
+                    >
+                      <span class="t">{pick(unit.titleEn, unit.titleHe)}</span>
+                      {/* A verse RANGE is Latin digits joined by a dash: without
+                          its own direction it reorders inside the Hebrew drawer. */}
+                      <span class="r" dir="ltr">
+                        {shortRef(unit.ref)}
+                      </span>
+                    </button>
+                  );
+                }}
+              </For>
+            </div>
           </div>
 
           <div class="parsha-legend">
@@ -150,7 +166,7 @@ export function ParshaMap(props: ParshaMapProps): JSX.Element {
               {(kind) => (
                 <span>
                   <i class={`parsha-dot parsha-kind-${kind}`} />
-                  {label(kind)} {props.study.composition[kind]}%
+                  {PARSHA_KIND_LABEL[kind][props.lang]} {props.study.composition[kind]}%
                 </span>
               )}
             </For>

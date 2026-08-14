@@ -64,16 +64,13 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
     );
   });
 
-  // A move can be picked from the map, where the band that just opened is
-  // often far down the drawer — bring it into view. 'nearest' leaves a band
-  // that is already on screen exactly where it is.
-  const moveRows: (HTMLElement | undefined)[] = [];
+  // The detail opens below the column, which on a tall portion sits under the
+  // fold — bring it into view. 'nearest' leaves it alone when it is already
+  // on screen, so picking a second move doesn't jump the drawer around.
+  let openMove: HTMLElement | undefined;
   createEffect(() => {
-    const index = selected();
-    if (index === null) return;
-    requestAnimationFrame(() =>
-      moveRows[index]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }),
-    );
+    if (selected() === null) return;
+    requestAnimationFrame(() => openMove?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
   });
 
   // Selecting a move highlights its verse range in the reader and opens its
@@ -116,15 +113,13 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
   const verseCount = (index: number): number | undefined =>
     props.study.map?.units.find((span) => span.index === index)?.verses;
 
-  /** A band stands as tall as its passage is long — the strip's proportions,
-   *  read down the list. Floors at a comfortable tap target, so a six-verse
-   *  unit is still a row and not a sliver. Uniform when there is no map. */
-  const bandStyle = (index: number): { 'min-height': string } | undefined => {
-    const map = props.study.map;
-    const verses = verseCount(index);
-    if (!map?.totalVerses || !verses) return undefined;
-    return { 'min-height': `${Math.round(30 + (verses / map.totalVerses) * 150)}px` };
-  };
+  /** Draw the column only when the map accounts for EVERY move. `buildParshaMap`
+   *  drops a unit it can't place on the verse axis, and the column has no row
+   *  for a move it can't position — so a partial map would make that move
+   *  vanish from the drawer entirely. The plain list stands in instead: less
+   *  picture, nothing lost. */
+  const drawColumn = (): boolean =>
+    !!props.study.map && props.study.map.units.length === props.study.flow.length;
 
   return (
     <section class="parsha-study">
@@ -137,14 +132,47 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
         terms={props.study.terms ?? []}
       />
 
-      <Show when={props.study.map}>
-        <section class="parsha-section">
-          <div class="parsha-section-head">
-            <h4>{props.lang === 'he' ? 'הרכב הפרשה' : 'What kind of reading is this?'}</h4>
-            <span>
-              {props.study.map?.totalVerses} {props.lang === 'he' ? 'פסוקים' : 'verses'}
-            </span>
-          </div>
+      <section class="parsha-section">
+        <div class="parsha-section-head">
+          <h4>{props.lang === 'he' ? 'מהלך הפרשה' : 'The parsha, move by move'}</h4>
+          <span>
+            {drawColumn()
+              ? `${props.study.map?.totalVerses} ${props.lang === 'he' ? 'פסוקים' : 'verses'} · `
+              : ''}
+            {props.study.flow.length} {props.lang === 'he' ? 'יחידות' : 'moves'}
+          </span>
+        </div>
+
+        {/* The column IS the list: every move's title sits beside its own
+            stretch of the portion. Where there is no map to draw, the plain
+            list below stands in. */}
+        <Show
+          when={drawColumn()}
+          fallback={
+            <ol class="parsha-flow">
+              <For each={props.study.flow}>
+                {(section, index) => (
+                  <li>
+                    <button
+                      type="button"
+                      class="parsha-band"
+                      classList={{ active: selected() === index() }}
+                      onClick={() => choose(index())}
+                    >
+                      <span class={`parsha-band-stripe parsha-kind-${section.kind}`} />
+                      <span class="parsha-band-title">
+                        {textFor(props.lang, section.titleEn, section.titleHe)}
+                      </span>
+                      <span class="parsha-band-ref" dir="ltr">
+                        {section.ref.replace(`${props.study.book} `, '')}
+                      </span>
+                    </button>
+                  </li>
+                )}
+              </For>
+            </ol>
+          }
+        >
           <ParshaMap
             study={props.study}
             lang={props.lang}
@@ -152,109 +180,77 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
             onSelect={choose}
             onOpenVerse={(chapter, verse) => props.onOpenText(props.study.book, chapter, verse)}
           />
-        </section>
-      </Show>
+        </Show>
 
-      <section class="parsha-section">
-        <div class="parsha-section-head">
-          <h4>{props.lang === 'he' ? 'מהלך הפרשה' : 'The parsha, move by move'}</h4>
-          <span>
-            {props.study.flow.length} {props.lang === 'he' ? 'יחידות' : 'moves'}
-          </span>
-        </div>
-        <ol class="parsha-flow">
-          <For each={props.study.flow}>
-            {(section, index) => (
-              <li ref={(element) => (moveRows[index()] = element)}>
+        {/* The selected move opens BELOW the column — the titles are placed by
+            their verse positions, so nothing can expand in place without
+            breaking the map's geometry. */}
+        <Show when={selectedFlow()}>
+          {(section) => (
+            <div class="parsha-flow-deep" ref={(element) => (openMove = element)}>
+              <p class="parsha-flow-kicker">
+                <span dir="ltr">{section().ref.replace(`${props.study.book} `, '')}</span> ·{' '}
+                {PARSHA_KIND_LABEL[section().kind][props.lang]}
+                <Show when={verseCount(selected() ?? -1)}>
+                  {(count) => (
+                    <>
+                      {' · '}
+                      {count()} {props.lang === 'he' ? 'פסוקים' : 'verses'}
+                    </>
+                  )}
+                </Show>
+              </p>
+              <h5 class="parsha-flow-title">
+                {textFor(props.lang, section().titleEn, section().titleHe)}
+              </h5>
+              <p class="parsha-flow-summary">
+                {textFor(props.lang, section().summaryEn, section().summaryHe)}
+              </p>
+              <Show when={deep.loading}>
+                <p class="comm-muted">
+                  {props.lang === 'he' ? 'קורא את הקטע מקרוב…' : 'Reading the passage closely…'}
+                </p>
+              </Show>
+              {/* deep.error first: reading deep() while the resource is
+                  errored (a rejected fetch, not a non-ok status) would
+                  rethrow and break the drawer subtree. */}
+              <Show when={!deep.loading && (deep.error || deep() === null)}>
+                <p class="comm-muted">
+                  {aiStatus()
+                    ? props.lang === 'he'
+                      ? 'יצירת תוכן מושבתת כרגע.'
+                      : 'AI generation is paused right now.'
+                    : props.lang === 'he'
+                      ? 'לא הצלחנו לקרוא את הקטע. נסו שוב.'
+                      : "Couldn't read this passage. Try again."}
+                </p>
+              </Show>
+              <Show when={!deep.loading && !deep.error && deep()}>
+                {(value) => (
+                  <TermedProse
+                    en={value().en}
+                    he={value().he}
+                    lang={props.lang}
+                    terms={deepTerms(value())}
+                  />
+                )}
+              </Show>
+              <div class="parsha-flow-actions">
                 <button
                   type="button"
-                  class="parsha-band"
-                  classList={{ active: selected() === index() }}
-                  style={bandStyle(index())}
-                  onClick={() => choose(index())}
+                  onClick={() =>
+                    props.onOpenText(props.study.book, section().startChapter, section().startVerse)
+                  }
                 >
-                  <span class={`parsha-band-stripe parsha-kind-${section.kind}`} />
-                  <span class="parsha-band-title">
-                    {textFor(props.lang, section.titleEn, section.titleHe)}
-                  </span>
-                  {/* A verse RANGE is Latin digits joined by a dash: without
-                      its own direction it reorders to "17:7–16:18" inside the
-                      Hebrew drawer. */}
-                  <span class="parsha-band-ref" dir="ltr">
-                    {section.ref.replace(`${props.study.book} `, '')}
-                  </span>
+                  {props.lang === 'he' ? 'פתח בטקסט' : 'Open in the text'}
                 </button>
-                <Show when={selected() === index()}>
-                  <div class="parsha-flow-deep">
-                    <p class="parsha-flow-kicker">
-                      <span dir="ltr">{section.ref.replace(`${props.study.book} `, '')}</span> ·{' '}
-                      {PARSHA_KIND_LABEL[section.kind][props.lang]}
-                      <Show when={verseCount(index())}>
-                        {(count) => (
-                          <>
-                            {' · '}
-                            {count()} {props.lang === 'he' ? 'פסוקים' : 'verses'}
-                          </>
-                        )}
-                      </Show>
-                    </p>
-                    <p class="parsha-flow-summary">
-                      {textFor(props.lang, section.summaryEn, section.summaryHe)}
-                    </p>
-                    <Show when={deep.loading}>
-                      <p class="comm-muted">
-                        {props.lang === 'he'
-                          ? 'קורא את הקטע מקרוב…'
-                          : 'Reading the passage closely…'}
-                      </p>
-                    </Show>
-                    {/* deep.error first: reading deep() while the resource is
-                        errored (a rejected fetch, not a non-ok status) would
-                        rethrow and break the drawer subtree. */}
-                    <Show when={!deep.loading && (deep.error || deep() === null)}>
-                      <p class="comm-muted">
-                        {aiStatus()
-                          ? props.lang === 'he'
-                            ? 'יצירת תוכן מושבתת כרגע.'
-                            : 'AI generation is paused right now.'
-                          : props.lang === 'he'
-                            ? 'לא הצלחנו לקרוא את הקטע. נסו שוב.'
-                            : "Couldn't read this passage. Try again."}
-                      </p>
-                    </Show>
-                    <Show when={!deep.loading && !deep.error && deep()}>
-                      {(value) => (
-                        <TermedProse
-                          en={value().en}
-                          he={value().he}
-                          lang={props.lang}
-                          terms={deepTerms(value())}
-                        />
-                      )}
-                    </Show>
-                    <div class="parsha-flow-actions">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          props.onOpenText(
-                            props.study.book,
-                            section.startChapter,
-                            section.startVerse,
-                          )
-                        }
-                      >
-                        {props.lang === 'he' ? 'פתח בטקסט' : 'Open in the text'}
-                      </button>
-                      <button type="button" class="primary" onClick={() => buildThread(index())}>
-                        {props.lang === 'he' ? 'בנה דבר תורה' : 'Build a dvar Torah'}
-                      </button>
-                    </div>
-                  </div>
-                </Show>
-              </li>
-            )}
-          </For>
-        </ol>
+                <button type="button" class="primary" onClick={() => buildThread(selected() ?? 0)}>
+                  {props.lang === 'he' ? 'בנה דבר תורה' : 'Build a dvar Torah'}
+                </button>
+              </div>
+            </div>
+          )}
+        </Show>
       </section>
 
       <section class="parsha-section">

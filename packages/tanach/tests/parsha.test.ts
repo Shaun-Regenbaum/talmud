@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildParshaMap,
   formatParshaRange,
+  layoutParshaColumn,
   measureComposition,
   parseParshaRef,
   pointInParsha,
@@ -145,6 +146,52 @@ describe('the parsha map', () => {
         aliyot: [],
       }),
     ).toBeNull();
+  });
+});
+
+describe('the drawn column', () => {
+  const spans = [
+    { index: 0, offset: 0, verses: 50 },
+    { index: 1, offset: 50, verses: 2 },
+    { index: 2, offset: 52, verses: 2 },
+    { index: 3, offset: 54, verses: 46 },
+  ];
+
+  it('keeps the ribbon proportional and only nudges the titles', () => {
+    const { rows } = layoutParshaColumn(spans, { totalVerses: 100, height: 400, minGap: 24 });
+    // Segments are exactly proportional — the ribbon is the map.
+    expect(rows.map((r) => [r.segTop, r.segHeight])).toEqual([
+      [0, 200],
+      [200, 8],
+      [208, 8],
+      [216, 184],
+    ]);
+    // Two 2-verse moves are 8px of ribbon; their titles get 24px of room each.
+    expect(rows.map((r) => r.labelTop)).toEqual([0, 200, 224, 248]);
+  });
+
+  it('grows the column when the nudged titles run past the bottom', () => {
+    const crowded = Array.from({ length: 9 }, (_, i) => ({ index: i, offset: i, verses: 1 }));
+    const { rows, height } = layoutParshaColumn(crowded, {
+      totalVerses: 100,
+      height: 100,
+      minGap: 24,
+    });
+    expect(rows.at(-1)?.labelTop).toBe(192);
+    expect(height).toBe(216);
+  });
+
+  it('reads the portion in verse order however the spans arrive', () => {
+    const { rows } = layoutParshaColumn([...spans].reverse(), {
+      totalVerses: 100,
+      height: 400,
+      minGap: 24,
+    });
+    expect(rows.map((r) => r.index)).toEqual([0, 1, 2, 3]);
+  });
+
+  it('draws nothing for an unmeasurable portion', () => {
+    expect(layoutParshaColumn(spans, { totalVerses: 0, height: 400, minGap: 24 }).rows).toEqual([]);
   });
 });
 
