@@ -3,12 +3,12 @@ import { Prose } from '@corpus/ui/Prose';
 import { createEffect, createResource, createSignal, For, type JSX, Show } from 'solid-js';
 import {
   type ParshaFlowSection,
-  type ParshaSectionKind,
   type ParshaSectionStudy,
   type ParshaStudy,
   type ParshaThread,
   sanitizeParshaTerms,
 } from '../lib/parsha.ts';
+import { PARSHA_KIND_LABEL, ParshaMap } from './ParshaMap.tsx';
 import { TermedProse } from './TermedProse.tsx';
 
 export interface ParshaDrawerProps {
@@ -20,12 +20,6 @@ export interface ParshaDrawerProps {
    *  Fires on selecting a move — the drawer stays open. */
   onFocusRange: (section: ParshaFlowSection | null) => void;
 }
-
-const KIND_LABEL: Record<ParshaSectionKind, { en: string; he: string }> = {
-  narrative: { en: 'Narrative', he: 'סיפור' },
-  law: { en: 'Halachah', he: 'הלכה' },
-  discourse: { en: 'Discourse', he: 'נאום ורעיון' },
-};
 
 function textFor(lang: 'en' | 'he', en: string, he: string): string {
   return lang === 'he' ? he || en : en || he;
@@ -70,6 +64,18 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
     );
   });
 
+  // A move can be picked from the map, where the band that just opened is
+  // often far down the drawer — bring it into view. 'nearest' leaves a band
+  // that is already on screen exactly where it is.
+  const moveRows: (HTMLElement | undefined)[] = [];
+  createEffect(() => {
+    const index = selected();
+    if (index === null) return;
+    requestAnimationFrame(() =>
+      moveRows[index]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }),
+    );
+  });
+
   // Selecting a move highlights its verse range in the reader and opens its
   // close reading in place; selecting it again collapses and clears both.
   const choose = (index: number) => {
@@ -107,6 +113,19 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
     return index === null ? undefined : props.study.flow[index];
   };
 
+  const verseCount = (index: number): number | undefined =>
+    props.study.map?.units.find((span) => span.index === index)?.verses;
+
+  /** A band stands as tall as its passage is long — the strip's proportions,
+   *  read down the list. Floors at a comfortable tap target, so a six-verse
+   *  unit is still a row and not a sliver. Uniform when there is no map. */
+  const bandStyle = (index: number): { 'min-height': string } | undefined => {
+    const map = props.study.map;
+    const verses = verseCount(index);
+    if (!map?.totalVerses || !verses) return undefined;
+    return { 'min-height': `${Math.round(30 + (verses / map.totalVerses) * 150)}px` };
+  };
+
   return (
     <section class="parsha-study">
       <p class="parsha-ref">{props.study.ref}</p>
@@ -118,37 +137,27 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
         terms={props.study.terms ?? []}
       />
 
-      <section class="parsha-section">
-        <div class="parsha-section-head">
-          <h4>{props.lang === 'he' ? 'הרכב הפרשה' : 'What kind of reading is this?'}</h4>
-          <span>{props.lang === 'he' ? 'מפה משוערת' : 'editorial estimate'}</span>
-        </div>
-        <div class="parsha-composition" role="img" aria-label="Parsha composition">
-          <For each={['narrative', 'law', 'discourse'] as const}>
-            {(kind) => (
-              <span
-                class={`parsha-composition-${kind}`}
-                style={{ width: `${props.study.composition[kind]}%` }}
-                title={`${KIND_LABEL[kind][props.lang]} ${props.study.composition[kind]}%`}
-              />
-            )}
-          </For>
-        </div>
-        <div class="parsha-legend">
-          <For each={['narrative', 'law', 'discourse'] as const}>
-            {(kind) => (
-              <span>
-                <i class={`parsha-dot parsha-dot-${kind}`} />
-                {KIND_LABEL[kind][props.lang]} {props.study.composition[kind]}%
-              </span>
-            )}
-          </For>
-        </div>
-      </section>
+      <Show when={props.study.map}>
+        <section class="parsha-section">
+          <div class="parsha-section-head">
+            <h4>{props.lang === 'he' ? 'הרכב הפרשה' : 'What kind of reading is this?'}</h4>
+            <span>
+              {props.study.map?.totalVerses} {props.lang === 'he' ? 'פסוקים' : 'verses'}
+            </span>
+          </div>
+          <ParshaMap
+            study={props.study}
+            lang={props.lang}
+            selected={selected()}
+            onSelect={choose}
+            onOpenVerse={(chapter, verse) => props.onOpenText(props.study.book, chapter, verse)}
+          />
+        </section>
+      </Show>
 
       <section class="parsha-section">
         <div class="parsha-section-head">
-          <h4>{props.lang === 'he' ? 'מהלך הפרשה' : 'The flow of the parsha'}</h4>
+          <h4>{props.lang === 'he' ? 'מהלך הפרשה' : 'The parsha, move by move'}</h4>
           <span>
             {props.study.flow.length} {props.lang === 'he' ? 'יחידות' : 'moves'}
           </span>
@@ -156,25 +165,42 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
         <ol class="parsha-flow">
           <For each={props.study.flow}>
             {(section, index) => (
-              <li>
+              <li ref={(element) => (moveRows[index()] = element)}>
                 <button
                   type="button"
-                  class="parsha-flow-card"
+                  class="parsha-band"
                   classList={{ active: selected() === index() }}
+                  style={bandStyle(index())}
                   onClick={() => choose(index())}
                 >
-                  <span class={`parsha-flow-node parsha-flow-node-${section.kind}`} />
-                  <span class="parsha-flow-copy">
-                    <span class="parsha-flow-meta">
-                      <b>{section.ref.replace(`${props.study.book} `, '')}</b>
-                      <i>{KIND_LABEL[section.kind][props.lang]}</i>
-                    </span>
-                    <strong>{textFor(props.lang, section.titleEn, section.titleHe)}</strong>
-                    <small>{textFor(props.lang, section.summaryEn, section.summaryHe)}</small>
+                  <span class={`parsha-band-stripe parsha-kind-${section.kind}`} />
+                  <span class="parsha-band-title">
+                    {textFor(props.lang, section.titleEn, section.titleHe)}
+                  </span>
+                  {/* A verse RANGE is Latin digits joined by a dash: without
+                      its own direction it reorders to "17:7–16:18" inside the
+                      Hebrew drawer. */}
+                  <span class="parsha-band-ref" dir="ltr">
+                    {section.ref.replace(`${props.study.book} `, '')}
                   </span>
                 </button>
                 <Show when={selected() === index()}>
                   <div class="parsha-flow-deep">
+                    <p class="parsha-flow-kicker">
+                      <span dir="ltr">{section.ref.replace(`${props.study.book} `, '')}</span> ·{' '}
+                      {PARSHA_KIND_LABEL[section.kind][props.lang]}
+                      <Show when={verseCount(index())}>
+                        {(count) => (
+                          <>
+                            {' · '}
+                            {count()} {props.lang === 'he' ? 'פסוקים' : 'verses'}
+                          </>
+                        )}
+                      </Show>
+                    </p>
+                    <p class="parsha-flow-summary">
+                      {textFor(props.lang, section.summaryEn, section.summaryHe)}
+                    </p>
                     <Show when={deep.loading}>
                       <p class="comm-muted">
                         {props.lang === 'he'

@@ -11,6 +11,61 @@ import { COMMENTATORS } from '../lib/commentators.ts';
 
 export const sefaria = new SefariaClient();
 
+/**
+ * Verse counts per chapter for a book, 1-indexed by chapter — Sefaria's shape
+ * API (`/api/shape/Deuteronomy` -> `chapters: [46, 37, …]`). This is what lets
+ * the parsha map place a unit at its true extent instead of an equal slice.
+ *
+ * Deliberately fetched rather than hand-kept in `books.ts` (see that file's
+ * note on chapter counts), and cached for thirty days: the shape of a
+ * biblical book does not change, so the only reason to re-ask is a Sefaria
+ * data fix. Null on any failure — callers draw no map rather than a wrong one.
+ */
+export async function bookChapterLengths(
+  cache: KVNamespace,
+  book: string,
+  waitUntil?: (promise: Promise<unknown>) => void,
+): Promise<number[] | null> {
+  const cacheKey = `shape:v1:${book}`;
+  const cached = await cache.get(cacheKey);
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached) as unknown;
+      if (Array.isArray(parsed) && parsed.every((n) => Number.isInteger(n) && n > 0)) {
+        return parsed as number[];
+      }
+    } catch {
+      // A malformed shape cache is a miss; the live fetch below repairs it.
+    }
+  }
+
+  let chapters: unknown;
+  try {
+    const response = await fetch(`https://www.sefaria.org/api/shape/${encodeURIComponent(book)}`);
+    if (!response.ok) return null;
+    const body = (await response.json()) as unknown;
+    // The endpoint answers with a list (a complex title can shape into several
+    // entries); take the one that IS this book, else the first. A bare object
+    // is accepted too, so a shape response that isn't wrapped still works.
+    type ShapeEntry = { book?: string; chapters?: unknown };
+    const entry: ShapeEntry | null = Array.isArray(body)
+      ? ((body as ShapeEntry[]).find((candidate) => candidate?.book === book) ??
+        (body[0] as ShapeEntry) ??
+        null)
+      : ((body as ShapeEntry) ?? null);
+    chapters = entry?.chapters;
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(chapters) || !chapters.every((n) => Number.isInteger(n) && n > 0)) return null;
+
+  const lengths = chapters as number[];
+  const write = cache.put(cacheKey, JSON.stringify(lengths), { expirationTtl: 30 * 24 * 3600 });
+  if (waitUntil) waitUntil(write);
+  else await write;
+  return lengths;
+}
+
 /** Strip Sefaria's inline footnote apparatus (the marker + the expanded note
  *  text), which otherwise renders mid-verse. Keeps benign inline tags like the
  *  large/small-letter <big>/<small> markup. */

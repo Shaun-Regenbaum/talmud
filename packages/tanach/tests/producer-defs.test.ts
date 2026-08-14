@@ -80,7 +80,7 @@ describe('the eleven producers as core Producer objects', () => {
       spine: 'tanach',
     });
     expect(TANACH_PRODUCERS['parsha-overview'].inputs).toEqual([{ source: 'parsha-verses' }]);
-    expect(TANACH_PRODUCERS['parsha-overview'].cacheVersion).toBe('3'); // parsha-overview:v3:*
+    expect(TANACH_PRODUCERS['parsha-overview'].cacheVersion).toBe('4'); // parsha-overview:v4:*
     expect(TANACH_PRODUCERS['parsha-section'].anchoring).toEqual({
       behavior: 'inherits',
       precision: 'segment',

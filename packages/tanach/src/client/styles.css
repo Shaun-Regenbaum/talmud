@@ -501,33 +501,144 @@ body {
   text-transform: none;
   letter-spacing: 0;
 }
-.parsha-composition {
-  display: flex;
-  width: 100%;
-  height: 8px;
-  overflow: hidden;
-  background: var(--surface-sunk);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-}
-.parsha-composition > span {
-  display: block;
-  min-width: 0;
-}
-.parsha-composition-narrative,
-.parsha-dot-narrative,
-.parsha-flow-node-narrative {
+/* ---- the reading kinds ----
+   One colour per kind, used by every surface that speaks about kind: the map's
+   segments, a band's stripe, the legend dots. Narrative keeps the app accent;
+   poetry and records join in a cooler violet and a dry olive so a portion that
+   is mostly song or mostly inventory can't be mistaken for law or story. */
+.parsha-kind-narrative {
   background: var(--accent);
 }
-.parsha-composition-law,
-.parsha-dot-law,
-.parsha-flow-node-law {
+.parsha-kind-law {
   background: #3f6d65;
 }
-.parsha-composition-discourse,
-.parsha-dot-discourse,
-.parsha-flow-node-discourse {
+.parsha-kind-discourse {
   background: #bd8750;
+}
+.parsha-kind-poetry {
+  background: #6a5b8c;
+}
+.parsha-kind-records {
+  background: #767c66;
+}
+
+/* ---- the parsha map ----
+   Layers stacked on one verse axis; everything inside is positioned by
+   inset-inline-start so the whole map mirrors under the Hebrew RTL drawer
+   (a Torah scroll runs the other way, and so should its map). */
+.parsha-map-aliyot,
+.parsha-map-strip,
+.parsha-map-pins,
+.parsha-map-chapters {
+  position: relative;
+  width: 100%;
+}
+.parsha-map-aliyot {
+  height: 13px;
+  margin-bottom: 4px;
+}
+.parsha-map-aliyot i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  font-style: normal;
+  font-family: var(--font-hebrew);
+  font-size: 9.5px;
+  line-height: 12px;
+  text-align: center;
+  color: var(--accent);
+  background: var(--parchment);
+  border: 1px solid var(--parchment-edge);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.parsha-map-strip {
+  height: 30px;
+  background: var(--surface-sunk);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.parsha-map-unit {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  padding: 0;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.94);
+  border: none;
+  border-inline-end: 1px solid rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+}
+.parsha-map-unit:last-child {
+  border-inline-end: none;
+}
+.parsha-map-unit:hover {
+  filter: brightness(1.12);
+}
+.parsha-map-unit.active {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+/* The number is a correlation aid to the list below; it only fits on the
+   wider segments, and hiding it is better than clipping it. */
+.parsha-map-unit span {
+  display: block;
+  overflow: hidden;
+}
+.parsha-map-pins {
+  height: 11px;
+  margin-top: 4px;
+}
+.parsha-map-pin {
+  position: absolute;
+  top: 0;
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  transform: translateX(-3.5px) rotate(45deg);
+  background: var(--surface);
+  border: 1.5px solid var(--accent-strong);
+  cursor: pointer;
+}
+.parsha-map-pin:hover {
+  background: var(--accent);
+}
+.parsha-map-chapters {
+  height: 14px;
+  font-family: var(--font-ui);
+  font-size: 9.5px;
+  color: var(--muted);
+}
+.parsha-map-chapters i {
+  position: absolute;
+  top: 3px;
+  font-style: normal;
+  transform: translateX(-50%);
+}
+/* A hairline back up to the strip, so the number reads as a position on the
+   portion rather than a loose digit. */
+.parsha-map-chapters i::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  inset-inline-start: 50%;
+  width: 1px;
+  height: 3px;
+  background: var(--line);
+}
+.parsha-map-chapters i.first::before {
+  inset-inline-start: 0;
+}
+.ui-drawer[dir="rtl"] .parsha-map-chapters i {
+  transform: translateX(50%);
+}
+/* The opening chapter sits at the very edge, so it hangs inward instead. */
+.parsha-map-chapters i.first,
+.ui-drawer[dir="rtl"] .parsha-map-chapters i.first {
+  transform: none;
 }
 .parsha-legend {
   display: flex;
@@ -555,103 +666,77 @@ body {
 }
 .parsha-flow li {
   position: relative;
-  padding: 0 0 10px 18px;
 }
-.parsha-flow li:not(:last-child)::before {
-  content: "";
-  position: absolute;
-  top: 13px;
-  bottom: -2px;
-  left: 5px;
-  width: 1px;
-  background: var(--line);
-}
-.ui-drawer[dir="rtl"] .parsha-flow li {
-  padding: 0 18px 10px 0;
-}
-.ui-drawer[dir="rtl"] .parsha-flow li:not(:last-child)::before {
-  right: 5px;
-  left: auto;
-}
-.parsha-flow-card {
+
+/* ---- a flow move, collapsed ----
+   One row per move: a kind stripe, the title, its verse range. The row stands
+   as tall as its passage is long (min-height set inline from the map), so the
+   strip's proportions read again down the list. Clicking opens the move in
+   place. */
+.parsha-band {
   position: relative;
   display: flex;
+  align-items: center;
+  gap: 9px;
   width: 100%;
-  gap: 11px;
-  padding: 8px 9px 9px;
+  margin-bottom: 3px;
+  padding: 0 10px 0 0;
   text-align: left;
   color: var(--ink);
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 7px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  overflow: hidden;
   cursor: pointer;
 }
-.ui-drawer[dir="rtl"] .parsha-flow-card {
+.ui-drawer[dir="rtl"] .parsha-band {
+  padding: 0 0 0 10px;
   text-align: right;
 }
-.parsha-flow-card:hover,
-.parsha-flow-card.active {
+.parsha-band:hover {
   background: var(--surface-sunk);
-  border-color: var(--line);
 }
-.parsha-flow-node {
-  position: absolute;
-  top: 13px;
-  left: -16px;
-  width: 8px;
-  height: 8px;
-  border: 2px solid var(--surface);
-  border-radius: 50%;
-  box-sizing: content-box;
+.parsha-band.active {
+  background: var(--surface-sunk);
+  border-color: var(--ink);
 }
-.ui-drawer[dir="rtl"] .parsha-flow-node {
-  right: -16px;
-  left: auto;
+.parsha-band-stripe {
+  flex: none;
+  align-self: stretch;
+  width: 5px;
 }
-.parsha-flow-copy {
-  display: flex;
+.parsha-band-title {
   flex: 1;
   min-width: 0;
-  flex-direction: column;
+  overflow: hidden;
+  font-family: var(--font-serif);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.3;
 }
-.parsha-flow-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 2px;
+.ui-drawer[dir="rtl"] .parsha-band-title {
+  font-family: var(--font-hebrew);
+  font-size: 15px;
+}
+.parsha-band-ref,
+.parsha-flow-kicker span[dir="ltr"] {
+  flex: none;
   font-family: var(--font-ui);
   font-size: 9.5px;
-  color: var(--accent);
-}
-.parsha-flow-meta b {
-  font-weight: 600;
-}
-.parsha-flow-meta i {
-  font-style: normal;
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  /* Isolated so the range keeps its own reading order in the RTL drawer. */
+  unicode-bidi: isolate;
 }
-.parsha-flow-copy strong {
-  font-family: var(--font-serif);
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.35;
+.parsha-flow-kicker span[dir="ltr"] {
+  font-size: inherit;
+  color: inherit;
 }
-.parsha-flow-copy small {
-  margin-top: 3px;
-  font-family: var(--font-serif);
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--muted);
-}
-.ui-drawer[dir="rtl"] .parsha-flow-copy strong,
-.ui-drawer[dir="rtl"] .parsha-flow-copy small {
-  font-family: var(--font-hebrew);
-}
+
 /* The selected move's in-place close reading (deep dive under the card). */
 .parsha-flow-deep {
-  margin: 2px 0 4px;
-  padding: 4px 9px 2px;
+  margin: 0 0 10px;
+  padding: 6px 9px 2px;
   border-left: 2px solid var(--line);
 }
 .ui-drawer[dir="rtl"] .parsha-flow-deep {
@@ -662,6 +747,26 @@ body {
   margin: 0 0 8px;
   font-size: 12.5px;
   line-height: 1.55;
+}
+/* The opened move's own header line: where it sits, what kind it is, how long. */
+.parsha-flow-kicker {
+  margin: 0 0 5px;
+  font-family: var(--font-ui);
+  font-size: 9.5px;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+}
+/* The one-line summary, which the collapsed band leaves out. */
+.parsha-flow-summary {
+  margin: 0 0 9px;
+  font-family: var(--font-serif);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.ui-drawer[dir="rtl"] .parsha-flow-summary {
+  font-family: var(--font-hebrew);
+  font-size: 13.5px;
 }
 
 /* An inline Hebrew term in English prose — dotted-underlined, hint on hover

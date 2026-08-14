@@ -20,10 +20,12 @@ import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { isBook } from '../lib/books.ts';
 import {
+  buildParshaMap,
   formatParshaRange,
-  normalizeParshaComposition,
+  measureComposition,
   type ParshaFlowSection,
   type ParshaLandmark,
+  type ParshaSectionKind,
   type ParshaSectionStudy,
   type ParshaThread,
   sanitizeParshaTerms,
@@ -36,7 +38,13 @@ import type { EventSection } from './producers/events.ts';
 import { translateHebrew } from './producers/translate.ts';
 import type { TanachEnv, TanachRunCtx } from './run-ports.ts';
 import { runTanachEnrichment, runTanachEvents, TanachSourceError } from './run-ports.ts';
-import { asVerses, fetchPassages, fetchVerseCommentaries, sefaria } from './sefaria-sources.ts';
+import {
+  asVerses,
+  bookChapterLengths,
+  fetchPassages,
+  fetchVerseCommentaries,
+  sefaria,
+} from './sefaria-sources.ts';
 import { computeSourcesIndex } from './sources-index.ts';
 import { readUsage, recordUsage } from './usage.ts';
 import { runTanachWarm } from './warm-cron.ts';
@@ -392,7 +400,6 @@ app.get('/api/parsha-study', async (c) => {
     titleHe?: string;
     overviewEn?: string;
     overviewHe?: string;
-    composition?: unknown;
     flow?: Omit<ParshaFlowSection, 'ref'>[];
     landmarks?: Omit<ParshaLandmark, 'ref'>[];
     terms?: unknown;
@@ -405,6 +412,31 @@ app.get('/api/parsha-study', async (c) => {
     ...landmark,
     ref: `${parsha.book} ${landmark.chapter}:${landmark.verse}`,
   }));
+
+  // The deterministic half of the drawer: real verse extents, the seven
+  // aliyot, chapter starts. The reader draws the map from this, and the
+  // legend's percentages are COUNTED off it rather than asserted by the model.
+  const chapterLengths = await bookChapterLengths(c.env.CACHE, parsha.book, (promise) =>
+    c.executionCtx.waitUntil(promise),
+  );
+  const map = chapterLengths
+    ? buildParshaMap({
+        range: parsha,
+        chapterLengths,
+        flow,
+        landmarks,
+        aliyot: parsha.aliyot,
+      })
+    : null;
+  const composition = measureComposition(
+    map?.totalVerses ?? 0,
+    (map?.units ?? []).map((span) => ({
+      kind: flow[span.index]?.kind as ParshaSectionKind,
+      offset: span.offset,
+      verses: span.verses,
+    })),
+  );
+
   c.header('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
   return c.json({
     name: parsha.name,
@@ -416,7 +448,8 @@ app.get('/api/parsha-study', async (c) => {
     titleHe: String(parsed.titleHe ?? '').trim(),
     overviewEn: String(parsed.overviewEn ?? '').trim(),
     overviewHe: String(parsed.overviewHe ?? '').trim(),
-    composition: normalizeParshaComposition(parsed.composition),
+    composition,
+    map,
     flow,
     landmarks,
     terms: sanitizeParshaTerms(parsed.terms),

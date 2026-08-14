@@ -31,7 +31,10 @@ import { computeSourcesIndex, readSourcesIndex } from './sources-index.ts';
 
 // v7: parsha recipes tightened to the talmud-literal Hebrew style (dense
 // Hebrew-first prose) — re-warm this week's parsha surfaces.
-const CURSOR_KEY = 'tanach-warm-cursor:v7';
+// v8: parsha-overview moved to v4 (five reading kinds, short unit titles, no
+// composition estimate), so this week's overview — and the per-unit close
+// readings whose indexes hang off it — warm again.
+const CURSOR_KEY = 'tanach-warm-cursor:v8';
 /** Chapter-level enrichments that power the visible reader + section labels. */
 const CHAPTER_PRODUCERS = ['geography', 'events'] as const;
 /** Entries warmed per tick — small so one invocation stays well within the
