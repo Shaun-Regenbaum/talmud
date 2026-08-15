@@ -129,7 +129,10 @@ const KEY_TEMPLATES: Record<string, KeyTemplate> = {
   'parsha-thread': { key: (a: TanachAddress) => `parsha-thread:v3:${a.instanceId}` },
   // Chapter-scoped like overview (one geography per chapter; instance ignored).
   // v2: the output now carries per-place verse numbers (for click-to-highlight).
-  geography: { key: (a: TanachAddress) => `geography:v2:${a.unit?.work}:${a.unit?.unit}` },
+  // v3: the prompt now excludes peoples (Jebusites) and personal names that
+  // are spelled like places (Havilah as a son of Joktan) — cached chapters
+  // carry those, and a few dozen entries are cheap to regenerate.
+  geography: { key: (a: TanachAddress) => `geography:v3:${a.unit?.work}:${a.unit?.unit}` },
   // Chapter-scoped like overview/geography (one tidbit per chapter; instance ignored).
   // v2: prompt tuned (Hebrew script over transliteration, no markdown, worked
   // example swapped off a Torah chapter) — bump regenerates with the new recipe.

@@ -25,6 +25,7 @@ import {
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { BASEMAP } from './geo/basemap.ts';
+import { type LabelCandidate, placeLabels } from './geo/labels.ts';
 
 export interface GeoBBox {
   lonMin: number;
@@ -368,6 +369,45 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
     return { x: flip ? x - 7 : x + 7, anchor: flip ? 'end' : 'start', dir: 'ltr' };
   };
 
+  // Which labels can actually be drawn. The dots are already de-overlapped
+  // above; their TEXT was not, so a dense map (Numbers 33's forty encampments
+  // in the Sinai) drew every name on top of every other and none could be
+  // read. `placeLabels` nudges what it can and drops what it can't — each
+  // marker keeps its name as a tooltip and as its accessible name, so a
+  // dropped label costs nothing but the ink.
+  const LABEL_FONT = 11; // .geomap-label font-size
+  const LABEL_FONT_HE = 13.5; // .geomap-he .geomap-label
+  const labelPlacement = createMemo(() => {
+    if (!layers().labels) return new Map<number, { x: number; y: number }>();
+    const hebrew = he();
+    const candidates: LabelCandidate[] = sites().map((s, index) => {
+      const g = labelGeom(s.xy[0]);
+      return {
+        index,
+        x: s.xy[0],
+        y: s.xy[1],
+        text: labelFor(s.p),
+        anchorX: g.x,
+        anchor: g.anchor,
+        // A starred or selected point keeps its label whatever else crowds it.
+        priority: !!s.p.star || (!!props.selected && props.selected === s.p.id),
+      };
+    });
+    const placed = placeLabels(candidates, {
+      width: proj().W,
+      height: proj().H,
+      lineHeight: hebrew ? LABEL_FONT_HE : LABEL_FONT,
+      // Mean glyph width, measured a little generously: this estimate decides
+      // how close two labels may sit, so under-estimating lets them touch.
+      // Hebrew sets wider than the Latin UI face at the same size.
+      charWidth: hebrew ? 0.58 : 0.55,
+      pad: 2,
+      // The drawn markers (r 5.5, or 6.5 starred) plus a hair of clearance.
+      dotRadius: 7.5,
+    });
+    return new Map(placed.map((p) => [p.index, { x: p.x, y: p.y }]));
+  });
+
   return (
     <div class="geomap" classList={{ 'geomap-he': he() }}>
       <Show when={props.layerToggle ?? true}>
@@ -430,9 +470,10 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
             {/* base markers dim while a trajectory drill-down is active */}
             <g classList={{ 'geomap-dim': trajActive() }}>
               <For each={sites()}>
-                {(s) => {
+                {(s, i) => {
                   const g = labelGeom(s.xy[0]);
                   const interactive = !!props.onSelect;
+                  const spot = () => labelPlacement().get(i());
                   return (
                     // biome-ignore lint/a11y/noStaticElementInteractions: an SVG <g> marker can't be a real <button>; role + tabindex + keydown below make it a proper, keyboard-operable button
                     <g
@@ -480,16 +521,23 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
                         cy={s.xy[1]}
                         r={s.p.star ? 6.5 : 5.5}
                       />
-                      <Show when={layers().labels && labelFor(s.p)}>
-                        <text
-                          class="geomap-label"
-                          x={g.x}
-                          y={s.xy[1] + 3}
-                          text-anchor={g.anchor}
-                          direction={g.dir}
-                        >
-                          {labelFor(s.p)}
-                        </text>
+                      {/* Every marker names itself on hover, so a label the
+                          placement pass had to drop is still reachable. */}
+                      <Show when={labelFor(s.p)}>
+                        <title>{labelFor(s.p)}</title>
+                      </Show>
+                      <Show when={spot()}>
+                        {(at) => (
+                          <text
+                            class="geomap-label"
+                            x={at().x}
+                            y={at().y}
+                            text-anchor={g.anchor}
+                            direction={g.dir}
+                          >
+                            {labelFor(s.p)}
+                          </text>
+                        )}
                       </Show>
                     </g>
                   );

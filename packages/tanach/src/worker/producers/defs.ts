@@ -326,12 +326,16 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     inputs: [{ source: 'chapter-verses' }],
     recipe: { extractor: geographyExtractor },
     // Chapter-scoped like overview — one per chapter; the key template ignores
-    // the instance (geography:v1:{book}:{chapter}).
+    // the instance (geography:v3:{book}:{chapter}).
     anchoring: { behavior: 'inherits', precision: 'unit', spine: 'tanach' },
     cardinality: 'one',
     scope: 'local',
-    key_shape: 'enrich', // nominal — template owns geography:v1:{book}:{chapter}
-    cacheVersion: '1',
+    key_shape: 'enrich', // nominal — template owns geography:v3:{book}:{chapter}
+    // v2: the prompt now spells out that a gentilic (Jebusites) and a personal
+    // name spelled like a place (Havilah in Genesis 10) are NOT places. The
+    // already-cached chapters carry those mistakes, and there are only a few
+    // dozen of them, so they are worth regenerating.
+    cacheVersion: '2',
     source: 'code',
   },
   tidbit: {
