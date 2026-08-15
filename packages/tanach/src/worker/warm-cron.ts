@@ -34,7 +34,9 @@ import { computeSourcesIndex, readSourcesIndex } from './sources-index.ts';
 // v8: parsha-overview moved to v4 (five reading kinds, short unit titles, no
 // composition estimate), so this week's overview — and the per-unit close
 // readings whose indexes hang off it — warm again.
-const CURSOR_KEY = 'tanach-warm-cursor:v8';
+// v9: geography moved to v3 (the prompt no longer files peoples as places),
+// so this week's chapters warm their maps again.
+const CURSOR_KEY = 'tanach-warm-cursor:v9';
 /** Chapter-level enrichments that power the visible reader + section labels. */
 const CHAPTER_PRODUCERS = ['geography', 'events'] as const;
 /** Entries warmed per tick — small so one invocation stays well within the
