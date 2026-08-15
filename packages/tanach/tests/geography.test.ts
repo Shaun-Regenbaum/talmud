@@ -14,8 +14,10 @@ const fake = (name: string): GazetteerHit | null => ENTRIES[name.toLowerCase()] 
 
 describe('locating a chapter’s named places', () => {
   it('keeps two different places that the gazetteer puts at one point', () => {
-    // The regression: keying dedupe on `lat,lng` dropped Havilah from Genesis
-    // 10, because the data files it at Babylon's coordinate.
+    // The regression: keying dedupe on `lat,lng` dropped the second and third
+    // of any places the gazetteer files at one point — e.g. Joshua 19's
+    // Beer-sheba / Hazar-shual / Eltolad, three distinct towns of the tribal
+    // allotment that all sit at 31.2447, 34.8408.
     const places = locatePlaces([{ en: 'Babylon' }, { en: 'Havilah' }], fake);
     expect(places.map((p) => p.en)).toEqual(['Babylon', 'Havilah']);
   });
@@ -49,14 +51,20 @@ describe('locating a chapter’s named places', () => {
   });
 
   it('reads the real gazetteer for the places these rules were written from', () => {
-    // Genesis 10 lost Havilah because the data files it at Babylon's point —
-    // and it is not a rare accident: 774 of the gazetteer's 1330 entries sit
-    // on a coordinate shared with another (the Jerusalem point alone carries
-    // 57, every gate and quarter of the city). Deduping on the coordinate
-    // therefore threw away real places by the dozen.
-    expect(lookupPlace('Havilah')).toEqual({ name: 'Havilah 1', lat: 32.5433, lng: 44.4222 });
-    expect(lookupPlace('Babylon')).toEqual({ name: 'Babylon 1', lat: 32.5433, lng: 44.4222 });
-    expect(locatePlaces([{ en: 'Babylon' }, { en: 'Havilah' }], lookupPlace)).toHaveLength(2);
+    // Not a rare accident: 774 of the gazetteer's 1330 entries sit on a
+    // coordinate shared with another (the Jerusalem point alone carries 57,
+    // every gate and quarter of the city). Deduping on the coordinate threw
+    // away real places by the dozen — these three towns of Simeon's allotment
+    // are a live example, and only Beer-sheba used to survive Joshua 19.
+    const simeon = ['Beer-sheba', 'Hazar-shual', 'Eltolad'];
+    const points = new Set(simeon.map((n) => `${lookupPlace(n)?.lat},${lookupPlace(n)?.lng}`));
+    expect(points.size).toBe(1);
+    expect(
+      locatePlaces(
+        simeon.map((en) => ({ en })),
+        lookupPlace,
+      ),
+    ).toHaveLength(3);
     // Two names for one entry still collapse.
     expect(locatePlaces([{ en: 'Salt Sea' }, { en: 'Dead Sea' }], lookupPlace)).toHaveLength(1);
     expect(locatePlaces([{ en: 'Kiriath-arba' }, { en: 'Hebron' }], lookupPlace)).toHaveLength(1);

@@ -48,11 +48,13 @@ export interface GazetteerHit {
  * Resolve the producer's named places to mappable ones.
  *
  * Dedupe keys on the gazetteer ENTRY, not on `lat,lng`. The coordinate is not
- * an identity: the gazetteer parks many unlocated biblical names on a regional
- * fallback point — 774 of its 1330 entries share a coordinate with another,
- * and the Jerusalem point alone carries 57 names — so keying on the coordinate
- * deleted real places wholesale (Genesis 10 lost Havilah, which the data files
- * at Babylon's point).
+ * an identity: 774 of the gazetteer's 1330 entries share a coordinate with
+ * another (the Jerusalem point alone carries 57 names), because neighbouring
+ * sites round together and unlocated names get a regional fallback. Keying on
+ * the coordinate therefore deleted real places — in the live data, Joshua 19
+ * files Beer-sheba, Hazar-shual and Eltolad at one point and Numbers 33 files
+ * Tahath, Terah and Mithkah at another, so two of each three were silently
+ * dropped from those maps.
  *
  * The trade this makes: OpenBible also records some alias pairs as separate
  * entries at one site (Ai / Aiath, Ephrath / Bethlehem), and those now draw
