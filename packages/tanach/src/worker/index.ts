@@ -19,6 +19,7 @@ import type { StoredArtifact } from '@corpus/core/store/envelope';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { isBook } from '../lib/books.ts';
+import { locatePlaces, type NamedPlace } from '../lib/geography.ts';
 import {
   buildParshaMap,
   formatParshaRange,
@@ -282,27 +283,17 @@ app.get('/api/geography/:book/:chapter', async (c) => {
   } catch (e) {
     return runErrorResponse(c, e);
   }
-  const parsed = artifact.parsed as {
-    places?: { en?: string; he?: string; verses?: number[] }[];
-  } | null;
-  const seen = new Set<string>();
-  const places = (parsed?.places ?? [])
-    .map((p) => {
-      const en = String(p?.en ?? '').trim();
-      const g = en ? lookupPlace(en) : null;
-      if (!g) return null;
-      const verses = Array.isArray(p?.verses)
-        ? p.verses.filter((v) => Number.isInteger(v) && v >= 1)
-        : [];
-      return { en, he: String(p?.he ?? '').trim(), lat: g.lat, lng: g.lng, verses };
-    })
-    .filter((p): p is { en: string; he: string; lat: number; lng: number; verses: number[] } => {
-      if (!p) return false;
-      const key = `${p.lat},${p.lng}`; // dedupe places that resolve to one point
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+  // A model output that didn't parse is a FAILURE, not a chapter without
+  // places. Reporting it as an empty map is what made the itinerary chapters
+  // (Numbers 33, Numbers 21, Joshua 15 — the ones a map is most wanted for)
+  // read "No mapped places in this chapter": the place list overran the token
+  // budget, the JSON came back cut in half, and the reader was told the
+  // wilderness itinerary passes through nowhere.
+  if (artifact.parse_error) {
+    return c.json({ error: `Geography generation failed: ${artifact.parse_error}` }, 502);
+  }
+  const parsed = artifact.parsed as { places?: NamedPlace[] } | null;
+  const places = locatePlaces(parsed?.places, lookupPlace);
   // Deterministic per (book, chapter), lang-independent, already KV-cached
   // server-side — let the browser cache it so re-opening Geography is instant.
   c.header('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
