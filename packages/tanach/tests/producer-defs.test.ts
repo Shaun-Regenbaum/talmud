@@ -124,7 +124,9 @@ describe('the eleven producers as core Producer objects', () => {
       },
       'parsha-section': { max_tokens: 2800, temperature: 0.3, tag: 'tanach:parsha-section' },
       'parsha-thread': { max_tokens: 4200, temperature: 0.35, tag: 'tanach:parsha-thread' },
-      geography: { max_tokens: 900, temperature: 0.2, tag: 'tanach:geography' },
+      // 3000, not 900: the old budget truncated the JSON on a place-dense
+      // chapter, which reads as "no places" rather than "fewer places".
+      geography: { max_tokens: 3000, temperature: 0.2, tag: 'tanach:geography' },
       tidbit: { max_tokens: 1800, temperature: 0.45, tag: 'tanach:tidbit' },
       synthesis: { max_tokens: 800, temperature: 0.3, tag: 'tanach:synthesis' },
       'midrash-synthesis': { max_tokens: 800, temperature: 0.35, tag: 'tanach:midrash-synthesis' },

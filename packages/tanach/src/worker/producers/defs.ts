@@ -150,7 +150,12 @@ const geographyExtractor: TanachLLMExtractor = {
   system_prompt: GEOGRAPHY_SYSTEM,
   user_prompt_template: GEOGRAPHY_USER_TEMPLATE,
   output_schema: GEOGRAPHY_SCHEMA,
-  max_tokens: 900,
+  // 900 was enough for ~21 places, which quietly broke exactly the chapters a
+  // map is for: Numbers 33's forty-two encampments overran it, the JSON came
+  // back truncated, the parse failed, and the reader was told the chapter has
+  // no places. A place costs ~50 tokens (nikud is expensive), so the schema's
+  // 40-place ceiling needs ~2000 — 3000 leaves room.
+  max_tokens: 3000,
   temperature: 0.2,
   tag: 'tanach:geography',
 };

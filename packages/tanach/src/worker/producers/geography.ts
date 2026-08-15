@@ -43,6 +43,9 @@ export const GEOGRAPHY_SYSTEM = [
   '- Do NOT include people, tribes, or peoples — only physical places.',
   '- Do NOT invent coordinates or places not in the text.',
   '- Return them in the order they first appear.',
+  '- At most 40. A chapter that names more (a border survey, a town list, a',
+  '  march itinerary) gets the 40 a reader is most likely to look for, still in',
+  '  the order they appear — a map is not the place for a hundred pins.',
 ].join('\n');
 
 /** Rendered with vars from the 'chapter-verses' source resolver (same as the
@@ -59,6 +62,10 @@ export const GEOGRAPHY_SCHEMA = {
     properties: {
       places: {
         type: 'array',
+        // Bounded so a town-list chapter can't run the response past the token
+        // budget: an overrun truncates the JSON mid-array, and a truncated
+        // response is not a short map, it is NO map (the parse fails).
+        maxItems: 40,
         items: {
           type: 'object',
           additionalProperties: false,
