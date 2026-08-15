@@ -153,9 +153,19 @@ const geographyExtractor: TanachLLMExtractor = {
   // 900 was enough for ~21 places, which quietly broke exactly the chapters a
   // map is for: Numbers 33's forty-two encampments overran it, the JSON came
   // back truncated, the parse failed, and the reader was told the chapter has
-  // no places. A place costs ~50 tokens (nikud is expensive), so the schema's
-  // 40-place ceiling needs ~2000 — 3000 leaves room.
-  max_tokens: 3000,
+  // no places.
+  //
+  // A place costs ~50 tokens (nikud is expensive), so the 40-place cap needs
+  // ~2000. The ceiling is set far above that because the cap is NOT enforced
+  // by the provider on the deployed path — first-party DeepSeek can't honour
+  // json_schema, so the schema rides in the prompt as text (core llm.ts
+  // `inlineSchemaForFirstParty`) and a chapter like Joshua 15, which names
+  // over a hundred towns, can still be answered in full. Truncation is the one
+  // failure that loses EVERYTHING (the JSON is unparseable), so the budget
+  // buys room for the model to finish; `locatePlaces` then caps what is drawn.
+  // max_tokens is a ceiling, not a charge — ordinary chapters still cost what
+  // they generate.
+  max_tokens: 8000,
   temperature: 0.2,
   tag: 'tanach:geography',
 };

@@ -15,14 +15,24 @@ const fake = (name: string): GazetteerHit | null => ENTRIES[name.toLowerCase()] 
 describe('locating a chapter’s named places', () => {
   it('keeps two different places that the gazetteer puts at one point', () => {
     // The regression: keying dedupe on `lat,lng` dropped Havilah from Genesis
-    // 10, because the data gives it Babylon's coordinate.
+    // 10, because the data files it at Babylon's coordinate.
     const places = locatePlaces([{ en: 'Babylon' }, { en: 'Havilah' }], fake);
     expect(places.map((p) => p.en)).toEqual(['Babylon', 'Havilah']);
   });
 
-  it('collapses two names for the same place to one pin', () => {
+  it('collapses two names for the same gazetteer entry to one pin', () => {
     const places = locatePlaces([{ en: 'Ai', verses: [1] }, { en: 'Aiath' }], fake);
     expect(places).toEqual([{ en: 'Ai', he: '', lat: 31.9169, lng: 35.2611, verses: [1] }]);
+  });
+
+  it('caps the map so a town-list chapter stays readable', () => {
+    // The producer is asked for at most 40, but on the deployed path that is
+    // prompt guidance rather than an enforced grammar — so the cap has to hold
+    // here too. Joshua 15 names well over a hundred towns.
+    const many = Array.from({ length: 60 }, (_, i) => ({ en: `Town ${i}` }));
+    const lookupAll = (name: string): GazetteerHit => ({ name, lat: 31 + Math.random(), lng: 35 });
+    expect(locatePlaces(many, lookupAll)).toHaveLength(40);
+    expect(locatePlaces(many, lookupAll, 5)).toHaveLength(5);
   });
 
   it('omits a place it cannot locate rather than guessing', () => {
@@ -49,6 +59,11 @@ describe('locating a chapter’s named places', () => {
     expect(locatePlaces([{ en: 'Babylon' }, { en: 'Havilah' }], lookupPlace)).toHaveLength(2);
     // Two names for one entry still collapse.
     expect(locatePlaces([{ en: 'Salt Sea' }, { en: 'Dead Sea' }], lookupPlace)).toHaveLength(1);
+    expect(locatePlaces([{ en: 'Kiriath-arba' }, { en: 'Hebron' }], lookupPlace)).toHaveLength(1);
+    // The accepted cost of entry-granularity: OpenBible files a few alias pairs
+    // as separate entries at one site, so these draw two (spiralled) pins
+    // rather than one. Cosmetic, and both names are genuinely in the text.
+    expect(locatePlaces([{ en: 'Ai' }, { en: 'Aiath' }], lookupPlace)).toHaveLength(2);
     expect(lookupPlace('a place that does not exist')).toBeNull();
   });
 });
