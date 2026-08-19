@@ -67,9 +67,9 @@ describe('key byte-parity with the legacy literals', () => {
 
   it('geography — geography:v3:{book}:{chapter} (template owns the bytes, not cacheVersion)', () => {
     const def = info(enrichRunDefOf('geography'), 'enrich');
-    expect(TANACH_KEY_SCHEME.key(def, enrichmentAddress('geography', 'perek', 'Numbers', '33'))).toBe(
-      'geography:v3:Numbers:33',
-    );
+    expect(
+      TANACH_KEY_SCHEME.key(def, enrichmentAddress('geography', 'perek', 'Numbers', '33')),
+    ).toBe('geography:v3:Numbers:33');
     expect(
       TANACH_KEY_SCHEME.key(def, enrichmentAddress('geography', 'perek', 'Song of Songs', '1')),
     ).toBe('geography:v3:Song of Songs:1');
