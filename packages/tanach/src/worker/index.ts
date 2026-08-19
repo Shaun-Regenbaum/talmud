@@ -303,7 +303,7 @@ app.get('/api/geography/:book/:chapter', async (c) => {
 // Perek tidbit (whole-chapter enrichment): ONE curated "did you notice…" — the
 // against-the-grain reading the Overview deliberately leaves out — opened from
 // available for future composed study surfaces. Chapter-scoped
-// (tidbit:v1:{book}:{chapter}).
+// (tidbit:v2:{book}:{chapter}).
 app.get('/api/tidbit/:book/:chapter', async (c) => {
   const book = c.req.param('book');
   const chapter = c.req.param('chapter');
@@ -385,6 +385,12 @@ app.get('/api/parsha-study', async (c) => {
     });
   } catch (e) {
     return runErrorResponse(c, e);
+  }
+  // Same contract as geography: a truncated / unparseable model output is a
+  // FAILURE, not "this week's portion has no structure." An empty `flow`
+  // after a parse error made the drawer show titles with 0 moves.
+  if (artifact.parse_error) {
+    return c.json({ error: `Parsha study generation failed: ${artifact.parse_error}` }, 502);
   }
   const parsed = (artifact.parsed ?? {}) as {
     titleEn?: string;
@@ -487,6 +493,9 @@ async function resolveParshaSection(
   } catch (e) {
     return runErrorResponse(c, e);
   }
+  if (overview.parse_error) {
+    return c.json({ error: `Parsha overview generation failed: ${overview.parse_error}` }, 502);
+  }
   const sections =
     (overview.parsed as { flow?: Omit<ParshaFlowSection, 'ref'>[] } | null)?.flow ?? [];
   const section = sections[sectionIndex];
@@ -511,6 +520,9 @@ app.get('/api/parsha-section/:section', async (c) => {
     });
   } catch (e) {
     return runErrorResponse(c, e);
+  }
+  if (study.parse_error) {
+    return c.json({ error: `Parsha section generation failed: ${study.parse_error}` }, 502);
   }
   c.header('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
   return c.json({
@@ -539,6 +551,9 @@ app.get('/api/parsha-thread/:section', async (c) => {
     });
   } catch (e) {
     return runErrorResponse(c, e);
+  }
+  if (thread.parse_error) {
+    return c.json({ error: `Parsha thread generation failed: ${thread.parse_error}` }, 502);
   }
   c.header('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
   return c.json({

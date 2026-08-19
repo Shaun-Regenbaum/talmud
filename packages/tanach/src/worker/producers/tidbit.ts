@@ -11,7 +11,7 @@
  *
  * Recipe only (prompts + schema); the run goes through the corpus-agnostic
  * runProducer (defs.ts assembles the Producer, run-ports.ts wires the ports).
- * Chapter-scoped — key tidbit:v1:{book}:{chapter}, instance ignored.
+ * Chapter-scoped — key tidbit:v2:{book}:{chapter}, instance ignored.
  */
 
 export type TidbitFlavor =

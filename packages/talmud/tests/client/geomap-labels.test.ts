@@ -1,3 +1,4 @@
+import { inBBox } from '@corpus/ui/geo/bbox';
 import { type LabelCandidate, placeLabels } from '@corpus/ui/geo/labels';
 import { describe, expect, it } from 'vitest';
 
@@ -71,5 +72,30 @@ describe('geomap label placement', () => {
   it('is stable: the same input places the same way twice', () => {
     const input = [at(0, 100, 100), at(1, 103, 104), at(2, 106, 108), at(3, 99, 112)];
     expect(placeLabels(input, OPTS)).toEqual(placeLabels(input, OPTS));
+  });
+});
+
+describe('inBBox — filter markers against the live view, not the original frame', () => {
+  const start = { lonMin: 34, lonMax: 36.3, latMin: 29.4, latMax: 33.6 };
+  // After a pan east + zoom in, Hebron (35.0, 31.5) is still in frame but
+  // a point that was on the original western edge is not.
+  const panned = { lonMin: 34.6, lonMax: 36.0, latMin: 30.6, latMax: 32.6 };
+
+  it('keeps a point inside the starting frame', () => {
+    expect(inBBox(35.0, 31.5, start)).toBe(true);
+    expect(inBBox(34.0, 29.4, start)).toBe(true); // inclusive edges
+  });
+
+  it('drops a point that left the live (panned) view', () => {
+    expect(inBBox(34.1, 31.5, start)).toBe(true);
+    expect(inBBox(34.1, 31.5, panned)).toBe(false);
+  });
+
+  it('admits a point that entered the live view from outside the start frame', () => {
+    expect(inBBox(35.9, 32.4, start)).toBe(true);
+    expect(inBBox(36.2, 32.4, start)).toBe(true);
+    expect(inBBox(36.2, 32.4, panned)).toBe(false);
+    // A point just inside the panned east edge that was also in the start.
+    expect(inBBox(35.9, 32.4, panned)).toBe(true);
   });
 });

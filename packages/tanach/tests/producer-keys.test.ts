@@ -8,6 +8,8 @@
  *   `note:v1:${book}:${chapter}:${start}-${end}`
  *   `synthesis:v1:${book}:${chapter}:${verse}`
  *   `midrash-synth:v1:${book}:${chapter}:${verse}`   (producer: midrash-synthesis)
+ *   `geography:v3:${book}:${chapter}`
+ *   `tidbit:v2:${book}:${chapter}`
  *
  * translate:v1:* is deliberately absent (kept on bespoke raw-string+TTL
  * plumbing); midrash:v1:* is a source cache, not a producer output.
@@ -60,6 +62,23 @@ describe('key byte-parity with the legacy literals', () => {
     const def = info(enrichRunDefOf('synthesis'), 'enrich');
     expect(TANACH_KEY_SCHEME.key(def, enrichmentAddress('synthesis', '1', 'Genesis', '1'))).toBe(
       'synthesis:v1:Genesis:1:1',
+    );
+  });
+
+  it('geography — geography:v3:{book}:{chapter} (template owns the bytes, not cacheVersion)', () => {
+    const def = info(enrichRunDefOf('geography'), 'enrich');
+    expect(TANACH_KEY_SCHEME.key(def, enrichmentAddress('geography', 'perek', 'Numbers', '33'))).toBe(
+      'geography:v3:Numbers:33',
+    );
+    expect(
+      TANACH_KEY_SCHEME.key(def, enrichmentAddress('geography', 'perek', 'Song of Songs', '1')),
+    ).toBe('geography:v3:Song of Songs:1');
+  });
+
+  it('tidbit — tidbit:v2:{book}:{chapter}', () => {
+    const def = info(enrichRunDefOf('tidbit'), 'enrich');
+    expect(TANACH_KEY_SCHEME.key(def, enrichmentAddress('tidbit', 'perek', 'Genesis', '1'))).toBe(
+      'tidbit:v2:Genesis:1',
     );
   });
 

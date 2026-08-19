@@ -285,7 +285,11 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
                 : 'Connecting the passage, sources, and dvar Torah…'}
             </p>
           </Show>
-          <Show when={!thread.loading && thread() === null}>
+          {/* thread.error first: reading thread() while the resource is
+              errored (a rejected fetch, not a non-ok status) would rethrow
+              and break the drawer subtree. Same guard as the close-reading
+              `deep` resource above. */}
+          <Show when={!thread.loading && (thread.error || thread() === null)}>
             <p class="comm-muted">
               {aiStatus()
                 ? props.lang === 'he'
@@ -296,7 +300,7 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
                   : "Couldn't build this study thread. Try again."}
             </p>
           </Show>
-          <Show when={thread()}>
+          <Show when={!thread.loading && !thread.error && thread()}>
             {(value) => (
               <>
                 <h4>{textFor(props.lang, value().titleEn, value().titleHe)}</h4>
