@@ -18,7 +18,10 @@
 # worker needs (OPENROUTER_API_KEY, CLOUDFLARE_ACCOUNT_ID — the AI-Gateway URL
 # is built from the account id) are set with `wrangler secret put -c
 # wrangler.generator.toml`; the inference key is in vault at
-# legacy/prod/talmud/openrouter-api-key.
+# legacy/prod/talmud/openrouter-api-key — the SAME key the reader holds, and
+# not the one local dev uses (that is the spend-capped
+# legacy/prod/talmud/openrouter-api-key-dev, read from packages/talmud/.dev.vars).
+# Rotating prod means `wrangler secret put` on BOTH workers, then a vault put.
 name = "talmud-gen"
 main = "src/worker/index.ts"
 compatibility_date = "2025-04-01"
