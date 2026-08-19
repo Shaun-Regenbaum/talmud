@@ -25,14 +25,11 @@ import {
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { BASEMAP } from './geo/basemap.ts';
+import { type GeoBBox, inBBox } from './geo/bbox.ts';
 import { type LabelCandidate, placeLabels } from './geo/labels.ts';
 
-export interface GeoBBox {
-  lonMin: number;
-  lonMax: number;
-  latMin: number;
-  latMax: number;
-}
+export { type GeoBBox, inBBox } from './geo/bbox.ts';
+
 export interface GeoPoint {
   /** Stable id (for selection + keys). */
   id?: string;
@@ -304,11 +301,11 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
   const toggle = (l: GeoLayer) => setOverrides((o) => ({ ...o, [l]: !layers()[l] }));
 
   // points/regions kept in-frame (the SVG clips, but skipping off-view labels
-  // avoids stray text in the margins).
-  const inView = (lng: number, lat: number) => {
-    const b = props.bbox;
-    return lng >= b.lonMin && lng <= b.lonMax && lat >= b.latMin && lat <= b.latMax;
-  };
+  // avoids stray text in the margins). Filter against the live view, not the
+  // original props.bbox — after pan/zoom those two diverge, and using the
+  // static frame hid markers that had entered the viewport (and kept ones
+  // that had left).
+  const inView = (lng: number, lat: number) => inBBox(lng, lat, activeBbox());
   // Project points, then DE-OVERLAP co-located ones (many points at the same
   // place — e.g. several sages in one city): spiral the group around its centre
   // with a sunflower/golden-angle pattern so each marker is distinct. Index 0

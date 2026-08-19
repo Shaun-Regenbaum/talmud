@@ -119,6 +119,21 @@ describe('chapterRuns', () => {
     expect(res.totals.cost).toBeCloseTo(0.01 + 0.0004 * 3, 6);
   });
 
+  it('reads geography at the writer v3 key (a v2 leftover is a miss)', async () => {
+    const store = {
+      'geography:v2:Genesis:22': envelope(),
+      'geography:v3:Genesis:22': envelope({
+        elapsed_ms: 800,
+        cost: { estimatedUsd: 0.002, billedUsd: null, tokensIn: 50, tokensOut: 20 },
+      }),
+    };
+    const res = await chapterRuns(fakeCache(store), 'Genesis', '22');
+    const geo = res.runs.find((r) => r.id === 'geography');
+    expect(geo?.cached).toBe(true);
+    expect(geo?.coldMs).toBe(800);
+    expect(geo?.cost).toBe(0.002);
+  });
+
   it('every row carries a registry-DERIVED `expandable` (false: tanach pieces depend only on sources)', async () => {
     const res = await chapterRuns(fakeCache({}), 'Genesis', '22');
     expect(res.runs.length).toBeGreaterThan(0);

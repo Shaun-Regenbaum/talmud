@@ -29,6 +29,7 @@
     "./Prose": "./src/Prose.tsx",
     "./LangToggle": "./src/LangToggle.tsx",
     "./GeoMap": "./src/GeoMap.tsx",
+    "./geo/bbox": "./src/geo/bbox.ts",
     "./geo/labels": "./src/geo/labels.ts",
     "./WorldBubbleMap": "./src/WorldBubbleMap.tsx",
     "./LoadProgress": "./src/LoadProgress.tsx",

@@ -85,7 +85,7 @@ interface InstanceShape {
 const KEY_SHAPES: Record<string, ChapterShape | InstanceShape> = {
   events: { kind: 'chapter', key: (b, c) => `events:v2:${b}:${c}` },
   overview: { kind: 'chapter', key: (b, c) => `overview:v1:${b}:${c}` },
-  geography: { kind: 'chapter', key: (b, c) => `geography:v2:${b}:${c}` },
+  geography: { kind: 'chapter', key: (b, c) => `geography:v3:${b}:${c}` },
   tidbit: { kind: 'chapter', key: (b, c) => `tidbit:v2:${b}:${c}` },
   note: {
     kind: 'instance',

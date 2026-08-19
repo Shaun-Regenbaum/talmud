@@ -11,7 +11,7 @@
  *
  * This module carries the producer's RECIPE (prompts + schema); the run goes
  * through the corpus-agnostic runProducer (producers/defs.ts + run-ports.ts).
- * Chapter-scoped — key geography:v1:{book}:{chapter}.
+ * Chapter-scoped — key geography:v3:{book}:{chapter}.
  */
 
 export interface PerekPlace {

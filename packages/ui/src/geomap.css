@@ -43,6 +43,7 @@
   border: 1px solid var(--geo-land-edge);
   border-radius: var(--radius);
   box-shadow: 0 6px 24px rgba(60, 40, 12, 0.1);
+  overflow: hidden;
 }
 .geomap-drybg {
   fill: var(--geo-dry);
