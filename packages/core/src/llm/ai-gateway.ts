@@ -24,6 +24,11 @@
  * fall back to direct binding without redeploying code.
  */
 
+const RAW_AI = Symbol('raw-ai-binding');
+export function rawAiBinding(ai: Ai): Ai {
+  return (ai as Ai & { [RAW_AI]?: Ai })[RAW_AI] ?? ai;
+}
+
 import { isRetryable } from './llm-error';
 
 export interface AiGatewayEnv {
@@ -116,6 +121,7 @@ export function wrapEnv<E extends AiGatewayEnv>(env: E): E {
   const gatewayId = env.AI_GATEWAY_ID as string;
   const proxiedAi = new Proxy(realAi, {
     get(target, prop, receiver) {
+      if (prop === RAW_AI) return realAi;
       if (prop === 'run') {
         return (modelId: unknown, params: unknown, options?: Record<string, unknown>) => {
           const merged = { ...(options ?? {}), gateway: { id: gatewayId } };

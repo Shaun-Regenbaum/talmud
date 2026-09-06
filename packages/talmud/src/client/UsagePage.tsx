@@ -1,6 +1,7 @@
 import { WorldBubbleMap } from '@corpus/ui/WorldBubbleMap';
 import { createMemo, createResource, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 import { estimateShasCost, type ProducerCost } from '../lib/shasCost';
+import { BillingLedger } from './BillingLedger';
 import { type Column, DataTable, HitChip, Meter, RankedBars, type RankedItem } from './DataTable';
 import { lang, t } from './i18n';
 
@@ -2027,6 +2028,8 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
       </Show>
 
       {/* Per-daf table is rendered by ByDafCostTable (below CostSection). */}
+
+      <BillingLedger />
 
       {/* Full billing + projection detail (collapsed) */}
       <Collapsible

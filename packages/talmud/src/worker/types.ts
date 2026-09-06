@@ -49,6 +49,8 @@ export interface JobMessage {
 
 /** Worker environment bindings (declared in wrangler.toml). */
 export interface Bindings {
+  BILLING_DB?: D1Database;
+  BILLING_APP?: string;
   ASSETS: Fetcher;
   AI?: Ai;
   CACHE?: KVNamespace;

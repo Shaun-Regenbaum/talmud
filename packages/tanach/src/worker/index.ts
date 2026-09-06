@@ -1,3 +1,4 @@
+import { billingSummary, reconcileBilling } from '@corpus/core/telemetry/billing';
 /**
  * Tanach worker — Hono on Cloudflare Workers.
  *
@@ -55,6 +56,28 @@ interface Env extends TanachEnv {
 }
 
 const app = new Hono<{ Bindings: Env }>();
+
+app.get('/api/billing', async (c) => {
+  if (!c.env.BILLING_DB || !c.env.BILLING_APP)
+    return c.json({ error: 'Billing ledger unavailable' }, 503);
+  const today = new Date().toISOString().slice(0, 10);
+  const from =
+    c.req.query('from') ?? new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+  const through = c.req.query('through') ?? today;
+  if (
+    ![from, through].every(
+      (d) =>
+        /^\d{4}-\d{2}-\d{2}$/.test(d) &&
+        Number.isFinite(Date.parse(d)) &&
+        new Date(d).toISOString().slice(0, 10) === d,
+    ) ||
+    from > through ||
+    Date.parse(through) - Date.parse(from) > 366 * 86_400_000
+  ) {
+    return c.json({ error: 'Use valid dates spanning at most 366 days' }, 400);
+  }
+  return c.json(await billingSummary(c.env.BILLING_DB, c.env.BILLING_APP, from, through));
+});
 
 /** The public name. Every other hostname on this worker is an alias for it. */
 const CANONICAL_HOST = 'tanach.dev';
@@ -851,6 +874,9 @@ export { app };
 export default {
   fetch: (req: Request, env: Env, ctx: ExecutionContext) => app.fetch(req, env, ctx),
   scheduled: (_controller: ScheduledController, env: Env, ctx: ExecutionContext) => {
+    ctx.waitUntil(
+      reconcileBilling(env).catch(() => console.warn('[billing] reconciliation unavailable')),
+    );
     ctx.waitUntil(runTanachWarm(env, ctx));
   },
 };

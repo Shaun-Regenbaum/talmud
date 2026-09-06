@@ -52,6 +52,7 @@ import {
 import { ArtifactStore, type KVStore, type Staleness } from '@corpus/core/store/artifact-store';
 import { authorityOf, type StoredArtifact } from '@corpus/core/store/envelope';
 import { producerKeyInfo, talmudLegacyKeyScheme } from '@corpus/core/store/key-schemes';
+import { billingSummary, reconcileBilling } from '@corpus/core/telemetry/billing';
 import { Hono } from 'hono';
 import {
   GENERATION_IDS,
@@ -568,6 +569,28 @@ interface DafSkeleton {
 }
 
 const app = new Hono<{ Bindings: Bindings }>();
+
+app.get('/api/billing', async (c) => {
+  if (!c.env.BILLING_DB || !c.env.BILLING_APP)
+    return c.json({ error: 'Billing ledger unavailable' }, 503);
+  const today = new Date().toISOString().slice(0, 10);
+  const from =
+    c.req.query('from') ?? new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+  const through = c.req.query('through') ?? today;
+  if (
+    ![from, through].every(
+      (d) =>
+        /^\d{4}-\d{2}-\d{2}$/.test(d) &&
+        Number.isFinite(Date.parse(d)) &&
+        new Date(d).toISOString().slice(0, 10) === d,
+    ) ||
+    from > through ||
+    Date.parse(through) - Date.parse(from) > 366 * 86_400_000
+  ) {
+    return c.json({ error: 'Use valid dates spanning at most 366 days' }, 400);
+  }
+  return c.json(await billingSummary(c.env.BILLING_DB, c.env.BILLING_APP, from, through));
+});
 
 /** The public name. Every other hostname on this worker is an alias for it. */
 const CANONICAL_HOST = 'talmud.dev';
@@ -12070,6 +12093,9 @@ export default {
     // does not). The health watch now covers BOTH scripts, so a generation OOM
     // on talmud-gen is still alerted from here. See wrangler.generator.toml.
     if (env.WORKER_ROLE !== 'generator') {
+      ctx.waitUntil(
+        reconcileBilling(wrapped).catch(() => console.warn('[billing] reconciliation unavailable')),
+      );
       // Independent health watch: alert if an isolate-fatal outcome
       // (exceededMemory — the cold-daf OOM) appeared in the last window.
       // Self-contained + best-effort; never throws into the cron.

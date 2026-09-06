@@ -40,6 +40,7 @@ binding = "CACHE"
 id = "2d3ee093681441c58cf7e9f08420acc7"
 
 [vars]
+BILLING_APP = "tanach"
 # OpenRouter calls route through a Cloudflare AI Gateway (the only path in
 # @corpus/core). We reuse the existing `talmud` gateway for now — creating a
 # dedicated `tanach` gateway needs a token with AI-Gateway scope (the MCP token
@@ -78,3 +79,9 @@ HOURLY_CUSTOM_BUDGET_USD = "5"
 # and ticks are no-ops until the parsha changes.
 [triggers]
 crons = ["*/30 * * * *"]
+
+[[d1_databases]]
+binding = "BILLING_DB"
+database_name = "corpus-billing"
+database_id = "50ab90fa-cfdd-4b8c-8576-68f3eba6371d"
+migrations_dir = "../talmud/migrations"

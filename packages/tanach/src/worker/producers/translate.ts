@@ -93,6 +93,7 @@ export async function translateHebrew(
     max_tokens: 120,
     temperature: 0.2,
     tag: 'tanach:translate',
+    attribution: { kind: 'translate' },
   });
 
   const translation = extractGloss(res.content);

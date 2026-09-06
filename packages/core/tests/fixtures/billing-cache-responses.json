@@ -1,0 +1,110 @@
+{
+  "source": "Berakhot 2a, segment 0",
+  "capturedAt": "2026-09-06",
+  "responses": [
+    {
+      "status": 200,
+      "headers": {
+        "cf-aig-cache-status": "MISS"
+      },
+      "response": {
+        "id": "gen-1788684126-8PslNwrgJLK0FQoAg6wU",
+        "object": "chat.completion",
+        "created": 1788684126,
+        "model": "deepseek/deepseek-v4-flash",
+        "provider": "Azure",
+        "system_fingerprint": null,
+        "service_tier": null,
+        "choices": [
+          {
+            "index": 0,
+            "logprobs": null,
+            "finish_reason": "stop",
+            "native_finish_reason": "stop",
+            "message": {
+              "role": "assistant",
+              "content": "רַבִּי אֱלִיעֶזֶר",
+              "refusal": null,
+              "reasoning": null
+            }
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 159,
+          "completion_tokens": 15,
+          "total_tokens": 174,
+          "cost": 4.179e-5,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 4.179e-5,
+            "upstream_inference_prompt_cost": 3.339e-5,
+            "upstream_inference_completions_cost": 8.4e-6
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        }
+      }
+    },
+    {
+      "status": 200,
+      "headers": {
+        "cf-aig-cache-status": "MISS"
+      },
+      "response": {
+        "id": "gen-1788684128-oJfNRo7azTfCKgaQW8U4",
+        "object": "chat.completion",
+        "created": 1788684128,
+        "model": "deepseek/deepseek-v4-flash",
+        "provider": "DeepInfra",
+        "system_fingerprint": null,
+        "service_tier": null,
+        "choices": [
+          {
+            "index": 0,
+            "logprobs": null,
+            "finish_reason": "stop",
+            "native_finish_reason": "stop",
+            "message": {
+              "role": "assistant",
+              "content": "רַבִּי אֱלִיעֶזֶר",
+              "refusal": null,
+              "reasoning": null
+            }
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 159,
+          "completion_tokens": 15,
+          "total_tokens": 174,
+          "cost": 1.701e-5,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 1.701e-5,
+            "upstream_inference_prompt_cost": 1.431e-5,
+            "upstream_inference_completions_cost": 2.7e-6
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 0,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        }
+      }
+    }
+  ]
+}

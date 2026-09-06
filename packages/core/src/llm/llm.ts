@@ -22,7 +22,8 @@
  * resolved from KV before runLLM is called; runLLM itself only reads opts.
  */
 
-import { runWithRetry } from './ai-gateway';
+import { type BillingAttempt, type BillingEnv, beginBillingAttempt } from '../telemetry/billing';
+import { gatewayActive, rawAiBinding, runWithRetry } from './ai-gateway';
 import { BudgetPausedError, checkBudget, type EmailBinding, recordSpend } from './budget';
 import { isFallbackWorthy, LLMError, NEITHER, TIMEOUT } from './llm-error';
 import { costSplitUsd, normalizeUsage } from './pricing';
@@ -30,7 +31,7 @@ import { DEFAULT_FALLBACK_CHAIN, DEFAULT_MODEL } from './settings';
 
 export type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
 
-export interface LLMEnv {
+export interface LLMEnv extends BillingEnv {
   CACHE?: KVNamespace;
   AI?: Ai;
   AI_GATEWAY_ID?: string;
@@ -173,6 +174,8 @@ export interface LLMResult {
    * fallback was used; the `model` field reports which one succeeded.
    */
   attempts: number;
+  provider_id?: string;
+  gateway_hit?: boolean;
 }
 
 // LLMError moved to ./llm-error (where it carries typed retryable /
@@ -387,44 +390,67 @@ async function callWorkersAI(
     body.stream_options = { include_usage: true };
   }
 
-  // The wrapEnv() Proxy already wraps env.AI.run with retry + gateway hint;
-  // we don't double-retry here.
-  const raw = (await env.AI.run(model as never, body as never)) as unknown;
+  let billing: BillingAttempt | null = null;
+  const raw = await runWithRetry(async () => {
+    billing = await beginBillingAttempt(env, model, opts);
+    try {
+      return (await rawAiBinding(env.AI!).run(
+        model as never,
+        body as never,
+        (gatewayActive(env) ? { gateway: { id: env.AI_GATEWAY_ID } } : {}) as never,
+      )) as unknown;
+    } catch (err) {
+      await billing?.finish('failed', 'provider-error');
+      throw err;
+    }
+  });
+  // The callback assigns before returning. Keep a typed reference across the
+  // asynchronous retry boundary.
+  const attempt = billing as BillingAttempt | null;
+  try {
+    if (opts.stream) {
+      const parsed = await parseOpenAIStream(raw as ReadableStream<Uint8Array>, (id, usage) =>
+        attempt?.observe(id, usage),
+      );
+      await attempt?.finish('succeeded');
+      return {
+        ...parsed,
+        prompt_chars: promptChars,
+        elapsed_ms: Date.now() - t0,
+        model,
+        transport: 'workers-ai',
+      };
+    }
 
-  if (opts.stream) {
-    const parsed = await parseOpenAIStream(raw as ReadableStream<Uint8Array>);
+    // Non-streaming Workers AI: shapes vary. Some models return { response: "..." },
+    // others return OpenAI-style { choices: [{ message: { content: ... } }], usage }.
+    const r = raw as {
+      response?: string;
+      choices?: Array<{
+        message?: { content?: string; reasoning_content?: string };
+        finish_reason?: string | null;
+      }>;
+      usage?: LLMUsage;
+    };
+    await attempt?.observe(null, r.usage);
+    await attempt?.finish('succeeded');
+    const content = r.choices?.[0]?.message?.content ?? r.response ?? '';
+    const reasoning = r.choices?.[0]?.message?.reasoning_content ?? '';
+    const finish = r.choices?.[0]?.finish_reason ?? null;
     return {
-      ...parsed,
+      content,
+      reasoning_content: reasoning,
+      finish_reason: finish,
+      usage: r.usage ?? null,
       prompt_chars: promptChars,
       elapsed_ms: Date.now() - t0,
       model,
       transport: 'workers-ai',
     };
+  } catch (err) {
+    await attempt?.finish('failed', 'response-error');
+    throw err;
   }
-
-  // Non-streaming Workers AI: shapes vary. Some models return { response: "..." },
-  // others return OpenAI-style { choices: [{ message: { content: ... } }], usage }.
-  const r = raw as {
-    response?: string;
-    choices?: Array<{
-      message?: { content?: string; reasoning_content?: string };
-      finish_reason?: string | null;
-    }>;
-    usage?: LLMUsage;
-  };
-  const content = r.choices?.[0]?.message?.content ?? r.response ?? '';
-  const reasoning = r.choices?.[0]?.message?.reasoning_content ?? '';
-  const finish = r.choices?.[0]?.finish_reason ?? null;
-  return {
-    content,
-    reasoning_content: reasoning,
-    finish_reason: finish,
-    usage: r.usage ?? null,
-    prompt_chars: promptChars,
-    elapsed_ms: Date.now() - t0,
-    model,
-    transport: 'workers-ai',
-  };
 }
 
 // ---------------------------------------------------------------------------
@@ -623,10 +649,12 @@ async function callOpenRouterGateway(
   // next model instead of looping on a wedged endpoint.
   const controller = new AbortController();
   const timeoutHandle = setTimeout(() => controller.abort(), OPENROUTER_CALL_TIMEOUT_MS);
+  let billing: BillingAttempt | null = null;
   try {
     // Retry on transient transport errors (5xx, 429). Non-retryable (4xx other
     // than 429) throws on the first attempt.
     const resp = await runWithRetry(async () => {
+      billing = await beginBillingAttempt(env, model, opts);
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
@@ -643,6 +671,7 @@ async function callOpenRouterGateway(
           signal: controller.signal,
         });
       } catch (err) {
+        await billing?.finish('failed', controller.signal.aborted ? 'timeout' : 'network-error');
         // Our hard-timeout aborted the call: re-throw as a typed 408 (TIMEOUT →
         // fallbackWorthy, NOT retryable) so runLLM fails over to the next model
         // instead of runWithRetry hammering the same stalled endpoint.
@@ -659,20 +688,29 @@ async function callOpenRouterGateway(
         }
         throw err;
       }
+      await billing?.received(r);
       if (!r.ok) {
+        await billing?.finish('failed', `http-${r.status}`);
         const text = await r.text().catch(() => '');
         throw new LLMError(r.status, `OpenRouter HTTP ${r.status}: ${text.slice(0, 500)}`);
       }
       return r;
     }, controller.signal);
 
+    const attempt = billing as BillingAttempt | null;
+    const gatewayHit = resp.headers.get('cf-aig-cache-status')?.toUpperCase() === 'HIT';
     if (opts.stream) {
       if (!resp.body)
         throw new LLMError(500, 'OpenRouter stream returned empty body', { cls: NEITHER });
       try {
-        const parsed = await parseOpenAIStream(resp.body);
+        const parsed = await parseOpenAIStream(resp.body, (id, usage) =>
+          attempt?.observe(id, usage),
+        );
+        await attempt?.finish('succeeded');
         return {
           ...parsed,
+          usage: gatewayHit ? { ...parsed.usage, cost: 0 } : parsed.usage,
+          gateway_hit: gatewayHit,
           prompt_chars: promptChars,
           elapsed_ms: Date.now() - t0,
           model,
@@ -700,6 +738,7 @@ async function callOpenRouterGateway(
     // stream errors out, surface as a typed 408 (fail over) rather than
     // letting the raw "operation aborted" error escape unwrapped.
     let json: {
+      id?: string;
       choices?: Array<{
         message?: { content?: string; reasoning?: string; reasoning_content?: string };
         finish_reason?: string | null;
@@ -718,6 +757,8 @@ async function callOpenRouterGateway(
       }
       throw err;
     }
+    await attempt?.observe(json.id, json.usage);
+    await attempt?.finish('succeeded');
     const content = json.choices?.[0]?.message?.content ?? '';
     const reasoning =
       json.choices?.[0]?.message?.reasoning_content ?? json.choices?.[0]?.message?.reasoning ?? '';
@@ -726,12 +767,20 @@ async function callOpenRouterGateway(
       content,
       reasoning_content: reasoning,
       finish_reason: finish,
-      usage: json.usage ?? null,
+      usage: gatewayHit ? { ...json.usage, cost: 0 } : (json.usage ?? null),
+      provider_id: json.id,
+      gateway_hit: gatewayHit,
       prompt_chars: promptChars,
       elapsed_ms: Date.now() - t0,
       model,
       transport: 'openrouter-gateway',
     };
+  } catch (err) {
+    await (billing as BillingAttempt | null)?.finish(
+      'failed',
+      controller.signal.aborted ? 'timeout' : 'response-error',
+    );
+    throw err;
   } finally {
     clearTimeout(timeoutHandle);
   }
@@ -752,7 +801,10 @@ async function callOpenRouterGateway(
  * Workers AI Kimi stream and OpenRouter return the same OpenAI shape, so one
  * parser handles both.
  */
-export async function parseOpenAIStream(stream: ReadableStream<Uint8Array>): Promise<{
+export async function parseOpenAIStream(
+  stream: ReadableStream<Uint8Array>,
+  observe?: (id?: string, usage?: LLMUsage) => Promise<void> | undefined,
+): Promise<{
   content: string;
   reasoning_content: string;
   finish_reason: string | null;
@@ -783,6 +835,7 @@ export async function parseOpenAIStream(stream: ReadableStream<Uint8Array>): Pro
           if (!data || data === '[DONE]') continue;
           try {
             const parsed = JSON.parse(data) as {
+              id?: string;
               choices?: Array<{
                 delta?: { content?: string; reasoning_content?: string; reasoning?: string };
                 finish_reason?: string | null;
@@ -790,6 +843,7 @@ export async function parseOpenAIStream(stream: ReadableStream<Uint8Array>): Pro
               response?: string;
               usage?: LLMUsage;
             };
+            await observe?.(parsed.id, parsed.usage);
             const delta = parsed.choices?.[0]?.delta;
             if (delta?.content) content += delta.content;
             if (delta?.reasoning_content) reasoning += delta.reasoning_content;

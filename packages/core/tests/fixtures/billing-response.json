@@ -1,0 +1,66 @@
+{
+  "source": "Berakhot 2a, segment 0",
+  "capturedAt": "2026-09-06",
+  "request": {
+    "model": "deepseek/deepseek-v4-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Return the personal names explicitly mentioned in this Hebrew passage. Return only the names, or an empty list if none.\nמֵאֵימָתַי קוֹרִין אֶת שְׁמַע בָּעֲרָבִין? מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִים לֶאֱכוֹל בִּתְרוּמָתָן. עַד סוֹף הָאַשְׁמוּרָה הָרִאשׁוֹנָה. דִּבְרֵי רַבִּי אֱלִיעֶזֶר."
+      }
+    ],
+    "max_tokens": 128,
+    "reasoning": {
+      "enabled": false
+    },
+    "usage": {
+      "include": true
+    }
+  },
+  "response": {
+    "id": "gen-1788683222-zWOdtucu0En1wgldwqSq",
+    "object": "chat.completion",
+    "created": 1788683222,
+    "model": "deepseek/deepseek-v4-flash",
+    "provider": "DigitalOcean",
+    "system_fingerprint": null,
+    "service_tier": null,
+    "choices": [
+      {
+        "index": 0,
+        "logprobs": null,
+        "finish_reason": "stop",
+        "native_finish_reason": "stop",
+        "message": {
+          "role": "assistant",
+          "content": "רַבִּי אֱלִיעֶזֶר",
+          "refusal": null,
+          "reasoning": null
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 159,
+      "completion_tokens": 15,
+      "total_tokens": 174,
+      "cost": 1.33161e-5,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 1.33161e-5,
+        "upstream_inference_prompt_cost": 1.07961e-5,
+        "upstream_inference_completions_cost": 2.52e-6
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  }
+}
