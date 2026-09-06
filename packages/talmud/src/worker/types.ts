@@ -64,7 +64,7 @@ export interface Bindings {
   CF_ANALYTICS_TOKEN?: string;
   // OpenRouter MANAGEMENT/provisioning key (not the inference key) for the
   // authoritative billed-spend query in openrouter-cost.ts (/api/v1/activity +
-  // /credits). Set via `wrangler secret put OPENROUTER_PROVISIONING_KEY`.
+  // /key). Set via `wrangler secret put OPENROUTER_PROVISIONING_KEY`.
   OPENROUTER_PROVISIONING_KEY?: string;
   OPENROUTER_GATEWAY_PROVIDER?: string;
   DEFAULT_LLM_MODEL?: string;

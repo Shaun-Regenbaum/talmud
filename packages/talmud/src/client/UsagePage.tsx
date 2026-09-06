@@ -293,6 +293,7 @@ interface OrCost {
   requests?: number;
   costUsd?: number;
   lifetimeUsd?: number;
+  scope?: 'application-key';
   byModel?: OrModelRow[];
   byDay?: Array<{ date: string; costUsd: number }>;
 }
@@ -378,18 +379,18 @@ interface Section<T> {
 }
 // A section's data: fetched from `url`, snapshotted to localStorage under
 // `storeKey` for instant first paint on the next visit.
-function sectionResource<T>(url: string, storeKey: string): Section<T> {
+function sectionResource<T>(url: string, storeKey: string | null): Section<T> {
   const [res, { refetch }] = createResource<T>(async () => {
     const r = await fetch(url);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const data = (await r.json()) as T;
-    writeStored(storeKey, data);
+    if (storeKey) writeStored(storeKey, data);
     return data;
   });
   return {
     // res() throws while pending/errored — guard on state and fall back to the
     // stored snapshot so a slow/failed refresh still shows the last good value.
-    value: () => (res.state === 'ready' ? res() : readStored<T>(storeKey)),
+    value: () => (res.state === 'ready' ? res() : storeKey ? readStored<T>(storeKey) : undefined),
     loading: () => res.loading,
     error: () => (res.state === 'errored' ? res.error : undefined),
     refetch: () => {
@@ -1906,17 +1907,12 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
   const aigw = () => props.cost.aiGateway;
   const series = () => self()?.series ?? [];
 
-  // The single headline number: lifetime billed (authoritative) when we have it,
-  // else the windowed billed figure, else our own tracked total, else gateway.
-  const totalUsd = (): number | null => {
-    if (typeof or()?.lifetimeUsd === 'number') return or()?.lifetimeUsd ?? null;
-    if (or()?.ok && typeof or()?.costUsd === 'number') return or()?.costUsd ?? null;
-    const st = self()?.totals.costUsd;
-    if (st && st > 0) return st;
-    if (aigw().ok && typeof aigw().costUsd === 'number') return aigw().costUsd ?? null;
-    return null;
-  };
-  const totalIsLifetime = () => typeof or()?.lifetimeUsd === 'number';
+  const scopedBilling = () => or()?.ok && or()?.scope === 'application-key';
+  const totalUsd = (): number | null => (scopedBilling() ? (or()?.costUsd ?? null) : null);
+  const billingPeriod = () =>
+    scopedBilling()
+      ? `${or()?.windowStart} – ${or()?.windowEnd}`
+      : t('usage.cost.billingUnavailable');
 
   // Rolling 30-day cost per daf (the recent unit rate).
   const perDaf30 = () => rollingCostPerDaf(series(), 30);
@@ -1982,10 +1978,10 @@ function CostSection(props: { cost: CostSectionData; stats: CacheStats | undefin
         style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.8rem' }}
       >
         <StatCard
-          label={t('usage.cost.total')}
+          label={t('usage.cost.applicationKey')}
           value={fmtUsd(totalUsd())}
           color="#2a8a42"
-          sub={totalIsLifetime() ? t('usage.cost.total.lifetime') : t('usage.cost.total.tracked')}
+          sub={billingPeriod()}
         />
         <StatCard
           label={t('usage.cost.remaining')}
@@ -2100,14 +2096,6 @@ function CostDetails(props: { cost: CostSectionData; stats: CacheStats | undefin
   const or = () => props.cost.openRouter;
   const self = () => props.cost.selfTracked;
   const avoided = () => props.cost.costAvoided;
-  // The authoritative billed number: OpenRouter's own ledger when wired up, else
-  // the AI Gateway figure (which under-prices price-routed DeepSeek).
-  const billedUsd = (): number | null => {
-    if (or()?.ok) return or()?.costUsd ?? null;
-    if (aigw().ok) return aigw().costUsd ?? null;
-    return null;
-  };
-
   // Per-producer estimate of the cost to warm ALL of shas at full depth. Each
   // producer's unit cost ($/priced call) is projected across its own fire-rate
   // over every amud, so the lightly-warmed long tail is counted honestly
@@ -2142,22 +2130,21 @@ function CostDetails(props: { cost: CostSectionData; stats: CacheStats | undefin
   };
   const last7 = () => sumWindow(7);
   const last30 = () => sumWindow(30);
-  // How much of the provider's billed spend our 30-day tracking accounts for.
-  const converge = () => {
-    const billed = billedUsd() ?? 0;
-    if (billed <= 0) return null;
-    return Math.round((last30().costUsd / billed) * 100);
-  };
-
   return (
     <>
       {/* Total spent — authoritative, OpenRouter's own billed ledger. */}
       <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0.2rem 0 0.4rem' }}>
-        {t('usage.cost.billed.title')}{' '}
-        <span style={{ color: '#999', 'font-weight': 'normal' }}>{t('usage.cost.billed.sub')}</span>
+        {or()?.ok && or()?.scope === 'application-key'
+          ? t('usage.cost.billed.title')
+          : t('usage.cost.gatewayApprox')}{' '}
+        <span style={{ color: '#999', 'font-weight': 'normal' }}>
+          {or()?.ok && or()?.scope === 'application-key'
+            ? t('usage.cost.billed.sub')
+            : `${aigw().windowStart ?? ''} – ${aigw().windowEnd ?? ''}`}
+        </span>
       </h3>
       <Show
-        when={or()?.ok}
+        when={or()?.ok && or()?.scope === 'application-key'}
         fallback={
           <>
             {/* No provisioning key (or query failed): fall back to the AI Gateway
@@ -2247,7 +2234,8 @@ function CostDetails(props: { cost: CostSectionData; stats: CacheStats | undefin
           style={{ display: 'flex', gap: '0.6rem', 'flex-wrap': 'wrap', 'margin-bottom': '0.6rem' }}
         >
           <StatCard
-            label={t('usage.stat.totalCost')}
+            label={t('usage.cost.applicationKey')}
+            sub={`${or()?.windowStart} – ${or()?.windowEnd}`}
             value={fmtUsd(or()?.costUsd)}
             color="#2a8a42"
           />
@@ -2369,24 +2357,7 @@ function CostDetails(props: { cost: CostSectionData; stats: CacheStats | undefin
                 sub={t('usage.stat.unpricedCalls.sub')}
               />
             </div>
-            <Show when={converge() != null}>
-              <p
-                style={{
-                  'font-size': '0.8rem',
-                  color: '#555',
-                  background: '#f5f8ff',
-                  padding: '0.5rem 0.7rem',
-                  'border-radius': '4px',
-                  border: '1px solid #e0e8f5',
-                  'margin-bottom': '0.7rem',
-                }}
-              >
-                {t('usage.cost.converge', {
-                  pct: String(converge()),
-                  billed: fmtUsd(billedUsd() ?? undefined),
-                })}
-              </p>
-            </Show>
+            <p style={{ 'font-size': '0.8rem' }}>{t('usage.cost.historicalTracking')}</p>
           </>
         )}
       </Show>
@@ -3352,7 +3323,7 @@ const TABS: Array<{ id: string; labelKey: string }> = [
 export function UsagePage(): JSX.Element {
   // One resource per section, each loading from its own endpoint and snapshotted
   // to localStorage for an instant first paint on the next visit.
-  const cost = sectionResource<CostSectionData>('/api/usage/cost', 'usage.snap.cost');
+  const cost = sectionResource<CostSectionData>('/api/usage/cost', null);
   const activity = sectionResource<ZoneActivity>('/api/usage/activity', 'usage.snap.activity');
   const telemetry = sectionResource<TelemetrySection>(
     '/api/usage/telemetry',

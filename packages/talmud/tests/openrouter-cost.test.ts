@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { aggregateActivity, type OrActivityRow } from '../src/worker/openrouter-cost';
+import {
+  aggregateActivity,
+  billingWindow,
+  type OrActivityRow,
+} from '../src/worker/openrouter-cost';
 
 // Rows shaped like the real GET /api/v1/activity response (one row per
 // day+model+endpoint), trimmed to the fields aggregateActivity reads.
@@ -75,5 +79,22 @@ describe('aggregateActivity', () => {
     expect(agg.byModel).toEqual([]);
     expect(agg.byDay).toEqual([]);
     expect(agg.days).toBe(0);
+  });
+});
+
+// Real application-key activity captured on 2026-09-06. Credentials, endpoint
+// identifiers and provider labels are excluded from the fixture.
+import capturedActivity from './fixtures/billing-activity-2026-09-06.json';
+
+describe('application billing window', () => {
+  it('uses completed UTC dates independently of sparse activity', () => {
+    expect(billingWindow(new Date('2026-09-06T14:00:00+03:00'))).toEqual({
+      windowStart: '2026-08-07',
+      windowEnd: '2026-09-05',
+      days: 30,
+    });
+  });
+  it('preserves the captured application bill', () => {
+    expect(aggregateActivity(capturedActivity).costUsd).toBeCloseTo(49.599122, 6);
   });
 });
