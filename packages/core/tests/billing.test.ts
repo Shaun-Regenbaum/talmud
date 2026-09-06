@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { Miniflare } from 'miniflare';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { beginBillingAttempt, billingSummary, dollarsToNanos } from '../src/telemetry/billing';
+import gateway from './fixtures/billing-cache-responses.json';
 import captured from './fixtures/billing-response.json';
 
 // Replay a real paid response into a real local D1 database. No provider call
@@ -74,5 +75,24 @@ describe('permanent billing records', () => {
     const summary = await billingSummary(db, 'tanach', today, today);
     expect(summary.totals).toMatchObject({ attempts: 1, unresolved: 1, failed: 1, billedNanos: 0 });
     expect(summary.byProducer).toHaveLength(1);
+  });
+  it('saves a receipt before completion and counts a charged response even after failure', async () => {
+    const recorded = gateway.responses[0];
+    const a = await beginBillingAttempt({ BILLING_DB: db, BILLING_APP: 'talmud' }, model, opts);
+    await a!.received(new Response(null, { headers: recorded.headers }));
+    await a!.observe(recorded.response.id);
+    expect(
+      await db
+        .prepare('SELECT provider_id FROM billing_attempts WHERE id = ?')
+        .bind(a!.id)
+        .first('provider_id'),
+    ).toBe(recorded.response.id);
+    await a!.observe(recorded.response.id, recorded.response.usage);
+    await a!.finish('failed', 'response-error');
+    const charge = await db
+      .prepare('SELECT billed_nanos FROM billing_charges WHERE attempt_id = ?')
+      .bind(a!.id)
+      .first('billed_nanos');
+    expect(charge).toBe(dollarsToNanos(recorded.response.usage.cost));
   });
 });
