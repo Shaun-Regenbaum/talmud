@@ -44,6 +44,7 @@ binding = "AI"
 remote = true
 
 [vars]
+BILLING_APP = "talmud"
 AI_GATEWAY_ID = "talmud"
 DEFAULT_LLM_MODEL = "openrouter/deepseek/deepseek-v4-pro"
 OPENROUTER_GATEWAY_PROVIDER = "openrouter"
@@ -121,3 +122,9 @@ crons = ["*/5 * * * *", "0 3 * * *"]
 [[send_email]]
 name = "EMAIL"
 remote = true
+
+[[d1_databases]]
+binding = "BILLING_DB"
+database_name = "corpus-billing"
+database_id = "50ab90fa-cfdd-4b8c-8576-68f3eba6371d"
+migrations_dir = "migrations"

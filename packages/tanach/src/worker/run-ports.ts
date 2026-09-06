@@ -711,6 +711,7 @@ const RUN_PORTS: RunProducerPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkD
       temperature: ext.temperature,
       response_format: { type: 'json_schema', json_schema: ext.output_schema },
       tag: ext.tag,
+      attribution: { producerId: a.def.id, kind: 'mark', tractate: rc.ref },
     });
     return { result, systemPrompt, userPrompt };
   },
@@ -727,6 +728,7 @@ const RUN_PORTS: RunProducerPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkD
       temperature: def.temperature,
       response_format: { type: 'json_schema', json_schema: def.output_schema },
       tag: def.tag,
+      attribution: { producerId: def.id, kind: 'enrichment', tractate: rc.ref },
     });
   },
   runChecks: async (_rc, a) => {

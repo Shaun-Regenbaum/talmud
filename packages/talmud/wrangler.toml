@@ -60,6 +60,7 @@ remote = true
 # call (OpenRouter + Workers AI when re-enabled). Set AI_GATEWAY_DISABLE = "1"
 # as an emergency kill-switch.
 [vars]
+BILLING_APP = "talmud"
 AI_GATEWAY_ID = "talmud"
 # Default LLM for runLLM() when no explicit model is passed. The settings KV
 # layer can override at runtime; this is the bootstrap default. Either an
@@ -195,3 +196,9 @@ crons = ["*/5 * * * *"]
 [[send_email]]
 name = "EMAIL"
 remote = true
+
+[[d1_databases]]
+binding = "BILLING_DB"
+database_name = "corpus-billing"
+database_id = "50ab90fa-cfdd-4b8c-8576-68f3eba6371d"
+migrations_dir = "migrations"

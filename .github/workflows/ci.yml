@@ -63,6 +63,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - run: pnpm --filter talmud exec wrangler d1 migrations apply corpus-billing --remote
+
       # Generation worker FIRST: the reader binds to its DafWarmWorkflow
       # cross-script (script_name = "talmud-gen"), so talmud-gen must exist
       # before the reader deploy resolves that binding. No vite build — the
