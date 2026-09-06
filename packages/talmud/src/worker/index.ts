@@ -210,7 +210,7 @@ import {
 } from './inspect-anchors';
 import { noteLintAttempt, readLintFailures } from './lint-failures';
 import { ALIGN_MARKS } from './mark-categories';
-import { fetchOpenRouterCost } from './openrouter-cost';
+import { applicationKeyHash, fetchOpenRouterCost } from './openrouter-cost';
 import {
   ARGUMENT_BRIDGE_OUTPUT_SCHEMA,
   ARGUMENT_CROSS_FLOW_OUTPUT_SCHEMA,
@@ -7245,7 +7245,8 @@ async function loadOpenRouterCostCached(
   cache?: KVNamespace,
 ): Promise<Awaited<ReturnType<typeof fetchOpenRouterCost>>> {
   if (!cache) return fetchOpenRouterCost(c.env);
-  const raw = await cache.get('or-cost:v1');
+  const billingKey = `or-cost:application-key:v2:${await applicationKeyHash(c.env.OPENROUTER_API_KEY ?? '')}`;
+  const raw = await cache.get(billingKey);
   if (raw) {
     try {
       return JSON.parse(raw) as Awaited<ReturnType<typeof fetchOpenRouterCost>>;
@@ -7254,7 +7255,7 @@ async function loadOpenRouterCostCached(
     }
   }
   const fresh = await fetchOpenRouterCost(c.env);
-  c.executionCtx.waitUntil(cache.put('or-cost:v1', JSON.stringify(fresh), { expirationTtl: 300 }));
+  c.executionCtx.waitUntil(cache.put(billingKey, JSON.stringify(fresh), { expirationTtl: 300 }));
   return fresh;
 }
 async function loadActivityCached(
@@ -7514,14 +7515,24 @@ app.get('/api/usage', async (c) => {
       reports: backlog.reports.active, // back-compat: the legacy combined payload
     };
   };
-  return serveUsageSection(c, cache, 'usage-payload:v1', 30_000, build);
+  return serveUsageSection(
+    c,
+    cache,
+    `usage-payload:v2:${await applicationKeyHash(c.env.OPENROUTER_API_KEY ?? '')}`,
+    30_000,
+    build,
+  );
 });
 
 // Per-section endpoints — the client loads these independently so each card
 // renders as soon as its own data arrives.
-app.get('/api/usage/cost', (c) =>
-  serveUsageSection(c, c.env.CACHE, 'usage-cost:v1', 30_000, () =>
-    buildCostSection(c, c.env.CACHE),
+app.get('/api/usage/cost', async (c) =>
+  serveUsageSection(
+    c,
+    c.env.CACHE,
+    `usage-cost:v2:${await applicationKeyHash(c.env.OPENROUTER_API_KEY ?? '')}`,
+    30_000,
+    () => buildCostSection(c, c.env.CACHE),
   ),
 );
 
@@ -7636,7 +7647,9 @@ app.post('/api/admin/report-dismiss', async (c) => {
   c.executionCtx.waitUntil(
     Promise.all([
       cache.delete('usage-backlog:v1').catch(() => {}),
-      cache.delete('usage-payload:v1').catch(() => {}),
+      applicationKeyHash(c.env.OPENROUTER_API_KEY ?? '')
+        .then((hash) => cache.delete(`usage-payload:v2:${hash}`))
+        .catch(() => {}),
     ]),
   );
   return c.json({ ok: true });

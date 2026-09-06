@@ -998,11 +998,14 @@ const CATALOG = {
   // Reframed cost view: a billed total + our own windowed tracking.
   'usage.cost.billed.title': { en: 'Total spent', he: 'סך ההוצאה' },
   'usage.cost.billed.sub': {
-    en: 'actually billed · last 30 days',
-    he: 'מה שחויב בפועל · 30 הימים האחרונים',
+    en: 'current Talmud key · completed UTC days',
+    he: 'מפתח התלמוד הנוכחי · ימי UTC שהסתיימו',
   },
   'usage.stat.lifetime': { en: 'Lifetime', he: 'מאז ומתמיד' },
-  'usage.cost.lifetimeSub': { en: 'all-time on OpenRouter', he: 'מאז ומתמיד ב-OpenRouter' },
+  'usage.cost.lifetimeSub': {
+    en: 'current Talmud key, including today',
+    he: 'מפתח התלמוד הנוכחי, כולל היום',
+  },
   'usage.cost.gatewayApprox': {
     en: 'approx · gateway-estimated',
     he: 'משוער · לפי ה-Gateway',
@@ -1012,8 +1015,8 @@ const CATALOG = {
     he: 'אומדן AI Gateway: {cost}',
   },
   'usage.cost.gatewayCompare.sub': {
-    en: 'gateway-computed · under-prices routed DeepSeek',
-    he: 'מחושב ב-Gateway · מתמחר בחסר את DeepSeek המנותב',
+    en: 'gateway estimate · its own date range',
+    he: 'אומדן ה-Gateway · טווח תאריכים משלו',
   },
   'usage.or.queryFailed': {
     en: 'OpenRouter query failed: {error}',
@@ -1037,9 +1040,14 @@ const CATALOG = {
   'usage.cost.win30': { en: 'Last 30 days', he: '30 ימים אחרונים' },
   'usage.cost.winAll': { en: 'All time', he: 'מאז ומתמיד' },
   'usage.cost.winCalls': { en: '{count} calls', he: '{count} קריאות' },
-  'usage.cost.converge': {
-    en: 'Our 30-day per-producer tracking is {pct}% of the {billed} billed. Both now use the real billed cost, so they should converge — the remaining gap is Workers AI (neuron-billed, unpriced here) plus older days still aging out of the window after the cost-source fix.',
-    he: 'המעקב שלנו לפי מפיק ל-30 יום הוא {pct}% מתוך {billed} שחויבו. שניהם משתמשים כעת בעלות המחויבת בפועל, ולכן הם אמורים להתכנס — הפער הנותר הוא Workers AI (מחויב בנוירונים, ללא תמחור כאן) וכן ימים ישנים שעדיין יוצאים מהחלון לאחר תיקון מקור העלות.',
+  'usage.cost.applicationKey': { en: 'Talmud · current key', he: 'תלמוד · המפתח הנוכחי' },
+  'usage.cost.billingUnavailable': {
+    en: 'Application billing unavailable',
+    he: 'נתוני החיוב של היישום אינם זמינים',
+  },
+  'usage.cost.historicalTracking': {
+    en: 'Historical app records are estimates and may include retired keys. They cannot yet be reconciled with the current-key bill.',
+    he: 'רישומי העבר של היישום הם אומדנים ועשויים לכלול מפתחות קודמים. עדיין אי אפשר להתאים אותם לחשבון של המפתח הנוכחי.',
   },
   'usage.aigw.queryFailed': {
     en: 'AI Gateway query failed: {error}',

@@ -1,0 +1,695 @@
+[
+  {
+    "date": "2026-09-05 00:00:00",
+    "usage": 0.075768,
+    "requests": 83,
+    "prompt_tokens": 917715,
+    "completion_tokens": 53945
+  },
+  {
+    "date": "2026-09-05 00:00:00",
+    "usage": 0.364035,
+    "requests": 70,
+    "prompt_tokens": 653112,
+    "completion_tokens": 17821
+  },
+  {
+    "date": "2026-09-05 00:00:00",
+    "usage": 0.005333,
+    "requests": 1,
+    "prompt_tokens": 19474,
+    "completion_tokens": 193
+  },
+  {
+    "date": "2026-09-05 00:00:00",
+    "usage": 1.315991,
+    "requests": 304,
+    "prompt_tokens": 2745121,
+    "completion_tokens": 83955
+  },
+  {
+    "date": "2026-09-05 00:00:00",
+    "usage": 0.184364,
+    "requests": 321,
+    "prompt_tokens": 3823582,
+    "completion_tokens": 94411
+  },
+  {
+    "date": "2026-09-04 00:00:00",
+    "usage": 1.094459,
+    "requests": 245,
+    "prompt_tokens": 2297082,
+    "completion_tokens": 64412
+  },
+  {
+    "date": "2026-09-04 00:00:00",
+    "usage": 0.006916,
+    "requests": 15,
+    "prompt_tokens": 101639,
+    "completion_tokens": 6592
+  },
+  {
+    "date": "2026-09-04 00:00:00",
+    "usage": 0.20898,
+    "requests": 292,
+    "prompt_tokens": 3207882,
+    "completion_tokens": 87535
+  },
+  {
+    "date": "2026-09-04 00:00:00",
+    "usage": 0.000661,
+    "requests": 1,
+    "prompt_tokens": 5605,
+    "completion_tokens": 152
+  },
+  {
+    "date": "2026-09-04 00:00:00",
+    "usage": 0.126528,
+    "requests": 207,
+    "prompt_tokens": 2534108,
+    "completion_tokens": 48026
+  },
+  {
+    "date": "2026-09-04 00:00:00",
+    "usage": 0.427827,
+    "requests": 119,
+    "prompt_tokens": 1256133,
+    "completion_tokens": 39528
+  },
+  {
+    "date": "2026-09-03 00:00:00",
+    "usage": 0.383936,
+    "requests": 525,
+    "prompt_tokens": 7443130,
+    "completion_tokens": 132231
+  },
+  {
+    "date": "2026-09-03 00:00:00",
+    "usage": 0.604007,
+    "requests": 538,
+    "prompt_tokens": 8803494,
+    "completion_tokens": 134593
+  },
+  {
+    "date": "2026-09-03 00:00:00",
+    "usage": 0.646173,
+    "requests": 82,
+    "prompt_tokens": 1003273,
+    "completion_tokens": 23554
+  },
+  {
+    "date": "2026-09-03 00:00:00",
+    "usage": 0.002426,
+    "requests": 5,
+    "prompt_tokens": 50286,
+    "completion_tokens": 472
+  },
+  {
+    "date": "2026-09-03 00:00:00",
+    "usage": 1.506366,
+    "requests": 432,
+    "prompt_tokens": 4354025,
+    "completion_tokens": 130213
+  },
+  {
+    "date": "2026-09-02 00:00:00",
+    "usage": 0.845119,
+    "requests": 170,
+    "prompt_tokens": 1574414,
+    "completion_tokens": 53111
+  },
+  {
+    "date": "2026-09-02 00:00:00",
+    "usage": 0.163995,
+    "requests": 305,
+    "prompt_tokens": 3296498,
+    "completion_tokens": 77271
+  },
+  {
+    "date": "2026-09-02 00:00:00",
+    "usage": 0.12011,
+    "requests": 127,
+    "prompt_tokens": 1461344,
+    "completion_tokens": 64172
+  },
+  {
+    "date": "2026-09-02 00:00:00",
+    "usage": 0.271254,
+    "requests": 97,
+    "prompt_tokens": 777601,
+    "completion_tokens": 17932
+  },
+  {
+    "date": "2026-09-01 00:00:00",
+    "usage": 2.279884,
+    "requests": 668,
+    "prompt_tokens": 6835239,
+    "completion_tokens": 225863
+  },
+  {
+    "date": "2026-09-01 00:00:00",
+    "usage": 0.631443,
+    "requests": 818,
+    "prompt_tokens": 12226749,
+    "completion_tokens": 212535
+  },
+  {
+    "date": "2026-09-01 00:00:00",
+    "usage": 0.612135,
+    "requests": 97,
+    "prompt_tokens": 1037852,
+    "completion_tokens": 27055
+  },
+  {
+    "date": "2026-09-01 00:00:00",
+    "usage": 0.039443,
+    "requests": 29,
+    "prompt_tokens": 617426,
+    "completion_tokens": 6267
+  },
+  {
+    "date": "2026-09-01 00:00:00",
+    "usage": 0.012294,
+    "requests": 16,
+    "prompt_tokens": 149907,
+    "completion_tokens": 4854
+  },
+  {
+    "date": "2026-09-01 00:00:00",
+    "usage": 0.417195,
+    "requests": 401,
+    "prompt_tokens": 6990788,
+    "completion_tokens": 87096
+  },
+  {
+    "date": "2026-09-01 00:00:00",
+    "usage": 0.087419,
+    "requests": 1,
+    "prompt_tokens": 78170,
+    "completion_tokens": 3107
+  },
+  {
+    "date": "2026-08-31 00:00:00",
+    "usage": 0.166812,
+    "requests": 242,
+    "prompt_tokens": 3160232,
+    "completion_tokens": 56057
+  },
+  {
+    "date": "2026-08-31 00:00:00",
+    "usage": 0.302265,
+    "requests": 447,
+    "prompt_tokens": 6426355,
+    "completion_tokens": 110733
+  },
+  {
+    "date": "2026-08-31 00:00:00",
+    "usage": 3.246395,
+    "requests": 451,
+    "prompt_tokens": 5153176,
+    "completion_tokens": 109504
+  },
+  {
+    "date": "2026-08-31 00:00:00",
+    "usage": 0.031068,
+    "requests": 9,
+    "prompt_tokens": 76761,
+    "completion_tokens": 2951
+  },
+  {
+    "date": "2026-08-31 00:00:00",
+    "usage": 0.001893,
+    "requests": 6,
+    "prompt_tokens": 21241,
+    "completion_tokens": 434
+  },
+  {
+    "date": "2026-08-30 00:00:00",
+    "usage": 0.409133,
+    "requests": 536,
+    "prompt_tokens": 8015213,
+    "completion_tokens": 115139
+  },
+  {
+    "date": "2026-08-30 00:00:00",
+    "usage": 0.029215,
+    "requests": 44,
+    "prompt_tokens": 642734,
+    "completion_tokens": 8909
+  },
+  {
+    "date": "2026-08-30 00:00:00",
+    "usage": 0.380035,
+    "requests": 235,
+    "prompt_tokens": 2698468,
+    "completion_tokens": 74296
+  },
+  {
+    "date": "2026-08-30 00:00:00",
+    "usage": 0.524245,
+    "requests": 222,
+    "prompt_tokens": 2023714,
+    "completion_tokens": 43774
+  },
+  {
+    "date": "2026-08-30 00:00:00",
+    "usage": 0.106086,
+    "requests": 84,
+    "prompt_tokens": 1580778,
+    "completion_tokens": 15185
+  },
+  {
+    "date": "2026-08-29 00:00:00",
+    "usage": 0.025462,
+    "requests": 56,
+    "prompt_tokens": 682575,
+    "completion_tokens": 9473
+  },
+  {
+    "date": "2026-08-29 00:00:00",
+    "usage": 0.242516,
+    "requests": 374,
+    "prompt_tokens": 4955394,
+    "completion_tokens": 89007
+  },
+  {
+    "date": "2026-08-29 00:00:00",
+    "usage": 1.050522,
+    "requests": 501,
+    "prompt_tokens": 5063325,
+    "completion_tokens": 150734
+  },
+  {
+    "date": "2026-08-29 00:00:00",
+    "usage": 0.189228,
+    "requests": 222,
+    "prompt_tokens": 2843726,
+    "completion_tokens": 68050
+  },
+  {
+    "date": "2026-08-29 00:00:00",
+    "usage": 0.226185,
+    "requests": 38,
+    "prompt_tokens": 449212,
+    "completion_tokens": 20634
+  },
+  {
+    "date": "2026-08-28 00:00:00",
+    "usage": 0.263397,
+    "requests": 289,
+    "prompt_tokens": 4857241,
+    "completion_tokens": 61862
+  },
+  {
+    "date": "2026-08-28 00:00:00",
+    "usage": 0.016704,
+    "requests": 7,
+    "prompt_tokens": 53620,
+    "completion_tokens": 1466
+  },
+  {
+    "date": "2026-08-28 00:00:00",
+    "usage": 0.110306,
+    "requests": 215,
+    "prompt_tokens": 2718888,
+    "completion_tokens": 53539
+  },
+  {
+    "date": "2026-08-28 00:00:00",
+    "usage": 0.005306,
+    "requests": 4,
+    "prompt_tokens": 42507,
+    "completion_tokens": 715
+  },
+  {
+    "date": "2026-08-28 00:00:00",
+    "usage": 0.100631,
+    "requests": 105,
+    "prompt_tokens": 1608903,
+    "completion_tokens": 45484
+  },
+  {
+    "date": "2026-08-28 00:00:00",
+    "usage": 1.904177,
+    "requests": 395,
+    "prompt_tokens": 4041921,
+    "completion_tokens": 121038
+  },
+  {
+    "date": "2026-08-27 00:00:00",
+    "usage": 0.00489,
+    "requests": 1,
+    "prompt_tokens": 36339,
+    "completion_tokens": 80
+  },
+  {
+    "date": "2026-08-27 00:00:00",
+    "usage": 1.441832,
+    "requests": 232,
+    "prompt_tokens": 2937891,
+    "completion_tokens": 80034
+  },
+  {
+    "date": "2026-08-27 00:00:00",
+    "usage": 0.063588,
+    "requests": 48,
+    "prompt_tokens": 729918,
+    "completion_tokens": 9853
+  },
+  {
+    "date": "2026-08-27 00:00:00",
+    "usage": 0.173791,
+    "requests": 228,
+    "prompt_tokens": 3446469,
+    "completion_tokens": 42022
+  },
+  {
+    "date": "2026-08-27 00:00:00",
+    "usage": 0.400303,
+    "requests": 558,
+    "prompt_tokens": 8728083,
+    "completion_tokens": 113789
+  },
+  {
+    "date": "2026-08-27 00:00:00",
+    "usage": 4.704814,
+    "requests": 892,
+    "prompt_tokens": 10250740,
+    "completion_tokens": 270827
+  },
+  {
+    "date": "2026-08-27 00:00:00",
+    "usage": 0.488154,
+    "requests": 522,
+    "prompt_tokens": 8469472,
+    "completion_tokens": 162018
+  },
+  {
+    "date": "2026-08-27 00:00:00",
+    "usage": 0.463666,
+    "requests": 634,
+    "prompt_tokens": 8614920,
+    "completion_tokens": 155834
+  },
+  {
+    "date": "2026-08-27 00:00:00",
+    "usage": 0.005815,
+    "requests": 4,
+    "prompt_tokens": 46967,
+    "completion_tokens": 928
+  },
+  {
+    "date": "2026-08-26 00:00:00",
+    "usage": 0.492367,
+    "requests": 696,
+    "prompt_tokens": 10895178,
+    "completion_tokens": 157085
+  },
+  {
+    "date": "2026-08-26 00:00:00",
+    "usage": 0.273295,
+    "requests": 32,
+    "prompt_tokens": 471956,
+    "completion_tokens": 14401
+  },
+  {
+    "date": "2026-08-26 00:00:00",
+    "usage": 0.000371,
+    "requests": 11,
+    "prompt_tokens": 4214,
+    "completion_tokens": 565
+  },
+  {
+    "date": "2026-08-26 00:00:00",
+    "usage": 0.537582,
+    "requests": 51,
+    "prompt_tokens": 768263,
+    "completion_tokens": 23300
+  },
+  {
+    "date": "2026-08-26 00:00:00",
+    "usage": 0.986666,
+    "requests": 520,
+    "prompt_tokens": 4938575,
+    "completion_tokens": 111281
+  },
+  {
+    "date": "2026-08-26 00:00:00",
+    "usage": 0.058287,
+    "requests": 13,
+    "prompt_tokens": 88249,
+    "completion_tokens": 949
+  },
+  {
+    "date": "2026-08-26 00:00:00",
+    "usage": 0.000112,
+    "requests": 1,
+    "prompt_tokens": 1380,
+    "completion_tokens": 3
+  },
+  {
+    "date": "2026-08-25 00:00:00",
+    "usage": 0.088803,
+    "requests": 22,
+    "prompt_tokens": 128921,
+    "completion_tokens": 4162
+  },
+  {
+    "date": "2026-08-25 00:00:00",
+    "usage": 1.986998,
+    "requests": 2591,
+    "prompt_tokens": 39527787,
+    "completion_tokens": 629101
+  },
+  {
+    "date": "2026-08-25 00:00:00",
+    "usage": 0.021462,
+    "requests": 18,
+    "prompt_tokens": 296059,
+    "completion_tokens": 2591
+  },
+  {
+    "date": "2026-08-25 00:00:00",
+    "usage": 0.022132,
+    "requests": 18,
+    "prompt_tokens": 278294,
+    "completion_tokens": 3202
+  },
+  {
+    "date": "2026-08-25 00:00:00",
+    "usage": 2.840868,
+    "requests": 1499,
+    "prompt_tokens": 15927281,
+    "completion_tokens": 436689
+  },
+  {
+    "date": "2026-08-24 00:00:00",
+    "usage": 0.002074,
+    "requests": 2,
+    "prompt_tokens": 29966,
+    "completion_tokens": 240
+  },
+  {
+    "date": "2026-08-24 00:00:00",
+    "usage": 0.004796,
+    "requests": 2,
+    "prompt_tokens": 7846,
+    "completion_tokens": 413
+  },
+  {
+    "date": "2026-08-24 00:00:00",
+    "usage": 0.628756,
+    "requests": 1422,
+    "prompt_tokens": 19492045,
+    "completion_tokens": 328016
+  },
+  {
+    "date": "2026-08-24 00:00:00",
+    "usage": 2.233673,
+    "requests": 508,
+    "prompt_tokens": 5699772,
+    "completion_tokens": 207242
+  },
+  {
+    "date": "2026-08-24 00:00:00",
+    "usage": 0.625397,
+    "requests": 1072,
+    "prompt_tokens": 15910004,
+    "completion_tokens": 499244
+  },
+  {
+    "date": "2026-08-24 00:00:00",
+    "usage": 0.019604,
+    "requests": 29,
+    "prompt_tokens": 435670,
+    "completion_tokens": 37669
+  },
+  {
+    "date": "2026-08-24 00:00:00",
+    "usage": 1.746648,
+    "requests": 1012,
+    "prompt_tokens": 11811607,
+    "completion_tokens": 397746
+  },
+  {
+    "date": "2026-08-23 00:00:00",
+    "usage": 0.26563,
+    "requests": 551,
+    "prompt_tokens": 8090138,
+    "completion_tokens": 113866
+  },
+  {
+    "date": "2026-08-23 00:00:00",
+    "usage": 0.001318,
+    "requests": 2,
+    "prompt_tokens": 3004,
+    "completion_tokens": 124
+  },
+  {
+    "date": "2026-08-23 00:00:00",
+    "usage": 0.880083,
+    "requests": 774,
+    "prompt_tokens": 7951510,
+    "completion_tokens": 253426
+  },
+  {
+    "date": "2026-08-23 00:00:00",
+    "usage": 0.215362,
+    "requests": 483,
+    "prompt_tokens": 6757416,
+    "completion_tokens": 121941
+  },
+  {
+    "date": "2026-08-23 00:00:00",
+    "usage": 0.000117,
+    "requests": 1,
+    "prompt_tokens": 1991,
+    "completion_tokens": 2
+  },
+  {
+    "date": "2026-08-22 00:00:00",
+    "usage": 0.394595,
+    "requests": 556,
+    "prompt_tokens": 8422276,
+    "completion_tokens": 138071
+  },
+  {
+    "date": "2026-08-22 00:00:00",
+    "usage": 0.161384,
+    "requests": 37,
+    "prompt_tokens": 363891,
+    "completion_tokens": 12831
+  },
+  {
+    "date": "2026-08-22 00:00:00",
+    "usage": 0.035191,
+    "requests": 116,
+    "prompt_tokens": 1177089,
+    "completion_tokens": 21915
+  },
+  {
+    "date": "2026-08-22 00:00:00",
+    "usage": 0.487807,
+    "requests": 356,
+    "prompt_tokens": 3703710,
+    "completion_tokens": 107450
+  },
+  {
+    "date": "2026-08-21 00:00:00",
+    "usage": 0.329277,
+    "requests": 58,
+    "prompt_tokens": 672737,
+    "completion_tokens": 20510
+  },
+  {
+    "date": "2026-08-21 00:00:00",
+    "usage": 1.166027,
+    "requests": 472,
+    "prompt_tokens": 5350939,
+    "completion_tokens": 159025
+  },
+  {
+    "date": "2026-08-21 00:00:00",
+    "usage": 0.002257,
+    "requests": 2,
+    "prompt_tokens": 30006,
+    "completion_tokens": 540
+  },
+  {
+    "date": "2026-08-21 00:00:00",
+    "usage": 0.082382,
+    "requests": 80,
+    "prompt_tokens": 1391806,
+    "completion_tokens": 16361
+  },
+  {
+    "date": "2026-08-21 00:00:00",
+    "usage": 0.05027,
+    "requests": 1,
+    "prompt_tokens": 1294,
+    "completion_tokens": 7979
+  },
+  {
+    "date": "2026-08-21 00:00:00",
+    "usage": 0.017331,
+    "requests": 11,
+    "prompt_tokens": 236960,
+    "completion_tokens": 2645
+  },
+  {
+    "date": "2026-08-21 00:00:00",
+    "usage": 0.745742,
+    "requests": 1054,
+    "prompt_tokens": 16097906,
+    "completion_tokens": 224002
+  },
+  {
+    "date": "2026-08-20 00:00:00",
+    "usage": 0.848354,
+    "requests": 1100,
+    "prompt_tokens": 17800914,
+    "completion_tokens": 281407
+  },
+  {
+    "date": "2026-08-20 00:00:00",
+    "usage": 0.001295,
+    "requests": 1,
+    "prompt_tokens": 14380,
+    "completion_tokens": 6
+  },
+  {
+    "date": "2026-08-20 00:00:00",
+    "usage": 0.117578,
+    "requests": 4,
+    "prompt_tokens": 75964,
+    "completion_tokens": 13998
+  },
+  {
+    "date": "2026-08-20 00:00:00",
+    "usage": 0.023412,
+    "requests": 20,
+    "prompt_tokens": 289644,
+    "completion_tokens": 4968
+  },
+  {
+    "date": "2026-08-20 00:00:00",
+    "usage": 1.65926,
+    "requests": 481,
+    "prompt_tokens": 5540661,
+    "completion_tokens": 193212
+  },
+  {
+    "date": "2026-08-20 00:00:00",
+    "usage": 0.032062,
+    "requests": 4,
+    "prompt_tokens": 30018,
+    "completion_tokens": 115
+  },
+  {
+    "date": "2026-08-19 00:00:00",
+    "usage": 2e-6,
+    "requests": 1,
+    "prompt_tokens": 11,
+    "completion_tokens": 5
+  }
+]
