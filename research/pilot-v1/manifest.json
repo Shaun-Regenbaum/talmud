@@ -59,11 +59,11 @@
       "sha256": "79368f6a9a7862f95e0860fad95f25b26c841f9593862291289f7619ea374579"
     },
     {
-      "id": "chullin:7a",
+      "id": "zevachim:14b",
       "split": "development",
-      "file": "texts/chullin-7a.json",
-      "segments": 14,
-      "sha256": "d7e06657a95f4ec63d97367acb102e8407ef5d98f3a8c88fce2306ab75d06f0b"
+      "file": "texts/zevachim-14b.json",
+      "segments": 21,
+      "sha256": "4a264922e2e6fb4d6036d9f43058b7e7a4c3bf0de7610213e0fee04024af89af"
     },
     {
       "id": "megillah:7b",
