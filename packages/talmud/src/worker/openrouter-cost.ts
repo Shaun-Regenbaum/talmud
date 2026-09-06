@@ -1,26 +1,5 @@
-/**
- * Authoritative spend straight from OpenRouter — what we are ACTUALLY billed.
- *
- * Why this exists (and why it is the real "Total spent"): the Cloudflare AI
- * Gateway `cost` figure (aigw-analytics.ts) is computed from CF's own per-model
- * price table, which uses each model's canonical/listed price. But our DeepSeek
- * calls route under `{ sort: 'price', require_parameters: true }`, so OpenRouter
- * picks whatever qualifying provider is cheapest at call time — frequently a
- * third party that bills well ABOVE the listed first-party rate. The gateway is
- * blind to that, so it under-reports DeepSeek spend by multiples (V4 Pro was
- * shown at ~$326 against ~$1,148 actually billed). OpenRouter's own activity
- * ledger is the ground truth — it is the number on the invoice.
- *
- * `/api/v1/activity` returns one row per (day, model, endpoint) with the real
- * `usage` (USD billed). It requires a MANAGEMENT/provisioning key, not the
- * inference key — so this reads `OPENROUTER_PROVISIONING_KEY` (set via
- * `wrangler secret put OPENROUTER_PROVISIONING_KEY`). `/api/v1/credits` gives
- * the account lifetime total.
- *
- * Degrades gracefully: with no provisioning key, returns { configured:false }
- * so the dashboard falls back to the gateway figure and says the real number
- * isn't wired up, rather than fabricating one.
- */
+/** Provider charges scoped to the deployed application key. The shared
+ * account balance is used only by fetchOpenRouterBalance. */
 
 export interface OrModelRow {
   model: string;
@@ -48,8 +27,9 @@ export interface OrCost {
   requests?: number;
   /** Billed USD over the activity window — authoritative. */
   costUsd?: number;
-  /** Account lifetime billed USD (from /credits), independent of the window. */
+  /** Current application key usage (from /key), including today. */
   lifetimeUsd?: number;
+  scope?: 'application-key';
   byModel?: OrModelRow[];
   byDay?: OrDayRow[];
 }
@@ -67,6 +47,7 @@ export interface OrActivityRow {
 
 interface OrEnv {
   OPENROUTER_PROVISIONING_KEY?: string;
+  OPENROUTER_API_KEY?: string;
 }
 
 const BASE = 'https://openrouter.ai/api/v1';
@@ -178,46 +159,87 @@ export async function fetchOpenRouterBalance(env: OrEnv): Promise<OrBalance> {
   }
 }
 
+/** Completed UTC days, independent of which days have activity. */
+export function billingWindow(now = new Date()): {
+  windowStart: string;
+  windowEnd: string;
+  days: number;
+} {
+  const midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const day = 86_400_000;
+  return {
+    windowStart: new Date(midnight - 30 * day).toISOString().slice(0, 10),
+    windowEnd: new Date(midnight - day).toISOString().slice(0, 10),
+    days: 30,
+  };
+}
+
+/** The API's api_key_hash filter is the SHA-256 of the inference credential.
+ * Keep it server-side; no credential or hash belongs in a dashboard response. */
+export async function applicationKeyHash(key: string): Promise<string> {
+  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key));
+  return Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 export async function fetchOpenRouterCost(env: OrEnv): Promise<OrCost> {
   const token = env.OPENROUTER_PROVISIONING_KEY;
-  if (!token) {
+  const inferenceKey = env.OPENROUTER_API_KEY;
+  if (!token || !inferenceKey) {
     return {
       configured: false,
       ok: false,
-      error: 'not configured (missing OPENROUTER_PROVISIONING_KEY)',
+      error: 'Application billing credentials are not configured',
     };
   }
   try {
-    const [activity, credits] = await Promise.all([
-      fetchJson(`${BASE}/activity`, token),
-      fetchJson(`${BASE}/credits`, token),
+    const hash = await applicationKeyHash(inferenceKey);
+    const window = billingWindow();
+    const signal = AbortSignal.timeout(10_000);
+    const [activity, keyInfo] = await Promise.all([
+      fetchJson(`${BASE}/activity?api_key_hash=${hash}`, token, signal),
+      fetchJson(`${BASE}/key`, inferenceKey, signal).catch(() => ({
+        ok: false,
+        status: 0,
+        json: null,
+      })),
     ]);
     if (!activity.ok) {
-      const msg =
-        (activity.json as { error?: { message?: string } })?.error?.message ??
-        `HTTP ${activity.status}`;
-      return { configured: true, ok: false, error: String(msg).slice(0, 300) };
+      return {
+        configured: true,
+        ok: false,
+        error: `Application activity query failed (HTTP ${activity.status})`,
+      };
     }
-    const rows = ((activity.json as { data?: OrActivityRow[] })?.data ?? []) as OrActivityRow[];
+    const data = (activity.json as { data?: unknown } | null)?.data;
+    if (
+      !Array.isArray(data) ||
+      data.some(
+        (row) =>
+          !row ||
+          typeof row.date !== 'string' ||
+          typeof row.usage !== 'number' ||
+          !Number.isFinite(row.usage),
+      )
+    ) {
+      return { configured: true, ok: false, error: 'Unexpected application activity response' };
+    }
+    const rows = (data as OrActivityRow[]).filter((r) => {
+      const date = r.date!.slice(0, 10);
+      return date >= window.windowStart && date <= window.windowEnd;
+    });
     const agg = aggregateActivity(rows);
-    const lifetimeUsd = (credits.json as { data?: { total_usage?: number } })?.data?.total_usage;
+    const lifetime = keyInfo.ok
+      ? (keyInfo.json as { data?: { usage?: number } } | null)?.data?.usage
+      : undefined;
     return {
       configured: true,
       ok: true,
-      windowStart: agg.windowStart,
-      windowEnd: agg.windowEnd,
-      days: agg.days,
-      requests: agg.requests,
-      costUsd: agg.costUsd,
-      lifetimeUsd: typeof lifetimeUsd === 'number' ? lifetimeUsd : undefined,
-      byModel: agg.byModel,
-      byDay: agg.byDay,
+      ...agg,
+      ...window,
+      scope: 'application-key',
+      lifetimeUsd: typeof lifetime === 'number' && Number.isFinite(lifetime) ? lifetime : undefined,
     };
-  } catch (err) {
-    return {
-      configured: true,
-      ok: false,
-      error: String((err as Error)?.message ?? err).slice(0, 300),
-    };
+  } catch {
+    return { configured: true, ok: false, error: 'Application billing query unavailable' };
   }
 }
