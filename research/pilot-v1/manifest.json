@@ -1,0 +1,174 @@
+{
+  "version": 1,
+  "status": "sources-only-not-graded",
+  "cases": [
+    {
+      "id": "berakhot:2a",
+      "split": "development",
+      "file": "texts/berakhot-2a.json",
+      "segments": 14,
+      "sha256": "c07f1825a0a38e1c804e1a56c36935dad2d6dad0acc045f1d474680155a0acdd"
+    },
+    {
+      "id": "berakhot:27b",
+      "split": "development",
+      "file": "texts/berakhot-27b.json",
+      "segments": 22,
+      "sha256": "4e708b7cd61293589a58a6d4f42c140413929b6c082de2b2644bdda4bc2a5401"
+    },
+    {
+      "id": "shabbat:21b",
+      "split": "development",
+      "file": "texts/shabbat-21b.json",
+      "segments": 13,
+      "sha256": "07e75576dc95f8d96a3efde434d5b2887c182c9fd6a6cbc18aab79a4ea1f6a11"
+    },
+    {
+      "id": "shabbat:31a",
+      "split": "development",
+      "file": "texts/shabbat-31a.json",
+      "segments": 13,
+      "sha256": "6feb0e432eb189846a58858db22a72a53ac3af0caa77406adeb2378bce11f7c5"
+    },
+    {
+      "id": "pesachim:10b",
+      "split": "development",
+      "file": "texts/pesachim-10b.json",
+      "segments": 20,
+      "sha256": "bc26387735217da37a7214147f8e1f3e075e0bb92e93ff151920f7dcdd48d028"
+    },
+    {
+      "id": "pesachim:116a",
+      "split": "development",
+      "file": "texts/pesachim-116a.json",
+      "segments": 13,
+      "sha256": "8a7abc83dc26d0f035ee31809c8f19fc8cc9f0173746a5f4a3e31bd2851a64bb"
+    },
+    {
+      "id": "yoma:85b",
+      "split": "development",
+      "file": "texts/yoma-85b.json",
+      "segments": 14,
+      "sha256": "9bf31f1fa44457d32b5dc2e2156d4f4d26cc9973501bca4d999e337557ffc270"
+    },
+    {
+      "id": "sukkah:28a",
+      "split": "development",
+      "file": "texts/sukkah-28a.json",
+      "segments": 13,
+      "sha256": "79368f6a9a7862f95e0860fad95f25b26c841f9593862291289f7619ea374579"
+    },
+    {
+      "id": "chullin:7a",
+      "split": "development",
+      "file": "texts/chullin-7a.json",
+      "segments": 14,
+      "sha256": "d7e06657a95f4ec63d97367acb102e8407ef5d98f3a8c88fce2306ab75d06f0b"
+    },
+    {
+      "id": "megillah:7b",
+      "split": "development",
+      "file": "texts/megillah-7b.json",
+      "segments": 22,
+      "sha256": "e231eb1d79242ed46d52f814524f867c6a44fc4efc9cef8a48082e280804ab25"
+    },
+    {
+      "id": "yevamot:16a",
+      "split": "development",
+      "file": "texts/yevamot-16a.json",
+      "segments": 18,
+      "sha256": "d6c3741c622fcdb060ce2dd6d9699bbdbeb8a705f5fd6a9ba2a3f3a776ea8f9f"
+    },
+    {
+      "id": "ketubot:62b",
+      "split": "development",
+      "file": "texts/ketubot-62b.json",
+      "segments": 15,
+      "sha256": "4fa844371a1db44bb8b9910079cc986602b947c5716aaa8bdd16a1faee72e4a4"
+    },
+    {
+      "id": "nedarim:40a",
+      "split": "development",
+      "file": "texts/nedarim-40a.json",
+      "segments": 11,
+      "sha256": "59f1132b2b78526b250cf6998dea5fd4bed3de2ef209cf7a17e038511d028e31"
+    },
+    {
+      "id": "gittin:56b",
+      "split": "development",
+      "file": "texts/gittin-56b.json",
+      "segments": 18,
+      "sha256": "8d6d95d354f88dba560cc40ff9111951e25bbff18f610b43cfe1c11a917c8ac4"
+    },
+    {
+      "id": "kiddushin:30a",
+      "split": "development",
+      "file": "texts/kiddushin-30a.json",
+      "segments": 15,
+      "sha256": "45b62a994a8504086a4bb30be21347e6499a6a98772ea12ab4889d1f3a17e185"
+    },
+    {
+      "id": "bava-metzia:84a",
+      "split": "development",
+      "file": "texts/bava-metzia-84a.json",
+      "segments": 18,
+      "sha256": "f58dc4b9c10d1f1638502e2a965df06e84a5d7582773794dcd0f201ca9013757"
+    },
+    {
+      "id": "eruvin:13b",
+      "split": "held-out",
+      "file": "texts/eruvin-13b.json",
+      "segments": 17,
+      "sha256": "2136b3128dbac6b35ad5765274ec4a7b6473fca2a770dfca36a722c91f026ce7"
+    },
+    {
+      "id": "rosh-hashanah:25a",
+      "split": "held-out",
+      "file": "texts/rosh-hashanah-25a.json",
+      "segments": 16,
+      "sha256": "bc32e9a7d5168a071bac8a98dc4a6d7655272572cd94385115dc9e5887ac99a5"
+    },
+    {
+      "id": "zevachim:102a",
+      "split": "held-out",
+      "file": "texts/zevachim-102a.json",
+      "segments": 24,
+      "sha256": "68c43ffaf8d14f86c75487eaac5ba4aa1c95bac9c92ac0237fdb1eb9fa5d4c31"
+    },
+    {
+      "id": "sotah:22b",
+      "split": "held-out",
+      "file": "texts/sotah-22b.json",
+      "segments": 8,
+      "sha256": "d7dca4f05ca2f100809b30a34ecee48b4fbc9073db93ca18e5d2601c8a0f13a8"
+    },
+    {
+      "id": "bava-kamma:117a",
+      "split": "held-out",
+      "file": "texts/bava-kamma-117a.json",
+      "segments": 25,
+      "sha256": "8dcf816fe1f39b7afd033aeb5849f6199bf7a2e955f514c6b7dab8e2b5ee652c"
+    },
+    {
+      "id": "bava-batra:10a",
+      "split": "held-out",
+      "file": "texts/bava-batra-10a.json",
+      "segments": 16,
+      "sha256": "024ef5085e7abe31f01ffc831bf09eed1e899b285c29dc0157b2ec963baa3d21"
+    },
+    {
+      "id": "sanhedrin:24a",
+      "split": "held-out",
+      "file": "texts/sanhedrin-24a.json",
+      "segments": 27,
+      "sha256": "de43d401ff069c1e4e7278fd30ef017b5d11df99d2b682668809ca841c1bf565"
+    },
+    {
+      "id": "niddah:20b",
+      "split": "held-out",
+      "file": "texts/niddah-20b.json",
+      "segments": 24,
+      "sha256": "c57bc8e3e4fbdcfd586dea16ee2ba76622aab9e0593880d09e11f52562a3b170"
+    }
+  ]
+}
