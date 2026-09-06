@@ -1,8 +1,8 @@
 # Improve evidence before expanding generation
 
 Cost accounting comes first. The billing display now uses the application's
-key and an explicit date window. The permanent request ledger is live. Atomic
-spending reservations are the next accounting change.
+key and an explicit date window. The permanent request ledger and atomic
+spending reservations are live.
 
 The next research step is a small, fixed comparison. More generated biographies
 will not establish whether the identities and relationships are right.
@@ -105,6 +105,6 @@ abstraction only when it replaces an existing special case. Keep entity IDs
 separate from aliases. Store each relationship's evidence alongside the claim,
 rather than relying on a single source label for the whole biography.
 
-The order is: finish spending reservations, review pilot labels, run the
-comparison, then ship one proven producer change. Stable IDs and module
+The remaining order is: review pilot labels, run the comparison, then ship one
+proven producer change. Stable IDs and module
 extraction accompany that change where they are needed.
