@@ -1,0 +1,151 @@
+{
+  "version": 1,
+  "status": "sources-only-not-graded",
+  "selection": "Purposive stress set, not a random estimate of accuracy across all tractates. Splits were fixed before candidate runs.",
+  "cases": [
+    {
+      "id": "berakhot:2a",
+      "tractate": "Berakhot",
+      "page": "2a",
+      "split": "development"
+    },
+    {
+      "id": "berakhot:27b",
+      "tractate": "Berakhot",
+      "page": "27b",
+      "split": "development"
+    },
+    {
+      "id": "shabbat:21b",
+      "tractate": "Shabbat",
+      "page": "21b",
+      "split": "development"
+    },
+    {
+      "id": "shabbat:31a",
+      "tractate": "Shabbat",
+      "page": "31a",
+      "split": "development"
+    },
+    {
+      "id": "pesachim:10b",
+      "tractate": "Pesachim",
+      "page": "10b",
+      "split": "development"
+    },
+    {
+      "id": "pesachim:116a",
+      "tractate": "Pesachim",
+      "page": "116a",
+      "split": "development"
+    },
+    {
+      "id": "yoma:85b",
+      "tractate": "Yoma",
+      "page": "85b",
+      "split": "development"
+    },
+    {
+      "id": "sukkah:28a",
+      "tractate": "Sukkah",
+      "page": "28a",
+      "split": "development"
+    },
+    {
+      "id": "zevachim:14b",
+      "tractate": "Zevachim",
+      "page": "14b",
+      "split": "development"
+    },
+    {
+      "id": "megillah:7b",
+      "tractate": "Megillah",
+      "page": "7b",
+      "split": "development"
+    },
+    {
+      "id": "yevamot:16a",
+      "tractate": "Yevamot",
+      "page": "16a",
+      "split": "development"
+    },
+    {
+      "id": "ketubot:62b",
+      "tractate": "Ketubot",
+      "page": "62b",
+      "split": "development"
+    },
+    {
+      "id": "nedarim:40a",
+      "tractate": "Nedarim",
+      "page": "40a",
+      "split": "development"
+    },
+    {
+      "id": "gittin:56b",
+      "tractate": "Gittin",
+      "page": "56b",
+      "split": "development"
+    },
+    {
+      "id": "kiddushin:30a",
+      "tractate": "Kiddushin",
+      "page": "30a",
+      "split": "development"
+    },
+    {
+      "id": "bava-metzia:84a",
+      "tractate": "Bava Metzia",
+      "page": "84a",
+      "split": "development"
+    },
+    {
+      "id": "eruvin:13b",
+      "tractate": "Eruvin",
+      "page": "13b",
+      "split": "held-out"
+    },
+    {
+      "id": "rosh-hashanah:25a",
+      "tractate": "Rosh Hashanah",
+      "page": "25a",
+      "split": "held-out"
+    },
+    {
+      "id": "zevachim:102a",
+      "tractate": "Zevachim",
+      "page": "102a",
+      "split": "held-out"
+    },
+    {
+      "id": "sotah:22b",
+      "tractate": "Sotah",
+      "page": "22b",
+      "split": "held-out"
+    },
+    {
+      "id": "bava-kamma:117a",
+      "tractate": "Bava Kamma",
+      "page": "117a",
+      "split": "held-out"
+    },
+    {
+      "id": "bava-batra:10a",
+      "tractate": "Bava Batra",
+      "page": "10a",
+      "split": "held-out"
+    },
+    {
+      "id": "sanhedrin:24a",
+      "tractate": "Sanhedrin",
+      "page": "24a",
+      "split": "held-out"
+    },
+    {
+      "id": "niddah:20b",
+      "tractate": "Niddah",
+      "page": "20b",
+      "split": "held-out"
+    }
+  ]
+}
