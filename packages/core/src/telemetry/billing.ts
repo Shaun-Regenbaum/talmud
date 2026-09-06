@@ -2,11 +2,18 @@
  * provider generation. Cached responses can reference a charge without paying
  * it again. No prompt text, response text or credentials are stored here. */
 
+import { BudgetPausedError } from '../llm/budget';
 import type { LLMCallOptions, LLMUsage } from '../llm/llm';
 import { LLMError, NEITHER } from '../llm/llm-error';
 import { costUsd } from '../llm/pricing';
+import {
+  admissionStatement,
+  type ReservationEnv,
+  reservationNanos,
+  reservationStatus,
+} from '../llm/spend-reservations';
 
-export interface BillingEnv {
+export interface BillingEnv extends ReservationEnv {
   BILLING_DB?: D1Database;
   BILLING_APP?: string;
   OPENROUTER_API_KEY?: string;
@@ -96,6 +103,32 @@ export class BillingAttempt {
           this.id,
         ),
     );
+    const estimated =
+      status === 'succeeded' && this.model.startsWith('@cf/') && u
+        ? dollarsToNanos(costUsd(this.model, u))
+        : null;
+    statements.push(
+      this.db
+        .prepare(`UPDATE spend_reservations SET
+      settled_nanos = COALESCE(CASE WHEN ? = 1 THEN 0
+        WHEN ? IS NOT NULL THEN CASE WHEN EXISTS (
+          SELECT 1 FROM billing_charges WHERE id = ? AND attempt_id = ?
+        ) THEN ? ELSE 0 END ELSE ? END, settled_nanos),
+      basis = CASE WHEN ? = 1 OR ? IS NOT NULL THEN 'receipt'
+        WHEN ? IS NOT NULL THEN 'estimate' ELSE basis END WHERE attempt_id = ?`)
+        .bind(
+          this.gatewayHit ? 1 : 0,
+          billed,
+          chargeId,
+          this.id,
+          billed,
+          estimated,
+          this.gatewayHit ? 1 : 0,
+          billed,
+          estimated,
+          this.id,
+        ),
+    );
     try {
       await this.db.batch(statements);
     } catch {
@@ -122,26 +155,51 @@ export async function beginBillingAttempt(
     ? await credentialHash(env.OPENROUTER_API_KEY ?? '')
     : 'workers-ai';
   const a = opts.attribution;
+  const held = reservationNanos(model, opts);
   try {
-    await env.BILLING_DB.prepare(`INSERT INTO billing_attempts
+    const insert = env.BILLING_DB.prepare(`INSERT INTO billing_attempts
       (id, app, key_hash, started_at, model, producer, work, unit, lang, version, kind, tag)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .bind(
+      SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      WHERE EXISTS (SELECT 1 FROM spend_reservations WHERE attempt_id = ?)`).bind(
+      id,
+      env.BILLING_APP,
+      hash,
+      at,
+      model,
+      a?.producerId ?? null,
+      a?.tractate ?? null,
+      a?.page ?? null,
+      a?.lang ?? null,
+      a?.cache_version ?? null,
+      a?.kind ?? null,
+      opts.tag ?? null,
+      id,
+    );
+    const results = await env.BILLING_DB.batch([
+      admissionStatement(
+        { ...env, BILLING_DB: env.BILLING_DB, BILLING_APP: env.BILLING_APP },
         id,
-        env.BILLING_APP,
-        hash,
         at,
-        model,
-        a?.producerId ?? null,
-        a?.tractate ?? null,
-        a?.page ?? null,
-        a?.lang ?? null,
-        a?.cache_version ?? null,
-        a?.kind ?? null,
-        opts.tag ?? null,
-      )
-      .run();
-  } catch {
+        held,
+        opts.cost_class === 'custom-question',
+      ),
+      insert,
+    ]);
+    if (results[0].meta.changes !== 1) {
+      const remaining = await reservationStatus(env);
+      const scope =
+        opts.cost_class === 'custom-question' &&
+        remaining.dailySpent + remaining.dailyHeld + held <= remaining.limits.daily
+          ? 'custom'
+          : 'all';
+      throw new BudgetPausedError(
+        scope,
+        undefined,
+        'Not enough unreserved budget for this request',
+      );
+    }
+  } catch (err) {
+    if (err instanceof BudgetPausedError) throw err;
     throw new LLMError(503, 'Billing ledger unavailable', { cls: NEITHER });
   }
   return new BillingAttempt(env.BILLING_DB, id, env.BILLING_APP, hash, model, at);
