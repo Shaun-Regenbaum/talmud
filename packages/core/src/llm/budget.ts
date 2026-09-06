@@ -1,38 +1,12 @@
-/**
- * LLM spend budget guard. Two independent ceilings, both enforced fail-safe:
- *
- *   - Custom questions: > $10 / rolling hour  -> pause custom Q&A for 1 hour.
- *   - All LLM spend:    > $300 / UTC day       -> pause ALL generation until
- *                                                 the next UTC midnight.
- *
- * Storage is KV (the only primitive this worker has), so accounting is
- * best-effort: KV has no atomic increment and ~60s eventual consistency, and
- * the queue runs 50-way concurrent. We accept a small overshoot and design
- * around it:
- *   - Counters are bucketed by wall-clock window (day / hour) so they expire on
- *     their own -- no cleanup, and a new window always starts at $0.
- *   - A "pause latch" is written the moment a counter crosses its cap. The latch
- *     is the authoritative signal the gate reads, so the decision stays put even
- *     as buckets roll over or a counter read is momentarily stale.
- *   - The daily latch trips at DAILY_SAFETY_FACTOR x cap (default $270, below
- *     the $300 hard cap) to leave headroom for in-flight concurrent jobs whose
- *     cost is only known AFTER they return (we can't pre-charge them). The queue
- *     runs up to 50 jobs at once, so up to ~50 calls can already be past the
- *     gate when the latch trips; the ~$30 of headroom absorbs their cost so
- *     actual spend stays at/under the $300 cap ("never more than $300, ever").
- *
- * Cost per call: OpenRouter returns billed USD in usage.cost; for priced models
- * without it we fall back to pricing.ts list-price estimation; Workers-AI
- * (@cf/*) calls are unpriced and contribute $0 (same as the existing ledger).
- *
- * Enforcement lives at the single chokepoint runLLM() (src/worker/llm.ts):
- * checkBudget() before the call, recordSpend() after. Producer endpoints
- * (qa/ask, run, warm-daf) pre-check too, purely for instant UI feedback
- * and to avoid pointless queue churn.
+/** Spending decisions use atomic D1 reservations in configured deployments.
+ * KV counters remain only for older/local environments without a billing DB.
+ * Reservation amounts are conservative estimates. Unknown charges keep their
+ * holds; reported receipts settle them without retrying paid work.
  */
 
 import { LLMError, NEITHER } from './llm-error';
 import { costUsd, type TokenUsage } from './pricing';
+import { type ReservationEnv, reservationStatus } from './spend-reservations';
 
 /** Minimal Cloudflare Email-send binding (send_email). Structurally compatible
  *  with the one in warm-cron.ts and the EMAIL binding in wrangler.toml. */
@@ -47,7 +21,7 @@ export interface EmailBinding {
 }
 
 /** Env surface budget functions need. Bindings / LLMEnv both satisfy this. */
-export interface BudgetEnv {
+export interface BudgetEnv extends ReservationEnv {
   CACHE?: KVNamespace;
   /** Per-deploy override for the daily hard cap (USD). Defaults to 300. */
   DAILY_BUDGET_USD?: string;
@@ -156,8 +130,8 @@ async function bumpCounter(
   ttlS: number,
 ): Promise<number> {
   // Best-effort read-add-write. Under concurrency a lost write undercounts,
-  // delaying (never falsely tripping) the pause -- checkBudget's defensive
-  // re-derivation closes that gap before the next call spends.
+  // delaying the pause. Re-reading cannot recover a lost increment.
+  // Configured deployments use atomic reservations instead.
   const prev = await readCounter(cache, key);
   const next = prev + delta;
   await cache.put(key, String(next), { expirationTtl: ttlS });
@@ -225,6 +199,12 @@ export async function recordSpend(
   args: { model: string | null | undefined; usage: UsageWithCost; custom: boolean },
   now: number = Date.now(),
 ): Promise<void> {
+  if (env.BILLING_DB) {
+    // Settlement already happened in the billing transaction. Preserve the
+    // existing alert behavior without adding another spending counter.
+    await checkBudget(env, { custom: args.custom }, now).catch(() => {});
+    return;
+  }
   const cache = env.CACHE;
   if (!cache) return;
   const usd = computeSpendUsd(args.model, args.usage);
@@ -302,6 +282,33 @@ export async function checkBudget(
   args: { custom: boolean },
   now: number = Date.now(),
 ): Promise<BudgetDecision> {
+  if (env.BILLING_DB) {
+    const s = await reservationStatus(env, now);
+    const scope: BudgetScope | undefined =
+      s.dailySpent + s.dailyHeld >= s.limits.daily
+        ? 'all'
+        : args.custom && s.customSpent + s.customHeld >= s.limits.custom
+          ? 'custom'
+          : undefined;
+    if (scope) {
+      const reason =
+        scope === 'all'
+          ? 'Daily charges and reservations reached the limit'
+          : 'Custom-question charges and reservations reached the limit';
+      if (env.CACHE) {
+        await alertOnce(
+          env.CACHE,
+          `${PREFIX}reservation-alert:${scope}:${hourBucket(now)}`,
+          7200,
+          env,
+          `[${env.BILLING_APP}] Generation paused`,
+          `${reason}. Some reserved amounts may still have unknown costs. Check the spending ledger before releasing any holds.`,
+        ).catch(() => {});
+      }
+      return { ok: false, scope, reason };
+    }
+    return { ok: true };
+  }
   const cache = env.CACHE;
   if (!cache) return { ok: true };
 
@@ -347,13 +354,56 @@ export async function budgetStatus(
   now: number = Date.now(),
 ): Promise<{
   now: number;
-  daily: { spentUsd: number; capUsd: number; tripUsd: number; bucket: string };
-  customHourly: { spentUsd: number; capUsd: number; bucket: string };
+  daily: {
+    spentUsd: number;
+    reservedUsd?: number;
+    capUsd: number;
+    tripUsd: number;
+    bucket: string;
+  };
+  customHourly: { spentUsd: number; reservedUsd?: number; capUsd: number; bucket: string };
   pause: {
-    all: { until: number; reason: string } | null;
-    custom: { until: number; reason: string } | null;
+    all: { until: number | null; reason: string } | null;
+    custom: { until: number | null; reason: string } | null;
   };
 }> {
+  if (env.BILLING_DB) {
+    const s = await reservationStatus(env, now);
+    return {
+      now,
+      daily: {
+        spentUsd: s.dailySpent / 1e9,
+        reservedUsd: s.dailyHeld / 1e9,
+        capUsd: s.limits.daily / 1e9,
+        tripUsd: s.limits.daily / 1e9,
+        bucket: dayBucket(now),
+      },
+      customHourly: {
+        spentUsd: s.customSpent / 1e9,
+        reservedUsd: s.customHeld / 1e9,
+        capUsd: s.limits.custom / 1e9,
+        bucket: 'rolling-hour',
+      },
+      pause: {
+        all:
+          s.dailySpent + s.dailyHeld >= s.limits.daily
+            ? {
+                until: null,
+                reason:
+                  'Charges and reservations reached the daily limit; unknown charges keep their holds',
+              }
+            : null,
+        custom:
+          s.customSpent + s.customHeld >= s.limits.custom
+            ? {
+                until: null,
+                reason:
+                  'Charges and reservations reached the custom limit; unknown charges keep their holds',
+              }
+            : null,
+      },
+    };
+  }
   const cache = env.CACHE;
   const total = cache ? await readCounter(cache, `${TOTAL_BUCKET}${dayBucket(now)}`) : 0;
   const customHour = cache ? await readCounter(cache, `${CUSTOM_BUCKET}${hourBucket(now)}`) : 0;
@@ -383,6 +433,7 @@ export async function budgetStatus(
 export async function clearPauses(env: BudgetEnv): Promise<{ cleared: BudgetScope[] }> {
   const cache = env.CACHE;
   const cleared: BudgetScope[] = [];
+  if (env.BILLING_DB) return { cleared };
   if (!cache) return { cleared };
   await cache.delete(PAUSE_ALL);
   cleared.push('all');

@@ -28,6 +28,7 @@ import { BudgetPausedError, checkBudget, type EmailBinding, recordSpend } from '
 import { isFallbackWorthy, LLMError, NEITHER, TIMEOUT } from './llm-error';
 import { costSplitUsd, normalizeUsage } from './pricing';
 import { DEFAULT_FALLBACK_CHAIN, DEFAULT_MODEL } from './settings';
+import { reservationPrices } from './spend-reservations';
 
 export type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
 
@@ -641,6 +642,12 @@ async function callOpenRouterGateway(
     };
   }
 
+  if (env.BILLING_DB) {
+    body.provider = {
+      ...((body.provider as Record<string, unknown>) ?? {}),
+      max_price: reservationPrices(model),
+    };
+  }
   const url = openRouterGatewayUrl(env);
   // One AbortController for the whole call (fetch + stream drain). On timeout
   // the controller aborts: any in-flight backoff sleep is interrupted (runWithRetry
@@ -654,7 +661,8 @@ async function callOpenRouterGateway(
     // Retry on transient transport errors (5xx, 429). Non-retryable (4xx other
     // than 429) throws on the first attempt.
     const resp = await runWithRetry(async () => {
-      billing = await beginBillingAttempt(env, model, opts);
+      billing = null;
+      billing = await beginBillingAttempt(env, model, { ...opts, messages, response_format });
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
