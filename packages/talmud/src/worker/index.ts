@@ -259,6 +259,7 @@ import {
   type RelationshipsData,
   rabbiCandidateSummaries,
   setLearnedAdjacency,
+  slugToName,
 } from './rabbi-graph';
 import {
   buildObservationSlices,
@@ -277,8 +278,10 @@ import {
   resolveRabbi,
   resolveRabbiByName,
 } from './rabbi-places';
+import { classificationFromProfile } from './rabbi-profile';
 import { placeRevachWithAi } from './revach-ai-place';
 import { buildSourceResolvers, type CommentariesSlice, type GemaraSlice } from './run-sources';
+import { indexVerdict, sageIndexForPage } from './sage-index';
 import {
   type CacheTrack,
   getCodeSourcesCached,
@@ -1102,6 +1105,21 @@ async function computeDafBridge(env: Bindings, tractate: string, page: string): 
   if (cache && bridge.via !== 'no-data') await cache.put(key, JSON.stringify(bridge));
   return bridge;
 }
+// The Shas-wide sage identity index for one page (sage-index.ts): every
+// indexed mention with the person it resolved to and the probability, at
+// statement grain. Read-only, from the bundled static file; an empty list
+// means the tractate has no index or the page has no indexed mention.
+app.get('/api/sage-index/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const rows = await sageIndexForPage(c.env.ASSETS, tractate, page);
+  return c.json({
+    tractate,
+    page,
+    mentions: rows.map((r) => ({ ...r, canonical: slugToName(r.slug) })),
+  });
+});
+
 app.get('/api/bridge/:tractate/:page', async (c) => {
   const bridge = await computeDafBridge(c.env, c.req.param('tractate'), c.req.param('page'));
   // Surface the continuity as a first-class Link (relation 'continues') when the
@@ -4945,6 +4963,34 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
       // Sefaria slug, so there's no fallback path: enrichRabbi always returns an
       // IdentifiedRabbi (nulled fields for rabbis not in the dataset). This is the
       // single source of canonical identity data the timeline + bio sidebar read.
+      // rabbi.classification — counted from the Shas-wide pass (rabbi-profile.ts)
+      // when the sage is grounded and has enough scored mentions; the prompt
+      // stays as the fallback for thin or unknown sages. The pre-resolve hook
+      // has no reader language, so the justification is the English text; the
+      // Hebrew card reads the category token and the numbers either way.
+      if (def.id === 'rabbi.classification') {
+        const inst = rabbiMarkInputFields(markInput);
+        const counted = inst.slug ? classificationFromProfile(inst.slug, 'en') : null;
+        if (counted) {
+          return {
+            content: JSON.stringify(counted),
+            parsed: counted,
+            parse_error: null,
+            model: `profile:${canonicalSlug(inst.slug as string)}`,
+            transport: 'lookup',
+            attempts: 0,
+            usage: { input_tokens: 0, output_tokens: 0, total_tokens: 0 },
+            elapsed_ms: 0,
+            prompt_chars: 0,
+            resolved: {
+              system_prompt: '(deterministic: rabbi-profile.json, counted over the Bavli)',
+              user_prompt: `(classification profile for rabbi: ${inst.name || inst.nameHe || '(unnamed)'})`,
+            },
+            cache_hit: false,
+            recipe_hash: a.recipeHash,
+          };
+        }
+      }
       if (def.id === 'rabbi.identity') {
         // Always short-circuit — there is no useful LLM fallback (a model can't
         // know a Sefaria slug), and the placeholder prompt must never run.
@@ -8954,11 +9000,26 @@ export async function computeRabbiPin(
     reason: string;
   } | null = null;
 
-  // Jev first: a typed Choice over the candidate slugs with a probability per
+  // The Shas-wide index first (sage-index.ts): when every mention of this name
+  // on the page already resolved to one person at p >= 0.9, that is the pin,
+  // with no model call. A split page or an absent index falls through.
+  try {
+    const rows = await sageIndexForPage(env.ASSETS, tractate, page);
+    const iv = indexVerdict(
+      rows,
+      cands.map((c) => c.slug),
+    );
+    if (iv.slug)
+      verdict = { slug: iv.slug, confidence: 'high', reason: `Shas index: ${iv.reason}` };
+  } catch {
+    /* the index is optional */
+  }
+
+  // Jev next: a typed Choice over the candidate slugs with a probability per
   // option (rabbi-pin-jev.ts), registry duplicates merged before the threshold.
   // Any failure falls through to the DeepSeek prompt below, so a deploy
   // without TYPESAFE_API_KEY (or a TypeSafe outage) behaves exactly as before.
-  if (env.TYPESAFE_API_KEY) {
+  if (!verdict && env.TYPESAFE_API_KEY) {
     try {
       const req = buildRabbiPinJevRequest(inst, cands, cast, tractate, page);
       const res = await runJev(env, { ...req, tag: 'rabbi.identity.pin', attribution });
