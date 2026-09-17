@@ -4137,6 +4137,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
         >
           <ConceptLinkProvider value={{ matcher: conceptMatcher }}>
             <aside
+              class="read-prose"
               style={{
                 background: '#fff',
                 border: '1px solid #e5e3dc',
