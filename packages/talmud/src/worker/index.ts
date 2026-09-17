@@ -40,6 +40,7 @@ import {
   pointerizeDafVars,
   prependPreamble,
 } from '@corpus/core/run/daf-preamble';
+import { outputMatchesShallow } from '@corpus/core/run/output-validation';
 import {
   type ResolvedInputs,
   type ResolveInputsPorts,
@@ -861,6 +862,12 @@ app.get('/api/checks/:tractate/:page', async (c) => {
 // section typing — it shows, on real content, that e.g. the Ashmedai story is
 // narrative-primary (not a voice dispute). Gating + new enrichments build on it.
 type RawInstance = { startSegIdx?: unknown; endSegIdx?: unknown; fields?: Record<string, unknown> };
+/** The JSON output schema a mark's LLM extractor declares (computed extractors have none). */
+const markOutputSchema = (def: { extractor: unknown }): unknown =>
+  (def.extractor as { output_schema?: unknown } | null)?.output_schema;
+/** The JSON output schema an enrichment declares. */
+const enrichOutputSchema = (def: unknown): unknown =>
+  (def as { output_schema?: unknown } | null)?.output_schema;
 async function readMarkInstances(
   env: Bindings,
   markId: string,
@@ -870,6 +877,9 @@ async function readMarkInstances(
   const def = findCodeMark(markId);
   if (!def) return [];
   const hit = await readCachedResult(env, keyForMark(def, tractate, page, 'en'));
+  // A mark whose cached output lost its shape reads as empty here (and as
+  // cold in daf-view), so nothing builds on junk instances.
+  if (hit && !outputMatchesShallow(markOutputSchema(def), hit.parsed)) return [];
   const parsed = hit?.parsed as { instances?: unknown } | null;
   return Array.isArray(parsed?.instances) ? (parsed!.instances as RawInstance[]) : [];
 }
@@ -2840,7 +2850,11 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
   // markCached is populated when the per-instance cold check reads it.)
   await Promise.all(
     CODE_MARKS.map(async (def) => {
-      const res = await readCachedResult(c.env, keyForMark(def, tractate, page, lang));
+      const raw = await readCachedResult(c.env, keyForMark(def, tractate, page, lang));
+      // An entry whose parsed output lost the producer's top-level shape (model
+      // drift stored before write-time validation existed) counts as COLD: the
+      // reader re-runs it and the fresh write overwrites the junk.
+      const res = raw && outputMatchesShallow(markOutputSchema(def), raw.parsed) ? raw : null;
       markCached.set(def.id, !!res);
       enumerated.push({ producerId: def.id, cold: !res });
       if (res) {
@@ -2873,10 +2887,12 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
         await Promise.all(
           insts.map(async (inst) => {
             const instanceId = await instanceIdOf(inst);
-            const res = await readCachedResult(
+            const raw = await readCachedResult(
               c.env,
               keyForEnrichment(def, instanceId, { tractate, page }, undefined, lang),
             );
+            const res =
+              raw && outputMatchesShallow(enrichOutputSchema(def), raw.parsed) ? raw : null;
             if (res) {
               pieces[pieceKey(def.id, instanceId)] = {
                 producerId: def.id,
@@ -2895,10 +2911,11 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
         );
         enumerated.push({ producerId: def.id, cold: anyCold, demandDriven });
       } else {
-        const res = await readCachedResult(
+        const raw = await readCachedResult(
           c.env,
           keyForEnrichment(def, iid, { tractate, page }, undefined, lang),
         );
+        const res = raw && outputMatchesShallow(enrichOutputSchema(def), raw.parsed) ? raw : null;
         enumerated.push({ producerId: def.id, cold: !res, demandDriven });
         if (res) {
           pieces[pieceKey(def.id)] = {
@@ -5683,8 +5700,15 @@ app.post('/api/run', async (c) => {
           // when the stamped range matches the requested section; otherwise
           // fall through to enqueue so it recomputes for the correct range.
           const def = job.enrichment_id ? await loadEnrichmentDef(c.env, job.enrichment_id) : null;
+          const mdef = job.mark_id ? await loadMarkDef(c.env, job.mark_id) : null;
+          const schema = def ? enrichOutputSchema(def) : mdef ? markOutputSchema(mdef) : undefined;
           const sectionRange = sectionRangeOf(def, job.mark_input);
-          if (!sectionRange || result.section_range === sectionRange) {
+          // A junk-shaped entry is a miss: fall through to enqueue, and the
+          // consumer's runProducer regenerates + overwrites it.
+          if (
+            (!sectionRange || result.section_range === sectionRange) &&
+            outputMatchesShallow(schema, result.parsed)
+          ) {
             // Record the cache-hit so per-mark / per-enrichment hit-rate is real.
             recordTelemetry(c, runTelemetryRec(job, { ...result, cache_hit: true }, 0));
             // total_ms isn't stored in the cached payload (only added at run
@@ -5740,7 +5764,9 @@ app.post('/api/run', async (c) => {
           lang: job.lang ?? 'en',
         },
         {
-          accept: (v) => !sectionRange || (v as RunResultEnrichment).section_range === sectionRange,
+          accept: (v) =>
+            (!sectionRange || (v as RunResultEnrichment).section_range === sectionRange) &&
+            outputMatchesShallow(enrichOutputSchema(def), (v as RunResultEnrichment).parsed),
         },
       );
       // Serve only a PREVIOUS-version hit here (the canonical key was already
@@ -11067,9 +11093,13 @@ app.get('/api/pesukim/:tractate/:page', async (c) => {
   // Instances come from the EN mark and enrichments are keyed by lang — the
   // same join /api/daf-view (and the reader) uses, so cache keys line up.
   const markDef = findCodeMark('pesukim');
-  const markRes = markDef
+  const markRaw = markDef
     ? await readCachedResult(c.env, keyForMark(markDef, tractate, page, 'en'))
     : null;
+  const markRes =
+    markRaw && markDef && outputMatchesShallow(markOutputSchema(markDef), markRaw.parsed)
+      ? markRaw
+      : null;
   const instances = (
     Array.isArray((markRes?.parsed as { instances?: unknown } | null)?.instances)
       ? (markRes?.parsed as { instances: RawInstance[] }).instances
@@ -11094,7 +11124,12 @@ app.get('/api/pesukim/:tractate/:page', async (c) => {
             c.env,
             keyForEnrichment(def, iid, { tractate, page }, undefined, lang),
           );
-          enrichments[id] = (res?.parsed as Record<string, unknown> | null) ?? null;
+          // A junk-shaped entry (the model echoed its input) is NOT generated:
+          // it lands in missing/cold so generate=1 regenerates it.
+          enrichments[id] =
+            res && outputMatchesShallow(enrichOutputSchema(def), res.parsed)
+              ? ((res.parsed as Record<string, unknown> | null) ?? null)
+              : null;
         }),
       );
       // Verse text: KV-cached for a year; a live Sefaria miss is tolerated

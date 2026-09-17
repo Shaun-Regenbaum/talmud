@@ -42,6 +42,7 @@ import type { CostStamp, InputRef, Provenance } from '../model/provenance.ts';
 import { authorityForTransport } from '../model/provenance.ts';
 import type { StoredArtifact } from '../store/envelope.ts';
 import { buildDafPreamble, pointerizeDafVars } from './daf-preamble.ts';
+import { outputMatchesShallow, repairSuffix, validateOutput } from './output-validation';
 import type { ResolvedInputs, RunDependency } from './producer-run.ts';
 
 export type RunLang = 'en' | 'he';
@@ -476,7 +477,13 @@ export async function runProducer<
     cacheKey = ports.markKey(mdef, tractate, page, useHe ? 'he' : 'en');
     if (!bypassCache) {
       const hit = await ports.cacheRead(ctx, cacheKey);
-      if (hit) return { ...hit, cache_hit: true };
+      // A cached entry whose parsed output lost the extractor's top-level shape
+      // (model drift stored before write-time validation existed) is served as
+      // a MISS: the fresh write below overwrites it. Shallow on purpose — see
+      // output-validation.ts.
+      if (hit && outputMatchesShallow(mdef.extractor.output_schema, hit.parsed)) {
+        return { ...hit, cache_hit: true };
+      }
     }
   } else {
     // Select the Hebrew prompt variant when lang='he' AND the def provides
@@ -499,7 +506,12 @@ export async function runProducer<
       const hit = await ports.cacheRead(ctx, cacheKey);
       // Reject a hit whose stamped range doesn't match the requested section
       // (covers both a drifted title AND legacy entries with no stamp).
-      if (hit && (!sectionRange || hit.section_range === sectionRange)) {
+      if (
+        hit &&
+        (!sectionRange || hit.section_range === sectionRange) &&
+        // Same healing rule as marks: a junk-shaped entry is a miss.
+        outputMatchesShallow(edef.output_schema, hit.parsed)
+      ) {
         return { ...hit, cache_hit: true };
       }
     }
@@ -593,6 +605,11 @@ export async function runProducer<
   let result: LLMResultLike;
   let systemPrompt: string;
   let userPrompt: string;
+  // The model call, re-runnable: the schema check below may call it ONCE more
+  // with a correction appended to the user side (see repairSuffix).
+  let callModel: (
+    suffix: string,
+  ) => Promise<{ result: LLMResultLike; systemPrompt: string; userPrompt: string }>;
   if (isMark) {
     const ext = mdef.extractor;
     const sysTpl = (
@@ -601,19 +618,18 @@ export async function runProducer<
     const usrTpl = (
       useHe && ext.user_prompt_template_he ? ext.user_prompt_template_he : ext.user_prompt_template
     ) as string;
-    const r = await ports.markLLM(ctx, {
-      def: mdef,
-      sysTpl,
-      usrTpl,
-      vars,
-      useHe,
-      tractate,
-      page,
-      bypassCache,
-    });
-    result = r.result;
-    systemPrompt = r.systemPrompt;
-    userPrompt = r.userPrompt;
+    callModel = (suffix) =>
+      ports.markLLM(ctx, {
+        def: mdef,
+        sysTpl,
+        usrTpl: usrTpl + suffix,
+        vars,
+        useHe,
+        tractate,
+        page,
+        bypassCache,
+      });
+    ({ result, systemPrompt, userPrompt } = await callModel(''));
   } else {
     const sysTpl = useHe && edef.system_prompt_he ? edef.system_prompt_he : edef.system_prompt;
     const usrTpl =
@@ -627,19 +643,24 @@ export async function runProducer<
     // arrays in vars) get null and are untouched.
     const contextPreamble = buildDafPreamble(vars);
     const promptVars = contextPreamble ? pointerizeDafVars(vars) : vars;
-    systemPrompt = ports.renderTemplate(sysTpl, promptVars);
-    userPrompt = ports.renderTemplate(usrTpl, promptVars);
-    result = await ports.enrichmentLLM(ctx, {
-      def: edef,
-      systemPrompt,
-      userPrompt,
-      useHe,
-      tractate,
-      page,
-      bypassCache,
-      modelOverride: opts.modelOverride,
-      contextPreamble,
-    });
+    const baseSystem = ports.renderTemplate(sysTpl, promptVars);
+    const baseUser = ports.renderTemplate(usrTpl, promptVars);
+    callModel = async (suffix) => {
+      const user = baseUser + suffix;
+      const r = await ports.enrichmentLLM(ctx, {
+        def: edef,
+        systemPrompt: baseSystem,
+        userPrompt: user,
+        useHe,
+        tractate,
+        page,
+        bypassCache,
+        modelOverride: opts.modelOverride,
+        contextPreamble,
+      });
+      return { result: r, systemPrompt: baseSystem, userPrompt: user };
+    };
+    ({ result, systemPrompt, userPrompt } = await callModel(''));
   }
 
   // -------------------------------------------------------------------------
@@ -653,6 +674,40 @@ export async function runProducer<
       parsed = JSON.parse(result.content);
     } catch (err) {
       parse_error = String(err).slice(0, 200);
+    }
+    // Shape check against the producer's own schema (lenient: the fields the
+    // app renders, with their types). JSON.parse alone let any object through,
+    // and on the cheap first-party route the schema is only prompt text, so
+    // the model could drift to its own keys or echo its input and the junk
+    // got cached as a success. On a mismatch: ONE repair retry with the
+    // failure named; if that fails too the run ends with parse_error and is
+    // NOT cached (the next request tries again; nothing junk is pinned).
+    if (!parse_error) {
+      const first = validateOutput(outputSchema, parsed);
+      if (!first.ok) {
+        // The discarded attempt was still billed: keep the ledger honest.
+        ports.recordUsage(ctx, {
+          kind: isMark ? 'mark' : 'enrichment',
+          id: def.id,
+          tractate,
+          page,
+          result: { model: result.model, usage: result.usage, parse_error: first.error },
+        });
+        ({ result, systemPrompt, userPrompt } = await callModel(repairSuffix(first.error)));
+        parsed = null;
+        try {
+          parsed = JSON.parse(result.content);
+        } catch (err) {
+          parse_error = String(err).slice(0, 200);
+        }
+        if (!parse_error) {
+          const second = validateOutput(outputSchema, parsed);
+          if (!second.ok) {
+            parsed = null;
+            parse_error = second.error;
+          }
+        }
+      }
     }
   }
 

@@ -119,6 +119,25 @@ describe('POST /api/run — contract', () => {
     expect(json).toMatchSnapshot();
   });
 
+  it('a2. a cached entry that lost its shape is a MISS (heals): 202 + enqueue, not the junk', async () => {
+    // Seen live on Chullin 140: the model drifted to its own keys and the
+    // junk was cached as a success. The hot path must not serve it.
+    const junk = {
+      ...STORED_MARK_RESULT,
+      content: '{"wholeDafOverview":{}}',
+      parsed: { wholeDafOverview: {} },
+    };
+    const { env, send } = makeEnv({ [ARG_MARK_KEY]: JSON.stringify(junk) });
+    const { status, json } = await postRun(env, {
+      mark_id: 'argument',
+      tractate: 'Berakhot',
+      page: '5a',
+    });
+    expect(status).toBe(202);
+    expect((json as { status: string }).status).toBe('pending');
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
   it('b. cold miss: 202 pending + runId + cacheKey, one queue send', async () => {
     const { env, send } = makeEnv();
     const { status, json } = await postRun(env, {
@@ -206,8 +225,15 @@ describe('POST /api/run — contract', () => {
       `:rabbi.bio:${Number(rabbiBio.cache_version) - 1}:`,
     );
     const pause = { until: Date.now() + 3_600_000, reason: 'test pause', spentUsd: 300 };
+    // The previous-version entry must be recognizably rabbi.bio's output: the
+    // SWR accept predicate now rejects a junk-shaped value (see #output-validation).
+    const STORED_BIO_RESULT = {
+      ...STORED_MARK_RESULT,
+      content: '{"bio":"stale bio"}',
+      parsed: { bio: 'stale bio' },
+    };
     const { env, send } = makeEnv({
-      [prevKey]: JSON.stringify(STORED_MARK_RESULT),
+      [prevKey]: JSON.stringify(STORED_BIO_RESULT),
       'budget:v1:pause:all': JSON.stringify(pause),
     });
     const { status, json } = await postRun(env, {
@@ -220,7 +246,7 @@ describe('POST /api/run — contract', () => {
     expect(json).toEqual({
       status: 'ok',
       result: {
-        ...STORED_MARK_RESULT,
+        ...STORED_BIO_RESULT,
         cache_hit: true,
         total_ms: 0,
         stale: true,

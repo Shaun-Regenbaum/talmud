@@ -20,7 +20,8 @@ vi.mock('@corpus/core/llm/llm', async (importOriginal) => {
   return {
     ...mod,
     runLLM: vi.fn(async () => ({
-      content: '{"place":"Pumbedita","basis":"named in the sugya"}',
+      content:
+        '{"place":"Pumbedita","region":"bavel","confidence":"high","justification":"named in the sugya"}',
       reasoning_content: '',
       finish_reason: 'stop',
       usage: { prompt_tokens: 120, completion_tokens: 30, total_tokens: 150 },
@@ -135,7 +136,9 @@ describe('provenance stamping on fresh cache writes', () => {
     const rabbiInstances = [{ excerpt: 'אביי', fields: { name: 'Abaye', nameHe: 'אביי' } }];
     const { env, store } = makeEnv({
       [keyForGemara('Berakhot', '5a')]: JSON.stringify(GEMARA_SLICE),
-      [geoKey]: storedResult({ parsed: { region: 'bavel' } }),
+      [geoKey]: storedResult({
+        parsed: { region: 'bavel', birthplace: { place: 'Pumbedita', region: 'bavel', seq: 1 } },
+      }),
       [keyForMark(rabbiMark, 'Berakhot', '5a', 'en')]: storedResult({
         parsed: { instances: rabbiInstances },
       }),
@@ -172,11 +175,18 @@ describe('provenance stamping on fresh cache writes', () => {
       'anchors_resolved',
       'provenance',
     ]);
-    expect(stored.content).toBe('{"place":"Pumbedita","basis":"named in the sugya"}');
+    expect(stored.content).toBe(
+      '{"place":"Pumbedita","region":"bavel","confidence":"high","justification":"named in the sugya"}',
+    );
     expect(stored.model).toBe('openrouter/deepseek/deepseek-chat');
     expect(stored.transport).toBe('openrouter-gateway');
     expect(stored.recipe_hash).toMatch(/^[0-9a-f]{12}$/);
-    expect(stored.deps_resolved).toEqual({ 'rabbi.geography': { region: 'bavel' } });
+    expect(stored.deps_resolved).toEqual({
+      'rabbi.geography': {
+        region: 'bavel',
+        birthplace: { place: 'Pumbedita', region: 'bavel', seq: 1 },
+      },
+    });
     expect(stored.anchors_resolved).toEqual({ rabbi: rabbiInstances });
 
     // (b) the provenance manifest mirrors the legacy fields — never a second
