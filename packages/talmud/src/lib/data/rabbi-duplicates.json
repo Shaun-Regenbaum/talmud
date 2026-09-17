@@ -1,0 +1,8 @@
+{
+  "_doc": "Registry nodes that are the same person as another node. Key = the duplicate slug, value = the slug to use. Both nodes stay in rabbi-places.json / rabbi-hierarchy.json (cached content still references the duplicates); the resolver folds candidates onto the value so a homonym pick never splits between two nodes for one person. Evidence (2026-09-17): the value slugs are live Sefaria topics with tagged refs (Rabbah 1,480; Rabbi Yehoshua 1,437; Rabbi Shmuel b. Nahmani 335); the key slugs have no Sefaria topic. In the Shas-wide Jev run the model split its probability across each pair (Rabbah 397 times). NOT duplicates, checked by bio: rabbi-oshaya (R. Oshaya Rabbah, student of R. Chiyya) vs rabbi-oshaya-2 (the later amora, brother of R. Chanina); rabbi-yishmael-b-elisha (the tanna) vs rabbi-yishmael-b-elisha-2 (the High Priest).",
+  "duplicates": {
+    "rabbah-bar-nahmani": "rabbah-b-nachmani",
+    "rabbi-yehoshua-b-hananiah": "rabbi-yehoshua-b-hananyah",
+    "rabbi-shmuel-bar-nachmani": "rabbi-shmuel-b-nahmani"
+  }
+}
