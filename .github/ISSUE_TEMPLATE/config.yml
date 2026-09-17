@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Read the contributor guide first
+    url: https://github.com/Shaun-Regenbaum/talmud/blob/master/CONTRIBUTING.md
+    about: How to set up the workspace, what a good pull request looks like, and how to use AI tools well here.
+  - name: Connect an AI agent to the corpus
+    url: https://talmud.dev/#mcp
+    about: The MCP server and API let a model read any daf and its notes. Start here for MCP and API work.
+  - name: How the app is built
+    url: https://talmud.dev/#howitworks
+    about: A live walkthrough of the four primitives, the build graph, and every producer on a real daf.
