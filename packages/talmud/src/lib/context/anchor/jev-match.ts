@@ -158,7 +158,7 @@ export function matchesFromJevAnswers(
     const seg = answers[`${noteId(i)}_segment`];
     const whole = answers[`${noteId(i)}_whole_daf`];
     if (!seg || seg.type !== 'choice') return;
-    const pWhole = whole && whole.type === 'noul' ? whole.noul : 0;
+    const pWhole = whole?.type === 'noul' ? whole.noul : 0;
     const range = rangeFromDistribution(seg.probabilities, segCount);
     if (pWhole >= WHOLE_DAF_MIN && (!range || range.top < TOP_OVERRIDES_WHOLE_DAF)) {
       out.push({

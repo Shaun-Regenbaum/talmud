@@ -134,7 +134,8 @@ export function duplicateGroups(cands: readonly RabbiCandidateSummary[]): Record
   for (const c of cands) {
     const rep = canonicalSlug(c.slug);
     if (rep === c.slug || !present.has(rep)) continue;
-    (groups[rep] ??= []).push(c.slug);
+    if (!groups[rep]) groups[rep] = [];
+    groups[rep].push(c.slug);
   }
   return groups;
 }
