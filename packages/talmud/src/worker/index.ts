@@ -235,6 +235,7 @@ import {
   PESUKIM_VIEW_ENRICHMENTS,
   type PesukimEnrichmentId,
   pesukimColdProducers,
+  pesukimMalformedProducers,
 } from './pesukim-view';
 import {
   adaptCodeEnrichment,
@@ -11107,6 +11108,7 @@ app.get('/api/pesukim/:tractate/:page', async (c) => {
   );
 
   const cold = pesukimColdProducers(!!markRes, verses);
+  const malformed = pesukimMalformedProducers(verses);
   const complete = cold.length === 0;
   const viewDown = complete ? null : await readAiDown(c.env.CACHE);
   let generation: Record<string, unknown> = {};
@@ -11130,13 +11132,23 @@ app.get('/api/pesukim/:tractate/:page', async (c) => {
     checkUrl: pesukimViewUrl(tractate, page, lang),
   });
   c.header('Cache-Control', wantGenerate ? 'no-store' : dafViewCacheControl(complete));
+  // A cached-but-unusable section is not cold (generation will not touch it),
+  // so say so in the hint instead of letting a null read as "still coming".
+  const malformedHint =
+    malformed.length > 0
+      ? `${malformed.join(', ')} ${malformed.length === 1 ? 'is' : 'are'} cached but unusable on some verses (see each verse's malformed[]); they need a re-warm, not a wait. Answer from the sections that are present.`
+      : undefined;
   return c.json({
     tractate,
     page,
     lang,
     complete,
     cold,
+    malformed,
     ...progress,
+    ...(malformedHint
+      ? { hint: progress.hint ? `${progress.hint} ${malformedHint}` : malformedHint }
+      : {}),
     ...generation,
     count: verses.length,
     verses,

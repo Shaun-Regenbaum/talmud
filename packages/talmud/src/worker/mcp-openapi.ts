@@ -559,7 +559,8 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
           '{ complete, cold, status, generating, checkUrl, readerUrl, retryAfterSeconds?, etaMinutes?, hint?, ' +
           'count, verses: [{ ref, heRef, hebrew, english, tanachUrl, citation { style, excerpt, endExcerpt, ' +
           'summary, startSegIdx, endSegIdx }, synthesis, tanachContext, whyHere, mechanism, landing, ' +
-          'missing[] }] }. A null section means not generated yet (listed in missing). generate=1 starts ' +
+          'missing[], malformed[] }] }. A null section is either not generated yet (in missing) or cached ' +
+          'but unusable (in malformed — needs a re-warm, not a wait; use the other sections). generate=1 starts ' +
           'generation of the whole daf when anything is missing (same rules as daf-view). Answer the ' +
           'user from `synthesis` / `whyHere` / `tanachContext`; tanachUrl is the chapter on tanach.dev ' +
           'for the meforshim and the wider context.',
