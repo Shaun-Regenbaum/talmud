@@ -21,7 +21,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.54.9",
     "@cloudflare/workers-types": "^5.20260914.1",
-    "typescript": "^5.7.0",
+    "typescript": "^7.0.2",
     "vite": "^6.0.0",
     "vite-plugin-solid": "^2.11.14",
     "vitest": "^5.0.0",
