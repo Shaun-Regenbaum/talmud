@@ -78,7 +78,10 @@ export interface TanachEnv extends LLMEnv {
  *  ref strings the legacy routes recorded: 'Genesis 1', 'Genesis 1:3-5', …). */
 export interface TanachRunCtx {
   env: TanachEnv;
-  ctx: ExecutionContext;
+  /** Only `waitUntil` is used (usage entries are written after the response).
+   *  Typed as the slice we need so Hono's execution context (which lacks the
+   *  newer `tracing`/`abort` members of workers-types 5) is assignable. */
+  ctx: Pick<ExecutionContext, 'waitUntil'>;
   ref: string;
 }
 

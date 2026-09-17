@@ -48,6 +48,12 @@ export interface JobMessage {
 }
 
 /** Worker environment bindings (declared in wrangler.toml). */
+/** The slice of the Workers execution context our helpers actually use.
+ *  Hono hands routes its own execution-context type, which lacks the
+ *  `tracing` and `abort` members that workers-types 5 added to the runtime
+ *  class, so helpers that only need `waitUntil` accept just that. */
+export type WaitUntilCtx = Pick<ExecutionContext, 'waitUntil'>;
+
 export interface Bindings {
   BILLING_DB?: D1Database;
   BILLING_APP?: string;
