@@ -81,6 +81,10 @@ export interface Bindings {
   // fall back to their DeepSeek prompts when it is unset. Set on BOTH workers
   // via `wrangler secret put TYPESAFE_API_KEY` (+ `-c wrangler.generator.toml`).
   TYPESAFE_API_KEY?: string;
+  // Public origin of the reader (default https://talmud.dev). The generation
+  // worker has no assets binding, so bundled static JSON (the sage index) is
+  // fetched from here when a queued run needs it.
+  PUBLIC_ORIGIN?: string;
   // Enrichment job queue — see wrangler.toml + queue handler at the bottom
   // of index.ts. /api/run enqueues a JobMessage; the queue consumer
   // runs the LLM chain and writes the result to KV under `job:{runId}`.

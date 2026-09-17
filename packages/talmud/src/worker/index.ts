@@ -1112,7 +1112,12 @@ async function computeDafBridge(env: Bindings, tractate: string, page: string): 
 app.get('/api/sage-index/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
-  const rows = await sageIndexForPage(c.env.ASSETS, tractate, page);
+  const rows = await sageIndexForPage(
+    c.env.ASSETS,
+    tractate,
+    page,
+    c.env.PUBLIC_ORIGIN ?? new URL(c.req.url).origin,
+  );
   return c.json({
     tractate,
     page,
@@ -9004,7 +9009,7 @@ export async function computeRabbiPin(
   // on the page already resolved to one person at p >= 0.9, that is the pin,
   // with no model call. A split page or an absent index falls through.
   try {
-    const rows = await sageIndexForPage(env.ASSETS, tractate, page);
+    const rows = await sageIndexForPage(env.ASSETS, tractate, page, env.PUBLIC_ORIGIN);
     const iv = indexVerdict(
       rows,
       cands.map((c) => c.slug),

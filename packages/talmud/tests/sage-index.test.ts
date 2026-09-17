@@ -2,7 +2,7 @@
  * The Shas-wide sage identity index (src/worker/sage-index.ts): row unpacking,
  * the page verdict rule, and the loader's handling of a missing file.
  */
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   INDEX_PIN_MIN_P,
   indexVerdict,
@@ -123,17 +123,76 @@ describe('loadSageIndex', () => {
       tractate: 'Berakhot',
       amudim: { '2a': [[0, 1, 'רבי אליעזר', 'rabbi-eliezer-b-hyrcanus', 0.99, 'j']] },
     };
-    const rows = await sageIndexForPage(assetsReturning(JSON.stringify(doc)), 'Berakhot', '2a');
+    const rows = await sageIndexForPage(
+      assetsReturning(JSON.stringify(doc)),
+      'Berakhot',
+      '2a',
+      null,
+    );
     expect(rows).toHaveLength(1);
     expect(rows[0].slug).toBe('rabbi-eliezer-b-hyrcanus');
-    expect(await sageIndexForPage(assetsReturning(JSON.stringify(doc)), 'Berakhot', '2b')).toEqual(
-      [],
-    );
+    expect(
+      await sageIndexForPage(assetsReturning(JSON.stringify(doc)), 'Berakhot', '2b', null),
+    ).toEqual([]);
   });
 
-  it('treats the SPA fallback page and a 404 as "no index"', async () => {
-    expect(await loadSageIndex(assetsReturning('<!doctype html><html>'), 'Berakhot')).toBeNull();
-    expect(await loadSageIndex(assetsReturning('', false), 'Berakhot')).toBeNull();
-    expect(await loadSageIndex(undefined, 'Berakhot')).toBeNull();
+  it('treats the SPA fallback page and a 404 as "no index" (no origin fallback)', async () => {
+    expect(
+      await loadSageIndex(assetsReturning('<!doctype html><html>'), 'Berakhot', null),
+    ).toBeNull();
+    expect(await loadSageIndex(assetsReturning('', false), 'Berakhot', null)).toBeNull();
+    expect(await loadSageIndex(undefined, 'Berakhot', null)).toBeNull();
+  });
+
+  it("without an assets binding (the generation worker) reads the reader's public copy", async () => {
+    const doc = {
+      version: 1,
+      generatedAt: '',
+      source: 't',
+      model: 'm',
+      promptVersion: 'v',
+      tractate: 'Temurah',
+      amudim: { '3b': [[2, 5, 'רבי אלעזר', 'rabbi-elazar-b-pedat', 0.99, 'j']] },
+    };
+    const calls: string[] = [];
+    const fetchStub = vi.fn(async (url: string) => {
+      calls.push(url);
+      return new Response(JSON.stringify(doc), { status: 200 });
+    });
+    vi.stubGlobal('fetch', fetchStub);
+    try {
+      const rows = await sageIndexForPage(undefined, 'Temurah', '3b', 'https://example.test');
+      expect(rows).toHaveLength(1);
+      expect(rows[0].slug).toBe('rabbi-elazar-b-pedat');
+      expect(calls).toEqual(['https://example.test/sage-index/Temurah.json']);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('falls back to the public copy when the assets binding serves the SPA page', async () => {
+    const doc = {
+      version: 1,
+      generatedAt: '',
+      source: 't',
+      model: 'm',
+      promptVersion: 'v',
+      tractate: 'X',
+      amudim: { '2a': [] },
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify(doc), { status: 200 })),
+    );
+    try {
+      const loaded = await loadSageIndex(
+        assetsReturning('<!doctype html>'),
+        'X',
+        'https://example.test',
+      );
+      expect(loaded?.tractate).toBe('X');
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
