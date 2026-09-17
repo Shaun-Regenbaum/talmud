@@ -14,9 +14,9 @@
  * `rabbi-yehoshua-b-hananiah`). Offered both, Jev splits its probability
  * between them, which reads as an unsure pick for what is really a sure one.
  * `duplicateGroups` folds such nodes together BEFORE the decision, so the
- * threshold is applied to the person, not the node. The fold is a name
- * heuristic (numbered-suffix slugs, or canonical names equal after
- * transliteration folding); it never merges names that differ in substance.
+ * threshold is applied to the person, not the node. The fold uses the
+ * registry's explicit duplicate map (rabbi-duplicates.json), never a name
+ * heuristic: rabbi-oshaya and rabbi-oshaya-2 look alike and are two people.
  *
  * Benchmarked on tests/fixtures/rabbi-pin-bench.json (see
  * tests/integration/rabbi-pin-bench.test.ts): the safety metric is
@@ -30,7 +30,7 @@ import {
   type NoulAnswer,
   noul,
 } from '@corpus/core/llm/jev';
-import type { RabbiCandidateSummary } from './rabbi-graph';
+import { canonicalSlug, type RabbiCandidateSummary } from './rabbi-graph';
 
 export const DECLINE = 'decline';
 
@@ -123,66 +123,18 @@ export type RabbiPinJevAnswers = {
   conventional_bearer_listed: NoulAnswer;
 };
 
-/** Fold a canonical name so spelling variants of the same person compare
- *  equal: brackets and punctuation dropped, `b.`/`ben`/`bar`/`bereih d'`
- *  unified, common transliteration pairs unified (ch/kh→h, ia→ya, tz→z, doubled
- *  consonants collapsed). Heuristic, used only to GROUP registry duplicates. */
-export function foldRabbiName(canonical: string): string {
-  return canonical
-    .toLowerCase()
-    .replace(/[[\]()'"’.,]/g, ' ')
-    .replace(/\b(ben|bar|b|bereih d|brei d|son of)\b/g, ' bar ')
-    .replace(/ch|kh/g, 'h')
-    .replace(/tz/g, 'z')
-    .replace(/ia/g, 'ya')
-    .replace(/([a-z])\1/g, '$1')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-/** Group candidate slugs that are the same person under one representative
- *  (the member with the most curated edges). Two nodes are grouped when one
- *  slug is the other plus a `-N` suffix, or their folded canonical names are
- *  equal. Returns the `groups` shape mergeChoiceMass takes. */
+/** Group candidate slugs that are the same person under one representative,
+ *  using the registry's explicit duplicate map (rabbi-duplicates.json). Only
+ *  listed pairs are folded: name heuristics merged rabbi-oshaya with
+ *  rabbi-oshaya-2, who are two different amoraim. Returns the `groups` shape
+ *  mergeChoiceMass takes. */
 export function duplicateGroups(cands: readonly RabbiCandidateSummary[]): Record<string, string[]> {
-  const parent = new Map<string, string>();
-  const find = (s: string): string => {
-    let x = s;
-    while (parent.get(x) !== undefined && parent.get(x) !== x) x = parent.get(x) as string;
-    return x;
-  };
-  const union = (a: string, b: string) => {
-    const ra = find(a);
-    const rb = find(b);
-    if (ra !== rb) parent.set(ra, rb);
-  };
-  for (const c of cands) parent.set(c.slug, c.slug);
-  const stem = (slug: string) => slug.replace(/-\d+$/, '');
-  for (let i = 0; i < cands.length; i++) {
-    for (let j = i + 1; j < cands.length; j++) {
-      const a = cands[i];
-      const b = cands[j];
-      if (
-        stem(a.slug) === stem(b.slug) ||
-        foldRabbiName(a.canonical) === foldRabbiName(b.canonical)
-      )
-        union(a.slug, b.slug);
-    }
-  }
-  const members = new Map<string, RabbiCandidateSummary[]>();
-  for (const c of cands) {
-    const r = find(c.slug);
-    const list = members.get(r) ?? [];
-    list.push(c);
-    members.set(r, list);
-  }
-  const edges = (c: RabbiCandidateSummary) =>
-    c.teachers.length + c.students.length + c.colleagues.length;
+  const present = new Set(cands.map((c) => c.slug));
   const groups: Record<string, string[]> = {};
-  for (const list of members.values()) {
-    if (list.length < 2) continue;
-    const rep = [...list].sort((x, y) => edges(y) - edges(x) || x.slug.localeCompare(y.slug))[0];
-    groups[rep.slug] = list.filter((c) => c.slug !== rep.slug).map((c) => c.slug);
+  for (const c of cands) {
+    const rep = canonicalSlug(c.slug);
+    if (rep === c.slug || !present.has(rep)) continue;
+    (groups[rep] ??= []).push(c.slug);
   }
   return groups;
 }

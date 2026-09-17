@@ -22,6 +22,7 @@
  * resolve (graph references a node we don't have) are dropped silently.
  */
 
+import duplicatesData from '../lib/data/rabbi-duplicates.json';
 import hierarchyData from '../lib/data/rabbi-hierarchy.json';
 import { isNonSageTopic } from '../lib/nonSageTopics';
 
@@ -180,6 +181,58 @@ function normalizeHeName(s: string): string {
     .trim();
 }
 
+/** Registry nodes that are the same person as another node (rabbi-duplicates.json):
+ *  duplicate slug → the slug to use. Both nodes stay in the data files (cached
+ *  content still references the duplicates); every resolver output is folded
+ *  through canonicalSlug so a homonym never splits between two nodes for one
+ *  person. */
+export const DUPLICATE_SLUGS: Readonly<Record<string, string>> = (
+  duplicatesData as { duplicates: Record<string, string> }
+).duplicates;
+
+export function canonicalSlug(slug: string): string {
+  return DUPLICATE_SLUGS[slug] ?? slug;
+}
+
+/** Fold duplicates and dedupe, keeping first-seen order. */
+function foldSlugs(slugs: Iterable<string>): string[] {
+  const out: string[] = [];
+  for (const s of slugs) {
+    const c = canonicalSlug(s);
+    if (!out.includes(c)) out.push(c);
+  }
+  return out;
+}
+
+// The Hebrew shapes a sage's canonical name takes: a rabbinic title followed
+// by a name, or one of the few standalone Amoraic names. Applied to the
+// NORMALIZED form (nikud stripped, ר' → רבי, "(N)" dropped) — the raw string
+// hid Rabbi Abbahu, whose registry entry is "רַ' אַבָּהוּ".
+const RABBI_HE_TITLE_RE = /^(רבי|רב|מר|רבן|רבה|רבא|רבינא)\s/;
+export const RABBI_HE_STANDALONE: ReadonlySet<string> = new Set([
+  'רבא',
+  'רבינא',
+  'אבא',
+  'רבה',
+  'רב',
+  'מר',
+  'שמואל',
+  'הלל',
+  'שמאי',
+  'עולא',
+  'זעירי',
+  'אביי',
+  'רבינא השני',
+]);
+
+/** Is this Hebrew canonical name the name of a sage (as opposed to a concept,
+ *  a place, or a biblical figure)? Judged on the normalized form. */
+export function isRabbinicHebrewName(canonicalHe: string | null | undefined): boolean {
+  const he = normalizeHeName(canonicalHe ?? '');
+  if (!he) return false;
+  return RABBI_HE_TITLE_RE.test(`${he} `) || RABBI_HE_STANDALONE.has(he);
+}
+
 // Build indices at module load. We map every name form we can think of to
 // the slug; multiple forms can point to the same slug (canonical, Hebrew,
 // normalized canonical).
@@ -288,7 +341,7 @@ const NORM_INDEX: { norm: string; slug: string }[] = Object.entries(DATA.nodes)
  *  target (aliases encode the intended default). Empty = not in the registry. */
 export function rabbiCandidates(name: string, nameHe?: string): string[] {
   const norm = normalizeName(name);
-  if (ALIASES[norm]) return [ALIASES[norm]];
+  if (ALIASES[norm]) return [canonicalSlug(ALIASES[norm])];
   // A name that EXACTLY equals a node's canonical names that rabbi specifically
   // ("Rav" → the node "Rav", not every "Rav X"). Exact wins over prefix
   // extensions — otherwise bare "Rav"/"Shmuel" become homonyms of their whole
@@ -313,9 +366,9 @@ export function rabbiCandidates(name: string, nameHe?: string): string[] {
     if (hits.length === 1 && hits[0].pinned) exact.add(hits[0].slug);
     else for (const h of hits) heOpen.add(h.slug);
   }
-  if (exact.size) return [...exact];
+  if (exact.size) return foldSlugs(exact);
   for (const s of heOpen) prefix.add(s);
-  return [...prefix];
+  return foldSlugs(prefix);
 }
 
 /** A homonym candidate, summarized for the AI-pin prompt: the registry's

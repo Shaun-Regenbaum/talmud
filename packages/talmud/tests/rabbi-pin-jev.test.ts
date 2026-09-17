@@ -10,7 +10,6 @@ import {
   DECLINE,
   decideRabbiPin,
   duplicateGroups,
-  foldRabbiName,
   PIN_HIGH,
   PIN_MEDIUM,
 } from '../src/worker/rabbi-pin-jev';
@@ -30,7 +29,8 @@ const cand = (
   ...extra,
 });
 
-// Real registry duplicates the benchmark tolerates as the same person.
+// rabbi-oshaya / rabbi-oshaya-2 are two different amoraim that look like a
+// duplicate pair; they must never be folded.
 const OSHAYA = [
   cand('rabbi-oshaya', 'Rabbi Oshaya', { generation: 'tanna-6', teachers: ['Rabbi Chiyya'] }),
   cand('rabbi-oshaya-2', 'Rabbi Oshaya', { generation: 'amora-ey-2' }),
@@ -42,6 +42,13 @@ const YEHOSHUA = [
   cand('rabbi-yehoshua-b-hananiah', 'Rabbi Yehoshua b. Hananiah', { generation: 'tanna-2' }),
   cand('rabbi-yehoshua-b-levi', 'Rabbi Yehoshua b. Levi'),
   cand('rabbi-yehoshua-b-korcha', 'Rabbi Yehoshua b. Korcha'),
+];
+const RABBAH = [
+  cand('rabbah-b-nachmani', 'Rabbah [b. Nachmani]', {
+    generation: 'amora-bavel-3',
+    teachers: ['Rav Huna'],
+  }),
+  cand('rabbah-bar-nahmani', 'Rabbah bar Nahmani', { generation: 'amora-bavel-3' }),
 ];
 const KAHANA = [
   cand('rav-kahana', 'Rav Kahana', { teachers: ['Rav'] }),
@@ -61,37 +68,20 @@ const answers = (
   };
 };
 
-describe('foldRabbiName', () => {
-  it('equates transliteration and patronymic spelling variants', () => {
-    expect(foldRabbiName('Rabbi Yehoshua [b. Hananyah]')).toBe(
-      foldRabbiName('Rabbi Yehoshua b. Hananiah'),
-    );
-    expect(foldRabbiName('Rabbi Shmuel b. Nahmani')).toBe(
-      foldRabbiName('Rabbi Shmuel bar Nachmani'),
-    );
-    expect(foldRabbiName('Rabbi Yishmael b. Elisha')).toBe(
-      foldRabbiName('Rabbi Yishmael ben Elisha'),
-    );
-  });
-  it('keeps genuinely different people apart', () => {
-    expect(foldRabbiName('Rav Kahana')).not.toBe(foldRabbiName('Rav Kahana (II)'));
-    expect(foldRabbiName('Rabbi Yehoshua b. Levi')).not.toBe(
-      foldRabbiName('Rabbi Yehoshua b. Korcha'),
-    );
-  });
-});
-
-describe('duplicateGroups', () => {
-  it('groups numbered-suffix duplicates under the better-documented node', () => {
-    expect(duplicateGroups(OSHAYA)).toEqual({ 'rabbi-oshaya': ['rabbi-oshaya-2'] });
-  });
-  it('groups folded-name duplicates and leaves distinct bearers alone', () => {
+describe('duplicateGroups (explicit registry map only)', () => {
+  it('folds the listed Yehoshua b. Chananya duplicate onto the Sefaria node', () => {
     expect(duplicateGroups(YEHOSHUA)).toEqual({
       'rabbi-yehoshua-b-hananyah': ['rabbi-yehoshua-b-hananiah'],
     });
   });
+  it('does NOT merge the two Rabbi Oshaya nodes (two different amoraim)', () => {
+    expect(duplicateGroups(OSHAYA)).toEqual({});
+  });
   it('does not merge Rav Kahana I with Rav Kahana (II)', () => {
     expect(duplicateGroups(KAHANA)).toEqual({});
+  });
+  it('ignores a duplicate whose canonical node is not among the candidates', () => {
+    expect(duplicateGroups([cand('rabbah-bar-nahmani', 'Rabbah bar Nahmani')])).toEqual({});
   });
 });
 
@@ -118,16 +108,25 @@ describe('buildRabbiPinJevRequest', () => {
 
 describe('decideRabbiPin', () => {
   it('merges a duplicate-node split into one confident pin', () => {
-    // Jev split 0.39 / 0.33 between the two Oshaya nodes (the real benchmark
-    // answer); merged that is 0.72 — a medium pin, not a decline.
+    // Offered both Rabbah nodes, Jev splits its probability (the Shas-wide
+    // run did this 397 times); merged onto the Sefaria node it is one pick.
+    const d = decideRabbiPin(
+      answers({ 'rabbah-b-nachmani': 0.39, 'rabbah-bar-nahmani': 0.33, decline: 0.28 }, 0.62, 0.55),
+      RABBAH,
+    );
+    expect(d.slug).toBe('rabbah-b-nachmani');
+    expect(d.confidence).toBe('medium');
+    expect(d.probability).toBeCloseTo(0.72, 9);
+    expect(d.reason).toContain('duplicate registry node');
+  });
+
+  it('leaves the two Rabbi Oshaya nodes as separate candidates', () => {
     const d = decideRabbiPin(
       answers({ 'rabbi-oshaya': 0.39, 'rabbi-oshaya-2': 0.33, decline: 0.28 }, 0.62, 0.55),
       OSHAYA,
     );
     expect(d.slug).toBe('rabbi-oshaya');
-    expect(d.confidence).toBe('medium');
-    expect(d.probability).toBeCloseTo(0.72, 9);
-    expect(d.reason).toContain('duplicate registry node');
+    expect(d.confidence).toBe('low'); // 0.39 is a lean, not a pin
   });
 
   it('pins high when the merged winner clears PIN_HIGH', () => {

@@ -248,10 +248,13 @@ import {
   loadMarkDef,
 } from './producer-registry';
 import {
+  canonicalSlug,
   groundRabbiInstances,
   groundRabbiNames,
+  isRabbinicHebrewName,
   lookupRelationships,
   lookupRelationshipsBySlug,
+  RABBI_HE_STANDALONE,
   type RabbiCandidateSummary,
   type RelationshipsData,
   rabbiCandidateSummaries,
@@ -8477,22 +8480,10 @@ export function expandAbbreviations(s: string): string {
 // The dataset leaks biblical figures and concept nouns (משה, רות, אור, תורה...),
 // so filter to names that either start with a rabbinic title or are explicit
 // standalone Amoraic names. Anything else risks false-positive underlines.
-const RABBI_HE_TITLE_RE = /^(רבי|רב|ר'|מר|רבן|רבה|רבא|רבינא)\s/;
-const RABBI_HE_STANDALONE = new Set([
-  'רבא',
-  'רבינא',
-  'אבא',
-  'רבה',
-  'רב',
-  'מר',
-  'שמואל',
-  'הלל',
-  'שמאי',
-  'עולא',
-  'זעירי',
-  'אביי',
-  'רבינא השני',
-]);
+// Title regex for the NORMALIZED Hebrew forms below (normalizeHe expands ר' to
+// רבי, so the geresh form needs no alternative). The sage-ness test for a
+// registry entry itself is isRabbinicHebrewName (rabbi-graph.ts).
+const RABBI_HE_TITLE_RE = /^(רבי|רב|מר|רבן|רבה|רבא|רבינא)\s/;
 
 interface KnownRabbi {
   slug: string;
@@ -8505,7 +8496,9 @@ const KNOWN_RABBIS_HE: KnownRabbi[] = (() => {
   for (const [slug, r] of Object.entries(RABBI_PLACES.rabbis)) {
     const he = r.canonicalHe;
     if (!he) continue;
-    const norm = normalizeHe(he);
+    // Expand the geresh title first ("ר' אבהו" → "רבי אבהו"); normalizeHe alone
+    // strips the apostrophe and leaves a bare "ר" the title test rejects.
+    const norm = normalizeHe(expandAbbreviations(he));
     if (!norm || norm.length < 2 || norm.includes('(')) continue;
     if (!RABBI_HE_TITLE_RE.test(norm) && !RABBI_HE_STANDALONE.has(norm)) continue;
     out.push({ slug, name: r.canonical, nameHe: he, nameHeNorm: norm });
@@ -8737,6 +8730,7 @@ function enrichRabbiBySlug(
   nameHe: string,
   generation: GenerationId,
 ): IdentifiedRabbi | null {
+  slug = canonicalSlug(slug);
   const entry = RABBI_PLACES.rabbis[slug];
   if (!entry) return null;
   const finalGen: GenerationId =
@@ -9122,12 +9116,7 @@ function validateEnriched(x: unknown): x is EnrichedRabbi {
 // (or is a standalone sage name) are worth enriching. Biblical figures and
 // concept nouns don't participate in rabbi identification at runtime.
 function isRabbinicEntry(r: RabbiPlacesEntry): boolean {
-  const he = (r.canonicalHe ?? '')
-    .replace(/[֑-ׇ.,:;?!"'״׳()[\]{}]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (!he) return false;
-  return RABBI_HE_TITLE_RE.test(`${he} `) || RABBI_HE_STANDALONE.has(he);
+  return isRabbinicHebrewName(r.canonicalHe);
 }
 
 app.get('/api/admin/rabbi-slugs', (c) => {
