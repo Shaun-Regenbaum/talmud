@@ -1,0 +1,38 @@
+name: Feature or improvement
+description: Propose something new for the reader, the engine, the MCP server, or the data.
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Reader (the daf page, cards, navigation, mobile)
+        - Engine (producers, placement, caching, provenance)
+        - MCP server and public API
+        - Data (rabbi registry, gazetteer, study sources, benchmarks)
+        - Tanach reader
+        - Documentation
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is hard or missing today?
+      description: Describe the moment in study, in an agent session, or in the code where you wanted this.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like instead?
+      description: A sketch is enough. If you have a screenshot or a mockup, add it.
+  - type: dropdown
+    id: help
+    attributes:
+      label: Would you like to work on it?
+      options:
+        - Yes, I would like to open a pull request
+        - Maybe, with some guidance
+        - No, just proposing

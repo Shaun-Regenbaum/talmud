@@ -1,0 +1,49 @@
+name: Bug report
+description: Something in the reader, the API, or the MCP server is broken.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. A wrong or misplaced note (bad placement, wrong rabbi, wrong translation) is a **content issue**, not a bug. Please use the "Wrong or misplaced note" template for that.
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did it happen?
+      options:
+        - talmud.dev (the Talmud reader)
+        - tanach.dev (the Tanach reader)
+        - The API (/api/...)
+        - The MCP server (/mcp)
+        - A local checkout
+    validations:
+      required: true
+  - type: input
+    id: page
+    attributes:
+      label: Tractate and page (or book and chapter)
+      description: The exact page you were on, plus the language (EN or HE) if it matters.
+      placeholder: Berakhot 2a, English
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you saw, and what you expected instead. Paste error text as text, not as a screenshot.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshot or recording
+      description: Drag an image here if the problem is visual.
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: Safari 18 on iPhone 15, Chrome 130 on macOS
+  - type: input
+    id: url
+    attributes:
+      label: Link to the exact page
+      description: Copy the address bar. It carries the tractate, page, language, and view.
+      placeholder: https://talmud.dev/?tractate=Berakhot&page=2a#daf

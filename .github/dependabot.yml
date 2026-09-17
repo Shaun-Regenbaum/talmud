@@ -1,0 +1,17 @@
+# Monthly, grouped updates so dependency churn arrives as a few pull requests
+# instead of dozens. Majors are left out of the groups so a breaking bump is
+# its own review.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
