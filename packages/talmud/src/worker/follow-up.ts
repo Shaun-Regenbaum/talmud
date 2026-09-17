@@ -34,6 +34,11 @@ export function dafViewUrl(tractate: string, page: string, lang: 'en' | 'he'): s
   return `${PUBLIC_ORIGIN}/api/daf-view/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}${langQuery(lang)}`;
 }
 
+/** The pesukim study view for a daf (every quoted verse + its card). */
+export function pesukimViewUrl(tractate: string, page: string, lang: 'en' | 'he'): string {
+  return `${PUBLIC_ORIGIN}/api/pesukim/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}${langQuery(lang)}`;
+}
+
 /** The human page for the daf. It renders whatever exists and fills in live. */
 export function readerUrl(tractate: string, page: string, lang: 'en' | 'he'): string {
   return `${PUBLIC_ORIGIN}/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}${langQuery(lang)}`;
@@ -67,9 +72,12 @@ export function dafViewProgress(o: {
   tractate: string;
   page: string;
   lang: 'en' | 'he';
+  /** The URL to re-read; defaults to the daf-view URL. A narrower view (e.g.
+   *  the pesukim study view) passes its own so the caller re-reads THAT. */
+  checkUrl?: string;
 }): DafViewProgress {
   const urls = {
-    checkUrl: dafViewUrl(o.tractate, o.page, o.lang),
+    checkUrl: o.checkUrl ?? dafViewUrl(o.tractate, o.page, o.lang),
     readerUrl: readerUrl(o.tractate, o.page, o.lang),
   };
   if (o.complete) return { status: 'complete', generating: false, ...urls };

@@ -41,6 +41,13 @@ describe('MCP spec: cold-daf honesty', () => {
     expect(op.responses?.['200'].description).toMatch(/generating/);
   });
 
+  it('advertises the pesukim study shortcut (the chavruta question, one call)', () => {
+    expect(spec.info.description).toMatch(/PESUKIM SHORTCUT/);
+    const op = spec.paths['/api/pesukim/{tractate}/{page}'].get;
+    expect(op.parameters?.map((p) => p.name)).toEqual(['tractate', 'page', 'lang', 'generate']);
+    expect(op.responses?.['200'].description).toMatch(/verses/);
+  });
+
   it('documents checkUrl + retryAfterSeconds on the pending run envelope', () => {
     const run = spec.paths['/api/run'].post;
     expect(run.responses?.['202'].description).toMatch(/checkUrl/);
