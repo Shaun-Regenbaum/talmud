@@ -10,6 +10,13 @@ compatibility_flags = ["nodejs_compat"]
 # request bridge. Optional: without it, /mcp answers 503.
 worker_loaders = [{ binding = "LOADER" }]
 
+# Workers Analytics Engine: one row per /api request that reached the Worker
+# (surface = app | mcp | api) and one per MCP request. Read back on talmud.dev's
+# Usage -> MCP tab through the account-level SQL API. Optional binding.
+[[analytics_engine_datasets]]
+binding = "SURFACE"
+dataset = "tanach_surface"
+
 # Custom production domains. The shaunregenbaum.com and tanach.dev zones are
 # both on the same account as this worker; wrangler provisions the DNS record +
 # cert on deploy. Same shape as talmud: one deployment, all hostnames identical.
