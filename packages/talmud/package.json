@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.36.4",
-    "@cloudflare/workers-types": "^4.20260511.1",
+    "@cloudflare/workers-types": "^5.20260914.1",
     "@solidjs/testing-library": "^0.8.10",
     "jsdom": "^29.1.1",
     "typescript": "^5.7.0",
