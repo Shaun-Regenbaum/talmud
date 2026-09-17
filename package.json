@@ -18,6 +18,6 @@
     "ship:tanach": "pnpm --filter tanach ship"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.16"
+    "@biomejs/biome": "^2.5.13"
   }
 }

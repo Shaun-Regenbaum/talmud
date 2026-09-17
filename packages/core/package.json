@@ -23,15 +23,15 @@
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",
-    "@cloudflare/codemode": "^0.3.8",
-    "@hono/mcp": "^0.3.0",
-    "@modelcontextprotocol/sdk": "^1.29.0",
-    "hono": "^4.6.0"
+    "@cloudflare/codemode": "^0.5.2",
+    "@hono/mcp": "^0.3.2",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "hono": "^4.13.7"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260511.1",
     "@types/node": "22",
-    "miniflare": "4.20260508.0",
+    "miniflare": "4.20260730.0",
     "typescript": "^5.7.0",
     "vitest": "^4.1.5"
   }
