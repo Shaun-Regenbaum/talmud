@@ -94,3 +94,60 @@ export function llmBridge(
     note: typeof verdict?.note === 'string' ? verdict.note : undefined,
   };
 }
+
+// --- Jev (TypeSafe System One) path -----------------------------------------
+// The bridge is one yes/no judgment, so it maps onto a single Noul: the
+// probability that the sugya carries across the page break. The worker tries
+// this first and keeps the prompt above as the fallback. `via` stays 'llm'
+// (a model judged it); the probability is recorded in `note`.
+
+/** p(continues) at/above which the boundary counts as continuing. Precision
+ *  over recall: a false "continues" stitches two unrelated sugyot together. */
+export const BRIDGE_CONTINUES_MIN = 0.6;
+
+export function buildBridgeJevRequest(prev: BridgeSection, next: BridgeSection) {
+  return {
+    state: {
+      end_of_first_daf: {
+        section_title: prev.title ?? '',
+        summary: prev.summary ?? '',
+        closing_text: prev.excerpt ?? '',
+      },
+      start_of_second_daf: {
+        section_title: next.title ?? '',
+        summary: next.summary ?? '',
+        opening_text: next.excerpt ?? '',
+      },
+    },
+    questions: {
+      continues: {
+        type: 'noul' as const,
+        instructions:
+          'Two consecutive pages (dapim) of Talmud. `end_of_first_daf` is the last argument section of the first page; `start_of_second_daf` is the first section of the next page. Does the discussion at the end of the first page continue DIRECTLY into the start of the second, carrying forward the same sugya thread?',
+        criteria: {
+          true: 'Yes: the second page picks up the same discussion, question, or dispute where the first page left off (its next step, answer, or objection).',
+          false:
+            'No: the second page begins a new topic. Sharing the tractate, a loosely related theme, or the same sages is NOT enough.',
+        },
+      },
+    },
+  };
+}
+
+/** Build a DafBridge from Jev's p(continues). */
+export function jevBridge(
+  from: DafRef,
+  to: DafRef,
+  pContinues: number,
+  min: number = BRIDGE_CONTINUES_MIN,
+): DafBridge {
+  const continues = pContinues >= min;
+  return {
+    from,
+    to,
+    continues,
+    kind: continues ? 'continues' : 'new-topic',
+    via: 'llm',
+    note: `p(continues)=${pContinues.toFixed(2)}`,
+  };
+}

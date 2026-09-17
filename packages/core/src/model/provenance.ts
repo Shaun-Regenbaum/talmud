@@ -65,7 +65,7 @@ export interface LegacyRunFields {
 
 /** Transports that mean a real LLM produced the content. Everything else
  *  ('computed', 'graph', 'lookup', …) is a deterministic rule. */
-const AI_TRANSPORTS = new Set(['workers-ai', 'openrouter-gateway']);
+const AI_TRANSPORTS = new Set(['workers-ai', 'openrouter-gateway', 'typesafe']);
 
 /** Classify a transport into the deciding authority — the ONE place the
  *  llm-vs-rule split lives (provenanceOf and the native write path both

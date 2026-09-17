@@ -6,9 +6,12 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
+  BRIDGE_CONTINUES_MIN,
+  buildBridgeJevRequest,
   buildBridgePrompt,
   edgeOfTractateBridge,
   hadranBridge,
+  jevBridge,
   llmBridge,
 } from '../../src/lib/typing/bridge';
 
@@ -71,5 +74,38 @@ describe('llmBridge', () => {
     expect(llmBridge(from, to, { continues: false, note: 'new topic' }).kind).toBe('new-topic');
     expect(llmBridge(from, to, {}).continues).toBe(false);
     expect(llmBridge(from, to, { continues: 'yes' }).continues).toBe(false); // only strict true counts
+  });
+});
+
+describe('Jev path: buildBridgeJevRequest + jevBridge', () => {
+  it('asks one Noul over both boundary sections', () => {
+    const req = buildBridgeJevRequest(
+      { title: 'Ending', summary: 'the sugya so far', excerpt: 'closing words' },
+      { title: 'Opening', summary: 'what follows', excerpt: 'opening words' },
+    );
+    expect(req.questions.continues.type).toBe('noul');
+    expect(req.state.end_of_first_daf).toEqual({
+      section_title: 'Ending',
+      summary: 'the sugya so far',
+      closing_text: 'closing words',
+    });
+    expect(req.state.start_of_second_daf.opening_text).toBe('opening words');
+  });
+
+  it('continues at/above the threshold, new-topic below it, probability in the note', () => {
+    expect(jevBridge(from, to, 0.83)).toEqual({
+      from,
+      to,
+      continues: true,
+      kind: 'continues',
+      via: 'llm',
+      note: 'p(continues)=0.83',
+    });
+    expect(jevBridge(from, to, BRIDGE_CONTINUES_MIN)).toMatchObject({ continues: true });
+    expect(jevBridge(from, to, 0.41)).toMatchObject({
+      continues: false,
+      kind: 'new-topic',
+      note: 'p(continues)=0.41',
+    });
   });
 });

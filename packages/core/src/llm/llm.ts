@@ -41,6 +41,9 @@ export interface LLMEnv extends BillingEnv {
   CLOUDFLARE_ACCOUNT_ID?: string;
   OPENROUTER_GATEWAY_PROVIDER?: string;
   DEFAULT_LLM_MODEL?: string;
+  // TypeSafe (Jev) typed-judgment transport — see ./jev.ts. Optional: callers
+  // fall back to their runLLM path when it is unset.
+  TYPESAFE_API_KEY?: string;
   // Spend-budget overrides read by ./budget (checkBudget / recordSpend).
   DAILY_BUDGET_USD?: string;
   HOURLY_CUSTOM_BUDGET_USD?: string;
@@ -305,41 +308,51 @@ export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResu
 const LLM_COST_PREFIX = 'llmcost:v1:';
 const LLM_COST_TTL_S = 7 * 24 * 3600;
 
-async function recordLLMCost(
-  env: LLMEnv,
-  model: LLMModelId,
-  attempts: number,
-  result: Omit<LLMResult, 'attempts'>,
-  opts: LLMCallOptions,
-): Promise<void> {
+/** One ledger row, transport-neutral. runLLM fills it from an OpenAI-shaped
+ *  result; the Jev transport (./jev.ts) fills it from its own usage shape. */
+export interface CostLedgerEntry {
+  model: string;
+  transport: string;
+  tag: string;
+  attempts: number;
+  ms: number;
+  /** Provider-billed USD when known (OpenRouter), else null. */
+  cost: number | null;
+  cost_in_est: number | null;
+  cost_out_est: number | null;
+  prompt_tokens: number | null;
+  completion_tokens: number | null;
+  total_tokens: number | null;
+  cached_tokens: number | null;
+  attribution?: CostAttribution;
+  cost_class: 'custom-question' | null;
+}
+
+/** Write one row to the per-call cost ledger. Best-effort: never throws. */
+export async function recordCostLedgerEntry(env: LLMEnv, e: CostLedgerEntry): Promise<void> {
   const cache = env.CACHE;
   if (!cache) return;
   try {
-    const u = result.usage;
-    const a = opts.attribution;
-    const { input, output } = normalizeUsage(u);
-    // OpenRouter returns one billed `cost`; the in/out split is a list-price
-    // estimate so the dashboard can show where tokens (and dollars) went.
-    const { costInUsd, costOutUsd } = costSplitUsd(model, u);
+    const a = e.attribution;
     const now = Date.now();
     const key = `${LLM_COST_PREFIX}${now.toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
     const rec = {
       ts: now,
-      model,
-      transport: result.transport,
-      tag: opts.tag ?? 'untagged',
-      attempts,
-      ms: result.elapsed_ms,
-      cost: typeof u?.cost === 'number' ? u.cost : null,
-      cost_in_est: costInUsd,
-      cost_out_est: costOutUsd,
-      prompt_tokens: u?.prompt_tokens ?? input ?? null,
-      completion_tokens: u?.completion_tokens ?? output ?? null,
-      total_tokens: u?.total_tokens ?? null,
+      model: e.model,
+      transport: e.transport,
+      tag: e.tag,
+      attempts: e.attempts,
+      ms: e.ms,
+      cost: e.cost,
+      cost_in_est: e.cost_in_est,
+      cost_out_est: e.cost_out_est,
+      prompt_tokens: e.prompt_tokens,
+      completion_tokens: e.completion_tokens,
+      total_tokens: e.total_tokens,
       // Prompt-cache hits (subset of prompt_tokens billed at the cache-read
       // rate). Null on endpoints without caching — distinguishes "no caching
       // available" from a genuine zero-hit call.
-      cached_tokens: u?.prompt_tokens_details?.cached_tokens ?? null,
+      cached_tokens: e.cached_tokens,
       // Structured attribution — null when the caller didn't supply it.
       kind: a?.kind ?? null,
       producer_id: a?.producerId ?? null,
@@ -347,12 +360,42 @@ async function recordLLMCost(
       page: a?.page ?? null,
       lang: a?.lang ?? null,
       cache_version: a?.cache_version ?? null,
-      cost_class: opts.cost_class ?? null,
+      cost_class: e.cost_class,
     };
     await cache.put(key, JSON.stringify(rec), { expirationTtl: LLM_COST_TTL_S });
   } catch {
     // best-effort telemetry; never fail the LLM call over a ledger write
   }
+}
+
+async function recordLLMCost(
+  env: LLMEnv,
+  model: LLMModelId,
+  attempts: number,
+  result: Omit<LLMResult, 'attempts'>,
+  opts: LLMCallOptions,
+): Promise<void> {
+  const u = result.usage;
+  const { input, output } = normalizeUsage(u);
+  // OpenRouter returns one billed `cost`; the in/out split is a list-price
+  // estimate so the dashboard can show where tokens (and dollars) went.
+  const { costInUsd, costOutUsd } = costSplitUsd(model, u);
+  await recordCostLedgerEntry(env, {
+    model,
+    transport: result.transport,
+    tag: opts.tag ?? 'untagged',
+    attempts,
+    ms: result.elapsed_ms,
+    cost: typeof u?.cost === 'number' ? u.cost : null,
+    cost_in_est: costInUsd,
+    cost_out_est: costOutUsd,
+    prompt_tokens: u?.prompt_tokens ?? input ?? null,
+    completion_tokens: u?.completion_tokens ?? output ?? null,
+    total_tokens: u?.total_tokens ?? null,
+    cached_tokens: u?.prompt_tokens_details?.cached_tokens ?? null,
+    attribution: opts.attribution,
+    cost_class: opts.cost_class ?? null,
+  });
 }
 
 async function callOnce(

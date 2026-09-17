@@ -59,6 +59,12 @@ describe.skipIf(!process.env.RUN_PIN_BENCH)('rabbi.identity.pin accuracy benchma
     CLOUDFLARE_ACCOUNT_ID: vars.CLOUDFLARE_ACCOUNT_ID,
     AI_GATEWAY_ID: vars.AI_GATEWAY_ID ?? 'talmud',
     OPENROUTER_GATEWAY_PROVIDER: vars.OPENROUTER_GATEWAY_PROVIDER ?? 'openrouter',
+    // Jev path (rabbi-pin-jev.ts). Present → the pin runs on Jev with the
+    // DeepSeek prompt as fallback; absent → DeepSeek only. Set PIN_BENCH_LLM=1
+    // to force the DeepSeek path for a head-to-head.
+    ...(vars.TYPESAFE_API_KEY && !process.env.PIN_BENCH_LLM
+      ? { TYPESAFE_API_KEY: vars.TYPESAFE_API_KEY }
+      : {}),
   };
 
   it('pins the clear cases, declines when undecidable, never confidently wrong', async () => {
@@ -115,7 +121,7 @@ describe.skipIf(!process.env.RUN_PIN_BENCH)('rabbi.identity.pin accuracy benchma
 
     const clearAcc = clearTotal ? clearHit / clearTotal : 1;
     const report = [
-      `=== rabbi.identity.pin benchmark (Berakhot 2a-11b, ${CASES.length} ambiguous mentions; no-cast floor) ===`,
+      `=== rabbi.identity.pin benchmark (Berakhot 2a-11b, ${CASES.length} ambiguous mentions; no-cast floor; ${env.TYPESAFE_API_KEY ? 'Jev' : 'DeepSeek'} path) ===`,
       `clear accuracy:   ${clearHit}/${clearTotal} (${(clearAcc * 100).toFixed(0)}%)`,
       `declines correct: ${declineOk}/${declineTotal}`,
       `CONFIDENTLY WRONG: ${confidentlyWrong}  (pinned a wrong identity — the metric that must stay ~0)`,

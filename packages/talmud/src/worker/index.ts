@@ -11,6 +11,7 @@ import {
   clearPauses,
   isBudgetPaused,
 } from '@corpus/core/llm/budget';
+import { runJev } from '@corpus/core/llm/jev';
 import {
   type CostAttribution,
   type LLMModelId,
@@ -93,10 +94,12 @@ import { fetchHebrewBooksDaf } from '../lib/sefref/hebrewbooks/client';
 import { estimateShasCost } from '../lib/shasCost';
 import {
   type BridgeSection,
+  buildBridgeJevRequest,
   buildBridgePrompt,
   type DafBridge,
   edgeOfTractateBridge,
   hadranBridge,
+  jevBridge,
   llmBridge,
 } from '../lib/typing/bridge';
 import {
@@ -263,6 +266,7 @@ import {
   type ResolvedRabbi,
   resolveSegIdxs,
 } from './rabbi-observations';
+import { buildRabbiPinJevRequest, decideRabbiPin } from './rabbi-pin-jev';
 import {
   type Movement,
   RABBI_PLACES,
@@ -1027,41 +1031,68 @@ async function computeDafBridge(env: Bindings, tractate: string, page: string): 
         summary: str(nextFirst.fields?.summary),
         excerpt: str(nextFirst.fields?.excerpt),
       };
-      try {
-        const res = await runLLM(env, {
-          model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
-          messages: [
-            {
-              role: 'system',
-              content:
-                'You are a Talmud scholar judging whether a sugya continues across a daf boundary.',
-            },
-            { role: 'user', content: buildBridgePrompt(prevSec, nextSec) },
-          ],
-          max_tokens: 1500,
-          temperature: 0.2,
-          response_format: { type: 'json_schema', json_schema: ARGUMENT_BRIDGE_OUTPUT_SCHEMA },
-          thinking: false,
-          tag: 'argument-overview.bridge',
-          attribution: { kind: 'bridge', producerId: 'argument-overview.bridge', tractate, page },
-        });
-        let verdict: { continues?: unknown; note?: unknown } = {};
+      const attribution: CostAttribution = {
+        kind: 'bridge',
+        producerId: 'argument-overview.bridge',
+        tractate,
+        page,
+      };
+      // Jev first: the bridge is one yes/no, so it is a single Noul (bridge.ts).
+      // Falls through to the DeepSeek prompt when the key is unset or the call
+      // fails; a budget pause skips straight to the no-data verdict.
+      let judged: DafBridge | null = null;
+      let paused = false;
+      if (env.TYPESAFE_API_KEY) {
         try {
-          verdict = JSON.parse(res.content);
-        } catch {
-          /* fall through */
+          const req = buildBridgeJevRequest(prevSec, nextSec);
+          const res = await runJev(env, { ...req, tag: 'argument-overview.bridge', attribution });
+          judged = jevBridge(from, to, res.answers.continues.noul);
+        } catch (err) {
+          paused = isBudgetPaused(err);
+          if (!paused)
+            console.warn(
+              `[argument-overview.bridge] jev failed, falling back to LLM: ${String((err as Error)?.message ?? err).slice(0, 200)}`,
+            );
         }
-        bridge = llmBridge(from, to, verdict);
-      } catch {
-        bridge = {
-          from,
-          to,
-          continues: false,
-          kind: 'new-topic',
-          via: 'no-data',
-          note: 'bridge LLM unavailable',
-        };
       }
+      if (!judged && !paused) {
+        try {
+          const res = await runLLM(env, {
+            model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
+            messages: [
+              {
+                role: 'system',
+                content:
+                  'You are a Talmud scholar judging whether a sugya continues across a daf boundary.',
+              },
+              { role: 'user', content: buildBridgePrompt(prevSec, nextSec) },
+            ],
+            max_tokens: 1500,
+            temperature: 0.2,
+            response_format: { type: 'json_schema', json_schema: ARGUMENT_BRIDGE_OUTPUT_SCHEMA },
+            thinking: false,
+            tag: 'argument-overview.bridge',
+            attribution,
+          });
+          let verdict: { continues?: unknown; note?: unknown } = {};
+          try {
+            verdict = JSON.parse(res.content);
+          } catch {
+            /* fall through */
+          }
+          judged = llmBridge(from, to, verdict);
+        } catch {
+          /* no-data below */
+        }
+      }
+      bridge = judged ?? {
+        from,
+        to,
+        continues: false,
+        kind: 'new-topic',
+        via: 'no-data',
+        note: 'bridge LLM unavailable',
+      };
     }
   }
   // Don't pin a no-data verdict — it should retry once the dafim are warmed / budget frees.
@@ -8917,32 +8948,67 @@ export async function computeRabbiPin(
     /* best-effort: pin without the cast */
   }
 
-  let pick: { slug?: unknown; confidence?: unknown; reason?: unknown } | null = null;
-  try {
-    const res = await runLLM(env, {
-      model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
-      messages: [
-        { role: 'system', content: RABBI_PIN_SYSTEM_PROMPT },
-        { role: 'user', content: buildRabbiPinPrompt(inst, cands, cast, tractate, page) },
-      ],
-      max_tokens: 400,
-      temperature: 0.1,
-      response_format: { type: 'json_schema', json_schema: RABBI_PIN_OUTPUT_SCHEMA },
-      thinking: false,
-      tag: 'rabbi.identity.pin',
-      attribution: { kind: 'rabbi', producerId: 'rabbi.identity.pin', tractate, page },
-    });
-    pick = JSON.parse(res.content);
-  } catch {
-    return declined; // budget-gated / parse failure → stay honest
+  const attribution: CostAttribution = {
+    kind: 'rabbi',
+    producerId: 'rabbi.identity.pin',
+    tractate,
+    page,
+  };
+  let verdict: {
+    slug: string | null;
+    confidence: 'high' | 'medium' | 'low';
+    reason: string;
+  } | null = null;
+
+  // Jev first: a typed Choice over the candidate slugs with a probability per
+  // option (rabbi-pin-jev.ts), registry duplicates merged before the threshold.
+  // Any failure falls through to the DeepSeek prompt below, so a deploy
+  // without TYPESAFE_API_KEY (or a TypeSafe outage) behaves exactly as before.
+  if (env.TYPESAFE_API_KEY) {
+    try {
+      const req = buildRabbiPinJevRequest(inst, cands, cast, tractate, page);
+      const res = await runJev(env, { ...req, tag: 'rabbi.identity.pin', attribution });
+      const d = decideRabbiPin(res.answers, cands);
+      verdict = { slug: d.slug, confidence: d.confidence, reason: d.reason };
+    } catch (err) {
+      if (isBudgetPaused(err)) return declined; // the LLM path is paused too
+      console.warn(
+        `[rabbi.identity.pin] jev failed, falling back to LLM: ${String((err as Error)?.message ?? err).slice(0, 200)}`,
+      );
+    }
   }
 
-  const rawSlug = typeof pick?.slug === 'string' ? pick.slug : null;
-  const reason = typeof pick?.reason === 'string' ? pick.reason : '';
-  const confidence: 'high' | 'medium' | 'low' =
-    pick?.confidence === 'high' || pick?.confidence === 'medium' ? pick.confidence : 'low';
-  // slug MUST be one of the candidates (never an invented one).
-  const slug = rawSlug && cands.some((c) => c.slug === rawSlug) ? rawSlug : null;
+  if (!verdict) {
+    let pick: { slug?: unknown; confidence?: unknown; reason?: unknown } | null = null;
+    try {
+      const res = await runLLM(env, {
+        model: 'openrouter/deepseek/deepseek-v4-flash' as LLMModelId,
+        messages: [
+          { role: 'system', content: RABBI_PIN_SYSTEM_PROMPT },
+          { role: 'user', content: buildRabbiPinPrompt(inst, cands, cast, tractate, page) },
+        ],
+        max_tokens: 400,
+        temperature: 0.1,
+        response_format: { type: 'json_schema', json_schema: RABBI_PIN_OUTPUT_SCHEMA },
+        thinking: false,
+        tag: 'rabbi.identity.pin',
+        attribution,
+      });
+      pick = JSON.parse(res.content);
+    } catch {
+      return declined; // budget-gated / parse failure → stay honest
+    }
+    const rawSlug = typeof pick?.slug === 'string' ? pick.slug : null;
+    verdict = {
+      // slug MUST be one of the candidates (never an invented one).
+      slug: rawSlug && cands.some((c) => c.slug === rawSlug) ? rawSlug : null,
+      confidence:
+        pick?.confidence === 'high' || pick?.confidence === 'medium' ? pick.confidence : 'low',
+      reason: typeof pick?.reason === 'string' ? pick.reason : '',
+    };
+  }
+
+  const { slug, confidence, reason } = verdict;
   // Precision gate: only OVERRIDE the honest "uncertain" verdict on a confident
   // pin to a real candidate. A null slug or a low-confidence lean stays honest.
   if (!slug || confidence === 'low') {
