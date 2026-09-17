@@ -31,6 +31,11 @@ describe('canonical host (tanach.dev)', () => {
     expect(res.headers.get('location')).toBe('https://tanach.dev/');
   });
 
+  it('does not redirect POST /mcp on the legacy host (MCP clients may not follow a 301)', async () => {
+    const res = await fetchAs('https://tanach.shaunregenbaum.com/mcp', { method: 'POST' });
+    expect(res.status).not.toBe(301);
+  });
+
   it('does not redirect /api/* on the legacy host', async () => {
     const res = await fetchAs('https://tanach.shaunregenbaum.com/api/chapter/Genesis/19');
     expect(res.status).not.toBe(301);

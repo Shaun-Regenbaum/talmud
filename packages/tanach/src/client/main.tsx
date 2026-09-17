@@ -10,6 +10,7 @@ import '@corpus/ui/inspector.css';
 import '@corpus/ui/usage.css';
 import { AlignPage } from './AlignPage.tsx';
 import { App } from './App.tsx';
+import { ConnectPage } from './ConnectPage.tsx';
 import { UsagePage } from './UsagePage.tsx';
 import './styles.css';
 
@@ -18,6 +19,7 @@ const path = window.location.pathname.replace(/\/+$/, '');
 const page = () => {
   if (path === '/usage') return <UsagePage />;
   if (path === '/align') return <AlignPage />;
+  if (path === '/connect') return <ConnectPage />;
   return <App />;
 };
 if (root) render(page, root);

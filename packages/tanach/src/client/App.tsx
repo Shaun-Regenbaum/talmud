@@ -861,6 +861,9 @@ export function App(): JSX.Element {
         <a class="usage-link" href="/usage" title="LLM usage">
           usage
         </a>
+        <a class="usage-link" href="/connect" title="Connect an AI client via MCP">
+          mcp
+        </a>
         <a
           class="usage-link"
           href={`/align?book=${encodeURIComponent(loc().book)}&chapter=${loc().chapter}`}

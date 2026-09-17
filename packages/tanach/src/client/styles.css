@@ -1245,3 +1245,65 @@ body {
     display: none;
   }
 }
+
+/* /connect — the MCP connect guide (dev-facing; mirrors talmud.dev/#mcp). */
+.connect-page {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 1.5rem 16px 3rem;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--ink, #222);
+  line-height: 1.55;
+}
+.connect-page header {
+  margin-bottom: 1.25rem;
+}
+.connect-page h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+.connect-page header a {
+  color: var(--ink-muted, #666);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.connect-page h2 {
+  font-size: 1.05rem;
+  margin: 1rem 0 0.4rem;
+}
+.connect-page p {
+  margin: 0 0 0.8rem;
+  font-size: 0.92rem;
+}
+.connect-page p > code {
+  background: var(--paper-2, #f0f0f2);
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+}
+.connect-code {
+  position: relative;
+  margin: 0.6rem 0 1.2rem;
+}
+.connect-code pre {
+  margin: 0;
+  padding: 0.9rem 3.5rem 0.9rem 1rem;
+  background: #1e1e22;
+  color: #e6e6e6;
+  border-radius: 8px;
+  overflow: auto;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.connect-copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+}

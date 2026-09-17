@@ -1,3 +1,4 @@
+import { apiRequestBridge, serveCodeModeMcp } from '@corpus/core/mcp/code-mode';
 import { billingSummary, reconcileBilling } from '@corpus/core/telemetry/billing';
 /**
  * Tanach worker — Hono on Cloudflare Workers.
@@ -35,6 +36,7 @@ import {
 } from '../lib/parsha.ts';
 import { lookupPlace } from './gazetteer.ts';
 import { chapterRuns, chapterRunTree } from './inspect.ts';
+import { TANACH_OPENAPI } from './mcp-openapi.ts';
 import { currentParsha } from './parsha-calendar.ts';
 import type { EventSection } from './producers/events.ts';
 import { translateHebrew } from './producers/translate.ts';
@@ -53,6 +55,10 @@ import { runTanachWarm } from './warm-cron.ts';
 
 interface Env extends TanachEnv {
   ASSETS: Fetcher;
+  // Dynamic Worker Loader binding (wrangler.toml `worker_loaders`). Spins up the
+  // isolated sandbox the code-mode MCP `execute` tool runs in. Optional: when
+  // unset, /mcp returns 503 and the rest of the worker is unaffected.
+  LOADER?: WorkerLoader;
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -87,14 +93,16 @@ const LEGACY_HOSTS = new Set(['tanach.shaunregenbaum.com']);
 
 /**
  * Send browsers on a legacy hostname to the canonical one, path and query
- * intact, so the app has a single public name. /api/* is exempt and keeps
- * answering on every hostname — it has callers (the Talmud app links here),
- * and redirecting them would break live clients to buy nothing.
+ * intact, so the app has a single public name. The machine surfaces are
+ * exempt and keep answering on every hostname: /api/* has callers (the Talmud
+ * app links here) and /mcp is POST-based (a redirect asks the client to
+ * re-issue the POST, which not every MCP client does). Redirecting them would
+ * break live clients to buy nothing.
  */
 app.use('*', async (c, next) => {
   const url = new URL(c.req.url);
   if (!LEGACY_HOSTS.has(url.hostname)) return next();
-  if (url.pathname.startsWith('/api/')) return next();
+  if (url.pathname === '/mcp' || url.pathname.startsWith('/api/')) return next();
   url.hostname = CANONICAL_HOST;
   return c.redirect(url.toString(), 301);
 });
@@ -860,6 +868,32 @@ app.get('/api/run-tree/:book/:chapter/:id', async (c) => {
   const tree = await chapterRunTree(c.env.CACHE, book, chapter, id, inst, lang);
   if (!tree) return c.json({ error: `Unknown producer: ${id}` }, 404);
   return c.json(tree);
+});
+
+/**
+ * Code-mode MCP server (Streamable HTTP) at /mcp — the shared
+ * @corpus/core/mcp/code-mode, the same server talmud.dev mounts. Two tools,
+ * `search` (over mcp-openapi.ts) and `execute` (LLM-written code in an
+ * isolated sandbox, env.LOADER, whose only outside access is the request
+ * bridge that re-enters this Hono app in-process for /api/* paths). Open and
+ * read-only: every route here is a GET. Routes generate inline, so the bridge
+ * keeps a call alive past the sandbox budget (waitUntil) — a piece that
+ * outlives the model's patience still lands in cache for the retry.
+ */
+app.all('/mcp', async (c) => {
+  if (!c.env.LOADER) {
+    return c.json({ error: 'MCP unavailable: worker_loaders LOADER binding not configured' }, 503);
+  }
+  return serveCodeModeMcp(c, {
+    loader: c.env.LOADER,
+    spec: TANACH_OPENAPI,
+    name: 'tanach',
+    request: apiRequestBridge({
+      app,
+      env: c.env,
+      waitUntil: (p) => c.executionCtx.waitUntil(p),
+    }),
+  });
 });
 
 // Everything else: serve the built SPA (static assets + index.html fallback).
