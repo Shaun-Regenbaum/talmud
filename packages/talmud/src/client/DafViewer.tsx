@@ -3910,6 +3910,28 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               }}
             >
               <a
+                href="#about"
+                style={{
+                  color: 'inherit',
+                  'text-decoration': 'none',
+                  'border-bottom': '1px dotted #bbb',
+                }}
+              >
+                {t('dev.about')}
+              </a>
+              {' · '}
+              <a
+                href="#howitworks"
+                style={{
+                  color: 'inherit',
+                  'text-decoration': 'none',
+                  'border-bottom': '1px dotted #bbb',
+                }}
+              >
+                {t('dev.howItWorks')}
+              </a>
+              {' · '}
+              <a
                 href="#usage"
                 style={{
                   color: 'inherit',
@@ -4017,7 +4039,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         {/* Right-side aside — the on-demand ArgumentSidebar. */}
         <Show when={!isMobile() && sidebar() !== null}>
           <aside
-            class="daf-aside"
+            class="daf-aside read-prose"
             data-tour="note-panel"
             style={{
               position: 'sticky',

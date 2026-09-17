@@ -29,6 +29,9 @@
   --accent: #8a2a2b;
   --accent-strong: #6f2122;
   --line: #e5e3dc;
+  /* English reading prose (notes, the About page, the guides). Loaded in
+     index.html; shared with the Tanach reader via the @corpus/ui token. */
+  --font-serif: "Spectral", Georgia, "Times New Roman", serif;
 }
 
 * {
@@ -848,4 +851,356 @@ body.dev-panel-open .daf-page {
    in source. GutterOverlay.tsx sets no inline margins. */
 .gutter-cluster[data-count="1"] .gutter-icon {
   margin: 0;
+}
+
+/* ── #about (and the guides) — the project's front door ─────────────────────────────────
+   One reading column with marginalia, like the introduction to a sefer. The
+   reading face is Spectral (loaded by the page on mount); the Hebrew marks use
+   the self-hosted Mekorot Vilna the daf already uses. Stacks on phones. */
+.read-page {
+  --read-paper: var(--bg);
+  --read-ink: var(--fg);
+  --read-ink-soft: #4a423b;
+  --read-ink-dim: #7a6e64;
+  --read-rule: rgba(31, 27, 23, 0.35);
+  --read-rule-soft: rgba(31, 27, 23, 0.15);
+  --read-serif: var(--font-serif);
+  --read-hebrew: "Mekorot Vilna", serif;
+  --read-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  min-height: 100vh;
+  padding: 0 0 48px;
+  background: var(--read-paper);
+  color: var(--read-ink);
+  font-family: var(--read-serif);
+}
+.read-page a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(138, 42, 43, 0.35);
+}
+.read-page a:hover {
+  color: var(--accent-strong);
+  border-bottom-color: var(--accent-strong);
+}
+.read-page p {
+  margin: 0 0 14px;
+  font-size: 18px;
+  line-height: 1.62;
+}
+.read-page h2 {
+  margin: 0 0 14px;
+  font-family: var(--read-serif);
+  font-weight: 600;
+  font-size: 28px;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--read-ink);
+}
+.read-sec,
+.read-head {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 640px);
+  gap: 48px;
+  justify-content: center;
+  padding: 0 16px;
+}
+.read-sec {
+  margin-top: 52px;
+}
+.read-head {
+  align-items: baseline;
+  padding-top: 30px;
+}
+.read-head-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--read-rule);
+}
+.read-page .read-wordmark {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--read-ink);
+  border-bottom: none;
+}
+.read-page .read-wordmark:hover {
+  color: var(--accent);
+}
+.read-nav {
+  display: flex;
+  gap: 22px;
+  font-size: 14px;
+}
+.read-page .read-nav a {
+  color: var(--read-ink);
+  border-bottom: none;
+}
+.read-page .read-nav a:hover {
+  color: var(--accent);
+}
+.read-margin {
+  text-align: right;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--read-ink-dim);
+  padding-top: 6px;
+  line-height: 1.5;
+}
+.read-margin-plain {
+  padding-top: 0;
+}
+.read-letter {
+  display: block;
+  font-family: var(--read-hebrew);
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.read-letter-big {
+  font-size: 34px;
+}
+.read-hero {
+  margin-top: 60px;
+}
+.read-title {
+  margin: 0 0 22px;
+  font-family: var(--read-serif);
+  font-weight: 700;
+  font-size: clamp(2.1rem, 4.2vw, 3.4rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.read-drop::first-letter {
+  float: left;
+  font-family: var(--read-hebrew);
+  font-weight: 700;
+  font-size: 74px;
+  line-height: 0.8;
+  padding: 8px 10px 0 0;
+  color: var(--accent);
+}
+.read-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+.read-page .read-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--read-ink);
+}
+.read-page .read-btn:hover {
+  color: var(--read-ink);
+  border-color: var(--read-ink-dim);
+  background: #fff;
+}
+.read-page .read-btn.is-fill {
+  border-color: transparent;
+  background: var(--accent);
+  color: #fff;
+}
+.read-page .read-btn.is-fill:hover {
+  border-color: transparent;
+  background: var(--accent-strong);
+  color: #fff;
+}
+.read-plate {
+  margin-top: 40px;
+}
+.read-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--read-rule);
+}
+.read-cap {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--read-ink-dim);
+  line-height: 1.5;
+}
+.read-list,
+.read-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--read-rule);
+}
+.read-timeline {
+  border-bottom: 1px solid var(--read-rule);
+}
+.read-list li,
+.read-timeline li {
+  display: grid;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--read-rule-soft);
+}
+.read-list li {
+  grid-template-columns: 26px 1fr;
+}
+.read-timeline li {
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
+}
+.read-timeline li:last-child {
+  border-bottom: none;
+}
+.read-n {
+  font-family: var(--read-mono);
+  font-size: 12px;
+  color: var(--read-ink-dim);
+  padding-top: 5px;
+}
+.read-y {
+  font-family: var(--read-mono);
+  font-size: 12.5px;
+  color: var(--accent);
+  padding-top: 4px;
+}
+.read-t {
+  font-weight: 600;
+  font-size: 17px;
+}
+.read-d {
+  margin-top: 2px;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--read-ink-soft);
+}
+.read-credits {
+  margin-top: 64px;
+}
+.read-small {
+  padding-top: 12px;
+  border-top: 1px solid var(--read-rule);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--read-ink-dim);
+}
+@media (max-width: 900px) {
+  .read-sec,
+  .read-head {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .read-sec {
+    margin-top: 40px;
+  }
+  .read-margin {
+    text-align: left;
+    padding-top: 0;
+  }
+  .read-margin br {
+    display: none;
+  }
+  .read-letter {
+    display: inline-block;
+    margin: 0 10px 0 0;
+    vertical-align: -6px;
+  }
+  .read-plate .read-margin {
+    display: none;
+  }
+  .read-head-row {
+    flex-wrap: wrap;
+  }
+  .read-nav {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .read-timeline li {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .read-page p {
+    font-size: 17px;
+  }
+}
+
+/* Reading prose anywhere else in the app (the sidebar notes, the guides):
+   paragraphs in the shared serif, everything around them stays sans. Hebrew
+   prose sets its own face inline and is unaffected. */
+.read-prose p {
+  font-family: var(--font-serif);
+}
+
+/* Code on the reading pages (the MCP guide). */
+.read-page code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  padding: 0.05em 0.35em;
+  border-radius: 4px;
+  background: rgba(26, 26, 26, 0.06);
+}
+.read-code {
+  position: relative;
+  margin: 0.4rem 0 1.2rem;
+}
+.read-code pre {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  padding-right: 3.6rem;
+  border-radius: 6px;
+  background: #2b2a26;
+  color: #e8e6df;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow: auto;
+}
+.read-code pre code {
+  padding: 0;
+  background: none;
+  font-size: inherit;
+}
+.read-copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  background: transparent;
+  color: #e8e6df;
+  font: inherit;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+.read-copy.is-copied {
+  background: #2f7d32;
+  border-color: #2f7d32;
+  color: #fff;
+}
+.read-page h3 {
+  margin: 1.4rem 0 0.4rem;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--read-ink);
+}
+.read-page h3:first-child {
+  margin-top: 0;
 }
