@@ -22,7 +22,9 @@
  *     people on one page, which the daf-level pin cannot express.
  *
  * Loading is best-effort: no index file, or a build without the assets, means
- * an empty page and the callers fall through to what they did before.
+ * an empty page and the callers fall through to what they did before. The
+ * generation worker has no assets binding, so it falls back to fetching the
+ * reader's public copy of the file (DEFAULT_PUBLIC_ORIGIN / PUBLIC_ORIGIN).
  */
 
 import { canonicalSlug, slugToName } from './rabbi-graph';
@@ -62,13 +64,19 @@ export function sageIndexPath(tractate: string): string {
   return `/sage-index/${encodeURIComponent(tractate.replace(/ /g, '_'))}.json`;
 }
 
+/** Where the reader serves its static files. The generation worker
+ *  (wrangler.generator.toml) has no assets binding, and the pin runs there
+ *  when a run is queued, so it reads the same file over HTTP from the reader.
+ *  Override with the PUBLIC_ORIGIN var. */
+export const DEFAULT_PUBLIC_ORIGIN = 'https://talmud.dev';
+
 // Per-isolate memo. One tractate file is 30-300 KB and every rabbi card on a
 // page asks for the same one, so the first read pays and the rest are free.
 const loaded = new Map<string, Promise<SageIndexDoc | null>>();
 
-async function fetchDoc(assets: Fetcher, tractate: string): Promise<SageIndexDoc | null> {
+async function parseDoc(p: Promise<Response>): Promise<SageIndexDoc | null> {
   try {
-    const res = await assets.fetch(new Request(`https://assets.local${sageIndexPath(tractate)}`));
+    const res = await p;
     if (!res.ok) return null;
     const text = await res.text();
     // The ASSETS binding serves index.html (status 200) for a missing path;
@@ -81,15 +89,33 @@ async function fetchDoc(assets: Fetcher, tractate: string): Promise<SageIndexDoc
   }
 }
 
+async function fetchDoc(
+  assets: Fetcher | undefined,
+  tractate: string,
+  origin: string | null,
+): Promise<SageIndexDoc | null> {
+  const path = sageIndexPath(tractate);
+  let doc = assets
+    ? await parseDoc(assets.fetch(new Request(`https://assets.local${path}`)))
+    : null;
+  if (!doc && origin) doc = await parseDoc(fetch(`${origin}${path}`));
+  return doc;
+}
+
+/** `origin`: where to fetch the public copy when the assets binding is absent
+ *  or serves the SPA page. `undefined` = the default reader origin; `null` =
+ *  no network fallback (tests, or a caller that wants the bundle only). */
 export async function loadSageIndex(
   assets: Fetcher | undefined,
   tractate: string,
+  origin: string | null | undefined = DEFAULT_PUBLIC_ORIGIN,
 ): Promise<SageIndexDoc | null> {
-  if (!assets) return null;
+  const fallback = origin === undefined ? DEFAULT_PUBLIC_ORIGIN : origin;
+  if (!assets && !fallback) return null;
   const key = tractate.toLowerCase();
   let p = loaded.get(key);
   if (!p) {
-    p = fetchDoc(assets, tractate);
+    p = fetchDoc(assets, tractate, fallback);
     loaded.set(key, p);
     // Do not memoize a transient failure.
     p.then((d) => {
@@ -122,8 +148,9 @@ export async function sageIndexForPage(
   assets: Fetcher | undefined,
   tractate: string,
   page: string,
+  origin: string | null | undefined = DEFAULT_PUBLIC_ORIGIN,
 ): Promise<SageIndexRow[]> {
-  const doc = await loadSageIndex(assets, tractate);
+  const doc = await loadSageIndex(assets, tractate, origin);
   return unpackRows(doc?.amudim[page]);
 }
 
