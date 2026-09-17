@@ -52,8 +52,12 @@ export interface PesukimVerse {
   whyHere: string | null;
   mechanism: string | null;
   landing: string | null;
-  /** Enrichment ids still missing for this verse (empty when the card is whole). */
+  /** Enrichment ids not generated yet for this verse. */
   missing: PesukimEnrichmentId[];
+  /** Enrichment ids that ARE cached but hold no usable prose (the model echoed
+   *  its input or returned fragments instead of the schema). Reported rather
+   *  than hidden: a caller must not read null here as "not generated yet". */
+  malformed: PesukimEnrichmentId[];
 }
 
 /** The chapter page on tanach.dev for a "Book C:V" ref; null when unparseable. */
@@ -89,11 +93,13 @@ export function assemblePesukimVerse(
   const ref = instanceVerseRef(inst) ?? '';
   const prose: Record<string, string | null> = {};
   const missing: PesukimEnrichmentId[] = [];
+  const malformed: PesukimEnrichmentId[] = [];
   for (const e of PESUKIM_VIEW_ENRICHMENTS) {
     const parsed = enrichments[e.id];
     const text = parsed ? str(parsed[e.field]) : null;
     prose[e.out] = text;
     if (!parsed) missing.push(e.id);
+    else if (!text) malformed.push(e.id);
   }
   return {
     ref,
@@ -115,7 +121,16 @@ export function assemblePesukimVerse(
     mechanism: prose.mechanism ?? null,
     landing: prose.landing ?? null,
     missing,
+    malformed,
   };
+}
+
+/** Enrichment ids that are cached but unusable on at least one verse. These
+ *  are not cold (generate=1 will not touch them); they need a re-warm. */
+export function pesukimMalformedProducers(verses: PesukimVerse[]): string[] {
+  const bad = new Set<string>();
+  for (const v of verses) for (const id of v.malformed) bad.add(id);
+  return PESUKIM_VIEW_ENRICHMENTS.map((e) => e.id).filter((id) => bad.has(id));
 }
 
 /** Producer ids that still need generating, for the view's `cold` list. The

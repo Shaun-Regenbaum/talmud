@@ -4,6 +4,7 @@ import {
   instanceVerseRef,
   PESUKIM_VIEW_ENRICHMENTS,
   pesukimColdProducers,
+  pesukimMalformedProducers,
   tanachChapterUrl,
 } from '../src/worker/pesukim-view';
 
@@ -74,6 +75,24 @@ describe('assemblePesukimVerse', () => {
     expect(v.mechanism).toBe('M');
     expect(v.landing).toBe('L');
     expect(v.missing).toEqual([]);
+    expect(v.malformed).toEqual([]);
+  });
+
+  it('a cached entry without the prose field is MALFORMED, not missing (seen on Chullin 140: the model echoed its input JSON)', () => {
+    const v = assemblePesukimVerse(
+      inst,
+      {
+        'pesukim.why-here': { focalPasuk: 'שַׁלֵּחַ', dafContext: { segments: [] } },
+        'pesukim.synthesis': { synthesis: 'S' },
+      },
+      null,
+    );
+    expect(v.whyHere).toBeNull();
+    expect(v.malformed).toEqual(['pesukim.why-here']);
+    expect(v.missing).not.toContain('pesukim.why-here');
+    expect(pesukimMalformedProducers([v])).toEqual(['pesukim.why-here']);
+    // Malformed is not cold: generation would cache-hit it, so it must not be promised.
+    expect(pesukimColdProducers(true, [v])).not.toContain('pesukim.why-here');
   });
 
   it('says which sections are missing instead of pretending (null, listed in missing)', () => {
