@@ -311,7 +311,7 @@ import type {
 } from './studio-schema';
 import { fetchSurfaceUsage } from './surface-analytics';
 import { classifyError, recordTelemetry, runTelemetryRec, type TelemetryRecord } from './telemetry';
-import type { Bindings, JobMessage } from './types';
+import type { Bindings, JobMessage, WaitUntilCtx } from './types';
 import {
   listObservedConcepts,
   listObservedPlaces,
@@ -3877,7 +3877,7 @@ function renderTemplate(tpl: string, vars: Record<string, unknown>): string {
 interface RunCtx {
   env: Bindings;
   url: string;
-  ctx: ExecutionContext;
+  ctx: WaitUntilCtx;
   /** Output language for enrichment prompts + cache keys. Flows from the
    *  JobMessage through the whole dependency tree so a Hebrew bio's upstream
    *  (relationships, geography, …) are generated in Hebrew too. Marks ignore
@@ -7253,7 +7253,7 @@ function percentile(sorted: number[], p: number): number {
 // headline cost numbers. Every endpoint is stale-while-revalidate cached.
 // ===========================================================================
 
-type UsageCtx = { env: Bindings; executionCtx: ExecutionContext };
+type UsageCtx = { env: Bindings; executionCtx: WaitUntilCtx };
 
 // External analytics, sub-cached 5 min so the dashboard refresh doesn't hammer
 // the CF analytics API.
@@ -7486,7 +7486,7 @@ async function buildHealthSection(cache?: KVNamespace) {
  * synchronously. `build` returns the section data; this stamps `generatedAt`.
  */
 async function serveUsageSection<T>(
-  c: { env: Bindings; executionCtx: ExecutionContext; json: (v: unknown) => Response },
+  c: { env: Bindings; executionCtx: WaitUntilCtx; json: (v: unknown) => Response },
   cache: KVNamespace | undefined,
   key: string,
   freshMs: number,

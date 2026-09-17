@@ -8,7 +8,7 @@
 // which is core to the run engine, not telemetry.
 
 import { normalizeUsage, costUsd as priceCostUsd } from '@corpus/core/llm/pricing';
-import type { Bindings } from './types';
+import type { Bindings, WaitUntilCtx } from './types';
 
 // String-typed so composed labels like `stage-a-<classifyError>` work without
 // requiring a combinatorial explosion of literal types. Classifier values are
@@ -50,7 +50,7 @@ export function classifyError(detail: string): TelemetryErrorKind {
 // Fire-and-forget telemetry recorder: does NOT block the response. Caller
 // should pass c.executionCtx so the write finishes after the client is served.
 export function recordTelemetry(
-  ctx: { env: Bindings; executionCtx: ExecutionContext },
+  ctx: { env: Bindings; executionCtx: WaitUntilCtx },
   rec: Omit<TelemetryRecord, 'ts'>,
 ): void {
   const full: TelemetryRecord = { ts: Date.now(), ...rec };

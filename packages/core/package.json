@@ -29,7 +29,7 @@
     "hono": "^4.13.7"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260511.1",
+    "@cloudflare/workers-types": "^5.20260914.1",
     "@types/node": "22",
     "miniflare": "4.20260730.0",
     "typescript": "^5.7.0",
