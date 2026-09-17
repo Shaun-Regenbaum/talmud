@@ -14,17 +14,17 @@
   "dependencies": {
     "@corpus/core": "workspace:*",
     "@corpus/ui": "workspace:*",
-    "hono": "^4.6.0",
-    "solid-js": "^1.9.0",
-    "zod": "^4.4.3"
+    "hono": "^4.13.7",
+    "solid-js": "^1.9.15",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.36.4",
+    "@cloudflare/vite-plugin": "^1.54.9",
     "@cloudflare/workers-types": "^4.20260511.1",
     "typescript": "^5.7.0",
     "vite": "^6.0.0",
-    "vite-plugin-solid": "^2.11.0",
+    "vite-plugin-solid": "^2.11.14",
     "vitest": "^4.1.5",
-    "wrangler": "^4.90.1"
+    "wrangler": "^4.131.2"
   }
 }
