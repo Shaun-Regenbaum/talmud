@@ -25,11 +25,16 @@ describe('follow-up URLs', () => {
     expect(dafViewUrl('Sotah', '4a', 'he')).toBe(
       'https://talmud.dev/api/daf-view/Sotah/4a?lang=he',
     );
-    expect(readerUrl('Sotah', '4a', 'he')).toBe('https://talmud.dev/Sotah/4a?lang=he');
-    expect(readerUrl('Sotah', '4a', 'en')).toBe('https://talmud.dev/Sotah/4a');
+    expect(readerUrl('Sotah', '4a', 'he')).toBe(
+      'https://talmud.dev/?tractate=Sotah&page=4a&lang=he#daf',
+    );
+    expect(readerUrl('Sotah', '4a', 'en')).toBe('https://talmud.dev/?tractate=Sotah&page=4a#daf');
   });
   it('escapes path pieces', () => {
     expect(dafViewUrl('Bava Kamma', '2a', 'en')).toContain('/Bava%20Kamma/2a');
+    expect(readerUrl('Bava Kamma', '2a', 'en')).toBe(
+      'https://talmud.dev/?tractate=Bava+Kamma&page=2a#daf',
+    );
   });
   it('carries the cacheKey fallback on the run-status URL only when there is one', () => {
     expect(runStatusUrl('r1', 'enrich:v2:x y')).toBe(
@@ -49,7 +54,7 @@ describe('dafViewProgress', () => {
     expect(p.hint).toBeUndefined();
     expect(p.retryAfterSeconds).toBeUndefined();
     expect(p.checkUrl).toBe('https://talmud.dev/api/daf-view/Sotah/4a');
-    expect(p.readerUrl).toBe('https://talmud.dev/Sotah/4a');
+    expect(p.readerUrl).toBe('https://talmud.dev/?tractate=Sotah&page=4a#daf');
   });
 
   it('a partial view that is generating says so, with a retry cadence and an ETA', () => {
@@ -88,7 +93,7 @@ describe('dafViewProgress checkUrl override', () => {
       checkUrl: 'https://talmud.dev/api/pesukim/Sotah/4a',
     });
     expect(p.checkUrl).toBe('https://talmud.dev/api/pesukim/Sotah/4a');
-    expect(p.readerUrl).toBe('https://talmud.dev/Sotah/4a');
+    expect(p.readerUrl).toBe('https://talmud.dev/?tractate=Sotah&page=4a#daf');
   });
 });
 
@@ -96,7 +101,7 @@ describe('generation + run follow-ups', () => {
   it('daf-generate follow-up points at the daf-view URL to re-read', () => {
     const f = dafGenerationFollowUp('Sotah', '4a', 'he');
     expect(f.checkUrl).toBe('https://talmud.dev/api/daf-view/Sotah/4a?lang=he');
-    expect(f.readerUrl).toBe('https://talmud.dev/Sotah/4a?lang=he');
+    expect(f.readerUrl).toBe('https://talmud.dev/?tractate=Sotah&page=4a&lang=he#daf');
     expect(f.retryAfterSeconds).toBe(DAF_GEN_RETRY_AFTER_S);
     expect(f.etaMinutes).toBe(DAF_GEN_ETA_MINUTES);
   });

@@ -39,9 +39,14 @@ export function pesukimViewUrl(tractate: string, page: string, lang: 'en' | 'he'
   return `${PUBLIC_ORIGIN}/api/pesukim/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}${langQuery(lang)}`;
 }
 
-/** The human page for the daf. It renders whatever exists and fills in live. */
+/** The human page for the daf. It renders whatever exists and fills in live.
+ *  The reader addresses a daf by query (`?tractate=&page=`) under the `#daf`
+ *  route — a bare `/Tractate/page` path serves the app but opens the default
+ *  daf, which is how this URL was first (wrongly) written. */
 export function readerUrl(tractate: string, page: string, lang: 'en' | 'he'): string {
-  return `${PUBLIC_ORIGIN}/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}${langQuery(lang)}`;
+  const q = new URLSearchParams({ tractate, page });
+  if (lang === 'he') q.set('lang', 'he');
+  return `${PUBLIC_ORIGIN}/?${q.toString()}#daf`;
 }
 
 /** Where to poll one queued run (the `k` fallback lets it recover a result whose
