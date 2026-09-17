@@ -104,7 +104,10 @@ export const TANACH_OPENAPI: Record<string, unknown> = {
       get: {
         summary: 'A chapter: every verse in Hebrew + English, with next/prev chapter refs.',
         description:
-          'Returns { book, chapter, ref, heRef, verses: [{ n, he, en }], next, prev }.' + SEFARIA,
+          'Returns { book, chapter, ref, heRef, verses: [{ n, he, en }], next, prev }. Verse text keeps ' +
+          "Sefaria's inline HTML (<span>/<br>/<small> for poetry lines, maqaf, divine names) — strip tags " +
+          'before quoting.' +
+          SEFARIA,
         parameters: [book, chapter],
         responses: {
           '200': { description: '{ book, chapter, ref, heRef, verses[], next, prev }' },
