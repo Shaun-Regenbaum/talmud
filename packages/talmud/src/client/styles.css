@@ -850,205 +850,282 @@ body.dev-panel-open .daf-page {
   margin: 0;
 }
 
-/* ── #about — the project's front door ─────────────────────────────────── */
+/* ── #about — the project's front door ─────────────────────────────────
+   One reading column with marginalia, like the introduction to a sefer. The
+   reading face is Spectral (loaded by the page on mount); the Hebrew marks use
+   the self-hosted Mekorot Vilna the daf already uses. Stacks on phones. */
 .about-page {
-  font-family: system-ui, -apple-system, sans-serif;
-  color: var(--fg);
+  --about-paper: #fbf8f1;
+  --about-ink: #1f1b17;
+  --about-ink-soft: #4a423b;
+  --about-ink-dim: #7a6e64;
+  --about-rule: rgba(31, 27, 23, 0.35);
+  --about-rule-soft: rgba(31, 27, 23, 0.15);
+  --about-serif: "Spectral", Georgia, "Times New Roman", serif;
+  --about-hebrew: "Mekorot Vilna", serif;
+  --about-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  min-height: 100vh;
+  padding: 0 0 48px;
+  background: var(--about-paper);
+  color: var(--about-ink);
+  font-family: var(--about-serif);
+}
+.about-page a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(138, 42, 43, 0.35);
+}
+.about-page a:hover {
+  color: var(--accent-strong);
+  border-bottom-color: var(--accent-strong);
+}
+.about-page p {
+  margin: 0 0 14px;
+  font-size: 18px;
+  line-height: 1.62;
+}
+.about-page h2 {
+  margin: 0 0 14px;
+  font-family: var(--about-serif);
+  font-weight: 600;
+  font-size: 28px;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--about-ink);
+}
+.about-sec,
+.about-head {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 640px);
+  gap: 48px;
+  justify-content: center;
+  padding: 0 16px;
+}
+.about-sec {
+  margin-top: 52px;
+}
+.about-head {
+  align-items: baseline;
+  padding-top: 30px;
+}
+.about-head-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--about-rule);
+}
+.about-page .about-wordmark {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--about-ink);
+  border-bottom: none;
+}
+.about-page .about-wordmark:hover {
+  color: var(--accent);
+}
+.about-nav {
+  display: flex;
+  gap: 22px;
+  font-size: 14px;
+}
+.about-page .about-nav a {
+  color: var(--about-ink);
+  border-bottom: none;
+}
+.about-page .about-nav a:hover {
+  color: var(--accent);
+}
+.about-margin {
+  text-align: right;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--about-ink-dim);
+  padding-top: 6px;
+  line-height: 1.5;
+}
+.about-margin-plain {
+  padding-top: 0;
+}
+.about-letter {
+  display: block;
+  font-family: var(--about-hebrew);
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.about-letter-big {
+  font-size: 34px;
 }
 .about-hero {
-  padding: 1.5rem 0 2.25rem;
-  border-bottom: 1px solid var(--line);
-  margin-bottom: 2rem;
-}
-.about-kicker {
-  margin: 0 0 1.25rem;
-  font-size: 0.8rem;
-  color: var(--muted);
+  margin-top: 60px;
 }
 .about-title {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  margin: 0 0 1rem;
-  font-size: clamp(1.6rem, 3.6vw, 2.4rem);
+  margin: 0 0 22px;
+  font-family: var(--about-serif);
   font-weight: 700;
-  letter-spacing: -0.015em;
-  line-height: 1.15;
+  font-size: clamp(2.1rem, 4.2vw, 3.4rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
-.about-title-he {
-  font-family: "Mekorot Vilna", serif;
+.about-drop::first-letter {
+  float: left;
+  font-family: var(--about-hebrew);
   font-weight: 700;
-  font-size: 1.35em;
+  font-size: 74px;
+  line-height: 0.8;
+  padding: 8px 10px 0 0;
   color: var(--accent);
-  line-height: 1;
-}
-.about-lede {
-  margin: 0 0 1.4rem;
-  max-width: 64ch;
-  font-size: 1.02rem;
-  line-height: 1.6;
-  color: #333;
 }
 .about-ctas {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: 10px;
+  margin-top: 6px;
 }
-.about-cta {
-  display: inline-block;
-  padding: 0.55rem 1rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--fg);
-  font-size: 0.9rem;
+.about-page .about-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 42px;
+  padding: 0 20px;
+  border: 1px solid var(--about-ink);
+  border-radius: 2px;
+  font-family: var(--about-serif);
   font-weight: 600;
-  text-decoration: none;
-  transition:
-    border-color 120ms ease,
-    background 120ms ease;
+  font-size: 15px;
+  color: var(--about-ink);
 }
-.about-cta:hover {
-  border-color: var(--accent);
+.about-page .about-btn:hover {
+  color: var(--about-ink);
+  border-color: var(--about-ink);
+  background: rgba(31, 27, 23, 0.05);
 }
-.about-cta.is-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+.about-page .about-btn.is-fill {
+  background: var(--about-ink);
+  color: var(--about-paper);
 }
-.about-cta.is-primary:hover {
-  background: var(--accent-strong);
+.about-page .about-btn.is-fill:hover {
+  background: #000;
+  color: var(--about-paper);
 }
-.about-fineprint {
-  margin: 0.9rem 0 0;
-  font-size: 0.8rem;
-  color: var(--muted);
+.about-plate {
+  margin-top: 40px;
 }
-.about-layout {
-  display: grid;
-  grid-template-columns: 184px minmax(0, 1fr);
-  gap: 2.5rem;
-  align-items: start;
-}
-.about-rail {
-  position: sticky;
-  top: 1rem;
-  align-self: start;
-}
-.about-rail ol {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-.about-rail button {
+.about-img {
   display: block;
   width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
-  border-left: 2px solid transparent;
-  padding: 0.3rem 0.5rem;
-  border-radius: 0 6px 6px 0;
-  font: inherit;
-  font-size: 0.86rem;
-  color: var(--muted);
-  cursor: pointer;
+  height: auto;
+  border: 1px solid var(--about-rule);
 }
-.about-rail button.is-active {
-  color: var(--accent);
-  border-left-color: var(--accent);
-  background: #f3ede4;
-  font-weight: 600;
+.about-cap {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--about-ink-dim);
+  line-height: 1.5;
 }
-.about-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 0.8rem;
-}
-.about-grid-2 {
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-}
-.about-grid-4 {
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-}
-.about-card {
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 0.95rem 1.05rem;
-  background: #fff;
-}
-.about-eyebrow {
-  display: inline-block;
-  min-width: 1.5rem;
-  margin-bottom: 0.45rem;
-  padding: 0.1rem 0.45rem;
-  border-radius: 999px;
-  background: rgba(138, 42, 43, 0.08);
-  color: var(--accent);
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-align: center;
-}
+.about-list,
 .about-timeline {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
+  border-top: 1px solid var(--about-rule);
 }
+.about-timeline {
+  border-bottom: 1px solid var(--about-rule);
+}
+.about-list li,
 .about-timeline li {
   display: grid;
-  grid-template-columns: 9rem minmax(0, 1fr);
-  gap: 1rem;
-  align-items: start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--about-rule-soft);
 }
-.about-when {
-  font-size: 0.82rem;
-  font-weight: 700;
+.about-list li {
+  grid-template-columns: 26px 1fr;
+}
+.about-timeline li {
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
+}
+.about-timeline li:last-child {
+  border-bottom: none;
+}
+.about-n {
+  font-family: var(--about-mono);
+  font-size: 12px;
+  color: var(--about-ink-dim);
+  padding-top: 5px;
+}
+.about-y {
+  font-family: var(--about-mono);
+  font-size: 12.5px;
   color: var(--accent);
-  padding-top: 0.15rem;
+  padding-top: 4px;
 }
-.about-callout {
-  margin-top: 1.1rem;
-  padding: 0.95rem 1.1rem;
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--accent);
-  border-radius: 8px;
-  background: #faf6f3;
-  font-size: 0.9rem;
+.about-t {
+  font-weight: 600;
+  font-size: 17px;
+}
+.about-d {
+  margin-top: 2px;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--about-ink-soft);
+}
+.about-credits {
+  margin-top: 64px;
+}
+.about-small {
+  padding-top: 12px;
+  border-top: 1px solid var(--about-rule);
+  font-size: 13px;
   line-height: 1.6;
+  color: var(--about-ink-dim);
 }
 @media (max-width: 900px) {
-  .about-layout {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .about-sec,
+  .about-head {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
   }
-  .about-rail {
-    position: static;
-    overflow-x: auto;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 0.4rem;
+  .about-sec {
+    margin-top: 40px;
   }
-  .about-rail ol {
-    flex-direction: row;
-    gap: 0.25rem;
+  .about-margin {
+    text-align: left;
+    padding-top: 0;
   }
-  .about-rail button {
-    white-space: nowrap;
-    border-left: none;
-    border-bottom: 2px solid transparent;
-    border-radius: 6px 6px 0 0;
+  .about-margin br {
+    display: none;
   }
-  .about-rail button.is-active {
-    border-left-color: transparent;
-    border-bottom-color: var(--accent);
+  .about-letter {
+    display: inline-block;
+    margin: 0 10px 0 0;
+    vertical-align: -6px;
+  }
+  .about-plate .about-margin {
+    display: none;
+  }
+  .about-head-row {
+    flex-wrap: wrap;
+  }
+  .about-nav {
+    gap: 16px;
+    flex-wrap: wrap;
   }
   .about-timeline li {
     grid-template-columns: 1fr;
-    gap: 0.2rem;
+    gap: 2px;
+  }
+  .about-page p {
+    font-size: 17px;
   }
 }
