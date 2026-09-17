@@ -37,11 +37,19 @@ for (const p of MODEL_PRESETS) {
 
 /** True if we have a list price for this model id. */
 export function isPriced(model: string | null | undefined): boolean {
-  return !!model && PRICES.has(model);
+  return priceFor(model) !== null;
 }
+
+// TypeSafe's Jev (System One) bills input tokens only; output tokens are free.
+// Ledger entries use `typesafe/<versioned model id>`, so price by prefix rather
+// than listing every version. Not in MODEL_PRESETS: it is not a chat model and
+// must not appear in the default-model dropdown.
+const TYPESAFE_PREFIX = 'typesafe/';
+const TYPESAFE_PRICE: ModelPrice = { inputPer1M: 0.042, outputPer1M: 0 };
 
 export function priceFor(model: string | null | undefined): ModelPrice | null {
   if (!model) return null;
+  if (model.startsWith(TYPESAFE_PREFIX)) return TYPESAFE_PRICE;
   return PRICES.get(model) ?? null;
 }
 

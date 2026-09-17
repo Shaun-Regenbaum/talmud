@@ -76,6 +76,11 @@ export interface Bindings {
   OPENROUTER_PROVISIONING_KEY?: string;
   OPENROUTER_GATEWAY_PROVIDER?: string;
   DEFAULT_LLM_MODEL?: string;
+  // TypeSafe (Jev) typed-judgment transport (@corpus/core/llm/jev). Optional:
+  // the rabbi pin, the daf bridge and the segment matcher try Jev first and
+  // fall back to their DeepSeek prompts when it is unset. Set on BOTH workers
+  // via `wrangler secret put TYPESAFE_API_KEY` (+ `-c wrangler.generator.toml`).
+  TYPESAFE_API_KEY?: string;
   // Enrichment job queue — see wrangler.toml + queue handler at the bottom
   // of index.ts. /api/run enqueues a JobMessage; the queue consumer
   // runs the LLM chain and writes the result to KV under `job:{runId}`.
