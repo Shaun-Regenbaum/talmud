@@ -865,9 +865,14 @@ type RawInstance = { startSegIdx?: unknown; endSegIdx?: unknown; fields?: Record
 /** The JSON output schema a mark's LLM extractor declares (computed extractors have none). */
 const markOutputSchema = (def: { extractor: unknown }): unknown =>
   (def.extractor as { output_schema?: unknown } | null)?.output_schema;
-/** The JSON output schema an enrichment declares. */
-const enrichOutputSchema = (def: unknown): unknown =>
-  (def as { output_schema?: unknown } | null)?.output_schema;
+/** The JSON output schema an enrichment declares. Code-defined enrichments
+ *  (makeEnrichment) keep it under `extractor.output_schema`; the registry's
+ *  projected copies (loadEnrichmentDef) lift it to the top level. Read both,
+ *  or validation silently skips half the producers. */
+const enrichOutputSchema = (def: unknown): unknown => {
+  const d = def as { output_schema?: unknown; extractor?: { output_schema?: unknown } } | null;
+  return d?.output_schema ?? d?.extractor?.output_schema;
+};
 async function readMarkInstances(
   env: Bindings,
   markId: string,
