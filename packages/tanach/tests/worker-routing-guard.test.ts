@@ -31,6 +31,10 @@ describe('routing guard: run_worker_first covers the Worker surface', () => {
     expect(patterns).toContain('/api/*');
   });
 
+  it('routes /mcp through the Worker (the code-mode MCP server)', () => {
+    expect(patterns).toContain('/mcp');
+  });
+
   it('routes "/" through the Worker (the legacy-host redirect must see the bare domain)', () => {
     expect(patterns).toContain('/');
   });

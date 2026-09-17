@@ -25,6 +25,7 @@ import {
   isLLMModelId,
   MODEL_PRESETS,
 } from '@corpus/core/llm/settings';
+import { apiRequestBridge, serveCodeModeMcp } from '@corpus/core/mcp/code-mode';
 import { rawDependenciesOf } from '@corpus/core/model/compat';
 import type { Authority } from '@corpus/core/model/provenance';
 import {
@@ -217,6 +218,8 @@ import {
 } from './inspect-anchors';
 import { noteLintAttempt, readLintFailures } from './lint-failures';
 import { ALIGN_MARKS } from './mark-categories';
+import { MCP_EXECUTE_TIMEOUT_MS } from './mcp-limits';
+import { TALMUD_OPENAPI } from './mcp-openapi';
 import { applicationKeyHash, fetchOpenRouterCost } from './openrouter-cost';
 import {
   ARGUMENT_BRIDGE_OUTPUT_SCHEMA,
@@ -580,63 +583,30 @@ app.get('/', (c) => c.env.ASSETS.fetch(c.req.raw));
 /**
  * Code-mode MCP server (Streamable HTTP) at /mcp. Exposes two tools — `search`
  * and `execute` — built from the curated OpenAPI spec (mcp-openapi.ts). The
- * `execute` tool runs LLM-written code in an isolated sandbox (env.LOADER) whose
- * only outside access is the `request` bridge below, which re-enters our own
- * Hono app in-process for any /api/* path. The endpoint is public and gets the
- * untrusted safe subset; a trusted operator can forward an `x-studio-secret`
+ * server itself is the shared `@corpus/core/mcp/code-mode` (tanach mounts the
+ * same one): the `execute` tool runs LLM-written code in an isolated sandbox
+ * (env.LOADER) whose only outside access is the request bridge, which re-enters
+ * this Hono app in-process for any /api/* path. The endpoint is public and gets
+ * the untrusted safe subset; a trusted operator can forward an `x-studio-secret`
  * header on their MCP client to unlock the privileged /api/run knobs.
  */
 app.all('/mcp', async (c) => {
   if (!c.env.LOADER) {
     return c.json({ error: 'MCP unavailable: worker_loaders LOADER binding not configured' }, 503);
   }
-  // Loaded lazily: @cloudflare/codemode imports `cloudflare:workers` (RpcTarget),
-  // which only resolves inside workerd. A static import would break the node
-  // unit tests that import this module (tests/*.test.ts -> src/worker/index).
-  const [{ StreamableHTTPTransport }, { buildCodeModeMcpServer }] = await Promise.all([
-    import('@hono/mcp'),
-    import('./mcp'),
-  ]);
   const studioSecret = c.req.header('x-studio-secret');
-  const server = buildCodeModeMcpServer({
+  return serveCodeModeMcp(c, {
     loader: c.env.LOADER,
-    request: async ({ method, path, query, body }) => {
-      if (typeof path !== 'string' || !path.startsWith('/api/')) {
-        return { error: 'request bridge only proxies /api/* paths' };
-      }
-      const u = new URL(path, 'http://internal');
-      if (query) {
-        for (const [k, v] of Object.entries(query)) {
-          if (v !== undefined) u.searchParams.set(k, String(v));
-        }
-      }
-      const headers: Record<string, string> = { 'content-type': 'application/json' };
-      if (studioSecret) headers['x-studio-secret'] = studioSecret;
-      try {
-        const res = await app.request(
-          u.pathname + u.search,
-          {
-            method,
-            headers,
-            body: body == null || method === 'GET' ? undefined : JSON.stringify(body),
-          },
-          c.env,
-        );
-        const text = await res.text();
-        try {
-          return JSON.parse(text);
-        } catch {
-          return text;
-        }
-      } catch (err) {
-        return { error: err instanceof Error ? err.message : String(err) };
-      }
-    },
+    spec: TALMUD_OPENAPI,
+    name: 'talmud',
+    timeoutMs: MCP_EXECUTE_TIMEOUT_MS,
+    request: apiRequestBridge({
+      app,
+      env: c.env,
+      waitUntil: (p) => c.executionCtx.waitUntil(p),
+      ...(studioSecret ? { headers: { 'x-studio-secret': studioSecret } } : {}),
+    }),
   });
-  const transport = new StreamableHTTPTransport();
-  await server.connect(transport);
-  const res = await transport.handleRequest(c);
-  return res ?? c.body(null, 204);
 });
 
 // AI Gateway smoke test. Reports gateway config + routes a tiny Kimi prompt

@@ -13,6 +13,19 @@ importers:
         version: 2.4.16
 
   packages/core:
+    dependencies:
+      '@cloudflare/codemode':
+        specifier: ^0.3.8
+        version: 0.3.8(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3))(zod@4.4.3)
+      '@hono/mcp':
+        specifier: ^0.3.0
+        version: 0.3.0(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3))(hono-rate-limiter@0.5.3(hono@4.12.14))(hono@4.12.14)(zod@4.4.3)
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.29.0
+        version: 1.29.0(@cfworker/json-schema@4.1.1)(zod@4.4.3)
+      hono:
+        specifier: ^4.6.0
+        version: 4.12.14
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260511.1

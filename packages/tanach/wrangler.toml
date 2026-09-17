@@ -3,6 +3,13 @@ main = "src/worker/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Dynamic Worker Loader — powers the code-mode MCP server at /mcp (the shared
+# @corpus/core/mcp/code-mode, same as talmud). The `execute` tool runs
+# LLM-written code in an isolated worker spun up via env.LOADER; the sandbox has
+# no bindings of its own and reaches the API only through the in-process
+# request bridge. Optional: without it, /mcp answers 503.
+worker_loaders = [{ binding = "LOADER" }]
+
 # Custom production domains. The shaunregenbaum.com and tanach.dev zones are
 # both on the same account as this worker; wrangler provisions the DNS record +
 # cert on deploy. Same shape as talmud: one deployment, all hostnames identical.
@@ -28,7 +35,7 @@ not_found_handling = "single-page-application"
 # the legacy-host redirect fires on the bare domain (the catch-all `app.get('*')`
 # hands it back to assets on the canonical host); hashed /assets/* stay on the
 # CDN fast path by not matching.
-run_worker_first = ["/", "/api/*"]
+run_worker_first = ["/", "/api/*", "/mcp"]
 
 [observability]
 enabled = true

@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "//": "Corpus-agnostic engine shared by the talmud and tanach apps: LLM/budget plumbing (./llm), and incrementally the coordinate/anchor model, KV cache key builders + freshness, producer-registry grammar, dependency graph, and recipe-based sidebar DSL. Ships raw .ts sources (no build step) — consumers bundle via Vite with moduleResolution: bundler, and tsc resolves the @corpus/core/* path alias from tsconfig.base.json. Subpaths are populated as modules are extracted out of packages/talmud (see plan PR-3..6).",
+  "//": "Corpus-agnostic engine shared by the talmud and tanach apps: LLM/budget plumbing (./llm), and incrementally the coordinate/anchor model, KV cache key builders + freshness, producer-registry grammar, dependency graph, and recipe-based sidebar DSL. Ships raw .ts sources (no build step) \u2014 consumers bundle via Vite with moduleResolution: bundler, and tsc resolves the @corpus/core/* path alias from tsconfig.base.json. Subpaths are populated as modules are extracted out of packages/talmud (see plan PR-3..6).",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
@@ -18,7 +18,14 @@
     "./model/*": "./src/model/*.ts",
     "./store/*": "./src/store/*.ts",
     "./run/*": "./src/run/*.ts",
-    "./telemetry/*": "./src/telemetry/*.ts"
+    "./telemetry/*": "./src/telemetry/*.ts",
+    "./mcp/*": "./src/mcp/*.ts"
+  },
+  "dependencies": {
+    "@cloudflare/codemode": "^0.3.8",
+    "@hono/mcp": "^0.3.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "hono": "^4.6.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260511.1",
