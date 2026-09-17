@@ -128,6 +128,8 @@ const CATALOG = {
   'dev.people': { en: 'People', he: 'חכמים' },
   'dev.github': { en: 'GitHub', he: 'GitHub' },
   'dev.tanach': { en: 'Tanach', he: 'תנ״ך' },
+  'dev.about': { en: 'About', he: 'אודות' },
+  'dev.howItWorks': { en: 'How it works', he: 'איך זה עובד' },
 
   // — Argument sidebar —
   'argument.title': { en: 'Argument', he: 'סוגיה' },

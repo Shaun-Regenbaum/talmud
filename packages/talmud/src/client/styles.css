@@ -849,3 +849,206 @@ body.dev-panel-open .daf-page {
 .gutter-cluster[data-count="1"] .gutter-icon {
   margin: 0;
 }
+
+/* ── #about — the project's front door ─────────────────────────────────── */
+.about-page {
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--fg);
+}
+.about-hero {
+  padding: 1.5rem 0 2.25rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2rem;
+}
+.about-kicker {
+  margin: 0 0 1.25rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.about-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+  font-size: clamp(1.6rem, 3.6vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+.about-title-he {
+  font-family: "Mekorot Vilna", serif;
+  font-weight: 700;
+  font-size: 1.35em;
+  color: var(--accent);
+  line-height: 1;
+}
+.about-lede {
+  margin: 0 0 1.4rem;
+  max-width: 64ch;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: #333;
+}
+.about-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.about-cta {
+  display: inline-block;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--fg);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
+}
+.about-cta:hover {
+  border-color: var(--accent);
+}
+.about-cta.is-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.about-cta.is-primary:hover {
+  background: var(--accent-strong);
+}
+.about-fineprint {
+  margin: 0.9rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.about-layout {
+  display: grid;
+  grid-template-columns: 184px minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+.about-rail {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+}
+.about-rail ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.about-rail button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-left: 2px solid transparent;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0 6px 6px 0;
+  font: inherit;
+  font-size: 0.86rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+.about-rail button.is-active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: #f3ede4;
+  font-weight: 600;
+}
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.8rem;
+}
+.about-grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+.about-grid-4 {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+.about-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.95rem 1.05rem;
+  background: #fff;
+}
+.about-eyebrow {
+  display: inline-block;
+  min-width: 1.5rem;
+  margin-bottom: 0.45rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(138, 42, 43, 0.08);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+}
+.about-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.about-timeline li {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.about-when {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent);
+  padding-top: 0.15rem;
+}
+.about-callout {
+  margin-top: 1.1rem;
+  padding: 0.95rem 1.1rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  background: #faf6f3;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+@media (max-width: 900px) {
+  .about-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .about-rail {
+    position: static;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.4rem;
+  }
+  .about-rail ol {
+    flex-direction: row;
+    gap: 0.25rem;
+  }
+  .about-rail button {
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 6px 6px 0 0;
+  }
+  .about-rail button.is-active {
+    border-left-color: transparent;
+    border-bottom-color: var(--accent);
+  }
+  .about-timeline li {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+}

@@ -1,8 +1,8 @@
 import { createSignal, Show } from 'solid-js';
+import { AboutPage } from './AboutPage';
 import { AiPausedBanner } from './AiPausedBanner';
 import { AlignPage } from './AlignPage';
 import { ArgumentGraphPage } from './ArgumentGraphPage';
-import { AttributionsPage } from './AttributionsPage';
 import Compare from './Compare';
 import DafViewer from './DafViewer';
 import { HowItWorksPage } from './HowItWorksPage';
@@ -46,6 +46,8 @@ function currentRoute() {
     return 'argument';
   }
   if (raw === 'sages' || raw.startsWith('sages/')) return 'sages';
+  // #about/<section> deep-links into a section of the About page.
+  if (raw === 'about' || raw.startsWith('about/')) return 'about';
   return raw;
 }
 
@@ -122,7 +124,7 @@ export default function App() {
                                       </Show>
                                     }
                                   >
-                                    <AttributionsPage />
+                                    <AboutPage />
                                   </Show>
                                 }
                               >
