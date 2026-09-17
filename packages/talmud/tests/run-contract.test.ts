@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { instanceIdOf, keyForEnrichment, keyForMark } from '../src/worker/cache-keys';
 import { CODE_ENRICHMENTS, CODE_MARKS } from '../src/worker/code-marks';
+import { RUN_RETRY_AFTER_S, runStatusUrl } from '../src/worker/follow-up';
 import worker from '../src/worker/index';
 import type { Bindings, JobMessage } from '../src/worker/types';
 
@@ -126,12 +127,27 @@ describe('POST /api/run — contract', () => {
       page: '5a',
     });
     expect(status).toBe(202);
-    const body = json as { status: string; runId: string; cacheKey?: string };
+    const { checkUrl, retryAfterSeconds, etaSeconds, hint, ...body } = json as {
+      status: string;
+      runId: string;
+      cacheKey?: string;
+      checkUrl: string;
+      retryAfterSeconds: number;
+      etaSeconds: number;
+      hint: string;
+    };
     expect(body.status).toBe('pending');
     expect(body.cacheKey).toBe(ARG_MARK_KEY);
     // runId shape: id:tractate:page:instanceHash:noq:lang:cached:unixSeconds
     // (sanitized to [a-zA-Z0-9._:-]).
     expect(body.runId).toMatch(/^argument:Berakhot:5a:[0-9a-f]{12}:noq:en:cached:\d+$/);
+    // Follow-up fields (additive, for machine callers): where to poll + cadence.
+    // Asserted here, stripped from the snapshot so the pinned envelope stays
+    // byte-identical (checkUrl embeds the timestamped runId).
+    expect(checkUrl).toBe(runStatusUrl(body.runId, ARG_MARK_KEY));
+    expect(retryAfterSeconds).toBe(RUN_RETRY_AFTER_S);
+    expect(etaSeconds).toBeGreaterThan(0);
+    expect(hint).toMatch(/still generating/);
     expect(send).toHaveBeenCalledTimes(1);
     const sent = send.mock.calls[0][0];
     expect(sent.runId).toBe(body.runId);
@@ -389,6 +405,6 @@ describe('GET /api/run-status/:runId — contract', () => {
     const { env } = makeEnv();
     const { status, json } = await getRunStatus(env, 'never-ran', 'mark:nope:1:berakhot:5a');
     expect(status).toBe(202);
-    expect(json).toEqual({ status: 'pending' });
+    expect(json).toEqual({ status: 'pending', retryAfterSeconds: RUN_RETRY_AFTER_S });
   });
 });

@@ -186,6 +186,13 @@ import {
   type EnumeratedPiece,
   pieceKey,
 } from './daf-view';
+import {
+  dafGenerationFollowUp,
+  dafViewProgress,
+  PUBLIC_ORIGIN,
+  pendingRunFollowUp,
+  RUN_RETRY_AFTER_S,
+} from './follow-up';
 import { registerHebraizeRoutes } from './hebraize-route';
 import { getRabbiEntryOr404, readJsonBody } from './http-helpers';
 import {
@@ -593,7 +600,7 @@ app.get('/api/billing', async (c) => {
 });
 
 /** The public name. Every other hostname on this worker is an alias for it. */
-const CANONICAL_HOST = 'talmud.dev';
+const CANONICAL_HOST = new URL(PUBLIC_ORIGIN).hostname;
 /** Aliases that redirect to CANONICAL_HOST. www.talmud.dev is deliberately
  *  absent — it is served as-is, same as it was before. */
 const LEGACY_HOSTS = new Set(['talmud.shaunregenbaum.com']);
@@ -2989,7 +2996,36 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
   // instead of waiting out its 12-minute cap. Only read it when it matters (a
   // complete, warm daf skips the KV read).
   const viewDown = complete ? null : await readAiDown(c.env.CACHE);
-  c.header('Cache-Control', dafViewCacheControl(complete));
+  // Honest progress for machine callers (the MCP bridge, direct API users): say
+  // whether generation is running, where to re-read, and how long it takes,
+  // instead of a bare `complete: false` that reads like a broken page.
+  // `?generate=1` also STARTS generation when pieces are missing (the same
+  // single-flighted envelope as POST /api/daf-generate), so one call does the
+  // whole "read what's there, kick off the rest" dance. All additive; the
+  // reader ignores these fields.
+  const wantGenerate = c.req.query('generate') === '1';
+  let generation: Record<string, unknown> = {};
+  let generating = false;
+  if (!complete) {
+    if (wantGenerate) {
+      const out = await startDafGeneration(c, tractate, page, lang);
+      if (out.status === 404) return c.json(out.body, 404);
+      generation = out.body;
+      generating = generation.generating === true;
+    } else if (c.env.CACHE) {
+      generating = !!(await c.env.CACHE.get(dafGenSentinelKey(tractate, page, lang)));
+    }
+  }
+  const progress = dafViewProgress({
+    complete,
+    generating,
+    aiDown: !!viewDown,
+    tractate,
+    page,
+    lang,
+  });
+  // A generate=1 read has a side effect; never let the edge replay it.
+  c.header('Cache-Control', wantGenerate ? 'no-store' : dafViewCacheControl(complete));
   c.header('x-daf-view', complete ? 'complete' : 'partial');
   // [mem] instrumentation — daf-view is the prime OOM suspect: it materializes
   // every cached piece (incl. each per-instance enrichment's `deps_resolved`) for
@@ -3010,6 +3046,8 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
     total: enumerated.length,
     cached: pieceCount,
     cold,
+    ...progress,
+    ...generation,
     pieces,
     ...(viewDown ? { aiUnavailable: true as const, reason: viewDown.reason } : {}),
   });
@@ -3413,27 +3451,46 @@ app.post('/api/admin/workflow-warm/:tractate/:page', async (c) => {
 // Workflow generates the daf's pieces as bounded per-step invocations; the reader
 // sees them fill in via /api/daf-view. (The client cutover + streaming render are
 // the next step; this is the verifiable backend the coordinator is built on.)
-app.post('/api/daf-generate/:tractate/:page', async (c) => {
+type DafGenerateOutcome = { status: 200 | 404 | 503; body: Record<string, unknown> };
+
+/**
+ * Start (or join) the daf's generation Workflow. Shared by POST /api/daf-generate
+ * and GET /api/daf-view?generate=1 so both answer with the SAME envelope: a
+ * machine caller gets `checkUrl` / `readerUrl` / `retryAfterSeconds` /
+ * `etaMinutes` alongside `generating`, and the refusal envelopes (unknown daf,
+ * budget pause, provider down) are identical on both paths.
+ */
+async function startDafGeneration(
+  c: { env: Bindings },
+  tractate: string,
+  page: string,
+  lang: 'en' | 'he',
+): Promise<DafGenerateOutcome> {
   const wf = c.env.DAF_WARM_WORKFLOW;
-  if (!wf) return c.json({ error: 'DAF_WARM_WORKFLOW binding not available' }, 503);
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
+  if (!wf) {
+    return {
+      status: 503,
+      body: { generating: false, error: 'DAF_WARM_WORKFLOW binding not available' },
+    };
+  }
   // A page outside the tractate's real extent (e.g. Megillah 32b — Megillah
   // ends at 32a) must not spawn a Workflow: every Sefaria-backed step gets a
   // permanent ref error, the queue retries hard-fail, and the LLM steps bill
   // for a daf that doesn't exist. 404 now, before any budget/breaker checks.
   if (!isValidAmud(tractate, page)) {
-    return c.json({ generating: false, error: `unknown daf: ${tractate} ${page}` }, 404);
+    return { status: 404, body: { generating: false, error: `unknown daf: ${tractate} ${page}` } };
   }
-  const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
   const gate = await checkBudget(c.env, { custom: false });
   if (!gate.ok) {
-    return c.json({
-      generating: false,
-      paused: true,
-      error: pauseErrorMessage(gate.scope),
-      ...pausedAiFields(gate.scope),
-    });
+    return {
+      status: 200,
+      body: {
+        generating: false,
+        paused: true,
+        error: pauseErrorMessage(gate.scope),
+        ...pausedAiFields(gate.scope),
+      },
+    };
   }
   // Provider-down circuit breaker: out-of-credits / key-cap / provider outage
   // is NOT a budget pause, so the gate above passes while every Workflow step
@@ -3446,27 +3503,44 @@ app.post('/api/daf-generate/:tractate/:page', async (c) => {
   // explained envelope NOW.
   const down = await resolveAiDown(c.env);
   if (down) {
-    return c.json({
-      generating: false,
-      paused: true,
-      error: aiUnavailableMessage(down.reason),
-      aiUnavailable: true as const,
-      reason: down.reason,
-    });
+    return {
+      status: 200,
+      body: {
+        generating: false,
+        paused: true,
+        error: aiUnavailableMessage(down.reason),
+        aiUnavailable: true as const,
+        reason: down.reason,
+      },
+    };
   }
   const cache = c.env.CACHE;
   const sentinel = dafGenSentinelKey(tractate, page, lang);
+  const followUp = dafGenerationFollowUp(tractate, page, lang);
   // Single-flight: if a generation is already in flight for this daf, return it
   // rather than starting a duplicate. (A rare simultaneous-first-hit race may
   // start two; the 2nd's steps mostly cache-hit the 1st's output — a no-op. A
   // Durable Object would make this atomic; the sentinel is good enough here.)
   if (cache) {
     const inflight = await cache.get(sentinel);
-    if (inflight) return c.json({ generating: true, already: true, instanceId: inflight });
+    if (inflight) {
+      return {
+        status: 200,
+        body: { generating: true, already: true, instanceId: inflight, ...followUp },
+      };
+    }
   }
   const instance = await wf.create({ params: { tractate, page, lang } });
   if (cache) await cache.put(sentinel, instance.id, { expirationTtl: 900 });
-  return c.json({ generating: true, instanceId: instance.id });
+  return { status: 200, body: { generating: true, instanceId: instance.id, ...followUp } };
+}
+
+app.post('/api/daf-generate/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
+  const out = await startDafGeneration(c, tractate, page, lang);
+  return c.json(out.body, out.status);
 });
 
 app.post('/api/admin/rewarm/:id/:tractate/:page', async (c) => {
@@ -5857,7 +5931,15 @@ app.post('/api/run', async (c) => {
     ? { key: null as string | null }
     : await cacheKeyForRunBody(c.env, job);
   await c.env.ENRICHMENT_QUEUE.send(job);
-  return c.json({ status: 'pending', runId: job.runId, cacheKey: cacheKey ?? undefined }, 202);
+  return c.json(
+    {
+      status: 'pending',
+      runId: job.runId,
+      cacheKey: cacheKey ?? undefined,
+      ...pendingRunFollowUp(job.runId, cacheKey),
+    },
+    202,
+  );
 });
 
 /**
@@ -5993,7 +6075,7 @@ app.get('/api/run-status/:runId', async (c) => {
       return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0 } });
     }
   }
-  return c.json({ status: 'pending' }, 202);
+  return c.json({ status: 'pending', retryAfterSeconds: RUN_RETRY_AFTER_S }, 202);
 });
 
 /**

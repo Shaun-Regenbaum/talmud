@@ -13,6 +13,8 @@
  * rename an `/api/*` route worth surfacing, add it here too.
  */
 
+import { MCP_EXECUTE_TIMEOUT_MS } from './mcp-limits';
+
 const tractate = {
   name: 'tractate',
   in: 'path',
@@ -68,22 +70,38 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
       '   synthesized cards (e.g. explain an argument-move). List them with',
       '   GET /api/enrichments.',
       '',
-      'RUNNING MARKS/ENRICHMENTS (the engine): POST /api/run is the single',
-      'entry point. It is ASYNCHRONOUS:',
-      '  - On a cache hit it returns 200 { status: "ok", result }.',
-      '  - Otherwise it returns 202 { status: "pending", runId, cacheKey }; then',
-      '    poll GET /api/run-status/{runId}?k={cacheKey} until you get',
-      '    200 { status: "ok", result } (it returns 202 { status: "pending" }',
-      '    while the job is still on the queue).',
-      'In code mode you can do this whole loop inside one `execute` call: run a',
-      'mark, take an instance from result.parsed.instances, then run an enrichment',
-      'with enrichment_id + mark_input = that instance, polling each time.',
+      'READING A DAF — START HERE: GET /api/daf-view/{t}/{p}?generate=1 returns',
+      'EVERY cached piece in one response. `complete: true` means you have it',
+      'all. `complete: false` means the daf is COLD (not generated yet): the',
+      'response still holds whatever exists, `cold` lists the missing producers,',
+      'and generate=1 has already STARTED generation (single-flighted;',
+      '`generating` says whether a run is in flight). A whole daf takes about',
+      '`etaMinutes` (~8 min); pieces land progressively.',
       '',
-      'FAST PATH: for a daf that is already generated, GET /api/daf-view/{t}/{p}',
-      'returns EVERY cached piece in one response — prefer it over per-piece',
-      '/api/run. For a cold daf, POST /api/daf-generate starts ONE parallel',
-      'generation Workflow (concurrent callers coalesce) and /api/daf-view fills',
-      'in progressively as pieces land.',
+      'COLD DAF RULE — BE HONEST, DO NOT WAIT: return what you have NOW and tell',
+      'the user plainly that the rest is being generated and to ask again in a',
+      'few minutes. Give them `readerUrl` (the human page, fills in live) and',
+      're-read `checkUrl` (the same daf-view URL) on their next request. Never',
+      'busy-poll a whole daf inside one execute call: the sandbox stops your code',
+      `after ${Math.round(MCP_EXECUTE_TIMEOUT_MS / 1000)} s and the user gets a timeout instead of an answer. If the`,
+      'response says `paused: true` / `aiUnavailable: true`, generation is refused',
+      'right now (`reason`: out of credits, budget cap, provider down) — say so;',
+      'cached pieces still serve.',
+      '',
+      'RUNNING ONE PIECE (the engine): POST /api/run is the per-piece entry',
+      'point. It is ASYNCHRONOUS:',
+      '  - On a cache hit it returns 200 { status: "ok", result }.',
+      '  - Otherwise it returns 202 { status: "pending", runId, cacheKey,',
+      '    checkUrl, retryAfterSeconds, etaSeconds }; poll',
+      '    GET /api/run-status/{runId}?k={cacheKey} (= checkUrl) until you get',
+      '    200 { status: "ok", result }. One cold piece takes ~20-120 s, so',
+      '    polling ONE piece inside execute is fine: sleep retryAfterSeconds',
+      '    between polls, stop well before the sandbox limit, and if it is still',
+      '    pending hand back checkUrl and say so — the result is cached once it',
+      '    lands, so the next call is instant.',
+      'In code mode you can chain: run a mark, take an instance from',
+      'result.parsed.instances, then run an enrichment with enrichment_id +',
+      'mark_input = that instance, polling each time.',
       '',
       'AI-PAUSED: when generation is paused (out of credits, budget cap, provider',
       'down), /api/run, /api/run-status and /api/daf-generate answer',
@@ -132,12 +150,18 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
 
     '/api/daf-view/{tractate}/{page}': {
       get: {
-        summary: 'ONE-SHOT READ: every cached piece for a daf in a single response.',
+        summary:
+          'ONE-SHOT READ: every cached piece for a daf in a single response (+ honest progress when cold).',
         description:
-          'The materialized daf view (edge-cached when complete). Returns { complete, cached, total, ' +
-          'pieces } — pieces keyed by producer id (whole-daf) or "producerId::instanceId" (per-instance), ' +
-          'each { producerId, kind, label, parsed, content?, deps_resolved? }. Prefer this over N /api/run ' +
-          'calls when reading a daf that is already generated. lang=he for the Hebrew pieces.',
+          'The materialized daf view (edge-cached when complete). Returns { complete, status, generating, ' +
+          'cached, total, cold, checkUrl, readerUrl, retryAfterSeconds?, etaMinutes?, hint?, pieces } — ' +
+          'pieces keyed by producer id (whole-daf) or "producerId::instanceId" (per-instance), each ' +
+          '{ producerId, kind, label, parsed, content?, deps_resolved? }. Prefer this over N /api/run ' +
+          'calls. When complete is false: `cold` lists the missing producers, `generating` says whether a ' +
+          'generation run is in flight, `hint` says what to do next, `checkUrl` is this same URL to re-read ' +
+          'later, `readerUrl` is the human page (fills in live). Pass generate=1 to also START generation ' +
+          'when pieces are missing (single-flighted; response then carries the /api/daf-generate envelope ' +
+          'too: instanceId | paused + reason). lang=he for the Hebrew pieces.',
         parameters: [
           tractate,
           page,
@@ -148,8 +172,22 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
             schema: { type: 'string', enum: ['he'] },
             description: 'Hebrew pieces instead of English.',
           },
+          {
+            name: 'generate',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['1'] },
+            description:
+              'Start generation if pieces are missing (same single-flight + refusal rules as POST /api/daf-generate). Spends LLM budget on a cold daf.',
+          },
         ],
-        responses: { '200': { description: '{ complete, cached, total, pieces }' } },
+        responses: {
+          '200': {
+            description:
+              '{ complete, status: "complete"|"partial", generating, cached, total, cold, checkUrl, readerUrl, retryAfterSeconds?, etaMinutes?, hint?, pieces, paused?, aiUnavailable?, reason? }',
+          },
+          '404': { description: 'generate=1 on a daf that does not exist.' },
+        },
       },
     },
 
@@ -158,11 +196,19 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
         summary: 'Trigger cold-daf generation (single-flighted parallel Workflow).',
         description:
           'Starts ONE per-daf generation Workflow (concurrent callers coalesce via a 15-min sentinel); ' +
-          'poll /api/daf-view to watch pieces land. Returns { generating: true, instanceId } — or, when ' +
-          'generation is refused, { generating: false, paused: true, aiUnavailable: true, reason } ' +
-          '(budget cap, out of credits, provider down). Spends real LLM budget on a cold daf.',
+          're-read /api/daf-view (= checkUrl) to watch pieces land. Returns { generating: true, instanceId, ' +
+          'checkUrl, readerUrl, retryAfterSeconds, etaMinutes } (already: true when joining an in-flight ' +
+          'run) — or, when generation is refused, { generating: false, paused: true, aiUnavailable: true, ' +
+          'reason } (budget cap, out of credits, provider down). Spends real LLM budget on a cold daf. ' +
+          'GET /api/daf-view?generate=1 does this AND returns the current pieces in one call.',
         parameters: [tractate, page],
-        responses: { '200': { description: '{ generating, instanceId? } | paused envelope' } },
+        responses: {
+          '200': {
+            description:
+              '{ generating, instanceId?, already?, checkUrl?, readerUrl?, retryAfterSeconds?, etaMinutes? } | paused envelope',
+          },
+          '404': { description: 'Unknown daf (outside the tractate extent).' },
+        },
       },
     },
 
@@ -308,7 +354,7 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
     '/api/run': {
       post: {
         summary:
-          'Run a mark or enrichment for a daf. Async: cache hit => 200 result; else 202 { runId, cacheKey } to poll.',
+          'Run a mark or enrichment for a daf. Async: cache hit => 200 result; else 202 { runId, cacheKey, checkUrl, retryAfterSeconds } to poll.',
         description:
           'Provide mark_id OR enrichment_id. For an enrichment, pass mark_input = ' +
           'the specific mark instance to run it on. ad_hoc / model_override / ' +
@@ -348,7 +394,10 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
         },
         responses: {
           '200': { description: '{ status: "ok", result: RunResult }' },
-          '202': { description: '{ status: "pending", runId, cacheKey }' },
+          '202': {
+            description:
+              '{ status: "pending", runId, cacheKey, checkUrl, retryAfterSeconds, etaSeconds, hint } — poll checkUrl; if you run out of time, return it and say the piece is still generating.',
+          },
         },
       },
     },
@@ -374,7 +423,7 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
         ],
         responses: {
           '200': { description: '{ status: "ok", result }' },
-          '202': { description: '{ status: "pending" }' },
+          '202': { description: '{ status: "pending", retryAfterSeconds }' },
         },
       },
     },

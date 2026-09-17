@@ -18,6 +18,7 @@
 import { DynamicWorkerExecutor } from '@cloudflare/codemode';
 import { openApiMcpServer, type RequestOptions } from '@cloudflare/codemode/mcp';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { MCP_EXECUTE_TIMEOUT_MS } from './mcp-limits';
 import { TALMUD_OPENAPI } from './mcp-openapi';
 
 export interface CodeModeMcpOptions {
@@ -29,7 +30,12 @@ export interface CodeModeMcpOptions {
 
 /** Build the search+execute MCP server. One per request (stateless). */
 export function buildCodeModeMcpServer(opts: CodeModeMcpOptions): McpServer {
-  const executor = new DynamicWorkerExecutor({ loader: opts.loader });
+  // 90 s (not the 30 s default): long enough for ONE cold piece to land, and
+  // the spec tells the model to return early on a whole cold daf (mcp-limits.ts).
+  const executor = new DynamicWorkerExecutor({
+    loader: opts.loader,
+    timeout: MCP_EXECUTE_TIMEOUT_MS,
+  });
   return openApiMcpServer({
     spec: TALMUD_OPENAPI,
     executor,
