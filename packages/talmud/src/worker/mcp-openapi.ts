@@ -52,7 +52,7 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
     title: 'Talmud Study App API',
     version: '1.0.0',
     description: [
-      'Read + debug the data behind talmud.shaunregenbaum.com.',
+      'Read + debug the data behind talmud.dev.',
       '',
       'HOW A DAF PAGE IS BUILT (so you can reproduce/debug it):',
       '1. GET /api/daf/{tractate}/{page} returns the segmented text:',
@@ -95,7 +95,14 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
       'reserved and return an authorization error; stick to the documented fields.',
     ].join('\n'),
   },
-  servers: [{ url: 'https://talmud.shaunregenbaum.com', description: 'Production' }],
+  servers: [
+    { url: 'https://talmud.dev', description: 'Production' },
+    {
+      url: 'https://talmud.shaunregenbaum.com',
+      description:
+        'Legacy hostname; still served (no redirect on /api or /mcp) for existing clients.',
+    },
+  ],
   paths: {
     '/api/health': {
       get: { summary: 'Liveness check.', responses: { '200': { description: '{ ok: true }' } } },

@@ -7,7 +7,7 @@ import { createSignal, For, type JSX } from 'solid-js';
  * (commands / JSON / code), so it stays in English like the credits page.
  */
 
-const MCP_URL = 'https://talmud.shaunregenbaum.com/mcp';
+const MCP_URL = 'https://talmud.dev/mcp';
 
 const CLAUDE_CODE_CMD = `claude mcp add --transport http talmud ${MCP_URL}`;
 
