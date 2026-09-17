@@ -1,11 +1,14 @@
+/**
+ * #mcp — the guide for connecting an MCP client (Claude Code / Desktop, etc.)
+ * to this app's hosted "code mode" MCP server at /mcp. Reached from the daf
+ * footer and the About page. Set in the same reading layout as #about: one
+ * column with marginalia. Content is dev-facing (commands / JSON / code), so it
+ * stays in English like the About page.
+ */
 import { createSignal, For, type JSX } from 'solid-js';
 
-/**
- * Guide for connecting an MCP client (Claude Code / Desktop, etc.) to this app's
- * hosted "code mode" MCP server at /mcp. Reached at #mcp, linked from the daf
- * footer next to "Usage & reports" / "Alignment debug". Content is dev-facing
- * (commands / JSON / code), so it stays in English like the credits page.
- */
+const REPO = 'https://github.com/Shaun-Regenbaum/talmud';
+const DOCS = `${REPO}/blob/master`;
 
 const MCP_URL = 'https://talmud.dev/mcp';
 
@@ -66,11 +69,48 @@ async () => {
   return run.result?.parsed?.instances ?? run;
 }`;
 
+const TOOLS = [
+  {
+    name: 'search',
+    blurb:
+      'Query the OpenAPI spec to discover endpoints. Call codemode.spec() and filter it in code. No request leaves the sandbox.',
+  },
+  {
+    name: 'execute',
+    blurb:
+      'Run an async arrow function that calls codemode.request({ method, path, query, body }). Chain calls and poll inside one function; only the returned value comes back.',
+  },
+];
+
+const SECTIONS = [
+  { id: 'connect', letter: 'א', label: 'Connect' },
+  { id: 'tools', letter: 'ב', label: 'The two tools' },
+  { id: 'example', letter: 'ג', label: 'Worked example' },
+  { id: 'cold', letter: 'ד', label: 'Cold pages' },
+  { id: 'access', letter: 'ה', label: 'Access' },
+] as const;
+
+type SectionId = (typeof SECTIONS)[number]['id'];
+
+function Margin(props: { id: SectionId }): JSX.Element {
+  const s = SECTIONS.find((x) => x.id === props.id);
+  return (
+    <div class="read-margin">
+      <span class="read-letter" lang="he">
+        {s?.letter}
+      </span>
+      {s?.label}
+    </div>
+  );
+}
+
 function CopyButton(props: { text: string }): JSX.Element {
   const [copied, setCopied] = createSignal(false);
   return (
     <button
       type="button"
+      class="read-copy"
+      classList={{ 'is-copied': copied() }}
       onClick={() => {
         navigator.clipboard?.writeText(props.text).then(
           () => {
@@ -80,18 +120,6 @@ function CopyButton(props: { text: string }): JSX.Element {
           () => {},
         );
       }}
-      style={{
-        position: 'absolute',
-        top: '0.5rem',
-        right: '0.5rem',
-        'font-size': '0.7rem',
-        padding: '0.15rem 0.5rem',
-        border: '1px solid #ccc',
-        'border-radius': '5px',
-        background: copied() ? '#2f7d32' : '#fff',
-        color: copied() ? '#fff' : '#555',
-        cursor: 'pointer',
-      }}
     >
       {copied() ? 'copied' : 'copy'}
     </button>
@@ -100,154 +128,144 @@ function CopyButton(props: { text: string }): JSX.Element {
 
 function Code(props: { children: string }): JSX.Element {
   return (
-    <div style={{ position: 'relative', margin: '0.6rem 0 1.2rem' }}>
+    <div class="read-code">
       <CopyButton text={props.children} />
-      <pre
-        style={{
-          margin: 0,
-          padding: '0.9rem 1rem',
-          'padding-right': '3.5rem',
-          background: '#1e1e22',
-          color: '#e6e6e6',
-          'border-radius': '8px',
-          overflow: 'auto',
-          'font-size': '0.8rem',
-          'line-height': 1.5,
-          'font-family': 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-        }}
-      >
+      <pre>
         <code>{props.children}</code>
       </pre>
     </div>
   );
 }
 
-const TOOLS = [
-  {
-    name: 'search',
-    blurb:
-      'Query the OpenAPI spec to discover endpoints — call codemode.spec() and filter it in code. No request leaves the sandbox.',
-  },
-  {
-    name: 'execute',
-    blurb:
-      'Run an async arrow function that calls codemode.request({ method, path, query, body }). Chain calls and poll inside one function; only the returned value comes back.',
-  },
-];
-
 export function McpPage(): JSX.Element {
   return (
-    <main
-      class="page-shell"
-      style={
-        {
-          '--page-max': '780px',
-          'font-family': 'system-ui, -apple-system, sans-serif',
-          color: '#222',
-        } as JSX.CSSProperties
-      }
-    >
-      <header style={{ 'margin-bottom': '1.25rem' }}>
-        <h1 style={{ margin: 0, 'font-size': '1.5rem' }}>Connect via MCP</h1>
-        <a href="#daf" style={{ color: '#666', 'font-size': '0.85rem', 'text-decoration': 'none' }}>
-          ← back to daf
-        </a>
+    <main class="read-page" dir="ltr">
+      <header class="read-head">
+        <div class="read-margin read-margin-plain">MCP</div>
+        <div class="read-head-row">
+          <a href="#daf" class="read-wordmark">
+            Talmud.dev
+          </a>
+          <nav class="read-nav" aria-label="Site">
+            <a href="#daf">Reader</a>
+            <a href="#about">About</a>
+            <a href="#howitworks">How it works</a>
+            <a href={REPO} target="_blank" rel="noreferrer">
+              GitHub
+            </a>
+          </nav>
+        </div>
       </header>
 
-      <p style={{ color: '#444', 'line-height': 1.6, 'margin-bottom': '1.25rem' }}>
-        This app hosts a <strong>Model Context Protocol</strong> server so an AI client can pull the
-        same data the daf page is built from — text, context, the marks/enrichments that produce the
-        anchors, rabbi data, and debug telemetry. It uses Cloudflare's <strong>code mode</strong>:
-        instead of dozens of separate tools you get just two — <code>search</code> and{' '}
-        <code>execute</code> — and the model writes small snippets that call the API and chain
-        results in a single round trip.
-      </p>
-
-      <h2 style={{ 'font-size': '1.05rem', 'margin-bottom': '0.4rem' }}>Endpoint</h2>
-      <Code>{MCP_URL}</Code>
-
-      <h2 style={{ 'font-size': '1.05rem', 'margin-bottom': '0.4rem' }}>Add it to Claude Code</h2>
-      <Code>{CLAUDE_CODE_CMD}</Code>
-
-      <h2 style={{ 'font-size': '1.05rem', 'margin-bottom': '0.4rem' }}>
-        Or add it to any MCP client (JSON config)
-      </h2>
-      <p style={{ color: '#555', 'font-size': '0.88rem', margin: '0 0 0.2rem' }}>
-        For Claude Desktop and other clients that take a streamable-HTTP server by URL:
-      </p>
-      <Code>{JSON_CONFIG}</Code>
-
-      <h2 style={{ 'font-size': '1.05rem', 'margin-bottom': '0.4rem' }}>The two tools</h2>
-      <For each={TOOLS}>
-        {(tool) => (
-          <p style={{ margin: '0 0 0.6rem', 'line-height': 1.55 }}>
-            <code
-              style={{ background: '#f0f0f2', padding: '0.05rem 0.35rem', 'border-radius': '4px' }}
-            >
-              {tool.name}
-            </code>
-            <span style={{ color: '#444', 'font-size': '0.9rem' }}> — {tool.blurb}</span>
+      <section class="read-sec read-hero">
+        <div class="read-margin">
+          <span class="read-letter read-letter-big" lang="he">
+            תלמוד
+          </span>
+          {'For assistants '}
+          <br />
+          and their tools
+        </div>
+        <div class="read-col">
+          <h1 class="read-title">Connect an assistant to the daf.</h1>
+          <p>
+            This app hosts a <strong>Model Context Protocol</strong> server, so an AI client can
+            pull the same data the daf page is built from: text, context, the marks and enrichments
+            that produce the anchors, sage data, and debug telemetry. It uses Cloudflare's{' '}
+            <strong>code mode</strong>. Instead of dozens of separate tools there are two,{' '}
+            <code>search</code> and <code>execute</code>, and the model writes small snippets that
+            call the API and chain results in a single round trip.
           </p>
-        )}
-      </For>
+        </div>
+      </section>
 
-      <h2 style={{ 'font-size': '1.05rem', margin: '1rem 0 0.4rem' }}>Worked example</h2>
-      <p style={{ color: '#555', 'font-size': '0.88rem', margin: '0 0 0.2rem' }}>
-        Start with <code>GET /api/daf-view/&#123;tractate&#125;/&#123;page&#125;?generate=1</code>:
-        one call returns every piece the daf already has, and starts generating the rest if any are
-        missing.
-      </p>
-      <Code>{WORKED_EXAMPLE}</Code>
+      <section id="connect" class="read-sec">
+        <Margin id="connect" />
+        <div class="read-col">
+          <h3>Endpoint</h3>
+          <Code>{MCP_URL}</Code>
+          <h3>Add it to Claude Code</h3>
+          <Code>{CLAUDE_CODE_CMD}</Code>
+          <h3>Or add it to any MCP client</h3>
+          <p>For Claude Desktop and other clients that take a streamable-HTTP server by URL:</p>
+          <Code>{JSON_CONFIG}</Code>
+        </div>
+      </section>
 
-      <h2 style={{ 'font-size': '1.05rem', margin: '1rem 0 0.4rem' }}>Cold pages</h2>
-      <p
-        style={{
-          color: '#444',
-          'font-size': '0.9rem',
-          'line-height': 1.55,
-          'margin-bottom': '0.8rem',
-        }}
-      >
-        Pages are generated the first time anyone opens them and cached forever after. A page nobody
-        has visited yet is <em>cold</em>: a whole daf takes about eight minutes to fill in, and one
-        piece takes 20 seconds to two minutes. The API never hides this. A partial{' '}
-        <code>daf-view</code> says <code>complete: false</code>, lists what is still{' '}
-        <code>cold</code>, says whether it is <code>generating</code>, and gives a{' '}
-        <code>checkUrl</code> to re-read plus a <code>readerUrl</code> where a person can watch the
-        page fill in live. A <code>hint</code> field carries the sentence to relay.
-      </p>
-      <p
-        style={{
-          color: '#444',
-          'font-size': '0.9rem',
-          'line-height': 1.55,
-          'margin-bottom': '0.8rem',
-        }}
-      >
-        The <code>execute</code> sandbox stops a script after 90 seconds. So the rule for a cold daf
-        is: return what exists, say the rest is on its way, and check again next time. Waiting
-        inside one call only produces a timeout. Polling a single piece is fine:
-      </p>
-      <Code>{PIECE_EXAMPLE}</Code>
-      <p style={{ color: '#555', 'font-size': '0.88rem', margin: '0 0 0.2rem' }}>
-        Under the hood a daf page is text plus <em>marks</em> (structural extractors whose{' '}
-        <code>excerpt</code>s are the anchors) and <em>enrichments</em> (LLM passes on a mark
-        instance). Both run through <code>POST /api/run</code>.
-      </p>
+      <section id="tools" class="read-sec">
+        <Margin id="tools" />
+        <div class="read-col">
+          <ol class="read-list">
+            <For each={TOOLS}>
+              {(tool, i) => (
+                <li>
+                  <span class="read-n">{i() + 1}</span>
+                  <div>
+                    <div class="read-t">
+                      <code>{tool.name}</code>
+                    </div>
+                    <div class="read-d">{tool.blurb}</div>
+                  </div>
+                </li>
+              )}
+            </For>
+          </ol>
+        </div>
+      </section>
 
-      <h2 style={{ 'font-size': '1.05rem', 'margin-bottom': '0.4rem' }}>Access</h2>
-      <p
-        style={{
-          color: '#444',
-          'font-size': '0.9rem',
-          'line-height': 1.55,
-          'margin-bottom': '2rem',
-        }}
-      >
-        The endpoint is open and read-focused — connect and start pulling daf data right away.
-        Everything in the examples above works on the public endpoint. A few advanced operations are
-        reserved for the maintainer and will return an authorization error if called.
-      </p>
+      <section id="example" class="read-sec">
+        <Margin id="example" />
+        <div class="read-col">
+          <p>
+            Start with{' '}
+            <code>GET /api/daf-view/&#123;tractate&#125;/&#123;page&#125;?generate=1</code>: one
+            call returns every piece the daf already has, and starts generating the rest if any are
+            missing.
+          </p>
+          <Code>{WORKED_EXAMPLE}</Code>
+        </div>
+      </section>
+
+      <section id="cold" class="read-sec">
+        <Margin id="cold" />
+        <div class="read-col">
+          <p>
+            Pages are generated the first time anyone opens them and cached forever after. A page
+            nobody has visited yet is <em>cold</em>: a whole daf takes about eight minutes to fill
+            in, and one piece takes 20 seconds to two minutes. The API never hides this. A partial{' '}
+            <code>daf-view</code> says <code>complete: false</code>, lists what is still{' '}
+            <code>cold</code>, says whether it is <code>generating</code>, and gives a{' '}
+            <code>checkUrl</code> to re-read plus a <code>readerUrl</code> where a person can watch
+            the page fill in live. A <code>hint</code> field carries the sentence to relay.
+          </p>
+          <p>
+            The <code>execute</code> sandbox stops a script after 90 seconds. So the rule for a cold
+            daf is: return what exists, say the rest is on its way, and check again next time.
+            Waiting inside one call only produces a timeout. Polling a single piece is fine:
+          </p>
+          <Code>{PIECE_EXAMPLE}</Code>
+          <p>
+            Under the hood a daf page is text plus <em>marks</em> (structural extractors whose{' '}
+            <code>excerpt</code>s are the anchors) and <em>enrichments</em> (LLM passes on a mark
+            instance). Both run through <code>POST /api/run</code>.{' '}
+            <a href={`${DOCS}/docs/mcp.md`} target="_blank" rel="noreferrer">
+              The MCP and API guide
+            </a>{' '}
+            explains how to add or change an endpoint.
+          </p>
+        </div>
+      </section>
+
+      <section id="access" class="read-sec">
+        <Margin id="access" />
+        <div class="read-col">
+          <p>
+            The endpoint is open and read-focused. Connect and start pulling daf data right away.
+            Everything in the examples above works on the public endpoint. A few advanced operations
+            are reserved for the maintainer and return an authorization error if called.
+          </p>
+        </div>
+      </section>
     </main>
   );
 }

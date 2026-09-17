@@ -481,25 +481,37 @@ export function HowItWorksPage(): JSX.Element {
     });
   };
 
+  // Reading-page typography, shared with the About page: serif headings in
+  // sentence case, serif lead paragraphs, a hairline between chapters.
   const h2: JSX.CSSProperties = {
-    'font-size': '0.85rem',
-    'text-transform': 'uppercase',
-    'letter-spacing': '0.1em',
-    color: 'var(--muted)',
+    'font-family': 'var(--font-serif)',
+    'font-size': '1.6rem',
+    'font-weight': 600,
+    'letter-spacing': '-0.01em',
+    'text-transform': 'none',
+    color: 'var(--fg)',
     margin: '0 0 0.6rem',
   };
-  const sectionStyle: JSX.CSSProperties = { 'margin-bottom': '3rem', 'scroll-margin-top': '1rem' };
+  const sectionStyle: JSX.CSSProperties = {
+    'margin-bottom': '2.6rem',
+    'padding-bottom': '2.6rem',
+    'border-bottom': '1px solid rgba(26, 26, 26, 0.15)',
+    'scroll-margin-top': '1rem',
+  };
   const lead: JSX.CSSProperties = {
-    'font-size': '0.95rem',
+    'font-family': 'var(--font-serif)',
+    'font-size': '1.05rem',
     'line-height': 1.6,
-    color: '#2a2a2a',
-    margin: '0 0 0.7rem',
+    color: 'var(--fg)',
+    margin: '0 0 0.8rem',
   };
 
   return (
-    <div class="page-shell" style={{ '--page-max': '1180px' }}>
+    <div class="page-shell read-prose" style={{ '--page-max': '1180px' }}>
       <header>
-        <h1>How it works</h1>
+        <h1 style={{ 'font-family': 'var(--font-serif)', 'letter-spacing': '-0.02em' }}>
+          How it works
+        </h1>
         <p style={{ color: 'var(--muted)', 'max-width': '60ch', margin: '0.4rem 0 0' }}>
           The text, covered in smart notes — shown on a real daf, then the whole machine that makes
           them.

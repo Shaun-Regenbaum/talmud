@@ -29,6 +29,9 @@
   --accent: #8a2a2b;
   --accent-strong: #6f2122;
   --line: #e5e3dc;
+  /* English reading prose (notes, the About page, the guides). Loaded in
+     index.html; shared with the Tanach reader via the @corpus/ui token. */
+  --font-serif: "Spectral", Georgia, "Times New Roman", serif;
 }
 
 * {
@@ -850,108 +853,108 @@ body.dev-panel-open .daf-page {
   margin: 0;
 }
 
-/* ── #about — the project's front door ─────────────────────────────────
+/* ── #about (and the guides) — the project's front door ─────────────────────────────────
    One reading column with marginalia, like the introduction to a sefer. The
    reading face is Spectral (loaded by the page on mount); the Hebrew marks use
    the self-hosted Mekorot Vilna the daf already uses. Stacks on phones. */
-.about-page {
-  --about-paper: #fbf8f1;
-  --about-ink: #1f1b17;
-  --about-ink-soft: #4a423b;
-  --about-ink-dim: #7a6e64;
-  --about-rule: rgba(31, 27, 23, 0.35);
-  --about-rule-soft: rgba(31, 27, 23, 0.15);
-  --about-serif: "Spectral", Georgia, "Times New Roman", serif;
-  --about-hebrew: "Mekorot Vilna", serif;
-  --about-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+.read-page {
+  --read-paper: var(--bg);
+  --read-ink: var(--fg);
+  --read-ink-soft: #4a423b;
+  --read-ink-dim: #7a6e64;
+  --read-rule: rgba(31, 27, 23, 0.35);
+  --read-rule-soft: rgba(31, 27, 23, 0.15);
+  --read-serif: var(--font-serif);
+  --read-hebrew: "Mekorot Vilna", serif;
+  --read-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   min-height: 100vh;
   padding: 0 0 48px;
-  background: var(--about-paper);
-  color: var(--about-ink);
-  font-family: var(--about-serif);
+  background: var(--read-paper);
+  color: var(--read-ink);
+  font-family: var(--read-serif);
 }
-.about-page a {
+.read-page a {
   color: var(--accent);
   text-decoration: none;
   border-bottom: 1px solid rgba(138, 42, 43, 0.35);
 }
-.about-page a:hover {
+.read-page a:hover {
   color: var(--accent-strong);
   border-bottom-color: var(--accent-strong);
 }
-.about-page p {
+.read-page p {
   margin: 0 0 14px;
   font-size: 18px;
   line-height: 1.62;
 }
-.about-page h2 {
+.read-page h2 {
   margin: 0 0 14px;
-  font-family: var(--about-serif);
+  font-family: var(--read-serif);
   font-weight: 600;
   font-size: 28px;
   letter-spacing: -0.01em;
   text-transform: none;
-  color: var(--about-ink);
+  color: var(--read-ink);
 }
-.about-sec,
-.about-head {
+.read-sec,
+.read-head {
   display: grid;
   grid-template-columns: 200px minmax(0, 640px);
   gap: 48px;
   justify-content: center;
   padding: 0 16px;
 }
-.about-sec {
+.read-sec {
   margin-top: 52px;
 }
-.about-head {
+.read-head {
   align-items: baseline;
   padding-top: 30px;
 }
-.about-head-row {
+.read-head-row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 16px;
   padding-bottom: 14px;
-  border-bottom: 1px solid var(--about-rule);
+  border-bottom: 1px solid var(--read-rule);
 }
-.about-page .about-wordmark {
+.read-page .read-wordmark {
   font-weight: 600;
   font-size: 15px;
-  color: var(--about-ink);
+  color: var(--read-ink);
   border-bottom: none;
 }
-.about-page .about-wordmark:hover {
+.read-page .read-wordmark:hover {
   color: var(--accent);
 }
-.about-nav {
+.read-nav {
   display: flex;
   gap: 22px;
   font-size: 14px;
 }
-.about-page .about-nav a {
-  color: var(--about-ink);
+.read-page .read-nav a {
+  color: var(--read-ink);
   border-bottom: none;
 }
-.about-page .about-nav a:hover {
+.read-page .read-nav a:hover {
   color: var(--accent);
 }
-.about-margin {
+.read-margin {
   text-align: right;
   font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--about-ink-dim);
+  color: var(--read-ink-dim);
   padding-top: 6px;
   line-height: 1.5;
 }
-.about-margin-plain {
+.read-margin-plain {
   padding-top: 0;
 }
-.about-letter {
+.read-letter {
   display: block;
-  font-family: var(--about-hebrew);
+  font-family: var(--read-hebrew);
   font-weight: 700;
   font-size: 30px;
   line-height: 1;
@@ -960,172 +963,244 @@ body.dev-panel-open .daf-page {
   color: var(--accent);
   margin-bottom: 8px;
 }
-.about-letter-big {
+.read-letter-big {
   font-size: 34px;
 }
-.about-hero {
+.read-hero {
   margin-top: 60px;
 }
-.about-title {
+.read-title {
   margin: 0 0 22px;
-  font-family: var(--about-serif);
+  font-family: var(--read-serif);
   font-weight: 700;
   font-size: clamp(2.1rem, 4.2vw, 3.4rem);
   line-height: 1.06;
   letter-spacing: -0.02em;
   text-wrap: balance;
 }
-.about-drop::first-letter {
+.read-drop::first-letter {
   float: left;
-  font-family: var(--about-hebrew);
+  font-family: var(--read-hebrew);
   font-weight: 700;
   font-size: 74px;
   line-height: 0.8;
   padding: 8px 10px 0 0;
   color: var(--accent);
 }
-.about-ctas {
+.read-ctas {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 6px;
 }
-.about-page .about-btn {
+.read-page .read-btn {
   display: inline-flex;
   align-items: center;
-  height: 42px;
-  padding: 0 20px;
-  border: 1px solid var(--about-ink);
-  border-radius: 2px;
-  font-family: var(--about-serif);
+  height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  font-family: system-ui, -apple-system, sans-serif;
   font-weight: 600;
-  font-size: 15px;
-  color: var(--about-ink);
+  font-size: 14px;
+  color: var(--read-ink);
 }
-.about-page .about-btn:hover {
-  color: var(--about-ink);
-  border-color: var(--about-ink);
-  background: rgba(31, 27, 23, 0.05);
+.read-page .read-btn:hover {
+  color: var(--read-ink);
+  border-color: var(--read-ink-dim);
+  background: #fff;
 }
-.about-page .about-btn.is-fill {
-  background: var(--about-ink);
-  color: var(--about-paper);
+.read-page .read-btn.is-fill {
+  border-color: transparent;
+  background: var(--accent);
+  color: #fff;
 }
-.about-page .about-btn.is-fill:hover {
-  background: #000;
-  color: var(--about-paper);
+.read-page .read-btn.is-fill:hover {
+  border-color: transparent;
+  background: var(--accent-strong);
+  color: #fff;
 }
-.about-plate {
+.read-plate {
   margin-top: 40px;
 }
-.about-img {
+.read-img {
   display: block;
   width: 100%;
   height: auto;
-  border: 1px solid var(--about-rule);
+  border: 1px solid var(--read-rule);
 }
-.about-cap {
+.read-cap {
   margin: 8px 0 0;
   font-size: 13px;
   font-style: italic;
-  color: var(--about-ink-dim);
+  color: var(--read-ink-dim);
   line-height: 1.5;
 }
-.about-list,
-.about-timeline {
+.read-list,
+.read-timeline {
   list-style: none;
   margin: 0;
   padding: 0;
-  border-top: 1px solid var(--about-rule);
+  border-top: 1px solid var(--read-rule);
 }
-.about-timeline {
-  border-bottom: 1px solid var(--about-rule);
+.read-timeline {
+  border-bottom: 1px solid var(--read-rule);
 }
-.about-list li,
-.about-timeline li {
+.read-list li,
+.read-timeline li {
   display: grid;
   gap: 12px;
   padding: 12px 0;
-  border-bottom: 1px solid var(--about-rule-soft);
+  border-bottom: 1px solid var(--read-rule-soft);
 }
-.about-list li {
+.read-list li {
   grid-template-columns: 26px 1fr;
 }
-.about-timeline li {
+.read-timeline li {
   grid-template-columns: 120px 1fr;
   gap: 16px;
 }
-.about-timeline li:last-child {
+.read-timeline li:last-child {
   border-bottom: none;
 }
-.about-n {
-  font-family: var(--about-mono);
+.read-n {
+  font-family: var(--read-mono);
   font-size: 12px;
-  color: var(--about-ink-dim);
+  color: var(--read-ink-dim);
   padding-top: 5px;
 }
-.about-y {
-  font-family: var(--about-mono);
+.read-y {
+  font-family: var(--read-mono);
   font-size: 12.5px;
   color: var(--accent);
   padding-top: 4px;
 }
-.about-t {
+.read-t {
   font-weight: 600;
   font-size: 17px;
 }
-.about-d {
+.read-d {
   margin-top: 2px;
   font-size: 15.5px;
   line-height: 1.5;
-  color: var(--about-ink-soft);
+  color: var(--read-ink-soft);
 }
-.about-credits {
+.read-credits {
   margin-top: 64px;
 }
-.about-small {
+.read-small {
   padding-top: 12px;
-  border-top: 1px solid var(--about-rule);
+  border-top: 1px solid var(--read-rule);
   font-size: 13px;
   line-height: 1.6;
-  color: var(--about-ink-dim);
+  color: var(--read-ink-dim);
 }
 @media (max-width: 900px) {
-  .about-sec,
-  .about-head {
+  .read-sec,
+  .read-head {
     grid-template-columns: minmax(0, 1fr);
     gap: 6px;
   }
-  .about-sec {
+  .read-sec {
     margin-top: 40px;
   }
-  .about-margin {
+  .read-margin {
     text-align: left;
     padding-top: 0;
   }
-  .about-margin br {
+  .read-margin br {
     display: none;
   }
-  .about-letter {
+  .read-letter {
     display: inline-block;
     margin: 0 10px 0 0;
     vertical-align: -6px;
   }
-  .about-plate .about-margin {
+  .read-plate .read-margin {
     display: none;
   }
-  .about-head-row {
+  .read-head-row {
     flex-wrap: wrap;
   }
-  .about-nav {
+  .read-nav {
     gap: 16px;
     flex-wrap: wrap;
   }
-  .about-timeline li {
+  .read-timeline li {
     grid-template-columns: 1fr;
     gap: 2px;
   }
-  .about-page p {
+  .read-page p {
     font-size: 17px;
   }
+}
+
+/* Reading prose anywhere else in the app (the sidebar notes, the guides):
+   paragraphs in the shared serif, everything around them stays sans. Hebrew
+   prose sets its own face inline and is unaffected. */
+.read-prose p {
+  font-family: var(--font-serif);
+}
+
+/* Code on the reading pages (the MCP guide). */
+.read-page code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  padding: 0.05em 0.35em;
+  border-radius: 4px;
+  background: rgba(26, 26, 26, 0.06);
+}
+.read-code {
+  position: relative;
+  margin: 0.4rem 0 1.2rem;
+}
+.read-code pre {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  padding-right: 3.6rem;
+  border-radius: 6px;
+  background: #2b2a26;
+  color: #e8e6df;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow: auto;
+}
+.read-code pre code {
+  padding: 0;
+  background: none;
+  font-size: inherit;
+}
+.read-copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  background: transparent;
+  color: #e8e6df;
+  font: inherit;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+.read-copy.is-copied {
+  background: #2f7d32;
+  border-color: #2f7d32;
+  color: #fff;
+}
+.read-page h3 {
+  margin: 1.4rem 0 0.4rem;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--read-ink);
+}
+.read-page h3:first-child {
+  margin-top: 0;
 }
