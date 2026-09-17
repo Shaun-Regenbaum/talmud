@@ -127,7 +127,8 @@ describe('buildObservationSlices — attribution + confidence', () => {
   it('records high-confidence lineage when two rabbis are named in the same move', () => {
     const lin = byslug('eliezer').observations.find((o) => o.type === 'lineage');
     expect(lin?.confidence).toBe('high');
-    expect((lin?.payload as { slug?: string }).slug).toBe('yehoshua');
+    const payload = lin?.payload as { slug?: string } | undefined;
+    expect(payload?.slug).toBe('yehoshua');
   });
 });
 

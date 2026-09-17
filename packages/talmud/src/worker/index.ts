@@ -11105,9 +11105,10 @@ app.get('/api/pesukim/:tractate/:page', async (c) => {
     markRaw && markDef && outputMatchesShallow(markOutputSchema(markDef), markRaw.parsed)
       ? markRaw
       : null;
+  const parsedMark = markRes?.parsed as { instances?: unknown } | null | undefined;
   const instances = (
-    Array.isArray((markRes?.parsed as { instances?: unknown } | null)?.instances)
-      ? (markRes?.parsed as { instances: RawInstance[] }).instances
+    Array.isArray(parsedMark?.instances)
+      ? (parsedMark as { instances: RawInstance[] }).instances
       : []
   ).filter((inst) => !!instanceVerseRef(inst));
   const enrichDefs = PESUKIM_VIEW_ENRICHMENTS.map((e) => ({

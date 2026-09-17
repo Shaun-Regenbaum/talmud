@@ -47,9 +47,8 @@ describe('round-trip beyond the current registry (future/KV-authored shapes)', (
       model_hint: 'pro',
     } as unknown as typeof baseMark;
     const p = producerFromMark(futureDef);
-    expect((p.legacy?.rest as Record<string, unknown>).some_future_field).toEqual({
-      nested: true,
-    });
+    const rest = p.legacy?.rest as Record<string, unknown> | undefined;
+    expect(rest?.some_future_field).toEqual({ nested: true });
     expect(markFromProducer(p)).toStrictEqual(futureDef);
   });
 

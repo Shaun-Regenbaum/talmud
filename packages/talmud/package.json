@@ -25,27 +25,27 @@
     "warm:skeleton:shas": "node scripts/warm-skeleton-shas.mjs"
   },
   "dependencies": {
-    "@chenglou/pretext": "^0.0.5",
-    "@cloudflare/codemode": "^0.3.8",
+    "@chenglou/pretext": "^0.0.9",
+    "@cloudflare/codemode": "^0.5.2",
     "@corpus/core": "workspace:*",
     "@corpus/ui": "workspace:*",
-    "@hono/mcp": "^0.3.0",
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@hono/mcp": "^0.3.2",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "daf-renderer": "^1.1.4",
-    "hono": "^4.6.0",
+    "hono": "^4.13.7",
     "node-html-parser": "^7.1.0",
-    "solid-js": "^1.9.0",
-    "zod": "^4.4.3"
+    "solid-js": "^1.9.15",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.36.4",
+    "@cloudflare/vite-plugin": "^1.54.9",
     "@cloudflare/workers-types": "^5.20260914.1",
     "@solidjs/testing-library": "^0.8.10",
     "jsdom": "^29.1.1",
     "typescript": "^5.7.0",
     "vite": "^6.0.0",
-    "vite-plugin-solid": "^2.11.0",
+    "vite-plugin-solid": "^2.11.14",
     "vitest": "^4.1.5",
-    "wrangler": "^4.90.1"
+    "wrangler": "^4.131.2"
   }
 }
