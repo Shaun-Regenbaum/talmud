@@ -1,3 +1,5 @@
+> The shared, harness-neutral briefing is `AGENTS.md`; the contributor docs index is `docs/README.md`. This file adds the project log and working notes.
+
 # Working in this repo
 
 Talmud study app: Hono on Cloudflare Workers + Solid.js/Vite client, in a **pnpm workspace**. The app lives in `packages/talmud` (`src/worker`, `src/client`, `src/lib`); corpus-agnostic engine code shared with sibling apps lives in `packages/core` (imported as `@corpus/core/*`). Package manager is **pnpm**. TypeScript strict. Run workspace scripts from the repo root (`pnpm typecheck`/`pnpm test` delegate via `pnpm -r`) or scope one app with `pnpm --filter talmud <script>`.

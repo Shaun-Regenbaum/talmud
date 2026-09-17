@@ -2,41 +2,43 @@
 
 **A daf-first study reader that covers the Vilna page in smart, source-aware notes.**
 
-[Open the reader](https://talmud.dev) · [Take the guided tour](https://talmud.dev/#tutorial) · [See how it works](https://talmud.dev/#howitworks)
+[Open the reader](https://talmud.dev) · [Take the guided tour](https://talmud.dev/#tutorial) · [See how it works](https://talmud.dev/#howitworks) · [About the project](https://talmud.dev/#about)
 
 [![CI](https://github.com/Shaun-Regenbaum/talmud/actions/workflows/ci.yml/badge.svg)](https://github.com/Shaun-Regenbaum/talmud/actions/workflows/ci.yml)
 
 [![Talmud.dev showing Berakhot 2a with an anchored daf overview and argument map](docs/assets/talmud-reader.jpg)](https://talmud.dev)
 
-Talmud.dev keeps the daf at the center of study. It layers explanations and connections onto the text at the place where they belong, while preserving where each note came from, how it was produced, and how precise its placement is.
+Talmud.dev keeps the daf at the center of study. It layers explanations and connections onto the text at the place where they belong, and every note says where it came from, how it was made, and how precisely it was placed. When the system cannot place a note confidently, it leaves it on the whole daf rather than guess.
+
+It started in 2019 as a Georgia Tech digital-humanities project by Shaun Regenbaum and Dan Jutan. Their layout library, [daf-renderer](https://github.com/TalmudLab/daf-renderer), is still underneath. The rest of the story is on the [About page](https://talmud.dev/#about).
 
 ## What it does
 
 - Renders the Vilna daf with tractate, page, language, and Daf Yomi navigation.
-- Pins background, argument structure, practical halacha, Rishonim, citations, geography, people, parallels, and other study aids to relevant text.
+- Pins background, argument structure, practical halacha, Rishonim, citations, geography, people, parallels, and other study aids to the words they are about.
 - Turns a daf's argument into navigable sections, voice maps, and cross-daf links.
-- Supports bilingual notes, word-level translation, commentary, questions, and a guided first-time tour.
-- Exposes the same corpus through inspection tools, documented APIs, and an MCP endpoint.
-- Shows how the system is working: provenance, dependency graphs, cache state, usage, and generation status are inspectable rather than hidden.
+- Writes every note in English and in Hebrew, with word-level translation, commentary, and questions.
+- Exposes the same corpus through a documented API and an MCP server, so an AI assistant can read a daf the way a person does.
+- Shows how it is working: provenance, dependency graphs, cache state, usage, and generation status are on screen, not hidden.
 
-Placement is deliberately conservative: a note may remain attached to the whole daf when the system cannot confidently identify a narrower span. Human corrections outrank generated results and are not silently overwritten.
+Human corrections outrank generated results and are never silently overwritten.
 
 ## How it is built
 
-This is a pnpm workspace with two corpus apps and a shared engine:
+A pnpm workspace with two readers and a shared engine:
 
 | Path | Purpose |
 | --- | --- |
 | `packages/talmud` | The Solid.js reader and Hono/Cloudflare Workers API at [talmud.dev](https://talmud.dev) |
-| `packages/tanach` | The sibling [Tanach reader](https://tanach.dev), built on the same corpus model |
-| `packages/core` | Corpus-agnostic spines, anchors, artifacts, producers, context, caching, and runtime code |
+| `packages/tanach` | The sibling [Tanach reader](https://tanach.dev), on the same engine |
+| `packages/core` | Corpus-agnostic spines, anchors, artifacts, producers, the store, the runtime, cost controls |
 | `packages/ui` | Shared components and design tokens |
 
-The core model is simple: an addressable text **spine** is covered by typed **artifacts**, each attached with an **anchor** and created by a registered **producer**. Read [the framework](docs/framework.md) for the detailed model and [the source guide](docs/sources.md) to add a study source.
+The model is four ideas: an addressable text (a **spine**) is covered by typed notes (**artifacts**), each pinned by an **anchor** and made by a registered **producer**. [docs/architecture.md](docs/architecture.md) is the map; [docs/framework.md](docs/framework.md) is the reference.
 
-## Start contributing
+## Get it running
 
-Requirements: Node.js 22+, [pnpm 9.12.1](https://pnpm.io/), and Git.
+Requirements: Node.js 22+, [pnpm 9.12.1](https://pnpm.io/), Git. No credentials are needed for the checks.
 
 ```bash
 git clone https://github.com/Shaun-Regenbaum/talmud.git
@@ -47,20 +49,27 @@ pnpm typecheck
 pnpm test
 ```
 
-That is enough to make and validate documentation, UI, engine, and test changes. Running the complete local Talmud reader also requires an authenticated Wrangler session because two development bindings use Cloudflare remotely:
+Running the reader locally (`pnpm dev`) needs a Wrangler login because two bindings are remote. [docs/local-dev.md](docs/local-dev.md) explains each level, including what works with an empty cache and how to look at UI without the dev server.
+
+## Ways in
+
+| You want to | Start with |
+| --- | --- |
+| Improve the reader: the page, the cards, navigation, mobile | [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/code-style.md](docs/code-style.md) |
+| Extend the MCP server or the API | [docs/mcp.md](docs/mcp.md) |
+| Improve the data: report a wrong note, fix a sage, a place, a source | [docs/data.md](docs/data.md) and the [wrong-note report](https://github.com/Shaun-Regenbaum/talmud/issues/new?template=content_issue.yml) |
+| Learn how it is built, or fix the docs | [docs/README.md](docs/README.md) |
+| Pick something to work on | [docs/roadmap.md](docs/roadmap.md), [`good first issue`](https://github.com/Shaun-Regenbaum/talmud/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) |
+
+Connect an assistant to the corpus in one line:
 
 ```bash
-pnpm exec wrangler login
-pnpm dev
+claude mcp add --transport http talmud https://talmud.dev/mcp
 ```
 
-AI generation, admin routes, and production operations require project credentials; ordinary contributors do not need them to run the test suite or build the workspace.
+**Using an AI assistant to contribute?** Good. Much of this reader was built that way. Read [docs/contributing-with-ai.md](docs/contributing-with-ai.md) first: it says what the repo gives an agent, what a good AI-assisted pull request looks like, and the few things an assistant must never do here.
 
-Looking for a first contribution?
-
-1. Read [CONTRIBUTING.md](CONTRIBUTING.md) for the branch and validation workflow.
-2. Browse [`good first issue`](https://github.com/Shaun-Regenbaum/talmud/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and [`help wanted`](https://github.com/Shaun-Regenbaum/talmud/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22), or [open an issue](https://github.com/Shaun-Regenbaum/talmud/issues/new) with a bug or study-reader idea.
-3. Keep changes narrow, add or update tests when behavior changes, and run the checks below before opening a pull request.
+Before opening a pull request:
 
 ```bash
 pnpm lint
@@ -70,3 +79,7 @@ pnpm build
 ```
 
 Production deploys automatically after a change is merged to `master` and passes CI.
+
+## Sources and license
+
+The code is MIT licensed (see [LICENSE](LICENSE)). The texts and study material the readers show stay under their own terms: Sefaria for the text and commentary links, HebrewBooks for the printed-page typography, Kollel Iyun HaDaf for per-daf study aids. The full credits are on the [About page](https://talmud.dev/#about/credits). Conduct and security reporting: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), [SECURITY.md](SECURITY.md).
