@@ -20,29 +20,50 @@ const JSON_CONFIG = `{
 }`;
 
 const WORKED_EXAMPLE = `// Run inside the \`execute\` tool. One round trip:
-// fetch the daf, run a mark, poll until the anchors land.
+// read everything the daf already has; if it is cold, start
+// generation and say so instead of waiting.
 async () => {
-  const daf = await codemode.request({
-    method: "GET", path: "/api/daf/Berakhot/2a",
+  const view = await codemode.request({
+    method: "GET", path: "/api/daf-view/Sotah/4a",
+    query: { generate: "1" },
   });
 
+  if (!view.complete) {
+    // A whole daf takes ~8 minutes. Do not poll here — hand back
+    // what exists and where to look, and let the user ask again.
+    return {
+      ready: false,
+      have: Object.keys(view.pieces),
+      stillGenerating: view.cold,
+      message: view.hint,        // one plain sentence, ready to relay
+      readerUrl: view.readerUrl, // the human page, fills in live
+      checkUrl: view.checkUrl,   // re-read this next time
+    };
+  }
+
+  return { ready: true, pieces: view.pieces };
+}`;
+
+const PIECE_EXAMPLE = `// One piece at a time: POST /api/run is async. A cold piece
+// takes ~20-120 s, so polling ONE piece inside execute is fine.
+async () => {
   let run = await codemode.request({
     method: "POST", path: "/api/run",
     body: { tractate: "Berakhot", page: "2a", mark_id: "argument-move" },
   });
-  while (run.status === "pending") {
-    await new Promise((r) => setTimeout(r, 1500));
+  const deadline = Date.now() + 60_000; // stay under the 90 s sandbox limit
+  while (run.status === "pending" && Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, (run.retryAfterSeconds ?? 15) * 1000));
     run = await codemode.request({
       method: "GET",
       path: \`/api/run-status/\${run.runId}\`,
       query: { k: run.cacheKey },
     });
   }
-
-  return {
-    segments: daf.mainSegmentsHe.length,
-    anchors: run.result?.parsed?.instances ?? run,
-  };
+  if (run.status === "pending") {
+    return { ready: false, message: run.hint, checkUrl: run.checkUrl };
+  }
+  return run.result?.parsed?.instances ?? run;
 }`;
 
 function CopyButton(props: { text: string }): JSX.Element {
@@ -172,12 +193,47 @@ export function McpPage(): JSX.Element {
 
       <h2 style={{ 'font-size': '1.05rem', margin: '1rem 0 0.4rem' }}>Worked example</h2>
       <p style={{ color: '#555', 'font-size': '0.88rem', margin: '0 0 0.2rem' }}>
-        A daf page is text plus <em>marks</em> (structural extractors whose <code>excerpt</code>s
-        are the anchors) and <em>enrichments</em> (LLM passes on a mark instance). Marks/enrichments
-        run through <code>POST /api/run</code>, which is async — poll{' '}
-        <code>/api/run-status/&#123;runId&#125;</code> until it is done:
+        Start with <code>GET /api/daf-view/&#123;tractate&#125;/&#123;page&#125;?generate=1</code>:
+        one call returns every piece the daf already has, and starts generating the rest if any are
+        missing.
       </p>
       <Code>{WORKED_EXAMPLE}</Code>
+
+      <h2 style={{ 'font-size': '1.05rem', margin: '1rem 0 0.4rem' }}>Cold pages</h2>
+      <p
+        style={{
+          color: '#444',
+          'font-size': '0.9rem',
+          'line-height': 1.55,
+          'margin-bottom': '0.8rem',
+        }}
+      >
+        Pages are generated the first time anyone opens them and cached forever after. A page nobody
+        has visited yet is <em>cold</em>: a whole daf takes about eight minutes to fill in, and one
+        piece takes 20 seconds to two minutes. The API never hides this. A partial{' '}
+        <code>daf-view</code> says <code>complete: false</code>, lists what is still{' '}
+        <code>cold</code>, says whether it is <code>generating</code>, and gives a{' '}
+        <code>checkUrl</code> to re-read plus a <code>readerUrl</code> where a person can watch the
+        page fill in live. A <code>hint</code> field carries the sentence to relay.
+      </p>
+      <p
+        style={{
+          color: '#444',
+          'font-size': '0.9rem',
+          'line-height': 1.55,
+          'margin-bottom': '0.8rem',
+        }}
+      >
+        The <code>execute</code> sandbox stops a script after 90 seconds. So the rule for a cold daf
+        is: return what exists, say the rest is on its way, and check again next time. Waiting
+        inside one call only produces a timeout. Polling a single piece is fine:
+      </p>
+      <Code>{PIECE_EXAMPLE}</Code>
+      <p style={{ color: '#555', 'font-size': '0.88rem', margin: '0 0 0.2rem' }}>
+        Under the hood a daf page is text plus <em>marks</em> (structural extractors whose{' '}
+        <code>excerpt</code>s are the anchors) and <em>enrichments</em> (LLM passes on a mark
+        instance). Both run through <code>POST /api/run</code>.
+      </p>
 
       <h2 style={{ 'font-size': '1.05rem', 'margin-bottom': '0.4rem' }}>Access</h2>
       <p
