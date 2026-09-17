@@ -45,6 +45,8 @@ export interface McpEvent {
   method: string;
   /** For tools/call: the tool name ('search' | 'execute'). */
   tool?: string;
+  /** For tools/call: how long the sandbox ran the code. Otherwise: the whole
+   *  HTTP request. */
   ms: number;
   /** HTTP status of the response. */
   status: number;
@@ -109,13 +111,23 @@ export async function serveCodeModeMcp(c: Context, opts: CodeModeMcpOptions): Pr
     loader: opts.loader,
     timeout: opts.timeoutMs ?? DEFAULT_EXECUTE_TIMEOUT_MS,
   });
-  // Capture sandbox-level failures (thrown errors, "Execution timed out") for
-  // the event hook: the MCP response itself is still HTTP 200 with isError.
-  let toolError: string | undefined;
+  const fire = (rest: Omit<McpEvent, 'method' | 'tool'>) =>
+    opts.onEvent?.({ method: peek.method, ...(peek.tool ? { tool: peek.tool } : {}), ...rest });
+  // A tools/call is reported from HERE, around the sandbox run: the transport
+  // streams the HTTP response before the tool executes (the JSON-RPC result is
+  // written into the SSE stream later), so the request-level timing below would
+  // see a few ms and never a sandbox failure. This is where "Execution timed
+  // out" and thrown errors are visible; the MCP response is still HTTP 200.
   const executor: typeof inner = Object.assign(Object.create(inner), {
     execute: async (...args: Parameters<typeof inner.execute>) => {
+      const t = Date.now();
       const r = await inner.execute(...args);
-      if (r.error) toolError = r.error;
+      fire({
+        ms: Date.now() - t,
+        status: 200,
+        ...(r.error ? { error: r.error } : {}),
+        timedOut: /timed out/i.test(r.error ?? ''),
+      });
       return r;
     },
   });
@@ -135,14 +147,9 @@ export async function serveCodeModeMcp(c: Context, opts: CodeModeMcpOptions): Pr
     status = res?.status ?? 204;
     return res ?? c.body(null, 204);
   } finally {
-    opts.onEvent?.({
-      method: peek.method,
-      ...(peek.tool ? { tool: peek.tool } : {}),
-      ms: Date.now() - t0,
-      status,
-      ...(toolError ? { error: toolError } : {}),
-      timedOut: /timed out/i.test(toolError ?? ''),
-    });
+    // Everything that is not a tool call (initialize, tools/list, pings,
+    // notifications, malformed bodies) is reported per HTTP request.
+    if (peek.method !== 'tools/call') fire({ ms: Date.now() - t0, status, timedOut: false });
   }
 }
 
