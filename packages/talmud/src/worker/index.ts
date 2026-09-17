@@ -138,7 +138,6 @@ import {
   keyForGemara,
   keyForMark,
   keyForMesorah,
-  keyForPasuk,
   keyForRabbiAcademyRoster,
   keyForRabbiBioBySlug,
   keyForRabbiBioOnDaf,
@@ -191,6 +190,7 @@ import {
   dafViewProgress,
   PUBLIC_ORIGIN,
   pendingRunFollowUp,
+  pesukimViewUrl,
   RUN_RETRY_AFTER_S,
 } from './follow-up';
 import { registerHebraizeRoutes } from './hebraize-route';
@@ -224,6 +224,14 @@ import {
   ENRICH_JSON_SCHEMA,
   TRANSLATE_BIO_JSON_SCHEMA,
 } from './output-schemas';
+import { fetchPasuk } from './pasuk';
+import {
+  assemblePesukimVerse,
+  instanceVerseRef,
+  PESUKIM_VIEW_ENRICHMENTS,
+  type PesukimEnrichmentId,
+  pesukimColdProducers,
+} from './pesukim-view';
 import {
   adaptCodeEnrichment,
   listProducers,
@@ -403,29 +411,6 @@ function stripHtmlServer(html: string): string {
     .trim();
 }
 
-// Used by /api/pasuk: Sefaria's Tanakh text comes with HTML entities (thinsp,
-// nbsp), masoretic paragraph markers ({פ}, {ס}, {ש}), and occasional <br>
-// tags inside the Hebrew. We decode the entities, drop the editorial marks,
-// and collapse whitespace so the sidebar renders clean nikud-bearing text.
-function cleanVerseText(s: string): string {
-  if (!s) return '';
-  return s
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&thinsp;/gi, ' ')
-    .replace(/&ensp;/gi, ' ')
-    .replace(/&emsp;/gi, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#(\d+);/g, (_, d) => String.fromCharCode(parseInt(d, 10)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
-    .replace(/\{[פסש]\}/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
 /**
  * Fetch the Hebrew verbatim text of a single pasuk for prompt injection.
  * Shares the `pasuk:v4:` KV cache with the /api/pasuk endpoint so warm-cache
@@ -438,49 +423,8 @@ function cleanVerseText(s: string): string {
  */
 async function fetchPasukHebrewForPrompt(env: Bindings, ref: string): Promise<string> {
   if (!ref) return '';
-  const safe = ref.replace(/[^A-Za-z0-9 .:-]/g, '_');
-  const key = keyForPasuk(safe);
-  const cache = env.CACHE;
-  if (cache) {
-    const hit = await cache.get(key);
-    if (hit) {
-      try {
-        const parsed = JSON.parse(hit) as { he?: string };
-        if (parsed.he) return parsed.he;
-      } catch {
-        /* fall through to live fetch */
-      }
-    }
-  }
   try {
-    const res = await sefariaAPI.getText(ref, { context: 0 });
-    const heRaw = Array.isArray(res.he) ? res.he.join(' ') : (res.he ?? '');
-    const enRaw = Array.isArray(res.text) ? res.text.join(' ') : (res.text ?? '');
-    const he = cleanVerseText(heRaw);
-    const en = cleanVerseText(enRaw);
-    if (cache && he) {
-      const canonical = res.ref ?? ref;
-      const m = canonical.match(/^(.+?)\s+(\d+):(\d+)$/);
-      let prevRef: string | null = null;
-      let nextRef: string | null = null;
-      if (m) {
-        const [, book, chap, verseStr] = m;
-        const verse = parseInt(verseStr, 10);
-        if (verse > 1) prevRef = `${book} ${chap}:${verse - 1}`;
-        nextRef = `${book} ${chap}:${verse + 1}`;
-      }
-      const cached = {
-        ref: canonical,
-        heRef: res.heRef ?? null,
-        he,
-        en,
-        prevRef,
-        nextRef,
-        book: res.book ?? null,
-      };
-      await cache.put(key, JSON.stringify(cached), { expirationTtl: 60 * 60 * 24 * 365 });
-    }
-    return he;
+    return (await fetchPasuk(env, ref)).detail.he;
   } catch {
     return '';
   }
@@ -11107,49 +11051,110 @@ app.get('/api/yerushalmi/:tractate/:page', async (c) => {
 app.get('/api/pasuk', async (c) => {
   const ref = c.req.query('ref') ?? '';
   if (!ref || ref.length > 100) return c.json({ error: 'missing or invalid ref' }, 400);
-  const cache = c.env.CACHE;
-  const safe = ref.replace(/[^A-Za-z0-9 .:-]/g, '_');
-  const key = keyForPasuk(safe);
-  if (cache) {
-    const hit = await cache.get(key);
-    if (hit) return c.json({ ...JSON.parse(hit), _cached: true });
-  }
   try {
-    const res = await sefariaAPI.getText(ref, { context: 0 });
-    const heRaw = Array.isArray(res.he) ? res.he.join(' ') : (res.he ?? '');
-    const enRaw = Array.isArray(res.text) ? res.text.join(' ') : (res.text ?? '');
-    const he = cleanVerseText(heRaw);
-    const en = cleanVerseText(enRaw);
-    // Sefaria's response.prev/next is chapter-level for many books. We want
-    // verse-level stepping for the sidebar, so parse the canonical ref into
-    // (book, chapter, verse) and step verse by ±1. Chapter boundaries fall
-    // through to a 404 on the next click; the UI hides the disabled arrow.
-    const canonical = res.ref ?? ref;
-    const m = canonical.match(/^(.+?)\s+(\d+):(\d+)$/);
-    let prevRef: string | null = null;
-    let nextRef: string | null = null;
-    if (m) {
-      const [, book, chap, verseStr] = m;
-      const verse = parseInt(verseStr, 10);
-      if (verse > 1) prevRef = `${book} ${chap}:${verse - 1}`;
-      nextRef = `${book} ${chap}:${verse + 1}`;
-    }
-    const out = {
-      ref: canonical,
-      heRef: res.heRef ?? null,
-      he,
-      en,
-      prevRef,
-      nextRef,
-      book: res.book ?? null,
-    };
-    if (cache && out.he) {
-      await cache.put(key, JSON.stringify(out), { expirationTtl: 60 * 60 * 24 * 365 });
-    }
-    return c.json(out);
+    const { detail, cached } = await fetchPasuk(c.env, ref);
+    return c.json(cached ? { ...detail, _cached: true } : detail);
   } catch (err) {
     return c.json({ error: String(err).slice(0, 200), ref }, 502);
   }
+});
+
+// GET /api/pesukim/:tractate/:page — the pesukim STUDY VIEW: every verse the
+// daf quotes, with Hebrew + English, how the gemara cites it, and the pasuk
+// card's explanations (why it is brought here, its Tanach context, the
+// exegetical move, where it lands, the synthesis) in one plain response.
+// Same honesty envelope as /api/daf-view (complete / generating / checkUrl /
+// hint) and the same ?generate=1 to start generating a cold daf. Built for the
+// MCP and direct API callers, who otherwise had to know the mark + five
+// enrichments and how to join them; the reader keeps its own card path.
+app.get('/api/pesukim/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  if (!isValidAmud(tractate, page)) {
+    return c.json({ error: `unknown daf: ${tractate} ${page}` }, 404);
+  }
+  const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
+  const wantGenerate = c.req.query('generate') === '1';
+
+  // Instances come from the EN mark and enrichments are keyed by lang — the
+  // same join /api/daf-view (and the reader) uses, so cache keys line up.
+  const markDef = findCodeMark('pesukim');
+  const markRes = markDef
+    ? await readCachedResult(c.env, keyForMark(markDef, tractate, page, 'en'))
+    : null;
+  const instances = (
+    Array.isArray((markRes?.parsed as { instances?: unknown } | null)?.instances)
+      ? (markRes?.parsed as { instances: RawInstance[] }).instances
+      : []
+  ).filter((inst) => !!instanceVerseRef(inst));
+  const enrichDefs = PESUKIM_VIEW_ENRICHMENTS.map((e) => ({
+    id: e.id,
+    def: CODE_ENRICHMENTS.find((d) => d.id === e.id),
+  }));
+
+  const verses = await Promise.all(
+    instances.map(async (inst) => {
+      const iid = await instanceIdOf(inst);
+      const enrichments: Partial<Record<PesukimEnrichmentId, Record<string, unknown> | null>> = {};
+      await Promise.all(
+        enrichDefs.map(async ({ id, def }) => {
+          if (!def) {
+            enrichments[id] = null;
+            return;
+          }
+          const res = await readCachedResult(
+            c.env,
+            keyForEnrichment(def, iid, { tractate, page }, undefined, lang),
+          );
+          enrichments[id] = (res?.parsed as Record<string, unknown> | null) ?? null;
+        }),
+      );
+      // Verse text: KV-cached for a year; a live Sefaria miss is tolerated
+      // (the card still says what the gemara does with the verse).
+      const ref = instanceVerseRef(inst) ?? '';
+      const verse = await fetchPasuk(c.env, ref)
+        .then((r) => r.detail)
+        .catch(() => null);
+      return assemblePesukimVerse(inst, enrichments, verse);
+    }),
+  );
+
+  const cold = pesukimColdProducers(!!markRes, verses);
+  const complete = cold.length === 0;
+  const viewDown = complete ? null : await readAiDown(c.env.CACHE);
+  let generation: Record<string, unknown> = {};
+  let generating = false;
+  if (!complete) {
+    if (wantGenerate) {
+      const out = await startDafGeneration(c, tractate, page, lang);
+      generation = out.body;
+      generating = generation.generating === true;
+    } else if (c.env.CACHE) {
+      generating = !!(await c.env.CACHE.get(dafGenSentinelKey(tractate, page, lang)));
+    }
+  }
+  const progress = dafViewProgress({
+    complete,
+    generating,
+    aiDown: !!viewDown,
+    tractate,
+    page,
+    lang,
+    checkUrl: pesukimViewUrl(tractate, page, lang),
+  });
+  c.header('Cache-Control', wantGenerate ? 'no-store' : dafViewCacheControl(complete));
+  return c.json({
+    tractate,
+    page,
+    lang,
+    complete,
+    cold,
+    ...progress,
+    ...generation,
+    count: verses.length,
+    verses,
+    ...(viewDown ? { aiUnavailable: true as const, reason: viewDown.reason } : {}),
+  });
 });
 
 registerHebraizeRoutes(app);

@@ -78,6 +78,12 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
       '`generating` says whether a run is in flight). A whole daf takes about',
       '`etaMinutes` (~8 min); pieces land progressively.',
       '',
+      'PESUKIM SHORTCUT: for "what is this pasuk doing here" questions use',
+      'GET /api/pesukim/{t}/{p}?generate=1 — every verse the daf quotes with',
+      'Hebrew + English, how the gemara cites it, why it is brought, its Tanach',
+      'context, the exegetical move, and a synthesis, in one call. Same honesty',
+      'envelope as daf-view.',
+      '',
       'COLD DAF RULE — BE HONEST, DO NOT WAIT: return what you have NOW and tell',
       'the user plainly that the rest is being generated and to ask again in a',
       'few minutes. Give them `readerUrl` (the human page, fills in live) and',
@@ -541,6 +547,47 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
           },
         ],
         responses: { '200': { description: '{ ref, he, en, ... }' } },
+      },
+    },
+
+    '/api/pesukim/{tractate}/{page}': {
+      get: {
+        summary:
+          'STUDY SHORTCUT: every verse the daf quotes — text, how the gemara cites it, why it is brought, Tanach context — in one call.',
+        description:
+          'Joins the pesukim mark with its pasuk-card enrichments and the verse text. Returns ' +
+          '{ complete, cold, status, generating, checkUrl, readerUrl, retryAfterSeconds?, etaMinutes?, hint?, ' +
+          'count, verses: [{ ref, heRef, hebrew, english, tanachUrl, citation { style, excerpt, endExcerpt, ' +
+          'summary, startSegIdx, endSegIdx }, synthesis, tanachContext, whyHere, mechanism, landing, ' +
+          'missing[] }] }. A null section means not generated yet (listed in missing). generate=1 starts ' +
+          'generation of the whole daf when anything is missing (same rules as daf-view). Answer the ' +
+          'user from `synthesis` / `whyHere` / `tanachContext`; tanachUrl is the chapter on tanach.dev ' +
+          'for the meforshim and the wider context.',
+        parameters: [
+          tractate,
+          page,
+          {
+            name: 'lang',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['he'] },
+            description: 'Hebrew card text instead of English.',
+          },
+          {
+            name: 'generate',
+            in: 'query',
+            required: false,
+            schema: { type: 'string', enum: ['1'] },
+            description:
+              'Start generation if anything is missing (spends LLM budget on a cold daf).',
+          },
+        ],
+        responses: {
+          '200': {
+            description: '{ complete, cold, generating, checkUrl, hint?, count, verses[] }',
+          },
+          '404': { description: 'Unknown daf.' },
+        },
       },
     },
 

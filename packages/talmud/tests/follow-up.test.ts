@@ -76,6 +76,22 @@ describe('dafViewProgress', () => {
   });
 });
 
+describe('dafViewProgress checkUrl override', () => {
+  it('a narrower view re-reads ITSELF, not the whole daf view', () => {
+    const p = dafViewProgress({
+      complete: false,
+      generating: true,
+      aiDown: false,
+      tractate: 'Sotah',
+      page: '4a',
+      lang: 'en',
+      checkUrl: 'https://talmud.dev/api/pesukim/Sotah/4a',
+    });
+    expect(p.checkUrl).toBe('https://talmud.dev/api/pesukim/Sotah/4a');
+    expect(p.readerUrl).toBe('https://talmud.dev/Sotah/4a');
+  });
+});
+
 describe('generation + run follow-ups', () => {
   it('daf-generate follow-up points at the daf-view URL to re-read', () => {
     const f = dafGenerationFollowUp('Sotah', '4a', 'he');
