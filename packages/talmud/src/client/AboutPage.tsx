@@ -307,7 +307,19 @@ export function AboutPage(): JSX.Element {
 
   onMount(() => {
     const wanted = requestedSection();
-    if (wanted) refs.get(wanted)?.scrollIntoView({ block: 'start' });
+    if (wanted) {
+      refs.get(wanted)?.scrollIntoView({ block: 'start' });
+      setActive(wanted);
+    }
+
+    // A later #about/<section> link (e.g. from the footer while already on
+    // this page) does not re-render the route, so follow it here.
+    const onHash = () => {
+      const next = requestedSection();
+      if (next) jump(next);
+    };
+    window.addEventListener('hashchange', onHash);
+    onCleanup(() => window.removeEventListener('hashchange', onHash));
 
     // Keep the rail in step with the section under the reader's eye.
     const io = new IntersectionObserver(
@@ -327,6 +339,8 @@ export function AboutPage(): JSX.Element {
   const jump = (id: SectionId) => {
     refs.get(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setActive(id);
+    // Make the section shareable without adding a history entry per click.
+    if (requestedSection() !== id) window.history.replaceState(null, '', `#about/${id}`);
   };
 
   return (
@@ -373,6 +387,7 @@ export function AboutPage(): JSX.Element {
                   <button
                     type="button"
                     classList={{ 'is-active': active() === s.id }}
+                    aria-current={active() === s.id ? 'location' : undefined}
                     onClick={() => jump(s.id)}
                   >
                     {s.label}
