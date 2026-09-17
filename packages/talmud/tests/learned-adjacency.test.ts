@@ -2,16 +2,19 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { rabbiCandidates, resolveRabbiSlug, setLearnedAdjacency } from '../src/worker/rabbi-graph';
 import { buildLearnedAdjacency } from '../src/worker/voice-graph';
 
-// "Ravin" is a real permanently-ambiguous case: two registry bearers
-// (ravin-b-rav-ada / ravin-b-rav-nachman), SAME generation (amora-bavel-3),
-// and — like ~940 registry nodes — ZERO curated edges on either. Curated
-// relational scoring can never separate them; the learned voice graph is the
-// only evidence that can. That makes it the exact seam this feature exists
-// for, and a stable fixture (the assertions below verify the precondition).
-const NAME = 'Ravin';
-const HE = 'רבין';
-const A = 'ravin-b-rav-ada';
-const B = 'ravin-b-rav-nachman';
+// "Rabbi Zechariah" is a real permanently-ambiguous case: two registry
+// bearers (b. haKatzav / b. Avkulos), adjacent generations (tanna-1 /
+// tanna-2, so the era veto never fires), no bare-form node, and — like ~940
+// registry nodes — ZERO curated edges on either. Curated relational scoring
+// can never separate them; the learned voice graph is the only evidence that
+// can. That makes it the exact seam this feature exists for, and a stable
+// fixture (the assertions below verify the precondition). (The earlier
+// fixture, bare "Ravin", stopped being a homonym once the Hebrew normalizer
+// strips verbal disambiguators: "רבין (אמורא)" is now the bare form's node.)
+const NAME = 'Rabbi Zechariah';
+const HE = 'רבי זכריה';
+const A = 'rabbi-zechariah-b-avkulos';
+const B = 'rabbi-zechariah-b-hakatzav';
 
 afterEach(() => setLearnedAdjacency(null));
 

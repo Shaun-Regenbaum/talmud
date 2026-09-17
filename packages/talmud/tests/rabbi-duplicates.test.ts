@@ -66,6 +66,22 @@ describe('rabbiCandidates folds duplicates', () => {
   });
 });
 
+describe('Hebrew disambiguators in parentheses', () => {
+  it('a verbal disambiguator is stripped, so bare שמואל resolves to Shmuel the amora', () => {
+    // Registry entry is "שמואל (שם אמורא)"; the Talmud writes שמואל. Before the
+    // strip the bare form matched nothing (Shmuel: 3,259 Sefaria refs).
+    expect(rabbiCandidates('Shmuel', 'שמואל')).toContain('shmuel-(amora)');
+    expect(isRabbinicHebrewName('שמואל (שם אמורא)')).toBe(true);
+    expect(isRabbinicHebrewName('רב (שם אמורא)')).toBe(true);
+    expect(isRabbinicHebrewName('רבי יעקב (תנא)')).toBe(true);
+  });
+  it('a numeric disambiguator still marks the bare form as shared', () => {
+    // "רב כהנא (2)" — the bare Hebrew must not pin one bearer.
+    const c = rabbiCandidates('Rav Kahana', 'רב כהנא');
+    expect(c.length).toBeGreaterThan(1);
+  });
+});
+
 describe('isRabbinicHebrewName', () => {
   it('accepts the geresh shorthand under nikud (Rabbi Abbahu)', () => {
     expect(isRabbinicHebrewName("רַ' אַבָּהוּ")).toBe(true);

@@ -172,13 +172,18 @@ function extractPatronymic(name: string): string | null {
  *  form, which the previous exact-string lookup silently missed), strip
  *  punctuation, collapse whitespace. Idempotent. */
 function normalizeHeName(s: string): string {
-  return s
-    .replace(/[֑-ׇ]/g, '') // nikkud + cantillation
-    .replace(/\s*\(\d+\)\s*$/, '') // trailing digit disambiguator
-    .replace(/^ר['׳]\s+/, 'רבי ') // geresh title shorthand → full title
-    .replace(/[.,:;?!"'״׳]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return (
+    s
+      .replace(/[֑-ׇ]/g, '') // nikkud + cantillation
+      // Trailing disambiguator, numeric ("רב כהנא (2)") or verbal ("שמואל (שם
+      // אמורא)", "רבי יעקב (תנא)"): the text never carries it. `pinned` (below)
+      // is judged on the RAW string, so only the numeric form marks a homonym.
+      .replace(/\s*\([^)]*\)\s*$/, '')
+      .replace(/^ר['׳]\s+/, 'רבי ') // geresh title shorthand → full title
+      .replace(/[.,:;?!"'״׳]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+  );
 }
 
 /** Registry nodes that are the same person as another node (rabbi-duplicates.json):
