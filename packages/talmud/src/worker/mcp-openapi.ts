@@ -833,6 +833,15 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
         responses: { '200': { description: '{ jobErrors, lintFailures, reports }' } },
       },
     },
+    '/api/usage/surfaces': {
+      get: {
+        summary:
+          'Requests by surface (app / mcp / api) per day + MCP calls, distinct callers, connects, per-tool outcomes, top routes, recent failures — for talmud.dev and tanach.dev.',
+        responses: {
+          '200': { description: '{ configured, ok, windowDays, apps: { talmud, tanach } }' },
+        },
+      },
+    },
     '/api/usage/daf/{tractate}/{page}': {
       get: {
         summary:

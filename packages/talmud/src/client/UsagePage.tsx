@@ -1,6 +1,7 @@
 import { WorldBubbleMap } from '@corpus/ui/WorldBubbleMap';
 import { createMemo, createResource, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 import { estimateShasCost, type ProducerCost } from '../lib/shasCost';
+import type { AppSurfaceUsage, SurfaceDayRow, SurfaceUsage } from '../worker/surface-analytics';
 import { BillingLedger } from './BillingLedger';
 import { type Column, DataTable, HitChip, Meter, RankedBars, type RankedItem } from './DataTable';
 import { lang, t } from './i18n';
@@ -3316,6 +3317,7 @@ function BacklogReports(props: {
 // ---- Tabbed dashboard ----------------------------------------------------
 const TABS: Array<{ id: string; labelKey: string }> = [
   { id: 'traffic', labelKey: 'usage.tab.traffic' },
+  { id: 'mcp', labelKey: 'usage.tab.mcp' },
   { id: 'cost', labelKey: 'usage.tab.cost' },
   { id: 'health', labelKey: 'usage.tab.health' },
   { id: 'contentIn', labelKey: 'usage.tab.contentIn' },
@@ -3323,11 +3325,300 @@ const TABS: Array<{ id: string; labelKey: string }> = [
   { id: 'backlog', labelKey: 'usage.tab.backlog' },
 ];
 
+// ---------------------------------------------------------------------------
+// MCP tab: requests by surface (app / mcp / api) and the MCP's own health, for
+// both workers. Data: /api/usage/surfaces (Analytics Engine via the SQL API).
+// ---------------------------------------------------------------------------
+
+const SURFACE_KEYS = ['app', 'mcp', 'api'] as const;
+const SURFACE_COLORS: Record<(typeof SURFACE_KEYS)[number], string> = {
+  app: '#cfc9bc',
+  mcp: 'var(--accent)',
+  api: '#7a9cc0',
+};
+
+function SurfaceStackBars(props: { rows: SurfaceDayRow[] }): JSX.Element {
+  const max = () => Math.max(1, ...props.rows.map((d) => d.app + d.mcp + d.api));
+  return (
+    <div style={{ display: 'flex', 'align-items': 'flex-end', gap: '2px', height: '70px' }}>
+      <For each={props.rows}>
+        {(d) => (
+          <div
+            title={`${d.date}: app ${fmtInt(d.app)} · mcp ${fmtInt(d.mcp)} · api ${fmtInt(d.api)}`}
+            style={{
+              flex: '1 1 0',
+              display: 'flex',
+              'flex-direction': 'column-reverse',
+              height: '100%',
+            }}
+          >
+            <For each={SURFACE_KEYS}>
+              {(s) => (
+                <div
+                  style={{
+                    background: SURFACE_COLORS[s],
+                    height: `${(d[s] / max()) * 100}%`,
+                    'min-height': d[s] > 0 ? '1px' : '0',
+                  }}
+                />
+              )}
+            </For>
+          </div>
+        )}
+      </For>
+    </div>
+  );
+}
+
+function SurfaceLegend(): JSX.Element {
+  return (
+    <div style={{ display: 'flex', gap: '0.9rem', 'font-size': '0.72rem', color: '#888' }}>
+      <For each={SURFACE_KEYS}>
+        {(s) => (
+          <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.3rem' }}>
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                background: SURFACE_COLORS[s],
+                'border-radius': '2px',
+              }}
+            />
+            {s}
+          </span>
+        )}
+      </For>
+    </div>
+  );
+}
+
+function AppSurfaceBlock(props: { name: string; a: AppSurfaceUsage }): JSX.Element {
+  const a = () => props.a;
+  const m = () => a().mcp;
+  const timeoutPct = () => (m().calls.month > 0 ? (m().timeouts.month / m().calls.month) * 100 : 0);
+  const toolCols: Column<AppSurfaceUsage['mcp']['byTool'][number]>[] = [
+    { key: 'tool', header: t('usage.surfaces.col.tool'), mono: true, cell: (r) => r.tool },
+    {
+      key: 'calls',
+      header: t('usage.col.calls'),
+      align: 'right',
+      sortValue: (r) => r.calls,
+      cell: (r) => fmtInt(r.calls),
+    },
+    {
+      key: 'ok',
+      header: t('usage.surfaces.col.ok'),
+      align: 'right',
+      muted: true,
+      sortValue: (r) => r.ok,
+      cell: (r) => fmtInt(r.ok),
+    },
+    {
+      key: 'errors',
+      header: t('usage.surfaces.col.errors'),
+      align: 'right',
+      sortValue: (r) => r.errors,
+      cell: (r) => <span style={{ color: r.errors ? '#c33' : '#bbb' }}>{fmtInt(r.errors)}</span>,
+    },
+    {
+      key: 'timeouts',
+      header: t('usage.surfaces.col.timeouts'),
+      align: 'right',
+      sortValue: (r) => r.timeouts,
+      cell: (r) => (
+        <span style={{ color: r.timeouts ? '#c33' : '#bbb' }}>{fmtInt(r.timeouts)}</span>
+      ),
+    },
+    {
+      key: 'p50',
+      header: t('usage.surfaces.col.p50'),
+      align: 'right',
+      muted: true,
+      sortValue: (r) => r.p50Ms,
+      cell: (r) => fmtMs(r.p50Ms),
+    },
+    {
+      key: 'p95',
+      header: t('usage.surfaces.col.p95'),
+      align: 'right',
+      sortValue: (r) => r.p95Ms,
+      cell: (r) => <span style={{ color: latColor(r.p95Ms) }}>{fmtMs(r.p95Ms)}</span>,
+    },
+  ];
+  const routeCols: Column<AppSurfaceUsage['mcp']['topRoutes'][number]>[] = [
+    { key: 'route', header: t('usage.surfaces.col.route'), mono: true, cell: (r) => r.route },
+    {
+      key: 'hits',
+      header: t('usage.surfaces.col.hits'),
+      align: 'right',
+      sortValue: (r) => r.hits,
+      cell: (r) => fmtInt(r.hits),
+    },
+    {
+      key: 'errors',
+      header: t('usage.surfaces.col.errors'),
+      align: 'right',
+      sortValue: (r) => r.errors,
+      cell: (r) => <span style={{ color: r.errors ? '#c33' : '#bbb' }}>{fmtInt(r.errors)}</span>,
+    },
+    {
+      key: 'p95',
+      header: t('usage.surfaces.col.p95'),
+      align: 'right',
+      sortValue: (r) => r.p95Ms,
+      cell: (r) => <span style={{ color: latColor(r.p95Ms) }}>{fmtMs(r.p95Ms)}</span>,
+    },
+  ];
+  return (
+    <div style={{ 'margin-bottom': '1.6rem' }}>
+      <SectionHeading title={props.name} />
+      <Show
+        when={a().ok}
+        fallback={
+          <p style={{ color: '#888', 'font-size': '0.82rem' }}>
+            {t('usage.surfaces.noData', { error: a().error ?? '' })}
+          </p>
+        }
+      >
+        <div
+          style={{
+            display: 'flex',
+            gap: '0.6rem',
+            'flex-wrap': 'wrap',
+            'margin-bottom': '0.8rem',
+          }}
+        >
+          <StatCard
+            label={t('usage.surfaces.mcpCalls')}
+            value={fmtInt(m().calls.month)}
+            color="var(--accent)"
+            sub={`${t('usage.activity.today')} ${fmtInt(m().calls.day)} · ${t('usage.activity.week')} ${fmtInt(m().calls.week)}`}
+          />
+          <StatCard
+            label={t('usage.surfaces.clients')}
+            value={fmtInt(m().clients.month)}
+            sub={`${t('usage.activity.today')} ${fmtInt(m().clients.day)} · ${t('usage.activity.week')} ${fmtInt(m().clients.week)}`}
+          />
+          <StatCard
+            label={t('usage.surfaces.connects')}
+            value={fmtInt(m().connects.month)}
+            sub={`${t('usage.activity.week')} ${fmtInt(m().connects.week)}`}
+          />
+          <StatCard
+            label={t('usage.surfaces.timeoutRate')}
+            value={`${timeoutPct().toFixed(1)}%`}
+            color={timeoutPct() > 5 ? '#c33' : undefined}
+            sub={t('usage.surfaces.ofCalls', {
+              n: fmtInt(m().timeouts.month),
+              calls: fmtInt(m().calls.month),
+            })}
+          />
+        </div>
+
+        <Show when={a().byDay.length > 0}>
+          <div style={{ 'margin-bottom': '0.9rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                'justify-content': 'space-between',
+                'align-items': 'baseline',
+                'margin-bottom': '0.3rem',
+              }}
+            >
+              <div
+                style={{
+                  'font-size': '0.75rem',
+                  color: '#999',
+                  'text-transform': 'uppercase',
+                  'letter-spacing': '0.04em',
+                }}
+              >
+                {t('usage.surfaces.trend')}
+              </div>
+              <SurfaceLegend />
+            </div>
+            <SurfaceStackBars rows={a().byDay} />
+          </div>
+        </Show>
+
+        <SectionHeading title={t('usage.surfaces.tools')} />
+        <DataTable
+          columns={toolCols}
+          rows={m().byTool}
+          initialSort={{ key: 'calls', dir: 'desc' }}
+          emptyText={t('usage.surfaces.none')}
+        />
+
+        <SectionHeading title={t('usage.surfaces.routes')} />
+        <DataTable
+          columns={routeCols}
+          rows={m().topRoutes}
+          initialSort={{ key: 'hits', dir: 'desc' }}
+          maxRows={10}
+          emptyText={t('usage.surfaces.none')}
+        />
+
+        <SectionHeading title={t('usage.surfaces.errors')} />
+        <Show
+          when={m().recentErrors.length > 0}
+          fallback={
+            <p style={{ color: '#bbb', 'font-size': '0.8rem' }}>{t('usage.surfaces.none')}</p>
+          }
+        >
+          <ul style={{ margin: 0, 'padding-left': '1rem', 'font-size': '0.8rem' }}>
+            <For each={m().recentErrors}>
+              {(e) => (
+                <li style={{ 'margin-bottom': '0.2rem' }}>
+                  <span style={{ color: '#999', 'font-family': 'monospace' }}>
+                    {e.ts.slice(0, 16)}
+                  </span>{' '}
+                  <code>{e.tool || '—'}</code> <span style={{ color: '#c33' }}>{e.outcome}</span>{' '}
+                  <span style={{ color: '#666' }}>{e.error}</span>
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+      </Show>
+    </div>
+  );
+}
+
+function SurfacesSection(props: { usage: SurfaceUsage }): JSX.Element {
+  const u = () => props.usage;
+  return (
+    <Show
+      when={u().configured}
+      fallback={
+        <p
+          style={{
+            color: '#888',
+            'font-size': '0.82rem',
+            background: '#fafafa',
+            padding: '0.5rem 0.7rem',
+            'border-radius': '4px',
+            border: '1px solid #eee',
+          }}
+        >
+          {t('usage.surfaces.notConfigured')}
+        </p>
+      }
+    >
+      <p style={{ color: '#666', 'font-size': '0.82rem', 'margin-bottom': '1rem' }}>
+        {t('usage.surfaces.intro')}
+      </p>
+      <AppSurfaceBlock name="talmud.dev" a={u().apps.talmud} />
+      <AppSurfaceBlock name="tanach.dev" a={u().apps.tanach} />
+    </Show>
+  );
+}
+
 export function UsagePage(): JSX.Element {
   // One resource per section, each loading from its own endpoint and snapshotted
   // to localStorage for an instant first paint on the next visit.
   const cost = sectionResource<CostSectionData>('/api/usage/cost', null);
   const activity = sectionResource<ZoneActivity>('/api/usage/activity', 'usage.snap.activity');
+  const surfaces = sectionResource<SurfaceUsage>('/api/usage/surfaces', 'usage.snap.surfaces');
   const telemetry = sectionResource<TelemetrySection>(
     '/api/usage/telemetry',
     'usage.snap.telemetry',
@@ -3342,6 +3633,9 @@ export function UsagePage(): JSX.Element {
   const tabRefetch: Record<string, () => void> = {
     traffic: () => {
       activity.refetch();
+    },
+    mcp: () => {
+      surfaces.refetch();
     },
     cost: () => {
       cost.refetch();
@@ -3468,6 +3762,12 @@ export function UsagePage(): JSX.Element {
       <Show when={tab() === 'traffic'}>
         <SectionShell section={activity} skeletonRows={4}>
           {(a) => <ActivitySection activity={a} />}
+        </SectionShell>
+      </Show>
+
+      <Show when={tab() === 'mcp'}>
+        <SectionShell section={surfaces} skeletonRows={5}>
+          {(u) => <SurfacesSection usage={u} />}
         </SectionShell>
       </Show>
 

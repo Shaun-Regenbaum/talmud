@@ -9,6 +9,15 @@ compatibility_flags = ["nodejs_compat"]
 # /api request bridge in src/worker/mcp.ts). See @cloudflare/codemode.
 worker_loaders = [{ binding = "LOADER" }]
 
+# Workers Analytics Engine: one row per /api request that reached the Worker
+# (surface = app | mcp | api: a browser on the site, the MCP bridge, or a direct
+# API client) and one per MCP request (method / tool / outcome / latency). Read
+# back by src/worker/surface-analytics.ts (Usage -> MCP tab) through the
+# account-level SQL API with CF_ANALYTICS_TOKEN. Optional binding.
+[[analytics_engine_datasets]]
+binding = "SURFACE"
+dataset = "talmud_surface"
+
 # Custom production domains. Both zones must be active on the same Cloudflare
 # account (PropheX) that `wrangler whoami` reports. talmud.dev and
 # talmud.shaunregenbaum.com point at this same worker — identical backend,

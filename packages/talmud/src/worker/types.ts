@@ -92,6 +92,11 @@ export interface Bindings {
   // isolated sandbox the code-mode MCP `execute` tool runs in. Optional: when
   // unset, GET/POST /mcp returns 503 and the rest of the worker is unaffected.
   LOADER?: WorkerLoader;
+  // Workers Analytics Engine dataset (wrangler.toml `analytics_engine_datasets`):
+  // one row per /api request that reached the Worker (surface = app|mcp|api)
+  // and one per MCP request. Read back on the Usage page's MCP tab through the
+  // account SQL API (surface-analytics.ts). Optional: absent = no telemetry.
+  SURFACE?: AnalyticsEngineDataset;
   // Shared secret gating the privileged /api/run knobs (ad_hoc,
   // model_override, bypass_cache) and the admin mutation endpoints. Presented
   // by trusted tools as the `x-studio-secret` header. UNSET => every request is

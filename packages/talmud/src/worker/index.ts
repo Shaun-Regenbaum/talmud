@@ -54,6 +54,7 @@ import { ArtifactStore, type KVStore, type Staleness } from '@corpus/core/store/
 import { authorityOf, type StoredArtifact } from '@corpus/core/store/envelope';
 import { producerKeyInfo, talmudLegacyKeyScheme } from '@corpus/core/store/key-schemes';
 import { billingSummary, reconcileBilling } from '@corpus/core/telemetry/billing';
+import { recordMcpEvent, surfaceMiddleware } from '@corpus/core/telemetry/surface';
 import { Hono } from 'hono';
 import {
   GENERATION_IDS,
@@ -306,6 +307,7 @@ import type {
   EnrichmentDefinition as SchemaEnrichmentDefinition,
   MarkDefinition as SchemaMarkDefinition,
 } from './studio-schema';
+import { fetchSurfaceUsage } from './surface-analytics';
 import { classifyError, recordTelemetry, runTelemetryRec, type TelemetryRecord } from './telemetry';
 import type { Bindings, JobMessage } from './types';
 import {
@@ -570,6 +572,14 @@ app.use('*', async (c, next) => {
   return c.redirect(url.toString(), 301);
 });
 
+// Surface telemetry: which way each /api request came in (a browser on the
+// site, the MCP bridge, or a direct API client), written to Analytics Engine
+// after the handler runs. No-op without the SURFACE binding.
+app.use(
+  '/api/*',
+  surfaceMiddleware<Bindings>((env) => env.SURFACE),
+);
+
 app.get('/api/health', (c) => c.json({ ok: true }));
 
 // Serve the SPA shell for the bare domain. wrangler's run_worker_first = ["/"]
@@ -600,6 +610,7 @@ app.all('/mcp', async (c) => {
     spec: TALMUD_OPENAPI,
     name: 'talmud',
     timeoutMs: MCP_EXECUTE_TIMEOUT_MS,
+    onEvent: (ev) => c.executionCtx.waitUntil(recordMcpEvent(c.env.SURFACE, c.req.raw, ev)),
     request: apiRequestBridge({
       app,
       env: c.env,
@@ -7589,6 +7600,12 @@ app.get('/api/usage/health', (c) =>
   serveUsageSection(c, c.env.CACHE, 'usage-health:v1', 30_000, () =>
     buildHealthSection(c.env.CACHE),
   ),
+);
+// Requests by surface (app / mcp / api) + MCP calls, callers, tools, routes and
+// failures, for BOTH workers (the SQL API is account-level, so talmud's usage
+// page reads tanach's dataset too). See surface-analytics.ts.
+app.get('/api/usage/surfaces', (c) =>
+  serveUsageSection(c, c.env.CACHE, 'usage-surfaces:v1', 60_000, () => fetchSurfaceUsage(c.env)),
 );
 
 // Read-only worker-invocation outcomes (last 15m) from Cloudflare analytics —

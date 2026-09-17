@@ -1,5 +1,6 @@
 import { apiRequestBridge, serveCodeModeMcp } from '@corpus/core/mcp/code-mode';
 import { billingSummary, reconcileBilling } from '@corpus/core/telemetry/billing';
+import { recordMcpEvent, surfaceMiddleware } from '@corpus/core/telemetry/surface';
 /**
  * Tanach worker — Hono on Cloudflare Workers.
  *
@@ -59,6 +60,10 @@ interface Env extends TanachEnv {
   // isolated sandbox the code-mode MCP `execute` tool runs in. Optional: when
   // unset, /mcp returns 503 and the rest of the worker is unaffected.
   LOADER?: WorkerLoader;
+  // Workers Analytics Engine dataset (`analytics_engine_datasets`): one row per
+  // /api request by surface (app | mcp | api) and one per MCP request. Read on
+  // talmud.dev's Usage -> MCP tab (account-level SQL). Optional.
+  SURFACE?: AnalyticsEngineDataset;
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -106,6 +111,13 @@ app.use('*', async (c, next) => {
   url.hostname = CANONICAL_HOST;
   return c.redirect(url.toString(), 301);
 });
+
+// Surface telemetry: which way each /api request came in (a browser on the
+// site, the MCP bridge, or a direct API client). No-op without SURFACE.
+app.use(
+  '/api/*',
+  surfaceMiddleware<Env>((env) => env.SURFACE),
+);
 
 /** Map a producer-run failure to the legacy route responses: a source error
  *  keeps its specific status + body (404 ref-not-found / not-enough-material,
@@ -888,6 +900,7 @@ app.all('/mcp', async (c) => {
     loader: c.env.LOADER,
     spec: TANACH_OPENAPI,
     name: 'tanach',
+    onEvent: (ev) => c.executionCtx.waitUntil(recordMcpEvent(c.env.SURFACE, c.req.raw, ev)),
     request: apiRequestBridge({
       app,
       env: c.env,
