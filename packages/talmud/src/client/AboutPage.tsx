@@ -17,19 +17,6 @@ import { FEATURED_DAF } from './tutorial';
 const REPO = 'https://github.com/Shaun-Regenbaum/talmud';
 const DOCS = `${REPO}/blob/master`;
 
-// The reading serif is Spectral (the shared @corpus/ui token). The talmud app
-// does not load it globally yet, so this page fetches it on mount. Idempotent.
-const SPECTRAL_HREF =
-  'https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap';
-function ensureSpectral(): void {
-  if (document.getElementById('font-spectral')) return;
-  const link = document.createElement('link');
-  link.id = 'font-spectral';
-  link.rel = 'stylesheet';
-  link.href = SPECTRAL_HREF;
-  document.head.appendChild(link);
-}
-
 // ── content ──────────────────────────────────────────────────────────────
 
 interface Feature {
@@ -145,8 +132,8 @@ type SectionId = (typeof SECTIONS)[number]['id'];
 function Margin(props: { id: SectionId }): JSX.Element {
   const s = SECTIONS.find((x) => x.id === props.id);
   return (
-    <div class="about-margin">
-      <span class="about-letter" lang="he">
+    <div class="read-margin">
+      <span class="read-letter" lang="he">
         {s?.letter}
       </span>
       {s?.label}
@@ -181,7 +168,6 @@ export function AboutPage(): JSX.Element {
   const register = (id: SectionId) => (el: HTMLElement) => refs.set(id, el);
 
   onMount(() => {
-    ensureSpectral();
     const wanted = requestedSection();
     if (wanted) refs.get(wanted)?.scrollIntoView({ block: 'start' });
 
@@ -196,14 +182,14 @@ export function AboutPage(): JSX.Element {
   });
 
   return (
-    <main class="about-page" dir="ltr">
-      <header class="about-head">
-        <div class="about-margin about-margin-plain">About</div>
-        <div class="about-head-row">
-          <a href="#daf" class="about-wordmark">
+    <main class="read-page" dir="ltr">
+      <header class="read-head">
+        <div class="read-margin read-margin-plain">About</div>
+        <div class="read-head-row">
+          <a href="#daf" class="read-wordmark">
             Talmud.dev
           </a>
-          <nav class="about-nav" aria-label="Site">
+          <nav class="read-nav" aria-label="Site">
             <a href="#daf">Reader</a>
             <a href="#tutorial">Tour</a>
             <a href="#howitworks">How it works</a>
@@ -214,54 +200,54 @@ export function AboutPage(): JSX.Element {
         </div>
       </header>
 
-      <section class="about-sec about-hero">
-        <div class="about-margin">
-          <span class="about-letter about-letter-big" lang="he">
+      <section class="read-sec read-hero">
+        <div class="read-margin">
+          <span class="read-letter read-letter-big" lang="he">
             תלמוד
           </span>
           {'A learning app '}
           <br />
           for Gemara
         </div>
-        <div class="about-col">
-          <h1 class="about-title">Bringing the daf to the AI age.</h1>
-          <p class="about-drop">
+        <div class="read-col">
+          <h1 class="read-title">Bringing the daf to the AI age.</h1>
+          <p class="read-drop">
             Talmud.dev is a free, open-source learning app for Gemara. It shows the Vilna page in
             the classic tzurat hadaf layout and supplements it with translations, explanations,
             visual aids, maps, biographies, and more. We do this through smart notes. Every note is
             sourced and backed by the text.
           </p>
-          <div class="about-ctas">
-            <a href="#daf" class="about-btn is-fill">
+          <div class="read-ctas">
+            <a href="#daf" class="read-btn is-fill">
               Open the reader
             </a>
-            <a href="#tutorial" class="about-btn">
+            <a href="#tutorial" class="read-btn">
               Take the five-minute tour
             </a>
           </div>
         </div>
       </section>
 
-      <section class="about-sec about-plate">
-        <div class="about-margin" aria-hidden="true" />
-        <div class="about-col">
+      <section class="read-sec read-plate">
+        <div class="read-margin" aria-hidden="true" />
+        <div class="read-col">
           <img
             src="/about/talmud-reader.jpg"
             alt="Berakhot 2a in the reader, with the argument overview open"
-            class="about-img"
+            class="read-img"
             width="1600"
             height="1000"
           />
-          <p class="about-cap">
+          <p class="read-cap">
             Berakhot 2a in the reader, with the argument overview open and anchored to the words it
             explains. The tour opens {FEATURED_DAF.tractate} {FEATURED_DAF.page}.
           </p>
         </div>
       </section>
 
-      <section id="who" ref={register('who')} class="about-sec">
+      <section id="who" ref={register('who')} class="read-sec">
         <Margin id="who" />
-        <div class="about-col">
+        <div class="read-col">
           <p>
             Shaun Regenbaum and Dan Jutan co-founded the Talmud Lab at Georgia Tech in 2020. Shaun
             has kept this project going since. He builds and pays for the reader and the engine
@@ -270,22 +256,22 @@ export function AboutPage(): JSX.Element {
         </div>
       </section>
 
-      <section id="what" ref={register('what')} class="about-sec">
+      <section id="what" ref={register('what')} class="read-sec">
         <Margin id="what" />
-        <div class="about-col">
+        <div class="read-col">
           <h2>The daf stays at the center.</h2>
           <p>
             Everything else is a note attached to it, and every note can be opened, checked, and
             traced back.
           </p>
-          <ol class="about-list">
+          <ol class="read-list">
             <For each={FEATURES}>
               {(f, i) => (
                 <li>
-                  <span class="about-n">{i() + 1}</span>
+                  <span class="read-n">{i() + 1}</span>
                   <div>
-                    <div class="about-t">{f.title}</div>
-                    <div class="about-d">{f.body}</div>
+                    <div class="read-t">{f.title}</div>
+                    <div class="read-d">{f.body}</div>
                   </div>
                 </li>
               )}
@@ -294,9 +280,9 @@ export function AboutPage(): JSX.Element {
         </div>
       </section>
 
-      <section id="how" ref={register('how')} class="about-sec">
+      <section id="how" ref={register('how')} class="read-sec">
         <Margin id="how" />
-        <div class="about-col">
+        <div class="read-col">
           <h2>Four ideas carry the whole system.</h2>
           <p>
             <strong>A text</strong> is something with addresses: a daf and its segments, a chapter
@@ -312,17 +298,17 @@ export function AboutPage(): JSX.Element {
         </div>
       </section>
 
-      <section id="history" ref={register('history')} class="about-sec">
+      <section id="history" ref={register('history')} class="read-sec">
         <Margin id="history" />
-        <div class="about-col">
-          <ol class="about-timeline">
+        <div class="read-col">
+          <ol class="read-timeline">
             <For each={HISTORY}>
               {(m) => (
                 <li>
-                  <span class="about-y">{m.when}</span>
+                  <span class="read-y">{m.when}</span>
                   <div>
-                    <div class="about-t">{m.title}</div>
-                    <div class="about-d">{m.body}</div>
+                    <div class="read-t">{m.title}</div>
+                    <div class="read-d">{m.body}</div>
                   </div>
                 </li>
               )}
@@ -331,9 +317,9 @@ export function AboutPage(): JSX.Element {
         </div>
       </section>
 
-      <section id="ways" ref={register('ways')} class="about-sec">
+      <section id="ways" ref={register('ways')} class="read-sec">
         <Margin id="ways" />
-        <div class="about-col">
+        <div class="read-col">
           <p>
             The code is MIT licensed and you need no keys to build it or run the tests.{' '}
             <Ext href={`${DOCS}/CONTRIBUTING.md`}>Improve the reader</Ext>,{' '}
@@ -352,9 +338,9 @@ export function AboutPage(): JSX.Element {
         </div>
       </section>
 
-      <section id="credits" ref={register('credits')} class="about-sec about-credits">
+      <section id="credits" ref={register('credits')} class="read-sec read-credits">
         <Margin id="credits" />
-        <div class="about-col about-small">
+        <div class="read-col read-small">
           <For each={SOURCES}>
             {(s, i) => (
               <>

@@ -4039,7 +4039,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         {/* Right-side aside — the on-demand ArgumentSidebar. */}
         <Show when={!isMobile() && sidebar() !== null}>
           <aside
-            class="daf-aside"
+            class="daf-aside read-prose"
             data-tour="note-panel"
             style={{
               position: 'sticky',
