@@ -71,6 +71,7 @@ import { talmudParallelsToLinks, yerushalmiToLinks } from '../lib/context/parall
 import { type SectionExit, sectionExits } from '../lib/context/sectionExits';
 import { dafSpine } from '../lib/context/spine';
 import { spineLinks } from '../lib/context/spineLinks';
+import heAliasData from '../lib/data/rabbi-he-aliases.json';
 import { buildGeoModel, type GeoEnrichment, type RabbiGeoSource } from '../lib/geographyModel';
 import { buildCodificationChain, buildDerivation } from '../lib/halacha/codifiers';
 import { isNonSageTopic } from '../lib/nonSageTopics';
@@ -8541,6 +8542,53 @@ interface KnownRabbi {
   name: string;
   nameHe: string;
   nameHeNorm: string;
+  /** Set on an ALIAS whose form is a prefix of a longer name belonging to
+   *  someone else ("רב אמי" inside "רב אמי בר שמואל", or the father named by
+   *  "רב יצחק בריה דרב אמי"). Occurrences that fail the guard do not count. */
+  guard?: HeAliasGuard;
+}
+
+interface HeAliasGuard {
+  /** Reject when the word right after the match is one of these. */
+  notFollowedBy?: readonly string[];
+  /** Reject when the match is preceded by a patronymic connector, so the name
+   *  belongs to somebody's father rather than to a speaker. */
+  notAfterPatronymic?: boolean;
+}
+
+interface HeAliasEntry {
+  he: string;
+  slug: string;
+  notFollowedBy?: string[];
+  notAfterPatronymic?: boolean;
+}
+
+const HE_PATRONYMIC_PREFIX_RE = /(?:^|\s)(?:בריה\s+ד|בר|בן|ברבי)\s*$/;
+
+/** Count word-boundary occurrences of `needle` that satisfy `guard`. Mirrors
+ *  countHebrewWordBoundaryMatches' boundary rule so guarded and unguarded
+ *  entries agree about what an occurrence is. */
+function countGuardedMatches(haystack: string, needle: string, guard?: HeAliasGuard): number {
+  if (!needle) return 0;
+  if (!guard) return countHebrewWordBoundaryMatches(haystack, needle, 1);
+  let count = 0;
+  let from = 0;
+  for (;;) {
+    const idx = haystack.indexOf(needle, from);
+    if (idx < 0) break;
+    from = idx + needle.length;
+    const beforeOk = idx === 0 || /\s/.test(haystack[idx - 1]);
+    const afterOk = from === haystack.length || /\s/.test(haystack[from]);
+    if (!beforeOk || !afterOk) continue;
+    if (guard.notAfterPatronymic && HE_PATRONYMIC_PREFIX_RE.test(haystack.slice(0, idx))) continue;
+    if (guard.notFollowedBy?.length) {
+      const next = haystack.slice(from).trim().split(/\s+/, 1)[0] ?? '';
+      if (guard.notFollowedBy.includes(next)) continue;
+    }
+    count++;
+    break;
+  }
+  return count;
 }
 const KNOWN_RABBIS_HE: KnownRabbi[] = (() => {
   const out: KnownRabbi[] = [];
@@ -8553,6 +8601,22 @@ const KNOWN_RABBIS_HE: KnownRabbi[] = (() => {
     if (!norm || norm.length < 2 || norm.includes('(')) continue;
     if (!RABBI_HE_TITLE_RE.test(norm) && !RABBI_HE_STANDALONE.has(norm)) continue;
     out.push({ slug, name: r.canonical, nameHe: he, nameHeNorm: norm });
+  }
+  // Hebrew spellings that name an entry ALREADY above but never match it,
+  // because this index carries only each entry's canonicalHe (rav-matenah is
+  // stored "רב מתנה" while the Bavli writes "רב מתנא"). Evidence per alias
+  // lives in rabbi-he-aliases.json.
+  const bySlug = new Map(out.map((k) => [k.slug, k]));
+  for (const a of (heAliasData as { aliases: HeAliasEntry[] }).aliases) {
+    const target = bySlug.get(a.slug);
+    if (!target) continue;
+    const norm = normalizeHe(expandAbbreviations(a.he));
+    if (!norm || norm === target.nameHeNorm) continue;
+    const guard: HeAliasGuard | undefined =
+      a.notFollowedBy?.length || a.notAfterPatronymic
+        ? { notFollowedBy: a.notFollowedBy, notAfterPatronymic: a.notAfterPatronymic }
+        : undefined;
+    out.push({ slug: a.slug, name: target.name, nameHe: a.he, nameHeNorm: norm, guard });
   }
   // Longer names first so "רבי יוחנן בן זכאי" matches before "רבי יוחנן" claims it.
   out.sort((a, b) => b.nameHeNorm.length - a.nameHeNorm.length);
@@ -8597,12 +8661,6 @@ const KNOWN_RABBIS_HE_SHORT: Map<string, KnownRabbi[]> = (() => {
 function shortEnglishName(name: string): string {
   const tokens = name.trim().split(/\s+/);
   return tokens.length >= 2 ? `${tokens[0]} ${tokens[1]}` : name;
-}
-
-// Hebrew word-boundary test — match only when surrounded by whitespace or at
-// a string edge, so "רבא" doesn't match inside "דרבא" (prefix דְ־).
-function hasHebrewWordBoundaryMatch(haystack: string, needle: string): boolean {
-  return countHebrewWordBoundaryMatches(haystack, needle, 1) > 0;
 }
 
 // Count word-boundary occurrences (same boundary rule as above). `cap` bounds
@@ -8702,7 +8760,7 @@ export function augmentWithKnownRabbis(
   const added: GenerationsResult['rabbis'] = [];
   for (const k of KNOWN_RABBIS_HE) {
     if (seenHe.has(k.nameHeNorm)) continue;
-    if (!hasHebrewWordBoundaryMatch(textNorm, k.nameHeNorm)) continue;
+    if (countGuardedMatches(textNorm, k.nameHeNorm, k.guard) === 0) continue;
     added.push({ name: k.name, nameHe: k.nameHe, generation: 'unknown' });
     seenHe.add(k.nameHeNorm);
   }
