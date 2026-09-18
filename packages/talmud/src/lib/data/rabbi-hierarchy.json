@@ -1,7 +1,7 @@
 {
   "generatedAt": "2026-04-24T08:18:33.396Z",
   "source": "https://talmud.shaunregenbaum.com/api/admin/rabbi-relationships",
-  "totalNodes": 1334,
+  "totalNodes": 1337,
   "processedNodes": 424,
   "nodesWithEdges": 394,
   "nodes": {
@@ -24164,6 +24164,73 @@
         ]
       },
       "provenance": "ai-research-2026-06"
+    },
+    "rav-shisha-b-rav-idi": {
+      "canonical": "Rav Shisha b. Rav Idi",
+      "canonicalHe": "רב שישא בריה דרב אידי",
+      "generation": "amora-bavel-5",
+      "region": "bavel",
+      "hasBio": true,
+      "teachers": [
+        "rav-idi-b-avin-(i)",
+        "abaye",
+        "rava"
+      ],
+      "students": [],
+      "colleagues": [
+        "rav-pappa"
+      ],
+      "unresolved": {
+        "teachers": [],
+        "students": [],
+        "colleagues": []
+      },
+      "processed": true,
+      "provenance": "research-2026-09"
+    },
+    "rav-zutra-b-tuvya": {
+      "canonical": "Rav Zutra b. Tuvya",
+      "canonicalHe": "רב זוטרא בר טוביה",
+      "generation": "amora-bavel-2",
+      "region": "bavel",
+      "hasBio": true,
+      "teachers": [
+        "rav",
+        "rav-yehudah-b-yechezkel"
+      ],
+      "students": [],
+      "colleagues": [],
+      "unresolved": {
+        "teachers": [],
+        "students": [],
+        "colleagues": []
+      },
+      "processed": true,
+      "provenance": "research-2026-09"
+    },
+    "rabbi-simai": {
+      "canonical": "Rabbi Simai",
+      "canonicalHe": "רבי סימאי",
+      "generation": "tanna-6",
+      "region": "israel",
+      "hasBio": true,
+      "teachers": [],
+      "students": [
+        "rabbi-yochanan-b-napacha",
+        "rabbi-shimon-b-lakish",
+        "rabbi-elazar-b-pedat",
+        "rabbi-chiyya-b-abba"
+      ],
+      "colleagues": [
+        "rabi"
+      ],
+      "unresolved": {
+        "teachers": [],
+        "students": [],
+        "colleagues": []
+      },
+      "processed": true,
+      "provenance": "research-2026-09"
     }
   }
 }

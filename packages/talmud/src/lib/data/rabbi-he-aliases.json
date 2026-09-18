@@ -1,0 +1,36 @@
+{
+  "_doc": "Hebrew surface forms that name a sage ALREADY in the registry but never match, because the Hebrew name scan indexes only each entry's canonicalHe. Folded into KNOWN_RABBIS_HE (src/worker/index.ts). Every entry carries the evidence that fixed the identification. `notFollowedBy` / `notAfterPatronymic` guard a short form against firing inside a LONGER name that belongs to someone else.",
+  "_generatedAt": "2026-09-18",
+  "aliases": [
+    {
+      "he": "רב מתנא",
+      "slug": "rav-matenah",
+      "mentions": 43,
+      "why": "Same person as the registry's רב מתנה; the Bavli spells the final syllable with aleph, the registry with heh. Sefaria's own person topic rav-matenah carries the Hebrew title רב מתנא.",
+      "sources": ["https://www.sefaria.org/api/name/%D7%A8%D7%91%20%D7%9E%D7%AA%D7%A0%D7%90"]
+    },
+    {
+      "he": "רב שמן בר אבא",
+      "slug": "rabbi-shimon-bar-abba",
+      "mentions": 28,
+      "why": "The Bavli's רב שמן בר אבא is the registry's רבי שמעון בר אבא, the student-colleague of Rabbi Yochanan. Shemen is the Babylonian short form of Shimon; the Haifa index of Yerushalmi aggadot files him as '(ר') שמעון (רב שמן) בר אבא'. Moed Katan 18a has him say he stood before Rabbi Yochanan in the study hall, which fits that man and no other.",
+      "sources": [
+        "https://yaggada.haifa.ac.il/index.php?option=com_content&view=article&id=2662",
+        "https://he.wikipedia.org/wiki/%D7%A8%D7%91%D7%99_%D7%A9%D7%9E%D7%A2%D7%95%D7%9F_%D7%91%D7%A8_%D7%90%D7%91%D7%90"
+      ]
+    },
+    {
+      "he": "רב אמי",
+      "slug": "rabbi-ami",
+      "mentions": 40,
+      "why": "Bare רב אמי in the Bavli is the Land-of-Israel Rabbi Ami under a Babylonian title. Of 60 matches across Shas, 30 are him speaking and 10 are the pair רב אמי ורב אסי, the standard Ami-and-Asi pair; he also transmits Reish Lakish (Berakhot 53b), whom the Land-of-Israel Ami knew.",
+      "notFollowedBy": ["בר", "בריה", "ברבי"],
+      "notAfterPatronymic": true,
+      "guardWhy": "The other 20 matches are other people: רב אמי בר שמואל and רב אמי בר מתנה are distinct sages, and X בריה דרב אמי names a father, not a speaker. Neither may be pinned to Rabbi Ami.",
+      "sources": [
+        "https://he.wikipedia.org/wiki/%D7%A8%D7%91%D7%99_%D7%90%D7%9E%D7%99",
+        "https://www.sefaria.org/api/name/%D7%A8%D7%91%20%D7%90%D7%9E%D7%99"
+      ]
+    }
+  ]
+}
