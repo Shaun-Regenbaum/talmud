@@ -1,7 +1,7 @@
 {
   "generatedAt": "2026-04-24T08:18:33.396Z",
   "source": "https://talmud.shaunregenbaum.com/api/admin/rabbi-relationships",
-  "totalNodes": 1337,
+  "totalNodes": 1338,
   "processedNodes": 424,
   "nodesWithEdges": 394,
   "nodes": {
@@ -24226,6 +24226,29 @@
       ],
       "unresolved": {
         "teachers": [],
+        "students": [],
+        "colleagues": []
+      },
+      "processed": true,
+      "provenance": "research-2026-09"
+    },
+    "rav-mordechai": {
+      "canonical": "Rav Mordechai",
+      "canonicalHe": "רב מרדכי",
+      "generation": "amora-bavel-6",
+      "region": "bavel",
+      "hasBio": true,
+      "teachers": [
+        "rav-ashi"
+      ],
+      "students": [],
+      "colleagues": [
+        "rav-pappa"
+      ],
+      "unresolved": {
+        "teachers": [
+          "Avimi of Hagronia"
+        ],
         "students": [],
         "colleagues": []
       },

@@ -86,3 +86,63 @@ describe('sages added to the registry', () => {
     });
   }
 });
+
+describe('second round of Hebrew spelling aliases', () => {
+  const CASES: ReadonlyArray<[label: string, slug: string, text: string]> = [
+    // Bava Batra 136b. The later Rav Oshaya, spelled with heh.
+    ['Rav Oshaya', 'rabbi-oshaya-2', 'אמר ליה כבר תרגמה רב הושעיא בבבל אחריך שאני'],
+    // The elder Rabbi Oshaya, a different man, same round.
+    ['Rabbi Oshaya', 'rabbi-oshaya', 'רבי הושעיא הוה יתיב קמיה דרבי חייא'],
+    // Sotah 5a: he gives the teaching in the name of Rav Assi and Rav Ami.
+    ['Rav Avira', 'rabbi-avira', 'דרש רב עוירא זמנין אמר לה משמיה דרב אמי'],
+    // Arakhin 6a: he transmits Rabbi Yochanan.
+    ['Rabbi Ila', 'rabbi-ila', 'אמר רבי אילא אמר רבי יוחנן לא קשיא הא בתחילה'],
+    // The Yerushalmi spelling of Rabbi Zeira.
+    ['Rabbi Zeira', 'rav-zera', 'אמר רבי זעירא תלמידי דרבי ינאי'],
+    ['Rav Helbo', 'rabbi-helbo', 'רב חלבו חלש נפק קלא ואמרו ליה'],
+  ];
+
+  for (const [label, slug, text] of CASES) {
+    it(`reads ${label} as ${slug}`, () => {
+      expect(scan(text)).toContain(places[slug].canonical);
+    });
+  }
+
+  it('does NOT read "Rabbi Zeira bar ..." as Rabbi Zeira himself', () => {
+    expect(scan('אמר רבי זעירא בר חמא הכי')).not.toContain(places['rav-zera'].canonical);
+  });
+
+  it('does NOT read "Rav Oshaya son of ..." as Rav Oshaya himself', () => {
+    expect(scan('אמר רב הושעיא בריה דרב אידי מילתא')).not.toContain(
+      places['rabbi-oshaya-2'].canonical,
+    );
+  });
+
+  // The registry gives BOTH Oshayas the English name "Rabbi Oshaya", so the
+  // English name cannot tell them apart and neither can a reader. What the
+  // scan must get right is which Hebrew form it matched, which is what the
+  // client anchors and what downstream grounding disambiguates from.
+  it('keeps the two Oshayas apart by the Hebrew form it matched', () => {
+    expect(augmentWithKnownRabbis([], 'כבר תרגמה רב הושעיא בבבל').map((r) => r.nameHe)).toContain(
+      'רב הושעיא',
+    );
+    expect(augmentWithKnownRabbis([], 'רבי הושעיא הוה יתיב').map((r) => r.nameHe)).toContain(
+      'רבי הושעיא',
+    );
+    // Neither sentence picks up the other man's Hebrew form.
+    expect(
+      augmentWithKnownRabbis([], 'כבר תרגמה רב הושעיא בבבל').map((r) => r.nameHe),
+    ).not.toContain('רבי הושעיא');
+    expect(augmentWithKnownRabbis([], 'רבי הושעיא הוה יתיב').map((r) => r.nameHe)).not.toContain(
+      'רב הושעיא',
+    );
+  });
+
+  it('has Rav Mordechai, who speaks to Rav Ashi', () => {
+    // Bava Kamma 62a.
+    const entry = places['rav-mordechai'];
+    expect(entry).toBeDefined();
+    expect(entry.generation).toBe('amora-bavel-6');
+    expect(scan('אמר ליה רב מרדכי לרב אשי אתון בדרבא מתניתו לה')).toContain(entry.canonical);
+  });
+});

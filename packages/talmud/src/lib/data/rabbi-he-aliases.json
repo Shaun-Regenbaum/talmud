@@ -1,5 +1,5 @@
 {
-  "_doc": "Hebrew surface forms that name a sage ALREADY in the registry but never match, because the Hebrew name scan indexes only each entry's canonicalHe. Folded into KNOWN_RABBIS_HE (src/worker/index.ts). Every entry carries the evidence that fixed the identification. `notFollowedBy` / `notAfterPatronymic` guard a short form against firing inside a LONGER name that belongs to someone else.",
+  "_doc": "Hebrew surface forms that name a sage ALREADY in the registry but never match, because the Hebrew name scan indexes only each entry's canonicalHe. Folded into KNOWN_RABBIS_HE (src/worker/index.ts). Every entry carries the evidence that fixed the identification. `notFollowedBy` / `notAfterPatronymic` guard a short form against firing inside a LONGER name that belongs to someone else. Guarded entries were added after a scan showed the bare form also occurs before a patronymic, where it names a different man.",
   "_generatedAt": "2026-09-18",
   "aliases": [
     {
@@ -7,7 +7,9 @@
       "slug": "rav-matenah",
       "mentions": 43,
       "why": "Same person as the registry's רב מתנה; the Bavli spells the final syllable with aleph, the registry with heh. Sefaria's own person topic rav-matenah carries the Hebrew title רב מתנא.",
-      "sources": ["https://www.sefaria.org/api/name/%D7%A8%D7%91%20%D7%9E%D7%AA%D7%A0%D7%90"]
+      "sources": [
+        "https://www.sefaria.org/api/name/%D7%A8%D7%91%20%D7%9E%D7%AA%D7%A0%D7%90"
+      ]
     },
     {
       "he": "רב שמן בר אבא",
@@ -24,13 +26,114 @@
       "slug": "rabbi-ami",
       "mentions": 40,
       "why": "Bare רב אמי in the Bavli is the Land-of-Israel Rabbi Ami under a Babylonian title. Of 60 matches across Shas, 30 are him speaking and 10 are the pair רב אמי ורב אסי, the standard Ami-and-Asi pair; he also transmits Reish Lakish (Berakhot 53b), whom the Land-of-Israel Ami knew.",
-      "notFollowedBy": ["בר", "בריה", "ברבי"],
+      "notFollowedBy": [
+        "בר",
+        "בריה",
+        "ברבי"
+      ],
       "notAfterPatronymic": true,
       "guardWhy": "The other 20 matches are other people: רב אמי בר שמואל and רב אמי בר מתנה are distinct sages, and X בריה דרב אמי names a father, not a speaker. Neither may be pinned to Rabbi Ami.",
       "sources": [
         "https://he.wikipedia.org/wiki/%D7%A8%D7%91%D7%99_%D7%90%D7%9E%D7%99",
         "https://www.sefaria.org/api/name/%D7%A8%D7%91%20%D7%90%D7%9E%D7%99"
       ]
+    },
+    {
+      "he": "רב הושעיא",
+      "slug": "rabbi-oshaya-2",
+      "mentions": 49,
+      "why": "The Bavli's רב הושעיא is the registry's רב אושעיא, a student of Rabbi Yochanan, spelled with heh rather than aleph-vav. He is NOT the elder רבי אושעיא of tanna-6 (slug rabbi-oshaya): the sources treat Rav Oshaya, who carried the title רב rather than רבי, as a separate and later man. Bava Batra 161b has Rav Chisda relying on him, which fits the later figure.",
+      "sources": [
+        "https://he.wikipedia.org/wiki/%D7%A8%D7%91_%D7%90%D7%95%D7%A9%D7%A2%D7%99%D7%90",
+        "https://he.wikipedia.org/wiki/%D7%A8%D7%91%D7%99_%D7%90%D7%95%D7%A9%D7%A2%D7%99%D7%90"
+      ],
+      "notFollowedBy": [
+        "בר",
+        "בריה",
+        "ברבי",
+        "בן"
+      ],
+      "notAfterPatronymic": true
+    },
+    {
+      "he": "רבי הושעיא",
+      "slug": "rabbi-oshaya",
+      "mentions": 27,
+      "why": "The elder Rabbi Oshaya, whom the registry stores as רבי אושעיא. Sefaria's person topic rabbi-oshaya carries this exact heh spelling.",
+      "sources": [
+        "https://www.sefaria.org/api/name/%D7%A8%D7%91%D7%99%20%D7%94%D7%95%D7%A9%D7%A2%D7%99%D7%90"
+      ],
+      "notFollowedBy": [
+        "בר",
+        "בריה",
+        "ברבי",
+        "בן"
+      ],
+      "notAfterPatronymic": true
+    },
+    {
+      "he": "רב עוירא",
+      "slug": "rabbi-avira",
+      "mentions": 23,
+      "why": "Title variant of the registry's רבי עוירא. The registry already records Rabbi Ami and Rabbi Assi as his teachers, and Sotah 5a has him give the same teaching sometimes in the name of Rav Assi and sometimes in the name of Rav Ami, which matches that man exactly.",
+      "sources": [
+        "https://www.yeshiva.org.il/wiki/index.php/%D7%A8%D7%91%D7%99_%D7%90%D7%A1%D7%99"
+      ],
+      "notFollowedBy": [
+        "בר",
+        "בריה",
+        "ברבי",
+        "בן"
+      ],
+      "notAfterPatronymic": true
+    },
+    {
+      "he": "רבי אילא",
+      "slug": "rabbi-ila",
+      "mentions": 22,
+      "why": "One of the many spellings of the registry's רבי אילעא, a younger student of Rabbi Yochanan. Reference works list רבי אילא, רבי אלעאי and רבי לייא as names for the same man and note his name is written about twenty different ways. Arakhin 6a and 7a have him transmit Rabbi Yochanan, which fits.",
+      "sources": [
+        "https://he.wikipedia.org/wiki/%D7%A8%D7%91%D7%99_%D7%90%D7%9C%D7%A2%D7%90%D7%99_(%D7%90%D7%9E%D7%95%D7%A8%D7%90)"
+      ],
+      "notFollowedBy": [
+        "בר",
+        "בריה",
+        "ברבי",
+        "בן"
+      ],
+      "notAfterPatronymic": true
+    },
+    {
+      "he": "רבי זעירא",
+      "slug": "rav-zera",
+      "mentions": 11,
+      "why": "The fuller spelling of the registry's רבי זירא, the form the Yerushalmi prefers. Sefaria's person topic rav-zera carries this spelling.",
+      "sources": [
+        "https://www.sefaria.org/api/name/%D7%A8%D7%91%D7%99%20%D7%96%D7%A2%D7%99%D7%A8%D7%90"
+      ],
+      "notFollowedBy": [
+        "בר",
+        "בריה",
+        "ברבי",
+        "בן"
+      ],
+      "notAfterPatronymic": true
+    },
+    {
+      "he": "רב חלבו",
+      "slug": "rabbi-helbo",
+      "mentions": 3,
+      "why": "Title variant of the registry's רבי חלבו. Sefaria's person topic rabbi-helbo carries this spelling.",
+      "sources": [
+        "https://www.sefaria.org/api/name/%D7%A8%D7%91%20%D7%97%D7%9C%D7%91%D7%95"
+      ],
+      "notFollowedBy": [
+        "בר",
+        "בריה",
+        "ברבי",
+        "בן"
+      ],
+      "notAfterPatronymic": true
     }
   ]
 }
