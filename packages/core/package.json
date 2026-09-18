@@ -16,6 +16,7 @@
     "./cache/*": "./src/cache/*.ts",
     "./sefaria/*": "./src/sefaria/*.ts",
     "./model/*": "./src/model/*.ts",
+    "./learner-profile/*": "./src/learner-profile/*.ts",
     "./store/*": "./src/store/*.ts",
     "./run/*": "./src/run/*.ts",
     "./telemetry/*": "./src/telemetry/*.ts"
