@@ -5,14 +5,10 @@
 """
 import argparse, json, os, re, sys, time, urllib.request
 sys.path.insert(0, os.path.dirname(__file__))
-from kinds import KINDS, CONVENTIONS
+from kinds import KINDS, MARKER_PROMPT
 
 API = 'https://openrouter.ai/api/v1/chat/completions'
-SYSTEM = (CONVENTIONS + '\n\nFor EACH item say what the wrapped stretch is. "kind" is one of:\n'
-          + '\n'.join(f'  "{k}": {v}' for k, v in KINDS.items())
-          + '\n\n"sure": false if a careful reader could reasonably disagree.'
-          + '\n"reading": ONLY for a short form, the name spelled out if you are confident, else null.'
-          + '\n\nReturn ONLY JSON: {"items":[{"id":"...","kind":"...","sure":true,"reading":null}]}')
+SYSTEM = MARKER_PROMPT
 
 
 def call(model, key, items, effort):
