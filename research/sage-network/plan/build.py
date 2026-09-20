@@ -83,7 +83,7 @@ src_rows = ''.join(
     f'<td>{esc(s["addressed"])}</td><td class="muted">{esc(s["adds"])}</td></tr>' for s in D['sources'])
 miss_rows = ''.join(f'<tr><td>{he(n)}</td><td class="num">{o}</td><td class="num">{a}</td></tr>' for n, o, a in Wd['misses'])
 
-BODY = open('body.html').read()
+BODY = open('body.tmpl').read()
 page = BODY
 for k, v in {
     '{{CSS}}': CSS, '{{FIG_AUDIT}}': fig_audit, '{{FIG_WORD}}': fig_word, '{{FIG_SINGLE}}': fig_single,
