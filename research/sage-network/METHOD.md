@@ -24,8 +24,15 @@ history. Three examples that cost us real errors:
 - **"X turned up at Y's house"** is a story, and the Talmud tells stories that
   could not have happened. It is worth collecting and it is not proof.
 
-So no relation may be read for its literal meaning. Each is a signal whose
-weight has to be earned by how it behaves across the corpus.
+- **Two editions printing different names at one spot** does not show that the
+  two spellings are one name. Editors opened up abbreviations and corrected
+  names, and they often differ precisely because they disagreed about who was
+  meant. A variant marks a spot where the identity was open. It is a flag to
+  collect, and a ready-made hard test, not a merge.
+
+So no relation may be read for its literal meaning, and no edition may be read
+as a neutral witness. Each is a signal whose weight has to be earned by how it
+behaves across the corpus.
 
 ## What counts as evidence
 
@@ -36,6 +43,7 @@ Only relations that survive that test may order two names:
 | X in the name of Y | strong | a chain of transmission runs one way in time |
 | X son of Y | strong | a generation, and an identity fact about the name |
 | X sat before Y | strong | learning runs one way |
+| "X says" against "said X" | strong, per mention | early teachers are introduced with the participle after the name, later sages with the verb first. Measured on 176 names with one entry and a recorded era: 94% agreement, and never a later sage read as early. All 11 misses are a name shared by an early and a late man, so the signal sorts the single mentions of a shared name |
 | the tradition splits between X and Y | medium | both were plausible authors, so they are near in role and time |
 | X and Y in one story | medium | collectable, not proof |
 | X objects to Y | medium | X is at or after Y |
@@ -67,6 +75,20 @@ clustered. For both groups the only routes are an outside record or an honest
 "unknown".
 
 ## Known faults
+
+- **There are no tests.** Every fault below was found by reading output. A hand
+  audit of 40 extracted relations found 5 wrong, 4 of them from one repair that
+  cut any name whose given name begins with a prefix letter, so Rabbi Meir
+  became "Rabbi". Each fault found becomes a regression test before anything
+  else is built.
+- **The bare-title problem.** Rav, Rabbi, Rava and Rabbah are complete names and
+  also titles. The finder never sees them alone; it glues them to the next
+  word. In a sample of 30 names seen once, 17 were not names at all. No count
+  of people means anything until this is solved.
+- Abbreviations are not handled. A two-letter short form can stand for five
+  different rabbis, and one edition uses them heavily.
+- The same edition with and without vowel marks is currently fetched as two
+  witnesses.
 
 - Relation coverage is partial. Counting the words between two names misses any
   relation whose verb comes first, and `איתיביה X לY` is that shape.

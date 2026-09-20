@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sage network study plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400&family=Frank+Ruhl+Libre:wght@400;500&display=swap" rel="stylesheet">
+<style>:root{
+  --bg:#fafaf7; --fg:#1a1a1a; --muted:#6b6b6b; --line:#e5e3dc;
+  --accent:#8a2a2b; --surface:#ffffff; --surface-sunk:rgba(138,42,43,.06);
+  --ok:#2f6b66; --warn:#8a6d3b; --bad:#8a2a2b; --ghost:#b9b5aa;
+  --font-ui:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-serif:"Spectral",Georgia,"Times New Roman",serif;
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  --font-hebrew:"Frank Ruhl Libre","Mekorot Vilna",serif;
+  --radius:6px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#15140f; --fg:#ecebe4; --muted:#9a968c; --line:#2f2d26;
+    --accent:#d9787a; --surface:#1d1c16; --surface-sunk:rgba(217,120,122,.10);
+    --ok:#4f938c; --warn:#a88a4a; --bad:#b85a5c; --ghost:#514d43;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15140f; --fg:#ecebe4; --muted:#9a968c; --line:#2f2d26;
+  --accent:#d9787a; --surface:#1d1c16; --surface-sunk:rgba(217,120,122,.10);
+  --ok:#4f938c; --warn:#a88a4a; --bad:#b85a5c; --ghost:#514d43;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-serif);
+  font-size:15px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:56px 20px 96px}
+h1{font-family:var(--font-ui);font-size:30px;line-height:1.25;font-weight:600;margin:0 0 14px}
+h2{font-family:var(--font-ui);font-size:19px;font-weight:600;margin:54px 0 12px;scroll-margin-top:16px}
+h3{font-family:var(--font-ui);font-size:15px;font-weight:600;margin:26px 0 8px}
+p{margin:0 0 14px} ul,ol{margin:0 0 14px;padding-left:22px} li{margin-bottom:7px}
+a{color:var(--accent)}
+.eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.lede{font-size:17px}
+.muted{color:var(--muted)}
+.he{font-family:var(--font-hebrew);font-size:1.08em;direction:rtl;unicode-bidi:isolate}
+.toc{font-family:var(--font-ui);font-size:13.5px;border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--surface);padding:14px 18px 14px 36px;margin:24px 0}
+.toc li{margin-bottom:3px}
+.panel{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:16px 20px;margin:18px 0}
+.panel p:last-child{margin-bottom:0}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin:12px 0}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--font-ui);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.num,th.num{text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+svg.chart{display:block;width:100%;height:auto;margin:10px 0 4px}
+svg.chart text{font-family:var(--font-mono);font-size:11px;fill:var(--fg)}
+svg.chart text.lbl{font-family:var(--font-ui);fill:var(--muted)}
+svg.diagram{display:block;width:100%;max-width:760px;height:auto;margin:14px auto}
+svg.diagram text{font-family:var(--font-ui);font-size:12px;fill:var(--fg)}
+svg.diagram text.s{font-size:10.5px;fill:var(--muted)}
+figure{margin:20px 0} figcaption{font-size:12.5px;color:var(--muted);margin-top:4px}
+code{font-family:var(--font-mono);font-size:.88em;background:var(--surface-sunk);padding:1px 5px;border-radius:3px}
+.rec{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--radius);background:var(--surface);padding:16px 18px;margin:16px 0}
+.rec dl{display:grid;grid-template-columns:170px 1fr;gap:8px 16px;margin:0;font-size:13.5px}
+.rec dt{font-family:var(--font-ui);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding-top:2px}
+.rec dd{margin:0}
+.tag{font-family:var(--font-mono);font-size:10.5px;border:1px solid var(--line);border-radius:3px;padding:1px 6px;color:var(--muted);white-space:nowrap}
+.tag.ok{color:var(--ok);border-color:var(--ok)} .tag.warn{color:var(--warn);border-color:var(--warn)} .tag.bad{color:var(--bad);border-color:var(--bad)}
+ol.stages{list-style:none;padding:0;counter-reset:st}
+ol.stages>li{counter-increment:st;border-top:1px solid var(--line);padding:14px 0 6px 44px;position:relative;margin:0}
+ol.stages>li::before{content:counter(st);position:absolute;left:0;top:13px;font-family:var(--font-mono);font-size:13px;
+  width:28px;height:28px;line-height:28px;text-align:center;border:1px solid var(--line);border-radius:50%;color:var(--accent)}
+ol.stages h3{margin:0 0 4px} ol.stages p{margin:0 0 8px;font-size:14px}
+hr{border:0;border-top:1px solid var(--line);margin:44px 0}
+@media (max-width:560px){.rec dl{grid-template-columns:1fr}.rec dt{padding-top:8px}}
+</style></head><body><div class="wrap">
+
+<p class="eyebrow">talmud.dev &middot; research/sage-network &middot; 20 September 2026</p>
+<h1>How many people are in the Talmud, and how would we know?</h1>
+<p class="lede">A name on a page of Talmud is not a person. One name can belong to several men. One
+man can appear under several names. We want to work out who is who, when each one lived, and how
+sure we are, starting from the text and nothing else.</p>
+<p>This page does two things. It reviews the work done so far and says plainly what was wrong
+with it. Then it sets out the plan from scratch: what we read, what we pull out, what we join up,
+and how we check every step.</p>
+
+<ol class="toc">
+<li><a href="#one">One mention, and everything we would record about it</a></li>
+<li><a href="#review">What holds up from the work so far, and what does not</a></li>
+<li><a href="#rules">Five rules the mistakes taught us</a></li>
+<li><a href="#sources">The sources we have</a></li>
+<li><a href="#editions">What two editions of the same page really tell us</a></li>
+<li><a href="#stages">How we go through them, stage by stage</a></li>
+<li><a href="#signals">What we pull out of each mention</a></li>
+<li><a href="#connect">What we join up, and in what order</a></li>
+<li><a href="#check">How we check it</a></li>
+<li><a href="#limits">Where this cannot work</a></li>
+<li><a href="#order">The order of work, and what each step buys</a></li>
+<li><a href="#decide">Five things I need you to decide</a></li>
+</ol>
+
+<h2 id="one">One mention, and everything we would record about it</h2>
+<p>Before any counting, here is one real line, from Arakhin 6a, as two editions print it.</p>
+<div class="rec"><dl>
+<dt>One edition prints</dt><dd><bdi class="he">אמר רבי אילא אמר רבי יוחנן לא קשיא</bdi></dd>
+<dt>The other prints</dt><dd><bdi class="he">א״ר אילא א״ר יוחנן לא קשיא</bdi></dd>
+<dt>Names we find</dt><dd><bdi class="he">רבי אילא</bdi> and <bdi class="he">רבי יוחנן</bdi>. At this point they are strings, not people.</dd>
+<dt>What joins them</dt><dd>&ldquo;X said, Y said&rdquo;: Rabbi Ila is passing on a teaching of Rabbi Yochanan.
+So the name Ila sits later in time than the name Yochanan. This is the strongest kind of link we have.</dd>
+<dt>The wording</dt><dd>&ldquo;Said X&rdquo; with the verb first. That is how the Talmud introduces later sages.
+Early teachers get &ldquo;X says&rdquo;. So both names here are later sages.</dd>
+<dt>What the editions show</dt><dd>One spells out &ldquo;Rabbi&rdquo;. The other writes the short form. Every time an
+editor opened up a short form, the editor decided who was meant.</dd>
+<dt>What it does not say</dt><dd>Which Rabbi Ila. Which Rabbi Yochanan. That the two ever met.</dd>
+<dt>What our app does today</dt><dd>It maps <bdi class="he">רבי אילא</bdi> to one entry in our list and shows that man everywhere.
+I shipped that. It is one of the things this page says to change.</dd>
+</dl></div>
+
+<h2 id="review">What holds up from the work so far, and what does not</h2>
+<p>I went back over everything from this project with a harder eye. The short version: the
+software changes mostly hold. The research numbers mostly do not, yet. They point the right way,
+but I reported them with more confidence than they had earned.</p>
+
+<h3>I read 40 of my own results by hand</h3>
+<figure><svg class="chart" viewBox="0 0 760 112" role="img" aria-label="40 extracted relations, read by hand against the words they came from"><text class="lbl" x="1" y="17">40 extracted relations, read by hand against the words they came from</text><rect x="1.0" y="26" width="663.2" height="34" fill="var(--ok)" rx="3"/><text x="9.0" y="48" style="fill:#fff" font-weight="600">35</text><rect x="664.2" y="26" width="94.8" height="34" fill="var(--bad)" rx="3"/><text x="672.2" y="48" style="fill:#fff" font-weight="600">5</text><rect x="1" y="72" width="9" height="9" fill="var(--ok)" rx="2"/><text class="lbl" x="15" y="80.5">right &middot; 35</text><rect x="71" y="72" width="9" height="9" fill="var(--bad)" rx="2"/><text class="lbl" x="85" y="80.5">wrong &middot; 5</text><text x="1" y="104" fill="var(--accent)" font-weight="600">4 of the 5 wrong ones came from a single repair I had added myself</text></svg></figure>
+<p>The repair was meant to stop a father&rsquo;s name swallowing the next word. Instead it cut any
+name whose given name starts with one of seven letters. Rabbi Meir and Rabbi Shimon both became
+plain &ldquo;Rabbi&rdquo;. That hit 129 of 2,479 of the links, about 5%. The fifth error read
+&ldquo;Master, what did Shmuel say&rdquo; as a sage called Mar Mai. None of this was caught by a test,
+because there are no tests. I found it by reading.</p>
+
+<h3>Most &ldquo;names seen once&rdquo; are not names</h3>
+<figure><svg class="chart" viewBox="0 0 760 112" role="img" aria-label="30 names that appear exactly once, drawn at random"><text class="lbl" x="1" y="17">30 names that appear exactly once, drawn at random</text><rect x="1.0" y="26" width="429.5" height="34" fill="var(--bad)" rx="3"/><text x="9.0" y="48" style="fill:#fff" font-weight="600">17</text><rect x="430.5" y="26" width="328.5" height="34" fill="var(--ok)" rx="3"/><text x="438.5" y="48" style="fill:#fff" font-weight="600">13</text><rect x="1" y="72" width="9" height="9" fill="var(--bad)" rx="2"/><text class="lbl" x="15" y="80.5">not a name at all &middot; 17</text><rect x="144" y="72" width="9" height="9" fill="var(--ok)" rx="2"/><text class="lbl" x="158" y="80.5">a real name &middot; 13</text><text x="1" y="104" fill="var(--accent)" font-weight="600">so my &quot;1,450 names seen once&quot; figure was inflated by more than half</text></svg></figure>
+<p>The four most common one-word names in the Talmud are Rav, Rabbi, Rava and Rabbah. My name
+finder never sees them alone. It glues them to whatever word comes next, so &ldquo;Rava, following
+his own view&rdquo; becomes a sage. This is the biggest open problem in finding names, and it has
+to be solved before any count of people means anything.</p>
+
+<h3>Verdicts, item by item</h3>
+<div class="scroll"><table><thead><tr><th>What</th><th>Verdict</th><th>Why, and what to do</th></tr></thead><tbody>
+<tr><td>Moving three pick-one-option jobs to the cheap judging model, with the old path as backup</td><td><span class="tag ok">holds</span></td><td class="muted">Tested on only ten cases. Widen the test when the check set exists.</td></tr>
+<tr><td>Folding three duplicate entries; fixing the title check</td><td><span class="tag ok">holds</span></td><td class="muted">Nothing to change.</td></tr>
+<tr><td>The per-page index of who is named where, from the full scan</td><td><span class="tag warn">holds, with a caveat</span></td><td class="muted">Every choice in it was made from our list of candidates. If the right man is not in the list, the index cannot pick him. It is also missing about 600 mentions of names we have matched since. Rebuild it from this study, last.</td></tr>
+<tr><td>The law-versus-story profile per sage</td><td><span class="tag warn">holds, with a caveat</span></td><td class="muted">The labels were never compared with a person&rsquo;s labels. Check a sample.</td></tr>
+<tr><td>Nine spelling links I added to the live list</td><td><span class="tag bad">change</span></td><td class="muted">Six of the nine hand the app exactly one man for that name. I told you first that this switched off the choosing step, then that it did not. The truth is in between: for three it does not, for six it does. A spelling link should point at a list of possible men, not at one.</td></tr>
+<tr><td>Splitting the two Oshayas by spelling and title</td><td><span class="tag bad">wrong reasoning</span></td><td class="muted">The standard reference says the spelling does not tell them apart. It works today only because both entries share an English name, so the app still has to choose. That is luck.</td></tr>
+<tr><td>Four new entries with eras</td><td><span class="tag warn">provisional</span></td><td class="muted">Each era rests on one source, some on a search snippet. Mark them provisional and check them against the order the text gives.</td></tr>
+<tr><td>&ldquo;The text&rsquo;s order agrees with our eras 81 to 84 percent of the time&rdquo;</td><td><span class="tag warn">direction right, number not</span></td><td class="muted">Two separate runs agree on the direction. But the links were about 87 percent clean, one bug touched 5 percent of them, and I put two parallel timelines on one number line.</td></tr>
+<tr><td>&ldquo;The method finds the hard names by itself&rdquo;</td><td><span class="tag bad">oversold</span></td><td class="muted">It rested on four loops in the order. Four is an anecdote.</td></tr>
+<tr><td>&ldquo;Two names in one sentence are two people&rdquo;</td><td><span class="tag warn">promising</span></td><td class="muted">Eight pairs, all as expected. Needs hundreds.</td></tr>
+<tr><td>&ldquo;A spelling change between editions proves one name&rdquo;</td><td><span class="tag bad">wrong</span></td><td class="muted">You corrected this. Editors often differ because they disagreed about who it was. See below.</td></tr>
+<tr><td>Reading &ldquo;said to&rdquo;, &ldquo;and some say&rdquo; and visit stories as facts</td><td><span class="tag bad">wrong, three times</span></td><td class="muted">You corrected each. They are now rule 2.</td></tr>
+</tbody></table></div>
+<p><strong>How I worked, not only what I found.</strong> I merged two changes while the checks were
+red. I raised a false alarm about live behaviour. I called a name &ldquo;clear&rdquo; from one search
+result. Three times I started seven helpers at once and ran into a spending cap. Still not done
+from the earlier list: the four other uses for the judging model, the look at new reader
+components, and rebuilding the page index.</p>
+
+<h2 id="rules">Five rules the mistakes taught us</h2>
+<ol>
+<li><strong>A name is a string until proven otherwise.</strong> Nothing gets attached to a person until the
+evidence for that person has been weighed.</li>
+<li><strong>The Talmud is an edited book, not a record of events.</strong> &ldquo;Said to&rdquo; does not mean
+they met. &ldquo;And some say&rdquo; is about where a teaching came from. A visit may be a story. Every
+phrase is a clue with a weight, and the weight has to be measured.</li>
+<li><strong>Editions are opinions.</strong> Editors opened up short forms and corrected names. Where two
+editions differ, somebody disagreed about who it was.</li>
+<li><strong>Every outside record is a claim to test.</strong> Our own list, Sefaria&rsquo;s tags, the
+biographical dictionaries. None of them goes into the graph. All of them get scored against it
+at the end.</li>
+<li><strong>No number without a hand check.</strong> Every figure I report comes with a sample somebody
+read, and &ldquo;we cannot tell&rdquo; is an allowed answer.</li>
+</ol>
+
+<h2 id="sources">The sources we have</h2>
+<p>All of it is Hebrew and Aramaic, taken from Sefaria with the edition, link, date and licence
+recorded for each piece. No translation is used anywhere. A translator has already decided who
+is who.</p>
+<div class="scroll"><table><thead><tr><th>Body of text</th><th>Size</th><th>Editions</th><th>How it is divided</th><th>What it adds</th></tr></thead>
+<tbody><tr><td><strong>Mishnah</strong></td><td>63 tractates</td><td>3, one of them the Kaufmann manuscript</td><td>chapter and mishnah</td><td class="muted">the early teachers, by definition. Anyone named here is from the Mishnah period</td></tr><tr><td><strong>Tosefta</strong></td><td>about 60 tractates</td><td>1 to 2</td><td>chapter and halakhah</td><td class="muted">more early teachers, many not in the Mishnah</td></tr><tr><td><strong>Halakhic midrash</strong></td><td>8 (Mekhilta, Sifra, Sifrei and others)</td><td>1 each, Sifra is Venice 1545</td><td>varies by work</td><td class="muted">early teachers arguing from verses; fixes the early end of the order</td></tr><tr><td><strong>Bavli</strong></td><td>36 tractates, 5,332 pages</td><td>2 (both descend from the Vilna printing)</td><td>page and side</td><td class="muted">the main body: Babylonian sages, plus Land of Israel sages as the Babylonians heard them</td></tr><tr><td><strong>Yerushalmi</strong></td><td>39 tractates</td><td>3, including Venice, the first printing</td><td>chapter and halakhah, not pages</td><td class="muted">Land of Israel sages in their own spelling, and people who appear nowhere else</td></tr><tr><td><strong>Aggadic midrash</strong></td><td>about 25 (the Rabbah books, Tanchuma, Pesikta and others)</td><td>1 to 4; Pesikta is from an Oxford manuscript</td><td>chapter and section</td><td class="muted">story and sermon material; many Land of Israel sages who are thin in the Bavli</td></tr></tbody></table></div>
+<p><strong>What this table is and is not.</strong> I checked the editions on one work from each body of
+text, not on all of them. Step 2 of the plan counts them properly. The Mishnah is the pleasant
+surprise: one of its three editions follows the Kaufmann manuscript, which is a truly separate
+witness. The Bavli is the disappointment: both its editions come down from the same Vilna
+printing, so when they agree it proves little.</p>
+<p><strong>What we do not have.</strong> The great manuscripts of the Bavli exist as transcriptions
+elsewhere, in collections I have not checked access to. I will not plan around them until I have
+opened them.</p>
+<p><strong>Kept apart until the end:</strong> our own list of 1,338 entries, of which 810 have no
+era at all; Sefaria&rsquo;s person pages and its tags on passages; the biographical dictionaries;
+and the earlier full scan of the Bavli, whose every choice was made from our list.</p>
+
+<h2 id="editions">What two editions of the same page really tell us</h2>
+<p>I had claimed that a spelling change between editions proves two spellings are one name. You
+pointed out that editions often differ because the editors did not agree on who the person was.
+So I measured it, on tractate Berakhot, in both Talmuds.</p>
+<h3>The automatic count failed, and the reason is useful</h3><div class="scroll"><table><thead><tr><th>Talmud</th><th>Editions</th><th class="num">Same</th><th class="num">Spelled differently</th><th class="num">Different name</th><th class="num">In one edition only</th></tr></thead><tbody><tr><td>Bavli</td><td class="muted">Wikisource against Davidson</td><td class="num">1,600</td><td class="num">22</td><td class="num">101</td><td class="num">843</td></tr><tr><td>Yerushalmi</td><td class="muted">Mechon-Mamre against Guggenheimer</td><td class="num">840</td><td class="num">70</td><td class="num">142</td><td class="num">897</td></tr></tbody></table></div><p>Do not read those numbers as editors disagreeing. One edition writes names in short form, which the name finder cannot see at all. Every name it misses pushes the rest of the page out of line, so most of the &#x27;differences&#x27; are my tools failing, not editors disagreeing. So the honest result of the automatic run is: lining editions up is a real job of its own, stage 2 below, and short forms have to be handled first.</p><h3>So I sorted the small differences by hand</h3><figure><svg class="chart" viewBox="0 0 760 112" role="img" aria-label="28 differences between editions that looked like a spelling change, sorted by hand"><text class="lbl" x="1" y="17">28 differences between editions that looked like a spelling change, sorted by hand</text><rect x="1.0" y="26" width="189.5" height="34" fill="var(--bad)" rx="3"/><text x="9.0" y="48" style="fill:#fff" font-weight="600">7</text><rect x="190.5" y="26" width="243.6" height="34" fill="var(--warn)" rx="3"/><text x="198.5" y="48" style="fill:#fff" font-weight="600">9</text><rect x="434.1" y="26" width="324.9" height="34" fill="var(--ghost)" rx="3"/><text x="442.1" y="48" style="fill:#fff" font-weight="600">12</text><rect x="1" y="72" width="9" height="9" fill="var(--bad)" rx="2"/><text class="lbl" x="15" y="80.5">a different man, or a different title &middot; 7</text><rect x="259" y="72" width="9" height="9" fill="var(--warn)" rx="2"/><text class="lbl" x="273" y="80.5">spelling only &middot; 9</text><rect x="371" y="72" width="9" height="9" fill="var(--ghost)" rx="2"/><text class="lbl" x="385" y="80.5">my tools failing, not a real difference &middot; 12</text><text x="1" y="104" fill="var(--accent)" font-weight="600">7 of the 16 real differences change who is speaking, or his title</text></svg></figure><p>Rava against Rabbah, and Eliezer against Elazar, are each one letter apart. So how far apart two spellings are cannot separate a slip of the pen from a different person. I had planned to use exactly that, and it does not work.</p><h3>A different man, or a different title, at the same spot</h3><div class="scroll"><table><thead><tr><th>Where</th><th>One edition</th><th>The other</th><th>What it means</th></tr></thead><tbody><tr><td>Bavli Berakhot 30b</td><td><bdi class="he">רבא</bdi></td><td><bdi class="he">רבה</bdi></td><td class="muted">Rava and Rabbah. Two different men, a generation apart, one letter apart.</td></tr><tr><td>Yerushalmi Berakhot 1:5</td><td><bdi class="he">רבי אליעזר</bdi></td><td><bdi class="he">רבי אלעזר</bdi></td><td class="muted">Eliezer and Elazar. Two different men, one letter apart. Which Elazar is a further open question.</td></tr><tr><td>Yerushalmi Berakhot 1:5</td><td><bdi class="he">רבה</bdi></td><td><bdi class="he">רבא</bdi></td><td class="muted">Rabbah and Rava again, in the other Talmud.</td></tr><tr><td>Bavli Berakhot 47b</td><td><bdi class="he">רבי אמי</bdi></td><td><bdi class="he">רב אמי</bdi></td><td class="muted">The title differs. This is the very name I linked to one man in the live app.</td></tr><tr><td>Bavli Berakhot 23a</td><td><bdi class="he">רב חנינא בר פפא</bdi></td><td><bdi class="he">רבי חנינא בר פפא</bdi></td><td class="muted">The title differs: Babylonian in one, Land of Israel in the other.</td></tr><tr><td>Bavli Berakhot 3b</td><td><bdi class="he">רב זריקא</bdi></td><td><bdi class="he">רבי זריקא</bdi></td><td class="muted">The title differs.</td></tr><tr><td>Yerushalmi Berakhot 1:4</td><td><bdi class="he">בריה דרב אדא</bdi></td><td><bdi class="he">בריה דרבי אדא</bdi></td><td class="muted">The father&#x27;s title differs.</td></tr></tbody></table></div><h3>Spelling only</h3><div class="scroll"><table><thead><tr><th>Where</th><th>One edition</th><th>The other</th></tr></thead><tbody><tr><td>Yerushalmi Berakhot 1:1</td><td><bdi class="he">רבי עקיבה</bdi></td><td><bdi class="he">רבי עקיבא</bdi></td></tr><tr><td>Yerushalmi Berakhot 1:1</td><td><bdi class="he">רבי יהודא בן פזי</bdi></td><td><bdi class="he">רבי יהודה בן פזי</bdi></td></tr><tr><td>Yerushalmi Berakhot 3:1</td><td><bdi class="he">רבי חנינא</bdi></td><td><bdi class="he">רבי חנינה</bdi></td></tr><tr><td>Yerushalmi Berakhot 3:4</td><td><bdi class="he">רב הונא</bdi></td><td><bdi class="he">רב חונא</bdi></td></tr><tr><td>Yerushalmi Berakhot 1:5</td><td><bdi class="he">רב מתנא</bdi></td><td><bdi class="he">רב מתנה</bdi></td></tr><tr><td>Yerushalmi Berakhot 1:2</td><td><bdi class="he">רבי מנא</bdi></td><td><bdi class="he">רבי מני</bdi></td></tr><tr><td>Yerushalmi Berakhot 2:1</td><td><bdi class="he">רב יהודא</bdi></td><td><bdi class="he">רב יהודה</bdi></td></tr><tr><td>Yerushalmi Berakhot 3:1</td><td><bdi class="he">רבי יודא</bdi></td><td><bdi class="he">רבי יודה</bdi></td></tr><tr><td>Yerushalmi Berakhot 3:1</td><td><bdi class="he">רבי נחמיה בריה דרבי חייא</bdi></td><td><bdi class="he">רבי נחומיה בריה דרבי חייא</bdi></td></tr></tbody></table></div><p>Twenty-eight cases from one tractate is a first look, not a measurement. But it is enough to settle the argument: you were right. Rava against Rabbah and Eliezer against Elazar are different people, and the editions really do disagree about which one spoke. And one of the seven is the exact name I linked to a single man in the live app.</p>
+<p><strong>How to use this.</strong> A difference between editions is a flag on a spot, not an answer. It
+says the identity here was open enough that two editors went different ways. Those spots are
+worth collecting for two reasons. They are exactly where a careful reader would want a warning.
+And they are a ready-made hard test for anything we build.</p>
+
+<h2 id="stages">How we go through them, stage by stage</h2>
+<ol class="stages">
+<li><h3>Take a dated copy of every edition <span class="tag ok">built</span></h3>
+<p>Each piece is saved with its edition, link, date, licence and a fingerprint, so anyone can
+re-fetch and confirm they have the same text. Known fault: the same edition with and without
+vowel marks is counted as two.</p></li>
+<li><h3>Line the editions up with each other <span class="tag bad">not started</span></h3>
+<p>Editions cut the text into pieces differently. We match passage to passage so that a name in
+one can be compared with the same spot in another.</p></li>
+<li><h3>Find everything that might be a name <span class="tag warn">partly built</span></h3>
+<p>Be generous here and strict later. Open problems, in order of size: the four bare one-word
+names; short forms such as the two-letter ones that can mean five different rabbis; and the
+single letters Hebrew glues to the front of words.</p></li>
+<li><h3>Sort each distinct string: a person, or not <span class="tag bad">not started</span></h3>
+<p>A person, a group such as &ldquo;the Sages&rdquo;, a place, a legal term, a figure from the Bible, or
+a title stuck to an ordinary word. This is a judgement, so it goes to the cheap judging model
+with three real passages each, once per string, not once per mention. A sample is checked by hand.</p></li>
+<li><h3>Find what joins two names <span class="tag warn">partly built</span></h3>
+<p>Count the words around every pair of names, before, between and after. My first three patterns
+caught 15% of 24,360 pairs, and there are 10,191 different joining phrases. Counting
+finds them all for free. The judging model then labels the rarer ones.</p></li>
+<li><h3>Record the clues on each single mention <span class="tag warn">one measured</span></h3>
+<p>The wording, the layer of text it sits in, the language of the statement, which body of text
+it is from, and the title. See the next section.</p></li>
+<li><h3>Build the graph of names <span class="tag warn">prototype</span></h3>
+<p>Each name is a point. Each link has a kind, a direction, a weight, and the passages behind it.
+The Land of Israel and Babylonia are kept as two separate timelines.</p></li>
+<li><h3>Decide which names are one man, and which one name is several <span class="tag bad">not started</span></h3>
+<p>The output is a set of guesses at real people, each with odds, plus a pile marked &ldquo;cannot
+tell&rdquo;.</p></li>
+<li><h3>Put them in order, then on a calendar <span class="tag warn">prototype</span></h3>
+<p>Order first, from the strong links. Then pin a few people we agree are certain, and let the
+chains carry the rest. Each person gets odds across the eras, not one label.</p></li>
+<li><h3>Only now open the biographies <span class="tag bad">not started</span></h3>
+<p>For each guessed person, ask of each biography: does its era fit the place the text gives him?
+Do the teachers it names match who he actually quotes? It may fit, clash, or there may be no
+biography at all.</p></li>
+<li><h3>Give every mention its odds <span class="tag bad">not started</span></h3>
+<p>Pack up the evidence for a mention and ask the judging model to spread its bets across the
+guessed people, with &ldquo;none of these&rdquo; always on offer.</p></li>
+<li><h3>Publish, and feed it back into the app <span class="tag bad">not started</span></h3>
+<p>The data, the method and the paper. In the app: a rebuilt page index, spelling links that point
+at lists, and a reader that shows when it is unsure.</p></li>
+</ol>
+
+<h2 id="signals">What we pull out of each mention</h2>
+<p>Each of these is a clue, never a fact. The last column says whether I have measured it or am
+only expecting it to work.</p>
+<div class="scroll"><table><thead><tr><th>Clue</th><th>What it suggests</th><th>Status</th></tr></thead><tbody>
+<tr><td>X passes on a teaching of Y</td><td>X is later than Y. The strongest link.</td><td><span class="tag ok">measured</span> agrees with our eras most of the time</td></tr>
+<tr><td>&ldquo;X says&rdquo; against &ldquo;said X&rdquo;</td><td>Early teacher against later sage, mention by mention</td><td><span class="tag ok">measured</span> see below</td></tr>
+<tr><td>X is the son of Y</td><td>One generation later. But usually it is just part of one man&rsquo;s name: only about one in six fathers also appears in his own right.</td><td><span class="tag warn">partly</span></td></tr>
+<tr><td>The name is in the Mishnah itself</td><td>An early teacher, almost by definition</td><td><span class="tag bad">expected</span></td></tr>
+<tr><td>The statement is in Hebrew or in Aramaic</td><td>Early teachers are quoted in Hebrew</td><td><span class="tag bad">expected</span></td></tr>
+<tr><td>Quoted inside a Mishnah or outside teaching, or in the discussion</td><td>Early or late layer</td><td><span class="tag bad">expected</span></td></tr>
+<tr><td>Rabbi against Rav</td><td>Land of Israel against Babylonia. Noisy, as you know.</td><td><span class="tag bad">expected</span></td></tr>
+<tr><td>Which body of text the mention is in</td><td>Place, and roughly time</td><td><span class="tag bad">expected</span></td></tr>
+<tr><td>&ldquo;When X came&rdquo; from the Land of Israel</td><td>A traveller, which ties the two timelines together</td><td><span class="tag bad">expected</span></td></tr>
+<tr><td>X learned in front of Y</td><td>X is later</td><td><span class="tag warn">counted, not checked</span></td></tr>
+<tr><td>The teaching is given to X &ldquo;and some say&rdquo; to Y</td><td>Both were believable authors, so they are close in role and time</td><td><span class="tag warn">counted, not checked</span></td></tr>
+<tr><td>X objects to Y, X rules like Y</td><td>X is at or after Y</td><td><span class="tag warn">undercounted</span> the verb comes first and I only looked between names</td></tr>
+<tr><td>X says to Y; X visits Y</td><td>Weak. Staged talk and told stories.</td><td><span class="tag warn">counted</span></td></tr>
+<tr><td>Who else is in the sentence, and on the page</td><td>The company a name keeps. This is what sorts one name into several men.</td><td><span class="tag warn">prototype</span></td></tr>
+<tr><td>What another edition prints at this spot</td><td>A flag that the identity was open</td><td><span class="tag ok">measured</span> above</td></tr>
+</tbody></table></div>
+
+<h3>The wording clue, which I measured for this review</h3>
+<figure><svg class="chart" viewBox="0 0 760 112" role="img" aria-label="176 names with one entry in our list and an era on record"><text class="lbl" x="1" y="17">176 names with one entry in our list and an era on record</text><rect x="1.0" y="26" width="710.6" height="34" fill="var(--ok)" rx="3"/><text x="9.0" y="48" style="fill:#fff" font-weight="600">165</text><rect x="711.6" y="26" width="47.4" height="34" fill="var(--warn)" rx="3"/><text x="719.6" y="48" style="fill:#fff" font-weight="600">11</text><rect x="1" y="72" width="9" height="9" fill="var(--ok)" rx="2"/><text class="lbl" x="15" y="80.5">wording agrees with the record &middot; 165</text><rect x="231" y="72" width="9" height="9" fill="var(--warn)" rx="2"/><text class="lbl" x="245" y="80.5">record says early, wording says late &middot; 11</text><rect x="490" y="72" width="9" height="9" fill="var(--bad)" rx="2"/><text class="lbl" x="504" y="80.5">record says late, wording says early &middot; 0</text><text x="1" y="104" fill="var(--accent)" font-weight="600">it never mistook a later sage for an early one; all 11 misses are one name shared by two men</text></svg></figure>
+<p>I took names that have exactly one entry in our list and an era on record, and asked which
+wording the Bavli uses for them more often. Every one of the eleven misses goes the same way:
+our list says early teacher, the wording says later sage. And they are exactly the names two
+men share, one early and one late.</p>
+<div class="scroll"><table><thead><tr><th>Name</th><th class="num">&ldquo;X says&rdquo; (early wording)</th><th class="num">&ldquo;said X&rdquo; (late wording)</th></tr></thead>
+<tbody><tr><td><bdi class="he">רבי יצחק</bdi></td><td class="num">20</td><td class="num">265</td></tr><tr><td><bdi class="he">רבי יונתן</bdi></td><td class="num">24</td><td class="num">111</td></tr><tr><td><bdi class="he">רבי אושעיא</bdi></td><td class="num">3</td><td class="num">80</td></tr><tr><td><bdi class="he">רבי חייא</bdi></td><td class="num">6</td><td class="num">64</td></tr><tr><td><bdi class="he">רבי יעקב</bdi></td><td class="num">26</td><td class="num">38</td></tr><tr><td><bdi class="he">רבי אחא</bdi></td><td class="num">10</td><td class="num">20</td></tr></tbody></table></div>
+<p>So this clue does more than date a name. It sorts the single mentions of a shared name into
+the early man and the late man, for free, from the text. Rabbi Oshaya is on that list. That is
+the pair I tried to split by spelling.</p>
+
+<h2 id="connect">What we join up, and in what order</h2>
+<svg class="diagram" viewBox="0 0 760 170" role="img" aria-label="Texts lead to mentions, then a graph of names, then guessed people. Biographies are scored against the guessed people at the end.">
+  <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
+  <path d="M132 66H156" stroke="var(--muted)" stroke-width="1.4" marker-end="url(#ar)" fill="none"/>
+  <path d="M288 66H312" stroke="var(--muted)" stroke-width="1.4" marker-end="url(#ar)" fill="none"/>
+  <path d="M444 66H468" stroke="var(--muted)" stroke-width="1.4" marker-end="url(#ar)" fill="none"/>
+  <path d="M628 66H602" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#ar)" fill="none"/>
+  <rect x="2" y="36" width="130" height="60" rx="6" fill="var(--surface)" stroke="var(--line)"/>
+  <rect x="158" y="36" width="130" height="60" rx="6" fill="var(--surface)" stroke="var(--line)"/>
+  <rect x="314" y="36" width="130" height="60" rx="6" fill="var(--surface)" stroke="var(--line)"/>
+  <rect x="470" y="36" width="130" height="60" rx="6" fill="var(--surface)" stroke="var(--accent)"/>
+  <rect x="628" y="36" width="130" height="60" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-dasharray="4 3"/>
+  <text x="67" y="62" text-anchor="middle" font-weight="600">Texts</text><text class="s" x="67" y="80" text-anchor="middle">every edition</text>
+  <text x="223" y="62" text-anchor="middle" font-weight="600">Mentions</text><text class="s" x="223" y="80" text-anchor="middle">a string at a place</text>
+  <text x="379" y="62" text-anchor="middle" font-weight="600">Graph of names</text><text class="s" x="379" y="80" text-anchor="middle">links with weights</text>
+  <text x="535" y="62" text-anchor="middle" font-weight="600">Guessed people</text><text class="s" x="535" y="80" text-anchor="middle">each with odds</text>
+  <text x="693" y="62" text-anchor="middle" font-weight="600">Biographies</text><text class="s" x="693" y="80" text-anchor="middle">opened last</text>
+  <text class="s" x="615" y="118" text-anchor="middle" fill="var(--accent)">scored against the guess,</text>
+  <text class="s" x="615" y="132" text-anchor="middle" fill="var(--accent)">never fed into it</text>
+  <text class="s" x="301" y="22" text-anchor="middle">built from the text alone</text>
+  <path d="M2 28H600" stroke="var(--line)" stroke-width="1" fill="none"/>
+</svg>
+<p><strong>Two names become one man</strong> when they look alike, keep the same company, and never
+appear in the same sentence. A short name following its full form in the same passage is the
+commonest case.</p>
+<p><strong>One name becomes several men</strong> when its mentions fall into separate groups of
+company, or need two places in the order at once, or use the early wording in some places and
+the late wording in others.</p>
+<p><strong>A biography joins a guessed person</strong> only when its era fits where the text puts him and
+its teachers match who he quotes. If it clashes, that is a finding. If there is none, he is a
+person we can describe but not name from any reference book, and we say so.</p>
+
+<h2 id="check">How we check it</h2>
+<ul>
+<li><strong>A check set for names and links.</strong> About 300 passages, spread across every body of
+text and both law and story. A person marks every name, says whether it is a person, and marks
+what joins each pair. Two people do a shared part, so we know how often careful readers
+disagree. Every stage is then scored as: of what it found, how much was right; and of what was
+there, how much it found.</li>
+<li><strong>A check set for identity.</strong> About 500 mentions of the hardest shared names, settled by
+someone who can read the commentaries. Half is kept locked away and never used while building,
+the same discipline as the existing pilot folder.</li>
+<li><strong>Sefaria&rsquo;s tags as a second opinion, not the answer.</strong> Where we disagree, a person
+reads a sample from both sides: what they tag that the text does not support, and what the text
+shows that they leave out. Those two error rates are different and mean different things.</li>
+<li><strong>Checks the data can run on itself.</strong> No loops in the order. Nobody named in the Mishnah
+quoting a later sage. The two timelines kept apart.</li>
+<li><strong>Read before claiming.</strong> Before any number goes in a report, someone reads a random
+sample of what is behind it. The 40 I read for this page found a bug that every earlier number
+had passed through.</li>
+<li><strong>Every bug becomes a test.</strong> The guardian who became a rabbi. Rabbi Meir cut down to
+Rabbi. Mar Mai. Rava glued to the next word. Each one is a line in a test file that fails if it
+ever comes back.</li>
+<li><strong>Do the odds mean what they say?</strong> When the judging model says 90 percent, it should be
+right nine times in ten on the locked-away half. We plot that.</li>
+<li><strong>Write down what we expect first.</strong> The main measures are fixed before the full run, so
+the results cannot quietly choose their own yardstick.</li>
+</ul>
+
+<h2 id="limits">Where this cannot work</h2>
+<p>About 7% of mentions in the Bavli sit alone, with no other name and no joining word near
+them. Nothing in the text can say who that is. Names that truly appear once cannot be grouped
+with anything. For both, the honest outputs are a link to an outside record with its own doubts
+attached, or &ldquo;unknown&rdquo;. How big these groups really are is not yet known, because my
+count was polluted by strings that are not names.</p>
+
+<hr>
+<h2 id="order">The order of work, and what each step buys</h2>
+<ol class="stages">
+<li><h3>Fix the known bugs and write the tests <span class="tag">me &middot; about a day</span></h3>
+<p>Buys: numbers we can stand behind. Nothing below is worth running on a finder that invents
+rabbis.</p></li>
+<li><h3>Fetch everything, every edition <span class="tag">me &middot; hours of machine time, no cost</span></h3>
+<p>Buys: the full text with fingerprints, and a real count of editions per work instead of my spot
+checks. The record of what was fetched goes into the repository.</p></li>
+<li><h3>Build the two check sets <span class="tag">you, and ideally a scholar &middot; I prepare the sheets</span></h3>
+<p>Buys: every later number becomes checkable. This is the step only people can do, and it blocks
+every claim of accuracy. It can run alongside steps 4 to 7.</p></li>
+<li><h3>Find the names, then sort person from not <span class="tag">me &middot; a few dollars of model calls</span></h3>
+<p>Buys: the first honest count of how many name strings there are.</p></li>
+<li><h3>Find and label what joins them <span class="tag">me &middot; a few dollars</span></h3>
+<p>Buys: the other 85 percent of the evidence that my first patterns missed.</p></li>
+<li><h3>Add the clues on each mention <span class="tag">me</span></h3>
+<p>Buys: early-or-late for most mentions straight from the wording, before any graph exists.</p></li>
+<li><h3>Build the graph; merge and split <span class="tag">me</span></h3>
+<p>Buys: the first answer to the headline question, with its doubts stated.</p></li>
+<li><h3>Order, then eras <span class="tag">me, after you pick the fixed points</span></h3>
+<p>Buys: odds across the eras for everyone the text can place, including people with no entry
+anywhere. It also fills many of the 810 blank eras in our list.</p></li>
+<li><h3>Open the biographies and score them <span class="tag">me, then a person on the clashes</span></h3>
+<p>Buys: corrections to the list we ship, and a list of people the reference books do not know.</p></li>
+<li><h3>Odds for every mention <span class="tag">me &middot; tens of dollars</span></h3>
+<p>Buys: what the reader actually needs on the page.</p></li>
+<li><h3>Write it up; rebuild the app&rsquo;s index once <span class="tag">both of us</span></h3>
+<p>Buys: the paper, the public data, and a reader that knows what it does not know.</p></li>
+</ol>
+
+<h2 id="decide">Five things I need you to decide</h2>
+<ol>
+<li><strong>Who marks the check sets?</strong> You alone, or can you bring in someone who learns full
+time? Two markers is what makes the numbers publishable.</li>
+<li><strong>Who are the fixed points?</strong> I would start with a dozen nobody argues about, such as
+Rabbi Akiva, Rabbi Yehuda the Prince, Rav, Shmuel, Rabbi Yochanan, Abaye, Rava and Rav Ashi.
+You should choose them, not me.</li>
+<li><strong>Bavli first, or everything at once?</strong> I lean to fetching everything now, since it is
+free, but proving the method on the Bavli and the Mishnah before widening.</li>
+<li><strong>The nine live spelling links.</strong> Change them now to point at lists of possible men, or
+leave them until the study can do better? I lean to now. It is small and it stops the app
+asserting things we no longer believe.</li>
+<li><strong>A spending limit for model calls.</strong> The whole plan looks like under a hundred dollars
+on the cheap judging model. Say the number you are comfortable with and I will stay under it.</li>
+</ol>
+
+<p class="muted" style="margin-top:36px;font-size:12.5px">Every figure on this page is in
+<code>data.json</code> or <code>girsa.json</code> beside it, and the page is rebuilt from them by
+<code>build.py</code>. The figures from the earlier analysis come from a draft folder outside the
+repository and are quoted here only to say what was wrong with them.</p>
+</div></body></html>

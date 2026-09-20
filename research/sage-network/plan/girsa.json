@@ -1,0 +1,119 @@
+{
+ "what": "Tractate Berakhot in both Talmuds, two editions of each, compared name by name",
+ "rawCounts": [
+  {
+   "corpus": "Bavli",
+   "editions": "Wikisource against Davidson",
+   "units": 125,
+   "same": 1600,
+   "spelling": 22,
+   "different": 101,
+   "onlyOne": 843
+  },
+  {
+   "corpus": "Yerushalmi",
+   "editions": "Mechon-Mamre against Guggenheimer",
+   "units": 58,
+   "same": 840,
+   "spelling": 70,
+   "different": 142,
+   "onlyOne": 897
+  }
+ ],
+ "whyTheCountsAreUnusable": "One edition writes names in short form, which the name finder cannot see at all. Every name it misses pushes the rest of the page out of line, so most of the 'differences' are my tools failing, not editors disagreeing.",
+ "handSorted": {
+  "looked": 28,
+  "junk": 12,
+  "differentMan": [
+   {
+    "where": "Bavli Berakhot 30b",
+    "a": "רבא",
+    "b": "רבה",
+    "note": "Rava and Rabbah. Two different men, a generation apart, one letter apart."
+   },
+   {
+    "where": "Yerushalmi Berakhot 1:5",
+    "a": "רבי אליעזר",
+    "b": "רבי אלעזר",
+    "note": "Eliezer and Elazar. Two different men, one letter apart. Which Elazar is a further open question."
+   },
+   {
+    "where": "Yerushalmi Berakhot 1:5",
+    "a": "רבה",
+    "b": "רבא",
+    "note": "Rabbah and Rava again, in the other Talmud."
+   },
+   {
+    "where": "Bavli Berakhot 47b",
+    "a": "רבי אמי",
+    "b": "רב אמי",
+    "note": "The title differs. This is the very name I linked to one man in the live app."
+   },
+   {
+    "where": "Bavli Berakhot 23a",
+    "a": "רב חנינא בר פפא",
+    "b": "רבי חנינא בר פפא",
+    "note": "The title differs: Babylonian in one, Land of Israel in the other."
+   },
+   {
+    "where": "Bavli Berakhot 3b",
+    "a": "רב זריקא",
+    "b": "רבי זריקא",
+    "note": "The title differs."
+   },
+   {
+    "where": "Yerushalmi Berakhot 1:4",
+    "a": "בריה דרב אדא",
+    "b": "בריה דרבי אדא",
+    "note": "The father's title differs."
+   }
+  ],
+  "spellingOnly": [
+   {
+    "where": "Yerushalmi Berakhot 1:1",
+    "a": "רבי עקיבה",
+    "b": "רבי עקיבא"
+   },
+   {
+    "where": "Yerushalmi Berakhot 1:1",
+    "a": "רבי יהודא בן פזי",
+    "b": "רבי יהודה בן פזי"
+   },
+   {
+    "where": "Yerushalmi Berakhot 3:1",
+    "a": "רבי חנינא",
+    "b": "רבי חנינה"
+   },
+   {
+    "where": "Yerushalmi Berakhot 3:4",
+    "a": "רב הונא",
+    "b": "רב חונא"
+   },
+   {
+    "where": "Yerushalmi Berakhot 1:5",
+    "a": "רב מתנא",
+    "b": "רב מתנה"
+   },
+   {
+    "where": "Yerushalmi Berakhot 1:2",
+    "a": "רבי מנא",
+    "b": "רבי מני"
+   },
+   {
+    "where": "Yerushalmi Berakhot 2:1",
+    "a": "רב יהודא",
+    "b": "רב יהודה"
+   },
+   {
+    "where": "Yerushalmi Berakhot 3:1",
+    "a": "רבי יודא",
+    "b": "רבי יודה"
+   },
+   {
+    "where": "Yerushalmi Berakhot 3:1",
+    "a": "רבי נחמיה בריה דרבי חייא",
+    "b": "רבי נחומיה בריה דרבי חייא"
+   }
+  ]
+ }
+}
