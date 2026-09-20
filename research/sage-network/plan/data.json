@@ -1,0 +1,102 @@
+{
+  "builtAt": "2026-09-20",
+  "audit": {
+    "what": "40 extracted 'X in the name of Y' relations, drawn at random and weighted by how often each occurs, then read by hand against the quoted words",
+    "right": 35,
+    "wrong": 5,
+    "wrongFromOneBug": 4,
+    "bug": "a repair I added cut any second name whose given name begins with one of seven prefix letters, so Rabbi Meir and Rabbi Shimon both became plain 'Rabbi'",
+    "otherWrong": "'Mar, what did Shmuel say' was read as a sage called Mar Mai"
+  },
+  "truncation": { "afterInstances": 2479, "afterBad": 129, "spokeInstances": 504, "spokeBad": 38 },
+  "singletons": {
+    "sampled": 30,
+    "junk": 17,
+    "real": 13,
+    "junkExamples": ["רבא כשמעתיה", "רבה זבין", "רבינא מוקי", "רב נותן", "רבי היו"],
+    "realExamples": ["רב שילא בר אבינא", "רבי יוחנן בן ארזא", "רב חנניה בר מניומי"]
+  },
+  "wording": {
+    "what": "for names with exactly one entry in our list and an era on record: does 'X omer' (early wording) or 'amar X' (later wording) dominate?",
+    "tested": 176,
+    "agree": 165,
+    "tannaSaysTanna": 41,
+    "tannaSaysAmora": 11,
+    "amoraSaysAmora": 124,
+    "amoraSaysTanna": 0,
+    "misses": [
+      ["רבי יצחק", 20, 265],
+      ["רבי יונתן", 24, 111],
+      ["רבי אושעיא", 3, 80],
+      ["רבי חייא", 6, 64],
+      ["רבי יעקב", 26, 38],
+      ["רבי אחא", 10, 20]
+    ]
+  },
+  "aliases": { "shipped": 9, "handOneCandidate": 6, "handTwoCandidates": 3 },
+  "registry": { "entries": 1338, "noEra": 810 },
+  "relationsCoverage": {
+    "pairs": 24360,
+    "caughtByFirstThreePatterns": 3772,
+    "distinctPhrases": 10191
+  },
+  "ceiling": { "shareWithCompany": 0.577, "aloneWithRelation": 0.357, "aloneNothing": 0.067 },
+  "cooccurrence": {
+    "sameManPairs": 4,
+    "sameManRate": 0.0,
+    "differentPairs": 4,
+    "differentLow": 0.112,
+    "differentHigh": 0.322
+  },
+  "order": { "cyclesFound": 4 },
+  "sources": [
+    {
+      "corpus": "Mishnah",
+      "works": "63 tractates",
+      "editions": "3, one of them the Kaufmann manuscript",
+      "addressed": "chapter and mishnah",
+      "adds": "the early teachers, by definition. Anyone named here is from the Mishnah period",
+      "checked": "Berakhot"
+    },
+    {
+      "corpus": "Tosefta",
+      "works": "about 60 tractates",
+      "editions": "1 to 2",
+      "addressed": "chapter and halakhah",
+      "adds": "more early teachers, many not in the Mishnah",
+      "checked": "Berakhot"
+    },
+    {
+      "corpus": "Halakhic midrash",
+      "works": "8 (Mekhilta, Sifra, Sifrei and others)",
+      "editions": "1 each, Sifra is Venice 1545",
+      "addressed": "varies by work",
+      "adds": "early teachers arguing from verses; fixes the early end of the order",
+      "checked": "Sifra"
+    },
+    {
+      "corpus": "Bavli",
+      "works": "36 tractates, 5,332 pages",
+      "editions": "2 (both descend from the Vilna printing)",
+      "addressed": "page and side",
+      "adds": "the main body: Babylonian sages, plus Land of Israel sages as the Babylonians heard them",
+      "checked": "Berakhot, Arakhin, Bava Metzia"
+    },
+    {
+      "corpus": "Yerushalmi",
+      "works": "39 tractates",
+      "editions": "3, including Venice, the first printing",
+      "addressed": "chapter and halakhah, not pages",
+      "adds": "Land of Israel sages in their own spelling, and people who appear nowhere else",
+      "checked": "Berakhot, 58 of 58 halakhot"
+    },
+    {
+      "corpus": "Aggadic midrash",
+      "works": "about 25 (the Rabbah books, Tanchuma, Pesikta and others)",
+      "editions": "1 to 4; Pesikta is from an Oxford manuscript",
+      "addressed": "chapter and section",
+      "adds": "story and sermon material; many Land of Israel sages who are thin in the Bavli",
+      "checked": "Genesis Rabbah, Pesikta"
+    }
+  ]
+}
