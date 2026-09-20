@@ -1,0 +1,7 @@
+# Source snapshots are large, and redistributable only under Sefaria's terms.
+data/raw/
+
+# Derived outputs, until a complete run produces them. Committing a partial
+# manifest or a half-corpus count would put numbers in the repository that
+# nobody can reproduce.
+data/*.json
