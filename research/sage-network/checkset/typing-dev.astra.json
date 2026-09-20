@@ -1,0 +1,1056 @@
+{
+  "model": "openai/gpt-6-astra",
+  "labels": {
+    "t0000": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0001": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0002": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0003": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0004": {
+      "kind": "biblical",
+      "sure": true,
+      "reading": null
+    },
+    "t0005": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0006": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0007": {
+      "kind": "term",
+      "sure": true,
+      "reading": null
+    },
+    "t0008": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0009": {
+      "kind": "biblical",
+      "sure": true,
+      "reading": null
+    },
+    "t0010": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0011": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0012": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0013": {
+      "kind": "biblical",
+      "sure": true,
+      "reading": null
+    },
+    "t0014": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0015": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0016": {
+      "kind": "biblical",
+      "sure": true,
+      "reading": null
+    },
+    "t0017": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0018": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0019": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0020": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0021": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0022": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0023": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0024": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0025": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0026": {
+      "kind": "biblical",
+      "sure": true,
+      "reading": null
+    },
+    "t0027": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0028": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0029": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0030": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0031": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי יוסטני"
+    },
+    "t0032": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0033": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0034": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0035": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0036": {
+      "kind": "biblical",
+      "sure": true,
+      "reading": null
+    },
+    "t0037": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0038": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0039": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0040": {
+      "kind": "biblical",
+      "sure": true,
+      "reading": null
+    },
+    "t0041": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0042": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0043": {
+      "kind": "biblical",
+      "sure": true,
+      "reading": null
+    },
+    "t0044": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0045": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0046": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0047": {
+      "kind": "biblical",
+      "sure": true,
+      "reading": null
+    },
+    "t0048": {
+      "kind": "term",
+      "sure": false,
+      "reading": null
+    },
+    "t0049": {
+      "kind": "biblical",
+      "sure": true,
+      "reading": null
+    },
+    "t0050": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0051": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0052": {
+      "kind": "biblical",
+      "sure": true,
+      "reading": null
+    },
+    "t0053": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0054": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0055": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0056": {
+      "kind": "sage",
+      "sure": false,
+      "reading": null
+    },
+    "t0057": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי מנחמיה"
+    },
+    "t0058": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0059": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0060": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0061": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0062": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0063": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0064": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0065": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0066": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0067": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0068": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0069": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0070": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0071": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0072": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0073": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי יהודה הנשיא"
+    },
+    "t0074": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0075": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0076": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי"
+    },
+    "t0077": {
+      "kind": "word",
+      "sure": false,
+      "reading": null
+    },
+    "t0078": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0079": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי"
+    },
+    "t0080": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי"
+    },
+    "t0081": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0082": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0083": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0084": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0085": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0086": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0087": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0088": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0089": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0090": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0091": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0092": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0093": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0094": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0095": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0096": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0097": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0098": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי"
+    },
+    "t0099": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0100": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0101": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0102": {
+      "kind": "divine",
+      "sure": false,
+      "reading": null
+    },
+    "t0103": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0104": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0105": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0106": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0107": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0108": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0109": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0110": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי"
+    },
+    "t0111": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0112": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0113": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0114": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0115": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי"
+    },
+    "t0116": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0117": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0118": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0119": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0120": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0121": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0122": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0123": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0124": {
+      "kind": "term",
+      "sure": true,
+      "reading": null
+    },
+    "t0125": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0126": {
+      "kind": "term",
+      "sure": true,
+      "reading": null
+    },
+    "t0127": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0128": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0129": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0130": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0131": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0132": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0133": {
+      "kind": "word",
+      "sure": false,
+      "reading": null
+    },
+    "t0134": {
+      "kind": "term",
+      "sure": true,
+      "reading": null
+    },
+    "t0135": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0136": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0137": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0138": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0139": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0140": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0141": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0142": {
+      "kind": "term",
+      "sure": true,
+      "reading": null
+    },
+    "t0143": {
+      "kind": "term",
+      "sure": true,
+      "reading": null
+    },
+    "t0144": {
+      "kind": "word",
+      "sure": true,
+      "reading": null
+    },
+    "t0145": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0146": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0147": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0148": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0149": {
+      "kind": "sage",
+      "sure": true,
+      "reading": null
+    },
+    "t0150": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי שמעון"
+    },
+    "t0151": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי עקיבא"
+    },
+    "t0152": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רב נחמן"
+    },
+    "t0153": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי שמעון"
+    },
+    "t0154": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי שמעון"
+    },
+    "t0155": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "ריש לקיש"
+    },
+    "t0156": {
+      "kind": "term",
+      "sure": true,
+      "reading": "ראש חודש"
+    },
+    "t0157": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "ריש לקיש"
+    },
+    "t0158": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי שמעון"
+    },
+    "t0159": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי אליעזר"
+    },
+    "t0160": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי עקיבא"
+    },
+    "t0161": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי נתן"
+    },
+    "t0162": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי אליעזר בן יעקב"
+    },
+    "t0163": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "ריש לקיש"
+    },
+    "t0164": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי עקיבא"
+    },
+    "t0165": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי אלעזר"
+    },
+    "t0166": {
+      "kind": "divine",
+      "sure": true,
+      "reading": "רבונו של עולם"
+    },
+    "t0167": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי שמעון"
+    },
+    "t0168": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי אלעזר"
+    },
+    "t0169": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי עקיבא"
+    },
+    "t0170": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבן גמליאל"
+    },
+    "t0171": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי מאיר"
+    },
+    "t0172": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי אליעזר"
+    },
+    "t0173": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "אמר רבי עקיבא"
+    },
+    "t0174": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי יהודה"
+    },
+    "t0175": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי יוסי"
+    },
+    "t0176": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי אליעזר"
+    },
+    "t0177": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי יהודה"
+    },
+    "t0178": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "ריש לקיש"
+    },
+    "t0179": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי עקיבא"
+    },
+    "t0180": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי מאיר"
+    },
+    "t0181": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי שמעון"
+    },
+    "t0182": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי שמעון"
+    },
+    "t0183": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי שמעון"
+    },
+    "t0184": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי עקיבא"
+    },
+    "t0185": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי מאיר"
+    },
+    "t0186": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי שמעון בן לקיש"
+    },
+    "t0187": {
+      "kind": "word",
+      "sure": true,
+      "reading": "מאתיים עשרים ושמונה"
+    },
+    "t0188": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבן גמליאל"
+    },
+    "t0189": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבן גמליאל"
+    },
+    "t0190": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי אליעזר"
+    },
+    "t0191": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רב נחמן"
+    },
+    "t0192": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי מאיר"
+    },
+    "t0193": {
+      "kind": "term",
+      "sure": true,
+      "reading": "רשות היחיד"
+    },
+    "t0194": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רב פפא"
+    },
+    "t0195": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי יהודה"
+    },
+    "t0196": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי עקיבא"
+    },
+    "t0197": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "ריש לקיש"
+    },
+    "t0198": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי עקיבא"
+    },
+    "t0199": {
+      "kind": "term",
+      "sure": true,
+      "reading": "ראש השנה"
+    },
+    "t0200": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבן שמעון בן גמליאל"
+    },
+    "t0201": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי עקיבא"
+    },
+    "t0202": {
+      "kind": "term",
+      "sure": true,
+      "reading": "ראש חודש"
+    },
+    "t0203": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי עקיבא"
+    },
+    "t0204": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי עקיבא"
+    },
+    "t0205": {
+      "kind": "divine",
+      "sure": true,
+      "reading": "ריבונו של עולם"
+    },
+    "t0206": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי עקיבא"
+    },
+    "t0207": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי שמעון"
+    },
+    "t0208": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי שמעון בן לקיש"
+    },
+    "t0209": {
+      "kind": "sage",
+      "sure": true,
+      "reading": "רבי עקיבא"
+    }
+  },
+  "spend": 0.6407575
+}
