@@ -76,22 +76,24 @@ clustered. For both groups the only routes are an outside record or an honest
 
 ## Known faults
 
-- **There are no tests.** Every fault below was found by reading output. A hand
-  audit of 40 extracted relations found 5 wrong, 4 of them from one repair that
-  cut any name whose given name begins with a prefix letter, so Rabbi Meir
-  became "Rabbi". Each fault found becomes a regression test before anything
-  else is built.
-- **The bare-title problem.** Rav, Rabbi, Rava and Rabbah are complete names and
-  also titles. The finder never sees them alone; it glues them to the next
-  word. In a sample of 30 names seen once, 17 were not names at all. No count
-  of people means anything until this is solved.
-- Abbreviations are not handled. A two-letter short form can stand for five
-  different rabbis, and one edition uses them heavily.
-- The same edition with and without vowel marks is currently fetched as two
-  witnesses.
-
-- Relation coverage is partial. Counting the words between two names misses any
-  relation whose verb comes first, and `איתיביה X לY` is that shape.
+- **Tests exist now, and were late.** Every fault below was first found by
+  reading output. A hand audit of 40 extracted relations found 5 wrong, 4 of
+  them from one repair that cut any name whose given name begins with a prefix
+  letter, so Rabbi Meir became "Rabbi". Each fault is now a test in `tests/`,
+  run in CI.
+- **The bare-title problem, partly solved.** Rav, Rabbi, Rava and Rabbah are
+  complete names and also titles. The finder now asks a lexicon, learned from
+  how each word behaves across the corpus, whether the next word is a given
+  name. On Berakhot, 40 of 40 sampled names it was sure of were real, and the
+  junk ("Rav Hamotzi") lands in a flagged pile together with genuinely rare
+  sages. That pile still needs the typing stage.
+- **Short forms are reported, not opened up.** ר"י can be five rabbis. An
+  edition that spells it out has chosen one. The finder reports the short form
+  and leaves the choice to a later, checkable stage.
+- Bare רב is also the ordinary word for "much". Each bare mention is flagged.
+- Relation patterns now record the words before the pair and the prefix on the
+  second name as well as the words between, so `איתיביה X לY` is seen. What
+  each pattern MEANS is still unlabelled.
 - The vocabulary has a long tail. Roughly 10,000 distinct phrases join two
   names; the few hundred commonest cover about half the instances.
 - Name detection produces junk. Hebrew prefix letters glued to ordinary words

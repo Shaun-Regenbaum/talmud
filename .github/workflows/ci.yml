@@ -28,6 +28,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm exec biome ci .
+      # The research pipeline is Python with no dependencies. Every bug found
+      # by reading its output becomes a test here, so it has to actually run.
+      - run: python3 -m unittest discover -s research/sage-network/tests
 
       - run: pnpm typecheck
 
