@@ -1,0 +1,410 @@
+{
+  "patterns": 150,
+  "pairs": 150,
+  "markersAgree": 137,
+  "markersAgreePairs": 137,
+  "disagreements": [
+    {
+      "pattern": "top50-21",
+      "n": 1,
+      "a": "none",
+      "b": "cites"
+    },
+    {
+      "pattern": "top50-26",
+      "n": 1,
+      "a": "none",
+      "b": "explains"
+    },
+    {
+      "pattern": "top50-28",
+      "n": 1,
+      "a": "none",
+      "b": "before"
+    },
+    {
+      "pattern": "top2000-57",
+      "n": 1,
+      "a": "before",
+      "b": "cites"
+    },
+    {
+      "pattern": "top2000-68",
+      "n": 1,
+      "a": "none",
+      "b": "cites"
+    },
+    {
+      "pattern": "top2000-71",
+      "n": 1,
+      "a": "none",
+      "b": "disputes"
+    },
+    {
+      "pattern": "top2000-74",
+      "n": 1,
+      "a": "cites",
+      "b": "same-man"
+    },
+    {
+      "pattern": "tail-104",
+      "n": 1,
+      "a": "none",
+      "b": "explains"
+    },
+    {
+      "pattern": "tail-109",
+      "n": 1,
+      "a": "none",
+      "b": "explains"
+    },
+    {
+      "pattern": "tail-123",
+      "n": 1,
+      "a": "none",
+      "b": "before"
+    },
+    {
+      "pattern": "tail-140",
+      "n": 1,
+      "a": "none",
+      "b": "follows"
+    },
+    {
+      "pattern": "tail-143",
+      "n": 1,
+      "a": "none",
+      "b": "together"
+    },
+    {
+      "pattern": "tail-148",
+      "n": 1,
+      "a": "none",
+      "b": "cites"
+    }
+  ],
+  "models": {
+    "jev-latest": {
+      "use": {
+        "labelled": 137,
+        "same": 98
+      },
+      "labelled": 137,
+      "same": 93,
+      "samePairsShare": 0.6788321167883211,
+      "wrong": [
+        {
+          "pattern": "top50-2",
+          "n": 1,
+          "markers": "none",
+          "model": "cites"
+        },
+        {
+          "pattern": "top50-17",
+          "n": 1,
+          "markers": "none",
+          "model": "cites"
+        },
+        {
+          "pattern": "top50-25",
+          "n": 1,
+          "markers": "explains",
+          "model": "cites"
+        },
+        {
+          "pattern": "top50-34",
+          "n": 1,
+          "markers": "none",
+          "model": "cites"
+        },
+        {
+          "pattern": "top50-49",
+          "n": 1,
+          "markers": "none",
+          "model": "cites"
+        },
+        {
+          "pattern": "top2000-63",
+          "n": 1,
+          "markers": "same-man",
+          "model": "disputes"
+        },
+        {
+          "pattern": "top2000-64",
+          "n": 1,
+          "markers": "explains",
+          "model": "same-man"
+        },
+        {
+          "pattern": "top2000-65",
+          "n": 1,
+          "markers": "same-man",
+          "model": "disputes"
+        },
+        {
+          "pattern": "top2000-69",
+          "n": 1,
+          "markers": "explains",
+          "model": "disputes"
+        },
+        {
+          "pattern": "top2000-70",
+          "n": 1,
+          "markers": "none",
+          "model": "before"
+        },
+        {
+          "pattern": "top2000-76",
+          "n": 1,
+          "markers": "disputes",
+          "model": "alternative"
+        },
+        {
+          "pattern": "top2000-79",
+          "n": 1,
+          "markers": "same-man",
+          "model": "follows"
+        },
+        {
+          "pattern": "top2000-81",
+          "n": 1,
+          "markers": "together",
+          "model": "addresses"
+        },
+        {
+          "pattern": "top2000-82",
+          "n": 1,
+          "markers": "together",
+          "model": "cites"
+        },
+        {
+          "pattern": "top2000-83",
+          "n": 1,
+          "markers": "disputes",
+          "model": "juxtaposed"
+        },
+        {
+          "pattern": "top2000-85",
+          "n": 1,
+          "markers": "cites",
+          "model": "before"
+        },
+        {
+          "pattern": "top2000-86",
+          "n": 1,
+          "markers": "disputes",
+          "model": "together"
+        },
+        {
+          "pattern": "top2000-88",
+          "n": 1,
+          "markers": "none",
+          "model": "explains"
+        },
+        {
+          "pattern": "top2000-92",
+          "n": 1,
+          "markers": "none",
+          "model": "addresses"
+        },
+        {
+          "pattern": "top2000-95",
+          "n": 1,
+          "markers": "none",
+          "model": "addresses"
+        },
+        {
+          "pattern": "top2000-97",
+          "n": 1,
+          "markers": "same-man",
+          "model": "disputes"
+        },
+        {
+          "pattern": "top2000-99",
+          "n": 1,
+          "markers": "explains",
+          "model": "cites"
+        },
+        {
+          "pattern": "tail-100",
+          "n": 1,
+          "markers": "none",
+          "model": "disputes"
+        },
+        {
+          "pattern": "tail-102",
+          "n": 1,
+          "markers": "explains",
+          "model": "addresses"
+        },
+        {
+          "pattern": "tail-103",
+          "n": 1,
+          "markers": "same-man",
+          "model": "disputes"
+        },
+        {
+          "pattern": "tail-112",
+          "n": 1,
+          "markers": "same-man",
+          "model": "follows"
+        },
+        {
+          "pattern": "tail-113",
+          "n": 1,
+          "markers": "explains",
+          "model": "disputes"
+        },
+        {
+          "pattern": "tail-114",
+          "n": 1,
+          "markers": "disputes",
+          "model": "follows"
+        },
+        {
+          "pattern": "tail-115",
+          "n": 1,
+          "markers": "same-man",
+          "model": "cites"
+        },
+        {
+          "pattern": "tail-116",
+          "n": 1,
+          "markers": "same-man",
+          "model": "disputes"
+        },
+        {
+          "pattern": "tail-118",
+          "n": 1,
+          "markers": "none",
+          "model": "disputes"
+        },
+        {
+          "pattern": "tail-119",
+          "n": 1,
+          "markers": "explains",
+          "model": "disputes"
+        },
+        {
+          "pattern": "tail-122",
+          "n": 1,
+          "markers": "none",
+          "model": "disputes"
+        },
+        {
+          "pattern": "tail-124",
+          "n": 1,
+          "markers": "none",
+          "model": "disputes"
+        },
+        {
+          "pattern": "tail-128",
+          "n": 1,
+          "markers": "none",
+          "model": "juxtaposed"
+        },
+        {
+          "pattern": "tail-129",
+          "n": 1,
+          "markers": "disputes",
+          "model": "cites"
+        },
+        {
+          "pattern": "tail-130",
+          "n": 1,
+          "markers": "none",
+          "model": "together"
+        },
+        {
+          "pattern": "tail-131",
+          "n": 1,
+          "markers": "follows",
+          "model": "together"
+        },
+        {
+          "pattern": "tail-134",
+          "n": 1,
+          "markers": "same-man",
+          "model": "follows"
+        },
+        {
+          "pattern": "tail-138",
+          "n": 1,
+          "markers": "none",
+          "model": "asks"
+        },
+        {
+          "pattern": "tail-141",
+          "n": 1,
+          "markers": "none",
+          "model": "addresses"
+        },
+        {
+          "pattern": "tail-142",
+          "n": 1,
+          "markers": "none",
+          "model": "addresses"
+        },
+        {
+          "pattern": "tail-146",
+          "n": 1,
+          "markers": "explains",
+          "model": "cites"
+        },
+        {
+          "pattern": "tail-147",
+          "n": 1,
+          "markers": "cites",
+          "model": "disputes"
+        }
+      ]
+    }
+  },
+  "markersAgreeOnUse": 137,
+  "agreedKinds": {
+    "cites": {
+      "patterns": 36,
+      "pairs": 36
+    },
+    "none": {
+      "patterns": 17,
+      "pairs": 17
+    },
+    "disputes": {
+      "patterns": 30,
+      "pairs": 30
+    },
+    "addresses": {
+      "patterns": 9,
+      "pairs": 9
+    },
+    "follows": {
+      "patterns": 5,
+      "pairs": 5
+    },
+    "explains": {
+      "patterns": 13,
+      "pairs": 13
+    },
+    "together": {
+      "patterns": 5,
+      "pairs": 5
+    },
+    "same-man": {
+      "patterns": 18,
+      "pairs": 18
+    },
+    "kin": {
+      "patterns": 2,
+      "pairs": 2
+    },
+    "before": {
+      "patterns": 1,
+      "pairs": 1
+    },
+    "asks": {
+      "patterns": 1,
+      "pairs": 1
+    }
+  }
+}

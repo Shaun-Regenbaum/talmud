@@ -277,6 +277,55 @@ model returns odds over every kind, and the full run keeps them.
 fresh draw, marked once and never looked at while changing anything, is still owed.
 
 
+## The held-out pair set: 150 pairs, marked once
+
+Drawn with a new seed, excluding every development pair. Marked by Astra through
+the API and by Fable reading all 150 in one sitting, shuffled, with no stratum
+shown and no other answer seen. Nothing was tuned on it.
+
+| | Development (120) | Held out (150) |
+|---|---|---|
+| The two markers agree on the kind | 82% | **91%** |
+| Cheap model against pairs the markers agree on | 82% | **68%** |
+| Cheap model at 0.9 confidence and above | 35 of 35 | 32 of 32 |
+| Cheap model from 0.7 to 0.9 | 17 of 18 | 27 of 34 |
+| Cheap model below 0.7 | 28 of 45 | 34 of 71 |
+
+The development numbers flattered the cheap model, as warned. The line above
+which its answer can stand is 0.9, not 0.7. Across the whole text that is 28% of
+pairs.
+
+Its mistakes cluster. By true kind it gets: citations 34 of 36, "speaks to" 9 of
+9, disputes 25 of 30, but "nothing links them" **0 of 17**, "same man twice" 9 of
+18, and "explains" 5 of 13. It always finds a link. A yes/no question ("does the
+wording tie A to B at all?") was tried on the development set and was right only
+half the time it said no, so it was dropped.
+
+One free rule does work. When both names are the same string, the pair was the
+same man 14 times in 15 (the exception is an amora and a tanna who share a name).
+That settles 4,924 pairs, 9% of the text.
+
+In all 13 marker disagreements Astra said "nothing links them" where Fable saw a
+link, usually one stated a clause later. Astra is the stricter reader.
+
+### Direction is missing from the kinds
+
+Marking by hand showed it. In דברי ר' יוסי ... א"ר יונה לא טמא ר' יוסי אלא... the
+second man explains the first. Every kind is worded "A does something to B", so a
+reader who picks "explains" has said the opposite of what the page says, and the
+order inferred from it flips. The held-out marks record a direction (AB or BA),
+and the stronger reader is asked for it. The cheap model's full run does not have
+it yet.
+
+### What is left is read by a stronger reader, checked batch by batch
+
+36,571 pairs are neither the same string nor 0.9 sure. The weekly cap on the API
+key could not pay for them, so they are read in batches of 400 by Fable in working
+sessions. Each batch hides 20 held-out pairs. A batch is merged only if its reader
+matches the markers on at least 80% of them (`21_reader_merge.py`), so every
+merged batch carries its own measured score.
+
+
 ## Cost
 
 About 1.6 cents a passage for both markers at list price. The full sets, about

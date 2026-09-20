@@ -64,3 +64,29 @@ PAIR_CONVENTIONS = (
     'When a passage states two things at once (A teaches his son B), the one that says who the men are wins: '
     'same-man, kin and teacher come before everything else.'
 )
+
+# The guide a stronger reader is given. It adds the one thing the kinds lack: direction.
+READER_GUIDE = ('# How to mark a pair of names\n\n' + PAIR_CONVENTIONS + '\n\n## The kinds\n\n'
+                + '\n'.join(f'- `{k}`: {v}' for k, v in RELATION_KINDS.items()) + """
+
+## Direction
+
+Every kind is worded as "A does something to B". Often the page has it the other way round: the SECOND man explains, answers or quotes the FIRST
+(`דברי ר' יוסי ... א"ר יונה לא טמא ר' יוסי אלא...` is B explaining A). Choose the kind that fits, and record the direction:
+`AB` if the first name acts on the second, `BA` if the second acts on the first, `` (empty) when direction means nothing (disputes, together, same-man, none).
+
+## Worked examples
+
+- `אמר ⟦רב יהודה⟧ אמר ⟪שמואל⟫` -> cites, AB
+- `⟦רבי זעירא⟧ בעי קומי ⟪רבי יסא⟫` -> asks, AB
+- `דברי ⟦רבי מאיר⟧. ⟪רבי יהודה⟫ אומר` -> disputes
+- `דברי ⟦ר' יהודה⟧ א"ל ⟪רבי יוסי⟫ והלא...` -> addresses, BA
+- `קשיא ד⟦רב מרי⟧ דמותיב ⟪רב מרי⟫` -> same-man
+- `אמר ⟦רבי חנין⟧ טעמיה ד⟪ר' נחמיה⟫` -> explains, AB
+- `X בשם ⟦רבי יוחנן⟧ ... מתניתא. ⟪רבי הילא⟫ רבי יסי בשם ...` (a sentence ends, B opens his own chain) -> none
+- `א"ל רב מרדכי ל⟦רב אשי⟧ הכי אמרינן משמיה ד⟪ריש לקיש⟫` (A is only being TOLD something about B) -> none
+- `אמר ⟦שמואל⟧ אין הלכה כ⟪רבי יוסי⟫` -> disputes ("does not hold like" is a dispute)
+- A name that is really an ordinary word or a verse (`כי רחק ממני ⟦מנחם⟧`) -> none
+
+`sure` is false when a careful reader could disagree.
+""")

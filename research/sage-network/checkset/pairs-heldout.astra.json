@@ -1,0 +1,606 @@
+{
+  "model": "openai/gpt-6-astra",
+  "labels": {
+    "top50-0": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-1": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-2": {
+      "kind": "none",
+      "sure": true
+    },
+    "top50-3": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-4": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "top50-5": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-6": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-7": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-8": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-9": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-10": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-11": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-12": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-13": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-14": {
+      "kind": "follows",
+      "sure": false
+    },
+    "top50-15": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-16": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "top50-17": {
+      "kind": "none",
+      "sure": true
+    },
+    "top50-18": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-19": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-20": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "top50-21": {
+      "kind": "none",
+      "sure": false
+    },
+    "top50-22": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-23": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-24": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-25": {
+      "kind": "explains",
+      "sure": true
+    },
+    "top50-26": {
+      "kind": "none",
+      "sure": false
+    },
+    "top50-27": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-28": {
+      "kind": "none",
+      "sure": true
+    },
+    "top50-29": {
+      "kind": "together",
+      "sure": true
+    },
+    "top50-30": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-31": {
+      "kind": "follows",
+      "sure": true
+    },
+    "top50-32": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-33": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-34": {
+      "kind": "none",
+      "sure": true
+    },
+    "top50-35": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-36": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-37": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-38": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-39": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-40": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-41": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-42": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-43": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-44": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-45": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-46": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-47": {
+      "kind": "follows",
+      "sure": true
+    },
+    "top50-48": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-49": {
+      "kind": "none",
+      "sure": false
+    },
+    "top2000-50": {
+      "kind": "explains",
+      "sure": true
+    },
+    "top2000-51": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-52": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "top2000-53": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "top2000-54": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top2000-55": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top2000-56": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "top2000-57": {
+      "kind": "before",
+      "sure": false
+    },
+    "top2000-58": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top2000-59": {
+      "kind": "explains",
+      "sure": true
+    },
+    "top2000-60": {
+      "kind": "kin",
+      "sure": true
+    },
+    "top2000-61": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-62": {
+      "kind": "follows",
+      "sure": true
+    },
+    "top2000-63": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "top2000-64": {
+      "kind": "explains",
+      "sure": true
+    },
+    "top2000-65": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "top2000-66": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top2000-67": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top2000-68": {
+      "kind": "none",
+      "sure": true
+    },
+    "top2000-69": {
+      "kind": "explains",
+      "sure": true
+    },
+    "top2000-70": {
+      "kind": "none",
+      "sure": true
+    },
+    "top2000-71": {
+      "kind": "none",
+      "sure": true
+    },
+    "top2000-72": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "top2000-73": {
+      "kind": "before",
+      "sure": true
+    },
+    "top2000-74": {
+      "kind": "cites",
+      "sure": false
+    },
+    "top2000-75": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top2000-76": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-77": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "top2000-78": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-79": {
+      "kind": "same-man",
+      "sure": false
+    },
+    "top2000-80": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top2000-81": {
+      "kind": "together",
+      "sure": true
+    },
+    "top2000-82": {
+      "kind": "together",
+      "sure": true
+    },
+    "top2000-83": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-84": {
+      "kind": "kin",
+      "sure": true
+    },
+    "top2000-85": {
+      "kind": "cites",
+      "sure": false
+    },
+    "top2000-86": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-87": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "top2000-88": {
+      "kind": "none",
+      "sure": true
+    },
+    "top2000-89": {
+      "kind": "disputes",
+      "sure": false
+    },
+    "top2000-90": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "top2000-91": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top2000-92": {
+      "kind": "none",
+      "sure": true
+    },
+    "top2000-93": {
+      "kind": "asks",
+      "sure": true
+    },
+    "top2000-94": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-95": {
+      "kind": "none",
+      "sure": true
+    },
+    "top2000-96": {
+      "kind": "explains",
+      "sure": true
+    },
+    "top2000-97": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "top2000-98": {
+      "kind": "together",
+      "sure": true
+    },
+    "top2000-99": {
+      "kind": "explains",
+      "sure": true
+    },
+    "tail-100": {
+      "kind": "none",
+      "sure": false
+    },
+    "tail-101": {
+      "kind": "cites",
+      "sure": true
+    },
+    "tail-102": {
+      "kind": "explains",
+      "sure": true
+    },
+    "tail-103": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "tail-104": {
+      "kind": "none",
+      "sure": false
+    },
+    "tail-105": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "tail-106": {
+      "kind": "disputes",
+      "sure": false
+    },
+    "tail-107": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "tail-108": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "tail-109": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-110": {
+      "kind": "explains",
+      "sure": true
+    },
+    "tail-111": {
+      "kind": "cites",
+      "sure": true
+    },
+    "tail-112": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "tail-113": {
+      "kind": "explains",
+      "sure": true
+    },
+    "tail-114": {
+      "kind": "disputes",
+      "sure": false
+    },
+    "tail-115": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "tail-116": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "tail-117": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "tail-118": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-119": {
+      "kind": "explains",
+      "sure": true
+    },
+    "tail-120": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "tail-121": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-122": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-123": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-124": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-125": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-126": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-127": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-128": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-129": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-130": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-131": {
+      "kind": "follows",
+      "sure": false
+    },
+    "tail-132": {
+      "kind": "explains",
+      "sure": true
+    },
+    "tail-133": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-134": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "tail-135": {
+      "kind": "cites",
+      "sure": true
+    },
+    "tail-136": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "tail-137": {
+      "kind": "together",
+      "sure": true
+    },
+    "tail-138": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-139": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "tail-140": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-141": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-142": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-143": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-144": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "tail-145": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-146": {
+      "kind": "explains",
+      "sure": true
+    },
+    "tail-147": {
+      "kind": "cites",
+      "sure": false
+    },
+    "tail-148": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-149": {
+      "kind": "disputes",
+      "sure": true
+    }
+  },
+  "spend": 0.3355125
+}
