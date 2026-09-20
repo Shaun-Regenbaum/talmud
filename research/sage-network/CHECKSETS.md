@@ -325,6 +325,25 @@ sessions. Each batch hides 20 held-out pairs. A batch is merged only if its read
 matches the markers on at least 80% of them (`21_reader_merge.py`), so every
 merged batch carries its own measured score.
 
+The first six batches (2,280 pairs, all from the pile the cheap model was under
+0.7 sure of):
+
+| | |
+|---|---|
+| Hidden test pairs matched, six batches | 19, 20, 20, 19, 19, 20 of 20: **117 of 120** |
+| Pairs where the reader changed the cheap model's top answer | 1,310 of 2,280 (57%) |
+| Commonest changes | to "nothing links them" from disputes 83, "speaks to" 76, cites 75; cites to explains 74 |
+| What these pairs turn out to be | nothing 20%, disputes 17%, cites 14%, explains 14%, together 10% |
+| The second man acts on the first | 186 of the 962 order and scene pairs (19%) |
+
+A caution on that 117. The hidden pairs are ones where both markers agreed, and
+the reader is the same model as one of the two markers. It is a check that a
+batch was read with care and to the same guide, more than a second opinion.
+Astra's agreement on those same pairs is what makes them a fair target.
+
+The reading order is a fixed random shuffle, so the pairs read so far are a
+random sample of the unsure pile, and what they show about it holds for the rest.
+
 
 ## Cost
 
