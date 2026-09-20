@@ -13,7 +13,7 @@ can be said about it and it is reported as unknown, never as a name.
 """
 import collections, json
 
-from names import CONNECTORS, PREFIX, TITLE_ABBREV, TITLES, tokens
+from names import CONNECTORS, NEVER_PEELED, PREFIX, TITLE_ABBREV, TITLES, tokens
 
 MIN_COUNT = 3          # a word seen once or twice cannot show a pattern
 MIN_RATE = 0.5         # it must be in a name slot at least half the time
@@ -29,6 +29,11 @@ SPEAKER_NEXT = {'אמר', 'אומר', 'אמרי', 'סבר', 'בעי', 'תני', 
                 'בר', 'בן', 'בריה', 'ברבי', 'בשם', 'משום', 'משמיה'}
 MIN_SPEAKER = 5        # times the title+word pair is followed by a speaker word
 MIN_SPEAKER_UNITS = 3
+# ...and the word must sit after a title a fair share of the time. Measured on
+# the full text: names that are also words do so at least 23% of the time
+# (שמעיה 0.23, יעקב 0.46, יוסף 0.49); ordinary words at most 4% (אתה 0.004,
+# אחד 0.03, שהוא 0.04). "רבי, אתה אומר", Rabbi, you say, is why this is needed.
+MIN_SPEAKER_RATE = 0.10
 
 # a description that belongs to a name: רבי אלעזר המודעי, רבי יוסי הגלילי
 MIN_DESC = 3
@@ -86,8 +91,12 @@ class Lexicon:
 def _is_title(tok):
     if tok in TITLES or tok in TITLE_ABBREV or tok in ('א"ר',):
         return True
-    for n in (1, 2):
-        if len(tok) > n and all(c in PREFIX for c in tok[:n]) and tok[n:] in (TITLES - {'מר'}) | TITLE_ABBREV | {'א"ר'}:
+    # Peel prefixes only onto titles long enough to trust. דבר, "a thing", is
+    # not ד-ב glued to the short title ר: that reading made "דבר אחר", another
+    # thing, look like a title followed by a name, four thousand times.
+    closed = ((TITLES | TITLE_ABBREV) - NEVER_PEELED) | {'א"ר'}
+    for n in (1, 2, 3):
+        if len(tok) > n and all(c in PREFIX for c in tok[:n]) and tok[n:] in closed:
             return True
     return False
 
@@ -123,7 +132,8 @@ def build(units):
         if w in NEVER or w in CONNECTORS or w in TITLES or c < MIN_COUNT:
             continue
         by_rate = slot[w] / c >= MIN_RATE and len(where[w]) >= MIN_UNITS
-        by_behaviour = speaker[w] >= MIN_SPEAKER and len(speaker_where[w]) >= MIN_SPEAKER_UNITS
+        by_behaviour = (speaker[w] >= MIN_SPEAKER and len(speaker_where[w]) >= MIN_SPEAKER_UNITS
+                        and slot[w] / c >= MIN_SPEAKER_RATE)
         if by_rate or by_behaviour:
             given.add(w)
 

@@ -252,6 +252,19 @@ class TheLexiconLearnsFromBehaviour(unittest.TestCase):
         self.assertTrue(lx.is_origin('הוצל'))
         self.assertFalse(lx.is_origin('ואשתו'))
 
+    def test_rabbi_you_say_does_not_make_you_a_name(self):
+        # "רבי, אתה אומר": after a title and before "say", like a name, but the
+        # word appears everywhere else too
+        lines = ['אמר לו רבי אתה אומר כך'] * 8 + ['אתה הוא האיש', 'כי אתה אמרת', 'ועתה אתה יודע'] * 60
+        lx = lexmod.build(self.corpus(lines))
+        self.assertFalse(lx.is_given('אתה'))
+
+    def test_another_thing_is_not_a_title_and_a_name(self):
+        # דבר is not ד-ב glued to the short title ר
+        lx = lexmod.build(self.corpus(['דבר אחר אמר רבי מאיר'] * 12 + ['רבי מאיר אומר', 'ורבי מאיר סבר']))
+        self.assertFalse(lx.is_given('אחר'))
+        self.assertFalse(lexmod._is_title('דבר'))
+
     def test_descriptions_are_learned_not_listed(self):
         lines = ['רבי אלעזר המודעי אומר', 'אמר רבי אלעזר המודעי', 'דברי רבי אלעזר המודעי', 'רבי אלעזר אומר',
                  'רבי אלעזר אמר הלכה כמותו', 'הלכה כרבי מאיר', 'אין הלכה כן', 'רבי אלעזר בר צדוק', 'ורבי אלעזר סבר']
