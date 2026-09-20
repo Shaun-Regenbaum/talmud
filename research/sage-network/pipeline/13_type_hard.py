@@ -41,8 +41,26 @@ def call(model, key, chunk, effort):
         if code in (401, 402, 403):
             raise Stop(f"{code} {d['error'].get('message')}")
         raise RuntimeError(d['error'].get('message'))
-    m = re.search(r'\{.*\}', d['choices'][0]['message'].get('content') or '', re.S)
-    return (json.loads(m.group(0)) if m else {'items': []}), float((d.get('usage') or {}).get('cost') or 0)
+    return read_items(d['choices'][0]['message'].get('content') or ''), float((d.get('usage') or {}).get('cost') or 0)
+
+
+_ITEM = re.compile(r'"id"\s*:\s*"(p\d+)"\s*,\s*"kind"\s*:\s*"(\w+)"\s*,\s*"sure"\s*:\s*(true|false)')
+
+
+def read_items(content):
+    """The model's answer as {'items': [...]}.
+
+    A short form such as ר"ש carries a quote mark, and the model sometimes writes
+    it into "reading" without escaping it, which breaks the JSON. The answer is
+    already paid for, so the kind and the sure flag are read out item by item and
+    only the spelled-out reading is lost.
+    """
+    m = re.search(r'\{.*\}', content, re.S)
+    try:
+        return json.loads(m.group(0)) if m else {'items': []}
+    except json.JSONDecodeError:
+        return {'items': [{'id': i, 'kind': k, 'sure': s == 'true', 'reading': None}
+                          for i, k, s in _ITEM.findall(content)]}
 
 
 if __name__ == '__main__':

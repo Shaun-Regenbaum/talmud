@@ -1,0 +1,2286 @@
+{
+  "model": "jev-latest",
+  "labels": {
+    "top50-0": {
+      "kind": "cites",
+      "confidence": 0.98,
+      "p": {
+        "asks": 0.0,
+        "explains": 0.0,
+        "alternative": 0.0,
+        "together": 0.01,
+        "cites": 0.99,
+        "same-man": 0.0,
+        "addresses": 0.0,
+        "disputes": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "one-name": 0.0,
+        "kin": 0.0,
+        "before": 0.0
+      }
+    },
+    "top50-1": {
+      "kind": "together",
+      "confidence": 0.5,
+      "p": {
+        "asks": 0.0,
+        "explains": 0.0,
+        "alternative": 0.0,
+        "same-man": 0.01,
+        "cites": 0.01,
+        "together": 0.55,
+        "addresses": 0.25,
+        "disputes": 0.0,
+        "none": 0.02,
+        "follows": 0.15,
+        "one-name": 0.0,
+        "kin": 0.0,
+        "before": 0.01
+      }
+    },
+    "top50-2": {
+      "kind": "together",
+      "confidence": 0.97,
+      "p": {
+        "before": 0.0,
+        "alternative": 0.0,
+        "explains": 0.0,
+        "together": 0.99,
+        "cites": 0.0,
+        "same-man": 0.01,
+        "disputes": 0.0,
+        "addresses": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "one-name": 0.0,
+        "kin": 0.0,
+        "asks": 0.0
+      }
+    },
+    "top50-3": {
+      "kind": "cites",
+      "confidence": 0.69,
+      "p": {
+        "asks": 0.0,
+        "alternative": 0.07,
+        "explains": 0.01,
+        "together": 0.02,
+        "cites": 0.72,
+        "same-man": 0.01,
+        "disputes": 0.07,
+        "addresses": 0.0,
+        "none": 0.1,
+        "follows": 0.0,
+        "kin": 0.0,
+        "one-name": 0.0,
+        "before": 0.0
+      }
+    },
+    "top50-4": {
+      "kind": "together",
+      "confidence": 0.82,
+      "p": {
+        "asks": 0.0,
+        "alternative": 0.0,
+        "explains": 0.0,
+        "together": 0.84,
+        "cites": 0.0,
+        "same-man": 0.0,
+        "addresses": 0.0,
+        "disputes": 0.11,
+        "none": 0.05,
+        "follows": 0.0,
+        "one-name": 0.0,
+        "kin": 0.0,
+        "before": 0.0
+      }
+    },
+    "top50-5": {
+      "kind": "together",
+      "confidence": 0.99,
+      "p": {
+        "before": 0.0,
+        "explains": 0.0,
+        "alternative": 0.0,
+        "together": 1.0,
+        "cites": 0.0,
+        "same-man": 0.0,
+        "addresses": 0.0,
+        "disputes": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "one-name": 0.0,
+        "kin": 0.0,
+        "asks": 0.0
+      }
+    },
+    "top50-6": {
+      "kind": "disputes",
+      "confidence": 0.95,
+      "p": {
+        "before": 0.0,
+        "explains": 0.0,
+        "alternative": 0.0,
+        "same-man": 0.01,
+        "cites": 0.0,
+        "together": 0.02,
+        "addresses": 0.0,
+        "disputes": 0.96,
+        "none": 0.01,
+        "follows": 0.0,
+        "one-name": 0.0,
+        "kin": 0.0,
+        "asks": 0.0
+      }
+    },
+    "top50-7": {
+      "kind": "together",
+      "confidence": 0.98,
+      "p": {
+        "asks": 0.0,
+        "alternative": 0.0,
+        "explains": 0.0,
+        "same-man": 0.01,
+        "cites": 0.0,
+        "together": 0.99,
+        "addresses": 0.0,
+        "disputes": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "kin": 0.0,
+        "one-name": 0.0,
+        "before": 0.0
+      }
+    },
+    "top50-8": {
+      "kind": "cites",
+      "confidence": 0.97,
+      "p": {
+        "before": 0.0,
+        "alternative": 0.0,
+        "explains": 0.0,
+        "same-man": 0.0,
+        "cites": 0.98,
+        "together": 0.0,
+        "disputes": 0.0,
+        "addresses": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "one-name": 0.0,
+        "kin": 0.02,
+        "asks": 0.0
+      }
+    },
+    "top50-9": {
+      "kind": "disputes",
+      "confidence": 0.3,
+      "p": {
+        "before": 0.01,
+        "explains": 0.02,
+        "alternative": 0.02,
+        "same-man": 0.06,
+        "cites": 0.22,
+        "together": 0.03,
+        "disputes": 0.36,
+        "addresses": 0.01,
+        "none": 0.12,
+        "follows": 0.0,
+        "one-name": 0.12,
+        "kin": 0.01,
+        "asks": 0.02
+      }
+    },
+    "top50-10": {
+      "kind": "disputes",
+      "confidence": 0.79,
+      "p": {
+        "together": 0.07,
+        "alternative": 0.07,
+        "one-name": 0.0,
+        "kin": 0.0,
+        "before": 0.0,
+        "disputes": 0.81,
+        "asks": 0.0,
+        "cites": 0.01,
+        "addresses": 0.0,
+        "explains": 0.0,
+        "none": 0.02,
+        "same-man": 0.01,
+        "follows": 0.0
+      }
+    },
+    "top50-11": {
+      "kind": "addresses",
+      "confidence": 0.91,
+      "p": {
+        "explains": 0.0,
+        "alternative": 0.07,
+        "asks": 0.0,
+        "kin": 0.0,
+        "before": 0.01,
+        "disputes": 0.0,
+        "one-name": 0.0,
+        "cites": 0.0,
+        "together": 0.0,
+        "addresses": 0.92,
+        "none": 0.0,
+        "same-man": 0.0,
+        "follows": 0.0
+      }
+    },
+    "top50-12": {
+      "kind": "kin",
+      "confidence": 0.99,
+      "p": {
+        "one-name": 0.0,
+        "alternative": 0.0,
+        "addresses": 0.0,
+        "kin": 0.99,
+        "before": 0.0,
+        "disputes": 0.0,
+        "asks": 0.0,
+        "cites": 0.01,
+        "explains": 0.0,
+        "together": 0.0,
+        "none": 0.0,
+        "same-man": 0.0,
+        "follows": 0.0
+      }
+    },
+    "top50-13": {
+      "kind": "follows",
+      "confidence": 0.57,
+      "p": {
+        "one-name": 0.0,
+        "alternative": 0.02,
+        "explains": 0.03,
+        "kin": 0.0,
+        "before": 0.0,
+        "disputes": 0.03,
+        "asks": 0.0,
+        "cites": 0.12,
+        "together": 0.0,
+        "addresses": 0.0,
+        "none": 0.0,
+        "same-man": 0.18,
+        "follows": 0.62
+      }
+    },
+    "top50-14": {
+      "kind": "follows",
+      "confidence": 0.62,
+      "p": {
+        "explains": 0.0,
+        "alternative": 0.01,
+        "addresses": 0.0,
+        "kin": 0.0,
+        "before": 0.0,
+        "disputes": 0.01,
+        "asks": 0.0,
+        "cites": 0.26,
+        "together": 0.01,
+        "one-name": 0.0,
+        "none": 0.04,
+        "same-man": 0.02,
+        "follows": 0.65
+      }
+    },
+    "top50-15": {
+      "kind": "cites",
+      "confidence": 0.96,
+      "p": {
+        "explains": 0.01,
+        "alternative": 0.0,
+        "asks": 0.0,
+        "kin": 0.0,
+        "before": 0.0,
+        "disputes": 0.0,
+        "one-name": 0.0,
+        "cites": 0.97,
+        "together": 0.0,
+        "addresses": 0.0,
+        "none": 0.0,
+        "same-man": 0.02,
+        "follows": 0.0
+      }
+    },
+    "top50-16": {
+      "kind": "cites",
+      "confidence": 0.74,
+      "p": {
+        "one-name": 0.01,
+        "alternative": 0.03,
+        "addresses": 0.0,
+        "kin": 0.01,
+        "before": 0.0,
+        "disputes": 0.0,
+        "asks": 0.0,
+        "cites": 0.77,
+        "explains": 0.0,
+        "together": 0.03,
+        "none": 0.07,
+        "same-man": 0.08,
+        "follows": 0.0
+      }
+    },
+    "top50-17": {
+      "kind": "disputes",
+      "confidence": 0.99,
+      "p": {
+        "together": 0.0,
+        "alternative": 0.0,
+        "explains": 0.0,
+        "kin": 0.0,
+        "before": 0.0,
+        "disputes": 1.0,
+        "one-name": 0.0,
+        "cites": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "none": 0.0,
+        "same-man": 0.0,
+        "follows": 0.0
+      }
+    },
+    "top50-18": {
+      "kind": "together",
+      "confidence": 0.9,
+      "p": {
+        "one-name": 0.0,
+        "alternative": 0.01,
+        "explains": 0.0,
+        "kin": 0.0,
+        "before": 0.0,
+        "disputes": 0.05,
+        "asks": 0.0,
+        "cites": 0.0,
+        "together": 0.92,
+        "addresses": 0.0,
+        "none": 0.0,
+        "same-man": 0.02,
+        "follows": 0.0
+      }
+    },
+    "top50-19": {
+      "kind": "addresses",
+      "confidence": 0.95,
+      "p": {
+        "addresses": 0.96,
+        "alternative": 0.0,
+        "asks": 0.01,
+        "kin": 0.02,
+        "before": 0.01,
+        "disputes": 0.0,
+        "one-name": 0.0,
+        "cites": 0.0,
+        "explains": 0.0,
+        "together": 0.0,
+        "none": 0.0,
+        "same-man": 0.0,
+        "follows": 0.0
+      }
+    },
+    "top50-20": {
+      "kind": "disputes",
+      "confidence": 0.49,
+      "p": {
+        "cites": 0.21,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "explains": 0.0,
+        "one-name": 0.0,
+        "disputes": 0.54,
+        "together": 0.04,
+        "none": 0.02,
+        "follows": 0.0,
+        "same-man": 0.01,
+        "alternative": 0.18,
+        "before": 0.0
+      }
+    },
+    "top50-21": {
+      "kind": "disputes",
+      "confidence": 0.87,
+      "p": {
+        "before": 0.0,
+        "kin": 0.03,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "explains": 0.0,
+        "one-name": 0.02,
+        "disputes": 0.89,
+        "together": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "alternative": 0.01,
+        "same-man": 0.04,
+        "cites": 0.01
+      }
+    },
+    "top50-22": {
+      "kind": "addresses",
+      "confidence": 0.31,
+      "p": {
+        "before": 0.26,
+        "kin": 0.19,
+        "addresses": 0.36,
+        "asks": 0.0,
+        "explains": 0.02,
+        "one-name": 0.01,
+        "disputes": 0.04,
+        "together": 0.01,
+        "none": 0.04,
+        "follows": 0.0,
+        "same-man": 0.01,
+        "alternative": 0.0,
+        "cites": 0.06
+      }
+    },
+    "top50-23": {
+      "kind": "cites",
+      "confidence": 0.99,
+      "p": {
+        "cites": 1.0,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "disputes": 0.0,
+        "one-name": 0.0,
+        "explains": 0.0,
+        "together": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "alternative": 0.0,
+        "same-man": 0.0,
+        "before": 0.0
+      }
+    },
+    "top50-24": {
+      "kind": "cites",
+      "confidence": 1.0,
+      "p": {
+        "cites": 1.0,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "disputes": 0.0,
+        "one-name": 0.0,
+        "explains": 0.0,
+        "together": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "alternative": 0.0,
+        "same-man": 0.0,
+        "before": 0.0
+      }
+    },
+    "top50-25": {
+      "kind": "cites",
+      "confidence": 0.99,
+      "p": {
+        "cites": 1.0,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "explains": 0.0,
+        "one-name": 0.0,
+        "disputes": 0.0,
+        "together": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "alternative": 0.0,
+        "same-man": 0.0,
+        "before": 0.0
+      }
+    },
+    "top50-26": {
+      "kind": "cites",
+      "confidence": 0.82,
+      "p": {
+        "before": 0.0,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "disputes": 0.1,
+        "one-name": 0.0,
+        "explains": 0.01,
+        "together": 0.0,
+        "none": 0.01,
+        "follows": 0.0,
+        "alternative": 0.02,
+        "same-man": 0.01,
+        "cites": 0.85
+      }
+    },
+    "top50-27": {
+      "kind": "cites",
+      "confidence": 0.9,
+      "p": {
+        "cites": 0.91,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "disputes": 0.02,
+        "one-name": 0.0,
+        "explains": 0.0,
+        "together": 0.02,
+        "none": 0.03,
+        "follows": 0.0,
+        "same-man": 0.01,
+        "alternative": 0.01,
+        "before": 0.0
+      }
+    },
+    "top50-28": {
+      "kind": "disputes",
+      "confidence": 0.96,
+      "p": {
+        "cites": 0.0,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "explains": 0.0,
+        "one-name": 0.0,
+        "disputes": 0.97,
+        "together": 0.01,
+        "none": 0.01,
+        "follows": 0.0,
+        "same-man": 0.0,
+        "alternative": 0.01,
+        "before": 0.0
+      }
+    },
+    "top50-29": {
+      "kind": "explains",
+      "confidence": 0.23,
+      "p": {
+        "before": 0.01,
+        "kin": 0.0,
+        "addresses": 0.03,
+        "asks": 0.01,
+        "explains": 0.29,
+        "one-name": 0.0,
+        "disputes": 0.25,
+        "together": 0.01,
+        "none": 0.21,
+        "follows": 0.05,
+        "alternative": 0.03,
+        "same-man": 0.01,
+        "cites": 0.1
+      }
+    },
+    "top50-30": {
+      "kind": "cites",
+      "confidence": 0.93,
+      "p": {
+        "cites": 0.95,
+        "explains": 0.0,
+        "same-man": 0.01,
+        "disputes": 0.0,
+        "asks": 0.0,
+        "addresses": 0.01,
+        "one-name": 0.01,
+        "kin": 0.01,
+        "alternative": 0.0,
+        "together": 0.0,
+        "none": 0.01,
+        "follows": 0.0,
+        "before": 0.0
+      }
+    },
+    "top50-31": {
+      "kind": "cites",
+      "confidence": 0.86,
+      "p": {
+        "cites": 0.89,
+        "explains": 0.01,
+        "same-man": 0.01,
+        "before": 0.0,
+        "together": 0.02,
+        "disputes": 0.04,
+        "one-name": 0.0,
+        "addresses": 0.0,
+        "kin": 0.0,
+        "alternative": 0.01,
+        "none": 0.02,
+        "follows": 0.0,
+        "asks": 0.0
+      }
+    },
+    "top50-32": {
+      "kind": "cites",
+      "confidence": 0.96,
+      "p": {
+        "cites": 0.97,
+        "explains": 0.0,
+        "same-man": 0.0,
+        "asks": 0.0,
+        "before": 0.0,
+        "together": 0.01,
+        "one-name": 0.0,
+        "alternative": 0.0,
+        "addresses": 0.0,
+        "kin": 0.01,
+        "none": 0.01,
+        "follows": 0.0,
+        "disputes": 0.0
+      }
+    },
+    "top50-33": {
+      "kind": "disputes",
+      "confidence": 0.99,
+      "p": {
+        "cites": 0.0,
+        "explains": 0.0,
+        "same-man": 0.0,
+        "asks": 0.0,
+        "disputes": 1.0,
+        "addresses": 0.0,
+        "one-name": 0.0,
+        "kin": 0.0,
+        "alternative": 0.0,
+        "together": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "before": 0.0
+      }
+    },
+    "top50-34": {
+      "kind": "disputes",
+      "confidence": 0.84,
+      "p": {
+        "cites": 0.09,
+        "explains": 0.01,
+        "same-man": 0.01,
+        "asks": 0.0,
+        "addresses": 0.0,
+        "disputes": 0.85,
+        "one-name": 0.01,
+        "kin": 0.0,
+        "together": 0.01,
+        "alternative": 0.01,
+        "none": 0.01,
+        "follows": 0.0,
+        "before": 0.0
+      }
+    },
+    "top50-35": {
+      "kind": "cites",
+      "confidence": 0.96,
+      "p": {
+        "cites": 0.96,
+        "explains": 0.0,
+        "same-man": 0.01,
+        "before": 0.0,
+        "asks": 0.0,
+        "kin": 0.0,
+        "one-name": 0.0,
+        "together": 0.01,
+        "alternative": 0.0,
+        "addresses": 0.0,
+        "none": 0.01,
+        "follows": 0.0,
+        "disputes": 0.01
+      }
+    },
+    "top50-36": {
+      "kind": "cites",
+      "confidence": 0.87,
+      "p": {
+        "cites": 0.89,
+        "explains": 0.01,
+        "same-man": 0.01,
+        "asks": 0.0,
+        "together": 0.01,
+        "disputes": 0.03,
+        "one-name": 0.0,
+        "alternative": 0.02,
+        "addresses": 0.0,
+        "kin": 0.01,
+        "none": 0.0,
+        "follows": 0.02,
+        "before": 0.0
+      }
+    },
+    "top50-37": {
+      "kind": "together",
+      "confidence": 0.86,
+      "p": {
+        "cites": 0.01,
+        "explains": 0.0,
+        "same-man": 0.0,
+        "disputes": 0.0,
+        "asks": 0.0,
+        "kin": 0.1,
+        "one-name": 0.0,
+        "addresses": 0.0,
+        "together": 0.88,
+        "alternative": 0.0,
+        "none": 0.01,
+        "follows": 0.0,
+        "before": 0.0
+      }
+    },
+    "top50-38": {
+      "kind": "cites",
+      "confidence": 0.93,
+      "p": {
+        "cites": 0.9400000000000001,
+        "explains": 0.0,
+        "same-man": 0.0,
+        "disputes": 0.0,
+        "before": 0.0,
+        "addresses": 0.0,
+        "one-name": 0.0,
+        "kin": 0.02,
+        "together": 0.0,
+        "alternative": 0.0,
+        "none": 0.0,
+        "follows": 0.03,
+        "asks": 0.0
+      }
+    },
+    "top50-39": {
+      "kind": "cites",
+      "confidence": 1.0,
+      "p": {
+        "cites": 1.0,
+        "explains": 0.0,
+        "same-man": 0.0,
+        "addresses": 0.0,
+        "before": 0.0,
+        "asks": 0.0,
+        "one-name": 0.0,
+        "kin": 0.0,
+        "together": 0.0,
+        "alternative": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "disputes": 0.0
+      }
+    },
+    "top2000-40": {
+      "kind": "alternative",
+      "confidence": 0.89,
+      "p": {
+        "asks": 0.0,
+        "addresses": 0.0,
+        "alternative": 0.91,
+        "kin": 0.0,
+        "cites": 0.03,
+        "none": 0.0,
+        "together": 0.0,
+        "follows": 0.0,
+        "explains": 0.0,
+        "one-name": 0.0,
+        "before": 0.0,
+        "disputes": 0.0,
+        "same-man": 0.06
+      }
+    },
+    "top2000-41": {
+      "kind": "disputes",
+      "confidence": 0.94,
+      "p": {
+        "asks": 0.0,
+        "addresses": 0.0,
+        "alternative": 0.01,
+        "kin": 0.0,
+        "cites": 0.01,
+        "disputes": 0.96,
+        "same-man": 0.0,
+        "follows": 0.0,
+        "explains": 0.02,
+        "together": 0.0,
+        "one-name": 0.0,
+        "none": 0.0,
+        "before": 0.0
+      }
+    },
+    "top2000-42": {
+      "kind": "disputes",
+      "confidence": 0.99,
+      "p": {
+        "asks": 0.0,
+        "addresses": 0.0,
+        "alternative": 0.0,
+        "kin": 0.0,
+        "cites": 0.0,
+        "before": 0.0,
+        "same-man": 0.0,
+        "follows": 0.0,
+        "explains": 0.0,
+        "together": 0.0,
+        "one-name": 0.0,
+        "disputes": 1.0,
+        "none": 0.0
+      }
+    },
+    "top2000-43": {
+      "kind": "together",
+      "confidence": 0.9,
+      "p": {
+        "asks": 0.0,
+        "addresses": 0.0,
+        "alternative": 0.0,
+        "kin": 0.0,
+        "cites": 0.01,
+        "none": 0.03,
+        "together": 0.92,
+        "follows": 0.0,
+        "explains": 0.0,
+        "same-man": 0.04,
+        "before": 0.0,
+        "disputes": 0.0,
+        "one-name": 0.0
+      }
+    },
+    "top2000-44": {
+      "kind": "same-man",
+      "confidence": 0.19,
+      "p": {
+        "asks": 0.0,
+        "addresses": 0.0,
+        "alternative": 0.24,
+        "kin": 0.0,
+        "cites": 0.15,
+        "disputes": 0.05,
+        "same-man": 0.26,
+        "follows": 0.02,
+        "explains": 0.2,
+        "before": 0.0,
+        "together": 0.01,
+        "none": 0.06,
+        "one-name": 0.01
+      }
+    },
+    "top2000-45": {
+      "kind": "disputes",
+      "confidence": 0.81,
+      "p": {
+        "asks": 0.0,
+        "addresses": 0.0,
+        "alternative": 0.06,
+        "kin": 0.0,
+        "cites": 0.0,
+        "same-man": 0.0,
+        "none": 0.09,
+        "follows": 0.0,
+        "explains": 0.0,
+        "together": 0.02,
+        "before": 0.0,
+        "disputes": 0.83,
+        "one-name": 0.0
+      }
+    },
+    "top2000-46": {
+      "kind": "alternative",
+      "confidence": 0.94,
+      "p": {
+        "asks": 0.0,
+        "addresses": 0.0,
+        "alternative": 0.95,
+        "kin": 0.0,
+        "cites": 0.02,
+        "none": 0.0,
+        "before": 0.0,
+        "follows": 0.0,
+        "explains": 0.0,
+        "together": 0.0,
+        "same-man": 0.03,
+        "disputes": 0.0,
+        "one-name": 0.0
+      }
+    },
+    "top2000-47": {
+      "kind": "alternative",
+      "confidence": 0.95,
+      "p": {
+        "asks": 0.0,
+        "addresses": 0.0,
+        "alternative": 0.96,
+        "kin": 0.0,
+        "cites": 0.03,
+        "disputes": 0.0,
+        "together": 0.0,
+        "follows": 0.0,
+        "explains": 0.0,
+        "same-man": 0.01,
+        "one-name": 0.0,
+        "none": 0.0,
+        "before": 0.0
+      }
+    },
+    "top2000-48": {
+      "kind": "explains",
+      "confidence": 0.99,
+      "p": {
+        "asks": 0.0,
+        "addresses": 0.0,
+        "alternative": 0.0,
+        "kin": 0.0,
+        "cites": 0.0,
+        "before": 0.0,
+        "one-name": 0.0,
+        "follows": 0.0,
+        "explains": 1.0,
+        "same-man": 0.0,
+        "together": 0.0,
+        "disputes": 0.0,
+        "none": 0.0
+      }
+    },
+    "top2000-49": {
+      "kind": "follows",
+      "confidence": 0.83,
+      "p": {
+        "asks": 0.0,
+        "addresses": 0.0,
+        "alternative": 0.0,
+        "kin": 0.0,
+        "cites": 0.13,
+        "same-man": 0.0,
+        "none": 0.0,
+        "follows": 0.85,
+        "explains": 0.01,
+        "before": 0.0,
+        "together": 0.01,
+        "disputes": 0.0,
+        "one-name": 0.0
+      }
+    },
+    "top2000-50": {
+      "kind": "cites",
+      "confidence": 0.75,
+      "p": {
+        "follows": 0.0,
+        "alternative": 0.0,
+        "cites": 0.78,
+        "explains": 0.01,
+        "disputes": 0.03,
+        "asks": 0.0,
+        "addresses": 0.01,
+        "same-man": 0.07,
+        "together": 0.0,
+        "one-name": 0.01,
+        "kin": 0.08,
+        "none": 0.01,
+        "before": 0.0
+      }
+    },
+    "top2000-51": {
+      "kind": "cites",
+      "confidence": 0.88,
+      "p": {
+        "before": 0.0,
+        "kin": 0.0,
+        "cites": 0.89,
+        "explains": 0.0,
+        "disputes": 0.01,
+        "asks": 0.0,
+        "addresses": 0.07,
+        "same-man": 0.0,
+        "one-name": 0.0,
+        "together": 0.01,
+        "alternative": 0.0,
+        "none": 0.01,
+        "follows": 0.01
+      }
+    },
+    "top2000-52": {
+      "kind": "follows",
+      "confidence": 0.92,
+      "p": {
+        "same-man": 0.01,
+        "follows": 0.93,
+        "cites": 0.02,
+        "explains": 0.01,
+        "disputes": 0.02,
+        "asks": 0.0,
+        "addresses": 0.0,
+        "alternative": 0.0,
+        "together": 0.0,
+        "kin": 0.0,
+        "one-name": 0.0,
+        "none": 0.0,
+        "before": 0.0
+      }
+    },
+    "top2000-53": {
+      "kind": "explains",
+      "confidence": 0.25,
+      "p": {
+        "follows": 0.01,
+        "same-man": 0.05,
+        "cites": 0.27,
+        "explains": 0.32,
+        "disputes": 0.0,
+        "asks": 0.01,
+        "addresses": 0.0,
+        "alternative": 0.0,
+        "together": 0.01,
+        "kin": 0.23,
+        "one-name": 0.08,
+        "none": 0.02,
+        "before": 0.0
+      }
+    },
+    "top2000-54": {
+      "kind": "asks",
+      "confidence": 0.95,
+      "p": {
+        "before": 0.0,
+        "together": 0.02,
+        "cites": 0.01,
+        "explains": 0.0,
+        "kin": 0.0,
+        "asks": 0.96,
+        "addresses": 0.01,
+        "alternative": 0.0,
+        "one-name": 0.0,
+        "same-man": 0.0,
+        "disputes": 0.0,
+        "none": 0.0,
+        "follows": 0.0
+      }
+    },
+    "top2000-55": {
+      "kind": "disputes",
+      "confidence": 0.99,
+      "p": {
+        "follows": 0.0,
+        "kin": 0.0,
+        "cites": 0.0,
+        "explains": 0.0,
+        "disputes": 1.0,
+        "asks": 0.0,
+        "addresses": 0.0,
+        "alternative": 0.0,
+        "one-name": 0.0,
+        "same-man": 0.0,
+        "together": 0.0,
+        "none": 0.0,
+        "before": 0.0
+      }
+    },
+    "top2000-56": {
+      "kind": "together",
+      "confidence": 0.65,
+      "p": {
+        "alternative": 0.01,
+        "follows": 0.0,
+        "cites": 0.25,
+        "explains": 0.0,
+        "disputes": 0.0,
+        "asks": 0.0,
+        "addresses": 0.0,
+        "same-man": 0.03,
+        "together": 0.68,
+        "one-name": 0.0,
+        "kin": 0.01,
+        "none": 0.01,
+        "before": 0.0
+      }
+    },
+    "top2000-57": {
+      "kind": "none",
+      "confidence": 0.23,
+      "p": {
+        "same-man": 0.28,
+        "follows": 0.0,
+        "cites": 0.01,
+        "explains": 0.02,
+        "disputes": 0.05,
+        "asks": 0.04,
+        "addresses": 0.01,
+        "alternative": 0.04,
+        "together": 0.2,
+        "kin": 0.03,
+        "one-name": 0.03,
+        "none": 0.29,
+        "before": 0.0
+      }
+    },
+    "top2000-58": {
+      "kind": "asks",
+      "confidence": 0.71,
+      "p": {
+        "follows": 0.0,
+        "kin": 0.0,
+        "cites": 0.09,
+        "explains": 0.02,
+        "disputes": 0.01,
+        "asks": 0.74,
+        "addresses": 0.1,
+        "same-man": 0.01,
+        "together": 0.0,
+        "one-name": 0.0,
+        "alternative": 0.0,
+        "none": 0.02,
+        "before": 0.01
+      }
+    },
+    "top2000-59": {
+      "kind": "explains",
+      "confidence": 0.96,
+      "p": {
+        "disputes": 0.0,
+        "follows": 0.0,
+        "cites": 0.01,
+        "explains": 0.98,
+        "kin": 0.0,
+        "asks": 0.01,
+        "addresses": 0.0,
+        "alternative": 0.0,
+        "one-name": 0.0,
+        "same-man": 0.0,
+        "together": 0.0,
+        "none": 0.0,
+        "before": 0.0
+      }
+    },
+    "top2000-60": {
+      "kind": "asks",
+      "confidence": 0.98,
+      "p": {
+        "cites": 0.0,
+        "kin": 0.0,
+        "addresses": 0.01,
+        "asks": 0.98,
+        "disputes": 0.0,
+        "one-name": 0.0,
+        "explains": 0.0,
+        "together": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "alternative": 0.0,
+        "same-man": 0.0,
+        "before": 0.01
+      }
+    },
+    "top2000-61": {
+      "kind": "same-man",
+      "confidence": 0.79,
+      "p": {
+        "cites": 0.14,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "explains": 0.01,
+        "one-name": 0.0,
+        "disputes": 0.0,
+        "together": 0.0,
+        "none": 0.03,
+        "follows": 0.01,
+        "same-man": 0.8,
+        "alternative": 0.0,
+        "before": 0.0
+      }
+    },
+    "top2000-62": {
+      "kind": "asks",
+      "confidence": 0.97,
+      "p": {
+        "cites": 0.0,
+        "kin": 0.0,
+        "addresses": 0.02,
+        "asks": 0.98,
+        "explains": 0.0,
+        "one-name": 0.0,
+        "disputes": 0.0,
+        "together": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "same-man": 0.0,
+        "alternative": 0.0,
+        "before": 0.0
+      }
+    },
+    "top2000-63": {
+      "kind": "disputes",
+      "confidence": 0.84,
+      "p": {
+        "before": 0.0,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "disputes": 0.86,
+        "one-name": 0.0,
+        "explains": 0.0,
+        "together": 0.09,
+        "none": 0.01,
+        "follows": 0.0,
+        "alternative": 0.01,
+        "same-man": 0.03,
+        "cites": 0.0
+      }
+    },
+    "top2000-64": {
+      "kind": "addresses",
+      "confidence": 0.92,
+      "p": {
+        "cites": 0.0,
+        "kin": 0.0,
+        "addresses": 0.9400000000000001,
+        "asks": 0.03,
+        "disputes": 0.0,
+        "one-name": 0.0,
+        "explains": 0.0,
+        "together": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "alternative": 0.0,
+        "same-man": 0.0,
+        "before": 0.03
+      }
+    },
+    "top2000-65": {
+      "kind": "follows",
+      "confidence": 0.6,
+      "p": {
+        "before": 0.0,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.01,
+        "disputes": 0.19,
+        "one-name": 0.01,
+        "explains": 0.01,
+        "together": 0.02,
+        "none": 0.08,
+        "follows": 0.63,
+        "same-man": 0.02,
+        "alternative": 0.03,
+        "cites": 0.0
+      }
+    },
+    "top2000-66": {
+      "kind": "disputes",
+      "confidence": 0.84,
+      "p": {
+        "cites": 0.01,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "disputes": 0.86,
+        "one-name": 0.0,
+        "explains": 0.0,
+        "together": 0.01,
+        "none": 0.09,
+        "follows": 0.0,
+        "alternative": 0.02,
+        "same-man": 0.01,
+        "before": 0.0
+      }
+    },
+    "top2000-67": {
+      "kind": "cites",
+      "confidence": 0.75,
+      "p": {
+        "before": 0.0,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "disputes": 0.0,
+        "one-name": 0.0,
+        "explains": 0.0,
+        "together": 0.2,
+        "none": 0.01,
+        "follows": 0.0,
+        "alternative": 0.0,
+        "same-man": 0.01,
+        "cites": 0.78
+      }
+    },
+    "top2000-68": {
+      "kind": "alternative",
+      "confidence": 0.38,
+      "p": {
+        "cites": 0.02,
+        "kin": 0.08,
+        "addresses": 0.01,
+        "asks": 0.0,
+        "explains": 0.0,
+        "one-name": 0.01,
+        "disputes": 0.01,
+        "together": 0.11,
+        "none": 0.09,
+        "follows": 0.16,
+        "same-man": 0.04,
+        "alternative": 0.44,
+        "before": 0.03
+      }
+    },
+    "top2000-69": {
+      "kind": "disputes",
+      "confidence": 0.36,
+      "p": {
+        "cites": 0.01,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "disputes": 0.42,
+        "one-name": 0.0,
+        "explains": 0.01,
+        "together": 0.2,
+        "none": 0.05,
+        "follows": 0.0,
+        "alternative": 0.01,
+        "same-man": 0.3,
+        "before": 0.0
+      }
+    },
+    "top2000-70": {
+      "kind": "addresses",
+      "confidence": 0.18,
+      "p": {
+        "addresses": 0.22999999999999998,
+        "none": 0.1,
+        "one-name": 0.0,
+        "together": 0.02,
+        "follows": 0.17,
+        "asks": 0.01,
+        "kin": 0.01,
+        "explains": 0.02,
+        "before": 0.18,
+        "same-man": 0.05,
+        "cites": 0.06,
+        "disputes": 0.14,
+        "alternative": 0.01
+      }
+    },
+    "top2000-71": {
+      "kind": "addresses",
+      "confidence": 0.84,
+      "p": {
+        "same-man": 0.01,
+        "follows": 0.0,
+        "one-name": 0.0,
+        "together": 0.0,
+        "none": 0.0,
+        "asks": 0.03,
+        "kin": 0.0,
+        "explains": 0.0,
+        "before": 0.02,
+        "addresses": 0.86,
+        "cites": 0.08,
+        "disputes": 0.0,
+        "alternative": 0.0
+      }
+    },
+    "top2000-72": {
+      "kind": "same-man",
+      "confidence": 0.64,
+      "p": {
+        "addresses": 0.0,
+        "none": 0.02,
+        "one-name": 0.03,
+        "together": 0.01,
+        "follows": 0.01,
+        "asks": 0.0,
+        "kin": 0.01,
+        "explains": 0.18,
+        "before": 0.0,
+        "same-man": 0.68,
+        "cites": 0.02,
+        "disputes": 0.01,
+        "alternative": 0.03
+      }
+    },
+    "top2000-73": {
+      "kind": "follows",
+      "confidence": 0.34,
+      "p": {
+        "before": 0.01,
+        "none": 0.05,
+        "one-name": 0.01,
+        "together": 0.01,
+        "follows": 0.4,
+        "asks": 0.0,
+        "kin": 0.0,
+        "explains": 0.22,
+        "addresses": 0.01,
+        "same-man": 0.04,
+        "cites": 0.22,
+        "disputes": 0.02,
+        "alternative": 0.01
+      }
+    },
+    "top2000-74": {
+      "kind": "addresses",
+      "confidence": 0.95,
+      "p": {
+        "same-man": 0.0,
+        "follows": 0.0,
+        "one-name": 0.0,
+        "together": 0.0,
+        "none": 0.0,
+        "asks": 0.01,
+        "kin": 0.0,
+        "explains": 0.0,
+        "before": 0.01,
+        "addresses": 0.96,
+        "cites": 0.0,
+        "disputes": 0.02,
+        "alternative": 0.0
+      }
+    },
+    "top2000-75": {
+      "kind": "before",
+      "confidence": 0.82,
+      "p": {
+        "addresses": 0.11,
+        "none": 0.0,
+        "one-name": 0.0,
+        "together": 0.0,
+        "follows": 0.0,
+        "asks": 0.02,
+        "kin": 0.0,
+        "explains": 0.0,
+        "before": 0.84,
+        "same-man": 0.0,
+        "cites": 0.0,
+        "disputes": 0.03,
+        "alternative": 0.0
+      }
+    },
+    "top2000-76": {
+      "kind": "cites",
+      "confidence": 0.63,
+      "p": {
+        "before": 0.0,
+        "none": 0.02,
+        "one-name": 0.0,
+        "together": 0.01,
+        "follows": 0.28,
+        "asks": 0.0,
+        "kin": 0.0,
+        "explains": 0.01,
+        "same-man": 0.01,
+        "addresses": 0.0,
+        "cites": 0.65,
+        "disputes": 0.0,
+        "alternative": 0.02
+      }
+    },
+    "top2000-77": {
+      "kind": "follows",
+      "confidence": 0.86,
+      "p": {
+        "same-man": 0.01,
+        "none": 0.0,
+        "one-name": 0.0,
+        "together": 0.01,
+        "follows": 0.87,
+        "asks": 0.0,
+        "kin": 0.06,
+        "explains": 0.03,
+        "before": 0.0,
+        "addresses": 0.0,
+        "cites": 0.01,
+        "disputes": 0.01,
+        "alternative": 0.0
+      }
+    },
+    "top2000-78": {
+      "kind": "disputes",
+      "confidence": 0.62,
+      "p": {
+        "same-man": 0.11,
+        "none": 0.03,
+        "one-name": 0.0,
+        "together": 0.17,
+        "follows": 0.0,
+        "asks": 0.0,
+        "kin": 0.0,
+        "explains": 0.01,
+        "before": 0.0,
+        "addresses": 0.0,
+        "cites": 0.01,
+        "disputes": 0.66,
+        "alternative": 0.01
+      }
+    },
+    "top2000-79": {
+      "kind": "none",
+      "confidence": 0.18,
+      "p": {
+        "addresses": 0.01,
+        "none": 0.24,
+        "one-name": 0.08,
+        "together": 0.11,
+        "follows": 0.07,
+        "asks": 0.0,
+        "kin": 0.01,
+        "explains": 0.03,
+        "same-man": 0.01,
+        "before": 0.01,
+        "cites": 0.19999999999999998,
+        "disputes": 0.06,
+        "alternative": 0.17
+      }
+    },
+    "tail-80": {
+      "kind": "addresses",
+      "confidence": 0.77,
+      "p": {
+        "explains": 0.04,
+        "none": 0.02,
+        "disputes": 0.13,
+        "kin": 0.0,
+        "follows": 0.0,
+        "cites": 0.01,
+        "addresses": 0.79,
+        "asks": 0.01,
+        "together": 0.0,
+        "alternative": 0.0,
+        "same-man": 0.0,
+        "before": 0.0,
+        "one-name": 0.0
+      }
+    },
+    "tail-81": {
+      "kind": "none",
+      "confidence": 0.37,
+      "p": {
+        "explains": 0.12,
+        "none": 0.41,
+        "disputes": 0.15,
+        "kin": 0.01,
+        "follows": 0.01,
+        "cites": 0.08,
+        "addresses": 0.09,
+        "asks": 0.05,
+        "together": 0.02,
+        "alternative": 0.01,
+        "before": 0.01,
+        "same-man": 0.04,
+        "one-name": 0.0
+      }
+    },
+    "tail-82": {
+      "kind": "addresses",
+      "confidence": 0.41,
+      "p": {
+        "explains": 0.31,
+        "disputes": 0.16,
+        "none": 0.02,
+        "kin": 0.0,
+        "follows": 0.0,
+        "cites": 0.01,
+        "asks": 0.03,
+        "addresses": 0.47000000000000003,
+        "together": 0.0,
+        "alternative": 0.0,
+        "before": 0.0,
+        "same-man": 0.0,
+        "one-name": 0.0
+      }
+    },
+    "tail-83": {
+      "kind": "explains",
+      "confidence": 0.44,
+      "p": {
+        "explains": 0.48,
+        "none": 0.17,
+        "disputes": 0.12,
+        "kin": 0.0,
+        "follows": 0.02,
+        "cites": 0.02,
+        "asks": 0.01,
+        "addresses": 0.01,
+        "together": 0.02,
+        "alternative": 0.14,
+        "same-man": 0.01,
+        "before": 0.0,
+        "one-name": 0.0
+      }
+    },
+    "tail-84": {
+      "kind": "explains",
+      "confidence": 0.29,
+      "p": {
+        "explains": 0.34,
+        "disputes": 0.1,
+        "none": 0.09,
+        "kin": 0.0,
+        "follows": 0.14,
+        "cites": 0.01,
+        "addresses": 0.0,
+        "asks": 0.01,
+        "together": 0.11,
+        "alternative": 0.0,
+        "before": 0.0,
+        "same-man": 0.19,
+        "one-name": 0.01
+      }
+    },
+    "tail-85": {
+      "kind": "cites",
+      "confidence": 0.5,
+      "p": {
+        "explains": 0.0,
+        "disputes": 0.01,
+        "none": 0.01,
+        "kin": 0.29,
+        "follows": 0.0,
+        "cites": 0.55,
+        "addresses": 0.02,
+        "asks": 0.0,
+        "together": 0.03,
+        "alternative": 0.02,
+        "before": 0.0,
+        "same-man": 0.07,
+        "one-name": 0.0
+      }
+    },
+    "tail-86": {
+      "kind": "disputes",
+      "confidence": 0.44,
+      "p": {
+        "explains": 0.05,
+        "disputes": 0.49,
+        "none": 0.13,
+        "kin": 0.0,
+        "follows": 0.02,
+        "cites": 0.07,
+        "addresses": 0.01,
+        "asks": 0.0,
+        "together": 0.02,
+        "alternative": 0.19,
+        "same-man": 0.02,
+        "before": 0.0,
+        "one-name": 0.0
+      }
+    },
+    "tail-87": {
+      "kind": "disputes",
+      "confidence": 0.28,
+      "p": {
+        "explains": 0.11,
+        "none": 0.21,
+        "disputes": 0.35000000000000003,
+        "kin": 0.01,
+        "follows": 0.01,
+        "cites": 0.08,
+        "addresses": 0.05,
+        "asks": 0.01,
+        "together": 0.01,
+        "alternative": 0.01,
+        "same-man": 0.13,
+        "before": 0.01,
+        "one-name": 0.01
+      }
+    },
+    "tail-88": {
+      "kind": "explains",
+      "confidence": 0.31,
+      "p": {
+        "explains": 0.37,
+        "disputes": 0.01,
+        "none": 0.04,
+        "kin": 0.0,
+        "follows": 0.12,
+        "cites": 0.05,
+        "asks": 0.0,
+        "addresses": 0.19,
+        "together": 0.15,
+        "alternative": 0.0,
+        "same-man": 0.05,
+        "before": 0.01,
+        "one-name": 0.01
+      }
+    },
+    "tail-89": {
+      "kind": "disputes",
+      "confidence": 0.49,
+      "p": {
+        "explains": 0.16,
+        "disputes": 0.53,
+        "none": 0.02,
+        "kin": 0.0,
+        "follows": 0.0,
+        "cites": 0.01,
+        "addresses": 0.0,
+        "asks": 0.01,
+        "together": 0.11,
+        "alternative": 0.02,
+        "before": 0.01,
+        "same-man": 0.11,
+        "one-name": 0.02
+      }
+    },
+    "tail-90": {
+      "kind": "disputes",
+      "confidence": 0.54,
+      "p": {
+        "cites": 0.02,
+        "follows": 0.0,
+        "disputes": 0.58,
+        "same-man": 0.03,
+        "none": 0.21000000000000002,
+        "asks": 0.0,
+        "kin": 0.0,
+        "alternative": 0.07,
+        "before": 0.0,
+        "explains": 0.01,
+        "one-name": 0.0,
+        "together": 0.08,
+        "addresses": 0.0
+      }
+    },
+    "tail-91": {
+      "kind": "alternative",
+      "confidence": 0.23,
+      "p": {
+        "follows": 0.0,
+        "cites": 0.21,
+        "disputes": 0.02,
+        "same-man": 0.13,
+        "none": 0.18,
+        "explains": 0.01,
+        "kin": 0.06,
+        "alternative": 0.29,
+        "before": 0.01,
+        "asks": 0.0,
+        "together": 0.06,
+        "one-name": 0.02,
+        "addresses": 0.01
+      }
+    },
+    "tail-92": {
+      "kind": "disputes",
+      "confidence": 0.47,
+      "p": {
+        "cites": 0.04,
+        "follows": 0.01,
+        "one-name": 0.01,
+        "same-man": 0.02,
+        "none": 0.23,
+        "asks": 0.01,
+        "kin": 0.02,
+        "alternative": 0.04,
+        "before": 0.0,
+        "explains": 0.07,
+        "together": 0.01,
+        "disputes": 0.5,
+        "addresses": 0.04
+      }
+    },
+    "tail-93": {
+      "kind": "disputes",
+      "confidence": 0.49,
+      "p": {
+        "follows": 0.01,
+        "cites": 0.06,
+        "together": 0.02,
+        "same-man": 0.01,
+        "none": 0.14,
+        "disputes": 0.53,
+        "kin": 0.0,
+        "alternative": 0.01,
+        "before": 0.0,
+        "asks": 0.01,
+        "one-name": 0.0,
+        "explains": 0.17,
+        "addresses": 0.03
+      }
+    },
+    "tail-94": {
+      "kind": "addresses",
+      "confidence": 0.54,
+      "p": {
+        "follows": 0.0,
+        "disputes": 0.4,
+        "cites": 0.0,
+        "same-man": 0.01,
+        "none": 0.0,
+        "asks": 0.0,
+        "kin": 0.0,
+        "alternative": 0.0,
+        "before": 0.0,
+        "explains": 0.0,
+        "one-name": 0.0,
+        "together": 0.0,
+        "addresses": 0.59
+      }
+    },
+    "tail-95": {
+      "kind": "before",
+      "confidence": 0.51,
+      "p": {
+        "follows": 0.0,
+        "cites": 0.01,
+        "one-name": 0.0,
+        "same-man": 0.01,
+        "none": 0.3,
+        "explains": 0.0,
+        "kin": 0.08,
+        "alternative": 0.0,
+        "before": 0.55,
+        "disputes": 0.0,
+        "together": 0.02,
+        "asks": 0.0,
+        "addresses": 0.03
+      }
+    },
+    "tail-96": {
+      "kind": "disputes",
+      "confidence": 0.59,
+      "p": {
+        "cites": 0.02,
+        "follows": 0.0,
+        "explains": 0.0,
+        "same-man": 0.02,
+        "none": 0.18,
+        "disputes": 0.63,
+        "kin": 0.0,
+        "alternative": 0.07,
+        "before": 0.0,
+        "asks": 0.0,
+        "one-name": 0.0,
+        "together": 0.08,
+        "addresses": 0.0
+      }
+    },
+    "tail-97": {
+      "kind": "same-man",
+      "confidence": 0.58,
+      "p": {
+        "follows": 0.0,
+        "cites": 0.13,
+        "disputes": 0.0,
+        "same-man": 0.62,
+        "none": 0.14,
+        "asks": 0.0,
+        "kin": 0.0,
+        "alternative": 0.0,
+        "before": 0.0,
+        "explains": 0.06,
+        "together": 0.02,
+        "one-name": 0.03,
+        "addresses": 0.0
+      }
+    },
+    "tail-98": {
+      "kind": "follows",
+      "confidence": 0.29,
+      "p": {
+        "cites": 0.04,
+        "follows": 0.35,
+        "explains": 0.21,
+        "same-man": 0.02,
+        "none": 0.02,
+        "disputes": 0.01,
+        "kin": 0.29,
+        "alternative": 0.01,
+        "before": 0.0,
+        "asks": 0.0,
+        "one-name": 0.04,
+        "together": 0.01,
+        "addresses": 0.0
+      }
+    },
+    "tail-99": {
+      "kind": "together",
+      "confidence": 0.54,
+      "p": {
+        "cites": 0.05,
+        "follows": 0.04,
+        "explains": 0.07,
+        "same-man": 0.03,
+        "none": 0.14,
+        "disputes": 0.07,
+        "kin": 0.0,
+        "alternative": 0.03,
+        "before": 0.0,
+        "asks": 0.0,
+        "one-name": 0.0,
+        "together": 0.57,
+        "addresses": 0.0
+      }
+    },
+    "tail-100": {
+      "kind": "disputes",
+      "confidence": 0.98,
+      "p": {
+        "together": 0.01,
+        "explains": 0.0,
+        "asks": 0.0,
+        "same-man": 0.0,
+        "disputes": 0.99,
+        "addresses": 0.0,
+        "cites": 0.0,
+        "before": 0.0,
+        "follows": 0.0,
+        "alternative": 0.0,
+        "kin": 0.0,
+        "one-name": 0.0,
+        "none": 0.0
+      }
+    },
+    "tail-101": {
+      "kind": "disputes",
+      "confidence": 0.97,
+      "p": {
+        "together": 0.0,
+        "explains": 0.0,
+        "asks": 0.0,
+        "addresses": 0.0,
+        "disputes": 0.97,
+        "same-man": 0.0,
+        "cites": 0.0,
+        "alternative": 0.01,
+        "follows": 0.01,
+        "before": 0.0,
+        "one-name": 0.0,
+        "kin": 0.0,
+        "none": 0.01
+      }
+    },
+    "tail-102": {
+      "kind": "follows",
+      "confidence": 0.55,
+      "p": {
+        "together": 0.01,
+        "asks": 0.07,
+        "explains": 0.08,
+        "same-man": 0.01,
+        "disputes": 0.12,
+        "cites": 0.01,
+        "addresses": 0.04,
+        "before": 0.0,
+        "follows": 0.59,
+        "alternative": 0.01,
+        "one-name": 0.0,
+        "kin": 0.0,
+        "none": 0.06
+      }
+    },
+    "tail-103": {
+      "kind": "disputes",
+      "confidence": 0.42,
+      "p": {
+        "together": 0.02,
+        "asks": 0.04,
+        "explains": 0.13,
+        "addresses": 0.08,
+        "disputes": 0.45999999999999996,
+        "same-man": 0.01,
+        "cites": 0.01,
+        "alternative": 0.06,
+        "follows": 0.01,
+        "before": 0.01,
+        "kin": 0.0,
+        "one-name": 0.0,
+        "none": 0.17
+      }
+    },
+    "tail-104": {
+      "kind": "cites",
+      "confidence": 0.24,
+      "p": {
+        "together": 0.03,
+        "explains": 0.03,
+        "asks": 0.01,
+        "addresses": 0.01,
+        "disputes": 0.18,
+        "same-man": 0.01,
+        "cites": 0.3,
+        "before": 0.02,
+        "follows": 0.13,
+        "alternative": 0.02,
+        "kin": 0.01,
+        "one-name": 0.0,
+        "none": 0.25
+      }
+    },
+    "tail-105": {
+      "kind": "cites",
+      "confidence": 0.36,
+      "p": {
+        "together": 0.06,
+        "explains": 0.04,
+        "asks": 0.0,
+        "same-man": 0.01,
+        "disputes": 0.02,
+        "addresses": 0.02,
+        "cites": 0.41,
+        "alternative": 0.01,
+        "follows": 0.04,
+        "before": 0.01,
+        "kin": 0.03,
+        "one-name": 0.01,
+        "none": 0.34
+      }
+    },
+    "tail-106": {
+      "kind": "cites",
+      "confidence": 0.26,
+      "p": {
+        "together": 0.02,
+        "explains": 0.02,
+        "asks": 0.01,
+        "same-man": 0.13,
+        "disputes": 0.24,
+        "cites": 0.32,
+        "addresses": 0.01,
+        "before": 0.0,
+        "follows": 0.05,
+        "alternative": 0.02,
+        "kin": 0.0,
+        "one-name": 0.0,
+        "none": 0.18
+      }
+    },
+    "tail-107": {
+      "kind": "cites",
+      "confidence": 0.4,
+      "p": {
+        "together": 0.02,
+        "asks": 0.01,
+        "explains": 0.03,
+        "addresses": 0.01,
+        "disputes": 0.13,
+        "same-man": 0.01,
+        "cites": 0.44,
+        "before": 0.02,
+        "follows": 0.16,
+        "alternative": 0.05,
+        "kin": 0.0,
+        "one-name": 0.0,
+        "none": 0.12
+      }
+    },
+    "tail-108": {
+      "kind": "follows",
+      "confidence": 0.52,
+      "p": {
+        "together": 0.02,
+        "asks": 0.0,
+        "explains": 0.07,
+        "addresses": 0.0,
+        "disputes": 0.01,
+        "same-man": 0.01,
+        "cites": 0.24,
+        "before": 0.01,
+        "follows": 0.56,
+        "alternative": 0.02,
+        "kin": 0.0,
+        "one-name": 0.0,
+        "none": 0.06
+      }
+    },
+    "tail-109": {
+      "kind": "none",
+      "confidence": 0.36,
+      "p": {
+        "together": 0.05,
+        "explains": 0.1,
+        "asks": 0.0,
+        "addresses": 0.09,
+        "disputes": 0.02,
+        "same-man": 0.01,
+        "cites": 0.08,
+        "before": 0.04,
+        "follows": 0.15,
+        "alternative": 0.04,
+        "kin": 0.0,
+        "one-name": 0.0,
+        "none": 0.42
+      }
+    },
+    "tail-110": {
+      "kind": "alternative",
+      "confidence": 0.32,
+      "p": {
+        "cites": 0.06,
+        "kin": 0.01,
+        "addresses": 0.02,
+        "asks": 0.06,
+        "explains": 0.03,
+        "one-name": 0.0,
+        "disputes": 0.34,
+        "together": 0.01,
+        "none": 0.06,
+        "follows": 0.01,
+        "same-man": 0.02,
+        "alternative": 0.37,
+        "before": 0.01
+      }
+    },
+    "tail-111": {
+      "kind": "disputes",
+      "confidence": 0.14,
+      "p": {
+        "before": 0.0,
+        "kin": 0.18,
+        "addresses": 0.02,
+        "asks": 0.1,
+        "explains": 0.17,
+        "one-name": 0.03,
+        "disputes": 0.21000000000000002,
+        "together": 0.01,
+        "none": 0.11,
+        "follows": 0.03,
+        "same-man": 0.02,
+        "alternative": 0.05,
+        "cites": 0.07
+      }
+    },
+    "tail-112": {
+      "kind": "none",
+      "confidence": 0.48,
+      "p": {
+        "before": 0.0,
+        "kin": 0.23,
+        "addresses": 0.02,
+        "asks": 0.0,
+        "disputes": 0.01,
+        "one-name": 0.07,
+        "explains": 0.01,
+        "together": 0.05,
+        "none": 0.53,
+        "follows": 0.0,
+        "same-man": 0.02,
+        "alternative": 0.0,
+        "cites": 0.06
+      }
+    },
+    "tail-113": {
+      "kind": "disputes",
+      "confidence": 0.98,
+      "p": {
+        "before": 0.0,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "explains": 0.0,
+        "one-name": 0.0,
+        "disputes": 0.99,
+        "together": 0.01,
+        "none": 0.0,
+        "follows": 0.0,
+        "same-man": 0.0,
+        "alternative": 0.0,
+        "cites": 0.0
+      }
+    },
+    "tail-114": {
+      "kind": "explains",
+      "confidence": 0.61,
+      "p": {
+        "before": 0.0,
+        "kin": 0.0,
+        "addresses": 0.03,
+        "asks": 0.01,
+        "disputes": 0.09,
+        "one-name": 0.0,
+        "explains": 0.65,
+        "together": 0.01,
+        "none": 0.06,
+        "follows": 0.09999999999999999,
+        "same-man": 0.01,
+        "alternative": 0.0,
+        "cites": 0.04
+      }
+    },
+    "tail-115": {
+      "kind": "disputes",
+      "confidence": 0.88,
+      "p": {
+        "before": 0.0,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "explains": 0.0,
+        "one-name": 0.0,
+        "disputes": 0.9,
+        "together": 0.0,
+        "none": 0.0,
+        "follows": 0.0,
+        "alternative": 0.01,
+        "same-man": 0.01,
+        "cites": 0.08
+      }
+    },
+    "tail-116": {
+      "kind": "none",
+      "confidence": 0.66,
+      "p": {
+        "cites": 0.01,
+        "kin": 0.0,
+        "addresses": 0.02,
+        "asks": 0.0,
+        "disputes": 0.01,
+        "one-name": 0.01,
+        "explains": 0.0,
+        "together": 0.17,
+        "none": 0.68,
+        "follows": 0.01,
+        "alternative": 0.01,
+        "same-man": 0.06,
+        "before": 0.01
+      }
+    },
+    "tail-117": {
+      "kind": "addresses",
+      "confidence": 0.62,
+      "p": {
+        "cites": 0.23,
+        "kin": 0.0,
+        "addresses": 0.66,
+        "asks": 0.02,
+        "disputes": 0.02,
+        "one-name": 0.0,
+        "explains": 0.0,
+        "together": 0.0,
+        "none": 0.01,
+        "follows": 0.0,
+        "same-man": 0.04,
+        "alternative": 0.02,
+        "before": 0.0
+      }
+    },
+    "tail-118": {
+      "kind": "none",
+      "confidence": 0.26,
+      "p": {
+        "before": 0.0,
+        "kin": 0.0,
+        "addresses": 0.0,
+        "asks": 0.0,
+        "disputes": 0.14,
+        "one-name": 0.01,
+        "explains": 0.07,
+        "together": 0.01,
+        "none": 0.32,
+        "follows": 0.29,
+        "same-man": 0.01,
+        "alternative": 0.02,
+        "cites": 0.13
+      }
+    },
+    "tail-119": {
+      "kind": "addresses",
+      "confidence": 0.54,
+      "p": {
+        "cites": 0.06,
+        "kin": 0.01,
+        "addresses": 0.57,
+        "asks": 0.01,
+        "explains": 0.04,
+        "one-name": 0.01,
+        "disputes": 0.23,
+        "together": 0.0,
+        "none": 0.01,
+        "follows": 0.03,
+        "alternative": 0.01,
+        "same-man": 0.01,
+        "before": 0.01
+      }
+    }
+  },
+  "spend": 0.0042939960000000004
+}

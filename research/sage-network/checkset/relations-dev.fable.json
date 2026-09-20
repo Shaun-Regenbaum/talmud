@@ -1,0 +1,606 @@
+{
+  "model": "anthropic/claude-fable-5.1",
+  "labels": {
+    "[A] בשם [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "אמר [A] אמר [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "[A]  ו[B]": {
+      "kind": "together",
+      "sure": true
+    },
+    "דברי [A]  [B]": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "[A]  [B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "אמר [A] בשם [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "ליה [A]  ל[B]": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "אמר ליה [A]  ל[B]": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "אמר [A]  [B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "ו[A]  ו[B]": {
+      "kind": "together",
+      "sure": true
+    },
+    "[A] אמר [B]": {
+      "kind": "cites",
+      "sure": false
+    },
+    "אמר [A] משום [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "ו[A]  [B]": {
+      "kind": "disputes",
+      "sure": false
+    },
+    "אמר [A] הלכה כ[B]": {
+      "kind": "follows",
+      "sure": true
+    },
+    "[A] אומר משום [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "ו[A] בשם [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "ד[A] אמר [B]": {
+      "kind": "one-name",
+      "sure": true
+    },
+    "[A] בנו של [B]": {
+      "kind": "kin",
+      "sure": true
+    },
+    "בשם [A]  [B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "מיניה [A]  מ[B]": {
+      "kind": "asks",
+      "sure": true
+    },
+    "כד[A] אמר [B]": {
+      "kind": "cites",
+      "sure": false
+    },
+    "[A] בעא קומי [B]": {
+      "kind": "asks",
+      "sure": true
+    },
+    "אמר [A] משמיה ד[B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "איתיביה [A]  ל[B]": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "אמר [A] ואיתימא [B]": {
+      "kind": "alternative",
+      "sure": true
+    },
+    "ד[A]  ו[B]": {
+      "kind": "together",
+      "sure": false
+    },
+    "[A]  ל[B]": {
+      "kind": "addresses",
+      "sure": false
+    },
+    "[A]  כ[B]": {
+      "kind": "follows",
+      "sure": true
+    },
+    "אתא [A] אמר [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "דברי [A]  ו[B]": {
+      "kind": "together",
+      "sure": true
+    },
+    "אמר [A]  ל[B]": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "אמר [A] קומי [B]": {
+      "kind": "before",
+      "sure": true
+    },
+    "ד[A]  כ[B]": {
+      "kind": "follows",
+      "sure": true
+    },
+    "דברי [A] אמר לו [B]": {
+      "kind": "disputes",
+      "sure": false
+    },
+    "כ[A] אמר [B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "כ[A]  ד[B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "[A]  ב[B]": {
+      "kind": "kin",
+      "sure": true
+    },
+    "אמר [A]  ו[B]": {
+      "kind": "disputes",
+      "sure": false
+    },
+    "בשם [A] הלכה כ[B]": {
+      "kind": "follows",
+      "sure": true
+    },
+    "אמר [A]  ד[B]": {
+      "kind": "one-name",
+      "sure": true
+    },
+    "ד[A]  [B]": {
+      "kind": "none",
+      "sure": true
+    },
+    "כ[A]  [B]": {
+      "kind": "none",
+      "sure": true
+    },
+    "בשם [A] בשם [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "ליה ל[A] אמר [B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "ד[A]  ד[B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "ל[A]  [B]": {
+      "kind": "none",
+      "sure": true
+    },
+    "כ[A]  ו[B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "[A] דסכנין בשם [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "אמר [A] אמרי לה אמר [B]": {
+      "kind": "alternative",
+      "sure": true
+    },
+    "אמר [A] הכי אמר [B]": {
+      "kind": "cites",
+      "sure": false
+    },
+    "[A] לטעמיה אמר [B]": {
+      "kind": "one-name",
+      "sure": false
+    },
+    "בשם [A]  ו[B]": {
+      "kind": "together",
+      "sure": false
+    },
+    "דברי [A] ובית [B]": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "[A] שאל ל[B]": {
+      "kind": "asks",
+      "sure": true
+    },
+    "[A] קמיה ד[B]": {
+      "kind": "before",
+      "sure": true
+    },
+    "[A] את [B]": {
+      "kind": "asks",
+      "sure": true
+    },
+    "[A] בעי קומי [B]": {
+      "kind": "asks",
+      "sure": true
+    },
+    "אמר [A] מ\"ט ד[B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "ו[A] אמר [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "[A] קומי [B]": {
+      "kind": "before",
+      "sure": true
+    },
+    "ד[A] היא ד[B]": {
+      "kind": "one-name",
+      "sure": false
+    },
+    "וכד[A] אמר [B]": {
+      "kind": "cites",
+      "sure": false
+    },
+    "אמר [A] מודה [B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "[A] משמיה ד[B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "[A]  ד[B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "דברי [A] אמר [B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "[A] משום [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "אמר [A] זו דברי [B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "ל[A] אמר [B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "[A] ובית [B]": {
+      "kind": "together",
+      "sure": true
+    },
+    "[A] אמר בשם [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "ל[A]  ו[B]": {
+      "kind": "together",
+      "sure": false
+    },
+    "אמר [A] מאי טעמא ד[B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "[A] סבר לה כ[B]": {
+      "kind": "follows",
+      "sure": true
+    },
+    "בשם [A]  ד[B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "אמר [A] טעמא ד[B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "[A] ואת [B]": {
+      "kind": "together",
+      "sure": true
+    },
+    "[A] אומר משם [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "כ[A] דתניא [B]": {
+      "kind": "explains",
+      "sure": false
+    },
+    "אמר [A] הא מני [B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "[A] היא דתניא [B]": {
+      "kind": "explains",
+      "sure": false
+    },
+    "מד[A] אמר [B]": {
+      "kind": "cites",
+      "sure": false
+    },
+    "אמר [A] לא קשיא הא [B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "ל[A]  ול[B]": {
+      "kind": "together",
+      "sure": false
+    },
+    "[A] הא [B]": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "אתא [A] בשם [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "[A] ולא [B]": {
+      "kind": "together",
+      "sure": true
+    },
+    "ד[A] בשם [B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "[A] אומר [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "[A] ב\"ר [B]": {
+      "kind": "one-name",
+      "sure": true
+    },
+    "דברי [A] אמר ליה [B]": {
+      "kind": "disputes",
+      "sure": false
+    },
+    "ו[A] ורבנן [B]": {
+      "kind": "together",
+      "sure": true
+    },
+    "אמרי [A]  ל[B]": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "ל[A] אמרי לה [B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "אמר [A] דסכנין בשם [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "אמר [A] לא נחלקו [B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "כ[A] דאי [B]": {
+      "kind": "explains",
+      "sure": false
+    },
+    "ו[A]  כ[B]": {
+      "kind": "follows",
+      "sure": true
+    },
+    "ו[A]  ב[B]": {
+      "kind": "one-name",
+      "sure": true
+    },
+    "ליה [A]  ו[B]": {
+      "kind": "together",
+      "sure": true
+    },
+    "[A] בי [B]": {
+      "kind": "one-name",
+      "sure": true
+    },
+    "תני [A] קמיה ד[B]": {
+      "kind": "before",
+      "sure": true
+    },
+    "[A] איקלע לבי [B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "ליה לכד[A] אמר [B]": {
+      "kind": "one-name",
+      "sure": false
+    },
+    "[A] ורבנן [B]": {
+      "kind": "disputes",
+      "sure": false
+    },
+    "אמר [A] דבר זה שאלנו את [B]": {
+      "kind": "asks",
+      "sure": true
+    },
+    "[A] וקפץ [B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "[A] אמרי לה [B]": {
+      "kind": "alternative",
+      "sure": true
+    },
+    "אמר [A] אמר לי [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "ב[A]  ו[B]": {
+      "kind": "together",
+      "sure": true
+    },
+    "ו[A] בנו של [B]": {
+      "kind": "kin",
+      "sure": true
+    },
+    "אמר [A] בנו של [B]": {
+      "kind": "kin",
+      "sure": true
+    },
+    "קומי [A]  [B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "בשם [A] טעמא ד[B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "ל[A]  ל[B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "[A] אמר כ[B]": {
+      "kind": "follows",
+      "sure": true
+    },
+    "אתא [A]  [B]": {
+      "kind": "together",
+      "sure": false
+    },
+    "[A] יושב ודורש בפרה בטבריה ו[B]": {
+      "kind": "together",
+      "sure": false
+    },
+    "אמר [A] פעם אחת שאלתי את [B]": {
+      "kind": "asks",
+      "sure": true
+    },
+    "מתיב [A]  ל[B]": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "אמר [A] דברי [B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "ו[A]  ל[B]": {
+      "kind": "addresses",
+      "sure": false
+    },
+    "כ[A] תני [B]": {
+      "kind": "one-name",
+      "sure": false
+    },
+    "[A] ואיתימא [B]": {
+      "kind": "alternative",
+      "sure": true
+    },
+    "[A] אמר משום [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "ו[A] הלכה כ[B]": {
+      "kind": "disputes",
+      "sure": false
+    },
+    "וד[A]  כ[B]": {
+      "kind": "follows",
+      "sure": true
+    },
+    "[A] אמר איתפלגון [B]": {
+      "kind": "explains",
+      "sure": false
+    },
+    "ד[A]  ל[B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "אמר [A] נראין דברי [B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "כ[A] אמר ליה [B]": {
+      "kind": "none",
+      "sure": true
+    },
+    "אמר [A] ומודה [B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "[A] דתניא [B]": {
+      "kind": "one-name",
+      "sure": false
+    },
+    "[A] אליבא ד[B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "כ[A]  כ[B]": {
+      "kind": "none",
+      "sure": true
+    },
+    "[A] אומ משם [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "אמר [A] קסבר [B]": {
+      "kind": "explains",
+      "sure": true
+    },
+    "ד[A] תניא כוותיה ד[B]": {
+      "kind": "none",
+      "sure": true
+    },
+    "ד[A] אמר לך [B]": {
+      "kind": "one-name",
+      "sure": false
+    },
+    "[A] כדעתיה ד[B]": {
+      "kind": "one-name",
+      "sure": false
+    },
+    "לכד[A] אמר [B]": {
+      "kind": "one-name",
+      "sure": false
+    },
+    "[A] אמר ליה [B]": {
+      "kind": "none",
+      "sure": false
+    },
+    "אמר כ[A]  ו[B]": {
+      "kind": "none",
+      "sure": true
+    },
+    "ד[A] היא אמר [B]": {
+      "kind": "none",
+      "sure": true
+    },
+    "ו[A] דסכנין בשם [B]": {
+      "kind": "cites",
+      "sure": true
+    },
+    "משום ד[A] אמר [B]": {
+      "kind": "one-name",
+      "sure": false
+    },
+    "אמר [A]  ב[B]": {
+      "kind": "one-name",
+      "sure": true
+    },
+    "אמר [A] אין הלכה כ[B]": {
+      "kind": "follows",
+      "sure": false
+    },
+    "אמרי [A]  ו[B]": {
+      "kind": "together",
+      "sure": true
+    },
+    "אמר [A] אומר היה [B]": {
+      "kind": "explains",
+      "sure": true
+    }
+  },
+  "spend": 0.8045100000000001
+}

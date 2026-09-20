@@ -1,0 +1,548 @@
+{
+  "patterns": 150,
+  "pairs": 29265,
+  "markersAgree": 116,
+  "markersAgreePairs": 26738,
+  "disagreements": [
+    {
+      "pattern": "[A] אמר [B]",
+      "n": 430,
+      "a": "none",
+      "b": "cites"
+    },
+    {
+      "pattern": "ד[A] אמר [B]",
+      "n": 278,
+      "a": "none",
+      "b": "one-name"
+    },
+    {
+      "pattern": "כד[A] אמר [B]",
+      "n": 217,
+      "a": "none",
+      "b": "cites"
+    },
+    {
+      "pattern": "דברי [A] אמר לו [B]",
+      "n": 139,
+      "a": "addresses",
+      "b": "disputes"
+    },
+    {
+      "pattern": "[A]  ב[B]",
+      "n": 126,
+      "a": "one-name",
+      "b": "kin"
+    },
+    {
+      "pattern": "אמר [A]  ד[B]",
+      "n": 114,
+      "a": "kin",
+      "b": "one-name"
+    },
+    {
+      "pattern": "כ[A]  ו[B]",
+      "n": 86,
+      "a": "follows",
+      "b": "none"
+    },
+    {
+      "pattern": "[A] לטעמיה אמר [B]",
+      "n": 78,
+      "a": "none",
+      "b": "one-name"
+    },
+    {
+      "pattern": "בשם [A]  ו[B]",
+      "n": 78,
+      "a": "none",
+      "b": "together"
+    },
+    {
+      "pattern": "[A] קומי [B]",
+      "n": 67,
+      "a": "addresses",
+      "b": "before"
+    },
+    {
+      "pattern": "ד[A] היא ד[B]",
+      "n": 66,
+      "a": "none",
+      "b": "one-name"
+    },
+    {
+      "pattern": "וכד[A] אמר [B]",
+      "n": 65,
+      "a": "none",
+      "b": "cites"
+    },
+    {
+      "pattern": "דברי [A] אמר [B]",
+      "n": 61,
+      "a": "disputes",
+      "b": "none"
+    },
+    {
+      "pattern": "כ[A] דתניא [B]",
+      "n": 51,
+      "a": "none",
+      "b": "explains"
+    },
+    {
+      "pattern": "[A] היא דתניא [B]",
+      "n": 51,
+      "a": "none",
+      "b": "explains"
+    },
+    {
+      "pattern": "מד[A] אמר [B]",
+      "n": 50,
+      "a": "none",
+      "b": "cites"
+    },
+    {
+      "pattern": "ו[A] ורבנן [B]",
+      "n": 45,
+      "a": "disputes",
+      "b": "together"
+    },
+    {
+      "pattern": "כ[A] דאי [B]",
+      "n": 40,
+      "a": "none",
+      "b": "explains"
+    },
+    {
+      "pattern": "[A] בי [B]",
+      "n": 38,
+      "a": "kin",
+      "b": "one-name"
+    },
+    {
+      "pattern": "ליה לכד[A] אמר [B]",
+      "n": 36,
+      "a": "none",
+      "b": "one-name"
+    },
+    {
+      "pattern": "[A] ורבנן [B]",
+      "n": 36,
+      "a": "none",
+      "b": "disputes"
+    },
+    {
+      "pattern": "אתא [A]  [B]",
+      "n": 34,
+      "a": "cites",
+      "b": "together"
+    },
+    {
+      "pattern": "[A] יושב ודורש בפרה בטבריה ו[B]",
+      "n": 34,
+      "a": "before",
+      "b": "together"
+    },
+    {
+      "pattern": "כ[A] תני [B]",
+      "n": 32,
+      "a": "none",
+      "b": "one-name"
+    },
+    {
+      "pattern": "ו[A] הלכה כ[B]",
+      "n": 31,
+      "a": "none",
+      "b": "disputes"
+    },
+    {
+      "pattern": "[A] אמר איתפלגון [B]",
+      "n": 31,
+      "a": "cites",
+      "b": "explains"
+    },
+    {
+      "pattern": "אמר [A] נראין דברי [B]",
+      "n": 29,
+      "a": "follows",
+      "b": "explains"
+    },
+    {
+      "pattern": "[A] דתניא [B]",
+      "n": 29,
+      "a": "none",
+      "b": "one-name"
+    },
+    {
+      "pattern": "ד[A] אמר לך [B]",
+      "n": 27,
+      "a": "none",
+      "b": "one-name"
+    },
+    {
+      "pattern": "[A] כדעתיה ד[B]",
+      "n": 27,
+      "a": "follows",
+      "b": "one-name"
+    },
+    {
+      "pattern": "לכד[A] אמר [B]",
+      "n": 26,
+      "a": "none",
+      "b": "one-name"
+    },
+    {
+      "pattern": "משום ד[A] אמר [B]",
+      "n": 25,
+      "a": "none",
+      "b": "one-name"
+    },
+    {
+      "pattern": "אמר [A]  ב[B]",
+      "n": 25,
+      "a": "kin",
+      "b": "one-name"
+    },
+    {
+      "pattern": "אמר [A] אין הלכה כ[B]",
+      "n": 25,
+      "a": "disputes",
+      "b": "follows"
+    }
+  ],
+  "models": {
+    "jev-latest": {
+      "labelled": 116,
+      "same": 80,
+      "samePairsShare": 0.841685989976812,
+      "wrong": [
+        {
+          "pattern": "[A]  [B]",
+          "n": 1260,
+          "markers": "none",
+          "model": "disputes"
+        },
+        {
+          "pattern": "אמר [A]  [B]",
+          "n": 546,
+          "markers": "none",
+          "model": "cites"
+        },
+        {
+          "pattern": "ו[A]  [B]",
+          "n": 344,
+          "markers": "disputes",
+          "model": "together"
+        },
+        {
+          "pattern": "בשם [A]  [B]",
+          "n": 252,
+          "markers": "none",
+          "model": "cites"
+        },
+        {
+          "pattern": "כ[A] אמר [B]",
+          "n": 134,
+          "markers": "none",
+          "model": "follows"
+        },
+        {
+          "pattern": "כ[A]  ד[B]",
+          "n": 133,
+          "markers": "none",
+          "model": "follows"
+        },
+        {
+          "pattern": "אמר [A]  ו[B]",
+          "n": 124,
+          "markers": "disputes",
+          "model": "together"
+        },
+        {
+          "pattern": "ד[A]  [B]",
+          "n": 113,
+          "markers": "none",
+          "model": "follows"
+        },
+        {
+          "pattern": "כ[A]  [B]",
+          "n": 113,
+          "markers": "none",
+          "model": "follows"
+        },
+        {
+          "pattern": "ליה ל[A] אמר [B]",
+          "n": 96,
+          "markers": "none",
+          "model": "addresses"
+        },
+        {
+          "pattern": "ד[A]  ד[B]",
+          "n": 87,
+          "markers": "none",
+          "model": "cites"
+        },
+        {
+          "pattern": "ל[A]  [B]",
+          "n": 87,
+          "markers": "none",
+          "model": "addresses"
+        },
+        {
+          "pattern": "דברי [A] ובית [B]",
+          "n": 77,
+          "markers": "disputes",
+          "model": "together"
+        },
+        {
+          "pattern": "[A]  ד[B]",
+          "n": 63,
+          "markers": "none",
+          "model": "kin"
+        },
+        {
+          "pattern": "ל[A] אמר [B]",
+          "n": 57,
+          "markers": "none",
+          "model": "addresses"
+        },
+        {
+          "pattern": "בשם [A]  ד[B]",
+          "n": 55,
+          "markers": "explains",
+          "model": "cites"
+        },
+        {
+          "pattern": "[A] הא [B]",
+          "n": 48,
+          "markers": "disputes",
+          "model": "alternative"
+        },
+        {
+          "pattern": "[A] ולא [B]",
+          "n": 47,
+          "markers": "together",
+          "model": "none"
+        },
+        {
+          "pattern": "ד[A] בשם [B]",
+          "n": 47,
+          "markers": "none",
+          "model": "cites"
+        },
+        {
+          "pattern": "[A] ב\"ר [B]",
+          "n": 45,
+          "markers": "one-name",
+          "model": "kin"
+        },
+        {
+          "pattern": "ל[A] אמרי לה [B]",
+          "n": 42,
+          "markers": "none",
+          "model": "addresses"
+        },
+        {
+          "pattern": "אמר [A] לא נחלקו [B]",
+          "n": 41,
+          "markers": "explains",
+          "model": "none"
+        },
+        {
+          "pattern": "ו[A]  ב[B]",
+          "n": 38,
+          "markers": "one-name",
+          "model": "kin"
+        },
+        {
+          "pattern": "[A] וקפץ [B]",
+          "n": 36,
+          "markers": "none",
+          "model": "addresses"
+        },
+        {
+          "pattern": "קומי [A]  [B]",
+          "n": 35,
+          "markers": "none",
+          "model": "before"
+        },
+        {
+          "pattern": "ל[A]  ל[B]",
+          "n": 34,
+          "markers": "none",
+          "model": "addresses"
+        },
+        {
+          "pattern": "אמר [A] דברי [B]",
+          "n": 33,
+          "markers": "explains",
+          "model": "cites"
+        },
+        {
+          "pattern": "ד[A]  ל[B]",
+          "n": 30,
+          "markers": "none",
+          "model": "disputes"
+        },
+        {
+          "pattern": "כ[A] אמר ליה [B]",
+          "n": 29,
+          "markers": "none",
+          "model": "addresses"
+        },
+        {
+          "pattern": "[A] אליבא ד[B]",
+          "n": 29,
+          "markers": "explains",
+          "model": "follows"
+        },
+        {
+          "pattern": "כ[A]  כ[B]",
+          "n": 28,
+          "markers": "none",
+          "model": "follows"
+        },
+        {
+          "pattern": "ד[A] תניא כוותיה ד[B]",
+          "n": 27,
+          "markers": "none",
+          "model": "follows"
+        },
+        {
+          "pattern": "[A] אמר ליה [B]",
+          "n": 26,
+          "markers": "none",
+          "model": "addresses"
+        },
+        {
+          "pattern": "אמר כ[A]  ו[B]",
+          "n": 26,
+          "markers": "none",
+          "model": "follows"
+        },
+        {
+          "pattern": "ד[A] היא אמר [B]",
+          "n": 26,
+          "markers": "none",
+          "model": "explains"
+        },
+        {
+          "pattern": "אמר [A] אומר היה [B]",
+          "n": 25,
+          "markers": "explains",
+          "model": "cites"
+        }
+      ]
+    },
+    "google/gemini-3.8-flash": {
+      "labelled": 75,
+      "same": 66,
+      "samePairsShare": 0.9192093648052198,
+      "wrong": [
+        {
+          "pattern": "אמר [A]  ו[B]",
+          "n": 124,
+          "markers": "disputes",
+          "model": "together"
+        },
+        {
+          "pattern": "ד[A] בשם [B]",
+          "n": 47,
+          "markers": "none",
+          "model": "cites"
+        },
+        {
+          "pattern": "[A] ב\"ר [B]",
+          "n": 45,
+          "markers": "one-name",
+          "model": "kin"
+        },
+        {
+          "pattern": "דברי [A] אמר ליה [B]",
+          "n": 45,
+          "markers": "disputes",
+          "model": "addresses"
+        },
+        {
+          "pattern": "ל[A] אמרי לה [B]",
+          "n": 42,
+          "markers": "none",
+          "model": "alternative"
+        },
+        {
+          "pattern": "ו[A]  ב[B]",
+          "n": 38,
+          "markers": "one-name",
+          "model": "kin"
+        },
+        {
+          "pattern": "כ[A] אמר ליה [B]",
+          "n": 29,
+          "markers": "none",
+          "model": "addresses"
+        },
+        {
+          "pattern": "[A] אמר ליה [B]",
+          "n": 26,
+          "markers": "none",
+          "model": "addresses"
+        },
+        {
+          "pattern": "אמר [A] אומר היה [B]",
+          "n": 25,
+          "markers": "explains",
+          "model": "cites"
+        }
+      ]
+    }
+  },
+  "agreedKinds": {
+    "cites": {
+      "patterns": 23,
+      "pairs": 11638
+    },
+    "together": {
+      "patterns": 12,
+      "pairs": 3687
+    },
+    "disputes": {
+      "patterns": 6,
+      "pairs": 2640
+    },
+    "none": {
+      "patterns": 25,
+      "pairs": 3364
+    },
+    "addresses": {
+      "patterns": 8,
+      "pairs": 2034
+    },
+    "follows": {
+      "patterns": 8,
+      "pairs": 925
+    },
+    "kin": {
+      "patterns": 3,
+      "pairs": 345
+    },
+    "asks": {
+      "patterns": 7,
+      "pairs": 747
+    },
+    "alternative": {
+      "patterns": 4,
+      "pairs": 342
+    },
+    "before": {
+      "patterns": 3,
+      "pairs": 255
+    },
+    "explains": {
+      "patterns": 15,
+      "pairs": 678
+    },
+    "one-name": {
+      "patterns": 2,
+      "pairs": 83
+    }
+  }
+}

@@ -310,6 +310,47 @@ class WhatReadingTheJoiningPatternsCaught(unittest.TestCase):
         # מרבה is usually "includes", but after "asked of" it is the man; typing decides
         self.assertEqual(found('בעא מיניה אביי מרבה מהו'), ['אביי', 'רבה'])
 
+    def test_resh_lakish(self):
+        # one of the fourteen anchors, and the finder had never found him once
+        self.assertEqual(found('רבי יוחנן וריש לקיש. רבי יוחנן אומר'), ['רבי יוחנן', 'ריש לקיש', 'רבי יוחנן'])
+        self.assertEqual(found('אמר ליה ריש לקיש לרבי יוחנן'), ['ריש לקיש', 'רבי יוחנן'])
+        (m,) = mentions('כריש לקיש')
+        self.assertEqual((m.surface, m.prefix), ('ריש לקיש', 'כ'))
+
+    def test_mar_son_of_rav_ashi(self):
+        (m,) = mentions('אמר מר בר רב אשי')
+        self.assertEqual((m.surface, m.fathers), ('מר בר רב אשי', [('רב', 'אשי')]))
+        self.assertEqual(found('דאמר מר הלכה'), [])           # "the master said" is still not a name
+
+    def test_mar_son_of_rav_ashi_with_a_glued_letter(self):
+        (m,) = mentions('ולית הלכתא כמר בר רב אשי')
+        self.assertEqual((m.surface, m.prefix), ('מר בר רב אשי', 'כ'))
+        self.assertEqual(found('שומר בר חורין'), [])
+
+    def test_a_bare_name_after_a_speech_word(self):
+        self.assertEqual(found('ריש לקיש בשם יונה ראש תור'), ['ריש לקיש', 'יונה'])
+        (m,) = mentions('אביי אמר משמיה דיונה')[1:]
+        self.assertEqual((m.surface, m.prefix, m.certain), ('יונה', 'ד', False))
+        self.assertEqual(found('והאמר יונה מלאהו'), ['יונה'])
+
+    def test_a_bare_name_elsewhere_is_left_alone(self):
+        self.assertEqual(found('בדורו של יונה שהיו יגיעים'), [])
+
+    def test_white_is_not_ben_azzai(self):
+        self.assertEqual(found('בגד לבן היה'), [])
+        self.assertEqual(found('אמרו לו לבן עזאי'), ['בן עזאי'])
+
+    def test_son_of_glued_to_a_short_form(self):
+        (m,) = mentions("מאי טעמא דר' אלעזר בר\"ש כתיב")
+        self.assertEqual((m.surface, m.fathers), ("ר' אלעזר בר\"ש", [(None, 'ר"ש')]))
+
+    def test_on_that_of_shmuel(self):
+        self.assertEqual(found('קשיא דשמואל אדשמואל'), ['שמואל', 'שמואל'])
+
+    def test_a_bare_given_name_before_said_is_flagged(self):
+        (m,) = mentions('יונה אמר כך')
+        self.assertEqual((m.surface, m.certain), ('יונה', False))
+
     def test_the_father_can_be_a_man_known_by_one_name(self):
         self.assertEqual(found('א"ר חנן בר רבא אמר'), ["ר' חנן בר רבא"])
         self.assertEqual(found('אמר רב ביבי בר אביי'), ['רב ביבי בר אביי'])
