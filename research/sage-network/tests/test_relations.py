@@ -4,7 +4,7 @@ import lexicon as lexmod          # noqa: E402
 import relations                  # noqa: E402
 import textio                     # noqa: E402
 
-GIVEN = {'נחמן', 'הונא', 'יהודה', 'יוחנן', 'אילא', 'אשי', 'מרדכי', 'מאיר'}
+GIVEN = {'נחמן', 'הונא', 'יהודה', 'יוחנן', 'אילא', 'אשי', 'מרדכי', 'מאיר', 'אחא', 'תנחום'}
 LEX = lexmod.Lexicon(GIVEN, {w: 50 for w in GIVEN})
 
 
@@ -25,6 +25,7 @@ class TheRelationWordCanComeFirst(unittest.TestCase):
     def test_said_to(self):
         (a, b, s), = sigs('אמר ליה רב מרדכי לרב אשי')
         self.assertEqual(s['before'], ['אמר', 'ליה'])
+        self.assertEqual(relations.signature(s), 'ליה [A]  ל[B]')
         self.assertEqual(s['prefix'], 'ל')
 
 
@@ -38,7 +39,20 @@ class TheRelationWordCanSitBetween(unittest.TestCase):
         # א"ר carries both the verb and the title in one token
         (a, b, s), = sigs('א"ר אילא א"ר יוחנן לא קשיא')
         self.assertEqual((a, b), ("ר' אילא", "ר' יוחנן"))
-        self.assertEqual(s['between'], ['א"ר'])
+        self.assertEqual(s['between'], ['אמר'])          # א"ר folds into אמר
+
+    def test_spellings_of_one_verb_are_one_pattern(self):
+        sig = lambda t: relations.signature(sigs(t)[0][2])
+        self.assertEqual(sig('דאמר רב יהודה אמר שמואל'), sig('ואמר רב יהודה אמר שמואל'))
+        self.assertEqual(sig('והאמר רב יהודה אמר שמואל'), sig('אמר רב יהודה אמר שמואל'))
+
+    def test_the_tail_of_the_previous_name_is_not_a_relation_word(self):
+        out = sigs('רבי אחא רבי תנחום בשם רבי יוחנן')
+        self.assertEqual(out[1][2]['before'], [])          # not ['אחא']
+
+    def test_ordinary_context_before_the_pair_is_dropped(self):
+        (a, b, s), = sigs('והלכתא רב יהודה אמר שמואל')
+        self.assertEqual(s['before'], [])
 
     def test_names_far_apart_are_not_paired(self):
         self.assertEqual(sigs('רבי מאיר אומר כך וכך וכך וכך וכך וכך וכך רבי יהודה אומר'), [])
