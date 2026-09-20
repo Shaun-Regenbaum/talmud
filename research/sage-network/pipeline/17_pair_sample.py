@@ -6,6 +6,9 @@ A third come from the 50 commonest patterns, a third from the rest of the top
 2,000, and a third from the long tail of patterns outside the top 2,000. The
 tail joins three pairs in ten and no pattern list can reach it, so it gets the
 same weight as the easy cases. Seeded, so the draw can be repeated.
+
+A held-out set is drawn with --exclude naming every earlier sample, is marked
+once, and is never looked at while anything is being changed.
 """
 import argparse, collections, json, os, random, sys
 sys.path.insert(0, os.path.dirname(__file__))
@@ -15,9 +18,14 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('--n', type=int, default=120); ap.add_argument('--seed', type=int, default=4242)
     ap.add_argument('--out', required=True)
+    ap.add_argument('--exclude', nargs='*', default=[], help='earlier samples: none of their pairs may be drawn again')
     a = ap.parse_args()
     lx = lexicon.Lexicon.load(os.path.join(textio.DATA, 'lexicon.json'))
-    allp = list(judged.pairs(lx))
+    seen = set()
+    for path in a.exclude:
+        for x in json.load(open(path))['items']:
+            seen.add((x['ref'], x['a'], x['b']))
+    allp = [p for p in judged.pairs(lx) if (p['ref'], p['a'], p['b']) not in seen]
     rank = {k: i for i, (k, _) in enumerate(collections.Counter(p['pattern'] for p in allp).most_common())}
     stratum = lambda p: 'top50' if rank[p['pattern']] < 50 else 'top2000' if rank[p['pattern']] < 2000 else 'tail'   # noqa: E731
     by = collections.defaultdict(list)
@@ -29,7 +37,7 @@ if __name__ == '__main__':
         for p in rng.sample(by[st], a.n // 3):
             items.append({'id': f'{st}-{len(items)}', 'stratum': st, **p})
     with open(a.out, 'w') as f:
-        json.dump({'seed': a.seed, 'pairsInText': len(allp), 'strata': {k: len(v) for k, v in by.items()}, 'items': items},
+        json.dump({'seed': a.seed, 'excluded': a.exclude, 'pairsInText': len(allp), 'strata': {k: len(v) for k, v in by.items()}, 'items': items},
                   f, ensure_ascii=False, indent=1)
     print(f'{len(allp):,} pairs in the text:', {k: len(v) for k, v in by.items()})
     print(f'drew {len(items)} -> {a.out}')
