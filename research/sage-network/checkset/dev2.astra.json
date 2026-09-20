@@ -1,0 +1,1432 @@
+{
+  "model": "openai/gpt-6-astra",
+  "sample": "checkset/dev2.json",
+  "labels": {
+    "bavli|Ketubot|53b|4": {
+      "id": "bavli|Ketubot|53b|4",
+      "mentions": [
+        {
+          "text": "רבי אלעזר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רב יוסף",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "bavli|Taanit|4a|2": {
+      "id": "bavli|Taanit|4a|2",
+      "mentions": [
+        {
+          "text": "רבא",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבנן",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "ה'",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "רב אשי",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "bavli|Taanit|3a|1": {
+      "id": "bavli|Taanit|3a|1",
+      "mentions": [
+        {
+          "text": "רבי יהודה בן בתירה",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי עקיבא",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "bavli|Sanhedrin|53b|10": {
+      "id": "bavli|Sanhedrin|53b|10",
+      "mentions": [
+        {
+          "text": "רבנן",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "רב שישא בריה דרב אידי",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי יהודה",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רב שישא בריה דרב אידי",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "bavli|Menachot|102b|3": {
+      "id": "bavli|Menachot|102b|3",
+      "mentions": [
+        {
+          "text": "רבי יוסי",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "bavli|Pesachim|22a|5": {
+      "id": "bavli|Pesachim|22a|5",
+      "mentions": [
+        {
+          "text": "רבי שמעון",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי יהודה",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי שמעון",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": [
+        {
+          "a": 1,
+          "b": 2,
+          "rel": "disputes",
+          "words": "רבי יהודה מחייב שתים ורבי שמעון פוטר",
+          "wordsOnPage": true
+        }
+      ]
+    },
+    "bavli|Yoma|34a|12": {
+      "id": "bavli|Yoma|34a|12",
+      "mentions": [
+        {
+          "text": "רבנן",
+          "kind": "group",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "bavli|Bava Metzia|59a|5": {
+      "id": "bavli|Bava Metzia|59a|5",
+      "mentions": [
+        {
+          "text": "ר אלעזר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ה'",
+          "kind": "divine",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "midrash-aggadah|Pirkei DeRabbi Eliezer|29|14": {
+      "id": "midrash-aggadah|Pirkei DeRabbi Eliezer|29|14",
+      "mentions": [
+        {
+          "text": "רבי ישמעאל",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "הקדוש ברוך הוא",
+          "kind": "divine",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "midrash-aggadah|Sifrei Aggadah on Esther|sifrei-aggadah-on-esther-midrash-abba-guryon-6|9": {
+      "id": "midrash-aggadah|Sifrei Aggadah on Esther|sifrei-aggadah-on-esther-midrash-abba-guryon-6|9",
+      "mentions": [
+        {
+          "text": "מרדכי",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "ר' חלבו",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "midrash-aggadah|Mishnat Rabbi Eliezer|16|19": {
+      "id": "midrash-aggadah|Mishnat Rabbi Eliezer|16|19",
+      "mentions": [
+        {
+          "text": "ר' יעקב",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "הקב\"ה",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "יעקב",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "אברהם",
+          "kind": "biblical",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "midrash-aggadah|Midrash Tanchuma|midrash-tanchuma-vaera-14|4": {
+      "id": "midrash-aggadah|Midrash Tanchuma|midrash-tanchuma-vaera-14|4",
+      "mentions": [
+        {
+          "text": "אהרן",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "אהרן",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "רבי תנחום",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "הקדוש ברוך הוא",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "משה",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "אהרן",
+          "kind": "biblical",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "midrash-aggadah|Midrash Tanchuma Buber|midrash-tanchuma-buber-chukat-24|1": {
+      "id": "midrash-aggadah|Midrash Tanchuma Buber|midrash-tanchuma-buber-chukat-24|1",
+      "mentions": [
+        {
+          "text": "ר' יוסי בר חנינא",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "הקב\"ה",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "משה",
+          "kind": "biblical",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "midrash-aggadah|Midrash Tanchuma Buber|midrash-tanchuma-buber-bo-17|3": {
+      "id": "midrash-aggadah|Midrash Tanchuma Buber|midrash-tanchuma-buber-bo-17|3",
+      "mentions": [
+        {
+          "text": "ר' אלעזר בן פדת",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ה'",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "הקב\"ה",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "בית דין של מעלה",
+          "kind": "group",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "midrash-aggadah|Shemot Rabbah|15|9": {
+      "id": "midrash-aggadah|Shemot Rabbah|15|9",
+      "mentions": [
+        {
+          "text": "ישראל",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "הקדוש ברוך הוא",
+          "kind": "divine",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "midrash-aggadah|Midrash Tanchuma Buber|midrash-tanchuma-buber-re-eh-15|2": {
+      "id": "midrash-aggadah|Midrash Tanchuma Buber|midrash-tanchuma-buber-re-eh-15|2",
+      "mentions": [
+        {
+          "text": "ר' חנינא",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "הקב\"ה",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "משה",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "ישראל",
+          "kind": "group",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "midrash-halakhah|Sifra|sifra-tazria-parashat-yoledet-chapter-1|6": {
+      "id": "midrash-halakhah|Sifra|sifra-tazria-parashat-yoledet-chapter-1|6",
+      "mentions": [
+        {
+          "text": "ר' שמעון בן אלעזר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "בית שמאי",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "בית הלל",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "בית שמאי",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "בית הלל",
+          "kind": "group",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|8b|15:18": {
+      "id": "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|8b|15:18",
+      "mentions": [
+        {
+          "text": "ה'",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "ר' יוסי",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ישראל",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "ה'",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "ה'",
+          "kind": "divine",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|10a|15:23": {
+      "id": "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|10a|15:23",
+      "mentions": [
+        {
+          "text": "ר' יהושע",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ישראל",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "ר' אליעזר המודעי",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": [
+        {
+          "a": 0,
+          "b": 2,
+          "rel": "disputes",
+          "words": "ר' יהושע אומר בשלשה מקומות באו ישראל באותו יום שנ' ויבאו מרתה ולא יכלו לשתות מים ממרה כי מרים הם על כן קרא שמה מרה: ר' אליעזר המודעי אומר לא באו אלא למקום אחד ונקרא על שם שעירע בו:",
+          "wordsOnPage": true
+        }
+      ]
+    },
+    "midrash-halakhah|Sifrei Zuta|6a|5:10:2": {
+      "id": "midrash-halakhah|Sifrei Zuta|6a|5:10:2",
+      "mentions": [
+        {
+          "text": "ר' אלעזר ביר' שמעון",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ר' עקיבא",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "יהויריב",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "ידעיה",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "יהויריב",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "ידעיה",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "יהויריב",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "ידעיה",
+          "kind": "group",
+          "sure": true
+        }
+      ],
+      "links": [
+        {
+          "a": 0,
+          "b": 1,
+          "rel": "passes-on",
+          "words": "אמר ר' אלעזר ביר' שמעון זו היתה משנת ר' עקיבא",
+          "wordsOnPage": true
+        }
+      ]
+    },
+    "midrash-halakhah|Sifra|sifra-tzav-chapter-5|4": {
+      "id": "midrash-halakhah|Sifra|sifra-tzav-chapter-5|4",
+      "mentions": [
+        {
+          "text": "ר' אליעזר",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "midrash-halakhah|Sifra|sifra-acharei-mot-chapter-9|7": {
+      "id": "midrash-halakhah|Sifra|sifra-acharei-mot-chapter-9|7",
+      "mentions": [
+        {
+          "text": "ה'",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "ה'",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "ה'",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "ר' מאיר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ר' ישמעאל",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ה'",
+          "kind": "divine",
+          "sure": true
+        }
+      ],
+      "links": [
+        {
+          "a": 3,
+          "b": 4,
+          "rel": "disputes",
+          "words": "אפילו העלה על הסלע או על האבן חייב, דברי ר' מאיר. ר' ישמעאל אומר לעולם אינו חייב עד שיבנה כמין מזבח ויעלה עליו.",
+          "wordsOnPage": true
+        }
+      ]
+    },
+    "midrash-halakhah|Sifrei Zuta|4a|15:26:1": {
+      "id": "midrash-halakhah|Sifrei Zuta|4a|15:26:1",
+      "mentions": [
+        {
+          "text": "בני ישראל",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "יחזקאל",
+          "kind": "biblical",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "midrash-halakhah|Midrash Tannaim on Deuteronomy|14|21:3": {
+      "id": "midrash-halakhah|Midrash Tannaim on Deuteronomy|14|21:3",
+      "mentions": [
+        {
+          "text": "ה'",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "אלהיך",
+          "kind": "divine",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "minor-tractates|Avot DeRabbi Natan, Recension B|32|1": {
+      "id": "minor-tractates|Avot DeRabbi Natan, Recension B|32|1",
+      "mentions": [
+        {
+          "text": "רבי נחוניה בן הקנה",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "minor-tractates|Tractate Semachot|1|12": {
+      "id": "minor-tractates|Tractate Semachot|1|12",
+      "mentions": [
+        {
+          "text": "רבן גמליאל",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "אבא טבי",
+          "kind": "person",
+          "sure": true
+        },
+        {
+          "text": "אימא טביתא",
+          "kind": "person",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "minor-tractates|Tractate Semachot|14|4": {
+      "id": "minor-tractates|Tractate Semachot|14|4",
+      "mentions": [
+        {
+          "text": "רבי שמעון בן גמליאל",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "minor-tractates|Tractate Soferim|5|12": {
+      "id": "minor-tractates|Tractate Soferim|5|12",
+      "mentions": [
+        {
+          "text": "השם",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "ר' יוסי",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "minor-tractates|Avot DeRabbi Natan, Recension B|42|1": {
+      "id": "minor-tractates|Avot DeRabbi Natan, Recension B|42|1",
+      "mentions": [
+        {
+          "text": "רבי מאיר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "אדם",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "חוה",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "נחש",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "אדם",
+          "kind": "biblical",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "minor-tractates|Avot DeRabbi Natan|3|9": {
+      "id": "minor-tractates|Avot DeRabbi Natan|3|9",
+      "mentions": [
+        {
+          "text": "רבי עקיבא",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ר' עקיבא",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "אלהים",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "אלהי ישראל",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "חכמים",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "חכמים",
+          "kind": "group",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "minor-tractates|Tractate Derekh Eretz Zuta|5|5": {
+      "id": "minor-tractates|Tractate Derekh Eretz Zuta|5|5",
+      "mentions": [],
+      "links": []
+    },
+    "minor-tractates|Tractate Kallah Rabbati|7|4": {
+      "id": "minor-tractates|Tractate Kallah Rabbati|7|4",
+      "mentions": [
+        {
+          "text": "שמואל בר נחמני",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ה'",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "ישראל",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "אחיה השלוני",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "ישראל",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "בלעם הרשע",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "אחיה",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "ה'",
+          "kind": "divine",
+          "sure": true
+        },
+        {
+          "text": "ישראל",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "בלעם",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "ישראל",
+          "kind": "group",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "mishnah|Mishnah Tahorot|4|8": {
+      "id": "mishnah|Mishnah Tahorot|4|8",
+      "mentions": [
+        {
+          "text": "רבי שמעון",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי יהודה",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי יוסה",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "mishnah|Mishnah Tahorot|2|7": {
+      "id": "mishnah|Mishnah Tahorot|2|7",
+      "mentions": [
+        {
+          "text": "רבי אלעזר",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "mishnah|Mishnah Tahorot|7|2": {
+      "id": "mishnah|Mishnah Tahorot|7|2",
+      "mentions": [
+        {
+          "text": "רבי מאיר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "חכמים",
+          "kind": "group",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "mishnah|Mishnah Makkot|1|7": {
+      "id": "mishnah|Mishnah Makkot|1|7",
+      "mentions": [
+        {
+          "text": "רבי שמעון",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי עקיבה",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "mishnah|Mishnah Oktzin|1|4": {
+      "id": "mishnah|Mishnah Oktzin|1|4",
+      "mentions": [
+        {
+          "text": "רבי יוסה",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "mishnah|Mishnah Ta'anit|2|8": {
+      "id": "mishnah|Mishnah Ta'anit|2|8",
+      "mentions": [
+        {
+          "text": "רבי יוסה",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי יוסה",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "mishnah|Mishnah Bava Metzia|7|1": {
+      "id": "mishnah|Mishnah Bava Metzia|7|1",
+      "mentions": [
+        {
+          "text": "רבי יוחנן בן מתיה",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "שלמה",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "אברהם",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "יצחק",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "יעקב",
+          "kind": "biblical",
+          "sure": true
+        },
+        {
+          "text": "רבן שמעון בן גמליאל",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "mishnah|Mishnah Shabbat|12|5": {
+      "id": "mishnah|Mishnah Shabbat|12|5",
+      "mentions": [
+        {
+          "text": "רבי יהושע בן בתירה",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "חכמים",
+          "kind": "group",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "tosefta|Tosefta Pesachim|7|11": {
+      "id": "tosefta|Tosefta Pesachim|7|11",
+      "mentions": [
+        {
+          "text": "ר' ישמעאל בי ר' יוחנן בן ברוקה",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "tosefta|Tosefta Bikkurim|1|5": {
+      "id": "tosefta|Tosefta Bikkurim|1|5",
+      "mentions": [
+        {
+          "text": "ר' יהודה",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ר' שמעון בן יהודה",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ר' שמעון",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבן שמעון בן גמליאל",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ר' ליעזר",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": [
+        {
+          "a": 1,
+          "b": 2,
+          "rel": "passes-on",
+          "words": "או' משם",
+          "wordsOnPage": true
+        }
+      ]
+    },
+    "tosefta|Tosefta Peah|3|5": {
+      "id": "tosefta|Tosefta Peah|3|5",
+      "mentions": [
+        {
+          "text": "בית הלל",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "ר' יוסה",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "חנניה בן אחי ר' יושוע",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ישראל",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "ר' מאיר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "חכמים",
+          "kind": "group",
+          "sure": true
+        }
+      ],
+      "links": [
+        {
+          "a": 1,
+          "b": 2,
+          "rel": "passes-on",
+          "words": "ר' יוסה או', חנניה בן אחי ר' יושוע או'",
+          "wordsOnPage": true
+        }
+      ]
+    },
+    "tosefta|Tosefta Oholot|5|5": {
+      "id": "tosefta|Tosefta Oholot|5|5",
+      "mentions": [
+        {
+          "text": "ר' יוסי",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "tosefta|Tosefta Bava Metzia|11|19": {
+      "id": "tosefta|Tosefta Bava Metzia|11|19",
+      "mentions": [
+        {
+          "text": "ר'",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ר' שמעון בן לעזר",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": [
+        {
+          "a": 0,
+          "b": 1,
+          "rel": "disputes",
+          "words": "דברי ר', ר' שמעון בן לעזר או'",
+          "wordsOnPage": true
+        }
+      ]
+    },
+    "tosefta|Tosefta Parah|1|5": {
+      "id": "tosefta|Tosefta Parah|1|5",
+      "mentions": [
+        {
+          "text": "רבי אליעזר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי אליעזר",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "tosefta|Tosefta Zevachim|13|1": {
+      "id": "tosefta|Tosefta Zevachim|13|1",
+      "mentions": [
+        {
+          "text": "העובדי כוכבים",
+          "kind": "group",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "tosefta|Tosefta Bava Metzia|11|2": {
+      "id": "tosefta|Tosefta Bava Metzia|11|2",
+      "mentions": [],
+      "links": []
+    },
+    "yerushalmi|Jerusalem Talmud Terumot|5|2:4": {
+      "id": "yerushalmi|Jerusalem Talmud Terumot|5|2:4",
+      "mentions": [
+        {
+          "text": "רבי יוסי בן חנינא",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי אליעזר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי יוחנן",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "חילפיי",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי ליעזר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ר' לעזר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבנן",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "רבי ליעזר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבנן",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "ר' יוחנן",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": [
+        {
+          "a": 0,
+          "b": 2,
+          "rel": "disputes",
+          "words": "אמר רבי יוסי בן חנינא והוא שנפלה לתוך חמשה מקומות אבל אם נפלו כולן למקום אחד אף רבי אליעזר מודי רבי יוחנן אמר אפילו נפלו כולן למקום אחד היא המחלוקת",
+          "wordsOnPage": true
+        }
+      ]
+    },
+    "yerushalmi|Jerusalem Talmud Shevuot|7|1:6": {
+      "id": "yerushalmi|Jerusalem Talmud Shevuot|7|1:6",
+      "mentions": [
+        {
+          "text": "רבי בא קרתיגנא",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי יוחנן",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי לעזר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי יוחנן",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי לעזר",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": [
+        {
+          "a": 1,
+          "b": 2,
+          "rel": "disputes",
+          "words": "תפלוגתא דרבי יוחנן ורבי לעזר",
+          "wordsOnPage": true
+        },
+        {
+          "a": 3,
+          "b": 4,
+          "rel": "disputes",
+          "words": "תפלוגתא דרבי יוחנן ורבי לעזר",
+          "wordsOnPage": true
+        }
+      ]
+    },
+    "yerushalmi|Jerusalem Talmud Shabbat|12|4:2": {
+      "id": "yerushalmi|Jerusalem Talmud Shabbat|12|4:2",
+      "mentions": [
+        {
+          "text": "ר' יעקב בר אחא",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ר' יבא",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי אליעזר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ר בא בר ממל",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": [
+        {
+          "a": 0,
+          "b": 1,
+          "rel": "together",
+          "words": "ר' יעקב בר אחא ר' יבא",
+          "wordsOnPage": true
+        },
+        {
+          "a": 0,
+          "b": 2,
+          "rel": "passes-on",
+          "words": "ר' יעקב בר אחא ר' יבא בשם רבי אליעזר",
+          "wordsOnPage": true
+        },
+        {
+          "a": 1,
+          "b": 2,
+          "rel": "passes-on",
+          "words": "ר' יבא בשם רבי אליעזר",
+          "wordsOnPage": true
+        }
+      ]
+    },
+    "yerushalmi|Jerusalem Talmud Nazir|9|1:6": {
+      "id": "yerushalmi|Jerusalem Talmud Nazir|9|1:6",
+      "mentions": [
+        {
+          "text": "ר' יוסי",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי ירמיה",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ר\"ז",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי מנא",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": [
+        {
+          "a": 1,
+          "b": 2,
+          "rel": "asks",
+          "words": "רבי ירמיה בעא קומי ר\"ז",
+          "wordsOnPage": true
+        }
+      ]
+    },
+    "yerushalmi|Jerusalem Talmud Beitzah|1|5:3": {
+      "id": "yerushalmi|Jerusalem Talmud Beitzah|1|5:3",
+      "mentions": [
+        {
+          "text": "ר יודן",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ר' יוסי בר בון",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    },
+    "yerushalmi|Jerusalem Talmud Orlah|3|3:2": {
+      "id": "yerushalmi|Jerusalem Talmud Orlah|3|3:2",
+      "mentions": [
+        {
+          "text": "אבא בר ירמיה",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "כהנא בר ירמיה",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "שמואל",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי בא",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי חייא",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי יוחנן",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי חנניא",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבי מנא",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": [
+        {
+          "a": 0,
+          "b": 1,
+          "rel": "together",
+          "words": "אבא בר ירמיה כהנא בר ירמיה",
+          "wordsOnPage": true
+        },
+        {
+          "a": 0,
+          "b": 2,
+          "rel": "passes-on",
+          "words": "אבא בר ירמיה כהנא בר ירמיה בשם שמואל",
+          "wordsOnPage": true
+        },
+        {
+          "a": 1,
+          "b": 2,
+          "rel": "passes-on",
+          "words": "כהנא בר ירמיה בשם שמואל",
+          "wordsOnPage": true
+        },
+        {
+          "a": 3,
+          "b": 4,
+          "rel": "together",
+          "words": "רבי בא רבי חייא",
+          "wordsOnPage": true
+        },
+        {
+          "a": 3,
+          "b": 5,
+          "rel": "passes-on",
+          "words": "רבי בא רבי חייא בשם רבי יוחנן",
+          "wordsOnPage": true
+        },
+        {
+          "a": 4,
+          "b": 5,
+          "rel": "passes-on",
+          "words": "רבי חייא בשם רבי יוחנן",
+          "wordsOnPage": true
+        },
+        {
+          "a": 6,
+          "b": 7,
+          "rel": "disputes",
+          "words": "רבי חנניא אמר לית כן רבי מנא אמר אית כן",
+          "wordsOnPage": true
+        }
+      ]
+    },
+    "yerushalmi|Jerusalem Talmud Yevamot|13|7:3": {
+      "id": "yerushalmi|Jerusalem Talmud Yevamot|13|7:3",
+      "mentions": [
+        {
+          "text": "ר' לעזר",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "ר' יוחנן",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבן גמליאל",
+          "kind": "sage",
+          "sure": true
+        },
+        {
+          "text": "רבן גמליאל",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": [
+        {
+          "a": 1,
+          "b": 2,
+          "rel": "passes-on",
+          "words": "אמר ר' יוחנן זו דברי רבן גמליאל",
+          "wordsOnPage": true
+        }
+      ]
+    },
+    "yerushalmi|Jerusalem Talmud Ketubot|5|7:1": {
+      "id": "yerushalmi|Jerusalem Talmud Ketubot|5|7:1",
+      "mentions": [
+        {
+          "text": "בית שמאי",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "בית הלל",
+          "kind": "group",
+          "sure": true
+        },
+        {
+          "text": "רבי אליעזר",
+          "kind": "sage",
+          "sure": true
+        }
+      ],
+      "links": []
+    }
+  },
+  "dropped": {},
+  "spend": 0.4468275,
+  "tokensIn": 11643,
+  "tokensOut": 6027,
+  "calls": 8
+}

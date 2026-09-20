@@ -50,7 +50,7 @@ spells out a short form has recorded its editor's choice at that spot, and
 Sefaria's passage-level person tags were placed by people. Both are opinions,
 and both are used as further opinions, not as the answer.
 
-## The pilot (20 September 2026)
+## The first round: 28 passages (20 September 2026)
 
 28 passages, four from each of the seven bodies of text.
 
@@ -75,6 +75,40 @@ The misses have clear kinds, and each is now a task:
 My own earlier check had called 40 of 40 sampled names real. That was true and
 beside the point: it measured what the finder reported, and could not see what
 it cut short or left out. That is what a check set is for.
+
+## The second round, on passages the finder had never seen
+
+The pilot's 28 passages were used to fix the finder, so its score on them
+flatters it. 56 fresh passages were drawn with a different seed, excluding the
+pilot, and marked the same way.
+
+| | First sight | After fixes |
+|---|---|---|
+| Names found, of the 99 both markers gave | 97 | 98 |
+| Found with the same edge | 89 | 95 |
+| Reported, but neither marker gave it | 10 | 2 |
+
+The markers agreed on 99 names and split on 2. Both splits were the same
+thing: Fable added a mark the page does not print, writing ר' where the page
+has a bare ר. The on-the-page check threw those two labels out. So the check
+does catch a model quietly tidying the text, which is the failure it exists for.
+
+What the fresh passages caught, each now a test:
+
+- בית שמאי is a school, not Shammai speaking. This was 8 of the 10 false reports.
+- ביר' and בי ר' are short forms of "son of Rabbi". Without them one long name
+  was split into two people. בי רב, the study hall, is not a son.
+- three prefix letters on one title: לכדרב שישא
+- a father known by a byname rather than a given name: רבי נחוניה בן הקנה
+- אבא as a man's own name: אבא בר ירמיה
+
+One fix went wrong and the check sets caught that too. Widening "descriptions"
+from words beginning with ה to any word that mostly follows a name let in junk,
+including בשם, "in the name of", which was then glued onto names. It was
+reverted the same hour.
+
+Both sets are now development sets: the finder has been tuned against both.
+The held-out sets are not drawn yet, and must not be looked at while building.
 
 ## Cost
 

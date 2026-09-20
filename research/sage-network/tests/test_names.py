@@ -12,7 +12,9 @@ import textio                     # noqa: E402
 GIVEN = {'יוחנן', 'מאיר', 'שמעון', 'הונא', 'יהושע', 'כהנא', 'יצחק', 'אמי', 'אליעזר', 'אלעזר',
          'חנה', 'יהודה', 'ששת', 'שילא', 'נחמן', 'נחמני', 'אידי', 'שישא', 'לוי', 'אשי', 'זוטרא',
          'טוביה', 'גמליאל', 'אבין', 'יוסף', 'פפא', 'חסדא', 'מרדכי', 'אחא', 'יוסי', 'חייא'}
-LEX = lexmod.Lexicon(GIVEN, {w: 50 for w in GIVEN} | {'הלכה': 900, 'חנם': 40, 'שכר': 60, 'מאי': 5000})
+GIVEN |= {'תנחום', 'חנילאי', 'חנינא', 'שטח', 'יונה', 'ישמעאל', 'ברוקה', 'נחוניה', 'ירמיה', 'בא'}
+LEX = lexmod.Lexicon(GIVEN, {w: 50 for w in GIVEN} | {'הלכה': 900, 'חנם': 40, 'שכר': 60, 'מאי': 5000},
+                     descriptions={'המודעי', 'הגלילי'}, origins={'הוצל', 'כפר חנניה'}, father_words={'הקנה'})
 
 
 def found(text):
@@ -96,6 +98,86 @@ class SonOf(unittest.TestCase):
         self.assertEqual(found('אמר בן עזאי'), ['בן עזאי'])
 
 
+class WhatTheFirstCheckSetCaught(unittest.TestCase):
+    """The pilot check set, marked by two models, found these. My own sample of
+    "names the finder is sure of" could not: it only looked at what was
+    reported, not at what was cut short or left out."""
+
+    def test_a_description_is_part_of_the_name(self):
+        self.assertEqual(found('רבי אלעזר המודעי אומר'), ['רבי אלעזר המודעי'])
+        self.assertEqual(found('דברי רבי יוסי הגלילי'), ['רבי יוסי הגלילי'])
+        self.assertEqual(found('רבי יוסי איש הוצל אומר'), ['רבי יוסי איש הוצל'])
+        self.assertEqual(found('רבי חנינא איש כפר חנניה'), ['רבי חנינא איש כפר חנניה'])
+
+    def test_a_man_is_not_the_man_of_somewhere(self):
+        # איש is also the ordinary word "a man"
+        self.assertEqual(found('רבי מאיר איש מזריע תחלה'), ['רבי מאיר'])
+
+    def test_an_ordinary_word_starting_with_heh_is_not_a_description(self):
+        self.assertEqual(found('אמר רבי מאיר הלכה כמותו'), ['רבי מאיר'])
+
+    def test_a_name_with_no_title(self):
+        self.assertEqual(found('א"ר תנחום בר חנילאי אילו'), ["ר' תנחום בר חנילאי"])
+        self.assertEqual(found('תנחום בר חנילאי אומר'), ['תנחום בר חנילאי'])
+        self.assertEqual(found('שמעון בן שטח אומר'), ['שמעון בן שטח'])
+
+    def test_a_given_name_not_followed_by_a_father_is_not_a_name_by_itself(self):
+        self.assertEqual(found('ויאמר יוסף אל אחיו'), [])
+
+    def test_a_given_name_acting_as_a_speaker_is_flagged(self):
+        ms = mentions('שמעון אומר')
+        self.assertEqual([(m.surface, m.certain) for m in ms], [('שמעון', False)])
+
+    def test_nephew_of(self):
+        self.assertEqual(found('חנינא בן אחי רבי יהושע'), ['חנינא בן אחי רבי יהושע'])
+
+    def test_rebbi_written_short_and_alone(self):
+        ms = mentions("אמר ר' הלכה")
+        self.assertEqual([(m.surface, m.kind, m.certain) for m in ms], [("ר'", 'bare', False)])
+
+    def test_the_span_leaves_out_the_prefix_letter(self):
+        text = textio.normalise('כדרב הונא')
+        (m,) = names.find(text, LEX)
+        self.assertEqual(text[m.start:m.end], 'רב הונא')
+
+
+class WhatTheSecondCheckSetCaught(unittest.TestCase):
+    """56 fresh passages the finder had never seen."""
+
+    def test_the_house_of_shammai_is_a_group_not_the_man(self):
+        ms = mentions('בית שמאי אומרים ובית הלל אומרים')
+        self.assertEqual([(m.surface, m.kind) for m in ms], [('בית שמאי', 'group'), ('בית הלל', 'group')])
+
+    def test_hillel_himself_is_still_a_person(self):
+        self.assertEqual([(m.surface, m.kind) for m in mentions('אמר הלל')], [('הלל', 'bare')])
+
+    def test_short_forms_of_son_of_rabbi_keep_one_name_whole(self):
+        self.assertEqual(found("ר' ישמעאל בי ר' יוחנן בן ברוקה אומר"), ["ר' ישמעאל בי ר' יוחנן בן ברוקה"])
+        self.assertEqual(found("ר' אלעזר ביר' שמעון אומר"), ["ר' אלעזר ביר' שמעון"])
+
+    def test_the_study_hall_is_not_a_son(self):
+        # בי רב is "the school", not "son of Rav"
+        self.assertEqual(found('רב הונא בי רב אמר'), ['רב הונא', 'רב'])
+
+    def test_three_prefix_letters_on_one_title(self):
+        text = textio.normalise('ההוא מיבעי ליה לכדרב שישא בריה דרב אידי')
+        (m,) = names.find(text, LEX)
+        self.assertEqual((m.surface, text[m.start:m.end]), ('רב שישא בריה דרב אידי',) * 2)
+
+    def test_the_short_title_printed_with_no_mark(self):
+        self.assertEqual(found('אמר ר אלעזר'), ['ר אלעזר'])
+
+    def test_a_father_known_by_a_byname(self):
+        self.assertEqual(found('רבי נחוניה בן הקנה אומר'), ['רבי נחוניה בן הקנה'])
+
+    def test_abba_as_a_mans_own_name(self):
+        self.assertEqual(found('אבא בר ירמיה אמר'), ['אבא בר ירמיה'])
+
+    def test_in_the_name_of_is_never_part_of_a_name(self):
+        # widening "descriptions" to any word once glued בשם onto names
+        self.assertEqual(found('רבי חייא בשם רבי יוחנן'), ['רבי חייא', 'רבי יוחנן'])
+
+
 class ShortFormsAreReportedNotOpenedUp(unittest.TestCase):
     def test_said_rabbi_written_short(self):
         # one edition prints אמר רבי יוחנן, the other א"ר יוחנן
@@ -153,6 +235,29 @@ class TheLexiconLearnsFromBehaviour(unittest.TestCase):
         # occurrence stays a single occurrence
         lx = lexmod.build(self.corpus(['רב חסדך אמר']))
         self.assertFalse(lx.is_given('חסדך'))
+
+    def test_a_name_that_is_also_a_common_bible_name(self):
+        # יוסף is mostly the Bible's Joseph, untitled, so its name-slot rate is
+        # low. It is still a given name, because after a title it acts as a speaker.
+        lines = ['ויאמר יוסף אל אחיו'] * 40 + ['אמר רב יוסף אמר רב יהודה', 'רב יוסף אמר הלכה', 'ורב יוסף אמר',
+                                                  'רב יוסף בר חייא', 'רב יוסף סבר', 'אמר ליה רב יוסף אמר']
+        lx = lexmod.build(self.corpus(lines))
+        self.assertTrue(lx.is_given('יוסף'))
+
+    def test_a_man_and_his_wife_is_not_a_place(self):
+        lines = ['אמר רבי מאיר איש ואשתו שזכו', 'אמר רבי יהודה איש ואשתו'] + ['איש ואשתו הלכו'] * 20 + \
+                ['רבי יוסי איש הוצל אומר', 'דברי רבי יוסי איש הוצל', 'רבי יוסי אומר', 'רבי מאיר אומר',
+                 'רבי יהודה אומר', 'ורבי יוסי סבר', 'ורבי מאיר סבר', 'ורבי יהודה סבר']
+        lx = lexmod.build(self.corpus(lines))
+        self.assertTrue(lx.is_origin('הוצל'))
+        self.assertFalse(lx.is_origin('ואשתו'))
+
+    def test_descriptions_are_learned_not_listed(self):
+        lines = ['רבי אלעזר המודעי אומר', 'אמר רבי אלעזר המודעי', 'דברי רבי אלעזר המודעי', 'רבי אלעזר אומר',
+                 'רבי אלעזר אמר הלכה כמותו', 'הלכה כרבי מאיר', 'אין הלכה כן', 'רבי אלעזר בר צדוק', 'ורבי אלעזר סבר']
+        lx = lexmod.build(self.corpus(lines))
+        self.assertTrue(lx.is_description('המודעי'))
+        self.assertFalse(lx.is_description('הלכה'))
 
 
 class MarksSurviveNormalisation(unittest.TestCase):
