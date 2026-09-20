@@ -1,0 +1,34 @@
+{
+  "passages": 56,
+  "markers": ["openai/gpt-6-astra", "anthropic/claude-fable-5.1"],
+  "sagesBothReported": 99,
+  "onlyA": 2,
+  "onlyB": 0,
+  "markerAgreementF1": 0.99,
+  "kindSame": 136,
+  "kindDiff": 2,
+  "finder": {
+    "found": 98,
+    "foundWithTheSameBoundary": 95,
+    "missed": 1,
+    "extra": 2,
+    "extraItWasSureOf": 1,
+    "precision": 0.98,
+    "recall": 0.99
+  },
+  "spend": 1.014,
+  "disagreements": [
+    ["yerushalmi|Jerusalem Talmud Shabbat|12|4:2", "only gpt-6-astra", "ר בא בר ממל"],
+    ["yerushalmi|Jerusalem Talmud Beitzah|1|5:3", "only gpt-6-astra", "ר יודן"]
+  ],
+  "misses": [["yerushalmi|Jerusalem Talmud Terumot|5|2:4", "חילפיי"]],
+  "extras": [
+    ["minor-tractates|Tractate Semachot|1|12", "אבא טבי", "sure"],
+    ["minor-tractates|Tractate Kallah Rabbati|7|4", "אתה", "flagged"]
+  ],
+  "boundary": [
+    ["bavli|Bava Metzia|59a|5", "ר אלעזר", "<>", "אלעזר"],
+    ["yerushalmi|Jerusalem Talmud Shevuot|7|1:6", "רבי בא קרתיגנא", "<>", "רבי בא"],
+    ["yerushalmi|Jerusalem Talmud Shabbat|12|4:2", "ר' יבא", "<>", "ר'"]
+  ]
+}

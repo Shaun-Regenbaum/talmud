@@ -8,37 +8,17 @@
   "kindSame": 54,
   "kindDiff": 1,
   "finder": {
-    "found": 36,
-    "foundWithTheSameBoundary": 26,
-    "missed": 3,
-    "extra": 0,
+    "found": 38,
+    "foundWithTheSameBoundary": 37,
+    "missed": 1,
+    "extra": 1,
     "extraItWasSureOf": 0,
-    "precision": 1.0,
-    "recall": 0.923
+    "precision": 0.974,
+    "recall": 0.974
   },
   "spend": 0.454,
   "disagreements": [],
-  "misses": [
-    ["minor-tractates|Tractate Kallah Rabbati|1|15", "ר'"],
-    ["minor-tractates|Avot DeRabbi Natan|22|2", "שמעון"],
-    ["yerushalmi|Jerusalem Talmud Nazir|1|2:8", "ר' מני"]
-  ],
-  "extras": [],
-  "boundary": [
-    ["bavli|Berakhot|63a|23", "חנינא בן אחי רבי יהושע", "<>", "רבי יהושע"],
-    ["bavli|Temurah|32a|10", "רב הונא", "<>", "דרב הונא"],
-    ["midrash-aggadah|Midrash Tehillim|136|2", "רב יוסף", "<>", "רב"],
-    ["midrash-aggadah|Pirkei DeRabbi Eliezer|23|1", "רבי שמעיה", "<>", "רבי"],
-    [
-      "midrash-halakhah|Mekhilta DeRabbi Yishmael|mekhilta-derabbi-yishmael-tractate-amalek-2|37",
-      "רבי אלעזר המודעי",
-      "<>",
-      "רבי אלעזר"
-    ],
-    ["minor-tractates|Tractate Soferim|9|8", "ר יונה", "<>", "יונה"],
-    ["mishnah|Mishnah Eruvin|1|7", "רבי יוסה הגלילי", "<>", "רבי יוסה"],
-    ["yerushalmi|Jerusalem Talmud Nazir|7|2:5", "רבי יוסי", "<>", "דרבי יוסי"],
-    ["yerushalmi|Jerusalem Talmud Nazir|7|2:5", "רבי יוסי", "<>", "כרבי יוסי"],
-    ["yerushalmi|Jerusalem Talmud Yevamot|7|1:7", "רבי מנא", "<>", "רבי"]
-  ]
+  "misses": [["minor-tractates|Avot DeRabbi Natan|22|2", "שמעון"]],
+  "extras": [["midrash-aggadah|Midrash Tehillim|136|2", "שהוא", "flagged"]],
+  "boundary": [["minor-tractates|Tractate Soferim|9|8", "ר יונה", "<>", "יונה"]]
 }

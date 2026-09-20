@@ -83,7 +83,8 @@ if __name__ == '__main__':
         # the reference is the span both markers gave; take the wider of the two
         ref = [(min(x[0], y[0]), max(x[1], y[1]), x[2]) for x, y in ref_pairs]
         unsettled = a_only + b_only
-        found = [(m.start, m.end, m.surface, bool(m.certain)) for m in names.find(text, lx)]
+        # a group such as בית שמאי is not a person, and the markers label it as a group
+        found = [(m.start, m.end, m.surface, bool(m.certain)) for m in names.find(text, lx) if m.kind != 'group']
         hits, missed, extra = pair_up(ref, found)
         tp += len(hits); fn += len(missed)
         for r, f in hits:

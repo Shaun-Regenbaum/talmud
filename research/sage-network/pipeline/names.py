@@ -25,7 +25,7 @@ import re
 
 # Titles that take a given name. מר is excluded from prefix handling below.
 TITLES = {'רבי', 'רב', 'רבן', 'מר', 'אבא'}
-TITLE_ABBREV = {"ר'"}                      # ר' = Rabbi, written short
+TITLE_ABBREV = {"ר'", 'ר'}                 # ר' = Rabbi, written short; some editions drop the mark
 # Complete names with no title. רב and רבי alone are Rav and Rebbi.
 STANDALONE = {
     'רב', 'רבי', 'רבא', 'רבה', 'רבינא', 'שמואל', 'עולא', 'אביי', 'לוי', 'זעירי',
@@ -36,8 +36,14 @@ STANDALONE_WITH_PATRONYMIC = {'רבה', 'רבא', 'רבינא', 'עולא', 'ל�
 # Names built on "son of" with no given name: בן עזאי, בר קפרא.
 BEN_NAMES = {('בן', 'עזאי'), ('בן', 'זומא'), ('בן', 'ננס'), ('בן', 'בתירא'), ('בר', 'קפרא'),
              ('בר', 'פדא'), ('בן', 'פטורי'), ('בן', 'בג')}
-CONNECTORS = {'בר', 'בן', 'ברבי', 'ברב', 'בריה'}
+CONNECTORS = {'בר', 'בן', 'ברבי', 'ברב', 'בריה', 'בירבי', "ביר'", "בר'", 'בי'}
+# בי is "son of Rabbi" only before a title (ר' ישמעאל בי ר' יוחנן). Otherwise it
+# is "the house of", as in בי רב, the study hall.
+CONNECTOR_NEEDS_TITLE = {'בי'}
+CONNECTOR_CARRIES_TITLE = {'ברבי', 'בירבי', "ביר'", "בר'"}      # the title is inside the connector
 PREFIX = 'ודלכבמשה'                       # letters Hebrew glues to the next word
+# Too short to trust after peeling: שומר would give מר, and שכר would give ר.
+NEVER_PEELED = {'מר', 'ר'}
 
 _PUNCT = '.,:;?!()[]{}<>-–—־׃/'
 _ABBREV = re.compile(r'^(א?ר[א-ת]{0,3}"[א-ת]{1,2})$')     # ר"י ריב"ל רשב"ג אר"י
@@ -56,7 +62,7 @@ def tokens(text):
         raw, s = m.group(0), m.start()
         lead = len(raw) - len(raw.lstrip(_PUNCT + '"'))
         core = raw.strip(_PUNCT + '"')
-        if core.endswith("'") and core not in TITLE_ABBREV and not any(
+        if core.endswith("'") and core not in TITLE_ABBREV and core not in CONNECTORS and not any(
                 core[k:] in TITLE_ABBREV for k in (1, 2) if len(core) > k and all(c in PREFIX for c in core[:k])):
             core = core.rstrip("'")
         if core:
@@ -73,14 +79,15 @@ def split_prefix(tok, closed):
     """
     if tok in closed:
         return '', tok
-    for n in (1, 2):
-        if len(tok) > n and all(ch in PREFIX for ch in tok[:n]) and tok[n:] in closed and tok[n:] != 'מר':
+    for n in (1, 2, 3):                           # לכדרב שישא: to-like-of-Rav, three deep
+        if len(tok) > n and all(ch in PREFIX for ch in tok[:n]) and tok[n:] in closed and tok[n:] not in NEVER_PEELED:
             return tok[:n], tok[n:]
     return None, None
 
 
 class Mention:
-    __slots__ = ('start', 'end', 'surface', 'kind', 'title', 'given', 'fathers', 'certain', 'prefix', 'alt')
+    __slots__ = ('start', 'end', 'surface', 'kind', 'title', 'given', 'fathers', 'certain', 'prefix', 'alt',
+                 'description')
 
     def __init__(self, **kw):
         for k in self.__slots__:
@@ -119,8 +126,16 @@ def find(text, lexicon):
                 ab = core if _ABBREV.match(core) else core[1:]
                 head = dict(start=s, j=i + 1, title=None, given=None, kind='abbrev', certain=False,
                             prefix='' if _ABBREV.match(core) else core[0], surface=ab)
+            elif core == 'אבא' and i + 1 < n and toks[i + 1][2] in ('בר', 'בן', 'בריה'):
+                # "אבא בר ירמיה": here Abba is the man's own name
+                head = dict(start=s, j=i + 1, title=None, given='אבא', kind='name', certain=True,
+                            prefix=pfx, needs_father=True)
             elif core in TITLES or core in TITLE_ABBREV:
                 nxt = toks[i + 1][2] if i + 1 < n else None
+                stands_alone = core in STANDALONE or core == "ר'"             # ר' alone is Rebbi, written short
+                if core == 'ר' and not (nxt and lexicon.is_given(nxt)):
+                    i += 1                                  # a lone letter ר is nothing unless a known name follows
+                    continue
                 if nxt and nxt not in CONNECTORS and lexicon.is_given(nxt):
                     head = dict(start=s, j=i + 2, title=core, given=nxt, kind='name', certain=True, prefix=pfx)
                 elif nxt and nxt not in CONNECTORS and lexicon.is_unknown(nxt):
@@ -130,12 +145,28 @@ def find(text, lexicon):
                     # reported as uncertain. `alt` says what it falls back to
                     # if the typing stage rejects it: רב alone is still Rav.
                     head = dict(start=s, j=i + 2, title=core, given=nxt, kind='name', certain=False,
-                                prefix=pfx, alt='bare' if core in STANDALONE else None)
-                elif core in STANDALONE:
+                                prefix=pfx, alt='bare' if stands_alone else None)
+                elif stands_alone:
                     head = dict(start=s, j=i + 1, title=None, given=core, kind='bare', certain=False, prefix=pfx)
             elif core in STANDALONE:
-                head = dict(start=s, j=i + 1, title=None, given=core, kind='bare',
-                            certain=core not in ('רב', 'רבי'), prefix=pfx)
+                prev = toks[i - 1][2] if i else ''
+                if core in ('שמאי', 'הלל') and (prev == 'בית' or prev[1:] == 'בית' or prev[2:] == 'בית'):
+                    # בית שמאי is a school, not Shammai speaking
+                    head = dict(start=toks[i - 1][0] + (len(prev) - 3), j=i + 1, title=None, given=core,
+                                kind='group', certain=True, prefix='', surface=f'בית {core}')
+                else:
+                    head = dict(start=s, j=i + 1, title=None, given=core, kind='bare',
+                                certain=core not in ('רב', 'רבי'), prefix=pfx)
+            elif lexicon.is_given(tok) and i + 1 < n and toks[i + 1][2] in CONNECTORS:
+                # no title at all: תנחום בר חנילאי, שמעון בן שטח. Kept only if a
+                # father is actually found below.
+                head = dict(start=s, j=i + 1, title=None, given=tok, kind='name', certain=True,
+                            prefix='', needs_father=True)
+            elif lexicon.is_given(tok) and ((i + 1 < n and toks[i + 1][2] == 'אומר')
+                                            or (i and toks[i - 1][2] in ('אמר', 'דאמר', 'ואמר'))):
+                # a known given name acting as a speaker with no title. It may
+                # be a sage or a figure from the Bible; the typing stage decides.
+                head = dict(start=s, j=i + 1, title=None, given=tok, kind='name', certain=False, prefix='')
             elif i + 1 < n and (tok, toks[i + 1][2]) in BEN_NAMES:
                 head = dict(start=s, j=i + 2, title=None, given=f'{tok} {toks[i + 1][2]}', kind='name',
                             certain=True, prefix='')
@@ -144,13 +175,21 @@ def find(text, lexicon):
             continue
 
         j, fathers = head['j'], []
-        takes_patronymic = head['kind'] == 'name' or head['given'] in STANDALONE_WITH_PATRONYMIC
+        takes_patronymic = head['kind'] == 'name' or (head['kind'] == 'bare' and head['given'] in STANDALONE_WITH_PATRONYMIC)
         while takes_patronymic and j < n and toks[j][2] in CONNECTORS:
             k = j
+            if toks[j][2] in CONNECTOR_NEEDS_TITLE and not (
+                    j + 2 < n and split_prefix(toks[j + 1][2], TITLES | TITLE_ABBREV)[1]
+                    and lexicon.is_given(toks[j + 2][2])):
+                break                                       # בי רב is the study hall
             while k < n and toks[k][2] in CONNECTORS:          # בר בר חנה
                 k += 1
             if k < n and toks[k][2] in ('ד',):
                 k += 1
+            if k < n and toks[k][2] in ('אחי', 'אחות', 'אחותו'):          # בן אחי רבי יהושע: nephew of
+                k += 1
+                if k < n and toks[k][2] == 'של':
+                    k += 1
             ftitle, fgiven = None, None
             if k < n and toks[k][2] == 'אבא' and not (k + 1 < n and lexicon.is_given(toks[k + 1][2])):
                 # "בר אבא": Abba is the father's NAME here, not a title waiting
@@ -173,12 +212,29 @@ def find(text, lexicon):
                     ftitle, fgiven, k = None, c, k + 1          # בריה דרב: son of Rav himself
                 elif lexicon.is_given(t) or (t[0] in PREFIX and lexicon.is_given(t[1:]) and toks[j][2] == 'בריה'):
                     fgiven, k = (t if lexicon.is_given(t) else t[1:]), k + 1
+                elif lexicon.is_father_word(t):               # בן הקנה, בן בג בג: a byname, not a given name
+                    fgiven, k = t, k + 1
             if fgiven is None:
                 break
             fathers.append((ftitle, fgiven))
             j = k
+        if head.get('needs_father') and not fathers:
+            i += 1
+            continue
         if fathers and head['kind'] == 'bare':
             head['kind'], head['certain'] = 'name', True
+        description = None
+        if head['kind'] == 'name' and j < n:
+            t = toks[j][2]
+            if lexicon.is_description(t):                 # רבי אלעזר המודעי
+                description, j = t, j + 1
+            elif t == 'איש' and j + 1 < n:                # רבי יוסי איש הוצל, איש כפר חנניה
+                k = j + 2
+                if toks[j + 1][2] in ('כפר', 'בית', 'הר') and k < n:
+                    k += 1
+                place = ' '.join(x[2] for x in toks[j + 1:k])
+                if lexicon.is_origin(place):              # איש is also just "a man"
+                    description, j = f'איש {place}', k
         end = toks[j - 1][1]
         first = next(x for x in range(n) if toks[x][0] >= head['start'])
         words = [toks[x][2] for x in range(first, j)]
@@ -189,7 +245,9 @@ def find(text, lexicon):
         if head.get('lead'):
             words.insert(0, head['lead'])
         surface = head.get('surface') or ' '.join(words)
-        yield Mention(start=head['start'], end=end, surface=surface, kind=head['kind'], title=head['title'],
+        # the span is the name itself: the prefix letter glued to it is not part of it
+        start = head['start'] + len(head['prefix'] or '') if not head.get('lead') else head['start']
+        yield Mention(start=start, end=end, surface=surface, kind=head['kind'], title=head['title'],
                       given=head['given'], fathers=fathers, certain=head['certain'], prefix=head['prefix'],
-                      alt=head.get('alt'))
+                      alt=head.get('alt'), description=description)
         i = j

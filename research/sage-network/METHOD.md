@@ -81,12 +81,15 @@ clustered. For both groups the only routes are an outside record or an honest
   them from one repair that cut any name whose given name begins with a prefix
   letter, so Rabbi Meir became "Rabbi". Each fault is now a test in `tests/`,
   run in CI.
-- **The bare-title problem, partly solved.** Rav, Rabbi, Rava and Rabbah are
-  complete names and also titles. The finder now asks a lexicon, learned from
-  how each word behaves across the corpus, whether the next word is a given
-  name. On Berakhot, 40 of 40 sampled names it was sure of were real, and the
-  junk ("Rav Hamotzi") lands in a flagged pile together with genuinely rare
-  sages. That pile still needs the typing stage.
+- **Finding names, scored against two frontier models.** On 56 passages the
+  finder had never seen, it found 98 of the 99 names both markers gave, drew
+  the edge the same way on 95, and reported 2 that neither gave. Whether a word
+  is a given name is learned two ways: it mostly sits right after a title, or,
+  for names that are also ordinary words (יוסף, מנא), the title-and-word pair
+  acts as a speaker. Descriptions (הגלילי), places of origin (איש הוצל) and
+  father bynames (בן הקנה) are learned the same way, not listed.
+- **Still missed:** a name with no title and no father (חילפיי), a description
+  with no ה (קרתיגנא), a rare spelling of a given name (ר' יבא).
 - **Short forms are reported, not opened up.** ר"י can be five rabbis. An
   edition that spells it out has chosen one. The finder reports the short form
   and leaves the choice to a later, checkable stage.
