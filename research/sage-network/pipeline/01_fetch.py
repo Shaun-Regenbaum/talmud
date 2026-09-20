@@ -101,28 +101,40 @@ def chapter_refs(work):
     nodes = shape if isinstance(shape, list) else [shape]
     out = []
     for nd in nodes:
-        title = nd.get('title') or work
-        ch = nd.get('chapters')
-        if not isinstance(ch, list):
-            continue
-        if ch and isinstance(ch[0], dict):           # a tree of named parts
-            for sub in ch:
-                st = sub.get('title')
-                for i, c in enumerate(sub.get('chapters') or []):
-                    if c:
-                        out.append((f'{slug(st)}-{i + 1}', f'{st} {i + 1}'))
-            continue
-        is_daf = nd.get('book') is not None and any(
-            k in (nd.get('section') or '') for k in ()) or _is_talmud_daf(nd)
-        for i, c in enumerate(ch):
-            if not c:
-                continue                              # 1a, 1b and other empty slots
-            if is_daf:
-                daf = f'{i // 2 + 1}{"ab"[i % 2]}'
-                out.append((daf, f'{title} {daf}'))
-            else:
-                out.append((str(i + 1), f'{title} {i + 1}'))
+        _walk_shape(nd, nd.get('title') or work, out)
     return out
+
+
+def _walk_shape(nd, title, out):
+    """Collect (unit, ref) from one shape node, at any depth.
+
+    `chapters` comes in three forms. A list of numbers: the node's sections. A
+    list of nodes: a tree of named parts, each walked in turn. A single number:
+    a named part that is one block of text, fetched whole by its own title.
+    Sifra is 278 such blocks, and treating that number as a list is what
+    stopped the first full run.
+    """
+    ch = nd.get('chapters')
+    if isinstance(ch, int):
+        if ch:
+            out.append((slug(title), title))
+        return
+    if not isinstance(ch, list):
+        return
+    if ch and isinstance(ch[0], dict):
+        for sub in ch:
+            sub = dict(sub, _named=True)
+            _walk_shape(sub, sub.get('title') or title, out)
+        return
+    is_daf = _is_talmud_daf(nd)
+    for i, c in enumerate(ch):
+        if not c:
+            continue                              # 1a, 1b and other empty slots
+        if is_daf:
+            daf = f'{i // 2 + 1}{"ab"[i % 2]}'
+            out.append((daf, f'{title} {daf}'))
+        else:
+            out.append((f'{slug(title)}-{i + 1}' if nd.get('_named') else str(i + 1), f'{title} {i + 1}'))
 
 
 def _is_talmud_daf(nd):
@@ -227,6 +239,9 @@ def main():
     ap.add_argument('--corpus', default=None)
     ap.add_argument('--limit', type=int, default=0, help='first N works per corpus (smoke test)')
     ap.add_argument('--list', action='store_true', help='print the plan and fetch nothing')
+    ap.add_argument('--check', action='store_true',
+                    help='read every work\'s shape and editions, fetch no text, and report '
+                         'any work that would yield nothing')
     ap.add_argument('--workers', type=int, default=6)
     a = ap.parse_args()
     jobs = []
@@ -242,9 +257,46 @@ def main():
         for label, w in jobs:
             print('  ', label, '|', w)
         return
+    if a.check:
+        # Cheap, and it would have caught the shape that ended the first full
+        # run: every work is parsed before an hour is spent on any of them.
+        def probe(job):
+            try:
+                return job, len(chapter_refs(job[1])), len(hebrew_editions(job[1])), None
+            except Exception as e:                # noqa: BLE001
+                return job, 0, 0, f'{type(e).__name__}: {e}'
+        with cf.ThreadPoolExecutor(max_workers=a.workers) as ex:
+            rows = list(ex.map(probe, jobs))
+        bad = [r for r in rows if r[3] or not r[1] or not r[2]]
+        units = sum(r[1] * r[2] for r in rows)
+        print(f'{len(rows)} works, about {units:,} requests to fetch them all')
+        for (label, w), n, e, err in bad:
+            print(f'  PROBLEM {label} | {w}: units={n} editions={e} {err or ""}')
+        print('every work has units and an edition' if not bad else f'{len(bad)} work(s) need a look')
+        return
+    failures = []
+
+    def guarded(job):
+        # One work with an unexpected shape once ended a whole run and took the
+        # remaining works with it. A failure is recorded and the run goes on.
+        try:
+            return fetch_work(*job)
+        except Exception as e:                    # noqa: BLE001
+            with _lock:
+                failures.append({'corpus': job[0], 'work': job[1], 'error': f'{type(e).__name__}: {e}'})
+                print(f'  FAILED {job[0]} | {job[1]}: {type(e).__name__}: {e}', flush=True)
+            return 0
+
     with cf.ThreadPoolExecutor(max_workers=a.workers) as ex:
-        list(ex.map(lambda j: fetch_work(*j), jobs))
+        list(ex.map(guarded, jobs))
     print(f'\nmanifest: {write_manifest():,} units on disk')
+    with open(os.path.join(DATA, 'fetch-failures.json'), 'w') as f:
+        json.dump(failures, f, ensure_ascii=False, indent=1)
+    if failures:
+        print(f'{len(failures)} work(s) FAILED and are listed in fetch-failures.json:')
+        for x in failures:
+            print('  ', x['corpus'], '|', x['work'], '|', x['error'])
+        sys.exit(1)
 
 
 if __name__ == '__main__':
