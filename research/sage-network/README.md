@@ -26,13 +26,29 @@ biography is consulted.
 ## Running it
 
 ```
-python3 pipeline/01_fetch.py --corpus bavli --limit 2    # smoke test
-python3 pipeline/01_fetch.py --corpus all                # full fetch
+export SAGE_NETWORK_DATA=/somewhere/outside/any/git/worktree   # optional, recommended
+
+python3 pipeline/01_fetch.py --list          # what would be fetched, and nothing else
+python3 pipeline/01_fetch.py --limit 1       # smoke test: one work from each body of text
+python3 pipeline/01_fetch.py                 # every Hebrew edition of every work
+python3 pipeline/02_lexicon.py               # learn which words are given names
+python3 pipeline/03_mentions.py              # every candidate mention, in every edition
+python3 pipeline/04_relations.py             # every pattern that joins two names
+
+python3 -m unittest discover -s tests        # also runs in CI
 ```
 
-Fetching is resumable and idempotent. A unit is re-fetched only if its file is
-missing or empty, and files are written through a temporary name so an
-interrupted run never leaves a half-written record.
+Fetching is resumable. A unit is fetched only if its file is missing or empty,
+files are written through a temporary name, and the manifest is rebuilt from
+what is on disk. Works and editions are discovered from Sefaria's own index and
+shape, not typed by hand, so a tractate cannot be dropped by a typo and a text
+cannot be cut short by a wrong guess about how it is divided.
+
+`pipeline/corpora.py` lists what is read and, as importantly, what is left out
+and why: anthologies that quote the Talmud would count every passage twice.
+
+`ANCHORS.md` fixes the handful of names the dating hangs from, and the rule
+that chose them. `plan/plan.html` is the review and the plan.
 
 ## Sources and licence
 

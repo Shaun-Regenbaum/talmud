@@ -1,76 +1,81 @@
-"""Which texts this study reads, and which witness of each.
+"""Which texts this study reads, and why each one is in.
 
-Everything downstream reads Hebrew and Aramaic only. No translation is used at
-any point, because a translator has already resolved the ambiguities this study
-is trying to measure.
+Hebrew and Aramaic only. No translation is used at any point, because a
+translator has already resolved the ambiguities this study measures.
 
-A WITNESS is one edition of a text. Where Sefaria carries more than one Hebrew
-witness we take them all: the same passage in two editions is the strongest
-evidence there is that two spellings of a name are one name, because the
-variation sits at a single location rather than across the corpus.
+Works are listed by Sefaria category and discovered from Sefaria's own index
+(01_fetch.py), so a tractate cannot be left out by a typo in a hand-typed list.
+Editions are likewise discovered per work: every Hebrew edition Sefaria holds
+is taken, because a second edition of the same passage shows where editors
+disagreed about who was meant.
 """
 
-# Sefaria version titles, per corpus. Confirmed present on 2026-09-20 via
-# GET /api/texts/versions/<work>.
-BAVLI_WITNESSES = [
-    'William Davidson Edition - Aramaic',   # Vilna, unvocalized
-    'Wikisource Talmud Bavli',              # independently keyed; different
-                                            # abbreviation habits, and the
-                                            # uncensored/censored readings differ
+# (corpus label, Sefaria category path, title filter, why it is here)
+CORPORA = [
+    ('mishnah', ['Mishnah'], None,
+     'The early teachers, by definition: anyone named here is from the Mishnah period. '
+     'One edition follows the Kaufmann manuscript, a truly separate witness.'),
+    ('tosefta', ['Tosefta'], None,
+     'More early teachers, many of them absent from the Mishnah.'),
+    ('midrash-halakhah', ['Midrash', 'Halakhah'], None,
+     'Early teachers arguing from verses; fixes the early end of the order.'),
+    ('bavli', ['Talmud', 'Bavli'], None,
+     'The main body: Babylonian sages, and Land of Israel sages as Babylonia heard them.'),
+    ('yerushalmi', ['Talmud', 'Yerushalmi'], None,
+     'Land of Israel sages in their own spelling, and people who appear nowhere else.'),
+    ('midrash-aggadah', ['Midrash', 'Aggadah'], None,
+     'Story and sermon; many Land of Israel sages who are thin in the Bavli.'),
+    ('minor-tractates', ['Talmud', 'Bavli', 'Minor Tractates'], None,
+     'Avot deRabbi Natan, Semachot, Soferim and the rest: more early teachers, in their own setting.'),
 ]
 
-YERUSHALMI_WITNESSES = [
-    'Venice Edition',                       # the editio princeps
-    'Mechon-Mamre',
-]
+# Sub-categories that are commentary on a corpus rather than the corpus itself.
+SKIP_CATEGORIES = {
+    'Commentary', 'Rishonim on Talmud', 'Acharonim on Talmud', 'Modern Commentary on Talmud',
+    'Rishonim on Mishnah', 'Acharonim on Mishnah', 'Modern Commentary on Mishnah',
+    'Guides',
+}
 
-MIDRASH_WITNESSES = [
-    'Wikisource Bereshit Rabbah',
-    'Midrash Rabbah -- TE',
-]
+# A title is commentary or apparatus, not the work itself.
+COMMENTARY_TITLE = (' on ', 'Haggahot', "Gra's", 'footnotes', 'Notes and Corrections', 'Kisse Rahamim',
+                    'Nachalat Yaakov', 'Binyan Yehoshua', 'Rishon LeTzion', 'New Nuschah', 'Mesorat HaShas')
 
-BAVLI = [
-    'Berakhot', 'Shabbat', 'Eruvin', 'Pesachim', 'Rosh Hashanah', 'Yoma',
-    'Sukkah', 'Beitzah', 'Taanit', 'Megillah', 'Moed Katan', 'Chagigah',
-    'Yevamot', 'Ketubot', 'Nedarim', 'Nazir', 'Sotah', 'Gittin', 'Kiddushin',
-    'Bava Kamma', 'Bava Metzia', 'Bava Batra', 'Sanhedrin', 'Makkot',
-    'Shevuot', 'Avodah Zarah', 'Horayot', 'Zevachim', 'Menachot', 'Chullin',
-    'Bekhorot', 'Arakhin', 'Temurah', 'Keritot', 'Meilah', 'Niddah',
-]
+# Left out on purpose. Each of these would corrupt the counts rather than add to
+# them, and the reason is recorded so the choice can be argued with.
+EXCLUDE = {
+    'Legends of the Jews': 'a twentieth-century retelling, in English',
+    'Ein Yaakov': "an anthology of the Talmud's own stories; every passage would be counted twice",
+    'Ein Yaakov (Glick Edition)': "an anthology of the Talmud's own stories; every passage would be counted twice",
+    'Yalkut Shimoni on Torah': 'a medieval anthology of earlier midrash; counts its sources twice',
+    'Yalkut Shimoni on Nach': 'a medieval anthology of earlier midrash; counts its sources twice',
+    'Otzar Midrashim': 'a modern anthology',
+    'Midrash Yelamdenu, Selections from Yalkut Talmud Torah': 'selections lifted from an anthology',
+    'Midrash Lekach Tov': 'an eleventh-century work that reworks earlier sources',
+    'Midrash Sekhel Tov': 'a twelfth-century work that reworks earlier sources',
+    'Bereshit Rabbati': 'an eleventh-century work that reworks earlier sources',
+    'Midrash Aggadah': 'a medieval compilation',
+    'Sefer HaYashar (midrash)': 'a medieval narrative, not rabbinic-period material',
+}
 
-# Sefaria titles them "Jerusalem Talmud <tractate>".
-YERUSHALMI = [
-    'Berakhot', 'Peah', 'Demai', 'Kilayim', 'Sheviit', 'Terumot', 'Maasrot',
-    'Maaser Sheni', 'Challah', 'Orlah', 'Bikkurim', 'Shabbat', 'Eruvin',
-    'Pesachim', 'Yoma', 'Shekalim', 'Sukkah', 'Rosh Hashanah', 'Beitzah',
-    'Taanit', 'Megillah', 'Chagigah', 'Moed Katan', 'Yevamot', 'Ketubot',
-    'Nedarim', 'Nazir', 'Sotah', 'Gittin', 'Kiddushin', 'Bava Kamma',
-    'Bava Metzia', 'Bava Batra', 'Sanhedrin', 'Makkot', 'Shevuot',
-    'Avodah Zarah', 'Horayot', 'Niddah',
-]
+# Late, but kept: they name sages and are not anthologies. Marked so any result
+# can be recomputed without them.
+LATE = {'Shemot Rabbah', 'Bamidbar Rabbah', 'Devarim Rabbah', 'Pirkei DeRabbi Eliezer', 'Pesikta Rabbati',
+        'Midrash Tehillim', 'Midrash Mishlei', 'Midrash Shmuel', 'Tanna DeBei Eliyahu Rabbah',
+        'Tanna DeBei Eliyahu Zuta', 'Seder Olam Zutta', 'Aggadat Bereshit'}
 
-# Aggadic midrashim name many of the same sages, and some who never appear in
-# either Talmud. Halakhic midrashim are tannaitic and anchor the early end.
-MIDRASH = [
-    'Bereshit Rabbah', 'Shemot Rabbah', 'Vayikra Rabbah', 'Bamidbar Rabbah',
-    'Devarim Rabbah', 'Eichah Rabbah', 'Esther Rabbah', 'Kohelet Rabbah',
-    'Shir HaShirim Rabbah', 'Ruth Rabbah', 'Midrash Tanchuma',
-    'Pesikta DeRav Kahana', 'Pirkei DeRabbi Eliezer', 'Avot DeRabbi Natan',
-    'Mekhilta DeRabbi Yishmael', 'Sifra', 'Sifrei Bamidbar', 'Sifrei Devarim',
-]
-
-TOSEFTA_PREFIX = 'Tosefta '   # Lieberman edition where present, else Vilna
+# The Tosefta appears as two works per tractate: the Vilna text and Lieberman's
+# edition. They are two witnesses of one work.
+WITNESS_SUFFIX = ' (Lieberman)'
 
 
-def bavli_refs():
-    """Every amud of the Bavli, as Sefaria refs."""
-    # Page extents are not uniform; the fetcher walks until Sefaria 404s
-    # rather than hard-coding an end, so a wrong constant cannot silently
-    # truncate a tractate.
-    for t in BAVLI:
-        yield t
+# Real works whose titles merely look like commentary ("X on Y").
+KEEP = {'Midrash Tannaim on Deuteronomy', 'Sifrei Aggadah on Esther'}
 
 
-def yerushalmi_titles():
-    for t in YERUSHALMI:
-        yield f'Jerusalem Talmud {t}'
+def wanted(title):
+    if title in KEEP:
+        return True
+    if title in EXCLUDE or any(title.startswith(k + ' on ') for k in ('Midrash Lekach Tov',)):
+        return False
+    return not any(k in title for k in COMMENTARY_TITLE)
+
