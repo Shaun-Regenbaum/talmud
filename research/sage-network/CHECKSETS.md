@@ -177,6 +177,106 @@ much of the same material. Their agreeing with each other is good evidence on a
 reading task, and it is not the same as a person who has learned the page.
 
 
+## The full typing run, and the hole the check sets could not see
+
+Both passes were run over the whole text on 20 September 2026: 52,423 mentions
+needing a judgement, one edition per work.
+
+| | Mentions | Share |
+|---|---|---|
+| Cheap model, sure (0.9 and above) | 40,222 | 76.7% |
+| Asked again of Gemini Flash | 11,957 | 22.8% |
+| No second answer yet | 244 | 0.5% |
+
+It cost $1.22 for the cheap model on everything and $3.34 for Gemini Flash on the
+rest. The cheap model was sure of 77% of the text, more than the 69% in the check
+set, because the check set over-samples hard cases on purpose.
+
+The second model overturned the first 3,417 times, mostly "sage" to "ordinary
+word". Forty of those were drawn at random and read by hand. Thirty-nine were
+right: a student saying רבי, "my teacher", to someone; רבה as "gave much"; כרבי
+as "they plough". The one miss was an honorific, ר' תנחומא בי ר', called a sage.
+
+What the typing settled that the finder could not: הרבה was reported as the sage
+Rabbah 1,940 times, and all 1,540 cases the cheap model was sure of were the word
+"much". A personal name never takes "the", so the finder no longer peels a ה off
+a name. מרבה stays, because after "asked of" (בעא מיניה אביי מרבה) it is the man.
+
+### A random sample cannot find a rare, systematic hole
+
+The name check sets said the finder found 98 of 99 names. It had never once found
+ריש לקיש, who is one of the fourteen anchors and is named 1,155 times. The 84
+sampled passages happened not to contain him. The same was true of מר בר רב אשי,
+another anchor: none of 91.
+
+So there is now a second check, which needs no model and no sample
+(`18_anchor_recall.py`). For 36 names that are one fixed string, it counts the
+string in the raw text and the mentions the finder reported. Before the fix five
+of the 36 were holes. After it, every name is found at least 99% of the time,
+bar חזקיה, where the text count is a false ceiling because half the hits are the
+king of Judah. This check runs after every change to the finder.
+
+Reading the commonest joining patterns by hand found more of the same family:
+ר"ש בן יוחי cut into two people, רבי אבא read as Rebbi plus a stray word (839
+mentions), a father known by one name (בריה דרבא) dropped, בר"ש not read as "son
+of R. Shimon", and a bare name only accepted after אמר, which missed בשם חזקיה and
+תני חזקיה. Each has a test.
+
+## What stands between two names
+
+### Judging the pattern was the wrong unit
+
+The first attempt labelled joining patterns, since 156 of them cover half of all
+pairs. Two markers labelled the 150 commonest. They agreed on only 77% (91%
+weighted by pairs). Where they split, the pattern was the problem. ד[A] אמר [B] is
+"of R. Elazar, for R. Elazar said" in one passage, the same man twice, and "of Rav
+Yehuda, who said in Rav's name" in the next, a citation. Only the names and the
+words that follow settle it. So the unit is now one pair in its passage.
+
+### The pair check set: 120 pairs (development)
+
+Drawn from the text with a fixed seed: 40 from the 50 commonest patterns, 40 from
+the rest of the top 2,000, and 40 from the long tail outside it. The tail joins
+three pairs in ten, and no pattern list reaches it.
+
+The second marker changed. Fable marked the patterns but its provider
+refused the pair request outright, citing terms against duplicating model outputs.
+That is their decision to make, so the request was not reworded. Gemini 3.1 Pro
+took its place. It shares a lab with Gemini Flash, one of the models being scored,
+which may flatter Flash a little. Reading the disagreements by hand, Astra was
+right or defensible in about 22 of 31 and Gemini Pro in about 8, so the second
+marker is the weaker of the two.
+
+The first round (kept under `checkset/superseded/`) found three faults in the
+kinds themselves, not in the models:
+
+- **Kinds overlap.** מתני ליה רבי לרבן שמעון בריה is both "speaks to" and "his
+  son". The rule is now that the label saying who the men are wins.
+- **Two kinds were missing.** ר"ע רבו של אביו states a teacher outright, and there
+  was no box for it. And the Yerushalmi's bare lists (ר' יונה ר' בא ר' חייה בשם
+  ר' יוחנן) may be a chain of tradents or a plain list. Scholars split on it, so
+  the label is "side by side, the wording does not say".
+- **"Does not hold like" is a dispute**, not a following.
+
+| | Round one | After the kinds were fixed |
+|---|---|---|
+| The two markers agree on the kind | 74% | 82% |
+| They agree on what the kind is used for | 78% | 85% |
+| Cheap model, against pairs the markers agree on | 84% | 82% |
+| Gemini Flash, same | 96% | 91% |
+| Cheap model where its confidence is 0.7 or more | 57 of 58 | 52 of 53 |
+| Cheap model below 0.7 | 18 of 31 | 28 of 45 |
+
+Two things follow. The cheap model's confidence is again honest, so the same two
+tiers apply: keep its answer at 0.7 and above, ask Gemini Flash below. And about
+one pair in six is a place where two frontier models read the passage differently.
+For those the output has to stay a spread of odds, not a forced label. The cheap
+model returns odds over every kind, and the full run keeps them.
+
+**These are development numbers.** The kinds were tuned on these same 120 pairs. A
+fresh draw, marked once and never looked at while changing anything, is still owed.
+
+
 ## Cost
 
 About 1.6 cents a passage for both markers at list price. The full sets, about

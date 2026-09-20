@@ -38,7 +38,11 @@ STANDALONE_WITH_PATRONYMIC = {'רבה', 'רבא', 'רבינא', 'עולא', 'ל�
 STANDALONE_FATHERS = STANDALONE - {'רב', 'רבי', 'הלל', 'שמאי'}
 # Names built on "son of" with no given name: בן עזאי, בר קפרא.
 BEN_NAMES = {('בן', 'עזאי'), ('בן', 'זומא'), ('בן', 'ננס'), ('בן', 'בתירא'), ('בר', 'קפרא'),
-             ('בר', 'פדא'), ('בן', 'פטורי'), ('בן', 'בג')}
+             ('בר', 'פדא'), ('בן', 'פטורי'), ('בן', 'בג'),
+             # ריש לקיש has no title and no "son of". It was missed entirely, 1,162
+             # times, and no random check set happened to contain him.
+             ('ריש', 'לקיש')}
+_BEN_FIRST = {a for a, _ in BEN_NAMES}
 CONNECTORS = {'בר', 'בן', 'ברבי', 'ברב', 'בריה', 'בירבי', "ביר'", "בר'", 'בי'}
 # בי is "son of Rabbi" only before a title (ר' ישמעאל בי ר' יוחנן). Otherwise it
 # is "the house of", as in בי רב, the study hall.
@@ -50,6 +54,7 @@ NEVER_PEELED = {'מר', 'ר'}
 
 _PUNCT = '.,:;?!()[]{}<>-–—־׃/'
 _ABBREV = re.compile(r'^(א?ר[א-ת]{0,3}"[א-ת]{1,2})$')     # ר"י ריב"ל רשב"ג אר"י
+_SON_OF_ABBREV = re.compile(r'^ב(ר"[א-ת]{1,2})$')            # בר"ש, בר"י
 _AMAR_R = {'א"ר', "א'ר"}                                   # "said Rabbi ..."
 
 
@@ -82,6 +87,8 @@ def split_prefix(tok, closed):
     """
     if tok in closed:
         return '', tok
+    if tok.startswith('אד') and tok[2:] in closed and tok[2:] not in NEVER_PEELED:
+        return 'אד', tok[2:]                       # קשיא דרב אדרב: "on that of Rav"
     for n in (1, 2, 3):                           # לכדרב שישא: to-like-of-Rav, three deep
         if 'ה' in tok[:n]:
             # A personal name never takes "the". הרבה is "much", המרבה is "he who
@@ -103,6 +110,35 @@ class Mention:
 
     def __repr__(self):
         return f'<{self.kind} {self.surface!r}{"" if self.certain else " ?"}>'
+
+
+# Words after which a bare given name is someone speaking or being quoted.
+_SPEECH = {'אמר', 'בשם', 'משום', 'משמיה', 'תני', 'תנא', 'איתיביה', 'מתיב', 'דבי', 'אומר'}
+
+
+def _speech_word(tok):
+    """אמר, והאמר, דתני, כדתני, משמיה: the word, with or without glued letters."""
+    if tok in _SPEECH:
+        return True
+    for n in (1, 2, 3):
+        if len(tok) > n and all(ch in 'ודכה' for ch in tok[:n]) and tok[n:] in _SPEECH:
+            return True
+    return False
+
+
+def _untitled(tok, lexicon):
+    """The given name in a token with no title: חזקיה, or דחזקיה after משמיה. Else ''."""
+    if lexicon.is_given(tok):
+        return tok
+    if len(tok) > 3 and tok[0] in 'דול' and lexicon.is_given(tok[1:]):
+        return tok[1:]
+    return ''
+
+
+def _glued_mar(tok):
+    """דמר, כמר, ולמר. מר is never peeled in general (שומר is a guardian), so this
+    is only consulted when "son of" follows."""
+    return len(tok) in (3, 4) and tok.endswith('מר') and all(ch in PREFIX for ch in tok[:-2])
 
 
 def _given_after_title(lexicon, word):
@@ -143,6 +179,13 @@ def find(text, lexicon):
                 # "אבא בר ירמיה": here Abba is the man's own name
                 head = dict(start=s, j=i + 1, title=None, given='אבא', kind='name', certain=True,
                             prefix=pfx, needs_father=True)
+            elif (core == 'מר' or _glued_mar(tok)) and i + 1 < n and toks[i + 1][2] in ('בר', 'בריה'):
+                if core != 'מר':
+                    pfx, core = tok[:-2], 'מר'             # דמר בר רב אשי. Safe only because "son of" follows
+                # מר בר רב אשי, מר בריה דרבינא: known only as "Mar, son of". Kept
+                # only if a father is found below. An anchor, and it was never found.
+                head = dict(start=s, j=i + 1, title=None, given='מר', kind='name', certain=True,
+                            prefix=pfx, needs_father=True)
             elif core in TITLES or core in TITLE_ABBREV:
                 nxt = toks[i + 1][2] if i + 1 < n else None
                 stands_alone = core in STANDALONE or core == "ר'"             # ר' alone is Rebbi, written short
@@ -178,14 +221,20 @@ def find(text, lexicon):
                 # father is actually found below.
                 head = dict(start=s, j=i + 1, title=None, given=tok, kind='name', certain=True,
                             prefix='', needs_father=True)
-            elif lexicon.is_given(tok) and ((i + 1 < n and toks[i + 1][2] == 'אומר')
-                                            or (i and toks[i - 1][2] in ('אמר', 'דאמר', 'ואמר'))):
-                # a known given name acting as a speaker with no title. It may
-                # be a sage or a figure from the Bible; the typing stage decides.
-                head = dict(start=s, j=i + 1, title=None, given=tok, kind='name', certain=False, prefix='')
-            elif i + 1 < n and (tok, toks[i + 1][2]) in BEN_NAMES:
-                head = dict(start=s, j=i + 2, title=None, given=f'{tok} {toks[i + 1][2]}', kind='name',
-                            certain=True, prefix='')
+            elif _untitled(tok, lexicon) and ((i + 1 < n and toks[i + 1][2] in ('אומר', 'אמר') and lexicon.is_given(tok))
+                                              or (i and _speech_word(toks[i - 1][2]))):
+                # A known given name with no title, speaking or spoken for: בשם
+                # חזקיה, תני חזקיה, משמיה דחזקיה. It may be a sage or a figure
+                # from the Bible (חזקיה is also the king); the typing stage decides.
+                g = _untitled(tok, lexicon)
+                head = dict(start=s, j=i + 1, title=None, given=g, kind='name', certain=False,
+                            prefix=tok[:len(tok) - len(g)])
+            elif i + 1 < n and (split_prefix(tok, _BEN_FIRST)[1], toks[i + 1][2]) in BEN_NAMES:
+                # the second word must match too, so peeling is safe: לבן עזאי is
+                # "to Ben Azzai", while לבן alone is "white" and is never reached
+                bp, bc = split_prefix(tok, _BEN_FIRST)
+                head = dict(start=s, j=i + 2, title=None, given=f'{bc} {toks[i + 1][2]}', kind='name',
+                            certain=True, prefix=bp)
         if head is None:
             i += 1
             continue
@@ -196,6 +245,10 @@ def find(text, lexicon):
         # clue there is to which name it stands for.
         takes_patronymic = (head['kind'] in ('name', 'abbrev')
                             or (head['kind'] == 'bare' and head['given'] in STANDALONE_WITH_PATRONYMIC))
+        if takes_patronymic and head['kind'] == 'name' and j < n and _SON_OF_ABBREV.match(toks[j][2]):
+            # ר' אלעזר בר"ש: "son of R. Shimon", the connector glued to a short form
+            fathers.append((None, toks[j][2][1:]))
+            j += 1
         while takes_patronymic and j < n and toks[j][2] in CONNECTORS:
             k = j
             if toks[j][2] in CONNECTOR_NEEDS_TITLE and not (

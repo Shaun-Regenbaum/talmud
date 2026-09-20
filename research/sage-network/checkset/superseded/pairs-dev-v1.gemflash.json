@@ -1,0 +1,486 @@
+{
+  "model": "google/gemini-3.8-flash",
+  "labels": {
+    "top50-0": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-1": {
+      "kind": "together",
+      "sure": true
+    },
+    "top50-2": {
+      "kind": "together",
+      "sure": true
+    },
+    "top50-3": {
+      "kind": "disputes",
+      "sure": false
+    },
+    "top50-4": {
+      "kind": "together",
+      "sure": true
+    },
+    "top50-5": {
+      "kind": "together",
+      "sure": true
+    },
+    "top50-6": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-7": {
+      "kind": "together",
+      "sure": true
+    },
+    "top50-8": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-9": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-10": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-11": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "top50-12": {
+      "kind": "kin",
+      "sure": true
+    },
+    "top50-13": {
+      "kind": "follows",
+      "sure": true
+    },
+    "top50-14": {
+      "kind": "none",
+      "sure": true
+    },
+    "top50-15": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-16": {
+      "kind": "together",
+      "sure": true
+    },
+    "top50-17": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-18": {
+      "kind": "together",
+      "sure": true
+    },
+    "top50-19": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "top50-20": {
+      "kind": "none",
+      "sure": true
+    },
+    "top50-21": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-22": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "top50-23": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-24": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-25": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-26": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-27": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-28": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-29": {
+      "kind": "explains",
+      "sure": true
+    },
+    "top50-30": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-31": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-32": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-33": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-34": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top50-35": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-36": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-37": {
+      "kind": "together",
+      "sure": true
+    },
+    "top50-38": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top50-39": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top2000-40": {
+      "kind": "alternative",
+      "sure": true
+    },
+    "top2000-41": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-42": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-43": {
+      "kind": "together",
+      "sure": true
+    },
+    "top2000-44": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "top2000-45": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-46": {
+      "kind": "alternative",
+      "sure": true
+    },
+    "top2000-47": {
+      "kind": "alternative",
+      "sure": true
+    },
+    "top2000-48": {
+      "kind": "explains",
+      "sure": true
+    },
+    "top2000-49": {
+      "kind": "follows",
+      "sure": true
+    },
+    "top2000-50": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top2000-51": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top2000-52": {
+      "kind": "follows",
+      "sure": true
+    },
+    "top2000-53": {
+      "kind": "kin",
+      "sure": true
+    },
+    "top2000-54": {
+      "kind": "asks",
+      "sure": true
+    },
+    "top2000-55": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-56": {
+      "kind": "together",
+      "sure": true
+    },
+    "top2000-57": {
+      "kind": "together",
+      "sure": true
+    },
+    "top2000-58": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top2000-59": {
+      "kind": "explains",
+      "sure": true
+    },
+    "top2000-60": {
+      "kind": "asks",
+      "sure": true
+    },
+    "top2000-61": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "top2000-62": {
+      "kind": "asks",
+      "sure": true
+    },
+    "top2000-63": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-64": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "top2000-65": {
+      "kind": "follows",
+      "sure": true
+    },
+    "top2000-66": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-67": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top2000-68": {
+      "kind": "none",
+      "sure": true
+    },
+    "top2000-69": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-70": {
+      "kind": "addresses",
+      "sure": false
+    },
+    "top2000-71": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "top2000-72": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "top2000-73": {
+      "kind": "explains",
+      "sure": true
+    },
+    "top2000-74": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "top2000-75": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "top2000-76": {
+      "kind": "cites",
+      "sure": true
+    },
+    "top2000-77": {
+      "kind": "follows",
+      "sure": true
+    },
+    "top2000-78": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "top2000-79": {
+      "kind": "alternative",
+      "sure": true
+    },
+    "tail-80": {
+      "kind": "explains",
+      "sure": true
+    },
+    "tail-81": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-82": {
+      "kind": "explains",
+      "sure": true
+    },
+    "tail-83": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-84": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "tail-85": {
+      "kind": "cites",
+      "sure": true
+    },
+    "tail-86": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-87": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-88": {
+      "kind": "explains",
+      "sure": true
+    },
+    "tail-89": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-90": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-91": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-92": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-93": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-94": {
+      "kind": "addresses",
+      "sure": true
+    },
+    "tail-95": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-96": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-97": {
+      "kind": "same-man",
+      "sure": true
+    },
+    "tail-98": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-99": {
+      "kind": "disputes",
+      "sure": false
+    },
+    "tail-100": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-101": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-102": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-103": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-104": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-105": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-106": {
+      "kind": "cites",
+      "sure": true
+    },
+    "tail-107": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-108": {
+      "kind": "follows",
+      "sure": true
+    },
+    "tail-109": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-110": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-111": {
+      "kind": "explains",
+      "sure": true
+    },
+    "tail-112": {
+      "kind": "none",
+      "sure": true
+    },
+    "tail-113": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-114": {
+      "kind": "explains",
+      "sure": true
+    },
+    "tail-115": {
+      "kind": "disputes",
+      "sure": true
+    },
+    "tail-116": {
+      "kind": "together",
+      "sure": true
+    },
+    "tail-117": {
+      "kind": "addresses",
+      "sure": false
+    },
+    "tail-118": {
+      "kind": "follows",
+      "sure": true
+    },
+    "tail-119": {
+      "kind": "addresses",
+      "sure": true
+    }
+  },
+  "spend": 0.02032125
+}
