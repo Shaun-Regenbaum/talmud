@@ -1,0 +1,2736 @@
+{
+  "model": "jev-latest",
+  "labels": {
+    "t0000": {
+      "kind": "sage",
+      "confidence": 0.96,
+      "p": {
+        "sage": 0.97,
+        "word": 0.01,
+        "biblical": 0.0,
+        "term": 0.01,
+        "person": 0.01,
+        "group": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0001": {
+      "kind": "sage",
+      "confidence": 0.59,
+      "p": {
+        "person": 0.12,
+        "divine": 0.0,
+        "biblical": 0.0,
+        "term": 0.02,
+        "sage": 0.64,
+        "group": 0.01,
+        "word": 0.21
+      }
+    },
+    "t0002": {
+      "kind": "sage",
+      "confidence": 0.86,
+      "p": {
+        "sage": 0.89,
+        "divine": 0.0,
+        "biblical": 0.07,
+        "term": 0.0,
+        "person": 0.04,
+        "group": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0003": {
+      "kind": "word",
+      "confidence": 0.35,
+      "p": {
+        "person": 0.05,
+        "word": 0.45,
+        "biblical": 0.0,
+        "term": 0.05,
+        "divine": 0.0,
+        "group": 0.01,
+        "sage": 0.44
+      }
+    },
+    "t0004": {
+      "kind": "biblical",
+      "confidence": 0.99,
+      "p": {
+        "sage": 0.01,
+        "divine": 0.0,
+        "biblical": 0.99,
+        "term": 0.0,
+        "person": 0.0,
+        "group": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0005": {
+      "kind": "sage",
+      "confidence": 0.95,
+      "p": {
+        "sage": 0.96,
+        "divine": 0.0,
+        "biblical": 0.0,
+        "term": 0.0,
+        "person": 0.03,
+        "group": 0.0,
+        "word": 0.01
+      }
+    },
+    "t0006": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "sage": 0.99,
+        "divine": 0.0,
+        "biblical": 0.0,
+        "term": 0.0,
+        "person": 0.0,
+        "group": 0.0,
+        "word": 0.01
+      }
+    },
+    "t0007": {
+      "kind": "biblical",
+      "confidence": 0.77,
+      "p": {
+        "sage": 0.03,
+        "divine": 0.0,
+        "biblical": 0.81,
+        "term": 0.16,
+        "person": 0.0,
+        "group": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0008": {
+      "kind": "sage",
+      "confidence": 0.88,
+      "p": {
+        "sage": 0.9,
+        "divine": 0.0,
+        "biblical": 0.0,
+        "term": 0.04,
+        "person": 0.01,
+        "group": 0.0,
+        "word": 0.05
+      }
+    },
+    "t0009": {
+      "kind": "biblical",
+      "confidence": 0.97,
+      "p": {
+        "person": 0.0,
+        "word": 0.0,
+        "biblical": 0.98,
+        "term": 0.01,
+        "divine": 0.0,
+        "group": 0.0,
+        "sage": 0.01
+      }
+    },
+    "t0010": {
+      "kind": "sage",
+      "confidence": 0.95,
+      "p": {
+        "sage": 0.96,
+        "divine": 0.0,
+        "biblical": 0.03,
+        "term": 0.0,
+        "word": 0.01,
+        "group": 0.0,
+        "person": 0.0
+      }
+    },
+    "t0011": {
+      "kind": "sage",
+      "confidence": 0.88,
+      "p": {
+        "sage": 0.91,
+        "divine": 0.0,
+        "biblical": 0.0,
+        "term": 0.0,
+        "person": 0.01,
+        "group": 0.08,
+        "word": 0.0
+      }
+    },
+    "t0012": {
+      "kind": "sage",
+      "confidence": 0.78,
+      "p": {
+        "person": 0.02,
+        "word": 0.1,
+        "biblical": 0.0,
+        "term": 0.07,
+        "divine": 0.0,
+        "group": 0.0,
+        "sage": 0.81
+      }
+    },
+    "t0013": {
+      "kind": "biblical",
+      "confidence": 0.98,
+      "p": {
+        "sage": 0.01,
+        "word": 0.0,
+        "biblical": 0.99,
+        "term": 0.0,
+        "person": 0.0,
+        "group": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0014": {
+      "kind": "person",
+      "confidence": 0.8,
+      "p": {
+        "sage": 0.13,
+        "word": 0.02,
+        "biblical": 0.0,
+        "term": 0.01,
+        "person": 0.84,
+        "group": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0015": {
+      "kind": "sage",
+      "confidence": 0.95,
+      "p": {
+        "sage": 0.97,
+        "divine": 0.0,
+        "biblical": 0.0,
+        "term": 0.03,
+        "person": 0.0,
+        "group": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0016": {
+      "kind": "biblical",
+      "confidence": 0.85,
+      "p": {
+        "sage": 0.09,
+        "divine": 0.0,
+        "biblical": 0.88,
+        "term": 0.03,
+        "person": 0.0,
+        "group": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0017": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "sage": 0.98,
+        "divine": 0.0,
+        "biblical": 0.01,
+        "term": 0.0,
+        "person": 0.01,
+        "group": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0018": {
+      "kind": "sage",
+      "confidence": 0.84,
+      "p": {
+        "sage": 0.88,
+        "word": 0.01,
+        "biblical": 0.0,
+        "term": 0.11,
+        "person": 0.0,
+        "group": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0019": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "sage": 0.99,
+        "divine": 0.0,
+        "biblical": 0.0,
+        "term": 0.0,
+        "person": 0.01,
+        "group": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0020": {
+      "kind": "sage",
+      "confidence": 0.55,
+      "p": {
+        "person": 0.05,
+        "word": 0.0,
+        "group": 0.0,
+        "term": 0.0,
+        "biblical": 0.33,
+        "divine": 0.0,
+        "sage": 0.62
+      }
+    },
+    "t0021": {
+      "kind": "sage",
+      "confidence": 0.27,
+      "p": {
+        "person": 0.03,
+        "word": 0.29,
+        "group": 0.01,
+        "term": 0.29,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 0.38
+      }
+    },
+    "t0022": {
+      "kind": "sage",
+      "confidence": 0.95,
+      "p": {
+        "person": 0.04,
+        "word": 0.0,
+        "group": 0.0,
+        "term": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 0.96
+      }
+    },
+    "t0023": {
+      "kind": "sage",
+      "confidence": 0.9,
+      "p": {
+        "person": 0.06,
+        "word": 0.0,
+        "term": 0.0,
+        "group": 0.0,
+        "biblical": 0.02,
+        "divine": 0.0,
+        "sage": 0.92
+      }
+    },
+    "t0024": {
+      "kind": "sage",
+      "confidence": 0.63,
+      "p": {
+        "person": 0.26,
+        "word": 0.03,
+        "group": 0.01,
+        "term": 0.01,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 0.69
+      }
+    },
+    "t0025": {
+      "kind": "sage",
+      "confidence": 0.77,
+      "p": {
+        "person": 0.15,
+        "word": 0.03,
+        "term": 0.01,
+        "group": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 0.81
+      }
+    },
+    "t0026": {
+      "kind": "biblical",
+      "confidence": 0.93,
+      "p": {
+        "person": 0.0,
+        "word": 0.02,
+        "term": 0.02,
+        "group": 0.0,
+        "biblical": 0.94,
+        "divine": 0.0,
+        "sage": 0.02
+      }
+    },
+    "t0027": {
+      "kind": "word",
+      "confidence": 0.81,
+      "p": {
+        "person": 0.03,
+        "word": 0.83,
+        "group": 0.0,
+        "term": 0.11,
+        "biblical": 0.01,
+        "divine": 0.0,
+        "sage": 0.02
+      }
+    },
+    "t0028": {
+      "kind": "word",
+      "confidence": 0.42,
+      "p": {
+        "person": 0.1,
+        "word": 0.51,
+        "group": 0.01,
+        "term": 0.09,
+        "biblical": 0.0,
+        "divine": 0.03,
+        "sage": 0.26
+      }
+    },
+    "t0029": {
+      "kind": "sage",
+      "confidence": 0.89,
+      "p": {
+        "person": 0.02,
+        "word": 0.02,
+        "group": 0.01,
+        "term": 0.05,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 0.9
+      }
+    },
+    "t0030": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "person": 0.0,
+        "word": 0.0,
+        "group": 0.0,
+        "term": 0.0,
+        "biblical": 0.01,
+        "divine": 0.0,
+        "sage": 0.99
+      }
+    },
+    "t0031": {
+      "kind": "sage",
+      "confidence": 0.4,
+      "p": {
+        "person": 0.2,
+        "word": 0.0,
+        "group": 0.31,
+        "term": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 0.49
+      }
+    },
+    "t0032": {
+      "kind": "sage",
+      "confidence": 0.87,
+      "p": {
+        "person": 0.01,
+        "word": 0.01,
+        "group": 0.0,
+        "term": 0.0,
+        "biblical": 0.09,
+        "divine": 0.0,
+        "sage": 0.89
+      }
+    },
+    "t0033": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "person": 0.0,
+        "word": 0.0,
+        "term": 0.0,
+        "group": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 1.0
+      }
+    },
+    "t0034": {
+      "kind": "word",
+      "confidence": 0.55,
+      "p": {
+        "person": 0.02,
+        "word": 0.62,
+        "group": 0.21,
+        "term": 0.11,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 0.04
+      }
+    },
+    "t0035": {
+      "kind": "sage",
+      "confidence": 0.92,
+      "p": {
+        "person": 0.05,
+        "word": 0.0,
+        "group": 0.0,
+        "term": 0.0,
+        "biblical": 0.01,
+        "divine": 0.0,
+        "sage": 0.93
+      }
+    },
+    "t0036": {
+      "kind": "sage",
+      "confidence": 0.74,
+      "p": {
+        "person": 0.06,
+        "word": 0.0,
+        "group": 0.0,
+        "term": 0.0,
+        "biblical": 0.16,
+        "divine": 0.0,
+        "sage": 0.78
+      }
+    },
+    "t0037": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "person": 0.0,
+        "word": 0.0,
+        "term": 0.0,
+        "group": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 1.0
+      }
+    },
+    "t0038": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "person": 0.01,
+        "word": 0.01,
+        "group": 0.0,
+        "term": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 0.98
+      }
+    },
+    "t0039": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "person": 0.0,
+        "word": 0.0,
+        "group": 0.0,
+        "term": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 1.0
+      }
+    },
+    "t0040": {
+      "kind": "biblical",
+      "confidence": 0.95,
+      "p": {
+        "person": 0.0,
+        "term": 0.01,
+        "biblical": 0.97,
+        "group": 0.0,
+        "divine": 0.0,
+        "word": 0.0,
+        "sage": 0.02
+      }
+    },
+    "t0041": {
+      "kind": "person",
+      "confidence": 0.4,
+      "p": {
+        "person": 0.5,
+        "term": 0.21,
+        "biblical": 0.0,
+        "group": 0.05,
+        "divine": 0.0,
+        "word": 0.03,
+        "sage": 0.21
+      }
+    },
+    "t0042": {
+      "kind": "sage",
+      "confidence": 0.84,
+      "p": {
+        "person": 0.0,
+        "term": 0.0,
+        "biblical": 0.13,
+        "group": 0.0,
+        "divine": 0.0,
+        "word": 0.0,
+        "sage": 0.87
+      }
+    },
+    "t0043": {
+      "kind": "biblical",
+      "confidence": 0.95,
+      "p": {
+        "divine": 0.0,
+        "sage": 0.02,
+        "biblical": 0.96,
+        "person": 0.0,
+        "term": 0.02,
+        "word": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0044": {
+      "kind": "biblical",
+      "confidence": 0.81,
+      "p": {
+        "person": 0.0,
+        "term": 0.04,
+        "biblical": 0.84,
+        "group": 0.0,
+        "divine": 0.03,
+        "word": 0.08,
+        "sage": 0.01
+      }
+    },
+    "t0045": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "term": 0.0,
+        "divine": 0.0,
+        "biblical": 0.0,
+        "sage": 1.0,
+        "person": 0.0,
+        "word": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0046": {
+      "kind": "divine",
+      "confidence": 0.51,
+      "p": {
+        "person": 0.05,
+        "term": 0.04,
+        "biblical": 0.06,
+        "group": 0.0,
+        "divine": 0.59,
+        "word": 0.23,
+        "sage": 0.03
+      }
+    },
+    "t0047": {
+      "kind": "biblical",
+      "confidence": 0.98,
+      "p": {
+        "person": 0.0,
+        "sage": 0.01,
+        "biblical": 0.99,
+        "term": 0.0,
+        "divine": 0.0,
+        "word": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0048": {
+      "kind": "term",
+      "confidence": 0.7,
+      "p": {
+        "term": 0.75,
+        "divine": 0.0,
+        "biblical": 0.0,
+        "sage": 0.09,
+        "person": 0.01,
+        "word": 0.14,
+        "group": 0.01
+      }
+    },
+    "t0049": {
+      "kind": "biblical",
+      "confidence": 0.81,
+      "p": {
+        "person": 0.01,
+        "term": 0.0,
+        "biblical": 0.84,
+        "divine": 0.0,
+        "sage": 0.15,
+        "word": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0050": {
+      "kind": "sage",
+      "confidence": 0.8,
+      "p": {
+        "divine": 0.0,
+        "sage": 0.84,
+        "biblical": 0.01,
+        "person": 0.09,
+        "term": 0.04,
+        "word": 0.02,
+        "group": 0.0
+      }
+    },
+    "t0051": {
+      "kind": "sage",
+      "confidence": 0.38,
+      "p": {
+        "person": 0.23,
+        "term": 0.07,
+        "biblical": 0.01,
+        "divine": 0.0,
+        "group": 0.01,
+        "word": 0.21,
+        "sage": 0.47
+      }
+    },
+    "t0052": {
+      "kind": "biblical",
+      "confidence": 0.97,
+      "p": {
+        "person": 0.0,
+        "term": 0.0,
+        "biblical": 0.98,
+        "divine": 0.0,
+        "sage": 0.02,
+        "word": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0053": {
+      "kind": "biblical",
+      "confidence": 0.72,
+      "p": {
+        "person": 0.0,
+        "term": 0.0,
+        "biblical": 0.76,
+        "divine": 0.0,
+        "sage": 0.2,
+        "word": 0.04,
+        "group": 0.0
+      }
+    },
+    "t0054": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "divine": 0.0,
+        "sage": 0.99,
+        "biblical": 0.0,
+        "person": 0.0,
+        "term": 0.0,
+        "word": 0.01,
+        "group": 0.0
+      }
+    },
+    "t0055": {
+      "kind": "sage",
+      "confidence": 0.64,
+      "p": {
+        "person": 0.0,
+        "term": 0.0,
+        "biblical": 0.3,
+        "divine": 0.0,
+        "sage": 0.7,
+        "word": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0056": {
+      "kind": "sage",
+      "confidence": 0.7,
+      "p": {
+        "term": 0.05,
+        "divine": 0.0,
+        "biblical": 0.01,
+        "sage": 0.74,
+        "person": 0.09,
+        "word": 0.03,
+        "group": 0.08
+      }
+    },
+    "t0057": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "person": 0.0,
+        "term": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 0.99,
+        "word": 0.01,
+        "group": 0.0
+      }
+    },
+    "t0058": {
+      "kind": "sage",
+      "confidence": 0.83,
+      "p": {
+        "person": 0.05,
+        "sage": 0.86,
+        "biblical": 0.0,
+        "term": 0.03,
+        "divine": 0.0,
+        "word": 0.06,
+        "group": 0.0
+      }
+    },
+    "t0059": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "person": 0.0,
+        "term": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "word": 0.0,
+        "sage": 1.0
+      }
+    },
+    "t0060": {
+      "kind": "sage",
+      "confidence": 0.85,
+      "p": {
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 0.88,
+        "term": 0.0,
+        "word": 0.11,
+        "person": 0.01,
+        "group": 0.0
+      }
+    },
+    "t0061": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "divine": 0.0,
+        "word": 0.02,
+        "person": 0.0,
+        "term": 0.0,
+        "sage": 0.98,
+        "biblical": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0062": {
+      "kind": "term",
+      "confidence": 0.28,
+      "p": {
+        "biblical": 0.03,
+        "divine": 0.02,
+        "sage": 0.36,
+        "term": 0.39,
+        "word": 0.2,
+        "person": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0063": {
+      "kind": "sage",
+      "confidence": 0.73,
+      "p": {
+        "biblical": 0.0,
+        "divine": 0.0,
+        "person": 0.08,
+        "term": 0.01,
+        "word": 0.14,
+        "sage": 0.77,
+        "group": 0.0
+      }
+    },
+    "t0064": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 0.98,
+        "term": 0.0,
+        "word": 0.02,
+        "person": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0065": {
+      "kind": "word",
+      "confidence": 0.56,
+      "p": {
+        "word": 0.63,
+        "biblical": 0.27,
+        "sage": 0.05,
+        "term": 0.02,
+        "person": 0.02,
+        "divine": 0.0,
+        "group": 0.01
+      }
+    },
+    "t0066": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "biblical": 0.0,
+        "divine": 0.0,
+        "sage": 0.98,
+        "term": 0.0,
+        "word": 0.02,
+        "person": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0067": {
+      "kind": "sage",
+      "confidence": 0.9,
+      "p": {
+        "word": 0.02,
+        "biblical": 0.0,
+        "sage": 0.91,
+        "term": 0.0,
+        "person": 0.07,
+        "divine": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0068": {
+      "kind": "sage",
+      "confidence": 0.58,
+      "p": {
+        "biblical": 0.22,
+        "divine": 0.0,
+        "sage": 0.65,
+        "term": 0.01,
+        "person": 0.05,
+        "word": 0.07,
+        "group": 0.0
+      }
+    },
+    "t0069": {
+      "kind": "sage",
+      "confidence": 0.95,
+      "p": {
+        "biblical": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "term": 0.0,
+        "word": 0.03,
+        "sage": 0.96,
+        "group": 0.01
+      }
+    },
+    "t0070": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "biblical": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "term": 0.0,
+        "word": 0.02,
+        "sage": 0.98,
+        "group": 0.0
+      }
+    },
+    "t0071": {
+      "kind": "word",
+      "confidence": 0.45,
+      "p": {
+        "divine": 0.0,
+        "word": 0.54,
+        "sage": 0.41,
+        "term": 0.02,
+        "biblical": 0.0,
+        "person": 0.03,
+        "group": 0.0
+      }
+    },
+    "t0072": {
+      "kind": "sage",
+      "confidence": 0.88,
+      "p": {
+        "divine": 0.0,
+        "word": 0.07,
+        "person": 0.01,
+        "term": 0.01,
+        "sage": 0.9,
+        "biblical": 0.0,
+        "group": 0.01
+      }
+    },
+    "t0073": {
+      "kind": "sage",
+      "confidence": 0.93,
+      "p": {
+        "divine": 0.0,
+        "word": 0.04,
+        "person": 0.0,
+        "term": 0.01,
+        "sage": 0.95,
+        "biblical": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0074": {
+      "kind": "sage",
+      "confidence": 0.89,
+      "p": {
+        "biblical": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "term": 0.01,
+        "word": 0.08,
+        "sage": 0.91,
+        "group": 0.0
+      }
+    },
+    "t0075": {
+      "kind": "sage",
+      "confidence": 0.86,
+      "p": {
+        "divine": 0.0,
+        "word": 0.09,
+        "person": 0.02,
+        "term": 0.0,
+        "sage": 0.89,
+        "biblical": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0076": {
+      "kind": "sage",
+      "confidence": 0.89,
+      "p": {
+        "divine": 0.0,
+        "word": 0.05,
+        "person": 0.0,
+        "term": 0.04,
+        "sage": 0.91,
+        "biblical": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0077": {
+      "kind": "sage",
+      "confidence": 0.73,
+      "p": {
+        "word": 0.19,
+        "biblical": 0.0,
+        "sage": 0.78,
+        "term": 0.02,
+        "person": 0.01,
+        "divine": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0078": {
+      "kind": "sage",
+      "confidence": 0.91,
+      "p": {
+        "divine": 0.0,
+        "word": 0.03,
+        "person": 0.04,
+        "term": 0.0,
+        "sage": 0.93,
+        "biblical": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0079": {
+      "kind": "sage",
+      "confidence": 0.93,
+      "p": {
+        "divine": 0.0,
+        "word": 0.04,
+        "person": 0.02,
+        "term": 0.0,
+        "sage": 0.94,
+        "biblical": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0080": {
+      "kind": "sage",
+      "confidence": 0.96,
+      "p": {
+        "divine": 0.0,
+        "word": 0.01,
+        "person": 0.0,
+        "term": 0.01,
+        "sage": 0.97,
+        "biblical": 0.0,
+        "group": 0.01
+      }
+    },
+    "t0081": {
+      "kind": "sage",
+      "confidence": 0.94,
+      "p": {
+        "biblical": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "term": 0.0,
+        "word": 0.04,
+        "sage": 0.96,
+        "group": 0.0
+      }
+    },
+    "t0082": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "divine": 0.0,
+        "word": 0.01,
+        "person": 0.0,
+        "term": 0.0,
+        "sage": 0.99,
+        "biblical": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0083": {
+      "kind": "word",
+      "confidence": 0.58,
+      "p": {
+        "divine": 0.02,
+        "word": 0.64,
+        "sage": 0.24,
+        "term": 0.01,
+        "biblical": 0.08,
+        "person": 0.01,
+        "group": 0.0
+      }
+    },
+    "t0084": {
+      "kind": "word",
+      "confidence": 0.87,
+      "p": {
+        "biblical": 0.02,
+        "divine": 0.0,
+        "person": 0.0,
+        "term": 0.04,
+        "sage": 0.05,
+        "word": 0.89,
+        "group": 0.0
+      }
+    },
+    "t0085": {
+      "kind": "word",
+      "confidence": 0.9,
+      "p": {
+        "biblical": 0.06,
+        "divine": 0.0,
+        "sage": 0.01,
+        "term": 0.01,
+        "person": 0.0,
+        "word": 0.92,
+        "group": 0.0
+      }
+    },
+    "t0086": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "divine": 0.0,
+        "word": 0.02,
+        "sage": 0.98,
+        "term": 0.0,
+        "biblical": 0.0,
+        "person": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0087": {
+      "kind": "sage",
+      "confidence": 0.93,
+      "p": {
+        "divine": 0.0,
+        "word": 0.04,
+        "person": 0.02,
+        "term": 0.0,
+        "sage": 0.94,
+        "biblical": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0088": {
+      "kind": "sage",
+      "confidence": 0.94,
+      "p": {
+        "divine": 0.0,
+        "word": 0.04,
+        "sage": 0.95,
+        "term": 0.01,
+        "biblical": 0.0,
+        "person": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0089": {
+      "kind": "sage",
+      "confidence": 0.85,
+      "p": {
+        "word": 0.1,
+        "biblical": 0.0,
+        "sage": 0.87,
+        "term": 0.02,
+        "person": 0.0,
+        "divine": 0.01,
+        "group": 0.0
+      }
+    },
+    "t0090": {
+      "kind": "divine",
+      "confidence": 0.54,
+      "p": {
+        "biblical": 0.0,
+        "divine": 0.61,
+        "person": 0.02,
+        "term": 0.01,
+        "sage": 0.21,
+        "word": 0.15,
+        "group": 0.0
+      }
+    },
+    "t0091": {
+      "kind": "sage",
+      "confidence": 0.92,
+      "p": {
+        "divine": 0.0,
+        "word": 0.03,
+        "sage": 0.9400000000000001,
+        "term": 0.03,
+        "biblical": 0.0,
+        "person": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0092": {
+      "kind": "sage",
+      "confidence": 0.92,
+      "p": {
+        "word": 0.06,
+        "biblical": 0.0,
+        "sage": 0.9400000000000001,
+        "term": 0.0,
+        "person": 0.0,
+        "divine": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0093": {
+      "kind": "sage",
+      "confidence": 0.96,
+      "p": {
+        "divine": 0.0,
+        "word": 0.02,
+        "sage": 0.97,
+        "term": 0.0,
+        "biblical": 0.0,
+        "person": 0.01,
+        "group": 0.0
+      }
+    },
+    "t0094": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "divine": 0.0,
+        "word": 0.01,
+        "person": 0.0,
+        "term": 0.0,
+        "sage": 0.99,
+        "biblical": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0095": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "divine": 0.0,
+        "word": 0.02,
+        "sage": 0.98,
+        "term": 0.0,
+        "biblical": 0.0,
+        "person": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0096": {
+      "kind": "sage",
+      "confidence": 0.93,
+      "p": {
+        "divine": 0.0,
+        "word": 0.01,
+        "sage": 0.94,
+        "term": 0.0,
+        "biblical": 0.0,
+        "person": 0.05,
+        "group": 0.0
+      }
+    },
+    "t0097": {
+      "kind": "sage",
+      "confidence": 0.89,
+      "p": {
+        "divine": 0.0,
+        "word": 0.08,
+        "sage": 0.91,
+        "term": 0.0,
+        "biblical": 0.0,
+        "person": 0.01,
+        "group": 0.0
+      }
+    },
+    "t0098": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "biblical": 0.0,
+        "divine": 0.0,
+        "person": 0.01,
+        "term": 0.0,
+        "word": 0.01,
+        "sage": 0.98,
+        "group": 0.0
+      }
+    },
+    "t0099": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "biblical": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "term": 0.0,
+        "word": 0.02,
+        "sage": 0.98,
+        "group": 0.0
+      }
+    },
+    "t0100": {
+      "kind": "sage",
+      "confidence": 0.86,
+      "p": {
+        "term": 0.01,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.01,
+        "word": 0.1,
+        "sage": 0.88,
+        "biblical": 0.0
+      }
+    },
+    "t0101": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "term": 0.0,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "word": 0.02,
+        "sage": 0.98,
+        "biblical": 0.0
+      }
+    },
+    "t0102": {
+      "kind": "word",
+      "confidence": 0.36,
+      "p": {
+        "term": 0.04,
+        "group": 0.0,
+        "divine": 0.36,
+        "person": 0.0,
+        "word": 0.46,
+        "sage": 0.07,
+        "biblical": 0.07
+      }
+    },
+    "t0103": {
+      "kind": "sage",
+      "confidence": 0.96,
+      "p": {
+        "term": 0.0,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "word": 0.03,
+        "sage": 0.97,
+        "biblical": 0.0
+      }
+    },
+    "t0104": {
+      "kind": "sage",
+      "confidence": 0.64,
+      "p": {
+        "term": 0.0,
+        "group": 0.0,
+        "person": 0.05,
+        "divine": 0.0,
+        "word": 0.25,
+        "sage": 0.7,
+        "biblical": 0.0
+      }
+    },
+    "t0105": {
+      "kind": "sage",
+      "confidence": 0.96,
+      "p": {
+        "sage": 0.98,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "word": 0.02,
+        "term": 0.0,
+        "biblical": 0.0
+      }
+    },
+    "t0106": {
+      "kind": "sage",
+      "confidence": 0.88,
+      "p": {
+        "term": 0.0,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "word": 0.09,
+        "sage": 0.91,
+        "biblical": 0.0
+      }
+    },
+    "t0107": {
+      "kind": "sage",
+      "confidence": 0.94,
+      "p": {
+        "term": 0.01,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "word": 0.04,
+        "sage": 0.95,
+        "biblical": 0.0
+      }
+    },
+    "t0108": {
+      "kind": "sage",
+      "confidence": 0.61,
+      "p": {
+        "sage": 0.67,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.03,
+        "word": 0.29,
+        "term": 0.01,
+        "biblical": 0.0
+      }
+    },
+    "t0109": {
+      "kind": "term",
+      "confidence": 0.49,
+      "p": {
+        "term": 0.56,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.01,
+        "word": 0.24,
+        "sage": 0.17,
+        "biblical": 0.01
+      }
+    },
+    "t0110": {
+      "kind": "sage",
+      "confidence": 0.84,
+      "p": {
+        "sage": 0.87,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.01,
+        "word": 0.09,
+        "term": 0.03,
+        "biblical": 0.0
+      }
+    },
+    "t0111": {
+      "kind": "word",
+      "confidence": 0.78,
+      "p": {
+        "term": 0.08,
+        "group": 0.03,
+        "divine": 0.0,
+        "person": 0.0,
+        "word": 0.81,
+        "sage": 0.02,
+        "biblical": 0.05
+      }
+    },
+    "t0112": {
+      "kind": "sage",
+      "confidence": 0.96,
+      "p": {
+        "sage": 0.97,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "word": 0.03,
+        "term": 0.0,
+        "biblical": 0.0
+      }
+    },
+    "t0113": {
+      "kind": "sage",
+      "confidence": 0.91,
+      "p": {
+        "term": 0.0,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.02,
+        "word": 0.05,
+        "sage": 0.93,
+        "biblical": 0.0
+      }
+    },
+    "t0114": {
+      "kind": "sage",
+      "confidence": 0.95,
+      "p": {
+        "term": 0.0,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.01,
+        "word": 0.03,
+        "sage": 0.96,
+        "biblical": 0.0
+      }
+    },
+    "t0115": {
+      "kind": "sage",
+      "confidence": 0.91,
+      "p": {
+        "term": 0.01,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.03,
+        "word": 0.03,
+        "sage": 0.93,
+        "biblical": 0.0
+      }
+    },
+    "t0116": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "sage": 0.98,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "word": 0.02,
+        "term": 0.0,
+        "biblical": 0.0
+      }
+    },
+    "t0117": {
+      "kind": "sage",
+      "confidence": 0.92,
+      "p": {
+        "term": 0.01,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.02,
+        "word": 0.04,
+        "sage": 0.93,
+        "biblical": 0.0
+      }
+    },
+    "t0118": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "term": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "divine": 0.0,
+        "word": 0.02,
+        "sage": 0.98,
+        "biblical": 0.0
+      }
+    },
+    "t0119": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "sage": 0.99,
+        "group": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "word": 0.01,
+        "term": 0.0,
+        "biblical": 0.0
+      }
+    },
+    "t0120": {
+      "kind": "sage",
+      "confidence": 0.93,
+      "p": {
+        "group": 0.0,
+        "person": 0.05,
+        "term": 0.0,
+        "sage": 0.94,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "word": 0.01
+      }
+    },
+    "t0121": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "group": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "person": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0122": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "group": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "person": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0123": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "group": 0.0,
+        "person": 0.0,
+        "term": 0.0,
+        "sage": 1.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0124": {
+      "kind": "biblical",
+      "confidence": 0.69,
+      "p": {
+        "group": 0.0,
+        "sage": 0.01,
+        "term": 0.25,
+        "person": 0.0,
+        "biblical": 0.74,
+        "divine": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0125": {
+      "kind": "sage",
+      "confidence": 0.96,
+      "p": {
+        "group": 0.0,
+        "sage": 0.97,
+        "term": 0.0,
+        "person": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "word": 0.03
+      }
+    },
+    "t0126": {
+      "kind": "term",
+      "confidence": 0.97,
+      "p": {
+        "group": 0.0,
+        "sage": 0.0,
+        "term": 0.97,
+        "person": 0.0,
+        "biblical": 0.01,
+        "divine": 0.0,
+        "word": 0.02
+      }
+    },
+    "t0127": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "group": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "person": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0128": {
+      "kind": "sage",
+      "confidence": 0.58,
+      "p": {
+        "group": 0.0,
+        "sage": 0.65,
+        "term": 0.0,
+        "person": 0.11,
+        "biblical": 0.23,
+        "divine": 0.0,
+        "word": 0.01
+      }
+    },
+    "t0129": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "group": 0.0,
+        "sage": 0.98,
+        "term": 0.0,
+        "person": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "word": 0.02
+      }
+    },
+    "t0130": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "group": 0.0,
+        "sage": 0.99,
+        "term": 0.0,
+        "person": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "word": 0.01
+      }
+    },
+    "t0131": {
+      "kind": "word",
+      "confidence": 0.75,
+      "p": {
+        "group": 0.0,
+        "person": 0.0,
+        "term": 0.06,
+        "sage": 0.14,
+        "biblical": 0.01,
+        "divine": 0.0,
+        "word": 0.79
+      }
+    },
+    "t0132": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "group": 0.0,
+        "sage": 0.99,
+        "term": 0.0,
+        "person": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "word": 0.01
+      }
+    },
+    "t0133": {
+      "kind": "biblical",
+      "confidence": 0.74,
+      "p": {
+        "group": 0.09,
+        "person": 0.0,
+        "term": 0.06,
+        "sage": 0.07,
+        "biblical": 0.78,
+        "divine": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0134": {
+      "kind": "biblical",
+      "confidence": 0.9,
+      "p": {
+        "group": 0.0,
+        "sage": 0.05,
+        "term": 0.03,
+        "person": 0.0,
+        "biblical": 0.92,
+        "divine": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0135": {
+      "kind": "sage",
+      "confidence": 0.5,
+      "p": {
+        "group": 0.0,
+        "person": 0.27,
+        "term": 0.01,
+        "sage": 0.57,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "word": 0.15
+      }
+    },
+    "t0136": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "group": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "person": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0137": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "group": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "person": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0138": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "group": 0.0,
+        "sage": 0.99,
+        "term": 0.0,
+        "person": 0.01,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "word": 0.0
+      }
+    },
+    "t0139": {
+      "kind": "sage",
+      "confidence": 0.61,
+      "p": {
+        "group": 0.01,
+        "sage": 0.67,
+        "term": 0.03,
+        "person": 0.05,
+        "biblical": 0.01,
+        "divine": 0.0,
+        "word": 0.23
+      }
+    },
+    "t0140": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "word": 0.0,
+        "biblical": 0.0,
+        "person": 0.0,
+        "term": 0.0,
+        "sage": 1.0,
+        "divine": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0141": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "divine": 0.0,
+        "word": 0.01,
+        "person": 0.0,
+        "term": 0.0,
+        "sage": 0.99,
+        "biblical": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0142": {
+      "kind": "biblical",
+      "confidence": 0.75,
+      "p": {
+        "word": 0.0,
+        "biblical": 0.79,
+        "person": 0.0,
+        "term": 0.19,
+        "divine": 0.0,
+        "sage": 0.02,
+        "group": 0.0
+      }
+    },
+    "t0143": {
+      "kind": "biblical",
+      "confidence": 0.78,
+      "p": {
+        "divine": 0.0,
+        "word": 0.0,
+        "person": 0.0,
+        "term": 0.16,
+        "sage": 0.02,
+        "biblical": 0.81,
+        "group": 0.0
+      }
+    },
+    "t0144": {
+      "kind": "word",
+      "confidence": 0.87,
+      "p": {
+        "word": 0.89,
+        "biblical": 0.06,
+        "person": 0.0,
+        "term": 0.04,
+        "sage": 0.01,
+        "divine": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0145": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "divine": 0.0,
+        "word": 0.0,
+        "person": 0.0,
+        "term": 0.0,
+        "sage": 1.0,
+        "biblical": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0146": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "word": 0.0,
+        "biblical": 0.0,
+        "person": 0.0,
+        "term": 0.0,
+        "sage": 1.0,
+        "divine": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0147": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "word": 0.0,
+        "biblical": 0.0,
+        "person": 0.0,
+        "term": 0.0,
+        "divine": 0.0,
+        "sage": 1.0,
+        "group": 0.0
+      }
+    },
+    "t0148": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "word": 0.01,
+        "biblical": 0.0,
+        "person": 0.01,
+        "term": 0.0,
+        "divine": 0.0,
+        "sage": 0.98,
+        "group": 0.0
+      }
+    },
+    "t0149": {
+      "kind": "sage",
+      "confidence": 0.95,
+      "p": {
+        "word": 0.0,
+        "biblical": 0.04,
+        "sage": 0.96,
+        "term": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0150": {
+      "kind": "sage",
+      "confidence": 0.95,
+      "p": {
+        "word": 0.02,
+        "biblical": 0.0,
+        "person": 0.0,
+        "term": 0.02,
+        "divine": 0.0,
+        "sage": 0.96,
+        "group": 0.0
+      }
+    },
+    "t0151": {
+      "kind": "sage",
+      "confidence": 0.96,
+      "p": {
+        "biblical": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "term": 0.01,
+        "sage": 0.98,
+        "word": 0.01,
+        "group": 0.0
+      }
+    },
+    "t0152": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "word": 0.0,
+        "biblical": 0.0,
+        "person": 0.01,
+        "term": 0.0,
+        "sage": 0.99,
+        "divine": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0153": {
+      "kind": "sage",
+      "confidence": 0.96,
+      "p": {
+        "word": 0.0,
+        "biblical": 0.0,
+        "person": 0.0,
+        "term": 0.03,
+        "divine": 0.0,
+        "sage": 0.97,
+        "group": 0.0
+      }
+    },
+    "t0154": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "biblical": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "term": 0.0,
+        "sage": 1.0,
+        "word": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0155": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "divine": 0.0,
+        "word": 0.0,
+        "person": 0.0,
+        "term": 0.0,
+        "sage": 1.0,
+        "biblical": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0156": {
+      "kind": "term",
+      "confidence": 1.0,
+      "p": {
+        "word": 0.0,
+        "biblical": 0.0,
+        "sage": 0.0,
+        "term": 1.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0157": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "word": 0.0,
+        "biblical": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "divine": 0.0,
+        "person": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0158": {
+      "kind": "sage",
+      "confidence": 0.96,
+      "p": {
+        "word": 0.0,
+        "biblical": 0.0,
+        "sage": 0.98,
+        "term": 0.0,
+        "divine": 0.0,
+        "person": 0.02,
+        "group": 0.0
+      }
+    },
+    "t0159": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "divine": 0.0,
+        "word": 0.0,
+        "person": 0.0,
+        "term": 0.0,
+        "sage": 1.0,
+        "biblical": 0.0,
+        "group": 0.0
+      }
+    },
+    "t0160": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "person": 0.0,
+        "word": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0161": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 0.99,
+        "term": 0.0,
+        "person": 0.0,
+        "word": 0.0,
+        "divine": 0.01
+      }
+    },
+    "t0162": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 0.99,
+        "term": 0.0,
+        "person": 0.0,
+        "word": 0.01,
+        "divine": 0.0
+      }
+    },
+    "t0163": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "person": 0.0,
+        "word": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0164": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "person": 0.0,
+        "word": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0165": {
+      "kind": "sage",
+      "confidence": 0.77,
+      "p": {
+        "biblical": 0.0,
+        "sage": 0.81,
+        "group": 0.0,
+        "term": 0.0,
+        "person": 0.0,
+        "word": 0.01,
+        "divine": 0.18
+      }
+    },
+    "t0166": {
+      "kind": "divine",
+      "confidence": 1.0,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 0.0,
+        "term": 0.0,
+        "person": 0.0,
+        "word": 0.0,
+        "divine": 1.0
+      }
+    },
+    "t0167": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "divine": 0.0,
+        "word": 0.0,
+        "person": 0.0
+      }
+    },
+    "t0168": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "person": 0.0,
+        "word": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0169": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "person": 0.0,
+        "word": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0170": {
+      "kind": "sage",
+      "confidence": 0.96,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 0.97,
+        "term": 0.01,
+        "person": 0.02,
+        "word": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0171": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "person": 0.0,
+        "word": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0172": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.01,
+        "sage": 0.98,
+        "term": 0.0,
+        "person": 0.01,
+        "word": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0173": {
+      "kind": "sage",
+      "confidence": 0.96,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 0.97,
+        "term": 0.0,
+        "person": 0.01,
+        "word": 0.02,
+        "divine": 0.0
+      }
+    },
+    "t0174": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "biblical": 0.0,
+        "sage": 1.0,
+        "group": 0.0,
+        "term": 0.0,
+        "person": 0.0,
+        "word": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0175": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 0.99,
+        "term": 0.0,
+        "person": 0.01,
+        "word": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0176": {
+      "kind": "sage",
+      "confidence": 0.96,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 0.96,
+        "term": 0.02,
+        "person": 0.0,
+        "word": 0.02,
+        "divine": 0.0
+      }
+    },
+    "t0177": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "person": 0.0,
+        "word": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0178": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "biblical": 0.0,
+        "sage": 0.99,
+        "group": 0.0,
+        "term": 0.01,
+        "person": 0.0,
+        "word": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0179": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 1.0,
+        "term": 0.0,
+        "person": 0.0,
+        "word": 0.0,
+        "divine": 0.0
+      }
+    },
+    "t0180": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "word": 0.01,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 0.97,
+        "biblical": 0.0,
+        "term": 0.02
+      }
+    },
+    "t0181": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 1.0,
+        "biblical": 0.0,
+        "term": 0.0
+      }
+    },
+    "t0182": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 1.0,
+        "biblical": 0.0,
+        "term": 0.0
+      }
+    },
+    "t0183": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 1.0,
+        "biblical": 0.0,
+        "term": 0.0
+      }
+    },
+    "t0184": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 1.0,
+        "biblical": 0.0,
+        "term": 0.0
+      }
+    },
+    "t0185": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 1.0,
+        "biblical": 0.0,
+        "term": 0.0
+      }
+    },
+    "t0186": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 1.0,
+        "biblical": 0.0,
+        "term": 0.0
+      }
+    },
+    "t0187": {
+      "kind": "term",
+      "confidence": 0.81,
+      "p": {
+        "word": 0.14,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.01,
+        "sage": 0.01,
+        "biblical": 0.01,
+        "term": 0.83
+      }
+    },
+    "t0188": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "biblical": 0.0,
+        "sage": 1.0,
+        "person": 0.0,
+        "term": 0.0
+      }
+    },
+    "t0189": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 1.0,
+        "biblical": 0.0,
+        "term": 0.0
+      }
+    },
+    "t0190": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "biblical": 0.0,
+        "sage": 1.0,
+        "person": 0.0,
+        "term": 0.0
+      }
+    },
+    "t0191": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 1.0,
+        "biblical": 0.0,
+        "term": 0.0
+      }
+    },
+    "t0192": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 1.0,
+        "biblical": 0.0,
+        "term": 0.0
+      }
+    },
+    "t0193": {
+      "kind": "term",
+      "confidence": 0.99,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "biblical": 0.0,
+        "sage": 0.0,
+        "person": 0.0,
+        "term": 1.0
+      }
+    },
+    "t0194": {
+      "kind": "sage",
+      "confidence": 0.94,
+      "p": {
+        "word": 0.01,
+        "divine": 0.0,
+        "group": 0.01,
+        "person": 0.0,
+        "sage": 0.95,
+        "biblical": 0.0,
+        "term": 0.03
+      }
+    },
+    "t0195": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 0.99,
+        "biblical": 0.0,
+        "term": 0.01
+      }
+    },
+    "t0196": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "word": 0.01,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 0.99,
+        "biblical": 0.0,
+        "term": 0.0
+      }
+    },
+    "t0197": {
+      "kind": "sage",
+      "confidence": 0.97,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 0.98,
+        "biblical": 0.0,
+        "term": 0.02
+      }
+    },
+    "t0198": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 1.0,
+        "biblical": 0.0,
+        "term": 0.0
+      }
+    },
+    "t0199": {
+      "kind": "term",
+      "confidence": 1.0,
+      "p": {
+        "word": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 0.0,
+        "biblical": 0.0,
+        "term": 1.0
+      }
+    },
+    "t0200": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "term": 0.0,
+        "word": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 1.0
+      }
+    },
+    "t0201": {
+      "kind": "sage",
+      "confidence": 0.98,
+      "p": {
+        "term": 0.0,
+        "word": 0.01,
+        "person": 0.0,
+        "group": 0.0,
+        "divine": 0.0,
+        "biblical": 0.0,
+        "sage": 0.99
+      }
+    },
+    "t0202": {
+      "kind": "term",
+      "confidence": 0.93,
+      "p": {
+        "term": 0.94,
+        "word": 0.0,
+        "biblical": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "divine": 0.01,
+        "sage": 0.05
+      }
+    },
+    "t0203": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "term": 0.0,
+        "word": 0.0,
+        "person": 0.0,
+        "group": 0.0,
+        "divine": 0.0,
+        "biblical": 0.0,
+        "sage": 1.0
+      }
+    },
+    "t0204": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "term": 0.0,
+        "word": 0.0,
+        "biblical": 0.0,
+        "divine": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "sage": 1.0
+      }
+    },
+    "t0205": {
+      "kind": "divine",
+      "confidence": 1.0,
+      "p": {
+        "term": 0.0,
+        "word": 0.0,
+        "person": 0.0,
+        "divine": 1.0,
+        "biblical": 0.0,
+        "group": 0.0,
+        "sage": 0.0
+      }
+    },
+    "t0206": {
+      "kind": "sage",
+      "confidence": 0.95,
+      "p": {
+        "term": 0.0,
+        "word": 0.0,
+        "biblical": 0.0,
+        "group": 0.0,
+        "person": 0.04,
+        "divine": 0.01,
+        "sage": 0.95
+      }
+    },
+    "t0207": {
+      "kind": "sage",
+      "confidence": 0.99,
+      "p": {
+        "term": 0.0,
+        "word": 0.0,
+        "biblical": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "divine": 0.0,
+        "sage": 1.0
+      }
+    },
+    "t0208": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "term": 0.0,
+        "word": 0.0,
+        "biblical": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "divine": 0.0,
+        "sage": 1.0
+      }
+    },
+    "t0209": {
+      "kind": "sage",
+      "confidence": 1.0,
+      "p": {
+        "term": 0.0,
+        "word": 0.0,
+        "biblical": 0.0,
+        "group": 0.0,
+        "person": 0.0,
+        "divine": 0.0,
+        "sage": 1.0
+      }
+    }
+  },
+  "tokensIn": 110216
+}

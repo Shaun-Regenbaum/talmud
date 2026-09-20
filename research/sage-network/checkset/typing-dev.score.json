@@ -1,0 +1,281 @@
+{
+  "items": 210,
+  "markersAgree": 205,
+  "byStratum": {
+    "unsure": {
+      "agreed": 57,
+      "jevSameKind": 51,
+      "jevSameSageOrNot": 54
+    },
+    "bare": {
+      "agreed": 59,
+      "jevSameKind": 51,
+      "jevSameSageOrNot": 54
+    },
+    "bare-sure": {
+      "agreed": 29,
+      "jevSameKind": 23,
+      "jevSameSageOrNot": 27
+    },
+    "short": {
+      "agreed": 60,
+      "jevSameKind": 59,
+      "jevSameSageOrNot": 60
+    }
+  },
+  "disagreements": [
+    {
+      "id": "t0014",
+      "surface": "מרי",
+      "stratum": "unsure",
+      "astra": "sage",
+      "fable": "person",
+      "jev": "person"
+    },
+    {
+      "id": "t0041",
+      "surface": "אבא בשלנייא",
+      "stratum": "unsure",
+      "astra": "word",
+      "fable": "term",
+      "jev": "person"
+    },
+    {
+      "id": "t0048",
+      "surface": "רב אומולוגייא",
+      "stratum": "unsure",
+      "astra": "term",
+      "fable": "word",
+      "jev": "term"
+    },
+    {
+      "id": "t0102",
+      "surface": "רב",
+      "stratum": "bare",
+      "astra": "divine",
+      "fable": "word",
+      "jev": "word"
+    },
+    {
+      "id": "t0133",
+      "surface": "לוי",
+      "stratum": "bare-sure",
+      "astra": "word",
+      "fable": "biblical",
+      "jev": "biblical"
+    }
+  ],
+  "jevWrong": [
+    {
+      "id": "t0007",
+      "surface": "יונה",
+      "stratum": "unsure",
+      "markers": "term",
+      "jev": "biblical",
+      "confidence": 0.77,
+      "passage": "ו מאמו ואמר (⟦יונה⟧ ג, א) ויהי דבר ה' אל יונה שנית לאמר שנית דברה עמו שכינה שלישית לא דברה עמו שכינה קתני מיהת גר נושא אשת אחיו מא"
+    },
+    {
+      "id": "t0024",
+      "surface": "רב מכרעאי",
+      "stratum": "unsure",
+      "markers": "word",
+      "jev": "sage",
+      "confidence": 0.63,
+      "passage": ""
+    },
+    {
+      "id": "t0036",
+      "surface": "חנניה",
+      "stratum": "unsure",
+      "markers": "biblical",
+      "jev": "sage",
+      "confidence": 0.74,
+      "passage": "שנאמר ( שם שם, כז): ומתכנשין אחשדרפניא, לפיכך אמר ⟦חנניה⟧ (תהלים קיז, א): הללו את ה' כל גוים. מישאל אמר (שם שם, שם): שבחוהו כל האו"
+    },
+    {
+      "id": "t0044",
+      "surface": "יוסף",
+      "stratum": "unsure",
+      "markers": "word",
+      "jev": "biblical",
+      "confidence": 0.81,
+      "passage": " אבותיכם יוסף עליכם ככם (דברים א יא), ואף דוד אמר ⟦יוסף⟧ ה' עליכם עליכם ועל בניכם (תהלים קטו יד), אף לעולם הבא בלשון הזה הקב\"ה מקב"
+    },
+    {
+      "id": "t0046",
+      "surface": "מרי",
+      "stratum": "unsure",
+      "markers": "word",
+      "jev": "divine",
+      "confidence": 0.51,
+      "passage": "ודי] הרכם צפור. א\"ר אחא בשעה שגלו ישראל היו אומות העכו\"ם שמחין עליהן להגלותן ממקומן. נודי אין כתיב אלא נודו. א\"ר אחא כלפי מעלה אמר"
+    },
+    {
+      "id": "t0053",
+      "surface": "שאול",
+      "stratum": "unsure",
+      "markers": "sage",
+      "jev": "biblical",
+      "confidence": 0.72,
+      "passage": ""
+    },
+    {
+      "id": "t0062",
+      "surface": "רב",
+      "stratum": "bare",
+      "markers": "word",
+      "jev": "term",
+      "confidence": 0.28,
+      "passage": " תדע לך שכן הוא שנאמר הר ציון ירכתי צפון קרית מלך ⟦רב⟧. וכי בצפון הוא והלא אינו אלא בדרום. אלא שם הוא נשחט. שנאמר (ויקרא א יא) על "
+    },
+    {
+      "id": "t0063",
+      "surface": "רבי",
+      "stratum": "bare",
+      "markers": "word",
+      "jev": "sage",
+      "confidence": 0.73,
+      "passage": "תים ואני מאתים א\"ל ר\"ע אפי' אתה מוכר שער ראשך אתה נותן לה כתובתה אמר לו אילו הייתי יודע שהוא כן לא הייתי נודר והתירה רבי עקיבא:"
+    },
+    {
+      "id": "t0068",
+      "surface": "רב",
+      "stratum": "bare",
+      "markers": "word",
+      "jev": "sage",
+      "confidence": 0.58,
+      "passage": "רך בבטן. דוד שנאמר (תהלים טז א) מכתם לדוד מך תם. ו⟦רב⟧ יעבוד צעיר. אמר רב הונא אם זכה יעבד ואם לאו יעבוד. וכיון שראה דוד היאך עשו "
+    },
+    {
+      "id": "t0077",
+      "surface": "רבי",
+      "stratum": "bare",
+      "markers": "word",
+      "jev": "sage",
+      "confidence": 0.73,
+      "passage": "ר הקפר ב⟦רבי⟧, גדול כח השלום, שבשעה שישראל עושין חבורה אחת, אפילו עבודה זרה ביניהם, אין מדת הדין נוגעת בהם, שנאמר: חבור עצבים אפרי"
+    },
+    {
+      "id": "t0090",
+      "surface": "רב",
+      "stratum": "bare",
+      "markers": "word",
+      "jev": "divine",
+      "confidence": 0.54,
+      "passage": "ב⟧ טב מריבון טב דמטוביה מטיב לעמיה אמר שמע מינה עת רצון היא מבעי רחמי בעי רחמי ואתי מיטרא"
+    },
+    {
+      "id": "t0104",
+      "surface": "רבי",
+      "stratum": "bare",
+      "markers": "word",
+      "jev": "sage",
+      "confidence": 0.64,
+      "passage": "סלק הד בבלאי להכא והוה ידע ביה דהוא ממזר. אמר ליה ⟦רבי⟧ זכה עימי. אמר ליה למחר את קאים בציבורא ואנא עביד לך פסיקא. אתא יתיב דריש מ"
+    },
+    {
+      "id": "t0108",
+      "surface": "רבי",
+      "stratum": "bare",
+      "markers": "word",
+      "jev": "sage",
+      "confidence": 0.61,
+      "passage": " ופסק, שמע ריש גלותא ואתא לגביה, אמר ליה ישגח עלי ⟦רבי⟧. אמר ליה אכלית ופסקית. אמר ליה ישגח עלי רבי דלא יהון אמרין לא חשביה כלום מ"
+    },
+    {
+      "id": "t0109",
+      "surface": "ר'",
+      "stratum": "bare",
+      "markers": "word",
+      "jev": "term",
+      "confidence": 0.49,
+      "passage": ""
+    },
+    {
+      "id": "t0124",
+      "surface": "שמואל",
+      "stratum": "bare-sure",
+      "markers": "term",
+      "jev": "biblical",
+      "confidence": 0.69,
+      "passage": "ין גוברין עד דצמת ליה מאתן גוברין. הדא הוא דכתיב (⟦שמואל⟧ ב טו) ואת אבשלום הלכו מאתים איש מירושלים קרואים והולכים לתומם קרואים מדו"
+    },
+    {
+      "id": "t0134",
+      "surface": "שמואל",
+      "stratum": "bare-sure",
+      "markers": "term",
+      "jev": "biblical",
+      "confidence": 0.9,
+      "passage": "דלא חמון מן יומיהון קרייא מסייע לר' יודה בן לקיש (⟦שמואל⟧ א יד) ויאמר שאול לאחיה הגישה ארון האלהים והלא ארון בקרית יערים היה מה עב"
+    },
+    {
+      "id": "t0135",
+      "surface": "רבה",
+      "stratum": "bare-sure",
+      "markers": "word",
+      "jev": "sage",
+      "confidence": 0.5,
+      "passage": "מש ת\"ח הרבה מפני מה מת בחצי ימיו ולא היה אדם שהשיב לה כלום דבר. פעם אחת היי"
+    },
+    {
+      "id": "t0139",
+      "surface": "רבה",
+      "stratum": "bare-sure",
+      "markers": "word",
+      "jev": "sage",
+      "confidence": 0.61,
+      "passage": "ותיכם. אמרו האוכל כשיעור הזה הרי הוא (בארי) [בריא] ומבורך פחות מיכאן מקולקל במיעיו יתר על כן הרי זה רעבתן: איש לאשר באהלו תקחו. מי"
+    },
+    {
+      "id": "t0142",
+      "surface": "שמואל",
+      "stratum": "bare-sure",
+      "markers": "term",
+      "jev": "biblical",
+      "confidence": 0.75,
+      "passage": "ושע יח, כח): וצלע האלף והיבוסי היא ירושלים וגו'. (⟦שמואל⟧ ב כא, יד): ויעשו כל אשר צוה המלך, ומה צוה המלך, צוה להיות מעבירים ארונו "
+    },
+    {
+      "id": "t0143",
+      "surface": "שמואל",
+      "stratum": "bare-sure",
+      "markers": "term",
+      "jev": "biblical",
+      "confidence": 0.78,
+      "passage": "בת את האיש (שמות ב' כ\"א), ויואל שאול את העם לאמר (⟦שמואל⟧ א' י\"ד כ\"ד), הואל וקח ככרים (מלכים ב' ה' כ\"ג), ר' יהושע דסכנין בשם רבי ל"
+    },
+    {
+      "id": "t0187",
+      "surface": "רכ\"ח",
+      "stratum": "short",
+      "markers": "word",
+      "jev": "term",
+      "confidence": 0.81,
+      "passage": "יה עד שנולד פרץ שלשים ושלש שנים. היא שנת ב' אלפים ⟦רכ\"ח⟧ ליצירה ושני חייו מאה ותשע עשרה שנה. פרץ חיה עד שנולד חצרון ח' שנים. וחמול"
+    }
+  ],
+  "jevSameKind": 184,
+  "jevSameSageOrNot": 195,
+  "byConfidence": [
+    {
+      "from": 0.9,
+      "to": 1.0,
+      "n": 142,
+      "right": 141
+    },
+    {
+      "from": 0.7,
+      "to": 0.9,
+      "n": 39,
+      "right": 30
+    },
+    {
+      "from": 0.0,
+      "to": 0.7,
+      "n": 24,
+      "right": 13
+    }
+  ]
+}
