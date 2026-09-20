@@ -54,6 +54,15 @@ class TheRelationWordCanSitBetween(unittest.TestCase):
         (a, b, s), = sigs('והלכתא רב יהודה אמר שמואל')
         self.assertEqual(s['before'], [])
 
+    def test_a_rejected_mention_is_text_between_names_not_a_name(self):
+        # רבה here stands for a mention the typing pass called an ordinary word
+        text = 'רב יהודה אמר רבה אמר שמואל'
+        every = [(a.surface, b.surface) for a, b, _ in relations.pairs(text, LEX)]
+        self.assertEqual(every, [('רב יהודה', 'רבה'), ('רבה', 'שמואל')])
+        kept = list(relations.pairs(text, LEX, keep=lambda m: m.surface != 'רבה'))
+        self.assertEqual([(a.surface, b.surface) for a, b, _ in kept], [('רב יהודה', 'שמואל')])
+        self.assertIn('רבה', kept[0][2]['between'])
+
     def test_names_far_apart_are_not_paired(self):
         self.assertEqual(sigs('רבי מאיר אומר כך וכך וכך וכך וכך וכך וכך רבי יהודה אומר'), [])
 

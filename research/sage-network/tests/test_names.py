@@ -12,6 +12,7 @@ import textio                     # noqa: E402
 GIVEN = {'יוחנן', 'מאיר', 'שמעון', 'הונא', 'יהושע', 'כהנא', 'יצחק', 'אמי', 'אליעזר', 'אלעזר',
          'חנה', 'יהודה', 'ששת', 'שילא', 'נחמן', 'נחמני', 'אידי', 'שישא', 'לוי', 'אשי', 'זוטרא',
          'טוביה', 'גמליאל', 'אבין', 'יוסף', 'פפא', 'חסדא', 'מרדכי', 'אחא', 'יוסי', 'חייא'}
+GIVEN |= {'יוחי', 'עזריה', 'ביבי', 'חנן', 'תנחומא', 'שאול'}
 GIVEN |= {'תנחום', 'חנילאי', 'חנינא', 'שטח', 'יונה', 'ישמעאל', 'ברוקה', 'נחוניה', 'ירמיה', 'בא'}
 LEX = lexmod.Lexicon(GIVEN, {w: 50 for w in GIVEN} | {'הלכה': 900, 'חנם': 40, 'שכר': 60, 'מאי': 5000},
                      descriptions={'המודעי', 'הגלילי'}, origins={'הוצל', 'כפר חנניה'}, father_words={'הקנה'})
@@ -271,6 +272,48 @@ class TheLexiconLearnsFromBehaviour(unittest.TestCase):
         lx = lexmod.build(self.corpus(lines))
         self.assertTrue(lx.is_description('המודעי'))
         self.assertFalse(lx.is_description('הלכה'))
+
+
+class WhatReadingTheJoiningPatternsCaught(unittest.TestCase):
+    """Found by reading the ninety commonest patterns between two names by hand.
+
+    Each of these split one man into two, and the split showed up as a false
+    "relation" between the halves: [A] בן [B] was the 20th commonest pattern.
+    """
+
+    def test_a_short_form_takes_a_father(self):
+        (m,) = mentions('ר"ש בן יוחי אומר')
+        self.assertEqual((m.kind, m.surface, m.fathers), ('abbrev', 'ר"ש בן יוחי', [(None, 'יוחי')]))
+        self.assertEqual(found("ר\"א בר' שמעון אומר"), ["ר\"א בר' שמעון"])
+
+    def test_a_short_form_with_no_father_is_unchanged(self):
+        self.assertEqual(found('דר"א ורבי יוחנן'), ['ר"א', 'רבי יוחנן'])
+
+    def test_abba_after_a_title_is_the_mans_name(self):
+        self.assertEqual(found('אמר רבי אבא אמר רב הונא'), ['רבי אבא', 'רב הונא'])
+        self.assertEqual(found('רבי אבא בר כהנא אמר'), ['רבי אבא בר כהנא'])
+        self.assertEqual(found("ר' תנחומא בי רבי אבא"), ["ר' תנחומא בי רבי אבא"])
+
+    def test_abba_before_a_name_is_still_a_title(self):
+        self.assertEqual(found('אבא שאול אומר'), ['אבא שאול'])
+
+    def test_my_father_is_not_a_name(self):
+        self.assertEqual(found('רבי אומר אבא היה'), ['רבי'])
+
+    def test_a_name_never_takes_the(self):
+        # 1,940 of these were reported as the sage Rabbah
+        self.assertEqual(found('אמר אביי הרבה עשו כרבי ישמעאל'), ['אביי', 'רבי ישמעאל'])
+        self.assertEqual(found('וגומרין את ההלל'), [])
+        self.assertEqual(found('כל המרבה לספר'), [])
+
+    def test_from_rabbah_is_still_found(self):
+        # מרבה is usually "includes", but after "asked of" it is the man; typing decides
+        self.assertEqual(found('בעא מיניה אביי מרבה מהו'), ['אביי', 'רבה'])
+
+    def test_the_father_can_be_a_man_known_by_one_name(self):
+        self.assertEqual(found('א"ר חנן בר רבא אמר'), ["ר' חנן בר רבא"])
+        self.assertEqual(found('אמר רב ביבי בר אביי'), ['רב ביבי בר אביי'])
+        self.assertEqual(found('רב אחא בריה דרבא לרב אשי'), ['רב אחא בריה דרבא', 'רב אשי'])
 
 
 class MarksSurviveNormalisation(unittest.TestCase):

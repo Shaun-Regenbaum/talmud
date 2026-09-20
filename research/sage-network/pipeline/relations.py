@@ -38,10 +38,14 @@ def fold(tok):
     return tok
 
 
-def pairs(text, lexicon):
-    """Yield (first mention, second mention, signature dict) for adjacent names."""
+def pairs(text, lexicon, keep=None):
+    """Yield (first mention, second mention, signature dict) for adjacent names.
+
+    `keep` says whether a mention counts as a name at all. A mention it rejects
+    (הרבה typed as the word "much") is treated as ordinary text between names.
+    """
     toks = names.tokens(text)
-    ms = list(names.find(text, lexicon))
+    ms = [m for m in names.find(text, lexicon) if keep is None or keep(m)]
     starts = [t[0] for t in toks]
 
     def tok_index(pos):
