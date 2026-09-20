@@ -21,3 +21,11 @@ CONVENTIONS = (
     'A short form beginning with ר or אר is usually a sage, but ר"ה can be Rosh Hashanah and רה"ר the public domain. '
     'A given name with no title, in a verse or a Bible story, is the Bible figure.'
 )
+
+# What the chat models are asked. The check-set markers and the second typing pass
+# share it, so the second pass is the same question that was measured.
+MARKER_PROMPT = (CONVENTIONS + '\n\nFor EACH item say what the wrapped stretch is. "kind" is one of:\n'
+                 + '\n'.join(f'  "{k}": {v}' for k, v in KINDS.items())
+                 + '\n\n"sure": false if a careful reader could reasonably disagree.'
+                 + '\n"reading": ONLY for a short form, the name spelled out if you are confident, else null.'
+                 + '\n\nReturn ONLY JSON: {"items":[{"id":"...","kind":"...","sure":true,"reading":null}]}')
