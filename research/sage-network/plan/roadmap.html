@@ -1,0 +1,346 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sage network roadmap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;600&display=swap" rel="stylesheet">
+<style>:root {
+  --bg: #fafaf7;
+  --fg: #1a1a1a;
+  --muted: #6b6b6b;
+  --line: #e5e3dc;
+  --accent: #8a2a2b;
+  --surface: #ffffff;
+  --surface-sunk: rgba(138, 42, 43, 0.06);
+  --ok: #2f6b66;
+  --warn: #8a6d3b;
+  --bad: #8a2a2b;
+  --ghost: #b9b5aa;
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Spectral", Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-hebrew: "Frank Ruhl Libre", "Mekorot Vilna", serif;
+  --radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15140f;
+    --fg: #ecebe4;
+    --muted: #9a968c;
+    --line: #2f2d26;
+    --accent: #d9787a;
+    --surface: #1d1c16;
+    --surface-sunk: rgba(217, 120, 122, 0.1);
+    --ok: #4f938c;
+    --warn: #a88a4a;
+    --bad: #b85a5c;
+    --ghost: #514d43;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15140f;
+  --fg: #ecebe4;
+  --muted: #9a968c;
+  --line: #2f2d26;
+  --accent: #d9787a;
+  --surface: #1d1c16;
+  --surface-sunk: rgba(217, 120, 122, 0.1);
+  --ok: #4f938c;
+  --warn: #a88a4a;
+  --bad: #b85a5c;
+  --ghost: #514d43;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-serif);
+  font-size: 15px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 56px 20px 96px;
+}
+h1 {
+  font-family: var(--font-ui);
+  font-size: 30px;
+  line-height: 1.25;
+  font-weight: 600;
+  margin: 0 0 14px;
+}
+h2 {
+  font-family: var(--font-ui);
+  font-size: 19px;
+  font-weight: 600;
+  margin: 54px 0 12px;
+  scroll-margin-top: 16px;
+}
+h3 {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 26px 0 8px;
+}
+p {
+  margin: 0 0 14px;
+}
+ul,
+ol {
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+li {
+  margin-bottom: 7px;
+}
+a {
+  color: var(--accent);
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+.lede {
+  font-size: 17px;
+}
+.muted {
+  color: var(--muted);
+}
+.he {
+  font-family: var(--font-hebrew);
+  font-size: 1.08em;
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+.toc {
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 14px 18px 14px 36px;
+  margin: 24px 0;
+}
+.toc li {
+  margin-bottom: 3px;
+}
+.panel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 16px 20px;
+  margin: 18px 0;
+}
+.panel p:last-child {
+  margin-bottom: 0;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13.5px;
+  margin: 12px 0;
+}
+th,
+td {
+  text-align: left;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+th {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+td.num,
+th.num {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.scroll {
+  overflow-x: auto;
+}
+svg.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 10px 0 4px;
+}
+svg.chart text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  fill: var(--fg);
+}
+svg.chart text.lbl {
+  font-family: var(--font-ui);
+  fill: var(--muted);
+}
+svg.diagram {
+  display: block;
+  width: 100%;
+  max-width: 760px;
+  height: auto;
+  margin: 14px auto;
+}
+svg.diagram text {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  fill: var(--fg);
+}
+svg.diagram text.s {
+  font-size: 10.5px;
+  fill: var(--muted);
+}
+figure {
+  margin: 20px 0;
+}
+figcaption {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--surface-sunk);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.rec {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 16px 18px;
+  margin: 16px 0;
+}
+.rec dl {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 8px 16px;
+  margin: 0;
+  font-size: 13.5px;
+}
+.rec dt {
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-top: 2px;
+}
+.rec dd {
+  margin: 0;
+}
+.tag {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1px 6px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.tag.ok {
+  color: var(--ok);
+  border-color: var(--ok);
+}
+.tag.warn {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+.tag.bad {
+  color: var(--bad);
+  border-color: var(--bad);
+}
+ol.stages {
+  list-style: none;
+  padding: 0;
+  counter-reset: st;
+}
+ol.stages > li {
+  counter-increment: st;
+  border-top: 1px solid var(--line);
+  padding: 14px 0 6px 44px;
+  position: relative;
+  margin: 0;
+}
+ol.stages > li::before {
+  content: counter(st);
+  position: absolute;
+  left: 0;
+  top: 13px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--accent);
+}
+ol.stages h3 {
+  margin: 0 0 4px;
+}
+ol.stages p {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 44px 0;
+}
+@media (max-width: 560px) {
+  .rec dl {
+    grid-template-columns: 1fr;
+  }
+  .rec dt {
+    padding-top: 8px;
+  }
+}
+
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:18px 0}
+.card{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:14px 16px}
+.card h3{margin:0 0 8px;font-size:13px;letter-spacing:.05em;text-transform:uppercase}
+.card ul{margin:0;padding-left:18px;font-size:14px} .card li{margin-bottom:5px}
+.card.done h3{color:var(--ok)} .card.now h3{color:var(--warn)} .card.you h3{color:var(--bad)}
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+.num{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:12px 14px}
+.num b{display:block;font-family:var(--font-mono);font-size:24px;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1.1}
+.num span{font-family:var(--font-ui);font-size:12px;color:var(--muted)}
+svg.road{display:block;width:100%;height:auto;margin:8px 0 4px}
+svg.road text{font-family:var(--font-ui);font-size:12.5px;fill:var(--fg)}
+svg.road text.s{font-size:10.5px;fill:var(--muted)}
+svg.road text.ph{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.09em;fill:var(--muted)}
+svg.road .w text{fill:#fff} svg.road .w text.s{fill:#fff;opacity:.85}
+</style></head><body><div class="wrap">
+<p class="eyebrow">talmud.dev &middot; sage network &middot; 20 September 2026</p>
+<h1>The plan on one page</h1>
+<p class="lede">Work out who every name in the Talmud is, from the text alone. Open the biographies last.</p>
+<svg class="road" viewBox="0 0 760 424" role="img" aria-label="The plan: get the text, find names, work out who, connect and ship. Check sets marked by people feed every stage."><defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--bad)"/></marker></defs><rect x="0" y="2" width="14" height="14" rx="3" fill="var(--ok)" stroke="none" stroke-width="1.2"/><text class="s" x="20" y="13.5">done</text><rect x="59.6" y="2" width="14" height="14" rx="3" fill="var(--warn)" stroke="none" stroke-width="1.2"/><text class="s" x="79.6" y="13.5">running now</text><rect x="164.0" y="2" width="14" height="14" rx="3" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text class="s" x="184.0" y="13.5">next</text><rect x="223.6" y="2" width="14" height="14" rx="3" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/><text class="s" x="243.6" y="13.5">later</text><rect x="289.6" y="2" width="14" height="14" rx="3" fill="var(--surface-sunk)" stroke="var(--bad)" stroke-width="1.2"/><text class="s" x="309.6" y="13.5">needs you</text><path d="M192 71H212" stroke="var(--muted)" stroke-width="1.3" fill="none" marker-end="url(#a)"/><path d="M142 175H157" stroke="var(--muted)" stroke-width="1.3" fill="none" marker-end="url(#a)"/><path d="M302 175H317" stroke="var(--muted)" stroke-width="1.3" fill="none" marker-end="url(#a)"/><path d="M462 175H477" stroke="var(--muted)" stroke-width="1.3" fill="none" marker-end="url(#a)"/><path d="M192 279H212" stroke="var(--muted)" stroke-width="1.3" fill="none" marker-end="url(#a)"/><path d="M407 279H427" stroke="var(--muted)" stroke-width="1.3" fill="none" marker-end="url(#a)"/><path d="M192 383H212" stroke="var(--muted)" stroke-width="1.3" fill="none" marker-end="url(#a)"/><path d="M407 383H427" stroke="var(--muted)" stroke-width="1.3" fill="none" marker-end="url(#a)"/><path d="M70 100V124" stroke="var(--muted)" stroke-width="1.3" fill="none" marker-end="url(#a)"/><path d="M70 204V228" stroke="var(--muted)" stroke-width="1.3" fill="none" marker-end="url(#a)"/><path d="M70 308V332" stroke="var(--muted)" stroke-width="1.3" fill="none" marker-end="url(#a)"/><path d="M648 175H624" stroke="var(--bad)" stroke-width="1.3" stroke-dasharray="4 3" fill="none" marker-end="url(#b)"/><path d="M648 279H624" stroke="var(--bad)" stroke-width="1.3" stroke-dasharray="4 3" fill="none" marker-end="url(#b)"/><path d="M648 383H624" stroke="var(--bad)" stroke-width="1.3" stroke-dasharray="4 3" fill="none" marker-end="url(#b)"/><rect x="650" y="138" width="108" height="272" rx="6" fill="var(--surface-sunk)" stroke="var(--bad)" stroke-dasharray="5 4" stroke-width="1.2"/><text x="704" y="232" text-anchor="middle" font-weight="600">Check sets</text><text class="s" x="704" y="250" text-anchor="middle">marked by people</text><text class="s" x="704" y="266" text-anchor="middle">about 800 items</text><text x="704" y="296" text-anchor="middle" font-weight="600" style="fill:var(--bad)">needs you</text><text class="ph" x="0" y="34">GET THE TEXT</text><text class="ph" x="0" y="138">FIND</text><text class="ph" x="0" y="242">WORK OUT WHO</text><text class="ph" x="0" y="346">CONNECT AND SHIP</text><g class="w"><rect x="0" y="44" width="190" height="54" rx="6" fill="var(--ok)" stroke="none" stroke-width="1.2"/><text x="95.0" y="67" text-anchor="middle" font-weight="600">Download every edition</text><text class="s" x="95.0" y="84" text-anchor="middle">all 281 works, no failures</text></g><g class=""><rect x="215" y="44" width="190" height="54" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/><text x="310.0" y="67" text-anchor="middle" font-weight="600">Line editions up</text><text class="s" x="310.0" y="84" text-anchor="middle">Mishnah lines up already</text></g><g class="w"><rect x="0" y="148" width="140" height="54" rx="6" fill="var(--ok)" stroke="none" stroke-width="1.2"/><text x="70.0" y="171" text-anchor="middle" font-weight="600">Find names</text><text class="s" x="70.0" y="188" text-anchor="middle">rebuilt, 38 tests</text></g><g class=""><rect x="160" y="148" width="140" height="54" rx="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/><text x="230.0" y="171" text-anchor="middle" font-weight="600">Person or not?</text><text class="s" x="230.0" y="188" text-anchor="middle">sort the unsure pile</text></g><g class=""><rect x="320" y="148" width="140" height="54" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/><text x="390.0" y="171" text-anchor="middle" font-weight="600">What joins names</text><text class="s" x="390.0" y="188" text-anchor="middle">counted, not labelled</text></g><g class=""><rect x="480" y="148" width="140" height="54" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/><text x="550.0" y="171" text-anchor="middle" font-weight="600">Clues per mention</text><text class="s" x="550.0" y="188" text-anchor="middle">wording works: 94%</text></g><g class=""><rect x="0" y="252" width="190" height="54" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/><text x="95.0" y="275" text-anchor="middle" font-weight="600">Graph of names</text><text class="s" x="95.0" y="292" text-anchor="middle">two timelines</text></g><g class=""><rect x="215" y="252" width="190" height="54" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/><text x="310.0" y="275" text-anchor="middle" font-weight="600">Merge and split</text><text class="s" x="310.0" y="292" text-anchor="middle">names into people</text></g><g class=""><rect x="430" y="252" width="190" height="54" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/><text x="525.0" y="275" text-anchor="middle" font-weight="600">Order, then eras</text><text class="s" x="525.0" y="292" text-anchor="middle">14 anchors chosen</text></g><g class=""><rect x="0" y="356" width="190" height="54" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/><text x="95.0" y="379" text-anchor="middle" font-weight="600">Score biographies</text><text class="s" x="95.0" y="396" text-anchor="middle">opened last</text></g><g class=""><rect x="215" y="356" width="190" height="54" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/><text x="310.0" y="379" text-anchor="middle" font-weight="600">Odds per mention</text><text class="s" x="310.0" y="396" text-anchor="middle">judging model</text></g><g class=""><rect x="430" y="356" width="190" height="54" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.2"/><text x="525.0" y="379" text-anchor="middle" font-weight="600">Paper and app</text><text class="s" x="525.0" y="396" text-anchor="middle">fix live links too</text></g></svg>
+<div class="grid3">
+<div class="card done"><h3>Done</h3><ul><li>Name finder rebuilt. 40 of 40 sampled names real.</li><li>38 tests, run on every change.</li><li>Every Hebrew edition downloaded. 281 works, no failures.</li><li>14 fixed points for dating chosen.</li></ul></div>
+<div class="card now"><h3>Now</h3><ul><li>Learn the given names from the full text, then list every mention in every edition.</li><li>Then send the &ldquo;not sure&rdquo; names to the cheap judging model.</li></ul></div>
+<div class="card you"><h3>Needs you</h3><ul><li>Who marks the check sets? Nothing can claim accuracy without them.</li><li>What is Astra?</li></ul></div>
+</div>
+<div class="nums">
+<div class="num"><b>281</b><span>works, every Hebrew edition</span></div>
+<div class="num"><b>273,208</b><span>passages saved, each with its edition and a fingerprint</span></div>
+<div class="num"><b>94%</b><span>early or late, from wording alone</span></div>
+<div class="num"><b>41</b><span>spots where print and manuscript name a different man</span></div>
+</div>
+<p class="muted" style="font-size:13px">The long version, with the review and every reason, is <a href="plan.html">plan.html</a>.</p>
+</div></body></html>
