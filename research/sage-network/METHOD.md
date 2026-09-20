@@ -88,15 +88,38 @@ clustered. For both groups the only routes are an outside record or an honest
   for names that are also ordinary words (יוסף, מנא), the title-and-word pair
   acts as a speaker. Descriptions (הגלילי), places of origin (איש הוצל) and
   father bynames (בן הקנה) are learned the same way, not listed.
+- **A random sample cannot find a rare, systematic hole.** The check above said
+  98 of 99, and the finder had never once found ריש לקיש, an anchor named 1,155
+  times: the sampled passages happened not to contain him. `18_anchor_recall.py`
+  now counts 36 fixed-string names in the raw text against what the finder
+  reports, with no model and no sample, and runs after every finder change.
 - **Still missed:** a name with no title and no father (חילפיי), a description
   with no ה (קרתיגנא), a rare spelling of a given name (ר' יבא).
+- **One man still cut in two.** The stronger reader flags a pair as "one name"
+  when the finder has split a man. From its first 2,280 pairs: "the Great" after
+  a name (רבי חייא רבה is R. Hiyya the Great, not R. Hiyya and Rabbah); `ב"ר` as
+  "son of Rabbi" (ר' אלעזר ב"ר שמעון); a father written as a short form (רבה בר
+  ר"נ); a short form followed by בר"ש; a description between the name and the
+  father (ר' יהודה הלוי בר' שלום, ר' בא חסידא בר ר' זעירא); a given name that is
+  also a Bible name after a title (רב דניאל בר קטינא); and אבוה דשמואל,
+  "Shmuel's father", which is a man's standing name. None is fixed yet.
+- **Groups are not found at all.** רבנן (6,278 times), חכמים אומרים (1,383),
+  אחרים, תנא קמא. They matter for disputes of the form "A ורבנן".
 - **Short forms are reported, not opened up.** ר"י can be five rabbis. An
   edition that spells it out has chosen one. The finder reports the short form
   and leaves the choice to a later, checkable stage.
 - Bare רב is also the ordinary word for "much". Each bare mention is flagged.
-- Relation patterns now record the words before the pair and the prefix on the
-  second name as well as the words between, so `איתיביה X לY` is seen. What
-  each pattern MEANS is still unlabelled.
+- **What stands between two names is judged pair by pair, in its passage**, not
+  by pattern: the same words mean different things in different passages. The
+  cheap model is trusted only where it is 0.9 sure (28% of pairs, 32 of 32 on a
+  held-out set). It never answers "nothing links them" and is weak on "explains"
+  and "the same man twice". The rest is read by a stronger reader in batches that
+  each carry hidden test pairs (117 of 120 right so far). `CHECKSETS.md` has it.
+- **Direction.** The kinds are worded "A does something to B", but among the
+  pairs the stronger reader has read, the second man acts on the first in almost
+  one in five. The reader records a direction. The cheap model was never asked;
+  on the held-out set every reversed pair was one it was unsure of, so its
+  confident answers can be read as A acting on B.
 - The vocabulary has a long tail. Roughly 10,000 distinct phrases join two
   names; the few hundred commonest cover about half the instances.
 - Name detection produces junk. Hebrew prefix letters glued to ordinary words
