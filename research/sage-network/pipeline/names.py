@@ -33,6 +33,9 @@ STANDALONE = {
 }
 # Standalone names that also take a patronymic: רבה בר נחמני, רבא בר יוסף.
 STANDALONE_WITH_PATRONYMIC = {'רבה', 'רבא', 'רבינא', 'עולא', 'לוי', 'רבין', 'שמואל', 'רפרם'}
+# Standalone names that turn up as a father: רב ביבי בר אביי, רב אחא בריה דרבא.
+# רב and רבי are handled where the father's title is read.
+STANDALONE_FATHERS = STANDALONE - {'רב', 'רבי', 'הלל', 'שמאי'}
 # Names built on "son of" with no given name: בן עזאי, בר קפרא.
 BEN_NAMES = {('בן', 'עזאי'), ('בן', 'זומא'), ('בן', 'ננס'), ('בן', 'בתירא'), ('בר', 'קפרא'),
              ('בר', 'פדא'), ('בן', 'פטורי'), ('בן', 'בג')}
@@ -80,6 +83,11 @@ def split_prefix(tok, closed):
     if tok in closed:
         return '', tok
     for n in (1, 2, 3):                           # לכדרב שישא: to-like-of-Rav, three deep
+        if 'ה' in tok[:n]:
+            # A personal name never takes "the". הרבה is "much", המרבה is "he who
+            # adds", ההלל is the Hallel. The typing pass called all 1,540 sure
+            # cases of הרבה a word; reading it as the sage Rabbah was always wrong.
+            break
         if len(tok) > n and all(ch in PREFIX for ch in tok[:n]) and tok[n:] in closed and tok[n:] not in NEVER_PEELED:
             return tok[:n], tok[n:]
     return None, None
@@ -95,6 +103,11 @@ class Mention:
 
     def __repr__(self):
         return f'<{self.kind} {self.surface!r}{"" if self.certain else " ?"}>'
+
+
+def _given_after_title(lexicon, word):
+    """אבא is a title before a name (אבא שאול) and a given name after one (רבי אבא)."""
+    return word == 'אבא' or lexicon.is_given(word)
 
 
 def find(text, lexicon):
@@ -136,7 +149,10 @@ def find(text, lexicon):
                 if core == 'ר' and not (nxt and lexicon.is_given(nxt)):
                     i += 1                                  # a lone letter ר is nothing unless a known name follows
                     continue
-                if nxt and nxt not in CONNECTORS and lexicon.is_given(nxt):
+                if nxt and nxt not in CONNECTORS and _given_after_title(lexicon, nxt) and (core != 'אבא' or nxt != 'אבא'):
+                    # רבי אבא: אבא is a title before a name (אבא שאול) but a given
+                    # name after one. Missing this reported "רבי אבא בר כהנא" as
+                    # Rebbi followed by a second man called Abba bar Kahana.
                     head = dict(start=s, j=i + 2, title=core, given=nxt, kind='name', certain=True, prefix=pfx)
                 elif nxt and nxt not in CONNECTORS and lexicon.is_unknown(nxt):
                     # A title before a word seen too rarely to judge. In a hand
@@ -175,12 +191,16 @@ def find(text, lexicon):
             continue
 
         j, fathers = head['j'], []
-        takes_patronymic = head['kind'] == 'name' or (head['kind'] == 'bare' and head['given'] in STANDALONE_WITH_PATRONYMIC)
+        # ר"ש בן יוחי: a short form takes a father too. It stays a short form,
+        # because ר"ש still has to be spelled out, but the father is the best
+        # clue there is to which name it stands for.
+        takes_patronymic = (head['kind'] in ('name', 'abbrev')
+                            or (head['kind'] == 'bare' and head['given'] in STANDALONE_WITH_PATRONYMIC))
         while takes_patronymic and j < n and toks[j][2] in CONNECTORS:
             k = j
             if toks[j][2] in CONNECTOR_NEEDS_TITLE and not (
                     j + 2 < n and split_prefix(toks[j + 1][2], TITLES | TITLE_ABBREV)[1]
-                    and lexicon.is_given(toks[j + 2][2])):
+                    and _given_after_title(lexicon, toks[j + 2][2])):
                 break                                       # בי רב is the study hall
             while k < n and toks[k][2] in CONNECTORS:          # בר בר חנה
                 k += 1
@@ -201,7 +221,7 @@ def find(text, lexicon):
                 t = toks[k][2]
                 # בריה דרב אידי: the ד is glued to the father's title
                 p, c = split_prefix(t, TITLES | TITLE_ABBREV)
-                if c and k + 1 < n and lexicon.is_given(toks[k + 1][2]):
+                if c and k + 1 < n and _given_after_title(lexicon, toks[k + 1][2]) and (c != 'אבא' or toks[k + 1][2] != 'אבא'):
                     ftitle, fgiven, k = c, toks[k + 1][2], k + 2
                 elif c and k + 1 < n and lexicon.is_unknown(toks[k + 1][2]):
                     # "בריה דרב עוירא" where the father's name is too rare to
@@ -214,6 +234,10 @@ def find(text, lexicon):
                     fgiven, k = (t if lexicon.is_given(t) else t[1:]), k + 1
                 elif lexicon.is_father_word(t):               # בן הקנה, בן בג בג: a byname, not a given name
                     fgiven, k = t, k + 1
+                elif split_prefix(t, STANDALONE_FATHERS)[1] and (t in STANDALONE_FATHERS or t[0] == 'ד'):
+                    # חנן בר רבא, ביבי בר אביי, בריה דרבינא: the father is a man
+                    # known by one name. Only a ד may be glued to it here.
+                    fgiven, k = split_prefix(t, STANDALONE_FATHERS)[1], k + 1
             if fgiven is None:
                 break
             fathers.append((ftitle, fgiven))
@@ -245,6 +269,8 @@ def find(text, lexicon):
         if head.get('lead'):
             words.insert(0, head['lead'])
         surface = head.get('surface') or ' '.join(words)
+        if head['kind'] == 'abbrev' and fathers:
+            surface = ' '.join([surface] + words[1:])
         # the span is the name itself: the prefix letter glued to it is not part of it
         start = head['start'] + len(head['prefix'] or '') if not head.get('lead') else head['start']
         yield Mention(start=start, end=end, surface=surface, kind=head['kind'], title=head['title'],
