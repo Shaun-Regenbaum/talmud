@@ -21,6 +21,7 @@
 
 import type { RequestOptions } from '@cloudflare/codemode/mcp';
 import type { Context, Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 
 export type { RequestOptions };
 
@@ -111,8 +112,16 @@ export async function serveCodeModeMcp(c: Context, opts: CodeModeMcpOptions): Pr
     loader: opts.loader,
     timeout: opts.timeoutMs ?? DEFAULT_EXECUTE_TIMEOUT_MS,
   });
-  const fire = (rest: Omit<McpEvent, 'method' | 'tool'>) =>
-    opts.onEvent?.({ method: peek.method, ...(peek.tool ? { tool: peek.tool } : {}), ...rest });
+  let reported = false;
+  const fire = (rest: Omit<McpEvent, 'method' | 'tool'>) => {
+    if (reported) return;
+    reported = true;
+    try {
+      opts.onEvent?.({ method: peek.method, ...(peek.tool ? { tool: peek.tool } : {}), ...rest });
+    } catch {
+      // Recording a request must never change its response.
+    }
+  };
   // A tools/call is reported from HERE, around the sandbox run: the transport
   // streams the HTTP response before the tool executes (the JSON-RPC result is
   // written into the SSE stream later), so the request-level timing below would
@@ -121,7 +130,14 @@ export async function serveCodeModeMcp(c: Context, opts: CodeModeMcpOptions): Pr
   const executor: typeof inner = Object.assign(Object.create(inner), {
     execute: async (...args: Parameters<typeof inner.execute>) => {
       const t = Date.now();
-      const r = await inner.execute(...args);
+      let r: Awaited<ReturnType<typeof inner.execute>>;
+      try {
+        r = await inner.execute(...args);
+      } catch (err) {
+        const error = err instanceof Error ? err.message : String(err);
+        fire({ ms: Date.now() - t, status: 200, error, timedOut: /timed out/i.test(error) });
+        throw err;
+      }
       fire({
         ms: Date.now() - t,
         status: 200,
@@ -140,17 +156,71 @@ export async function serveCodeModeMcp(c: Context, opts: CodeModeMcpOptions): Pr
   });
   const transport = new StreamableHTTPTransport();
   await server.connect(transport);
-  let res: Response | undefined;
-  let status = 500;
+  // Validation can reject a tool call before the executor runs. Observe those
+  // JSON-RPC replies too; the executor already reported calls that reached it.
+  const send = transport.send.bind(transport);
+  transport.send = async (message, options) => {
+    if (peek.method === 'tools/call' && 'id' in message) {
+      let error = 'error' in message ? message.error.message : undefined;
+      if ('result' in message && message.result.isError === true) {
+        const content = message.result.content;
+        error = Array.isArray(content)
+          ? content
+              .filter((item) => item?.type === 'text' && typeof item.text === 'string')
+              .map((item) => item.text)
+              .join(' ')
+              .slice(0, 500)
+          : 'Tool request failed';
+        error ||= 'Tool request failed';
+      }
+      fire({ ms: Date.now() - t0, status: 200, error, timedOut: false });
+    }
+    return send(message, options);
+  };
+  return handleMcpRequest(
+    c,
+    () => transport.handleRequest(c),
+    (status, error) => {
+      if (peek.method !== 'tools/call' || status >= 400) {
+        fire({ ms: Date.now() - t0, status, error, timedOut: false });
+      }
+    },
+  );
+}
+
+/** Preserve transport rejections instead of recording every thrown 4xx as 500. */
+export async function handleMcpRequest(
+  c: Context,
+  handle: () => Promise<Response | undefined>,
+  record: (status: number, error?: string) => void,
+): Promise<Response> {
+  let response: Response;
   try {
-    res = (await transport.handleRequest(c)) ?? undefined;
-    status = res?.status ?? 204;
-    return res ?? c.body(null, 204);
-  } finally {
-    // Everything that is not a tool call (initialize, tools/list, pings,
-    // notifications, malformed bodies) is reported per HTTP request.
-    if (peek.method !== 'tools/call') fire({ ms: Date.now() - t0, status, timedOut: false });
+    response = (await handle()) ?? c.body(null, 204);
+  } catch (err) {
+    if (!(err instanceof HTTPException)) {
+      record(500, err instanceof Error ? err.message : String(err));
+      throw err;
+    }
+    response = err.getResponse();
   }
+  let error: string | undefined;
+  if (response.status >= 400) {
+    try {
+      const body = (await response.clone().json()) as { error?: { message?: string } };
+      error = typeof body.error?.message === 'string' ? body.error.message : undefined;
+    } catch {
+      // Non-JSON transport errors still retain their HTTP status.
+    }
+    // The transport returns 404 for an unsupported protocol. Version rejection
+    // is a bad request, not a missing endpoint; clients use 400 to fall back to
+    // the initialize handshake. Keep the legacy error body and supported list.
+    if (response.status === 404 && error?.startsWith('Bad Request: Unsupported protocol version')) {
+      response = new Response(response.body, { status: 400, headers: response.headers });
+    }
+  }
+  record(response.status, error);
+  return response;
 }
 
 export interface ApiBridgeOptions<E extends object> {

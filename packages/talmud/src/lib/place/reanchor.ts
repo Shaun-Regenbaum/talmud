@@ -115,6 +115,7 @@ export function reanchorArgumentMove(parsed: unknown, segmentsHe: string[]): unk
     };
   };
   const instances = obj.instances as Move[];
+  const bound = (value: number) => Math.max(0, Math.min(Math.trunc(value), segNorms.length - 1));
 
   // Pass 1: locate each move's startSegIdx + tokenStart by excerpt search.
   let lastSection = -1;
@@ -123,8 +124,11 @@ export function reanchorArgumentMove(parsed: unknown, segmentsHe: string[]): unk
   for (const inst of instances) {
     if (!inst || typeof inst !== 'object') continue;
     const f = inst.fields ?? ({} as Move['fields']);
-    const sStart = typeof f.sectionStartSegIdx === 'number' ? f.sectionStartSegIdx : 0;
-    const sEnd = typeof f.sectionEndSegIdx === 'number' ? f.sectionEndSegIdx : segNorms.length - 1;
+    const sStart = bound(Number.isFinite(f.sectionStartSegIdx) ? f.sectionStartSegIdx : 0);
+    const sEnd = Math.max(
+      sStart,
+      bound(Number.isFinite(f.sectionEndSegIdx) ? f.sectionEndSegIdx : segNorms.length - 1),
+    );
     if (sStart !== lastSection) {
       lastSection = sStart;
       searchFromSeg = sStart;
@@ -152,14 +156,19 @@ export function reanchorArgumentMove(parsed: unknown, segmentsHe: string[]): unk
   for (let i = 0; i < instances.length; i++) {
     const cur = instances[i];
     if (!cur) continue;
-    const sStart =
-      typeof cur.fields?.sectionStartSegIdx === 'number'
+    const sStart = bound(
+      Number.isFinite(cur.fields?.sectionStartSegIdx)
         ? cur.fields.sectionStartSegIdx
-        : cur.startSegIdx;
-    const sEnd =
-      typeof cur.fields?.sectionEndSegIdx === 'number'
-        ? cur.fields.sectionEndSegIdx
-        : cur.startSegIdx;
+        : cur.startSegIdx,
+    );
+    const sEnd = Math.max(
+      sStart,
+      bound(
+        Number.isFinite(cur.fields?.sectionEndSegIdx)
+          ? cur.fields.sectionEndSegIdx
+          : cur.startSegIdx,
+      ),
+    );
     if (cur.startSegIdx < sStart) cur.startSegIdx = sStart;
     if (cur.startSegIdx > sEnd) cur.startSegIdx = sEnd;
     const next = instances[i + 1];

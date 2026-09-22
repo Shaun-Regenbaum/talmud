@@ -3572,7 +3572,11 @@ function AppSurfaceBlock(props: { name: string; a: AppSurfaceUsage }): JSX.Eleme
                   <span style={{ color: '#999', 'font-family': 'monospace' }}>
                     {e.ts.slice(0, 16)}
                   </span>{' '}
-                  <code>{e.tool || '—'}</code> <span style={{ color: '#c33' }}>{e.outcome}</span>{' '}
+                  <code>{e.tool || e.method || '—'}</code>{' '}
+                  <Show when={e.status > 0}>
+                    <code>HTTP {e.status}</code>{' '}
+                  </Show>
+                  <span style={{ color: '#c33' }}>{e.outcome}</span>{' '}
                   <span style={{ color: '#666' }}>{e.error}</span>
                 </li>
               )}

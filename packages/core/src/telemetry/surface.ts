@@ -106,8 +106,8 @@ export type McpOutcome = 'ok' | 'error' | 'timeout' | 'http-error';
 
 export function mcpOutcome(ev: Pick<McpEvent, 'timedOut' | 'error' | 'status'>): McpOutcome {
   if (ev.timedOut) return 'timeout';
-  if (ev.error) return 'error';
   if (ev.status >= 400) return 'http-error';
+  if (ev.error) return 'error';
   return 'ok';
 }
 
