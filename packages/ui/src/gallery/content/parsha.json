@@ -1,0 +1,331 @@
+{
+  "source": "https://tanach.dev/api/parsha-study?loc=israel",
+  "retrievedAt": "2026-09-22",
+  "note": "Real response captured for the component gallery; not a current-week calendar assertion.",
+  "data": {
+    "name": "Sukkot I",
+    "heName": "סוכות חג ראשון",
+    "ref": "Leviticus 22:26-23:44",
+    "book": "Leviticus",
+    "startChapter": 22,
+    "titleEn": "The Sacred Calendar",
+    "titleHe": "מועדי ה'",
+    "overviewEn": "This portion opens with laws of animal offerings, then pivots to the sacred calendar (מועדי ה'). It moves from the particular rules of sacrifice to the annual cycle of festivals, each with its own observance and offerings. The portion culminates in the Feast of Booths (חג הסוכות), linking the harvest celebration to the memory of the Exodus. The reader sees how the rhythm of sacred time (זמן) structures the life of Israel, from weekly שבת to yearly pilgrimage festivals.",
+    "overviewHe": "הפרשה פותחת בדיני קורבנות, ואז עוברת ללוח השנה הקדוש (מועדי ה'). היא נעה מחוקי הקרבן הפרטיים למחזור השנתי של החגים, כל אחד עם מצוותיו וקורבנותיו. הפרשה מסתיימת בחג הסוכות, המקשר את חג האסיף לזכר יציאת מצרים. הקורא רואה כיצד מקצב הזמן הקדוש (זמן) מארגן את חיי ישראל, משבת שבועית ועד חגי הרגלים השנתיים.",
+    "composition": {
+      "law": 100
+    },
+    "map": {
+      "totalVerses": 52,
+      "units": [
+        {
+          "index": 0,
+          "offset": 0,
+          "verses": 8
+        },
+        {
+          "index": 1,
+          "offset": 8,
+          "verses": 8
+        },
+        {
+          "index": 2,
+          "offset": 16,
+          "verses": 14
+        },
+        {
+          "index": 3,
+          "offset": 30,
+          "verses": 3
+        },
+        {
+          "index": 4,
+          "offset": 33,
+          "verses": 7
+        },
+        {
+          "index": 5,
+          "offset": 40,
+          "verses": 12
+        }
+      ],
+      "landmarks": [
+        {
+          "index": 0,
+          "offset": 10,
+          "verses": 1
+        },
+        {
+          "index": 1,
+          "offset": 12,
+          "verses": 1
+        },
+        {
+          "index": 2,
+          "offset": 22,
+          "verses": 1
+        },
+        {
+          "index": 3,
+          "offset": 34,
+          "verses": 1
+        },
+        {
+          "index": 4,
+          "offset": 47,
+          "verses": 1
+        },
+        {
+          "index": 5,
+          "offset": 49,
+          "verses": 1
+        }
+      ],
+      "aliyot": [
+        {
+          "index": 0,
+          "offset": 0,
+          "verses": 8,
+          "n": 1,
+          "ref": "Leviticus 22:26-22:33"
+        },
+        {
+          "index": 1,
+          "offset": 8,
+          "verses": 3,
+          "n": 2,
+          "ref": "Leviticus 23:1-23:3"
+        },
+        {
+          "index": 2,
+          "offset": 11,
+          "verses": 5,
+          "n": 3,
+          "ref": "Leviticus 23:4-23:8"
+        },
+        {
+          "index": 3,
+          "offset": 16,
+          "verses": 6,
+          "n": 4,
+          "ref": "Leviticus 23:9-23:14"
+        },
+        {
+          "index": 4,
+          "offset": 22,
+          "verses": 8,
+          "n": 5,
+          "ref": "Leviticus 23:15-23:22"
+        },
+        {
+          "index": 5,
+          "offset": 30,
+          "verses": 10,
+          "n": 6,
+          "ref": "Leviticus 23:23-23:32"
+        },
+        {
+          "index": 6,
+          "offset": 40,
+          "verses": 12,
+          "n": 7,
+          "ref": "Leviticus 23:33-23:44"
+        }
+      ],
+      "chapters": [
+        {
+          "chapter": 22,
+          "offset": 0
+        },
+        {
+          "chapter": 23,
+          "offset": 8
+        }
+      ]
+    },
+    "flow": [
+      {
+        "startChapter": 22,
+        "startVerse": 26,
+        "endChapter": 22,
+        "endVerse": 33,
+        "kind": "law",
+        "titleEn": "Laws of Offerings",
+        "titleHe": "דיני קורבנות",
+        "summaryEn": "Rules for newborn animals, the thanksgiving offering (תודה), and the sanctity of God's name (קדושת השם) set the stage for the sacred calendar.",
+        "summaryHe": "חוקי בהמה שנולדה, קורבן תודה, וקדושת השם מכינים את הקרקע ללוח השנה הקדוש.",
+        "ref": "Leviticus 22:26–33"
+      },
+      {
+        "startChapter": 23,
+        "startVerse": 1,
+        "endChapter": 23,
+        "endVerse": 8,
+        "kind": "law",
+        "titleEn": "The Appointed Times",
+        "titleHe": "המועדים",
+        "summaryEn": "Introduction of the sacred occasions (מועדים), beginning with the weekly שבת and the spring festivals of פסח and מצות.",
+        "summaryHe": "הקדמה למועדים, החל משבת השבועית וחגי האביב פסח ומצות.",
+        "ref": "Leviticus 23:1–8"
+      },
+      {
+        "startChapter": 23,
+        "startVerse": 9,
+        "endChapter": 23,
+        "endVerse": 22,
+        "kind": "law",
+        "titleEn": "The Omer and Shavuot",
+        "titleHe": "העומר ושבועות",
+        "summaryEn": "The offering of the first sheaf (עומר) begins the counting of seven weeks (ספירת העומר) leading to the festival of weeks (שבועות), with its new grain offering and the command to leave the corners of the field for the poor.",
+        "summaryHe": "הקרבת העומר מתחילה ספירת שבעה שבועות עד חג השבועות, עם מנחת ביכורים ומצוות לקט ופאה לעניים.",
+        "ref": "Leviticus 23:9–22"
+      },
+      {
+        "startChapter": 23,
+        "startVerse": 23,
+        "endChapter": 23,
+        "endVerse": 25,
+        "kind": "law",
+        "titleEn": "The Blowing of Horns",
+        "titleHe": "תרועה",
+        "summaryEn": "The first day of the seventh month is a sacred occasion of rest and loud blasts (תרועה), a call to remembrance.",
+        "summaryHe": "יום ראשון של החודש השביעי הוא מקרא קודש, שבתון וזכרון תרועה.",
+        "ref": "Leviticus 23:23–25"
+      },
+      {
+        "startChapter": 23,
+        "startVerse": 26,
+        "endChapter": 23,
+        "endVerse": 32,
+        "kind": "law",
+        "titleEn": "The Day of Atonement",
+        "titleHe": "יום הכיפורים",
+        "summaryEn": "The tenth day of the seventh month is a day of self-denial (עינוי נפש) and complete rest, a sabbath of sabbaths, with severe penalties for violation.",
+        "summaryHe": "יום עשירי בחודש השביעי הוא יום כיפור, שבת שבתון ועינוי נפש, עם עונשים חמורים על חילולו.",
+        "ref": "Leviticus 23:26–32"
+      },
+      {
+        "startChapter": 23,
+        "startVerse": 33,
+        "endChapter": 23,
+        "endVerse": 44,
+        "kind": "law",
+        "titleEn": "The Feast of Booths",
+        "titleHe": "חג הסוכות",
+        "summaryEn": "The final festival, חג הסוכות, lasts seven days with an eighth day of solemn gathering (עצרת); it includes the four species (ארבעת המינים) and dwelling in booths (סוכה) to remember the Exodus.",
+        "summaryHe": "החג האחרון, חג הסוכות, נמשך שבעה ימים עם יום שמיני עצרת; כולל ארבעת המינים וישיבה בסוכה לזכר יציאת מצרים.",
+        "ref": "Leviticus 23:33–44"
+      }
+    ],
+    "landmarks": [
+      {
+        "chapter": 23,
+        "verse": 3,
+        "labelEn": "The Sabbath of complete rest",
+        "labelHe": "שבת שבתון",
+        "ref": "Leviticus 23:3"
+      },
+      {
+        "chapter": 23,
+        "verse": 5,
+        "labelEn": "The Passover offering at twilight",
+        "labelHe": "פסח בין הערביים",
+        "ref": "Leviticus 23:5"
+      },
+      {
+        "chapter": 23,
+        "verse": 15,
+        "labelEn": "Counting the Omer",
+        "labelHe": "ספירת העומר",
+        "ref": "Leviticus 23:15"
+      },
+      {
+        "chapter": 23,
+        "verse": 27,
+        "labelEn": "The Day of Atonement",
+        "labelHe": "יום הכיפורים",
+        "ref": "Leviticus 23:27"
+      },
+      {
+        "chapter": 23,
+        "verse": 40,
+        "labelEn": "The four species",
+        "labelHe": "ארבעת המינים",
+        "ref": "Leviticus 23:40"
+      },
+      {
+        "chapter": 23,
+        "verse": 42,
+        "labelEn": "Dwelling in booths",
+        "labelHe": "ישיבה בסוכה",
+        "ref": "Leviticus 23:42"
+      }
+    ],
+    "terms": [
+      {
+        "he": "מועדי ה'",
+        "en": "the fixed times of GOD"
+      },
+      {
+        "he": "שבת",
+        "en": "Sabbath"
+      },
+      {
+        "he": "פסח",
+        "en": "Passover"
+      },
+      {
+        "he": "מצות",
+        "en": "unleavened bread"
+      },
+      {
+        "he": "עומר",
+        "en": "the first sheaf"
+      },
+      {
+        "he": "ספירת העומר",
+        "en": "counting of the Omer"
+      },
+      {
+        "he": "שבועות",
+        "en": "the festival of weeks"
+      },
+      {
+        "he": "תרועה",
+        "en": "loud blasts"
+      },
+      {
+        "he": "יום הכיפורים",
+        "en": "the Day of Atonement"
+      },
+      {
+        "he": "עינוי נפש",
+        "en": "self-denial"
+      },
+      {
+        "he": "חג הסוכות",
+        "en": "the Feast of Booths"
+      },
+      {
+        "he": "עצרת",
+        "en": "solemn gathering"
+      },
+      {
+        "he": "ארבעת המינים",
+        "en": "the four species"
+      },
+      {
+        "he": "סוכה",
+        "en": "booth"
+      },
+      {
+        "he": "תודה",
+        "en": "thanksgiving offering"
+      },
+      {
+        "he": "קדושת השם",
+        "en": "sanctity of God's name"
+      }
+    ]
+  }
+}

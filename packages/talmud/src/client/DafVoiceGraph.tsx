@@ -275,7 +275,7 @@ export default function DafVoiceGraph(props: Props): JSX.Element {
                     rx={9}
                     ry={9}
                     fill="none"
-                    stroke={focused() ? '#8a2a2b' : '#e4e0d4'}
+                    stroke={focused() ? 'var(--accent)' : '#e4e0d4'}
                     stroke-width={focused() ? 1.75 : 1}
                     filter="url(#voice-card-shadow)"
                   />

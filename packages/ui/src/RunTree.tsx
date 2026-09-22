@@ -1,3 +1,7 @@
+import { assignLanes, roundedConnector } from './Graph';
+
+export { assignLanes } from './Graph';
+
 /**
  * runTreeShared — the build-provenance DAG primitives shared by the Inspect dock
  * (RunTreeDock) and the embeddable alignment view (RunTreeDag): the run-tree
@@ -38,7 +42,7 @@ export const displayLabel = (id: string, label: string): string =>
 
 // app graph tokens (from ArgumentFlowGraph / ArgumentVoiceMap)
 export const CARD_STROKE = '#e4e0d4',
-  ACTIVE_STROKE = '#8a2a2b';
+  ACTIVE_STROKE = 'var(--accent)';
 export const CANVAS = '#fdfcf9',
   CANVAS_BORDER = '#ece9df';
 export const BADGE_LLM = '#1d4ed8',
@@ -57,22 +61,6 @@ export const LANE_BASE = 14,
 
 /** Interval-graph lane assignment so connectors sharing vertical extent never
  *  sit in the same lane (ported from ArgumentFlowGraph). */
-export function assignLanes(edges: Array<{ from: number; to: number }>): number[] {
-  const order = edges
-    .map((c, i) => ({ i, lo: Math.min(c.from, c.to), hi: Math.max(c.from, c.to) }))
-    .sort((a, b) => a.lo - b.lo || a.hi - b.hi);
-  const laneHi: number[] = [];
-  const lanes = new Array<number>(edges.length).fill(0);
-  for (const { i, lo, hi } of order) {
-    let lane = laneHi.findIndex((h) => h < lo);
-    if (lane === -1) {
-      lane = laneHi.length;
-      laneHi.push(hi);
-    } else laneHi[lane] = hi;
-    lanes[i] = lane;
-  }
-  return lanes;
-}
 export interface LaidEdge {
   fromRow: number;
   toRow: number;
@@ -152,16 +140,7 @@ export function edgePath(fromRow: number, toRow: number, lane: number): string {
   const laneX = LEFT_PAD + NODE_W + LANE_BASE + lane * LANE_STEP;
   const y1 = TOP_PAD + fromRow * ROW_H + NODE_H / 2;
   const y2 = TOP_PAD + toRow * ROW_H + NODE_H / 2;
-  const dir = y2 >= y1 ? 1 : -1;
-  const r = Math.min(CORNER_R, laneX - rightX, Math.abs(y2 - y1) / 2 || CORNER_R);
-  return [
-    `M ${rightX} ${y1}`,
-    `L ${laneX - r} ${y1}`,
-    `Q ${laneX} ${y1} ${laneX} ${y1 + dir * r}`,
-    `L ${laneX} ${y2 - dir * r}`,
-    `Q ${laneX} ${y2} ${laneX - r} ${y2}`,
-    `L ${rightX} ${y2}`,
-  ].join(' ');
+  return roundedConnector(rightX, laneX, y1, y2, CORNER_R);
 }
 
 export type IconVariant = 'source' | 'mark' | 'enrichment' | 'computed';

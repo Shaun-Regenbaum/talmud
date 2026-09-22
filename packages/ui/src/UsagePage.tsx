@@ -1,204 +1,200 @@
-/**
- * @corpus/ui — UsagePage.
- *
- * The LLM-usage dashboard, shared by every corpus app. It is a pure PROJECTION
- * of a @corpus/core/telemetry UsageSummary (totals + per-producer / per-model /
- * per-ref breakdowns + the content-in/out cost split) — the app just fetches
- * its ledger and hands it over. Tabs switch the breakdown dimension; nothing
- * about the tables is hand-built per app. Styling: `.usage-*` in usage.css.
- */
-
 import type { UsageBucket, UsageEntry, UsageSummary } from '@corpus/core/telemetry/types';
-import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { createSignal, For, type JSX, Show } from 'solid-js';
+import { DataTable, Meter } from './DataTable';
+import { LangToggle } from './LangToggle';
+import { FilterChip, StatCard } from './Study';
 
-const usd = (n: number) => `$${(n ?? 0).toFixed(4)}`;
-const num = (n: number) => (n ?? 0).toLocaleString();
-const model = (m: string) => m.replace(/^openrouter\//, '');
-const tokens = (b: UsageBucket) =>
-  b.tokensIn || b.tokensOut ? `${num(b.tokensIn)} / ${num(b.tokensOut)}` : '—';
-const perCall = (b: UsageBucket) => (b.calls > 0 ? usd(b.costUsd / b.calls) : '—');
-
-type Tab = 'producer' | 'model' | 'page' | 'recent';
-
-function BucketTable(props: {
-  nameHeader: string;
-  buckets: Record<string, UsageBucket>;
-  nameCell?: (name: string) => JSX.Element | string;
-}): JSX.Element {
-  const rows = createMemo(() =>
-    Object.entries(props.buckets).sort((a, b) => b[1].costUsd - a[1].costUsd),
-  );
-  const maxCost = () => Math.max(...rows().map(([, b]) => b.costUsd), 0.000001);
-  return (
-    <table class="usage-table">
-      <thead>
-        <tr>
-          <th>{props.nameHeader}</th>
-          <th>Calls</th>
-          <th>Tokens in/out</th>
-          <th>In/out cost</th>
-          <th>$/call</th>
-          <th>Cost</th>
-        </tr>
-      </thead>
-      <tbody>
-        <For
-          each={rows()}
-          fallback={
-            <tr>
-              <td colspan="6" class="usage-empty">
-                Nothing yet.
-              </td>
-            </tr>
-          }
-        >
-          {([name, b]) => (
-            <tr>
-              <td class="usage-name">{props.nameCell ? props.nameCell(name) : name}</td>
-              <td>{num(b.calls)}</td>
-              <td>{tokens(b)}</td>
-              <td>
-                {b.costInUsd || b.costOutUsd ? `${usd(b.costInUsd)} / ${usd(b.costOutUsd)}` : '—'}
-              </td>
-              <td>{perCall(b)}</td>
-              <td class="usage-cost-cell">
-                <span class="usage-bar">
-                  <span class="usage-fill" style={{ width: `${(b.costUsd / maxCost()) * 100}%` }} />
-                </span>
-                <span class="usage-cost">{usd(b.costUsd)}</span>
-              </td>
-            </tr>
-          )}
-        </For>
-      </tbody>
-    </table>
-  );
+const messages = {
+  title: ['Usage', 'שימוש'],
+  back: ['Back', 'חזרה'],
+  cost: ['Cost', 'עלות'],
+  calls: ['Calls', 'קריאות'],
+  tokensIn: ['Tokens in', 'טוקנים נכנסים'],
+  tokensOut: ['Tokens out', 'טוקנים יוצאים'],
+  tokenPair: ['Tokens in/out', 'טוקנים נכנסים/יוצאים'],
+  costPair: ['In/out cost', 'עלות קלט/פלט'],
+  perCall: ['Cost per call', 'עלות לקריאה'],
+  producer: ['By producer', 'לפי תהליך'],
+  model: ['By model', 'לפי מודל'],
+  page: ['By page', 'לפי עמוד'],
+  recent: ['Recent', 'אחרונים'],
+  name: ['Name', 'שם'],
+  when: ['When', 'מתי'],
+  reference: ['Reference', 'מראה מקום'],
+  process: ['Producer', 'תהליך'],
+  modelName: ['Model', 'מודל'],
+  empty: ['Nothing recorded yet.', 'עדיין לא נרשמו נתונים.'],
+  showLess: ['Show less', 'הצגת פחות'],
+  showMore: ['Show more', 'הצגת עוד'],
+} as const;
+type Lang = 'en' | 'he';
+function t(key: keyof typeof messages, lang: Lang): string {
+  return messages[key][lang === 'he' ? 1 : 0];
 }
+const usd = (n: number) => `$${(n ?? 0).toFixed(4)}`;
+const model = (name: string) => name.replace(/^openrouter\//, '');
+type Tab = 'producer' | 'model' | 'page' | 'recent';
 
 export interface UsagePageProps {
   summary: UsageSummary;
   recent: UsageEntry[];
   title?: string;
-  /** Back-link target (e.g. "/" ) + label. */
   backHref?: string;
   backLabel?: string;
+  lang?: Lang;
+  onLangChange?: (lang: Lang) => void;
 }
-
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'producer', label: 'By producer' },
-  { id: 'model', label: 'By model' },
-  { id: 'page', label: 'By page' },
-  { id: 'recent', label: 'Recent' },
-];
-
 export function UsagePage(props: UsagePageProps): JSX.Element {
   const [tab, setTab] = createSignal<Tab>('producer');
-  const t = () => props.summary.totals;
-
+  const lang = () => props.lang ?? 'en';
+  const label = (key: keyof typeof messages) => t(key, lang());
+  const num = (value: number) => (value ?? 0).toLocaleString(lang());
+  const totals = () => props.summary.totals;
+  const tableLabels = () => ({
+    empty: label('empty'),
+    showLess: label('showLess'),
+    showMore: (count: number) => `${label('showMore')} (${num(count)})`,
+  });
+  const buckets = (): [string, UsageBucket][] =>
+    Object.entries(
+      tab() === 'model'
+        ? props.summary.byModel
+        : tab() === 'page'
+          ? props.summary.byRef
+          : props.summary.byProducer,
+    );
+  const maxCost = () => Math.max(...buckets().map(([, bucket]) => bucket.costUsd), 0.000001);
   return (
-    <div class="usage-page">
+    <main class="usage-page" dir={lang() === 'he' ? 'rtl' : 'ltr'}>
       <header class="usage-head">
         <Show when={props.backHref}>
-          <a class="usage-back" href={props.backHref}>
-            ‹ {props.backLabel ?? 'Back'}
+          <a class="ui-button" href={props.backHref}>
+            ‹ {props.backLabel ?? label('back')}
           </a>
         </Show>
-        <h1 class="usage-title">{props.title ?? 'LLM Usage'}</h1>
+        <h1 class="usage-title">{props.title ?? label('title')}</h1>
+        <Show when={props.onLangChange}>
+          <LangToggle lang={lang()} onChange={(value) => props.onLangChange?.(value)} />
+        </Show>
       </header>
-
       <div class="usage-cards">
-        <div class="usage-card">
-          <div class="usage-card-label">Cost</div>
-          <div class="usage-card-value">{usd(t().costUsd)}</div>
-        </div>
-        <div class="usage-card">
-          <div class="usage-card-label">Calls</div>
-          <div class="usage-card-value">{num(t().calls)}</div>
-        </div>
-        <div class="usage-card">
-          <div class="usage-card-label">Tokens in</div>
-          <div class="usage-card-value">{num(t().tokensIn)}</div>
-        </div>
-        <div class="usage-card">
-          <div class="usage-card-label">Tokens out</div>
-          <div class="usage-card-value">{num(t().tokensOut)}</div>
-        </div>
-        <Show when={t().costInUsd || t().costOutUsd}>
-          <div class="usage-card">
-            <div class="usage-card-label">In / out cost</div>
-            <div class="usage-card-value usage-card-split">
-              {usd(t().costInUsd)} / {usd(t().costOutUsd)}
-            </div>
-          </div>
+        <StatCard label={label('cost')} value={usd(totals().costUsd)} />
+        <StatCard label={label('calls')} value={num(totals().calls)} />
+        <StatCard label={label('tokensIn')} value={num(totals().tokensIn)} />
+        <StatCard label={label('tokensOut')} value={num(totals().tokensOut)} />
+        <Show when={totals().costInUsd || totals().costOutUsd}>
+          <StatCard
+            label={label('costPair')}
+            value={`${usd(totals().costInUsd)} / ${usd(totals().costOutUsd)}`}
+          />
         </Show>
       </div>
-
-      <div class="usage-tabs" role="tablist">
-        <For each={TABS}>
-          {(x) => (
-            <button
-              type="button"
-              role="tab"
-              class="usage-tab"
-              classList={{ on: tab() === x.id }}
-              aria-selected={tab() === x.id}
-              onClick={() => setTab(x.id)}
-            >
-              {x.label}
-            </button>
+      <div class="usage-tabs">
+        <For each={['producer', 'model', 'page', 'recent'] as const}>
+          {(value) => (
+            <FilterChip active={tab() === value} onClick={() => setTab(value)}>
+              {label(value)}
+            </FilterChip>
           )}
         </For>
       </div>
-
-      <Show when={tab() === 'producer'}>
-        <BucketTable nameHeader="Producer" buckets={props.summary.byProducer} />
+      <Show
+        when={tab() !== 'recent'}
+        fallback={
+          <DataTable
+            labels={tableLabels()}
+            rows={props.recent}
+            maxRows={30}
+            columns={[
+              {
+                key: 'when',
+                header: label('when'),
+                sortValue: (row) => row.ts,
+                cell: (row) => new Date(row.ts).toLocaleString(lang()),
+              },
+              { key: 'ref', header: label('reference'), cell: (row) => row.ref },
+              { key: 'producer', header: label('process'), cell: (row) => row.producer },
+              { key: 'model', header: label('modelName'), cell: (row) => model(row.model) },
+              {
+                key: 'in',
+                header: label('tokensIn'),
+                align: 'right',
+                sortValue: (row) => row.tokensIn,
+                cell: (row) => num(row.tokensIn),
+              },
+              {
+                key: 'out',
+                header: label('tokensOut'),
+                align: 'right',
+                sortValue: (row) => row.tokensOut,
+                cell: (row) => num(row.tokensOut),
+              },
+              {
+                key: 'cost',
+                header: label('cost'),
+                align: 'right',
+                sortValue: (row) => row.costUsd ?? -1,
+                cell: (row) => (row.costUsd == null ? '—' : usd(row.costUsd)),
+              },
+            ]}
+          />
+        }
+      >
+        <DataTable
+          labels={tableLabels()}
+          rows={buckets()}
+          initialSort={{ key: 'cost', dir: 'desc' }}
+          maxRows={30}
+          columns={[
+            {
+              key: 'name',
+              header: label('name'),
+              sortValue: (row) => row[0],
+              cell: (row) => (tab() === 'model' ? model(row[0]) : row[0]),
+            },
+            {
+              key: 'calls',
+              header: label('calls'),
+              align: 'right',
+              sortValue: (row) => row[1].calls,
+              cell: (row) => num(row[1].calls),
+            },
+            {
+              key: 'tokens',
+              header: label('tokenPair'),
+              align: 'right',
+              cell: (row) =>
+                row[1].tokensIn || row[1].tokensOut
+                  ? `${num(row[1].tokensIn)} / ${num(row[1].tokensOut)}`
+                  : '—',
+            },
+            {
+              key: 'split',
+              header: label('costPair'),
+              align: 'right',
+              cell: (row) =>
+                row[1].costInUsd || row[1].costOutUsd
+                  ? `${usd(row[1].costInUsd)} / ${usd(row[1].costOutUsd)}`
+                  : '—',
+            },
+            {
+              key: 'perCall',
+              header: label('perCall'),
+              align: 'right',
+              cell: (row) => (row[1].calls > 0 ? usd(row[1].costUsd / row[1].calls) : '—'),
+            },
+            {
+              key: 'cost',
+              header: label('cost'),
+              align: 'right',
+              sortValue: (row) => row[1].costUsd,
+              cell: (row) => (
+                <Meter value={row[1].costUsd} max={maxCost()} text={usd(row[1].costUsd)} />
+              ),
+            },
+          ]}
+        />
       </Show>
-      <Show when={tab() === 'model'}>
-        <BucketTable nameHeader="Model" buckets={props.summary.byModel} nameCell={model} />
-      </Show>
-      <Show when={tab() === 'page'}>
-        <BucketTable nameHeader="Page" buckets={props.summary.byRef} />
-      </Show>
-      <Show when={tab() === 'recent'}>
-        <table class="usage-table">
-          <thead>
-            <tr>
-              <th>When</th>
-              <th>Ref</th>
-              <th>Producer</th>
-              <th>Model</th>
-              <th>In</th>
-              <th>Out</th>
-              <th>Cost</th>
-            </tr>
-          </thead>
-          <tbody>
-            <For
-              each={props.recent}
-              fallback={
-                <tr>
-                  <td colspan="7" class="usage-empty">
-                    No recent calls.
-                  </td>
-                </tr>
-              }
-            >
-              {(e) => (
-                <tr>
-                  <td>{new Date(e.ts).toLocaleString()}</td>
-                  <td class="usage-name">{e.ref}</td>
-                  <td>{e.producer}</td>
-                  <td>{model(e.model)}</td>
-                  <td>{num(e.tokensIn)}</td>
-                  <td>{num(e.tokensOut)}</td>
-                  {/* null = unpriced model (Workers AI etc.); keep it distinct from $0. */}
-                  <td>{e.costUsd == null ? '—' : usd(e.costUsd)}</td>
-                </tr>
-              )}
-            </For>
-          </tbody>
-        </table>
-      </Show>
-    </div>
+    </main>
   );
 }

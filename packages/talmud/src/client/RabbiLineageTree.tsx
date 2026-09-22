@@ -110,7 +110,7 @@ const SUBJECT_NAME_MAX_CHARS = 21;
 
 const EVIDENCE_BG = '#fef3c7';
 const EVIDENCE_BORDER = '#eab308';
-const PRIMARY_COLOR = '#8a2a2b';
+const PRIMARY_COLOR = 'var(--accent)';
 
 type Role = 'subject' | 'teacher' | 'student' | 'partner' | 'family';
 

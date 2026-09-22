@@ -15,7 +15,9 @@
     "dev:tanach": "pnpm --filter tanach dev",
     "ship": "pnpm --filter talmud ship",
     "ship:talmud": "pnpm --filter talmud ship",
-    "ship:tanach": "pnpm --filter tanach ship"
+    "ship:tanach": "pnpm --filter tanach ship",
+    "gallery": "pnpm --filter tanach gallery",
+    "gallery:build": "pnpm --filter tanach gallery:build"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.13"

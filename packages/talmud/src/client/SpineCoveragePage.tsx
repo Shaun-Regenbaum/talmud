@@ -288,7 +288,7 @@ export function SpineCoveragePage(): JSX.Element {
       {/* tractate picker */}
       <div class="responsive-row" style={{ 'margin-bottom': '1.1rem', gap: '0.4rem' }}>
         <input
-          class="tb-select"
+          class="ui-select"
           value={input()}
           onInput={(e) => setInput(e.currentTarget.value)}
           onKeyDown={(e) => {
@@ -299,7 +299,7 @@ export function SpineCoveragePage(): JSX.Element {
         />
         <button
           type="button"
-          class="tb-primary"
+          class="ui-button ui-button-primary"
           style={{ 'border-radius': 'var(--tb-radius)' }}
           onClick={() => go(input())}
         >
@@ -394,7 +394,7 @@ export function SpineCoveragePage(): JSX.Element {
                 </span>
                 <button
                   type="button"
-                  class="tb-select"
+                  class="ui-select"
                   disabled={flowView.loading}
                   onClick={() => refetchFlow()}
                 >
@@ -534,7 +534,7 @@ export function SpineCoveragePage(): JSX.Element {
                               &middot; {boxes} {boxes === 1 ? 'box' : 'boxes'}{' '}
                               <button
                                 type="button"
-                                class="tb-select"
+                                class="ui-select"
                                 style={{
                                   'margin-left': '0.5rem',
                                   height: 'auto',

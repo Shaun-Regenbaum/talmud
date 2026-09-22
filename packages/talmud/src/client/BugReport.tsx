@@ -137,8 +137,8 @@ export function BugReport(props: BugReportProps): JSX.Element {
               onClick={submit}
               disabled={status() === 'submitting' || !text().trim()}
               style={{
-                background: '#8a2a2b',
-                border: '1px solid #8a2a2b',
+                background: 'var(--accent)',
+                border: '1px solid var(--accent)',
                 'border-radius': '4px',
                 padding: '0.3rem 0.8rem',
                 'font-size': '0.75rem',

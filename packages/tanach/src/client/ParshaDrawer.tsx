@@ -1,5 +1,8 @@
 import { aiStatus, noteAiResponse, noteAiSuccess } from '@corpus/ui/aiStatus';
+import { Button } from '@corpus/ui/Button';
 import { Prose } from '@corpus/ui/Prose';
+import { ChoiceCard, SectionHeading, SourceCard, StatusMessage } from '@corpus/ui/Study';
+import { StudyOverview } from '@corpus/ui/StudyOverview';
 import { createEffect, createResource, createSignal, For, type JSX, Show } from 'solid-js';
 import {
   type ParshaFlowSection,
@@ -123,25 +126,30 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
 
   return (
     <section class="parsha-study">
-      <p class="parsha-ref">{props.study.ref}</p>
-      <h3 class="perek-title">{textFor(props.lang, props.study.titleEn, props.study.titleHe)}</h3>
-      <TermedProse
-        en={props.study.overviewEn}
-        he={props.study.overviewHe}
-        lang={props.lang}
-        terms={props.study.terms ?? []}
-      />
+      <StudyOverview
+        reference={props.study.ref}
+        title={textFor(props.lang, props.study.titleEn, props.study.titleHe)}
+      >
+        <TermedProse
+          en={props.study.overviewEn}
+          he={props.study.overviewHe}
+          lang={props.lang}
+          terms={props.study.terms ?? []}
+        />
+      </StudyOverview>
 
       <section class="parsha-section">
-        <div class="parsha-section-head">
-          <h4>{props.lang === 'he' ? 'מהלך הפרשה' : 'The parsha, move by move'}</h4>
-          <span>
-            {drawColumn()
-              ? `${props.study.map?.totalVerses} ${props.lang === 'he' ? 'פסוקים' : 'verses'} · `
-              : ''}
-            {props.study.flow.length} {props.lang === 'he' ? 'יחידות' : 'moves'}
-          </span>
-        </div>
+        <SectionHeading
+          title={props.lang === 'he' ? 'מהלך הפרשה' : 'The parsha, move by move'}
+          detail={
+            <>
+              {drawColumn()
+                ? `${props.study.map?.totalVerses} ${props.lang === 'he' ? 'פסוקים' : 'verses'} · `
+                : ''}
+              {props.study.flow.length} {props.lang === 'he' ? 'יחידות' : 'moves'}
+            </>
+          }
+        />
 
         {/* The column IS the list: every move's title sits beside its own
             stretch of the portion. Where there is no map to draw, the plain
@@ -153,20 +161,12 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
               <For each={props.study.flow}>
                 {(section, index) => (
                   <li>
-                    <button
-                      type="button"
-                      class="parsha-band"
-                      classList={{ active: selected() === index() }}
+                    <ChoiceCard
+                      active={selected() === index()}
                       onClick={() => choose(index())}
-                    >
-                      <span class={`parsha-band-stripe parsha-kind-${section.kind}`} />
-                      <span class="parsha-band-title">
-                        {textFor(props.lang, section.titleEn, section.titleHe)}
-                      </span>
-                      <span class="parsha-band-ref" dir="ltr">
-                        {section.ref.replace(`${props.study.book} `, '')}
-                      </span>
-                    </button>
+                      title={textFor(props.lang, section.titleEn, section.titleHe)}
+                      detail={section.ref.replace(`${props.study.book} `, '')}
+                    />
                   </li>
                 )}
               </For>
@@ -207,15 +207,15 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
                 {textFor(props.lang, section().summaryEn, section().summaryHe)}
               </p>
               <Show when={deep.loading}>
-                <p class="comm-muted">
+                <StatusMessage>
                   {props.lang === 'he' ? 'קורא את הקטע מקרוב…' : 'Reading the passage closely…'}
-                </p>
+                </StatusMessage>
               </Show>
               {/* deep.error first: reading deep() while the resource is
                   errored (a rejected fetch, not a non-ok status) would
                   rethrow and break the drawer subtree. */}
               <Show when={!deep.loading && (deep.error || deep() === null)}>
-                <p class="comm-muted">
+                <StatusMessage>
                   {aiStatus()
                     ? props.lang === 'he'
                       ? 'יצירת תוכן מושבתת כרגע.'
@@ -223,7 +223,7 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
                     : props.lang === 'he'
                       ? 'לא הצלחנו לקרוא את הקטע. נסו שוב.'
                       : "Couldn't read this passage. Try again."}
-                </p>
+                </StatusMessage>
               </Show>
               <Show when={!deep.loading && !deep.error && deep()}>
                 {(value) => (
@@ -236,17 +236,21 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
                 )}
               </Show>
               <div class="parsha-flow-actions">
-                <button
+                <Button
                   type="button"
                   onClick={() =>
                     props.onOpenText(props.study.book, section().startChapter, section().startVerse)
                   }
                 >
                   {props.lang === 'he' ? 'פתח בטקסט' : 'Open in the text'}
-                </button>
-                <button type="button" class="primary" onClick={() => buildThread(selected() ?? 0)}>
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={() => buildThread(selected() ?? 0)}
+                >
                   {props.lang === 'he' ? 'בנה דבר תורה' : 'Build a dvar Torah'}
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -254,20 +258,18 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
       </section>
 
       <section class="parsha-section">
-        <div class="parsha-section-head">
-          <h4>{props.lang === 'he' ? 'ציוני דרך' : 'Landmarks'}</h4>
-          <span>{props.lang === 'he' ? 'מקומות שכדאי להכיר' : 'find them quickly'}</span>
-        </div>
+        <SectionHeading
+          title={props.lang === 'he' ? 'ציוני דרך' : 'Landmarks'}
+          detail={props.lang === 'he' ? 'מקומות שכדאי להכיר' : 'Find them quickly'}
+        />
         <div class="parsha-landmarks">
           <For each={props.study.landmarks}>
             {(landmark) => (
-              <button
-                type="button"
+              <ChoiceCard
+                title={textFor(props.lang, landmark.labelEn, landmark.labelHe)}
+                detail={landmark.ref.replace(`${props.study.book} `, '')}
                 onClick={() => props.onOpenText(props.study.book, landmark.chapter, landmark.verse)}
-              >
-                <span>{landmark.ref.replace(`${props.study.book} `, '')}</span>
-                {textFor(props.lang, landmark.labelEn, landmark.labelHe)}
-              </button>
+              />
             )}
           </For>
         </div>
@@ -279,14 +281,14 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
             {selectedFlow()?.ref} · {props.lang === 'he' ? 'מסלול לימוד' : 'study thread'}
           </p>
           <Show when={thread.loading}>
-            <p class="comm-muted">
+            <StatusMessage>
               {props.lang === 'he'
                 ? 'מחבר את הפסוקים למקורות ולדבר תורה…'
                 : 'Connecting the passage, sources, and dvar Torah…'}
-            </p>
+            </StatusMessage>
           </Show>
-          <Show when={!thread.loading && thread() === null}>
-            <p class="comm-muted">
+          <Show when={!thread.loading && (thread.error || thread() === null)}>
+            <StatusMessage>
               {aiStatus()
                 ? props.lang === 'he'
                   ? 'יצירת תוכן מושבתת כרגע.'
@@ -294,9 +296,9 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
                 : props.lang === 'he'
                   ? 'לא הצלחנו לבנות את מסלול הלימוד. נסו שוב.'
                   : "Couldn't build this study thread. Try again."}
-            </p>
+            </StatusMessage>
           </Show>
-          <Show when={thread()}>
+          <Show when={!thread.error && thread()}>
             {(value) => (
               <>
                 <h4>{textFor(props.lang, value().titleEn, value().titleHe)}</h4>
@@ -313,12 +315,20 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
                     <span>{props.lang === 'he' ? 'מקורות' : 'Sources that sharpen it'}</span>
                     <For each={value().sources}>
                       {(source) => (
-                        <a href={sourceUrl(source.ref)} target="_blank" rel="noreferrer">
-                          <b>{textFor(props.lang, source.labelEn, source.labelHe) || source.ref}</b>
-                          <small>
-                            {textFor(props.lang, source.contributionEn, source.contributionHe)}
-                          </small>
-                        </a>
+                        <SourceCard
+                          title={
+                            <a href={sourceUrl(source.ref)} target="_blank" rel="noreferrer">
+                              {textFor(props.lang, source.labelEn, source.labelHe) || source.ref}
+                            </a>
+                          }
+                          reference={source.ref}
+                        >
+                          <Prose
+                            en={source.contributionEn}
+                            he={source.contributionHe}
+                            lang={props.lang}
+                          />
+                        </SourceCard>
                       )}
                     </For>
                   </div>
@@ -331,7 +341,7 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
                     lang={props.lang}
                     class="parsha-dvar-copy"
                   />
-                  <button type="button" class="parsha-copy" onClick={copyDvar}>
+                  <Button type="button" onClick={copyDvar}>
                     {copied()
                       ? props.lang === 'he'
                         ? 'הועתק'
@@ -339,7 +349,7 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
                       : props.lang === 'he'
                         ? 'העתק דבר תורה'
                         : 'Copy dvar Torah'}
-                  </button>
+                  </Button>
                 </div>
               </>
             )}

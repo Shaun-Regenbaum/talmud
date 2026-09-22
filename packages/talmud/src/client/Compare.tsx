@@ -37,7 +37,7 @@ function MeasurementTable(props: { ours: LayoutResult | null; theirs: NpmSpacerR
       <thead>
         <tr style={{ 'border-bottom': '1px solid #ccc' }}>
           <th style={{ 'text-align': 'left', padding: '0.25rem 0.5rem', color: '#666' }}></th>
-          <th style={{ 'text-align': 'right', padding: '0.25rem 0.5rem', color: '#8a2a2b' }}>
+          <th style={{ 'text-align': 'right', padding: '0.25rem 0.5rem', color: 'var(--accent)' }}>
             ours
           </th>
           <th style={{ 'text-align': 'right', padding: '0.25rem 0.5rem', color: '#0066cc' }}>
@@ -233,7 +233,7 @@ export default function Compare() {
               'font-size': '0.85rem',
               'text-transform': 'uppercase',
               'letter-spacing': '0.08em',
-              color: '#8a2a2b',
+              color: 'var(--accent)',
               'margin-bottom': '0.4rem',
             }}
           >

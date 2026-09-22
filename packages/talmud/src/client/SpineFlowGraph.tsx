@@ -1,3 +1,4 @@
+import { GraphEdge, roundedConnector } from '@corpus/ui/Graph';
 /**
  * SpineFlowGraph — the whole tractate's argument flow as ONE continuous SVG.
  *
@@ -382,16 +383,7 @@ export default function SpineFlowGraph(props: {
   // Orthogonal connector through a right-side lane gutter. rX = node right edge.
   const orthPath = (y1: number, y2: number, lane: number, rX: number): string => {
     const x = rX + LANE_BASE + lane * LANE_STEP;
-    const dir = y2 >= y1 ? 1 : -1;
-    const r = Math.min(CORNER_R, x - rX, Math.abs(y2 - y1) / 2 || CORNER_R);
-    return [
-      `M ${rX} ${y1}`,
-      `L ${x - r} ${y1}`,
-      `Q ${x} ${y1} ${x} ${y1 + dir * r}`,
-      `L ${x} ${y2 - dir * r}`,
-      `Q ${x} ${y2} ${x - r} ${y2}`,
-      `L ${rX} ${y2}`,
-    ].join(' ');
+    return roundedConnector(rX, x, y1, y2, CORNER_R);
   };
   const edgePath = (y1: number, y2: number, lane: number): string =>
     orthPath(y1, y2, lane, LEFT_PAD + NODE_W);
@@ -535,7 +527,7 @@ export default function SpineFlowGraph(props: {
                         font-size="13"
                         font-weight="700"
                         font-family="system-ui, -apple-system, sans-serif"
-                        fill="#8a2a2b"
+                        fill="var(--accent)"
                       >
                         {dafPageLabel(h.page)}
                       </text>
@@ -571,7 +563,7 @@ export default function SpineFlowGraph(props: {
 
                 <For each={m.edges}>
                   {(e, i) => (
-                    <path
+                    <GraphEdge
                       d={edgePath(
                         m.edgeAnchorY(e.from, true),
                         m.edgeAnchorY(e.to, false),
@@ -587,7 +579,7 @@ export default function SpineFlowGraph(props: {
                       marker-end={`url(#spine-arrow-${e.kind})`}
                     >
                       <title>{`${dafPageLabel(e.fromPage)} §${e.fromSec + 1} ${t(`link.rel.${e.kind}`)}${e.cross ? ` ${dafPageLabel(e.toPage)}` : ''} §${e.toSec + 1}${e.note ? ` — ${e.note}` : ''}`}</title>
-                    </path>
+                    </GraphEdge>
                   )}
                 </For>
 
@@ -661,8 +653,8 @@ export default function SpineFlowGraph(props: {
                             height={h}
                             rx={10}
                             ry={10}
-                            fill={active() ? '#fdf2f2' : lit() ? '#fffaf0' : '#ffffff'}
-                            stroke={active() ? '#8a2a2b' : lit() ? HILITE : '#e4e0d4'}
+                            fill={active() ? 'var(--surface-sunk)' : lit() ? '#fffaf0' : '#ffffff'}
+                            stroke={active() ? 'var(--accent)' : lit() ? HILITE : '#e4e0d4'}
                             stroke-width={active() || lit() ? 2 : 1}
                             filter="url(#spine-card-shadow)"
                           />
@@ -682,7 +674,7 @@ export default function SpineFlowGraph(props: {
                             font-size="11"
                             font-weight="700"
                             font-family="system-ui, sans-serif"
-                            fill="#8a2a2b"
+                            fill="var(--accent)"
                           >
                             {num}
                           </text>
@@ -1019,7 +1011,7 @@ export default function SpineFlowGraph(props: {
                           height={OV_NODE_H}
                           rx={6}
                           ry={6}
-                          fill={meta.hasCross ? '#fdf2f2' : '#ffffff'}
+                          fill={meta.hasCross ? 'var(--surface-sunk)' : '#ffffff'}
                           stroke={meta.hasCross ? '#d8a3a3' : '#e4e0d4'}
                           stroke-width={1}
                         />
@@ -1030,7 +1022,7 @@ export default function SpineFlowGraph(props: {
                           font-size="11"
                           font-weight="700"
                           font-family="system-ui, sans-serif"
-                          fill="#8a2a2b"
+                          fill="var(--accent)"
                         >
                           {dafPageLabel(page)}
                         </text>

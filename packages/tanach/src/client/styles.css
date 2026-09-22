@@ -1,4 +1,5 @@
-/* Design tokens + the tanach palette/fonts come from @corpus/ui (imported in
+@import "@corpus/ui/readingmap.css";
+/* Shared design tokens and corpus fonts come from @corpus/ui (imported in
    main.tsx: tokens.css + themes/tanach.css). This sheet only consumes them:
    --bg/--fg/--ink/--muted/--line/--accent/--parchment*, and the type split
    --font-ui (chrome) / --font-serif (Latin reading) / --font-hebrew. */
@@ -24,97 +25,6 @@ body {
 .app.view-scroll {
   max-width: none;
   padding: 0;
-}
-
-/* ---- top bar ---- */
-/* All top-bar chrome (brand, selects, buttons, toggles — they use
-   font-family: inherit) renders in the shared UI sans, not the reading serif. */
-.topbar {
-  position: sticky;
-  top: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--line);
-  font-family: var(--font-ui);
-  z-index: 10;
-}
-.brand {
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-size: 14px;
-  color: var(--accent);
-}
-.book-select {
-  font-family: inherit;
-  font-size: 15px;
-  padding: 5px 8px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--ink);
-}
-
-.view-toggle {
-  display: inline-flex;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  overflow: hidden;
-}
-.view-toggle button {
-  font-family: inherit;
-  font-size: 14px;
-  padding: 5px 12px;
-  border: 0;
-  background: #fff;
-  color: var(--muted);
-  cursor: pointer;
-}
-.view-toggle button.active {
-  background: var(--accent);
-  color: #fff;
-}
-
-.nikud-toggle {
-  font-family: inherit;
-  font-size: 15px;
-  padding: 4px 12px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.chapter-nav {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.chapter-nav button,
-.chapter-foot button {
-  font-family: inherit;
-  font-size: 15px;
-  padding: 4px 12px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--ink);
-  cursor: pointer;
-}
-.chapter-nav button:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-.chapter-label {
-  font-size: 14px;
-  color: var(--muted);
-  min-width: 48px;
-  text-align: center;
 }
 
 .status {
@@ -271,8 +181,8 @@ body {
   transition: background-color 0.08s ease;
 }
 .mg-seg.hl {
-  background: rgba(122, 92, 46, 0.18);
-  box-shadow: 0 0 0 2px rgba(122, 92, 46, 0.18);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 /* event anchors: short section labels from the events producer, set as small
@@ -288,7 +198,7 @@ body {
   font-size: 10.5px;
   line-height: 1.4;
   letter-spacing: 0.01em;
-  color: rgba(122, 92, 46, 0.7);
+  color: color-mix(in srgb, var(--accent) 70%, transparent);
   background: none;
   border: 0;
   cursor: pointer;
@@ -313,49 +223,6 @@ body {
   }
 }
 
-/* usage + inspect topbar utilities: tidy pill-style controls (was a dotted
-   underline; the <button> showed the browser's default focus rectangle). */
-.usage-link {
-  font-family: var(--font-ui);
-  font-size: 13px;
-  color: var(--muted);
-  text-decoration: none;
-  padding: 3px 9px;
-  border-radius: var(--radius-pill);
-  border: 1px solid transparent;
-  background: none;
-  cursor: pointer;
-  transition:
-    background 0.12s ease,
-    border-color 0.12s ease,
-    color 0.12s ease;
-}
-.usage-link:hover {
-  color: var(--accent);
-  background: var(--surface-sunk);
-}
-.usage-link:focus {
-  outline: none;
-}
-.usage-link:focus-visible {
-  outline: none;
-  border-color: var(--accent);
-}
-/* the "inspect" topbar toggle is a button styled like the usage link */
-.inspect-link {
-  font-family: var(--font-ui);
-}
-.inspect-link.active {
-  color: var(--accent);
-  background: var(--surface-sunk);
-  border-color: var(--line);
-}
-
-/* inspector drawer: one row per cached/missed producer piece */
-/* The inspect rows + totals are now the shared @corpus/ui InspectorRow —
-   see inspector.css. (.inspect-link below is tanach-only chrome.) */
-/* The /usage page is the shared @corpus/ui UsagePage — see usage.css. */
-
 /* the build-provenance DAG opened under a clicked waterfall row (the DAG canvas
    itself is the shared @corpus/ui RunTreeDag) */
 .inspect-dag {
@@ -370,24 +237,6 @@ body {
   color: var(--muted);
   margin-bottom: 10px;
 }
-
-/* this-week's-parsha button + EN/HE language toggle (like the Talmud reader) */
-.parsha-btn {
-  font-family: inherit;
-  font-size: 14px;
-  padding: 5px 12px;
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  background: none;
-  color: var(--accent);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.parsha-btn:hover {
-  background: var(--accent);
-  color: #fff;
-}
-/* (the EN/עב toggle now renders via @corpus/ui's <LangToggle> — .ui-lang-toggle) */
 
 /* section-note popover (clicking a margin anchor) */
 .note-pop {
@@ -474,223 +323,6 @@ body {
   margin-top: 17px;
   border-top: 1px solid var(--line);
 }
-.parsha-section-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-  font-family: var(--font-ui);
-}
-.parsha-section-head h4 {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.3;
-  text-transform: uppercase;
-  letter-spacing: 0.055em;
-  color: var(--ink);
-}
-.parsha-section-head span {
-  flex: none;
-  font-size: 10px;
-  color: var(--muted);
-}
-.ui-drawer[dir="rtl"] .parsha-section-head h4 {
-  font-family: var(--font-hebrew);
-  font-size: 14px;
-  text-transform: none;
-  letter-spacing: 0;
-}
-/* ---- the reading kinds ----
-   One colour per kind, used by every surface that speaks about kind: the map's
-   segments, a band's stripe, the legend dots. Narrative keeps the app accent;
-   poetry and records join in a cooler violet and a dry olive so a portion that
-   is mostly song or mostly inventory can't be mistaken for law or story. */
-.parsha-kind-narrative {
-  background: var(--accent);
-}
-.parsha-kind-law {
-  background: #3f6d65;
-}
-.parsha-kind-discourse {
-  background: #bd8750;
-}
-.parsha-kind-poetry {
-  background: #6a5b8c;
-}
-.parsha-kind-records {
-  background: #767c66;
-}
-
-/* ---- the parsha column ----
-   The portion unrolled down the drawer: four rails on one verse axis, laid out
-   with logical properties so the whole thing mirrors in the Hebrew drawer (a
-   scroll runs the other way, and so should its map). */
-.parsha-column {
-  display: flex;
-  width: 100%;
-}
-.parsha-column-chapters {
-  position: relative;
-  flex: none;
-  width: 22px;
-}
-.parsha-column-chapters i {
-  position: absolute;
-  inset-inline-end: 5px;
-  font-style: normal;
-  font-family: var(--font-ui);
-  font-size: 9px;
-  color: var(--muted);
-  transform: translateY(-4px);
-}
-/* A hairline out to the aliyot rail, so the number reads as a position. */
-.parsha-column-chapters i::after {
-  content: "";
-  position: absolute;
-  inset-inline-end: -5px;
-  top: 7px;
-  width: 4px;
-  height: 1px;
-  background: var(--line);
-}
-.parsha-column-aliyot {
-  position: relative;
-  flex: none;
-  width: 13px;
-}
-.parsha-column-aliyot i {
-  position: absolute;
-  inset-inline-start: 0;
-  width: 11px;
-  padding-top: 3px;
-  font-style: normal;
-  font-family: var(--font-hebrew);
-  font-size: 9px;
-  line-height: 1;
-  text-align: center;
-  color: var(--accent);
-  background: var(--parchment);
-  border: 1px solid var(--parchment-edge);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.parsha-column-ribbon {
-  position: relative;
-  flex: none;
-  width: 13px;
-  margin-inline: 3px 9px;
-  background: var(--surface-sunk);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.parsha-column-seg {
-  position: absolute;
-  inset-inline: 0;
-  padding: 0;
-  border: none;
-  cursor: pointer;
-  /* An INSET hairline, not a border: a border would grow the box and the
-     segment stacked beneath would paint over it, so a run of same-kind moves
-     would read as one undivided block. */
-  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.8);
-}
-.parsha-column-seg:hover {
-  filter: brightness(1.12);
-}
-.parsha-column-seg.active {
-  box-shadow: inset 0 0 0 2px var(--fg);
-}
-.parsha-column-pin {
-  position: absolute;
-  inset-inline-start: 50%;
-  width: 5px;
-  height: 5px;
-  margin-inline-start: -2.5px;
-  padding: 0;
-  transform: rotate(45deg);
-  background: var(--surface);
-  border: 1px solid var(--accent-strong);
-  cursor: pointer;
-}
-.parsha-column-pin:hover {
-  background: var(--accent);
-}
-.parsha-column-titles {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-}
-.parsha-column-title {
-  position: absolute;
-  inset-inline: 0;
-  display: flex;
-  align-items: baseline;
-  gap: 7px;
-  padding: 0;
-  text-align: start;
-  background: transparent;
-  border: none;
-  color: var(--ink);
-  cursor: pointer;
-}
-/* The connector back to the ribbon. */
-.parsha-column-title::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: -9px;
-  top: 8px;
-  width: 7px;
-  height: 1px;
-  background: var(--line);
-}
-.parsha-column-title .t {
-  flex: 1;
-  min-width: 0;
-  font-family: var(--font-serif);
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.25;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ui-drawer[dir="rtl"] .parsha-column-title .t {
-  font-family: var(--font-hebrew);
-  font-size: 14.5px;
-}
-.parsha-column-title .r {
-  flex: none;
-  font-family: var(--font-ui);
-  font-size: 9px;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-  unicode-bidi: isolate;
-}
-.parsha-column-title:hover .t,
-.parsha-column-title.active .t {
-  color: var(--accent-strong);
-}
-
-.parsha-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 13px;
-  margin-top: 9px;
-  font-family: var(--font-ui);
-  font-size: 10.5px;
-  color: var(--muted);
-}
-.parsha-legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.parsha-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
 .parsha-flow {
   list-style: none;
   margin: 0;
@@ -700,56 +332,6 @@ body {
   position: relative;
 }
 
-/* ---- a flow move as a plain row ----
-   The fallback list, shown only when there is no map to draw (the book's
-   chapter lengths wouldn't resolve): a kind stripe, the title, its verse
-   range. Selecting one opens the same detail panel the column opens. */
-.parsha-band {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  width: 100%;
-  margin-bottom: 3px;
-  padding: 0 10px 0 0;
-  text-align: left;
-  color: var(--ink);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  overflow: hidden;
-  cursor: pointer;
-}
-.ui-drawer[dir="rtl"] .parsha-band {
-  padding: 0 0 0 10px;
-  text-align: right;
-}
-.parsha-band:hover {
-  background: var(--surface-sunk);
-}
-.parsha-band.active {
-  background: var(--surface-sunk);
-  border-color: var(--ink);
-}
-.parsha-band-stripe {
-  flex: none;
-  align-self: stretch;
-  width: 5px;
-}
-.parsha-band-title {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  font-family: var(--font-serif);
-  font-size: 13.5px;
-  font-weight: 600;
-  line-height: 1.3;
-}
-.ui-drawer[dir="rtl"] .parsha-band-title {
-  font-family: var(--font-hebrew);
-  font-size: 15px;
-}
-.parsha-band-ref,
 .parsha-flow-kicker span[dir="ltr"] {
   flex: none;
   font-family: var(--font-ui);
@@ -813,44 +395,8 @@ body {
   font-size: 13.5px;
 }
 
-/* An inline Hebrew term in English prose — dotted-underlined, hint on hover
-   (the talmud reader's concept-link treatment). */
-.parsha-term {
-  /* A span, not <bdi>, so it can carry role="button" — isolate manually. */
-  unicode-bidi: isolate;
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-decoration-color: var(--muted);
-  text-underline-offset: 2px;
-  cursor: help;
-}
-.parsha-term-tip {
-  position: fixed;
-  z-index: 1000;
-  max-width: 18rem;
-  transform: translate(-50%, -100%);
-  padding: 5px 9px 6px;
-  border-radius: 6px;
-  background: var(--ink);
-  color: var(--surface);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-  font-size: 11.5px;
-  line-height: 1.45;
-  pointer-events: none;
-}
-.parsha-term-tip.below {
-  transform: translate(-50%, 0);
-}
-.parsha-term-tip bdi {
-  display: block;
-  font-family: var(--font-hebrew);
-  font-weight: 600;
-}
-.parsha-term-tip span {
-  font-family: var(--font-ui);
-}
-
 .parsha-flow-actions {
+  flex-wrap: wrap;
   display: flex;
   gap: 7px;
   padding: 3px 8px 7px;
@@ -858,53 +404,9 @@ body {
 .parsha-flow-deep .parsha-flow-actions {
   padding: 0 0 5px;
 }
-.parsha-flow-actions button,
-.parsha-copy {
-  padding: 5px 9px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--ink);
-  font-family: var(--font-ui);
-  font-size: 10.5px;
-  cursor: pointer;
-}
-.parsha-flow-actions button.primary {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #fff;
-}
 .parsha-landmarks {
   display: grid;
   gap: 6px;
-}
-.parsha-landmarks button {
-  display: flex;
-  align-items: baseline;
-  gap: 9px;
-  width: 100%;
-  padding: 7px 9px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--ink);
-  text-align: left;
-  font-family: var(--font-serif);
-  font-size: 12.5px;
-  cursor: pointer;
-}
-.ui-drawer[dir="rtl"] .parsha-landmarks button {
-  text-align: right;
-  font-family: var(--font-hebrew);
-}
-.parsha-landmarks button:hover {
-  border-color: var(--accent);
-}
-.parsha-landmarks button span {
-  flex: none;
-  font-family: var(--font-ui);
-  font-size: 9.5px;
-  color: var(--accent);
 }
 .parsha-thread {
   margin-top: 22px;
@@ -952,32 +454,6 @@ body {
   padding: 12px 0;
   border-top: 1px solid var(--line);
 }
-.parsha-thread-sources a {
-  display: block;
-  padding: 7px 0;
-  color: var(--ink);
-  text-decoration: none;
-}
-.parsha-thread-sources a + a {
-  border-top: 1px dotted var(--line);
-}
-.parsha-thread-sources a:hover b {
-  color: var(--accent);
-}
-.parsha-thread-sources b,
-.parsha-thread-sources small {
-  display: block;
-}
-.parsha-thread-sources b {
-  font-family: var(--font-ui);
-  font-size: 11px;
-}
-.parsha-thread-sources small {
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 11.5px;
-  line-height: 1.4;
-}
 .parsha-dvar-copy {
   white-space: pre-line;
 }
@@ -1019,7 +495,7 @@ body {
 
 /* highlight the verses of a clicked section anchor */
 .vtext.hl {
-  background: rgba(122, 92, 46, 0.13);
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
   border-radius: 3px;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
@@ -1039,22 +515,6 @@ body {
 /* The commentary drawer SHELL is now @corpus/ui's <Drawer> (.ui-drawer);
    below are only the drawer's BODY content classes (commentary entries,
    synthesis, passages) that tanach still owns. */
-.comm-entry {
-  padding: 14px 0;
-  border-bottom: 1px solid var(--line);
-}
-.comm-entry:last-child {
-  border-bottom: 0;
-}
-.comm-name {
-  font-family: var(--font-ui);
-  margin: 0 0 6px;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--accent);
-  font-weight: 600;
-}
 .comm-text {
   margin: 0 0 6px;
   font-size: 15px;
@@ -1098,22 +558,6 @@ body {
 }
 
 /* synthesis block at the top of the commentary drawer */
-.comm-synth {
-  background: rgba(122, 92, 46, 0.08);
-  border: 1px solid rgba(122, 92, 46, 0.18);
-  border-radius: 8px;
-  padding: 12px 14px;
-  margin: 8px 0 6px;
-}
-.comm-synth-name {
-  font-family: var(--font-ui);
-  margin: 0 0 6px;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--accent);
-  font-weight: 700;
-}
 .comm-synth-text {
   margin: 0;
   font-size: 15px;
@@ -1192,23 +636,6 @@ body {
   padding: 14px 0 4px;
   border-top: 1px solid var(--line);
   margin-top: 6px;
-}
-.gem-entry {
-  padding: 8px 0;
-}
-.gem-entry + .gem-entry {
-  border-top: 1px dashed var(--line);
-}
-.gem-ref {
-  display: inline-block;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
-  text-decoration: none;
-  margin-bottom: 3px;
-}
-.gem-ref:hover {
-  text-decoration: underline;
 }
 .gem-text {
   margin: 0;
@@ -1306,4 +733,12 @@ body {
   background: #fff;
   color: #555;
   cursor: pointer;
+}
+
+.view-scroll > .ui-reader-header {
+  margin: 0 16px;
+}
+
+.parsha-flow li + li {
+  margin-top: 8px;
 }

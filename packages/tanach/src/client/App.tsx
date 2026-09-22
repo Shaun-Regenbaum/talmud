@@ -4,7 +4,13 @@ import { Button } from '@corpus/ui/Button';
 import { Drawer } from '@corpus/ui/Drawer';
 import { fitBbox, GeoMap } from '@corpus/ui/GeoMap';
 import { LangToggle } from '@corpus/ui/LangToggle';
+import { PageNavigation } from '@corpus/ui/PageNavigation';
 import { Pill, PillRow } from '@corpus/ui/Pill';
+import { ReaderHeader } from '@corpus/ui/ReaderHeader';
+import { colorForKind, ReaderIcon } from '@corpus/ui/ReaderIcon';
+import { Select } from '@corpus/ui/Select';
+import { SectionHeading, SourceCard, StatusMessage } from '@corpus/ui/Study';
+import { ToolbarMenu } from '@corpus/ui/ToolbarMenu';
 import {
   createEffect,
   createMemo,
@@ -19,16 +25,11 @@ import {
 import { BOOKS, SECTIONS, type Section } from '../lib/books.ts';
 import { hebrewNumeral } from '../lib/hebrew.ts';
 import type { ParshaFlowSection, ParshaStudy, WeeklyParsha } from '../lib/parsha.ts';
-import {
-  KIND_GLYPH,
-  MIDRASH_MIN,
-  type SourceKind,
-  type SourceVerse,
-  verseKinds,
-} from '../lib/sources.ts';
+import { type SourceKind, type SourceVerse, verseKinds } from '../lib/sources.ts';
 import { ChapterLoadProgress } from './ChapterLoadProgress.tsx';
 import { reportLoad, resetChapterLoad } from './chapterLoad.ts';
 import { Inspector } from './Inspector.tsx';
+import { t } from './i18n';
 import { MikraotGedolot } from './MikraotGedolot.tsx';
 import { ParshaDrawer } from './ParshaDrawer.tsx';
 
@@ -201,10 +202,6 @@ const PEREK_PILLS: { id: PerekPill; label: string }[] = [
   { id: 'parsha', label: 'Parsha' },
   { id: 'geography', label: 'Geography' },
 ];
-const PILL_KIND: Record<PerekPill, string> = {
-  parsha: 'Parsha',
-  geography: 'Geography',
-};
 
 interface CommentaryEntry {
   key: string;
@@ -226,11 +223,7 @@ interface GemaraResp {
   count: number;
   passages: { ref: string; he: string; en: string }[];
 }
-const SECTION_TITLE: Record<SourceKind, string> = {
-  rishonim: 'Commentary',
-  gemara: 'In the Talmud',
-  midrash: 'Midrash',
-};
+
 /** The event/section labels for a chapter (first producer). Best-effort: a
  *  failure just means no margin anchors — the text still renders. */
 async function fetchEvents(loc: { book: string; chapter: number }): Promise<EventSection[]> {
@@ -245,6 +238,10 @@ async function fetchEvents(loc: { book: string; chapter: number }): Promise<Even
 
 export function App(): JSX.Element {
   const [loc, setLoc] = createSignal(readUrl());
+  createEffect(() => {
+    document.documentElement.lang = loc().lang;
+    document.documentElement.dir = loc().lang === 'he' ? 'rtl' : 'ltr';
+  });
   // The verse RANGE the parsha drawer is pointing at (a flow move, a landmark,
   // or an "Open in the text" jump — a single verse is a degenerate range). The
   // reader highlights whatever slice of it falls in the visible chapter.
@@ -273,7 +270,9 @@ export function App(): JSX.Element {
   const chapterKey = createMemo(() => ({ book: loc().book, chapter: loc().chapter }), undefined, {
     equals: (a, b) => a.book === b.book && a.chapter === b.chapter,
   });
-  const [data] = createResource(chapterKey, fetchChapter);
+  const [data, { refetch: retryText }] = createResource(chapterKey, (key) =>
+    fetchChapter(key).catch(() => null),
+  );
   const [events] = createResource(chapterKey, fetchEvents);
   const [parsha] = createResource(fetchParsha);
   const [sourcesIndex] = createResource(chapterKey, async (k) => {
@@ -563,12 +562,6 @@ export function App(): JSX.Element {
     const vn = vt ? Number(vt.dataset.vn) : NaN;
     if (vn) setSource({ verse: vn, kind: 'rishonim' });
   };
-  const idxByVerse = createMemo(() => {
-    const map = new Map<number, SourceVerse>();
-    for (const v of sourcesIndex()?.verses ?? []) map.set(v.verse, v);
-    return map;
-  });
-  // A resource source that only resolves when the drawer is showing `kind`.
   const whenKind = (kind: SourceKind) => () => {
     const s = source();
     return s && s.kind === kind
@@ -603,18 +596,29 @@ export function App(): JSX.Element {
     const res = await fetch(`/api/midrash/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
     return res.ok ? ((await res.json()) as GemaraResp) : null;
   });
-  const [midrashSynth] = createResource(
+  const [sourceQuestion, { refetch: retrySourceQuestion }] = createResource(
     () => {
       const s = source();
-      return s && s.kind === 'midrash' && (idxByVerse().get(s.verse)?.midrash ?? 0) >= MIDRASH_MIN
-        ? { book: loc().book, chapter: loc().chapter, verse: s.verse }
+      return s && (s.kind === 'gemara' || s.kind === 'midrash')
+        ? { kind: s.kind, book: loc().book, chapter: loc().chapter, verse: s.verse }
         : null;
     },
     async (k) => {
       const res = await fetch(
-        `/api/midrash-synthesis/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`,
+        `/api/source-question/${k.kind}/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`,
       );
-      return res.ok ? ((await res.json()) as SectionNote) : null;
+      if (res.status === 404) return { missing: true, preview: false, en: '', he: '' };
+      if (res.status === 503) {
+        const body = (await res.json()) as { preview?: boolean };
+        if (body.preview) return { missing: false, preview: true, en: '', he: '' };
+      }
+      if (!res.ok) throw new Error('Source explanation unavailable');
+      return { ...(await res.json()), missing: false, preview: false } as {
+        missing: boolean;
+        preview: boolean;
+        en: string;
+        he: string;
+      };
     },
   );
   createEffect(() => {
@@ -702,7 +706,7 @@ export function App(): JSX.Element {
     () => (perekPill() === 'parsha' && parsha() ? parsha()?.ref : undefined),
     () => fetchPill<ParshaStudy>(`/api/parsha-study?loc=${inIsrael() ? 'israel' : 'diaspora'}`),
   );
-  const [geography] = createResource(
+  const [geography, { refetch: retryGeography }] = createResource(
     () => (perekPill() === 'geography' ? chapterKey() : undefined),
     (k) => fetchPill<PerekGeography>(`/api/geography/${encodeURIComponent(k.book)}/${k.chapter}`),
   );
@@ -716,7 +720,7 @@ export function App(): JSX.Element {
   // Only the geography for the chapter on screen (createResource retains the
   // previous chapter's value across a refetch).
   const currentGeography = createMemo(() => {
-    if (geography.loading) return null;
+    if (geography.loading || geography.error) return null;
     const g = geography();
     return g && g.book === loc().book && g.chapter === loc().chapter ? g : null;
   });
@@ -747,7 +751,7 @@ export function App(): JSX.Element {
     if (perekPill() !== 'geography') clearPlace();
   });
   const currentParshaStudy = createMemo(() => {
-    if (parshaStudy.loading) return null;
+    if (parshaStudy.loading || parshaStudy.error) return null;
     const study = parshaStudy();
     return study && study.ref === parsha()?.ref ? study : null;
   });
@@ -779,7 +783,7 @@ export function App(): JSX.Element {
   });
   createEffect(() => {
     if (data.loading) reportLoad('text', 'Text', 'loading');
-    else if (data.error) reportLoad('text', 'Text', 'error');
+    else if (data.error || data() === null) reportLoad('text', 'Text', 'error');
     else if (data()) reportLoad('text', 'Text', 'ok');
   });
   createEffect(() => {
@@ -809,10 +813,46 @@ export function App(): JSX.Element {
           ctaHref: 'mailto:shaunregenbaum@gmail.com?subject=Sponsoring%20the%20Tanach%20project',
         })}
       />
-      <header class="topbar">
-        <span class="brand">Tanach</span>
-        <select
-          class="book-select"
+      <ReaderHeader
+        title={t('title', loc().lang)}
+        hint={
+          loc().lang === 'he'
+            ? `${heBook(loc().book)} ${hebrewNumeral(loc().chapter)}`
+            : `${loc().book} ${loc().chapter}`
+        }
+        utilities={
+          <>
+            <ToolbarMenu label={t('more', loc().lang)}>
+              <Button
+                active={loc().nikud}
+                onClick={() => update({ nikud: !loc().nikud })}
+                title={t('nikud', loc().lang)}
+                aria-label={t('nikud', loc().lang)}
+              >
+                נִקּוּד
+              </Button>
+              <a class="ui-button" href="/usage">
+                {t('usage', loc().lang)}
+              </a>
+              <a class="ui-button" href="/connect">
+                {t('connect', loc().lang)}
+              </a>
+              <a
+                class="ui-button"
+                href={`/align?book=${encodeURIComponent(loc().book)}&chapter=${loc().chapter}`}
+              >
+                {t('align', loc().lang)}
+              </a>
+            </ToolbarMenu>
+            <Button active={inspectOpen()} onClick={toggleInspect}>
+              {t('inspect', loc().lang)}
+            </Button>
+            <LangToggle lang={loc().lang} onChange={(lang) => update({ lang })} />
+          </>
+        }
+      >
+        <Select
+          aria-label={t('book', loc().lang)}
           value={loc().book}
           onChange={(e) => goto(e.currentTarget.value, 1)}
         >
@@ -829,78 +869,37 @@ export function App(): JSX.Element {
               </optgroup>
             )}
           </For>
-        </select>
-
+        </Select>
+        <PageNavigation
+          label={t('navigation', loc().lang)}
+          previousLabel={t('previous', loc().lang)}
+          nextLabel={t('next', loc().lang)}
+          previousDisabled={loc().chapter <= 1}
+          onPrevious={() => goto(loc().book, loc().chapter - 1)}
+          onNext={() => goto(loc().book, loc().chapter + 1)}
+        >
+          <span class="ui-page-number" title={t('chapter', loc().lang)}>
+            {loc().lang === 'he' ? hebrewNumeral(loc().chapter) : loc().chapter}
+          </span>
+        </PageNavigation>
         <Show when={parsha()}>
           {(p) => (
-            <button
-              type="button"
-              class="parsha-btn"
-              onClick={openWeeklyParsha}
-              title={`This week's parsha — ${p().name} (${p().ref})`}
-            >
+            <Button variant="primary" onClick={openWeeklyParsha} title={t('weekly', loc().lang)}>
               {loc().lang === 'he' ? p().heName || p().name : p().name}
-            </button>
+            </Button>
           )}
         </Show>
-
-        {/* Mikraot Gedolot view hidden for now — Default (scroll) only. */}
-
-        <Show when={loc().view === 'scroll'}>
-          <button
-            type="button"
-            class="nikud-toggle"
-            onClick={() => update({ nikud: !loc().nikud })}
-          >
-            {loc().nikud ? 'נִקּוּד' : 'נקוד'}
-          </button>
-        </Show>
-
-        <LangToggle lang={loc().lang} onChange={(lang) => update({ lang })} />
-
-        <a class="usage-link" href="/usage" title="LLM usage">
-          usage
-        </a>
-        <a class="usage-link" href="/connect" title="Connect an AI client via MCP">
-          mcp
-        </a>
-        <a
-          class="usage-link"
-          href={`/align?book=${encodeURIComponent(loc().book)}&chapter=${loc().chapter}`}
-          title="Alignment workbench: pieces aligned to the chapter's verses"
-        >
-          align
-        </a>
-        <button
-          type="button"
-          class="usage-link inspect-link"
-          classList={{ active: inspectOpen() }}
-          onClick={toggleInspect}
-          title="Inspect this chapter's cache + cost"
-        >
-          inspect
-        </button>
-
-        <div class="chapter-nav">
-          <Button
-            disabled={loc().chapter <= 1}
-            onClick={() => goto(loc().book, loc().chapter - 1)}
-            aria-label="Previous chapter"
-          >
-            ‹
-          </Button>
-          <span class="chapter-label">
-            {loc().lang === 'he' ? hebrewNumeral(loc().chapter) : `ch. ${loc().chapter}`}
-          </span>
-          <Button onClick={() => goto(loc().book, loc().chapter + 1)} aria-label="Next chapter">
-            ›
-          </Button>
-        </div>
-      </header>
+      </ReaderHeader>
 
       <ChapterLoadProgress />
-      <Show when={data.error}>
-        <p class="status error">{(data.error as Error)?.message}</p>
+      <Show when={!data.loading && data() === null}>
+        <StatusMessage
+          tone="error"
+          onRetry={() => void retryText()}
+          retryLabel={t('retry', loc().lang)}
+        >
+          {t('unavailable', loc().lang)}
+        </StatusMessage>
       </Show>
 
       {/* Mikraot Gedolot — pasuk framed by Rashi + Onkelos (daf-renderer) */}
@@ -925,7 +924,7 @@ export function App(): JSX.Element {
               <For each={PEREK_PILLS}>
                 {(p) => (
                   <Pill active={perekPill() === p.id} onClick={() => openPill(p.id)}>
-                    {p.label}
+                    {t(p.id, loc().lang)}
                   </Pill>
                 )}
               </For>
@@ -973,11 +972,15 @@ export function App(): JSX.Element {
                         type="button"
                         class={`vgutter vgutter-${k}`}
                         classList={{ active: source()?.verse === ic.v && source()?.kind === k }}
-                        style={{ width: `${ICON_SIZE}px`, height: `${ICON_SIZE}px` }}
+                        style={{
+                          width: `${ICON_SIZE}px`,
+                          height: `${ICON_SIZE}px`,
+                          background: colorForKind(k),
+                        }}
                         title={`${k} · verse ${ic.v}`}
                         onClick={() => openSource(ic.v, k)}
                       >
-                        {KIND_GLYPH[k]}
+                        <ReaderIcon kind={k} />
                       </button>
                     )}
                   </For>
@@ -1068,18 +1071,18 @@ export function App(): JSX.Element {
                   ? `${heBook(loc().book)} ${hebrewNumeral(loc().chapter)}`
                   : `${loc().book} ${loc().chapter}`
             }
-            label={PILL_KIND[pill]}
+            label={t(pill, loc().lang)}
             onClose={() => setPerekPill(null)}
           >
             <Show when={pill === 'parsha'}>
               <Show when={parsha.loading}>
-                <p class="comm-muted">Mapping this week's parsha…</p>
+                <StatusMessage>{t('loadingParsha', loc().lang)}</StatusMessage>
               </Show>
               <Show when={!parsha.loading && parsha() === null}>
-                <p class="comm-muted">Couldn't load this week's parsha. Try reopening.</p>
+                <StatusMessage>{t('unavailable', loc().lang)}</StatusMessage>
               </Show>
               <Show when={!!parsha() && parshaStudy.loading}>
-                <p class="comm-muted">Mapping this week's parsha…</p>
+                <StatusMessage>{t('loadingParsha', loc().lang)}</StatusMessage>
               </Show>
               <Show when={currentParshaStudy()}>
                 {(study) => (
@@ -1092,19 +1095,19 @@ export function App(): JSX.Element {
                   />
                 )}
               </Show>
-              <Show when={!parshaStudy.loading && parshaStudy() === null}>
-                <p class="comm-muted">{pillError('parsha overview')}</p>
+              <Show when={!parshaStudy.loading && (parshaStudy.error || parshaStudy() === null)}>
+                <StatusMessage tone="error">{pillError('parsha overview')}</StatusMessage>
               </Show>
             </Show>
             <Show when={pill === 'geography'}>
               <Show when={geography.loading}>
-                <p class="comm-muted">Mapping the chapter…</p>
+                <StatusMessage>{t('loadingMap', loc().lang)}</StatusMessage>
               </Show>
               <Show when={currentGeography()}>
                 {(g) => (
                   <Show
                     when={g().places.length}
-                    fallback={<p class="comm-muted">No mapped places in this chapter.</p>}
+                    fallback={<StatusMessage>{t('noPlaces', loc().lang)}</StatusMessage>}
                   >
                     <GeoMap
                       bbox={fitBbox(g().places)}
@@ -1129,8 +1132,14 @@ export function App(): JSX.Element {
                   </Show>
                 )}
               </Show>
-              <Show when={!geography.loading && geography() === null}>
-                <p class="comm-muted">{pillError('geography')}</p>
+              <Show when={!geography.loading && (geography.error || geography() === null)}>
+                <StatusMessage
+                  tone="error"
+                  onRetry={() => void retryGeography()}
+                  retryLabel={t('retry', loc().lang)}
+                >
+                  {t('unavailable', loc().lang)}
+                </StatusMessage>
               </Show>
             </Show>
           </Drawer>
@@ -1147,33 +1156,38 @@ export function App(): JSX.Element {
                 ? `${heBook(loc().book)} ${hebrewNumeral(loc().chapter)}:${hebrewNumeral(s.verse)}`
                 : `${loc().book} ${loc().chapter}:${s.verse}`
             }
-            label={SECTION_TITLE[s.kind]}
+            label={t(s.kind, loc().lang)}
             onClose={() => setSource(null)}
           >
             <Show when={s.kind === 'rishonim'}>
               <Show when={richSet().has(s.verse)}>
-                <section class="comm-synth">
-                  <h4 class="comm-synth-name">Synthesis</h4>
+                <SourceCard title={t('synthesis', loc().lang)}>
                   <Show when={synthesis.loading}>
-                    <p class="comm-muted">Synthesizing the commentators…</p>
+                    <StatusMessage>{t('loadingSummary', loc().lang)}</StatusMessage>
                   </Show>
-                  <Show when={synthesis()}>
+                  <Show when={!synthesis.loading && (synthesis.error || synthesis() === null)}>
+                    <StatusMessage tone="error">{t('unavailable', loc().lang)}</StatusMessage>
+                  </Show>
+                  <Show when={!synthesis.error && synthesis()}>
                     {(sy) => (
                       <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
                         {loc().lang === 'he' ? sy().he || sy().en : sy().en || sy().he}
                       </p>
                     )}
                   </Show>
-                </section>
+                </SourceCard>
               </Show>
               <Show when={commentary.loading}>
-                <p class="comm-muted">Loading commentary…</p>
+                <StatusMessage>{t('loadingCommentary', loc().lang)}</StatusMessage>
               </Show>
-              <Show when={commentary()}>
+              <Show when={!commentary.loading && (commentary.error || commentary() === null)}>
+                <StatusMessage tone="error">{t('unavailable', loc().lang)}</StatusMessage>
+              </Show>
+              <Show when={!commentary.error && commentary()}>
                 {(d) => (
                   <For
                     each={d().commentaries}
-                    fallback={<p class="comm-muted">No commentary on this verse.</p>}
+                    fallback={<StatusMessage>{t('noCommentary', loc().lang)}</StatusMessage>}
                   >
                     {(cm) => {
                       // The rishonim themselves always show in the Hebrew /
@@ -1181,14 +1195,13 @@ export function App(): JSX.Element {
                       // fall back to English only when no Hebrew is available.
                       const useEn = cm.he.length === 0;
                       return (
-                        <section class="comm-entry">
-                          <h4 class="comm-name">{loc().lang === 'he' ? cm.heName : cm.en}</h4>
+                        <SourceCard title={loc().lang === 'he' ? cm.heName : cm.en}>
                           <For each={useEn ? cm.enText : cm.he}>
                             {(seg) => (
                               <p class="comm-text" dir={useEn ? 'ltr' : 'rtl'} innerHTML={seg} />
                             )}
                           </For>
-                        </section>
+                        </SourceCard>
                       );
                     }}
                   </For>
@@ -1196,36 +1209,77 @@ export function App(): JSX.Element {
               </Show>
             </Show>
 
+            <Show when={s.kind === 'gemara' || s.kind === 'midrash'}>
+              <SourceCard
+                title={t(s.kind === 'gemara' ? 'gemaraQuestion' : 'midrashQuestion', loc().lang)}
+              >
+                <Show when={sourceQuestion.loading}>
+                  <StatusMessage>{t('loadingExplanation', loc().lang)}</StatusMessage>
+                </Show>
+                <Show when={!sourceQuestion.loading && sourceQuestion.error}>
+                  <StatusMessage
+                    tone="error"
+                    onRetry={() => void retrySourceQuestion()}
+                    retryLabel={t('retry', loc().lang)}
+                  >
+                    {t('explanationUnavailable', loc().lang)}
+                  </StatusMessage>
+                </Show>
+                <Show when={!sourceQuestion.loading && !sourceQuestion.error && sourceQuestion()}>
+                  {(note) => (
+                    <Show
+                      when={!note().preview}
+                      fallback={
+                        <StatusMessage>{t('previewExplanation', loc().lang)}</StatusMessage>
+                      }
+                    >
+                      <Show
+                        when={!note().missing}
+                        fallback={
+                          <StatusMessage>{t('noExplanationSources', loc().lang)}</StatusMessage>
+                        }
+                      >
+                        <For
+                          each={(loc().lang === 'he' ? note().he : note().en)
+                            .split(/\n\s*\n/)
+                            .filter(Boolean)}
+                        >
+                          {(paragraph) => (
+                            <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
+                              {paragraph}
+                            </p>
+                          )}
+                        </For>
+                      </Show>
+                    </Show>
+                  )}
+                </Show>
+              </SourceCard>
+              <SectionHeading title={t('sourcePassages', loc().lang)} />
+            </Show>
             <Show when={s.kind === 'gemara'}>
               <Show when={gemara.loading}>
-                <p class="comm-muted">Finding Talmud passages…</p>
+                <StatusMessage>{t('loadingTalmud', loc().lang)}</StatusMessage>
               </Show>
-              <Show when={gemara()}>
-                {(g) => <PassageList passages={g().passages} empty="Not cited in the Talmud." />}
+              <Show when={!gemara.loading && (gemara.error || gemara() === null)}>
+                <StatusMessage tone="error">{t('unavailable', loc().lang)}</StatusMessage>
+              </Show>
+              <Show when={!gemara.error && gemara()}>
+                {(g) => <PassageList passages={g().passages} empty={t('noTalmud', loc().lang)} />}
               </Show>
             </Show>
 
             <Show when={s.kind === 'midrash'}>
-              <Show when={(idxByVerse().get(s.verse)?.midrash ?? 0) >= MIDRASH_MIN}>
-                <section class="comm-synth">
-                  <h4 class="comm-synth-name">Synthesis</h4>
-                  <Show when={midrashSynth.loading}>
-                    <p class="comm-muted">Synthesizing the midrashim…</p>
-                  </Show>
-                  <Show when={midrashSynth()}>
-                    {(sy) => (
-                      <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
-                        {loc().lang === 'he' ? sy().he || sy().en : sy().en || sy().he}
-                      </p>
-                    )}
-                  </Show>
-                </section>
-              </Show>
               <Show when={midrash.loading}>
-                <p class="comm-muted">Loading midrash…</p>
+                <StatusMessage>{t('loadingMidrash', loc().lang)}</StatusMessage>
               </Show>
-              <Show when={midrash()}>
-                {(md) => <PassageList passages={md().passages} empty="No midrash on this verse." />}
+              <Show when={!midrash.loading && (midrash.error || midrash() === null)}>
+                <StatusMessage tone="error">{t('unavailable', loc().lang)}</StatusMessage>
+              </Show>
+              <Show when={!midrash.error && midrash()}>
+                {(md) => (
+                  <PassageList passages={md().passages} empty={t('noMidrash', loc().lang)} />
+                )}
               </Show>
             </Show>
           </Drawer>
@@ -1240,28 +1294,30 @@ function PassageList(props: {
   empty: string;
 }): JSX.Element {
   return (
-    <For each={props.passages} fallback={<p class="comm-muted">{props.empty}</p>}>
+    <For each={props.passages} fallback={<StatusMessage tone="empty">{props.empty}</StatusMessage>}>
       {(p) => {
         // Source passages (Gemara / Midrash) always show the Hebrew / Aramaic
         // original; fall back to English only when Sefaria has no Hebrew text.
         const text = p.he || p.en;
         const ltr = !p.he && !!p.en;
         return (
-          <div class="gem-entry">
-            <a
-              class="gem-ref"
-              href={`https://www.sefaria.org/${p.ref.replace(/ /g, '.').replace(/:/g, '.')}`}
-              target="_blank"
-              rel="noopener"
-            >
-              {p.ref}
-            </a>
+          <SourceCard
+            title={
+              <a
+                href={`https://www.sefaria.org/${p.ref.replace(/ /g, '.').replace(/:/g, '.')}`}
+                target="_blank"
+                rel="noopener"
+              >
+                {p.ref}
+              </a>
+            }
+          >
             <Show when={text}>
               <p class="gem-text" dir={ltr ? 'ltr' : 'rtl'}>
                 {text}…
               </p>
             </Show>
-          </div>
+          </SourceCard>
         );
       }}
     </For>
@@ -1282,9 +1338,9 @@ function ChapterFoot(props: {
         if (!p) return <span />;
         const txt = fmt(p.book, p.chapter);
         return (
-          <button type="button" onClick={() => props.goto(p.book, p.chapter)}>
+          <Button onClick={() => props.goto(p.book, p.chapter)}>
             {dir === 'prev' ? `‹ ${txt}` : `${txt} ›`}
-          </button>
+          </Button>
         );
       }}
     </Show>

@@ -391,9 +391,12 @@ export function GraphLegend(): JSX.Element {
       }}
     >
       {item(box({ background: '#eef1ee', border: '1px solid #6b7280' }), 'source input')}
-      {item(box({ background: '#fff', border: '1.4px solid #8a2a2b' }), 'mark (discovers anchors)')}
       {item(
-        box({ background: '#fff', border: '1px dashed #8a2a2b' }),
+        box({ background: '#fff', border: '1.4px solid var(--accent)' }),
+        'mark (discovers anchors)',
+      )}
+      {item(
+        box({ background: '#fff', border: '1px dashed var(--accent)' }),
         'enrichment (inherits / aggregates)',
       )}
       {item(<span style={{ color: 'var(--muted)' }}>– – –</span>, 'edge to its target mark')}

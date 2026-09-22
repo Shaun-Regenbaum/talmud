@@ -91,7 +91,7 @@ export default function AIActivityPanel(): JSX.Element {
               height: '0.7rem',
               'border-radius': '50%',
               border: '2px solid #d6d3d1',
-              'border-top-color': '#8a2a2b',
+              'border-top-color': 'var(--accent)',
               animation: 'daf-spin 0.8s linear infinite',
               'flex-shrink': 0,
             }}
@@ -257,7 +257,7 @@ export default function AIActivityPanel(): JSX.Element {
               gap: '0.4rem',
               padding: '0.15rem 0',
               cursor: 'pointer',
-              color: '#8a2a2b',
+              color: 'var(--accent)',
               width: '100%',
               font: 'inherit',
               'text-align': 'left',
@@ -272,7 +272,7 @@ export default function AIActivityPanel(): JSX.Element {
                 height: '0.7rem',
                 'border-radius': '50%',
                 border: '2px solid #d6d3d1',
-                'border-top-color': '#8a2a2b',
+                'border-top-color': 'var(--accent)',
                 animation: 'daf-spin 0.8s linear infinite',
                 'flex-shrink': 0,
               }}

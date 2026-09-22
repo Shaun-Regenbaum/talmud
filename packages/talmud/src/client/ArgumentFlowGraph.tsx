@@ -1,3 +1,7 @@
+import { assignLanes, GraphCard, GraphEdge, roundedConnector } from '@corpus/ui/Graph';
+
+export { assignLanes } from '@corpus/ui/Graph';
+
 /**
  * Whole-daf argument FLOW graph. Each argument section is a node (in daf
  * order, top to bottom); the daf-level `argument-overview.flow` enrichment
@@ -221,23 +225,6 @@ export function FlowLegend(props: { kinds: FlowConnection['kind'][] }): JSX.Elem
  *  keeps parallel runs from drawing on top of each other (the old `i % 4`
  *  cycling collided whenever >4 edges, or fewer edges overlapped in range).
  *  Returns a lane per connection in input order. Pure + exported for tests. */
-export function assignLanes(connections: FlowConnection[]): number[] {
-  const order = connections
-    .map((c, i) => ({ i, lo: Math.min(c.from, c.to), hi: Math.max(c.from, c.to) }))
-    .sort((a, b) => a.lo - b.lo || a.hi - b.hi);
-  const laneHi: number[] = []; // highest row index currently occupying each lane
-  const lanes = new Array<number>(connections.length).fill(0);
-  for (const { i, lo, hi } of order) {
-    let lane = laneHi.findIndex((h) => h < lo); // a lane whose last run ended above us
-    if (lane === -1) {
-      lane = laneHi.length;
-      laneHi.push(hi);
-    } else laneHi[lane] = hi;
-    lanes[i] = lane;
-  }
-  return lanes;
-}
-
 const LINE_H = 15; // px between wrapped title lines
 const TITLE_CHARS = 40; // approx chars per line at NODE_W / 12px system font
 // Narrower budget for a node that carries an exit badge (top-right): the title's
@@ -400,7 +387,7 @@ export function StatementBand(props: {
                 height={sh}
                 rx={6}
                 ry={6}
-                fill={sel() ? '#fdf2f2' : '#ffffff'}
+                fill={sel() ? 'var(--surface-sunk)' : '#ffffff'}
               />
               <rect
                 x={sx}
@@ -410,7 +397,7 @@ export function StatementBand(props: {
                 rx={6}
                 ry={6}
                 fill="none"
-                stroke={sel() ? '#8a2a2b' : '#e7e2d6'}
+                stroke={sel() ? 'var(--accent)' : '#e7e2d6'}
                 stroke-width={sel() ? 1.5 : 1}
               />
               <text
@@ -588,16 +575,7 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
     const y1 = edgeAnchorY(c.from, true);
     const y2 = edgeAnchorY(c.to, false);
     const rightX = LEFT_PAD + NODE_W;
-    const dir = y2 >= y1 ? 1 : -1;
-    const r = Math.min(CORNER_R, x - rightX, Math.abs(y2 - y1) / 2);
-    return [
-      `M ${rightX} ${y1}`,
-      `L ${x - r} ${y1}`,
-      `Q ${x} ${y1} ${x} ${y1 + dir * r}`,
-      `L ${x} ${y2 - dir * r}`,
-      `Q ${x} ${y2} ${x - r} ${y2}`,
-      `L ${rightX} ${y2}`,
-    ].join(' ');
+    return roundedConnector(rightX, x, y1, y2, CORNER_R);
   };
 
   const badgeCX = LEFT_PAD + 18;
@@ -659,7 +637,7 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
             {(c, i) => {
               const color = KIND_COLOR[c.kind];
               return (
-                <path
+                <GraphEdge
                   d={edgePath(c, lanes()[i()])}
                   fill="none"
                   stroke={color}
@@ -671,7 +649,7 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                   marker-end={`url(#flow-arrow-${c.kind})`}
                 >
                   <title>{`§${c.srcSec + 1} ${c.kind} §${c.dstSec + 1}${c.note ? ` — ${c.note}` : ''}`}</title>
-                </path>
+                </GraphEdge>
               );
             }}
           </For>
@@ -704,24 +682,19 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                     }}
                   >
                     <title>{`${n.index + 1}. ${n.title} — click for voices`}</title>
-                    <rect
+                    <GraphCard
                       x={LEFT_PAD}
                       y={nodeY(i())}
                       width={NODE_W}
                       height={NODE_H}
-                      rx={10}
-                      ry={10}
-                      fill={active() ? '#fdf2f2' : '#ffffff'}
-                      stroke={active() ? '#8a2a2b' : '#e4e0d4'}
-                      stroke-width={active() ? 1.75 : 1}
-                      filter="url(#flow-card-shadow)"
+                      selected={active()}
                     />
                     <circle
                       cx={badgeCX}
                       cy={cy()}
                       r={11}
-                      fill={active() ? '#8a2a2b' : '#f2eee4'}
-                      stroke={active() ? '#8a2a2b' : '#e4e0d4'}
+                      fill={active() ? 'var(--accent)' : '#f2eee4'}
+                      stroke={active() ? 'var(--accent)' : '#e4e0d4'}
                       stroke-width={1}
                     />
                     <text
@@ -732,7 +705,7 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                       font-size="11"
                       font-weight="700"
                       font-family="system-ui, -apple-system, sans-serif"
-                      fill={active() ? '#ffffff' : '#8a2a2b'}
+                      fill={active() ? '#ffffff' : 'var(--accent)'}
                     >
                       {n.index + 1}
                     </text>

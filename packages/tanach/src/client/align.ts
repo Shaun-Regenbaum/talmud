@@ -30,7 +30,9 @@ export function versesOf(r: AlignAnchor, totalVerses: number): number[] {
 }
 
 /** A short human label for a piece's anchor (whole chapter / verses a-b / verse n). */
-export function anchorLabel(r: AlignAnchor): string {
-  if (r.instanceRaw == null) return 'whole chapter';
-  return /^\d+-\d+$/.test(r.instanceRaw) ? `verses ${r.instanceRaw}` : `verse ${r.instanceRaw}`;
+export function anchorLabel(r: AlignAnchor, lang: 'en' | 'he' = 'en'): string {
+  if (r.instanceRaw == null) return lang === 'he' ? 'כל הפרק' : 'whole chapter';
+  return /^\d+-\d+$/.test(r.instanceRaw)
+    ? `${lang === 'he' ? 'פסוקים' : 'verses'} ${r.instanceRaw}`
+    : `${lang === 'he' ? 'פסוק' : 'verse'} ${r.instanceRaw}`;
 }

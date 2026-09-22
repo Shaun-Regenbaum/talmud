@@ -1,40 +1,56 @@
-/**
- * Tanach LLM-usage dashboard. A thin wrapper: fetch the KV ledger from
- * /api/usage (a @corpus/core/telemetry UsageLedger) and hand it to the shared
- * @corpus/ui UsagePage, which renders the tabbed breakdown. Nothing about the
- * tables is built here — the page is a projection of the recorded usage.
- */
-
 import type { UsageEntry, UsageSummary } from '@corpus/core/telemetry/types';
+import { StatusMessage } from '@corpus/ui/Study';
 import { UsagePage as SharedUsagePage } from '@corpus/ui/UsagePage';
-import { createResource, type JSX, Show } from 'solid-js';
+import { createResource, createSignal, type JSX, Show } from 'solid-js';
+import { t } from './i18n';
 
 interface UsageLedger {
   summary: UsageSummary;
   recent: UsageEntry[];
 }
-
 async function fetchUsage(): Promise<UsageLedger> {
-  const res = await fetch('/api/usage');
-  return (await res.json()) as UsageLedger;
+  const response = await fetch('/api/usage');
+  if (!response.ok) throw new Error('Usage unavailable');
+  return response.json();
 }
-
 export function UsagePage(): JSX.Element {
-  const [led] = createResource(fetchUsage);
-
+  const [lang, setLang] = createSignal<'en' | 'he'>(
+    new URLSearchParams(window.location.search).get('lang') === 'he' ? 'he' : 'en',
+  );
+  const [ledger, { refetch }] = createResource(fetchUsage);
   return (
     <>
-      <Show when={led.loading}>
-        <p class="status">Loading…</p>
+      <Show when={ledger.loading || ledger.error}>
+        <div class="usage-page" dir={lang() === 'he' ? 'rtl' : 'ltr'}>
+          <Show when={ledger.loading}>
+            <StatusMessage tone="loading">{t('loading', lang())}</StatusMessage>
+          </Show>
+          <Show when={ledger.error}>
+            <StatusMessage
+              tone="error"
+              onRetry={() => void refetch()}
+              retryLabel={t('retry', lang())}
+            >
+              {t('unavailable', lang())}
+            </StatusMessage>
+          </Show>
+        </div>
       </Show>
-      <Show when={led()}>
-        {(d) => (
+      <Show when={!ledger.error && ledger()}>
+        {(data) => (
           <SharedUsagePage
-            summary={d().summary}
-            recent={d().recent}
-            title="LLM Usage"
-            backHref="/"
-            backLabel="Tanach"
+            summary={data().summary}
+            recent={data().recent}
+            title={t('usage', lang())}
+            backHref={`/?lang=${lang()}`}
+            backLabel={t('title', lang())}
+            lang={lang()}
+            onLangChange={(value) => {
+              setLang(value);
+              const url = new URL(location.href);
+              url.searchParams.set('lang', value);
+              history.replaceState(null, '', url);
+            }}
           />
         )}
       </Show>

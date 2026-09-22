@@ -337,7 +337,7 @@ export function AlignPage(): JSX.Element {
           );
     for (const s of [...new Set([...hl(), ...pin()])])
       rules.push(
-        `.aw-daf .daf-word[data-seg="${s}"]{background:#fde68a !important;outline:1.5px solid #8a2a2b;border-radius:2px}`,
+        `.aw-daf .daf-word[data-seg="${s}"]{background:#fde68a !important;outline:1.5px solid var(--accent);border-radius:2px}`,
       );
     for (const w of [...new Set([...hlWords(), ...pinWords()])])
       rules.push(
@@ -752,10 +752,10 @@ export function AlignPage(): JSX.Element {
     <main class="page-shell" style={{ '--page-max': '1480px', color: '#1a1a1a' }}>
       <style>{STYLE}</style>
       <style>{highlightCss()}</style>
-      <header class="daf-header aw-header">
-        <h1 class="tb-wordmark">Alignment</h1>
+      <header class="ui-reader-header aw-header">
+        <h1 class="ui-reader-title">Alignment</h1>
         <select
-          class="tb-select"
+          class="ui-select"
           value={tractate()}
           onChange={(e) => setTractate(e.currentTarget.value)}
         >
@@ -767,24 +767,24 @@ export function AlignPage(): JSX.Element {
             )}
           </For>
         </select>
-        <div class="tb-nav">
+        <div class="ui-page-navigation">
           <button
             type="button"
-            class="tb-navbtn"
+            class="ui-nav-button"
             onClick={() => go('prev')}
             disabled={!adjPage(page(), 'prev')}
           >
             ‹
           </button>
           <input
-            class="tb-daf"
+            class="ui-page-number"
             style={{ width: '3.2rem', 'text-align': 'center' }}
             value={page()}
             onChange={(e) => setPage(e.currentTarget.value.trim())}
           />
           <button
             type="button"
-            class="tb-navbtn"
+            class="ui-nav-button"
             onClick={() => go('next')}
             disabled={!adjPage(page(), 'next')}
           >
@@ -981,7 +981,7 @@ const STYLE = `
 .aw-chip:hover{background:#f1f5f9}.aw-chip.on{background:#1e293b;border-color:#0f172a;color:#fff}
 .aw-chipn{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;opacity:.65}
 .aw-loadbar{height:3px;background:#eee;border-radius:2px;overflow:hidden;margin:0 0 .5rem}
-.aw-loadbar-fill{height:100%;width:35%;background:#8a2a2b;border-radius:2px;animation:awload 1.1s ease-in-out infinite}
+.aw-loadbar-fill{height:100%;width:35%;background:var(--accent);border-radius:2px;animation:awload 1.1s ease-in-out infinite}
 @keyframes awload{0%{margin-left:-35%}100%{margin-left:100%}}
 .aw-list{max-height:calc(100vh - 150px);overflow-y:auto;padding-right:.3rem}
 .aw-grouph{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:#b0aa9e;font-weight:600;margin:.9rem 0 .25rem;position:sticky;top:0;background:#fafaf7;padding:.25rem 0;z-index:1}
@@ -1017,7 +1017,7 @@ const STYLE = `
 .aw-wfmeta .cost{color:#166534;font-weight:600}.aw-wfmeta .free{color:#94a3b8}
 .aw-detail{position:sticky;top:0}
 .aw-back{background:transparent;border:none;color:#6b6b6b;font:inherit;font-size:12px;cursor:pointer;padding:.1rem 0;margin-bottom:.6rem}
-.aw-back:hover{color:#8a2a2b}
+.aw-back:hover{color:var(--accent)}
 .aw-dtitle{display:flex;align-items:center;gap:.5rem;font-size:1.02rem;font-weight:600}
 .aw-dsub{display:flex;gap:.5rem;flex-wrap:wrap;margin:.3rem 0 .7rem;align-items:center}
 .aw-card{background:#fff;border:1px solid #e5e3dc;border-radius:6px;padding:.75rem .9rem}
