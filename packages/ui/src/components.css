@@ -1,15 +1,4 @@
-/*
- * @corpus/ui — component-kit styles.
- *
- * The look for the shared Solid components (Pill, Drawer, Button, Prose,
- * LangToggle), all driven by the design tokens. An app imports this once
- * (after tokens.css + its theme). Components carry only structure + class
- * names; this sheet owns the appearance, so both apps render them identically
- * (modulo the themed tokens — palette + Hebrew face).
- *
- * Component-level tokens use var(--x, fallback) so an app can refine a piece
- * (e.g. tanach's parchment pills) without the component knowing.
- */
+/* Shared reader components. Both apps use the same tokens and control styles. */
 
 /* ---- Pill (PillRow) ---- */
 .ui-pill-row {
@@ -65,6 +54,7 @@
   flex-direction: column;
 }
 .ui-drawer-head {
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -102,32 +92,181 @@
   padding: 6px 18px 32px;
 }
 
-/* ---- Button (standard bordered control) ---- */
-.ui-button {
-  font-family: var(--font-ui);
-  font-size: 15px;
-  padding: 4px 12px;
+/* Shared controls: native elements retain their keyboard behavior. */
+.ui-button,
+.ui-select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--control-height);
+  padding: 6px 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--fg);
+  font: 500 13px / 1.4 var(--font-ui);
+  text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
-  transition:
-    border-color 0.12s ease,
-    background-color 0.12s ease,
-    color 0.12s ease;
 }
-.ui-button:hover:not(:disabled):not(.active) {
+.ui-button:hover:not(:disabled),
+.ui-select:hover {
   border-color: var(--accent);
 }
 .ui-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.ui-button.active,
+.ui-button-primary {
+  color: var(--surface);
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.ui-button-primary:hover:not(:disabled) {
+  background: var(--accent-strong);
+}
+.ui-button.is-error {
+  background: var(--danger);
+  color: var(--surface);
+}
+.ui-select {
+  min-width: 0;
+  max-width: 100%;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* The same reading controls in the same positions in both apps. */
+.ui-reader-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui);
+}
+.ui-reader-header .ui-reader-title {
+  margin: 0 4px 0 0;
+  font: 700 20px / 1.3 var(--font-ui);
+}
+.ui-reader-header > .ui-select {
+  width: 250px;
+}
+.ui-reader-utilities {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
+}
+.ui-reader-hint {
+  flex: 1;
+  min-width: 120px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+.ui-page-navigation {
+  display: inline-flex;
+  align-items: stretch;
+  flex: none;
+  height: var(--control-height);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg);
+  font: 500 14px / 1.4 var(--font-ui);
+}
+.ui-page-navigation > button {
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
+  padding: 0 10px;
+  font: inherit;
+  cursor: pointer;
+}
+.ui-page-navigation > button:hover:not(:disabled) {
+  background: var(--surface-sunk);
+}
+.ui-page-navigation > button:disabled {
   opacity: 0.4;
   cursor: default;
 }
-.ui-button.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+.ui-page-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  min-width: 0;
+  border: 0;
+  border-inline: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  appearance: textfield;
+}
+.ui-page-number::-webkit-inner-spin-button,
+.ui-page-number::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+.ui-page-tools {
+  position: fixed;
+  top: 8px;
+  inset-inline-end: 8px;
+  z-index: 2000;
+  display: flex;
+  gap: 6px;
+}
+@media (max-width: 1100px) {
+  .ui-reader-hint {
+    order: 5;
+    flex-basis: 100%;
+  }
+}
+@media (max-width: 767px) {
+  .ui-button,
+  .ui-select {
+    min-height: 40px;
+  }
+  .ui-page-navigation {
+    height: 40px;
+  }
+  .ui-reader-header {
+    padding: 8px 0;
+  }
+  .ui-reader-header.is-collapsed {
+    display: none;
+  }
+  .ui-reader-header > .ui-select {
+    order: 2;
+    width: 100%;
+    flex-basis: 100%;
+  }
+  .ui-reader-header > .ui-page-navigation {
+    order: 3;
+  }
+  .ui-reader-header > .ui-button-primary {
+    order: 4;
+    flex: 1;
+  }
+  .ui-reader-utilities {
+    max-width: 100%;
+  }
+  .ui-reader-header .ui-reader-title {
+    font-size: 18px;
+  }
 }
 
 /* ---- Prose (bilingual reading block) ---- */
@@ -143,25 +282,34 @@
   font-size: 17px;
 }
 
-/* ---- LangToggle (EN / עב segmented) ---- */
+/* Language choice uses one component on every page. */
 .ui-lang-toggle {
   display: inline-flex;
+  align-items: stretch;
+  flex: none;
+  min-height: var(--control-height);
+  padding: 2px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
 }
 .ui-lang-toggle button {
-  font-family: var(--font-ui);
-  font-size: 13px;
-  padding: 5px 10px;
+  padding: 4px 10px;
   border: 0;
-  background: var(--surface);
+  border-radius: var(--radius-pill);
+  background: transparent;
   color: var(--muted);
+  font: 500 13px / 1.4 var(--font-ui);
   cursor: pointer;
 }
 .ui-lang-toggle button.active {
   background: var(--accent);
-  color: #fff;
+  color: var(--surface);
+}
+@media (max-width: 767px) {
+  .ui-lang-toggle {
+    min-height: 40px;
+  }
 }
 
 /* ---- AiStatusBanner (AI-paused notice) ----
@@ -233,4 +381,45 @@
 }
 .ui-banner-close:hover {
   color: var(--banner-fg, var(--fg));
+}
+
+.ui-toolbar-menu {
+  position: relative;
+}
+.ui-toolbar-menu > summary {
+  list-style: none;
+}
+.ui-toolbar-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.ui-toolbar-menu[open] > summary {
+  border-color: var(--accent);
+}
+.ui-toolbar-menu-items {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + 6px);
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 180px;
+  max-width: calc(100vw - 32px);
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+.ui-toolbar-menu-items .ui-button {
+  justify-content: flex-start;
+  white-space: normal;
+}
+
+@media (min-width: 768px) {
+  .ui-reader-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
 }

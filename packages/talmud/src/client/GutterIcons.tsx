@@ -199,7 +199,7 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
 // publishes to the shared store.
 export function colorForKind(kind: GutterKind): string {
   return kind === 'argument'
-    ? '#8a2a2b'
+    ? 'var(--accent)'
     : kind === 'halacha'
       ? '#1e40af'
       : kind === 'chart'

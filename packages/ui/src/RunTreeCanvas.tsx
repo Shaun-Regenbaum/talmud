@@ -137,7 +137,7 @@ export function RunTreeCanvas(props: RunTreeCanvasProps): JSX.Element {
                   refY="3"
                   orient="auto"
                 >
-                  <path d="M0 0 L6 3 L0 6 z" fill="#8a2a2b" />
+                  <path d="M0 0 L6 3 L0 6 z" fill="var(--accent)" />
                 </marker>
               </defs>
               <For each={lay().edges}>
@@ -148,7 +148,7 @@ export function RunTreeCanvas(props: RunTreeCanvasProps): JSX.Element {
                     <path
                       d={edgePath(e.toRow, e.fromRow, e.lane)}
                       fill="none"
-                      stroke={hot() ? '#8a2a2b' : '#d3c4ba'}
+                      stroke={hot() ? 'var(--accent)' : '#d3c4ba'}
                       stroke-width={hot() ? 2 : 1.5}
                       stroke-opacity={faded() ? 0.22 : hot() ? 0.85 : 1}
                       stroke-linecap="round"

@@ -1466,7 +1466,7 @@ function LineChart(props: {
   const VBW = 900;
   const H = () => props.height ?? 190;
   const pad = { l: 56, r: 16, t: 14, b: 22 };
-  const color = () => props.color ?? '#8a2a2b';
+  const color = () => props.color ?? 'var(--accent)';
   const plotW = () => VBW - pad.l - pad.r;
   const plotH = () => H() - pad.t - pad.b;
   const pts = () => props.points;

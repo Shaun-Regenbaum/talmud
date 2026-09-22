@@ -28,8 +28,8 @@ import { HebraizedWithRabbis } from '../rabbiLinks';
 /** Per-type accent (the title color). Bodies pass `accent={ACCENTS.x}` so the
  *  six hardcoded hex values stop drifting. */
 export const ACCENTS = {
-  argument: '#8a2a2b',
-  'argument-overview': '#8a2a2b',
+  argument: 'var(--accent)',
+  'argument-overview': 'var(--accent)',
   'daf-background': '#8a6d3b',
   tidbit: '#2f6b66',
   biyun: '#3f4ea0',

@@ -120,8 +120,8 @@ function ModeBar(props: {
           style={{
             flex: 1,
             padding: '0.55rem 0.4rem',
-            border: props.mode === b.id ? '2px solid #8a2a2b' : '1px solid #d6d3d1',
-            background: props.mode === b.id ? '#fff7e6' : '#fff',
+            border: props.mode === b.id ? '2px solid var(--accent)' : '1px solid #d6d3d1',
+            background: props.mode === b.id ? 'var(--surface-sunk)' : 'var(--surface)',
             'border-radius': '6px',
             cursor: 'pointer',
             'font-family': 'inherit',

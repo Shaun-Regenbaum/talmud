@@ -4,7 +4,11 @@ import { Button } from '@corpus/ui/Button';
 import { Drawer } from '@corpus/ui/Drawer';
 import { fitBbox, GeoMap } from '@corpus/ui/GeoMap';
 import { LangToggle } from '@corpus/ui/LangToggle';
+import { PageNavigation } from '@corpus/ui/PageNavigation';
 import { Pill, PillRow } from '@corpus/ui/Pill';
+import { ReaderHeader } from '@corpus/ui/ReaderHeader';
+import { Select } from '@corpus/ui/Select';
+import { ToolbarMenu } from '@corpus/ui/ToolbarMenu';
 import {
   createEffect,
   createMemo,
@@ -29,6 +33,7 @@ import {
 import { ChapterLoadProgress } from './ChapterLoadProgress.tsx';
 import { reportLoad, resetChapterLoad } from './chapterLoad.ts';
 import { Inspector } from './Inspector.tsx';
+import { t } from './i18n';
 import { MikraotGedolot } from './MikraotGedolot.tsx';
 import { ParshaDrawer } from './ParshaDrawer.tsx';
 
@@ -245,6 +250,10 @@ async function fetchEvents(loc: { book: string; chapter: number }): Promise<Even
 
 export function App(): JSX.Element {
   const [loc, setLoc] = createSignal(readUrl());
+  createEffect(() => {
+    document.documentElement.lang = loc().lang;
+    document.documentElement.dir = loc().lang === 'he' ? 'rtl' : 'ltr';
+  });
   // The verse RANGE the parsha drawer is pointing at (a flow move, a landmark,
   // or an "Open in the text" jump — a single verse is a degenerate range). The
   // reader highlights whatever slice of it falls in the visible chapter.
@@ -809,10 +818,46 @@ export function App(): JSX.Element {
           ctaHref: 'mailto:shaunregenbaum@gmail.com?subject=Sponsoring%20the%20Tanach%20project',
         })}
       />
-      <header class="topbar">
-        <span class="brand">Tanach</span>
-        <select
-          class="book-select"
+      <ReaderHeader
+        title={t('title', loc().lang)}
+        hint={
+          loc().lang === 'he'
+            ? `${heBook(loc().book)} ${hebrewNumeral(loc().chapter)}`
+            : `${loc().book} ${loc().chapter}`
+        }
+        utilities={
+          <>
+            <ToolbarMenu label={t('more', loc().lang)}>
+              <Button
+                active={loc().nikud}
+                onClick={() => update({ nikud: !loc().nikud })}
+                title={t('nikud', loc().lang)}
+                aria-label={t('nikud', loc().lang)}
+              >
+                נִקּוּד
+              </Button>
+              <a class="ui-button" href="/usage">
+                {t('usage', loc().lang)}
+              </a>
+              <a class="ui-button" href="/connect">
+                {t('connect', loc().lang)}
+              </a>
+              <a
+                class="ui-button"
+                href={`/align?book=${encodeURIComponent(loc().book)}&chapter=${loc().chapter}`}
+              >
+                {t('align', loc().lang)}
+              </a>
+            </ToolbarMenu>
+            <Button active={inspectOpen()} onClick={toggleInspect}>
+              {t('inspect', loc().lang)}
+            </Button>
+            <LangToggle lang={loc().lang} onChange={(lang) => update({ lang })} />
+          </>
+        }
+      >
+        <Select
+          aria-label={t('book', loc().lang)}
           value={loc().book}
           onChange={(e) => goto(e.currentTarget.value, 1)}
         >
@@ -829,74 +874,27 @@ export function App(): JSX.Element {
               </optgroup>
             )}
           </For>
-        </select>
-
+        </Select>
+        <PageNavigation
+          label={t('navigation', loc().lang)}
+          previousLabel={t('previous', loc().lang)}
+          nextLabel={t('next', loc().lang)}
+          previousDisabled={loc().chapter <= 1}
+          onPrevious={() => goto(loc().book, loc().chapter - 1)}
+          onNext={() => goto(loc().book, loc().chapter + 1)}
+        >
+          <span class="ui-page-number" title={t('chapter', loc().lang)}>
+            {loc().lang === 'he' ? hebrewNumeral(loc().chapter) : loc().chapter}
+          </span>
+        </PageNavigation>
         <Show when={parsha()}>
           {(p) => (
-            <button
-              type="button"
-              class="parsha-btn"
-              onClick={openWeeklyParsha}
-              title={`This week's parsha — ${p().name} (${p().ref})`}
-            >
+            <Button variant="primary" onClick={openWeeklyParsha} title={t('weekly', loc().lang)}>
               {loc().lang === 'he' ? p().heName || p().name : p().name}
-            </button>
+            </Button>
           )}
         </Show>
-
-        {/* Mikraot Gedolot view hidden for now — Default (scroll) only. */}
-
-        <Show when={loc().view === 'scroll'}>
-          <button
-            type="button"
-            class="nikud-toggle"
-            onClick={() => update({ nikud: !loc().nikud })}
-          >
-            {loc().nikud ? 'נִקּוּד' : 'נקוד'}
-          </button>
-        </Show>
-
-        <LangToggle lang={loc().lang} onChange={(lang) => update({ lang })} />
-
-        <a class="usage-link" href="/usage" title="LLM usage">
-          usage
-        </a>
-        <a class="usage-link" href="/connect" title="Connect an AI client via MCP">
-          mcp
-        </a>
-        <a
-          class="usage-link"
-          href={`/align?book=${encodeURIComponent(loc().book)}&chapter=${loc().chapter}`}
-          title="Alignment workbench: pieces aligned to the chapter's verses"
-        >
-          align
-        </a>
-        <button
-          type="button"
-          class="usage-link inspect-link"
-          classList={{ active: inspectOpen() }}
-          onClick={toggleInspect}
-          title="Inspect this chapter's cache + cost"
-        >
-          inspect
-        </button>
-
-        <div class="chapter-nav">
-          <Button
-            disabled={loc().chapter <= 1}
-            onClick={() => goto(loc().book, loc().chapter - 1)}
-            aria-label="Previous chapter"
-          >
-            ‹
-          </Button>
-          <span class="chapter-label">
-            {loc().lang === 'he' ? hebrewNumeral(loc().chapter) : `ch. ${loc().chapter}`}
-          </span>
-          <Button onClick={() => goto(loc().book, loc().chapter + 1)} aria-label="Next chapter">
-            ›
-          </Button>
-        </div>
-      </header>
+      </ReaderHeader>
 
       <ChapterLoadProgress />
       <Show when={data.error}>
@@ -1282,9 +1280,9 @@ function ChapterFoot(props: {
         if (!p) return <span />;
         const txt = fmt(p.book, p.chapter);
         return (
-          <button type="button" onClick={() => props.goto(p.book, p.chapter)}>
+          <Button onClick={() => props.goto(p.book, p.chapter)}>
             {dir === 'prev' ? `‹ ${txt}` : `${txt} ›`}
-          </button>
+          </Button>
         );
       }}
     </Show>

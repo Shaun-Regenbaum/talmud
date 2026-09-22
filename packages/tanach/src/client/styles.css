@@ -1,4 +1,4 @@
-/* Design tokens + the tanach palette/fonts come from @corpus/ui (imported in
+/* Shared design tokens and corpus fonts come from @corpus/ui (imported in
    main.tsx: tokens.css + themes/tanach.css). This sheet only consumes them:
    --bg/--fg/--ink/--muted/--line/--accent/--parchment*, and the type split
    --font-ui (chrome) / --font-serif (Latin reading) / --font-hebrew. */
@@ -24,97 +24,6 @@ body {
 .app.view-scroll {
   max-width: none;
   padding: 0;
-}
-
-/* ---- top bar ---- */
-/* All top-bar chrome (brand, selects, buttons, toggles — they use
-   font-family: inherit) renders in the shared UI sans, not the reading serif. */
-.topbar {
-  position: sticky;
-  top: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--line);
-  font-family: var(--font-ui);
-  z-index: 10;
-}
-.brand {
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-size: 14px;
-  color: var(--accent);
-}
-.book-select {
-  font-family: inherit;
-  font-size: 15px;
-  padding: 5px 8px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--ink);
-}
-
-.view-toggle {
-  display: inline-flex;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  overflow: hidden;
-}
-.view-toggle button {
-  font-family: inherit;
-  font-size: 14px;
-  padding: 5px 12px;
-  border: 0;
-  background: #fff;
-  color: var(--muted);
-  cursor: pointer;
-}
-.view-toggle button.active {
-  background: var(--accent);
-  color: #fff;
-}
-
-.nikud-toggle {
-  font-family: inherit;
-  font-size: 15px;
-  padding: 4px 12px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.chapter-nav {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.chapter-nav button,
-.chapter-foot button {
-  font-family: inherit;
-  font-size: 15px;
-  padding: 4px 12px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--ink);
-  cursor: pointer;
-}
-.chapter-nav button:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-.chapter-label {
-  font-size: 14px;
-  color: var(--muted);
-  min-width: 48px;
-  text-align: center;
 }
 
 .status {
@@ -271,8 +180,8 @@ body {
   transition: background-color 0.08s ease;
 }
 .mg-seg.hl {
-  background: rgba(122, 92, 46, 0.18);
-  box-shadow: 0 0 0 2px rgba(122, 92, 46, 0.18);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 /* event anchors: short section labels from the events producer, set as small
@@ -288,7 +197,7 @@ body {
   font-size: 10.5px;
   line-height: 1.4;
   letter-spacing: 0.01em;
-  color: rgba(122, 92, 46, 0.7);
+  color: color-mix(in srgb, var(--accent) 70%, transparent);
   background: none;
   border: 0;
   cursor: pointer;
@@ -313,49 +222,6 @@ body {
   }
 }
 
-/* usage + inspect topbar utilities: tidy pill-style controls (was a dotted
-   underline; the <button> showed the browser's default focus rectangle). */
-.usage-link {
-  font-family: var(--font-ui);
-  font-size: 13px;
-  color: var(--muted);
-  text-decoration: none;
-  padding: 3px 9px;
-  border-radius: var(--radius-pill);
-  border: 1px solid transparent;
-  background: none;
-  cursor: pointer;
-  transition:
-    background 0.12s ease,
-    border-color 0.12s ease,
-    color 0.12s ease;
-}
-.usage-link:hover {
-  color: var(--accent);
-  background: var(--surface-sunk);
-}
-.usage-link:focus {
-  outline: none;
-}
-.usage-link:focus-visible {
-  outline: none;
-  border-color: var(--accent);
-}
-/* the "inspect" topbar toggle is a button styled like the usage link */
-.inspect-link {
-  font-family: var(--font-ui);
-}
-.inspect-link.active {
-  color: var(--accent);
-  background: var(--surface-sunk);
-  border-color: var(--line);
-}
-
-/* inspector drawer: one row per cached/missed producer piece */
-/* The inspect rows + totals are now the shared @corpus/ui InspectorRow —
-   see inspector.css. (.inspect-link below is tanach-only chrome.) */
-/* The /usage page is the shared @corpus/ui UsagePage — see usage.css. */
-
 /* the build-provenance DAG opened under a clicked waterfall row (the DAG canvas
    itself is the shared @corpus/ui RunTreeDag) */
 .inspect-dag {
@@ -370,24 +236,6 @@ body {
   color: var(--muted);
   margin-bottom: 10px;
 }
-
-/* this-week's-parsha button + EN/HE language toggle (like the Talmud reader) */
-.parsha-btn {
-  font-family: inherit;
-  font-size: 14px;
-  padding: 5px 12px;
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  background: none;
-  color: var(--accent);
-  cursor: pointer;
-  white-space: nowrap;
-}
-.parsha-btn:hover {
-  background: var(--accent);
-  color: #fff;
-}
-/* (the EN/עב toggle now renders via @corpus/ui's <LangToggle> — .ui-lang-toggle) */
 
 /* section-note popover (clicking a margin anchor) */
 .note-pop {
@@ -1019,7 +867,7 @@ body {
 
 /* highlight the verses of a clicked section anchor */
 .vtext.hl {
-  background: rgba(122, 92, 46, 0.13);
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
   border-radius: 3px;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
@@ -1099,8 +947,8 @@ body {
 
 /* synthesis block at the top of the commentary drawer */
 .comm-synth {
-  background: rgba(122, 92, 46, 0.08);
-  border: 1px solid rgba(122, 92, 46, 0.18);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
   border-radius: 8px;
   padding: 12px 14px;
   margin: 8px 0 6px;
@@ -1306,4 +1154,8 @@ body {
   background: #fff;
   color: #555;
   cursor: pointer;
+}
+
+.view-scroll > .ui-reader-header {
+  margin: 0 16px;
 }

@@ -471,7 +471,7 @@ export function TutorialCoach(): JSX.Element {
             height: `${rect()!.height + 12}px`,
             'border-radius': '8px',
             'box-shadow':
-              '0 0 0 9999px rgba(17,24,39,0.55), 0 0 0 2px rgba(255,255,255,0.9), 0 0 0 5px var(--accent, #8a2a2b)',
+              '0 0 0 9999px rgba(17,24,39,0.55), 0 0 0 2px rgba(255,255,255,0.9), 0 0 0 5px var(--accent)',
             'z-index': '6000',
             'pointer-events': 'none',
             transition: 'top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease',
@@ -538,7 +538,7 @@ export function TutorialCoach(): JSX.Element {
               {t('tutorial.finish.contact')}{' '}
               <a
                 href="mailto:shaunregenbaum@gmail.com"
-                style={{ color: 'var(--accent, #8a2a2b)', 'font-weight': 600 }}
+                style={{ color: 'var(--accent)', 'font-weight': 600 }}
               >
                 shaunregenbaum@gmail.com
               </a>
@@ -609,7 +609,7 @@ function Dots(props: {
                 width: idx() === props.index ? '18px' : '7px',
                 height: '7px',
                 'border-radius': '4px',
-                background: idx() === props.index ? 'var(--accent, #8a2a2b)' : '#d1d5db',
+                background: idx() === props.index ? 'var(--accent)' : '#d1d5db',
                 transition: 'width 0.2s ease, background 0.2s ease',
               }}
             />
@@ -622,9 +622,9 @@ function Dots(props: {
 
 function primaryBtn(): JSX.CSSProperties {
   return {
-    background: 'var(--accent, #8a2a2b)',
+    background: 'var(--accent)',
     color: '#fff',
-    border: '1px solid var(--accent, #8a2a2b)',
+    border: '1px solid var(--accent)',
     'border-radius': '6px',
     padding: '9px 18px',
     'font-size': '14px',
@@ -761,9 +761,7 @@ function Supplement(props: { kind: TourSupplement }): JSX.Element {
             'font-size': '17px',
           }}
         >
-          <span
-            style={{ 'border-bottom': '2px solid var(--accent, #8a2a2b)', 'padding-bottom': '1px' }}
-          >
+          <span style={{ 'border-bottom': '2px solid var(--accent)', 'padding-bottom': '1px' }}>
             גַּבְרָא
           </span>
           <span style={{ color: '#9ca3af' }}>→</span>
@@ -784,7 +782,7 @@ function Supplement(props: { kind: TourSupplement }): JSX.Element {
         >
           <span
             dir="rtl"
-            style={{ 'border-bottom': '2px solid var(--accent, #8a2a2b)', 'padding-bottom': '1px' }}
+            style={{ 'border-bottom': '2px solid var(--accent)', 'padding-bottom': '1px' }}
           >
             {t('tutorial.translatePhrase.exampleHe')}
           </span>
@@ -813,7 +811,7 @@ function Supplement(props: { kind: TourSupplement }): JSX.Element {
             }}
           >
             <span style={{ flex: '1 1 auto' }}>{t('tutorial.qa.placeholder')}</span>
-            <span style={{ color: 'var(--accent, #8a2a2b)', 'font-weight': 700 }}>↵</span>
+            <span style={{ color: 'var(--accent)', 'font-weight': 700 }}>↵</span>
           </div>
         </div>
       </Show>
@@ -828,14 +826,14 @@ function transChip(): JSX.CSSProperties {
     'border-radius': '4px',
     padding: '3px 12px',
     'font-size': '15px',
-    color: 'var(--accent-strong, #6f2122)',
+    color: 'var(--accent-strong)',
   };
 }
 function qaPill(): JSX.CSSProperties {
   return {
     'font-size': '12px',
     background: '#f3eceb',
-    color: 'var(--accent-strong, #6f2122)',
+    color: 'var(--accent-strong)',
     border: '1px solid #e3cfcf',
     'border-radius': '999px',
     padding: '3px 10px',

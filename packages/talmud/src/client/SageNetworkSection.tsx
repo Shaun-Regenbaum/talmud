@@ -575,7 +575,7 @@ export function SageNetworkSection(props: { slug: string }): JSX.Element {
                           style={{
                             border: 'none',
                             background: 'transparent',
-                            color: '#8a2a2b',
+                            color: 'var(--accent)',
                             cursor: 'pointer',
                             'font-size': '0.78rem',
                             padding: 0,

@@ -1334,7 +1334,7 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
                 height: '0.85rem',
                 'border-radius': '50%',
                 border: '2px solid #d6d3d1',
-                'border-top-color': '#8a2a2b',
+                'border-top-color': 'var(--accent)',
                 animation: 'daf-spin 0.8s linear infinite',
                 'flex-shrink': 0,
               }}
@@ -2663,8 +2663,8 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
                 display: 'flex',
                 'align-items': 'baseline',
                 gap: '0.5rem',
-                background: s.isCurrent ? '#fdf2f2' : '#fff',
-                border: s.isCurrent ? '1.5px solid #8a2a2b' : '1px solid #e4e0d4',
+                background: s.isCurrent ? 'var(--surface-sunk)' : 'var(--surface)',
+                border: s.isCurrent ? '1.5px solid var(--accent)' : '1px solid #e4e0d4',
                 'border-radius': '8px',
                 padding: '0.4rem 0.6rem',
                 'box-shadow': '0 1px 1.4px rgba(58,51,32,0.1)',
@@ -2705,7 +2705,7 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
                         'font-size': '0.58rem',
                         'font-weight': 700,
                         color: '#fff',
-                        background: '#8a2a2b',
+                        background: 'var(--accent)',
                         'border-radius': '3px',
                         padding: '0.05rem 0.3rem',
                         'flex-shrink': 0,
@@ -2741,8 +2741,8 @@ function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
                     title={t('overview.goToDaf', { daf: refLabel() })}
                     style={rowStyle}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#8a2a2b';
-                      e.currentTarget.style.background = '#fbf6f6';
+                      e.currentTarget.style.borderColor = 'var(--accent)';
+                      e.currentTarget.style.background = 'var(--surface-sunk)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = '#e4e0d4';

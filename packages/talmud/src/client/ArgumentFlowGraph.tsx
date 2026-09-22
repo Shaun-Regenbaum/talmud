@@ -400,7 +400,7 @@ export function StatementBand(props: {
                 height={sh}
                 rx={6}
                 ry={6}
-                fill={sel() ? '#fdf2f2' : '#ffffff'}
+                fill={sel() ? 'var(--surface-sunk)' : '#ffffff'}
               />
               <rect
                 x={sx}
@@ -410,7 +410,7 @@ export function StatementBand(props: {
                 rx={6}
                 ry={6}
                 fill="none"
-                stroke={sel() ? '#8a2a2b' : '#e7e2d6'}
+                stroke={sel() ? 'var(--accent)' : '#e7e2d6'}
                 stroke-width={sel() ? 1.5 : 1}
               />
               <text
@@ -711,8 +711,8 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                       height={NODE_H}
                       rx={10}
                       ry={10}
-                      fill={active() ? '#fdf2f2' : '#ffffff'}
-                      stroke={active() ? '#8a2a2b' : '#e4e0d4'}
+                      fill={active() ? 'var(--surface-sunk)' : '#ffffff'}
+                      stroke={active() ? 'var(--accent)' : '#e4e0d4'}
                       stroke-width={active() ? 1.75 : 1}
                       filter="url(#flow-card-shadow)"
                     />
@@ -720,8 +720,8 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                       cx={badgeCX}
                       cy={cy()}
                       r={11}
-                      fill={active() ? '#8a2a2b' : '#f2eee4'}
-                      stroke={active() ? '#8a2a2b' : '#e4e0d4'}
+                      fill={active() ? 'var(--accent)' : '#f2eee4'}
+                      stroke={active() ? 'var(--accent)' : '#e4e0d4'}
                       stroke-width={1}
                     />
                     <text
@@ -732,7 +732,7 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                       font-size="11"
                       font-weight="700"
                       font-family="system-ui, -apple-system, sans-serif"
-                      fill={active() ? '#ffffff' : '#8a2a2b'}
+                      fill={active() ? '#ffffff' : 'var(--accent)'}
                     >
                       {n.index + 1}
                     </text>

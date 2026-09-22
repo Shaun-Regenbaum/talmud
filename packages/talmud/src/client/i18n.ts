@@ -109,6 +109,16 @@ type Entry = { en: string; he: string };
 const CATALOG = {
   // — App / daf header —
   'app.title': { en: 'Talmud', he: 'תלמוד' },
+  'header.more': { en: 'More', he: 'עוד' },
+  'header.about': { en: 'About', he: 'אודות' },
+  'header.usage': { en: 'Usage', he: 'שימוש' },
+  'header.connect': { en: 'Connect', he: 'חיבור' },
+  'header.align': { en: 'Alignment', he: 'התאמה' },
+  'header.tractate': { en: 'Tractate', he: 'מסכת' },
+  'header.pages': { en: 'Page navigation', he: 'ניווט בדפים' },
+  'header.previous': { en: 'Previous page', he: 'הדף הקודם' },
+  'header.next': { en: 'Next page', he: 'הדף הבא' },
+  'header.page': { en: 'Page', he: 'דף' },
   'header.nav.hint': {
     en: '← / → to navigate · click any word to translate',
     he: '← / → לניווט · לחצו על מילה לתרגום',

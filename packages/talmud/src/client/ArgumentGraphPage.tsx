@@ -237,7 +237,7 @@ export function ArgumentGraphPage(): JSX.Element {
     flashTimer = setTimeout(() => setFlash(null), 1600);
   };
   const flashStyle = (id: string) =>
-    flash() === id ? { outline: '2px solid #8a2a2b', 'outline-offset': '2px' } : {};
+    flash() === id ? { outline: '2px solid var(--accent)', 'outline-offset': '2px' } : {};
 
   // The aggregate people network (the old voice graph), fed the same way the
   // retired #voices page fed it: per-section voices riding each warmed
@@ -310,7 +310,7 @@ export function ArgumentGraphPage(): JSX.Element {
           ← {t('arggraph.back')}
         </a>
         <h1 style={{ margin: '0.4rem 0 0', 'font-size': '1.45rem' }}>
-          {t('arggraph.title')} · <span style={{ color: '#8a2a2b' }}>{title()}</span>
+          {t('arggraph.title')} · <span style={{ color: 'var(--accent)' }}>{title()}</span>
         </h1>
         <p
           style={{ margin: '0.3rem 0 0', color: '#666', 'font-size': '0.9rem', 'line-height': 1.5 }}
@@ -336,7 +336,11 @@ export function ArgumentGraphPage(): JSX.Element {
               <p style={{ margin: 0 }}>{t('arggraph.empty')}</p>
               <a
                 href={backHref()}
-                style={{ color: '#8a2a2b', 'font-size': '0.85rem', 'text-decoration': 'none' }}
+                style={{
+                  color: 'var(--accent)',
+                  'font-size': '0.85rem',
+                  'text-decoration': 'none',
+                }}
               >
                 {t('arggraph.openDaf')} →
               </a>
@@ -377,8 +381,9 @@ export function ArgumentGraphPage(): JSX.Element {
                         font: 'inherit',
                         'font-size': '0.78rem',
                         color: '#333',
-                        border: focus() === p.name ? '1px solid #8a2a2b' : '1px solid #e4e0d4',
-                        background: focus() === p.name ? '#fdf2f2' : '#fafafa',
+                        border:
+                          focus() === p.name ? '1px solid var(--accent)' : '1px solid #e4e0d4',
+                        background: focus() === p.name ? 'var(--surface-sunk)' : '#fafafa',
                         'font-style': p.collective ? 'italic' : 'normal',
                       }}
                     >
@@ -431,7 +436,7 @@ export function ArgumentGraphPage(): JSX.Element {
                       style={{
                         font: 'inherit',
                         'font-size': '0.75rem',
-                        color: '#8a2a2b',
+                        color: 'var(--accent)',
                         background: 'none',
                         border: 'none',
                         padding: 0,
@@ -487,7 +492,7 @@ export function ArgumentGraphPage(): JSX.Element {
                         'border-radius': '999px',
                         background: '#f6f2e9',
                         border: '1px solid #e4dcc8',
-                        color: '#8a2a2b',
+                        color: 'var(--accent)',
                         'font-size': '0.75rem',
                         'font-weight': 700,
                         'flex-shrink': 0,

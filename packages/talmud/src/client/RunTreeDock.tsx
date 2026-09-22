@@ -418,7 +418,7 @@ function FreshnessPanel(props: {
               'border-radius': '4px',
               border: '1px solid #d8c9c0',
               background: '#fff',
-              color: studioSecret() ? '#8a2a2b' : '#bbb',
+              color: studioSecret() ? 'var(--accent)' : '#bbb',
               cursor: studioSecret() ? 'pointer' : 'not-allowed',
             }}
           >

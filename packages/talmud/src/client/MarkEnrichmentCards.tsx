@@ -780,7 +780,7 @@ export default function MarkEnrichmentCards(props: Props) {
               height: '0.85rem',
               'border-radius': '50%',
               border: '2px solid #d6d3d1',
-              'border-top-color': '#8a2a2b',
+              'border-top-color': 'var(--accent)',
               animation: 'daf-spin 0.8s linear infinite',
               'flex-shrink': 0,
             }}
