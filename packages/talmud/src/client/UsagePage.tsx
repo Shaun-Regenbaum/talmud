@@ -1,3 +1,6 @@
+import { Button } from '@corpus/ui/Button';
+import { FilterChip, StatCard as SharedStatCard, StatusMessage } from '@corpus/ui/Study';
+import './debug-controls.css';
 import { ChartCard, type LinePoint, LineChart as SharedLineChart } from '@corpus/ui/Charts';
 import { WorldBubbleMap } from '@corpus/ui/WorldBubbleMap';
 import { createMemo, createResource, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
@@ -415,7 +418,7 @@ function SkeletonBlock(props: { rows?: number }): JSX.Element {
               'border-radius': '4px',
               'margin-bottom': '0.55rem',
               width: i() % 3 === 2 ? '60%' : i() % 2 ? '85%' : '100%',
-              background: '#eee',
+              background: 'var(--line)',
               animation: 'daf-pulse 1.3s ease-in-out infinite',
             }}
           />
@@ -437,9 +440,9 @@ function SectionShell<T>(props: {
       when={props.section.value()}
       fallback={
         <Show when={props.section.error()} fallback={<SkeletonBlock rows={props.skeletonRows} />}>
-          <p style={{ color: '#c33', 'font-size': '0.85rem' }}>
+          <StatusMessage tone="error">
             {t('usage.loadFailed', { error: String(props.section.error()) })}
-          </p>
+          </StatusMessage>
         </Show>
       }
     >
@@ -486,8 +489,8 @@ function Spinner(props: { size?: string }): JSX.Element {
         width: s(),
         height: s(),
         'border-radius': '50%',
-        border: '2px solid #ddd',
-        'border-top-color': '#4b7bec',
+        border: '2px solid var(--line)',
+        'border-top-color': 'var(--accent)',
         animation: 'daf-spin 0.8s linear infinite',
         'flex-shrink': 0,
       }}
@@ -506,7 +509,7 @@ function SectionHeading(props: SectionHeadingProps): JSX.Element {
         'font-size': '0.95rem',
         'text-transform': 'uppercase',
         'letter-spacing': '0.05em',
-        color: '#999',
+        color: 'var(--muted)',
         'margin-bottom': '0.5rem',
       }}
     >
@@ -515,7 +518,7 @@ function SectionHeading(props: SectionHeadingProps): JSX.Element {
         <span
           style={{
             'font-size': '0.75rem',
-            color: '#888',
+            color: 'var(--muted)',
             'margin-left': '0.5rem',
             'text-transform': 'none',
             'letter-spacing': 'normal',
@@ -563,37 +566,14 @@ function Collapsible(props: {
   };
   return (
     <div style={{ 'margin-top': '0.7rem' }}>
-      {/* biome-ignore lint/a11y/useSemanticElements: collapsible section heading; converting the h3 to a button would change the heading's layout and typography */}
-      <h3
-        onClick={toggle}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            toggle();
-          }
-        }}
-        // biome-ignore lint/a11y/noNoninteractiveElementToInteractiveRole: the heading stays an h3 in the DOM for its layout/typography; restructuring to a nested button would change the click target
-        role="button"
-        tabIndex={0}
-        aria-expanded={open()}
-        style={{
-          'font-size': '0.8rem',
-          color: '#777',
-          margin: '0 0 0.4rem',
-          cursor: 'pointer',
-          'user-select': 'none',
-          display: 'flex',
-          'align-items': 'baseline',
-          gap: '0.4rem',
-        }}
-      >
-        <span style={{ color: '#bbb', 'font-size': '0.7rem', width: '0.7rem', 'flex-shrink': 0 }}>
-          {open() ? '▾' : '▸'}
-        </span>
-        {props.title}
-        <Show when={props.sub}>
-          <span style={{ color: '#999', 'font-weight': 'normal' }}>{props.sub}</span>
-        </Show>
+      <h3 class="usage-disclosure-heading">
+        <Button class="usage-disclosure" onClick={toggle} aria-expanded={open()}>
+          <span aria-hidden="true">{open() ? '▾' : '▸'}</span>
+          <span>{props.title}</span>
+          <Show when={props.sub}>
+            <span class="usage-disclosure-detail">{props.sub}</span>
+          </Show>
+        </Button>
       </h3>
       <Show when={open()}>{props.children}</Show>
     </div>
@@ -611,7 +591,12 @@ function ProgressBar(props: { percent: number }): JSX.Element {
   const complete = () => props.percent >= 100;
   return (
     <div
-      style={{ height: '8px', background: '#f0f0f0', 'border-radius': '3px', overflow: 'hidden' }}
+      style={{
+        height: '8px',
+        background: 'var(--surface-sunk)',
+        'border-radius': '3px',
+        overflow: 'hidden',
+      }}
     >
       <div
         style={{
@@ -673,9 +658,9 @@ function SourceRowView(props: { row: SourceRow }): JSX.Element {
     'font-variant-numeric': 'tabular-nums',
   };
   return (
-    <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+    <tr style={{ 'border-bottom': '1px solid var(--line)' }}>
       <td style={{ padding: '0.45rem 0.5rem' }}>
-        <span style={{ color: '#222' }}>{t(`usage.src.${r().id}`)}</span>
+        <span style={{ color: 'var(--fg)' }}>{t(`usage.src.${r().id}`)}</span>
         <OriginBadge origin={r().origin} />
       </td>
       <td style={num}>
@@ -688,7 +673,7 @@ function SourceRowView(props: { row: SourceRow }): JSX.Element {
           }
         >
           {fmtInt(r().count)}
-          <span style={{ color: '#999' }}> {r().unit}</span>
+          <span style={{ color: 'var(--muted)' }}> {r().unit}</span>
         </Show>
       </td>
       <td style={{ padding: '0.45rem 0.5rem', width: '26%' }}>
@@ -698,15 +683,15 @@ function SourceRowView(props: { row: SourceRow }): JSX.Element {
         </Show>
       </td>
       <td style={{ ...num, color: complete() ? '#2a8a42' : '#333', 'white-space': 'nowrap' }}>
-        <Show when={!entity()} fallback={<span style={{ color: '#bbb' }}>—</span>}>
+        <Show when={!entity()} fallback={<span style={{ color: 'var(--muted)' }}>—</span>}>
           {r().percent.toFixed(1)}%
           <Show when={complete()}>
             <span style={{ 'margin-left': '0.3rem' }}>✓</span>
           </Show>
         </Show>
       </td>
-      <td style={{ ...num, color: '#555', 'white-space': 'nowrap' }}>
-        <Show when={aligned()} fallback={<span style={{ color: '#bbb' }}>—</span>}>
+      <td style={{ ...num, color: 'var(--fg)', 'white-space': 'nowrap' }}>
+        <Show when={aligned()} fallback={<span style={{ color: 'var(--muted)' }}>—</span>}>
           {(a) => (
             <span
               title={t('usage.sources.alignedTitle', {
@@ -749,20 +734,28 @@ function SourcesSection(props: { stats: CacheStats }): JSX.Element {
     ];
   };
   return (
-    <table style={tableStyle}>
-      <thead>
-        <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
-          <th style={thStyle}>{t('usage.col.source')}</th>
-          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cached')}</th>
-          <th style={thStyle} />
-          <th style={{ ...thStyle, 'text-align': 'right' }}>%</th>
-          <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.hasContent')}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <For each={rows()}>{(row) => <SourceRowView row={row} />}</For>
-      </tbody>
-    </table>
+    <div class="usage-table-scroll">
+      <table style={tableStyle}>
+        <thead>
+          <tr
+            style={{
+              'text-align': 'left',
+              'border-bottom': '1px solid var(--line)',
+              color: 'var(--muted)',
+            }}
+          >
+            <th style={thStyle}>{t('usage.col.source')}</th>
+            <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.cached')}</th>
+            <th style={thStyle} />
+            <th style={{ ...thStyle, 'text-align': 'right' }}>%</th>
+            <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.hasContent')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <For each={rows()}>{(row) => <SourceRowView row={row} />}</For>
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -809,7 +802,7 @@ function CoverageBar(props: {
       <span
         style={{
           'font-size': '0.66rem',
-          color: props.he ? '#1d4ed8' : '#aaa',
+          color: props.he ? '#1d4ed8' : 'var(--muted)',
           width: '1.3rem',
           'flex-shrink': 0,
         }}
@@ -820,7 +813,7 @@ function CoverageBar(props: {
         style={{
           'font-variant-numeric': 'tabular-nums',
           'font-size': '0.8rem',
-          color: '#555',
+          color: 'var(--fg)',
           width: '3.4rem',
           'text-align': 'right',
           'flex-shrink': 0,
@@ -835,7 +828,7 @@ function CoverageBar(props: {
         style={{
           'font-variant-numeric': 'tabular-nums',
           'font-size': '0.78rem',
-          color: complete() ? '#2a8a42' : '#666',
+          color: complete() ? '#2a8a42' : 'var(--muted)',
           width: '3rem',
           'text-align': 'right',
           'flex-shrink': 0,
@@ -875,13 +868,13 @@ function MarkTreeRow(props: {
   return (
     <>
       <tr
-        style={{ 'border-bottom': '1px solid #f4f4f4', cursor: 'pointer' }}
+        style={{ 'border-bottom': '1px solid var(--line)', cursor: 'pointer' }}
         onClick={() => setOpen(!open())}
       >
         <td style={{ padding: '0.4rem 0.5rem', 'vertical-align': 'top' }}>
           <span
             style={{
-              color: '#bbb',
+              color: 'var(--muted)',
               'margin-right': '0.4rem',
               display: 'inline-block',
               width: '0.7rem',
@@ -904,7 +897,7 @@ function MarkTreeRow(props: {
         </td>
       </tr>
       <Show when={open()}>
-        <tr style={{ background: '#fbfbfa' }}>
+        <tr style={{ background: 'var(--bg)' }}>
           <td colspan={2} style={{ padding: '0.2rem 0.5rem 0.7rem 1.7rem' }}>
             <Show when={deps().length > 0}>
               <div style={{ 'font-size': '0.75rem', color: '#7c3aed', 'margin-bottom': '0.35rem' }}>
@@ -925,7 +918,9 @@ function MarkTreeRow(props: {
             <Show
               when={enr().length > 0}
               fallback={
-                <p style={{ color: '#aaa', 'font-size': '0.8rem' }}>{t('usage.tree.noEnrich')}</p>
+                <p style={{ color: 'var(--muted)', 'font-size': '0.8rem' }}>
+                  {t('usage.tree.noEnrich')}
+                </p>
               }
             >
               <table style={tableStyle}>
@@ -933,8 +928,8 @@ function MarkTreeRow(props: {
                   <tr
                     style={{
                       'text-align': 'left',
-                      'border-bottom': '1px solid #eee',
-                      color: '#888',
+                      'border-bottom': '1px solid var(--line)',
+                      color: 'var(--muted)',
                       'font-size': '0.78rem',
                     }}
                   >
@@ -947,7 +942,7 @@ function MarkTreeRow(props: {
                 <tbody>
                   <For each={enr()}>
                     {(e) => (
-                      <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                      <tr style={{ 'border-bottom': '1px solid var(--line)' }}>
                         <td style={{ padding: '0.35rem 0.5rem' }}>
                           {e.label}
                           <Show when={e.scope === 'global'}>
@@ -957,12 +952,12 @@ function MarkTreeRow(props: {
                         <td style={{ ...num }}>
                           {fmtInt(langCount(e.versions, e.cache_version, false))}
                         </td>
-                        <td style={{ ...num, color: e.heCount > 0 ? '#1d4ed8' : '#bbb' }}>
+                        <td style={{ ...num, color: e.heCount > 0 ? '#1d4ed8' : 'var(--muted)' }}>
                           {e.heCount > 0
                             ? fmtInt(langCount(e.versions, e.cache_version, true))
                             : '—'}
                         </td>
-                        <td style={{ ...num, color: e.staleCount ? '#b58100' : '#bbb' }}>
+                        <td style={{ ...num, color: e.staleCount ? '#b58100' : 'var(--muted)' }}>
                           {e.staleCount ? fmtInt(e.staleCount) : '—'}
                         </td>
                       </tr>
@@ -988,11 +983,17 @@ function NotesSection(props: { stats: CacheStats }): JSX.Element {
       <SectionHeading title={t('usage.anchors.title')} hint={t('usage.tree.hint')} />
       <Show
         when={marks().length > 0}
-        fallback={<p style={{ color: '#888' }}>{t('usage.anchors.empty')}</p>}
+        fallback={<p style={{ color: 'var(--muted)' }}>{t('usage.anchors.empty')}</p>}
       >
         <table style={tableStyle}>
           <thead>
-            <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+            <tr
+              style={{
+                'text-align': 'left',
+                'border-bottom': '1px solid var(--line)',
+                color: 'var(--muted)',
+              }}
+            >
               <th style={thStyle}>{t('usage.col.anchor')}</th>
               <th style={thStyle}>{t('usage.col.coverage')}</th>
             </tr>
@@ -1027,7 +1028,7 @@ function BacklogSection(props: {
     <>
       {/* User-submitted bug reports at the top — check them off as you triage. */}
       <Show when={props.reports}>{(rep) => <BacklogReports reports={rep()} />}</Show>
-      <p style={{ 'font-size': '0.82rem', color: '#555', margin: '0 0 0.7rem' }}>
+      <p style={{ 'font-size': '0.82rem', color: 'var(--fg)', margin: '0 0 0.7rem' }}>
         {t('usage.backlog.combined', { count: fmtInt(combinedTotal()) })}
       </p>
       <Collapsible
@@ -1038,7 +1039,7 @@ function BacklogSection(props: {
         <Show
           when={props.rabbis.sample.length > 0}
           fallback={
-            <p style={{ color: '#888', 'font-size': '0.82rem' }}>
+            <p style={{ color: 'var(--muted)', 'font-size': '0.82rem' }}>
               {t('usage.backlog.rabbis.empty')}
             </p>
           }
@@ -1046,7 +1047,11 @@ function BacklogSection(props: {
           <table style={tableStyle}>
             <thead>
               <tr
-                style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}
+                style={{
+                  'text-align': 'left',
+                  'border-bottom': '1px solid var(--line)',
+                  color: 'var(--muted)',
+                }}
               >
                 <th style={thStyle}>{t('usage.col.name')}</th>
                 <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.seen')}</th>
@@ -1056,12 +1061,16 @@ function BacklogSection(props: {
             <tbody>
               <For each={props.rabbis.sample}>
                 {(u) => (
-                  <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                  <tr style={{ 'border-bottom': '1px solid var(--line)' }}>
                     <td style={{ padding: '0.35rem 0.5rem' }}>
                       {u.nameHe || u.name}
                       <Show when={u.nameHe && u.name}>
                         <span
-                          style={{ color: '#999', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}
+                          style={{
+                            color: 'var(--muted)',
+                            'font-size': '0.75rem',
+                            'margin-left': '0.4rem',
+                          }}
                         >
                           {u.name}
                         </span>
@@ -1077,7 +1086,11 @@ function BacklogSection(props: {
                       {u.count}
                     </td>
                     <td
-                      style={{ padding: '0.35rem 0.5rem', 'font-size': '0.75rem', color: '#888' }}
+                      style={{
+                        padding: '0.35rem 0.5rem',
+                        'font-size': '0.75rem',
+                        color: 'var(--muted)',
+                      }}
                     >
                       {u.dafs.slice(0, 3).join(', ')}
                       {u.dafs.length > 3 ? '…' : ''}
@@ -1098,7 +1111,7 @@ function BacklogSection(props: {
         <Show
           when={props.places.sample.length > 0}
           fallback={
-            <p style={{ color: '#888', 'font-size': '0.82rem' }}>
+            <p style={{ color: 'var(--muted)', 'font-size': '0.82rem' }}>
               {t('usage.backlog.places.empty')}
             </p>
           }
@@ -1106,7 +1119,11 @@ function BacklogSection(props: {
           <table style={tableStyle}>
             <thead>
               <tr
-                style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}
+                style={{
+                  'text-align': 'left',
+                  'border-bottom': '1px solid var(--line)',
+                  color: 'var(--muted)',
+                }}
               >
                 <th style={thStyle}>{t('usage.col.place')}</th>
                 <th style={thStyle}>{t('usage.col.kind')}</th>
@@ -1116,19 +1133,27 @@ function BacklogSection(props: {
             <tbody>
               <For each={props.places.sample}>
                 {(p) => (
-                  <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                  <tr style={{ 'border-bottom': '1px solid var(--line)' }}>
                     <td style={{ padding: '0.35rem 0.5rem' }}>
                       {p.nameHe || p.name}
                       <Show when={p.nameHe && p.name}>
                         <span
-                          style={{ color: '#999', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}
+                          style={{
+                            color: 'var(--muted)',
+                            'font-size': '0.75rem',
+                            'margin-left': '0.4rem',
+                          }}
                         >
                           {p.name}
                         </span>
                       </Show>
                     </td>
                     <td
-                      style={{ padding: '0.35rem 0.5rem', 'font-size': '0.78rem', color: '#777' }}
+                      style={{
+                        padding: '0.35rem 0.5rem',
+                        'font-size': '0.78rem',
+                        color: 'var(--muted)',
+                      }}
                     >
                       {p.kind ?? '—'}
                       {p.region ? ` · ${p.region}` : ''}
@@ -1158,7 +1183,7 @@ function BacklogSection(props: {
         <Show
           when={props.concepts.sample.length > 0}
           fallback={
-            <p style={{ color: '#888', 'font-size': '0.82rem' }}>
+            <p style={{ color: 'var(--muted)', 'font-size': '0.82rem' }}>
               {t('usage.backlog.concepts.empty')}
             </p>
           }
@@ -1166,7 +1191,11 @@ function BacklogSection(props: {
           <table style={tableStyle}>
             <thead>
               <tr
-                style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}
+                style={{
+                  'text-align': 'left',
+                  'border-bottom': '1px solid var(--line)',
+                  color: 'var(--muted)',
+                }}
               >
                 <th style={thStyle}>{t('usage.col.term')}</th>
                 <th style={thStyle}>{t('usage.col.category')}</th>
@@ -1176,19 +1205,27 @@ function BacklogSection(props: {
             <tbody>
               <For each={props.concepts.sample}>
                 {(c) => (
-                  <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                  <tr style={{ 'border-bottom': '1px solid var(--line)' }}>
                     <td style={{ padding: '0.35rem 0.5rem' }}>
                       {c.termHe || c.term}
                       <Show when={c.termHe && c.term}>
                         <span
-                          style={{ color: '#999', 'font-size': '0.75rem', 'margin-left': '0.4rem' }}
+                          style={{
+                            color: 'var(--muted)',
+                            'font-size': '0.75rem',
+                            'margin-left': '0.4rem',
+                          }}
                         >
                           {c.term}
                         </span>
                       </Show>
                     </td>
                     <td
-                      style={{ padding: '0.35rem 0.5rem', 'font-size': '0.78rem', color: '#777' }}
+                      style={{
+                        padding: '0.35rem 0.5rem',
+                        'font-size': '0.78rem',
+                        color: 'var(--muted)',
+                      }}
                     >
                       {c.category ?? '—'}
                     </td>
@@ -1220,39 +1257,12 @@ function StatCard(props: {
   color?: string;
 }): JSX.Element {
   return (
-    <div
-      style={{
-        flex: '1 1 140px',
-        'min-width': '130px',
-        padding: '0.7rem 0.8rem',
-        background: '#fcfcfa',
-        border: '1px solid #eee',
-        'border-radius': '6px',
-      }}
-    >
-      <div
-        style={{
-          'font-size': '0.7rem',
-          'text-transform': 'uppercase',
-          'letter-spacing': '0.04em',
-          color: '#999',
-        }}
-      >
-        {props.label}
-      </div>
-      <div
-        style={{
-          'font-size': '1.25rem',
-          'font-weight': 600,
-          color: props.color ?? '#222',
-          'font-variant-numeric': 'tabular-nums',
-        }}
-      >
-        {props.value}
-      </div>
-      <Show when={props.sub}>
-        <div style={{ 'font-size': '0.72rem', color: '#999' }}>{props.sub}</div>
-      </Show>
+    <div class="usage-stat">
+      <SharedStatCard
+        label={props.label}
+        value={<span style={{ color: props.color ?? 'var(--fg)' }}>{props.value}</span>}
+        detail={props.sub}
+      />
     </div>
   );
 }
@@ -1270,12 +1280,12 @@ function ActivitySection(props: { activity: ZoneActivity }): JSX.Element {
       fallback={
         <p
           style={{
-            color: a().configured ? '#c33' : '#888',
+            color: a().configured ? '#c33' : 'var(--muted)',
             'font-size': '0.82rem',
-            background: '#fafafa',
+            background: 'var(--bg)',
             padding: '0.5rem 0.7rem',
             'border-radius': '4px',
-            border: '1px solid #eee',
+            border: '1px solid var(--line)',
           }}
         >
           <Show
@@ -1329,7 +1339,7 @@ function ActivitySection(props: { activity: ZoneActivity }): JSX.Element {
           <div
             style={{
               'font-size': '0.75rem',
-              color: '#999',
+              color: 'var(--muted)',
               'text-transform': 'uppercase',
               'letter-spacing': '0.04em',
               'margin-bottom': '0.3rem',
@@ -1360,14 +1370,16 @@ function ActivitySection(props: { activity: ZoneActivity }): JSX.Element {
         <div
           style={{
             'font-size': '0.75rem',
-            color: '#999',
+            color: 'var(--muted)',
             'text-transform': 'uppercase',
             'letter-spacing': '0.04em',
             'margin-bottom': '0.4rem',
           }}
         >
           {t('usage.activity.fromWhere')}
-          <span style={{ 'text-transform': 'none', 'letter-spacing': 'normal', color: '#bbb' }}>
+          <span
+            style={{ 'text-transform': 'none', 'letter-spacing': 'normal', color: 'var(--muted)' }}
+          >
             {'  ·  '}
             {t('usage.activity.countryCount', { count: fmtInt(byCountry().length) })}
           </span>
@@ -1459,31 +1471,17 @@ function RangeToggle(props: { value: ChartRange; onChange: (r: ChartRange) => vo
       style={{
         display: 'inline-flex',
         gap: '2px',
-        background: '#f4f2ee',
-        border: '1px solid #e6e3dc',
+        background: 'var(--surface-sunk)',
+        border: '1px solid var(--line)',
         'border-radius': '6px',
         padding: '2px',
       }}
     >
       <For each={opts}>
         {(o) => (
-          <button
-            type="button"
-            onClick={() => props.onChange(o)}
-            style={{
-              border: 'none',
-              'border-radius': '4px',
-              padding: '0.12rem 0.5rem',
-              'font-size': '0.7rem',
-              'font-weight': props.value === o ? 600 : 400,
-              background: props.value === o ? '#fff' : 'transparent',
-              color: props.value === o ? '#444' : '#999',
-              'box-shadow': props.value === o ? '0 0 2px rgba(0,0,0,0.12)' : 'none',
-              cursor: 'pointer',
-            }}
-          >
+          <Button type="button" active={props.value === o} onClick={() => props.onChange(o)}>
             {t(`usage.chart.range.${o}`)}
-          </button>
+          </Button>
         )}
       </For>
     </div>
@@ -1540,7 +1538,9 @@ function ByProducerSection(props: {
     >
       <Show
         when={total() > 0}
-        fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.byDaf.empty')}</p>}
+        fallback={
+          <p style={{ color: 'var(--muted)', 'font-size': '0.82rem' }}>{t('usage.byDaf.empty')}</p>
+        }
       >
         {/* Stacked share bar */}
         <div
@@ -1549,7 +1549,7 @@ function ByProducerSection(props: {
             height: '22px',
             'border-radius': '5px',
             overflow: 'hidden',
-            border: '1px solid #eee',
+            border: '1px solid var(--line)',
             'margin-bottom': '0.5rem',
           }}
         >
@@ -1574,7 +1574,7 @@ function ByProducerSection(props: {
             gap: '0.3rem 0.9rem',
             'margin-bottom': '0.7rem',
             'font-size': '0.74rem',
-            color: '#666',
+            color: 'var(--muted)',
           }}
         >
           <For each={segments()}>
@@ -1590,7 +1590,9 @@ function ByProducerSection(props: {
                   }}
                 />
                 <span style={{ 'font-family': 'monospace' }}>{s.id}</span>
-                <span style={{ color: '#aaa' }}>{((s.cost / total()) * 100).toFixed(0)}%</span>
+                <span style={{ color: 'var(--muted)' }}>
+                  {((s.cost / total()) * 100).toFixed(0)}%
+                </span>
               </span>
             )}
           </For>
@@ -1643,7 +1645,7 @@ function producerCols(maxCost: () => number): Column<[string, UsageBucket]>[] {
         b.pricedCalls ? (
           <Meter value={b.costUsd} max={maxCost()} text={fmtUsd(b.costUsd)} />
         ) : (
-          <span style={{ color: '#bbb' }}>{t('usage.unpriced')}</span>
+          <span style={{ color: 'var(--muted)' }}>{t('usage.unpriced')}</span>
         ),
     },
   ];
@@ -1887,11 +1889,11 @@ function CostDetails(props: { cost: CostSectionData; stats: CacheStats | undefin
   return (
     <>
       {/* Total spent — authoritative, OpenRouter's own billed ledger. */}
-      <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0.2rem 0 0.4rem' }}>
+      <h3 style={{ 'font-size': '0.8rem', color: 'var(--muted)', margin: '0.2rem 0 0.4rem' }}>
         {or()?.ok && or()?.scope === 'application-key'
           ? t('usage.cost.billed.title')
           : t('usage.cost.gatewayApprox')}{' '}
-        <span style={{ color: '#999', 'font-weight': 'normal' }}>
+        <span style={{ color: 'var(--muted)', 'font-weight': 'normal' }}>
           {or()?.ok && or()?.scope === 'application-key'
             ? t('usage.cost.billed.sub')
             : `${aigw().windowStart ?? ''} – ${aigw().windowEnd ?? ''}`}
@@ -1934,12 +1936,12 @@ function CostDetails(props: { cost: CostSectionData; stats: CacheStats | undefin
               fallback={
                 <p
                   style={{
-                    color: aigw().configured ? '#c33' : '#888',
+                    color: aigw().configured ? '#c33' : 'var(--muted)',
                     'font-size': '0.82rem',
-                    background: '#fafafa',
+                    background: 'var(--bg)',
                     padding: '0.5rem 0.7rem',
                     'border-radius': '4px',
-                    border: '1px solid #eee',
+                    border: '1px solid var(--line)',
                   }}
                 >
                   <Show
@@ -2025,9 +2027,9 @@ function CostDetails(props: { cost: CostSectionData; stats: CacheStats | undefin
       </Show>
 
       {/* Our own tracking — per-producer attribution, sliced into windows. */}
-      <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '1.1rem 0 0.4rem' }}>
+      <h3 style={{ 'font-size': '0.8rem', color: 'var(--muted)', margin: '1.1rem 0 0.4rem' }}>
         {t('usage.cost.tracked.title')}{' '}
-        <span style={{ color: '#999', 'font-weight': 'normal' }}>
+        <span style={{ color: 'var(--muted)', 'font-weight': 'normal' }}>
           {self()?.fromDate
             ? t('usage.cost.tracked.subSince', { date: self()!.fromDate ?? '' })
             : t('usage.cost.tracked.sub')}
@@ -2036,7 +2038,9 @@ function CostDetails(props: { cost: CostSectionData; stats: CacheStats | undefin
       <Show
         when={self()}
         fallback={
-          <p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.selfTracked.empty')}</p>
+          <p style={{ color: 'var(--muted)', 'font-size': '0.82rem' }}>
+            {t('usage.selfTracked.empty')}
+          </p>
         }
       >
         {(s) => (
@@ -2137,9 +2141,9 @@ function ShasEstimate(props: { est: ReturnType<typeof estimateShasCost> }): JSX.
   };
   return (
     <>
-      <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '1.1rem 0 0.4rem' }}>
+      <h3 style={{ 'font-size': '0.8rem', color: 'var(--muted)', margin: '1.1rem 0 0.4rem' }}>
         {t('usage.shas.title')}{' '}
-        <span style={{ color: '#999', 'font-weight': 'normal' }}>
+        <span style={{ color: 'var(--muted)', 'font-weight': 'normal' }}>
           {t('usage.shas.sub', { amudim: amudim() })}
         </span>
       </h3>
@@ -2166,11 +2170,11 @@ function ShasEstimate(props: { est: ReturnType<typeof estimateShasCost> }): JSX.
       <p
         style={{
           'font-size': '0.78rem',
-          color: '#888',
+          color: 'var(--muted)',
           background: '#fafaf8',
           padding: '0.5rem 0.7rem',
           'border-radius': '4px',
-          border: '1px solid #eee',
+          border: '1px solid var(--line)',
           'margin-bottom': '0.6rem',
         }}
       >
@@ -2183,7 +2187,13 @@ function ShasEstimate(props: { est: ReturnType<typeof estimateShasCost> }): JSX.
       >
         <table style={tableStyle}>
           <thead>
-            <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+            <tr
+              style={{
+                'text-align': 'left',
+                'border-bottom': '1px solid var(--line)',
+                color: 'var(--muted)',
+              }}
+            >
               <th style={thStyle}>{t('usage.shas.col.producer')}</th>
               <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.shas.col.perCall')}</th>
               <th style={{ ...thStyle, 'text-align': 'right' }}>
@@ -2197,7 +2207,7 @@ function ShasEstimate(props: { est: ReturnType<typeof estimateShasCost> }): JSX.
           <tbody>
             <For each={top()}>
               {(p) => (
-                <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                <tr style={{ 'border-bottom': '1px solid var(--line)' }}>
                   <td
                     style={{
                       padding: '0.3rem 0.5rem',
@@ -2208,7 +2218,7 @@ function ShasEstimate(props: { est: ReturnType<typeof estimateShasCost> }): JSX.
                     {p.id}
                   </td>
                   <td style={numCell}>{fmtUsd(p.unitUsd)}</td>
-                  <td style={{ ...numCell, color: '#999' }}>
+                  <td style={{ ...numCell, color: 'var(--muted)' }}>
                     {/* Demand-driven (.qa) producers are keyed per user question,
                         not per amud, so a per-amud rate is meaningless and they
                         are not projected across shas. */}
@@ -2227,7 +2237,7 @@ function ShasEstimate(props: { est: ReturnType<typeof estimateShasCost> }): JSX.
           </tbody>
         </table>
         <Show when={more() > 0}>
-          <div style={{ 'font-size': '0.75rem', color: '#aaa', 'margin-top': '0.3rem' }}>
+          <div style={{ 'font-size': '0.75rem', color: 'var(--muted)', 'margin-top': '0.3rem' }}>
             {t('usage.shas.more', { count: fmtInt(more()) })}
           </div>
         </Show>
@@ -2300,7 +2310,7 @@ function LatencyTable(props: {
         x.r.errorCount ? (
           <span style={{ color: '#9a3b30' }}>{x.r.errorCount}</span>
         ) : (
-          <span style={{ color: '#ccc' }}>0</span>
+          <span style={{ color: 'var(--line)' }}>0</span>
         ),
     },
   ];
@@ -2347,13 +2357,13 @@ function ByDafRow(props: { daf: string; bucket: DafLedgerBucket; maxCost: number
   return (
     <>
       <tr
-        style={{ 'border-bottom': '1px solid #f4f4f4', cursor: 'pointer' }}
+        style={{ 'border-bottom': '1px solid var(--line)', cursor: 'pointer' }}
         onClick={() => setOpen(!open())}
       >
         <td style={{ padding: '0.35rem 0.5rem' }}>
           <span
             style={{
-              color: '#bbb',
+              color: 'var(--muted)',
               'margin-right': '0.4rem',
               display: 'inline-block',
               width: '0.7rem',
@@ -2363,8 +2373,8 @@ function ByDafRow(props: { daf: string; bucket: DafLedgerBucket; maxCost: number
           </span>
           {parts().t} {parts().p}
         </td>
-        <td style={{ ...numCell, color: '#888' }}>{fmtInt(props.bucket.calls)}</td>
-        <td style={{ ...numCell, color: '#888' }}>
+        <td style={{ ...numCell, color: 'var(--muted)' }}>{fmtInt(props.bucket.calls)}</td>
+        <td style={{ ...numCell, color: 'var(--muted)' }}>
           {fmtUsd(props.bucket.costInEst)} / {fmtUsd(props.bucket.costOutEst)}
         </td>
         <td style={{ padding: '0.35rem 0.5rem', width: '30%' }}>
@@ -2373,7 +2383,7 @@ function ByDafRow(props: { daf: string; bucket: DafLedgerBucket; maxCost: number
               style={{
                 flex: 1,
                 height: '7px',
-                background: '#f0f0f0',
+                background: 'var(--surface-sunk)',
                 'border-radius': '3px',
                 overflow: 'hidden',
               }}
@@ -2400,12 +2410,12 @@ function ByDafRow(props: { daf: string; bucket: DafLedgerBucket; maxCost: number
         </td>
       </tr>
       <Show when={open()}>
-        <tr style={{ background: '#fbfbfa' }}>
+        <tr style={{ background: 'var(--bg)' }}>
           <td colspan={4} style={{ padding: '0.3rem 0.5rem 0.7rem 1.6rem' }}>
             <div
               style={{
                 'font-size': '0.75rem',
-                color: '#999',
+                color: 'var(--muted)',
                 'text-transform': 'uppercase',
                 'letter-spacing': '0.04em',
                 'margin-bottom': '0.3rem',
@@ -2431,7 +2441,9 @@ function ByDafRow(props: { daf: string; bucket: DafLedgerBucket; maxCost: number
                   <Show
                     when={rep().marks.length > 0}
                     fallback={
-                      <p style={{ color: '#aaa', 'font-size': '0.8rem' }}>{t('usage.daf.empty')}</p>
+                      <p style={{ color: 'var(--muted)', 'font-size': '0.8rem' }}>
+                        {t('usage.daf.empty')}
+                      </p>
                     }
                   >
                     <table style={tableStyle}>
@@ -2439,8 +2451,8 @@ function ByDafRow(props: { daf: string; bucket: DafLedgerBucket; maxCost: number
                         <tr
                           style={{
                             'text-align': 'left',
-                            'border-bottom': '1px solid #eee',
-                            color: '#666',
+                            'border-bottom': '1px solid var(--line)',
+                            color: 'var(--muted)',
                           }}
                         >
                           <th style={thStyle}>{t('usage.daf.col.mark')}</th>
@@ -2458,7 +2470,7 @@ function ByDafRow(props: { daf: string; bucket: DafLedgerBucket; maxCost: number
                       <tbody>
                         <For each={rep().marks}>
                           {(m) => (
-                            <tr style={{ 'border-bottom': '1px solid #f4f4f4' }}>
+                            <tr style={{ 'border-bottom': '1px solid var(--line)' }}>
                               <td
                                 style={{
                                   padding: '0.3rem 0.5rem',
@@ -2483,7 +2495,7 @@ function ByDafRow(props: { daf: string; bucket: DafLedgerBucket; maxCost: number
                                   padding: '0.3rem 0.5rem',
                                   'text-align': 'right',
                                   'font-variant-numeric': 'tabular-nums',
-                                  color: m.superseded.length ? '#b58100' : '#bbb',
+                                  color: m.superseded.length ? '#b58100' : 'var(--muted)',
                                 }}
                               >
                                 {m.superseded.length ? fmtUsd(sumVersions(m.superseded)) : '—'}
@@ -2503,7 +2515,7 @@ function ByDafRow(props: { daf: string; bucket: DafLedgerBucket; maxCost: number
                         </For>
                       </tbody>
                       <tfoot>
-                        <tr style={{ 'border-top': '1px solid #eee', color: '#555' }}>
+                        <tr style={{ 'border-top': '1px solid var(--line)', color: 'var(--fg)' }}>
                           <td style={{ padding: '0.3rem 0.5rem' }}>{t('usage.daf.total')}</td>
                           <td
                             style={{
@@ -2560,11 +2572,19 @@ function ByDafCostTable(props: { llmCost: LlmCostData | undefined }): JSX.Elemen
     <Collapsible id="byDaf" title={t('usage.byDaf.title')} sub={t('usage.byDaf.sub')}>
       <Show
         when={rows().length > 0}
-        fallback={<p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.byDaf.empty')}</p>}
+        fallback={
+          <p style={{ color: 'var(--muted)', 'font-size': '0.82rem' }}>{t('usage.byDaf.empty')}</p>
+        }
       >
         <table style={tableStyle}>
           <thead>
-            <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #eee', color: '#666' }}>
+            <tr
+              style={{
+                'text-align': 'left',
+                'border-bottom': '1px solid var(--line)',
+                color: 'var(--muted)',
+              }}
+            >
               <th style={thStyle}>{t('usage.col.daf')}</th>
               <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.calls')}</th>
               <th style={{ ...thStyle, 'text-align': 'right' }}>{t('usage.col.inOut')}</th>
@@ -2768,7 +2788,7 @@ function ErrorsSection(props: {
         <>
           {displayEndpoint(e.endpoint)}
           <Show when={e.mark_id || e.enrichment_id}>
-            <span style={{ color: '#999' }}> · {e.mark_id ?? e.enrichment_id}</span>
+            <span style={{ color: 'var(--muted)' }}> · {e.mark_id ?? e.enrichment_id}</span>
           </Show>
         </>
       ),
@@ -2787,7 +2807,7 @@ function ErrorsSection(props: {
         <>
           <span style={{ color: '#a04030' }}>{e.error_kind ?? t('usage.errorKind.other')}</span>
           <Show when={e.model}>
-            <span style={{ color: '#aaa', 'font-size': '0.72rem' }}> ({e.model})</span>
+            <span style={{ color: 'var(--muted)', 'font-size': '0.72rem' }}> ({e.model})</span>
           </Show>
         </>
       ),
@@ -2885,7 +2905,7 @@ function ErrorsSection(props: {
         <SectionHeading title={t('usage.recentErrors.title')} hint={t('usage.recentErrors.hint')} />
         <Show
           when={recentErrors().length > 0}
-          fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}
+          fallback={<p style={{ color: 'var(--muted)' }}>{t('usage.none')}</p>}
         >
           <DataTable
             columns={recentCols}
@@ -2903,7 +2923,7 @@ function ErrorsSection(props: {
         />
         <Show
           when={d().jobErrors.length > 0}
-          fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}
+          fallback={<p style={{ color: 'var(--muted)' }}>{t('usage.none')}</p>}
         >
           <div style={{ 'margin-bottom': '0.8rem' }}>
             <SectionHeading title={t('usage.errors.byReason')} />
@@ -2931,7 +2951,7 @@ function ErrorsSection(props: {
         </Show>
         <Show
           when={d().lintFailures.recent.length > 0}
-          fallback={<p style={{ color: '#888' }}>{t('usage.none')}</p>}
+          fallback={<p style={{ color: 'var(--muted)' }}>{t('usage.none')}</p>}
         >
           <DataTable
             columns={lintCols}
@@ -2962,32 +2982,22 @@ function ReportItem(props: {
         'align-items': 'flex-start',
         padding: '0.6rem 0.7rem',
         margin: '0 0 0.45rem',
-        background: '#fcfcfa',
-        border: '1px solid #eee',
+        background: 'var(--bg)',
+        border: '1px solid var(--line)',
         'border-radius': '4px',
       }}
     >
-      <button
+      <Button
         type="button"
+        active={props.done}
+        aria-label={props.done ? t('usage.reports.restore') : t('usage.reports.markDone')}
         onClick={props.onToggle}
         title={props.done ? t('usage.reports.restore') : t('usage.reports.markDone')}
-        style={{
-          'flex-shrink': 0,
-          width: '1.5rem',
-          height: '1.5rem',
-          'border-radius': '4px',
-          border: `1px solid ${props.done ? '#2a8a42' : '#ccc'}`,
-          background: props.done ? '#2a8a42' : '#fff',
-          color: props.done ? '#fff' : '#888',
-          cursor: 'pointer',
-          'font-size': '0.85rem',
-          'line-height': 1,
-        }}
       >
         {props.done ? '↺' : '✓'}
-      </button>
+      </Button>
       <div style={{ flex: 1 }}>
-        <div style={{ 'font-size': '0.75rem', color: '#888', 'margin-bottom': '0.25rem' }}>
+        <div style={{ 'font-size': '0.75rem', color: 'var(--muted)', 'margin-bottom': '0.25rem' }}>
           {fmtTime(r().ts)} ·{' '}
           <b>
             {r().tractate} {r().page}
@@ -3000,7 +3010,7 @@ function ReportItem(props: {
           style={{
             'white-space': 'pre-wrap',
             'font-size': '0.88rem',
-            color: props.done ? '#888' : '#222',
+            color: props.done ? 'var(--muted)' : 'var(--fg)',
             'line-height': 1.45,
             'text-decoration': props.done ? 'line-through' : 'none',
           }}
@@ -3033,13 +3043,15 @@ function BacklogReports(props: {
   const done = () => all().filter((r) => isDone(r));
   return (
     <div style={{ 'margin-bottom': '1.3rem' }}>
-      <h3 style={{ 'font-size': '0.8rem', color: '#777', margin: '0 0 0.4rem' }}>
+      <h3 style={{ 'font-size': '0.8rem', color: 'var(--muted)', margin: '0 0 0.4rem' }}>
         {t('usage.reports.title', { count: fmtInt(active().length) })}
       </h3>
       <Show
         when={active().length > 0}
         fallback={
-          <p style={{ color: '#888', 'font-size': '0.82rem' }}>{t('usage.reports.empty')}</p>
+          <p style={{ color: 'var(--muted)', 'font-size': '0.82rem' }}>
+            {t('usage.reports.empty')}
+          </p>
         }
       >
         <ul style={{ 'list-style': 'none', padding: 0, margin: 0 }}>
@@ -3122,7 +3134,7 @@ function SurfaceStackBars(props: { rows: SurfaceDayRow[] }): JSX.Element {
 
 function SurfaceLegend(): JSX.Element {
   return (
-    <div style={{ display: 'flex', gap: '0.9rem', 'font-size': '0.72rem', color: '#888' }}>
+    <div style={{ display: 'flex', gap: '0.9rem', 'font-size': '0.72rem', color: 'var(--muted)' }}>
       <For each={SURFACE_KEYS}>
         {(s) => (
           <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.3rem' }}>
@@ -3168,7 +3180,9 @@ function AppSurfaceBlock(props: { name: string; a: AppSurfaceUsage }): JSX.Eleme
       header: t('usage.surfaces.col.errors'),
       align: 'right',
       sortValue: (r) => r.errors,
-      cell: (r) => <span style={{ color: r.errors ? '#c33' : '#bbb' }}>{fmtInt(r.errors)}</span>,
+      cell: (r) => (
+        <span style={{ color: r.errors ? '#c33' : 'var(--muted)' }}>{fmtInt(r.errors)}</span>
+      ),
     },
     {
       key: 'timeouts',
@@ -3176,7 +3190,7 @@ function AppSurfaceBlock(props: { name: string; a: AppSurfaceUsage }): JSX.Eleme
       align: 'right',
       sortValue: (r) => r.timeouts,
       cell: (r) => (
-        <span style={{ color: r.timeouts ? '#c33' : '#bbb' }}>{fmtInt(r.timeouts)}</span>
+        <span style={{ color: r.timeouts ? '#c33' : 'var(--muted)' }}>{fmtInt(r.timeouts)}</span>
       ),
     },
     {
@@ -3209,7 +3223,9 @@ function AppSurfaceBlock(props: { name: string; a: AppSurfaceUsage }): JSX.Eleme
       header: t('usage.surfaces.col.errors'),
       align: 'right',
       sortValue: (r) => r.errors,
-      cell: (r) => <span style={{ color: r.errors ? '#c33' : '#bbb' }}>{fmtInt(r.errors)}</span>,
+      cell: (r) => (
+        <span style={{ color: r.errors ? '#c33' : 'var(--muted)' }}>{fmtInt(r.errors)}</span>
+      ),
     },
     {
       key: 'p95',
@@ -3225,7 +3241,7 @@ function AppSurfaceBlock(props: { name: string; a: AppSurfaceUsage }): JSX.Eleme
       <Show
         when={a().ok}
         fallback={
-          <p style={{ color: '#888', 'font-size': '0.82rem' }}>
+          <p style={{ color: 'var(--muted)', 'font-size': '0.82rem' }}>
             {t('usage.surfaces.noData', { error: a().error ?? '' })}
           </p>
         }
@@ -3278,7 +3294,7 @@ function AppSurfaceBlock(props: { name: string; a: AppSurfaceUsage }): JSX.Eleme
               <div
                 style={{
                   'font-size': '0.75rem',
-                  color: '#999',
+                  color: 'var(--muted)',
                   'text-transform': 'uppercase',
                   'letter-spacing': '0.04em',
                 }}
@@ -3312,14 +3328,16 @@ function AppSurfaceBlock(props: { name: string; a: AppSurfaceUsage }): JSX.Eleme
         <Show
           when={m().recentErrors.length > 0}
           fallback={
-            <p style={{ color: '#bbb', 'font-size': '0.8rem' }}>{t('usage.surfaces.none')}</p>
+            <p style={{ color: 'var(--muted)', 'font-size': '0.8rem' }}>
+              {t('usage.surfaces.none')}
+            </p>
           }
         >
           <ul style={{ margin: 0, 'padding-left': '1rem', 'font-size': '0.8rem' }}>
             <For each={m().recentErrors}>
               {(e) => (
                 <li style={{ 'margin-bottom': '0.2rem' }}>
-                  <span style={{ color: '#999', 'font-family': 'monospace' }}>
+                  <span style={{ color: 'var(--muted)', 'font-family': 'monospace' }}>
                     {e.ts.slice(0, 16)}
                   </span>{' '}
                   <code>{e.tool || e.method || '—'}</code>{' '}
@@ -3327,7 +3345,7 @@ function AppSurfaceBlock(props: { name: string; a: AppSurfaceUsage }): JSX.Eleme
                     <code>HTTP {e.status}</code>{' '}
                   </Show>
                   <span style={{ color: '#c33' }}>{e.outcome}</span>{' '}
-                  <span style={{ color: '#666' }}>{e.error}</span>
+                  <span style={{ color: 'var(--muted)' }}>{e.error}</span>
                 </li>
               )}
             </For>
@@ -3346,19 +3364,19 @@ function SurfacesSection(props: { usage: SurfaceUsage }): JSX.Element {
       fallback={
         <p
           style={{
-            color: '#888',
+            color: 'var(--muted)',
             'font-size': '0.82rem',
-            background: '#fafafa',
+            background: 'var(--bg)',
             padding: '0.5rem 0.7rem',
             'border-radius': '4px',
-            border: '1px solid #eee',
+            border: '1px solid var(--line)',
           }}
         >
           {t('usage.surfaces.notConfigured')}
         </p>
       }
     >
-      <p style={{ color: '#666', 'font-size': '0.82rem', 'margin-bottom': '1rem' }}>
+      <p style={{ color: 'var(--muted)', 'font-size': '0.82rem', 'margin-bottom': '1rem' }}>
         {t('usage.surfaces.intro')}
       </p>
       <AppSurfaceBlock name="talmud.dev" a={u().apps.talmud} />
@@ -3433,11 +3451,11 @@ export function UsagePage(): JSX.Element {
 
   return (
     <main
-      class="page-shell"
+      class="page-shell usage-page"
       style={{
         '--page-max': '960px',
         'font-family': 'system-ui, -apple-system, sans-serif',
-        color: '#222',
+        color: 'var(--fg)',
       }}
     >
       <header class="responsive-row" style={{ 'margin-bottom': '1rem' }}>
@@ -3455,59 +3473,31 @@ export function UsagePage(): JSX.Element {
             <Spinner />
           </Show>
         </h1>
-        <a href="#daf" style={{ color: '#666', 'font-size': '0.85rem', 'text-decoration': 'none' }}>
+        <a
+          href="#daf"
+          style={{ color: 'var(--muted)', 'font-size': '0.85rem', 'text-decoration': 'none' }}
+        >
           {t('usage.backToDaf')}
         </a>
-        <button
+        <Button
           type="button"
+          class="usage-refresh"
           onClick={() => tabRefetch[tab()]?.()}
           disabled={busy()}
-          style={{
-            'margin-left': 'auto',
-            padding: '0.3rem 0.7rem',
-            border: '1px solid #ddd',
-            'border-radius': '4px',
-            background: '#fff',
-            cursor: busy() ? 'default' : 'pointer',
-            'font-size': '0.8rem',
-            opacity: busy() ? 0.6 : 1,
-          }}
         >
           {busy() ? t('usage.refreshing') : t('usage.refresh')}
-        </button>
+        </Button>
       </header>
 
       {/* Tab bar */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '0.3rem',
-          'flex-wrap': 'wrap',
-          'border-bottom': '1px solid #eee',
-          'margin-bottom': '1.2rem',
-        }}
-      >
+      <div class="usage-tabs">
         <For each={TABS}>
           {(tb) => {
             const active = () => tab() === tb.id;
             return (
-              <button
-                type="button"
-                onClick={() => selectTab(tb.id)}
-                style={{
-                  padding: '0.45rem 0.9rem',
-                  border: 'none',
-                  background: 'none',
-                  cursor: 'pointer',
-                  'font-size': '0.88rem',
-                  'font-weight': active() ? 600 : 400,
-                  color: active() ? 'var(--accent)' : '#666',
-                  'border-bottom': active() ? '2px solid var(--accent)' : '2px solid transparent',
-                  'margin-bottom': '-1px',
-                }}
-              >
+              <FilterChip active={active()} onClick={() => selectTab(tb.id)}>
                 {t(tb.labelKey)}
-              </button>
+              </FilterChip>
             );
           }}
         </For>

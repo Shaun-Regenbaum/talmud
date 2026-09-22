@@ -1,0 +1,83 @@
+.alignment-page-input {
+  width: 4.5rem;
+  text-align: center;
+}
+.alignment-back {
+  margin-bottom: 0.6rem;
+}
+.alignment-page .aw-colh {
+  flex-wrap: wrap;
+}
+.alignment-page .aw-cats {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.alignment-page .aw-work > div {
+  min-width: 0;
+}
+.usage-refresh {
+  margin-inline-start: auto;
+}
+.usage-page .ui-button,
+.alignment-page .ui-button {
+  white-space: normal;
+}
+@media (max-width: 700px) {
+  .usage-page .ui-button,
+  .alignment-page .ui-button,
+  .alignment-page .ui-select,
+  .alignment-page .ui-input,
+  .alignment-page .ui-page-navigation button {
+    min-height: 44px;
+  }
+  .alignment-page .aw-dtitle {
+    flex-wrap: wrap;
+  }
+}
+
+.usage-stat {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+.usage-stat .ui-stat-card {
+  height: 100%;
+  box-sizing: border-box;
+}
+.usage-disclosure-heading {
+  margin: 0 0 0.4rem;
+  font-size: inherit;
+}
+.usage-disclosure {
+  text-align: start;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+.usage-disclosure-detail {
+  font-weight: normal;
+}
+/* Leave room for the app's fixed Help and language controls. */
+@media (min-width: 701px) and (max-width: 1200px) {
+  .usage-page > header {
+    padding-inline-end: 9rem;
+  }
+}
+@media (max-width: 700px) {
+  .usage-page > header {
+    padding-top: 2.75rem;
+  }
+}
+
+.usage-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.usage-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-block: 0.6rem;
+  margin-bottom: 1.2rem;
+  border-bottom: 1px solid var(--line);
+}
