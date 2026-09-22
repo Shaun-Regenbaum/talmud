@@ -31,13 +31,15 @@ async () => {
     query: { generate: "1" },
   });
 
+  if (view.error) return view;
   if (!view.complete) {
-    // A whole daf takes ~8 minutes. Do not poll here — hand back
+    // A whole daf can take several minutes. Return now with
     // what exists and where to look, and let the user ask again.
     return {
       ready: false,
-      have: Object.keys(view.pieces),
-      stillGenerating: view.cold,
+      pieces: view.pieces,
+      missing: view.cold,
+      generating: view.generating,
       message: view.hint,        // one plain sentence, ready to relay
       readerUrl: view.readerUrl, // the human page, fills in live
       checkUrl: view.checkUrl,   // re-read this next time
@@ -47,26 +49,22 @@ async () => {
   return { ready: true, pieces: view.pieces };
 }`;
 
-const PIECE_EXAMPLE = `// One piece at a time: POST /api/run is async. A cold piece
-// takes ~20-120 s, so polling ONE piece inside execute is fine.
+const PIECE_EXAMPLE = `// Start one piece, then return. Check its URL in a later call.
 async () => {
-  let run = await codemode.request({
+  const run = await codemode.request({
     method: "POST", path: "/api/run",
     body: { tractate: "Berakhot", page: "2a", mark_id: "argument-move" },
   });
-  const deadline = Date.now() + 60_000; // stay under the 90 s sandbox limit
-  while (run.status === "pending" && Date.now() < deadline) {
-    await new Promise((r) => setTimeout(r, (run.retryAfterSeconds ?? 15) * 1000));
-    run = await codemode.request({
-      method: "GET",
-      path: \`/api/run-status/\${run.runId}\`,
-      query: { k: run.cacheKey },
-    });
-  }
   if (run.status === "pending") {
-    return { ready: false, message: run.hint, checkUrl: run.checkUrl };
+    return {
+      ready: false,
+      message: run.hint,
+      checkUrl: run.checkUrl,
+      retryAfterSeconds: run.retryAfterSeconds,
+    };
   }
-  return run.result?.parsed?.instances ?? run;
+  // Keep error, paused, and skipped responses intact.
+  return run;
 }`;
 
 const TOOLS = [
@@ -78,7 +76,7 @@ const TOOLS = [
   {
     name: 'execute',
     blurb:
-      'Run an async arrow function that calls codemode.request({ method, path, query, body }). Chain calls and poll inside one function; only the returned value comes back.',
+      'Run an async arrow function that calls codemode.request({ method, path, query, body }). Chain reads inside one function; only the returned value comes back.',
   },
 ];
 
@@ -186,8 +184,11 @@ export function McpPage(): JSX.Element {
           <Code>{MCP_URL}</Code>
           <h3>Add it to Claude Code</h3>
           <Code>{CLAUDE_CODE_CMD}</Code>
-          <h3>Or add it to any MCP client</h3>
-          <p>For Claude Desktop and other clients that take a streamable-HTTP server by URL:</p>
+          <h3>Other MCP clients</h3>
+          <p>
+            Choose Streamable HTTP and enter the endpoint URL. Clients that accept the following
+            JSON format can use it; other clients have their own settings:
+          </p>
           <Code>{JSON_CONFIG}</Code>
         </div>
       </section>
@@ -219,8 +220,8 @@ export function McpPage(): JSX.Element {
           <p>
             Start with{' '}
             <code>GET /api/daf-view/&#123;tractate&#125;/&#123;page&#125;?generate=1</code>: one
-            call returns every piece the daf already has, and starts generating the rest if any are
-            missing.
+            call returns the cached notes and asks to generate missing pieces. Check the response:
+            generation may be paused or unavailable.
           </p>
           <Code>{WORKED_EXAMPLE}</Code>
         </div>
@@ -230,18 +231,17 @@ export function McpPage(): JSX.Element {
         <Margin id="cold" />
         <div class="read-col">
           <p>
-            Pages are generated the first time anyone opens them and cached forever after. A page
-            nobody has visited yet is <em>cold</em>: a whole daf takes about eight minutes to fill
-            in, and one piece takes 20 seconds to two minutes. The API never hides this. A partial{' '}
-            <code>daf-view</code> says <code>complete: false</code>, lists what is still{' '}
-            <code>cold</code>, says whether it is <code>generating</code>, and gives a{' '}
-            <code>checkUrl</code> to re-read plus a <code>readerUrl</code> where a person can watch
-            the page fill in live. A <code>hint</code> field carries the sentence to relay.
+            Generated notes are cached for later readers. A page with missing notes is
+            <em> cold</em>. Generating a whole daf can take several minutes, and an individual piece
+            can also take longer than one tool call. A partial <code>daf-view</code> says{' '}
+            <code>complete: false</code> and lists missing pieces in <code>cold</code>. Read{' '}
+            <code>generating</code> before saying work has started. The <code>hint</code> explains
+            the current state. Use <code>checkUrl</code> for a later read and <code>readerUrl</code>{' '}
+            to open the page.
           </p>
           <p>
-            The <code>execute</code> sandbox stops a script after 90 seconds. So the rule for a cold
-            daf is: return what exists, say the rest is on its way, and check again next time.
-            Waiting inside one call only produces a timeout. Polling a single piece is fine:
+            Each <code>execute</code> call has a 90-second limit. Return the cached notes and the
+            follow-up URL without polling inside the script. This applies to a single piece too:
           </p>
           <Code>{PIECE_EXAMPLE}</Code>
           <p>
@@ -261,8 +261,14 @@ export function McpPage(): JSX.Element {
         <div class="read-col">
           <p>
             The endpoint is open and read-focused. Connect and start pulling daf data right away.
-            Everything in the examples above works on the public endpoint. A few advanced operations
-            are reserved for the maintainer and return an authorization error if called.
+            The examples use public routes. Starting generation depends on available credit and
+            spending limits. A paused, skipped, or error response does not mean work is running.
+            Custom prompts, model overrides, and maintenance operations require maintainer access.
+          </p>
+          <p>
+            Use a client that supports the initialization handshake, including protocol version{' '}
+            <code>2025-11-25</code>. Newer clients must allow fallback to that protocol. The server
+            does not yet support the <code>2026-07-28</code> discovery protocol.
           </p>
         </div>
       </section>

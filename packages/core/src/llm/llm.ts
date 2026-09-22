@@ -27,6 +27,7 @@ import { gatewayActive, rawAiBinding, runWithRetry } from './ai-gateway';
 import { BudgetPausedError, checkBudget, type EmailBinding, recordSpend } from './budget';
 import { isFallbackWorthy, LLMError, NEITHER, TIMEOUT } from './llm-error';
 import { costSplitUsd, normalizeUsage } from './pricing';
+import { readProviderJson } from './provider-json';
 import { DEFAULT_FALLBACK_CHAIN, DEFAULT_MODEL } from './settings';
 import { reservationPrices } from './spend-reservations';
 
@@ -700,6 +701,7 @@ async function callOpenRouterGateway(
   const controller = new AbortController();
   const timeoutHandle = setTimeout(() => controller.abort(), OPENROUTER_CALL_TIMEOUT_MS);
   let billing: BillingAttempt | null = null;
+  let providerJson: unknown;
   try {
     // Retry on transient transport errors (5xx, 429). Non-retryable (4xx other
     // than 429) throws on the first attempt.
@@ -745,6 +747,23 @@ async function callOpenRouterGateway(
         const text = await r.text().catch(() => '');
         throw new LLMError(r.status, `OpenRouter HTTP ${r.status}: ${text.slice(0, 500)}`);
       }
+      if (!opts.stream) {
+        try {
+          // Read inside the retry boundary: a 200 with a cut-off body is still
+          // a failed attempt, including when the producer pins one model.
+          providerJson = await readProviderJson(r);
+        } catch (err) {
+          await billing?.finish('failed', controller.signal.aborted ? 'timeout' : 'response-error');
+          if (controller.signal.aborted || (err as Error)?.name === 'AbortError') {
+            throw new LLMError(
+              408,
+              `Provider body read aborted after ${OPENROUTER_CALL_TIMEOUT_MS}ms (hard timeout)`,
+              { cls: TIMEOUT },
+            );
+          }
+          throw err;
+        }
+      }
       return r;
     }, controller.signal);
 
@@ -785,10 +804,7 @@ async function callOpenRouterGateway(
       }
     }
 
-    // resp.json() reads the body stream — if the abort fires mid-read the
-    // stream errors out, surface as a typed 408 (fail over) rather than
-    // letting the raw "operation aborted" error escape unwrapped.
-    let json: {
+    const json = providerJson as {
       id?: string;
       choices?: Array<{
         message?: { content?: string; reasoning?: string; reasoning_content?: string };
@@ -796,18 +812,6 @@ async function callOpenRouterGateway(
       }>;
       usage?: LLMUsage;
     };
-    try {
-      json = (await resp.json()) as typeof json;
-    } catch (err) {
-      if (controller.signal.aborted || (err as Error)?.name === 'AbortError') {
-        throw new LLMError(
-          408,
-          `OpenRouter body read aborted after ${OPENROUTER_CALL_TIMEOUT_MS}ms (hard timeout)`,
-          { cls: TIMEOUT },
-        );
-      }
-      throw err;
-    }
     await attempt?.observe(json.id, json.usage);
     await attempt?.finish('succeeded');
     const content = json.choices?.[0]?.message?.content ?? '';

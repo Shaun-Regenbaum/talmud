@@ -22,24 +22,24 @@ The endpoint is open and read-focused. No key is needed for reading. The live co
 
 ## What the server is
 
-It is a Cloudflare "code mode" MCP server, built in `packages/talmud/src/worker/mcp.ts`. Instead of one MCP tool per endpoint, it exposes two:
+It is a Cloudflare "code mode" MCP server, built in `packages/core/src/mcp/code-mode.ts`. Instead of one MCP tool per endpoint, it exposes two:
 
 - `search` lets the model query the OpenAPI document (`packages/talmud/src/worker/mcp-openapi.ts`) to find the endpoints and their shapes.
 - `execute` runs TypeScript the model wrote inside a throwaway isolate. That code can call the endpoints, chain them, and poll, and only its return value comes back. One round trip instead of many.
 
 The isolate has no secrets and no network. Its only way out is a bridge into this same app, and the bridge accepts only `/api/*` paths (the `/mcp` route in `packages/talmud/src/worker/index.ts`). If a caller sends `x-studio-secret`, the bridge forwards it, so a trusted operator can reach the gated routes; everyone else gets the public subset.
 
-One `execute` call may run for 90 seconds. The number lives in `mcp-limits.ts` and nowhere else, so the limit the executor enforces and the limit the spec tells the model cannot drift. `tests/mcp-spec.test.ts` pins that.
+One `execute` call may run for 90 seconds. The number lives in `packages/core/src/mcp/code-mode.ts` and is re-exported by `mcp-limits.ts`, so the limit the executor enforces and the limit the spec tells the model cannot drift. `tests/mcp-spec.test.ts` pins that.
 
 ## Cold pages are reported, not waited for
 
 A daf nobody has opened has no notes, and generating them takes minutes. The API tells the truth about that instead of hanging:
 
 - `GET /api/daf-view/:tractate/:page` is the one-shot read: every cached note for a daf in one response. When it is partial it carries `status`, `generating`, `checkUrl`, `readerUrl`, `retryAfterSeconds`, `etaMinutes`, and a one-sentence `hint`.
-- `GET /api/daf-view/:tractate/:page?generate=1` reads what exists and starts generation for the rest, in one call.
-- Pending `POST /api/run` and `GET /api/run-status/:runId` answers carry `checkUrl`, `retryAfterSeconds`, `etaSeconds`, and a `hint`.
+- `GET /api/daf-view/:tractate/:page?generate=1` reads what exists and requests generation for missing pieces. Check `generating` and `hint` to see whether work started.
+- A pending `POST /api/run` answer carries `checkUrl`, `retryAfterSeconds`, `etaSeconds`, and a `hint`. Keep that URL: a pending `GET /api/run-status/:runId` answer may only repeat the status and retry delay.
 
-The rule the spec gives the model: return what you have, say the rest is generating, and read `checkUrl` later. Do not spin in a loop inside `execute`.
+The rule the spec gives the model: return what you have, report whether generation started, and read `checkUrl` later. Do not spin in a loop inside `execute`.
 
 ## The worked example
 
@@ -50,8 +50,8 @@ async () => {
     path: '/api/daf-view/Berakhot/2a',
     query: { generate: '1' },
   });
-  if (view.complete) return view;
-  return { partial: true, cached: view.cached, stillCold: view.cold, checkUrl: view.checkUrl, hint: view.hint };
+  if (view.error || view.complete) return view;
+  return { partial: true, pieces: view.pieces, missing: view.cold, generating: view.generating, checkUrl: view.checkUrl, hint: view.hint };
 }
 ```
 
@@ -84,5 +84,18 @@ All of these are described in `mcp-openapi.ts`; `search` finds them. A few that 
 
 - A tool-shaped wrapper for the commonest question ("explain this daf") that hides the polling.
 - Better response shapes for the sage endpoints, so an assistant can answer "who is this, and where else does he speak" in one call.
-- An MCP server for the Tanach reader, on the same code-mode pattern.
+- More worked examples for the Tanach reader, which already uses the shared MCP server.
 - Examples for clients other than Claude Code.
+
+## Protocol compatibility and waiting
+
+The transport supports the initialization handshake through protocol version
+`2025-11-25`. Clients using `2026-07-28` must fall back to the older protocol.
+An unsupported version returns HTTP 400 with the supported versions. It does not
+mean the server crashed. The usage page shows the request method and HTTP status.
+
+Return from `execute` when a run is pending, even for one piece. Use its
+`checkUrl` in a later call. Generation can exceed the 90-second script limit.
+A missing piece is not necessarily being generated: check `generating` and
+relay `hint`. Credit limits, paused producers, and unavailable services can
+prevent work from starting. Keep paused, skipped, and error responses intact.

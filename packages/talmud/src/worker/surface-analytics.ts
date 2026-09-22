@@ -64,6 +64,8 @@ export interface McpRouteRow {
 
 export interface McpErrorRow {
   ts: string;
+  method: string;
+  status: number;
   tool: string;
   outcome: string;
   error: string;
@@ -132,7 +134,7 @@ export const SQL = {
     `SELECT blob3 AS route, blob5 AS status, SUM(_sample_interval) AS hits, quantileWeighted(0.95)(double1, _sample_interval) AS p95 ` +
     `FROM ${ds} WHERE index1 = 'hit' AND blob2 = 'mcp' AND timestamp > NOW() - INTERVAL '${days}' DAY GROUP BY route, status ORDER BY hits DESC LIMIT 200`,
   mcpErrors: (ds: string) =>
-    `SELECT timestamp, blob3 AS tool, blob4 AS outcome, blob8 AS error ` +
+    `SELECT timestamp, blob2 AS method, double3 AS status, blob3 AS tool, blob4 AS outcome, blob8 AS error ` +
     `FROM ${ds} WHERE index1 = 'mcp' AND blob4 <> 'ok' AND timestamp > NOW() - INTERVAL '7' DAY ORDER BY timestamp DESC LIMIT 20`,
 };
 
@@ -268,6 +270,8 @@ export function distinctClients(rows: Row[], now: number = Date.now()): Window3 
 export function recentErrors(rows: Row[]): McpErrorRow[] {
   return rows.map((r) => ({
     ts: str(r.timestamp),
+    method: str(r.method),
+    status: num(r.status),
     tool: str(r.tool),
     outcome: str(r.outcome),
     error: str(r.error),
