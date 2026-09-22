@@ -1,6 +1,5 @@
 import { render } from 'solid-js/web';
-// Shared design tokens + the tanach theme, imported BEFORE the app stylesheet
-// so styles.css resolves the canonical vars (and the theme's overrides).
+// Shared reader theme and corpus-specific Hebrew font.
 import '@corpus/ui/tokens.css';
 import '@corpus/ui/themes/tanach.css';
 import '@corpus/ui/components.css';

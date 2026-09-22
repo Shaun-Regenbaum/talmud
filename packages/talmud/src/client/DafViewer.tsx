@@ -1,3 +1,9 @@
+import { Button } from '@corpus/ui/Button';
+import { LangToggle } from '@corpus/ui/LangToggle';
+import { PageNavigation } from '@corpus/ui/PageNavigation';
+import { ReaderHeader } from '@corpus/ui/ReaderHeader';
+import { Select } from '@corpus/ui/Select';
+import { ToolbarMenu } from '@corpus/ui/ToolbarMenu';
 import {
   createEffect,
   createMemo,
@@ -3453,7 +3459,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   return (
     <main class="daf-page" classList={{ 'daf-no-rabbi-underlines': !showGenMarkers() }}>
       {/* Mobile-only top-drawer handle. Always pinned at the top so the daf
-          picker / nav is one tap away; the drawer itself (the .daf-header
+          picker / nav is one tap away; the drawer itself (the shared header
           below) is open on arrival and collapses once you start studying. */}
       <Show when={isMobile()}>
         <button
@@ -3470,11 +3476,76 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           </span>
         </button>
       </Show>
-      <header class="daf-header" classList={{ 'is-collapsed': isMobile() && !headerOpen() }}>
-        <h1 class="tb-wordmark">{t('app.title')}</h1>
-
-        <select
-          class="tb-select"
+      <ReaderHeader
+        title={t('app.title')}
+        collapsed={isMobile() && !headerOpen()}
+        utilities={
+          <>
+            <ToolbarMenu label={t('header.more')}>
+              <Button
+                type="button"
+                onClick={() => {
+                  window.location.hash = 'tutorial';
+                }}
+                title={t('tutorial.help.title')}
+                aria-label={t('tutorial.help.title')}
+              >
+                {t('tutorial.help')}
+              </Button>
+              <a class="ui-button" href="#about">
+                {t('header.about')}
+              </a>
+              <a class="ui-button" href="#usage">
+                {t('header.usage')}
+              </a>
+              <a class="ui-button" href="#mcp">
+                {t('header.connect')}
+              </a>
+              <a class="ui-button" href="#align">
+                {t('header.align')}
+              </a>
+            </ToolbarMenu>
+            {/* Dev tooling is desktop-only — the panels assume a wide viewport
+              and aren't useful on a phone, so the button is hidden on mobile. */}
+            <Show when={!isMobile()}>
+              <Button
+                type="button"
+                active={devOpen()}
+                onClick={() => {
+                  const v = !devOpen();
+                  setDevOpen(v);
+                  setDevModeActive(v);
+                }}
+                title={t('header.dev.title')}
+              >
+                {t('header.dev')}
+              </Button>
+            </Show>
+            {/* Mobile-only "Layers" entry point. The mark toggles live in the
+              desktop dev shelf (hidden on phones), so this opens a dedicated
+              sheet with just the annotation layers. */}
+            <Show when={isMobile()}>
+              <Button
+                type="button"
+                active={layersOpen()}
+                onClick={() => setLayersOpen((v) => !v)}
+                title={t('mobile.layers.title')}
+              >
+                {t('mobile.layers')}
+              </Button>
+            </Show>
+            <LangToggle lang={lang()} onChange={setLang} data-tour="lang" />
+          </>
+        }
+        hint={
+          <>
+            {lang() === 'he' ? dafRefHe(tractate(), page()) : `${tractate()} ${page()}`} ·{' '}
+            {t('header.nav.hint')}
+          </>
+        }
+      >
+        <Select
+          aria-label={t('header.tractate')}
           value={tractate()}
           onChange={(e) => setTractateAndSync(e.currentTarget.value)}
         >
@@ -3485,123 +3556,45 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               </option>
             )}
           </For>
-        </select>
+        </Select>
 
-        {/* Back | daf | amud | forward share one segmented pill so the page
-            reference reads as a single unit. */}
-        <div class="tb-nav" data-tour="daf-nav">
-          <button
-            type="button"
-            class="tb-navbtn"
-            onClick={() => go(prevPage(page()))}
-            title={t('header.nav.hint')}
-          >
-            ‹
-          </button>
+        <PageNavigation
+          label={t('header.pages')}
+          previousLabel={t('header.previous')}
+          nextLabel={t('header.next')}
+          onPrevious={() => go(prevPage(page()))}
+          onNext={() => go(nextPage(page()))}
+          data-tour="daf-nav"
+        >
           <input
-            class="tb-daf"
+            class="ui-page-number"
+            aria-label={t('header.page')}
             type="number"
             min={2}
             value={pageNum()}
             onInput={(e) => setPageNum(Number(e.currentTarget.value))}
           />
-          <button type="button" class="tb-amud" onClick={toggleAmud} title={t('header.amud.title')}>
-            {pageAmud()}
-          </button>
           <button
             type="button"
-            class="tb-navbtn"
-            onClick={() => go(nextPage(page()))}
-            title={t('header.nav.hint')}
+            class="ui-page-side"
+            onClick={toggleAmud}
+            title={t('header.amud.title')}
           >
-            ›
+            {pageAmud()}
           </button>
-        </div>
+        </PageNavigation>
 
-        <button
+        <Button
           type="button"
-          class="tb-primary"
+          variant="primary"
           classList={{ 'is-error': !!yomiError() }}
           onClick={goToYomi}
           disabled={yomiLoading()}
           title={yomiError() ?? t('header.todaysDaf.title')}
         >
           {yomiLoading() ? t('header.todaysDaf.finding') : t('header.todaysDaf')}
-        </button>
-
-        <div class="tb-utils">
-          <button
-            type="button"
-            class="tb-toggle"
-            onClick={() => {
-              window.location.hash = 'tutorial';
-            }}
-            title={t('tutorial.help.title')}
-            aria-label={t('tutorial.help.title')}
-          >
-            {t('tutorial.help')}
-          </button>
-          {/* Dev tooling is desktop-only — the panels assume a wide viewport
-              and aren't useful on a phone, so the button is hidden on mobile. */}
-          <Show when={!isMobile()}>
-            <button
-              type="button"
-              class="tb-toggle"
-              classList={{ 'is-active': devOpen() }}
-              onClick={() => {
-                const v = !devOpen();
-                setDevOpen(v);
-                setDevModeActive(v);
-              }}
-              title={t('header.dev.title')}
-            >
-              {t('header.dev')}
-            </button>
-          </Show>
-          {/* Mobile-only "Layers" entry point. The mark toggles live in the
-              desktop dev shelf (hidden on phones), so this opens a dedicated
-              sheet with just the annotation layers. */}
-          <Show when={isMobile()}>
-            <button
-              type="button"
-              class="tb-toggle"
-              classList={{ 'is-active': layersOpen() }}
-              onClick={() => setLayersOpen((v) => !v)}
-              title={t('mobile.layers.title')}
-            >
-              {t('mobile.layers')}
-            </button>
-          </Show>
-          {/* EN/HE language toggle, folded inline here on the daf page; the
-              floating TopBar overlay covers the other routes (see App.tsx). */}
-          {/* biome-ignore lint/a11y/useSemanticElements: .tb-seg is an inline-flex pill; a fieldset cannot reliably be a flex container and carries UA border/padding/min-inline-size */}
-          <div class="tb-seg" role="group" aria-label="Language" data-tour="lang">
-            <button
-              type="button"
-              class="tb-seg-btn"
-              classList={{ 'is-active': lang() === 'en' }}
-              aria-pressed={lang() === 'en'}
-              onClick={() => setLang('en')}
-            >
-              EN
-            </button>
-            <button
-              type="button"
-              class="tb-seg-btn"
-              classList={{ 'is-active': lang() === 'he' }}
-              aria-pressed={lang() === 'he'}
-              onClick={() => setLang('he')}
-            >
-              עב
-            </button>
-          </div>
-        </div>
-
-        <span class="tb-hint">
-          {lang() === 'he' ? dafRefHe(tractate(), page()) : `${tractate()} ${page()}`} ·{' '}
-          {t('header.nav.hint')}
-        </span>
-      </header>
+        </Button>
+      </ReaderHeader>
 
       {/* No raw error strip here: pause/outage states are the AiStatusBanner's
           job, and genuine mark failures fold into the load bar's localized
@@ -3641,7 +3634,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               >
                 <For each={chipMarks()}>
                   {(m) => {
-                    const color = (m.render as { color?: string }).color ?? '#8a2a2b';
+                    const color = (m.render as { color?: string }).color ?? 'var(--accent)';
                     // Chip mark id == sidebar kind, so the label + active state are
                     // generic over the registry (no per-mark branching here). label() is
                     // an accessor (not a captured const) so it re-evaluates t() when the

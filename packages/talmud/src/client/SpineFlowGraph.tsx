@@ -540,7 +540,7 @@ export default function SpineFlowGraph(props: {
                         font-size="13"
                         font-weight="700"
                         font-family="system-ui, -apple-system, sans-serif"
-                        fill="#8a2a2b"
+                        fill="var(--accent)"
                       >
                         {dafPageLabel(h.page)}
                       </text>
@@ -661,8 +661,8 @@ export default function SpineFlowGraph(props: {
                             height={h}
                             rx={10}
                             ry={10}
-                            fill={active() ? '#fdf2f2' : lit() ? '#fffaf0' : '#ffffff'}
-                            stroke={active() ? '#8a2a2b' : lit() ? HILITE : '#e4e0d4'}
+                            fill={active() ? 'var(--surface-sunk)' : lit() ? '#fffaf0' : '#ffffff'}
+                            stroke={active() ? 'var(--accent)' : lit() ? HILITE : '#e4e0d4'}
                             stroke-width={active() || lit() ? 2 : 1}
                             filter="url(#spine-card-shadow)"
                           />
@@ -682,7 +682,7 @@ export default function SpineFlowGraph(props: {
                             font-size="11"
                             font-weight="700"
                             font-family="system-ui, sans-serif"
-                            fill="#8a2a2b"
+                            fill="var(--accent)"
                           >
                             {num}
                           </text>
@@ -996,7 +996,7 @@ export default function SpineFlowGraph(props: {
                           height={OV_NODE_H}
                           rx={6}
                           ry={6}
-                          fill={meta.hasCross ? '#fdf2f2' : '#ffffff'}
+                          fill={meta.hasCross ? 'var(--surface-sunk)' : '#ffffff'}
                           stroke={meta.hasCross ? '#d8a3a3' : '#e4e0d4'}
                           stroke-width={1}
                         />
@@ -1007,7 +1007,7 @@ export default function SpineFlowGraph(props: {
                           font-size="11"
                           font-weight="700"
                           font-family="system-ui, sans-serif"
-                          fill="#8a2a2b"
+                          fill="var(--accent)"
                         >
                           {dafPageLabel(page)}
                         </text>

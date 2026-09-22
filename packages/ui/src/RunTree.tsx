@@ -44,7 +44,7 @@ export const displayLabel = (id: string, label: string): string =>
 
 // app graph tokens (from ArgumentFlowGraph / ArgumentVoiceMap)
 export const CARD_STROKE = '#e4e0d4',
-  ACTIVE_STROKE = '#8a2a2b';
+  ACTIVE_STROKE = 'var(--accent)';
 export const CANVAS = '#fdfcf9',
   CANVAS_BORDER = '#ece9df';
 export const BADGE_LLM = '#1d4ed8',

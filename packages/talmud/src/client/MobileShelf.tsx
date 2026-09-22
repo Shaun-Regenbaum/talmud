@@ -1,3 +1,6 @@
+import { Button } from '@corpus/ui/Button';
+import './reader-controls.css';
+import { BottomSheet } from '@corpus/ui/BottomSheet';
 import { type JSX, Show } from 'solid-js';
 import type { Term } from '../lib/terms/registry';
 import { ArgumentSidebar, type GeographyExtras, type SidebarContent } from './ArgumentSidebar';
@@ -56,24 +59,7 @@ interface MobileShelfProps {
 // content expands above the bar.
 export function MobileShelf(props: MobileShelfProps): JSX.Element {
   return (
-    <div
-      data-tour="note-panel"
-      style={{
-        position: 'fixed',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: '#fff',
-        'border-top': '1px solid #d6d3d1',
-        'box-shadow': '0 -4px 12px rgba(0, 0, 0, 0.06)',
-        // Normally sits under the daf chrome; during a tutorial note step it
-        // lifts above the coach's click-shield (z 5999) so it stays scrollable.
-        'z-index': tutorialNoteInteractive() ? 6001 : 100,
-        'max-height': '65vh',
-        display: 'flex',
-        'flex-direction': 'column',
-      }}
-    >
+    <BottomSheet tour="note-panel" zIndex={tutorialNoteInteractive() ? 6001 : 100}>
       <Show when={props.sidebar !== null}>
         <ExpansionView {...props} />
       </Show>
@@ -84,7 +70,7 @@ export function MobileShelf(props: MobileShelfProps): JSX.Element {
         <DafLoadProgress embedded />
       </div>
       <ModeBar mode={props.mode} onModeChange={props.onModeChange} />
-    </div>
+    </BottomSheet>
   );
 }
 
@@ -101,36 +87,16 @@ function ModeBar(props: {
   onModeChange: (m: MobileInteractionMode) => void;
 }): JSX.Element {
   return (
-    <div
-      style={{
-        padding: '0.6rem 0.8rem',
-        display: 'flex',
-        gap: '0.5rem',
-        'border-top': '1px solid #eee',
-        'flex-shrink': 0,
-        background: '#fff',
-      }}
-    >
+    <div class="reader-mode-bar">
       {MODE_BUTTONS.map((b) => (
-        <button
-          type="button"
+        <Button
+          class="reader-mode-button"
           onClick={() => props.onModeChange(b.id)}
-          aria-pressed={props.mode === b.id}
+          active={props.mode === b.id}
           title={t(b.hintKey)}
-          style={{
-            flex: 1,
-            padding: '0.55rem 0.4rem',
-            border: props.mode === b.id ? '2px solid #8a2a2b' : '1px solid #d6d3d1',
-            background: props.mode === b.id ? '#fff7e6' : '#fff',
-            'border-radius': '6px',
-            cursor: 'pointer',
-            'font-family': 'inherit',
-            'font-size': '0.85rem',
-            'font-weight': props.mode === b.id ? 600 : 400,
-          }}
         >
           {t(b.labelKey)}
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -145,34 +111,26 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
           'align-items': 'center',
           'justify-content': 'space-between',
           padding: '0.5rem 0.75rem',
-          'border-bottom': '1px solid #eee',
+          'border-bottom': '1px solid var(--line)',
         }}
       >
         <span
           style={{
             'font-size': '0.8rem',
-            color: '#666',
+            color: 'var(--muted)',
             'text-transform': 'uppercase',
             'letter-spacing': '0.05em',
           }}
         >
           {labelForSidebar(props.sidebar)}
         </span>
-        <button
-          type="button"
+        <Button
+          class="reader-shelf-close"
           onClick={props.onCloseExpansion}
-          style={{
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            'font-size': '1.1rem',
-            padding: '0.25rem 0.5rem',
-            color: '#666',
-          }}
-          aria-label="Close"
+          aria-label={t('common.close')}
         >
-          ✕
-        </button>
+          ×
+        </Button>
       </div>
       <div style={{ flex: 1, 'min-height': 0, overflow: 'auto', padding: '0.5rem 0.75rem' }}>
         <ArgumentSidebar
@@ -201,37 +159,5 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
 }
 
 function labelForSidebar(s: SidebarContent | null): string {
-  if (!s) return '';
-  switch (s.kind) {
-    case 'argument':
-      return 'Argument';
-    case 'halacha':
-      return 'Halacha';
-    case 'chart':
-      return 'Chart';
-    case 'aggadata':
-      return 'Aggadata';
-    case 'yerushalmi':
-      return 'Yerushalmi';
-    case 'pesuk':
-      return 'Pasuk';
-    case 'rabbi':
-      return 'Rabbi';
-    case 'place':
-      return 'Place';
-    case 'voice-group':
-      return 'Voice';
-    case 'rishonim':
-      return 'Rishonim';
-    case 'argument-overview':
-      return 'Overview';
-    case 'daf-background':
-      return 'Background';
-    case 'tidbit':
-      return 'Tidbit';
-    case 'biyun':
-      return "Bi'yun";
-    case 'geography':
-      return 'Geography';
-  }
+  return s ? t(`sidebar.kind.${s.kind}`) : '';
 }

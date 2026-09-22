@@ -30,7 +30,7 @@
 }
 
 .wbmap-bubble {
-  fill: var(--wbmap-bubble, var(--accent, #8a2a2b));
+  fill: var(--wbmap-bubble, var(--accent));
   fill-opacity: 0.82;
   stroke: #ffffff;
   stroke-width: 0.6;
@@ -39,13 +39,13 @@
   transition: fill-opacity 0.1s ease;
 }
 .wbmap-bubble.hot {
-  fill: var(--wbmap-bubble-hot, var(--accent-strong, #6f2122));
+  fill: var(--wbmap-bubble-hot, var(--accent-strong));
   fill-opacity: 1;
   stroke-opacity: 0.95;
 }
 
 .wbmap-label {
-  fill: var(--wbmap-bubble-hot, var(--accent-strong, #6f2122));
+  fill: var(--wbmap-bubble-hot, var(--accent-strong));
   font-family: system-ui, -apple-system, sans-serif;
   font-size: 10px;
   font-weight: 600;

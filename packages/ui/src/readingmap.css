@@ -1,0 +1,185 @@
+.parsha-kind-narrative {
+  background: var(--accent);
+}
+.parsha-kind-law {
+  background: #3f6d65;
+}
+.parsha-kind-discourse {
+  background: #bd8750;
+}
+.parsha-kind-poetry {
+  background: #6a5b8c;
+}
+.parsha-kind-records {
+  background: #767c66;
+}
+
+/* ---- the parsha column ----
+   The portion unrolled down the drawer: four rails on one verse axis, laid out
+   with logical properties so the whole thing mirrors in the Hebrew drawer (a
+   scroll runs the other way, and so should its map). */
+.parsha-column {
+  display: flex;
+  width: 100%;
+}
+.parsha-column-chapters {
+  position: relative;
+  flex: none;
+  width: 22px;
+}
+.parsha-column-chapters i {
+  position: absolute;
+  inset-inline-end: 5px;
+  font-style: normal;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  color: var(--muted);
+  transform: translateY(-4px);
+}
+/* A hairline out to the aliyot rail, so the number reads as a position. */
+.parsha-column-chapters i::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: -5px;
+  top: 7px;
+  width: 4px;
+  height: 1px;
+  background: var(--line);
+}
+.parsha-column-aliyot {
+  position: relative;
+  flex: none;
+  width: 13px;
+}
+.parsha-column-aliyot i {
+  position: absolute;
+  inset-inline-start: 0;
+  width: 11px;
+  padding-top: 3px;
+  font-style: normal;
+  font-family: var(--font-hebrew);
+  font-size: 9px;
+  line-height: 1;
+  text-align: center;
+  color: var(--accent);
+  background: var(--parchment);
+  border: 1px solid var(--parchment-edge);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.parsha-column-ribbon {
+  position: relative;
+  flex: none;
+  width: 13px;
+  margin-inline: 3px 9px;
+  background: var(--surface-sunk);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.parsha-column-seg {
+  position: absolute;
+  inset-inline: 0;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  /* An INSET hairline, not a border: a border would grow the box and the
+     segment stacked beneath would paint over it, so a run of same-kind moves
+     would read as one undivided block. */
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.8);
+}
+.parsha-column-seg:hover {
+  filter: brightness(1.12);
+}
+.parsha-column-seg.active {
+  box-shadow: inset 0 0 0 2px var(--fg);
+}
+.parsha-column-pin {
+  position: absolute;
+  inset-inline-start: 50%;
+  width: 5px;
+  height: 5px;
+  margin-inline-start: -2.5px;
+  padding: 0;
+  transform: rotate(45deg);
+  background: var(--surface);
+  border: 1px solid var(--accent-strong);
+  cursor: pointer;
+}
+.parsha-column-pin:hover {
+  background: var(--accent);
+}
+.parsha-column-titles {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.parsha-column-title {
+  position: absolute;
+  inset-inline: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 0;
+  text-align: start;
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+/* The connector back to the ribbon. */
+.parsha-column-title::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -9px;
+  top: 8px;
+  width: 7px;
+  height: 1px;
+  background: var(--line);
+}
+.parsha-column-title .t {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+[dir="rtl"] .parsha-column-title .t {
+  font-family: var(--font-hebrew);
+  font-size: 14.5px;
+}
+.parsha-column-title .r {
+  flex: none;
+  font-family: var(--font-ui);
+  font-size: 9px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+}
+.parsha-column-title:hover .t,
+.parsha-column-title.active .t {
+  color: var(--accent-strong);
+}
+
+.parsha-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 13px;
+  margin-top: 9px;
+  font-family: var(--font-ui);
+  font-size: 10.5px;
+  color: var(--muted);
+}
+.parsha-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.parsha-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}

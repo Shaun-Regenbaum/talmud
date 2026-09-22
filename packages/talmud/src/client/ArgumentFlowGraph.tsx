@@ -269,8 +269,8 @@ export function StatementBand(props: {
                 width={w()}
                 height={30}
                 rx={6}
-                fill={props.selectedId === s.id ? '#fdf2f2' : '#fff'}
-                stroke={props.selectedId === s.id ? '#8a2a2b' : '#e4e0d4'}
+                fill={props.selectedId === s.id ? 'var(--surface-sunk)' : 'var(--surface)'}
+                stroke={props.selectedId === s.id ? 'var(--accent)' : 'var(--line)'}
               />
               <path
                 d={`M ${x() + 2} ${y(i()) + 6} V ${y(i()) + 24}`}

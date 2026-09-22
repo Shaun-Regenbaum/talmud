@@ -29,7 +29,7 @@ export function TutorialBanner(): JSX.Element {
           padding: '8px 12px',
           border: '1px solid var(--line)',
           'border-radius': '8px',
-          background: '#faf6f3',
+          background: 'var(--surface-sunk)',
         }}
       >
         <span
@@ -39,7 +39,7 @@ export function TutorialBanner(): JSX.Element {
         </span>
         <button
           type="button"
-          class="tb-primary"
+          class="ui-button ui-button-primary"
           onClick={() => {
             window.location.hash = 'tutorial';
           }}

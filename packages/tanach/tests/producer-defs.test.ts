@@ -22,11 +22,13 @@ describe('tanach spine registry', () => {
   });
 });
 
-describe('the eleven producers as core Producer objects', () => {
-  it('declares all eleven with their model shapes', () => {
+describe('the thirteen producers as core Producer objects', () => {
+  it('declares all thirteen with their model shapes', () => {
     expect(Object.keys(TANACH_PRODUCERS).sort()).toEqual([
       'events',
+      'gemara-question',
       'geography',
+      'midrash-question',
       'midrash-synthesis',
       'note',
       'overview',
@@ -130,6 +132,8 @@ describe('the eleven producers as core Producer objects', () => {
       geography: { max_tokens: 8000, temperature: 0.2, tag: 'tanach:geography' },
       tidbit: { max_tokens: 1800, temperature: 0.45, tag: 'tanach:tidbit' },
       synthesis: { max_tokens: 800, temperature: 0.3, tag: 'tanach:synthesis' },
+      'gemara-question': { max_tokens: 2400, temperature: 0.2, tag: 'tanach:gemara-question' },
+      'midrash-question': { max_tokens: 2400, temperature: 0.2, tag: 'tanach:midrash-question' },
       'midrash-synthesis': { max_tokens: 800, temperature: 0.35, tag: 'tanach:midrash-synthesis' },
       translate: { max_tokens: 120, temperature: 0.2, tag: 'tanach:translate' },
     };

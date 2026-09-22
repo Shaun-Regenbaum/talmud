@@ -1,3 +1,5 @@
+import { SectionHeading, StatusMessage } from '@corpus/ui/Study';
+import { t } from './i18n';
 /**
  * Chapter inspector — the build-provenance surfaces for the open chapter, the
  * tanach analogue of the talmud reader's Inspect dock, on the SAME shared
@@ -48,7 +50,7 @@ export function Inspector(props: {
   lang?: 'en' | 'he';
   onClose: () => void;
 }): JSX.Element {
-  const [runs] = createResource(
+  const [runs, { refetch }] = createResource(
     () => ({ book: props.book, chapter: props.chapter }),
     async (k) => {
       const res = await fetch(`/api/chapter-runs/${encodeURIComponent(k.book)}/${k.chapter}`);
@@ -60,7 +62,7 @@ export function Inspector(props: {
   // exact producer to open in the DAG.
   const rowKey = (r: RunRow) => `${r.id}:${r.instanceRaw ?? ''}`;
   const rows = (): WaterfallRow[] =>
-    (runs()?.runs ?? []).map((r) => ({
+    (runs.error ? [] : (runs()?.runs ?? [])).map((r) => ({
       id: rowKey(r),
       label: r.label,
       instance: r.instance,
@@ -84,7 +86,7 @@ export function Inspector(props: {
     });
 
   const onSelect = (key: string) => {
-    const r = (runs()?.runs ?? []).find((x) => rowKey(x) === key);
+    const r = (runs.error ? [] : (runs()?.runs ?? [])).find((x) => rowKey(x) === key);
     if (!r) return;
     setPicked({ id: r.id, label: r.label, instanceRaw: r.instanceRaw, expandable: r.expandable });
     setDagSel(r.id);
@@ -111,39 +113,50 @@ export function Inspector(props: {
   return (
     <Drawer
       title={`${props.book} ${props.chapter}`}
-      label="Inspect"
-      dir="ltr"
+      label={t('inspect', props.lang ?? 'en')}
+      dir={props.lang === 'he' ? 'rtl' : 'ltr'}
       onClose={props.onClose}
     >
       <Show when={runs.loading}>
-        <p class="comm-muted">Reading the cache…</p>
+        <StatusMessage tone="loading">{t('readingCache', props.lang ?? 'en')}</StatusMessage>
       </Show>
-      <Show when={runs()}>
+      <Show when={runs.error || (!runs.loading && runs() === null)}>
+        <StatusMessage
+          tone="error"
+          onRetry={() => void refetch()}
+          retryLabel={t('retry', props.lang ?? 'en')}
+        >
+          {t('unavailable', props.lang ?? 'en')}
+        </StatusMessage>
+      </Show>
+      <Show when={!runs.error && runs()}>
         {(r) => (
           <>
             <RunWaterfall
               rows={rows()}
               totals={r().totals}
               onSelect={onSelect}
-              emptyLabel="Nothing cached yet for this chapter."
+              emptyLabel={t('emptyCache', props.lang ?? 'en')}
             />
             <Show when={picked()}>
               {(p) => (
                 <div class="inspect-dag">
-                  <div class="inspect-dag-head">
-                    Build provenance · {p().label}
-                    <Show when={!p().expandable}>
-                      <span class="comm-muted"> · depends only on sources (no sub-producers)</span>
-                    </Show>
-                  </div>
+                  <SectionHeading
+                    title={
+                      <>
+                        {t('provenance', props.lang ?? 'en')} · {p().label}
+                      </>
+                    }
+                    detail={!p().expandable ? t('sourcesOnly', props.lang ?? 'en') : undefined}
+                  />
                   <RunTreeDag
-                    tree={tree() ?? null}
+                    tree={tree.error ? null : (tree() ?? null)}
                     loading={tree.loading}
                     selected={dagSel()}
                     onSelect={setDagSel}
                     expanded={dagExp()}
                     onToggleExpand={toggle}
-                    emptyLabel="Nothing cached for this piece yet."
+                    emptyLabel={t(tree.error ? 'unavailable' : 'emptyPiece', props.lang ?? 'en')}
                   />
                 </div>
               )}

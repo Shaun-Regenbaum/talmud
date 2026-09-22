@@ -47,6 +47,11 @@ import {
   PARSHA_THREAD_SYSTEM,
   PARSHA_THREAD_USER_TEMPLATE,
 } from './parsha.ts';
+import {
+  SOURCE_QUESTION_SCHEMA,
+  SOURCE_QUESTION_USER,
+  sourceQuestionSystem,
+} from './source-question.ts';
 import { SYNTHESIS_SCHEMA, SYNTHESIS_SYSTEM, SYNTHESIS_USER_TEMPLATE } from './synthesis.ts';
 import { TIDBIT_SCHEMA, TIDBIT_SYSTEM, TIDBIT_USER_TEMPLATE } from './tidbit.ts';
 import { TRANSLATE_SCHEMA, TRANSLATE_SYSTEM, TRANSLATE_USER_TEMPLATE } from './translate.ts';
@@ -61,6 +66,8 @@ export type TanachProducerId =
   | 'geography'
   | 'tidbit'
   | 'synthesis'
+  | 'gemara-question'
+  | 'midrash-question'
   | 'midrash-synthesis'
   | 'translate';
 
@@ -384,6 +391,62 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     cacheVersion: '1',
     source: 'code',
   },
+  'gemara-question': {
+    id: 'gemara-question',
+    label: 'Talmud: why this verse',
+    description: 'The question a source addresses and how it uses the verse',
+    kind: 'enrichment',
+    inputs: [
+      { source: 'verse-text' },
+      { source: 'gemara-question-sources' },
+      { source: 'talmud-verse-context' },
+    ],
+    recipe: {
+      extractor: {
+        kind: 'llm',
+        system_prompt: sourceQuestionSystem('Talmud'),
+        user_prompt_template: SOURCE_QUESTION_USER,
+        output_schema: SOURCE_QUESTION_SCHEMA,
+        max_tokens: 2400,
+        temperature: 0.2,
+        tag: 'tanach:gemara-question',
+      },
+    },
+    anchoring: { behavior: 'inherits', precision: 'segment', spine: 'tanach' },
+    cardinality: 'per-input',
+    scope: 'local',
+    key_shape: 'enrich',
+    cacheVersion: '2',
+    source: 'code',
+  },
+  'midrash-question': {
+    id: 'midrash-question',
+    label: 'Midrash: why this verse',
+    description: 'The question a source addresses and how it uses the verse',
+    kind: 'enrichment',
+    inputs: [
+      { source: 'verse-text' },
+      { source: 'midrash-question-sources' },
+      { source: 'talmud-verse-context' },
+    ],
+    recipe: {
+      extractor: {
+        kind: 'llm',
+        system_prompt: sourceQuestionSystem('Midrash'),
+        user_prompt_template: SOURCE_QUESTION_USER,
+        output_schema: SOURCE_QUESTION_SCHEMA,
+        max_tokens: 2400,
+        temperature: 0.2,
+        tag: 'tanach:midrash-question',
+      },
+    },
+    anchoring: { behavior: 'inherits', precision: 'segment', spine: 'tanach' },
+    cardinality: 'per-input',
+    scope: 'local',
+    key_shape: 'enrich',
+    cacheVersion: '2',
+    source: 'code',
+  },
   translate: {
     id: 'translate',
     label: 'Selection translation',
@@ -477,6 +540,8 @@ export function enrichRunDefOf(
     | 'geography'
     | 'tidbit'
     | 'synthesis'
+    | 'gemara-question'
+    | 'midrash-question'
     | 'midrash-synthesis',
 ): TanachEnrichmentDef {
   const p = TANACH_PRODUCERS[id];

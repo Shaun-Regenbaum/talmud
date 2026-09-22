@@ -99,3 +99,8 @@ binding = "BILLING_DB"
 database_name = "corpus-billing"
 database_id = "50ab90fa-cfdd-4b8c-8576-68f3eba6371d"
 migrations_dir = "../talmud/migrations"
+
+# Read existing pasuk cards without starting Talmud generation.
+[[services]]
+binding = "TALMUD"
+service = "talmud"
