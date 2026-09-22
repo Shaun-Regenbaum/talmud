@@ -13,7 +13,8 @@
  * Arrows point dependency → consumer.
  */
 
-import { createMemo, createUniqueId, For, type JSX, Show } from 'solid-js';
+import { createMemo, For, type JSX, Show } from 'solid-js';
+import { GraphEdge } from './GraphEdge';
 import {
   ACTIVE_STROKE,
   AuthorityBadge,
@@ -54,11 +55,6 @@ export interface RunTreeCanvasProps {
 }
 
 export function RunTreeCanvas(props: RunTreeCanvasProps): JSX.Element {
-  // Per-instance SVG marker ids: two DAGs can mount in one document (e.g. the
-  // dock + an embedded RunTreeDag), and a shared id would let `marker-end`
-  // resolve to the wrong (possibly hidden) instance's marker.
-  const arrowId = createUniqueId();
-  const arrowHotId = createUniqueId();
   const layout = createMemo<Layout | null>(() => {
     const t = props.tree;
     return t ? computeLayout(t, props.expanded) : null;
@@ -118,42 +114,17 @@ export function RunTreeCanvas(props: RunTreeCanvasProps): JSX.Element {
                 overflow: 'visible',
               }}
             >
-              <defs>
-                <marker
-                  id={arrowId}
-                  markerWidth="8"
-                  markerHeight="8"
-                  refX="6"
-                  refY="3"
-                  orient="auto"
-                >
-                  <path d="M0 0 L6 3 L0 6 z" fill="#c9b8b0" />
-                </marker>
-                <marker
-                  id={arrowHotId}
-                  markerWidth="8"
-                  markerHeight="8"
-                  refX="6"
-                  refY="3"
-                  orient="auto"
-                >
-                  <path d="M0 0 L6 3 L0 6 z" fill="#8a2a2b" />
-                </marker>
-              </defs>
               <For each={lay().edges}>
                 {(e) => {
                   const hot = () => isIncident(e);
                   const faded = () => !!props.selected && !hot();
                   return (
-                    <path
-                      d={edgePath(e.toRow, e.fromRow, e.lane)}
-                      fill="none"
-                      stroke={hot() ? '#8a2a2b' : '#d3c4ba'}
-                      stroke-width={hot() ? 2 : 1.5}
-                      stroke-opacity={faded() ? 0.22 : hot() ? 0.85 : 1}
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      marker-end={`url(#${hot() ? arrowHotId : arrowId})`}
+                    <GraphEdge
+                      path={edgePath(e.toRow, e.fromRow, e.lane)}
+                      color={hot() ? '#8a2a2b' : '#d3c4ba'}
+                      selected={hot()}
+                      opacity={faded() ? 0.22 : hot() ? 0.85 : 1}
+                      label={`${e.toId} → ${e.fromId}`}
                     />
                   );
                 }}

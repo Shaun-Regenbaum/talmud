@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 //
 // ArgumentFlowGraph exit markers: a section node carrying off-node connections
-// (the spine's links projected onto it) shows a collapsed ⤳N badge that expands
+// (the spine's links projected onto it) shows a collapsed ↗N badge that expands
 // to a chip per connection. The chips read their label/navigation from the
 // shared linkTarget resolver.
 import { fireEvent, render } from '@solidjs/testing-library';
@@ -28,10 +28,10 @@ const exits: SectionExit[] = [
   },
 ];
 
-function texts(container: HTMLElement, needle: string): SVGTextElement[] {
-  return Array.from(container.querySelectorAll('text')).filter((t) =>
+function texts(container: HTMLElement, needle: string): HTMLButtonElement[] {
+  return Array.from(container.querySelectorAll('button')).filter((t) =>
     (t.textContent ?? '').includes(needle),
-  ) as unknown as SVGTextElement[];
+  );
 }
 
 const props = {
@@ -42,15 +42,15 @@ const props = {
 };
 
 describe('ArgumentFlowGraph — exit markers', () => {
-  it('shows a collapsed ⤳N badge with no chips until clicked', () => {
+  it('shows a collapsed ↗N badge with no chips until clicked', () => {
     const { container } = render(() => <ArgumentFlowGraph {...props} />);
-    expect(texts(container, '⤳ 2')).toHaveLength(1);
+    expect(texts(container, '↗ 2')).toHaveLength(1);
     expect(texts(container, 'Genesis 19:5')).toHaveLength(0);
   });
 
   it('expands the chip band on badge click', () => {
     const { container } = render(() => <ArgumentFlowGraph {...props} />);
-    const badge = texts(container, '⤳ 2')[0].closest('g');
+    const badge = texts(container, '↗ 2')[0];
     expect(badge).toBeTruthy();
     fireEvent.click(badge as Element);
     expect(texts(container, 'Genesis 19:5').length).toBeGreaterThan(0);
@@ -61,7 +61,7 @@ describe('ArgumentFlowGraph — exit markers', () => {
     const { container } = render(() => (
       <ArgumentFlowGraph {...props} nodes={[{ index: 0, title: 'plain section' }]} />
     ));
-    expect(texts(container, '⤳')).toHaveLength(0);
+    expect(container.querySelectorAll('.ui-graph-exits')).toHaveLength(0);
   });
 
   it('calls onPickExit when a chip is clicked', () => {
@@ -74,8 +74,8 @@ describe('ArgumentFlowGraph — exit markers', () => {
         }}
       />
     ));
-    fireEvent.click(texts(container, '⤳ 2')[0].closest('g') as Element);
-    const chip = texts(container, 'Genesis 19:5')[0].closest('g');
+    fireEvent.click(texts(container, '↗ 2')[0] as Element);
+    const chip = texts(container, 'Genesis 19:5')[0];
     fireEvent.click(chip as Element);
     expect(picked).not.toBeNull();
     expect((picked as SectionExit | null)?.family).toBe('scripture');

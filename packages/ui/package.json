@@ -37,7 +37,13 @@
     "./RunTreeCanvas": "./src/RunTreeCanvas.tsx",
     "./RunTreeDag": "./src/RunTreeDag.tsx",
     "./RunWaterfall": "./src/RunWaterfall.tsx",
-    "./UsagePage": "./src/UsagePage.tsx"
+    "./UsagePage": "./src/UsagePage.tsx",
+    "./GraphView": "./src/GraphView.tsx",
+    "./GraphEdge": "./src/GraphEdge.tsx",
+    "./graph/geometry": "./src/graph/geometry.ts",
+    "./graph/model": "./src/graph/model.ts",
+    "./graph.css": "./src/graph.css",
+    "./graph/orthogonalEdge": "./src/graph/orthogonalEdge.ts"
   },
   "peerDependencies": {
     "solid-js": "^1.9.15"

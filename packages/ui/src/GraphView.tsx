@@ -1,0 +1,437 @@
+import {
+  createMemo,
+  createSignal,
+  createUniqueId,
+  For,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
+import { Portal } from 'solid-js/web';
+import { GraphEdge } from './GraphEdge';
+import { type GraphConnection, type GraphGroup, type GraphNode, layoutGraph } from './graph/model';
+import './graph.css';
+
+export type { GraphConnection, GraphGroup, GraphNode } from './graph/model';
+export interface GraphLabels {
+  title: string;
+  expand: string;
+  close: string;
+  vertical: string;
+  horizontal: string;
+  zoomIn: string;
+  zoomOut: string;
+  fit: string;
+}
+export interface GraphViewProps {
+  groups: GraphGroup[];
+  edges: GraphConnection[];
+  labels: GraphLabels;
+  onSelect?: (node: GraphNode) => void;
+  onToggleActions?: (group: GraphGroup) => void;
+  /** A host can keep selection in the text while exposing its real source here. */
+  renderDetail?: (node: GraphNode) => JSX.Element;
+  direction?: 'ltr' | 'rtl';
+  maxHeight?: string;
+  controlsOnly?: boolean;
+  hideLegend?: boolean;
+}
+
+function Canvas(
+  props: GraphViewProps & {
+    horizontal?: boolean;
+    zoom?: number;
+    onInspect: (node: GraphNode | GraphConnection) => void;
+  },
+): JSX.Element {
+  let host!: HTMLDivElement;
+  const [width, setWidth] = createSignal(360);
+  const [focus, setFocus] = createSignal<string | null>(null);
+  onMount(() => {
+    setWidth(host.clientWidth || 360);
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => setWidth(host.clientWidth || 360));
+    observer.observe(host);
+    onCleanup(() => observer.disconnect());
+  });
+  const layout = createMemo(() =>
+    layoutGraph(props.groups, props.edges, width(), props.horizontal),
+  );
+  const nodesById = createMemo(() => new Map(layout().nodes.map((node) => [node.node.id, node])));
+  const zoom = () => props.zoom ?? 1;
+  const connected = createMemo(() => {
+    const f = focus();
+    if (!f) return null;
+    const set = new Set([f]);
+    for (const { edge } of layout().edges)
+      if (edge.id === f || edge.from === f || edge.to === f) {
+        set.add(edge.from);
+        set.add(edge.to);
+        set.add(edge.id);
+      }
+    return set;
+  });
+  const faded = (id: string) => connected() && !connected()!.has(id);
+  const select = (n: GraphNode) => {
+    props.onSelect?.(n);
+    props.onInspect(n);
+  };
+  return (
+    <div ref={host} class="ui-graph-viewport" style={{ 'max-height': props.maxHeight }}>
+      <div
+        style={{
+          width: `${layout().width * zoom()}px`,
+          height: `${layout().height * zoom()}px`,
+          position: 'relative',
+        }}
+      >
+        <div
+          class="ui-graph-canvas"
+          classList={{ horizontal: props.horizontal }}
+          style={{
+            width: `${layout().width}px`,
+            height: `${layout().height}px`,
+            transform: `scale(${zoom()})`,
+          }}
+        >
+          <For each={layout().groups}>
+            {(frame) => (
+              <Show when={props.horizontal || frame.group.expanded}>
+                <div
+                  class="ui-graph-group"
+                  style={{
+                    left: `${frame.x}px`,
+                    top: `${frame.y}px`,
+                    width: `${frame.width}px`,
+                    height: `${frame.height}px`,
+                  }}
+                />
+              </Show>
+            )}
+          </For>
+          <svg
+            class="ui-graph-connections"
+            width={layout().width}
+            height={layout().height}
+            aria-label={props.labels.title}
+          >
+            <For each={layout().edges}>
+              {({ edge, path }) => (
+                <GraphEdge
+                  path={path}
+                  color={edge.color}
+                  dash={edge.dash}
+                  label={[edge.label, edge.provenance].filter(Boolean).join(' · ')}
+                  arrow={edge.arrow}
+                  opacity={faded(edge.id) ? 0.18 : 0.9}
+                  selected={focus() === edge.id}
+                  onFocus={(yes) => setFocus(yes ? edge.id : null)}
+                  onSelect={() => props.onInspect(edge)}
+                />
+              )}
+            </For>
+          </svg>
+          <For each={layout().nodes.map((p) => p.node.id)}>
+            {(id) => {
+              const p = () => nodesById().get(id)!;
+              const group = () => props.groups.find((g) => g.id === p().group);
+              return (
+                <div
+                  class="ui-graph-node-wrap"
+                  dir={p().node.direction ?? 'auto'}
+                  style={{
+                    left: `${p().x}px`,
+                    top: `${p().y}px`,
+                    width: `${p().width}px`,
+                    height: `${p().height}px`,
+                    opacity: p().node.dimmed || faded(p().node.id) ? 0.4 : 1,
+                  }}
+                >
+                  <button
+                    type="button"
+                    class="ui-graph-node"
+                    data-graph-node={p().node.id}
+                    classList={{
+                      header: p().header,
+                      selected: p().node.selected,
+                      action: p().action,
+                    }}
+                    style={{
+                      '--node-color': p().node.color ?? 'var(--graph-muted)',
+                      '--badge-color': p().node.badgeColor ?? 'var(--graph-accent)',
+                    }}
+                    dir={p().node.direction ?? 'auto'}
+                    title={[p().node.role, p().node.label, p().node.detail]
+                      .filter(Boolean)
+                      .join(' · ')}
+                    aria-expanded={
+                      p().header && group()?.children?.length
+                        ? props.horizontal || !!group()?.expanded
+                        : undefined
+                    }
+                    onClick={() => select(p().node)}
+                    onPointerEnter={() => setFocus(p().node.id)}
+                    onPointerLeave={() => setFocus(null)}
+                    onFocus={() => setFocus(p().node.id)}
+                    onBlur={() => setFocus(null)}
+                  >
+                    <span class="ui-graph-heading">
+                      <Show when={p().node.badge}>
+                        <span class="ui-graph-badge">{p().node.badge}</span>
+                      </Show>
+                      <Show when={p().node.role}>
+                        <span class="ui-graph-role">{p().node.role}</span>
+                      </Show>
+                      <span class="ui-graph-label" dir="auto">
+                        {p().node.label}
+                      </span>
+                      <Show when={p().header && group()?.children?.length}>
+                        <span class="ui-graph-disclose" aria-hidden="true">
+                          {props.horizontal || group()?.expanded ? '−' : '+'}
+                        </span>
+                      </Show>
+                    </span>
+                    <Show when={p().node.description}>
+                      <span class="ui-graph-description" dir="auto">
+                        {p().node.description}
+                      </span>
+                    </Show>
+                    <Show when={p().node.annotation}>
+                      <span class="ui-graph-annotation" dir="auto">
+                        {p().node.annotation}
+                      </span>
+                    </Show>
+                  </button>
+                  <Show when={p().header && group()?.actions?.length}>
+                    <button
+                      type="button"
+                      class="ui-graph-exits"
+                      title={group()?.actionsLabel}
+                      aria-label={group()?.actionsLabel}
+                      aria-expanded={group()?.actionsExpanded}
+                      onClick={() => props.onToggleActions?.(group()!)}
+                    >
+                      ↗ {group()?.actions?.length}
+                    </button>
+                  </Show>
+                </div>
+              );
+            }}
+          </For>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Fullscreen(props: GraphViewProps & { onClose: () => void }): JSX.Element {
+  let dialog!: HTMLDialogElement;
+  const titleId = createUniqueId();
+  const [horizontal, setHorizontal] = createSignal(true),
+    [zoom, setZoom] = createSignal(1);
+  const [selected, setSelected] = createSignal<GraphNode | GraphConnection | null>(null);
+  const clamp = (n: number) => Math.max(0.25, Math.min(2, n));
+  onMount(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialog.showModal();
+    onCleanup(() => {
+      dialog.close();
+      document.body.style.overflow = overflow;
+      previous?.focus();
+    });
+  });
+  const fit = () => {
+    const viewport = dialog.querySelector('.ui-graph-viewport') as HTMLElement | null;
+    const canvas = dialog.querySelector('.ui-graph-canvas') as HTMLElement | null;
+    if (viewport && canvas)
+      setZoom(
+        clamp(
+          Math.min(
+            (viewport.clientWidth - 24) / canvas.offsetWidth,
+            (viewport.clientHeight - 24) / canvas.offsetHeight,
+          ),
+        ),
+      );
+  };
+  return (
+    <Portal>
+      <dialog
+        ref={dialog}
+        class="ui-graph-dialog"
+        aria-labelledby={titleId}
+        onKeyDown={(e) => e.stopPropagation()}
+        onCancel={(e) => {
+          e.preventDefault();
+          props.onClose();
+        }}
+      >
+        <header class="ui-graph-toolbar" dir={props.direction}>
+          <strong id={titleId}>{props.labels.title}</strong>
+          <div class="ui-graph-toggle">
+            <button
+              type="button"
+              aria-pressed={!horizontal()}
+              onClick={() => {
+                setHorizontal(false);
+                setZoom(1);
+              }}
+            >
+              {props.labels.vertical}
+            </button>
+            <button
+              type="button"
+              aria-pressed={horizontal()}
+              onClick={() => {
+                setHorizontal(true);
+                setZoom(1);
+              }}
+            >
+              {props.labels.horizontal}
+            </button>
+          </div>
+          <button
+            type="button"
+            aria-label={props.labels.zoomOut}
+            onClick={() => setZoom((z) => clamp(z / 1.2))}
+          >
+            −
+          </button>
+          <output>{Math.round(zoom() * 100)}%</output>
+          <button
+            type="button"
+            aria-label={props.labels.zoomIn}
+            onClick={() => setZoom((z) => clamp(z * 1.2))}
+          >
+            +
+          </button>
+          <button type="button" onClick={fit}>
+            {props.labels.fit}
+          </button>
+          <button
+            type="button"
+            class="ui-graph-close"
+            aria-label={props.labels.close}
+            onClick={props.onClose}
+          >
+            ×
+          </button>
+        </header>
+        <Canvas
+          {...props}
+          horizontal={horizontal()}
+          zoom={zoom()}
+          maxHeight="none"
+          onInspect={setSelected}
+        />
+        <Show when={selected()}>
+          {(item) => (
+            <aside class="ui-graph-detail" dir={props.direction}>
+              <strong>{item().label}</strong>
+              <Show when={'reference' in item()}>
+                <p>{(item() as GraphNode).reference}</p>
+              </Show>
+              <Show when={'provenance' in item()}>
+                <p>{(item() as GraphConnection).provenance}</p>
+              </Show>
+              <Show when={'detail' in item() && (item() as GraphNode).detail}>
+                <p dir="auto">{(item() as GraphNode).detail}</p>
+              </Show>
+              <Show when={'from' in item()}>
+                <p>
+                  {
+                    props.groups
+                      .flatMap((g) => [g, ...(g.children ?? [])])
+                      .find((n) => n.id === (item() as GraphConnection).from)?.label
+                  }{' '}
+                  →{' '}
+                  {
+                    props.groups
+                      .flatMap((g) => [g, ...(g.children ?? [])])
+                      .find((n) => n.id === (item() as GraphConnection).to)?.label
+                  }
+                </p>
+              </Show>
+              <Show when={props.renderDetail && !('from' in item())}>
+                {props.renderDetail?.(item() as GraphNode)}
+              </Show>
+            </aside>
+          )}
+        </Show>
+      </dialog>
+    </Portal>
+  );
+}
+
+export function GraphLegend(props: {
+  items: Array<Pick<GraphConnection, 'label' | 'color' | 'dash'>>;
+}): JSX.Element {
+  return (
+    <Show when={props.items.length}>
+      <div class="ui-graph-legend">
+        <For each={props.items}>
+          {(item) => (
+            <span>
+              <i
+                aria-hidden="true"
+                style={{ 'border-top': `1.5px ${item.dash ? 'dashed' : 'solid'} ${item.color}` }}
+              />
+              {item.label}
+            </span>
+          )}
+        </For>
+      </div>
+    </Show>
+  );
+}
+
+/** Same graph and callbacks in both views. The modal always starts horizontal. */
+export function GraphView(props: GraphViewProps): JSX.Element {
+  const [fullscreen, setFullscreen] = createSignal(false);
+  const legend = createMemo(() => [
+    ...new Map(
+      props.edges
+        .filter((e) => e.kindLabel)
+        .map((e) => [
+          `${e.kindLabel}:${e.color}:${e.dash}`,
+          { label: e.kindLabel!, color: e.color, dash: e.dash },
+        ]),
+    ).values(),
+  ]);
+  const [selected, setSelected] = createSignal<GraphNode | GraphConnection | null>(null);
+  return (
+    <Show when={props.groups.length}>
+      <section class="ui-graph-view">
+        <div class="ui-graph-inline-toolbar" dir={props.direction}>
+          <button
+            type="button"
+            aria-label={props.labels.expand}
+            onClick={() => setFullscreen(true)}
+          >
+            {props.labels.expand} ↗
+          </button>
+        </div>
+        <Show when={!props.controlsOnly}>
+          <Canvas {...props} onInspect={setSelected} maxHeight={props.maxHeight ?? '520px'} />
+        </Show>
+        <Show when={!props.hideLegend && !props.controlsOnly}>
+          <GraphLegend items={legend()} />
+        </Show>
+        <Show when={selected() && 'from' in selected()!}>
+          <div class="ui-graph-edge-detail" dir={props.direction}>
+            {selected()!.label}
+            <Show when={(selected() as GraphConnection).provenance}>
+              {' '}
+              · {(selected() as GraphConnection).provenance}
+            </Show>
+          </div>
+        </Show>
+        <Show when={fullscreen()}>
+          <Fullscreen {...props} onClose={() => setFullscreen(false)} />
+        </Show>
+      </section>
+    </Show>
+  );
+}

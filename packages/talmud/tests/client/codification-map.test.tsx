@@ -41,15 +41,21 @@ const edges: CodeMapEdge[] = [
 describe('CodificationMap', () => {
   it('renders one positioned card per node, carrying ref + ruling + practice', () => {
     const { container, getByText } = render(() => <CodificationMap nodes={nodes} edges={edges} />);
-    const cards = container.querySelectorAll('[data-node]');
+    const cards = container.querySelectorAll('[data-graph-node]');
     expect(cards).toHaveLength(3);
-    expect(Array.from(cards).map((c) => c.getAttribute('data-node'))).toEqual([
+    expect(Array.from(cards).map((c) => c.getAttribute('data-graph-node'))).toEqual([
       'gem',
       'mech',
       'rema',
     ]);
-    // side drives the spine-dot colour downstream; assert it's carried on the DOM.
-    expect(Array.from(cards).map((c) => c.getAttribute('data-side'))).toEqual(['source', 'a', 'b']);
+    expect(Array.from(cards).map((c) => c.querySelector('.ui-graph-badge')?.textContent)).toEqual([
+      undefined,
+      'A',
+      'B',
+    ]);
+    getByText("Kitniyot isn't one of the five grains.");
+    getByText('Permits.');
+    getByText('Prohibits.');
     getByText('SA, OC 453:1', { exact: false });
     getByText('eats kitniyot', { exact: false });
     getByText('avoids kitniyot', { exact: false });
@@ -57,9 +63,9 @@ describe('CodificationMap', () => {
 
   it('builds the legend from the edge kinds plus the transmits spine', () => {
     const { getByText } = render(() => <CodificationMap nodes={nodes} edges={edges} />);
-    getByText('transmits');
-    getByText('cites');
-    getByText('disagrees');
+    getByText('passes on');
+    getByText('cites', { selector: 'span' });
+    getByText('disagrees', { selector: 'span' });
   });
 
   it('renders without edges (the agree case) and still draws cards', () => {
@@ -75,6 +81,6 @@ describe('CodificationMap', () => {
       },
     ];
     const { container } = render(() => <CodificationMap nodes={agree} />);
-    expect(container.querySelectorAll('[data-node]')).toHaveLength(3);
+    expect(container.querySelectorAll('[data-graph-node]')).toHaveLength(3);
   });
 });
