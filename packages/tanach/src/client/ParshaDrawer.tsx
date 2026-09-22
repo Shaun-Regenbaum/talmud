@@ -1,5 +1,6 @@
 import { aiStatus, noteAiResponse, noteAiSuccess } from '@corpus/ui/aiStatus';
 import { Prose } from '@corpus/ui/Prose';
+import { StudyOverview } from '@corpus/ui/StudyOverview';
 import { createEffect, createResource, createSignal, For, type JSX, Show } from 'solid-js';
 import {
   type ParshaFlowSection,
@@ -123,14 +124,17 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
 
   return (
     <section class="parsha-study">
-      <p class="parsha-ref">{props.study.ref}</p>
-      <h3 class="perek-title">{textFor(props.lang, props.study.titleEn, props.study.titleHe)}</h3>
-      <TermedProse
-        en={props.study.overviewEn}
-        he={props.study.overviewHe}
-        lang={props.lang}
-        terms={props.study.terms ?? []}
-      />
+      <StudyOverview
+        reference={props.study.ref}
+        title={textFor(props.lang, props.study.titleEn, props.study.titleHe)}
+      >
+        <TermedProse
+          en={props.study.overviewEn}
+          he={props.study.overviewHe}
+          lang={props.lang}
+          terms={props.study.terms ?? []}
+        />
+      </StudyOverview>
 
       <section class="parsha-section">
         <div class="parsha-section-head">

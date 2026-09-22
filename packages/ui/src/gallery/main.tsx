@@ -3,6 +3,7 @@ import '../tokens.css';
 import '../themes/tanach.css';
 import '../components.css';
 import '../geomap.css';
+import '../readingmap.css';
 import '../worldbubblemap.css';
 import '../inspector.css';
 import { Gallery } from './Gallery';

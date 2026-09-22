@@ -21,7 +21,9 @@ Use `--bg`, `--fg`, `--muted`, `--line`, `--surface`, `--surface-sunk`, `--accen
 | `Pill`, `PillRow` | Reader topic choices. |
 | `Drawer`, `BottomSheet`, `Prose` | Side panel on desktop, bottom sheet on phones, and bilingual reading text. |
 | `Charts`, `DataTable` | Line charts, chart cards, sortable tables, ranked bars, meters and rate chips. Used by Talmud usage. |
-| `ReaderIcon` | Reader glyphs and category colors, separate from annotation placement. |
+| `ReaderIcon` | One maroon family of rounded outline icons, separate from annotation placement. |
+| `Graph` | Shared card styles, SVG cards, connectors and lane routing used by argument, spine and dependency graphs. |
+| `StudyOverview`, `ReadingMap` | Reference/title/prose and the parsha verse ribbon, aliyah markers and legend. Tanach supplies its layout and study data. |
 | `AiStatusBanner`, `LoadProgress` | Shared status and loading messages. |
 | `InspectorRow`, `RunTree*`, `UsagePage` | Cache inspection, dependency diagrams and usage tables. |
 | `GeoMap`, `WorldBubbleMap` | Shared maps. |
@@ -52,6 +54,16 @@ These are read-only requests through two allowlisted Vite proxies to talmud.dev.
 No backend or generation service is started. If the network fails, the gallery
 shows an unavailable message and retry button. Static builds have no proxy and
 show that state for these examples. No usage records are bundled in the build.
+
+The parsha example is a real Tanach response saved on September 22, 2026, with
+its source URL and capture date in `src/gallery/content/parsha.json`. It is a
+component example, not a claim about the current weekly portion. Selecting a
+section shows its recorded summary. Landmark buttons open the verse on Sefaria.
+The gallery does not call the parsha generation endpoint.
+
+The regional maps use Talmud's existing place list and omit locations marked
+uncertain. Israel and Babylonia have separate close views. The world traffic map
+is separated from these study maps.
 
 The gallery also lists what is still app-specific: study diagrams, alignment
 source cards and filters, usage summary cards, date ranges, stacked bars, coverage,

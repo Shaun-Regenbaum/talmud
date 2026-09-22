@@ -1,3 +1,4 @@
+import { GraphEdge, roundedConnector } from '@corpus/ui/Graph';
 /**
  * SpineFlowGraph — the whole tractate's argument flow as ONE continuous SVG.
  *
@@ -382,16 +383,7 @@ export default function SpineFlowGraph(props: {
   // Orthogonal connector through a right-side lane gutter. rX = node right edge.
   const orthPath = (y1: number, y2: number, lane: number, rX: number): string => {
     const x = rX + LANE_BASE + lane * LANE_STEP;
-    const dir = y2 >= y1 ? 1 : -1;
-    const r = Math.min(CORNER_R, x - rX, Math.abs(y2 - y1) / 2 || CORNER_R);
-    return [
-      `M ${rX} ${y1}`,
-      `L ${x - r} ${y1}`,
-      `Q ${x} ${y1} ${x} ${y1 + dir * r}`,
-      `L ${x} ${y2 - dir * r}`,
-      `Q ${x} ${y2} ${x - r} ${y2}`,
-      `L ${rX} ${y2}`,
-    ].join(' ');
+    return roundedConnector(rX, x, y1, y2, CORNER_R);
   };
   const edgePath = (y1: number, y2: number, lane: number): string =>
     orthPath(y1, y2, lane, LEFT_PAD + NODE_W);
@@ -571,7 +563,7 @@ export default function SpineFlowGraph(props: {
 
                 <For each={m.edges}>
                   {(e, i) => (
-                    <path
+                    <GraphEdge
                       d={edgePath(
                         m.edgeAnchorY(e.from, true),
                         m.edgeAnchorY(e.to, false),
@@ -587,7 +579,7 @@ export default function SpineFlowGraph(props: {
                       marker-end={`url(#spine-arrow-${e.kind})`}
                     >
                       <title>{`${dafPageLabel(e.fromPage)} §${e.fromSec + 1} ${t(`link.rel.${e.kind}`)}${e.cross ? ` ${dafPageLabel(e.toPage)}` : ''} §${e.toSec + 1}${e.note ? ` — ${e.note}` : ''}`}</title>
-                    </path>
+                    </GraphEdge>
                   )}
                 </For>
 

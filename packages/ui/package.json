@@ -45,7 +45,11 @@
     "./DataTable": "./src/DataTable.tsx",
     "./Charts": "./src/Charts.tsx",
     "./ReaderIcon": "./src/ReaderIcon.tsx",
-    "./BottomSheet": "./src/BottomSheet.tsx"
+    "./BottomSheet": "./src/BottomSheet.tsx",
+    "./Graph": "./src/Graph.tsx",
+    "./ReadingMap": "./src/ReadingMap.tsx",
+    "./StudyOverview": "./src/StudyOverview.tsx",
+    "./readingmap.css": "./src/readingmap.css"
   },
   "peerDependencies": {
     "solid-js": "^1.9.15"

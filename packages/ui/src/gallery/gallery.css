@@ -448,3 +448,46 @@ a {
 .gallery main section {
   min-width: 0;
 }
+
+.gallery-maps {
+  display: grid;
+  gap: 48px;
+  margin: 24px 0;
+}
+.gallery-map-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+}
+.gallery-maps h3 {
+  font-size: 15px;
+  margin: 0 0 16px;
+}
+@media (max-width: 700px) {
+  .gallery-map-pair {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+}
+
+.gallery-study {
+  max-width: 640px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.gallery-study-detail {
+  margin: 24px 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.gallery-study > a {
+  display: inline-block;
+  margin-top: 24px;
+}
+@media (max-width: 700px) {
+  .gallery-study {
+    padding: 16px;
+  }
+}

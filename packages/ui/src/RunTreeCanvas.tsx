@@ -1,3 +1,4 @@
+import { GraphEdge, graphCardStyle } from './Graph';
 /**
  * @corpus/ui — RunTreeCanvas.
  *
@@ -15,12 +16,10 @@
 
 import { createMemo, createUniqueId, For, type JSX, Show } from 'solid-js';
 import {
-  ACTIVE_STROKE,
   AuthorityBadge,
   BADGE_LLM,
   BADGE_PRO,
   BADGE_SRC,
-  CARD_STROKE,
   computeLayout,
   displayLabel,
   edgePath,
@@ -145,7 +144,7 @@ export function RunTreeCanvas(props: RunTreeCanvasProps): JSX.Element {
                   const hot = () => isIncident(e);
                   const faded = () => !!props.selected && !hot();
                   return (
-                    <path
+                    <GraphEdge
                       d={edgePath(e.toRow, e.fromRow, e.lane)}
                       fill="none"
                       stroke={hot() ? 'var(--accent)' : '#d3c4ba'}
@@ -191,10 +190,7 @@ export function RunTreeCanvas(props: RunTreeCanvasProps): JSX.Element {
                       padding: '0 0.6rem',
                       cursor: 'pointer',
                       'box-sizing': 'border-box',
-                      background: sel() ? '#fdf2f2' : '#fff',
-                      border: `${sel() ? 1.75 : 1}px solid ${sel() ? ACTIVE_STROKE : CARD_STROKE}`,
-                      'border-radius': '11px',
-                      'box-shadow': '0 1px 2px rgba(58,51,32,0.08)',
+                      ...graphCardStyle(sel()),
                       opacity: dim() ? 0.42 : 1,
                       transition: 'opacity 0.12s',
                     }}

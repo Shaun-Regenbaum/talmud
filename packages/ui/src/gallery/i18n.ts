@@ -1,8 +1,22 @@
 const catalog = {
+  captured: { en: 'Real Tanach response, captured', he: 'תשובה אמיתית מתנ״ך, נשמרה בתאריך' },
+  overview: { en: 'Tanach & parsha overview', he: 'סקירת התנ״ך והפרשה' },
+  overviewHint: {
+    en: 'Saved content from Tanach. The overview, verse ribbon, aliyah markers and legend are shared components. Select a section to read its summary.',
+    he: 'תוכן שנשמר מתנ״ך. הסקירה, רצועת הפסוקים, סימוני העליות והמקרא הם רכיבים משותפים. בחרו יחידה לקריאת הסיכום שלה.',
+  },
+  portionFlow: { en: 'The portion, section by section', he: 'מהלך הפרשה' },
+  openTanach: { en: 'Open Tanach', he: 'פתיחת תנ״ך' },
+
+  talmudWorld: { en: 'The Talmudic world', he: 'עולם התלמוד' },
+  israelMap: { en: 'Israel', he: 'ארץ ישראל' },
+  babylonMap: { en: 'Babylonia', he: 'בבל' },
+  worldTraffic: { en: 'Readers around the world', he: 'קוראים ברחבי העולם' },
+
   icons: { en: 'Reader icons', he: 'סמלי הקורא' },
   iconsHint: {
-    en: 'The same symbols used by the reader, now exported from the shared library.',
-    he: 'אותם סמלים של הקורא, כעת בספרייה המשותפת.',
+    en: 'One maroon icon family. Each subject has its own shape, with the same rounded strokes.',
+    he: 'משפחת סמלים אחת בבורדו. לכל נושא צורה משלו וקווים מעוגלים אחידים.',
   },
   argument: { en: 'Arguments', he: 'טיעונים' },
   halacha: { en: 'Halacha', he: 'הלכה' },
@@ -35,12 +49,12 @@ const catalog = {
   showMore: { en: 'Show more', he: 'הצגת עוד' },
   maps: { en: 'Maps', he: 'מפות' },
   mapsHint: {
-    en: 'Pan and zoom the Natural Earth basemap. No study locations are added here. The world map below uses the live country totals above.',
-    he: 'הזיזו והגדילו את מפת Natural Earth. לא נוספו כאן אתרי לימוד. מפת העולם מציגה את נתוני השימוש לפי מדינה.',
+    en: 'Pan and zoom the Talmud’s places in Israel and Babylonia. Sites come from its existing place list; uncertain locations are omitted. The world map shows live traffic.',
+    he: 'מקומות התלמוד בארץ ישראל ובבבל, מתוך רשימת המקומות הקיימת. מקומות שזיהוים אינו ודאי הושמטו. מפת העולם מציגה נתוני שימוש חיים.',
   },
   graphs: { en: 'Dependency graphs', he: 'גרפי תלות' },
   graphsHint: {
-    en: 'The graph used by the inspector and alignment page. Select a node for details and expand its inputs.',
+    en: 'Dependency and argument graphs now share connectors, lane routing and card styles. Their layouts and relationship labels stay specific to each graph. Select a node or expand its inputs.',
     he: 'הגרף המשמש לבדיקה ולעיגון. בחרו צומת לפרטים ופתחו את המקורות שלו.',
   },
   graphSource: {
@@ -53,7 +67,7 @@ const catalog = {
     he: 'לרכיבים האלה עדיין יש מימושים נפרדים. צורת הדף אינה חלק מהעבודה הזאת.',
   },
   missingGraphs: {
-    en: 'Study diagrams: argument flow, speaker relationships, timelines, and their legends.',
+    en: 'Study diagrams: shared graph controls, speaker relationships, timelines and legends. Argument and dependency connectors now share one implementation.',
     he: 'תרשימי לימוד: מהלך הטיעון, קשרי דוברים, צירי זמן ומקרא.',
   },
   missingAlign: {

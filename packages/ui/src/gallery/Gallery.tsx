@@ -22,6 +22,7 @@ const sections = [
   'charts',
   'maps',
   'graphs',
+  'overview',
   'missing',
 ] as const;
 const colors: { token: string; label: GalleryKey }[] = [
