@@ -27,6 +27,9 @@
  * `user_question` in the body.
  */
 
+import { Button } from '@corpus/ui/Button';
+import { StatusMessage } from '@corpus/ui/Study';
+import './reader-controls.css';
 import { createEffect, createResource, createSignal, For, type JSX, onMount, Show } from 'solid-js';
 import { trackAI } from './aiActivity';
 import { isPausedError, isServiceUnavailableError, type RunResult } from './enrichmentQueue';
@@ -455,40 +458,23 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
 
   return (
     <div
+      class="reader-qa"
       data-tour="argument-qa"
       style={{
         'margin-top': '0.6rem',
-        'border-top': '1px solid #eee',
+        'border-top': '1px solid var(--line)',
         'padding-top': '0.5rem',
       }}
     >
-      <button
-        type="button"
-        onClick={() => setExpanded(!expanded())}
-        style={{
-          all: 'unset',
-          cursor: 'pointer',
-          display: 'flex',
-          'align-items': 'center',
-          gap: '0.35rem',
-          'font-size': '0.72rem',
-          'text-transform': 'uppercase',
-          'letter-spacing': '0.08em',
-          color: '#666',
-          'font-weight': 500,
-        }}
-        aria-expanded={expanded()}
-      >
+      <Button type="button" onClick={() => setExpanded(!expanded())} aria-expanded={expanded()}>
         <span>{expanded() ? '−' : '+'}</span>
         <span>{t('qa.questions')}</span>
-      </button>
+      </Button>
 
       <Show when={expanded()}>
         <div style={{ 'margin-top': '0.55rem' }}>
           <Show when={suggested.loading || registry.loading}>
-            <div style={{ color: '#888', 'font-size': '0.78rem', 'font-style': 'italic' }}>
-              {t('qa.loadingQuestions')}
-            </div>
+            <StatusMessage tone="loading">{t('qa.loadingQuestions')}</StatusMessage>
           </Show>
 
           <For each={visibleList()}>
@@ -497,7 +483,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
               const ans = () => openAnswers()[key];
               return (
                 <div style={{ 'margin-bottom': '0.4rem' }}>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => handleQuestionClick(item.q)}
                     // Title is an HTML attribute — can't host a JSX component,
@@ -505,29 +491,20 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                     // dict pass directly. Async LLM upgrade isn't worth it for
                     // hover text that vanishes the moment the user moves on.
                     title={item.why ? hebraize(item.why) : ''}
-                    style={{
-                      all: 'unset',
-                      display: 'block',
-                      width: '100%',
-                      cursor: 'pointer',
-                      'box-sizing': 'border-box',
-                      padding: '0.4rem 0.55rem',
-                      background: ans() ? '#fefce8' : '#fafaf7',
-                      border: `1px solid ${ans() ? '#eab308' : '#eae8e0'}`,
-                      'border-radius': '4px',
-                      'font-size': '0.84rem',
-                      color: '#222',
-                      'line-height': 1.4,
-                    }}
+                    class="reader-qa-question"
+                    active={!!ans()}
+                    aria-expanded={!!ans()}
                   >
-                    <span style={{ color: '#999', 'margin-right': '0.3rem' }}>›</span>
-                    <Hebraized text={item.q} />
+                    <span aria-hidden="true">›</span>
+                    <span style={{ 'min-width': 0 }}>
+                      <Hebraized text={item.q} />
+                    </span>
                     <Show when={item.origin === 'community'}>
                       <span
                         style={{
                           'margin-left': '0.4rem',
                           'font-size': '0.62rem',
-                          color: '#999',
+                          color: 'inherit',
                           'text-transform': 'uppercase',
                           'letter-spacing': '0.05em',
                         }}
@@ -539,30 +516,30 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                         </Show>
                       </span>
                     </Show>
-                  </button>
+                  </Button>
                   <Show when={ans()}>
                     {(state) => (
                       <div
                         style={{
                           'margin-top': '0.3rem',
                           padding: '0.5rem 0.65rem',
-                          background: '#fff',
-                          border: '1px solid #f1ecd9',
+                          background: 'var(--surface)',
+                          border: '1px solid var(--line)',
                           'border-radius': '4px',
                           'font-size': '0.85rem',
-                          color: '#222',
+                          color: 'var(--fg)',
                           'line-height': 1.55,
                         }}
                       >
                         <Show when={state().state === 'loading'}>
-                          <span style={{ color: '#888', 'font-style': 'italic' }}>
+                          <span style={{ color: 'var(--muted)', 'font-style': 'italic' }}>
                             {state().loadingCopy ?? 'Asking the Rabbis…'}
                           </span>
                         </Show>
                         <Show when={state().state === 'error'}>
                           <span
                             style={{
-                              color: '#c00',
+                              color: 'var(--accent-strong)',
                               'font-family': 'monospace',
                               'font-size': '0.78rem',
                             }}
@@ -595,40 +572,18 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
           </For>
 
           <Show when={!suggested.loading && !registry.loading && combined().length === 0}>
-            <div style={{ color: '#888', 'font-size': '0.78rem', 'font-style': 'italic' }}>
-              {t('qa.empty')}
-            </div>
+            <StatusMessage tone="empty">{t('qa.empty')}</StatusMessage>
           </Show>
 
           <Show when={hiddenCount() > 0 && !showAll()}>
-            <button
-              type="button"
-              onClick={() => setShowAll(true)}
-              style={{
-                all: 'unset',
-                cursor: 'pointer',
-                'font-size': '0.72rem',
-                color: '#666',
-                'margin-top': '0.2rem',
-              }}
-            >
+            <Button type="button" onClick={() => setShowAll(true)}>
               ⌄ {t('qa.showMore', { count: hiddenCount() })}
-            </button>
+            </Button>
           </Show>
           <Show when={showAll() && combined().length > DEFAULT_VISIBLE}>
-            <button
-              type="button"
-              onClick={() => setShowAll(false)}
-              style={{
-                all: 'unset',
-                cursor: 'pointer',
-                'font-size': '0.72rem',
-                color: '#666',
-                'margin-top': '0.2rem',
-              }}
-            >
+            <Button type="button" onClick={() => setShowAll(false)}>
               ⌃ {t('qa.showLess')}
-            </button>
+            </Button>
           </Show>
 
           {/* Custom-question affordance */}
@@ -638,6 +593,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
               fallback={
                 <div>
                   <textarea
+                    aria-label={t('qa.askYourOwn')}
                     value={askText()}
                     onInput={(e) => setAskText((e.currentTarget as HTMLTextAreaElement).value)}
                     placeholder={t('qa.placeholder')}
@@ -646,12 +602,12 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                       width: '100%',
                       'box-sizing': 'border-box',
                       padding: '0.45rem 0.55rem',
-                      border: '1px solid #d6d3d1',
+                      border: '1px solid var(--line)',
                       'border-radius': '4px',
                       'font-family': 'inherit',
                       'font-size': '0.85rem',
                       'line-height': 1.45,
-                      color: '#222',
+                      color: 'var(--fg)',
                       resize: 'vertical',
                     }}
                   />
@@ -660,7 +616,7 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                       style={{
                         'margin-top': '0.3rem',
                         'font-size': '0.75rem',
-                        color: '#c00',
+                        color: 'var(--accent-strong)',
                       }}
                     >
                       {askError()}
@@ -673,48 +629,33 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                       'margin-top': '0.4rem',
                     }}
                   >
-                    <button
+                    <Button
                       type="button"
                       onClick={() => {
                         void submitAsk();
                       }}
                       disabled={askText().trim().length === 0}
-                      style={{
-                        all: 'unset',
-                        cursor: askText().trim().length === 0 ? 'not-allowed' : 'pointer',
-                        padding: '0.35rem 0.7rem',
-                        background: askText().trim().length === 0 ? '#e7e5e0' : '#1e293b',
-                        color: askText().trim().length === 0 ? '#999' : '#fff',
-                        'border-radius': '4px',
-                        'font-size': '0.78rem',
-                      }}
+                      variant="primary"
                     >
                       {t('qa.submit')}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       onClick={() => {
                         setAskingOpen(false);
                         setAskText('');
                         setAskError(null);
                       }}
-                      style={{
-                        all: 'unset',
-                        cursor: 'pointer',
-                        padding: '0.35rem 0.7rem',
-                        color: '#666',
-                        'font-size': '0.78rem',
-                      }}
                     >
                       {t('qa.cancel')}
-                    </button>
+                    </Button>
                   </div>
                   <Show when={suggested() || registry()}>
                     <div
                       style={{
                         'margin-top': '0.4rem',
                         'font-size': '0.7rem',
-                        color: '#999',
+                        color: 'var(--muted)',
                       }}
                     >
                       {t('qa.privacy')}
@@ -723,25 +664,10 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                 </div>
               }
             >
-              <button
-                type="button"
-                onClick={() => setAskingOpen(true)}
-                style={{
-                  all: 'unset',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  'align-items': 'center',
-                  gap: '0.35rem',
-                  padding: '0.35rem 0.55rem',
-                  border: '1px dashed #d6d3d1',
-                  'border-radius': '4px',
-                  color: '#666',
-                  'font-size': '0.78rem',
-                }}
-              >
-                <span style={{ 'font-size': '0.9rem', color: '#999' }}>+</span>
+              <Button type="button" onClick={() => setAskingOpen(true)}>
+                <span style={{ 'font-size': '0.9rem', color: 'var(--muted)' }}>+</span>
                 <span>{t('qa.askYourOwn')}</span>
-              </button>
+              </Button>
             </Show>
           </div>
         </div>
