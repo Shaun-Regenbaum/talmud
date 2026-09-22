@@ -21,7 +21,7 @@ pnpm build
 
 If `pnpm install` stops on a native build of `sharp` (a transitive dependency), rerun it with `--ignore-scripts`. Nothing in the checks needs the native module.
 
-Work in a worktree, not the main checkout, because several people and agents change this repo at once: `scripts/worktree-new.sh <branch>` creates one from `origin/master` and installs it.
+Work in a worktree, not the main checkout, because several people and agents change this repo at once: `scripts/worktree-new.sh <branch>` creates one from `origin/staging` and installs it.
 
 ## Level 1: the reader, with an empty cache
 

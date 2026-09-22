@@ -2,6 +2,15 @@ name = "tanach"
 main = "src/worker/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
+# Custom production domains. The shaunregenbaum.com and tanach.dev zones are
+# both on the same account as this worker; wrangler provisions the DNS record +
+# cert on deploy. Same shape as talmud: one deployment, all hostnames identical.
+# (Top-level key — must precede any [table] header or TOML folds it into it.)
+routes = [
+  { pattern = "tanach.shaunregenbaum.com", custom_domain = true },
+  { pattern = "tanach.dev", custom_domain = true },
+  { pattern = "www.tanach.dev", custom_domain = true }
+]
 
 # Dynamic Worker Loader — powers the code-mode MCP server at /mcp (the shared
 # @corpus/core/mcp/code-mode, same as talmud). The `execute` tool runs
@@ -16,16 +25,6 @@ worker_loaders = [{ binding = "LOADER" }]
 [[analytics_engine_datasets]]
 binding = "SURFACE"
 dataset = "tanach_surface"
-
-# Custom production domains. The shaunregenbaum.com and tanach.dev zones are
-# both on the same account as this worker; wrangler provisions the DNS record +
-# cert on deploy. Same shape as talmud: one deployment, all hostnames identical.
-# (Top-level key — must precede any [table] header or TOML folds it into it.)
-routes = [
-  { pattern = "tanach.shaunregenbaum.com", custom_domain = true },
-  { pattern = "tanach.dev", custom_domain = true },
-  { pattern = "www.tanach.dev", custom_domain = true }
-]
 
 # The Solid client is built into ./dist/client and served by the Worker via the
 # ASSETS binding; unmatched routes fall through to index.html (SPA).
@@ -104,3 +103,47 @@ migrations_dir = "../talmud/migrations"
 [[services]]
 binding = "TALMUD"
 service = "talmud"
+
+# Review new releases here before approving production.
+[env.staging]
+name = "tanach-staging"
+workers_dev = false
+preview_urls = false
+routes = [{ pattern = "staging.tanach.dev", custom_domain = true }]
+worker_loaders = [{ binding = "LOADER" }]
+workflows = []
+analytics_engine_datasets = []
+send_email = []
+
+[env.staging.vars]
+APP_ENV = "staging"
+BILLING_APP = "tanach"
+GENERATION_DISABLED = "1"
+WORKER_ROLE = "reader"
+PUBLIC_ORIGIN = "https://staging.tanach.dev"
+LEARNED_ADJACENCY = "1"
+
+[env.staging.triggers]
+crons = []
+
+[env.staging.queues]
+producers = []
+consumers = []
+
+[[env.staging.kv_namespaces]]
+binding = "CACHE"
+id = "e4fab94968a64e3c8626a101edce9280"
+
+[[env.staging.d1_databases]]
+binding = "BILLING_DB"
+database_name = "corpus-billing-staging"
+database_id = "49930fc7-f92a-446b-886d-0ec8ae882dc6"
+migrations_dir = "../talmud/migrations"
+
+[[env.staging.services]]
+binding = "STAGING_SOURCE"
+service = "corpus-staging-source"
+
+[[env.staging.services]]
+binding = "TALMUD"
+service = "talmud-staging"

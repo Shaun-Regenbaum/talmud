@@ -1,5 +1,6 @@
 import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from 'cloudflare:workers';
 import { slugTractate } from '@corpus/core/cache/keys';
+import { releaseResponse, stagingGalleryRequest, withStaging } from '@corpus/core/cache/staging';
 import { continuationLink, type FlowEdge } from '@corpus/core/context/link';
 import { coordLabel } from '@corpus/core/context/types';
 import { gatewayActive, gatewayStatus, wrapEnv } from '@corpus/core/llm/ai-gateway';
@@ -12429,7 +12430,9 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
 }
 
 export default {
-  fetch: (req: Request, env: Bindings, ctx: ExecutionContext) => app.fetch(req, wrapEnv(env), ctx),
+  fetch: (req: Request, env: Bindings, ctx: ExecutionContext) =>
+    releaseResponse(req, env) ??
+    app.fetch(stagingGalleryRequest(req, env), wrapEnv(withStaging(env)), ctx),
   scheduled: (controller: ScheduledController, env: Bindings, ctx: ExecutionContext) => {
     const wrapped = wrapEnv(env);
     // The reader (talmud) and the generator (talmud-gen) deploy the SAME entry

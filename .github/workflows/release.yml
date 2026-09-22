@@ -1,0 +1,129 @@
+name: Release
+
+on:
+  push:
+    branches: [staging]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.12.1
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec biome ci .
+      # The research pipeline is Python with no dependencies. Every bug found
+      # by reading its output becomes a test here, so it has to actually run.
+      - run: python3 -m unittest discover -s research/sage-network/tests
+
+      - run: pnpm typecheck
+
+      - run: pnpm test
+
+      - run: pnpm build
+
+  staging:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/staging'
+    needs: check
+    runs-on: ubuntu-latest
+    environment:
+      name: Staging
+      url: https://staging.talmud.dev
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ddf8edfc3dfd489567fe3c5b28b51aca
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.12.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Confirm this is the latest staging commit
+        run: test "$(gh api repos/$GITHUB_REPOSITORY/git/ref/heads/staging --jq .object.sha)" = "$GITHUB_SHA"
+      - run: pnpm --filter talmud exec wrangler deploy -c wrangler.staging-source.toml
+      - run: pnpm --filter talmud exec wrangler d1 migrations apply corpus-billing-staging --env staging --remote
+      - run: CLOUDFLARE_ENV=staging pnpm --filter talmud exec vite build
+      - run: pnpm --filter tanach exec vite build --config vite.gallery.config.ts --base=/components/
+      - run: cp -R packages/ui/dist/gallery packages/talmud/dist/client/components
+      - run: node scripts/check-staging-config.mjs talmud
+      - run: pnpm --filter talmud exec wrangler deploy --env staging --var BUILD_SHA:$GITHUB_SHA
+      - run: CLOUDFLARE_ENV=staging pnpm --filter tanach exec vite build
+      - run: node scripts/check-staging-config.mjs tanach
+      - run: pnpm --filter tanach exec wrangler deploy --env staging --var BUILD_SHA:$GITHUB_SHA
+      - name: Verify both staged releases and saved content
+        run: node scripts/check-staging.mjs "$GITHUB_SHA"
+      - name: Link the preview
+        run: |
+          echo 'Review [Talmud](https://staging.talmud.dev/?lang=en&tractate=Berakhot&page=2a#argument), [Tanach](https://staging.tanach.dev), and the [component library](https://staging.talmud.dev/components/).' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Approve the Production job only after reviewing this version.' >> "$GITHUB_STEP_SUMMARY"
+
+  production:
+    needs: staging
+    runs-on: ubuntu-latest
+    environment:
+      name: Production
+      url: https://talmud.dev
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      statuses: write
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ddf8edfc3dfd489567fe3c5b28b51aca
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.12.1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Refuse approval for a replaced preview
+        run: |
+          test "$(gh api repos/$GITHUB_REPOSITORY/git/ref/heads/staging --jq .object.sha)" = "$GITHUB_SHA"
+          node scripts/check-staging.mjs "$GITHUB_SHA"
+          git fetch origin master
+          git merge-base --is-ancestor origin/master "$GITHUB_SHA"
+      - name: Mark the exact staged commit as approved and advance production
+        run: |
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=success -f context=staging-approved -f description='Reviewed on staging and approved for production' -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/master" -f sha="$GITHUB_SHA" -F force=false
+      - run: pnpm --filter talmud exec wrangler d1 migrations apply corpus-billing --remote
+      - run: pnpm --filter talmud exec wrangler deploy -c wrangler.generator.toml
+      - run: pnpm --filter talmud exec vite build
+      - run: pnpm --filter talmud exec wrangler deploy --var BUILD_SHA:$GITHUB_SHA
+      - run: pnpm --filter tanach exec vite build
+      - run: pnpm --filter tanach exec wrangler deploy --var BUILD_SHA:$GITHUB_SHA

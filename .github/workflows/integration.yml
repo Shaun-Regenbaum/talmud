@@ -10,7 +10,7 @@ on:
       url:
         description: Worker URL to test against
         required: false
-        default: https://talmud.dev
+        default: https://staging.talmud.dev
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

@@ -1,0 +1,13 @@
+name = "corpus-staging-source"
+main = "../core/src/cache/staging-source.ts"
+compatibility_date = "2025-04-01"
+workers_dev = false
+preview_urls = false
+
+[[kv_namespaces]]
+binding = "TALMUD"
+id = "f373689f767c477e98cf3b644a4d05bd"
+
+[[kv_namespaces]]
+binding = "TANACH"
+id = "2d3ee093681441c58cf7e9f08420acc7"
