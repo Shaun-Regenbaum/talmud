@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { createEffect, createSignal, For, type JSX, onMount, Show } from 'solid-js';
 import { Button } from '../Button';
 import { Drawer } from '../Drawer';
 import { LangToggle } from '../LangToggle';
@@ -23,6 +23,7 @@ const sections = [
   'maps',
   'graphs',
   'overview',
+  'studyControls',
   'missing',
 ] as const;
 const colors: { token: string; label: GalleryKey }[] = [
@@ -78,11 +79,6 @@ export function Gallery(): JSX.Element {
       Object.fromEntries(colors.map(({ token }) => [token, css.getPropertyValue(token).trim()])),
     );
   });
-  const escapeDrawer = (event: KeyboardEvent) => {
-    if (event.key === 'Escape' && drawer()) closeDrawer();
-  };
-  onMount(() => document.addEventListener('keydown', escapeDrawer));
-  onCleanup(() => document.removeEventListener('keydown', escapeDrawer));
 
   const source = (name: string) => (
     <code class="gallery-source">

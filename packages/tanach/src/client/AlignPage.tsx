@@ -1,3 +1,9 @@
+import { Button } from '@corpus/ui/Button';
+import { LangToggle } from '@corpus/ui/LangToggle';
+import { PageNavigation } from '@corpus/ui/PageNavigation';
+import { Select } from '@corpus/ui/Select';
+import { ChoiceCard, FilterChip, Input, SectionHeading, StatusMessage } from '@corpus/ui/Study';
+import { t } from './i18n';
 /**
  * Alignment workbench (tanach) — the chapter's verse SPINE on the left, every
  * cached producer piece on the right, aligned to the verses it anchors to.
@@ -58,6 +64,8 @@ export function AlignPage(): JSX.Element {
     const b = params.get('book');
     return b && isBook(b) ? b : 'Genesis';
   })();
+  const [uiLang, setUiLang] = createSignal<'en' | 'he'>(params.get('lang') === 'he' ? 'he' : 'en');
+  const label = (key: Parameters<typeof t>[0]) => t(key, uiLang());
   const [book, setBook] = createSignal(initialBook);
   const [chapter, setChapter] = createSignal(Math.max(1, Number(params.get('chapter')) || 1));
   const [lang, setLang] = createSignal<'he' | 'en' | 'both'>('both');
@@ -77,25 +85,27 @@ export function AlignPage(): JSX.Element {
 
   const syncUrl = () => {
     const u = new URL(window.location.href);
+    u.searchParams.set('lang', uiLang());
     u.searchParams.set('book', book());
     u.searchParams.set('chapter', String(chapter()));
     window.history.replaceState(null, '', u);
   };
   const nav = (nextBook: string, nextChapter: number) => {
     setPicked(null);
+    setCat('all');
     setHl(new Set<number>());
     setBook(nextBook);
-    setChapter(Math.max(1, nextChapter));
+    setChapter(Number.isFinite(nextChapter) ? Math.max(1, Math.floor(nextChapter)) : 1);
     syncUrl();
   };
 
   const ref = createMemo(() => ({ b: book(), c: chapter() }));
-  const [chap] = createResource(ref, (r) =>
+  const [chap, { refetch: retryChapter }] = createResource(ref, (r) =>
     fetch(`/api/chapter/${encodeURIComponent(r.b)}/${r.c}`)
       .then((res) => (res.ok ? (res.json() as Promise<ChapterResp>) : null))
       .catch(() => null),
   );
-  const [runs] = createResource(ref, (r) =>
+  const [runs, { refetch: retryRuns }] = createResource(ref, (r) =>
     fetch(`/api/chapter-runs/${encodeURIComponent(r.b)}/${r.c}`)
       .then((res) => (res.ok ? (res.json() as Promise<ChapterRuns>) : null))
       .catch(() => null),
@@ -114,7 +124,7 @@ export function AlignPage(): JSX.Element {
       if (r.cached) e.n += 1;
       seen.set(r.id, e);
     }
-    return [{ id: 'all', label: 'All', n: cachedRows().length }, ...seen.values()];
+    return [{ id: 'all', label: label('all'), n: cachedRows().length }, ...seen.values()];
   });
   const shownRows = () => {
     const c = cat();
@@ -145,14 +155,18 @@ export function AlignPage(): JSX.Element {
   );
 
   return (
-    <main class="align-page">
+    <main class="align-page" dir={uiLang() === 'he' ? 'rtl' : 'ltr'}>
       <style>{STYLE}</style>
       <header class="align-head">
-        <a class="align-back" href="/">
-          ‹ Tanach
+        <a class="ui-button" href={`/?lang=${uiLang()}`}>
+          ‹ {label('title')}
         </a>
-        <h1 class="align-title">Alignment</h1>
-        <select class="align-select" value={book()} onChange={(e) => nav(e.currentTarget.value, 1)}>
+        <h1 class="align-title">{label('align')}</h1>
+        <Select
+          aria-label={label('book')}
+          value={book()}
+          onChange={(e) => nav(e.currentTarget.value, 1)}
+        >
           <For each={SECTIONS}>
             {(section) => (
               <optgroup label={section}>
@@ -162,60 +176,63 @@ export function AlignPage(): JSX.Element {
               </optgroup>
             )}
           </For>
-        </select>
-        <div class="align-nav">
-          <button
-            type="button"
-            class="align-navbtn"
-            onClick={() => nav(book(), chapter() - 1)}
-            disabled={chapter() <= 1}
-          >
-            ‹
-          </button>
-          <input
-            class="align-chap"
+        </Select>
+        <PageNavigation
+          label={label('navigation')}
+          previousLabel={label('previous')}
+          nextLabel={label('next')}
+          previousDisabled={chapter() <= 1}
+          onPrevious={() => nav(book(), chapter() - 1)}
+          onNext={() => nav(book(), chapter() + 1)}
+        >
+          <Input
+            class="align-chapter-input"
+            aria-label={label('chapter')}
+            type="number"
+            min={1}
+            step={1}
             value={chapter()}
-            onChange={(e) => nav(book(), Number(e.currentTarget.value.trim()) || 1)}
+            onChange={(e) => nav(book(), Math.floor(Number(e.currentTarget.value)) || 1)}
           />
-          <button type="button" class="align-navbtn" onClick={() => nav(book(), chapter() + 1)}>
-            ›
-          </button>
-        </div>
-        <div class="align-langs">
+        </PageNavigation>
+        <LangToggle
+          lang={uiLang()}
+          onChange={(value) => {
+            setUiLang(value);
+            syncUrl();
+          }}
+        />
+        <fieldset class="align-langs" aria-label={label('textLanguage')}>
           <For each={['both', 'he', 'en'] as const}>
-            {(l) => (
-              <button
-                type="button"
-                class="align-lang"
-                classList={{ on: lang() === l }}
-                onClick={() => setLang(l)}
-              >
-                {l === 'both' ? 'עב/EN' : l === 'he' ? 'עב' : 'EN'}
-              </button>
+            {(value) => (
+              <FilterChip active={lang() === value} onClick={() => setLang(value)}>
+                {label(value === 'both' ? 'both' : value === 'he' ? 'hebrew' : 'english')}
+              </FilterChip>
             )}
           </For>
-        </div>
+        </fieldset>
         <Show when={chap() && runs()}>
           <span class="align-tally">
-            <b>{total()}</b> verses · <b>{cachedRows().length}</b> pieces cached
+            {label('verses')}: <b>{total()}</b> · {label('saved')}: <b>{cachedRows().length}</b>
           </span>
         </Show>
       </header>
 
       <div class="align-work">
         <div>
-          <div class="align-colh">
-            <span class="align-label">Spine · verses</span>
-            <span class="align-hint">hover a piece to locate it</span>
-          </div>
+          <SectionHeading title={label('verses')} detail={label('locate')} />
           <div class="align-spine">
             <Show when={chap.loading}>
-              <p class="align-note">Loading…</p>
+              <StatusMessage tone="loading">{label('loading')}</StatusMessage>
             </Show>
             <Show when={chap() === null && !chap.loading}>
-              <p class="align-note">
-                No text for {book()} {chapter()}.
-              </p>
+              <StatusMessage
+                tone="error"
+                onRetry={() => void retryChapter()}
+                retryLabel={label('retry')}
+              >
+                {label('noText')}
+              </StatusMessage>
             </Show>
             <For each={verses()}>
               {(v) => (
@@ -240,18 +257,13 @@ export function AlignPage(): JSX.Element {
 
         <div>
           <div class="align-colh">
-            <span class="align-label">Pieces</span>
+            <SectionHeading title={label('items')} />
             <div class="align-cats">
               <For each={cats()}>
                 {(cc) => (
-                  <button
-                    type="button"
-                    class="align-chip"
-                    classList={{ on: cat() === cc.id }}
-                    onClick={() => setCat(cc.id)}
-                  >
-                    {cc.label} <span class="align-chipn">{cc.n}</span>
-                  </button>
+                  <FilterChip active={cat() === cc.id} onClick={() => setCat(cc.id)} count={cc.n}>
+                    {cc.label}
+                  </FilterChip>
                 )}
               </For>
             </div>
@@ -262,37 +274,40 @@ export function AlignPage(): JSX.Element {
             fallback={
               <>
                 <Show when={runs.loading}>
-                  <p class="align-note">Reading the cache…</p>
+                  <StatusMessage tone="loading">{label('readingCache')}</StatusMessage>
+                </Show>
+                <Show when={!runs.loading && runs() === null}>
+                  <StatusMessage
+                    tone="error"
+                    onRetry={() => void retryRuns()}
+                    retryLabel={label('retry')}
+                  >
+                    {label('unavailable')}
+                  </StatusMessage>
                 </Show>
                 <div class="align-list">
                   <For
                     each={shownRows()}
-                    fallback={<p class="align-note">Nothing cached for this chapter yet.</p>}
+                    fallback={
+                      <Show when={!runs.loading && runs() !== null}>
+                        <StatusMessage tone="empty">{label('emptyCache')}</StatusMessage>
+                      </Show>
+                    }
                   >
                     {(r) => (
-                      <button
-                        type="button"
-                        class="align-row"
-                        classList={{ miss: !r.cached }}
+                      <ChoiceCard
+                        title={
+                          <>
+                            {r.label}
+                            {r.instance ? ` · ${r.instance}` : ''}
+                          </>
+                        }
+                        detail={anchorLabel(r, uiLang())}
+                        meta={r.cached ? `${fmtMs(r.coldMs)} ${fmtUsd(r.cost)}` : label('notSaved')}
                         onMouseEnter={() => setHl(new Set(versesOf(r, total())))}
+                        onFocus={() => setHl(new Set(versesOf(r, total())))}
                         onClick={() => open(r)}
-                      >
-                        <span class="align-rlabel">
-                          {r.label}
-                          <Show when={r.instance}>
-                            {(i) => <span class="align-inst"> · {i()}</span>}
-                          </Show>
-                        </span>
-                        <span class="align-ranchor">{anchorLabel(r)}</span>
-                        <span class="align-rmeta">
-                          <Show when={r.cached} fallback={<span class="align-miss">miss</span>}>
-                            <Show when={r.coldMs}>{(ms) => <span>{fmtMs(ms())}</span>}</Show>
-                            <Show when={r.cost != null}>
-                              <span class="align-cost">{fmtUsd(r.cost)}</span>
-                            </Show>
-                          </Show>
-                        </span>
-                      </button>
+                      />
                     )}
                   </For>
                 </div>
@@ -301,29 +316,28 @@ export function AlignPage(): JSX.Element {
           >
             {(p) => (
               <div class="align-detail">
-                <button
+                <Button
                   type="button"
-                  class="align-back-btn"
                   onClick={() => {
                     setPicked(null);
                     setHl(new Set<number>());
                   }}
                 >
-                  ← back to pieces
-                </button>
+                  {label('backItems')}
+                </Button>
                 <div class="align-dtitle">
                   {p().label}
                   <Show when={p().instance}>{(i) => <span class="align-inst"> · {i()}</span>}</Show>
-                  <span class="align-danchor">{anchorLabel(p())}</span>
+                  <span class="align-danchor">{anchorLabel(p(), uiLang())}</span>
                 </div>
                 <RunTreeDag
-                  tree={tree() ?? null}
+                  tree={tree.error ? null : (tree() ?? null)}
                   loading={tree.loading}
                   selected={dagSel()}
                   onSelect={setDagSel}
                   expanded={dagExp()}
                   onToggleExpand={toggle}
-                  emptyLabel="Nothing cached for this piece yet."
+                  emptyLabel={tree.error ? label('unavailable') : label('emptyPiece')}
                 />
               </div>
             )}
@@ -336,17 +350,13 @@ export function AlignPage(): JSX.Element {
 
 const STYLE = `
 .align-page{max-width:1480px;margin:0 auto;padding:24px 28px 80px;font-family:var(--font-ui);color:var(--fg)}
-.align-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.align-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px}
 .align-back{font-size:14px;color:var(--muted);text-decoration:none}.align-back:hover{color:var(--accent)}
 .align-title{margin:0;font-size:26px;font-weight:700;font-family:var(--font-serif,var(--font-ui))}
-.align-select{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
-.align-nav{display:inline-flex;align-items:center;gap:4px}
-.align-navbtn{font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:6px;width:26px;height:26px;cursor:pointer}
-.align-navbtn:disabled{opacity:.4;cursor:default}
-.align-chap{width:3rem;text-align:center;font:inherit;font-size:13px;padding:3px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg)}
-.align-langs{display:inline-flex;gap:4px}
-.align-lang{font:inherit;font-size:12px;padding:3px 8px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted);cursor:pointer}
-.align-lang.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.align-langs{border:0;padding:0;margin:0;display:flex;gap:4px;flex-wrap:wrap}
+.align-chapter-input{width:4.5rem;text-align:center}
+.align-list{display:grid;gap:8px}
+.align-colh{flex-wrap:wrap}
 .align-tally{font-size:.82rem;color:var(--muted)}.align-tally b{color:var(--fg)}
 .align-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
 .align-hint{font-size:11px;color:var(--muted)}
@@ -361,25 +371,11 @@ const STYLE = `
 .align-vhe{font-family:var(--font-hebrew,"Frank Ruhl Libre",serif);font-size:1.15rem;line-height:1.85;text-align:justify}
 .align-ven{font-size:13px;line-height:1.5;color:var(--muted);margin-top:.2rem}
 .align-cats{display:flex;gap:.35rem;flex-wrap:wrap;margin-left:auto}
-.align-chip{font:inherit;font-size:11px;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:.12rem .55rem;cursor:pointer;display:inline-flex;gap:.25rem;align-items:center}
-.align-chip:hover{background:var(--surface-sunk)}.align-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.align-chipn{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;opacity:.7}
 .align-list{max-height:calc(100vh - 160px);overflow-y:auto;padding-right:.3rem}
-.align-row{display:flex;gap:.5rem;align-items:baseline;width:100%;text-align:left;font:inherit;background:none;border:none;border-top:1px solid var(--line);padding:.45rem .35rem;cursor:pointer;border-radius:4px;color:inherit}
-.align-row:first-child{border-top:none}
-.align-row:hover{background:var(--surface-sunk)}
-.align-row.miss{opacity:.5}
-.align-rlabel{font-weight:600;color:var(--fg);font-size:13px}
 .align-inst{font-weight:400;color:var(--muted);font-family:ui-monospace,Menlo,monospace;font-size:11px}
-.align-ranchor{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap}
-.align-rmeta{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--muted);display:inline-flex;gap:.5rem;white-space:nowrap;min-width:3rem;justify-content:flex-end}
-.align-cost{color:var(--accent)}
-.align-miss{color:#b45309}
 .align-detail{}
-.align-back-btn{background:transparent;border:none;color:var(--muted);font:inherit;font-size:12px;cursor:pointer;padding:.1rem 0;margin-bottom:.6rem}
-.align-back-btn:hover{color:var(--accent)}
 .align-dtitle{display:flex;align-items:baseline;gap:.5rem;font-size:1rem;font-weight:600;margin-bottom:.7rem}
 .align-danchor{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap}
 .align-note{font-size:12px;color:var(--muted);padding:.4rem 0}
-@media(max-width:880px){.align-work{grid-template-columns:1fr}.align-spine{position:static;max-height:none}}
+@media(max-width:880px){.align-work{grid-template-columns:1fr}.align-spine{position:static;max-height:40dvh}}
 `;

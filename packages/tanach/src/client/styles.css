@@ -323,38 +323,6 @@ body {
   margin-top: 17px;
   border-top: 1px solid var(--line);
 }
-.parsha-section-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-  font-family: var(--font-ui);
-}
-.parsha-section-head h4 {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.3;
-  text-transform: uppercase;
-  letter-spacing: 0.055em;
-  color: var(--ink);
-}
-.parsha-section-head span {
-  flex: none;
-  font-size: 10px;
-  color: var(--muted);
-}
-.ui-drawer[dir="rtl"] .parsha-section-head h4 {
-  font-family: var(--font-hebrew);
-  font-size: 14px;
-  text-transform: none;
-  letter-spacing: 0;
-}
-/* ---- the reading kinds ----
-   One colour per kind, used by every surface that speaks about kind: the map's
-   segments, a band's stripe, the legend dots. Narrative keeps the app accent;
-   poetry and records join in a cooler violet and a dry olive so a portion that
-   is mostly song or mostly inventory can't be mistaken for law or story. */
 .parsha-flow {
   list-style: none;
   margin: 0;
@@ -364,56 +332,6 @@ body {
   position: relative;
 }
 
-/* ---- a flow move as a plain row ----
-   The fallback list, shown only when there is no map to draw (the book's
-   chapter lengths wouldn't resolve): a kind stripe, the title, its verse
-   range. Selecting one opens the same detail panel the column opens. */
-.parsha-band {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  width: 100%;
-  margin-bottom: 3px;
-  padding: 0 10px 0 0;
-  text-align: left;
-  color: var(--ink);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  overflow: hidden;
-  cursor: pointer;
-}
-.ui-drawer[dir="rtl"] .parsha-band {
-  padding: 0 0 0 10px;
-  text-align: right;
-}
-.parsha-band:hover {
-  background: var(--surface-sunk);
-}
-.parsha-band.active {
-  background: var(--surface-sunk);
-  border-color: var(--ink);
-}
-.parsha-band-stripe {
-  flex: none;
-  align-self: stretch;
-  width: 5px;
-}
-.parsha-band-title {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  font-family: var(--font-serif);
-  font-size: 13.5px;
-  font-weight: 600;
-  line-height: 1.3;
-}
-.ui-drawer[dir="rtl"] .parsha-band-title {
-  font-family: var(--font-hebrew);
-  font-size: 15px;
-}
-.parsha-band-ref,
 .parsha-flow-kicker span[dir="ltr"] {
   flex: none;
   font-family: var(--font-ui);
@@ -477,44 +395,8 @@ body {
   font-size: 13.5px;
 }
 
-/* An inline Hebrew term in English prose — dotted-underlined, hint on hover
-   (the talmud reader's concept-link treatment). */
-.parsha-term {
-  /* A span, not <bdi>, so it can carry role="button" — isolate manually. */
-  unicode-bidi: isolate;
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-decoration-color: var(--muted);
-  text-underline-offset: 2px;
-  cursor: help;
-}
-.parsha-term-tip {
-  position: fixed;
-  z-index: 1000;
-  max-width: 18rem;
-  transform: translate(-50%, -100%);
-  padding: 5px 9px 6px;
-  border-radius: 6px;
-  background: var(--ink);
-  color: var(--surface);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-  font-size: 11.5px;
-  line-height: 1.45;
-  pointer-events: none;
-}
-.parsha-term-tip.below {
-  transform: translate(-50%, 0);
-}
-.parsha-term-tip bdi {
-  display: block;
-  font-family: var(--font-hebrew);
-  font-weight: 600;
-}
-.parsha-term-tip span {
-  font-family: var(--font-ui);
-}
-
 .parsha-flow-actions {
+  flex-wrap: wrap;
   display: flex;
   gap: 7px;
   padding: 3px 8px 7px;
@@ -522,53 +404,9 @@ body {
 .parsha-flow-deep .parsha-flow-actions {
   padding: 0 0 5px;
 }
-.parsha-flow-actions button,
-.parsha-copy {
-  padding: 5px 9px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--ink);
-  font-family: var(--font-ui);
-  font-size: 10.5px;
-  cursor: pointer;
-}
-.parsha-flow-actions button.primary {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #fff;
-}
 .parsha-landmarks {
   display: grid;
   gap: 6px;
-}
-.parsha-landmarks button {
-  display: flex;
-  align-items: baseline;
-  gap: 9px;
-  width: 100%;
-  padding: 7px 9px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--ink);
-  text-align: left;
-  font-family: var(--font-serif);
-  font-size: 12.5px;
-  cursor: pointer;
-}
-.ui-drawer[dir="rtl"] .parsha-landmarks button {
-  text-align: right;
-  font-family: var(--font-hebrew);
-}
-.parsha-landmarks button:hover {
-  border-color: var(--accent);
-}
-.parsha-landmarks button span {
-  flex: none;
-  font-family: var(--font-ui);
-  font-size: 9.5px;
-  color: var(--accent);
 }
 .parsha-thread {
   margin-top: 22px;
@@ -615,32 +453,6 @@ body {
 .parsha-thread-sources {
   padding: 12px 0;
   border-top: 1px solid var(--line);
-}
-.parsha-thread-sources a {
-  display: block;
-  padding: 7px 0;
-  color: var(--ink);
-  text-decoration: none;
-}
-.parsha-thread-sources a + a {
-  border-top: 1px dotted var(--line);
-}
-.parsha-thread-sources a:hover b {
-  color: var(--accent);
-}
-.parsha-thread-sources b,
-.parsha-thread-sources small {
-  display: block;
-}
-.parsha-thread-sources b {
-  font-family: var(--font-ui);
-  font-size: 11px;
-}
-.parsha-thread-sources small {
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 11.5px;
-  line-height: 1.4;
 }
 .parsha-dvar-copy {
   white-space: pre-line;
@@ -703,22 +515,6 @@ body {
 /* The commentary drawer SHELL is now @corpus/ui's <Drawer> (.ui-drawer);
    below are only the drawer's BODY content classes (commentary entries,
    synthesis, passages) that tanach still owns. */
-.comm-entry {
-  padding: 14px 0;
-  border-bottom: 1px solid var(--line);
-}
-.comm-entry:last-child {
-  border-bottom: 0;
-}
-.comm-name {
-  font-family: var(--font-ui);
-  margin: 0 0 6px;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--accent);
-  font-weight: 600;
-}
 .comm-text {
   margin: 0 0 6px;
   font-size: 15px;
@@ -762,22 +558,6 @@ body {
 }
 
 /* synthesis block at the top of the commentary drawer */
-.comm-synth {
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
-  border-radius: 8px;
-  padding: 12px 14px;
-  margin: 8px 0 6px;
-}
-.comm-synth-name {
-  font-family: var(--font-ui);
-  margin: 0 0 6px;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--accent);
-  font-weight: 700;
-}
 .comm-synth-text {
   margin: 0;
   font-size: 15px;
@@ -856,23 +636,6 @@ body {
   padding: 14px 0 4px;
   border-top: 1px solid var(--line);
   margin-top: 6px;
-}
-.gem-entry {
-  padding: 8px 0;
-}
-.gem-entry + .gem-entry {
-  border-top: 1px dashed var(--line);
-}
-.gem-ref {
-  display: inline-block;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
-  text-decoration: none;
-  margin-bottom: 3px;
-}
-.gem-ref:hover {
-  text-decoration: underline;
 }
 .gem-text {
   margin: 0;
@@ -974,4 +737,8 @@ body {
 
 .view-scroll > .ui-reader-header {
   margin: 0 16px;
+}
+
+.parsha-flow li + li {
+  margin-top: 8px;
 }

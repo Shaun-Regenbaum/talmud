@@ -12,7 +12,8 @@
 }
 .usage-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 14px;
   margin-bottom: 22px;
 }
@@ -37,107 +38,17 @@
   gap: 14px;
   margin-bottom: 26px;
 }
-.usage-card {
-  flex: 1 1 150px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 14px 18px;
-  background: var(--surface);
-}
-.usage-card-label {
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-.usage-card-value {
-  font-size: 26px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.usage-card-split {
-  font-size: 18px;
-}
-
 .usage-tabs {
   display: flex;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
   gap: 6px;
   margin-bottom: 14px;
   border-bottom: 1px solid var(--line);
 }
-.usage-tab {
-  font-family: var(--font-ui);
-  font-size: 13px;
-  letter-spacing: 0.03em;
-  padding: 8px 14px;
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: none;
-  color: var(--muted);
-  cursor: pointer;
+.usage-page .ui-stat-value {
+  font-size: 22px;
 }
-.usage-tab:hover {
-  color: var(--fg);
-}
-.usage-tab.on {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
-
-.usage-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-.usage-table th {
-  text-align: left;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-weight: 600;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--line);
-  white-space: nowrap;
-}
-.usage-table td {
-  padding: 9px 12px;
-  border-bottom: 1px solid var(--line);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.usage-name {
-  font-variant-numeric: normal;
-  white-space: normal;
-}
-.usage-empty {
-  color: var(--muted);
-  font-style: italic;
-}
-.usage-cost-cell {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: flex-end;
-}
-.usage-bar {
-  flex: 1;
-  max-width: 160px;
-  height: 8px;
-  border-radius: 4px;
-  background: var(--surface-sunk);
-  overflow: hidden;
-}
-.usage-fill {
-  display: block;
-  height: 100%;
-  border-radius: 4px;
-  background: var(--accent);
-  opacity: 0.5;
-}
-.usage-cost {
-  min-width: 64px;
-  text-align: right;
-  color: var(--accent);
+.usage-page .ui-data-table table {
+  min-width: 760px;
 }

@@ -23,6 +23,7 @@ export function Pill(props: PillProps): JSX.Element {
       type="button"
       class="ui-pill"
       classList={{ active: props.active }}
+      aria-pressed={props.active ?? false}
       title={props.title}
       onClick={() => props.onClick?.()}
     >

@@ -496,3 +496,199 @@
 [dir="rtl"] .ui-study-title {
   font-family: var(--font-hebrew);
 }
+
+.ui-input {
+  min-height: 40px;
+  min-width: 0;
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.ui-input:focus-visible,
+.ui-choice-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.ui-section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  margin-bottom: 12px;
+}
+.ui-section-heading h4 {
+  font: 600 14px var(--font-ui);
+  color: var(--fg);
+  margin: 0;
+}
+.ui-section-heading > span {
+  margin-inline-start: auto;
+  color: var(--muted);
+  font: 12px var(--font-ui);
+}
+.ui-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  color: var(--muted);
+  font: 13px / 1.6 var(--font-ui);
+}
+.ui-status.is-error {
+  color: var(--accent-strong);
+}
+.ui-source-card {
+  border-top: 1px solid var(--line);
+  padding: 18px 0;
+  min-width: 0;
+}
+.ui-source-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.ui-source-heading h4 {
+  font: 600 16px var(--font-ui);
+  margin: 0;
+  color: var(--accent);
+}
+.ui-source-reference {
+  font-size: 12px;
+  color: var(--muted);
+}
+.ui-source-content {
+  overflow-wrap: anywhere;
+}
+.ui-source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.ui-choice-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  width: 100%;
+  padding: 12px;
+  min-height: 44px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--fg);
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+}
+.ui-choice-card:hover {
+  border-color: var(--accent);
+}
+.ui-choice-card.active {
+  background: var(--surface-sunk);
+  border-color: var(--accent);
+}
+.ui-choice-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+.ui-choice-copy > strong {
+  font: 600 14px / 1.4 var(--font-ui);
+}
+.ui-choice-copy > span,
+.ui-choice-meta {
+  font: 12px / 1.4 var(--font-ui);
+  color: var(--muted);
+}
+.ui-choice-meta {
+  flex-shrink: 0;
+  max-width: 40%;
+  text-align: end;
+  overflow-wrap: anywhere;
+}
+.ui-choice-stripe {
+  width: 3px;
+  align-self: stretch;
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+.ui-filter-chip {
+  border-radius: var(--radius-pill);
+  gap: 6px;
+}
+.ui-filter-count {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+.ui-stat-card {
+  flex: 1 1 150px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.ui-stat-label,
+.ui-stat-detail {
+  color: var(--muted);
+  font: 12px / 1.5 var(--font-ui);
+}
+.ui-stat-value {
+  margin-top: 6px;
+  font: 600 26px / 1.3 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .ui-input,
+  .ui-filter-chip {
+    min-height: 44px;
+  }
+}
+.ui-inline-hint {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  unicode-bidi: isolate;
+  text-decoration: underline dotted var(--muted);
+  text-underline-offset: 2px;
+  cursor: help;
+}
+.ui-inline-hint:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.ui-hint-tip {
+  position: fixed;
+  z-index: 1000;
+  width: max-content;
+  max-width: min(18rem, calc(100vw - 32px));
+  transform: translate(-50%, -100%);
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: var(--fg);
+  color: var(--surface);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 18%);
+  font: 12px / 1.5 var(--font-ui);
+  pointer-events: none;
+}
+.ui-hint-tip.below {
+  transform: translate(-50%, 0);
+}
+.ui-hint-tip bdi {
+  display: block;
+  font-family: var(--font-hebrew);
+}

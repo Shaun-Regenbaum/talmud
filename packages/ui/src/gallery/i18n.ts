@@ -1,4 +1,25 @@
 const catalog = {
+  gemara: { en: 'Talmud', he: 'תלמוד' },
+  midrash: { en: 'Midrash', he: 'מדרש' },
+  studyControls: { en: 'Study cards & states', he: 'כרטיסי לימוד ומצבים' },
+  studyControlsHint: {
+    en: 'The controls now used by Tanach. These cards use the saved parsha response shown above.',
+    he: 'הפקדים המשמשים כעת בתנ״ך. הכרטיסים משתמשים בתוכן הפרשה השמור שמוצג למעלה.',
+  },
+  versesCount: { en: 'Verses', he: 'פסוקים' },
+  sourceChoices: { en: 'Choose a section', he: 'בחירת יחידה' },
+  allChoices: { en: 'All sections', he: 'כל היחידות' },
+  hintHelp: {
+    en: 'Point, focus, or tap for an explanation.',
+    he: 'הצביעו, התמקדו או געו להצגת הסבר.',
+  },
+  statusExamples: { en: 'Message styles', he: 'סגנונות הודעות' },
+  emptyExample: { en: 'Empty state: no saved content.', he: 'מצב ריק: אין תוכן שמור.' },
+  pausedExample: {
+    en: 'Paused state: content generation is paused.',
+    he: 'מצב השהיה: יצירת התוכן מושהית.',
+  },
+
   captured: { en: 'Real Tanach response, captured', he: 'תשובה אמיתית מתנ״ך, נשמרה בתאריך' },
   overview: { en: 'Tanach & parsha overview', he: 'סקירת התנ״ך והפרשה' },
   overviewHint: {
@@ -79,12 +100,12 @@ const catalog = {
     he: 'שימוש: כרטיסי נתונים, טווחי תאריכים, עמודות מצטברות, כיסוי, טעינה וקבוצות נפתחות.',
   },
   missingStates: {
-    en: 'A full gallery of existing progress, error, empty, paused, and inspector detail states.',
-    he: 'תצוגה מלאה של מצבי התקדמות, שגיאה, ריק, השהיה ופרטי בדיקה.',
+    en: 'Complete the Talmud migration and add its remaining progress and inspector states to the gallery.',
+    he: 'השלמת המעבר בתלמוד והוספת מצבי ההתקדמות והבדיקה שנותרו לספרייה.',
   },
   missingForms: {
-    en: 'Search, text fields, tabs, tooltips, dialogs, and a consistent keyboard and touch behavior.',
-    he: 'חיפוש, שדות טקסט, לשוניות, הסברים, חלוניות והתנהגות אחידה למקלדת ולמגע.',
+    en: 'Search and remaining Talmud dialogs. Tanach now uses shared inputs, term hints, filters and drawer keyboard behavior.',
+    he: 'חיפוש וחלוניות התלמוד שנותרו. תנ״ך משתמש כעת בשדות, בהסברי מונחים, במסננים ובפעולות מקלדת משותפים.',
   },
 
   title: { en: 'Reader components', he: 'רכיבי הקורא' },

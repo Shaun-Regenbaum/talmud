@@ -7,13 +7,14 @@ import { ChartCard, LineChart } from '../Charts';
 import { DataTable, Meter, RankedBars } from '../DataTable';
 import { fitBbox, GEO_BBOX, GeoMap } from '../GeoMap';
 import { Prose } from '../Prose';
-import { colorForKind, GutterGlyph, type GutterKind } from '../ReaderIcon';
+import { colorForKind, ReaderIcon, type ReaderIconKind } from '../ReaderIcon';
 import type { RunTree } from '../RunTree';
 import { RunTreeDag } from '../RunTreeDag';
 import { StudyOverview } from '../StudyOverview';
 import { WorldBubbleMap } from '../WorldBubbleMap';
 import parshaExample from './content/parsha.json';
 import { type GalleryLang, t } from './i18n';
+import { StudyExamples } from './StudyExamples';
 
 interface Activity {
   ok: boolean;
@@ -28,7 +29,7 @@ async function read<T>(path: string): Promise<T> {
     throw new Error('unavailable');
   return response.json();
 }
-const kinds: GutterKind[] = [
+const kinds: ReaderIconKind[] = [
   'argument',
   'halacha',
   'chart',
@@ -36,6 +37,8 @@ const kinds: GutterKind[] = [
   'yerushalmi',
   'pesuk',
   'rishonim',
+  'gemara',
+  'midrash',
 ];
 
 export function DataExamples(props: { lang: GalleryLang }): JSX.Element {
@@ -75,7 +78,7 @@ export function DataExamples(props: { lang: GalleryLang }): JSX.Element {
             {(kind) => (
               <div>
                 <span class="gallery-reader-icon" style={{ background: colorForKind(kind) }}>
-                  <GutterGlyph kind={kind} size={20} />
+                  <ReaderIcon kind={kind} size={20} />
                 </span>
                 <span>{label(kind)}</span>
               </div>
@@ -331,6 +334,7 @@ export function DataExamples(props: { lang: GalleryLang }): JSX.Element {
         </Show>
         <code class="gallery-source">@corpus/ui/StudyOverview · ReadingMap</code>
       </section>
+      <StudyExamples lang={props.lang} />
       <section id="missing">
         <h2>{label('missing')}</h2>
         <p>{label('missingHint')}</p>

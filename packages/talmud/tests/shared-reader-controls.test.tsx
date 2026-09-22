@@ -1,9 +1,11 @@
 import { Button } from '@corpus/ui/Button';
+import { Drawer } from '@corpus/ui/Drawer';
+import { InlineHint } from '@corpus/ui/InlineHint';
 import { LangToggle } from '@corpus/ui/LangToggle';
 import { PageNavigation } from '@corpus/ui/PageNavigation';
 import { ToolbarMenu } from '@corpus/ui/ToolbarMenu';
 import { cleanup, fireEvent, render } from '@solidjs/testing-library';
-import { createSignal } from 'solid-js';
+import { createSignal, Show } from 'solid-js';
 import { afterEach, describe, expect, it } from 'vitest';
 
 afterEach(cleanup);
@@ -68,5 +70,49 @@ describe('shared reader controls', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(menu.open).toBe(false);
     expect(document.activeElement).toBe(summary);
+  });
+});
+
+describe('shared study drawers', () => {
+  it('returns focus to the opener after Escape', () => {
+    const [open, setOpen] = createSignal(false);
+    const view = render(() => (
+      <>
+        <Button onClick={() => setOpen(true)}>Open notes</Button>
+        <Show when={open()}>
+          <Drawer title="Notes" onClose={() => setOpen(false)}>
+            Notes
+          </Drawer>
+        </Show>
+      </>
+    ));
+    const trigger = view.getByRole('button', { name: 'Open notes' });
+    trigger.focus();
+    fireEvent.click(trigger);
+    expect(document.activeElement).toBe(view.getByRole('button', { name: 'Close' }));
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    expect(view.queryByRole('dialog')).toBeNull();
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('dismisses a term explanation before its containing drawer', () => {
+    const [open, setOpen] = createSignal(true);
+    const view = render(() => (
+      <Show when={open()}>
+        <Drawer title="Notes" onClose={() => setOpen(false)}>
+          <InlineHint label="Term explanation" content="Explanation">
+            Term
+          </InlineHint>
+        </Drawer>
+      </Show>
+    ));
+    const hint = view.getByRole('button', { name: 'Term explanation' });
+    fireEvent.focus(hint);
+    expect(document.querySelector('[role="tooltip"]')).toBeTruthy();
+    fireEvent.keyDown(hint, { key: 'Escape' });
+    expect(document.querySelector('[role="tooltip"]')).toBeNull();
+    expect(view.getByRole('dialog')).toBeTruthy();
+    fireEvent.keyDown(hint, { key: 'Escape' });
+    expect(view.queryByRole('dialog')).toBeNull();
   });
 });

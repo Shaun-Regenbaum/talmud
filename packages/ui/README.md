@@ -23,6 +23,8 @@ Use `--bg`, `--fg`, `--muted`, `--line`, `--surface`, `--surface-sunk`, `--accen
 | `Charts`, `DataTable` | Line charts, chart cards, sortable tables, ranked bars, meters and rate chips. Used by Talmud usage. |
 | `ReaderIcon` | Distinct category colors with consistent rounded outline icons, separate from annotation placement. |
 | `Graph` | Shared card styles, SVG cards, connectors and lane routing used by argument, spine and dependency graphs. |
+| `Study` | Source cards, selectable rows, counted filters, section headings, inputs, summary cards and status messages. Used throughout Tanach. |
+| `InlineHint` | Inline explanations for pointer, keyboard and touch. |
 | `StudyOverview`, `ReadingMap` | Reference/title/prose and the parsha verse ribbon, aliyah markers and legend. Tanach supplies its layout and study data. |
 | `AiStatusBanner`, `LoadProgress` | Shared status and loading messages. |
 | `InspectorRow`, `RunTree*`, `UsagePage` | Cache inspection, dependency diagrams and usage tables. |
@@ -78,3 +80,5 @@ from the Tanach package and adds no dependencies.
 Run `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build`. Shared control behavior is covered in `packages/talmud/tests/shared-reader-controls.test.tsx`.
 
 In both readers, check desktop and phone widths, English and Hebrew, long book names, page navigation, the language switch, menu keyboard use and visible focus. Look at the screenshots. Keep production generation calls blocked during a UI-only preview; use real text or the app's actual unavailable state.
+
+Tanach adoption and deliberate exceptions are listed in [the component inventory](../../docs/tanach-component-inventory.md).

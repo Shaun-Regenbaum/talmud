@@ -8,8 +8,12 @@ export type GutterKind =
   | 'pesuk'
   | 'rishonim';
 
+export type ReaderIconKind = GutterKind | 'gemara' | 'midrash';
+
 /** Category colors remain distinct; every glyph uses the same drawing style. */
-const CATEGORY_COLORS: Record<GutterKind, string> = {
+const CATEGORY_COLORS: Record<ReaderIconKind, string> = {
+  gemara: '#1e40af',
+  midrash: '#7c3aed',
   argument: 'var(--accent)',
   halacha: '#1e40af',
   chart: '#0e7490',
@@ -18,11 +22,17 @@ const CATEGORY_COLORS: Record<GutterKind, string> = {
   pesuk: '#d97706',
   rishonim: '#475569',
 };
-export function colorForKind(kind: GutterKind): string {
+export function colorForKind(kind: ReaderIconKind): string {
   return CATEGORY_COLORS[kind];
 }
 
-const paths: Record<GutterKind, string[]> = {
+const paths: Record<ReaderIconKind, string[]> = {
+  gemara: ['M5 3h14v18H5Z', 'M8 3v18M11 7h5M11 11h5M11 15h5'],
+  midrash: [
+    'M4 4h7a3 3 0 0 1 3 3v14a4 4 0 0 0-4-2H4V4Z',
+    'M14 7a3 3 0 0 1 3-3h3v15h-3a4 4 0 0 0-3 2',
+    'M7 8h4M7 12h4',
+  ],
   argument: [
     'M15 4H5a2 2 0 0 0-2 2v10l4-3h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Z',
     'M8 17h9l4 3V10a2 2 0 0 0-2-2',
@@ -40,7 +50,7 @@ const paths: Record<GutterKind, string[]> = {
 };
 
 /** One 24-unit grid, rounded strokes, and a shared weight for all reader icons. */
-export function GutterGlyph(props: { kind: GutterKind; size?: number }): JSX.Element {
+export function ReaderIcon(props: { kind: ReaderIconKind; size?: number }): JSX.Element {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -58,4 +68,8 @@ export function GutterGlyph(props: { kind: GutterKind; size?: number }): JSX.Ele
       ))}
     </svg>
   );
+}
+
+export function GutterGlyph(props: { kind: GutterKind; size?: number }): JSX.Element {
+  return <ReaderIcon {...props} />;
 }

@@ -8,7 +8,7 @@
  * in components.css.
  */
 
-import type { JSX } from 'solid-js';
+import { createUniqueId, type JSX, onCleanup, onMount } from 'solid-js';
 
 export interface DrawerProps {
   /** The reference shown at the head, e.g. "Genesis 22" or "Genesis 22:5". */
@@ -22,12 +22,32 @@ export interface DrawerProps {
 }
 
 export function Drawer(props: DrawerProps): JSX.Element {
+  const titleId = createUniqueId();
+  let closeButton: HTMLButtonElement | undefined;
+  const priorFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  const onKey = (event: KeyboardEvent) => {
+    if (event.key === 'Escape' && !event.defaultPrevented) {
+      event.preventDefault();
+      props.onClose();
+    }
+  };
+  onMount(() => {
+    closeButton?.focus({ preventScroll: true });
+    document.addEventListener('keydown', onKey);
+  });
+  onCleanup(() => {
+    document.removeEventListener('keydown', onKey);
+    if (priorFocus?.isConnected) priorFocus.focus({ preventScroll: true });
+  });
   return (
-    <aside class="ui-drawer" dir={props.dir ?? 'ltr'}>
+    <aside role="dialog" aria-labelledby={titleId} class="ui-drawer" dir={props.dir ?? 'ltr'}>
       <header class="ui-drawer-head">
-        <span class="ui-drawer-ref">{props.title}</span>
+        <span id={titleId} class="ui-drawer-ref">
+          {props.title}
+        </span>
         {props.label ? <span class="ui-drawer-kind">{props.label}</span> : null}
         <button
+          ref={closeButton}
           type="button"
           class="ui-drawer-close"
           onClick={() => props.onClose()}

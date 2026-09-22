@@ -491,3 +491,12 @@ a {
     padding: 16px;
   }
 }
+
+.gallery-choice-list {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+#studyControls .ui-input {
+  width: 5rem;
+}

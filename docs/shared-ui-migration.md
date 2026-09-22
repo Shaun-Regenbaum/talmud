@@ -7,6 +7,14 @@ Keep maroon for primary actions and selection. Keep separate category colors for
 reader icons. Preserve Hebrew reading fonts and corpus-specific meanings. Leave
 printed daf layout, annotation placement, cache keys and generation recipes alone.
 
+## Progress
+
+Tanach’s first migration pass is ready for review. The reader, parsha drawer,
+alignment, inspector and usage pages use the shared controls. See the
+[Tanach inventory](tanach-component-inventory.md) for the remaining text-specific
+components. Desktop and phone checks cover English, Hebrew, drawer focus and
+failed requests. The broader Talmud pass follows the Tanach review.
+
 ## 1. Finish the Tanach component list
 
 Walk through the reader, parsha drawer, geography, commentary, translation,
