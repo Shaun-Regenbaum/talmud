@@ -3,6 +3,7 @@ import {
   type Box,
   CONNECTOR,
   CONNECTOR_CLEARANCE,
+  roundedPath,
   routeConnector,
   type Side,
 } from './geometry';
@@ -69,16 +70,16 @@ export function layoutGraph(
   edges: readonly GraphConnection[],
   width: number,
   horizontal = false,
+  measure?: (text: string, bold: boolean) => number,
 ): GraphLayout {
+  if (horizontal) return layoutBoard(groups, edges, measure);
   const nodes: PositionedNode[] = [],
     frames: PositionedGroup[] = [];
-  const flatHorizontal =
-    horizontal && groups.every((g) => !g.children?.length && !g.actionsExpanded);
   const shown = new Set<string>();
   const localGroup = new Map<string, string>();
   for (const group of groups) {
     shown.add(group.id);
-    for (const child of horizontal || group.expanded ? (group.children ?? []) : []) {
+    for (const child of group.expanded ? (group.children ?? []) : []) {
       shown.add(child.id);
       localGroup.set(child.id, group.id);
     }
@@ -101,8 +102,8 @@ export function layoutGraph(
   let y: number = GRAPH_DENSITY.pad;
   const canvasWidth = Math.max(300, width);
   const localLanes = new Map<string, number>();
-  for (const [groupIndex, group] of groups.entries()) {
-    const children = horizontal || group.expanded ? (group.children ?? []) : [];
+  for (const group of groups) {
+    const children = group.expanded ? (group.children ?? []) : [];
     const actions = group.actionsExpanded ? (group.actions ?? []) : [];
     const members = [...children, ...actions];
     const es = valid.filter((e) => local(e) && localGroup.get(e.from) === group.id);
@@ -115,94 +116,38 @@ export function layoutGraph(
     const extraHeight = (node: GraphNode) =>
       (node.description ? 32 : 0) + (node.annotation ? 18 : 0);
     const headerHeight = GRAPH_DENSITY.header + extraHeight(group);
-    const horizontalHeight = 64 + Math.max(extraHeight(group), ...members.map(extraHeight));
     const top = y;
-    if (flatHorizontal) {
+    const groupWidth = Math.max(240, canvasWidth - outerGutter - 16);
+    nodes.push({
+      node: group,
+      group: group.id,
+      header: true,
+      action: false,
+      x: 8,
+      y,
+      width: groupWidth,
+      height: headerHeight,
+    });
+    y += headerHeight;
+    if (members.length) y += GRAPH_DENSITY.gap;
+    members.forEach((node, i) => {
       nodes.push({
-        node: group,
+        node,
         group: group.id,
-        header: true,
-        action: false,
-        x: 8 + groupIndex * 254,
-        y: 8,
-        width: 230,
-        height: horizontalHeight,
-      });
-      y = Math.max(y, 8 + horizontalHeight + outerGutter);
-    } else if (horizontal) {
-      const gx = outerGutter + 8;
-      nodes.push({
-        node: group,
-        group: group.id,
-        header: true,
-        action: false,
-        x: gx,
+        header: false,
+        action: i >= children.length,
+        x: 8 + gutter,
         y,
-        width: 210,
-        height: horizontalHeight,
+        width: Math.max(160, groupWidth - gutter - 4),
+        height: GRAPH_DENSITY.row + extraHeight(node),
       });
-      members.forEach((node, i) => {
-        nodes.push({
-          node,
-          group: group.id,
-          header: false,
-          action: i >= children.length,
-          x: gx + 232 + i * 264,
-          y,
-          width: 240,
-          height: horizontalHeight,
-        });
-      });
-      y += horizontalHeight + (count ? gutter : 8);
-      frames.push({
-        group,
-        x: gx - 4,
-        y: top - 4,
-        width: members.length ? 232 + members.length * 264 - 20 + 8 : 218,
-        height: y - top + 8,
-      });
-    } else {
-      const groupWidth = Math.max(240, canvasWidth - outerGutter - 16);
-      nodes.push({
-        node: group,
-        group: group.id,
-        header: true,
-        action: false,
-        x: 8,
-        y,
-        width: groupWidth,
-        height: headerHeight,
-      });
-      y += headerHeight;
-      if (members.length) y += GRAPH_DENSITY.gap;
-      members.forEach((node, i) => {
-        nodes.push({
-          node,
-          group: group.id,
-          header: false,
-          action: i >= children.length,
-          x: 8 + gutter,
-          y,
-          width: Math.max(160, groupWidth - gutter - 4),
-          height: GRAPH_DENSITY.row + extraHeight(node),
-        });
-        y += GRAPH_DENSITY.row + extraHeight(node) + GRAPH_DENSITY.gap;
-      });
-      frames.push({ group, x: 4, y: top - 4, width: groupWidth + 8, height: y - top + 4 });
-    }
+      y += GRAPH_DENSITY.row + extraHeight(node) + GRAPH_DENSITY.gap;
+    });
+    frames.push({ group, x: 4, y: top - 4, width: groupWidth + 8, height: y - top + 4 });
     y += GRAPH_DENSITY.groupGap;
   }
   const byId = new Map(nodes.map((n) => [n.node.id, n]));
-  const sideFor = (e: GraphConnection): Side =>
-    flatHorizontal
-      ? 'bottom'
-      : horizontal
-        ? local(e)
-          ? 'bottom'
-          : 'left'
-        : local(e)
-          ? 'left'
-          : 'right';
+  const sideFor = (e: GraphConnection): Side => (local(e) ? 'left' : 'right');
   const ports = new Map<string, string[]>();
   for (const e of valid)
     for (const id of [e.from, e.to]) {
@@ -228,13 +173,7 @@ export function layoutGraph(
     const from = port(e.from, e),
       to = port(e.to, e),
       side = sideFor(e);
-    const outside = local(e)
-      ? undefined
-      : flatHorizontal
-        ? Math.max(...nodes.map((n) => n.y + n.height))
-        : horizontal
-          ? Math.min(...nodes.map((n) => n.x))
-          : Math.max(...nodes.map((n) => n.x + n.width));
+    const outside = local(e) ? undefined : Math.max(...nodes.map((n) => n.x + n.width));
     const route = routeConnector(
       from,
       to,
@@ -247,4 +186,169 @@ export function layoutGraph(
     return { edge: e, path: route.path };
   });
   return { nodes, groups: frames, edges: routed, width: right, height: y + GRAPH_DENSITY.pad };
+}
+
+/** A passage reads across section columns, then down the statements in each one.
+ * Source order determines placement. Only supplied relationships become arrows. */
+function layoutBoard(
+  groups: readonly GraphGroup[],
+  edges: readonly GraphConnection[],
+  measure?: (text: string, bold: boolean) => number,
+): GraphLayout {
+  const owner = new Map<string, string>();
+  const order = new Map<string, number>();
+  for (const [i, group] of groups.entries()) {
+    for (const n of [
+      group,
+      ...(group.children ?? []),
+      ...(group.actionsExpanded ? (group.actions ?? []) : []),
+    ]) {
+      owner.set(n.id, group.id);
+      order.set(n.id, i);
+    }
+  }
+  const valid = edges.filter((e) => e.from !== e.to && owner.has(e.from) && owner.has(e.to));
+  const local = (e: GraphConnection) => owner.get(e.from) === owner.get(e.to);
+  const outer = valid.filter((e) => !local(e));
+  const lanes = assignLanes(outer.map((e) => ({ lo: order.get(e.from)!, hi: order.get(e.to)! })));
+  const top = 42 + (lanes.length ? CONNECTOR_CLEARANCE + Math.max(...lanes) * CONNECTOR.lane : 0);
+  const nodes: PositionedNode[] = [],
+    frames: PositionedGroup[] = [];
+  const localLanes = new Map<string, number>();
+  const lineCount = (text: string, width: number, bold: boolean) => {
+    let lines = 1,
+      line = '';
+    const size = (s: string) => measure?.(s, bold) ?? s.length * 7.2;
+    for (const word of text.split(/\s+/)) {
+      const next = line ? `${line} ${word}` : word;
+      if (line && size(next) > width) {
+        lines++;
+        line = word;
+      } else line = next;
+      if (size(line) > width) {
+        const chunks = Math.ceil(size(line) / width);
+        lines += chunks - 1;
+        line = '';
+      }
+    }
+    return lines;
+  };
+  const height = (n: GraphNode, width: number, header = false) =>
+    Math.max(
+      header ? 68 : 62,
+      18 +
+        lineCount(
+          n.label,
+          width - (header ? ((n as GraphGroup).actions?.length ? 116 : 64) : 24),
+          header,
+        ) *
+          17 +
+        (!header && (n.role || n.badge) ? 18 : 0) +
+        (header && n.reference ? 18 : 0) +
+        (header && n.role ? 18 : 0) +
+        (n.description ? 32 : 0) +
+        (n.annotation ? 18 : 0),
+    );
+  const headerHeight = Math.max(68, ...groups.map((g) => height(g, 292, true)));
+  let x = 16,
+    bottom = top + headerHeight;
+  for (const group of groups) {
+    const children = group.children ?? [];
+    const members = [...children, ...(group.actionsExpanded ? (group.actions ?? []) : [])];
+    const localEdges = valid.filter((e) => local(e) && owner.get(e.from) === group.id);
+    const ranks = new Map([group, ...members].map((n, i) => [n.id, i]));
+    const assigned = assignLanes(
+      localEdges.map((e) => ({ lo: ranks.get(e.from)!, hi: ranks.get(e.to)! })),
+    );
+    localEdges.forEach((e, i) => {
+      localLanes.set(e.id, assigned[i]);
+    });
+    const gutter =
+      CONNECTOR_CLEARANCE + (assigned.length ? Math.max(...assigned) * CONNECTOR.lane : 0) + 8;
+    const columnWidth = Math.max(292, 240 + gutter);
+    if (localEdges.some((e) => e.from === group.id || e.to === group.id)) x += gutter;
+    nodes.push({
+      node: group,
+      group: group.id,
+      header: true,
+      action: false,
+      x,
+      y: top,
+      width: columnWidth,
+      height: headerHeight,
+    });
+    let y = top + headerHeight + 14;
+    members.forEach((node, i) => {
+      const h = height(node, columnWidth - gutter);
+      nodes.push({
+        node,
+        group: group.id,
+        header: false,
+        action: i >= children.length,
+        x: x + gutter,
+        y,
+        width: columnWidth - gutter,
+        height: h,
+      });
+      y += h + 10;
+    });
+    frames.push({ group, x: x - 7, y: top - 7, width: columnWidth + 14, height: y - top + 4 });
+    bottom = Math.max(bottom, y + 8);
+    x += columnWidth + 48;
+  }
+  const byId = new Map(nodes.map((n) => [n.node.id, n]));
+  const portOffset = (id: string, edge: GraphConnection) => {
+    const siblings = valid.filter(
+      (e) => local(e) === local(edge) && (e.from === id || e.to === id),
+    );
+    const node = byId.get(id)!;
+    const available =
+      local(edge) || !node.header ? Math.min(16, node.height - 32) : node.width - 48;
+    const step = Math.min(8, available / Math.max(1, siblings.length - 1));
+    return (siblings.indexOf(edge) - (siblings.length - 1) / 2) * step;
+  };
+  const routed = valid.map((e) => {
+    const a = byId.get(e.from)!,
+      b = byId.get(e.to)!;
+    if (local(e))
+      return {
+        edge: e,
+        path: routeConnector(
+          { x: a.x, y: a.y + a.height / 2 + portOffset(a.node.id, e) },
+          { x: b.x, y: b.y + b.height / 2 + portOffset(b.node.id, e) },
+          'left',
+          localLanes.get(e.id)!,
+          Math.min(a.x, b.x),
+        ).path,
+      };
+    const rail = top - CONNECTOR_CLEARANCE - lanes[outer.indexOf(e)] * CONNECTOR.lane;
+    const ax = a.header
+      ? a.x + a.width / 2 + portOffset(a.node.id, e)
+      : a.x + a.width + CONNECTOR_CLEARANCE;
+    const bx = b.header
+      ? b.x + b.width / 2 + portOffset(b.node.id, e)
+      : b.x + b.width + CONNECTOR_CLEARANCE;
+    const from = a.header
+      ? { x: ax, y: a.y }
+      : { x: a.x + a.width, y: a.y + a.height / 2 + portOffset(a.node.id, e) };
+    const to = b.header
+      ? { x: bx, y: b.y - CONNECTOR.gap }
+      : { x: b.x + b.width + CONNECTOR.gap, y: b.y + b.height / 2 + portOffset(b.node.id, e) };
+    const points = [
+      from,
+      ...(!a.header ? [{ x: ax, y: from.y }] : []),
+      { x: ax, y: rail },
+      { x: bx, y: rail },
+      ...(!b.header ? [{ x: bx, y: to.y }] : []),
+      to,
+    ];
+    return { edge: e, path: roundedPath(points) };
+  });
+  return {
+    nodes,
+    groups: frames,
+    edges: routed,
+    width: Math.max(320, x - 18),
+    height: bottom + 16,
+  };
 }

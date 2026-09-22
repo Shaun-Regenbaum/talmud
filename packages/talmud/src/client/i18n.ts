@@ -162,10 +162,38 @@ const CATALOG = {
   'graph.expand': { en: 'Full-screen map', he: 'מפה במסך מלא' },
   'graph.close': { en: 'Close map', he: 'סגירת המפה' },
   'graph.vertical': { en: 'Stacked', he: 'לאורך' },
-  'graph.horizontal': { en: 'Across the screen', he: 'לרוחב המסך' },
+  'graph.horizontal': { en: 'Passage map', he: 'מפת הסוגיה' },
   'graph.zoomIn': { en: 'Zoom in', he: 'הגדלה' },
   'graph.zoomOut': { en: 'Zoom out', he: 'הקטנה' },
   'graph.fit': { en: 'Fit', he: 'התאמה למסך' },
+  'graph.readingOrder': { en: 'Reading order', he: 'סדר הלימוד' },
+  'graph.sectionsOnly': { en: 'Sections only', he: 'רק חלקי הסוגיה' },
+  'graph.statements': { en: 'Show statements', he: 'הצגת המהלכים' },
+  'graph.inspect': {
+    en: 'Select a statement or a line to read more',
+    he: 'בחרו מהלך או קו כדי לקרוא עוד',
+  },
+  'graph.addPrevious': { en: 'Add {page} before', he: 'הוספת {page} לפני' },
+  'graph.addNext': { en: 'Continue to {page}', he: 'המשך אל {page}' },
+  'graph.loadingPage': { en: 'Loading {page}…', he: 'טוען את {page}…' },
+  'graph.pageFailed': {
+    en: 'Could not load {page}. Try again.',
+    he: 'לא ניתן לטעון את {page}. נסו שוב.',
+  },
+  'graph.pageCold': {
+    en: 'No saved argument map for {page} yet.',
+    he: 'עדיין אין מפת טיעונים שמורה עבור {page}.',
+  },
+  'graph.statementsMissing': {
+    en: '{pages}: statement details are not saved yet.',
+    he: '{pages}: פרטי המהלכים עדיין אינם שמורים.',
+  },
+  'graph.loadingLinks': { en: 'Loading links between dapim…', he: 'טוען את הקשרים בין העמודים…' },
+  'graph.linksUnavailable': {
+    en: 'Links between dapim are not available yet. Columns follow the text order.',
+    he: 'הקשרים בין העמודים עדיין אינם זמינים. הטורים מסודרים לפי סדר הטקסט.',
+  },
+
   'graph.connections': {
     en: '{count} connections elsewhere',
     he: '{count} קישורים למקורות נוספים',

@@ -1,4 +1,5 @@
 import {
+  createEffect,
   createMemo,
   createSignal,
   createUniqueId,
@@ -23,6 +24,10 @@ export interface GraphLabels {
   zoomIn: string;
   zoomOut: string;
   fit: string;
+  readingOrder?: string;
+  sections?: string;
+  statements?: string;
+  inspect?: string;
 }
 export interface GraphViewProps {
   groups: GraphGroup[];
@@ -35,7 +40,10 @@ export interface GraphViewProps {
   direction?: 'ltr' | 'rtl';
   maxHeight?: string;
   controlsOnly?: boolean;
+  initialFullscreen?: boolean;
   hideLegend?: boolean;
+  /** Hosts can load a larger passage only when the reader opens it. */
+  renderFullscreen?: (onClose: () => void) => JSX.Element;
 }
 
 function Canvas(
@@ -47,8 +55,17 @@ function Canvas(
 ): JSX.Element {
   let host!: HTMLDivElement;
   const [width, setWidth] = createSignal(360);
+  let measure: ((text: string, bold: boolean) => number) | undefined;
   const [focus, setFocus] = createSignal<string | null>(null);
   onMount(() => {
+    if (typeof CanvasRenderingContext2D !== 'undefined') {
+      const context = document.createElement('canvas').getContext('2d');
+      if (context)
+        measure = (text, bold) => {
+          context.font = `${bold ? 600 : 400} 13px system-ui`;
+          return context.measureText(text).width;
+        };
+    }
     setWidth(host.clientWidth || 360);
     if (typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(() => setWidth(host.clientWidth || 360));
@@ -56,7 +73,7 @@ function Canvas(
     onCleanup(() => observer.disconnect());
   });
   const layout = createMemo(() =>
-    layoutGraph(props.groups, props.edges, width(), props.horizontal),
+    layoutGraph(props.groups, props.edges, width(), props.horizontal, measure),
   );
   const nodesById = createMemo(() => new Map(layout().nodes.map((node) => [node.node.id, node])));
   const zoom = () => props.zoom ?? 1;
@@ -64,8 +81,11 @@ function Canvas(
     const f = focus();
     if (!f) return null;
     const set = new Set([f]);
+    const group = props.groups.find((g) => g.id === f);
+    const direct = new Set([f, ...(group?.children ?? []).map((n) => n.id)]);
+    for (const id of direct) set.add(id);
     for (const { edge } of layout().edges)
-      if (edge.id === f || edge.from === f || edge.to === f) {
+      if (edge.id === f || direct.has(edge.from) || direct.has(edge.to)) {
         set.add(edge.from);
         set.add(edge.to);
         set.add(edge.id);
@@ -166,8 +186,8 @@ function Canvas(
                       .filter(Boolean)
                       .join(' · ')}
                     aria-expanded={
-                      p().header && group()?.children?.length
-                        ? props.horizontal || !!group()?.expanded
+                      p().header && group()?.children?.length && !props.horizontal
+                        ? !!group()?.expanded
                         : undefined
                     }
                     onClick={() => select(p().node)}
@@ -176,17 +196,23 @@ function Canvas(
                     onFocus={() => setFocus(p().node.id)}
                     onBlur={() => setFocus(null)}
                   >
+                    <Show when={props.horizontal && p().header && p().node.reference}>
+                      <span class="ui-graph-reference">{p().node.reference}</span>
+                    </Show>
+                    <Show when={props.horizontal && p().header && p().node.role}>
+                      <span class="ui-graph-role">{p().node.role}</span>
+                    </Show>
                     <span class="ui-graph-heading">
                       <Show when={p().node.badge}>
                         <span class="ui-graph-badge">{p().node.badge}</span>
                       </Show>
-                      <Show when={p().node.role}>
+                      <Show when={p().node.role && (!props.horizontal || !p().header)}>
                         <span class="ui-graph-role">{p().node.role}</span>
                       </Show>
                       <span class="ui-graph-label" dir="auto">
                         {p().node.label}
                       </span>
-                      <Show when={p().header && group()?.children?.length}>
+                      <Show when={!props.horizontal && p().header && group()?.children?.length}>
                         <span class="ui-graph-disclose" aria-hidden="true">
                           {props.horizontal || group()?.expanded ? '−' : '+'}
                         </span>
@@ -225,18 +251,50 @@ function Canvas(
   );
 }
 
-function Fullscreen(props: GraphViewProps & { onClose: () => void }): JSX.Element {
+export function GraphDialog(
+  props: GraphViewProps & {
+    onClose: () => void;
+    toolbar?: JSX.Element;
+    status?: JSX.Element;
+    revealId?: string;
+  },
+): JSX.Element {
   let dialog!: HTMLDialogElement;
   const titleId = createUniqueId();
   const [horizontal, setHorizontal] = createSignal(true),
     [zoom, setZoom] = createSignal(1);
   const [selected, setSelected] = createSignal<GraphNode | GraphConnection | null>(null);
+  const [sectionsOnly, setSectionsOnly] = createSignal(false);
+  const shownGroups = () =>
+    sectionsOnly() ? props.groups.map((g) => ({ ...g, children: [] })) : props.groups;
+  const jumpTo = (id: string) => {
+    const node = Array.from(dialog.querySelectorAll<HTMLElement>('[data-graph-node]')).find(
+      (n) => n.dataset.graphNode === id,
+    );
+    node?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'instant' });
+    node?.focus({ preventScroll: true });
+  };
+  createEffect(() => {
+    const id = props.revealId;
+    if (id)
+      queueMicrotask(() => {
+        if (dialog?.open) jumpTo(id);
+      });
+  });
+  const legend = () => [
+    ...new Map(
+      props.edges
+        .filter((e) => e.kindLabel)
+        .map((e) => [e.kindLabel, { label: e.kindLabel!, color: e.color, dash: e.dash }]),
+    ).values(),
+  ];
   const clamp = (n: number) => Math.max(0.25, Math.min(2, n));
   onMount(() => {
     const previous = document.activeElement as HTMLElement | null;
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     dialog.showModal();
+    dialog.querySelector<HTMLButtonElement>('.ui-graph-close')?.focus();
     onCleanup(() => {
       dialog.close();
       document.body.style.overflow = overflow;
@@ -270,6 +328,7 @@ function Fullscreen(props: GraphViewProps & { onClose: () => void }): JSX.Elemen
       >
         <header class="ui-graph-toolbar" dir={props.direction}>
           <strong id={titleId}>{props.labels.title}</strong>
+          {props.toolbar}
           <div class="ui-graph-toggle">
             <button
               type="button"
@@ -299,7 +358,9 @@ function Fullscreen(props: GraphViewProps & { onClose: () => void }): JSX.Elemen
           >
             −
           </button>
-          <output>{Math.round(zoom() * 100)}%</output>
+          <button type="button" class="ui-graph-scale" onClick={() => setZoom(1)}>
+            {Math.round(zoom() * 100)}%
+          </button>
           <button
             type="button"
             aria-label={props.labels.zoomIn}
@@ -319,13 +380,58 @@ function Fullscreen(props: GraphViewProps & { onClose: () => void }): JSX.Elemen
             ×
           </button>
         </header>
+        <nav
+          class="ui-graph-passage-nav"
+          aria-label={props.labels.readingOrder}
+          dir={props.direction}
+        >
+          <span>{props.labels.readingOrder}</span>
+          <div class="ui-graph-chapters">
+            <For each={props.groups}>
+              {(g, i) => (
+                <>
+                  <Show
+                    when={
+                      g.reference && (i() === 0 || props.groups[i() - 1].reference !== g.reference)
+                    }
+                  >
+                    <span class="ui-graph-page-label">{g.reference}</span>
+                  </Show>
+                  <button
+                    type="button"
+                    aria-label={[g.reference, g.badge, g.label].filter(Boolean).join(' · ')}
+                    title={g.label}
+                    onClick={() => jumpTo(g.id)}
+                  >
+                    {g.badge || g.label}
+                  </button>
+                </>
+              )}
+            </For>
+          </div>
+          <Show when={props.groups.some((g) => g.children?.length)}>
+            <button
+              type="button"
+              aria-pressed={sectionsOnly()}
+              onClick={() => setSectionsOnly((s) => !s)}
+            >
+              {sectionsOnly() ? props.labels.statements : props.labels.sections}
+            </button>
+          </Show>
+        </nav>
+        {props.status}
         <Canvas
           {...props}
+          groups={shownGroups()}
           horizontal={horizontal()}
           zoom={zoom()}
           maxHeight="none"
           onInspect={setSelected}
         />
+        <footer class="ui-graph-map-key" dir={props.direction}>
+          <GraphLegend items={legend()} />
+          <span>{props.labels.inspect}</span>
+        </footer>
         <Show when={selected()}>
           {(item) => (
             <aside class="ui-graph-detail" dir={props.direction}>
@@ -389,7 +495,7 @@ export function GraphLegend(props: {
 
 /** Same graph and callbacks in both views. The modal always starts horizontal. */
 export function GraphView(props: GraphViewProps): JSX.Element {
-  const [fullscreen, setFullscreen] = createSignal(false);
+  const [fullscreen, setFullscreen] = createSignal(!!props.initialFullscreen);
   const legend = createMemo(() => [
     ...new Map(
       props.edges
@@ -429,7 +535,12 @@ export function GraphView(props: GraphViewProps): JSX.Element {
           </div>
         </Show>
         <Show when={fullscreen()}>
-          <Fullscreen {...props} onClose={() => setFullscreen(false)} />
+          <Show
+            when={props.renderFullscreen}
+            fallback={<GraphDialog {...props} onClose={() => setFullscreen(false)} />}
+          >
+            {props.renderFullscreen?.(() => setFullscreen(false))}
+          </Show>
         </Show>
       </section>
     </Show>

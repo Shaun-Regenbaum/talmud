@@ -17,6 +17,7 @@ import { createMemo, createSignal, For, type JSX } from 'solid-js';
 import { linkTarget } from '../lib/context/linkTarget';
 import type { SectionExit } from '../lib/context/sectionExits';
 import type { StatementLink, StatementNode } from '../lib/typing/statementSpine';
+import { ArgumentPassageDialog } from './ArgumentPassageDialog';
 import { graphLabels } from './graphLabels';
 import { lang, t } from './i18n';
 
@@ -53,6 +54,8 @@ export interface FlowNode {
 }
 
 interface Props {
+  initialFullscreen?: boolean;
+  passage?: { tractate: string; page: string };
   nodes: FlowNode[];
   connections: FlowConnection[];
   activeIndex: number | null;
@@ -387,23 +390,42 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
     setClosed(index === props.activeIndex && closed() !== index ? index : null);
     props.onSelect(index);
   };
+  const toggleActions = (g: GraphGroup) => {
+    const index = Number(g.id.split(':')[1]);
+    setOpenExits((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
   return (
     <GraphView
+      initialFullscreen={props.initialFullscreen}
+      renderFullscreen={
+        props.passage
+          ? (close) => (
+              <ArgumentPassageDialog
+                tractate={props.passage!.tractate}
+                page={props.passage!.page}
+                groups={groups()}
+                edges={edges()}
+                labels={graphLabels()}
+                direction={lang() === 'he' ? 'rtl' : 'ltr'}
+                onSelect={select}
+                onToggleActions={toggleActions}
+                onClose={close}
+              />
+            )
+          : undefined
+      }
       groups={groups()}
       edges={edges()}
       labels={graphLabels()}
       hideLegend={props.hideLegend}
       direction={lang() === 'he' ? 'rtl' : 'ltr'}
       onSelect={select}
-      onToggleActions={(g) => {
-        const index = Number(g.id.split(':')[1]);
-        setOpenExits((prev) => {
-          const next = new Set(prev);
-          if (next.has(index)) next.delete(index);
-          else next.add(index);
-          return next;
-        });
-      }}
+      onToggleActions={toggleActions}
     />
   );
 }

@@ -10,4 +10,8 @@ export const graphLabels = (): GraphLabels => ({
   zoomIn: t('graph.zoomIn'),
   zoomOut: t('graph.zoomOut'),
   fit: t('graph.fit'),
+  readingOrder: t('graph.readingOrder'),
+  sections: t('graph.sectionsOnly'),
+  statements: t('graph.statements'),
+  inspect: t('graph.inspect'),
 });

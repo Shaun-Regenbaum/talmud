@@ -211,6 +211,7 @@
   background: var(--graph-bg);
 }
 .ui-graph-toolbar {
+  margin: 0;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -301,31 +302,6 @@
   color: var(--node-color);
   text-align: start;
 }
-.horizontal .ui-graph-node {
-  padding: 8px 10px;
-}
-.horizontal .ui-graph-node:not(.header) .ui-graph-heading {
-  align-content: center;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.horizontal .ui-graph-node:not(.header) .ui-graph-role {
-  width: auto;
-  max-width: none;
-}
-.horizontal .ui-graph-node:not(.header) .ui-graph-label {
-  flex-basis: 100%;
-  white-space: normal;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-.horizontal .ui-graph-node.header {
-  align-items: center;
-  flex-wrap: nowrap;
-  padding-inline-end: 10px;
-}
 @media (max-width: 600px) {
   .ui-graph-toolbar strong {
     flex-basis: 100%;
@@ -348,19 +324,6 @@
   }
 }
 
-.horizontal .ui-graph-node:not(.header) .ui-graph-badge {
-  height: 14px;
-  min-width: 14px;
-  font-size: 9px;
-}
-
-.horizontal .ui-graph-node.header:has(.ui-graph-disclose) {
-  padding-inline-end: 30px;
-}
-.horizontal .ui-graph-node.header:has(+ .ui-graph-exits) {
-  padding-inline-end: 74px;
-}
-
 .ui-graph-legend {
   display: flex;
   flex-wrap: wrap;
@@ -380,4 +343,156 @@
   width: 16px;
   height: 0;
   display: inline-block;
+}
+
+/* The passage board uses columns; the compact reader keeps its C layout. */
+.horizontal .ui-graph-node {
+  font-size: 13px;
+  line-height: 17px;
+  padding: 8px 10px;
+}
+.horizontal .ui-graph-node.header {
+  font-size: 13px;
+}
+.horizontal .ui-graph-heading {
+  flex: 0 0 auto;
+}
+.horizontal .ui-graph-node:not(.header) .ui-graph-heading {
+  flex-wrap: wrap;
+  align-content: start;
+  gap: 3px 5px;
+}
+.horizontal .ui-graph-node .ui-graph-label {
+  display: block;
+  -webkit-line-clamp: unset;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+.horizontal .ui-graph-node:not(.header) .ui-graph-label {
+  flex-basis: 100%;
+}
+.horizontal .ui-graph-node .ui-graph-role {
+  max-width: none;
+  font-size: 11px;
+  line-height: 15px;
+}
+.horizontal .ui-graph-node:not(.header) .ui-graph-badge {
+  font-size: 10px;
+  height: 14px;
+  min-width: 14px;
+}
+.horizontal .ui-graph-group {
+  background: none;
+  border-color: transparent;
+  border-top-color: var(--graph-line);
+  border-radius: 0;
+}
+.ui-graph-reference {
+  display: block;
+  color: var(--graph-muted);
+  font-size: 10px;
+  font-weight: 400;
+  margin-bottom: 4px;
+  align-self: flex-start;
+}
+.ui-graph-passage-nav {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--graph-line);
+  font-size: 11px;
+  min-height: 45px;
+  background: var(--graph-card);
+}
+.ui-graph-passage-nav > span {
+  flex-shrink: 0;
+  color: var(--graph-muted);
+}
+.ui-graph-chapters {
+  align-items: center;
+  display: flex;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+  overflow: auto;
+}
+.ui-graph-passage-nav button {
+  flex-shrink: 0;
+  border: 1px solid var(--graph-line);
+  border-radius: 5px;
+  background: var(--graph-card);
+  color: var(--graph-ink);
+  padding: 4px 8px;
+  font: inherit;
+  cursor: pointer;
+}
+.ui-graph-chapters button {
+  min-width: 28px;
+  color: var(--graph-accent);
+}
+.ui-graph-chapters :where(button span) {
+  margin-inline-end: 6px;
+  color: var(--graph-muted);
+}
+.ui-graph-passage-nav button:hover {
+  border-color: var(--graph-accent);
+}
+.ui-graph-map-key {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-top: 1px solid var(--graph-line);
+  padding: 4px 12px;
+  background: var(--graph-card);
+}
+.ui-graph-map-key > :where(span) {
+  margin-inline-start: auto;
+  color: var(--graph-muted);
+  font-size: 11px;
+}
+.ui-graph-status {
+  margin: 0;
+  padding: 8px 16px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--graph-line);
+}
+.ui-graph-range {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.ui-graph-range :where(span) {
+  color: var(--graph-muted);
+  font-size: 12px;
+  margin-inline-end: 6px;
+}
+.ui-graph-toolbar button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+@media (max-width: 600px) {
+  .ui-graph-passage-nav {
+    margin: 0;
+    gap: 6px;
+    padding: 6px 8px;
+  }
+  .ui-graph-map-key > :where(span) {
+    display: none;
+  }
+  .ui-graph-range {
+    flex-basis: 100%;
+  }
+}
+
+.ui-graph-page-label {
+  flex: 0 0 auto;
+  margin: 0 3px 0 10px;
+  color: var(--graph-muted);
+}
+.ui-graph-passage-nav button:focus-visible {
+  outline: 2px solid var(--graph-accent);
+  outline-offset: 2px;
 }

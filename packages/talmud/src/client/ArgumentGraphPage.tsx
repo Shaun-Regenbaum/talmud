@@ -420,6 +420,8 @@ export function ArgumentGraphPage(): JSX.Element {
           </Show>
 
           <ArgumentFlowGraph
+            initialFullscreen={new URLSearchParams(window.location.search).get('map') === 'passage'}
+            passage={ref()}
             nodes={sections().map((sec) => ({
               index: sec.index,
               title: sec.title,

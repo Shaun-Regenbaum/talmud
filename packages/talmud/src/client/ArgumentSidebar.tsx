@@ -1364,6 +1364,7 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
                   {crossLabel(t('overview.continuesFrom', { page: pageRef(bridge()!.prev) }))}
                 </Show>
                 <ArgumentFlowGraph
+                  passage={{ tractate: props.tractate, page: props.page }}
                   nodes={grpNodes()}
                   connections={connections()}
                   activeIndex={focused()}
