@@ -15,6 +15,7 @@ import { WorldBubbleMap } from '../WorldBubbleMap';
 import parshaExample from './content/parsha.json';
 import { type GalleryLang, t } from './i18n';
 import { StudyExamples } from './StudyExamples';
+import { SummaryExamples } from './SummaryExamples';
 
 interface Activity {
   ok: boolean;
@@ -87,6 +88,7 @@ export function DataExamples(props: { lang: GalleryLang }): JSX.Element {
         </div>
         <code class="gallery-source">@corpus/ui/ReaderIcon</code>
       </section>
+      <SummaryExamples lang={props.lang} />
       <section id="charts">
         <h2>{label('charts')}</h2>
         <p>{label('liveHint')}</p>

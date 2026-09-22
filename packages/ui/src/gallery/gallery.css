@@ -101,7 +101,7 @@ a {
   line-height: 1.65;
   margin: 0;
 }
-.gallery section {
+.gallery main > section {
   border-top: 1px solid var(--line);
   padding: 28px 0 36px;
   scroll-margin-top: 24px;

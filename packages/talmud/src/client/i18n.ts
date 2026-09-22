@@ -107,6 +107,39 @@ export function toggleLang(): void {
 type Entry = { en: string; he: string };
 
 const CATALOG = {
+  'usage.daily.scale': {
+    en: 'Requests \u00b7 one scale across all days and channels',
+    he: 'בקשות · קנה מידה אחיד לכל הימים והערוצים',
+  },
+  'usage.daily.app': { en: 'App', he: 'יישום' },
+  'usage.daily.mcp': { en: 'MCP', he: 'MCP' },
+  'usage.daily.api': { en: 'API', he: 'API' },
+  'usage.ledger.title': { en: 'Recorded charges', he: 'חיובים מתועדים' },
+  'usage.ledger.known': { en: 'in known charges', he: 'בחיובים ידועים' },
+  'usage.ledger.attempts': { en: 'Attempts', he: 'ניסיונות' },
+  'usage.ledger.cached': { en: 'Cached replies', he: 'תשובות ממטמון' },
+  'usage.ledger.unknown': { en: 'Unknown costs', he: 'עלויות לא ידועות' },
+  'usage.ledger.cachedDetail': { en: 'Served from the gateway cache', he: 'נשלפו ממטמון השער' },
+  'usage.ledger.unknownDetail': { en: 'Not counted as zero', he: 'אינן נספרות כאפס' },
+  'usage.ledger.scope': {
+    en: 'Earlier charges and list-price estimates are not included.',
+    he: 'חיובים קודמים והערכות לפי מחירון אינם נכללים.',
+  },
+  'usage.ledger.first': {
+    en: 'First record in this period: {date}.',
+    he: 'הרישום הראשון בתקופה זו: {date}.',
+  },
+  'usage.ledger.producers': { en: 'Charges by producer', he: 'חיובים לפי פעולה' },
+  'usage.ledger.producersHint': {
+    en: 'Known charges and attempts for each operation',
+    he: 'חיובים ידועים וניסיונות לכל פעולה',
+  },
+  'usage.ledger.producer': { en: 'Producer', he: 'פעולה' },
+  'usage.ledger.unavailable': {
+    en: 'Recorded charges are unavailable right now.',
+    he: 'החיובים המתועדים אינם זמינים כרגע.',
+  },
+  'usage.ledger.loading': { en: 'Loading charges\u2026', he: 'טוען חיובים…' },
   // — App / daf header —
   'app.title': { en: 'Talmud', he: 'תלמוד' },
   'header.more': { en: 'More', he: 'עוד' },
