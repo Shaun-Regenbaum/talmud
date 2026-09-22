@@ -52,7 +52,12 @@ export interface MarkDef {
   render: { kind: string; [key: string]: unknown };
 }
 
-type Renderer = (html: string, instances: MarkInstance[], def: MarkDef) => string;
+type Renderer = (
+  html: string,
+  instances: MarkInstance[],
+  def: MarkDef,
+  segmentsHe?: readonly string[],
+) => string;
 
 /**
  * phrase + inline → for the rabbi mark, dispatch to injectRabbiUnderlines.
@@ -60,7 +65,7 @@ type Renderer = (html: string, instances: MarkInstance[], def: MarkDef) => strin
  * (GeographyMap click-highlighting reads `.city-marker[data-city]`).
  * Other phrase+inline marks pass through unchanged.
  */
-const phraseInline: Renderer = (html, instances, def) => {
+const phraseInline: Renderer = (html, instances, def, segmentsHe) => {
   if (!html || instances.length === 0) return html;
   if (def.id === 'rabbi') {
     const rabbis: GenerationRabbi[] = instances
@@ -70,7 +75,7 @@ const phraseInline: Renderer = (html, instances, def) => {
         generation: (i.fields?.generation ?? 'unknown') as GenerationId,
       }))
       .filter((r) => r.nameHe.length > 0);
-    return injectRabbiUnderlines(html, rabbis);
+    return injectRabbiUnderlines(html, rabbis, segmentsHe);
   }
   if (def.id === 'places') {
     const places = instances
@@ -240,6 +245,7 @@ export function applyMarkRenderers(
   html: string,
   marks: MarkDef[],
   runs: Record<string, MarkRunOutput | undefined>,
+  segmentsHe?: readonly string[],
 ): string {
   let out = html;
   for (const def of marks) {
@@ -254,7 +260,7 @@ export function applyMarkRenderers(
     const instances = run.parsed.instances ?? [];
     if (instances.length === 0) continue;
     try {
-      out = r(out, instances, def);
+      out = r(out, instances, def, segmentsHe);
     } catch (err) {
       console.warn(`[renderer] ${def.id} (${key}) threw:`, err);
     }
