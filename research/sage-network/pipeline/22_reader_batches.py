@@ -7,6 +7,8 @@ so later runs carry on where the last stopped and never hand out a pair twice.
 Left out of the queue: pairs the same-string rule settles, pairs the cheap model
 is 0.9 sure of (--below sets the line), and every pair in a check set.
 
+A reader is started with one line: its batch number and the path of READER-TASK.md
+(or READER-TASK-RESUME.md when a batch was left half read). Both are written here.
 Each batch is 380 queue pairs plus 20 held-out pairs on which both markers agreed,
 shuffled together with neutral numbers. map-NNN.json says which line is which and
 is not for the reader. 21_reader_merge.py scores the hidden pairs and merges.
@@ -14,7 +16,7 @@ is not for the reader. 21_reader_merge.py scores the hidden pairs and merges.
 import argparse, json, os, random, re, sys
 sys.path.insert(0, os.path.dirname(__file__))
 import judged, lexicon, textio
-from relkinds import READER_GUIDE
+from relkinds import READER_GUIDE, READER_TASK, READER_TASK_RESUME
 
 HERE = os.path.join(os.path.dirname(__file__), '..')
 PER, HIDDEN, SEED = 380, 20, 20260920
@@ -50,8 +52,10 @@ if __name__ == '__main__':
     A = json.load(open(os.path.join(HERE, 'checkset', 'pairs-heldout.astra.json')))['labels']
     F = json.load(open(os.path.join(HERE, 'checkset', 'pairs-heldout.fable.json')))['labels']
     gold = [g for g in gold_items if A[g['id']]['kind'] == F[g['id']]['kind']]
-    with open(os.path.join(a.dir, 'HOW-TO-MARK.md'), 'w') as f:
-        f.write(READER_GUIDE)
+    for name, text in (('HOW-TO-MARK.md', READER_GUIDE), ('READER-TASK.md', READER_TASK),
+                       ('READER-TASK-RESUME.md', READER_TASK_RESUME)):
+        with open(os.path.join(a.dir, name), 'w') as f:
+            f.write(text)
     for b in range(a.first, a.first + a.batches):
         rng = random.Random(SEED + b)
         chunk = [('pair', k, pairs[k]['marked']) for k in queue[(b - 1) * PER:b * PER] if k in pairs]

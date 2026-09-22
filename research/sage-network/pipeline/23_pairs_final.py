@@ -22,6 +22,7 @@ import textio
 from relkinds import USE
 
 TRUST = 0.9
+DIRECTION_SETTLED_FROM = 19     # reader batches before this chose their own rule for kin and teacher
 
 
 def same_string(a, b):
@@ -45,7 +46,10 @@ if __name__ == '__main__':
                 row.update(kind='same-man', source='rule', direction='')
             elif k in read:
                 r = read[k]
-                row.update(kind=r['kind'], source='reader', direction=r['direction'], sure=r['sure'])
+                direction = r['direction']
+                if r['kind'] in ('kin', 'teacher') and int(r.get('batch') or 0) < DIRECTION_SETTLED_FROM:
+                    direction = None      # the guide had not yet said what direction means for these two kinds
+                row.update(kind=r['kind'], source='reader', direction=direction, sure=r['sure'])
                 if c.get('kind') != r['kind']:
                     disagree[(c.get('kind'), r['kind'])] += 1
             elif (c.get('confidence') or 0) >= TRUST:
