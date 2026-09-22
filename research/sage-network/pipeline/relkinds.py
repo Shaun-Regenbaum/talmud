@@ -73,7 +73,11 @@ READER_GUIDE = ('# How to mark a pair of names\n\n' + PAIR_CONVENTIONS + '\n\n##
 
 Every kind is worded as "A does something to B". Often the page has it the other way round: the SECOND man explains, answers or quotes the FIRST
 (`דברי ר' יוסי ... א"ר יונה לא טמא ר' יוסי אלא...` is B explaining A). Choose the kind that fits, and record the direction:
-`AB` if the first name acts on the second, `BA` if the second acts on the first, `` (empty) when direction means nothing (disputes, together, same-man, none).
+`AB` if the first name acts on the second, `BA` if the second acts on the first, `` (empty) when direction means nothing (disputes, together, same-man, juxtaposed, none).
+
+For `kin` and `teacher` the direction says who is the JUNIOR, so that it always points from the later man to the earlier one, like a citation does:
+`AB` if A is the junior (A is the son, grandson, son-in-law, nephew or student of B), `BA` if A is the senior (A is the father, father-in-law or teacher of B),
+and `` for brothers or when the passage does not say.
 
 ## Worked examples
 
@@ -90,3 +94,9 @@ Every kind is worded as "A does something to B". Often the page has it the other
 
 `sure` is false when a careful reader could disagree.
 """)
+
+# What a reader is told. 22_reader_batches.py writes both into the reading folder.
+READER_TASK = '# Your task\n\nYou are marking pairs of rabbinic names in Hebrew and Aramaic passages. This is careful reading work. Do it by reading\neach passage yourself. Do NOT write a script, regex or heuristic to label them, and do not call any API.\n\nYou were given a batch number NNN (three digits). Everything is in this folder.\n\n1. Read `HOW-TO-MARK.md` first. It defines the kinds, the direction field and gives worked examples. Follow it exactly.\n2. Read `batch-NNN.txt`. Each line is `number<TAB>passage`. In each passage the first name is wrapped in ⟦ ⟧ (A) and the\n   second in ⟪ ⟫ (B). There are 400 lines. Read it in chunks of 100 lines (Read with offset and limit) so nothing is skipped.\n3. For every line decide: kind (one of the kinds in the guide), sure (true/false), dir ("AB", "BA" or "").\n4. Write your answers to `labels-NNN.jsonl`, one JSON object per line, exactly:\n   {"n":"000","kind":"cites","sure":true,"dir":"AB"}\n   Write the first 100, then append the rest as you go (for example with a Bash heredoc `cat >> file`), so work is saved.\n   Every one of the 400 numbers must appear exactly once.\n\nDo not open any `map-*.json` file, or any file besides this one, the guide and your batch. Judge only from the passage on\nthe line. When a passage is cut off or unclear, give your best reading and set sure to false.\n\nWhen done, reply with one line: how many lines you labelled, and how many you marked sure=false.\n'
+
+# For a batch another reader left half done: lines 000 to 099 exist, append the rest.
+READER_TASK_RESUME = '# Your task: finish a batch another reader started\n\nYou are marking pairs of rabbinic names in Hebrew and Aramaic passages. This is careful reading work. Do it by reading\neach passage yourself. Do NOT write a script, regex or heuristic to label them, and do not call any API.\n\nYou were given a batch number NNN (three digits). Everything is in this folder. Lines 000 to 099 of this batch are\nALREADY labelled in `labels-NNN.jsonl`. Your job is lines 100 to 399 only.\n\n1. Read `HOW-TO-MARK.md` first. It defines the kinds, the direction field and gives worked examples. Follow it exactly.\n2. Read `batch-NNN.txt` from line 101 onward (Read with offset 101). Each line is `number<TAB>passage`. In each passage\n   the first name is wrapped in ⟦ ⟧ (A) and the second in ⟪ ⟫ (B). Read in chunks of 100 lines so nothing is skipped.\n3. For every line from 100 to 399 decide: kind (one of the kinds in the guide), sure (true/false), dir ("AB", "BA" or "").\n4. APPEND your answers to `labels-NNN.jsonl` (for example with a Bash heredoc `cat >> file`). Do not overwrite the\n   file and do not repeat lines 000 to 099. One JSON object per line, exactly:\n   {"n":"100","kind":"cites","sure":true,"dir":"AB"}\n   Append every 100 lines as you go, so work is saved. When you finish, the file must have exactly 400 lines,\n   000 to 399, each number once.\n\nDo not open any `map-*.json` file, or any file besides this one, the guide and your batch. Judge only from the passage\non the line. When a passage is cut off or unclear, give your best reading and set sure to false.\n\nWhen done, reply with one line: how many lines you labelled, and how many you marked sure=false.\n'

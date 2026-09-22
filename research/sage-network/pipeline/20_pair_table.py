@@ -7,6 +7,8 @@ answer. Then it harvests the pairs judged to be the SAME MAN named twice where
 one side is a short form: דר' אלעזר דאמר ר"א says, in that passage, that ר"א is
 R. Elazar. Each such pair is a reading of a short form given by the text itself,
 not by a model's memory of who ר"א usually is. Writes data/short-form-readings.json.
+The same-string rule is left out of the harvest: a pair of two identical strings
+spells nothing out.
 """
 import collections, json, os, re, sys
 sys.path.insert(0, os.path.dirname(__file__))
@@ -26,6 +28,16 @@ if __name__ == '__main__':
     n = len(rows)
     sure = [r for r in rows if (r.get('confidence') or 0) >= TRUST]
     print(f'pairs judged: {n:,}   confident ({TRUST}+): {len(sure):,} ({len(sure) / n:.1%})')
+    # The short-form harvest below reads the FINAL table when it exists, so the
+    # rule, the stronger reader and the cheap model all feed it. Each row there
+    # already carries one settled kind and its source (23_pairs_final.py).
+    final = os.path.join(textio.DATA, 'pairs-final.jsonl')
+    if os.path.exists(final):
+        settled = [r for r in (json.loads(l) for l in open(final)) if r.get('kind') and r['source'] != 'rule']
+        print(f'\nshort forms are harvested from the final table: {len(settled):,} settled pairs '
+              f'({collections.Counter(r["source"] for r in settled).most_common()})')
+    else:
+        settled = sure
     kinds, ksure = collections.Counter(r['kind'] for r in rows), collections.Counter(r['kind'] for r in sure)
     print(f'\n{"kind":12s} {"pairs":>7s} {"share":>6s} {"confident":>10s}   used for')
     for k, c in kinds.most_common():
@@ -44,7 +56,7 @@ if __name__ == '__main__':
 
     # short forms read by the text itself
     readings = collections.defaultdict(collections.Counter); where = {}
-    for r in sure:
+    for r in settled:
         if r['kind'] != 'same-man':
             continue
         a, b = r['a'], r['b']
