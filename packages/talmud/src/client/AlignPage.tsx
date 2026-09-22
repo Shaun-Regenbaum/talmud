@@ -12,6 +12,11 @@
  * Read-only — the page never triggers generation or LLM spend.
  */
 
+import { Button } from '@corpus/ui/Button';
+import { PageNavigation } from '@corpus/ui/PageNavigation';
+import { Select } from '@corpus/ui/Select';
+import { FilterChip, Input, StatusMessage } from '@corpus/ui/Study';
+import './debug-controls.css';
 import { isReferenceSource } from '@corpus/core/context/placement';
 import type { ContextItem } from '@corpus/core/context/types';
 import {
@@ -27,6 +32,7 @@ import {
 import { TRACTATE_OPTIONS } from '../lib/sefref';
 import { colorForKind } from './GutterIcons';
 import type { GenerationId } from './generations';
+import { t } from './i18n';
 import { injectHadran } from './injectHadran';
 import { injectRabbiUnderlines } from './injectRabbiUnderlines';
 import { injectSegmentMarkers } from './injectSegmentMarkers';
@@ -160,7 +166,7 @@ const kindColor = (k: string): string =>
       ? '#0066cc'
       : k === 'place'
         ? '#9a3412'
-        : '#222';
+        : 'var(--fg)';
 const markIconHtml = (kind: string, ring = false) =>
   `<span class="aw-ic" style="background:${kindColor(kind)}${ring ? `;box-shadow:0 0 0 2px ${kindColor(kind)}60` : ''}" title="${kind}">${GLYPH[kind] ?? ''}</span>`;
 
@@ -495,15 +501,15 @@ export function AlignPage(): JSX.Element {
       const it = byKey().get(d.key);
       if (!it) return '';
       const t = it.title?.en || it.title?.he;
-      return `<div class="aw-card aw-detail"><button class="aw-back" data-back>← back to list</button>
+      return `<div class="aw-card aw-detail">
         <div class="aw-dtitle">${dot('#16a34a')} ${esc(it.sourceLabel)}${t ? ` — ${esc(t)}` : ''}</div>
         <div class="aw-dsub"><span class="aw-badge">source</span><span class="aw-badge">${esc(it.source)}</span>${it.via ? `<span class="aw-via">${esc(it.via)}</span>` : ''}${it.segs.length ? `<span class="aw-badge">seg ${it.segs.join(', ')}</span>` : ''}${it.amud ? `<span class="aw-badge">amud ${it.amud}</span>` : ''}${it.url ? `<a class="aw-badge" href="${esc(it.url)}" target="_blank" rel="noreferrer">open ↗</a>` : ''}</div>
-        <div class="aw-dbody">${it.body?.he ? `<div class="aw-he" dir="rtl">${esc(it.body.he)}</div>` : ''}${it.body?.en ? `<div class="aw-en">${esc(it.body.en)}</div>` : ''}${!it.body?.he && !it.body?.en ? '<div class="aw-en" style="color:#94a3b8">(no body text)</div>' : ''}</div></div>`;
+        <div class="aw-dbody">${it.body?.he ? `<div class="aw-he" dir="rtl">${esc(it.body.he)}</div>` : ''}${it.body?.en ? `<div class="aw-en">${esc(it.body.en)}</div>` : ''}${!it.body?.he && !it.body?.en ? '<div class="aw-en" style="color:var(--muted)">(no body text)</div>' : ''}</div></div>`;
     }
     if (d?.t === 'ent') {
       const e = entityIndex().get(d.key);
       if (!e) return '';
-      return `<div class="aw-card aw-detail"><button class="aw-back" data-back>← back to list</button>
+      return `<div class="aw-card aw-detail">
         <div class="aw-dtitle">${markIconHtml(d.key.startsWith('places') ? 'place' : 'rabbi', true)} ${esc(e.name || e.nameHe)} <span class="aw-he2" dir="rtl" style="font-size:1rem">${esc(e.nameHe)}</span></div>
         <div class="aw-dsub">${e.extra ? `<span class="aw-badge">${esc(e.extra)}</span>` : ''}<span class="aw-badge">${e.segs.length ? `appears in seg ${e.segs.join(', ')}` : 'no text match on this daf'}</span></div>
         <div class="aw-dbody"><div class="aw-en">Highlights just the name occurrences in the daf text (the <b>rabbi</b> mark's own name anchors — not the rabbis cited inside argument sections).</div></div></div>`;
@@ -512,8 +518,8 @@ export function AlignPage(): JSX.Element {
       const m = allMarks().find((x) => x.id === d.mid);
       if (!m?.meta) return '';
       const usd = m.meta.cost ? (m.meta.cost.billedUsd ?? m.meta.cost.estimatedUsd) : null;
-      return `<div class="aw-card aw-detail"><button class="aw-back" data-back>← back to list</button>
-        <div class="aw-dtitle">${markIconHtml(m.kind, true)} ${esc(m.label)} <span style="color:#94a3b8;font-weight:400;font-size:12px">· ${m.instances.length} instances</span></div>
+      return `<div class="aw-card aw-detail">
+        <div class="aw-dtitle">${markIconHtml(m.kind, true)} ${esc(m.label)} <span style="color:var(--muted);font-weight:400;font-size:12px">· ${m.instances.length} instances</span></div>
         <div class="aw-dsub"><span class="aw-badge">generation</span><span class="aw-badge">${esc(m.meta.model)}</span><span class="aw-badge">${fmtUsd(usd)}</span><span class="aw-badge">${fmtMs(m.meta.elapsed_ms)}</span><span class="aw-badge ${m.meta.cache_hit ? 'hit' : 'miss'}">cache: ${m.meta.cache_hit ? 'hit' : 'miss'}</span></div>
         <div class="aw-dbody"><div class="aw-en">tokens ${m.meta.cost?.tokensIn ?? '?'} in / ${m.meta.cost?.tokensOut ?? '?'} out · recipe ${esc(m.meta.recipe_hash?.slice(0, 8) ?? 'n/a')}</div></div></div>`;
     }
@@ -663,6 +669,11 @@ export function AlignPage(): JSX.Element {
     setHl(segs);
     if (segs.length) scrollIntoSpine(`.aw-daf .daf-word[data-seg="${Math.min(...segs)}"]`);
   }
+  function closeDetail() {
+    setDetail(null);
+    setPin([]);
+    clearPinWordish();
+  }
   function clearPinWordish() {
     setPinWords([]);
     setPinRabbi(null);
@@ -682,12 +693,6 @@ export function AlignPage(): JSX.Element {
     });
     inspEl.addEventListener('click', (e) => {
       const t = e.target as HTMLElement;
-      if (t.closest('[data-back]')) {
-        setDetail(null);
-        setPin([]);
-        clearPinWordish();
-        return;
-      }
       const mh = t.closest('[data-mkhead]') as HTMLElement | null;
       if (mh) {
         mh.closest('.aw-mkrow')?.classList.toggle('open');
@@ -749,13 +754,13 @@ export function AlignPage(): JSX.Element {
   };
 
   return (
-    <main class="page-shell" style={{ '--page-max': '1480px', color: '#1a1a1a' }}>
+    <main class="page-shell alignment-page" style={{ '--page-max': '1480px', color: 'var(--fg)' }}>
       <style>{STYLE}</style>
       <style>{highlightCss()}</style>
       <header class="ui-reader-header aw-header">
-        <h1 class="ui-reader-title">Alignment</h1>
-        <select
-          class="ui-select"
+        <h1 class="ui-reader-title">{t('header.align')}</h1>
+        <Select
+          aria-label={t('header.tractate')}
           value={tractate()}
           onChange={(e) => setTractate(e.currentTarget.value)}
         >
@@ -766,31 +771,23 @@ export function AlignPage(): JSX.Element {
               </option>
             )}
           </For>
-        </select>
-        <div class="ui-page-navigation">
-          <button
-            type="button"
-            class="ui-nav-button"
-            onClick={() => go('prev')}
-            disabled={!adjPage(page(), 'prev')}
-          >
-            ‹
-          </button>
-          <input
-            class="ui-page-number"
-            style={{ width: '3.2rem', 'text-align': 'center' }}
+        </Select>
+        <PageNavigation
+          label={t('header.pages')}
+          previousLabel={t('header.previous')}
+          nextLabel={t('header.next')}
+          onPrevious={() => go('prev')}
+          onNext={() => go('next')}
+          previousDisabled={!adjPage(page(), 'prev')}
+          nextDisabled={!adjPage(page(), 'next')}
+        >
+          <Input
+            aria-label={t('header.page')}
+            class="alignment-page-input"
             value={page()}
             onChange={(e) => setPage(e.currentTarget.value.trim())}
           />
-          <button
-            type="button"
-            class="ui-nav-button"
-            onClick={() => go('next')}
-            disabled={!adjPage(page(), 'next')}
-          >
-            ›
-          </button>
-        </div>
+        </PageNavigation>
         <Show when={!daf.loading}>
           <span class="aw-tally">
             <b>{tally().total}</b> sources · <b>{tally().line}</b> on a line · <b>{tally().off}</b>{' '}
@@ -803,12 +800,10 @@ export function AlignPage(): JSX.Element {
       </header>
 
       <Show when={daf.loading}>
-        <p class="aw-note" style={{ padding: '1rem' }}>
-          Loading…
-        </p>
+        <StatusMessage tone="loading">{t('commentary.loading')}</StatusMessage>
       </Show>
       <Show when={daf.error}>
-        <p style={{ color: '#b91c1c', padding: '1rem' }}>Error: {String(daf.error)}</p>
+        <StatusMessage tone="error">{String(daf.error)}</StatusMessage>
       </Show>
 
       <div class="aw-work">
@@ -906,13 +901,9 @@ export function AlignPage(): JSX.Element {
             <div class="aw-cats">
               <For each={cats()}>
                 {(cc) => (
-                  <button
-                    type="button"
-                    class={`aw-chip${cat() === cc.id ? ' on' : ''}`}
-                    onClick={() => setCat(cc.id)}
-                  >
-                    {cc.label} <span class="aw-chipn">{cc.n}</span>
-                  </button>
+                  <FilterChip active={cat() === cc.id} onClick={() => setCat(cc.id)} count={cc.n}>
+                    {cc.label}
+                  </FilterChip>
                 )}
               </For>
             </div>
@@ -926,20 +917,27 @@ export function AlignPage(): JSX.Element {
                     <div class="aw-loadbar-fill" />
                   </div>
                 </Show>
+                <Show when={detail()}>
+                  <Button class="alignment-back" onClick={closeDetail}>
+                    {t('tutorial.back')}
+                  </Button>
+                </Show>
                 <div ref={inspEl} />
               </>
             }
           >
             <div class="aw-card">
-              <button type="button" class="aw-back" onClick={() => setDetail(null)}>
-                ← back to list
-              </button>
+              <Button class="alignment-back" onClick={closeDetail}>
+                {t('tutorial.back')}
+              </Button>
               <Show when={genMark()}>
                 {(mm) => (
                   <>
                     <div class="aw-dtitle">
                       <span innerHTML={markIconHtml(mm().kind, true)} /> {mm().label}
-                      <span style={{ color: '#94a3b8', 'font-weight': 400, 'font-size': '12px' }}>
+                      <span
+                        style={{ color: 'var(--muted)', 'font-weight': 400, 'font-size': '12px' }}
+                      >
                         · build DAG ({mm().instances.length} instance
                         {mm().instances.length > 1 ? 's' : ''})
                       </span>
@@ -960,69 +958,64 @@ export function AlignPage(): JSX.Element {
 
 const STYLE = `
 .aw-header{margin:0 0 1rem;padding-right:7rem}
-.aw-tally{font-size:.82rem;color:#6b6b6b}.aw-tally b{color:#1a1a1a}.aw-tally .warn{color:#b45309}
-.aw-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#888;font-weight:600}
+.aw-tally{font-size:.82rem;color:var(--muted)}.aw-tally b{color:var(--fg)}.aw-tally .warn{color:#b45309}
+.aw-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
 .aw-work{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(380px,1fr);gap:1.4rem;align-items:start}
-.aw-colh{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}.aw-hint{font-size:11px;color:#6b6b6b}
-.aw-spinebox{background:#fff;border:1px solid #e5e3dc;border-radius:8px;padding:.8rem 1.1rem;position:sticky;top:.5rem;max-height:calc(100vh - 120px);overflow:auto}
+.aw-colh{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}.aw-hint{font-size:11px;color:var(--muted)}
+.aw-spinebox{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:.8rem 1.1rem;position:sticky;top:.5rem;max-height:calc(100vh - 120px);overflow:auto}
 .aw-daf{font-family:"Mekorot Vilna","Frank Ruhl Libre","Times New Roman",serif;font-size:1.2rem;line-height:2;text-align:justify;padding:.5rem 0}
 .aw-daf .daf-word{transition:background .08s}
 .aw-adj{color:#b3ada0;cursor:pointer;border-radius:4px;padding:.3rem .4rem;border:1px solid transparent}
-.aw-adj:hover{background:#faf8f3}
+.aw-adj:hover{background:var(--bg)}
 .aw-adj.hot{background:#fff1c9;border-color:#f59e0b;color:#8a7a55}
 .aw-adjlab{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#c9c3b6;margin-bottom:.15rem}
 .aw-adjtext{font-family:"Mekorot Vilna","Frank Ruhl Libre",serif;font-size:1.02rem;line-height:1.8;text-align:justify}
-.aw-legend{display:flex;gap:1.1rem;flex-wrap:wrap;margin-top:.7rem;font-size:11px;color:#6b6b6b;align-items:center}
+.aw-legend{display:flex;gap:1.1rem;flex-wrap:wrap;margin-top:.7rem;font-size:11px;color:var(--muted);align-items:center}
 .aw-ic{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;color:#fff;line-height:0;flex:none;vertical-align:middle}
 .aw-heb{font-family:"Mekorot Vilna","Times New Roman",serif;font-size:11px;font-weight:700;line-height:1;color:#fff}
-.aw-he2{font-family:"Mekorot Vilna","Frank Ruhl Libre",serif;color:#64748b;font-size:13px}
+.aw-he2{font-family:"Mekorot Vilna","Frank Ruhl Libre",serif;color:var(--muted);font-size:13px}
 .aw-cats{display:flex;gap:.35rem;flex-wrap:wrap;margin-left:auto}
-.aw-chip{font:inherit;font-size:11px;border:1px solid #cbd5e1;background:#fff;color:#475569;border-radius:999px;padding:.12rem .55rem;cursor:pointer;display:inline-flex;gap:.25rem;align-items:center}
-.aw-chip:hover{background:#f1f5f9}.aw-chip.on{background:#1e293b;border-color:#0f172a;color:#fff}
-.aw-chipn{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;opacity:.65}
 .aw-loadbar{height:3px;background:#eee;border-radius:2px;overflow:hidden;margin:0 0 .5rem}
 .aw-loadbar-fill{height:100%;width:35%;background:var(--accent);border-radius:2px;animation:awload 1.1s ease-in-out infinite}
 @keyframes awload{0%{margin-left:-35%}100%{margin-left:100%}}
 .aw-list{max-height:calc(100vh - 150px);overflow-y:auto;padding-right:.3rem}
-.aw-grouph{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:#b0aa9e;font-weight:600;margin:.9rem 0 .25rem;position:sticky;top:0;background:#fafaf7;padding:.25rem 0;z-index:1}
+.aw-grouph{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;margin:.9rem 0 .25rem;position:sticky;top:0;background:var(--bg);padding:.25rem 0;z-index:1}
 .aw-grouph:first-child{margin-top:0}
-.aw-li{display:flex;gap:.4rem;align-items:center;padding:.34rem .15rem;border-top:1px solid #f3f1e9;font-size:12.5px}
-.aw-src{cursor:pointer;border-radius:3px}.aw-src:hover{background:#f5f2ea}
-.aw-nm{font-weight:600;color:#334155}.aw-x{color:#cbd5e1;font-size:11px}
+.aw-li{display:flex;gap:.4rem;align-items:center;padding:.34rem .15rem;border-top:1px solid var(--line);font-size:12.5px}
+.aw-src{cursor:pointer;border-radius:3px}.aw-src:hover{background:var(--surface-sunk)}
+.aw-nm{font-weight:600;color:var(--fg)}.aw-x{color:#cbd5e1;font-size:11px}
 .aw-grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.aw-srctag{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:#94a3b8;background:#f1efe9;border-radius:3px;padding:0 4px;line-height:1.6;flex:none}
-.aw-bd{color:#6b6b6b;font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aw-srctag{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:#f1efe9;border-radius:3px;padding:0 4px;line-height:1.6;flex:none}
+.aw-bd{color:var(--muted);font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .aw-dot{width:7px;height:7px;border-radius:50%;flex:none;display:inline-block}
 .aw-via{font-family:ui-monospace,Menlo,monospace;font-size:10px;padding:1px 5px;border-radius:3px;background:#eef2ff;color:#6366f1}
-.aw-conf{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#94a3b8}
-.aw-range{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:#94a3b8;margin-left:auto;white-space:nowrap}
+.aw-conf{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--muted)}
+.aw-range{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--muted);margin-left:auto;white-space:nowrap}
 .aw-utag{display:inline-flex;align-items:center;gap:.2rem;font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:#b45309;background:#fff7ed;border:1px solid #fed7aa;border-radius:3px;padding:0 4px;line-height:1.6}
-.aw-note{font-size:11.5px;color:#94a3b8;padding:.3rem 0}
-.aw-mkrow{flex-direction:column;align-items:stretch;gap:0;border-left:3px solid var(--mkc,#999);padding:0;margin:.3rem 0;background:#faf8f3;border-radius:0 5px 5px 0;border-top:none}
+.aw-note{font-size:11.5px;color:var(--muted);padding:.3rem 0}
+.aw-mkrow{flex-direction:column;align-items:stretch;gap:0;border-left:3px solid var(--mkc,#999);padding:0;margin:.3rem 0;background:var(--bg);border-radius:0 5px 5px 0;border-top:none}
 .aw-mkhead{display:flex;gap:.4rem;align-items:center;cursor:pointer;padding:.5rem .6rem}
 .aw-mkhead:hover{background:#f3eee3}.aw-mkhead .aw-nm{font-weight:700}
-.aw-chev{color:#b0aa9e;font-size:11px;transition:transform .12s}.aw-mkrow.open .aw-chev{transform:rotate(90deg)}
+.aw-chev{color:var(--muted);font-size:11px;transition:transform .12s}.aw-mkrow.open .aw-chev{transform:rotate(90deg)}
 .aw-mkdetail{display:none;padding:0 .6rem .6rem}.aw-mkrow.open .aw-mkdetail{display:block}
-.aw-badge{display:inline-flex;align-items:center;gap:.25rem;font-family:ui-monospace,Menlo,monospace;font-size:10px;padding:2px 6px;border-radius:3px;border:1px solid #e5e3dc;background:#fff;color:#475569;text-decoration:none}
+.aw-badge{display:inline-flex;align-items:center;gap:.25rem;font-family:ui-monospace,Menlo,monospace;font-size:10px;padding:2px 6px;border-radius:3px;border:1px solid var(--line);background:var(--surface);color:var(--muted);text-decoration:none}
 .aw-badge.hit{background:#dcfce7;border-color:#86efac;color:#166534}.aw-badge.miss{background:#fef9c3;border-color:#fde047;color:#854d0e}
 .aw-wf{margin-top:.4rem}
-.aw-wfband{font-size:8.5px;text-transform:uppercase;letter-spacing:.07em;color:#b0aa9e;margin:.45rem 0 .15rem}
+.aw-wfband{font-size:8.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:.45rem 0 .15rem}
 .aw-wfrow{display:grid;grid-template-columns:130px 1fr 92px;gap:.5rem;align-items:center;cursor:pointer;padding:2px 4px;border-radius:3px}
-.aw-wfrow:hover{background:#f1ece2}
-.aw-wflabel{font-size:11px;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:.3rem}
-.aw-srcid{font-family:ui-monospace,Menlo,monospace;font-size:9px;color:#94a3b8}
+.aw-wfrow:hover{background:var(--surface-sunk)}
+.aw-wflabel{font-size:11px;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:.3rem}
+.aw-srcid{font-family:ui-monospace,Menlo,monospace;font-size:9px;color:var(--muted)}
 .aw-wftrack{position:relative;height:13px;background:#efece4;border-radius:3px}
 .aw-wfbar{position:absolute;top:0;left:0;height:13px;border-radius:3px;min-width:3px}.aw-wfbar.src{background:#c2ccd6}
-.aw-wfmeta{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#64748b;text-align:right;white-space:nowrap}
-.aw-wfmeta .cost{color:#166534;font-weight:600}.aw-wfmeta .free{color:#94a3b8}
+.aw-wfmeta{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:var(--muted);text-align:right;white-space:nowrap}
+.aw-wfmeta .cost{color:#166534;font-weight:600}.aw-wfmeta .free{color:var(--muted)}
 .aw-detail{position:sticky;top:0}
-.aw-back{background:transparent;border:none;color:#6b6b6b;font:inherit;font-size:12px;cursor:pointer;padding:.1rem 0;margin-bottom:.6rem}
-.aw-back:hover{color:var(--accent)}
 .aw-dtitle{display:flex;align-items:center;gap:.5rem;font-size:1.02rem;font-weight:600}
 .aw-dsub{display:flex;gap:.5rem;flex-wrap:wrap;margin:.3rem 0 .7rem;align-items:center}
-.aw-card{background:#fff;border:1px solid #e5e3dc;border-radius:6px;padding:.75rem .9rem}
-.aw-dbody{border-top:1px solid #f0eee6;padding-top:.7rem;max-height:calc(100vh - 260px);overflow:auto}
-.aw-he{font-family:"Mekorot Vilna","Frank Ruhl Libre",serif;font-size:1.15rem;line-height:1.9;color:#222}
-.aw-en{font-size:13px;line-height:1.6;color:#444;margin-top:.5rem}
+.aw-card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:.75rem .9rem}
+.aw-dbody{border-top:1px solid var(--line);padding-top:.7rem;max-height:calc(100vh - 260px);overflow:auto}
+.aw-he{font-family:"Mekorot Vilna","Frank Ruhl Libre",serif;font-size:1.15rem;line-height:1.9;color:var(--fg)}
+.aw-en{font-size:13px;line-height:1.6;color:var(--fg);margin-top:.5rem}
 @media(max-width:880px){.aw-work{grid-template-columns:1fr}.aw-spinebox{position:static;max-height:none}.aw-header{padding-right:0}}
 `;
