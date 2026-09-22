@@ -1,0 +1,85 @@
+{
+  "source": "https://talmud.dev/api/pesukim/Berakhot/2a?lang=en",
+  "retrievedAt": "2026-09-22",
+  "data": {
+    "tractate": "Berakhot",
+    "page": "2a",
+    "lang": "en",
+    "complete": true,
+    "cold": [],
+    "malformed": [],
+    "status": "complete",
+    "generating": false,
+    "checkUrl": "https://talmud.dev/api/pesukim/Berakhot/2a",
+    "readerUrl": "https://talmud.dev/?tractate=Berakhot&page=2a#daf",
+    "count": 3,
+    "verses": [
+      {
+        "ref": "Deuteronomy 6:7",
+        "heRef": "דברים ו׳:ז׳",
+        "hebrew": "וְשִׁנַּנְתָּ֣ם לְבָנֶ֔יךָ וְדִבַּרְתָּ֖ בָּ֑ם בְּשִׁבְתְּךָ֤ בְּבֵיתֶ֙ךָ֙ וּבְלֶכְתְּךָ֣ בַדֶּ֔רֶךְ וּֽבְשׇׁכְבְּךָ֖ וּבְקוּמֶֽךָ׃",
+        "english": "Impress them upon your children. Recite them when you stay at home and when you are away, when you lie down and when you get up.",
+        "tanachUrl": "https://tanach.dev/?book=Deuteronomy&chapter=6",
+        "citation": {
+          "style": "explicit",
+          "excerpt": "בְּשָׁכְבְּךָ וּבְקוּמֶךָ",
+          "endExcerpt": "בְּשָׁכְבְּךָ וּבְקוּמֶךָ",
+          "summary": "The verse is cited as the source for the obligation to recite the Shema at night (when lying down) and in the morning (when rising), establishing the order of the Mishnah.",
+          "startSegIdx": 7,
+          "endSegIdx": 7
+        },
+        "synthesis": "The pasuk appears in Devarim 6:7, where Hashem commands that the words of Torah be spoken \"בְּשָׁכְבְּךָ וּבְקוּמֶךָ\" (when you lie down and when you rise). The gemara asks why the Mishnah opens with the evening Shema without any preceding context (תנא היכא קאי), and answers that the Tanna is standing on this very pasuk. The proof is a plain word-order derivation: the Torah lists \"בשכבך\" before \"ובקומך\", so the Mishnah follows that sequence by treating the time of lying down (evening) before the time of rising (morning). The citation thus establishes that the Mishnah's order—beginning with קריאת שמע של ערבית—directly mirrors the Torah's own sequence.",
+        "tanachContext": "This pasuk commands that the words of the Torah are to be taught and spoken 'בשכבך ובקומך' (when you lie down and when you rise). Hashem is speaking to Moshe, instructing him to convey to Bnei Yisrael the obligation to engage with Torah at all times. It sits in Devarim 6, part of the Shema passage (Devarim 6:4-9), which outlines the fundamental mitzvot of loving Hashem and teaching His words to the next generation.",
+        "whyHere": "The Mishnah opens with 'From when may one recite the evening Shema?' without any preceding context, so the gemara asks: where is the Tanna standing (תנא היכא קאי) that he starts here, and why does he begin with evening rather than morning? The gemara answers that the Tanna is standing on the pasuk 'בשכבך ובקומך' (Devarim 6:7), which establishes the order of the Mishnah by mentioning lying down (evening) before rising (morning).",
+        "mechanism": "Plain word-order proof — the gemara notes that the verse itself lists \"בשכבך\" (when you lie down) before \"ובקומך\" (when you rise), so the Mishnah follows the Torah's own sequence by treating evening (שכיבה) before morning (קימה). No formal midah is invoked; the derivation is simply from the order of the two terms in the pasuk.",
+        "landing": "The citation of 'בשכבך ובקומך' (Devarim 6:7) establishes that the Mishnah's order—beginning with the evening Shema (קריאת שמע של ערבית) before the morning Shema—follows the Torah's sequence of 'when you lie down' preceding 'when you rise,' as taught by the Tanna (תנא) in the gemara.",
+        "missing": [],
+        "malformed": []
+      },
+      {
+        "ref": "Genesis 1:5",
+        "heRef": "בראשית א׳:ה׳",
+        "hebrew": "וַיִּקְרָ֨א אֱלֹהִ֤ים ׀ לָאוֹר֙ י֔וֹם וְלַחֹ֖שֶׁךְ קָ֣רָא לָ֑יְלָה וַֽיְהִי־עֶ֥רֶב וַֽיְהִי־בֹ֖קֶר י֥וֹם אֶחָֽד׃",
+        "english": "God called the light Day—and called the darkness Night. And there was evening and there was morning, a first day. c a first day In contrast to others “one day.”",
+        "tanachUrl": "https://tanach.dev/?book=Genesis&chapter=1",
+        "citation": {
+          "style": "explicit",
+          "excerpt": "וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד",
+          "endExcerpt": "וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד",
+          "summary": "The verse is used as an alternative proof that evening precedes morning in the order of creation, justifying why the Mishnah discusses the evening Shema first.",
+          "startSegIdx": 8,
+          "endSegIdx": 8
+        },
+        "synthesis": "The pasuk appears at the close of the first day of creation in Bereishit 1:5, where the Torah narrates the sequence of evening and morning. The gemara asks why the Mishnah opens with the evening Shema rather than the morning Shema, and one answer offered is that the Mishnah follows the order of creation itself. The proof is a straightforward word-order inference from the phrase 'וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד' (there was evening and there was morning, one day), which lists evening before morning. This establishes that the Mishnah's sequence—discussing the evening Shema first—mirrors the primordial pattern set at the world's beginning.",
+        "tanachContext": "This pasuk describes the first day of creation: after naming the light 'day' and the darkness 'night,' the Torah states 'וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד' (there was evening and there was morning, one day). Hashem is the speaker here, acting as the narrator of creation. The verse is in Bereishit 1:5, at the end of the first day in the creation narrative, establishing the pattern of evening preceding morning.",
+        "whyHere": "The gemara asks why the Mishnah discusses the evening Shema before the morning Shema — why not start with the morning? One answer is that the Mishnah follows the verse 'בשכבך ובקומך' (when you lie down and when you rise), which mentions lying down first. The alternative answer, which brings in this pasuk, is that the order is derived from the creation of the world: the pasuk 'ויהי ערב ויהי בקר יום אחד' (Bereishit 1:5) shows that evening precedes morning in the natural order, justifying the Mishnah's sequence.",
+        "mechanism": "Plain word-order proof — the verse 'וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד' (Bereishit 1:5) lists evening before morning in the order of creation, so the gemara uses this as a narrative anchor to justify why the Mishnah discusses the evening Shema (קריאת שמע של ערבית) before the morning one — the Torah's own sequence of creation establishes that evening precedes morning.",
+        "landing": "The citation of 'וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד' (Bereishit 1:5) establishes that the order of creation—evening followed by morning—provides an alternative justification for why the Mishnah discusses the evening Shema before the morning Shema.",
+        "missing": [],
+        "malformed": []
+      },
+      {
+        "ref": "Leviticus 22:7",
+        "heRef": "ויקרא כ״ב:ז׳",
+        "hebrew": "וּבָ֥א הַשֶּׁ֖מֶשׁ וְטָהֵ֑ר וְאַחַר֙ יֹאכַ֣ל מִן־הַקֳּדָשִׁ֔ים כִּ֥י לַחְמ֖וֹ הֽוּא׃",
+        "english": "As soon as the sun sets, he shall be pure; and afterward he may eat of the sacred donations, for they are his food.",
+        "tanachUrl": "https://tanach.dev/?book=Leviticus&chapter=22",
+        "citation": {
+          "style": "explicit",
+          "excerpt": "וּבָא הַשֶּׁמֶשׁ וְטָהֵר",
+          "endExcerpt": "וּבָא הַשֶּׁמֶשׁ וְטָהֵר",
+          "summary": "The verse is cited to teach that sunset (the coming of the sun) permits a priest to eat terumah, and that atonement (bringing a sacrifice) is not a prerequisite.",
+          "startSegIdx": 12,
+          "endSegIdx": 12
+        },
+        "synthesis": "In Vayikra 22:7, Hashem instructs Moshe about the conditions under which a kohen may eat terumah, stating 'וּבָ֥א הַשֶּׁ֖מֶשׁ וְטָהֵ֑ר וְאַחַר֙ יֹאכַ֣ל מִן־הַקֳּדָשִׁ֔ים'. The gemara questions why the Mishnah fixes the time for the evening Shema as 'when the kohanim enter to eat their terumah' instead of simply saying nightfall, and answers that this phrasing indirectly teaches a further halachah. Reading the pasuk's syntax literally, the sequential clause structure—first 'ובא השמש' (the sun sets) and only then 'וטהר' (he becomes pure)—proves that ביאת השמש (sunset) itself completes the purification. The gemara concludes that a kohen's atonement is not a prerequisite for eating terumah.",
+        "tanachContext": "The pasuk says that when the sun sets, the priest becomes tahor (pure), and afterward he may eat from the sacred offerings (וּבָא הַשֶּׁמֶשׁ וְטָהֵר וְאַחַר יֹאכַל מִן־הַקֳּדָשִׁים), because it is his bread. Hashem is speaking to Moshe, instructing him about the laws of purity for kohanim who may eat terumah and other holy foods. This verse is in Parshat Emor (Vayikra 22:7), within the section detailing the restrictions and conditions for kohanim partaking of sacred offerings.",
+        "whyHere": "The Mishnah sets the time for evening Shema as 'when the kohanim enter to eat their terumah,' but the gemara needs to know exactly when that is. The gemara asks: why not just say 'from tzeis hakochavim' (nightfall) outright? The answer is that the Mishnah's phrasing incidentally teaches that atonement (bringing a sacrifice) does not delay a kohen from eating terumah — the verse 'ובא השמש וטהר' (Vayikra 22:7) is then cited to prove that sunset alone permits eating, without requiring the kohen's atonement.",
+        "mechanism": "Plain proof from verse wording — the verse \"וּבָא הַשֶּׁמֶשׁ וְטָהֵר\" (Leviticus 22:7) is read sequentially: first the sun comes (\"ביאת השמש\" — sunset), then he becomes pure (\"טהר\"), meaning the purification is completed by the day's end alone. The gemara's move is a plain word-order argument: the sequence of clauses shows that sunset itself suffices for purity regarding eating terumah, and atonement (bringing a sacrifice) is not mentioned in the verse and therefore is not a prerequisite. No formal midah is invoked; it is a straightforward peshat reading of the pasuk's syntax.",
+        "landing": "The pasuk 'וּבָא הַשֶּׁמֶשׁ וְטָהֵר' (Vayikra 22:7) establishes that sunset permits a priest to eat terumah, and that atonement (bringing a sacrifice) does not delay that permission, as taught by the Tanna in the beraita.",
+        "missing": [],
+        "malformed": []
+      }
+    ]
+  }
+}

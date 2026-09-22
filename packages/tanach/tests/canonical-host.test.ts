@@ -37,7 +37,10 @@ describe('canonical host (tanach.dev)', () => {
   });
 
   it('does not redirect /api/* on the legacy host', async () => {
-    const res = await fetchAs('https://tanach.shaunregenbaum.com/api/chapter/Genesis/19');
-    expect(res.status).not.toBe(301);
+    // An invalid chapter exercises the API route without a live Sefaria request.
+    const res = await fetchAs(
+      'https://tanach.shaunregenbaum.com/api/chapter/Genesis/not-a-chapter',
+    );
+    expect(res.status).toBe(400);
   });
 });
