@@ -51,7 +51,9 @@
     "./StudyOverview": "./src/StudyOverview.tsx",
     "./readingmap.css": "./src/readingmap.css",
     "./Study": "./src/Study.tsx",
-    "./InlineHint": "./src/InlineHint.tsx"
+    "./InlineHint": "./src/InlineHint.tsx",
+    "./DailyComparison": "./src/DailyComparison.tsx",
+    "./MetricSummary": "./src/MetricSummary.tsx"
   },
   "peerDependencies": {
     "solid-js": "^1.9.15"

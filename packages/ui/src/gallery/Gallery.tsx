@@ -19,6 +19,7 @@ const sections = [
   'text',
   'theme',
   'icons',
+  'usageSummaries',
   'charts',
   'maps',
   'graphs',

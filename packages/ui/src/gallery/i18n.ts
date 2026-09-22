@@ -1,4 +1,33 @@
 const catalog = {
+  summaryLiveHint: {
+    en: 'Live usage and recorded charges from talmud.dev.',
+    he: 'נתוני שימוש וחיובים מתועדים חיים מ־talmud.dev.',
+  },
+  usageSummaries: { en: 'Daily comparisons & summaries', he: 'השוואות יומיות וסיכומים' },
+  dailyChannels: { en: 'Daily requests by channel', he: 'בקשות יומיות לפי ערוץ' },
+  dailyScale: {
+    en: 'Requests \u00b7 one scale across all days and channels',
+    he: 'בקשות · קנה מידה אחיד לכל הימים והערוצים',
+  },
+  channelApp: { en: 'App', he: 'יישום' },
+  recordedCharges: { en: 'Recorded charges', he: 'חיובים מתועדים' },
+  knownCharges: { en: 'Known charges', he: 'חיובים ידועים' },
+  attempts: { en: 'Attempts', he: 'ניסיונות' },
+  cachedReplies: { en: 'Cached replies', he: 'תשובות ממטמון' },
+  unknownCosts: { en: 'Unknown costs', he: 'עלויות לא ידועות' },
+  notZero: { en: 'Not counted as zero', he: 'אינן נספרות כאפס' },
+  ledgerScope: {
+    en: 'Earlier charges and list-price estimates are not included.',
+    he: 'חיובים קודמים והערכות לפי מחירון אינם נכללים.',
+  },
+  firstRecord: { en: 'First record in this period:', he: 'הרישום הראשון בתקופה זו:' },
+  chargesByProducer: { en: 'Charges by producer', he: 'חיובים לפי פעולה' },
+  producerDetail: {
+    en: 'Known charges and attempts for each operation',
+    he: 'חיובים ידועים וניסיונות לכל פעולה',
+  },
+  producer: { en: 'Producer', he: 'פעולה' },
+  less: { en: 'Show less', he: 'הצג פחות' },
   gemara: { en: 'Talmud', he: 'תלמוד' },
   midrash: { en: 'Midrash', he: 'מדרש' },
   studyControls: { en: 'Study cards & states', he: 'כרטיסי לימוד ומצבים' },
