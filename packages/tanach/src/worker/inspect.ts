@@ -101,14 +101,14 @@ const KEY_SHAPES: Record<string, ChapterShape | InstanceShape> = {
   },
   'gemara-question': {
     kind: 'instance',
-    prefix: (b, c) => `gemara-question:v1:${b}:${c}:`,
-    key: (b, c, raw) => `gemara-question:v1:${b}:${c}:${raw}`,
+    prefix: (b, c) => `gemara-question:v2:${b}:${c}:`,
+    key: (b, c, raw) => `gemara-question:v2:${b}:${c}:${raw}`,
     label: (raw) => `v${raw}`,
   },
   'midrash-question': {
     kind: 'instance',
-    prefix: (b, c) => `midrash-question:v1:${b}:${c}:`,
-    key: (b, c, raw) => `midrash-question:v1:${b}:${c}:${raw}`,
+    prefix: (b, c) => `midrash-question:v2:${b}:${c}:`,
+    key: (b, c, raw) => `midrash-question:v2:${b}:${c}:${raw}`,
     label: (raw) => `v${raw}`,
   },
   'midrash-synthesis': {

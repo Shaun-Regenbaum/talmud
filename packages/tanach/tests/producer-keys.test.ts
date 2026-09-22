@@ -74,10 +74,10 @@ describe('key byte-parity with the legacy literals', () => {
     for (const id of ['gemara-question', 'midrash-question'] as const) {
       const def = info(enrichRunDefOf(id), 'enrich');
       expect(TANACH_KEY_SCHEME.key(def, enrichmentAddress(id, '22', 'Genesis', '1'))).toBe(
-        `${id}:v1:Genesis:1:22`,
+        `${id}:v2:Genesis:1:22`,
       );
       expect(TANACH_KEY_SCHEME.key(def, enrichmentAddress(id, '23', 'Genesis', '1'))).not.toBe(
-        `${id}:v1:Genesis:1:22`,
+        `${id}:v2:Genesis:1:22`,
       );
     }
   });

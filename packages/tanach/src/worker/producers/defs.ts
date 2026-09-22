@@ -396,7 +396,11 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     label: 'Talmud: why this verse',
     description: 'The question a source addresses and how it uses the verse',
     kind: 'enrichment',
-    inputs: [{ source: 'verse-text' }, { source: 'gemara-question-sources' }],
+    inputs: [
+      { source: 'verse-text' },
+      { source: 'gemara-question-sources' },
+      { source: 'talmud-verse-context' },
+    ],
     recipe: {
       extractor: {
         kind: 'llm',
@@ -412,7 +416,7 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     cardinality: 'per-input',
     scope: 'local',
     key_shape: 'enrich',
-    cacheVersion: '1',
+    cacheVersion: '2',
     source: 'code',
   },
   'midrash-question': {
@@ -420,7 +424,11 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     label: 'Midrash: why this verse',
     description: 'The question a source addresses and how it uses the verse',
     kind: 'enrichment',
-    inputs: [{ source: 'verse-text' }, { source: 'midrash-question-sources' }],
+    inputs: [
+      { source: 'verse-text' },
+      { source: 'midrash-question-sources' },
+      { source: 'talmud-verse-context' },
+    ],
     recipe: {
       extractor: {
         kind: 'llm',
@@ -436,7 +444,7 @@ export const TANACH_PRODUCERS: Record<TanachProducerId, Producer> = {
     cardinality: 'per-input',
     scope: 'local',
     key_shape: 'enrich',
-    cacheVersion: '1',
+    cacheVersion: '2',
     source: 'code',
   },
   translate: {

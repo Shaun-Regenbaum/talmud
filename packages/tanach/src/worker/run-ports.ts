@@ -68,10 +68,12 @@ import type { EventSection } from './producers/events.ts';
 import { versesForPrompt } from './producers/events.ts';
 import type { SourcePassage, VerseCommentary } from './sefaria-sources.ts';
 import { asVerses, fetchPassages, fetchVerseCommentaries, sefaria } from './sefaria-sources.ts';
+import { linkedTalmudRefs, readTalmudVerseContext } from './talmud-verse-context.ts';
 import { recordUsage as recordUsageEntry } from './usage.ts';
 
 export interface TanachEnv extends LLMEnv {
   CACHE: KVNamespace;
+  TALMUD?: Fetcher;
 }
 
 /** Per-request run context: env + executionCtx (for fire-and-forget usage
@@ -145,10 +147,10 @@ const KEY_TEMPLATES: Record<string, KeyTemplate> = {
     key: (a: TanachAddress) => `synthesis:v1:${a.unit?.work}:${a.unit?.unit}:${a.verse}`,
   },
   'gemara-question': {
-    key: (a: TanachAddress) => `gemara-question:v1:${a.unit?.work}:${a.unit?.unit}:${a.verse}`,
+    key: (a: TanachAddress) => `gemara-question:v2:${a.unit?.work}:${a.unit?.unit}:${a.verse}`,
   },
   'midrash-question': {
-    key: (a: TanachAddress) => `midrash-question:v1:${a.unit?.work}:${a.unit?.unit}:${a.verse}`,
+    key: (a: TanachAddress) => `midrash-question:v2:${a.unit?.work}:${a.unit?.unit}:${a.verse}`,
   },
   // This legacy producer intentionally uses the shorter midrash-synth prefix.
   'midrash-synthesis': {
@@ -645,6 +647,31 @@ function questionSources(kind: 'gemara' | 'midrash'): SourceResolver<TanachRunCt
   };
 }
 
+const talmudVerseContextResolver: SourceResolver<TanachRunCtx> = async ({
+  ctx: rc,
+  out,
+  tractate: book,
+  page: chapter,
+  markInput,
+}) => {
+  const verse = verseOf(markInput);
+  const saved = await rc.env.CACHE.get(`gemara:v1:${book}:${chapter}:${verse}`);
+  let sourceRefs: string[];
+  if (saved) {
+    const payload = JSON.parse(saved) as { passages?: SourcePassage[] };
+    if (!Array.isArray(payload.passages)) throw new Error('Invalid saved Talmud sources');
+    sourceRefs = payload.passages.map((p) => p.ref);
+  } else {
+    sourceRefs = await linkedTalmudRefs(`${book} ${chapter}:${verse}`);
+  }
+  out.vars.talmud_context = await readTalmudVerseContext(
+    rc.env.TALMUD,
+    `${book} ${chapter}:${verse}`,
+    sourceRefs,
+  );
+  recordSource(out, 'talmud-verse-context', out.vars.talmud_context);
+};
+
 const RESOLVE_PORTS: ResolveInputsPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkDef> = {
   sources: {
     'chapter-verses': chapterVersesResolver,
@@ -655,6 +682,7 @@ const RESOLVE_PORTS: ResolveInputsPorts<TanachRunCtx, TanachEnrichmentDef, Tanac
     'verse-text': verseTextResolver,
     commentaries: commentariesResolver,
     'midrash-passages': midrashPassagesResolver,
+    'talmud-verse-context': talmudVerseContextResolver,
     'gemara-question-sources': questionSources('gemara'),
     'midrash-question-sources': questionSources('midrash'),
   },

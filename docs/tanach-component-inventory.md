@@ -50,8 +50,24 @@ from the gallery's dated, real saved response.
 The Talmud and Midrash panels now put a source-backed explanation before the
 original passages: what question the source addresses and why it uses the verse.
 The two new producers are `gemara-question` and `midrash-question`, each with its
-own `v1` cache family. Existing recipes, summaries and keys are unchanged. They
+own `v2` cache family. Existing recipes, summaries and keys are unchanged. They
 read up to six linked passages, fetching longer text where available, and must
 state when that text does not establish the connection. Empty results are rejected
 before saving. These explanations need the updated backend and generation access;
 the local preview labels them unavailable rather than supplying invented prose.
+
+The explanations also read the Talmud reader’s existing pasuk cards through the
+`TALMUD` service binding. For each linked Bavli daf, they request `/api/pesukim`
+without `generate=1`. Only cards for the same verse, or an explicit range
+containing it, are included. The input keeps the daf and verse reference beside
+the saved context, why-here note, reading method, conclusion and summary.
+
+The original passages outrank these generated notes. A missing card is recorded
+as missing, not as evidence that the source has no connection. A failed service
+request stops the explanation from being cached without its intended context.
+The inspector records this input as `talmud-verse-context`.
+
+Only `gemara-question` and `midrash-question` moved from v1 to v2, so their earlier
+explanations are replaced on demand. Talmud’s pasuk cards and all older Tanach
+producer recipes and caches are unchanged. The context-matching tests use a real
+Berakhot 2a response saved on September 22, 2026, with its source URL.
