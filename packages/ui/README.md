@@ -4,7 +4,7 @@ Both readers use this package for their colors, controls and shared panels. Apps
 
 ## Use the same theme
 
-Import `tokens.css`, then `themes/talmud.css` or `themes/tanach.css`, then `components.css`. Both apps use the same paper background, green accent, borders and control sizes. The corpus theme chooses only the Hebrew reading font. English reading text uses Spectral in both apps.
+Import `tokens.css`, then `themes/talmud.css` or `themes/tanach.css`, then `components.css`. Both apps use the same paper background, maroon accent, borders and control sizes. The corpus theme chooses only the Hebrew reading font. English reading text uses Spectral in both apps.
 
 Use `--bg`, `--fg`, `--muted`, `--line`, `--surface`, `--surface-sunk`, `--accent` and `--accent-strong`. Do not add app-specific values for these tokens. Change `tokens.css` to change both apps. Diagram colors that distinguish categories remain separate from the selection color.
 
@@ -40,7 +40,9 @@ The printed daf, Torah columns, annotation placement and corpus-specific panels 
 ## Open the component gallery
 
 Run `pnpm gallery` from the workspace root, then open `http://127.0.0.1:5210/`.
-The page renders the actual shared components. Try the buttons, section picker,
+The page renders the actual shared components. Choose Phone for a live, scrollable
+preview at 320, 390 or 430 pixels. Its own viewport runs the real mobile styles.
+Try the buttons, section picker,
 menu, drawer and language switch. The header controls navigate the gallery itself.
 Color swatches read the theme variables directly. No backend is started.
 

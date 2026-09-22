@@ -285,3 +285,127 @@ a {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.gallery-view-switch {
+  display: flex;
+  gap: 6px;
+  margin-inline-start: auto;
+}
+.gallery-masthead .gallery-view-switch + .ui-lang-toggle {
+  margin-inline-start: 0;
+}
+.gallery-phone-stage {
+  display: grid;
+  grid-template-columns: minmax(220px, 340px) auto;
+  align-items: start;
+  justify-content: center;
+  gap: 64px;
+  padding: 40px 24px;
+}
+.gallery-phone-notes {
+  padding-top: 32px;
+}
+.gallery-phone-notes h1 {
+  font-size: 36px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  margin: 0 0 18px;
+  font-weight: 600;
+}
+.gallery-phone-notes p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+.gallery-phone-width-label {
+  display: block;
+  margin: 28px 0 8px;
+  font-weight: 500;
+}
+.gallery-phone-notes :where(.ui-select) {
+  width: 100%;
+}
+.gallery-phone-detail {
+  font-size: 13px;
+  margin: 24px 0;
+}
+.gallery-phone-frame {
+  max-width: 100%;
+  height: min(844px, calc(100vh - 140px));
+  min-height: 480px;
+  padding: 8px;
+  border-radius: 28px;
+  background: var(--fg);
+  box-shadow: var(--shadow-pop);
+}
+.gallery-phone-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 20px;
+  background: var(--bg);
+}
+.gallery-palette-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+.gallery-palette-note > span {
+  width: 28px;
+  height: 40px;
+  flex: none;
+  border-radius: var(--radius);
+  background: var(--accent);
+}
+.is-embedded .gallery-intro {
+  display: none;
+}
+.is-embedded .gallery-layout {
+  padding-top: 16px;
+}
+.is-embedded .gallery-index {
+  margin-bottom: 20px;
+}
+@media (max-width: 767px) {
+  .gallery-masthead {
+    flex-wrap: wrap;
+  }
+  .gallery-view-switch {
+    order: 2;
+    width: 100%;
+    margin: 0;
+  }
+  .gallery-view-switch .ui-button {
+    flex: 1;
+  }
+  .gallery-masthead .gallery-view-switch + .ui-lang-toggle {
+    margin-inline-start: auto;
+  }
+  .gallery-phone-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 24px 12px;
+  }
+  .gallery-phone-notes {
+    padding: 0;
+    max-width: 430px;
+  }
+  .gallery-phone-notes h1 {
+    font-size: 28px;
+  }
+  .gallery-phone-detail {
+    margin: 16px 0;
+  }
+  .gallery-phone-frame {
+    height: 740px;
+  }
+}
+@media (min-width: 768px) and (max-width: 1000px) {
+  .gallery-phone-stage {
+    gap: 24px;
+  }
+}

@@ -4,6 +4,27 @@ const catalog = {
     en: 'One library for Talmud and Tanach. Try the controls, switch languages, and see the styles both readers share.',
     he: 'ספרייה אחת לתלמוד ולתנ״ך. נסו את הפקדים, החליפו שפה וראו את העיצוב המשותף לשני הקוראים.',
   },
+  desktop: { en: 'Desktop', he: 'מחשב' },
+  mobile: { en: 'Phone', he: 'טלפון' },
+  phoneTitle: { en: 'Try it on a phone', he: 'נסו בתצוגת טלפון' },
+  phoneHint: {
+    en: 'Scroll inside the phone. Open menus and drawers, tap the controls, and switch to Hebrew.',
+    he: 'גללו בתוך הטלפון. פתחו תפריטים וחלוניות, נסו את הפקדים והחליפו לעברית.',
+  },
+  phoneWidth: { en: 'Phone width', he: 'רוחב הטלפון' },
+  smallPhone: { en: 'Small · 320 px', he: 'קטן · 320 פיקסלים' },
+  standardPhone: { en: 'Standard · 390 px', he: 'רגיל · 390 פיקסלים' },
+  largePhone: { en: 'Large · 430 px', he: 'גדול · 430 פיקסלים' },
+  phoneFrame: { en: 'Interactive phone preview', he: 'תצוגת טלפון פעילה' },
+  fullPage: { en: 'Open full page', he: 'פתיחת עמוד מלא' },
+  phoneDetail: {
+    en: 'This is the actual gallery at a phone width. Menus and drawers stay inside the phone, just as they do on a small screen.',
+    he: 'זו הספרייה עצמה ברוחב של טלפון. התפריטים והחלוניות נשארים בתוך הטלפון, כמו במסך קטן.',
+  },
+  paletteNote: {
+    en: 'Talmud maroon on warm paper. Both readers use the same colors.',
+    he: 'בורדו תלמוד על רקע נייר חמים. שני הקוראים משתמשים באותם צבעים.',
+  },
   contents: { en: 'In this library', he: 'בספרייה' },
   headers: { en: 'Reader header', he: 'סרגל הקורא' },
   headersHint: {
@@ -12,8 +33,8 @@ const catalog = {
   },
   buttons: { en: 'Buttons & choices', he: 'כפתורים ובחירה' },
   buttonsHint: {
-    en: 'One shape and size. Green marks the main action or the current choice.',
-    he: 'צורה וגודל משותפים. ירוק מסמן את הפעולה הראשית או את הבחירה הנוכחית.',
+    en: 'One shape and size. Maroon marks the main action or the current choice.',
+    he: 'צורה וגודל משותפים. בורדו מסמן את הפעולה הראשית או את הבחירה הנוכחית.',
   },
   navigation: { en: 'Navigation', he: 'ניווט' },
   navigationHint: {
