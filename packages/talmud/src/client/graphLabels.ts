@@ -5,6 +5,7 @@ export const graphLabels = (): GraphLabels => ({
   title: t('arggraph.title'),
   expand: t('graph.expand'),
   close: t('graph.close'),
+  clearConnection: t('graph.clearConnection'),
   vertical: t('graph.vertical'),
   horizontal: t('graph.horizontal'),
   zoomIn: t('graph.zoomIn'),

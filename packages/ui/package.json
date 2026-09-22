@@ -40,6 +40,7 @@
     "./UsagePage": "./src/UsagePage.tsx",
     "./GraphView": "./src/GraphView.tsx",
     "./GraphEdge": "./src/GraphEdge.tsx",
+    "./GraphConnectionDetails": "./src/GraphConnectionDetails.tsx",
     "./graph/geometry": "./src/graph/geometry.ts",
     "./graph/model": "./src/graph/model.ts",
     "./graph.css": "./src/graph.css",

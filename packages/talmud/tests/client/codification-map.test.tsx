@@ -56,7 +56,7 @@ describe('CodificationMap', () => {
     getByText("Kitniyot isn't one of the five grains.");
     getByText('Permits.');
     getByText('Prohibits.');
-    getByText('SA, OC 453:1', { exact: false });
+    getByText('SA, OC 453:1', { exact: false, selector: '.ui-graph-label' });
     getByText('eats kitniyot', { exact: false });
     getByText('avoids kitniyot', { exact: false });
   });

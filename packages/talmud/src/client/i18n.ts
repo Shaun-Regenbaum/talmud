@@ -161,6 +161,7 @@ const CATALOG = {
   'graph.supportsSide': { en: 'For {side}', he: 'תומך ב־{side}' },
   'graph.expand': { en: 'Full-screen map', he: 'מפה במסך מלא' },
   'graph.close': { en: 'Close map', he: 'סגירת המפה' },
+  'graph.clearConnection': { en: 'Clear connection selection', he: 'ביטול בחירת הקשר' },
   'graph.vertical': { en: 'Stacked', he: 'לאורך' },
   'graph.horizontal': { en: 'Passage map', he: 'מפת הסוגיה' },
   'graph.zoomIn': { en: 'Zoom in', he: 'הגדלה' },

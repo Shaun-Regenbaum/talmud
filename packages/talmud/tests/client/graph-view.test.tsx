@@ -9,6 +9,8 @@ import { edges, graphs, groups } from '../fixtures/argument-graph';
 
 beforeEach(() => {
   setLang('en');
+  HTMLElement.prototype.scrollIntoView = vi.fn();
+  SVGElement.prototype.scrollIntoView = vi.fn();
   // jsdom has no top-layer dialog implementation. The browser check covers it.
   Object.defineProperties(HTMLDialogElement.prototype, {
     showModal: {
@@ -29,9 +31,135 @@ afterEach(() => {
   cleanup();
   Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal');
   Reflect.deleteProperty(HTMLDialogElement.prototype, 'close');
+  Reflect.deleteProperty(HTMLElement.prototype, 'scrollIntoView');
+  Reflect.deleteProperty(SVGElement.prototype, 'scrollIntoView');
 });
 
 describe('shared full-screen graph', () => {
+  it('clears inline inspection before opening a separate full-screen map', () => {
+    const connection = vi.fn();
+    const { container } = render(() => (
+      <GraphView
+        groups={groups}
+        edges={edges}
+        labels={graphLabels()}
+        onSelectConnection={connection}
+      />
+    ));
+    const line = container.querySelector(`[data-graph-edge="${edges[0].id}"]`)!;
+    fireEvent.click(line);
+    fireEvent.click(screen.getByRole('button', { name: 'Full-screen map' }));
+    expect(line.getAttribute('aria-pressed')).toBe('false');
+    expect(connection).toHaveBeenLastCalledWith(null);
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(dialog.querySelector(`[data-graph-edge="${edges[0].id}"]`)!);
+    expect(connection).toHaveBeenLastCalledWith(edges[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Close map' }));
+    expect(connection).toHaveBeenLastCalledWith(null);
+    expect(container.querySelector('.ui-graph-connection-detail')).toBeNull();
+  });
+
+  it('pins a real connection, names both endpoints, and clears it without selecting a statement', () => {
+    const select = vi.fn(),
+      connection = vi.fn();
+    const { container } = render(() => (
+      <GraphView
+        groups={groups}
+        edges={edges}
+        labels={graphLabels()}
+        onSelect={select}
+        onSelectConnection={connection}
+      />
+    ));
+    const edge = edges[0];
+    const line = container.querySelector(`[data-graph-edge="${edge.id}"]`)!;
+    fireEvent.click(line);
+    fireEvent.pointerLeave(line);
+    fireEvent.blur(line);
+    expect(line.getAttribute('aria-pressed')).toBe('true');
+    expect(line.querySelector('.ui-graph-edge-line')?.getAttribute('stroke-width')).toBe('2.5');
+    expect(container.querySelectorAll('.connection-endpoint')).toHaveLength(2);
+    const detail = container.querySelector('.ui-graph-connection-detail')!;
+    for (const id of [edge.from, edge.to]) {
+      const node = groups.flatMap((g) => g.children ?? []).find((n) => n.id === id)!;
+      expect(detail.textContent).toContain(node.label);
+      expect(line.getAttribute('aria-label')).toContain(node.label);
+    }
+    expect(detail.textContent).toContain(edge.label);
+    expect(connection).toHaveBeenLastCalledWith(edge);
+    fireEvent.click(detail.querySelector('.ui-graph-connection-endpoint')!);
+    expect(HTMLElement.prototype.scrollIntoView).toHaveBeenCalled();
+    expect(select).not.toHaveBeenCalled();
+    expect(line.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: 'Clear connection selection' }));
+    expect(container.querySelector('.ui-graph-connection-detail')).toBeNull();
+    expect(container.querySelectorAll('.connection-endpoint')).toHaveLength(0);
+    expect(line.getAttribute('aria-pressed')).toBe('false');
+    expect(connection).toHaveBeenLastCalledWith(null);
+  });
+
+  it('keeps a selected connection across layouts but clears it when its endpoints are hidden', () => {
+    const connection = vi.fn();
+    render(() => (
+      <GraphView
+        groups={groups}
+        edges={edges}
+        labels={graphLabels()}
+        onSelectConnection={connection}
+      />
+    ));
+    fireEvent.click(screen.getByRole('button', { name: 'Full-screen map' }));
+    const dialog = screen.getByRole('dialog');
+    const line = dialog.querySelector(`[data-graph-edge="${edges[0].id}"]`)!;
+    fireEvent.keyDown(line, { key: 'Enter' });
+    fireEvent.click(screen.getByRole('button', { name: 'Stacked' }));
+    expect(line.isConnected).toBe(true);
+    expect(line.getAttribute('aria-pressed')).toBe('true');
+    expect(dialog.querySelectorAll('.connection-endpoint')).toHaveLength(2);
+    fireEvent.click(screen.getByRole('button', { name: 'Sections only' }));
+    expect(dialog.querySelector('.ui-graph-connection-detail')).toBeNull();
+    expect(connection).toHaveBeenLastCalledWith(null);
+    fireEvent.click(screen.getByRole('button', { name: 'Show statements' }));
+    expect(dialog.querySelector('[aria-pressed="true"][data-graph-edge]')).toBeNull();
+  });
+
+  it('updates a selected link from current props and discards it when it is removed', () => {
+    const [current, setCurrent] = createSignal(edges);
+    const [currentGroups, setCurrentGroups] = createSignal(groups);
+    const { container } = render(() => (
+      <GraphView groups={currentGroups()} edges={current()} labels={graphLabels()} />
+    ));
+    const line = container.querySelector(`[data-graph-edge="${edges[0].id}"]`)!;
+    fireEvent.focus(line);
+    fireEvent.keyDown(line, { key: ' ' });
+    setCurrent(edges.map((edge) => ({ ...edge })));
+    expect(line.isConnected).toBe(true);
+    expect(line.getAttribute('aria-pressed')).toBe('true');
+    const annotated = {
+      ...edges[0],
+      kindLabel: edges[0].label,
+      label: groups.flatMap((g) => g.children ?? []).find((n) => n.id === edges[0].from)!.label,
+    };
+    setCurrent([annotated, ...edges.slice(1)]);
+    expect(line.getAttribute('aria-label')).toContain(annotated.kindLabel);
+    expect(container.querySelector('.ui-graph-connection-detail')?.textContent).toContain(
+      annotated.label,
+    );
+    setCurrent(edges.slice(1));
+    expect(container.querySelector('.ui-graph-connection-detail')).toBeNull();
+    expect(
+      [...container.querySelectorAll<HTMLElement>('.ui-graph-node-wrap')].every(
+        (node) => node.style.opacity === '1',
+      ),
+    ).toBe(true);
+    setCurrent(edges);
+    expect(container.querySelector('.ui-graph-connection-detail')).toBeNull();
+    fireEvent.click(container.querySelector(`[data-graph-edge="${edges[0].id}"]`)!);
+    setCurrentGroups([]);
+    setCurrentGroups(groups);
+    expect(container.querySelector('.ui-graph-connection-detail')).toBeNull();
+  });
+
   it('preserves node selection across layouts and restores focus and scrolling on close', () => {
     const select = vi.fn();
     render(() => (

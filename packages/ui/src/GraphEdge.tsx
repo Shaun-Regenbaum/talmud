@@ -8,6 +8,8 @@ export interface GraphEdgeProps {
   dash?: string;
   opacity?: number;
   selected?: boolean;
+  highlighted?: boolean;
+  edgeId?: string;
   arrow?: boolean;
   onSelect?: () => void;
   onFocus?: (focused: boolean) => void;
@@ -16,19 +18,37 @@ export interface GraphEdgeProps {
 /** A fixed-size arrow, a generous hit area, and a unique marker per mounted edge. */
 export function GraphEdge(props: GraphEdgeProps): JSX.Element {
   const id = `graph-arrow-${createUniqueId()}`;
+  let hovered = false,
+    focused = false;
+  const reportFocus = () => props.onFocus?.(hovered || focused);
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: selectable SVG edges receive a button role and keyboard handlers; passive edges only expose their label
+    // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-pressed is supplied only with the conditional button role
     <g
       class="ui-graph-edge"
       role={props.onSelect ? 'button' : undefined}
       tabindex={props.onSelect ? 0 : undefined}
       aria-label={props.label}
+      aria-pressed={props.onSelect ? props.selected : undefined}
+      data-graph-edge={props.edgeId}
       style={{ color: props.color, opacity: props.opacity ?? 1 }}
       onClick={() => props.onSelect?.()}
-      onPointerEnter={() => props.onFocus?.(true)}
-      onPointerLeave={() => props.onFocus?.(false)}
-      onFocus={() => props.onFocus?.(true)}
-      onBlur={() => props.onFocus?.(false)}
+      onPointerEnter={() => {
+        hovered = true;
+        reportFocus();
+      }}
+      onPointerLeave={() => {
+        hovered = false;
+        reportFocus();
+      }}
+      onFocus={() => {
+        focused = true;
+        reportFocus();
+      }}
+      onBlur={() => {
+        focused = false;
+        reportFocus();
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -57,7 +77,7 @@ export function GraphEdge(props: GraphEdgeProps): JSX.Element {
         d={props.path}
         fill="none"
         stroke="currentColor"
-        stroke-width={props.selected ? 2.5 : 1.5}
+        stroke-width={props.selected || props.highlighted ? 2.5 : 1.5}
         stroke-linecap="round"
         stroke-linejoin="round"
         stroke-dasharray={props.dash}
