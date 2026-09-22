@@ -39,6 +39,7 @@
   flex: none;
 }
 .ui-daily-scroll {
+  margin: 0;
   overflow-x: auto;
   padding-bottom: 0.45rem;
 }
