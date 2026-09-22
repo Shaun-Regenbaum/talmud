@@ -848,6 +848,45 @@ app.get('/api/midrash-synthesis/:book/:chapter/:verse', async (c) => {
   });
 });
 
+// Separate source explanations keep legacy summaries and keys unchanged.
+app.get('/api/source-question/:kind/:book/:chapter/:verse', async (c) => {
+  const { kind, book, chapter, verse } = c.req.param();
+  if (
+    (kind !== 'gemara' && kind !== 'midrash') ||
+    !isBook(book) ||
+    !/^[1-9]\d*$/.test(chapter) ||
+    !/^[1-9]\d*$/.test(verse)
+  )
+    return c.json({ error: 'Invalid source or verse' }, 400);
+  try {
+    const artifact = await runTanachEnrichment(
+      { env: c.env, ctx: c.executionCtx, ref: `${book} ${chapter}:${verse}` },
+      `${kind}-question`,
+      book,
+      chapter,
+      { id: verse, verse },
+    );
+    const parsed = artifact.parsed as { en?: string; he?: string } | null;
+    if (
+      artifact.parse_error ||
+      typeof parsed?.en !== 'string' ||
+      typeof parsed?.he !== 'string' ||
+      !parsed.en.trim() ||
+      !parsed.he.trim()
+    )
+      return c.json({ error: 'Source explanation unavailable' }, 502);
+    return c.json({
+      book,
+      chapter: Number(chapter),
+      verse: Number(verse),
+      en: parsed.en,
+      he: parsed.he,
+    });
+  } catch (error) {
+    return runErrorResponse(c, error);
+  }
+});
+
 // Self-tracked LLM usage (totals + per-producer + recent calls).
 app.get('/api/usage', async (c) => c.json(await readUsage(c.env.CACHE)));
 

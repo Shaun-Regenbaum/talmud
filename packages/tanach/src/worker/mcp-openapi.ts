@@ -313,6 +313,30 @@ export const TANACH_OPENAPI: Record<string, unknown> = {
         responses: { '200': { description: '{ en, he }' } },
       },
     },
+    '/api/source-question/{kind}/{book}/{chapter}/{verse}': {
+      get: {
+        summary:
+          'Why the Talmud or Midrash uses this verse, grounded in the linked source texts (EN + HE).',
+        description:
+          'Returns { book, chapter, verse, en, he }. Uses separate per-verse caches; existing thematic summaries are unchanged.' +
+          AI,
+        parameters: [
+          {
+            name: 'kind',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', enum: ['gemara', 'midrash'] },
+          },
+          book,
+          chapter,
+          verse,
+        ],
+        responses: {
+          '200': { description: '{ en, he }' },
+          '404': { description: 'No source text available' },
+        },
+      },
+    },
     '/api/usage': {
       get: {
         summary: 'Self-tracked LLM usage: totals, per-producer, recent calls.',

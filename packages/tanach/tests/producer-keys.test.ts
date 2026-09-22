@@ -70,6 +70,18 @@ describe('key byte-parity with the legacy literals', () => {
     ).toBe('midrash-synth:v1:Exodus:3:2');
   });
 
+  it('source questions have separate verse keys and leave thematic summaries intact', () => {
+    for (const id of ['gemara-question', 'midrash-question'] as const) {
+      const def = info(enrichRunDefOf(id), 'enrich');
+      expect(TANACH_KEY_SCHEME.key(def, enrichmentAddress(id, '22', 'Genesis', '1'))).toBe(
+        `${id}:v1:Genesis:1:22`,
+      );
+      expect(TANACH_KEY_SCHEME.key(def, enrichmentAddress(id, '23', 'Genesis', '1'))).not.toBe(
+        `${id}:v1:Genesis:1:22`,
+      );
+    }
+  });
+
   it('parsha pieces — keyed by the weekly range and selected flow index', async () => {
     const overviewDef = info(enrichRunDefOf('parsha-overview'), 'enrich');
     const overviewId = await instanceIdOf({ id: 'Deuteronomy 7:12-11:25' });

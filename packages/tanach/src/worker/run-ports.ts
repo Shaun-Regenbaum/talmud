@@ -45,6 +45,7 @@ import type {
 import { recordSource, resolveInputs } from '@corpus/core/run/producer-run';
 import type { RunProducerPorts } from '@corpus/core/run/run-producer';
 import { runProducer } from '@corpus/core/run/run-producer';
+import { flattenPieces, pickV3Version } from '@corpus/core/sefaria/client';
 import { ArtifactStore } from '@corpus/core/store/artifact-store';
 import type { StoredArtifact } from '@corpus/core/store/envelope';
 import type { ArtifactAddress, KeyTemplate, ProducerKeyInfo } from '@corpus/core/store/key-schemes';
@@ -143,8 +144,13 @@ const KEY_TEMPLATES: Record<string, KeyTemplate> = {
   synthesis: {
     key: (a: TanachAddress) => `synthesis:v1:${a.unit?.work}:${a.unit?.unit}:${a.verse}`,
   },
-  // Producer id and key prefix differ on purpose — the id routes, the
-  // template owns the literal bytes.
+  'gemara-question': {
+    key: (a: TanachAddress) => `gemara-question:v1:${a.unit?.work}:${a.unit?.unit}:${a.verse}`,
+  },
+  'midrash-question': {
+    key: (a: TanachAddress) => `midrash-question:v1:${a.unit?.work}:${a.unit?.unit}:${a.verse}`,
+  },
+  // This legacy producer intentionally uses the shorter midrash-synth prefix.
   'midrash-synthesis': {
     key: (a: TanachAddress) => `midrash-synth:v1:${a.unit?.work}:${a.unit?.unit}:${a.verse}`,
   },
@@ -604,6 +610,41 @@ const midrashPassagesResolver: SourceResolver<TanachRunCtx> = async ({
   recordSource(out, 'midrash-passages', mtext);
 };
 
+function questionSources(kind: 'gemara' | 'midrash'): SourceResolver<TanachRunCtx> {
+  return async ({ ctx: rc, out, tractate: book, page: chapter, markInput }) => {
+    const verse = verseOf(markInput);
+    const key = `${kind}:v1:${book}:${chapter}:${verse}`;
+    const cached = await rc.env.CACHE.get(key);
+    const source = cached
+      ? JSON.parse(cached)
+      : await fetchPassages(
+          `${book} ${chapter}:${verse}`,
+          kind === 'gemara' ? 'Talmud' : 'Midrash',
+          12,
+          kind === 'gemara',
+        );
+    const passages = (source.passages as SourcePassage[]).filter((p) => p.he || p.en).slice(0, 6);
+    if (!passages.length) throw new TanachSourceError(404, 'No source text available');
+    const texts = await Promise.all(
+      passages.map(async (p) => {
+        let text = p.he || p.en;
+        try {
+          const full = await sefaria.getTextV3(p.ref);
+          text =
+            flattenPieces(pickV3Version(full.versions, 'he')).join(' ') ||
+            flattenPieces(pickV3Version(full.versions, 'en')).join(' ') ||
+            text;
+        } catch {
+          /* The saved excerpt still provides attributable evidence. */
+        }
+        return `${p.ref}: ${text.replace(/<[^>]+>/g, '').slice(0, 6000)}`;
+      }),
+    );
+    out.vars.question_sources = texts.join('\n\n');
+    recordSource(out, `${kind}-question-sources`, out.vars.question_sources);
+  };
+}
+
 const RESOLVE_PORTS: ResolveInputsPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkDef> = {
   sources: {
     'chapter-verses': chapterVersesResolver,
@@ -614,6 +655,8 @@ const RESOLVE_PORTS: ResolveInputsPorts<TanachRunCtx, TanachEnrichmentDef, Tanac
     'verse-text': verseTextResolver,
     commentaries: commentariesResolver,
     'midrash-passages': midrashPassagesResolver,
+    'gemara-question-sources': questionSources('gemara'),
+    'midrash-question-sources': questionSources('midrash'),
   },
   defaultSource: 'chapter-verses',
   // Producer-to-producer deps: only the four runProducer-backed producers
@@ -628,6 +671,8 @@ const RESOLVE_PORTS: ResolveInputsPorts<TanachRunCtx, TanachEnrichmentDef, Tanac
     id === 'geography' ||
     id === 'tidbit' ||
     id === 'synthesis' ||
+    id === 'gemara-question' ||
+    id === 'midrash-question' ||
     id === 'midrash-synthesis'
       ? enrichRunDefOf(id)
       : null,
@@ -952,6 +997,19 @@ const RUN_PORTS: RunProducerPorts<TanachRunCtx, TanachEnrichmentDef, TanachMarkD
     // gate their emptiness upstream (source resolvers raise 404 when there's
     // nothing to synthesize).
     enrichmentPostParse: (_rc, a) => {
+      if (a.def.id === 'gemara-question' || a.def.id === 'midrash-question') {
+        const result = a.parsed as { en?: unknown; he?: unknown } | null;
+        if (
+          a.parse_error ||
+          typeof result?.en !== 'string' ||
+          typeof result?.he !== 'string' ||
+          !result.en.trim() ||
+          !result.he.trim()
+        ) {
+          throw new Error(`${a.def.id}: incomplete explanation (not caching)`);
+        }
+        return;
+      }
       // Overview-like producers reject an empty-but-valid
       // generation so it isn't pinned (truncated JSON parses to blank fields).
       if (
@@ -1011,6 +1069,8 @@ export async function runTanachEnrichment(
     | 'geography'
     | 'tidbit'
     | 'synthesis'
+    | 'gemara-question'
+    | 'midrash-question'
     | 'midrash-synthesis',
   book: string,
   chapter: string,

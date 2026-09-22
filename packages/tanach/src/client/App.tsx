@@ -9,7 +9,7 @@ import { Pill, PillRow } from '@corpus/ui/Pill';
 import { ReaderHeader } from '@corpus/ui/ReaderHeader';
 import { colorForKind, ReaderIcon } from '@corpus/ui/ReaderIcon';
 import { Select } from '@corpus/ui/Select';
-import { SourceCard, StatusMessage } from '@corpus/ui/Study';
+import { SectionHeading, SourceCard, StatusMessage } from '@corpus/ui/Study';
 import { ToolbarMenu } from '@corpus/ui/ToolbarMenu';
 import {
   createEffect,
@@ -25,7 +25,7 @@ import {
 import { BOOKS, SECTIONS, type Section } from '../lib/books.ts';
 import { hebrewNumeral } from '../lib/hebrew.ts';
 import type { ParshaFlowSection, ParshaStudy, WeeklyParsha } from '../lib/parsha.ts';
-import { MIDRASH_MIN, type SourceKind, type SourceVerse, verseKinds } from '../lib/sources.ts';
+import { type SourceKind, type SourceVerse, verseKinds } from '../lib/sources.ts';
 import { ChapterLoadProgress } from './ChapterLoadProgress.tsx';
 import { reportLoad, resetChapterLoad } from './chapterLoad.ts';
 import { Inspector } from './Inspector.tsx';
@@ -562,12 +562,6 @@ export function App(): JSX.Element {
     const vn = vt ? Number(vt.dataset.vn) : NaN;
     if (vn) setSource({ verse: vn, kind: 'rishonim' });
   };
-  const idxByVerse = createMemo(() => {
-    const map = new Map<number, SourceVerse>();
-    for (const v of sourcesIndex()?.verses ?? []) map.set(v.verse, v);
-    return map;
-  });
-  // A resource source that only resolves when the drawer is showing `kind`.
   const whenKind = (kind: SourceKind) => () => {
     const s = source();
     return s && s.kind === kind
@@ -602,18 +596,29 @@ export function App(): JSX.Element {
     const res = await fetch(`/api/midrash/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`);
     return res.ok ? ((await res.json()) as GemaraResp) : null;
   });
-  const [midrashSynth] = createResource(
+  const [sourceQuestion, { refetch: retrySourceQuestion }] = createResource(
     () => {
       const s = source();
-      return s && s.kind === 'midrash' && (idxByVerse().get(s.verse)?.midrash ?? 0) >= MIDRASH_MIN
-        ? { book: loc().book, chapter: loc().chapter, verse: s.verse }
+      return s && (s.kind === 'gemara' || s.kind === 'midrash')
+        ? { kind: s.kind, book: loc().book, chapter: loc().chapter, verse: s.verse }
         : null;
     },
     async (k) => {
       const res = await fetch(
-        `/api/midrash-synthesis/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`,
+        `/api/source-question/${k.kind}/${encodeURIComponent(k.book)}/${k.chapter}/${k.verse}`,
       );
-      return res.ok ? ((await res.json()) as SectionNote) : null;
+      if (res.status === 404) return { missing: true, preview: false, en: '', he: '' };
+      if (res.status === 503) {
+        const body = (await res.json()) as { preview?: boolean };
+        if (body.preview) return { missing: false, preview: true, en: '', he: '' };
+      }
+      if (!res.ok) throw new Error('Source explanation unavailable');
+      return { ...(await res.json()), missing: false, preview: false } as {
+        missing: boolean;
+        preview: boolean;
+        en: string;
+        he: string;
+      };
     },
   );
   createEffect(() => {
@@ -701,7 +706,7 @@ export function App(): JSX.Element {
     () => (perekPill() === 'parsha' && parsha() ? parsha()?.ref : undefined),
     () => fetchPill<ParshaStudy>(`/api/parsha-study?loc=${inIsrael() ? 'israel' : 'diaspora'}`),
   );
-  const [geography] = createResource(
+  const [geography, { refetch: retryGeography }] = createResource(
     () => (perekPill() === 'geography' ? chapterKey() : undefined),
     (k) => fetchPill<PerekGeography>(`/api/geography/${encodeURIComponent(k.book)}/${k.chapter}`),
   );
@@ -1128,7 +1133,13 @@ export function App(): JSX.Element {
                 )}
               </Show>
               <Show when={!geography.loading && (geography.error || geography() === null)}>
-                <StatusMessage tone="error">{pillError('geography')}</StatusMessage>
+                <StatusMessage
+                  tone="error"
+                  onRetry={() => void retryGeography()}
+                  retryLabel={t('retry', loc().lang)}
+                >
+                  {t('unavailable', loc().lang)}
+                </StatusMessage>
               </Show>
             </Show>
           </Drawer>
@@ -1198,6 +1209,54 @@ export function App(): JSX.Element {
               </Show>
             </Show>
 
+            <Show when={s.kind === 'gemara' || s.kind === 'midrash'}>
+              <SourceCard
+                title={t(s.kind === 'gemara' ? 'gemaraQuestion' : 'midrashQuestion', loc().lang)}
+              >
+                <Show when={sourceQuestion.loading}>
+                  <StatusMessage>{t('loadingExplanation', loc().lang)}</StatusMessage>
+                </Show>
+                <Show when={!sourceQuestion.loading && sourceQuestion.error}>
+                  <StatusMessage
+                    tone="error"
+                    onRetry={() => void retrySourceQuestion()}
+                    retryLabel={t('retry', loc().lang)}
+                  >
+                    {t('explanationUnavailable', loc().lang)}
+                  </StatusMessage>
+                </Show>
+                <Show when={!sourceQuestion.loading && !sourceQuestion.error && sourceQuestion()}>
+                  {(note) => (
+                    <Show
+                      when={!note().preview}
+                      fallback={
+                        <StatusMessage>{t('previewExplanation', loc().lang)}</StatusMessage>
+                      }
+                    >
+                      <Show
+                        when={!note().missing}
+                        fallback={
+                          <StatusMessage>{t('noExplanationSources', loc().lang)}</StatusMessage>
+                        }
+                      >
+                        <For
+                          each={(loc().lang === 'he' ? note().he : note().en)
+                            .split(/\n\s*\n/)
+                            .filter(Boolean)}
+                        >
+                          {(paragraph) => (
+                            <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
+                              {paragraph}
+                            </p>
+                          )}
+                        </For>
+                      </Show>
+                    </Show>
+                  )}
+                </Show>
+              </SourceCard>
+              <SectionHeading title={t('sourcePassages', loc().lang)} />
+            </Show>
             <Show when={s.kind === 'gemara'}>
               <Show when={gemara.loading}>
                 <StatusMessage>{t('loadingTalmud', loc().lang)}</StatusMessage>
@@ -1211,25 +1270,6 @@ export function App(): JSX.Element {
             </Show>
 
             <Show when={s.kind === 'midrash'}>
-              <Show when={(idxByVerse().get(s.verse)?.midrash ?? 0) >= MIDRASH_MIN}>
-                <SourceCard title={t('synthesis', loc().lang)}>
-                  <Show when={midrashSynth.loading}>
-                    <StatusMessage>{t('loadingSummary', loc().lang)}</StatusMessage>
-                  </Show>
-                  <Show
-                    when={!midrashSynth.loading && (midrashSynth.error || midrashSynth() === null)}
-                  >
-                    <StatusMessage tone="error">{t('unavailable', loc().lang)}</StatusMessage>
-                  </Show>
-                  <Show when={!midrashSynth.error && midrashSynth()}>
-                    {(sy) => (
-                      <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
-                        {loc().lang === 'he' ? sy().he || sy().en : sy().en || sy().he}
-                      </p>
-                    )}
-                  </Show>
-                </SourceCard>
-              </Show>
               <Show when={midrash.loading}>
                 <StatusMessage>{t('loadingMidrash', loc().lang)}</StatusMessage>
               </Show>

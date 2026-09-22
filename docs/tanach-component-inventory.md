@@ -38,3 +38,20 @@ opener. A failed data request must leave a usable page with an error message.
 
 The gallery includes the shared study cards, counted filters, input, statistics,
 inline explanation and message styles using the saved real parsha response.
+
+## Preview and source explanations
+
+After building Tanach, run `python3 scripts/preview-tanach.py` and open
+`http://127.0.0.1:5211`. Geography checks the chapter inspector before reading a
+saved result. Genesis 1 has no mapped places; Genesis 12 has seven. A missing
+cached result remains unavailable in this preview. The parsha response comes
+from the gallery's dated, real saved response.
+
+The Talmud and Midrash panels now put a source-backed explanation before the
+original passages: what question the source addresses and why it uses the verse.
+The two new producers are `gemara-question` and `midrash-question`, each with its
+own `v1` cache family. Existing recipes, summaries and keys are unchanged. They
+read up to six linked passages, fetching longer text where available, and must
+state when that text does not establish the connection. Empty results are rejected
+before saving. These explanations need the updated backend and generation access;
+the local preview labels them unavailable rather than supplying invented prose.

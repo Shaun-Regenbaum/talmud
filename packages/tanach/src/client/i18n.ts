@@ -31,6 +31,28 @@ const messages = {
   loadingParsha: { en: 'Loading the portion overview\u2026', he: 'טוען את סקירת הפרשה…' },
   loadingMap: { en: 'Loading places\u2026', he: 'טוען מקומות…' },
   noPlaces: { en: 'No mapped places in this chapter.', he: 'אין מקומות ממופים בפרק הזה.' },
+  gemaraQuestion: {
+    en: 'Why does the Gemara bring this verse?',
+    he: 'מדוע הגמרא מביאה את הפסוק הזה?',
+  },
+  midrashQuestion: {
+    en: 'What does the Midrash draw from this verse?',
+    he: 'מה המדרש לומד מהפסוק הזה?',
+  },
+  previewExplanation: {
+    en: 'This new explanation is not available in the local preview yet. The source passages are below.',
+    he: 'ההסבר החדש עדיין אינו זמין בתצוגה המקומית. המקורות מופיעים למטה.',
+  },
+  sourcePassages: { en: 'Source passages', he: 'המקורות' },
+  loadingExplanation: { en: 'Reading the sources…', he: 'קורא את המקורות…' },
+  explanationUnavailable: {
+    en: 'The explanation is unavailable. You can still read the sources below.',
+    he: 'ההסבר אינו זמין. אפשר לקרוא את המקורות למטה.',
+  },
+  noExplanationSources: {
+    en: 'No source text is available to explain this connection.',
+    he: 'אין טקסט מקור זמין שמאפשר להסביר את הקשר.',
+  },
   synthesis: { en: 'Summary', he: 'סיכום' },
   loadingSummary: { en: 'Loading the summary\u2026', he: 'טוען את הסיכום…' },
   loadingCommentary: { en: 'Loading commentary\u2026', he: 'טוען פירושים…' },
