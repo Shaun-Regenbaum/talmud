@@ -1,4 +1,78 @@
 const catalog = {
+  icons: { en: 'Reader icons', he: 'סמלי הקורא' },
+  iconsHint: {
+    en: 'The same symbols used by the reader, now exported from the shared library.',
+    he: 'אותם סמלים של הקורא, כעת בספרייה המשותפת.',
+  },
+  argument: { en: 'Arguments', he: 'טיעונים' },
+  halacha: { en: 'Halacha', he: 'הלכה' },
+  chart: { en: 'Charts', he: 'תרשימים' },
+  aggadata: { en: 'Aggadata', he: 'אגדה' },
+  yerushalmi: { en: 'Yerushalmi', he: 'ירושלמי' },
+  pesuk: { en: 'Verses', he: 'פסוקים' },
+  rishonim: { en: 'Rishonim', he: 'ראשונים' },
+  charts: { en: 'Charts & tables', he: 'תרשימים וטבלאות' },
+  liveHint: {
+    en: 'Live, read-only data from Talmud usage. Sort the table or tap the chart to inspect a day. No sample numbers.',
+    he: 'נתוני שימוש אמיתיים מתלמוד, לקריאה בלבד. מיינו את הטבלה או געו בתרשים להצגת יום.',
+  },
+  usageSource: { en: 'Open the usage page', he: 'פתיחת עמוד השימוש' },
+  alignSource: { en: 'Open the alignment page', he: 'פתיחת עמוד העיגון' },
+  loading: { en: 'Loading live data\u2026', he: 'טוען נתונים…' },
+  unavailable: {
+    en: 'Live data is unavailable. Run pnpm gallery locally, then retry.',
+    he: 'הנתונים אינם זמינים. הפעילו pnpm gallery מקומית ונסו שוב.',
+  },
+  retry: { en: 'Retry', he: 'ניסיון נוסף' },
+  noData: { en: 'No data available', he: 'אין נתונים זמינים' },
+  estimated: { en: 'Estimated', he: 'הערכה' },
+  measured: { en: 'Measured', he: 'נמדד' },
+  requests: { en: 'Requests', he: 'בקשות' },
+  countries: { en: 'Requests by country', he: 'בקשות לפי מדינה' },
+  date: { en: 'Date', he: 'תאריך' },
+  visits: { en: 'Visits', he: 'ביקורים' },
+  showLess: { en: 'Show less', he: 'הצגת פחות' },
+  showMore: { en: 'Show more', he: 'הצגת עוד' },
+  maps: { en: 'Maps', he: 'מפות' },
+  mapsHint: {
+    en: 'Pan and zoom the Natural Earth basemap. No study locations are added here. The world map below uses the live country totals above.',
+    he: 'הזיזו והגדילו את מפת Natural Earth. לא נוספו כאן אתרי לימוד. מפת העולם מציגה את נתוני השימוש לפי מדינה.',
+  },
+  graphs: { en: 'Dependency graphs', he: 'גרפי תלות' },
+  graphsHint: {
+    en: 'The graph used by the inspector and alignment page. Select a node for details and expand its inputs.',
+    he: 'הגרף המשמש לבדיקה ולעיגון. בחרו צומת לפרטים ופתחו את המקורות שלו.',
+  },
+  graphSource: {
+    en: 'Live recorded dependencies for Berakhot 2a \u00b7 Tidbit. Loading this view does not generate content.',
+    he: 'תלויות מתועדות של ברכות ב ע״א · פנינה. פתיחת התצוגה אינה יוצרת תוכן.',
+  },
+  missing: { en: 'Still to share', he: 'מה עוד חסר' },
+  missingHint: {
+    en: 'These pieces still have app-specific implementations. Tzurat hadaf stays outside this work.',
+    he: 'לרכיבים האלה עדיין יש מימושים נפרדים. צורת הדף אינה חלק מהעבודה הזאת.',
+  },
+  missingGraphs: {
+    en: 'Study diagrams: argument flow, speaker relationships, timelines, and their legends.',
+    he: 'תרשימי לימוד: מהלך הטיעון, קשרי דוברים, צירי זמן ומקרא.',
+  },
+  missingAlign: {
+    en: 'Alignment: source cards, counted filters, confidence and placement badges, and linked selection.',
+    he: 'עיגון: כרטיסי מקור, מסננים עם ספירה, תגי ביטחון ומיקום ובחירה מקושרת.',
+  },
+  missingUsage: {
+    en: 'Usage: statistic cards, date ranges, stacked bars, coverage, section loading, and collapsible groups.',
+    he: 'שימוש: כרטיסי נתונים, טווחי תאריכים, עמודות מצטברות, כיסוי, טעינה וקבוצות נפתחות.',
+  },
+  missingStates: {
+    en: 'A full gallery of existing progress, error, empty, paused, and inspector detail states.',
+    he: 'תצוגה מלאה של מצבי התקדמות, שגיאה, ריק, השהיה ופרטי בדיקה.',
+  },
+  missingForms: {
+    en: 'Search, text fields, tabs, tooltips, dialogs, and a consistent keyboard and touch behavior.',
+    he: 'חיפוש, שדות טקסט, לשוניות, הסברים, חלוניות והתנהגות אחידה למקלדת ולמגע.',
+  },
+
   title: { en: 'Reader components', he: 'רכיבי הקורא' },
   intro: {
     en: 'One library for Talmud and Tanach. Try the controls, switch languages, and see the styles both readers share.',
@@ -43,8 +117,8 @@ const catalog = {
   },
   panels: { en: 'Menus & panels', he: 'תפריטים וחלוניות' },
   panelsHint: {
-    en: 'Secondary actions live in a menu. Longer explanations open in a drawer.',
-    he: 'פעולות נוספות נמצאות בתפריט. הסברים ארוכים נפתחים בחלונית צד.',
+    en: 'Secondary actions live in a menu. Longer explanations open at the side on desktop and from the bottom on phones.',
+    he: 'פעולות נוספות נמצאות בתפריט. הסברים ארוכים נפתחים בצד במחשב ומלמטה בטלפון.',
   },
   text: { en: 'Reading text', he: 'טקסט לקריאה' },
   textHint: {
@@ -99,8 +173,8 @@ const catalog = {
   accent: { en: 'Accent', he: 'צבע ראשי' },
   strong: { en: 'Accent hover', he: 'צבע בריחוף' },
   libraryNote: {
-    en: 'Live components from packages/ui. No backend or generation service is needed.',
-    he: 'רכיבים פעילים מתוך packages/ui. אין צורך בשרת או בשירות יצירת תוכן.',
+    en: 'Live components from packages/ui. Charts and graphs read recorded data from talmud.dev.',
+    he: 'רכיבים פעילים מתוך packages/ui. התרשימים והגרפים קוראים נתונים מתועדים מ־talmud.dev.',
   },
 } as const;
 export type GalleryKey = keyof typeof catalog;

@@ -31,7 +31,7 @@ export function Drawer(props: DrawerProps): JSX.Element {
           type="button"
           class="ui-drawer-close"
           onClick={() => props.onClose()}
-          aria-label="Close"
+          aria-label={props.dir === 'rtl' ? 'סגירה' : 'Close'}
         >
           ×
         </button>

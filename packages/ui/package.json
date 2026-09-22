@@ -41,7 +41,11 @@
     "./ReaderHeader": "./src/ReaderHeader.tsx",
     "./Select": "./src/Select.tsx",
     "./PageNavigation": "./src/PageNavigation.tsx",
-    "./ToolbarMenu": "./src/ToolbarMenu.tsx"
+    "./ToolbarMenu": "./src/ToolbarMenu.tsx",
+    "./DataTable": "./src/DataTable.tsx",
+    "./Charts": "./src/Charts.tsx",
+    "./ReaderIcon": "./src/ReaderIcon.tsx",
+    "./BottomSheet": "./src/BottomSheet.tsx"
   },
   "peerDependencies": {
     "solid-js": "^1.9.15"

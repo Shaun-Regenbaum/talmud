@@ -19,7 +19,9 @@ Use `--bg`, `--fg`, `--muted`, `--line`, `--surface`, `--surface-sunk`, `--accen
 | `ToolbarMenu` | Secondary links or controls. Native disclosure with Tab navigation, outside-click dismissal and Escape focus return. |
 | `LangToggle` | English/Hebrew selection with pressed states. |
 | `Pill`, `PillRow` | Reader topic choices. |
-| `Drawer`, `Prose` | Detail panel and bilingual reading text. |
+| `Drawer`, `BottomSheet`, `Prose` | Side panel on desktop, bottom sheet on phones, and bilingual reading text. |
+| `Charts`, `DataTable` | Line charts, chart cards, sortable tables, ranked bars, meters and rate chips. Used by Talmud usage. |
+| `ReaderIcon` | Reader glyphs and category colors, separate from annotation placement. |
 | `AiStatusBanner`, `LoadProgress` | Shared status and loading messages. |
 | `InspectorRow`, `RunTree*`, `UsagePage` | Cache inspection, dependency diagrams and usage tables. |
 | `GeoMap`, `WorldBubbleMap` | Shared maps. |
@@ -44,7 +46,16 @@ The page renders the actual shared components. Choose Phone for a live, scrollab
 preview at 320, 390 or 430 pixels. Its own viewport runs the real mobile styles.
 Try the buttons, section picker,
 menu, drawer and language switch. The header controls navigate the gallery itself.
-Color swatches read the theme variables directly. No backend is started.
+Color swatches read the theme variables directly. Charts, tables and maps read live
+traffic totals. The dependency graph reads the recorded Berakhot 2a Tidbit tree.
+These are read-only requests through two allowlisted Vite proxies to talmud.dev.
+No backend or generation service is started. If the network fails, the gallery
+shows an unavailable message and retry button. Static builds have no proxy and
+show that state for these examples. No usage records are bundled in the build.
+
+The gallery also lists what is still app-specific: study diagrams, alignment
+source cards and filters, usage summary cards, date ranges, stacked bars, coverage,
+and the full set of loading and error states. The printed daf is out of scope.
 
 The page lives in `src/gallery/Gallery.tsx`. `pnpm gallery:build` creates a static
 build in `packages/ui/dist/gallery`. The gallery reuses the existing Vite tools

@@ -895,6 +895,7 @@ const CATALOG = {
   'usage.chart.range.90': { en: '90d', he: '90 יום' },
   'usage.chart.range.all': { en: 'All', he: 'הכל' },
   'usage.chart.estimated': { en: 'estimated', he: 'משוער' },
+  'usage.chart.timeSeries': { en: 'Time series', he: 'נתונים לאורך זמן' },
   'usage.chart.measured': { en: 'measured', he: 'נמדד' },
   'usage.chart.est': { en: 'est.', he: 'משוער' },
   'usage.byProducer.title': { en: 'Spend by producer', he: 'הוצאה לפי מפיק' },

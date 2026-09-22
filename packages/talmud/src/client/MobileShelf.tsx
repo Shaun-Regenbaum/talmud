@@ -1,3 +1,4 @@
+import { BottomSheet } from '@corpus/ui/BottomSheet';
 import { type JSX, Show } from 'solid-js';
 import type { Term } from '../lib/terms/registry';
 import { ArgumentSidebar, type GeographyExtras, type SidebarContent } from './ArgumentSidebar';
@@ -56,24 +57,7 @@ interface MobileShelfProps {
 // content expands above the bar.
 export function MobileShelf(props: MobileShelfProps): JSX.Element {
   return (
-    <div
-      data-tour="note-panel"
-      style={{
-        position: 'fixed',
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: '#fff',
-        'border-top': '1px solid #d6d3d1',
-        'box-shadow': '0 -4px 12px rgba(0, 0, 0, 0.06)',
-        // Normally sits under the daf chrome; during a tutorial note step it
-        // lifts above the coach's click-shield (z 5999) so it stays scrollable.
-        'z-index': tutorialNoteInteractive() ? 6001 : 100,
-        'max-height': '65vh',
-        display: 'flex',
-        'flex-direction': 'column',
-      }}
-    >
+    <BottomSheet tour="note-panel" zIndex={tutorialNoteInteractive() ? 6001 : 100}>
       <Show when={props.sidebar !== null}>
         <ExpansionView {...props} />
       </Show>
@@ -84,7 +68,7 @@ export function MobileShelf(props: MobileShelfProps): JSX.Element {
         <DafLoadProgress embedded />
       </div>
       <ModeBar mode={props.mode} onModeChange={props.onModeChange} />
-    </div>
+    </BottomSheet>
   );
 }
 

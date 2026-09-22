@@ -8,9 +8,22 @@ import { Prose } from '../Prose';
 import { ReaderHeader } from '../ReaderHeader';
 import { Select } from '../Select';
 import { ToolbarMenu } from '../ToolbarMenu';
+import { DataExamples } from './DataExamples';
 import { type GalleryKey, type GalleryLang, t } from './i18n';
 
-const sections = ['headers', 'buttons', 'navigation', 'panels', 'text', 'theme'] as const;
+const sections = [
+  'headers',
+  'buttons',
+  'navigation',
+  'panels',
+  'text',
+  'theme',
+  'icons',
+  'charts',
+  'maps',
+  'graphs',
+  'missing',
+] as const;
 const colors: { token: string; label: GalleryKey }[] = [
   { token: '--bg', label: 'paper' },
   { token: '--surface', label: 'surface' },
@@ -126,7 +139,7 @@ export function Gallery(): JSX.Element {
               <For each={sections}>
                 {(key, index) => (
                   <a href={`#${key}`} onClick={() => setSection(index())}>
-                    <span>0{index() + 1}</span>
+                    <span>{String(index() + 1).padStart(2, '0')}</span>
                     {label(key)}
                   </a>
                 )}
@@ -308,6 +321,7 @@ export function Gallery(): JSX.Element {
                 </div>
                 {source('tokens.css')}
               </section>
+              <DataExamples lang={lang()} />
               <footer>{label('libraryNote')}</footer>
             </main>
           </div>
