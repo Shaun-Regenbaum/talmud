@@ -75,6 +75,7 @@ import heAliasData from '../lib/data/rabbi-he-aliases.json';
 import { buildGeoModel, type GeoEnrichment, type RabbiGeoSource } from '../lib/geographyModel';
 import { buildCodificationChain, buildDerivation } from '../lib/halacha/codifiers';
 import { isNonSageTopic } from '../lib/nonSageTopics';
+import { filterRabbiBoundaries, nameCrossesBoundary } from '../lib/rabbi/nameBoundaries';
 import {
   buildRabbiEnrichUserMessage,
   type LocalRabbiInput,
@@ -159,6 +160,7 @@ import {
   keyForRabbiWikidata,
   keyForReferences,
   keyForRegion,
+  keyForSefariaSegments,
   keyForSpineLinks,
   keyForSpineView,
   keyForSpineViewAcc,
@@ -4145,9 +4147,34 @@ function enrichKeyInfo(def: EnrichmentDefinition) {
   };
 }
 
-async function readCachedResult(env: Bindings, key: string): Promise<RunResult | null> {
+export async function readCachedResult(env: Bindings, key: string): Promise<RunResult | null> {
   if (!env.CACHE) return null;
-  return (await artifactStore(env).get(key)) as RunResult | null;
+  const stored = await artifactStore(env).get(key);
+  // Repair old name scans on read without rewriting the cache or its recipe.
+  // Human corrections remain authoritative, including on this read path.
+  const rabbiKey = /^mark:rabbi:[^:]+:(?:he:)?([^:]+):(\d+[ab])$/.exec(key);
+  if (!stored || !rabbiKey || authorityOf(stored) === 'human') return stored as RunResult | null;
+  try {
+    // Stay cache-only: a source miss must not add remote fetches to a warm read.
+    const tractate = canonicalTractateName(rabbiKey[1]);
+    const source = await env.CACHE.get(keyForGemara(tractate, rabbiKey[2]));
+    let segments: string[];
+    if (source) {
+      segments = (JSON.parse(source) as GemaraSlice).segments_he;
+    } else {
+      // Opening a daf refreshes this source even after the generation slice expires.
+      const raw = await env.CACHE.get(keyForSefariaSegments(tractate, rabbiKey[2]));
+      if (!raw) return stored as RunResult;
+      segments = (JSON.parse(raw) as { he: string[] }).he.map(stripHtmlServer);
+    }
+    const parsed = filterRabbiBoundaries(stored.parsed, segments.join('\n'));
+    if (parsed !== stored.parsed) {
+      return { ...stored, parsed, content: JSON.stringify(parsed) } as RunResult;
+    }
+  } catch {
+    // An unavailable source must not make an already-warm mark unreadable.
+  }
+  return stored as RunResult;
 }
 
 async function writeCachedResult(env: Bindings, key: string, result: RunResult): Promise<void> {
@@ -4580,7 +4607,11 @@ async function runExtractorFannedOut(
 // underline + timeline entry. Rebuilds the instance list from the augmented
 // rabbis — `excerpt` is non-load-bearing for the rabbi mark (the renderer and
 // sidebar key off fields.nameHe), so mirroring it from nameHe is safe.
-export function postProcessRabbi(parsed: unknown, hebrewText: string): unknown {
+export function postProcessRabbi(
+  parsed: unknown,
+  hebrewText: string,
+  punctuatedText = hebrewText,
+): unknown {
   const p = parsed as {
     instances?: Array<{ fields?: { name?: string; nameHe?: string; generation?: string } }>;
   } | null;
@@ -4590,7 +4621,7 @@ export function postProcessRabbi(parsed: unknown, hebrewText: string): unknown {
     nameHe: String(i.fields?.nameHe ?? ''),
     generation: (i.fields?.generation ?? 'unknown') as GenerationId,
   }));
-  const augmented = augmentWithKnownRabbis(modelRabbis, hebrewText);
+  const augmented = augmentWithKnownRabbis(modelRabbis, hebrewText, punctuatedText);
   return {
     ...p,
     instances: augmented.map((r) => ({
@@ -4880,7 +4911,12 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
       let parsed = a.parsed;
       if (parsed && a.def.id === 'rabbi') {
         await ensureLearnedAdjacency(rc.env);
-        parsed = postProcessRabbi(parsed, stripHtmlServer(String(a.vars.hebrew ?? '')));
+        const slice = await getGemaraSlice(rc.env, a.tractate, a.page, false);
+        parsed = postProcessRabbi(
+          parsed,
+          stripHtmlServer(String(a.vars.hebrew ?? '')),
+          slice.segments_he.join('\n'),
+        );
         // Ground each rabbi's generation through the registry (relational homonym
         // disambiguation off the daf's cast): authoritative era when identified,
         // neutral 'unknown' for a homonym we can't pin — so the reader's era color
@@ -5782,7 +5818,7 @@ app.post('/api/run', async (c) => {
   if (!job.bypass_cache) {
     const { key } = await cacheKeyForRunBody(c.env, job);
     if (key && c.env.CACHE) {
-      const result = (await artifactStore(c.env).get(key)) as RunResultEnrichment | null;
+      const result = (await readCachedResult(c.env, key)) as RunResultEnrichment | null;
       if (result) {
         try {
           // Section-enrichment range guard (mirrors runEnrichmentOnce): the
@@ -6113,7 +6149,7 @@ app.get('/api/run-status/:runId', async (c) => {
   if (cacheKey) {
     // store.get maps a corrupt canonical entry to a miss — same fall-through
     // to pending the old inline parse had.
-    const result = (await artifactStore(c.env).get(cacheKey)) as RunResult | null;
+    const result = await readCachedResult(c.env, cacheKey);
     if (result) {
       return c.json({ status: 'ok', result: { ...result, cache_hit: true, total_ms: 0 } });
     }
@@ -8746,11 +8782,13 @@ export function sanitizeNameHe(nameHe: string): string {
 export function augmentWithKnownRabbis(
   modelRabbis: GenerationsResult['rabbis'],
   hebrewText: string,
+  punctuatedText = hebrewText,
 ): GenerationsResult['rabbis'] {
+  const crossesBoundary = nameCrossesBoundary(punctuatedText);
   const sanitized = dedupeBy(
     modelRabbis
       .map((r) => ({ ...r, nameHe: sanitizeNameHe(r.nameHe) }))
-      .filter((r) => r.nameHe.length > 0),
+      .filter((r) => r.nameHe.length > 0 && !crossesBoundary(r.nameHe)),
     // Drop a rabbi the model named twice (same person, identical Hebrew name)
     // so the rabbi anchors fed to downstream enrichments aren't doubled.
     (r) => normalizeHe(r.nameHe),
@@ -8760,6 +8798,7 @@ export function augmentWithKnownRabbis(
   const added: GenerationsResult['rabbis'] = [];
   for (const k of KNOWN_RABBIS_HE) {
     if (seenHe.has(k.nameHeNorm)) continue;
+    if (crossesBoundary(k.nameHe)) continue;
     if (countGuardedMatches(textNorm, k.nameHeNorm, k.guard) === 0) continue;
     added.push({ name: k.name, nameHe: k.nameHe, generation: 'unknown' });
     seenHe.add(k.nameHeNorm);
@@ -8771,6 +8810,7 @@ export function augmentWithKnownRabbis(
   // the mention gets an underline/gutter presence instead of being invisible.
   for (const [short, entries] of KNOWN_RABBIS_HE_SHORT) {
     if (seenHe.has(short)) continue;
+    if (crossesBoundary(short)) continue;
     const shortCount = countHebrewWordBoundaryMatches(textNorm, short);
     if (shortCount === 0) continue;
     // Skip the occurrences that are just the inside of a longer already-seen

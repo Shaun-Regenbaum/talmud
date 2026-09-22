@@ -1,3 +1,4 @@
+import { nameBoundaryMatches } from '../lib/rabbi/nameBoundaries';
 import { colorForGeneration, type GenerationId } from './generations';
 
 export interface GenerationRabbi {
@@ -30,7 +31,11 @@ export function normalizeHebrew(s: string): string {
  * normalizer strips geresh). We look for that sequence in consecutive word
  * spans. Matches multiple occurrences per rabbi.
  */
-export function injectRabbiUnderlines(html: string, rabbis: GenerationRabbi[]): string {
+export function injectRabbiUnderlines(
+  html: string,
+  rabbis: GenerationRabbi[],
+  segmentsHe: readonly string[] = [],
+): string {
   if (!html || typeof document === 'undefined' || rabbis.length === 0) return html;
 
   const doc = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html');
@@ -159,12 +164,40 @@ export function injectRabbiUnderlines(html: string, rabbis: GenerationRabbi[]): 
     rabbiName: string;
   }
   const wraps: Wrap[] = [];
+  const sourceMatches = segmentsHe.map(nameBoundaryMatches);
 
   for (const c of candidates) {
     const n = c.tokens.length;
     const uStart = c.underlineStart ?? 0;
     const uEnd = c.underlineEnd ?? n - 1;
+    const occurrences = words
+      .map((_, i) => i)
+      .filter((i) => c.tokens.every((token, j) => normed[i + j] === token));
+    const blocked = new Set<number>();
+    const bySegment = new Map<number, number[]>();
+    for (const i of occurrences) {
+      const text = words
+        .slice(i, i + n)
+        .map((w) => w.textContent ?? '')
+        .join(' ');
+      if (nameBoundaryMatches(text)(c.tokens.join(' ')).some(Boolean)) blocked.add(i);
+      const seg = words[i].getAttribute('data-seg');
+      if (seg === null || seg !== words[i + n - 1].getAttribute('data-seg')) continue;
+      const indices = bySegment.get(Number(seg)) ?? [];
+      indices.push(i);
+      bySegment.set(Number(seg), indices);
+    }
+    for (const [seg, indices] of bySegment) {
+      const boundaries = sourceMatches[seg]?.(c.tokens.join(' ')) ?? [];
+      if (!boundaries.some(Boolean)) continue;
+      // Align repeated names by occurrence within the source segment. If the
+      // editions disagree on the count, leave the uncertain matches unmarked.
+      indices.forEach((i, ordinal) => {
+        if (boundaries.length !== indices.length || boundaries[ordinal]) blocked.add(i);
+      });
+    }
     for (let i = 0; i <= words.length - n; i++) {
+      if (blocked.has(i)) continue;
       // Only the tokens within the underline range must be free — context
       // tokens (e.g. דברי before רמ) are allowed to be already wrapped or
       // free, since we don't wrap them. Check the underline window only.
