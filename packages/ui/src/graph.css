@@ -372,6 +372,18 @@
 .horizontal .ui-graph-node:not(.header) .ui-graph-label {
   flex-basis: 100%;
 }
+.horizontal .ui-graph-node.has-summary .ui-graph-label {
+  order: -1;
+  font-weight: 600;
+}
+.ui-graph-summary {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
 .horizontal .ui-graph-node .ui-graph-role {
   max-width: none;
   font-size: 11px;

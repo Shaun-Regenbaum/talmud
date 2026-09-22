@@ -77,6 +77,12 @@ describe('passage dialog loading and selection', () => {
         false,
       ),
     );
+    const statement = saved.pages[0].sections[0].spine.nodes[0];
+    const card = document.querySelector(
+      `[data-graph-node="2a/section:0:statement:${statement.id}"]`,
+    )!;
+    expect(card.querySelector('.ui-graph-label')?.textContent).toBe(statement.speaker);
+    expect(card.querySelector('.ui-graph-summary')?.textContent).toBe(statement.summary);
     fireEvent.click(screen.getByRole('button', { name: source.ref }));
     await waitFor(() => expect(expanded()).toBe(true));
     const action = document.querySelector('[data-graph-node="2a/section:0:exit:0"]');

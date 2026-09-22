@@ -188,11 +188,11 @@ export const statementColor = (relation: string): string =>
     : relation === 'responds-to'
       ? KIND_COLOR.resolves
       : KIND_COLOR[stmtRelKind(relation)];
-export const statementLabel = (s: StatementNode): string =>
-  s.summary || s.speaker || s.excerpt || statementRole(s.role);
+export const statementLabel = (s: StatementNode): string => s.speaker || statementRole(s.role);
 export const statementGraphNode = (s: StatementNode, id = s.id): GraphNode => ({
   id,
   label: statementLabel(s),
+  summary: s.summary || s.excerpt || undefined,
   role: statementRole(s.role),
   color: statementRoleColor(s.role),
   badge: sideBadge(s.side),

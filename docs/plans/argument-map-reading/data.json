@@ -1,0 +1,324 @@
+{
+  "source": "https://talmud.dev/api/statement-spine/Berakhot/{page}",
+  "sourceFixture": "../../../packages/talmud/tests/fixtures/berakhot-passage.json",
+  "displayLabels": "Proposed short paraphrases of the saved summaries. They are display choices, not additional statements or links.",
+  "page": "2a",
+  "sections": [
+    {
+      "index": 0,
+      "title": "Opening Mishnah: Time for Evening Shema",
+      "spine": {
+        "nodes": [
+          {
+            "id": "0-4_0",
+            "order": 0,
+            "role": "opening",
+            "speaker": "Mishnah's opening question",
+            "rabbiNames": [],
+            "named": false,
+            "excerpt": "מֵאֵימָתַי קוֹרִין אֶת שְׁמַע בָּעֲרָבִין?",
+            "summary": "The Mishnah opens with the question of when the evening Shema may be recited, and presents Rabbi Eliezer's opinion: from the time priests enter to eat their תרומה (priestly portion) until the end of the first watch.",
+            "startSegIdx": 0,
+            "endSegIdx": 0,
+            "tokenStart": 0,
+            "tokenEnd": 16,
+            "displayTitle": "When can evening Shema be read?",
+            "number": "1.1"
+          },
+          {
+            "id": "0-4_1",
+            "order": 1,
+            "role": "answer",
+            "speaker": "Sages' opinion",
+            "rabbiNames": ["Sages"],
+            "named": true,
+            "excerpt": "וַחֲכָמִים אוֹמְרִים: עַד חֲצוֹת.",
+            "summary": "The Sages rule that the evening Shema may be recited until midnight.",
+            "startSegIdx": 1,
+            "endSegIdx": 1,
+            "tokenStart": 0,
+            "tokenEnd": 3,
+            "side": "B",
+            "displayTitle": "The Sages: until midnight",
+            "number": "1.2"
+          },
+          {
+            "id": "0-4_2",
+            "order": 2,
+            "role": "answer",
+            "speaker": "Rabban Gamliel's opinion",
+            "rabbiNames": ["Rabban Gamliel"],
+            "named": true,
+            "excerpt": "רַבָּן גַּמְלִיאֵל אוֹמֵר עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר.",
+            "summary": "Rabban Gamliel rules that the evening Shema may be recited until dawn.",
+            "startSegIdx": 2,
+            "endSegIdx": 2,
+            "tokenStart": 0,
+            "tokenEnd": 6,
+            "displayTitle": "Rabban Gamliel: until dawn",
+            "number": "1.3"
+          },
+          {
+            "id": "0-4_3",
+            "order": 3,
+            "role": "supporting-evidence",
+            "speaker": "Story about Rabban Gamliel's sons",
+            "rabbiNames": ["Rabban Gamliel"],
+            "named": true,
+            "excerpt": "מַעֲשֶׂה וּבָאוּ בָנָיו מִבֵּית הַמִּשְׁתֶּה",
+            "summary": "A story illustrates Rabban Gamliel's lenient ruling: when his sons returned late from a wedding feast and had not recited the Shema, he told them they were still obligated if dawn had not yet arrived.",
+            "startSegIdx": 3,
+            "endSegIdx": 3,
+            "tokenStart": 0,
+            "tokenEnd": 20,
+            "displayTitle": "His sons return from a feast",
+            "number": "1.4"
+          },
+          {
+            "id": "0-4_4",
+            "order": 4,
+            "role": "resolution",
+            "speaker": "Mishnah's generalization",
+            "rabbiNames": [],
+            "named": false,
+            "excerpt": "וְלֹא זוֹ בִּלְבַד אָמְרוּ",
+            "summary": "The Mishnah extends the principle that the proper time for certain מצוות (commandments) is until dawn, and explains that the Sages set midnight as a safeguard (הרחקה) to keep people from sin.",
+            "startSegIdx": 3,
+            "endSegIdx": 4,
+            "tokenStart": 21,
+            "tokenEnd": 28,
+            "displayTitle": "Midnight is a safeguard",
+            "number": "1.5"
+          }
+        ],
+        "links": [],
+        "dispute": false
+      },
+      "displayTitle": "When to read evening Shema"
+    },
+    {
+      "index": 1,
+      "title": "Gemara's First Question: Why Begin with Evening?",
+      "spine": {
+        "nodes": [
+          {
+            "id": "5-7_0",
+            "order": 0,
+            "role": "question",
+            "speaker": "Gemara's question",
+            "rabbiNames": [],
+            "named": false,
+            "excerpt": "תַּנָּא הֵיכָא קָאֵי דְּקָתָנֵי",
+            "summary": "The Gemara asks where the Tanna is positioned to begin the Mishnah with 'From when?'",
+            "startSegIdx": 5,
+            "endSegIdx": 5,
+            "tokenStart": 1,
+            "tokenEnd": 5,
+            "displayTitle": "Why begin with ‘from when’?",
+            "number": "2.1"
+          },
+          {
+            "id": "5-7_1",
+            "order": 1,
+            "role": "question",
+            "speaker": "Gemara's further question",
+            "rabbiNames": [],
+            "named": false,
+            "excerpt": "וְתוּ: מַאי שְׁנָא דְּתָנֵי",
+            "summary": "The Gemara further asks why the Tanna teaches the evening Shema first rather than the morning Shema.",
+            "startSegIdx": 6,
+            "endSegIdx": 6,
+            "tokenStart": 0,
+            "tokenEnd": 8,
+            "displayTitle": "Why evening first?",
+            "number": "2.2"
+          },
+          {
+            "id": "5-7_2",
+            "order": 2,
+            "role": "answer",
+            "speaker": "First answer (Stam)",
+            "rabbiNames": [],
+            "named": false,
+            "excerpt": "תַּנָּא אַקְּרָא קָאֵי",
+            "summary": "The Gemara answers that the Tanna is expounding the verse 'בשכבך ובקומך' (when you lie down and when you rise), which mentions lying down first.",
+            "startSegIdx": 7,
+            "endSegIdx": 7,
+            "tokenStart": 0,
+            "tokenEnd": 17,
+            "displayTitle": "The verse puts lying down first",
+            "number": "2.3"
+          }
+        ],
+        "links": [
+          {
+            "from": "5-7_2",
+            "to": "5-7_1",
+            "relation": "responds-to",
+            "source": "role"
+          }
+        ],
+        "dispute": false
+      },
+      "displayTitle": "Why begin with evening?"
+    },
+    {
+      "index": 2,
+      "title": "Alternative Answer and Further Question",
+      "spine": {
+        "nodes": [
+          {
+            "id": "8-10_0",
+            "order": 0,
+            "role": "answer",
+            "speaker": "Second answer (Stam)",
+            "rabbiNames": [],
+            "named": false,
+            "excerpt": "וְאִי בָּעֵית אֵימָא: יָלֵיף מִבְּרִיָּיתוֹ שֶׁל עוֹלָם,",
+            "summary": "The Gemara offers an alternative answer: the Tanna learns from the order of creation (evening then morning), as it is written 'וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד' (and there was evening and there was morning, one day).",
+            "startSegIdx": 8,
+            "endSegIdx": 8,
+            "tokenStart": 0,
+            "tokenEnd": 13,
+            "displayTitle": "Creation begins with evening",
+            "number": "3.1"
+          },
+          {
+            "id": "8-10_1",
+            "order": 1,
+            "role": "question",
+            "speaker": "Gemara's question",
+            "rabbiNames": [],
+            "named": false,
+            "excerpt": "אִי הָכִי, סֵיפָא דְּקָתָנֵי ״בַּשַּׁחַר מְבָרֵךְ שְׁתַּיִם לְפָנֶיהָ וְאַחַת לְאַחֲרֶיהָ, בָּעֶרֶב מְבָרֵךְ שְׁתַּיִם לְפָנֶיהָ וּשְׁתַּיִם לְאַחֲרֶיהָ״, לִתְנֵי דְּעַרְבִית בְּרֵישָׁא!",
+            "summary": "The Gemara questions: if the order is evening then morning, why does the Mishnah's later section (about blessings) list morning before evening? It should have listed evening first.",
+            "startSegIdx": 9,
+            "endSegIdx": 9,
+            "tokenStart": 0,
+            "tokenEnd": 18,
+            "displayTitle": "Why do the blessings reverse the order?",
+            "number": "3.2"
+          },
+          {
+            "id": "8-10_2",
+            "order": 2,
+            "role": "resolution",
+            "speaker": "Resolution (Stam)",
+            "rabbiNames": [],
+            "named": false,
+            "excerpt": "תַּנָּא פָּתַח בְּעַרְבִית, וַהֲדַר תָּנֵי בְּשַׁחֲרִית, עַד דְּקָאֵי בְּשַׁחֲרִית, פָּרֵישׁ מִילֵּי דְשַׁחֲרִית, וַהֲדַר פָּרֵישׁ מִילֵּי דְעַרְבִית.",
+            "summary": "The Gemara resolves: the Tanna first discusses evening, then morning, and while still on morning explains its laws before returning to evening.",
+            "startSegIdx": 10,
+            "endSegIdx": 10,
+            "tokenStart": 0,
+            "tokenEnd": 15,
+            "displayTitle": "Finish the morning laws first",
+            "number": "3.3"
+          }
+        ],
+        "links": [
+          {
+            "from": "8-10_2",
+            "to": "8-10_1",
+            "relation": "resolves",
+            "source": "role"
+          }
+        ],
+        "dispute": false
+      },
+      "displayTitle": "A second answer"
+    },
+    {
+      "index": 3,
+      "title": "Why 'When Priests Enter' Rather Than 'Nightfall'?",
+      "spine": {
+        "nodes": [
+          {
+            "id": "11-13_0",
+            "order": 0,
+            "role": "question",
+            "speaker": "Gemara's question",
+            "rabbiNames": [],
+            "named": false,
+            "excerpt": "אָמַר מָר מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִים לֶאֱכוֹל בִּתְרוּמָתָן.",
+            "summary": "The Gemara asks why the Mishnah says 'from the time the priests enter to eat their terumah' instead of simply stating 'from the time the stars come out'.",
+            "startSegIdx": 11,
+            "endSegIdx": 11,
+            "tokenStart": 0,
+            "tokenEnd": 19,
+            "displayTitle": "Why mention the priests?",
+            "number": "4.1"
+          },
+          {
+            "id": "11-13_1",
+            "order": 1,
+            "role": "answer",
+            "speaker": "Gemara's answer",
+            "rabbiNames": [],
+            "named": false,
+            "excerpt": "מִלְּתָא אַגַּב אוֹרְחֵיהּ קָמַשְׁמַע לַן",
+            "summary": "The Gemara answers that the Mishnah incidentally teaches that priests eat terumah after nightfall and that atonement (כפרה) does not delay eating terumah, citing a baraita about the verse 'וּבָא הַשֶּׁמֶשׁ וְטָהֵר' (the sun sets and he is pure).",
+            "startSegIdx": 12,
+            "endSegIdx": 12,
+            "tokenStart": 0,
+            "tokenEnd": 32,
+            "displayTitle": "The wording also teaches about terumah",
+            "number": "4.2"
+          },
+          {
+            "id": "11-13_2",
+            "order": 2,
+            "role": "supporting-evidence",
+            "speaker": "Gemara's clarification",
+            "rabbiNames": [],
+            "named": false,
+            "excerpt": "וּמִמַּאי דְּהַאי ״וּבָא הַשֶּׁמֶשׁ״ בִּיאַת הַשֶּׁמֶשׁ",
+            "summary": "The Gemara clarifies that the verse's 'וּבָא הַשֶּׁמֶשׁ' means the actual sunset and 'וְטָהֵר' means the day becomes pure (i.e., nightfall).",
+            "startSegIdx": 13,
+            "endSegIdx": 13,
+            "tokenStart": 0,
+            "tokenEnd": 9,
+            "displayTitle": "The meaning of sunset and purity",
+            "number": "4.3"
+          }
+        ],
+        "links": [
+          {
+            "from": "11-13_1",
+            "to": "11-13_0",
+            "relation": "responds-to",
+            "source": "role"
+          }
+        ],
+        "dispute": false
+      },
+      "displayTitle": "Why mention the priests?"
+    }
+  ],
+  "flow": [
+    {
+      "from": 1,
+      "to": 0,
+      "kind": "continues"
+    },
+    {
+      "from": 2,
+      "to": 1,
+      "kind": "continues"
+    },
+    {
+      "from": 3,
+      "to": 0,
+      "kind": "continues"
+    }
+  ],
+  "boundary": {
+    "from": "Berakhot 2a:1",
+    "untilExclusive": "Berakhot 9b:9",
+    "lastSegment": "Berakhot 9b:8",
+    "source": "https://www.sefaria.org/api/texts/Berakhot.2a-9b?context=0&commentary=0",
+    "englishVersion": "William Davidson Edition - English",
+    "hebrewVersion": "William Davidson Edition - Vocalized Aramaic",
+    "checked": "2026-09-22"
+  }
+}

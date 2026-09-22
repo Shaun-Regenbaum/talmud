@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Three ways to read the argument map</title><style>:root {
+  --font-display: "Inter Tight", "Inter", -apple-system, system-ui, sans-serif;
+  --font-body: "Inter", -apple-system, system-ui, sans-serif;
+  --font-mono: "Berkeley Mono", "IBM Plex Mono", "SF Mono", ui-monospace, monospace;
+
+  --paper: #f8f8f5;
+  --paper-grid: rgba(0, 0, 0, 0.045);
+  --paper-card: #ffffff;
+  --paper-tint: #f1f1ec;
+  --rule: rgba(0, 0, 0, 0.1);
+  --rule-strong: rgba(0, 0, 0, 0.2);
+  --ink: #0f0f10;
+  --ink-soft: #2a2a2c;
+  --ink-mid: #555558;
+  --ink-dim: #8b8b8e;
+  --ink-faint: #b8b8b3;
+  /* --accent is an alias of --green for generic-token consumers; never set it to another hue */
+  --green: #3f7340;
+  --green-mid: #6a9a6c;
+  --green-deep: #2e4730;
+  --warn: #b8830a;
+  --danger: #b03030;
+  --info: #3a5e8c;
+  --teal: #1b8073;
+  --plum: #5b4b8a;
+  --accent: var(--green);
+  --chrome: #edebe4;
+  --skel-hi: #e9e9e2;
+  /* the cell philosophy, quietly: cell gradient at small scale, whisper gradients on fills/chrome */
+  --grad-cell: linear-gradient(to bottom, #87ba87, #4c8c4c);
+  --grad-primary: linear-gradient(to bottom, #4c8147, #3f7340);
+  --grad-primary-hover: linear-gradient(to bottom, #3f7340, #346134);
+  --grad-header: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--paper-card) 55%, var(--paper-tint)),
+    var(--paper-tint)
+  );
+  --grad-card: linear-gradient(
+    to bottom,
+    var(--paper-card),
+    color-mix(in srgb, var(--paper-card) 86%, var(--paper-tint))
+  );
+  --radius: 6px;
+  --grid: 36px;
+  --pad-x: clamp(20px, 5vw, 72px);
+  --max-width: 1180px;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(to right, var(--paper-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--paper-grid) 1px, transparent 1px);
+  background-size: var(--grid) var(--grid);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased;
+}
+::selection {
+  background: rgba(63, 115, 64, 0.25);
+}
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+img,
+svg {
+  display: block;
+}
+.wrap {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--pad-x);
+}
+i.ti {
+  font-size: 16px;
+  line-height: 1;
+  vertical-align: -0.125em;
+}
+
+/* grid identity helpers */
+.paper-grid {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(to right, var(--paper-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--paper-grid) 1px, transparent 1px);
+  background-size: var(--grid) var(--grid);
+}
+/* whisper grid — for working surfaces where the full grid would compete with data */
+.grid-faint {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.022) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.022) 1px, transparent 1px);
+  background-size: var(--grid) var(--grid);
+}
+/* .framed reserves a strict 16px margin so the ticks (which float fully
+   outside the block, 2px clear of the border) can never overlap neighbors —
+   don't cancel it. */
+.framed {
+  position: relative;
+  margin: 16px;
+}
+/* Registration corners — curved L-ticks floating just outside the block's
+   corners; the table/panel companion of the button hover ticks. */
+.framed > .xm {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  pointer-events: none;
+  border: 0 solid var(--rule-strong);
+}
+.framed > .xm.tl {
+  left: -15px;
+  top: -15px;
+  border-left-width: 1.5px;
+  border-top-width: 1.5px;
+  border-top-left-radius: calc(var(--radius) + 6px);
+}
+.framed > .xm.tr {
+  right: -15px;
+  top: -15px;
+  border-right-width: 1.5px;
+  border-top-width: 1.5px;
+  border-top-right-radius: calc(var(--radius) + 6px);
+}
+.framed > .xm.bl {
+  left: -15px;
+  bottom: -15px;
+  border-left-width: 1.5px;
+  border-bottom-width: 1.5px;
+  border-bottom-left-radius: calc(var(--radius) + 6px);
+}
+.framed > .xm.br {
+  right: -15px;
+  bottom: -15px;
+  border-right-width: 1.5px;
+  border-bottom-width: 1.5px;
+  border-bottom-right-radius: calc(var(--radius) + 6px);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #171814;
+  --paper-grid: rgba(255, 255, 255, 0.05);
+  --paper-card: #1f211b;
+  --paper-tint: #272921;
+  --rule: rgba(255, 255, 255, 0.12);
+  --rule-strong: rgba(255, 255, 255, 0.24);
+  --ink: #f0f0ea;
+  --ink-soft: #d7d7d0;
+  --ink-mid: #a7a7a0;
+  --ink-dim: #82827b;
+  --ink-faint: #575751;
+  --green: #5f975f;
+  --green-mid: #82b382;
+  --green-deep: #22381f;
+  --warn: #d3a338;
+  --danger: #d05c5c;
+  --info: #7c9fc8;
+  --teal: #4fa99c;
+  --plum: #9b8ac2;
+  --chrome: #1b1c17;
+  --skel-hi: #2e3029;
+  --grad-primary: linear-gradient(to bottom, #69a169, #578f57);
+  --grad-primary-hover: linear-gradient(to bottom, #79b179, #69a169);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #171814;
+    --paper-grid: rgba(255, 255, 255, 0.05);
+    --paper-card: #1f211b;
+    --paper-tint: #272921;
+    --rule: rgba(255, 255, 255, 0.12);
+    --rule-strong: rgba(255, 255, 255, 0.24);
+    --ink: #f0f0ea;
+    --ink-soft: #d7d7d0;
+    --ink-mid: #a7a7a0;
+    --ink-dim: #82827b;
+    --ink-faint: #575751;
+    --green: #5f975f;
+    --green-mid: #82b382;
+    --green-deep: #22381f;
+    --warn: #d3a338;
+    --danger: #d05c5c;
+    --info: #7c9fc8;
+    --teal: #4fa99c;
+    --plum: #9b8ac2;
+    --chrome: #1b1c17;
+    --skel-hi: #2e3029;
+    --grad-primary: linear-gradient(to bottom, #69a169, #578f57);
+    --grad-primary-hover: linear-gradient(to bottom, #79b179, #69a169);
+  }
+}
+:root {
+  --reader-accent: #87312e;
+  --reader-tint: #faf5f3;
+  --reader-border: #e0ded6;
+}
+:root[data-theme="dark"] {
+  --reader-accent: #d18b83;
+  --reader-tint: #302524;
+  --reader-border: #47463d;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --reader-accent: #d18b83;
+    --reader-tint: #302524;
+    --reader-border: #47463d;
+  }
+}
+body {
+  font-size: 14px;
+}
+main {
+  max-width: 1440px;
+  margin: auto;
+  padding: 28px 32px 64px;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 14px;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+header small {
+  font-family: var(--font-mono);
+  color: var(--ink-mid);
+}
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.15;
+}
+h1 {
+  font-size: 36px;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+}
+h2 {
+  font-size: 26px;
+  margin: 0 0 12px;
+}
+h3 {
+  font-size: 19px;
+}
+p {
+  max-width: 850px;
+  margin: 10px 0;
+}
+a {
+  color: var(--green);
+  text-underline-offset: 3px;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: var(--paper-card);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+button:hover {
+  border-color: var(--ink-mid);
+}
+button:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+section {
+  margin-top: 44px;
+}
+.lede {
+  font-size: 17px;
+  max-width: 900px;
+}
+.note {
+  color: var(--ink-mid);
+  font-size: 13px;
+}
+.compare {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 28px;
+}
+.variant {
+  min-width: 0;
+}
+.variant > h3 {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.letter {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--green);
+}
+.variant > p {
+  min-height: 40px;
+  font-size: 13px;
+  color: var(--ink-mid);
+}
+.preview {
+  background: var(--paper-card);
+  border: 1px solid var(--reader-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.preview-top {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--reader-border);
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.preview-top span {
+  color: var(--ink-mid);
+}
+.map {
+  padding: 14px 10px;
+  position: relative;
+  min-height: 370px;
+}
+.rail-map {
+  padding-right: 52px;
+}
+.map svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.g {
+  margin-bottom: 10px;
+  position: relative;
+}
+.g:last-child {
+  margin-bottom: 0;
+}
+.g-head {
+  width: 100%;
+  display: flex;
+  text-align: left;
+  align-items: center;
+  gap: 8px;
+  min-height: 43px;
+  padding: 8px;
+  border: 1px solid var(--reader-border);
+  background: var(--paper-card);
+  position: relative;
+  font-size: 13px;
+  font-weight: 600;
+}
+.g.open > .g-head {
+  border-color: var(--reader-accent);
+  background: var(--reader-tint);
+}
+.num {
+  font: 11px var(--font-mono);
+  color: var(--reader-accent);
+  min-width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background: var(--reader-tint);
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.g.open > .g-head .num {
+  background: var(--reader-accent);
+  color: var(--paper-card);
+}
+.chev {
+  margin-left: auto;
+  color: var(--reader-accent);
+}
+.children {
+  padding: 5px 0 0 20px;
+}
+.rail-map .children {
+  padding-left: 26px;
+}
+.node {
+  width: 100%;
+  min-height: 48px;
+  text-align: left;
+  padding: 7px 9px;
+  margin-bottom: 4px;
+  border: 1px solid var(--reader-border);
+  border-left: 3px solid var(--info);
+  background: var(--paper-card);
+  border-radius: var(--radius);
+  position: relative;
+}
+.node.answer,
+.node.resolution {
+  border-left-color: var(--green);
+}
+.node.supporting-evidence {
+  border-left-color: var(--teal);
+}
+.node.selected {
+  background: var(--reader-tint);
+  border-color: var(--reader-accent);
+}
+.node .title {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+  display: block;
+}
+.meta {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  font-size: 10px;
+  color: var(--ink-mid);
+  margin-bottom: 2px;
+}
+.meta .role {
+  color: var(--info);
+}
+.answer .role,
+.resolution .role {
+  color: var(--green);
+}
+.number {
+  font-family: var(--font-mono);
+}
+.relations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+  padding-left: 31px;
+}
+.link-chip {
+  border: 0;
+  background: var(--paper-tint);
+  color: var(--ink-mid);
+  font-size: 10px;
+  padding: 3px 7px;
+}
+.link-chip.local {
+  color: var(--green);
+}
+.child-wrap {
+  position: relative;
+}
+.child-wrap .relations {
+  padding: 0 0 5px;
+  margin-top: -2px;
+}
+.route-key {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px 12px;
+  color: var(--ink-mid);
+  font-size: 11px;
+  min-height: 25px;
+}
+.route-key .sample {
+  width: 20px;
+  border-top: 1.5px dashed var(--green);
+}
+.inspect {
+  border-top: 1px solid var(--reader-border);
+  padding: 13px 14px;
+  min-height: 174px;
+}
+.inspect .tiny {
+  color: var(--ink-mid);
+  font-size: 11px;
+}
+.inspect strong {
+  display: block;
+  font-size: 13px;
+  margin: 5px 0;
+}
+.inspect p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 4px 0;
+}
+.inspect a {
+  font-size: 11px;
+}
+.focus-nav {
+  display: flex;
+  gap: 5px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--reader-border);
+}
+.focus-nav button {
+  font-size: 11px;
+  padding: 4px 8px;
+}
+.focus-nav [aria-pressed="true"] {
+  background: var(--reader-tint);
+  border-color: var(--reader-accent);
+}
+.focus-list {
+  padding: 10px 12px;
+}
+.focus-list .node {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px;
+}
+.focus-list .node .title {
+  font-size: 12px;
+}
+.focus-connection {
+  padding: 8px 14px 14px;
+  min-height: 160px;
+}
+.focus-connection .relation-title {
+  color: var(--green);
+  font-size: 11px;
+  margin-bottom: 7px;
+}
+.focus-connection .node {
+  padding: 11px;
+}
+.focus-connection p {
+  font-size: 12px;
+  color: var(--ink-mid);
+}
+.comparison-note {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-left: 3px solid var(--green);
+  background: var(--paper-tint);
+}
+.table-wrap {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--paper-card);
+  font-size: 13px;
+}
+th,
+td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+th {
+  font-weight: 600;
+  color: var(--ink-mid);
+}
+.record {
+  padding: 18px;
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  max-width: 680px;
+}
+.record strong {
+  display: block;
+  font-size: 19px;
+}
+.record .tag {
+  color: var(--green);
+  font-size: 12px;
+}
+.definition {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--rule);
+  max-width: 920px;
+}
+.definition > b {
+  font-size: 15px;
+}
+.definition p {
+  margin: 0;
+}
+.diagram {
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 22px 0;
+}
+.track {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin: 20px 0 14px;
+}
+.track a,
+.track span {
+  flex: 1;
+  padding: 14px 10px;
+  border-top: 3px solid var(--reader-accent);
+  border-bottom: 1px solid var(--reader-border);
+  border-right: 1px dashed var(--reader-border);
+  min-width: 62px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.track small {
+  display: block;
+  font-size: 10px;
+  color: var(--ink-mid);
+}
+.track .next {
+  border-top-color: var(--green);
+}
+.diagram .range {
+  font-size: 15px;
+  font-weight: 600;
+}
+.thread {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 16px;
+}
+.thread span {
+  padding: 8px 12px;
+  border: 1px solid var(--reader-border);
+  border-radius: var(--radius);
+}
+.thread .line {
+  flex: 1;
+  height: 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px dashed var(--ink-mid);
+  border-radius: 0;
+}
+details {
+  margin-top: 20px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper-card);
+}
+summary {
+  padding: 14px 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.details-body {
+  padding: 0 16px 16px;
+}
+ol {
+  margin: 14px 0 0 22px;
+}
+li {
+  margin: 9px 0;
+  padding-left: 4px;
+  max-width: 900px;
+}
+footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 40px;
+  padding-top: 15px;
+  color: var(--ink-mid);
+  font-size: 12px;
+}
+@media (max-width: 1000px) {
+  .compare {
+    grid-template-columns: 1fr;
+    max-width: 650px;
+  }
+  .variant > p {
+    min-height: 0;
+  }
+  .map {
+    min-height: 0;
+  }
+  .preview {
+    max-width: 650px;
+  }
+}
+@media (max-width: 600px) {
+  main {
+    padding: 20px 16px 40px;
+  }
+  h1 {
+    font-size: 29px;
+  }
+  .definition {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .track {
+    min-width: 620px;
+  }
+  .diagram {
+    padding: 14px;
+  }
+  .thread {
+    flex-wrap: wrap;
+  }
+  .thread .line {
+    min-width: 30px;
+  }
+}
+.chip-map .child-wrap > .relations {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  padding: 0;
+  margin: 0;
+}
+.chip-map .g.with-links > .g-head {
+  padding-right: 106px;
+}
+.chip-map .g-head .chev {
+  position: absolute;
+  right: 10px;
+}
+.chip-map .g > .relations {
+  position: absolute;
+  right: 27px;
+  top: 10px;
+  margin: 0;
+  padding: 0;
+}
+.chip-map .link-chip {
+  font-size: 10px;
+  padding: 3px 5px;
+}
+.inspect {
+  min-height: 150px;
+}
+</style></head>
+<body><main>
+<header><strong>Talmud · Map design</strong><small>Berakhot 2a · Saved text and connections</small><button id="theme" type="button">Change theme</button></header>
+<h1>Three ways to read the same argument</h1>
+<p class="lede">Put the point in the title. Put the relationship beside it. Keep the explanation one click away.</p>
+<p>My preference is <strong>B for Overview</strong>, with <strong>C when a reader selects a step</strong>. Keep the wider passage map for seeing several discussions together. This is a design recommendation; reading speed has not been tested.</p>
+<p class="note">These are interactive proposals. Titles are short paraphrases of saved summaries. All arrows and relationship chips come from the same saved map. Select a row or open another section to compare.</p>
+<div class="compare" id="compare">
+<article class="variant"><h3><span class="letter">A</span> Labelled lines</h3><p>Keep the familiar map. Name the selected connection.</p><div class="preview" id="a"></div><p><strong>Good for following a chain.</strong> Long links still need tracing.</p></article>
+<article class="variant"><h3><span class="letter">B</span> Links beside each row</h3><p>Read “Responds to 2.2” beside the answer. Click to follow.</p><div class="preview" id="b"></div><p><strong>My choice for Overview.</strong> Compact and explicit. Too many chips would need a “more” disclosure.</p></article>
+<article class="variant"><h3><span class="letter">C</span> One step and its connections</h3><p>Select a step. See what answers it or what it answers.</p><div class="preview" id="c"></div><p><strong>Good for close reading.</strong> Shows less of the whole discussion at once.</p></article>
+</div>
+<p class="comparison-note">A colour tells you the kind of move. Words tell you what it connects to. B can show a line on selection, without keeping every line on screen.</p>
+<section id="titles"><h2>A short title should say the point</h2>
+<div class="record"><strong>The verse puts lying down first</strong><span class="tag">Answer · Berakhot 2a:8</span><p>The Mishnah follows the verse’s order: lying down, then rising.</p><span class="note">Responds to: Why evening first?</span></div>
+<p>This is the proposed title style. The current code change separates the existing short label from the full description. Some saved labels still say only “Gemara’s answer.” Better content titles need a separately reviewed field; they should not be produced by cutting off the first sentence.</p>
+</section>
+<section id="ontology"><h2>Our current tags are useful, but they mix different things</h2>
+<p>The shipped map has ten move labels and six statement relations. They came from the existing extraction recipe and its later combination with speaker links. They are practical product choices, not an agreed scholarly classification.</p>
+<div class="table-wrap"><table><thead><tr><th>Current labels</th><th>What they describe</th><th>What can go wrong</th></tr></thead><tbody>
+<tr><td>Opening</td><td>Where a passage begins</td><td>The first Berakhot node combines the Mishnah’s question with Rabbi Eliezer’s ruling.</td></tr>
+<tr><td>Question, answer, objection, rejection</td><td>What a passage does in the discussion</td><td>A quoted source can both state a rule and challenge another rule.</td></tr>
+<tr><td>Supporting evidence</td><td>How something is used</td><td>The evidence needs a specific target. A mnemonic is not the same as a proof.</td></tr>
+<tr><td>Resolution</td><td>How an exchange ends here</td><td>Answering a challenge does not by itself establish the final halakha.</td></tr>
+<tr><td>Digression, shift, other</td><td>How the discussion is organized</td><td>A change of subject can still carry an important legal claim.</td></tr>
+</tbody></table></div>
+<p>The current relations are <strong>continues, responds to, opposes, supports, resolves, cites</strong>. Some links are inferred by matching nearby move labels. In these examples, dashed reply lines mark that inference. An absent line means no saved link, not “unrelated.”</p>
+<details><summary>Where the current model comes from</summary><div class="details-body"><p>The move recipe asks for one label, a voice label, an excerpt and a summary for each move within a daf section. It has no dedicated title field. The statement builder then combines speaker links with rules such as “an answer responds to the most recent question.” That rule can miss an answer to several questions or a reply across a daf break.</p><p>Code: <code>statementSpine.ts</code>, <code>code-marks.ts</code>. The combined statement map arrived in PR #417, with later cross-section connections in #424. This design does not change those recipes or regenerate the saved maps.</p></div></details>
+</section>
+<section><h2>Store the claim separately from what the discussion does with it</h2>
+<p>The earlier proposal separates five records. The reader still sees simple tags such as “question” and “answer.” The extra detail lets the map preserve disputed readings and legal conditions.</p>
+<div class="definition"><b>Question</b><p>What is being asked? For example: why teach evening Shema first?</p></div>
+<div class="definition"><b>Claim</b><p>What is asserted? For example: the Sages give midnight as the deadline. Save the conditions and whose position this is.</p></div>
+<div class="definition"><b>Case</b><p>What happened, or what situation is being tested? Rabban Gamliel’s sons return from a feast before dawn.</p></div>
+<div class="definition"><b>Reasoning step</b><p>Which premises are used together, and what do they support? A challenge can target the reasoning itself.</p></div>
+<div class="definition"><b>Move in the text</b><p>Where is a claim proposed, questioned, defended or withdrawn? Keep the exact passage and the attribution.</p></div>
+<div class="diagram"><div class="range">The same claim can be proposed, challenged and defended</div><div class="thread"><span>Source words</span><span class="line"></span><span>Move in the discussion</span><span class="line"></span><span>Claim or reasoning step</span></div><p class="note">This is a proposed record structure, not an additional argument from the Gemara. Relations such as “answers,” “challenges,” “qualifies” and “cites” connect the records. Reading order and section membership are stored separately.</p></div>
+<p><strong>Be strict about evidence, flexible about interpretation.</strong> Every statement and link needs a source. Every legal claim keeps its conditions. “Exempt,” “permitted” and “valid” stay distinct. A second reading is saved beside the first, with its source and reviewer, rather than replacing it.</p>
+<details><summary>Which earlier approaches shaped this proposal?</summary><div class="details-body">
+<p>The earlier pilot inspected <strong>24 amudim across 10 tractates</strong>. It compared selected traditional study methods, scholarship and argument-mapping systems. It did not review thousands of works or establish a consensus. <a href="https://dss.402.network/analyses/talmud/argument-map-24-page-inspection?revision=2">Saved pilot</a>.</p>
+<div class="table-wrap"><table><thead><tr><th>Earlier work</th><th>What we take from it</th><th>What the design must leave open</th></tr></thead><tbody>
+<tr><td><a href="https://www.gemaraberura.com/app/homepage/?lang=en">Gemara Berura</a> · <a href="https://thedafmap.com/">The Daf Map</a></td><td>Make the structure visible while learning the text.</td><td>A teaching label alone does not tell us exactly which claim a challenge targets.</td></tr>
+<tr><td><a href="https://web.mit.edu/~irahwan/www/docs/AIJ2007.pdf">Argument Interchange Format</a> · <a href="https://aclanthology.org/L14-1599/">Inference Anchoring Theory</a></td><td>Separate claims, reasoning and dialogue moves.</td><td>These general models need additions for legal conditions, attribution and source versions.</td></tr>
+<tr><td><a href="https://academic.oup.com/book/4297">Halivni</a> · <a href="https://academic.oup.com/princeton-scholarship-online/book/20378">Vidas</a></td><td>The relation between attributed material and anonymous discussion is itself debated.</td><td>“Anonymous here” must not automatically mean “written later.” Historical readings need their own evidence.</td></tr>
+<tr><td><a href="https://www.mohrsiebeck.com/buch/talmudic-reasoning-9783161587375/">Moscovitz</a> · <a href="https://www.cambridge.org/core/books/rabbis-and-classical-rhetoric/14601E4CF74FDBDBBFF563DD7C0B5D2D">Hidary</a></td><td>Cases, abstract rules and the purpose of an argument deserve separate attention.</td><td>Defending a position need not mean adopting it as law.</td></tr>
+</tbody></table></div>
+<p>These are design lessons, not measured failures of the earlier systems. The scholarship review used publisher descriptions and selected previews, not full readings of every book. The richer model remains a proposal.</p>
+</div></details>
+</section>
+<section id="passage"><h2>Make the passage continuous. Mark the daf inside it.</h2>
+<p>For the first Mishnah in Berakhot, the range starts at <strong>2a:1</strong> and ends just before the next Mishnah at <strong>9b:9</strong>. The last included segment is <strong>9b:8</strong>. That is a passage boundary inside a daf. <a href="https://www.sefaria.org/Berakhot.9b.9">See the next Mishnah</a>.</p>
+<div class="diagram"><div class="range">Evening Shema · From this Mishnah to the next</div><div class="table-wrap"><div class="track"><a href="https://www.sefaria.org/Berakhot.2a.1">2a<small>Mishnah begins</small></a><span>2b<small>Same passage</small></span><span>3a–8b<small>Middle pages</small></span><span>9a<small>Same passage</small></span><span>9b:1–8<small>End of passage</small></span><a class="next" href="https://www.sefaria.org/Berakhot.9b.9">9b:9<small>Next Mishnah</small></a></div></div><p class="note">The strip compresses the middle pages. It shows source boundaries, not invented links between their arguments.</p></div>
+<ol><li><strong>Give the passage one identity.</strong> Store its exact start and end, text version, and evidence for the Mishnah boundaries. More than one Mishnah can start on a daf.</li><li><strong>Keep discussions inside that passage.</strong> A long Mishnah-to-Mishnah range can contain several arguments, stories and digressions. It is not automatically one argument.</li><li><strong>Let daf breaks cut the view, not the graph.</strong> A node can span 2a and 2b. It keeps the same identity when either page is shown.</li><li><strong>Show an honest continuation hint.</strong> “Reply on 2b” requires an actual reply link. Otherwise say only “Passage continues on 2b.” Keep links to other passages and Shas separate from reading order.</li><li><strong>Open long passages at section level.</strong> Expand the current discussion and its connected neighbours. A small page strip keeps your place. Show a count on collapsed connections, then reveal their exact targets when opened.</li></ol>
+<p>The current full-screen implementation can already join saved daf maps. It does not yet identify Mishnah boundaries or rebuild the argument across them. That needs a separate passage record and a reviewed pilot, without changing the existing extraction recipe. Use the existing artifact-and-anchor framework: one passage owns the boundaries; statements and links point to exact source ranges. Beyond it, show a linked Mishnah or sugya as a destination card that can be opened in place.</p>
+</section>
+<footer>Design comparison · 22 September 2026 · <a href="https://talmud.dev/?lang=en&tractate=Berakhot&page=2a#argument">Open the source daf</a><p>Rebuild this standalone page with <code>python3 build.py</code>. The separate <code>data.json</code> records the saved statements, connections, proposed labels and checked boundary sources.</p></footer>
+</main>
+<script type="application/json" id="data">{"source": "https://talmud.dev/api/statement-spine/Berakhot/{page}", "sourceFixture": "../../../packages/talmud/tests/fixtures/berakhot-passage.json", "displayLabels": "Proposed short paraphrases of the saved summaries. They are display choices, not additional statements or links.", "page": "2a", "sections": [{"index": 0, "title": "Opening Mishnah: Time for Evening Shema", "spine": {"nodes": [{"id": "0-4_0", "order": 0, "role": "opening", "speaker": "Mishnah's opening question", "rabbiNames": [], "named": false, "excerpt": "מֵאֵימָתַי קוֹרִין אֶת שְׁמַע בָּעֲרָבִין?", "summary": "The Mishnah opens with the question of when the evening Shema may be recited, and presents Rabbi Eliezer's opinion: from the time priests enter to eat their תרומה (priestly portion) until the end of the first watch.", "startSegIdx": 0, "endSegIdx": 0, "tokenStart": 0, "tokenEnd": 16, "displayTitle": "When can evening Shema be read?", "number": "1.1"}, {"id": "0-4_1", "order": 1, "role": "answer", "speaker": "Sages' opinion", "rabbiNames": ["Sages"], "named": true, "excerpt": "וַחֲכָמִים אוֹמְרִים: עַד חֲצוֹת.", "summary": "The Sages rule that the evening Shema may be recited until midnight.", "startSegIdx": 1, "endSegIdx": 1, "tokenStart": 0, "tokenEnd": 3, "side": "B", "displayTitle": "The Sages: until midnight", "number": "1.2"}, {"id": "0-4_2", "order": 2, "role": "answer", "speaker": "Rabban Gamliel's opinion", "rabbiNames": ["Rabban Gamliel"], "named": true, "excerpt": "רַבָּן גַּמְלִיאֵל אוֹמֵר עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר.", "summary": "Rabban Gamliel rules that the evening Shema may be recited until dawn.", "startSegIdx": 2, "endSegIdx": 2, "tokenStart": 0, "tokenEnd": 6, "displayTitle": "Rabban Gamliel: until dawn", "number": "1.3"}, {"id": "0-4_3", "order": 3, "role": "supporting-evidence", "speaker": "Story about Rabban Gamliel's sons", "rabbiNames": ["Rabban Gamliel"], "named": true, "excerpt": "מַעֲשֶׂה וּבָאוּ בָנָיו מִבֵּית הַמִּשְׁתֶּה", "summary": "A story illustrates Rabban Gamliel's lenient ruling: when his sons returned late from a wedding feast and had not recited the Shema, he told them they were still obligated if dawn had not yet arrived.", "startSegIdx": 3, "endSegIdx": 3, "tokenStart": 0, "tokenEnd": 20, "displayTitle": "His sons return from a feast", "number": "1.4"}, {"id": "0-4_4", "order": 4, "role": "resolution", "speaker": "Mishnah's generalization", "rabbiNames": [], "named": false, "excerpt": "וְלֹא זוֹ בִּלְבַד אָמְרוּ", "summary": "The Mishnah extends the principle that the proper time for certain מצוות (commandments) is until dawn, and explains that the Sages set midnight as a safeguard (הרחקה) to keep people from sin.", "startSegIdx": 3, "endSegIdx": 4, "tokenStart": 21, "tokenEnd": 28, "displayTitle": "Midnight is a safeguard", "number": "1.5"}], "links": [], "dispute": false}, "displayTitle": "When to read evening Shema"}, {"index": 1, "title": "Gemara's First Question: Why Begin with Evening?", "spine": {"nodes": [{"id": "5-7_0", "order": 0, "role": "question", "speaker": "Gemara's question", "rabbiNames": [], "named": false, "excerpt": "תַּנָּא הֵיכָא קָאֵי דְּקָתָנֵי", "summary": "The Gemara asks where the Tanna is positioned to begin the Mishnah with 'From when?'", "startSegIdx": 5, "endSegIdx": 5, "tokenStart": 1, "tokenEnd": 5, "displayTitle": "Why begin with ‘from when’?", "number": "2.1"}, {"id": "5-7_1", "order": 1, "role": "question", "speaker": "Gemara's further question", "rabbiNames": [], "named": false, "excerpt": "וְתוּ: מַאי שְׁנָא דְּתָנֵי", "summary": "The Gemara further asks why the Tanna teaches the evening Shema first rather than the morning Shema.", "startSegIdx": 6, "endSegIdx": 6, "tokenStart": 0, "tokenEnd": 8, "displayTitle": "Why evening first?", "number": "2.2"}, {"id": "5-7_2", "order": 2, "role": "answer", "speaker": "First answer (Stam)", "rabbiNames": [], "named": false, "excerpt": "תַּנָּא אַקְּרָא קָאֵי", "summary": "The Gemara answers that the Tanna is expounding the verse 'בשכבך ובקומך' (when you lie down and when you rise), which mentions lying down first.", "startSegIdx": 7, "endSegIdx": 7, "tokenStart": 0, "tokenEnd": 17, "displayTitle": "The verse puts lying down first", "number": "2.3"}], "links": [{"from": "5-7_2", "to": "5-7_1", "relation": "responds-to", "source": "role"}], "dispute": false}, "displayTitle": "Why begin with evening?"}, {"index": 2, "title": "Alternative Answer and Further Question", "spine": {"nodes": [{"id": "8-10_0", "order": 0, "role": "answer", "speaker": "Second answer (Stam)", "rabbiNames": [], "named": false, "excerpt": "וְאִי בָּעֵית אֵימָא: יָלֵיף מִבְּרִיָּיתוֹ שֶׁל עוֹלָם,", "summary": "The Gemara offers an alternative answer: the Tanna learns from the order of creation (evening then morning), as it is written 'וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד' (and there was evening and there was morning, one day).", "startSegIdx": 8, "endSegIdx": 8, "tokenStart": 0, "tokenEnd": 13, "displayTitle": "Creation begins with evening", "number": "3.1"}, {"id": "8-10_1", "order": 1, "role": "question", "speaker": "Gemara's question", "rabbiNames": [], "named": false, "excerpt": "אִי הָכִי, סֵיפָא דְּקָתָנֵי ״בַּשַּׁחַר מְבָרֵךְ שְׁתַּיִם לְפָנֶיהָ וְאַחַת לְאַחֲרֶיהָ, בָּעֶרֶב מְבָרֵךְ שְׁתַּיִם לְפָנֶיהָ וּשְׁתַּיִם לְאַחֲרֶיהָ״, לִתְנֵי דְּעַרְבִית בְּרֵישָׁא!", "summary": "The Gemara questions: if the order is evening then morning, why does the Mishnah's later section (about blessings) list morning before evening? It should have listed evening first.", "startSegIdx": 9, "endSegIdx": 9, "tokenStart": 0, "tokenEnd": 18, "displayTitle": "Why do the blessings reverse the order?", "number": "3.2"}, {"id": "8-10_2", "order": 2, "role": "resolution", "speaker": "Resolution (Stam)", "rabbiNames": [], "named": false, "excerpt": "תַּנָּא פָּתַח בְּעַרְבִית, וַהֲדַר תָּנֵי בְּשַׁחֲרִית, עַד דְּקָאֵי בְּשַׁחֲרִית, פָּרֵישׁ מִילֵּי דְשַׁחֲרִית, וַהֲדַר פָּרֵישׁ מִילֵּי דְעַרְבִית.", "summary": "The Gemara resolves: the Tanna first discusses evening, then morning, and while still on morning explains its laws before returning to evening.", "startSegIdx": 10, "endSegIdx": 10, "tokenStart": 0, "tokenEnd": 15, "displayTitle": "Finish the morning laws first", "number": "3.3"}], "links": [{"from": "8-10_2", "to": "8-10_1", "relation": "resolves", "source": "role"}], "dispute": false}, "displayTitle": "A second answer"}, {"index": 3, "title": "Why 'When Priests Enter' Rather Than 'Nightfall'?", "spine": {"nodes": [{"id": "11-13_0", "order": 0, "role": "question", "speaker": "Gemara's question", "rabbiNames": [], "named": false, "excerpt": "אָמַר מָר מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִים לֶאֱכוֹל בִּתְרוּמָתָן.", "summary": "The Gemara asks why the Mishnah says 'from the time the priests enter to eat their terumah' instead of simply stating 'from the time the stars come out'.", "startSegIdx": 11, "endSegIdx": 11, "tokenStart": 0, "tokenEnd": 19, "displayTitle": "Why mention the priests?", "number": "4.1"}, {"id": "11-13_1", "order": 1, "role": "answer", "speaker": "Gemara's answer", "rabbiNames": [], "named": false, "excerpt": "מִלְּתָא אַגַּב אוֹרְחֵיהּ קָמַשְׁמַע לַן", "summary": "The Gemara answers that the Mishnah incidentally teaches that priests eat terumah after nightfall and that atonement (כפרה) does not delay eating terumah, citing a baraita about the verse 'וּבָא הַשֶּׁמֶשׁ וְטָהֵר' (the sun sets and he is pure).", "startSegIdx": 12, "endSegIdx": 12, "tokenStart": 0, "tokenEnd": 32, "displayTitle": "The wording also teaches about terumah", "number": "4.2"}, {"id": "11-13_2", "order": 2, "role": "supporting-evidence", "speaker": "Gemara's clarification", "rabbiNames": [], "named": false, "excerpt": "וּמִמַּאי דְּהַאי ״וּבָא הַשֶּׁמֶשׁ״ בִּיאַת הַשֶּׁמֶשׁ", "summary": "The Gemara clarifies that the verse's 'וּבָא הַשֶּׁמֶשׁ' means the actual sunset and 'וְטָהֵר' means the day becomes pure (i.e., nightfall).", "startSegIdx": 13, "endSegIdx": 13, "tokenStart": 0, "tokenEnd": 9, "displayTitle": "The meaning of sunset and purity", "number": "4.3"}], "links": [{"from": "11-13_1", "to": "11-13_0", "relation": "responds-to", "source": "role"}], "dispute": false}, "displayTitle": "Why mention the priests?"}], "flow": [{"from": 1, "to": 0, "kind": "continues"}, {"from": 2, "to": 1, "kind": "continues"}, {"from": 3, "to": 0, "kind": "continues"}], "boundary": {"from": "Berakhot 2a:1", "untilExclusive": "Berakhot 9b:9", "lastSegment": "Berakhot 9b:8", "source": "https://www.sefaria.org/api/texts/Berakhot.2a-9b?context=0&commentary=0", "englishVersion": "William Davidson Edition - English", "hebrewVersion": "William Davidson Edition - Vocalized Aramaic", "checked": "2026-09-22"}}</script>
+<script>
+const data=JSON.parse(document.querySelector('#data').textContent);
+const nodes=data.sections.flatMap(s=>s.spine.nodes);
+const byId=new Map(nodes.map(n=>[n.id,n]));
+const links=data.sections.flatMap(s=>s.spine.links);
+const state={section:1,selected:'5-7_1'};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rel=r=>({'responds-to':'Responds to',resolves:'Resolves',opposes:'Challenges',supports:'Supports',cites:'Cites',continues:'Continues'}[r]||r);
+const role=n=>n.role.replaceAll('-',' ');
+const source=n=>`https://www.sefaria.org/Berakhot.2a.${n.startSegIdx+1}`;
+function node(n,compact=false){return `<button type="button" class="node ${n.role} ${n.id===state.selected?'selected':''}" data-node="${n.id}" aria-pressed="${n.id===state.selected}">${compact?`<span class="number">${n.number}</span>`:`<span class="meta"><span class="number">${n.number}</span><span class="role">${esc(role(n))}</span></span>`}<span class="title">${esc(n.displayTitle)}</span></button>`;}
+function chip(link){const target=byId.get(link.to);return `<button type="button" class="link-chip local" data-target="${link.to}" title="${esc(target.displayTitle)} · Inferred from move labels">${rel(link.relation)} ${target.number}</button>`;}
+function detail(){const n=byId.get(state.selected);return `<div class="inspect"><span class="tiny">${n.number} · ${esc(role(n))}</span><strong>${esc(n.displayTitle)}</strong><p>${esc(n.summary)}</p><a href="${source(n)}" target="_blank" rel="noreferrer">Read Berakhot 2a:${n.startSegIdx+1}</a></div>`;}
+function railWords(){const edges=links.filter(l=>l.from===state.selected||l.to===state.selected);return edges.length?edges.map(l=>`${byId.get(l.from).number} ${rel(l.relation).toLowerCase()} ${byId.get(l.to).number}`).join(' · '):'No saved statement link for this step';}
+function list(mode){return data.sections.map((s,i)=>`<div class="g ${i===state.section?'open':''} ${data.flow.some(e=>e.from===i)?'with-links':''}" data-group="${i}"><button type="button" class="g-head" data-section="${i}" aria-expanded="${i===state.section}"><span class="num">${i+1}</span><span class="section-title">${esc(s.displayTitle)}</span><span class="chev">${i===state.section?'−':'+'}</span></button>${mode==='b'?`<div class="relations">${data.flow.filter(e=>e.from===i).map(e=>`<button type="button" class="link-chip" data-section="${e.to}">Continues ${e.to+1}</button>`).join('')}</div>`:''}${i===state.section?`<div class="children">${s.spine.nodes.map(n=>`<div class="child-wrap">${node(n)}${mode==='b'?`<div class="relations">${links.filter(e=>e.from===n.id).map(chip).join('')}</div>`:''}</div>`).join('')}</div>`:''}</div>`).join('');}
+function drawRails(){const map=document.querySelector('#a .map');const root=map.getBoundingClientRect();const el=(selector)=>map.querySelector(selector)?.getBoundingClientRect();let paths='';const route=(a,b,x,color,dashed)=>{const ay=a.top+a.height/2-root.top,by=b.top+b.height/2-root.top;const start=color==='local'?a.left-root.left:a.right-root.left;const end=color==='local'?b.left-root.left:b.right-root.left;const dir=by>ay?1:-1,r=12;const sx=color==='local'?-1:1;return `<path d="M ${start} ${ay} H ${x-sx*r} Q ${x} ${ay} ${x} ${ay+dir*r} V ${by-dir*r} Q ${x} ${by} ${x-sx*r} ${by} H ${end+sx*3}" fill="none" stroke="var(--${color==='local'?'green':'ink-dim'})" stroke-width="1.5" ${dashed?'stroke-dasharray="3 3"':''} marker-end="url(#arrow-${color})"/>`;};
+for(const [i,e] of data.flow.entries()){const a=el(`[data-group="${e.from}"] .g-head`),b=el(`[data-group="${e.to}"] .g-head`);if(a&&b)paths+=route(a,b,root.width-24+i*8,'outer',false);}
+for(const e of links){const a=el(`[data-node="${e.from}"]`),b=el(`[data-node="${e.to}"]`);if(a&&b)paths+=route(a,b,a.left-root.left-32,'local',e.source==='role');}
+map.insertAdjacentHTML('afterbegin',`<svg aria-hidden="true" viewBox="0 0 ${root.width} ${root.height}"><defs>${['local','outer'].map(k=>`<marker id="arrow-${k}" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 6 3 L 0 6" fill="var(--${k==='local'?'green':'ink-dim'})"/></marker>`).join('')}</defs>${paths}</svg>`);}
+function render(){for(const mode of ['a','b'])document.querySelector(`#${mode}`).innerHTML=`<div class="preview-top"><strong>Berakhot 2a</strong><span>Overview</span></div><div class="map ${mode==='a'?'rail-map':'chip-map'}">${list(mode)}</div>${mode==='a'?`<div class="route-key"><span class="sample"></span>${railWords()}</div>`:''}${detail()}`;
+const section=data.sections[state.section??1],n=byId.get(state.selected),neighbors=links.filter(e=>e.to===n.id||e.from===n.id);
+document.querySelector('#c').innerHTML=`<div class="preview-top"><strong>Berakhot 2a</strong><span>Connected steps</span></div><div class="focus-nav">${data.sections.map((s,i)=>`<button type="button" data-section="${i}" aria-pressed="${i===state.section}">${i+1}</button>`).join('')}</div><div class="focus-list">${section.spine.nodes.map(n=>node(n,true)).join('')}</div><div class="focus-connection">${neighbors.length?neighbors.map(e=>{const outgoing=e.from===n.id;return `<div class="relation-title">${outgoing?rel(e.relation):`${rel(e.relation)} this step`} · inferred</div>${node(byId.get(outgoing?e.to:e.from))}`;}).join(''):'<p>No saved statement link for this step. Select another row to follow its connections.</p>'}</div>${detail()}`;
+requestAnimationFrame(drawRails);}
+document.querySelector('#compare').addEventListener('click',event=>{const b=event.target.closest('button');if(!b)return;const panel=b.closest('.preview').id;const target=b.dataset.target??b.dataset.node;if(target){state.selected=target;state.section=data.sections.findIndex(s=>s.spine.nodes.some(n=>n.id===target));}else if(b.dataset.section!==undefined){const i=Number(b.dataset.section);state.section=i;state.selected=data.sections[i].spine.nodes[0].id;}render();document.querySelector(`#${panel} [data-node="${state.selected}"]`)?.focus({preventScroll:true});});
+document.querySelector('#theme').addEventListener('click',()=>{const current=document.documentElement.dataset.theme??(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=current==='dark'?'light':'dark';});
+window.addEventListener('resize',()=>{document.querySelector('#a svg')?.remove();drawRails();});
+render();
+</script></body></html>

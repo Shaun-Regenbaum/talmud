@@ -15,6 +15,8 @@ export interface GraphNode {
   color?: string;
   badge?: string;
   badgeColor?: string;
+  /** Long explanation on the passage board; compact rows keep only the label. */
+  summary?: string;
   description?: string;
   annotation?: string;
   detail?: string;
@@ -240,12 +242,13 @@ function layoutBoard(
         lineCount(
           n.label,
           width - (header ? ((n as GraphGroup).actions?.length ? 116 : 64) : 24),
-          header,
+          header || !!n.summary,
         ) *
           17 +
         (!header && (n.role || n.badge) ? 18 : 0) +
         (header && n.reference ? 18 : 0) +
         (header && n.role ? 18 : 0) +
+        (n.summary ? 6 + lineCount(n.summary, width - 24, false) * 17 : 0) +
         (n.description ? 32 : 0) +
         (n.annotation ? 18 : 0),
     );

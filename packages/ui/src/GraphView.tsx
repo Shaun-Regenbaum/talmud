@@ -176,13 +176,14 @@ function Canvas(
                       header: p().header,
                       selected: p().node.selected,
                       action: p().action,
+                      'has-summary': !!p().node.summary,
                     }}
                     style={{
                       '--node-color': p().node.color ?? 'var(--graph-muted)',
                       '--badge-color': p().node.badgeColor ?? 'var(--graph-accent)',
                     }}
                     dir={p().node.direction ?? 'auto'}
-                    title={[p().node.role, p().node.label, p().node.detail]
+                    title={[p().node.role, p().node.label, p().node.detail || p().node.summary]
                       .filter(Boolean)
                       .join(' · ')}
                     aria-expanded={
@@ -218,6 +219,11 @@ function Canvas(
                         </span>
                       </Show>
                     </span>
+                    <Show when={props.horizontal && p().node.summary}>
+                      <span class="ui-graph-summary" dir="auto">
+                        {p().node.summary}
+                      </span>
+                    </Show>
                     <Show when={p().node.description}>
                       <span class="ui-graph-description" dir="auto">
                         {p().node.description}
@@ -442,8 +448,8 @@ export function GraphDialog(
               <Show when={'provenance' in item()}>
                 <p>{(item() as GraphConnection).provenance}</p>
               </Show>
-              <Show when={'detail' in item() && (item() as GraphNode).detail}>
-                <p dir="auto">{(item() as GraphNode).detail}</p>
+              <Show when={(item() as GraphNode).detail || (item() as GraphNode).summary}>
+                <p dir="auto">{(item() as GraphNode).detail || (item() as GraphNode).summary}</p>
               </Show>
               <Show when={'from' in item()}>
                 <p>
