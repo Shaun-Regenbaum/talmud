@@ -3490,15 +3490,7 @@ export function UsagePage(): JSX.Element {
       </header>
 
       {/* Tab bar */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '0.3rem',
-          'flex-wrap': 'wrap',
-          'border-bottom': '1px solid var(--line)',
-          'margin-bottom': '1.2rem',
-        }}
-      >
+      <div class="usage-tabs">
         <For each={TABS}>
           {(tb) => {
             const active = () => tab() === tb.id;

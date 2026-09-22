@@ -72,3 +72,12 @@
   max-width: 100%;
   overflow-x: auto;
 }
+
+.usage-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-block: 0.6rem;
+  margin-bottom: 1.2rem;
+  border-bottom: 1px solid var(--line);
+}
