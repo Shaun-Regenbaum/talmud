@@ -8,9 +8,18 @@ export type GutterKind =
   | 'pesuk'
   | 'rishonim';
 
-/** Shape carries the category; the reader's shared accent carries the color. */
-export function colorForKind(_kind: GutterKind): string {
-  return 'var(--accent)';
+/** Category colors remain distinct; every glyph uses the same drawing style. */
+const CATEGORY_COLORS: Record<GutterKind, string> = {
+  argument: 'var(--accent)',
+  halacha: '#1e40af',
+  chart: '#0e7490',
+  aggadata: '#7c3aed',
+  yerushalmi: '#0f766e',
+  pesuk: '#d97706',
+  rishonim: '#475569',
+};
+export function colorForKind(kind: GutterKind): string {
+  return CATEGORY_COLORS[kind];
 }
 
 const paths: Record<GutterKind, string[]> = {

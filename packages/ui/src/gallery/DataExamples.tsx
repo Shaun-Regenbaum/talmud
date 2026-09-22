@@ -5,7 +5,7 @@ import type { ParshaStudy } from '../../../tanach/src/lib/parsha';
 import { Button } from '../Button';
 import { ChartCard, LineChart } from '../Charts';
 import { DataTable, Meter, RankedBars } from '../DataTable';
-import { GEO_BBOX, GeoMap } from '../GeoMap';
+import { fitBbox, GEO_BBOX, GeoMap } from '../GeoMap';
 import { Prose } from '../Prose';
 import { colorForKind, GutterGlyph, type GutterKind } from '../ReaderIcon';
 import type { RunTree } from '../RunTree';
@@ -190,7 +190,11 @@ export function DataExamples(props: { lang: GalleryLang }): JSX.Element {
             <div>
               <h3>{label('israelMap')}</h3>
               <GeoMap
-                bbox={{ ...GEO_BBOX.israel, lonMin: 32.8, lonMax: 37.5 }}
+                bbox={fitBbox(
+                  GEO_CITIES.filter((city) => !city.approx && city.region === 'israel'),
+                  GEO_BBOX.israel,
+                  { padFrac: 0.12, minSpan: 0.3 },
+                )}
                 points={GEO_CITIES.filter((city) => !city.approx && city.region === 'israel').map(
                   (city) => ({
                     name: city.name,

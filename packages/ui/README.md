@@ -21,7 +21,7 @@ Use `--bg`, `--fg`, `--muted`, `--line`, `--surface`, `--surface-sunk`, `--accen
 | `Pill`, `PillRow` | Reader topic choices. |
 | `Drawer`, `BottomSheet`, `Prose` | Side panel on desktop, bottom sheet on phones, and bilingual reading text. |
 | `Charts`, `DataTable` | Line charts, chart cards, sortable tables, ranked bars, meters and rate chips. Used by Talmud usage. |
-| `ReaderIcon` | One maroon family of rounded outline icons, separate from annotation placement. |
+| `ReaderIcon` | Distinct category colors with consistent rounded outline icons, separate from annotation placement. |
 | `Graph` | Shared card styles, SVG cards, connectors and lane routing used by argument, spine and dependency graphs. |
 | `StudyOverview`, `ReadingMap` | Reference/title/prose and the parsha verse ribbon, aliyah markers and legend. Tanach supplies its layout and study data. |
 | `AiStatusBanner`, `LoadProgress` | Shared status and loading messages. |

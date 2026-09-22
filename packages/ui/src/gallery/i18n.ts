@@ -15,8 +15,8 @@ const catalog = {
 
   icons: { en: 'Reader icons', he: 'סמלי הקורא' },
   iconsHint: {
-    en: 'One maroon icon family. Each subject has its own shape, with the same rounded strokes.',
-    he: 'משפחת סמלים אחת בבורדו. לכל נושא צורה משלו וקווים מעוגלים אחידים.',
+    en: 'Each subject keeps its own color and shape. Rounded strokes keep the icons in one family.',
+    he: 'לכל נושא צבע וצורה משלו. קווים מעוגלים אחידים מחברים בין הסמלים.',
   },
   argument: { en: 'Arguments', he: 'טיעונים' },
   halacha: { en: 'Halacha', he: 'הלכה' },
