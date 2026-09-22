@@ -37,6 +37,17 @@ For navigation links, use an anchor with `class="ui-button"`. Do not make a butt
 
 The printed daf, Torah columns, annotation placement and corpus-specific panels keep their own layouts. Talmud's large study sidebar and the two usage pages still have different structures. These are not interchangeable components. This package currently supplies one light theme; a complete dark theme needs a separate review of reading surfaces and diagrams.
 
+## Open the component gallery
+
+Run `pnpm gallery` from the workspace root, then open `http://127.0.0.1:5210/`.
+The page renders the actual shared components. Try the buttons, section picker,
+menu, drawer and language switch. The header controls navigate the gallery itself.
+Color swatches read the theme variables directly. No backend is started.
+
+The page lives in `src/gallery/Gallery.tsx`. `pnpm gallery:build` creates a static
+build in `packages/ui/dist/gallery`. The gallery reuses the existing Vite tools
+from the Tanach package and adds no dependencies.
+
 ## Check a change
 
 Run `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build`. Shared control behavior is covered in `packages/talmud/tests/shared-reader-controls.test.tsx`.

@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "ship": "bash ../../scripts/ship-guard.sh && vite build && wrangler deploy",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "gallery": "vite --config vite.gallery.config.ts",
+    "gallery:build": "vite build --config vite.gallery.config.ts"
   },
   "dependencies": {
     "@corpus/core": "workspace:*",
