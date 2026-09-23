@@ -8,6 +8,7 @@ import { Prose } from '../Prose';
 import { ReaderHeader } from '../ReaderHeader';
 import { Select } from '../Select';
 import { ToolbarMenu } from '../ToolbarMenu';
+import { ArgumentExample } from './ArgumentExample';
 import { DataExamples } from './DataExamples';
 import { type GalleryKey, type GalleryLang, t } from './i18n';
 
@@ -18,6 +19,7 @@ const sections = [
   'panels',
   'text',
   'theme',
+  'argumentMaps',
   'icons',
   'usageSummaries',
   'charts',
@@ -319,6 +321,7 @@ export function Gallery(): JSX.Element {
                 </div>
                 {source('tokens.css')}
               </section>
+              <ArgumentExample lang={lang()} />
               <DataExamples lang={lang()} />
               <footer>{label('libraryNote')}</footer>
             </main>

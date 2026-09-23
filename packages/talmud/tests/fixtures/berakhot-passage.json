@@ -1,0 +1,910 @@
+{
+  "source": "https://talmud.dev/api/statement-spine/Berakhot/{page}",
+  "connectionsSource": "https://talmud.dev/api/spine-view/Berakhot?cached=1",
+  "pages": [
+    {
+      "page": "2a",
+      "movesComputed": true,
+      "flow": [
+        {
+          "from": 1,
+          "to": 0,
+          "kind": "continues"
+        },
+        {
+          "from": 2,
+          "to": 1,
+          "kind": "continues"
+        },
+        {
+          "from": 3,
+          "to": 0,
+          "kind": "continues"
+        }
+      ],
+      "sections": [
+        {
+          "index": 0,
+          "title": "Opening Mishnah: Time for Evening Shema",
+          "spine": {
+            "nodes": [
+              {
+                "id": "0-4_0",
+                "order": 0,
+                "role": "opening",
+                "speaker": "Mishnah's opening question",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "מֵאֵימָתַי קוֹרִין אֶת שְׁמַע בָּעֲרָבִין?",
+                "summary": "The Mishnah opens with the question of when the evening Shema may be recited, and presents Rabbi Eliezer's opinion: from the time priests enter to eat their תרומה (priestly portion) until the end of the first watch.",
+                "startSegIdx": 0,
+                "endSegIdx": 0,
+                "tokenStart": 0,
+                "tokenEnd": 16
+              },
+              {
+                "id": "0-4_1",
+                "order": 1,
+                "role": "answer",
+                "speaker": "Sages' opinion",
+                "rabbiNames": ["Sages"],
+                "named": true,
+                "excerpt": "וַחֲכָמִים אוֹמְרִים: עַד חֲצוֹת.",
+                "summary": "The Sages rule that the evening Shema may be recited until midnight.",
+                "startSegIdx": 1,
+                "endSegIdx": 1,
+                "tokenStart": 0,
+                "tokenEnd": 3,
+                "side": "B"
+              },
+              {
+                "id": "0-4_2",
+                "order": 2,
+                "role": "answer",
+                "speaker": "Rabban Gamliel's opinion",
+                "rabbiNames": ["Rabban Gamliel"],
+                "named": true,
+                "excerpt": "רַבָּן גַּמְלִיאֵל אוֹמֵר עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר.",
+                "summary": "Rabban Gamliel rules that the evening Shema may be recited until dawn.",
+                "startSegIdx": 2,
+                "endSegIdx": 2,
+                "tokenStart": 0,
+                "tokenEnd": 6
+              },
+              {
+                "id": "0-4_3",
+                "order": 3,
+                "role": "supporting-evidence",
+                "speaker": "Story about Rabban Gamliel's sons",
+                "rabbiNames": ["Rabban Gamliel"],
+                "named": true,
+                "excerpt": "מַעֲשֶׂה וּבָאוּ בָנָיו מִבֵּית הַמִּשְׁתֶּה",
+                "summary": "A story illustrates Rabban Gamliel's lenient ruling: when his sons returned late from a wedding feast and had not recited the Shema, he told them they were still obligated if dawn had not yet arrived.",
+                "startSegIdx": 3,
+                "endSegIdx": 3,
+                "tokenStart": 0,
+                "tokenEnd": 20
+              },
+              {
+                "id": "0-4_4",
+                "order": 4,
+                "role": "resolution",
+                "speaker": "Mishnah's generalization",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "וְלֹא זוֹ בִּלְבַד אָמְרוּ",
+                "summary": "The Mishnah extends the principle that the proper time for certain מצוות (commandments) is until dawn, and explains that the Sages set midnight as a safeguard (הרחקה) to keep people from sin.",
+                "startSegIdx": 3,
+                "endSegIdx": 4,
+                "tokenStart": 21,
+                "tokenEnd": 28
+              }
+            ],
+            "links": [],
+            "dispute": false
+          }
+        },
+        {
+          "index": 1,
+          "title": "Gemara's First Question: Why Begin with Evening?",
+          "spine": {
+            "nodes": [
+              {
+                "id": "5-7_0",
+                "order": 0,
+                "role": "question",
+                "speaker": "Gemara's question",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "תַּנָּא הֵיכָא קָאֵי דְּקָתָנֵי",
+                "summary": "The Gemara asks where the Tanna is positioned to begin the Mishnah with 'From when?'",
+                "startSegIdx": 5,
+                "endSegIdx": 5,
+                "tokenStart": 1,
+                "tokenEnd": 5
+              },
+              {
+                "id": "5-7_1",
+                "order": 1,
+                "role": "question",
+                "speaker": "Gemara's further question",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "וְתוּ: מַאי שְׁנָא דְּתָנֵי",
+                "summary": "The Gemara further asks why the Tanna teaches the evening Shema first rather than the morning Shema.",
+                "startSegIdx": 6,
+                "endSegIdx": 6,
+                "tokenStart": 0,
+                "tokenEnd": 8
+              },
+              {
+                "id": "5-7_2",
+                "order": 2,
+                "role": "answer",
+                "speaker": "First answer (Stam)",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "תַּנָּא אַקְּרָא קָאֵי",
+                "summary": "The Gemara answers that the Tanna is expounding the verse 'בשכבך ובקומך' (when you lie down and when you rise), which mentions lying down first.",
+                "startSegIdx": 7,
+                "endSegIdx": 7,
+                "tokenStart": 0,
+                "tokenEnd": 17
+              }
+            ],
+            "links": [
+              {
+                "from": "5-7_2",
+                "to": "5-7_1",
+                "relation": "responds-to",
+                "source": "role"
+              }
+            ],
+            "dispute": false
+          }
+        },
+        {
+          "index": 2,
+          "title": "Alternative Answer and Further Question",
+          "spine": {
+            "nodes": [
+              {
+                "id": "8-10_0",
+                "order": 0,
+                "role": "answer",
+                "speaker": "Second answer (Stam)",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "וְאִי בָּעֵית אֵימָא: יָלֵיף מִבְּרִיָּיתוֹ שֶׁל עוֹלָם,",
+                "summary": "The Gemara offers an alternative answer: the Tanna learns from the order of creation (evening then morning), as it is written 'וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד' (and there was evening and there was morning, one day).",
+                "startSegIdx": 8,
+                "endSegIdx": 8,
+                "tokenStart": 0,
+                "tokenEnd": 13
+              },
+              {
+                "id": "8-10_1",
+                "order": 1,
+                "role": "question",
+                "speaker": "Gemara's question",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "אִי הָכִי, סֵיפָא דְּקָתָנֵי ״בַּשַּׁחַר מְבָרֵךְ שְׁתַּיִם לְפָנֶיהָ וְאַחַת לְאַחֲרֶיהָ, בָּעֶרֶב מְבָרֵךְ שְׁתַּיִם לְפָנֶיהָ וּשְׁתַּיִם לְאַחֲרֶיהָ״, לִתְנֵי דְּעַרְבִית בְּרֵישָׁא!",
+                "summary": "The Gemara questions: if the order is evening then morning, why does the Mishnah's later section (about blessings) list morning before evening? It should have listed evening first.",
+                "startSegIdx": 9,
+                "endSegIdx": 9,
+                "tokenStart": 0,
+                "tokenEnd": 18
+              },
+              {
+                "id": "8-10_2",
+                "order": 2,
+                "role": "resolution",
+                "speaker": "Resolution (Stam)",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "תַּנָּא פָּתַח בְּעַרְבִית, וַהֲדַר תָּנֵי בְּשַׁחֲרִית, עַד דְּקָאֵי בְּשַׁחֲרִית, פָּרֵישׁ מִילֵּי דְשַׁחֲרִית, וַהֲדַר פָּרֵישׁ מִילֵּי דְעַרְבִית.",
+                "summary": "The Gemara resolves: the Tanna first discusses evening, then morning, and while still on morning explains its laws before returning to evening.",
+                "startSegIdx": 10,
+                "endSegIdx": 10,
+                "tokenStart": 0,
+                "tokenEnd": 15
+              }
+            ],
+            "links": [
+              {
+                "from": "8-10_2",
+                "to": "8-10_1",
+                "relation": "resolves",
+                "source": "role"
+              }
+            ],
+            "dispute": false
+          }
+        },
+        {
+          "index": 3,
+          "title": "Why 'When Priests Enter' Rather Than 'Nightfall'?",
+          "spine": {
+            "nodes": [
+              {
+                "id": "11-13_0",
+                "order": 0,
+                "role": "question",
+                "speaker": "Gemara's question",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "אָמַר מָר מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִים לֶאֱכוֹל בִּתְרוּמָתָן.",
+                "summary": "The Gemara asks why the Mishnah says 'from the time the priests enter to eat their terumah' instead of simply stating 'from the time the stars come out'.",
+                "startSegIdx": 11,
+                "endSegIdx": 11,
+                "tokenStart": 0,
+                "tokenEnd": 19
+              },
+              {
+                "id": "11-13_1",
+                "order": 1,
+                "role": "answer",
+                "speaker": "Gemara's answer",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "מִלְּתָא אַגַּב אוֹרְחֵיהּ קָמַשְׁמַע לַן",
+                "summary": "The Gemara answers that the Mishnah incidentally teaches that priests eat terumah after nightfall and that atonement (כפרה) does not delay eating terumah, citing a baraita about the verse 'וּבָא הַשֶּׁמֶשׁ וְטָהֵר' (the sun sets and he is pure).",
+                "startSegIdx": 12,
+                "endSegIdx": 12,
+                "tokenStart": 0,
+                "tokenEnd": 32
+              },
+              {
+                "id": "11-13_2",
+                "order": 2,
+                "role": "supporting-evidence",
+                "speaker": "Gemara's clarification",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "וּמִמַּאי דְּהַאי ״וּבָא הַשֶּׁמֶשׁ״ בִּיאַת הַשֶּׁמֶשׁ",
+                "summary": "The Gemara clarifies that the verse's 'וּבָא הַשֶּׁמֶשׁ' means the actual sunset and 'וְטָהֵר' means the day becomes pure (i.e., nightfall).",
+                "startSegIdx": 13,
+                "endSegIdx": 13,
+                "tokenStart": 0,
+                "tokenEnd": 9
+              }
+            ],
+            "links": [
+              {
+                "from": "11-13_1",
+                "to": "11-13_0",
+                "relation": "responds-to",
+                "source": "role"
+              }
+            ],
+            "dispute": false
+          }
+        }
+      ]
+    },
+    {
+      "page": "2b",
+      "movesComputed": true,
+      "flow": [
+        {
+          "from": 0,
+          "to": 1,
+          "kind": "parallels"
+        },
+        {
+          "from": 1,
+          "to": 2,
+          "kind": "depends-on"
+        },
+        {
+          "from": 2,
+          "to": 3,
+          "kind": "continues"
+        },
+        {
+          "from": 2,
+          "to": 4,
+          "kind": "depends-on"
+        },
+        {
+          "from": 3,
+          "to": 4,
+          "kind": "resolves"
+        },
+        {
+          "from": 4,
+          "to": 5,
+          "kind": "continues"
+        },
+        {
+          "from": 5,
+          "to": 6,
+          "kind": "continues"
+        },
+        {
+          "from": 5,
+          "to": 7,
+          "kind": "continues"
+        }
+      ],
+      "sections": [
+        {
+          "index": 0,
+          "title": "Resolving the meaning of 'and the sun sets'",
+          "spine": {
+            "nodes": [
+              {
+                "id": "0-1_0",
+                "order": 0,
+                "role": "question",
+                "speaker": "Gemara's question",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "דִּילְמָא בִּיאַת אוֹרוֹ הוּא",
+                "summary": "The Gemara questions whether 'and the sun sets' refers to the sun's actual setting or its light's departure, and whether 'and he becomes pure' refers to the person becoming pure.",
+                "startSegIdx": 0,
+                "endSegIdx": 0,
+                "tokenStart": 0,
+                "tokenEnd": 7
+              },
+              {
+                "id": "0-1_1",
+                "order": 1,
+                "role": "answer",
+                "speaker": "Rabbah bar Rav Sheila",
+                "rabbiNames": ["Rabbah bar Rav Sheila"],
+                "named": true,
+                "excerpt": "אָמַר רַבָּהּ בַּר רַב שֵׁילָא",
+                "summary": "Rabbah bar Rav Sheila argues that if the verse meant the person, it would use 'yit'har' (active), so 'v'taher' means the day becomes pure, as people say 'the sun set and the day became pure'.",
+                "startSegIdx": 1,
+                "endSegIdx": 1,
+                "tokenStart": 0,
+                "tokenEnd": 19,
+                "side": "A"
+              }
+            ],
+            "links": [
+              {
+                "from": "0-1_1",
+                "to": "0-1_0",
+                "relation": "responds-to",
+                "source": "role"
+              }
+            ],
+            "dispute": false
+          }
+        },
+        {
+          "index": 1,
+          "title": "The Westerners' question and resolution from a baraita",
+          "spine": {
+            "nodes": [
+              {
+                "id": "2-3_0",
+                "order": 0,
+                "role": "question",
+                "speaker": "Gemara's inquiry (in the West)",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "בְּמַעֲרָבָא, הָא דְּרַבָּהּ בַּר רַב שֵׁילָא לָא שְׁמִיעַ לְהוּ",
+                "summary": "The Gemara reports that in the West, Rabbah bar Rav Sheila's teaching was unknown, and they inquired whether 'and the sun sets' means the sun's actual setting or its light's departure, and whether 'and he becomes pure' refers to the day or the person.",
+                "startSegIdx": 2,
+                "endSegIdx": 2,
+                "tokenStart": 0,
+                "tokenEnd": 30
+              },
+              {
+                "id": "2-3_1",
+                "order": 1,
+                "role": "resolution",
+                "speaker": "Gemara's resolution from a baraita",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "וַהֲדַר פָּשְׁטוּ לַהּ מִבָּרַיְיתָא",
+                "summary": "The Gemara resolves the inquiry from a baraita: since the baraita states 'the sign for the matter is the emergence of the stars', it proves that 'and the sun sets' means the sun's actual setting and 'and he becomes pure' means the day becomes pure.",
+                "startSegIdx": 3,
+                "endSegIdx": 3,
+                "tokenStart": 0,
+                "tokenEnd": 18
+              }
+            ],
+            "links": [
+              {
+                "from": "2-3_1",
+                "to": "2-3_0",
+                "relation": "resolves",
+                "source": "role"
+              }
+            ],
+            "dispute": false
+          }
+        },
+        {
+          "index": 2,
+          "title": "First contradiction: Mishnah vs. baraita on the poor man",
+          "spine": {
+            "nodes": [
+              {
+                "id": "4-6_0",
+                "order": 0,
+                "role": "question",
+                "speaker": "Gemara's contradiction",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "אָמַר מָר מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִין לֶאֱכוֹל בִּתְרוּמָתָן",
+                "summary": "The Gemara cites a contradiction: the Mishnah says the time for the evening Shema is from when priests enter to eat their terumah, but a baraita says it is from when a poor person enters to eat his bread with salt until he finishes his meal.",
+                "startSegIdx": 4,
+                "endSegIdx": 4,
+                "tokenStart": 0,
+                "tokenEnd": 23
+              },
+              {
+                "id": "4-6_1",
+                "order": 1,
+                "role": "question",
+                "speaker": "Gemara's question",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "סֵיפָא, וַדַּאי פְּלִיגָא אַמַּתְנִיתִין",
+                "summary": "The Gemara notes that the end of the baraita certainly disagrees with the Mishnah, and asks whether the beginning also disagrees.",
+                "startSegIdx": 5,
+                "endSegIdx": 5,
+                "tokenStart": 0,
+                "tokenEnd": 8
+              },
+              {
+                "id": "4-6_2",
+                "order": 2,
+                "role": "answer",
+                "speaker": "Gemara's answer",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "לָא, עָנִי וְכֹהֵן חַד שִׁעוּרָא הוּא",
+                "summary": "The Gemara answers that the poor person and the priest have the same time, so the beginning of the baraita does not disagree with the Mishnah.",
+                "startSegIdx": 6,
+                "endSegIdx": 6,
+                "tokenStart": 0,
+                "tokenEnd": 5
+              }
+            ],
+            "links": [
+              {
+                "from": "4-6_2",
+                "to": "4-6_1",
+                "relation": "responds-to",
+                "source": "role"
+              }
+            ],
+            "dispute": false
+          }
+        },
+        {
+          "index": 3,
+          "title": "Second contradiction: Baraita with Rabbi Meir and Sages",
+          "spine": {
+            "nodes": [
+              {
+                "id": "7-7_0",
+                "order": 0,
+                "role": "opening",
+                "speaker": "Gemara's contradiction",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "וּרְמִינְהוּ: מֵאֵימָתַי מַתְחִילִין לִקְרוֹת קְרִיאַת שְׁמַע בְּעַרְבִית",
+                "summary": "The Gemara raises a contradiction by citing a baraita that gives different starting times for the evening Shema (קריאת שמע של ערבית) according to Rabbi Meir and the Sages, with the sign being the emergence of stars.",
+                "startSegIdx": 7,
+                "endSegIdx": 7,
+                "tokenStart": 0,
+                "tokenEnd": 28
+              },
+              {
+                "id": "7-7_1",
+                "order": 1,
+                "role": "supporting-evidence",
+                "speaker": "Baraita's additional verse citation",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "וְאַף עַל פִּי שֶׁאֵין רְאָיָה לַדָּבָר, זֵכֶר לַדָּבָר, שֶׁנֶּאֱמַר: ״וַאֲנַחְנוּ עֹשִׂים בַּמְּלָאכָה...״",
+                "summary": "The baraita cites a verse from Nehemiah as a mnemonic that the emergence of stars marks the start of night, even though it is not a direct proof.",
+                "startSegIdx": 7,
+                "endSegIdx": 7,
+                "tokenStart": 29,
+                "tokenEnd": 55
+              }
+            ],
+            "links": [],
+            "dispute": false
+          }
+        },
+        {
+          "index": 4,
+          "title": "Resolving the contradiction between the two baraitot",
+          "spine": {
+            "nodes": [
+              {
+                "id": "8-11_0",
+                "order": 0,
+                "role": "question",
+                "speaker": "Gemara's question",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "קָא סָלְקָא דַּעְתָּךְ",
+                "summary": "The Gemara raises the initial assumption that the poor man and 'people' have the same time, which would create a contradiction between Rabbi Meir and the Sages.",
+                "startSegIdx": 10,
+                "endSegIdx": 10,
+                "tokenStart": 0,
+                "tokenEnd": 8
+              },
+              {
+                "id": "8-11_1",
+                "order": 1,
+                "role": "objection",
+                "speaker": "Gemara's objection",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "וְאִי אָמְרַתְּ עָנִי וְכֹהֵן",
+                "summary": "The Gemara objects that if the poor man and the priest have the same time, then the Sages' position would be identical to Rabbi Meir's, which is impossible.",
+                "startSegIdx": 10,
+                "endSegIdx": 10,
+                "tokenStart": 9,
+                "tokenEnd": 19
+              },
+              {
+                "id": "8-11_2",
+                "order": 2,
+                "role": "resolution",
+                "speaker": "Gemara's resolution",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "אֶלָּא, שְׁמַע מִינַּהּ",
+                "summary": "The Gemara initially concludes that the poor man and the priest have different times, resolving the contradiction.",
+                "startSegIdx": 11,
+                "endSegIdx": 11,
+                "tokenStart": 0,
+                "tokenEnd": 8
+              },
+              {
+                "id": "8-11_3",
+                "order": 3,
+                "role": "rejection",
+                "speaker": "Gemara's rejection and final conclusion",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "לָא, עָנִי וְכֹהֵן",
+                "summary": "The Gemara rejects the initial conclusion and establishes that the poor man and the priest actually have the same time, but the poor man and 'people' do not, thereby resolving the contradiction.",
+                "startSegIdx": 11,
+                "endSegIdx": 11,
+                "tokenStart": 9,
+                "tokenEnd": 21
+              }
+            ],
+            "links": [
+              {
+                "from": "8-11_2",
+                "to": "8-11_1",
+                "relation": "resolves",
+                "source": "role"
+              }
+            ],
+            "dispute": false
+          }
+        },
+        {
+          "index": 5,
+          "title": "Third contradiction: Baraita with multiple opinions",
+          "spine": {
+            "nodes": [
+              {
+                "id": "12-14_0",
+                "order": 0,
+                "role": "question",
+                "speaker": "Gemara's contradiction",
+                "rabbiNames": [
+                  "Rabbi Eliezer",
+                  "Rabbi Yehoshua",
+                  "Rabbi Meir",
+                  "Rabbi Yehuda",
+                  "Rabbi Chanina",
+                  "Rabbi Achai / Rabbi Acha"
+                ],
+                "named": true,
+                "excerpt": "וְעָנִי וְכֹהֵן חַד שִׁעוּרָא הוּא? וּרְמִינְהוּ",
+                "summary": "The Gemara cites a baraita listing multiple opinions: Rabbi Eliezer, Rabbi Yehoshua, Rabbi Meir, Rabbi Yehuda's objection, Rabbi Chanina, and Rabbi Achai/Acha, each giving a different time for the evening Shema.",
+                "startSegIdx": 12,
+                "endSegIdx": 12,
+                "tokenStart": 0,
+                "tokenEnd": 66,
+                "side": "A"
+              },
+              {
+                "id": "12-14_1",
+                "order": 1,
+                "role": "question",
+                "speaker": "Gemara's question",
+                "rabbiNames": ["Rabbi Chanina", "Rabbi Yehoshua"],
+                "named": true,
+                "excerpt": "וְאִי אָמְרַתְּ עָנִי וְכֹהֵן חַד שִׁעוּרָא הוּא",
+                "summary": "The Gemara asks: if the poor person and the priest have the same time, then Rabbi Chanina's opinion would be identical to Rabbi Yehoshua's.",
+                "startSegIdx": 13,
+                "endSegIdx": 13,
+                "tokenStart": 0,
+                "tokenEnd": 11,
+                "side": "B"
+              },
+              {
+                "id": "12-14_2",
+                "order": 2,
+                "role": "resolution",
+                "speaker": "Gemara's conclusion",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "אֶלָּא לָאו שְׁמַע מִינַּהּ שִׁעוּרָא דְּעָנִי לְחוּד וְשִׁעוּרָא דְּכֹהֵן לְחוּד",
+                "summary": "The Gemara concludes definitively that the poor person and the priest have different times.",
+                "startSegIdx": 14,
+                "endSegIdx": 14,
+                "tokenStart": 0,
+                "tokenEnd": 3
+              },
+              {
+                "id": "12-14_3",
+                "order": 3,
+                "role": "objection",
+                "speaker": "Rabbi Yehuda's objection",
+                "rabbiNames": ["Rabbi Yehuda"],
+                "named": true,
+                "excerpt": "אָמַר לוֹ רַבִּי יְהוּדָה: וַהֲלֹא כֹּהֲנִים מִבְּעוֹד יוֹם הֵם טוֹבְלִים",
+                "summary": "Rabbi Yehuda objects to Rabbi Meir, arguing that priests immerse while it is still daytime.",
+                "startSegIdx": 12,
+                "endSegIdx": 12,
+                "tokenStart": 35,
+                "tokenEnd": 44,
+                "side": "C"
+              },
+              {
+                "id": "12-14_4",
+                "order": 4,
+                "role": "supporting-evidence",
+                "speaker": "Baraita's citation of Rabbi Chanina",
+                "rabbiNames": ["Rabbi Chanina"],
+                "named": true,
+                "excerpt": "רַבִּי חֲנִינָא אוֹמֵר מִשָּׁעָה שֶׁעָנִי נִכְנָס לֶאֱכוֹל פִּתּוֹ בְּמֶלַח",
+                "summary": "Rabbi Chanina states the time is from when a poor person enters to eat his bread with salt.",
+                "startSegIdx": 13,
+                "endSegIdx": 13,
+                "tokenStart": 7,
+                "tokenEnd": 11,
+                "side": "D"
+              },
+              {
+                "id": "12-14_5",
+                "order": 5,
+                "role": "supporting-evidence",
+                "speaker": "Baraita's citation of Rabbi Achai",
+                "rabbiNames": ["Rabbi Achai", "Rabbi Acha"],
+                "named": true,
+                "excerpt": "רַבִּי אַחַאי וְאָמְרִי לַהּ רַבִּי אַחָא אוֹמֵר: מִשָּׁעָה שֶׁרוֹב בְּנֵי אָדָם נִכְנָסִין לְהָסֵב",
+                "summary": "Rabbi Achai (or some say Rabbi Acha) says the time is from when most people recline for their meal.",
+                "startSegIdx": 12,
+                "endSegIdx": 12,
+                "tokenStart": 54,
+                "tokenEnd": 66,
+                "side": "E"
+              },
+              {
+                "id": "12-14_6",
+                "order": 6,
+                "role": "objection",
+                "speaker": "Gemara's objection",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "וְאִי אָמְרַתְּ עָנִי וְכֹהֵן חַד שִׁעוּרָא הוּא, רַבִּי חֲנִינָא הַיְינוּ רַבִּי יְהוֹשֻׁעַ",
+                "summary": "The Gemara objects: if the poor person's time and the priest's time are the same measure, then Rabbi Chanina's opinion would duplicate Rabbi Yehoshua's.",
+                "startSegIdx": 13,
+                "endSegIdx": 13,
+                "tokenStart": 0,
+                "tokenEnd": 11
+              },
+              {
+                "id": "12-14_7",
+                "order": 7,
+                "role": "resolution",
+                "speaker": "Gemara's conclusion",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "אֶלָּא לָאו שְׁמַע מִינַּהּ שִׁעוּרָא דְּעָנִי לְחוּד וְשִׁעוּרָא דְּכֹהֵן לְחוּד",
+                "summary": "The Gemara concludes: learn from this that the poor person's measure is distinct and the priest's measure is distinct.",
+                "startSegIdx": 14,
+                "endSegIdx": 14,
+                "tokenStart": 0,
+                "tokenEnd": 3
+              }
+            ],
+            "links": [
+              {
+                "from": "12-14_2",
+                "to": "12-14_1",
+                "relation": "resolves",
+                "source": "role"
+              },
+              {
+                "from": "12-14_6",
+                "to": "12-14_5",
+                "relation": "opposes",
+                "source": "role"
+              },
+              {
+                "from": "12-14_7",
+                "to": "12-14_6",
+                "relation": "resolves",
+                "source": "role"
+              }
+            ],
+            "dispute": false
+          }
+        },
+        {
+          "index": 6,
+          "title": "Determining which time is later",
+          "spine": {
+            "nodes": [
+              {
+                "id": "15-15_0",
+                "order": 0,
+                "role": "question",
+                "speaker": "Gemara's question",
+                "rabbiNames": [],
+                "named": false,
+                "excerpt": "הֵי מִינַּיְיהוּ מְאוּחָר?",
+                "summary": "The Gemara asks which of the two times (poor person or priest) is later.",
+                "startSegIdx": 15,
+                "endSegIdx": 15,
+                "tokenStart": 0,
+                "tokenEnd": 2
+              },
+              {
+                "id": "15-15_1",
+                "order": 1,
+                "role": "answer",
+                "speaker": "Gemara's answer",
+                "rabbiNames": ["Rabbi Chanina", "Rabbi Eliezer"],
+                "named": true,
+                "excerpt": "מִסְתַּבְּרָא דְּעָנִי מְאוּחָר",
+                "summary": "The Gemara reasons that the poor person's time is later, because if it were earlier, Rabbi Chanina's opinion would be identical to Rabbi Eliezer's, so it must be later.",
+                "startSegIdx": 15,
+                "endSegIdx": 15,
+                "tokenStart": 3,
+                "tokenEnd": 18
+              }
+            ],
+            "links": [
+              {
+                "from": "15-15_1",
+                "to": "15-15_0",
+                "relation": "responds-to",
+                "source": "role"
+              }
+            ],
+            "dispute": false
+          }
+        },
+        {
+          "index": 7,
+          "title": "Rabbi Yehuda's objection to Rabbi Meir and Rabbi Meir's response",
+          "spine": {
+            "nodes": [
+              {
+                "id": "16-18_0",
+                "order": 0,
+                "role": "question",
+                "speaker": "Gemara's citation",
+                "rabbiNames": ["Rabbi Yehuda"],
+                "named": true,
+                "excerpt": "אָמַר מָר. אֲמַר לֵיהּ רַבִּי יְהוּדָה",
+                "summary": "The Gemara cites Rabbi Yehuda's objection to Rabbi Meir: do not priests immerse while it is still day?",
+                "startSegIdx": 16,
+                "endSegIdx": 16,
+                "tokenStart": 0,
+                "tokenEnd": 11,
+                "side": "B"
+              },
+              {
+                "id": "16-18_1",
+                "order": 1,
+                "role": "question",
+                "speaker": "Gemara's question",
+                "rabbiNames": ["Rabbi Yehuda", "Rabbi Meir"],
+                "named": true,
+                "excerpt": "שַׁפִּיר קָאָמַר לֵיהּ רַבִּי יְהוּדָה לְרַבִּי מֵאִיר?",
+                "summary": "The Gemara asks whether Rabbi Yehuda's objection to Rabbi Meir is valid.",
+                "startSegIdx": 17,
+                "endSegIdx": 17,
+                "tokenStart": 0,
+                "tokenEnd": 6,
+                "side": "B"
+              },
+              {
+                "id": "16-18_2",
+                "order": 2,
+                "role": "answer",
+                "speaker": "Rabbi Meir's response (as explained by the Gemara)",
+                "rabbiNames": ["Rabbi Meir", "Rabbi Yosei"],
+                "named": true,
+                "excerpt": "וְרַבִּי מֵאִיר הָכִי קָאָמַר לֵיהּ",
+                "summary": "The Gemara explains Rabbi Meir's response: he was referring to the twilight period according to Rabbi Yosei, which is as brief as an eye blink, and impossible to pinpoint precisely.",
+                "startSegIdx": 18,
+                "endSegIdx": 18,
+                "tokenStart": 0,
+                "tokenEnd": 34,
+                "side": "A"
+              }
+            ],
+            "links": [
+              {
+                "from": "16-18_1",
+                "to": "16-18_0",
+                "relation": "opposes",
+                "source": "voices"
+              },
+              {
+                "from": "16-18_1",
+                "to": "16-18_0",
+                "relation": "responds-to",
+                "source": "voices"
+              },
+              {
+                "from": "16-18_2",
+                "to": "16-18_1",
+                "relation": "cites",
+                "source": "voices"
+              },
+              {
+                "from": "16-18_2",
+                "to": "16-18_1",
+                "relation": "responds-to",
+                "source": "role"
+              }
+            ],
+            "dispute": true
+          }
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "page": "2a",
+      "nextPage": "2b",
+      "cross": [
+        {
+          "fromSection": 0,
+          "toSection": 2,
+          "relation": "contrasts",
+          "note": "The Mishnah (2a) sets the time for evening Shema from when priests enter to eat terumah, but a baraita (2b) sets it from when a poor man enters to eat his bread with salt, creating a contradiction that the Gemara resolves."
+        },
+        {
+          "fromSection": 0,
+          "toSection": 3,
+          "relation": "contrasts",
+          "note": "The Mishnah (2a) gives the time for evening Shema as from when priests enter to eat terumah, while a baraita (2b) cites Rabbi Meir and the Sages with different times (people entering on Shabbat eve vs. priests permitted to eat terumah), challenging the Mishnah's ruling."
+        }
+      ],
+      "crossComputed": true
+    },
+    {
+      "page": "2b",
+      "nextPage": "3a",
+      "cross": [],
+      "crossComputed": true
+    }
+  ],
+  "firstSectionExits": [
+    {
+      "ref": "Berakhot 4a",
+      "relation": "parallels",
+      "corpus": "here",
+      "tractate": "Berakhot",
+      "page": "4a"
+    }
+  ]
+}

@@ -52,6 +52,13 @@
     "./readingmap.css": "./src/readingmap.css",
     "./Study": "./src/Study.tsx",
     "./InlineHint": "./src/InlineHint.tsx",
+    "./GraphView": "./src/GraphView.tsx",
+    "./GraphEdge": "./src/GraphEdge.tsx",
+    "./GraphConnectionDetails": "./src/GraphConnectionDetails.tsx",
+    "./graph/geometry": "./src/graph/geometry.ts",
+    "./graph/model": "./src/graph/model.ts",
+    "./graph.css": "./src/graph.css",
+    "./graph/orthogonalEdge": "./src/graph/orthogonalEdge.ts",
     "./DailyComparison": "./src/DailyComparison.tsx",
     "./MetricSummary": "./src/MetricSummary.tsx"
   },

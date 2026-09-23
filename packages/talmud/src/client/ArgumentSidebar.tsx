@@ -1088,7 +1088,7 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
       from: d.fromSection,
       to: d.toSection,
       kind: stmtRelKind(d.relation),
-      note: 'from the statement dialectic',
+      derived: true,
     }));
     return mergeFlows(ai, det);
   });
@@ -1347,22 +1347,15 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
           {(grp) => {
             const hasFirst = grp.includes(0);
             const hasLast = grp.includes(sections().length - 1);
-            // A MEMO, not a static const: the focused section's `statements`
-            // depend on focused() + focusedSpine(), which change AFTER this group
-            // first renders (a map-node click only changes focus, not groups()).
-            // Baking grpNodes once froze `statements` to the focus at mount, so
-            // clicking a different node highlighted it (activeIndex is reactive)
-            // but never expanded its spine. The memo re-bakes on focus change.
+            // Cached spines may arrive after the section list. The horizontal
+            // view uses every loaded spine; compact mode opens one section.
             const grpNodes = createMemo(() =>
               grp.map((i) => ({
                 index: i,
                 title: sections()[i].title,
                 exits: sectionExits()?.[sections()[i].startSegIdx ?? -1] ?? [],
-                // The focused section carries its statement spine, rendered as
-                // nested sub-nodes under the node (the in-map drill-in) + its edges
-                // (response threads + opposition bracket) drawn between them.
-                statements: i === focused() ? focusedSpine()?.spine.nodes : undefined,
-                statementLinks: i === focused() ? focusedSpine()?.spine.links : undefined,
+                statements: spines()?.sections.find((s) => s.index === i)?.spine.nodes,
+                statementLinks: spines()?.sections.find((s) => s.index === i)?.spine.links,
               })),
             );
             return (
@@ -1371,6 +1364,7 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
                   {crossLabel(t('overview.continuesFrom', { page: pageRef(bridge()!.prev) }))}
                 </Show>
                 <ArgumentFlowGraph
+                  passage={{ tractate: props.tractate, page: props.page }}
                   nodes={grpNodes()}
                   connections={connections()}
                   activeIndex={focused()}

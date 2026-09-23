@@ -190,21 +190,21 @@ export function SpineCoveragePage(): JSX.Element {
   );
   const selectedMove = (): ArgumentMoveInstance | undefined =>
     focusedSecSpine()?.moves.find((m) => m.fields.id === selectedStmt());
-  // Inject the focused section's statements/links into the dapim handed to the map.
+  // The endpoint already returns every section on the selected daf. Supply all
+  // of them so the full-screen map can open them without another request.
   const withStatements = (dapim: SpineViewDaf[]): SpineViewDaf[] => {
     const f = focusedSec();
-    const sp = focusedSecSpine();
-    if (!f || !sp) return dapim;
+    if (!f) return dapim;
+    const bySection = new Map((spineDaf() ?? []).map((s) => [s.index, s.spine]));
     return dapim.map((d) =>
       d.page !== f.page
         ? d
         : {
             ...d,
-            sections: d.sections.map((s) =>
-              s.index !== f.index
-                ? s
-                : { ...s, statements: sp.spine.nodes, statementLinks: sp.spine.links },
-            ),
+            sections: d.sections.map((s) => {
+              const spine = bySection.get(s.index);
+              return spine ? { ...s, statements: spine.nodes, statementLinks: spine.links } : s;
+            }),
           },
     );
   };

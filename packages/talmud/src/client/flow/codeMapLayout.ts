@@ -1,3 +1,4 @@
+import { CONNECTOR, CONNECTOR_CLEARANCE, routeConnector } from '@corpus/ui/graph/geometry';
 /**
  * Pure layout helpers for the codification map (CodificationMap.tsx) — the
  * halacha lineage rendered in the Voices visual grammar. Kept separate from the
@@ -51,16 +52,8 @@ export function relationStyle(kind: RelationKind): { color: string; dash?: strin
  * @param laneX the vertical lane x in the right gutter (rightX < laneX)
  */
 export function gutterEdgePath(y1: number, y2: number, rightX: number, laneX: number): string {
-  const dir = y2 >= y1 ? 1 : -1;
-  const r = Math.max(0, Math.min(10, Math.abs(y2 - y1) / 2, laneX - rightX));
-  return [
-    `M ${rightX} ${y1}`,
-    `L ${laneX - r} ${y1}`,
-    `Q ${laneX} ${y1} ${laneX} ${y1 + dir * r}`,
-    `L ${laneX} ${y2 - dir * r}`,
-    `Q ${laneX} ${y2} ${laneX - r} ${y2}`,
-    `L ${rightX} ${y2}`,
-  ].join(' ');
+  const lane = Math.max(0, Math.ceil((laneX - rightX - CONNECTOR_CLEARANCE) / CONNECTOR.lane));
+  return routeConnector({ x: rightX, y: y1 }, { x: rightX, y: y2 }, 'right', lane).path;
 }
 
 // ---------------------------------------------------------------------------

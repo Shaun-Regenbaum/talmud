@@ -22,7 +22,8 @@ Use `--bg`, `--fg`, `--muted`, `--line`, `--surface`, `--surface-sunk`, `--accen
 | `Drawer`, `BottomSheet`, `Prose` | Side panel on desktop, bottom sheet on phones, and bilingual reading text. |
 | `Charts`, `DataTable` | Line charts, chart cards, sortable tables, ranked bars, meters and rate chips. Used by Talmud usage. |
 | `ReaderIcon` | Distinct category colors with consistent rounded outline icons, separate from annotation placement. |
-| `Graph` | Shared card styles, SVG cards, connectors and lane routing used by argument, spine and dependency graphs. |
+| `GraphView`, `GraphEdge`, `GraphConnectionDetails` | Compact argument maps, full-screen passage maps, curved connectors and connection inspection. |
+| `Graph` | Card styles and basic SVG cards and paths for specialized diagrams. |
 | `Study` | Source cards, selectable rows, counted filters, section headings, inputs, summary cards and status messages. Used throughout Tanach. |
 | `InlineHint` | Inline explanations for pointer, keyboard and touch. |
 | `StudyOverview`, `ReadingMap` | Reference/title/prose and the parsha verse ribbon, aliyah markers and legend. Tanach supplies its layout and study data. |
@@ -63,6 +64,12 @@ component example, not a claim about the current weekly portion. Selecting a
 section shows its recorded summary. Landmark buttons open the verse on Sefaria.
 The gallery does not call the parsha generation endpoint.
 
+The argument-map example uses the saved Berakhot 2a response from the existing
+passage fixture, with its source recorded in `src/gallery/content/berakhot-argument.json`.
+It renders `GraphView` directly. Try section expansion, line selection, endpoint
+links, the full-screen map, both layouts and the English/Hebrew controls. This
+example also works in the static gallery build and makes no generation request.
+
 The regional maps use Talmud's existing place list and omit locations marked
 uncertain. Israel and Babylonia have separate close views. The world traffic map
 is separated from these study maps.
@@ -90,3 +97,26 @@ Tanach adoption and deliberate exceptions are listed in [the component inventory
 `@corpus/ui/MetricSummary` gives a total, supporting counts, and short notes a consistent layout. `DetailSection` adds a native expandable section with separate title and description. It accepts `open` and `onToggle` for saved state. Callers that load content only when opened should wrap the children in a conditional.
 
 Both examples appear under “Daily comparisons & summaries” in the gallery. They read live usage and billing data through the gallery’s read-only proxy.
+
+## Build maps with GraphView
+
+`@corpus/ui/GraphView` takes `groups`, `edges`, translated `labels`, and selection callbacks. It imports its own CSS and uses the app's theme tokens. It fetches no data and creates no claims or connections.
+
+- A group has a unique `id`, `label`, optional `children`, and controlled `expanded` state. The compact map preserves their supplied order. Statement rows are 30 px tall, section headers 40 px, with 4 px between statements.
+- Nodes can carry `role`, `badge`, `badgeColor`, `color`, `selected`, and `dimmed`. Use `label` for a short title and `summary` for the saved summary or source excerpt. Summaries appear beneath the title and role on the passage board and do not enlarge compact rows. Existing `description` and `annotation` reserve extra space for rulings and practice in both views. The compact view shortens long labels and descriptions visually; `detail` keeps the full text available on selection in the modal.
+- Edges have unique `id`, `from`, `to`, `label`, and `color`. Optional `dash`, `arrow`, and `provenance` describe their appearance and origin. `kindLabel` supplies the short relation name in the shared legend. An arrow points from `from` to `to`. Missing endpoints and self-links are omitted; the renderer never substitutes another target.
+- Local edges connect children of the same group in its left gutter. Connections between group headers use the outer right gutter. Keep cross-section edges on their group headers in this layout; child-to-child links across groups are supported in the passage board through the aisles between columns. In the compact layout, keep cross-section links on headers.
+- `onSelect` receives the same node in either view. The host owns text highlighting, navigation, and selection. `actions` and `onToggleActions` expose off-page links without fetching their targets.
+- Selecting a line pins it and marks both endpoints. The caption reads the supplied source title, relationship, and target title, followed by any note and provenance. The caption's endpoint buttons scroll to and focus their cards without activating host navigation or disclosures. Clearing the caption restores keyboard focus to its line. Mouse, touch, Enter, and Space use the same selection. Lines remain keyed by ID across layout changes so keyboard focus survives a redraw.
+- `onSelectConnection` optionally receives the selected connection, or `null` when it is cleared, hidden, removed, or its map is closed. The renderer never substitutes another endpoint. Selecting a node clears the line selection. Opening the full-screen map starts a fresh connection inspection; the host keeps its current text selection. `labels.clearConnection` provides the translated name of the clear button.
+- The full-screen button opens a native modal. It starts with sections in columns across the screen, and their statements running down each column in source order. Cross-section links run above the columns; local links run beside the statements. Full labels determine card heights. A reading-order strip jumps to any section; “Sections only” hides statement detail without changing the host's text selection. Readers can switch to the stacked view, zoom, fit, inspect a line, or close with Escape. Closing restores focus and the previous page scroll lock. Each view uses the same data and callbacks.
+- `renderFullscreen` lets a host supply `GraphDialog` with a larger passage. Its optional `toolbar`, `status`, and `revealId` support range controls, loading messages, and navigation to newly loaded sections. Data loading stays in the app. The Talmud passage adapter reads saved sections one daf at a time, qualifies every ID with its page, and uses saved cross-daf connections. Page adjacency creates no argument edge. Automatic Mishnah boundaries are not yet supplied.
+- `renderDetail` adds host-specific source links or controls to the modal detail. `controlsOnly` adds the modal to an existing specialized canvas, as the tractate map does.
+
+Use `@corpus/ui/graph/geometry` for specialized layouts. `assignLanes` separates connections with overlapping spans. `routeConnector` reserves a 12 px bend, 16 px of straight approach, and a 2 px arrow gap. It returns both the path and its bounds. Close ports take a wider detour; callers must reserve those bounds. `GraphEdge` supplies a fixed-size arrowhead, unique marker, optional keyboard selection, and a wider hit area. It imports its own CSS.
+
+Specialized maps can reuse `@corpus/ui/GraphConnectionDetails` directly. Supply the real `edge`, `from` and `to` nodes, a translated `clearLabel`, and `onClear`. Optional `onLocate` focuses an endpoint; without it the titles are plain text. `GraphEdge.selected` marks a pinned connection, while `highlighted` is only a hover or keyboard preview. `edgeId` exposes the stable ID for locating an edge. Apps still own the source data and titles; these components do not generate either.
+
+Import interactive edges from `@corpus/ui/GraphEdge`. The older `@corpus/ui/Graph` export retains its separate SVG-path `GraphEdge` API for specialized diagrams.
+
+Overview, the daf argument page, the section drill-down, speaker maps, and codification maps use `GraphView`. The tractate map keeps its page and rabbi annotations while sharing connectors and the full-screen view. Build trees share the same gutter router and arrow component. The separate rectangle router in `graph/orthogonalEdge` remains available for diagrams with nodes on both axes.

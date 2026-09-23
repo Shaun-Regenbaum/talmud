@@ -36,34 +36,23 @@ describe('SIDE_COLOR', () => {
 });
 
 describe('gutterEdgePath', () => {
-  it('routes out, rounds the corner, runs vertically, rounds back, re-enters', () => {
-    const d = gutterEdgePath(30, 110, 300, 340);
-    // downward: dir=+1, r = min(10, 40, 40) = 10
-    expect(d).toBe('M 300 30 L 330 30 Q 340 30 340 40 L 340 100 Q 340 110 330 110 L 300 110');
+  it.each([
+    [30, 110],
+    [110, 30],
+    [50, 54],
+  ])('keeps full bends for %i → %i', (from, to) => {
+    const path = gutterEdgePath(from, to, 300, 340);
+    const radii = [...path.matchAll(/A (\d+) (\d+)/g)];
+    expect(radii.length).toBeGreaterThanOrEqual(2);
+    expect(radii.every((r) => Number(r[1]) >= 12 && Number(r[2]) >= 12)).toBe(true);
+    expect(path.startsWith(`M 300 ${from}`)).toBe(true);
+    expect(path.endsWith(`L 302 ${to}`)).toBe(true);
   });
 
-  it('handles an upward edge (to-card above from-card)', () => {
-    const d = gutterEdgePath(110, 30, 300, 340);
-    // dir = -1
-    expect(d).toBe('M 300 110 L 330 110 Q 340 110 340 100 L 340 40 Q 340 30 330 30 L 300 30');
-  });
-
-  it('clamps the corner radius for near-equal Ys (no overshoot)', () => {
-    // |y2-y1|/2 = 2 caps r at 2
-    expect(gutterEdgePath(50, 54, 300, 340)).toContain('Q 340 50 340 52');
-  });
-
-  it('never emits a negative radius when the lane hugs the cards', () => {
-    const d = gutterEdgePath(30, 110, 300, 304); // laneX-rightX = 4 → r = 4
-    expect(d).toContain('Q 304 30 304 34');
-    expect(d).not.toMatch(/-\d/); // no negative coordinates
-  });
-
-  it('is axis-aligned only — no diagonal segment (every L shares an axis with its start)', () => {
-    // A simple structural check: the path has the expected M/L/Q command count.
-    const d = gutterEdgePath(30, 110, 300, 340);
-    expect((d.match(/L /g) || []).length).toBe(3);
-    expect((d.match(/Q /g) || []).length).toBe(2);
+  it('moves a cramped lane out to leave room before the arrowhead', () => {
+    const path = gutterEdgePath(30, 110, 300, 304);
+    const coords = path.match(/ ([-\d.]+) 110 L 302 110$/)!;
+    expect(Number(coords[1]) - 302).toBeGreaterThanOrEqual(16);
   });
 });
 

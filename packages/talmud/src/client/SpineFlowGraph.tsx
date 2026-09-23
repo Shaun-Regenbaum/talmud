@@ -1,4 +1,10 @@
-import { GraphEdge, roundedConnector } from '@corpus/ui/Graph';
+import { GraphEdge } from '@corpus/ui/GraphEdge';
+import { GraphView } from '@corpus/ui/GraphView';
+import {
+  assignLanes as assignLanesY,
+  CONNECTOR_CLEARANCE,
+  routeConnector,
+} from '@corpus/ui/graph/geometry';
 /**
  * SpineFlowGraph — the whole tractate's argument flow as ONE continuous SVG.
  *
@@ -23,8 +29,11 @@ import {
   KIND_DASH,
   StatementBand,
   statementBandHeight,
+  statementGraphEdges,
+  statementGraphNode,
   wrapTitle,
 } from './ArgumentFlowGraph';
+import { graphLabels } from './graphLabels';
 import { lang, t } from './i18n';
 
 type Kind = FlowConnection['kind'];
@@ -78,9 +87,8 @@ const DAF_HEADER_H = 26,
   DAF_GAP = 14;
 const TOP_PAD = 12,
   LEFT_PAD = 46;
-const LANE_BASE = 14,
-  LANE_STEP = 12,
-  CORNER_R = 16;
+const LANE_BASE = CONNECTOR_CLEARANCE,
+  LANE_STEP = 10;
 const LINE_H = 15,
   TITLE_CHARS = 44,
   // Narrower budget for a box that carries an exit badge (top-right), so the
@@ -135,23 +143,6 @@ interface Edge {
   toSec: number;
   fromPage: string;
   toPage: string;
-}
-
-function assignLanesY(spans: { lo: number; hi: number }[]): number[] {
-  const order = spans
-    .map((s, i) => ({ i, lo: s.lo, hi: s.hi }))
-    .sort((a, b) => a.lo - b.lo || a.hi - b.hi);
-  const laneHi: number[] = [];
-  const lanes = new Array<number>(spans.length).fill(0);
-  for (const { i, lo, hi } of order) {
-    let lane = laneHi.findIndex((h) => h < lo);
-    if (lane === -1) {
-      lane = laneHi.length;
-      laneHi.push(hi);
-    } else laneHi[lane] = hi;
-    lanes[i] = lane;
-  }
-  return lanes;
 }
 
 export default function SpineFlowGraph(props: {
@@ -380,11 +371,8 @@ export default function SpineFlowGraph(props: {
     return { nodeY, meta, edges, lanes, mid, height, width };
   });
 
-  // Orthogonal connector through a right-side lane gutter. rX = node right edge.
-  const orthPath = (y1: number, y2: number, lane: number, rX: number): string => {
-    const x = rX + LANE_BASE + lane * LANE_STEP;
-    return roundedConnector(rX, x, y1, y2, CORNER_R);
-  };
+  const orthPath = (y1: number, y2: number, lane: number, rightX: number): string =>
+    routeConnector({ x: rightX, y: y1 }, { x: rightX, y: y2 }, 'right', lane).path;
   const edgePath = (y1: number, y2: number, lane: number): string =>
     orthPath(y1, y2, lane, LEFT_PAD + NODE_W);
 
@@ -418,6 +406,45 @@ export default function SpineFlowGraph(props: {
 
   return (
     <Show when={props.dapim.length > 0}>
+      <GraphView
+        controlsOnly
+        groups={props.dapim.flatMap((d) =>
+          d.sections.map((s) => ({
+            id: `${d.page}#${s.index}`,
+            label: `${dafPageLabel(d.page)} · ${s.title}`,
+            badge: String(s.index + 1),
+            selected: props.activeKey === `${d.page}#${s.index}`,
+            expanded: props.activeKey === `${d.page}#${s.index}`,
+            children: (s.statements ?? []).map((n) =>
+              statementGraphNode(n, `${d.page}#${s.index}:statement:${n.id}`),
+            ),
+          })),
+        )}
+        edges={[
+          ...model().edges.map((e, i) => ({
+            id: `section:${i}`,
+            from: e.from,
+            to: e.to,
+            label: `${t(`link.rel.${e.kind}`)}${e.note ? ` · ${e.note}` : ''}`,
+            color: KIND_COLOR[e.kind] ?? '#888',
+            dash: KIND_DASH[e.kind],
+          })),
+          ...props.dapim.flatMap((d) =>
+            d.sections.flatMap((s) =>
+              statementGraphEdges(s.statementLinks ?? [], `${d.page}#${s.index}:statement:`),
+            ),
+          ),
+        ]}
+        labels={graphLabels()}
+        direction={lang() === 'he' ? 'rtl' : 'ltr'}
+        onSelect={(node) => {
+          const [section, statement] = node.id.split(':statement:');
+          const [page, index] = section.split('#');
+          if (!statement || section !== props.activeKey)
+            props.onSelectSection?.(page, Number(index));
+          if (statement) props.onSelectStatement?.(statement);
+        }}
+      />
       <div
         style={{
           display: 'flex',
@@ -484,20 +511,6 @@ export default function SpineFlowGraph(props: {
                 style={{ display: 'block' }}
               >
                 <defs>
-                  <For each={Object.entries(KIND_COLOR)}>
-                    {([kind, color]) => (
-                      <marker
-                        id={`spine-arrow-${kind}`}
-                        markerWidth="8"
-                        markerHeight="8"
-                        refX="6"
-                        refY="3"
-                        orient="auto"
-                      >
-                        <path d="M 0 0 L 6 3 L 0 6 z" fill={color} />
-                      </marker>
-                    )}
-                  </For>
                   <filter id="spine-card-shadow" x="-10%" y="-20%" width="120%" height="150%">
                     <feDropShadow
                       dx="0"
@@ -564,22 +577,17 @@ export default function SpineFlowGraph(props: {
                 <For each={m.edges}>
                   {(e, i) => (
                     <GraphEdge
-                      d={edgePath(
+                      path={edgePath(
                         m.edgeAnchorY(e.from, true),
                         m.edgeAnchorY(e.to, false),
                         m.lanes[i()],
                       )}
-                      fill="none"
-                      stroke={KIND_COLOR[e.kind] ?? '#888'}
-                      stroke-width={e.cross ? 2.25 : 1.5}
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-opacity={e.cross ? 0.95 : 0.8}
-                      stroke-dasharray={KIND_DASH[e.kind]}
-                      marker-end={`url(#spine-arrow-${e.kind})`}
-                    >
-                      <title>{`${dafPageLabel(e.fromPage)} §${e.fromSec + 1} ${t(`link.rel.${e.kind}`)}${e.cross ? ` ${dafPageLabel(e.toPage)}` : ''} §${e.toSec + 1}${e.note ? ` — ${e.note}` : ''}`}</title>
-                    </GraphEdge>
+                      color={KIND_COLOR[e.kind] ?? '#888'}
+                      dash={KIND_DASH[e.kind]}
+                      opacity={e.cross ? 0.95 : 0.8}
+                      selected={e.cross}
+                      label={`${dafPageLabel(e.fromPage)} §${e.fromSec + 1} ${t(`link.rel.${e.kind}`)} ${dafPageLabel(e.toPage)} §${e.toSec + 1}${e.note ? ` · ${e.note}` : ''}`}
+                    />
                   )}
                 </For>
 
@@ -951,37 +959,14 @@ export default function SpineFlowGraph(props: {
                 viewBox={`0 0 ${o.width} ${o.height}`}
                 style={{ display: 'block' }}
               >
-                <defs>
-                  <For each={Object.entries(KIND_COLOR)}>
-                    {([kind, color]) => (
-                      <marker
-                        id={`ov-arrow-${kind}`}
-                        markerWidth="8"
-                        markerHeight="8"
-                        refX="6"
-                        refY="3"
-                        orient="auto"
-                      >
-                        <path d="M 0 0 L 6 3 L 0 6 z" fill={color} />
-                      </marker>
-                    )}
-                  </For>
-                </defs>
                 <For each={o.edges}>
                   {(e, i) => (
-                    <path
-                      d={orthPath(o.mid(e.from), o.mid(e.to), o.lanes[i()], OV_LEFT + OV_NODE_W)}
-                      fill="none"
-                      stroke={KIND_COLOR[e.kind] ?? '#888'}
-                      stroke-width={1.5}
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-opacity={0.85}
-                      stroke-dasharray={KIND_DASH[e.kind]}
-                      marker-end={`url(#ov-arrow-${e.kind})`}
-                    >
-                      <title>{`${dafPageLabel(e.from)} ${t(`link.rel.${e.kind}`)} ${dafPageLabel(e.to)}`}</title>
-                    </path>
+                    <GraphEdge
+                      path={orthPath(o.mid(e.from), o.mid(e.to), o.lanes[i()], OV_LEFT + OV_NODE_W)}
+                      color={KIND_COLOR[e.kind] ?? '#888'}
+                      dash={KIND_DASH[e.kind]}
+                      label={`${dafPageLabel(e.from)} ${t(`link.rel.${e.kind}`)} ${dafPageLabel(e.to)}`}
+                    />
                   )}
                 </For>
                 <For each={[...o.nodeY.keys()]}>

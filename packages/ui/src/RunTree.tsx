@@ -1,7 +1,9 @@
-import { assignLanes, roundedConnector } from './Graph';
-
-export { assignLanes } from './Graph';
-
+import {
+  CONNECTOR,
+  CONNECTOR_CLEARANCE,
+  routeConnector,
+  assignLanes as sharedLanes,
+} from './graph/geometry';
 /**
  * runTreeShared — the build-provenance DAG primitives shared by the Inspect dock
  * (RunTreeDock) and the embeddable alignment view (RunTreeDag): the run-tree
@@ -55,12 +57,15 @@ export const NODE_W = 290,
   TOP_PAD = 12,
   LEFT_PAD = 12;
 export const ROW_H = NODE_H + ROW_GAP;
-export const LANE_BASE = 14,
-  LANE_STEP = 12,
-  CORNER_R = 14;
+export const LANE_BASE = CONNECTOR_CLEARANCE,
+  LANE_STEP = CONNECTOR.lane,
+  CORNER_R = CONNECTOR.radius;
 
 /** Interval-graph lane assignment so connectors sharing vertical extent never
  *  sit in the same lane (ported from ArgumentFlowGraph). */
+export function assignLanes(edges: Array<{ from: number; to: number }>): number[] {
+  return sharedLanes(edges.map(({ from, to }) => ({ lo: from, hi: to })));
+}
 export interface LaidEdge {
   fromRow: number;
   toRow: number;
@@ -137,10 +142,9 @@ export function computeLayout(tree: RunTree, expanded: Set<string>): Layout {
 /** Orthogonal connector through the right gutter (ported from ArgumentFlowGraph). */
 export function edgePath(fromRow: number, toRow: number, lane: number): string {
   const rightX = LEFT_PAD + NODE_W;
-  const laneX = LEFT_PAD + NODE_W + LANE_BASE + lane * LANE_STEP;
   const y1 = TOP_PAD + fromRow * ROW_H + NODE_H / 2;
   const y2 = TOP_PAD + toRow * ROW_H + NODE_H / 2;
-  return roundedConnector(rightX, laneX, y1, y2, CORNER_R);
+  return routeConnector({ x: rightX, y: y1 }, { x: rightX, y: y2 }, 'right', lane).path;
 }
 
 export type IconVariant = 'source' | 'mark' | 'enrichment' | 'computed';

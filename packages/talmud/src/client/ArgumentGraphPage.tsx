@@ -30,17 +30,20 @@ import {
 } from '../lib/typing/dafVoices';
 import { mergeFlows } from '../lib/typing/flowMerge';
 import type {
-  StatementLink,
   StatementNode,
   StatementSpine as StatementSpineData,
 } from '../lib/typing/statementSpine';
 import type { ArgumentVoicesData } from '../lib/typing/voices';
-import { type FlowConnection, KIND_COLOR, KIND_DASH, stmtRelKind } from './ArgumentFlowGraph';
+import ArgumentFlowGraph, {
+  type FlowConnection,
+  KIND_COLOR,
+  statementRole,
+  stmtRelKind,
+} from './ArgumentFlowGraph';
 import DafVoiceGraph from './DafVoiceGraph';
 import { type DafViewPiece, loadDafView } from './dafViewStore';
 import { colorForGeneration, GENERATION_BY_ID } from './generations';
 import { lang, t } from './i18n';
-import { roleColor, sideTint } from './StatementSpine';
 import { resolveVoiceGroup } from './voiceGroups';
 
 interface DafRef {
@@ -106,17 +109,6 @@ async function fetchDerived(tractate: string, page: string): Promise<DerivedFlow
 type PageConn = { from: number; to: number; kind: FlowConnection['kind']; derived?: boolean };
 
 const CARD_BORDER = '1px solid #ece7db';
-// `supports` (raya / proof) keeps its own evidential hue — matching the
-// statement-spine renderers (see STMT_SUPPORTS_COLOR in ArgumentFlowGraph).
-const SUPPORTS_COLOR = '#0891b2';
-
-function relationColor(rel: string): string {
-  return rel === 'supports' ? SUPPORTS_COLOR : KIND_COLOR[stmtRelKind(rel)];
-}
-function relationLabel(rel: string): string {
-  return rel === 'continues' ? t('link.rel.continues') : t(`dafvoices.rel.${rel}`);
-}
-
 type RabbiMarkParsed = {
   instances?: Array<{ fields?: { name?: string; nameHe?: string; generation?: string } }>;
 };
@@ -217,27 +209,14 @@ export function ArgumentGraphPage(): JSX.Element {
     if (!f) return 1;
     return sec.spine.nodes.some((nd) => involves(nd, f)) ? 1 : 0.5;
   };
-  // Rows only dim INSIDE a section the person speaks in (mixed rows); a section
-  // they're absent from dims once as a whole — no compounding to near-invisible.
-  const rowOpacity = (sec: SpineSection, node: StatementNode) => {
-    const f = focus();
-    if (!f || sectionOpacity(sec) < 1) return 1;
-    return involves(node, f) ? 1 : 0.35;
-  };
   const focusedPerson = () => people().find((p) => p.name === focus()) ?? null;
 
-  // Click-to-navigate: scroll the target section / statement into view and
-  // flash it briefly so the eye lands on the right row.
-  const [flash, setFlash] = createSignal<string | null>(null);
-  let flashTimer: ReturnType<typeof setTimeout> | undefined;
-  const flashEl = (id: string, block: ScrollLogicalPosition) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block });
-    setFlash(id);
-    if (flashTimer) clearTimeout(flashTimer);
-    flashTimer = setTimeout(() => setFlash(null), 1600);
-  };
-  const flashStyle = (id: string) =>
-    flash() === id ? { outline: '2px solid var(--accent)', 'outline-offset': '2px' } : {};
+  const [activeSection, setActiveSection] = createSignal(0);
+  const [selectedStatement, setSelectedStatement] = createSignal<string | null>(null);
+  const selectedNode = () =>
+    sections()
+      .find((s) => s.index === activeSection())
+      ?.spine.nodes.find((n) => n.id === selectedStatement());
 
   // The aggregate people network (the old voice graph), fed the same way the
   // retired #voices page fed it: per-section voices riding each warmed
@@ -279,26 +258,18 @@ export function ArgumentGraphPage(): JSX.Element {
   const personDot = (p: { collective: boolean; generation?: string }) =>
     p.collective ? '#b8b2a4' : colorForGeneration(p.generation);
 
-  const loading = () => payload.loading || spines.loading;
-
-  const stmtNum = (sec: SpineSection, id: string) =>
-    sec.spine.nodes.findIndex((nd) => nd.id === id) + 1;
-
-  // Chips for one statement row: its outgoing non-`continues` links (the
-  // vertical order already conveys continuation).
-  const rowLinks = (sec: SpineSection, node: StatementNode): StatementLink[] =>
-    sec.spine.links.filter((l) => l.from === node.id && l.relation !== 'continues');
-
   const chipBase: JSX.CSSProperties = {
     display: 'inline-flex',
     'align-items': 'center',
-    gap: '0.25rem',
-    padding: '0.08rem 0.45rem',
+    gap: '.25rem',
+    padding: '.08rem .45rem',
     'border-radius': '999px',
     background: '#fff',
-    'font-size': '0.7rem',
+    'font-size': '.7rem',
     cursor: 'pointer',
   };
+
+  const loading = () => payload.loading || spines.loading;
 
   return (
     <main class="page-shell" style={{ '--page-max': '940px', color: '#222' }}>
@@ -453,320 +424,53 @@ export function ArgumentGraphPage(): JSX.Element {
             </section>
           </Show>
 
-          {/* The sections, in daf order — the argument walk. */}
-          <For each={sections()}>
-            {(sec) => {
-              const outgoing = () => connections().filter((c) => c.from === sec.index);
-              const incoming = () => connections().filter((c) => c.to === sec.index);
-              const secId = `arg-sec-${sec.index}`;
-              return (
-                <article
-                  id={secId}
-                  style={{
-                    border: CARD_BORDER,
-                    'border-radius': '10px',
-                    background: '#fff',
-                    padding: '0.75rem 0.95rem',
-                    'margin-bottom': '0.8rem',
-                    opacity: sectionOpacity(sec),
-                    transition: 'opacity 0.15s ease',
-                    ...flashStyle(secId),
-                  }}
-                >
-                  <header
-                    style={{
-                      display: 'flex',
-                      'align-items': 'baseline',
-                      gap: '0.55rem',
-                      'flex-wrap': 'wrap',
-                      'margin-bottom': sec.spine.nodes.length > 0 ? '0.6rem' : 0,
-                    }}
-                  >
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        'align-items': 'center',
-                        'justify-content': 'center',
-                        width: '22px',
-                        height: '22px',
-                        'border-radius': '999px',
-                        background: '#f6f2e9',
-                        border: '1px solid #e4dcc8',
-                        color: 'var(--accent)',
-                        'font-size': '0.75rem',
-                        'font-weight': 700,
-                        'flex-shrink': 0,
-                        'align-self': 'center',
-                      }}
-                    >
-                      {sec.index + 1}
-                    </span>
-                    {/* Section titles / statement texts are stored English —
-                        dir=auto keeps them readable inside the RTL chrome. */}
-                    <h3 dir="auto" style={{ margin: 0, 'font-size': '0.95rem', color: '#2a2520' }}>
-                      {sec.title}
-                    </h3>
-                    <Show when={sec.spine.dispute}>
-                      <span
-                        style={{
-                          'font-size': '0.62rem',
-                          'text-transform': 'uppercase',
-                          'letter-spacing': '0.06em',
-                          padding: '0.08rem 0.4rem',
-                          'border-radius': '999px',
-                          color: '#b91c1c',
-                          background: '#fde8e8',
-                          border: '1px solid #f3c9c9',
-                        }}
-                      >
-                        {t('arggraph.dispute')}
-                      </span>
-                    </Show>
-                    {/* Cross-section connections, as labeled chips instead of
-                        unlabeled curves: outgoing solid, incoming faint. */}
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        'flex-wrap': 'wrap',
-                        gap: '0.25rem',
-                        'margin-inline-start': 'auto',
-                      }}
-                    >
-                      <For each={outgoing()}>
-                        {(c) => (
-                          <button
-                            type="button"
-                            onClick={() => flashEl(`arg-sec-${c.to}`, 'start')}
-                            title={c.derived ? t('arggraph.derived') : undefined}
-                            style={{
-                              ...chipBase,
-                              font: 'inherit',
-                              color: KIND_COLOR[c.kind],
-                              border: `1px ${c.derived || KIND_DASH[c.kind] ? 'dashed' : 'solid'} ${KIND_COLOR[c.kind]}`,
-                            }}
-                          >
-                            {t(`link.rel.${c.kind}`)} →{' '}
-                            <strong style={{ 'font-weight': 700 }}>§{c.to + 1}</strong>
-                          </button>
-                        )}
-                      </For>
-                      <For each={incoming()}>
-                        {(c) => (
-                          <button
-                            type="button"
-                            onClick={() => flashEl(`arg-sec-${c.from}`, 'start')}
-                            title={c.derived ? t('arggraph.derived') : undefined}
-                            style={{
-                              ...chipBase,
-                              font: 'inherit',
-                              color: '#8a857c',
-                              border: '1px solid #e4e0d4',
-                              background: '#fafafa',
-                            }}
-                          >
-                            ← <strong style={{ 'font-weight': 700 }}>§{c.from + 1}</strong>{' '}
-                            {t(`link.rel.${c.kind}`)}
-                          </button>
-                        )}
-                      </For>
-                    </span>
-                  </header>
-
-                  <Show
-                    when={sec.spine.nodes.length > 0}
-                    fallback={
-                      <Show when={spines()?.movesComputed}>
-                        <p
-                          style={{
-                            margin: '0.4rem 0 0',
-                            color: '#999',
-                            'font-style': 'italic',
-                            'font-size': '0.8rem',
-                          }}
-                        >
-                          {t('arggraph.section.none')}
-                        </p>
-                      </Show>
-                    }
-                  >
-                    <For each={sec.spine.nodes}>
-                      {(node, ni) => {
-                        const accent = () =>
-                          (sec.spine.dispute ? sideTint(node.side) : undefined) ??
-                          roleColor(node.role);
-                        const rowId = `arg-stmt-${sec.index}-${node.id}`;
-                        return (
-                          <div
-                            id={rowId}
-                            style={{
-                              'border-inline-start': `3px solid ${accent()}`,
-                              padding: '0.35rem 0.6rem',
-                              margin: ni() === 0 ? '0 0 0.35rem' : '0.35rem 0',
-                              background: '#fafafa',
-                              'border-radius': '0 5px 5px 0',
-                              opacity: rowOpacity(sec, node),
-                              transition: 'opacity 0.15s ease',
-                              ...flashStyle(rowId),
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: 'flex',
-                                'align-items': 'center',
-                                gap: '0.45rem',
-                                'flex-wrap': 'wrap',
-                              }}
-                            >
-                              <span style={{ 'font-size': '0.66rem', color: '#b8b2a4' }}>
-                                {ni() + 1}
-                              </span>
-                              <span
-                                style={{
-                                  'font-size': '0.62rem',
-                                  'font-weight': 700,
-                                  'text-transform': 'uppercase',
-                                  'letter-spacing': '0.05em',
-                                  color: roleColor(node.role),
-                                }}
-                              >
-                                {node.role}
-                              </span>
-                              {/* Named voices as clickable person chips; the
-                                  descriptive speaker label stays as muted text
-                                  for anonymous moves ("Gemara's question"). */}
-                              <Show
-                                when={(node.rabbiNames ?? []).length > 0}
-                                fallback={
-                                  <Show when={node.speaker}>
-                                    <span
-                                      style={{
-                                        'font-size': '0.75rem',
-                                        color: '#8a857c',
-                                        'font-style': 'italic',
-                                      }}
-                                    >
-                                      {node.speaker}
-                                    </span>
-                                  </Show>
-                                }
-                              >
-                                <For each={node.rabbiNames}>
-                                  {(name) => {
-                                    const cls = () => classify(name);
-                                    return (
-                                      <button
-                                        type="button"
-                                        onClick={() => toggleFocus(name)}
-                                        style={{
-                                          font: 'inherit',
-                                          display: 'inline-flex',
-                                          'align-items': 'center',
-                                          gap: '0.3rem',
-                                          'font-size': '0.78rem',
-                                          'font-weight': 600,
-                                          color: '#333',
-                                          background: 'none',
-                                          border: 'none',
-                                          padding: 0,
-                                          cursor: 'pointer',
-                                          'font-style': cls().collective ? 'italic' : 'normal',
-                                        }}
-                                      >
-                                        <span
-                                          style={{
-                                            width: '8px',
-                                            height: '8px',
-                                            'border-radius': '999px',
-                                            background: personDot(cls()),
-                                            display: 'inline-block',
-                                            'flex-shrink': 0,
-                                          }}
-                                        />
-                                        {name}
-                                      </button>
-                                    );
-                                  }}
-                                </For>
-                              </Show>
-                              <Show when={sec.spine.dispute && node.side}>
-                                <span
-                                  style={{
-                                    'font-size': '0.6rem',
-                                    padding: '0.05rem 0.35rem',
-                                    'border-radius': '3px',
-                                    color: '#fff',
-                                    background: sideTint(node.side) ?? '#888',
-                                  }}
-                                >
-                                  {node.side}
-                                </span>
-                              </Show>
-                              <span style={{ flex: 1 }} />
-                              <For each={rowLinks(sec, node)}>
-                                {(l) => (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      flashEl(`arg-stmt-${sec.index}-${l.to}`, 'center')
-                                    }
-                                    title={
-                                      l.source === 'voices'
-                                        ? t('arggraph.linkFromVoices')
-                                        : t('arggraph.linkFromRoles')
-                                    }
-                                    style={{
-                                      ...chipBase,
-                                      font: 'inherit',
-                                      'font-size': '0.66rem',
-                                      color: relationColor(l.relation),
-                                      border: `1px solid ${relationColor(l.relation)}`,
-                                    }}
-                                  >
-                                    {l.relation === 'opposes' ? '⇄' : '→'}{' '}
-                                    {relationLabel(l.relation)}{' '}
-                                    <strong style={{ 'font-weight': 700 }}>
-                                      {stmtNum(sec, l.to)}
-                                    </strong>
-                                  </button>
-                                )}
-                              </For>
-                            </div>
-                            <Show when={node.summary}>
-                              <div
-                                dir="auto"
-                                style={{
-                                  color: '#555',
-                                  'font-size': '0.82rem',
-                                  'margin-top': '0.15rem',
-                                  'line-height': 1.45,
-                                }}
-                              >
-                                {node.summary}
-                              </div>
-                            </Show>
-                            <Show when={!node.summary && node.excerpt}>
-                              <div
-                                dir="rtl"
-                                lang="he"
-                                style={{
-                                  'font-family': '"Mekorot Vilna", serif',
-                                  'font-size': '0.95rem',
-                                  color: '#333',
-                                  'margin-top': '0.15rem',
-                                }}
-                              >
-                                {node.excerpt}…
-                              </div>
-                            </Show>
-                          </div>
-                        );
-                      }}
-                    </For>
-                  </Show>
-                </article>
-              );
+          <ArgumentFlowGraph
+            initialFullscreen={new URLSearchParams(window.location.search).get('map') === 'passage'}
+            passage={ref()}
+            nodes={sections().map((sec) => ({
+              index: sec.index,
+              title: sec.title,
+              statements: sec.spine.nodes,
+              statementLinks: sec.spine.links,
+              dimmed: sectionOpacity(sec) < 1,
+            }))}
+            connections={connections()}
+            activeIndex={activeSection()}
+            onSelect={(index) => {
+              setActiveSection(index);
+              setSelectedStatement(null);
             }}
-          </For>
+            selectedStatementId={selectedStatement()}
+            onSelectStatement={setSelectedStatement}
+            isStatementDimmed={(node) => !!focus() && !involves(node, focus()!)}
+          />
+          <Show when={selectedNode()}>
+            {(node) => (
+              <article style={{ padding: '.65rem 0', 'font-size': '.85rem' }}>
+                <strong>{statementRole(node().role)}</strong>
+                <For each={node().rabbiNames}>
+                  {(name) => (
+                    <button
+                      type="button"
+                      onClick={() => toggleFocus(name)}
+                      style={{ 'margin-inline-start': '.5rem' }}
+                    >
+                      {name}
+                    </button>
+                  )}
+                </For>
+                <Show when={node().summary}>
+                  <p dir="auto">{node().summary}</p>
+                </Show>
+                <Show when={node().excerpt}>
+                  <p dir="rtl" lang="he">
+                    {node().excerpt}
+                  </p>
+                </Show>
+                <a href={backHref()}>{t('arggraph.openDaf')}</a>
+              </article>
+            )}
+          </Show>
 
           {/* The old daf-wide voice network, kept as a collapsed aggregate view. */}
           <Show when={network().nodes.length > 0}>
