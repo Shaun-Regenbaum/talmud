@@ -253,6 +253,9 @@ export function App(): JSX.Element {
     endChapter: number;
     endVerse: number;
   } | null>(null);
+  // The move under the pointer in the parsha drawer's reading map. While set it
+  // stands in for the selected move's highlight; leaving restores the selection.
+  const [parshaHover, setParshaHover] = createSignal<ParshaFlowSection | null>(null);
 
   const writeUrl = (l: Loc) => {
     const p = new URLSearchParams({ book: l.book, chapter: String(l.chapter) });
@@ -550,15 +553,29 @@ export function App(): JSX.Element {
         ),
     });
   };
+  const hoveredFocus = () => {
+    const section = parshaHover();
+    if (!section) return null;
+    const study = currentParshaStudy();
+    return study
+      ? {
+          book: study.book,
+          startChapter: section.startChapter,
+          startVerse: section.startVerse,
+          endChapter: section.endChapter,
+          endVerse: section.endVerse,
+        }
+      : null;
+  };
   // Highlight the relevant verses: a section's range (note popover), the single
   // verse whose source drawer is open (rishonim / gemara / midrash), the
   // verse(s) a clicked Geography place is named in, or the parsha drawer's
-  // selected move.
+  // selected (or hovered) move.
   createEffect(() => {
     const sel = selected();
     const src = source();
     const pv = new Set(placeVerses());
-    const focus = parshaFocus();
+    const focus = hoveredFocus() ?? parshaFocus();
     paragraphs();
     reflow();
     requestAnimationFrame(() => {
@@ -1141,6 +1158,7 @@ export function App(): JSX.Element {
                     location={inIsrael() ? 'israel' : 'diaspora'}
                     onOpenText={openParshaText}
                     onFocusRange={focusParshaSection}
+                    onHoverRange={setParshaHover}
                   />
                 )}
               </Show>

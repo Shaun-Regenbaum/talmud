@@ -706,3 +706,30 @@
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+
+/* Reveal in a side panel (reveal.ts): one soft glow that says "read this".
+   The ring spreads and fades once; the tint fades with it. */
+.ui-reveal-pulse {
+  border-radius: var(--radius);
+  animation: ui-reveal-pulse 1100ms ease-out 1;
+}
+@keyframes ui-reveal-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 30%, transparent);
+    background-color: color-mix(in srgb, var(--accent) 7%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 12px color-mix(in srgb, var(--accent) 0%, transparent);
+    background-color: color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+}
+/* Motion-sensitive readers: a brief still tint instead of the pulse. */
+.ui-reveal-tint {
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-reveal-pulse {
+    animation: none;
+  }
+}

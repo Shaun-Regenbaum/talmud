@@ -1,6 +1,7 @@
 import { aiStatus, noteAiResponse, noteAiSuccess } from '@corpus/ui/aiStatus';
 import { Button } from '@corpus/ui/Button';
 import { Prose } from '@corpus/ui/Prose';
+import { revealInPanel } from '@corpus/ui/reveal';
 import { ChoiceCard, SectionHeading, SourceCard, StatusMessage } from '@corpus/ui/Study';
 import { StudyOverview } from '@corpus/ui/StudyOverview';
 import { createEffect, createResource, createSignal, For, type JSX, Show } from 'solid-js';
@@ -22,6 +23,9 @@ export interface ParshaDrawerProps {
   /** Highlight a flow section's verse range in the reader (null clears it).
    *  Fires on selecting a move — the drawer stays open. */
   onFocusRange: (section: ParshaFlowSection | null) => void;
+  /** Preview a move's verse range while the pointer is over it in the map
+   *  (null when it leaves). */
+  onHoverRange?: (section: ParshaFlowSection | null) => void;
 }
 
 function textFor(lang: 'en' | 'he', en: string, he: string): string {
@@ -68,12 +72,14 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
   });
 
   // The detail opens below the column, which on a tall portion sits under the
-  // fold — bring it into view. 'nearest' leaves it alone when it is already
-  // on screen, so picking a second move doesn't jump the drawer around.
+  // fold. Center it in the drawer and pulse it once, so the reader sees which
+  // text describes the move they picked (the same reveal the Talmud map uses).
   let openMove: HTMLElement | undefined;
   createEffect(() => {
     if (selected() === null) return;
-    requestAnimationFrame(() => openMove?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+    requestAnimationFrame(() => {
+      if (openMove) revealInPanel(openMove);
+    });
   });
 
   // Selecting a move highlights its verse range in the reader and opens its
@@ -178,6 +184,9 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
             lang={props.lang}
             selected={selected()}
             onSelect={choose}
+            onHover={(index) =>
+              props.onHoverRange?.(index === null ? null : (props.study.flow[index] ?? null))
+            }
             onOpenVerse={(chapter, verse) => props.onOpenText(props.study.book, chapter, verse)}
           />
         </Show>

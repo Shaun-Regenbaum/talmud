@@ -9,6 +9,7 @@ export interface ParshaMapProps {
   lang: 'en' | 'he';
   selected: number | null;
   onSelect: (index: number) => void;
+  onHover?: (index: number | null) => void;
   onOpenVerse: (chapter: number, verse: number) => void;
 }
 export function ParshaMap(props: ParshaMapProps): JSX.Element {

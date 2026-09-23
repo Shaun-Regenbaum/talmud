@@ -13,6 +13,7 @@ import { Portal } from 'solid-js/web';
 import { GraphConnectionDetails } from './GraphConnectionDetails';
 import { GraphEdge } from './GraphEdge';
 import { type GraphConnection, type GraphGroup, type GraphNode, layoutGraph } from './graph/model';
+import { createHoverIntent } from './hoverIntent';
 import './graph.css';
 
 export type { GraphConnection, GraphGroup, GraphNode } from './graph/model';
@@ -36,6 +37,10 @@ export interface GraphViewProps {
   edges: GraphConnection[];
   labels: GraphLabels;
   onSelect?: (node: GraphNode) => void;
+  /** The node under the pointer or keyboard focus, or null when it leaves.
+   *  Touch never hovers: a tap selects instead. Leaving waits a moment so
+   *  moving between neighbouring nodes does not flicker through null. */
+  onHover?: (node: GraphNode | null) => void;
   /** Inspect a supplied connection without navigating or toggling its endpoints. */
   onSelectConnection?: (edge: GraphConnection | null) => void;
   onToggleActions?: (group: GraphGroup) => void;
@@ -126,6 +131,8 @@ function Canvas(
     return set;
   });
   const faded = (id: string) => connected() && !connected()!.has(id);
+  const hover = createHoverIntent<GraphNode>((node) => props.onHover?.(node));
+  onCleanup(() => hover.dispose());
   const select = (n: GraphNode) => {
     props.onSelect?.(n);
     props.onInspect(n);
@@ -241,10 +248,22 @@ function Canvas(
                         : undefined
                     }
                     onClick={() => select(p().node)}
-                    onPointerEnter={() => setFocus(p().node.id)}
-                    onPointerLeave={() => setFocus(null)}
-                    onFocus={() => setFocus(p().node.id)}
-                    onBlur={() => setFocus(null)}
+                    onPointerEnter={(e) => {
+                      setFocus(p().node.id);
+                      if (e.pointerType !== 'touch') hover.enter(p().node, p().node.id);
+                    }}
+                    onPointerLeave={(e) => {
+                      setFocus(null);
+                      if (e.pointerType !== 'touch') hover.leave();
+                    }}
+                    onFocus={() => {
+                      setFocus(p().node.id);
+                      hover.enter(p().node, p().node.id);
+                    }}
+                    onBlur={() => {
+                      setFocus(null);
+                      hover.leave();
+                    }}
                   >
                     <Show when={props.horizontal && p().header && p().node.reference}>
                       <span class="ui-graph-reference">{p().node.reference}</span>

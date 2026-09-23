@@ -1021,7 +1021,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (c.kind === 'place') return c.place.fields.name || 'Place';
     if (c.kind === 'voice-group') return c.group.name;
     if (c.kind === 'rishonim') return `Rishonim · seg ${c.instance.segIdx + 1}`;
-    if (c.kind === 'argument-overview') return t('overview.chip');
+    if (c.kind === 'argument-overview')
+      return c.mapFirst
+        ? (c.focus != null && analysis()?.sections[c.focus]?.title) || t('sidebar.kind.argument')
+        : t('overview.chip');
     if (c.kind === 'daf-background') return t('background.chip');
     if (c.kind === 'tidbit') return t('tidbit.chip');
     if (c.kind === 'biyun') return t('biyun.chip');
@@ -2396,8 +2399,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     // The section is the Overview FOCUSED on that section — its statement spine
     // renders in place under the map (no separate pushed card). Opening a section
     // from anywhere (a flow-graph node, a gutter marker, a reader chip) lands in
-    // the one Overview view, focused on it.
-    setSidebar({ kind: 'argument-overview', focus: index });
+    // the one Overview view, focused on it, with the map first and the section's
+    // summary under it (the whole-daf summary stays behind the Overview button).
+    setSidebar({ kind: 'argument-overview', focus: index, mapFirst: true });
     setLastInteractedCard('argument');
   };
 
@@ -2454,9 +2458,17 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
   const onGutterClick = (kind: GutterKind, index: number) => {
     // Toggle: clicking the already-active gutter icon closes the sidebar and
-    // clears the span highlight.
+    // clears the span highlight. An Argument icon opens the map-first Overview,
+    // so it is active while that view is focused on its section.
     const current = sidebar();
-    if (current && current.kind === kind && 'index' in current && current.index === index) {
+    const sameArgument =
+      kind === 'argument' &&
+      current?.kind === 'argument-overview' &&
+      !!current.mapFirst &&
+      current.focus === index;
+    const sameCard =
+      !!current && current.kind === kind && 'index' in current && current.index === index;
+    if (sameArgument || sameCard) {
       // Toggle off. If this card was pushed onto something (e.g. the Overview),
       // pop back to it rather than closing the whole panel.
       if (sidebarStack().length > 1) {
@@ -2503,13 +2515,24 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (s.kind === 'rabbi') return `rabbi:${s.rabbi.name}`;
     if (s.kind === 'place') return `place:${s.place.fields.name}`;
     if (s.kind === 'voice-group') return `voice-group:${s.group.name}`;
-    if (s.kind === 'argument-overview') return 'argument-overview';
+    if (s.kind === 'argument-overview')
+      return s.mapFirst && s.focus != null ? `argument:${s.focus}` : 'argument-overview';
     if (s.kind === 'daf-background') return 'daf-background';
     if (s.kind === 'tidbit') return 'tidbit';
     if (s.kind === 'biyun') return 'biyun';
     if (s.kind === 'geography') return 'geography';
     return `${s.kind}:${s.index}`;
   });
+  // A click in the map-first Overview moves its focus to another section. Keep
+  // the open card in step (so that section's margin icon wears the active ring
+  // and a second click on it closes the panel) without clearing the highlight
+  // the map just painted.
+  const focusOverviewSection = (index: number) =>
+    setSidebarStack((stack) => {
+      const top = stack[stack.length - 1];
+      if (top?.kind !== 'argument-overview' || !top.mapFirst || top.focus === index) return stack;
+      return [...stack.slice(0, -1), { ...top, focus: index }];
+    });
 
   const onHighlightLocation = (cityName: string | null, rabbiNames: string[]) => {
     setActiveRabbi(null);
@@ -4029,6 +4052,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
                 generationByName={generationByName()}
                 dafSections={analysis()?.sections ?? []}
                 onOpenArgument={openArgument}
+                onFocusSection={focusOverviewSection}
                 geography={geographyExtras()}
               />
             </Show>
@@ -4066,6 +4090,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           generationByName={generationByName()}
           dafSections={analysis()?.sections ?? []}
           onOpenArgument={openArgument}
+          onFocusSection={focusOverviewSection}
           geography={geographyExtras()}
         />
       </Show>

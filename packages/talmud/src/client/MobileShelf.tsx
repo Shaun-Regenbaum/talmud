@@ -37,6 +37,7 @@ interface MobileShelfProps {
   generationByName: Map<string, GenerationId>;
   dafSections?: Section[];
   onOpenArgument?: (index: number) => void;
+  onFocusSection?: (index: number) => void;
   onHighlightRange?: (
     range: {
       start: number;
@@ -151,6 +152,7 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
           generationByName={props.generationByName}
           dafSections={props.dafSections}
           onOpenArgument={props.onOpenArgument}
+          onFocusSection={props.onFocusSection}
           geography={props.geography}
         />
       </div>
@@ -159,5 +161,9 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
 }
 
 function labelForSidebar(s: SidebarContent | null): string {
-  return s ? t(`sidebar.kind.${s.kind}`) : '';
+  if (!s) return '';
+  // The map-first Overview (opened from a section's Argument icon) reads as
+  // that section's argument, not as the whole-daf overview.
+  if (s.kind === 'argument-overview' && s.mapFirst) return t('sidebar.kind.argument');
+  return t(`sidebar.kind.${s.kind}`);
 }
