@@ -13,7 +13,10 @@ export default defineConfig({
     // KV namespace. `wrangler deploy` reads wrangler.toml directly and is
     // unaffected by this dev-only wiring.
     cloudflare({
-      auxiliaryWorkers: [{ configPath: './wrangler.generator.toml' }],
+      auxiliaryWorkers:
+        process.env.CLOUDFLARE_ENV === 'staging'
+          ? []
+          : [{ configPath: './wrangler.generator.toml' }],
     }),
   ],
   publicDir: 'static',

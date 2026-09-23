@@ -21,7 +21,7 @@ pnpm build
 
 If `pnpm install` stops on a native build of `sharp` (a transitive dependency), rerun it with `--ignore-scripts`. Nothing in the checks needs the native module.
 
-Work in a worktree, not the main checkout, because several people and agents change this repo at once: `scripts/worktree-new.sh <branch>` creates one from `origin/master` and installs it.
+Work in a worktree, not the main checkout, because several people and agents change this repo at once: `scripts/worktree-new.sh <branch>` creates one from `origin/staging` and installs it.
 
 ## Level 1: the reader, with an empty cache
 
@@ -70,7 +70,7 @@ Then open `http://127.0.0.1:5199/#about`. Pages that read from the API (`#howitw
 
 ## Production
 
-Production is talmud.dev and tanach.dev. Merging to `master` deploys both after CI passes. `pnpm ship` from a worktree is the manual fallback and refuses to run unless the tree is clean and matches `origin/master` (`scripts/ship-guard.sh`). Deploys need the project's Cloudflare token; contributors do not need it.
+Production is talmud.dev and tanach.dev. Merging into `staging` deploys both to staging.talmud.dev and staging.tanach.dev; production follows after approval ([deployment.md](deployment.md)). `pnpm ship` from a worktree is the manual fallback and refuses to run unless the tree is clean and matches `origin/master` (`scripts/ship-guard.sh`). Deploys need the project's Cloudflare token; contributors do not need it.
 
 ## Integration tests
 

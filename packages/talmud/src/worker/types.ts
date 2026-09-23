@@ -55,6 +55,10 @@ export interface JobMessage {
 export type WaitUntilCtx = Pick<ExecutionContext, 'waitUntil'>;
 
 export interface Bindings {
+  APP_ENV?: string;
+  BUILD_SHA?: string;
+  STAGING_SOURCE?: Fetcher;
+  GENERATION_DISABLED?: string;
   BILLING_DB?: D1Database;
   BILLING_APP?: string;
   ASSETS: Fetcher;

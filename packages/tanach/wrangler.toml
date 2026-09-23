@@ -104,3 +104,47 @@ migrations_dir = "../talmud/migrations"
 [[services]]
 binding = "TALMUD"
 service = "talmud"
+
+# Review new releases here before approving production.
+[env.staging]
+name = "tanach-staging"
+workers_dev = false
+preview_urls = false
+routes = [{ pattern = "staging.tanach.dev", custom_domain = true }]
+worker_loaders = [{ binding = "LOADER" }]
+workflows = []
+analytics_engine_datasets = []
+send_email = []
+
+[env.staging.vars]
+APP_ENV = "staging"
+BILLING_APP = "tanach"
+GENERATION_DISABLED = "1"
+WORKER_ROLE = "reader"
+PUBLIC_ORIGIN = "https://staging.tanach.dev"
+LEARNED_ADJACENCY = "1"
+
+[env.staging.triggers]
+crons = []
+
+[env.staging.queues]
+producers = []
+consumers = []
+
+[[env.staging.kv_namespaces]]
+binding = "CACHE"
+id = "e4fab94968a64e3c8626a101edce9280"
+
+[[env.staging.d1_databases]]
+binding = "BILLING_DB"
+database_name = "corpus-billing-staging"
+database_id = "49930fc7-f92a-446b-886d-0ec8ae882dc6"
+migrations_dir = "../talmud/migrations"
+
+[[env.staging.services]]
+binding = "STAGING_SOURCE"
+service = "corpus-staging-source"
+
+[[env.staging.services]]
+binding = "TALMUD"
+service = "talmud-staging"
