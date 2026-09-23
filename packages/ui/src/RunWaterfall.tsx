@@ -34,9 +34,9 @@ export interface RunWaterfallProps {
 
 const ICON_COLOR: Record<IconVariant, string> = {
   source: '#6b7280',
-  mark: '#1d4ed8',
-  enrichment: '#7c3aed',
-  computed: '#0891b2',
+  mark: '#34506f',
+  enrichment: '#6a4a78',
+  computed: '#3f6b73',
 };
 
 export function RunWaterfall(props: RunWaterfallProps): JSX.Element {

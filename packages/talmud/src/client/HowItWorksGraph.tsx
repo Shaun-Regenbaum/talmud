@@ -27,10 +27,10 @@ const FAMILY_ALIAS: Record<string, string> = { pesukim: 'pesuk', places: 'place'
 export function familyColor(family: string): string {
   if (family === 'source') return '#6b7280';
   const key = FAMILY_ALIAS[family] ?? family;
-  return (ACCENTS as Record<string, string>)[key] ?? '#64748b';
+  return (ACCENTS as Record<string, string>)[key] ?? '#7a7d82';
 }
 
-const arrowId = (color: string): string => `hiw-arrow-${color.replace('#', '')}`;
+const arrowId = (color: string): string => `hiw-arrow-${color.replace(/[^a-zA-Z0-9]/g, '')}`;
 const truncate = (s: string, n: number): string => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
 interface Props {
@@ -264,7 +264,7 @@ export function HowItWorksGraph(props: Props): JSX.Element {
                   markerHeight="5"
                   orient="auto-start-reverse"
                 >
-                  <path d="M 0 0 L 6 3 L 0 6 z" fill={color} />
+                  <path d="M 0 0 L 6 3 L 0 6 z" style={{ fill: color }} />
                 </marker>
               )}
             </For>
@@ -306,7 +306,7 @@ export function HowItWorksGraph(props: Props): JSX.Element {
               const fill = (): string =>
                 n.kind === 'source' ? '#eef1ee' : isSel() ? color : '#ffffff';
               const textColor = (): string =>
-                n.kind === 'source' ? '#475569' : isSel() ? '#fff' : '#1f2937';
+                n.kind === 'source' ? '#5b5f66' : isSel() ? '#fff' : '#1f2937';
               return (
                 // biome-ignore lint/a11y/useSemanticElements: native <button> cannot be used inside an SVG diagram
                 <g

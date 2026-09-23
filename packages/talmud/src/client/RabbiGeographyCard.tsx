@@ -77,9 +77,9 @@ interface Props {
   ) => void;
 }
 
-const ISRAEL_COLOR = '#1d4ed8';
-const BAVEL_COLOR = '#b45309';
-const OTHER_COLOR = '#475569';
+const ISRAEL_COLOR = '#34506f';
+const BAVEL_COLOR = '#9a6a2a';
+const OTHER_COLOR = '#5b5f66';
 const EVIDENCE_BG = '#fef3c7';
 const EVIDENCE_BORDER = '#eab308';
 

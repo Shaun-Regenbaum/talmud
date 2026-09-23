@@ -1,4 +1,5 @@
 import type { JSX } from 'solid-js';
+import { INK } from './palette';
 export type GutterKind =
   | 'argument'
   | 'halacha'
@@ -10,18 +11,17 @@ export type GutterKind =
 
 export type ReaderIconKind = GutterKind | 'gemara' | 'midrash';
 
-/** Muted inks: each category keeps its own hue, pulled toward the reader's
- *  maroon so the margin sits quietly beside the text. */
+/** Each category keeps its own hue from the shared muted inks (palette.ts). */
 const CATEGORY_COLORS: Record<ReaderIconKind, string> = {
-  gemara: '#34506f',
-  midrash: '#6a4a78',
+  gemara: INK.blue,
+  midrash: INK.plum,
   argument: 'var(--accent)',
-  halacha: '#34506f',
-  chart: '#3f6b73',
-  aggadata: '#6a4a78',
-  yerushalmi: '#3d675c',
-  pesuk: '#9a6a2a',
-  rishonim: '#5b5f66',
+  halacha: INK.blue,
+  chart: INK.cyan,
+  aggadata: INK.plum,
+  yerushalmi: INK.teal,
+  pesuk: INK.ochre,
+  rishonim: INK.slate,
 };
 export function colorForKind(kind: ReaderIconKind): string {
   return CATEGORY_COLORS[kind];

@@ -102,7 +102,7 @@ const EXIT_H = 21,
   EXIT_INDENT = 26,
   BADGE_W = 30,
   BADGE_H = 15;
-const PARALLEL = KIND_COLOR.parallels ?? '#7c3aed';
+const PARALLEL = KIND_COLOR.parallels ?? '#6a4a78';
 const HILITE = '#b8860b';
 
 // Navigation (is this a Bavli daf we can open + at what URL) comes from the
@@ -124,7 +124,7 @@ const dafPageLabel = (page: string): string => (lang() === 'he' ? pageLabelHe(pa
 const exitRefLabel = (ex: ExitMark): string =>
   lang() === 'he' && ex.corpus !== 'yeru' ? dafRefHe(ex.tractate, ex.page) : ex.ref;
 const corpusFill = (c: ExitMark['corpus']): string =>
-  c === 'yeru' ? '#0e7490' : c === 'bavli' ? '#ece9e1' : '#f3f1ea';
+  c === 'yeru' ? '#3f6b73' : c === 'bavli' ? '#ece9e1' : '#f3f1ea';
 const corpusInk = (c: ExitMark['corpus']): string => (c === 'yeru' ? '#ffffff' : '#57534e');
 // Overview mode: one compact node per daf so the WHOLE tractate fits a screen.
 const OV_NODE_H = 22,

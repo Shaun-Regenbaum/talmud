@@ -186,7 +186,7 @@ export function RunTreeCanvas(props: RunTreeCanvasProps): JSX.Element {
                             'margin-left': 'auto',
                             'font-size': '0.68rem',
                             'font-variant-numeric': 'tabular-nums',
-                            color: slow() ? '#b45309' : '#9a857c',
+                            color: slow() ? '#9a6a2a' : '#9a857c',
                             'flex-shrink': 0,
                           }}
                         >

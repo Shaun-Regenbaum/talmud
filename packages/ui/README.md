@@ -22,6 +22,7 @@ Use `--bg`, `--fg`, `--muted`, `--line`, `--surface`, `--surface-sunk`, `--accen
 | `Drawer`, `BottomSheet`, `Prose` | Side panel on desktop, bottom sheet on phones, and bilingual reading text. |
 | `Charts`, `DataTable` | Line charts, chart cards, sortable tables, ranked bars, meters and rate chips. Used by Talmud usage. |
 | `ReaderIcon` | One solid glyph per note kind (speech bubbles, scales, quill, oil lamp, Torah scroll, books, city wall, table) in muted inks that sit beside the maroon accent. Separate from placement. |
+| `palette` | `INK`, the muted inks for everything colored beside the text: margin icons, card titles, topic pills, links, argument-map tags and text highlights. Each hue leans toward the maroon accent. `tokens.css` mirrors them as `--ink-*`. `RETIRED_BRIGHT` lists the bright colors they replaced; a test keeps reader files free of them. |
 | `MarginPod` | The icons in the margin beside the text. Icons on one line share a pod: overlapping at rest, spread on hover, tap or Tab. The mouse gets a forgiving edge and a short grace before closing; touch opens on the first tap and closes only on a tap well away; Esc closes. `onPreview` reports the icon under the pointer so the reader can highlight its words. `clusterByLine` groups measured icons into lines. Readers only measure and place. |
 | `GraphView`, `GraphEdge`, `GraphConnectionDetails` | Compact argument maps, full-screen passage maps, curved connectors and connection inspection. |
 | `Graph` | Card styles and basic SVG cards and paths for specialized diagrams. |

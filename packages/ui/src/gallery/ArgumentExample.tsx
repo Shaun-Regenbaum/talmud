@@ -5,11 +5,11 @@ import { type GalleryKey, type GalleryLang, t } from './i18n';
 
 // Roles and connections come from the recorded response, without added links.
 const roles: Record<string, { label: GalleryKey; color: string }> = {
-  opening: { label: 'graphOpening', color: '#475569' },
-  question: { label: 'graphQuestion', color: '#0369a1' },
-  answer: { label: 'graphAnswer', color: '#15803d' },
-  resolution: { label: 'graphResolution', color: '#15803d' },
-  'supporting-evidence': { label: 'graphEvidence', color: '#0891b2' },
+  opening: { label: 'graphOpening', color: '#5b5f66' },
+  question: { label: 'graphQuestion', color: '#3b5a78' },
+  answer: { label: 'graphAnswer', color: '#4c6b48' },
+  resolution: { label: 'graphResolution', color: '#4c6b48' },
+  'supporting-evidence': { label: 'graphEvidence', color: '#3f6b73' },
 };
 const relations: Record<string, GalleryKey> = {
   continues: 'graphContinues',
@@ -61,7 +61,7 @@ export function ArgumentExample(props: { lang: GalleryLang }): JSX.Element {
         to: `section:${section.index}:${edge.to}`,
         label: label(relations[edge.relation]),
         kindLabel: label(relations[edge.relation]),
-        color: '#15803d',
+        color: '#4c6b48',
         provenance: edge.source === 'role' ? label('graphInferred') : undefined,
       })),
     ),

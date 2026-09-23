@@ -79,12 +79,12 @@ interface Props {
 
 export const KIND_COLOR: Record<FlowConnection['kind'], string> = {
   continues: '#666',
-  resolves: '#15803d',
-  'depends-on': '#1d4ed8',
-  parallels: '#7c3aed',
-  contrasts: '#b91c1c',
-  generalizes: '#92400e',
-  cites: '#475569',
+  resolves: '#4c6b48',
+  'depends-on': '#34506f',
+  parallels: '#6a4a78',
+  contrasts: '#9c4a36',
+  generalizes: '#7a5424',
+  cites: '#5b5f66',
 };
 export const KIND_DASH: Partial<Record<FlowConnection['kind'], string>> = {
   contrasts: '5 3',
@@ -101,18 +101,18 @@ const STMT_REL_AS_LINK: Record<string, FlowConnection['kind']> = {
 export const stmtRelKind = (rel: string): FlowConnection['kind'] =>
   STMT_REL_AS_LINK[rel] ?? 'continues';
 // Evidence points toward the claim it supports; it is not a dependency edge.
-const STMT_SUPPORTS_COLOR = '#0891b2';
+const STMT_SUPPORTS_COLOR = '#3f6b73';
 const STMT_ROLE_COLOR: Record<string, string> = {
-  opening: '#475569',
-  question: '#0369a1',
-  answer: '#15803d',
-  objection: '#b91c1c',
-  rejection: '#9f1239',
-  'supporting-evidence': '#0891b2',
-  resolution: '#15803d',
+  opening: '#5b5f66',
+  question: '#3b5a78',
+  answer: '#4c6b48',
+  objection: '#9c4a36',
+  rejection: '#8a2a2b',
+  'supporting-evidence': '#3f6b73',
+  resolution: '#4c6b48',
   digression: '#a16207',
-  shift: '#7c3aed',
-  other: '#64748b',
+  shift: '#6a4a78',
+  other: '#7a7d82',
 };
 export const statementRole = (role: string): string =>
   t(`move.kind.${role in STMT_ROLE_COLOR ? role : 'other'}`);
@@ -120,11 +120,11 @@ export const statementRoleColor = (role: string): string =>
   STMT_ROLE_COLOR[role] ?? STMT_ROLE_COLOR.other;
 
 const SIDE_COLOR: Record<string, string> = {
-  A: '#1d4ed8',
-  B: '#b91c1c',
+  A: '#34506f',
+  B: '#9c4a36',
   C: '#a16207',
-  'support-A': '#1d4ed8',
-  'support-B': '#b91c1c',
+  'support-A': '#34506f',
+  'support-B': '#9c4a36',
 };
 export const statementSideColor = (side?: string): string | undefined =>
   side ? SIDE_COLOR[side] : undefined;

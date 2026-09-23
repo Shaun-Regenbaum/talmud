@@ -134,7 +134,7 @@ export function RunTreeDag(props: RunTreeDagProps): JSX.Element {
                     background: '#ecfdf5',
                     'border-radius': '4px',
                     padding: '0.05rem 0.4rem',
-                    color: '#047857',
+                    color: '#4c6b48',
                     'font-family': 'ui-monospace, Menlo, monospace',
                   }}
                 >
@@ -148,8 +148,8 @@ export function RunTreeDag(props: RunTreeDagProps): JSX.Element {
                   padding: '0.05rem 0.4rem',
                   'font-family': 'ui-monospace, Menlo, monospace',
                   ...(n().cached
-                    ? { background: '#dcfce7', color: '#15803d' }
-                    : { background: '#fef3c7', color: '#b45309' }),
+                    ? { background: '#dde6da', color: '#4c6b48' }
+                    : { background: '#fef3c7', color: '#9a6a2a' }),
                 }}
               >
                 {n().cached ? 'cached' : 'not cached'}

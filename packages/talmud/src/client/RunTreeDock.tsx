@@ -431,12 +431,12 @@ function FreshnessPanel(props: {
           </div>
         </Show>
         <Show when={rewarm().kind === 'ok'}>
-          <div style={{ color: '#15803d', 'font-size': '0.7rem', 'margin-top': '0.25rem' }}>
+          <div style={{ color: '#4c6b48', 'font-size': '0.7rem', 'margin-top': '0.25rem' }}>
             enqueued <span style={mono}>{(rewarm() as { runId: string }).runId}</span>
           </div>
         </Show>
         <Show when={rewarm().kind === 'err'}>
-          <div style={{ color: '#b91c1c', 'font-size': '0.7rem', 'margin-top': '0.25rem' }}>
+          <div style={{ color: '#9c4a36', 'font-size': '0.7rem', 'margin-top': '0.25rem' }}>
             {(rewarm() as { msg: string }).msg}
           </div>
         </Show>
@@ -1242,7 +1242,7 @@ export default function RunTreeDock(props: {
                           background: '#ecfdf5',
                           'border-radius': '4px',
                           padding: '0.05rem 0.4rem',
-                          color: '#047857',
+                          color: '#4c6b48',
                           'font-family': 'ui-monospace, Menlo, monospace',
                         }}
                       >
@@ -1258,7 +1258,7 @@ export default function RunTreeDock(props: {
                             'border-radius': '4px',
                             padding: '0.05rem 0.4rem',
                             color:
-                              i().cached === i().total && i().total > 0 ? '#047857' : '#a8854a',
+                              i().cached === i().total && i().total > 0 ? '#4c6b48' : '#a8854a',
                             'font-family': 'ui-monospace, Menlo, monospace',
                           }}
                           title="instances warmed on this daf"
@@ -1274,8 +1274,8 @@ export default function RunTreeDock(props: {
                         padding: '0.05rem 0.4rem',
                         'font-family': 'ui-monospace, Menlo, monospace',
                         ...(n().cached
-                          ? { background: '#dcfce7', color: '#15803d' }
-                          : { background: '#fef3c7', color: '#b45309' }),
+                          ? { background: '#dde6da', color: '#4c6b48' }
+                          : { background: '#fef3c7', color: '#9a6a2a' }),
                       }}
                     >
                       {n().cached ? 'cached' : 'not cached'}

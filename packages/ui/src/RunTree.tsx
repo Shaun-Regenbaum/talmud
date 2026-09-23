@@ -47,9 +47,9 @@ export const CARD_STROKE = '#e4e0d4',
   ACTIVE_STROKE = 'var(--accent)';
 export const CANVAS = '#fdfcf9',
   CANVAS_BORDER = '#ece9df';
-export const BADGE_LLM = '#1d4ed8',
-  BADGE_PRO = '#7c3aed',
-  BADGE_SRC = '#475569';
+export const BADGE_LLM = '#34506f',
+  BADGE_PRO = '#6a4a78',
+  BADGE_SRC = '#5b5f66';
 // vertical layout — node per row, connectors in a right-side lane gutter
 export const NODE_W = 290,
   NODE_H = 54,
@@ -233,8 +233,8 @@ export const variantOf = (n: { kind: string; producer?: string }): IconVariant =
 // ---------------------------------------------------------------------------
 
 export const AUTHORITY_COLOR: Record<Authority, string> = {
-  human: '#b45309', // amber — a human edit, locked against AI overwrite
-  rule: '#64748b', // gray — deterministic rule/computation
+  human: '#9a6a2a', // amber — a human edit, locked against AI overwrite
+  rule: '#7a7d82', // gray — deterministic rule/computation
   ai: BADGE_LLM, // blue — an LLM decided the content
 };
 export const AUTHORITY_TITLE: Record<Authority, string> = {
@@ -295,9 +295,9 @@ export function AuthorityBadge(props: { authority: Authority }): JSX.Element {
 }
 
 export const STALENESS_COLOR: Record<Staleness, string> = {
-  fresh: '#15803d',
-  'stale-recipe': '#d97706',
-  'stale-inputs': '#dc2626',
+  fresh: '#4c6b48',
+  'stale-recipe': '#9a6a2a',
+  'stale-inputs': '#9c4a36',
   unknown: '#9ca3af',
 };
 
@@ -461,9 +461,9 @@ export function ProvenanceSection(props: { node: TreeNode }): JSX.Element {
                       padding: '0.05rem 0.4rem',
                       'border-radius': '4px',
                       ...(inp.status === 'changed'
-                        ? { background: '#fee2e2', color: '#b91c1c', 'font-weight': 600 }
+                        ? { background: '#efdcd6', color: '#9c4a36', 'font-weight': 600 }
                         : inp.status === 'same'
-                          ? { background: '#f0fdf4', color: '#15803d' }
+                          ? { background: '#eef2ec', color: '#4c6b48' }
                           : { background: '#f4f4f5', color: '#9ca3af' }),
                     }}
                   >

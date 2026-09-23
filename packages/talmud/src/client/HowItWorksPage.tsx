@@ -28,9 +28,9 @@ function Badge(props: { children: JSX.Element; color?: string; title?: string })
         'letter-spacing': '0.02em',
         padding: '0.12rem 0.4rem',
         'border-radius': '4px',
-        background: props.color ? `${props.color}1a` : '#eceae3',
+        background: props.color ? `color-mix(in srgb, ${props.color} 10%, transparent)` : '#eceae3',
         color: props.color ?? '#555',
-        border: `1px solid ${props.color ? `${props.color}55` : '#dcd9cf'}`,
+        border: `1px solid ${props.color ? `color-mix(in srgb, ${props.color} 33%, transparent)` : '#dcd9cf'}`,
         'white-space': 'nowrap',
       }}
     >
@@ -165,7 +165,7 @@ function ChipRow(props: {
                   cursor: 'pointer',
                   background: '#fff',
                   color: '#374151',
-                  border: `1px solid ${familyColor(n.family)}66`,
+                  border: `1px solid color-mix(in srgb, ${familyColor(n.family)} 40%, transparent)`,
                   'border-left': `3px solid ${familyColor(n.family)}`,
                 }}
               >
@@ -242,7 +242,7 @@ export function DeepDive(props: {
   return (
     <div
       style={{
-        border: `1px solid ${color()}55`,
+        border: `1px solid color-mix(in srgb, ${color()} 33%, transparent)`,
         'border-left': `4px solid ${color()}`,
         'border-radius': '8px',
         background: '#fff',
@@ -573,7 +573,7 @@ export function HowItWorksPage(): JSX.Element {
               <p style={{ color: 'var(--muted)' }}>Loading the registry…</p>
             </Show>
             <Show when={registry.error}>
-              <p style={{ color: '#b91c1c' }}>Couldn't load the registry from /api.</p>
+              <p style={{ color: '#9c4a36' }}>Couldn't load the registry from /api.</p>
             </Show>
 
             <Show when={!registry.loading && !registry.error}>
@@ -823,7 +823,7 @@ function chip(activeState: boolean, color: string): JSX.CSSProperties {
     cursor: 'pointer',
     background: activeState ? color : '#fff',
     color: activeState ? '#fff' : color,
-    border: `1px solid ${color}66`,
+    border: `1px solid color-mix(in srgb, ${color} 40%, transparent)`,
   };
 }
 

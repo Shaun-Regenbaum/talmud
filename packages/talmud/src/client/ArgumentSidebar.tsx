@@ -335,7 +335,7 @@ function _renderBioWithLinks(bio: string, onOpenSlug?: (slug: string) => void): 
             border: 'none',
             padding: 0,
             margin: 0,
-            color: '#1e40af',
+            color: '#34506f',
             cursor: 'pointer',
             'text-decoration': 'underline',
             font: 'inherit',
@@ -346,7 +346,7 @@ function _renderBioWithLinks(bio: string, onOpenSlug?: (slug: string) => void): 
       );
     } else {
       out.push(
-        <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: '#1e40af' }}>
+        <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: '#34506f' }}>
           {text}
         </a>,
       );
@@ -471,16 +471,16 @@ export interface ArgumentMoveInstance {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  opening: '#475569',
-  question: '#0369a1',
-  answer: '#15803d',
-  objection: '#b91c1c',
-  rejection: '#9f1239',
-  'supporting-evidence': '#0891b2',
-  resolution: '#15803d',
+  opening: '#5b5f66',
+  question: '#3b5a78',
+  answer: '#4c6b48',
+  objection: '#9c4a36',
+  rejection: '#8a2a2b',
+  'supporting-evidence': '#3f6b73',
+  resolution: '#4c6b48',
   digression: '#a16207',
-  shift: '#7c3aed',
-  other: '#64748b',
+  shift: '#6a4a78',
+  other: '#7a7d82',
 };
 
 export function ArgumentMoveCard(props: {
@@ -491,7 +491,7 @@ export function ArgumentMoveCard(props: {
   onHighlightMove: (move: ArgumentMoveInstance | null) => void;
 }): JSX.Element {
   const f = props.move.fields;
-  const roleColor = () => ROLE_COLORS[f.role] ?? '#64748b';
+  const roleColor = () => ROLE_COLORS[f.role] ?? '#7a7d82';
   const isActive = () => props.highlightedMoveId === f.id;
   const toggleHighlight = () => props.onHighlightMove(isActive() ? null : props.move);
 
@@ -2929,7 +2929,7 @@ function ChartTableBlock(props: SpecialBlockProps): JSX.Element {
         table={{ headers: headers(), rows: rows(), notes: notes() }}
         dir={he() ? 'rtl' : 'ltr'}
         lang={he() ? 'he' : 'en'}
-        accent="#0e7490"
+        accent="#3f6b73"
       />
     </Show>
   );
@@ -3215,7 +3215,7 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
         </span>
         <span>
           {t('geography.bavel')}:{' '}
-          <strong style={{ color: '#92400e' }}>{model()?.bavelCount ?? 0}</strong>
+          <strong style={{ color: '#7a5424' }}>{model()?.bavelCount ?? 0}</strong>
         </span>
       </div>
       <Show when={(model()?.moverRows.length ?? 0) > 0}>
@@ -3293,11 +3293,11 @@ function GeographyMapBlock(props: SpecialBlockProps): JSX.Element {
                       'flex-shrink': 0,
                     }}
                   >
-                    <span style={{ color: fromB ? '#92400e' : 'var(--fg)', 'font-weight': 700 }}>
+                    <span style={{ color: fromB ? '#7a5424' : 'var(--fg)', 'font-weight': 700 }}>
                       {fromLabel}
                     </span>{' '}
                     {arrow}{' '}
-                    <span style={{ color: fromB ? 'var(--fg)' : '#92400e', 'font-weight': 700 }}>
+                    <span style={{ color: fromB ? 'var(--fg)' : '#7a5424', 'font-weight': 700 }}>
                       {toLabel}
                     </span>
                   </span>
@@ -3486,16 +3486,16 @@ function AggadataParallels(props: SpecialBlockProps): JSX.Element {
                     'flex-wrap': 'wrap',
                   }}
                 >
-                  <span style={{ 'font-weight': 600, color: '#1e40af', 'font-size': '0.85rem' }}>
+                  <span style={{ 'font-weight': 600, color: '#34506f', 'font-size': '0.85rem' }}>
                     {par.ref}
                   </span>
                   <span
                     style={{
                       'font-size': '0.65rem',
                       padding: '0.1rem 0.4rem',
-                      background: '#faf5ff',
-                      border: '1px solid #d8b4fe',
-                      color: '#7c3aed',
+                      background: '#f3eff5',
+                      border: '1px solid #d0c3d8',
+                      color: '#6a4a78',
                       'border-radius': '999px',
                       'text-transform': 'uppercase',
                       'letter-spacing': '0.06em',
@@ -3826,9 +3826,9 @@ export function PlaceChips(props: { place: PlaceInstance }): JSX.Element {
     <span
       style={{
         'font-size': '0.65rem',
-        color: '#9a3412',
-        background: '#fff7ed',
-        border: '1px solid #fed7aa',
+        color: '#9a6a2a',
+        background: '#f6efe6',
+        border: '1px solid #e8d4bb',
         'border-radius': '999px',
         padding: '0.1rem 0.45rem',
         'text-transform': 'uppercase',
@@ -3983,7 +3983,7 @@ function RishonimSources(props: SpecialBlockProps): JSX.Element {
                   margin: '0.4rem 0 0',
                   'font-size': '0.86rem',
                   'line-height': 1.55,
-                  color: '#475569',
+                  color: '#5b5f66',
                 }}
                 innerHTML={c.textEn}
               />

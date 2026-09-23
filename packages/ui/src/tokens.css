@@ -17,6 +17,20 @@
   --surface: #ffffff;
   --surface-sunk: #f4eded;
 
+  /* Muted inks (palette.ts): one quiet hue per role beside the text. */
+  --ink-blue: #34506f;
+  --ink-link: #2f4f74;
+  --ink-plum: #6a4a78;
+  --ink-indigo: #4b5478;
+  --ink-teal: #3d675c;
+  --ink-cyan: #3f6b73;
+  --ink-ochre: #9a6a2a;
+  --ink-umber: #8a6d3b;
+  --ink-moss: #4c6b48;
+  --ink-brick: #9c4a36;
+  --ink-slate: #5b5f66;
+  --ink-slate-light: #7a7d82;
+
   /* UI and English reading fonts are shared. */
   --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-serif: "Spectral", Georgia, "Times New Roman", serif;

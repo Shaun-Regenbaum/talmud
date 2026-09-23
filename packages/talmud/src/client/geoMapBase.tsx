@@ -22,11 +22,11 @@ import {
 } from './geoShapes';
 
 export const LAND_COLOR = '#6b7280';
-export const WATER_COLOR = '#3b82f6';
-export const WATER_FILL = 'rgba(96, 165, 250, 0.25)';
+export const WATER_COLOR = '#34506f';
+export const WATER_FILL = 'rgba(90, 120, 150, 0.25)';
 // The numbered trajectory path — violet, distinct from the generation-colored
 // rabbi dots on the whole-daf map.
-export const TRAJ_COLOR = '#7c3aed';
+export const TRAJ_COLOR = '#6a4a78';
 export const DIMMED_OPACITY = 0.18;
 
 // Both region shapes share the same projected HEIGHT (180) but differ in WIDTH;
@@ -62,7 +62,7 @@ const CITY_BY_NAME = new Map<string, GeoCity>(GEO_CITIES.map((c) => [c.name, c])
 
 /** Region tint matching the daf-count colors: Bavel amber, Eretz Yisrael dark. */
 export function regionTint(r: GeoRegionId | null): string {
-  if (r === 'bavel') return '#92400e';
+  if (r === 'bavel') return '#7a5424';
   if (r === 'israel') return '#1f2937';
   return '#6b7280';
 }
