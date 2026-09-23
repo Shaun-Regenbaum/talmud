@@ -25,8 +25,6 @@ if (typeof document !== 'undefined') {
   // Explicitly loading by name forces the browser to fetch those specific
   // fonts at representative sizes, and only flips fontsReady once all are in.
   const fontPromises = [
-    '15px "Frank Ruhl Libre"',
-    '700 15px "Frank Ruhl Libre"',
     '15px "Mekorot Vilna"',
     '10.5px "Mekorot Rashi"',
     '700 15px "Mekorot Vilna"',
