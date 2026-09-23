@@ -101,6 +101,7 @@ const CLASSIFICATION: Record<string, Classification> = {
   keyForTranslate: { role: 'not-source', note: 'derived per-word translation' },
   keyForHebraize: { role: 'not-source', note: 'derived hebraised string' },
   keyForBilingual: { role: 'not-source', note: 'derived Hebrew-once paragraph' },
+  keyForBilingualGlossary: { role: 'not-source', note: 'derived per-page name/term list' },
 
   // --- daf → pieces reverse index (the inspector read side) -----------------
   keyForDafIndex: { role: 'not-source', note: 'daf → pieces reverse index entry' },

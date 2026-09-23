@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
   applyBilingual,
+  applyGlossary,
   buildBilingualQuestions,
+  buildGlossary,
   findHebrewParens,
   heKey,
   type ParenDecision,
+  pairsFromDecisions,
+  proseWithHebrew,
   rabbiHebrewOnce,
   readDecisions,
   spanCandidates,
@@ -129,5 +133,103 @@ describe('rabbiHebrewOnce', () => {
     expect(rabbiHebrewOnce(t, rabbis)).toBe(t);
     const once = rabbiHebrewOnce('Rabbi Yochanan and Rabbi Yochanan.', rabbis);
     expect(rabbiHebrewOnce(once, rabbis)).toBe(once);
+  });
+});
+
+describe('page glossary', () => {
+  const d = (kind: 'name' | 'term' | 'other', span: string, p = 0.9): ParenDecision => ({
+    kind,
+    kindP: p,
+    span,
+    spanP: p,
+  });
+
+  it('keeps names that start with a capital and terms of two words or more', () => {
+    const t =
+      "Kontrokos' (קונטרוקוס) asked; a maneh of the Sanctuary (מנה של קודש) with a lamb (שה) and the verse (לי יהיו).";
+    const ps = findHebrewParens(t);
+    const pairs = pairsFromDecisions(ps, [
+      d('name', "Kontrokos'"),
+      d('term', 'a maneh of the Sanctuary'),
+      d('term', 'lamb'),
+      d('other', 'the verse'),
+    ]);
+    expect(pairs).toEqual([
+      { en: 'Kontrokos', he: 'קונטרוקוס', kind: 'name' },
+      { en: 'a maneh of the Sanctuary', he: 'מנה של קודש', kind: 'term' },
+    ]);
+  });
+
+  it('merges paragraphs by majority and drops ties', () => {
+    const a = { en: 'Kontrokos', he: 'קונטרוקוס', kind: 'name' as const };
+    const b = { en: 'Kontrokos', he: 'קונטרקוס', kind: 'name' as const };
+    expect(buildGlossary([[a], [a], [b]])).toEqual([a]);
+    expect(buildGlossary([[a], [b]])).toEqual([]);
+  });
+
+  it('adds Hebrew to the first mention only, after a possessive, and never twice', () => {
+    const g = [
+      { en: 'Kontrokos', he: 'קונטרוקוס', kind: 'name' as const },
+      { en: 'Sanctuary maneh', he: 'מנה של קודש', kind: 'term' as const },
+    ];
+    const t = "It recounts Kontrokos's questions. Kontrokos asks again about the Sanctuary maneh.";
+    const once = applyGlossary(t, g);
+    expect(once).toBe(
+      "It recounts Kontrokos's (קונטרוקוס) questions. Kontrokos asks again about the Sanctuary maneh (מנה של קודש).",
+    );
+    expect(applyGlossary(once, g)).toBe(once);
+  });
+
+  it('skips a paragraph that already has the Hebrew, and lowercase uses of a name', () => {
+    const g = [{ en: 'Rava', he: 'רבא', kind: 'name' as const }];
+    expect(applyGlossary('Later, רבא (Rava) spoke.', g)).toBe('Later, רבא (Rava) spoke.');
+    expect(applyGlossary('a rava of it', g)).toBe('a rava of it');
+  });
+
+  it('finds the prose with Hebrew parens in a page view, skipping raw JSON and duplicates', () => {
+    const para =
+      'Rabbi Yochanan (רבי יוחנן) holds that firstborns were sanctified in the wilderness.';
+    const pieces = {
+      a: { parsed: { summary: para } },
+      b: { deps_resolved: { x: para } },
+      c: '{"synthesis": "Rav Ashi (רב אשי) says so in a long enough string"}',
+      d: 'Plain English with no Hebrew in parentheses at all, long enough.',
+    };
+    expect(proseWithHebrew(pieces)).toEqual([para]);
+  });
+});
+
+describe('longer names and weak terms', () => {
+  it('never puts a short name inside a longer one', () => {
+    const rabbis = [{ name: 'Rav', nameHe: 'רב' }];
+    expect(rabbiHebrewOnce('Rav Papa asks and Rav answers.', rabbis)).toBe(
+      'Rav Papa asks and Rav (רב) answers.',
+    );
+    const g = [{ en: 'Rabbi Elazar', he: 'רבי אלעזר', kind: 'name' as const }];
+    expect(applyGlossary('Rabbi Elazar ben Pedat taught. Then Rabbi Elazar spoke.', g)).toBe(
+      'Rabbi Elazar ben Pedat taught. Then Rabbi Elazar (רבי אלעזר) spoke.',
+    );
+  });
+
+  it('keeps a capitalized word before a name', () => {
+    const rabbis = [{ name: 'Rabbi Yochanan', nameHe: 'רבי יוחנן' }];
+    expect(rabbiHebrewOnce('Later Rabbi Yochanan answers.', rabbis)).toBe(
+      'Later Rabbi Yochanan (רבי יוחנן) answers.',
+    );
+  });
+
+  it('drops one-word terms (after an article) and terms from a single paragraph', () => {
+    const t = 'the conclusion (ופסקו) and the sacred maneh (מנה של קודש)';
+    const ps = findHebrewParens(t);
+    const dec: ParenDecision[] = [
+      { kind: 'term', kindP: 1, span: 'the conclusion', spanP: 1 },
+      { kind: 'term', kindP: 1, span: 'the sacred maneh', spanP: 1 },
+    ];
+    const pairs = pairsFromDecisions(ps, dec);
+    expect(pairs.map((p) => p.en)).toEqual(['the sacred maneh']);
+    expect(buildGlossary([pairs])).toEqual([]);
+    expect(
+      buildGlossary([pairs, [{ en: 'sacred maneh', he: 'מנה של קודש', kind: 'term' }]]),
+    ).toHaveLength(1);
   });
 });

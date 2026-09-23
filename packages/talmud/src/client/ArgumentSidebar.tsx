@@ -4246,6 +4246,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
             rabbis: () => props.dafRabbis,
             extraNames: () => props.dafRabbiNames,
             onPushRabbi: props.onPushRabbi,
+            page: () => ({ tractate: props.tractate, page: props.page }),
           }}
         >
           <ConceptLinkProvider value={{ matcher: conceptMatcher }}>
