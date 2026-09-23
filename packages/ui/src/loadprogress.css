@@ -102,14 +102,14 @@
   margin-bottom: 0;
 }
 .loadprogress-notice.paused {
-  border: 1px solid #f59e0b;
+  border: 1px solid #9a6a2a;
   background: #fffbeb;
-  color: #92400e;
+  color: #7a5424;
 }
 .loadprogress-notice.failed {
   border: 1px solid #ef4444;
-  background: #fef2f2;
-  color: #b91c1c;
+  background: #f6eeeb;
+  color: #9c4a36;
 }
 
 @keyframes loadprogress-spin {

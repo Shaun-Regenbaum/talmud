@@ -168,7 +168,7 @@ const kindColor = (k: string): string =>
         ? '#9a3412'
         : 'var(--fg)';
 const markIconHtml = (kind: string, ring = false) =>
-  `<span class="aw-ic" style="background:${kindColor(kind)}${ring ? `;box-shadow:0 0 0 2px ${kindColor(kind)}60` : ''}" title="${kind}">${GLYPH[kind] ?? ''}</span>`;
+  `<span class="aw-ic" style="background:${kindColor(kind)}${ring ? `;box-shadow:0 0 0 2px color-mix(in srgb, ${kindColor(kind)} 38%, transparent)` : ''}" title="${kind}">${GLYPH[kind] ?? ''}</span>`;
 
 export function AlignPage(): JSX.Element {
   const params = new URLSearchParams(window.location.search);
@@ -379,7 +379,7 @@ export function AlignPage(): JSX.Element {
       kind === 'rabbi' ? `data-rabbi-name="${esc(e.name)}"` : `data-name="${esc(e.nameNorm)}"`;
     return `<div class="aw-li aw-src" data-ent="${esc(e.key)}" ${locate}>${markIconHtml(kind)}
       <span class="aw-nm">${esc(e.name || e.nameHe)}</span><span class="aw-he2" dir="rtl">${esc(e.nameHe)}</span>
-      ${e.extra ? `<span class="aw-via" style="background:${c}1a;color:${c}">${esc(e.extra)}</span>` : ''}
+      ${e.extra ? `<span class="aw-via" style="background:color-mix(in srgb, ${c} 10%, transparent);color:${c}">${esc(e.extra)}</span>` : ''}
       <span class="aw-range">${e.segs.length ? `seg ${e.segs.join(', ')}` : 'no text match'}</span></div>`;
   }
   function collectRowsHtml(range: Set<number>): string {

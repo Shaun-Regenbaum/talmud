@@ -213,7 +213,7 @@ export function CommentaryPicker(props: CommentaryPickerProps): JSX.Element {
                 <Show when={activeWork()}>
                   {(w) => (
                     <div style={{ display: 'flex', 'align-items': 'baseline', gap: '0.4rem' }}>
-                      <h3 style={{ margin: 0, 'font-size': '1rem', color: '#7c3aed' }}>
+                      <h3 style={{ margin: 0, 'font-size': '1rem', color: '#6a4a78' }}>
                         {w().title}
                       </h3>
                       <Show when={w().titleHe}>

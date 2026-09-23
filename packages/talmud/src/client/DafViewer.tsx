@@ -75,6 +75,7 @@ import type {
   Section,
   YerushalmiResult,
 } from './shapes';
+import { ACCENTS } from './sidebar/primitives';
 import { TranslationPopup } from './TranslationPopup';
 import { TutorialBanner } from './TutorialBanner';
 import TypeProfilePanel from './TypeProfilePanel';
@@ -3608,7 +3609,12 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               >
                 <For each={chipMarks()}>
                   {(m) => {
-                    const color = (m.render as { color?: string }).color ?? 'var(--accent)';
+                    // The reader's palette, not the definition's color: changing a
+                    // definition's render block would change its recipe hash.
+                    const color =
+                      (ACCENTS as Record<string, string>)[m.id] ??
+                      (m.render as { color?: string }).color ??
+                      'var(--accent)';
                     // Chip mark id == sidebar kind, so the label + active state are
                     // generic over the registry (no per-mark branching here). label() is
                     // an accessor (not a captured const) so it re-evaluates t() when the

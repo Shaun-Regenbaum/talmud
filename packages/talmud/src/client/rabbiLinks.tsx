@@ -123,7 +123,7 @@ const linkStyle: JSX.CSSProperties = {
   border: 'none',
   padding: 0,
   margin: 0,
-  color: '#1e40af',
+  color: '#2f4f74',
   cursor: 'pointer',
   'text-decoration': 'underline',
   'text-decoration-style': 'dotted',

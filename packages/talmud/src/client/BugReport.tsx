@@ -75,7 +75,7 @@ export function BugReport(props: BugReportProps): JSX.Element {
               </button>
             }
           >
-            <span style={{ color: '#059669' }}>
+            <span style={{ color: '#4c6b48' }}>
               {t('bugreport.sent', { daf: `${props.tractate} ${props.page}` })}
             </span>
           </Show>

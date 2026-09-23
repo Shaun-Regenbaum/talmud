@@ -19,27 +19,29 @@
  * already shared there. `Panel` owns only the per-type title block, which is
  * what was duplicated/divergent across the bodies.
  */
+import { INK } from '@corpus/ui/palette';
 import { createEffect, createSignal, For, type JSX, Show } from 'solid-js';
 import { type CatalogKey, lang, t } from '../i18n';
 import MarkEnrichmentCards, { InspectDot } from '../MarkEnrichmentCards';
 import QAPanel from '../QAPanel';
 import { HebraizedWithRabbis } from '../rabbiLinks';
 
-/** Per-type accent (the title color). Bodies pass `accent={ACCENTS.x}` so the
- *  six hardcoded hex values stop drifting. */
+/** Per-type accent: the card title color, the topic pill color and the
+ *  explainer graph's node color. All from the shared muted inks, matching the
+ *  margin icons. */
 export const ACCENTS = {
   argument: 'var(--accent)',
   'argument-overview': 'var(--accent)',
-  'daf-background': '#8a6d3b',
-  tidbit: '#2f6b66',
-  biyun: '#3f4ea0',
-  geography: '#1e40af',
-  halacha: '#1e40af',
-  chart: '#0e7490',
-  aggadata: '#7c3aed',
-  yerushalmi: '#0f766e',
-  pesuk: '#9a3412',
-  rishonim: '#475569',
+  'daf-background': INK.umber,
+  tidbit: INK.teal,
+  biyun: INK.indigo,
+  geography: INK.blue,
+  halacha: INK.blue,
+  chart: INK.cyan,
+  aggadata: INK.plum,
+  yerushalmi: INK.teal,
+  pesuk: INK.ochre,
+  rishonim: INK.slate,
   rabbi: '#222',
   place: '#222',
   'voice-group': '#222',

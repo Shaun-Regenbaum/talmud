@@ -230,9 +230,9 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
                 style={{
                   'margin-top': '0.55rem',
                   padding: '0.5rem 0.6rem',
-                  border: `1px solid ${isHere() ? '#bfdbfe' : '#eae8e0'}`,
+                  border: `1px solid ${isHere() ? '#cbd6e2' : '#eae8e0'}`,
                   'border-radius': '6px',
-                  background: isHere() ? '#eff6ff' : '#fff',
+                  background: isHere() ? '#eef1f4' : '#fff',
                 }}
               >
                 {/* Header: number + place + region (shared by all merged events). */}
@@ -343,7 +343,7 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
                   <div
                     style={{
                       'font-size': '0.78rem',
-                      color: '#1e40af',
+                      color: '#34506f',
                       'margin-top': '0.3rem',
                       'line-height': 1.5,
                     }}

@@ -20,9 +20,9 @@ export type NodeSide = 'source' | 'a' | 'b' | 'neutral';
 
 export const SIDE_COLOR: Record<NodeSide, string> = {
   source: '#3f6212', // gemara — green
-  a: '#1d4ed8', // position A — blue   (matches ArgumentVoiceMap COLOR_A)
-  b: '#b91c1c', // position B — red    (matches ArgumentVoiceMap COLOR_B)
-  neutral: '#475569', // undisputed codifier — slate
+  a: '#34506f', // position A: ink blue
+  b: '#9c4a36', // position B: brick
+  neutral: '#5b5f66', // undisputed codifier — slate
 };
 
 /** The relations an edge can express in the codification lineage. */
@@ -30,9 +30,9 @@ export type RelationKind = 'transmits' | 'agrees' | 'disagrees' | 'cites';
 
 const REL_COLOR: Record<RelationKind, string> = {
   transmits: '#cfc9bb', // the lineage spine — warm grey
-  agrees: '#15803d', // green   (ArgumentVoiceMap EDGE_SUPPORT)
-  disagrees: '#b91c1c', // red     (ArgumentVoiceMap EDGE_OPPOSE)
-  cites: '#475569', // slate   (ArgumentFlowGraph cites)
+  agrees: '#4c6b48', // green   (ArgumentVoiceMap EDGE_SUPPORT)
+  disagrees: '#9c4a36', // red     (ArgumentVoiceMap EDGE_OPPOSE)
+  cites: '#5b5f66', // slate   (ArgumentFlowGraph cites)
 };
 
 /** Stroke colour + dash for a relation edge. Only `disagrees` is dashed,

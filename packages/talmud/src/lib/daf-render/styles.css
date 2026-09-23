@@ -242,7 +242,7 @@
   color: inherit;
 }
 .daf-root .daf-text .city-marker.city-highlighted {
-  background-color: rgba(59, 130, 246, 0.28);
+  background-color: rgba(52, 80, 111, 0.28);
   border-radius: 2px;
 }
 
@@ -287,32 +287,32 @@
   background-color: rgba(138, 42, 43, 0.18);
 }
 .daf-root .daf-range-highlight-halacha {
-  background-color: rgba(30, 64, 175, 0.25);
+  background-color: rgba(52, 80, 111, 0.25);
 }
 /* Chart highlight (experimental) — cyan tint matching the chart gutter/sidebar
-   accent (#0e7490), painted over the dense region a comparison table covers. */
+   accent (#3f6b73), painted over the dense region a comparison table covers. */
 .daf-root .daf-range-highlight-chart {
-  background-color: rgba(14, 116, 144, 0.2);
+  background-color: rgba(63, 107, 115, 0.2);
 }
 .daf-root .daf-range-highlight-aggadata {
-  background-color: rgba(124, 58, 237, 0.22);
+  background-color: rgba(106, 74, 120, 0.22);
 }
 /* Yerushalmi highlight — teal tint matching the yerushalmi gutter/sidebar
-   accent (#0f766e), painted over the Bavli span that has the open Jerusalem
+   accent (#3d675c), painted over the Bavli span that has the open Jerusalem
    Talmud parallel. */
 .daf-root .daf-range-highlight-yerushalmi {
-  background-color: rgba(15, 118, 110, 0.18);
+  background-color: rgba(61, 103, 92, 0.18);
 }
 /* Rishonim highlight — slate tint matching the rishonim gutter/sidebar accent
-   (#475569), distinct from section/halacha/aggadata/pesuk. */
+   (#5b5f66), distinct from section/halacha/aggadata/pesuk. */
 .daf-root .daf-range-highlight-rishonim {
-  background-color: rgba(71, 85, 105, 0.18);
+  background-color: rgba(91, 95, 102, 0.18);
 }
 /* Pesuk highlight — warm amber/orange tint to match the gutter badge color
    so a Tanach citation reads as visually distinct from sections (red-brown),
    halacha (blue), aggadata (violet), and commentary (violet). */
 .daf-root .daf-range-highlight-pesuk {
-  background-color: rgba(217, 119, 6, 0.2);
+  background-color: rgba(154, 106, 42, 0.2);
 }
 /* Argument-move highlight — yellow band painted when the user clicks a
    subsection card in ArgumentSidebar. Brighter than the section tint so a
@@ -323,18 +323,18 @@
 /* Commentary highlight uses violet so it reads distinct from the red-brown
    section/argument tint and the blue halacha tint already in play. */
 .daf-root .daf-range-highlight-commentary {
-  background-color: rgba(124, 58, 237, 0.16);
+  background-color: rgba(106, 74, 120, 0.16);
   cursor: pointer;
 }
 .daf-root .daf-range-highlight-commentary-active {
-  background-color: rgba(124, 58, 237, 0.32);
+  background-color: rgba(106, 74, 120, 0.32);
 }
 /* Daf↔commentary anchor — clicking a Rashi/Tosafot piece paints a teal
    band over the daf seg(s) it glosses. Hue picked to be distinct from
    the rabbi (red), argument-move (yellow), and commentary (violet) tints
    that might also be on screen. */
 .daf-root .daf-range-highlight-comm-anchor {
-  background-color: rgba(15, 118, 110, 0.22);
+  background-color: rgba(61, 103, 92, 0.22);
 }
 /* User pieces — personal highlights. Background is set inline per-highlight
    (paintRangeOverlay's bgFor callback) from the chosen palette color; the

@@ -45,7 +45,7 @@ import {
   type Valence,
 } from './sageArcLayout';
 
-const SUPPORTS_COLOR = '#0891b2';
+const SUPPORTS_COLOR = '#3f6b73';
 const AXIS_INK = '#c9c2b2';
 const REL_KINDS = ['opposes', 'responds-to', 'resolves', 'cites', 'supports'] as const;
 

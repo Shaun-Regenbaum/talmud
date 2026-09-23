@@ -33,10 +33,10 @@ interface NarrativeData {
 }
 
 const KIND_COLOR: Record<string, string> = {
-  scene: '#0369a1',
-  action: '#15803d',
-  dialogue: '#7c3aed',
-  turn: '#b45309',
+  scene: '#3b5a78',
+  action: '#4c6b48',
+  dialogue: '#6a4a78',
+  turn: '#9a6a2a',
   resolution: '#be123c',
 };
 
@@ -54,9 +54,9 @@ async function runNarrative(
 }
 
 const ROLE_COLOR: Record<string, string> = {
-  protagonist: '#0369a1',
-  antagonist: '#b91c1c',
-  authority: '#7c3aed',
+  protagonist: '#3b5a78',
+  antagonist: '#9c4a36',
+  authority: '#6a4a78',
   narrator: '#6b7280',
   other: '#6b7280',
 };
@@ -104,8 +104,8 @@ export default function ArgumentNarrative(props: {
         <span
           style={{
             'font-size': '0.6rem',
-            color: '#7c3aed',
-            background: '#f3e8ff',
+            color: '#6a4a78',
+            background: '#ebe4ef',
             padding: '0 0.3rem',
             'border-radius': '3px',
             'text-transform': 'none',
@@ -120,7 +120,7 @@ export default function ArgumentNarrative(props: {
         <div style={{ color: '#999', 'font-size': '0.8rem' }}>Composing the story…</div>
       </Show>
       <Show when={data.error}>
-        <div style={{ color: '#b45309', 'font-size': '0.78rem' }}>
+        <div style={{ color: '#9a6a2a', 'font-size': '0.78rem' }}>
           Couldn't load the narrative view.
         </div>
       </Show>
@@ -223,7 +223,7 @@ export default function ArgumentNarrative(props: {
                           padding: '0.15rem 0.3rem',
                           'border-radius': '4px',
                           cursor: anchored() ? 'pointer' : 'default',
-                          background: isActive() ? '#fff7ed' : 'transparent',
+                          background: isActive() ? '#f6efe6' : 'transparent',
                           'box-shadow': isActive() ? 'inset 2px 0 0 #ea580c' : 'none',
                         }}
                       >

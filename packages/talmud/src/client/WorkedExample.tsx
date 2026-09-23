@@ -44,9 +44,9 @@ function chipStyle(active: boolean, color: string): JSX.CSSProperties {
     'font-weight': 600,
     padding: '0.1rem 0.45rem',
     'border-radius': '4px',
-    background: active ? color : `${color}14`,
+    background: active ? color : `color-mix(in srgb, ${color} 8%, transparent)`,
     color: active ? '#fff' : color,
-    border: `1px solid ${color}55`,
+    border: `1px solid color-mix(in srgb, ${color} 33%, transparent)`,
     'white-space': 'nowrap',
   };
 }
@@ -210,9 +210,13 @@ export function WorkedExample(props: {
                   return (
                     <span
                       style={{
-                        background: on() ? `${accent()}22` : 'transparent',
+                        background: on()
+                          ? `color-mix(in srgb, ${accent()} 13%, transparent)`
+                          : 'transparent',
                         'border-radius': on() ? '3px' : undefined,
-                        'box-shadow': on() ? `0 0 0 2px ${accent()}22` : undefined,
+                        'box-shadow': on()
+                          ? `0 0 0 2px color-mix(in srgb, ${accent()} 13%, transparent)`
+                          : undefined,
                         opacity: highlight() && !on() ? 0.38 : 1,
                       }}
                     >
@@ -276,7 +280,7 @@ export function WorkedExample(props: {
           <Show when={step() === 'artifact'}>
             <div
               style={{
-                border: `1px solid ${accent()}55`,
+                border: `1px solid color-mix(in srgb, ${accent()} 33%, transparent)`,
                 'border-left': `4px solid ${accent()}`,
                 'border-radius': '8px',
                 background: '#fff',
@@ -314,7 +318,7 @@ export function WorkedExample(props: {
               >
                 <div style={provLabel}>provenance</div>
                 <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.3rem' }}>
-                  <span style={chipStyle(false, authority() === 'ai' ? '#7c3aed' : '#0f766e')}>
+                  <span style={chipStyle(false, authority() === 'ai' ? '#6a4a78' : '#3d675c')}>
                     authority: {authority()}
                   </span>
                   <span style={chipStyle(false, accent())}>

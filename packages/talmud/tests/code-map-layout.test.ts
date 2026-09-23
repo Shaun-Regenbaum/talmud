@@ -1,3 +1,4 @@
+import { INK } from '@corpus/ui/palette';
 import { describe, expect, it } from 'vitest';
 import {
   type CodificationData,
@@ -19,19 +20,19 @@ const baseCod = (over: Partial<CodificationData> = {}): CodificationData => ({
 
 describe('relationStyle', () => {
   it('only disagrees is dashed; colours match the Voices/Flow palette', () => {
-    expect(relationStyle('disagrees')).toEqual({ color: '#b91c1c', dash: '5 3' });
-    expect(relationStyle('agrees')).toEqual({ color: '#15803d', dash: undefined });
-    expect(relationStyle('cites')).toEqual({ color: '#475569', dash: undefined });
+    expect(relationStyle('disagrees')).toEqual({ color: INK.brick, dash: '5 3' });
+    expect(relationStyle('agrees')).toEqual({ color: INK.moss, dash: undefined });
+    expect(relationStyle('cites')).toEqual({ color: INK.slate, dash: undefined });
     expect(relationStyle('transmits')).toEqual({ color: '#cfc9bb', dash: undefined });
   });
 });
 
 describe('SIDE_COLOR', () => {
   it('maps sides to the shared palette', () => {
-    expect(SIDE_COLOR.a).toBe('#1d4ed8'); // matches ArgumentVoiceMap COLOR_A
-    expect(SIDE_COLOR.b).toBe('#b91c1c'); // matches ArgumentVoiceMap COLOR_B
+    expect(SIDE_COLOR.a).toBe(INK.blue);
+    expect(SIDE_COLOR.b).toBe(INK.brick);
     expect(SIDE_COLOR.source).toBe('#3f6212');
-    expect(SIDE_COLOR.neutral).toBe('#475569');
+    expect(SIDE_COLOR.neutral).toBe(INK.slate);
   });
 });
 

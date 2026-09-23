@@ -22,7 +22,7 @@ import { lang, t } from './i18n';
  *  daf ("Berakhot 13a") and a Tanakh verse ("Genesis 1:1") read for themselves,
  *  so they get none; the Yerushalmi + commentary spines get a tag. */
 const CORPUS_BADGE: Partial<Record<LinkCorpus, { label: string; bg: string; fg: string }>> = {
-  yerushalmi: { label: 'ירושלמי', bg: '#0e7490', fg: '#ffffff' },
+  yerushalmi: { label: 'ירושלמי', bg: '#3f6b73', fg: '#ffffff' },
   commentary: { label: 'commentary', bg: '#ece9e1', fg: '#57534e' },
   // A codifier ref (Rambam / Shulchan Arukh / …) — the rich view is the halacha
   // card; the chip just marks the codification. (A pasuk reads for itself, like
@@ -42,9 +42,9 @@ const BASE: JSX.CSSProperties = {
 };
 const NAV: JSX.CSSProperties = {
   ...BASE,
-  color: '#1d4ed8',
-  background: '#eff6ff',
-  border: '1px solid #dbeafe',
+  color: '#2f4f74',
+  background: '#eef1f4',
+  border: '1px solid #e2e8ef',
 };
 const INERT: JSX.CSSProperties = {
   ...BASE,

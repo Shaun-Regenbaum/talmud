@@ -31,7 +31,7 @@ export function ChartTableView(props: {
 }): JSX.Element {
   const dir = () => props.dir ?? 'rtl';
   const lang = () => props.lang ?? 'he';
-  const accent = () => props.accent ?? '#0e7490';
+  const accent = () => props.accent ?? '#3f6b73';
   const font = () =>
     lang() === 'he' ? '"Mekorot Vilna", serif' : 'system-ui, -apple-system, sans-serif';
   const start = () => (dir() === 'rtl' ? 'right' : 'left');

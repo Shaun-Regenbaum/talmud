@@ -45,6 +45,7 @@
     "./DataTable": "./src/DataTable.tsx",
     "./Charts": "./src/Charts.tsx",
     "./ReaderIcon": "./src/ReaderIcon.tsx",
+    "./palette": "./src/palette.ts",
     "./MarginPod": "./src/MarginPod.tsx",
     "./BottomSheet": "./src/BottomSheet.tsx",
     "./Graph": "./src/Graph.tsx",
