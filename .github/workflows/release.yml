@@ -52,6 +52,9 @@ jobs:
       cancel-in-progress: false
     outputs:
       latest: ${{ steps.latest.outputs.latest }}
+    permissions:
+      contents: read
+      actions: write
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ddf8edfc3dfd489567fe3c5b28b51aca
@@ -122,6 +125,18 @@ jobs:
       - name: Verify both staged releases and saved content
         if: steps.latest.outputs.latest == 'true'
         run: node scripts/check-staging.mjs "$GITHUB_SHA"
+      # An older run still waiting for approval holds the production slot, so
+      # this run's Production job could not ask until someone cleared it. It
+      # would refuse to promote anyway, because staging has moved on.
+      - name: Cancel older runs still waiting for approval
+        if: steps.latest.outputs.latest == 'true'
+        run: |
+          gh run list --repo "$GITHUB_REPOSITORY" --workflow release.yml --branch staging --status waiting \
+            --json databaseId,headSha --jq ".[] | select(.headSha != \"$GITHUB_SHA\") | .databaseId" |
+            while read -r id; do
+              gh run cancel "$id" --repo "$GITHUB_REPOSITORY"
+              echo "Cancelled older run $id, which was waiting for approval." >> "$GITHUB_STEP_SUMMARY"
+            done
       - name: Link the preview
         if: steps.latest.outputs.latest == 'true'
         run: |
