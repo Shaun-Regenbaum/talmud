@@ -1,7 +1,7 @@
 .ui-graph-view,
 .ui-graph-dialog,
 .ui-graph-connection-detail {
-  --graph-bg: var(--bg, #fafaf7);
+  --graph-bg: var(--bg, #f8f5ee);
   --graph-card: var(--surface, #fff);
   --graph-ink: var(--fg, #1a1a1a);
   --graph-line: var(--line, #e5e3dc);

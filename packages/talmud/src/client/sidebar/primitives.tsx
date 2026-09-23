@@ -89,7 +89,7 @@ export function kindLabelKey(kind: SidebarKind): CatalogKey {
 const SECTION_BOX: JSX.CSSProperties = {
   border: '1px solid #eae8e0',
   'border-radius': '6px',
-  background: '#fafaf7',
+  background: 'var(--bg)',
   padding: '0.7rem 0.85rem',
   'margin-top': '0.7rem',
 };
@@ -145,7 +145,7 @@ export function HebrewProse(props: {
 }
 
 /**
- * A labeled card — the #fafaf7 box used for every leaf section. Pass `text` for
+ * A labeled card — the page-colored box used for every leaf section. Pass `text` for
  * the common inline-hebraized prose body, or `children` for custom content
  * (chip lists, dispute rows). `spacing` controls the label→body gap; default
  * 'tight' (0.4rem) is the canonical value, 'loose' (0.5rem) is a bridge for

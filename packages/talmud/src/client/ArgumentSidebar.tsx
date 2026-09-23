@@ -365,7 +365,7 @@ function _RabbiRow(props: {
         display: 'block',
         padding: '0.55rem 0.7rem',
         margin: '0 0 0.4rem',
-        background: props.active ? '#fef3c7' : '#fafaf7',
+        background: props.active ? '#fef3c7' : 'var(--bg)',
         border: `1px solid ${props.active ? '#eab308' : '#eae8e0'}`,
         'border-radius': '4px',
         cursor: 'pointer',
@@ -494,7 +494,7 @@ export function ArgumentMoveCard(props: {
         'border-radius': '4px',
         padding: '0.55rem 0.7rem',
         'margin-bottom': '0.55rem',
-        background: isActive() ? '#fefce8' : '#fafaf7',
+        background: isActive() ? '#fefce8' : 'var(--bg)',
       }}
     >
       {/* Click target: the role/voice header + Hebrew excerpt act as a single

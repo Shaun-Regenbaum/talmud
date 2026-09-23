@@ -530,63 +530,6 @@ body.dev-panel-open .daf-page {
   vertical-align: baseline;
 }
 
-/* Gutter cluster — wraps multiple icons that occupy the same visual line
-   in the daf gutter. Rest state: pure vertical stack, icons almost fully
-   overlap with just a ~3px sliver of each underlying icon sticking up
-   above the one in front of it (the "stick" effect). Hover/focus: the
-   stack expands vertically so each icon gets its own clickable row. No
-   horizontal motion in either state — the cluster never drifts toward
-   or away from the daf body. Side-agnostic. */
-.gutter-cluster {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  z-index: 5;
-  padding: 3px 4px;
-}
-.gutter-cluster .gutter-icon {
-  /* -11px overlap on a 14px icon = 3px of each underlying icon sticks
-     up above the next one (the "stick" effect). Layer order: later
-     source items render on top, so the top sliver of each earlier icon
-     is what stays visible. */
-  margin-top: -11px;
-  position: relative;
-  transition:
-    margin-top 140ms ease,
-    transform 80ms linear,
-    box-shadow 80ms linear;
-}
-.gutter-cluster .gutter-icon:first-child {
-  margin-top: 0;
-}
-/* Hover/focus: expand the stack so each icon gets its own row with a
-   4px gap, fully clickable. The cluster grows downward from the
-   anchored center. */
-.gutter-cluster:hover .gutter-icon,
-.gutter-cluster:focus-within .gutter-icon {
-  margin-top: 4px;
-}
-.gutter-cluster:hover .gutter-icon:first-child,
-.gutter-cluster:focus-within .gutter-icon:first-child {
-  margin-top: 0;
-}
-/* Per-icon hover (post-expand): mild grow + raise so the active target
-   is obvious. */
-.gutter-cluster:hover .gutter-icon:hover,
-.gutter-cluster:hover .gutter-icon:focus-visible {
-  transform: scale(1.12);
-  z-index: 1;
-}
-/* Single-item clusters: no stack to expand. Neutralize the negative
-   margin so the lone icon sits flush at its anchor. No !important needed:
-   the lone icon is always :first-child, so every equal-or-higher-specificity
-   margin-top rule above already resolves to 0, and this (0,3,0) rule is last
-   in source. GutterOverlay.tsx sets no inline margins. */
-.gutter-cluster[data-count="1"] .gutter-icon {
-  margin: 0;
-}
-
 /* ── #about (and the guides) — the project's front door ─────────────────────────────────
    One reading column with marginalia, like the introduction to a sefer. The
    reading face is Spectral (loaded by the page on mount); the Hebrew marks use

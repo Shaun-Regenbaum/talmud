@@ -5,7 +5,9 @@
   --control-height: 36px;
   --tb-radius: var(--radius);
   /* ---- colour ---- */
-  --bg: #fafaf7;
+  /* Soft paper: warm enough to take the glare off white, light enough to keep
+     the text crisp. */
+  --bg: #f8f5ee;
   --fg: #1a1a1a;
   --muted: #6b6b6b;
   --line: #e5e3dc;

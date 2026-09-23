@@ -1,0 +1,109 @@
+/* Margin icon pods (MarginPod.tsx). Positions come from the component; this
+   file only draws. */
+.margin-pod {
+  position: absolute;
+  width: 0;
+  height: 0;
+  z-index: 5;
+  /* Readers lay pods over a layer that ignores the pointer. */
+  pointer-events: auto;
+  transition: opacity 160ms ease;
+}
+.margin-pod.is-open {
+  z-index: 40;
+}
+/* While another pod is open, this one steps back. */
+.margin-pod.is-dim {
+  opacity: 0.35;
+}
+
+/* The forgiving edge: part of the pod for the pointer, never drawn. */
+.margin-pod-hit {
+  position: absolute;
+  border-radius: 16px;
+}
+
+.margin-pod-bg {
+  position: absolute;
+  border-radius: 999px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e5e3dc);
+  box-shadow: var(--shadow-pop, 0 10px 34px rgba(40, 30, 12, 0.16));
+  opacity: 0;
+  transform: scale(0.92);
+  pointer-events: none;
+  transition:
+    opacity 140ms ease,
+    transform 180ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.margin-pod.is-open .margin-pod-bg {
+  opacity: 1;
+  transform: none;
+}
+
+/* A short tick from the pod toward the line of text it belongs to. */
+.margin-pod-tick {
+  position: absolute;
+  top: -0.75px;
+  width: 8px;
+  height: 1.5px;
+  border-radius: 2px;
+  background: var(--accent, #8a2a2b);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease;
+}
+.margin-pod.is-open .margin-pod-tick {
+  opacity: 0.6;
+}
+
+.margin-pod-icon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  width: var(--pod-size, 14px);
+  height: var(--pod-size, 14px);
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--bg, #fff);
+  border-radius: 50%;
+  background: var(--pod-ink);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  line-height: 0;
+  cursor: pointer;
+  transform: translate(-50%, calc(-50% + var(--pod-y, 0px)));
+  transition:
+    transform 190ms cubic-bezier(0.2, 0.9, 0.3, 1.15),
+    width 160ms ease,
+    height 160ms ease,
+    box-shadow 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.margin-pod-icon svg {
+  display: block;
+}
+.margin-pod.is-open .margin-pod-icon:hover,
+.margin-pod-icon:focus-visible {
+  transform: translate(-50%, calc(-50% + var(--pod-y, 0px))) scale(1.12);
+  z-index: 30 !important;
+}
+.margin-pod-icon:focus-visible {
+  outline: 2px solid var(--accent, #8a2a2b);
+  outline-offset: 2px;
+}
+/* The icon whose note is open. */
+.margin-pod-icon.is-active {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--pod-ink) 38%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .margin-pod,
+  .margin-pod-bg,
+  .margin-pod-tick,
+  .margin-pod-icon {
+    transition: none;
+  }
+}

@@ -12,6 +12,7 @@ const messages = {
   emptyPiece: { en: 'Nothing saved for this item yet.', he: 'עדיין לא נשמר תוכן לפריט הזה.' },
   readingCache: { en: 'Loading saved content\u2026', he: 'טוען תוכן שמור…' },
   all: { en: 'All', he: 'הכול' },
+  verse: { en: 'Verse', he: 'פסוק' },
   verses: { en: 'Verses', he: 'פסוקים' },
   saved: { en: 'Saved items', he: 'פריטים שמורים' },
   items: { en: 'Items', he: 'פריטים' },

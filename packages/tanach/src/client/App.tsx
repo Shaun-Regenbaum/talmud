@@ -5,10 +5,10 @@ import { Drawer } from '@corpus/ui/Drawer';
 import { fitBbox, GeoMap } from '@corpus/ui/GeoMap';
 import { paintRangeOverlay, resetOverlay } from '@corpus/ui/highlightOverlay';
 import { LangToggle } from '@corpus/ui/LangToggle';
+import { clusterByLine, MarginPod } from '@corpus/ui/MarginPod';
 import { PageNavigation } from '@corpus/ui/PageNavigation';
 import { Pill, PillRow } from '@corpus/ui/Pill';
 import { ReaderHeader } from '@corpus/ui/ReaderHeader';
-import { colorForKind, ReaderIcon } from '@corpus/ui/ReaderIcon';
 import { Select } from '@corpus/ui/Select';
 import { SectionHeading, SourceCard, StatusMessage } from '@corpus/ui/Study';
 import { ToolbarMenu } from '@corpus/ui/ToolbarMenu';
@@ -18,6 +18,7 @@ import {
   createResource,
   createSignal,
   For,
+  Index,
   type JSX,
   onCleanup,
   onMount,
@@ -310,9 +311,12 @@ export function App(): JSX.Element {
   const [anchors, setAnchors] = createSignal<
     { v: string; label: string; top: number; left: number; side: 'left' | 'right' }[]
   >([]);
+  // One pod per line of source icons, shared with the Talmud gutter.
   const [verseIcons, setVerseIcons] = createSignal<
-    { v: number; top: number; left: number; side: 'left' | 'right'; kinds: SourceKind[] }[]
+    { x: number; y: number; side: 'left' | 'right'; items: { v: number; kind: SourceKind }[] }[]
   >([]);
+  // The verse whose icon is under the pointer; highlighted like a selection.
+  const [iconHoverVerse, setIconHoverVerse] = createSignal<number | null>(null);
   const [reflow, setReflow] = createSignal(0);
   const bumpReflow = () => setReflow((n) => n + 1);
   // Re-measure on ANY geometry change of the text band. The reading column is
@@ -367,21 +371,16 @@ export function App(): JSX.Element {
     }
     setAnchors(out);
 
-    // Source icons (ר/ג/מ) for each flagged verse, laid out as a HORIZONTAL row
-    // at the verse's line (like the Talmud gutter clusters) — one short row per
-    // verse, ~one icon tall, so consecutive verses never overlap or overflow.
+    // Source icons for each flagged verse, centered on the verse's first line.
+    // Icons that land on the same line, even from neighbouring verses, share
+    // one pod, so they never cover each other.
     const kindsByVerse = new Map<number, SourceKind[]>();
     for (const v of sourcesIndex()?.verses ?? []) {
       const k = verseKinds(v);
       if (k.length) kindsByVerse.set(v.verse, k);
     }
-    const icons: {
-      v: number;
-      top: number;
-      left: number;
-      side: 'left' | 'right';
-      kinds: SourceKind[];
-    }[] = [];
+    const icons: { v: number; kind: SourceKind; x: number; y: number; side: 'left' | 'right' }[] =
+      [];
     if (kindsByVerse.size) {
       scrollBand.querySelectorAll<HTMLElement>('.vtext').forEach((vt) => {
         const vn = Number(vt.dataset.vn);
@@ -389,17 +388,26 @@ export function App(): JSX.Element {
         if (!kinds) return;
         const r = vt.getBoundingClientRect();
         if (!r.height) return;
-        // One-icon-wide lane: the stack is a collapsed vertical deck (icons
-        // overlap, a sliver of each shows) that fans out on hover.
         const side: 'left' | 'right' =
           r.left + r.width / 2 < m.left + m.width / 2 ? 'left' : 'right';
         const left =
           side === 'right' ? b.right - m.left + ICON_GAP : b.left - m.left - ICON_SIZE - ICON_GAP;
         if (left < 2 || left + ICON_SIZE > m.width - 2) return;
-        icons.push({ v: vn, top: r.top - m.top, left, side, kinds });
+        const line = vt.getClientRects()[0] ?? r;
+        const y = line.top - m.top + line.height / 2;
+        for (const kind of kinds) icons.push({ v: vn, kind, x: left + ICON_SIZE / 2, y, side });
       });
     }
-    setVerseIcons(icons);
+    setVerseIcons(
+      (['left', 'right'] as const).flatMap((side) =>
+        clusterByLine(icons.filter((ic) => ic.side === side)).map((line) => ({
+          side,
+          x: line[0].x,
+          y: line.reduce((sum, ic) => sum + ic.y, 0) / line.length,
+          items: line.map(({ v, kind }) => ({ v, kind })),
+        })),
+      ),
+    );
   };
 
   onMount(() => {
@@ -557,6 +565,7 @@ export function App(): JSX.Element {
   createEffect(() => {
     const sel = selected();
     const src = source();
+    const hovered = iconHoverVerse();
     const pv = new Set(placeVerses());
     const focus = parshaFocus();
     paragraphs();
@@ -570,6 +579,7 @@ export function App(): JSX.Element {
         const vn = Number(e.dataset.vn);
         const inNote = sel && vn >= sel.start && vn <= sel.end;
         const inSource = src && vn === src.verse;
+        const inIconHover = vn === hovered;
         const chapterNow = loc().chapter;
         const inParshaFocus =
           focus &&
@@ -578,7 +588,7 @@ export function App(): JSX.Element {
           chapterNow <= focus.endChapter &&
           vn >= (chapterNow === focus.startChapter ? focus.startVerse : 1) &&
           (chapterNow === focus.endChapter ? vn <= focus.endVerse : true);
-        if (inNote || inSource || inParshaFocus || pv.has(vn)) e.classList.add('hl');
+        if (inNote || inSource || inIconHover || inParshaFocus || pv.has(vn)) e.classList.add('hl');
       });
       paintVerseHighlights();
     });
@@ -1012,30 +1022,28 @@ export function App(): JSX.Element {
                 </button>
               )}
             </For>
-            <For each={verseIcons()}>
-              {(ic) => (
-                <div class="vgutter-stack" style={{ top: `${ic.top}px`, left: `${ic.left}px` }}>
-                  <For each={ic.kinds}>
-                    {(k) => (
-                      <button
-                        type="button"
-                        class={`vgutter vgutter-${k}`}
-                        classList={{ active: source()?.verse === ic.v && source()?.kind === k }}
-                        style={{
-                          width: `${ICON_SIZE}px`,
-                          height: `${ICON_SIZE}px`,
-                          background: colorForKind(k),
-                        }}
-                        title={`${k} · verse ${ic.v}`}
-                        onClick={() => openSource(ic.v, k)}
-                      >
-                        <ReaderIcon kind={k} />
-                      </button>
-                    )}
-                  </For>
-                </div>
+            <Index each={verseIcons()}>
+              {(pod) => (
+                <MarginPod
+                  items={pod().items.map(({ v, kind }) => ({
+                    id: `${v}:${kind}`,
+                    kind,
+                    label: `${t(kind, loc().lang)} \u00b7 ${t('verse', loc().lang)} ${v}`,
+                  }))}
+                  textSide={pod().side === 'right' ? 'left' : 'right'}
+                  x={pod().x}
+                  y={pod().y}
+                  activeId={source() ? `${source()?.verse}:${source()?.kind}` : null}
+                  onActivate={(item) => {
+                    const [v, kind] = item.id.split(':');
+                    openSource(Number(v), kind as SourceKind);
+                  }}
+                  onPreview={(item) =>
+                    setIconHoverVerse(item ? Number(item.id.split(':')[0]) : null)
+                  }
+                />
               )}
-            </For>
+            </Index>
             <Show when={selected()}>
               {(sel) => (
                 <div

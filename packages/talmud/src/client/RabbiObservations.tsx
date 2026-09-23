@@ -34,7 +34,7 @@ interface Props {
   slug?: string | null;
 }
 
-const PANEL_BG = '#fafaf7';
+const PANEL_BG = 'var(--bg)';
 const PANEL_BORDER = '#eae8e0';
 
 async function fetchObservations(slug: string): Promise<ObsResponse | null> {

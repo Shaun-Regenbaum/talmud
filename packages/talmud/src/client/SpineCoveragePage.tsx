@@ -756,7 +756,7 @@ export function SpineCoveragePage(): JSX.Element {
                               padding: '0.5rem 0.7rem',
                               border: '1px solid #eae8e0',
                               'border-radius': '6px',
-                              background: '#fafaf7',
+                              background: 'var(--bg)',
                               'font-size': '0.83rem',
                             }}
                           >
