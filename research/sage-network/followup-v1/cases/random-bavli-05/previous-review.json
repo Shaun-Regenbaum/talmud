@@ -1,0 +1,64 @@
+{
+  "job_id": "random-bavli-05",
+  "input_sha256": "00c3f1cce6fec2a2e21b7907da63397b09dd56fd5d775f4d6c3171c4111cc7a2",
+  "output_sha256": "621b5a2a763f1c8908781d705524b7a4bc89c14cc1256345546f59732aab7998",
+  "checks": [
+    {
+      "kind": "source",
+      "index": 0,
+      "status": "pass",
+      "reason": "Sanhedrin 107b:18 distinguishes the Flood generation, dispersion generation and Sodom. c1–c3 preserve the different judgment claims instead of flattening them into one fate.",
+      "claim_ids": [
+        "c1",
+        "c2",
+        "c3"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 1,
+      "status": "pass",
+      "reason": "Nehemya’s verse and the unnamed reply continue into 108a:1. The reply is linked to Nehemya, while its precise target group remains an open question.",
+      "claim_ids": [
+        "c5",
+        "c6",
+        "c7"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 2,
+      "status": "pass",
+      "reason": "The spies and wilderness generation remain separate groups. Akiva’s exclusion and Eliezer’s counter-verse are attributed views, not reported events.",
+      "claim_ids": [
+        "c4",
+        "c8",
+        "c9",
+        "c10"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 3,
+      "status": "miss",
+      "reason": "The mentions do not cover the repeated דור המבול and אנשי סדום references in 108a:1. Their entities are preserved through earlier mentions only.",
+      "claim_ids": [
+        "c5"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "minor",
+      "type": "omission",
+      "claim_ids": [
+        "c5"
+      ],
+      "reason": "Repeated group references in the interpretation of Nehemya’s verse lack mention records, even though c5 uses them to identify the two groups.",
+      "source_refs": [
+        "Sanhedrin 108a:1"
+      ]
+    }
+  ],
+  "summary": "The different groups, views and reply are preserved. Repeated group mentions are incomplete; the reply’s scope is honestly left open."
+}

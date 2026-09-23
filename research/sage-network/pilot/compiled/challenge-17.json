@@ -1,0 +1,1792 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-17",
+    "episode": {
+      "genre": "mixed",
+      "genre_reason": "A support hearing is followed by jealousy and violence.",
+      "form": "court and household story",
+      "coverage": "needs_context",
+      "needed_context": [
+        "The three men in the accusation are unnamed; their deaths and relationship to Homa are not independently narrated."
+      ],
+      "notes": []
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "חומא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "אביי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רבא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "נחמני",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "בת רב חסדא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "רב חסדא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "תלתא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "אחרינא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "בי דינא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m10",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "מחוזא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m11",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "פסוק לי מזוני!",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m12",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "פסוק לי חמרא!",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m13",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "פסק לה.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m14",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ידענא ביה בנחמני דלא הוה שתי חמרא.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m15",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "חיי דמר דהוה משקי לי בשופרזי כי האי.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m16",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "בהדי דקא מחויא ליה איגלי דרעא, נפל נהורא בבי דינא.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m17",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "קם רבא, על לביתיה תבעה לבת רב חסדא.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m18",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "מאן הוי האידנא בבי דינא?",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m19",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "חומא דביתהו דאביי.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m20",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "נפקא אבתרה, מחתא לה בקולפי דשידא עד דאפקה לה מכולי מחוזא.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m21",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "קטלת ליך תלתא, ואתת למיקטל אחרינא?!",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m22",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "נחמני",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m23",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "דהוה משקי לי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m24",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "אחרינא",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "homa",
+        "kind": "person",
+        "label": "Homa",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "חומא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "abaye",
+        "kind": "person",
+        "label": "Abaye, Homa’s husband",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אביי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "rava",
+        "kind": "person",
+        "label": "Rava",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "nahmani",
+        "kind": "person",
+        "label": "Nahmani named by Rava",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "נחמני",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "daughter",
+        "kind": "person",
+        "label": "Rav Hisda’s unnamed daughter",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בת רב חסדא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "hisda",
+        "kind": "person",
+        "label": "Rav Hisda",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רב חסדא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "three",
+        "kind": "group",
+        "label": "Three people referred to in the accusation",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "תלתא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "other",
+        "kind": "person",
+        "label": "Another prospective victim in the accusation",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אחרינא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "court",
+        "kind": "place",
+        "label": "Courtroom",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "בי דינא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "mehoza",
+        "kind": "place",
+        "label": "Mehoza",
+        "mention_ids": [
+          "m10"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "מחוזא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "food",
+        "kind": "statement",
+        "label": "Request for food support",
+        "mention_ids": [
+          "m11"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסוק לי מזוני!",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "wine",
+        "kind": "statement",
+        "label": "Request for wine support",
+        "mention_ids": [
+          "m12"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסוק לי חמרא!",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "foodaward",
+        "kind": "event",
+        "label": "Award of food support",
+        "mention_ids": [
+          "m13"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסק לה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "abstains",
+        "kind": "statement",
+        "label": "Rava says Nahmani did not drink wine",
+        "mention_ids": [
+          "m14"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ידענא ביה בנחמני דלא הוה שתי חמרא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "served",
+        "kind": "statement",
+        "label": "Homa says he gave her large cups of wine",
+        "mention_ids": [
+          "m15"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "חיי דמר דהוה משקי לי בשופרזי כי האי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "arm",
+        "kind": "event",
+        "label": "Her arm is exposed while demonstrating and light falls in court",
+        "mention_ids": [
+          "m16"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "בהדי דקא מחויא ליה איגלי דרעא, נפל נהורא בבי דינא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "intimacy",
+        "kind": "event",
+        "label": "Rava goes home and seeks intimacy with Rav Hisda’s daughter",
+        "mention_ids": [
+          "m17"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "קם רבא, על לביתיה תבעה לבת רב חסדא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "who",
+        "kind": "statement",
+        "label": "Who was in court today?",
+        "mention_ids": [
+          "m18"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "מאן הוי האידנא בבי דינא?",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "answer",
+        "kind": "statement",
+        "label": "Homa, wife of Abaye, was there",
+        "mention_ids": [
+          "m19"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "חומא דביתהו דאביי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "beating",
+        "kind": "event",
+        "label": "Rav Hisda’s daughter beats and drives Homa out of Mehoza",
+        "mention_ids": [
+          "m20"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "נפקא אבתרה, מחתא לה בקולפי דשידא עד דאפקה לה מכולי מחוזא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "accusation",
+        "kind": "statement",
+        "label": "You killed three and came to kill another?",
+        "mention_ids": [
+          "m21"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "קטלת ליך תלתא, ואתת למיקטל אחרינא?!",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "family",
+        "predicate": "spouse_of",
+        "subject": "homa",
+        "object": "abaye",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "חומא דביתהו דאביי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "daughter",
+        "object": "hisda",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בת רב חסדא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "scenes",
+        "predicate": "visits",
+        "subject": "homa",
+        "object": "rava",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אתאי לקמיה דרבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c4",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "homa",
+        "object": "rava",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "food"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמרה ליה: פסוק לי מזוני!",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "rava",
+        "object": "foodaward",
+        "roles": [
+          {
+            "role": "beneficiary",
+            "entity": "homa"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסק לה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "פסק",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "homa",
+        "object": "rava",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "wine"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסוק לי חמרא!",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c7",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "rava",
+        "object": "wine",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "homa"
+          },
+          {
+            "role": "content",
+            "entity": "abstains"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר ליה: ידענא ביה בנחמני דלא הוה שתי חמרא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The masculine אמר ליה occurs in the supplied text; the dialogue favors Rava answering Homa."
+        ]
+      },
+      {
+        "id": "c8",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "rava",
+        "object": "abstains",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ידענא ביה בנחמני דלא הוה שתי חמרא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rava",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c9",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "homa",
+        "object": "abstains",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "rava"
+          },
+          {
+            "role": "content",
+            "entity": "served"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמרה ליה: חיי דמר דהוה משקי לי בשופרזי כי האי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c10",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "homa",
+        "object": "arm",
+        "roles": [
+          {
+            "role": "observer",
+            "entity": "rava"
+          },
+          {
+            "role": "location",
+            "entity": "court"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "בהדי דקא מחויא ליה איגלי דרעא, נפל נהורא בבי דינא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "מחויא / איגלי",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c11",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "rava",
+        "object": "intimacy",
+        "roles": [
+          {
+            "role": "requested_partner",
+            "entity": "daughter"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "קם רבא, על לביתיה תבעה לבת רב חסדא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "תבעה",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c12",
+        "family": "family",
+        "predicate": "spouse_of",
+        "subject": "rava",
+        "object": "daughter",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "על לביתיה תבעה לבת רב חסדא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "medium",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "A spouse relationship is suggested by the home and intimacy scene, not named with דביתהו here."
+        ]
+      },
+      {
+        "id": "c13",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "daughter",
+        "object": "rava",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "who"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמרה ליה בת רב חסדא: מאן הוי האידנא בבי דינא?",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c14",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "rava",
+        "object": "who",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "daughter"
+          },
+          {
+            "role": "content",
+            "entity": "answer"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר לה: חומא דביתהו דאביי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c15",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "daughter",
+        "object": "beating",
+        "roles": [
+          {
+            "role": "target",
+            "entity": "homa"
+          },
+          {
+            "role": "location",
+            "entity": "mehoza"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "נפקא אבתרה, מחתא לה בקולפי דשידא עד דאפקה לה מכולי מחוזא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "מחתא / אפקה",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c16",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "daughter",
+        "object": "homa",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "accusation"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמרה לה: קטלת ליך תלתא, ואתת למיקטל אחרינא?!",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "A hostile rhetorical question is not an independently established killing."
+        ]
+      }
+    ],
+    "reading_groups": [],
+    "coreference_candidates": [
+      {
+        "mention_id": "m22",
+        "entity_ids": [
+          "nahmani",
+          "abaye"
+        ],
+        "branches": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "נחמני",
+            "occurrence": 1
+          }
+        ],
+        "reason": "The conversation suggests that Nahmani is the husband already named Abaye, but no explicit alias statement appears."
+      },
+      {
+        "mention_id": "m23",
+        "entity_ids": [
+          "nahmani",
+          "abaye"
+        ],
+        "branches": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "דהוה משקי לי",
+            "occurrence": 1
+          }
+        ],
+        "reason": "The unnamed giver is locally the husband under discussion. The name equivalence is not separately established."
+      },
+      {
+        "mention_id": "m24",
+        "entity_ids": [
+          "other",
+          "rava"
+        ],
+        "branches": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אחרינא",
+            "occurrence": 1
+          }
+        ],
+        "reason": "Rava is the likely intended new victim, but the accusation names no one."
+      }
+    ],
+    "open_questions": []
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "חומא",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 0,
+      "end": 4,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "אביי",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 13,
+      "end": 17,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "רבא",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 30,
+      "end": 33,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s1",
+      "quote": "נחמני",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 102,
+      "end": 107,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s2",
+      "quote": "בת רב חסדא",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 24,
+      "end": 34,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s2",
+      "quote": "רב חסדא",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 27,
+      "end": 34,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s2",
+      "quote": "תלתא",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 185,
+      "end": 189,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s2",
+      "quote": "אחרינא",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 203,
+      "end": 209,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s1",
+      "quote": "בי דינא",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 215,
+      "end": 222,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m10/anchor",
+      "source_id": "s2",
+      "quote": "מחוזא",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 160,
+      "end": 165,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m11/anchor",
+      "source_id": "s1",
+      "quote": "פסוק לי מזוני!",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 45,
+      "end": 59,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m12/anchor",
+      "source_id": "s1",
+      "quote": "פסוק לי חמרא!",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 68,
+      "end": 81,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m13/anchor",
+      "source_id": "s1",
+      "quote": "פסק לה.",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 60,
+      "end": 67,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m14/anchor",
+      "source_id": "s1",
+      "quote": "ידענא ביה בנחמני דלא הוה שתי חמרא.",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 91,
+      "end": 125,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m15/anchor",
+      "source_id": "s1",
+      "quote": "חיי דמר דהוה משקי לי בשופרזי כי האי.",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 136,
+      "end": 172,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m16/anchor",
+      "source_id": "s1",
+      "quote": "בהדי דקא מחויא ליה איגלי דרעא, נפל נהורא בבי דינא.",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 173,
+      "end": 223,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m17/anchor",
+      "source_id": "s2",
+      "quote": "קם רבא, על לביתיה תבעה לבת רב חסדא.",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 0,
+      "end": 35,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m18/anchor",
+      "source_id": "s2",
+      "quote": "מאן הוי האידנא בבי דינא?",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 57,
+      "end": 81,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m19/anchor",
+      "source_id": "s2",
+      "quote": "חומא דביתהו דאביי.",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 90,
+      "end": 108,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m20/anchor",
+      "source_id": "s2",
+      "quote": "נפקא אבתרה, מחתא לה בקולפי דשידא עד דאפקה לה מכולי מחוזא.",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 109,
+      "end": 166,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m21/anchor",
+      "source_id": "s2",
+      "quote": "קטלת ליך תלתא, ואתת למיקטל אחרינא?!",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 176,
+      "end": 211,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m22/anchor",
+      "source_id": "s1",
+      "quote": "נחמני",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 102,
+      "end": 107,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m23/anchor",
+      "source_id": "s1",
+      "quote": "דהוה משקי לי",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 144,
+      "end": 156,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m24/anchor",
+      "source_id": "s2",
+      "quote": "אחרינא",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 203,
+      "end": 209,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/homa/evidence/0",
+      "source_id": "s1",
+      "quote": "חומא",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 0,
+      "end": 4,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/abaye/evidence/0",
+      "source_id": "s1",
+      "quote": "אביי",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 13,
+      "end": 17,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/rava/evidence/0",
+      "source_id": "s1",
+      "quote": "רבא",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 30,
+      "end": 33,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/nahmani/evidence/0",
+      "source_id": "s1",
+      "quote": "נחמני",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 102,
+      "end": 107,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/daughter/evidence/0",
+      "source_id": "s2",
+      "quote": "בת רב חסדא",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 24,
+      "end": 34,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/hisda/evidence/0",
+      "source_id": "s2",
+      "quote": "רב חסדא",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 27,
+      "end": 34,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/three/evidence/0",
+      "source_id": "s2",
+      "quote": "תלתא",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 185,
+      "end": 189,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/other/evidence/0",
+      "source_id": "s2",
+      "quote": "אחרינא",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 203,
+      "end": 209,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/court/evidence/0",
+      "source_id": "s1",
+      "quote": "בי דינא",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 215,
+      "end": 222,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/mehoza/evidence/0",
+      "source_id": "s2",
+      "quote": "מחוזא",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 160,
+      "end": 165,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/food/evidence/0",
+      "source_id": "s1",
+      "quote": "פסוק לי מזוני!",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 45,
+      "end": 59,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/wine/evidence/0",
+      "source_id": "s1",
+      "quote": "פסוק לי חמרא!",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 68,
+      "end": 81,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/foodaward/evidence/0",
+      "source_id": "s1",
+      "quote": "פסק לה.",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 60,
+      "end": 67,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/abstains/evidence/0",
+      "source_id": "s1",
+      "quote": "ידענא ביה בנחמני דלא הוה שתי חמרא.",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 91,
+      "end": 125,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/served/evidence/0",
+      "source_id": "s1",
+      "quote": "חיי דמר דהוה משקי לי בשופרזי כי האי.",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 136,
+      "end": 172,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/arm/evidence/0",
+      "source_id": "s1",
+      "quote": "בהדי דקא מחויא ליה איגלי דרעא, נפל נהורא בבי דינא.",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 173,
+      "end": 223,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/intimacy/evidence/0",
+      "source_id": "s2",
+      "quote": "קם רבא, על לביתיה תבעה לבת רב חסדא.",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 0,
+      "end": 35,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/who/evidence/0",
+      "source_id": "s2",
+      "quote": "מאן הוי האידנא בבי דינא?",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 57,
+      "end": 81,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/answer/evidence/0",
+      "source_id": "s2",
+      "quote": "חומא דביתהו דאביי.",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 90,
+      "end": 108,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/beating/evidence/0",
+      "source_id": "s2",
+      "quote": "נפקא אבתרה, מחתא לה בקולפי דשידא עד דאפקה לה מכולי מחוזא.",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 109,
+      "end": 166,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/accusation/evidence/0",
+      "source_id": "s2",
+      "quote": "קטלת ליך תלתא, ואתת למיקטל אחרינא?!",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 176,
+      "end": 211,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "חומא דביתהו דאביי",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 0,
+      "end": 17,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s2",
+      "quote": "בת רב חסדא",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 24,
+      "end": 34,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "אתאי לקמיה דרבא",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 18,
+      "end": 33,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s1",
+      "quote": "אמרה ליה: פסוק לי מזוני!",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 35,
+      "end": 59,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s1",
+      "quote": "פסק לה.",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 60,
+      "end": 67,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s1",
+      "quote": "פסוק לי חמרא!",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 68,
+      "end": 81,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר ליה: ידענא ביה בנחמני דלא הוה שתי חמרא.",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 82,
+      "end": 125,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s1",
+      "quote": "ידענא ביה בנחמני דלא הוה שתי חמרא.",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 91,
+      "end": 125,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s1",
+      "quote": "אמרה ליה: חיי דמר דהוה משקי לי בשופרזי כי האי.",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 126,
+      "end": 172,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s1",
+      "quote": "בהדי דקא מחויא ליה איגלי דרעא, נפל נהורא בבי דינא.",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 173,
+      "end": 223,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c11/evidence/0",
+      "source_id": "s2",
+      "quote": "קם רבא, על לביתיה תבעה לבת רב חסדא.",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 0,
+      "end": 35,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c12/evidence/0",
+      "source_id": "s2",
+      "quote": "על לביתיה תבעה לבת רב חסדא.",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 8,
+      "end": 35,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c13/evidence/0",
+      "source_id": "s2",
+      "quote": "אמרה ליה בת רב חסדא: מאן הוי האידנא בבי דינא?",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 36,
+      "end": 81,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c14/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר לה: חומא דביתהו דאביי.",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 82,
+      "end": 108,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c15/evidence/0",
+      "source_id": "s2",
+      "quote": "נפקא אבתרה, מחתא לה בקולפי דשידא עד דאפקה לה מכולי מחוזא.",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 109,
+      "end": 166,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c16/evidence/0",
+      "source_id": "s2",
+      "quote": "אמרה לה: קטלת ליך תלתא, ואתת למיקטל אחרינא?!",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 167,
+      "end": 211,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "coreference_candidates/0/evidence/0",
+      "source_id": "s1",
+      "quote": "נחמני",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 102,
+      "end": 107,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "coreference_candidates/1/evidence/0",
+      "source_id": "s1",
+      "quote": "דהוה משקי לי",
+      "occurrence": 1,
+      "source_sha256": "d7456d45dd44313ae4401b7b3b438e99eda1fc040f0f9b56ce6fdc68f198f40f",
+      "start": 144,
+      "end": 156,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "coreference_candidates/2/evidence/0",
+      "source_id": "s2",
+      "quote": "אחרינא",
+      "occurrence": 1,
+      "source_sha256": "cab8374ef765f772edfbeee870eac9f49b90c6fb19b9fdd58abf5066da159dc2",
+      "start": 203,
+      "end": 209,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "2955ea8468db5bba259cee336670b21c43758ac2fb57032047cdcb6c518329ec",
+  "output_sha256": "476e77e67d30bc9dc0e79cb2d6995a1b824e739b3d5d2ddb796c3af7971a295c",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.352920+00:00"
+}

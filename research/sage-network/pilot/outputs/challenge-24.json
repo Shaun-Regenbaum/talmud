@@ -1,0 +1,570 @@
+{
+  "schema_version": "passage-pilot-v1",
+  "job_id": "challenge-24",
+  "episode": {
+    "genre": "aggadic",
+    "genre_reason": "A rain petition and an explanation of a nickname.",
+    "form": "story and prayer",
+    "coverage": "complete_for_supplied_text",
+    "needed_context": [],
+    "notes": []
+  },
+  "mentions": [
+    {
+      "id": "m1",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "חנן הנחבא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m2",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ברתיה דחוני המעגל",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m3",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "חוני המעגל",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m4",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבנן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m5",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ינוקי דבי רב",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m6",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "עלמא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m7",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "הקדוש ברוך הוא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m8",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "כי מצטריך עלמא למיטרא, הוו משדרי רבנן ינוקי דבי רב לגביה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m9",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ונקטי ליה בשיפולי גלימיה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m10",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "אבא, אבא, הב לן מיטרא!",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m11",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "עשה בשביל אלו, שאין מכירין בין אבא דיהיב מיטרא, לאבא דלא יהיב מיטרא.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m12",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "שהיה מחביא עצמו בבית הכסא.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m13",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "בית הכסא",
+        "occurrence": 1
+      }
+    }
+  ],
+  "entities": [
+    {
+      "id": "hanan",
+      "kind": "person",
+      "label": "Hanan the Hidden",
+      "mention_ids": [
+        "m1"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "חנן הנחבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "mother",
+      "kind": "person",
+      "label": "Unnamed daughter of Honi and mother of Hanan",
+      "mention_ids": [
+        "m2"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ברתיה דחוני המעגל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "honi",
+      "kind": "person",
+      "label": "Honi the Circle Drawer",
+      "mention_ids": [
+        "m3"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "חוני המעגל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "rabbis",
+      "kind": "group",
+      "label": "Rabbis sending schoolchildren",
+      "mention_ids": [
+        "m4"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבנן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "children",
+      "kind": "group",
+      "label": "Schoolchildren",
+      "mention_ids": [
+        "m5"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ינוקי דבי רב",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "world",
+      "kind": "group",
+      "label": "People needing rain",
+      "mention_ids": [
+        "m6"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "עלמא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "god",
+      "kind": "unknown",
+      "label": "God addressed in prayer",
+      "mention_ids": [
+        "m7"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הקדוש ברוך הוא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "sending",
+      "kind": "event",
+      "label": "Sending children when rain is needed",
+      "mention_ids": [
+        "m8"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "כי מצטריך עלמא למיטרא, הוו משדרי רבנן ינוקי דבי רב לגביה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "grasp",
+      "kind": "event",
+      "label": "Children grasping his garment",
+      "mention_ids": [
+        "m9"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ונקטי ליה בשיפולי גלימיה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "request",
+      "kind": "statement",
+      "label": "Children ask for rain",
+      "mention_ids": [
+        "m10"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אבא, אבא, הב לן מיטרא!",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "prayer",
+      "kind": "statement",
+      "label": "Prayer for children unable to distinguish who gives rain",
+      "mention_ids": [
+        "m11"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "עשה בשביל אלו, שאין מכירין בין אבא דיהיב מיטרא, לאבא דלא יהיב מיטרא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "hiding",
+      "kind": "event",
+      "label": "Hiding in the privy",
+      "mention_ids": [
+        "m12"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "שהיה מחביא עצמו בבית הכסא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "privy",
+      "kind": "place",
+      "label": "Privy",
+      "mention_ids": [
+        "m13"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "בית הכסא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "hanan",
+      "object": "mother",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "חנן הנחבא בר ברתיה דחוני המעגל הוה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c2",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "mother",
+      "object": "honi",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ברתיה דחוני המעגל",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c3",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "rabbis",
+      "object": "sending",
+      "roles": [
+        {
+          "role": "sent",
+          "entity": "children"
+        },
+        {
+          "role": "destination",
+          "entity": "hanan"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הוו משדרי רבנן ינוקי דבי רב לגביה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "משדרי",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c4",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "children",
+      "object": "grasp",
+      "roles": [
+        {
+          "role": "target",
+          "entity": "hanan"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ונקטי ליה בשיפולי גלימיה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "נקטי",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c5",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "children",
+      "object": "hanan",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "request"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ואמרו ליה: אבא, אבא, הב לן מיטרא!",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Calling Hanan father does not establish parentage."
+      ]
+    },
+    {
+      "id": "c6",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "hanan",
+      "object": "god",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "prayer"
+        },
+        {
+          "role": "beneficiary",
+          "entity": "children"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר לפני הקדוש ברוך הוא: רבונו של עולם! עשה בשביל אלו",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c7",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "hanan",
+      "object": "hiding",
+      "roles": [
+        {
+          "role": "location",
+          "entity": "privy"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "מפני שהיה מחביא עצמו בבית הכסא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "מחביא עצמו",
+      "time_scope": null,
+      "notes": []
+    }
+  ],
+  "reading_groups": [],
+  "coreference_candidates": [],
+  "open_questions": []
+}

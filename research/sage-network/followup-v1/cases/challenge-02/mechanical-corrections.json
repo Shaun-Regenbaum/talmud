@@ -1,0 +1,20 @@
+{
+  "original_sha256": "ac7289b58e0898e2b5e55e4fdb308dad003b2a11619c3d0cf1e606fda0ae7379",
+  "corrected_sha256": "bf6bd5c0fa410e23956363e6dd61a9213dcd8da9e831744fd0df45c1cb11c28c",
+  "changes": [
+    {
+      "finding_id": "F13",
+      "evidence_index": 0,
+      "field": "exact_quote + evidence_type",
+      "previous": {
+        "exact_quote": null,
+        "visual_reading_tentative": "…זיקי דחמרא דאשתכחו בי קופאי שרינהו רבא לימא דלא סבר לה לר' חנינא שאני התם דרוב[א] … ישר' נינהו והנ\"מ …"
+      },
+      "corrected": {
+        "exact_quote": "…זיקי דחמרא דאשתכחו בי קופאי שרינהו רבא לימא דלא סבר לה לר' חנינא שאני התם דרוב[א] … ישר' נינהו והנ\"מ …",
+        "evidence_type": "researcher_visual_reading_of_page_image"
+      },
+      "reason": "The reader transcribed a page photograph but saved it outside exact_quote. Record it as a visual reading, which the checker keeps as unchecked instead of treating it as a verified quotation."
+    }
+  ]
+}

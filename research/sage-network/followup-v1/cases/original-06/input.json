@@ -1,0 +1,136 @@
+{
+  "job_id": "original-06",
+  "focal_ref": "Arakhin 13b:4",
+  "input_lake_snapshot": 2,
+  "original_document": "relation-cases-sources.json",
+  "source": {
+    "ref": "Arakhin 13b:4",
+    "url": "https://www.sefaria.org/Arakhin.13b.4",
+    "api_url": "https://www.sefaria.org/api/texts/Arakhin%2013b%3A4?context=0&pad=0&commentary=0",
+    "hebrew": "משתי חצוצרות ומוסיפין וכו׳. ועד כמה? אמר רב הונא, ואמרי לה אמר רב זבדי אמר רב הונא: עד מאה ועשרים, שנאמר: ״ועמהם כהנים למאה ועשרים מחצרים בחצוצרות״.",
+    "hebrew_sha256": "82b9db34269cbf80e853da04a3d2a902802484d7aab6807af5af712c11bb732e",
+    "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+    "hebrew_license": "CC-BY-NC",
+    "english_edition": "William Davidson Edition - English",
+    "pairs": [
+      {
+        "key": "bavli|Arakhin|13b|4|40|61",
+        "ref": "Arakhin 13b:4",
+        "a": "רב הונא",
+        "b": "רב זבדי",
+        "pattern": "אמר [A] אמרי לה אמר [B]",
+        "kind": "alternative",
+        "source": "reader",
+        "direction": "",
+        "sure": true,
+        "first_pass": {
+          "kind": "cites",
+          "confidence": 0.44,
+          "p": {
+            "follows": 0.0,
+            "teacher": 0.03,
+            "before": 0.0,
+            "together": 0.0,
+            "cites": 0.48,
+            "addresses": 0.0,
+            "disputes": 0.0,
+            "juxtaposed": 0.0,
+            "asks": 0.0,
+            "one-name": 0.0,
+            "explains": 0.0,
+            "kin": 0.0,
+            "same-man": 0.02,
+            "alternative": 0.46,
+            "none": 0.01
+          }
+        }
+      },
+      {
+        "key": "bavli|Arakhin|13b|4|61|73",
+        "ref": "Arakhin 13b:4",
+        "a": "רב זבדי",
+        "b": "רב הונא",
+        "pattern": "אמר [A] אמר [B]",
+        "kind": "cites",
+        "source": "reader",
+        "direction": "AB",
+        "sure": true,
+        "first_pass": {
+          "kind": "cites",
+          "confidence": 0.66,
+          "p": {
+            "follows": 0.0,
+            "teacher": 0.03,
+            "before": 0.0,
+            "together": 0.0,
+            "cites": 0.6900000000000001,
+            "addresses": 0.0,
+            "one-name": 0.0,
+            "juxtaposed": 0.0,
+            "asks": 0.0,
+            "kin": 0.0,
+            "explains": 0.0,
+            "disputes": 0.0,
+            "same-man": 0.03,
+            "alternative": 0.25,
+            "none": 0.0
+          }
+        }
+      }
+    ]
+  },
+  "earlier_crosscheck": {
+    "ref": "Arakhin 13b:4",
+    "existing_case_id": "arakhin_attribution",
+    "review_result": "agree_but_reject_historical_exclusivity",
+    "sources": [
+      {
+        "ref": "Arakhin 13b:4",
+        "url": "https://www.sefaria.org/Arakhin_13b.4",
+        "api_url": "https://www.sefaria.org/api/texts/Arakhin%2013b?context=0&pad=0&commentary=0",
+        "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+        "translation_edition": "William Davidson Edition - English",
+        "hebrew": "מִשְּׁתֵּי חֲצוֹצְרוֹת וּמוֹסִיפִין וְכוּ׳. וְעַד כַּמָּה? אָמַר רַב הוּנָא, וְאָמְרִי לַהּ אָמַר רַב זַבְדִּי אָמַר רַב הוּנָא: עַד מֵאָה וְעֶשְׂרִים, שֶׁנֶּאֱמַר: ״וְעִמָּהֶם כֹּהֲנִים לְמֵאָה וְעֶשְׂרִים מַחְצְרִים בַּחֲצוֹצְרוֹת״.",
+        "api_hebrew_html_sha256": "1adadf00715c23f9ee357c0a7877f3493aa6171fe250beb276c09e1dd8d1640f"
+      }
+    ],
+    "context_read": [
+      "Arakhin 13b:1-5"
+    ],
+    "finding": "Both versions attribute the limit of 120 trumpets to Rav Huna. One version also names Rav Zavdi as a transmitter.",
+    "claims_to_keep": [
+      {
+        "subject": "Rav Huna",
+        "relation": "credited_with_teaching",
+        "object": "The limit of 120 trumpets",
+        "scope": "shared_by_both_report_versions"
+      },
+      {
+        "subject": "Rav Zavdi",
+        "relation": "reports_in_name_of",
+        "object": "Rav Huna",
+        "scope": "expanded_attribution_version_only"
+      }
+    ],
+    "agreement": "One teaching with two source-supported attribution versions is the right representation. Do not create a Huna-to-Zavdi edge from the names on opposite sides of ואמרי לה.",
+    "correction": "A shorter attribution and a longer transmission chain can both describe the same history. The source presents alternatives in how the teaching is reported. It does not assert that Rav Huna never taught it directly if Rav Zavdi also transmitted it. Store textual alternatives without automatically making their historical claims mutually exclusive.",
+    "variant_semantics": {
+      "kind": "attribution_length",
+      "exclusive_as_report_forms": true,
+      "historically_mutually_exclusive": "not_established",
+      "independent_witness_count": "one_passage"
+    },
+    "uncertainty": {
+      "textual_branches": "clear",
+      "historical_transmission": "not_independently_verified",
+      "direct_hearing": "not_stated"
+    },
+    "episode": {
+      "kind": "halachic",
+      "form": "alternate_attributions_of_one_teaching"
+    },
+    "unresolved_scope": [
+      "No parallel transmission history was sought."
+    ]
+  }
+}

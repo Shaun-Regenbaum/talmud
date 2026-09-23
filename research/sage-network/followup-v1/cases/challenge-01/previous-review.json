@@ -1,0 +1,69 @@
+{
+  "job_id": "challenge-01",
+  "input_sha256": "f9d2d1fea3b10364f161e32ab433ad2d266556ee6f143817a11ee4edfb6acffd",
+  "output_sha256": "652f1cb5ec7f8b0b7235d1aef30c5b6d9f5131fea5e220d40c8f1b4564522150",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "Both readings of the exact parenthesized span have opposite rules_like polarity and separate branches.",
+      "claim_ids": [
+        "c6",
+        "c7"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "The danger statement explains Yosi’s weekday prohibition without negating it.",
+      "claim_ids": [
+        "c4",
+        "c5"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "The legal ruling and cedar entry/release use separate statement and event nodes.",
+      "claim_ids": [
+        "c6",
+        "c7",
+        "c9",
+        "c10",
+        "c11"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 3,
+      "status": "not_applicable",
+      "reason": "No commentary source was supplied and no commentary finding was claimed.",
+      "claim_ids": []
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "The parentheses remain in the evidence and neither polarity is silently selected.",
+      "claim_ids": [
+        "c6",
+        "c7"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "The extraction reports enclosure and rescue without declaring the cedar the original danger or importing a protective explanation.",
+      "claim_ids": [
+        "c9",
+        "c10"
+      ]
+    }
+  ],
+  "additional_findings": [],
+  "summary": "The textual negation and the story are preserved without importing commentary."
+}

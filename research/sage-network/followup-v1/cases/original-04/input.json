@@ -1,0 +1,82 @@
+{
+  "job_id": "original-04",
+  "focal_ref": "Pesachim 103a:5",
+  "input_lake_snapshot": 2,
+  "original_document": "relation-cases-sources.json",
+  "source": {
+    "ref": "Pesachim 103a:5",
+    "url": "https://www.sefaria.org/Pesachim.103a.5",
+    "api_url": "https://www.sefaria.org/api/texts/Pesachim%20103a%3A5?context=0&pad=0&commentary=0",
+    "hebrew": "רב הונא בר יהודה איקלע לבי רבא, אייתו לקמייהו מאור ובשמים. בריך רבא אבשמים ברישא והדר אמאור. אמר ליה: והא בין בית שמאי ובין בית הילל — מאור ברישא והדר אבשמים.",
+    "hebrew_sha256": "ac60515afaf8d42a2a33d21accd18b9bb9137319c9cbbb0bdd4f1af120c5715a",
+    "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+    "hebrew_license": "CC-BY-NC",
+    "english_edition": "William Davidson Edition - English",
+    "pairs": [
+      {
+        "key": "bavli|Pesachim|103a|5|0|27",
+        "ref": "Pesachim 103a:5",
+        "a": "רב הונא בר יהודה",
+        "b": "רבא",
+        "pattern": "[A] איקלע לבי [B]",
+        "kind": "addresses",
+        "source": "reader",
+        "direction": "AB",
+        "sure": true,
+        "first_pass": {
+          "kind": "before",
+          "confidence": 0.61,
+          "p": {
+            "kin": 0.01,
+            "addresses": 0.16,
+            "teacher": 0.0,
+            "together": 0.01,
+            "none": 0.12,
+            "juxtaposed": 0.01,
+            "before": 0.65,
+            "asks": 0.01,
+            "disputes": 0.02,
+            "one-name": 0.0,
+            "explains": 0.0,
+            "follows": 0.0,
+            "alternative": 0.0,
+            "same-man": 0.01,
+            "cites": 0.0
+          }
+        }
+      },
+      {
+        "key": "bavli|Pesachim|103a|5|27|62",
+        "ref": "Pesachim 103a:5",
+        "a": "רבא",
+        "b": "רבא",
+        "pattern": "[A] אייתו לקמייהו מאור ובשמים בריך [B]",
+        "kind": "same-man",
+        "source": "rule",
+        "direction": "",
+        "first_pass": {
+          "kind": "before",
+          "confidence": 0.64,
+          "p": {
+            "kin": 0.01,
+            "addresses": 0.19,
+            "teacher": 0.01,
+            "together": 0.01,
+            "none": 0.05,
+            "before": 0.67,
+            "juxtaposed": 0.01,
+            "asks": 0.01,
+            "explains": 0.0,
+            "one-name": 0.0,
+            "disputes": 0.03,
+            "follows": 0.0,
+            "same-man": 0.01,
+            "alternative": 0.0,
+            "cites": 0.0
+          }
+        }
+      }
+    ]
+  },
+  "earlier_crosscheck": null
+}

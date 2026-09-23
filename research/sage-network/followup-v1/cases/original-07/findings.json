@@ -1,0 +1,550 @@
+{
+  "scope_checked": [
+    "Pesachim 36b:13-16 and 37a:1-7 (William Davidson Aramaic and English)",
+    "Pesachim 37a:4 in Wikisource Talmud Bavli Hebrew and in the Goldschmidt German translation",
+    "Parallel sugya Beitzah 22b:3-8 (William Davidson Aramaic and English, Wikisource, Goldschmidt)",
+    "Rashi on Pesachim 37a:4 and on Beitzah 22b:6-7; Steinsaltz on both; Tosafot on Pesachim 37a and on Beitzah 22b:7; Ritva on Pesachim 37a:1; Meiri on Pesachim 37a; Rif Pesachim 10b and Beitzah 11b; Rosh Pesachim 2:15; Rashba on Beitzah 22b:3; Jastrow; Melekhet Shelomoh",
+    "Seder HaDorot, Tanaim and Amoraim 2232 (entry on Yirmeya bar Abba) and Tosafot on Kiddushin 46a",
+    "Not checked: manuscripts, Dikdukei Soferim, Geonic sources, Yerushalmi Beitzah 2 in full"
+  ],
+  "findings": [
+    {
+      "finding_id": "F1",
+      "claim": "In the first reported version (version A), Yirmeya bar Abba speaks in the first person: he asked his own teacher, and the text itself names that teacher as Rav.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "pes37a_v3",
+          "exact_quote": "אָמַר רַב יִרְמְיָה בַּר אַבָּא: שְׁאֵילִית אֶת רַבִּי בְּיִחוּד, וּמַנּוּ: רַב."
+        },
+        {
+          "source_id": "pes37a_goldschmidt",
+          "exact_quote": "R. Jirmeja b. Abba sagte, er habe seinen Lehrer, das ist Rabh, besonders gefragt"
+        },
+        {
+          "source_id": "beitzah22b_v3",
+          "exact_quote": "אָמַר רַב יִרְמְיָה בַּר אַבָּא: שְׁאֵלִית אֶת רַבִּי בְּיִחוּד, וּמַנּוּ — רַב: מַאי פַּת עָבָה? פַּת מְרוּבָּה."
+        }
+      ],
+      "translation": "My translation: 'Rav Yirmeya bar Abba said: I asked my teacher [biyichud], and who is he? Rav.'",
+      "reasoning": "שאילית is first person singular, so the asker is the speaker named by אמר. רבי here is 'my teacher' (noun with first person suffix); ומנו ('and who is he?') resolves it inside the text to רב. The Beitzah parallel has the same wording.",
+      "confidence": "high",
+      "graph_effect": "Version A only: Yirmeya bar Abba -asks-> Rav; Yirmeya bar Abba -calls my teacher-> Rav (explicit student-teacher statement by the student). Do not carry either edge into version B."
+    },
+    {
+      "finding_id": "F2",
+      "claim": "In the second version (introduced by 'some say'), Yirmeya bar Abba only transmits. The first-person asker is Rav, and Rav's teacher is named 'Rabbeinu HaKadosh' (our holy teacher).",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "pes37a_v3",
+          "exact_quote": "אִיכָּא דְּאָמְרִי, רַב יִרְמְיָה בַּר אַבָּא אָמַר רַב: שְׁאֵילִית אֶת רַבִּי בְּיִחוּד, וּמַנּוּ: רַבֵּינוּ הַקָּדוֹשׁ."
+        },
+        {
+          "source_id": "rashi_beitzah22b7",
+          "exact_quote": "ואיכא דאמרי - רב גופיה אמר שאלית את רבי ביחוד"
+        },
+        {
+          "source_id": "rashi_beitzah22b7",
+          "exact_quote": "ומנו - רבו דרב רבינו הקדוש"
+        },
+        {
+          "source_id": "beitzah22b_goldschmidt",
+          "exact_quote": "Rabh erzählte, er habe seinen Lehrer, das ist unser heiliger Meister, privatim gefragt"
+        }
+      ],
+      "translation": "My translation of the Talmud: 'Some say: Rav Yirmeya bar Abba said that Rav said: I asked my teacher [biyichud], and who is he? Our holy teacher.' My translation of Rashi on Beitzah: 'Some say: Rav himself said I asked my teacher privately. And who is he: Rav's teacher, Rabbeinu HaKadosh.'",
+      "reasoning": "The chain X אמר Y makes the following first-person speech Y's. Rashi on the Beitzah parallel says so explicitly (רב גופיה). Goldschmidt, an independent translation, also renders Rav as the narrator in Beitzah.",
+      "confidence": "high",
+      "graph_effect": "Version B only: Yirmeya bar Abba -transmits in the name of-> Rav; Rav -asks-> the teacher called רבינו הקדוש; Rav -calls my teacher-> רבינו הקדוש. In version B, Yirmeya bar Abba is not the asker and no teacher relation between Yirmeya and Rav is stated."
+    },
+    {
+      "finding_id": "F3",
+      "claim": "The word רבי in 'I asked רבי' is a role word, 'my teacher'. It refers to a different person in each version: Rav in A and Rabbeinu HaKadosh in B. It is not, in this passage, the proper title 'Rabbi' used for Judah HaNasi.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "rashi_37a",
+          "exact_quote": "רביה דר' ירמיה רב רביה דרב רבינו הקדוש"
+        },
+        {
+          "source_id": "links_37a4",
+          "exact_quote": "Pes. 37ᵃ שאילית את רבי בי׳ I asked my teacher privately."
+        },
+        {
+          "source_id": "pes37a_goldschmidt",
+          "exact_quote": "er habe seinen Lehrer, das ist unser heiliger Meister, besonders gefragt"
+        }
+      ],
+      "translation": "My translation of Rashi: 'The teacher of R. Yirmeya: Rav. The teacher of Rav: Rabbeinu HaKadosh.'",
+      "reasoning": "The resolution after ומנו differs between the versions, and Rashi assigns one teacher per speaker. Jastrow (a reference work) and Goldschmidt both translate רבי here as 'my teacher'. So the two occurrences of the same letters are two separate teacher slots.",
+      "confidence": "high",
+      "graph_effect": "Create one local teacher-slot mention per branch. In A it corefers with the local Rav; in B it corefers with the local person named רבינו הקדוש. Never join the two רבי tokens with each other, and never read A's רבי as Judah HaNasi."
+    },
+    {
+      "finding_id": "F4",
+      "claim": "The printed Aramaic says only 'Rabbeinu HaKadosh'. The name 'Rabbi Yehuda HaNasi' is an editorial identification added by the Koren/Steinsaltz editions, not words of the source.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "pes37a_v3",
+          "exact_quote": "<b>Rav said: I asked my special Rabbi, and who is this? Our holy Rabbi,</b> Rabbi Yehuda HaNasi:"
+        },
+        {
+          "source_id": "steinsaltz_37a4",
+          "exact_quote": "ומנו [ומי הוא] רבינו הקדוש (ר' יהודה הנשיא)"
+        },
+        {
+          "source_id": "beitzah22b_v3",
+          "exact_quote": "It is our holy Rabbi Yehuda HaNasi."
+        },
+        {
+          "source_id": "pes37a_wikisource",
+          "exact_quote": "ומנו רבינו הקדוש מאי פת עבה"
+        }
+      ],
+      "reasoning": "In the William Davidson English, bold marks translated source words; 'Rabbi Yehuda HaNasi' is outside the bold. Steinsaltz puts it in round brackets as an explanation. These are one editorial family (Koren Noé / Steinsaltz), so they count as a single identification, not several witnesses. Rashi and Goldschmidt keep the epithet without naming anyone.",
+      "confidence": "high",
+      "graph_effect": "Save רבינו הקדוש as the literal name of the local person in version B. Link to the global Judah HaNasi node only as a separate identity assertion, citing the Koren/Steinsaltz gloss as its source."
+    },
+    {
+      "finding_id": "F5",
+      "claim": "Both versions report the same question ('What is pat ava?') and the same short answer ('a large quantity of bread'). They differ only in who asked whom. In Pesachim the question and answer are written once, after version B. In the Beitzah parallel, version A has its own copy of the question and answer.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "pes37a_v3",
+          "exact_quote": "וּמַנּוּ: רַבֵּינוּ הַקָּדוֹשׁ. מַאי פַּת עָבָה? פַּת מְרוּבָּה."
+        },
+        {
+          "source_id": "beitzah22b_wikisource",
+          "exact_quote": "אמר רב ירמיה בר אבא שאלית את רבי ביחוד ומנו רב מאי פת עבה פת מרובה"
+        }
+      ],
+      "reasoning": "The Beitzah layout shows that version A has its own content. It is not just a heading. So the question and answer belong to both branches, each with its own asker and answerer.",
+      "confidence": "high",
+      "graph_effect": "Attach the statement 'pat ava = pat merubah' to both branches. In A the answerer is Rav; in B it is רבינו הקדוש, reported by Rav and then by Yirmeya. The Beitzah passage is a parallel of the same tradition, not an independent second observation."
+    },
+    {
+      "finding_id": "F6",
+      "claim": "The Aramaic has no verb of answering. Saying that the teacher gave the answer is a reasonable reading, but it is supplied by the translators.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "steinsaltz_37a4",
+          "exact_quote": "מאי [מה היא] פת עבה? אמר לו: פת מרובה"
+        },
+        {
+          "source_id": "beitzah22b_v3",
+          "exact_quote": "Rav explained that it means a large quantity of bread"
+        },
+        {
+          "source_id": "pes37a_goldschmidt",
+          "exact_quote": "und [dieser habe erwidert], viel Brot"
+        }
+      ],
+      "translation": "Steinsaltz, my translation: 'What is pat ava? He said to him: pat merubah.' Goldschmidt, my translation: 'and [he replied], much bread' (the brackets are Goldschmidt's own).",
+      "reasoning": "Steinsaltz adds אמר לו, and Goldschmidt brackets his verb, so both mark the answerer as supplied. The reading is natural: the teacher was asked and the next words are the answer.",
+      "confidence": "medium",
+      "graph_effect": "Record 'teacher explains to student' edges (Rav to Yirmeya in A; רבינו הקדוש to Rav in B) as interpretive supplements. They are weaker than the explicit asks and my-teacher edges."
+    },
+    {
+      "finding_id": "F7",
+      "claim": "The explanations that follow ('Why call it pat ava? ... And if you wish, say ...') may be the anonymous Talmud's own discussion, not the teacher's words. Translators differ on this.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "pes37a_v3",
+          "exact_quote": "וְאַמַּאי קָרוּ לֵיהּ פַּת עָבָה? מִשּׁוּם דִּנְפִישָׁא בְּלִישָׁה. וְאִי בָּעֵית אֵימָא"
+        },
+        {
+          "source_id": "beitzah22b_v3",
+          "exact_quote": "And he explained the matter as follows"
+        },
+        {
+          "source_id": "pes37a_goldschmidt",
+          "exact_quote": "– Weshalb nennt er es ‘dickes Brot’? – Weil [der Teig] beim Kneten dick ist."
+        }
+      ],
+      "reasoning": "'And if you wish, say' (ואי בעית אימא) is a common formula of the anonymous Talmud when it offers alternative explanations; that is my interpretation of the formula. The Davidson English on Beitzah puts the explanations in the teacher's mouth. Goldschmidt sets them off with dashes as dialogue, which treats them as a separate exchange.",
+      "confidence": "medium",
+      "graph_effect": "Do not attach the two etymologies of pat ava to Rav or to רבינו הקדוש as their statements. At most, save them as an alternative attribution."
+    },
+    {
+      "finding_id": "F8",
+      "claim": "Commentaries disagree on what ביחוד means. Rashi says 'privately' or 'clearly'. The Pesachim Steinsaltz and Davidson English read 'my special/unique teacher'. The same editors on Beitzah say 'in private'.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "rashi_37a",
+          "exact_quote": "ביחוד - בינו לביני"
+        },
+        {
+          "source_id": "rashi_37a",
+          "exact_quote": "לישנא אחרינא בייחוד בברור"
+        },
+        {
+          "source_id": "steinsaltz_37a4",
+          "exact_quote": "שאילית [שאלתי] את רבי ביחוד [המיוחד]"
+        },
+        {
+          "source_id": "pes37a_v3",
+          "exact_quote": "I asked my special Rabbi, and who is this? Rav."
+        },
+        {
+          "source_id": "links_beitzah22b6",
+          "exact_quote": "שאלית [שאלתי] את רבי ביחוד (ביני לבינו)"
+        },
+        {
+          "source_id": "beitzah22b_goldschmidt",
+          "exact_quote": "Ich fragte meinen Lehrer, das ist Rabh, privatim"
+        }
+      ],
+      "translation": "My translation of Rashi: 'Biyichud: between him and me. Another explanation: biyichud, clearly.' Steinsaltz on Pesachim: '[the unique one]'. Steinsaltz on Beitzah: '(between me and him)'.",
+      "reasoning": "Under Rashi's readings, ביחוד describes how the question was asked. Under the 'special teacher' reading, it describes the teacher, which might suggest a principal teacher. The Koren/Steinsaltz family gives both readings in the two parallels. The teacher relation already rests on רבי + ומנו, so this word should not be used to make the tie stronger.",
+      "confidence": "high",
+      "graph_effect": "Keep the teacher edge at 'explicit my-teacher'. Save 'special/principal teacher' only as an alternative gloss attributed to the Pesachim Koren/Steinsaltz rendering. Optionally add a 'private question' setting attribute, following Rashi's first reading."
+    },
+    {
+      "finding_id": "F9",
+      "claim": "The title of the transmitter varies between witnesses. The Davidson vocalized text reads רב in both versions. Wikisource and the Pesachim Steinsaltz read ר' in version A and רב in version B. Beitzah reads רב throughout. Rashi on Pesachim writes ר' ירמיה.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "pes37a_wikisource",
+          "exact_quote": "אמר ר' ירמיה בר אבא שאילית את רבי ביחוד ומנו רב איכא דאמרי רב ירמיה בר אבא אמר רב"
+        },
+        {
+          "source_id": "steinsaltz_37a4",
+          "exact_quote": "אמר ר' ירמיה בר אבא: שאילית"
+        },
+        {
+          "source_id": "beitzah22b_wikisource",
+          "exact_quote": "איכא דאמרי אמר רב ירמיה בר אבא אמר רב"
+        },
+        {
+          "source_id": "seder_hadorot_2232",
+          "exact_quote": "בברכות גרסי' ברוב ספרים רב ירמי' ובקדושין ר' ירמיה"
+        }
+      ],
+      "reasoning": "The איכא דאמרי presents two forms of one tradition from one named transmitter. The ר'/רב difference is an abbreviation or title variant, a kind Seder HaDorot also notes elsewhere. It is not a reason to split the passage's transmitter into two local people.",
+      "confidence": "medium",
+      "graph_effect": "One local person 'Yirmeya bar Abba' serves both branches, with the title variant saved on the mention. Matching him to other Talmudic occurrences is a separate identity decision (see F11)."
+    },
+    {
+      "finding_id": "F10",
+      "claim": "The patronymic 'bar Abba' is name-embedded evidence that Yirmeya had a father called Abba. That parent does not appear in this passage.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "pes37a_v3",
+          "exact_quote": "רַב יִרְמְיָה בַּר אַבָּא"
+        }
+      ],
+      "reasoning": "Project rule: a relation embedded in a name is still evidence. Reading בר אבא as literal parentage is the ordinary reading, but it comes from the name form. Seder HaDorot's further remarks about this father are a later biographical claim and are not used here.",
+      "confidence": "medium",
+      "graph_effect": "Keep a local placeholder 'Abba (father of Yirmeya)'. Edge: Yirmeya -child of-> Abba, marked 'name-derived (patronymic)'. It is shared by both branches. Keep it even though Abba plays no role."
+    },
+    {
+      "finding_id": "F11",
+      "claim": "Later scholars disagree about who 'Rav Yirmeya bar Abba' is across the Talmud. Seder HaDorot calls him a student-colleague (תלמיד חבר) of Rav and cites this passage. Tosafot on Kiddushin sees a conflict with his being Rav Huna's student and suggests there were two men called Rav Yirmeya.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "seder_hadorot_2232",
+          "exact_quote": "ר' ירמי' בר אבא תלמיד חבר לרב היה"
+        },
+        {
+          "source_id": "seder_hadorot_2232",
+          "exact_quote": "שאלית את רבי ומנו רב פ' כל שעה (ל\"ז א') ביצה (כ\"ב ב')"
+        },
+        {
+          "source_id": "tosafot_kid46a",
+          "exact_quote": "משמע הכא דרב ירמיה תלמידיה דרב הונא הוה"
+        },
+        {
+          "source_id": "tosafot_kid46a",
+          "exact_quote": "ונראה דתרי רב ירמיה הוו"
+        }
+      ],
+      "translation": "My translation: Seder HaDorot, 'R. Yirmeya bar Abba was a student-colleague of Rav'. Tosafot, 'It implies here that Rav Yirmeya was a student of Rav Huna ... it seems there were two Rav Yirmeyas.'",
+      "reasoning": "These are later identity and biography claims. Tosafot's evidence for 'student-colleague' is Berakhot 27b, not this passage. Seder HaDorot does list this passage. Neither changes the local reading. Both show that joining this Yirmeya bar Abba to every other occurrence of the name is not settled by the name alone.",
+      "confidence": "high",
+      "graph_effect": "Save 'student-colleague of Rav' (Seder HaDorot) and 'possibly two Rav Yirmeyas' (Tosafot Kiddushin 46a) as later-scholarship assertions on the identity layer. Keep them separate from the version-A teacher edge, which rests on the text."
+    },
+    {
+      "finding_id": "F12",
+      "claim": "The Talmud does not choose between the two versions. The teacher relation in each version exists only inside that version.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "pes37a_v3",
+          "exact_quote": "Some say</b> that <b>Rabbi Yirmeya bar Abba said</b> that <b>Rav said"
+        },
+        {
+          "source_id": "pes37a_goldschmidt",
+          "exact_quote": "manche lesen, R. Jirmeja b.Abba im Namen Rabhs sagte"
+        }
+      ],
+      "reasoning": "איכא דאמרי ('some say'; Goldschmidt: 'some read') introduces a different transmitted form, and the passage moves on without deciding. Both conversations could have happened. The text gives no basis for calling them mutually exclusive, nor for treating both as confirmed.",
+      "confidence": "high",
+      "graph_effect": "Two branches of one group: A = {Yirmeya asks / calls teacher Rav}; B = {Yirmeya transmits from Rav; Rav asks / calls teacher רבינו הקדוש}. Shared across both: the Yirmeya mention, the Rav mention, the patronymic parent, and the question topic. Neither branch's teacher edge should count as confirmed by the other."
+    },
+    {
+      "finding_id": "F13",
+      "claim": "Ritva's 'two versions' (שתי לשונות) refers to the two explanations of why the bread is called pat ava, not to the two versions of who asked whom. The Rav that Ritva mentions is linked to a different ruling (Pesachim 48a), not to this question.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "links_37a4",
+          "exact_quote": "דלהאי לישנא לית לן מאי דאמר רבא לקמן קבא מלוגנאה לפיסחא"
+        },
+        {
+          "source_id": "links_37a4",
+          "exact_quote": "וכלישנא בתרא קיל\"ן דקאי כרב"
+        }
+      ],
+      "translation": "My translation: 'According to this version we do not hold what Rava said below, a kav of Lugna for Passover ... and we hold like the last version, which accords with Rav.'",
+      "reasoning": "Ritva's discussion ties each explanation to a later ruling (Rava/Rav on 48a). The witnesses themselves vary between רבא and רב there. That is unrelated to the teacher identity question.",
+      "confidence": "medium",
+      "graph_effect": "Do not use Ritva's לישנא discussion as evidence about the version A/B teacher claims, and do not create a Rav edge from it for this passage."
+    }
+  ],
+  "branch_scoped_graph_proposal": {
+    "note": "Provisional. Local persons only; global identity is a separate layer.",
+    "local_persons": [
+      {
+        "local_id": "P_yirmeya",
+        "surface": [
+          "רַב יִרְמְיָה בַּר אַבָּא",
+          "ר' ירמיה בר אבא (Wikisource/Steinsaltz, version A)"
+        ],
+        "branches": [
+          "A",
+          "B"
+        ]
+      },
+      {
+        "local_id": "P_abba",
+        "surface": [
+          "אַבָּא (inside patronymic only)"
+        ],
+        "branches": [
+          "A",
+          "B"
+        ],
+        "note": "placeholder parent, name-derived"
+      },
+      {
+        "local_id": "P_rav",
+        "surface": [
+          "רַב"
+        ],
+        "branches": [
+          "A",
+          "B"
+        ],
+        "note": "in A: answer to ומנו and the one asked; in B: the source of the report and the one who asks"
+      },
+      {
+        "local_id": "P_rabbeinu_hakadosh",
+        "surface": [
+          "רַבֵּינוּ הַקָּדוֹשׁ"
+        ],
+        "branches": [
+          "B"
+        ],
+        "identity_assertion": {
+          "candidate": "Judah HaNasi",
+          "asserted_by": "Koren/Steinsaltz editorial gloss (one editorial family)",
+          "status": "provisional"
+        }
+      }
+    ],
+    "role_slot_mentions": [
+      {
+        "surface": "רַבִּי ('my teacher')",
+        "branch": "A",
+        "corefers_with": "P_rav",
+        "basis": "וּמַנּוּ: רַב"
+      },
+      {
+        "surface": "רַבִּי ('my teacher')",
+        "branch": "B",
+        "corefers_with": "P_rabbeinu_hakadosh",
+        "basis": "וּמַנּוּ: רַבֵּינוּ הַקָּדוֹשׁ"
+      }
+    ],
+    "edges": [
+      {
+        "branch": "A",
+        "subject": "P_yirmeya",
+        "relation": "asks",
+        "object": "P_rav",
+        "basis": "explicit",
+        "findings": [
+          "F1"
+        ]
+      },
+      {
+        "branch": "A",
+        "subject": "P_yirmeya",
+        "relation": "calls_my_teacher",
+        "object": "P_rav",
+        "basis": "explicit (רבי + ומנו)",
+        "findings": [
+          "F1",
+          "F3"
+        ]
+      },
+      {
+        "branch": "A",
+        "subject": "P_rav",
+        "relation": "explains_to",
+        "object": "P_yirmeya",
+        "basis": "interpretive supplement",
+        "findings": [
+          "F6"
+        ]
+      },
+      {
+        "branch": "B",
+        "subject": "P_yirmeya",
+        "relation": "transmits_in_name_of",
+        "object": "P_rav",
+        "basis": "explicit (X אמר Y)",
+        "findings": [
+          "F2"
+        ]
+      },
+      {
+        "branch": "B",
+        "subject": "P_rav",
+        "relation": "asks",
+        "object": "P_rabbeinu_hakadosh",
+        "basis": "explicit",
+        "findings": [
+          "F2"
+        ]
+      },
+      {
+        "branch": "B",
+        "subject": "P_rav",
+        "relation": "calls_my_teacher",
+        "object": "P_rabbeinu_hakadosh",
+        "basis": "explicit (רבי + ומנו)",
+        "findings": [
+          "F2",
+          "F3"
+        ]
+      },
+      {
+        "branch": "B",
+        "subject": "P_rabbeinu_hakadosh",
+        "relation": "explains_to",
+        "object": "P_rav",
+        "basis": "interpretive supplement",
+        "findings": [
+          "F6"
+        ]
+      },
+      {
+        "branch": "shared",
+        "subject": "P_yirmeya",
+        "relation": "child_of",
+        "object": "P_abba",
+        "basis": "name-derived (patronymic)",
+        "findings": [
+          "F10"
+        ]
+      }
+    ]
+  },
+  "alternative_readings": [
+    {
+      "reading_id": "ALT1",
+      "reading": "ביחוד qualifies the teacher ('my special/unique teacher'), which could suggest a principal teacher.",
+      "held_by": "Steinsaltz on Pesachim 37a:4 and the William Davidson English on Pesachim (one editorial family). On Beitzah 22b the same editorial family reads 'in private'.",
+      "evidence": [
+        {
+          "source_id": "steinsaltz_37a4",
+          "exact_quote": "ביחוד [המיוחד]"
+        }
+      ],
+      "status": "Alternative gloss. Rashi gives 'between him and me' or 'clearly'."
+    },
+    {
+      "reading_id": "ALT2",
+      "reading": "The explanations of the name pat ava are the teacher's own words, in version B.",
+      "held_by": "William Davidson English on Beitzah 22b:7; Steinsaltz on Beitzah 22b:7 ('והסביר לי').",
+      "evidence": [
+        {
+          "source_id": "links_beitzah22b7",
+          "exact_quote": "ומנו [ומי הוא] רבו של רב — רבינו הקדוש, והסביר לי"
+        }
+      ],
+      "status": "Alternative attribution. The formula ואי בעית אימא points toward the anonymous Talmud (interpretation)."
+    },
+    {
+      "reading_id": "ALT3",
+      "reading": "איכא דאמרי is a textual 'some read' (a variant reading) rather than 'some say' (a variant oral report).",
+      "held_by": "Goldschmidt ('manche lesen'); the William Davidson English has 'Some say'.",
+      "evidence": [
+        {
+          "source_id": "beitzah22b_goldschmidt",
+          "exact_quote": "Manche lesen: R. Jirmeja b. Abba sagte"
+        }
+      ],
+      "status": "Difference of translation. Either way the two branches remain alternatives and neither is chosen."
+    }
+  ],
+  "unresolved": [
+    "Manuscript and early-print readings of Pesachim 37a and Beitzah 22b were not checked (e.g. Dikdukei Soferim, manuscript images). Whether any witness drops the איכא דאמרי, changes the resolving names, or reads ר'/רב differently is not established here.",
+    "Whether the 'why is it called pat ava' explanations belong to the teacher (version B) or to the anonymous Talmud: translators differ (F7, ALT2).",
+    "Identity of רבינו הקדוש with Judah HaNasi is an identity assertion from the Koren/Steinsaltz gloss and common usage. It is not decided in this dossier.",
+    "Whether this Yirmeya bar Abba is the same man as every other Rav/R. Yirmeya bar Abba in the Talmud: Tosafot on Kiddushin 46a raises the possibility of two. Not decided.",
+    "Other Sefaria-linked items on Pesachim 37a:4 (Tur, Shulchan Arukh, Mishneh Torah, Semag, Torat HaOlah, Arukh) were listed but not read for person claims beyond what is quoted. The Torat HaOlah and Arukh texts in the saved links file do not mention the teacher exchange."
+  ],
+  "proposed_corrections": [
+    {
+      "existing_claim_id": "bavli|Pesachim|37a|4|4|30",
+      "change": "Keep 'asks' (Yirmeya bar Abba -> teacher), but scope it to version A. Resolve the object to the local Rav through ומנו, and add a separate calls_my_teacher edge (Yirmeya -> Rav, version A). Keep the ר'/רב title variant on the mention.",
+      "why": "F1, F3, F9. The object token רבי is 'my teacher', not Judah HaNasi."
+    },
+    {
+      "existing_claim_id": "bavli|Pesachim|37a|4|30|45",
+      "change": "Replace the global 'same-man' (רבי = רב) with a version-A role-slot coreference: A's teacher slot is Rav. The first-pass 'asks' label is wrong for this span.",
+      "why": "F3. Joined globally, this pair would equate the title 'Rabbi' (Judah HaNasi) with Rav. That is false for this passage and would contaminate version B."
+    },
+    {
+      "existing_claim_id": "bavli|Pesachim|37a|4|45|59",
+      "change": "Delete. 'Rav' here ends version A and 'Rav Yirmeya bar Abba' begins version B. The two are only neighbours across the איכא דאמרי boundary, and no relation is stated between them.",
+      "why": "F12. The pair crosses a branch boundary. The real transmission edge in B is already the next pair (…|59|79)."
+    },
+    {
+      "existing_claim_id": "bavli|Pesachim|37a|4|59|79",
+      "change": "Keep as transmits_in_name_of (Yirmeya -> Rav), scoped to version B.",
+      "why": "F2."
+    },
+    {
+      "existing_claim_id": "bavli|Pesachim|37a|4|79|92",
+      "change": "Keep 'asks' (Rav -> teacher), scoped to version B. The object must be B's teacher slot, resolved to the local person רבינו הקדוש, not the רבי of version A. Add calls_my_teacher (Rav -> רבינו הקדוש, version B). Link to Judah HaNasi only as a provisional identity assertion.",
+      "why": "F2, F3, F4."
+    },
+    {
+      "existing_claim_id": "earlier_crosscheck (pesachim_teacher)",
+      "change": "Agree with its five claims and branch scopes. Add: (1) interpretive explains_to edges per branch (F6); (2) the patronymic parent placeholder Abba (F10); (3) the fact that the Judah HaNasi identification comes from one editorial family and is unbolded in the English (F4); (4) the Beitzah 22b:6-7 parallel and Rashi there ('רב גופיה אמר'), which state the version-B speaker explicitly (F2, F5); (5) later identity disputes about Yirmeya bar Abba (F11).",
+      "why": "The earlier review's reading is confirmed. These additions preserve evidence it did not record."
+    }
+  ],
+  "ontology_lessons": [
+    "A 'role slot' mention type is needed. רבי meaning 'my teacher' is a pointer resolved inside the text (here by ומנו), not a name. Coreference of the slot is branch-local.",
+    "'Explicit self-declared teacher' (רבי + ומנו X) should be a relation separate from, and stronger than, 'asks'. It should carry who makes the declaration: the student speaks in A, Rav speaks in B.",
+    "Pairs formed from neighbouring names must be suppressed across an איכא דאמרי boundary. The last name of one version and the first name of the next are not related.",
+    "Nested report depth should be recorded: B is Yirmeya ⟶ Rav ⟶ (Rav's first-person account) ⟶ teacher. The one who asks is the innermost first-person speaker, not the outer 'said'.",
+    "An answerer supplied by a translator (no verb in the source) should be marked as an interpretive supplement, not as source text.",
+    "Editorial glosses outside the bold in the William Davidson English, and in round brackets in Steinsaltz, are identity assertions from one editorial family. They are not independent witnesses.",
+    "A parallel sugya (Beitzah 22b) that repeats the same tradition is a parallel of one observation, not a second observation. Differences in layout between the parallels are still useful evidence of structure.",
+    "Later chronographic labels such as 'student-colleague' (Seder HaDorot) and 'two men of the same name' (Tosafot) belong on the identity/biography layer, with their own provenance."
+  ]
+}

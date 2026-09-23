@@ -1,0 +1,22 @@
+{
+  "original_sha256": "db13e29a744e9492e9d4f89a79042bfa176954bf033031758ba0fa440d6a1ed8",
+  "corrected_sha256": "2deb22b2d3e2919ac7fba6bbff5388b32c4d7170c6b9113f578422c5439f7c9d",
+  "changes": [
+    {
+      "finding_id": "F14",
+      "evidence_index": 3,
+      "field": "exact_quote",
+      "previous": "",
+      "corrected": "ונראה לי בס\"ד כי מאמר יְפַשְׁפֵּשׁ בְּמַעֲשָׂיו דלעיל אתמר משמיה דרב הונא עצמו, ולכן משום שורת דרך ארץ לא אמרו לו יְפַשְׁפֵּשׁ בְּמַעֲשָׂיו, אלא אמרו לו לִיעַיֵּין מַר בְּמִילֵיהּ",
+      "reason": "The reader cited this saved source but left the quotation empty. The words were copied from the saved source file where they support the stated claim; the separate review is asked to check the choice."
+    },
+    {
+      "finding_id": "F15",
+      "evidence_index": 1,
+      "field": "exact_quote",
+      "previous": "",
+      "corrected": "[וְאַמְרֵי לָהּ: רַב אַדָא בַּר אַהֲבָה וְרַבָּנָן]",
+      "reason": "The reader cited this saved source but left the quotation empty. The words were copied from the saved source file where they support the stated claim; the separate review is asked to check the choice."
+    }
+  ]
+}

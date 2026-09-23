@@ -1,0 +1,115 @@
+{
+  "job_id": "original-10",
+  "focal_ref": "Pesachim 103a:7",
+  "input_lake_snapshot": 2,
+  "original_document": "relation-cases-sources.json",
+  "source": {
+    "ref": "Pesachim 103a:7",
+    "url": "https://www.sefaria.org/Pesachim.103a.7",
+    "api_url": "https://www.sefaria.org/api/texts/Pesachim%20103a%3A7?context=0&pad=0&commentary=0",
+    "hebrew": "עני רבא בתריה ואמר: זו דברי רבי מאיר, אבל רבי יהודה אומר: לא נחלקו בית שמאי ובית הילל על המזון שהוא בתחלה ועל הבדלה שהיא בסוף,",
+    "hebrew_sha256": "52ab2954204459e912509d7828175c34be00b61c0513dee924768422e83a4afb",
+    "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+    "hebrew_license": "CC-BY-NC",
+    "english_edition": "William Davidson Edition - English",
+    "pairs": [
+      {
+        "key": "bavli|Pesachim|103a|7|4|27",
+        "ref": "Pesachim 103a:7",
+        "a": "רבא",
+        "b": "ר' מאיר",
+        "pattern": "[A] בתריה אמר זו דברי [B]",
+        "kind": "explains",
+        "source": "reader",
+        "direction": "AB",
+        "sure": true,
+        "first_pass": {
+          "kind": "disputes",
+          "confidence": 0.56,
+          "p": {
+            "kin": 0.0,
+            "addresses": 0.02,
+            "teacher": 0.0,
+            "together": 0.0,
+            "none": 0.03,
+            "juxtaposed": 0.0,
+            "before": 0.01,
+            "asks": 0.0,
+            "disputes": 0.6,
+            "one-name": 0.0,
+            "explains": 0.27,
+            "follows": 0.0,
+            "same-man": 0.01,
+            "alternative": 0.01,
+            "cites": 0.05
+          }
+        }
+      },
+      {
+        "key": "bavli|Pesachim|103a|7|27|39",
+        "ref": "Pesachim 103a:7",
+        "a": "ר' מאיר",
+        "b": "ר' יהודה",
+        "pattern": "דברי [A] אבל [B]",
+        "kind": "disputes",
+        "source": "reader",
+        "direction": "",
+        "sure": true,
+        "first_pass": {
+          "kind": "disputes",
+          "confidence": 0.78,
+          "p": {
+            "kin": 0.0,
+            "addresses": 0.0,
+            "teacher": 0.0,
+            "together": 0.0,
+            "none": 0.01,
+            "before": 0.0,
+            "juxtaposed": 0.0,
+            "asks": 0.0,
+            "disputes": 0.8,
+            "one-name": 0.0,
+            "explains": 0.15000000000000002,
+            "follows": 0.0,
+            "same-man": 0.0,
+            "alternative": 0.0,
+            "cites": 0.03
+          }
+        }
+      },
+      {
+        "key": "bavli|Pesachim|103a|7|39|62",
+        "ref": "Pesachim 103a:7",
+        "a": "ר' יהודה",
+        "b": "בית שמאי",
+        "pattern": "[A] אומר לא נחלקו [B]",
+        "kind": "explains",
+        "source": "reader",
+        "direction": "AB",
+        "sure": true,
+        "first_pass": {
+          "kind": "disputes",
+          "confidence": 0.66,
+          "p": {
+            "kin": 0.0,
+            "addresses": 0.0,
+            "teacher": 0.0,
+            "together": 0.2,
+            "none": 0.03,
+            "before": 0.0,
+            "juxtaposed": 0.01,
+            "asks": 0.0,
+            "explains": 0.04,
+            "one-name": 0.0,
+            "disputes": 0.6900000000000001,
+            "follows": 0.0,
+            "same-man": 0.0,
+            "alternative": 0.0,
+            "cites": 0.02
+          }
+        }
+      }
+    ]
+  },
+  "earlier_crosscheck": null
+}

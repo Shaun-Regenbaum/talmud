@@ -1,0 +1,30 @@
+{
+  "job_id": "challenge-11",
+  "authority": "automated_review",
+  "status": "qualified_proposals",
+  "dossier_sha256": "34da1eee200a27acbbdbcd5c28f9ea97768fdeb4db9f0ca1f7d7ab97a1e01edf",
+  "historical_graph_eligible": false,
+  "scope": "Separate review of selected graph implications. Source hashes and quotation matches checked separately. Not human adjudication or exhaustive historical verification.",
+  "findings": [
+    {
+      "target": "new not_said speech record",
+      "decision": "support_proposed_addition",
+      "reason": "The negative wording is itself evidence for the stated student-colleague relationship. Store its content, negative polarity and anonymous explanatory voice. Do not create an utterance event for words the text says were not spoken."
+    },
+    {
+      "target": "student-colleague relationship",
+      "decision": "retain_narrow_source_claim",
+      "reason": "The passage states this status in its argument about prayer behind a teacher. Later definitions and extensions of the status should be attributed separately, without making every possible teacher obligation part of this passage."
+    },
+    {
+      "target": "f6/f13 quotations with different wording or people",
+      "decision": "retain_as_source_variants",
+      "reason": "A later quotation containing the formal address, or different named people, does not overwrite the focal passage. Preserve the quoted text with its witness and ask separately how the versions are related."
+    },
+    {
+      "target": "f8 identity of Yirmiya bar Abba",
+      "decision": "requires_identity_pack",
+      "reason": "The reported disagreements about his teacher and whether two people share the name are evidence for competing identities. Do not merge occurrences or turn one commentator's suggestion into a settled biography."
+    }
+  ]
+}

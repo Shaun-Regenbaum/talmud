@@ -1,0 +1,15 @@
+{
+  "lake": "sage_network",
+  "snapshot": 1,
+  "data_path": "s3://prophex-lake/sage_network/",
+  "index_pointer": "s3://prophex-lake/index/sage_network/latest.json",
+  "versioned_index": "s3://prophex-lake/index/sage_network/snapshot-000001.duckdb",
+  "index_sha256": "35541517e6f2df77a49311a86e9edc03b6f0f3f8891c4d9ce45872ce52b72837",
+  "source_release_sha256": "9c42aa06289d8872e582270bd53474905488a313e04d72594a3f7a7af086cb0c",
+  "ingest_id": "978a5e82b7f8ea699a8967c3ac83138eb153659974443fed491e0c3d7d27628f",
+  "duckdb_version": "1.5.5",
+  "dss_slug": "talmud/sage-network-lake",
+  "dss_version": 2,
+  "reader": "research/sage-network/lake/manage.py",
+  "writer_lock": "/work/sage-network/publish.lock"
+}

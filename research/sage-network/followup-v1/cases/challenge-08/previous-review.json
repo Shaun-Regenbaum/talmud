@@ -1,0 +1,123 @@
+{
+  "job_id": "challenge-08",
+  "input_sha256": "13a11cfa4e437a0a0881af3e0bdaeb053dc6afa01105e9f877d0fcc9599a4fb5",
+  "output_sha256": "3276943965c122b20972d12505a70fbc666412408de68ffcfb35d5d0783b72dc",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "The unnamed pair has two person nodes and separate family claims for each, without invented names.",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6",
+        "c7"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "The first branch gives each son a mother who is Yohanan’s daughter.",
+      "claim_ids": [
+        "c2",
+        "c4",
+        "c6"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "The second branch gives each son a mother who is Yohanan’s sister.",
+      "claim_ids": [
+        "c3",
+        "c5",
+        "c7"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 3,
+      "status": "pass",
+      "reason": "Attendance, prayer and healing are shared. The plural קמייהו remains an unnamed group with an open referent question.",
+      "claim_ids": [
+        "c9",
+        "c10",
+        "c11",
+        "c12",
+        "c13"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "The pair is not collapsed into one child, and no personal names are invented.",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6",
+        "c7"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "The daughter and sister family paths remain separate branches.",
+      "claim_ids": [
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 2,
+      "status": "pass",
+      "reason": "The shared story is not restricted to one family branch, and the possible Yohanan identity is discussed locally rather than generalized.",
+      "claim_ids": [
+        "c9",
+        "c10",
+        "c11",
+        "c12"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "minor",
+      "type": "uncertainty",
+      "claim_ids": [
+        "c3"
+      ],
+      "reason": "The second branch’s short Rabbi Yohanan is structurally merged with the full Yohanan son of Gudgada entity, despite a medium-confidence note and open question. The ambiguity would be clearer with a separate local mention and candidate identity rather than a full-patronymic entity shared across both readings.",
+      "source_refs": [
+        "Chagigah 3a:4"
+      ]
+    },
+    {
+      "severity": "minor",
+      "type": "contract_limit",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c10",
+        "c13"
+      ],
+      "reason": "The two individual sons and the pair are present, but the contract has no group-membership predicate. Their membership is recoverable from labels and matching source spans rather than an explicit membership edge.",
+      "source_refs": [
+        "Chagigah 3a:4",
+        "Chagigah 3a:5"
+      ]
+    }
+  ],
+  "summary": "Both maternal family paths and the plural audience are retained. The local Yohanan merger remains somewhat stronger in structure than in the cautionary prose."
+}

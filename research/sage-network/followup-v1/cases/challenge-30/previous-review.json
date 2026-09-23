@@ -1,0 +1,74 @@
+{
+  "job_id": "challenge-30",
+  "input_sha256": "888b55cb670fb2155be3131e91ab9b86a2c9533a918cee05a40224bf54e27239",
+  "output_sha256": "5d4925189478432a19ca92700a693171ccb42fb3183e1622cf2f3ce295a47b57",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "The unnamed servant and Rabbi’s household remain separate entities, and her household affiliation is retained in the label and evidence.",
+      "claim_ids": []
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "The father, adult son, child relationship and beating have the right roles.",
+      "claim_ids": [
+        "c1",
+        "c2"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "The sanction declaration, its father target, and its stumbling-block rationale are retained, though the directed speech claim has an addressee problem.",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "Rabbi is not put at the scene and no household kinship is invented.",
+      "claim_ids": []
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "No institutionally settled ban or approval by Rabbi is added; the claim is the servant’s declaration.",
+      "claim_ids": [
+        "c4"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "major",
+      "type": "unsupported",
+      "claim_ids": [
+        "c4"
+      ],
+      "reason": "c4 uses addresses(servant, father), which makes the father the recipient of directed speech. The source says only אמרה and refers to that man in the third person. The note correctly says he is the target and a face-to-face addressee is not explicit, but that does not repair the asserted direction. Preserve a declaration event or statement with a target role for the father and leave the addressee unknown.",
+      "source_refs": [
+        "Moed Katan 17a:13"
+      ]
+    },
+    {
+      "severity": "minor",
+      "type": "contract_limit",
+      "claim_ids": [],
+      "reason": "The servant’s explicit affiliation with Rabbi’s household is retained only in her label and evidence, not a relationship or role connecting servant and house. The contract has no household-affiliation predicate.",
+      "source_refs": [
+        "Moed Katan 17a:13"
+      ]
+    }
+  ],
+  "summary": "The unnamed participants and sanction are preserved, but the sanction target is incorrectly promoted to an asserted speech recipient."
+}

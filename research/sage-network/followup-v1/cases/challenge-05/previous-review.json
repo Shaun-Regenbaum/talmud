@@ -1,0 +1,87 @@
+{
+  "job_id": "challenge-05",
+  "input_sha256": "73d7499ca8d5dd03640946a631913103fa15c92b67d231162753abaefb9f4826",
+  "output_sha256": "e78ccfcfe996f2465fd50bd1f6766aa20966e17e2505db2f5155ed44131f4369",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "The two branches reverse the speaker and addressee.",
+      "claim_ids": [
+        "c8",
+        "c10"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "Each explanatory act belongs to the speaker chosen in its branch.",
+      "claim_ids": [
+        "c9",
+        "c11"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "Rabbi’s side-by-side ruling and interpretation are separate from Hisda/Hamnuna’s speech.",
+      "claim_ids": [
+        "c4",
+        "c6",
+        "c8",
+        "c10"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 3,
+      "status": "uncertain",
+      "reason": "The supporting baraita and proof are retained, but no note or open question preserves whether דתניא continues the speaker’s quotation. c7 simply uses narrator voice.",
+      "claim_ids": [
+        "c6",
+        "c7"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "The reversed directions are alternatives, not two successive turns.",
+      "claim_ids": [
+        "c8",
+        "c10"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "Rabbi is not made an addressee or present participant; the explanations are branch-scoped.",
+      "claim_ids": [
+        "c8",
+        "c9",
+        "c10",
+        "c11"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "minor",
+      "type": "uncertainty",
+      "claim_ids": [
+        "c6",
+        "c7"
+      ],
+      "reason": "The source does not clearly fix the quotation boundary at דתניא. The extraction retains the legal content but does not explicitly keep that boundary open. This is less severe than assigning the proof to one named speaker.",
+      "source_refs": [
+        "Menachot 62a:12",
+        "Menachot 62a:13"
+      ]
+    }
+  ],
+  "summary": "Speaker reversal is handled correctly. The ownership of the supporting baraita remains unrecorded rather than expressly unresolved."
+}

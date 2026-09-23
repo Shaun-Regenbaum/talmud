@@ -1,0 +1,178 @@
+{
+  "review": "Independent storage review of additive source-research records",
+  "date": "2026-09-22",
+  "scope": "followup_store.py, check_followup.py, schema.py, build.py, manage.py, followup-v1/validate.py, followup-v1/check_validation.py, compared with pilot_store.py, restore_pilot.py and check_release.py",
+  "verdict": "Do not publish the trial database as is. Old rows are preserved and the stored rows rebuild correctly. But the validator hash pin already makes the trial database fail validation with the edited validator. Two stored sources use absolute local paths that cannot be relocated.",
+  "checked_inputs_sha256": {
+    "lake/followup_store.py": "9cc72eb480083fe9dc19b1968a7f5c6b810b4aa99396a54b5ddaa839beaa21c1",
+    "lake/check_followup.py": "6fe0a0fb474d6d39a50ebc5d6f721b87ab3c60359d89cfeb1d7690a33bdc0623",
+    "lake/schema.py": "69e0e5dfa053211aaf61fc08954a8f8c222879bdf93f79fde7ac77d083358664",
+    "lake/build.py": "ebf0b6236b086d2c75aea91e0d3de88c386ef510ca01795dcc2bda7ddebcf59a",
+    "lake/manage.py": "20c4ed867353f3382ea63b4084208601ef35132ea72e4073bae3696a395f4be5",
+    "lake/pilot_store.py": "4ea49760744d6de2515c8f312ea7b1ed78f801a48141e1d1e4f33cf36b9ad3f6",
+    "followup-v1/validate.py (reviewed version; the saved contract pins this hash)": "d8fb4aed5df6864538d825a2af73d683f6e45b9275a4888bf4fee21d55900678",
+    "followup-v1/check_validation.py (reviewed version)": "dfc5ce373880695ef09b1a4d418e58be301712def4c1a9a9474c964153df1a48",
+    "followup-v1/storage-tests.json": "86d483183b89b174f6db16299541fd75bfff178d3da036ea830b6a4d5105a8ec",
+    "followup-v1/validation-tests.json": "ed7e5cd962fd24810e4fbe467c36b1479580907be3ae191a3e6723d655023783",
+    "/tmp/sage-lake-release/pilot.duckdb (base)": "df2a072cd48e2fe3dcd4439ea2e286a5395160e8637a23f390665babdc8862d0",
+    "/tmp/sage-lake-release/followup-check.duckdb (trial)": "4a1a62c9972de3c8892d072a5c9763191e45173de341b5855e4039c7c5b8d674",
+    "trial research run_id": "6f480669fd598c48eee183f7bee819a309eb4cc3e45bf7a96b71468b118ae1cb",
+    "stored cases/challenge-09/dossier.json": "4271ed5b381b49d5b757378a50f641c0e46505eca128b4cf8211928a6caf5a44",
+    "stored cases/random-yerushalmi-01/dossier.json": "1198e653a8dfec9937a73b6f1cb1e624b1c917d1a9f8b64f14476c2095a74e58",
+    "stored cases/random-yerushalmi-02/dossier.json": "69846742a774a76488e02169a8fe57b2687ee7fad73f2c3d0c423b971085e0df"
+  },
+  "files_changed_during_review": {
+    "followup-v1/validate.py": "e1d79c95fb55060b3980f9814ac0fb46119c59c0abed260242a0c4882aa7acb2",
+    "followup-v1/check_validation.py": "dae789478e6ad3e95cba91a92c83e30b184ac9b69ab0ec9ce3038411c88b830b",
+    "note": "These two files were edited by separate work while this review ran. Findings about validate.py refer to the reviewed version d8fb4aed. The new version was not reviewed. Case folders were also still being written, for example random-bavli-05 gained completion.json and review.json. Tests ran on a frozen scratch copy taken at about 23:18."
+  },
+  "issues": [
+    {
+      "id": "H1",
+      "severity": "high",
+      "title": "Validator pin makes every saved research run unverifiable after any edit to the live validator",
+      "location": "lake/followup_store.py:21-26 checker(), :40 project(), :113-128 validate_research(); lake/build.py:144 validate()",
+      "failure": "project() loads followup-v1/validate.py from the code tree. It requires that file's hash to equal manifest.validator_sha256. validate_research() runs project() again for every stored run, and build.validate() calls it for the whole database. So any later edit to validate.py, including the fixes this review suggests, makes the database fail validation. That blocks manage.py push (which validates the source), followup_store.build, pilot_store.build and build.py on that base.",
+      "reproduction": [
+        "Test damage on a scratch copy: appended a comment line to the copied validate.py, then ran validate_research on a copy of the trial database. It raised 'Research validator differs from saved contract'.",
+        "Seen on real data during this review: after the separate edit to followup-v1/validate.py (now e1d79c95...), validate_research on the trial copy using the live lake code raises 'Research validator differs from saved contract'. The trial database is already unpublishable with the current tree."
+      ],
+      "suggested_fix": "Freeze each validator version under a name that never changes, for example lake/validators/source_investigation_v1.py. Select it by contract and check its hash. Put changed checking behaviour under a new contract (source-investigation-v2) with its own frozen file, and leave v1 runs verified by v1. Alternatively, verify old runs with the validator bytes stored in research_files after their hash check. Either way, rebuild the trial database after the validator fixes land, not before."
+    },
+    {
+      "id": "M1",
+      "severity": "medium",
+      "title": "Absolute source paths are accepted and stored; research cannot be rebuilt or checked after relocation",
+      "location": "lake/followup_store.py:89-97 collect(); followup-v1/validate.py:147-156 check_case() (reviewed version)",
+      "failure": "Some dossiers name saved_file as an absolute path into this worktree: random-yerushalmi-01 source IN, and random-yerushalmi-03 sources IN and EARLIER. collect() resolves the path, finds it under pilot/ and accepts it. The trial database stores that dossier, including the local home-directory path, in research_files and research_sources.payload_json. From any other checkout, or after this worktree is removed, collect() refuses the case. validate.py also rejects the restored case.",
+      "reproduction": [
+        "collect() on a copy of followup-v1 and pilot in another directory: ValueError 'Source outside case and pilot: random-yerushalmi-01/IN'.",
+        "Pulled the trial database from a local lake round trip, wrote its research_files to a fresh tree and copied pilot/ beside it. validate.py check_case(random-yerushalmi-01) returns valid=false: 'Cannot read source IN: Source path is outside this case and the frozen pilot'. challenge-09 and random-yerushalmi-02 pass.",
+        "SQL on the trial database: 1 research_sources payload and 3 research_files rows contain '/Users/'. One of those (inputs/pilot/inputs/challenge-09.json) is earlier pilot content, not new."
+      ],
+      "suggested_fix": "In both collect() and check_case(), reject saved_file values that are absolute or that resolve outside the case or pilot through a path that is not relative. Have the research owner correct the three saved_file values to ../../../pilot/... paths in a separate step, which changes dossier hashes and needs fresh reviews. Then rebuild."
+    },
+    {
+      "id": "M2",
+      "severity": "medium",
+      "title": "Case file collection follows symbolic links to files outside the research tree",
+      "location": "lake/followup_store.py:85-87 collect()",
+      "failure": "rglob plus is_file() plus read_text() follow a file symlink placed in a case folder. The target's content is stored in research_files and would be published. Only source files are checked with resolve(); other case files are not.",
+      "reproduction": "Test damage on the scratch copy: created cases/challenge-09/notes.txt as a symlink to a scratch file outside the tree. collect() stored 'cases/challenge-09/notes.txt' with the outside file's content. The symlink was removed afterwards.",
+      "suggested_fix": "Refuse path.is_symlink() for any collected file, or require path.resolve().is_relative_to(case). Apply the same rule to the six root files."
+    },
+    {
+      "id": "M3",
+      "severity": "medium",
+      "title": "The 'finished' gate is reading.md existing; completion.json and its hashes are ignored",
+      "location": "lake/followup_store.py:83 collect(); project() never reads completion.json",
+      "failure": "Cases are written while others are read. During this review random-bavli-05 had reading.md before it had completion.json or review.json. A case can therefore be stored while its dossier is still being written, as long as it passes the quote checks. A completion.json whose hashes name different dossier bytes is stored without complaint.",
+      "reproduction": "Test damage on the scratch copy: set completion.json files['dossier.json'] to 64 zeros, and separately deleted completion.json. collect(['random-yerushalmi-02']) accepted both. The file was restored afterwards.",
+      "suggested_fix": "Require completion.json with status 'source_research_saved', and require its file hashes to equal the collected dossier.json and reading.md bytes. Check the same in project() so read-back enforces it."
+    },
+    {
+      "id": "M4",
+      "severity": "medium",
+      "title": "Review provenance can be dropped or widened without detection",
+      "location": "lake/followup_store.py:58-63 project()",
+      "failure": "(a) The review link comes only from manifest.cases[].review. A manifest that omits it while review.json is still in files is accepted, and the case becomes 'not_independently_reviewed', hiding a 'changes_required' review. (b) A review file containing {} counts as no review, which skips the dossier-hash and historical-approval checks. (c) status is free text, so 'approved_for_graph' is accepted and stored as review_status. authority is not checked, although the pilot limits it to automated_review|human.",
+      "reproduction": "In-memory test damage on copies of the real manifest and files (with manifest hashes updated): the unlinked review, {} and status 'approved_for_graph' with authority 'TEST DAMAGE' were all accepted by project().",
+      "suggested_fix": "If cases/{job}/review.json is in files, require the manifest to link it. Require the review to be an object with job_id, dossier_sha256, authority in {automated_review, human} and status in a closed set. Consider indexing authority in research_cases."
+    },
+    {
+      "id": "M5",
+      "severity": "medium",
+      "title": "Repeated runs duplicate case and finding rows with no supersession or order",
+      "location": "lake/followup_store.py:41-73 project() keys; RESEARCH_TABLES research_runs/research_cases",
+      "failure": "Every row key includes run_id. A later run with any different file set, even with identical dossiers, adds a second full copy of each case, source, finding and citation. research_runs has no sequence, creation time or supersedes field, so the database cannot tell which run is current. Naive counts double.",
+      "reproduction": "Built on a copy of the trial database with challenge-09 and random-yerushalmi-02 (identical dossier bytes, smaller file set). Result: 2 runs; challenge-09 and random-yerushalmi-02 each have 2 research_cases rows; research_findings has 102 rows for 62 distinct payloads. Rebuilding with exactly the same inputs is idempotent (same run_id, no new rows), which is correct.",
+      "suggested_fix": "Add supersedes_run_id to research_runs, or a per-job revision with a 'current' view. Alternatively, key content rows by job and dossier hash and link runs to them through a run_cases table, so unchanged dossiers are not stored twice."
+    },
+    {
+      "id": "L1",
+      "severity": "low",
+      "title": "Declared quotation count and occurrence are unchecked in two situations",
+      "location": "followup-v1/validate.py:130-140 check() (reviewed version d8fb4aed)",
+      "failure": "Counts and occurrences are checked only when start or end is present and every match lies in one JSON string. If the quote also appears in another string, such as a second edition, or no offsets are given, a false count or occurrence passes. In the current data all 40 declared counts and occurrences fall in the checked path. The gap is latent.",
+      "reproduction": "In-memory test damage on challenge-09 F7 evidence 1, whose exact quote appears in 2 JSON strings: set real start/end, occurrences_in_segment=999, occurrence=7. check() returned valid=true. Adding occurrences_in_segment=999 without offsets to F1 evidence 0 also returned valid=true.",
+      "suggested_fix": "Count within the JSON pointer of the declared location. Require a pointer when the quote appears in more than one string. Reject count or occurrence fields that come without offsets."
+    },
+    {
+      "id": "L2",
+      "severity": "low",
+      "title": "Text-mode reads change or reject some legitimate source bytes",
+      "location": "lake/followup_store.py:87, :96, :103 read_text(); check_followup.py:82 write_text()",
+      "failure": "read_text() turns CRLF into LF and decodes using the locale. A CRLF source (common in fetched HTML) is stored altered, and its hash no longer matches the dossier. The build refuses it, which is safe, but it cannot be stored. Non-source files with CR would be stored altered without notice. A non-UTF-8 source, such as Hebrew pages in windows-1255, makes collect() fail with UnicodeDecodeError. research_files.sha256 hashes the decoded text, not the file bytes. Current data has 0 files with CR and 0 non-UTF-8 files.",
+      "reproduction": "Scratch file with CRLF: Path.read_text().encode() != read_bytes(). Scratch file with windows-1255 bytes: read_text() raises UnicodeDecodeError.",
+      "suggested_fix": "Use read_bytes().decode('utf-8') (strict) and write_bytes, or open with newline=''. For byte-exact evidence, add a BLOB or base64 column for sources that are not UTF-8."
+    },
+    {
+      "id": "L3",
+      "severity": "low",
+      "title": "A failed build leaves a .part copy that blocks retry; .part names can collide",
+      "location": "lake/followup_store.py:137-151 build()",
+      "failure": "If validation or an insert fails, the copied base stays as <out>.part and the next attempt stops with 'Partial output already exists'. pilot_store.build removes it; build.py keeps it on purpose with an 'inspect it' message. with_suffix('.part') maps a.duckdb and a.db to the same a.part.",
+      "reproduction": "Test damage: replaced build.validate with a stub that raises. build() failed, b3.part remained, b3.duckdb did not exist, and a retry raised 'Partial output already exists'.",
+      "suggested_fix": "Use out.with_name(out.name + '.part') and follow one convention: unlink on failure as pilot_store does, or print the inspect-first message as build.py does."
+    },
+    {
+      "id": "L4",
+      "severity": "low",
+      "title": "Weak type checks: some corrupt dossiers crash instead of being reported",
+      "location": "followup-v1/validate.py:108-121 check() and :177 main() (reviewed version); lake/followup_store.py:63-69",
+      "failure": "evidence given as an object makes check() raise AttributeError, which main() does not catch, so the whole report is lost. A claim given as a list passes the validator, is cast to the text '[...]' on insert, and then fails read-back with the misleading 'Indexed research rows differ'. A missing review status raises KeyError. All of these stop the build, which is safe, but the messages do not name the cause.",
+      "reproduction": "In-memory test damage on challenge-09: evidence={'source_id':'S1'} raised AttributeError. claim=['TEST DAMAGE'] returned valid=true. A DuckDB insert of that list into research_findings.claim stored '[TEST DAMAGE]'.",
+      "suggested_fix": "Type-check findings, evidence items, claim, edition, focal_ref and review fields as strings, lists or objects before projecting."
+    },
+    {
+      "id": "L5",
+      "severity": "low",
+      "title": "Path check accepts an empty path and paths differing only in letter case",
+      "location": "lake/followup_store.py:37 project()",
+      "failure": "Only absolute paths and '..' parts are refused. '' is accepted, and restoring it writes to a directory. 'README.MD' and 'readme.md' in one case are both accepted, but on the default case-insensitive macOS filesystem one overwrites the other when restored.",
+      "reproduction": "In-memory test damage: adding '' and a case-only pair to files and manifest hashes was accepted by project().",
+      "suggested_fix": "Reject empty or '.' paths and duplicates after casefold and NFC normalisation."
+    },
+    {
+      "id": "L6",
+      "severity": "low",
+      "title": "Restore is untested from stored data, and no research restore tool exists",
+      "location": "lake/check_followup.py:78-85; lake/restore_pilot.py handles extraction_files only",
+      "failure": "The 'Restored files reproduce the same indexed records' check writes out the in-memory files from a fresh collect(), not the database or a pulled copy. Pilot sources are stored as inputs/pilot/..., while dossiers point at ../../../pilot/.... So a tree built from research_files alone does not satisfy validate.py unless the pilot is also restored beside it. Separately, the 'Missing source file rejected' check only exercises the file-list comparison. storage-tests.json records no database or input hashes.",
+      "reproduction": "Restoring research_files from a pulled copy only worked for challenge-09 and random-yerushalmi-02 after copying pilot/ beside it by hand. random-yerushalmi-01 still fails (see M1).",
+      "suggested_fix": "Add restore_research.py mirroring restore_pilot.py: check hashes, refuse to overwrite, refuse symlinks, and restore pilot sources to the pilot location or rewrite them. Test it from a pulled copy. Record the database SHA256 and run_id in storage-tests.json."
+    },
+    {
+      "id": "L7",
+      "severity": "low",
+      "title": "Parent snapshot and input package are asserted, not verified",
+      "location": "lake/followup_store.py:104-108 collect(); :43 project()",
+      "failure": "parent_snapshot comes from the command line and input_package is hard-coded. Neither is compared with the base database, its extraction_runs, or the lake snapshot at publish. project() accepted parent_snapshot=999.",
+      "reproduction": "In-memory: manifest parent_snapshot=999 accepted by project().",
+      "suggested_fix": "Record the base file SHA256 and its extraction_runs run_id(s) in the manifest and check them in build(). At publish, require expected_snapshot == parent_snapshot for new runs."
+    }
+  ],
+  "passed_checks": [
+    "Trial database copy: build.validate() passes with the reviewed code. All 6 research tables rebuild exactly from saved files (1 run, 142 files, 3 cases, 98 sources, 62 findings, 241 citations).",
+    "All 23 earlier tables are unchanged compared with the base (EXCEPT ALL in both directions, 0 rows).",
+    "check_release.check() on the trial copy, local temporary catalog only: all 13 checks pass, including unchanged-push no-op, concurrent and stale write refusal, old-row removal refusal, and a pull verified for 29 tables.",
+    "Local publish of the trial copy, then pull: fingerprints match for 29 tables. The pulled copy has PRIMARY KEYs, research rows validate, and counts are identical.",
+    "Repeat build with identical inputs gives the same run_id and adds no rows.",
+    "Forced mid-build failure commits nothing to an output file (no out file created).",
+    "All 12 current review.json files match their current dossier bytes and have historical_graph_eligible=false.",
+    "Case files: 0 with CR, 0 non-UTF-8, 0 symlinks. A credential-pattern search found only ordinary words ('shield-bearers', 'authorization from their husband').",
+    "Reviewed validate.py: all 40 declared counts and occurrences in real dossiers go through the checked path. Declared offsets are checked only against exact-mode matches.",
+    "The research tables' DDL, key convention (sha of canonical JSON tuple), manifest-hash run_id and full-row read-back comparison match the pilot storage conventions."
+  ],
+  "residual_limits": [
+    "The edited validate.py (e1d79c95) and check_validation.py (dae78947) that appeared during the review were not reviewed.",
+    "Declared evidence fields ref (46 items), locator (44), version and where are not compared with the match location. A wrong ref passed in a test-damage probe. The validator's stated limit covers the intended occurrence but does not mention refs.",
+    "research_citations stores every match location but not which one the dossier meant. For html_removed and whitespace modes, offsets refer to transformed text, and the offset_scope note is not stored. 12 of 146 citations in the scratch build have more than one location.",
+    "A one-character quote is valid exact evidence (664 locations in one probe). Quote checks show the words exist, not that they support the finding.",
+    "manage.py now refuses to publish a database lacking the research tables, for example the original 23-table base: 'release table list does not match'. This is intended but narrows which files can be pushed.",
+    "No remote catalog, S3 or index copy was contacted. Remote read-back was exercised only through the same code path against a local temporary catalog.",
+    "Only the three stored cases were rebuilt. Other finished cases were checked for review and dossier hash agreement and encoding, but were not projected.",
+    "Case folders were being written during the review. Results describe the scratch snapshot."
+  ],
+  "method_note": "All deliberate damage was done on in-memory copies or disposable scratch copies and is labelled test damage. It is not research evidence. The original pilot, cases, base and trial databases were opened read-only or copied. No implementation files, git state, remote stores or messages were changed or sent."
+}

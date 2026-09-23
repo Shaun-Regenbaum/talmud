@@ -1,0 +1,550 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-26",
+    "episode": {
+      "genre": "mixed",
+      "genre_reason": "Interpretation of a verse on judgment is followed by analogies about quarrels.",
+      "form": "attributed teachings",
+      "coverage": "needs_context",
+      "needed_context": [
+        "The identity and preceding arguments of והני תנאי are outside the supplied text."
+      ],
+      "notes": [
+        "No interpersonal edge follows merely from adjacent attributed analogies. Abaye the Elder remains a local name."
+      ]
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "והני תנאי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב המנונא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב הונא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "אביי קשישא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "אדם",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "אין תחילת דינו של אדם נידון אלא על דברי תורה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "האי תיגרא דמיא לצינורא דבידקא (דמיא), כיון דרווח – רווח.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "דמי לגודא דגמלא, כיון דקם – קם.",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "tannaim",
+        "kind": "group",
+        "label": "Previously mentioned tannaim",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "והני תנאי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "hamnuna",
+        "kind": "person",
+        "label": "Rav Hamnuna",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב המנונא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "huna",
+        "kind": "person",
+        "label": "Rav Huna",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב הונא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "abaye",
+        "kind": "person",
+        "label": "Abaye the Elder",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אביי קשישא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "person",
+        "kind": "person",
+        "label": "Generic person being judged",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אדם",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "judgment",
+        "kind": "statement",
+        "label": "Judgment begins with words of Torah",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אין תחילת דינו של אדם נידון אלא על דברי תורה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "channel",
+        "kind": "statement",
+        "label": "Quarrel compared with a widening water channel",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "האי תיגרא דמיא לצינורא דבידקא (דמיא), כיון דרווח – רווח.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "bridge",
+        "kind": "statement",
+        "label": "Quarrel compared with boards of a bridge that stay once established",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "דמי לגודא דגמלא, כיון דקם – קם.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "hamnuna",
+        "object": "judgment",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "דאמר רב המנונא: אין תחילת דינו של אדם נידון אלא על דברי תורה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "tannaim",
+        "object": "judgment",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "והני תנאי ״פוטר מים ראשית מדון״, מאי דרשי ביה? כדרב המנונא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The anonymous discussion supplies this interpretation for the previously mentioned tannaim."
+        ]
+      },
+      {
+        "id": "c3",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "huna",
+        "object": "channel",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר רב הונא: האי תיגרא דמיא לצינורא דבידקא (דמיא), כיון דרווח – רווח.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c4",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "abaye",
+        "object": "bridge",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אביי קשישא אמר: דמי לגודא דגמלא, כיון דקם – קם.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      }
+    ],
+    "reading_groups": [],
+    "coreference_candidates": [],
+    "open_questions": []
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "והני תנאי",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 0,
+      "end": 9,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "רב המנונא",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 49,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "רב הונא",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 156,
+      "end": 163,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s2",
+      "quote": "אביי קשישא",
+      "occurrence": 1,
+      "source_sha256": "5d397b39ce0f1a08908fad657a6a9d5a46ee9496d05de5804b09e83517d25432",
+      "start": 0,
+      "end": 10,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s1",
+      "quote": "אדם",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 94,
+      "end": 97,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s1",
+      "quote": "אין תחילת דינו של אדם נידון אלא על דברי תורה",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 76,
+      "end": 120,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s1",
+      "quote": "האי תיגרא דמיא לצינורא דבידקא (דמיא), כיון דרווח – רווח.",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 165,
+      "end": 221,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s2",
+      "quote": "דמי לגודא דגמלא, כיון דקם – קם.",
+      "occurrence": 1,
+      "source_sha256": "5d397b39ce0f1a08908fad657a6a9d5a46ee9496d05de5804b09e83517d25432",
+      "start": 16,
+      "end": 47,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/tannaim/evidence/0",
+      "source_id": "s1",
+      "quote": "והני תנאי",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 0,
+      "end": 9,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/hamnuna/evidence/0",
+      "source_id": "s1",
+      "quote": "רב המנונא",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 49,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/huna/evidence/0",
+      "source_id": "s1",
+      "quote": "רב הונא",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 156,
+      "end": 163,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/abaye/evidence/0",
+      "source_id": "s2",
+      "quote": "אביי קשישא",
+      "occurrence": 1,
+      "source_sha256": "5d397b39ce0f1a08908fad657a6a9d5a46ee9496d05de5804b09e83517d25432",
+      "start": 0,
+      "end": 10,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/person/evidence/0",
+      "source_id": "s1",
+      "quote": "אדם",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 94,
+      "end": 97,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/judgment/evidence/0",
+      "source_id": "s1",
+      "quote": "אין תחילת דינו של אדם נידון אלא על דברי תורה",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 76,
+      "end": 120,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/channel/evidence/0",
+      "source_id": "s1",
+      "quote": "האי תיגרא דמיא לצינורא דבידקא (דמיא), כיון דרווח – רווח.",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 165,
+      "end": 221,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/bridge/evidence/0",
+      "source_id": "s2",
+      "quote": "דמי לגודא דגמלא, כיון דקם – קם.",
+      "occurrence": 1,
+      "source_sha256": "5d397b39ce0f1a08908fad657a6a9d5a46ee9496d05de5804b09e83517d25432",
+      "start": 16,
+      "end": 47,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "דאמר רב המנונא: אין תחילת דינו של אדם נידון אלא על דברי תורה",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 60,
+      "end": 120,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s1",
+      "quote": "והני תנאי ״פוטר מים ראשית מדון״, מאי דרשי ביה? כדרב המנונא",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 0,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר רב הונא: האי תיגרא דמיא לצינורא דבידקא (דמיא), כיון דרווח – רווח.",
+      "occurrence": 1,
+      "source_sha256": "ef6db5f88fc6964a556ed554ac16c6875d3fd7c6c92149c065e656f06424c9d5",
+      "start": 152,
+      "end": 221,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s2",
+      "quote": "אביי קשישא אמר: דמי לגודא דגמלא, כיון דקם – קם.",
+      "occurrence": 1,
+      "source_sha256": "5d397b39ce0f1a08908fad657a6a9d5a46ee9496d05de5804b09e83517d25432",
+      "start": 0,
+      "end": 47,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "b7d188e074fd627d4229be949386a9c2f1db6294570db6695d61afb7dac1c055",
+  "output_sha256": "9d1c6b631906261b846e90052c8896ea47a59539c67f60447cff23b26c238c2e",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.394216+00:00"
+}

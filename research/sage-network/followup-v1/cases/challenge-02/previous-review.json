@@ -1,0 +1,60 @@
+{
+  "job_id": "challenge-02",
+  "input_sha256": "26b50051096fe3d44e15e75beab193ea9894e1e032862664d88cfa32f189b95d",
+  "output_sha256": "0ac07b0ad6e1cb7d70df048a3071f2be4b30dc50f22b1ba44a4eb6d96a1d6d00",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "Rava’s permission is asserted separately from a question-mode, rejected proposed opposition.",
+      "claim_ids": [
+        "c1",
+        "c3"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "The answer and container qualifications use 24b:1; c4 explicitly notes that its sentence continues שאני התם דרובא.",
+      "claim_ids": [
+        "c3",
+        "c4",
+        "c5"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "The proposed opposition is marked question/rejected and its note points to the majority explanation.",
+      "claim_ids": [
+        "c3",
+        "c4"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "No asserted person-to-person dispute appears. The only opposition is a rejected question about a specific rule.",
+      "claim_ids": [
+        "c3"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "Both the majority answer and the qualifications after the page break are read.",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6"
+      ]
+    }
+  ],
+  "additional_findings": [],
+  "summary": "The provisional disagreement stays provisional, and the answer crosses the page boundary."
+}

@@ -1,0 +1,94 @@
+{
+  "job_id": "random-yerushalmi-05",
+  "input_sha256": "390e07a1bf06bd52469d1ec54c79f23250372265dce58bb913e06aef7f8ec9ae",
+  "output_sha256": "c3ba39b447ad1b064e6f55454249d5f91aab3f8211aceedbed5131939071a060",
+  "checks": [
+    {
+      "kind": "source",
+      "index": 0,
+      "status": "pass",
+      "reason": "Ketubot 11:7:2 preserves competing parses for both adjacent-name sequences. Aivo’s embedded parent and the generic women are retained separately from the sages.",
+      "claim_ids": [
+        "c1",
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 1,
+      "status": "pass",
+      "reason": "Yose of Sidon’s teaching before Yirmeya and its conflict with fruit-only rights are preserved. The subsequent unqualified Yose is not automatically merged with him.",
+      "claim_ids": [
+        "c8",
+        "c9",
+        "c10",
+        "c11",
+        "c12"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 2,
+      "status": "pass",
+      "reason": "Hila’s repeated address to Yose remains reported speech. The teacher reading is explicitly marked interpretation; Mana’s answer about slaves is explicitly identified as a rhetorical reading.",
+      "claim_ids": [
+        "c12",
+        "c13",
+        "c14",
+        "c17",
+        "c18"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 3,
+      "status": "miss",
+      "reason": "Shmuel says אין מעשין אלא, limiting coercion, and the discussion then challenges this with secondary prohibited marriages. The coercion statement label loses that restriction and the intermediate challenge is missing.",
+      "claim_ids": [
+        "c20",
+        "c21"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "major",
+      "type": "omission",
+      "claim_ids": [
+        "c20",
+        "c21"
+      ],
+      "reason": "The limitation in אין מעשין אלא and the objection והא תנינן שניות with its reply are not represented. c20 only says coercion applies to certain forbidden marriages. The final question is preserved, but the steps connecting it to the restrictive ruling are lost.",
+      "source_refs": [
+        "Jerusalem Talmud Ketubot 11:7:6"
+      ]
+    },
+    {
+      "severity": "minor",
+      "type": "omission",
+      "claim_ids": [
+        "c13"
+      ],
+      "reason": "The second רבי in רבי הילא רבי אמר לי supports the proposed my-teacher reading, but it has no distinct mention. Other repeated named occurrences, including the second Shmuel statement in 11:7:6, are also unrecorded as mentions.",
+      "source_refs": [
+        "Jerusalem Talmud Ketubot 11:7:4",
+        "Jerusalem Talmud Ketubot 11:7:6"
+      ]
+    },
+    {
+      "severity": "minor",
+      "type": "omission",
+      "claim_ids": [],
+      "reason": "The quoted rule in 11:7:6 says to appoint a provider for up to thirty days and then divorce with payment. The provider is represented as an entity, but the timing, obligation and payment are absent as claims.",
+      "source_refs": [
+        "Jerusalem Talmud Ketubot 11:7:6"
+      ]
+    }
+  ],
+  "summary": "The transmission and dialogue readings are cautious. The restrictive coercion rule and intermediate argument are incomplete; some quoted legal obligations and mentions are missing."
+}

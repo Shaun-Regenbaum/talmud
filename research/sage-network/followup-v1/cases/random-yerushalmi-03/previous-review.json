@@ -1,0 +1,84 @@
+{
+  "job_id": "random-yerushalmi-03",
+  "input_sha256": "b0b2214368a27a0f3254786ece85e0e70eeee08207a1beaf96bbead73c072c5e",
+  "output_sha256": "79c7f5c05c0b6551b7fca1d259fd5748a15822859f917a126e46a7125472c365",
+  "checks": [
+    {
+      "kind": "source",
+      "index": 0,
+      "status": "pass",
+      "reason": "Sheviit 10:4:5–6 keeps the adjacent-name transmission parses as interpretations rather than explicit source variants. Abahu’s transmission from Yohanan remains shared.",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6",
+        "c10",
+        "c11",
+        "c12"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 1,
+      "status": "pass",
+      "reason": "Zeira’s question to Abahu and Yose’s objection before Yaakov have the correct local directions. Rav’s description of instructing his household is conditional practice, not a dated gift event.",
+      "claim_ids": [
+        "c7",
+        "c8",
+        "c15",
+        "c16",
+        "c17",
+        "c18"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 2,
+      "status": "pass",
+      "reason": "The challenge to Rav is followed by explanations, including the final distinction between legal duty and pious conduct. The salt client’s account is not silently assigned a buyer or seller identity.",
+      "claim_ids": [
+        "c19",
+        "c20",
+        "c21",
+        "c22",
+        "c23",
+        "c24"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 3,
+      "status": "miss",
+      "reason": "The quoted acquisition rules in 10:4:6 are reduced to the broad acquisition_rule label. The actual conditions for acquisition in each domain are not extracted as claims.",
+      "claim_ids": [
+        "c19",
+        "c20"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "minor",
+      "type": "omission",
+      "claim_ids": [
+        "c19",
+        "c20"
+      ],
+      "reason": "The baraita’s different acquisition conditions are present only inside a large evidence quote and a general statement label. The claims do not retain which acts suffice in the buyer’s, seller’s or deposit-holder’s domain.",
+      "source_refs": [
+        "Jerusalem Talmud Sheviit 10:4:6"
+      ]
+    },
+    {
+      "severity": "minor",
+      "type": "omission",
+      "claim_ids": [],
+      "reason": "Repeated named references lack mentions, including Zeira and Abahu in their direct question in 10:4:5 and Yaakov’s second named occurrence in the encounter with Yose in 10:4:6.",
+      "source_refs": [
+        "Jerusalem Talmud Sheviit 10:4:5",
+        "Jerusalem Talmud Sheviit 10:4:6"
+      ]
+    }
+  ],
+  "summary": "Transmission uncertainty, dialogue and the final qualification of Rav are sound. Detailed legal conditions and repeated mentions are incomplete."
+}

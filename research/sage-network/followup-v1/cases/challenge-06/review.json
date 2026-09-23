@@ -1,0 +1,77 @@
+{
+  "job_id": "challenge-06",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "9cd3a124868dd67f10c6657f9358dfd350de01daa3a0cfd0308bbf16dddc02a6",
+  "historical_graph_eligible": false,
+  "scope": "I checked every dossier quote against its saved file in sources/ (all 57 occur verbatim), reread Menachot 73a:13-73b:20, Mishnah Shekalim 7:4-7, Temurah 2b:6-11 and 3a:7-12, the Menachot commentaries, the Sifra and Tosefta witnesses and the pilot input and output; I fetched nothing new and did not check Bavli manuscripts, Dikdukei Soferim or any page image.",
+  "findings": [
+    {
+      "target": "F03 / proposed correction c3",
+      "decision": "keep_evidence_types_separate",
+      "reason": "I agree that the view 'Yosei includes wine' cannot sit with an empty branch list. But the printed baraita at 73b:8 still reads 'מִנַּיִן לְרַבּוֹת הָעוֹפוֹת, וְהַיַּיִן' and 73b:9 still closes it 'דִּבְרֵי רַבִּי יוֹסֵי הַגְּלִילִי' in every branch, because 'סמי מההיא יין' is only a proposed correction. So keep one branch-free textual observation (the printed baraita, with wine, is attributed to Yosei). Make only the view claim c3 branch-scoped (premise of 73b:15; akiva_solution), and keep the deletion as a proposed_emendation inside yosi_solution. Otherwise the emendation erases the printed reading."
+    },
+    {
+      "target": "pilot entity 'gentile'; claims c2, c11, c12 (not covered by the dossier's proposed_corrections)",
+      "decision": "add_missing_claim",
+      "reason": "The dossier fixes 'citizen' (אזרח) but leaves the pilot's 'gentile' entity as kind 'person'. The 'עובד כוכבים ששלח עולתו ממדינת הים' in 73b:12 is a legal case inside an ordinance, so it is a legal role, not a historical person or event. F13 says 'רבנן' in 'דתנו רבנן' is a citation formula, but no proposed correction changes c2 ('teachers holds_view baraita'). The first reading also keeps c11 and c12 ('מני? לא ר' יוסי הגלילי ולא רבי עקיבא') as negative attributions with no branch, although 73b:16 answers 'איבעית אימא ר' יוסי הגלילי ואיבעית אימא רבי עקיבא'. They need to be marked as the question's premise, overturned in both branches, so they never become 'not Yosei' or 'not Akiva' edges."
+    },
+    {
+      "target": "F11 / alternative A5 (Temurah 2b-3a)",
+      "decision": "qualify",
+      "reason": "Temurah 2b:9 prints 'וְאֵין מְבִיאִין עֲלֵיהֶם נְסָכִים' with 'on them', and 3a:10 prints it in parentheses as '(עֲלֵיהֶן)'. Tosafot says that with 'עליהם' Temurah 'משמע ... מיירי בבאין עם הזבח' (seems to speak of libations that come with the offering) and that 'ברוב ספרים לא גרסי' עליהם'. So calling it 'the same rule' depends on the reading. The dossier also omits that the Temurah baraita has a named dissent right after 'דברי רבי שמעון': 'אָמַר רַבִּי יוֹסֵי: בְּכוּלָּן אֲנִי רוֹאֶה לְהַחְמִיר' (2b:10; 3a:11). A5 should therefore say 'attributed to R. Shimon in a disputed baraita, reading-dependent'. This Rabbi Yosei is a separate local person and must not be merged with Rabbi Yosei HaGelili."
+    },
+    {
+      "target": "F06 / alternative A4 (name swap)",
+      "decision": "qualify",
+      "reason": "I support saving the swap as a textual alternative. The Sifra reads 'דברי ר' עקיבא ... אמר לו ר' יוסי הגלילי ... אין כאן אלא עולה בלבד', and Kifshutah reports 'בכי\"ע ובכי\"ל: דברי ר' עקיבא'. But the witnesses for the Bavli order are not independent of the Bavli. Ra'avad justifies his text by it ('מיהו האי נסחא דכתיבנא איתא במנחות'). The Sifra's bracketed '[גירס' הגמרא ...]' notes are cross-references to the Bavli, and Chafetz Chaim only reports the Bavli ('ובמנחות הגירסא להיפך'). Only Tosefta Vienna and the printed edition count as separate witnesses for the Bavli order. The rest must not be counted as votes."
+    },
+    {
+      "target": "F07 / proposed correction 'new (reading_groups)' (Tosefta list without wine)",
+      "decision": "qualify",
+      "reason": "The Vienna list 'עולות, ושלמים, עופות, ומנחות, עצים, ולבונה, ומלח' has no wine, and no entry in the saved apparatus adds it. But it is a different list ('מקבלין מהן', things accepted from gentiles). It adds salt, meal offerings and peace offerings, and there the restrictive sage allows 'עולה ושלמים בלבד'. It does not witness the Bavli baraita that 'סמי מההיא' corrects. Save it as a parallel-text difference attached to the Yosei-Akiva dispute, with low confidence as support for the deletion. Do not attach it to yosi_solution as supporting evidence for the emendation."
+    },
+    {
+      "target": "F04 / entity 'associated'",
+      "decision": "correct_occurrence",
+      "reason": "'עוֹלָה וְכׇל (חַבְירָתַהּ) [אַבְזָרַהָא]' occurs twice, at 73b:13 (about the Shekalim mishnah) and at 73b:16 (about the anonymous baraita). Rashi 73b:13:3, Ktav Yad Rashi 73b:13:2 and Rabbeinu Gershom [8] (which comes before his [9] 'אזרח') all comment on the 73b:13 occurrence. Only Steinsaltz on 73b:16, which glosses 'כל חבירתה' as '(הנלוה לה), כנסכים', comments on the focal occurrence. Keep the gloss, but anchor the commentary evidence to 73b:13 and note that it carries over to 73b:16 because the Talmud reuses the phrase."
+    },
+    {
+      "target": "F01 / reading.md 'What wider context changes' item 1",
+      "decision": "qualify",
+      "reason": "The antecedent at 73b:8-9 is right, and Rashi 73b:15:1 ('כדקתני מנין לרבות העופות והיין') supports it more directly than the 73b:16 comment. Two narrowings apply. First, Rashi's lemma reads 'סמי מכאן נסכי יין', not the printed 'סמי מההיא יין', and that lemma difference should be recorded. Second, Rashi ('מנין לרבות העופות והלבונה ולא תיתני היין') and Gershom ('אלא מנין לרבות העופות והלבונה') quote only the opening of the corrected list; wood is not mentioned. reading.md's 'give the corrected wording: \"birds and frankincense\"' should say they show the list's opening without wine, not the full corrected wording."
+    },
+    {
+      "target": "F08 (London Tosefta 'said to him')",
+      "decision": "qualify",
+      "reason": "The apparatus has London lacking both words: 'אמ' | ד אמר א א'. ל ח'.' and 'לו | ל ח'.', with 'עקיבא | ... ל יוסי הגלילי [או']'. But Lieberman's own summary in Kifshutah gives both Erfurt and London as 'א' לו ר' יוסי הגלילי'. His two statements disagree for London, so London's framing should stay open ('said to him' versus 'says'), and both entries should be cited. The dossier's main point stands: the Bavli 73b:9 has 'רַבִּי עֲקִיבָא אוֹמֵר', with no addressee, and no addressed speech or meeting belongs in 73b:16."
+    },
+    {
+      "target": "F12 (wider-window speakers)",
+      "decision": "qualify",
+      "reason": "The names and the local father placeholder 'Gurya' from 'רַב חָמָא בַּר גּוּרְיָא' are supported, flagged as possibly a fixed name. If the window is widened, the text marks no addressees. 'מֵתִיב רַב שֵׁיזְבִי ... אָמַר רַבִּי יוֹחָנָן: לָא קַשְׁיָא' and 'מֵתִיב רַב חָמָא בַּר גּוּרְיָא ... אָמַר רָבָא' place an answer after an objection. They do not say the answerer spoke to the objector, so no addressee and no meeting should be recorded. The target, Rav Huna's statement at 73a:16, is given by the sugya's structure and the English gloss ('To answer the challenge to Rav Huna's statement'), not by the Aramaic of 73b:3-5."
+    },
+    {
+      "target": "F09, F10, F02 (referent of 'this', agreement versus authorship, deletion as emendation)",
+      "decision": "support_proposed_correction",
+      "reason": "Mishnah Shekalim 7:5 ends 'הִתְקִינוּ בֵּית דִּין שֶׁיְּהוּ נְסָכֶיהָ בָּאִין מִשֶּׁל צִבּוּר', and Ktav Yad Rashi ('לעיל מיניה קא מיירי') and Tosafot Yom Tov ('והדר מפרש לאינך שש נכרי') confirm that 'this' is the found animal's libations. The gentile rule is another of the seven, so the court still instituted it. 'כמאן אזלא' and 'לימא' ask which sage's view a mishnah already said in Rabbi Shimon's name agrees with, so the accords_with_view_of change for c5, c6 and c10 is right. The 'סמי' deletion is framed by 'איבעית אימא' as one of two answers. Treating it as a proposed emendation, and not as Yosei changing his mind, is right. The mishnah's own before-and-after sequence ('בָּרִאשׁוֹנָה ... חָזְרוּ ... הִתְקִינוּ') is relative order only and gives no date."
+    }
+  ],
+  "quote_checks": [
+    {"source_id": "men73b", "exact_quote": "מִנַּיִן לְרַבּוֹת הָעוֹפוֹת, וְהַיַּיִן, וְהַלְּבוֹנָה, וְהָעֵצִים?", "matches_claim": true, "note": "Occurs once, at 73b:8, inside the baraita that 73b:9 closes with 'דִּבְרֵי רַבִּי יוֹסֵי הַגְּלִילִי'. This is the right occurrence for the 'wine' that 73b:16 proposes to delete."},
+    {"source_id": "men73b", "exact_quote": "פְּרָט לִנְזִירוּת, דִּבְרֵי רַבִּי יוֹסֵי הַגְּלִילִי", "matches_claim": true, "note": "73b:9. It is followed at once by 'רַבִּי עֲקִיבָא אוֹמֵר', a listed view with no 'said to him'."},
+    {"source_id": "rashi", "exact_quote": "סמי מכאן נסכי יין - ואמר מנין לרבות העופות והלבונה ולא תיתני היין", "matches_claim": true, "note": "Rashi 73b:16:1. It supports the antecedent. The lemma wording ('מכאן', 'נסכי') differs from the printed 'מההיא', and the comment quotes only the opening of the corrected list."},
+    {"source_id": "gershom", "exact_quote": "סמי מההיא יין. אלא מנין לרבות העופות והלבונה", "matches_claim": true, "note": "Rabbeinu Gershom [12]. The lemma matches the printed wording. The corrected list is quoted only in part."},
+    {"source_id": "men73b", "exact_quote": "עוֹלָה וְכׇל (חַבְירָתַהּ) [אַבְזָרַהָא]", "matches_claim": true, "note": "The phrase occurs twice, at 73b:13 and 73b:16. F04's location, 73b:16, is one real occurrence. The commentary glosses in F04 belong to the 73b:13 occurrence."},
+    {"source_id": "rashi", "exact_quote": "עולה וכל חבירתה דהיינו נסכים אבל נסכים לחודייהו לא", "matches_claim": true, "note": "Rashi 73b:13:3, on the mishnah occurrence, not the focal 73b:16."},
+    {"source_id": "sifra", "exact_quote": "פרט לנזירות, דברי ר' עקיבא [גירס' הגמרא ריה\"ג]. אמר לו ר' יוסי הגלילי [גירס' הגמרא ר\"ע] אפילו אתה מרבה כל היום אין כאן אלא עולה בלבד.", "matches_claim": true, "note": "It confirms the swap and the direction Yosei to Akiva. The bracketed notes are Bavli cross-references of unknown date and are not an independent witness."},
+    {"source_id": "raavad_sifra", "exact_quote": "ואיכא נסחי דכתיב בהו דברי ר' עקיבא אמר לו ר' יוסי הגלילי מיהו האי נסחא דכתיבנא איתא במנחות", "matches_claim": true, "note": "Ra'avad's own text follows Menachot, and he justifies it by Menachot. It is dependent on the Bavli and not a separate vote for the Bavli order."},
+    {"source_id": "tosefta_var", "exact_quote": "<b>לו </b>| <big>ל</big> ח'.", "matches_claim": true, "note": "The preceding entry, '<b>אמ' </b>| <big>ד</big> אמר <big>א</big> א'. <big>ל</big> ח'.', shows London also lacks 'אמ''. That conflicts with Kifshutah's 'בכי\"ע ובכי\"ל: ... א' לו'."},
+    {"source_id": "tosefta", "exact_quote": "עצים, ולבונה, ומלח, דברי ", "matches_claim": true, "note": "The Vienna list has no wine. It is a different list, of things accepted from gentiles, and it also differs by salt, meal offerings and peace offerings."},
+    {"source_id": "shek7", "exact_quote": "הִתְקִינוּ בֵּית דִּין שֶׁיְּהוּ נְסָכֶיהָ בָּאִין מִשֶּׁל צִבּוּר", "matches_claim": true, "note": "End of Mishnah Shekalim 7:5, directly before 'אָמַר רַבִּי שִׁמְעוֹן ... וְזֶה אֶחָד מֵהֶן' in 7:6. It supports F09."},
+    {"source_id": "temurah_2b", "exact_quote": "וְאֵין מְבִיאִין עֲלֵיהֶם נְסָכִים, אֲבָל קׇרְבָּנוֹ טָעוּן נְסָכִים, דִּבְרֵי רַבִּי שִׁמְעוֹן.", "matches_claim": false, "note": "The quote is exact, but it does not fully carry F11's 'same rule' claim. 'עליהם' is printed here, it is parenthesised at 3a:10, and Tosafot reports it as a variant that changes the scope. Temurah 2b:10 goes on 'אָמַר רַבִּי יוֹסֵי: בְּכוּלָּן אֲנִי רוֹאֶה לְהַחְמִיר', a named dissent the dossier omits."},
+    {"source_id": "tosafot", "exact_quote": "מיהו ברוב ספרים לא גרסי' עליהם אבל בספר רבינו גרשם כתוב עליהם", "matches_claim": true, "note": "Tosafot 73b:15:1. It follows 'ובריש תמורה (דף ג.) משמע [דהא] דאין עובד כוכבים מביא נסכים מיירי בבאין עם הזבח', which is why F11 needs the reading-dependence qualifier."},
+    {"source_id": "men73b", "exact_quote": "אָמַר רַבִּי יוֹחָנָן: לָא קַשְׁיָא, הָא רַבִּי יוֹסֵי הַגְּלִילִי, הָא רַבִּי עֲקִיבָא.", "matches_claim": true, "note": "73b:5. It follows 'מֵתִיב רַב שֵׁיזְבִי' with no addressee marker, so this is an answer to an objection, not a conversation."}
+  ],
+  "extra_sources": []
+}

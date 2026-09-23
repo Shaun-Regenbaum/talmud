@@ -1,0 +1,30 @@
+{
+  "job_id": "random-yerushalmi-04",
+  "authority": "automated_review",
+  "status": "qualified_proposals",
+  "dossier_sha256": "ab0e84d435a3b2a98ff15e417f1efe4a3bbd484779ad2c90f0bfd4f4859c15cf",
+  "historical_graph_eligible": false,
+  "scope": "Separate review of selected graph implications and quoted evidence. Source hashes and quotation matches checked separately. Not human adjudication or exhaustive historical verification.",
+  "findings": [
+    {
+      "target": "F1/F5 first opinion and explanation",
+      "decision": "support_proposed_addition",
+      "reason": "An unattributed Mishnah opinion, Yose’s view, and Hanina’s explanation transmitted by Yaakov are distinct claims. An explanation of an older view is not a meeting with its author."
+    },
+    {
+      "target": "F7 unnamed reply and singular/plural addressee",
+      "decision": "retain_alternatives",
+      "reason": "Keep the source-specific number and uncertain speaker. A later manuscript report is not direct manuscript inspection."
+    },
+    {
+      "target": "F11 Mana/Ami proposal",
+      "decision": "retain_emendation_and_identity_branches",
+      "reason": "The chronological emendation to Ami and the proposal of an earlier Mana are different ways to read the difficulty. Neither is a settled identity or a basis to rewrite the printed text."
+    },
+    {
+      "target": "F12 family names and F15 negative wording",
+      "decision": "support_proposed_addition",
+      "reason": "Keep both parent placeholders without merging the two Buns. Preserve the partner ruling’s negation by edition; opposite wording cannot be combined into one unqualified rule."
+    }
+  ]
+}

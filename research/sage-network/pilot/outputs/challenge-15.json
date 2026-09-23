@@ -1,0 +1,576 @@
+{
+  "schema_version": "passage-pilot-v1",
+  "job_id": "challenge-15",
+  "episode": {
+    "genre": "mixed",
+    "genre_reason": "A story of prayer and repentance includes an interpretation of a verse.",
+    "form": "Spousal correction, scriptural argument, changed prayer, and repentance",
+    "coverage": "complete_for_supplied_text",
+    "needed_context": [],
+    "notes": [
+      "The final prayer takes its content from Berurya’s request. No deaths of the troublemakers are asserted. The verse’s wicked people remain a quoted group, not a second historical neighborhood group."
+    ]
+  },
+  "mentions": [
+    {
+      "id": "m1",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי מאיר",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m2",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ברוריא דביתהו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m3",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "בריוני",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m4",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "ורשעים",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m5",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ליה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m6",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ליה",
+        "occurrence": 2
+      }
+    },
+    {
+      "id": "m7",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "עלויהו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m8",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "עלויהו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m9",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "עלויהו",
+        "occurrence": 1
+      }
+    }
+  ],
+  "entities": [
+    {
+      "id": "meir",
+      "kind": "person",
+      "label": "Rabbi Meir",
+      "mention_ids": [
+        "m1",
+        "m5",
+        "m6"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי מאיר",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "bruria",
+      "kind": "person",
+      "label": "Berurya, Meir’s wife",
+      "mention_ids": [
+        "m2"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ברוריא דביתהו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "troublemakers",
+      "kind": "group",
+      "label": "Troublemakers who live near Meir",
+      "mention_ids": [
+        "m3",
+        "m7",
+        "m8",
+        "m9"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "בריוני",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "wicked",
+      "kind": "group",
+      "label": "The wicked in the quoted verse",
+      "mention_ids": [
+        "m4"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "ורשעים",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "harassment",
+      "kind": "event",
+      "label": "The neighbors repeatedly distress Meir",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "והוו קא מצערו ליה טובא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "death_prayer",
+      "kind": "event",
+      "label": "Meir prays that the troublemakers die",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הוה קא בעי רבי מאיר רחמי עלויהו כי היכי דלימותו.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "revised_prayer",
+      "kind": "event",
+      "label": "Meir prays for their repentance",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "בעא רחמי עלויהו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "repentance",
+      "kind": "event",
+      "label": "The troublemakers repent",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "והדרו בתשובה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "reading",
+      "kind": "statement",
+      "label": "The verse says sins, not sinners",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "משום דכתיב ״יתמו חטאים״, מי כתיב ״חוטאים״? ״חטאים״ כתיב.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "ending",
+      "kind": "statement",
+      "label": "Read the end of the verse about the wicked no longer being present",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "ועוד, שפיל לסיפיה דקרא ״ורשעים עוד אינם״, כיון ד״יתמו חטאים״ ״ורשעים עוד אינם״?",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "request",
+      "kind": "statement",
+      "label": "Pray instead that they repent",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אלא בעי רחמי עלויהו דלהדרו בתשובה, ״ורשעים עוד אינם״.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "family": "family",
+      "predicate": "spouse_of",
+      "subject": "bruria",
+      "object": "meir",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמרה ליה ברוריא דביתהו",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c2",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "troublemakers",
+      "object": "harassment",
+      "roles": [
+        {
+          "role": "target",
+          "entity": "meir"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הנהו בריוני דהוו בשבבותיה דרבי מאיר והוו קא מצערו ליה טובא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "distress_neighbor",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c3",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "meir",
+      "object": "death_prayer",
+      "roles": [
+        {
+          "role": "targets",
+          "entity": "troublemakers"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הוה קא בעי רבי מאיר רחמי עלויהו כי היכי דלימותו.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "prays_for_death",
+      "time_scope": null,
+      "notes": [
+        "The prayer occurs, but their deaths are a wished-for outcome and are not reported."
+      ]
+    },
+    {
+      "id": "c4",
+      "family": "speech",
+      "predicate": "objects_to",
+      "subject": "bruria",
+      "object": "death_prayer",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "meir"
+        },
+        {
+          "role": "content",
+          "entity": "reading"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמרה ליה ברוריא דביתהו: מאי דעתך — משום דכתיב ״יתמו חטאים״, מי כתיב ״חוטאים״? ״חטאים״ כתיב.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c5",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "bruria",
+      "object": "reading",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "מי כתיב ״חוטאים״? ״חטאים״ כתיב.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c6",
+      "family": "views",
+      "predicate": "explains",
+      "subject": "bruria",
+      "object": "ending",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "ועוד, שפיל לסיפיה דקרא ״ורשעים עוד אינם״, כיון ד״יתמו חטאים״ ״ורשעים עוד אינם״?",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c7",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "bruria",
+      "object": "meir",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "request"
+        },
+        {
+          "role": "beneficiaries",
+          "entity": "troublemakers"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אלא בעי רחמי עלויהו דלהדרו בתשובה, ״ורשעים עוד אינם״.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c8",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "meir",
+      "object": "revised_prayer",
+      "roles": [
+        {
+          "role": "beneficiaries",
+          "entity": "troublemakers"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "בעא רחמי עלויהו",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "prays_for_repentance",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c9",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "troublemakers",
+      "object": "repentance",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "והדרו בתשובה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "repent",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c10",
+      "family": "time",
+      "predicate": "before",
+      "subject": "revised_prayer",
+      "object": "repentance",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "בעא רחמי עלויהו, והדרו בתשובה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    }
+  ],
+  "reading_groups": [],
+  "coreference_candidates": [],
+  "open_questions": []
+}

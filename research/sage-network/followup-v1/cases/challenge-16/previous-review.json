@@ -1,0 +1,87 @@
+{
+  "job_id": "challenge-16",
+  "input_sha256": "35d47e756c715d72d43ad85d307e2974522b6816efae079f69b1afd3de90d998",
+  "output_sha256": "2bff25da87e5c8757e3f36e4920459555e0ccf529c4e515f848457d34663417b",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "Separate reported-name branches place Shimi or Mar Ukva before Shimon.",
+      "claim_ids": [
+        "c5",
+        "c6"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "The arranging event retains Yehoshua as the person before whom it occurs; scoped interpretations allow the initial visitor or Shimon to arrange.",
+      "claim_ids": [
+        "c7",
+        "c8",
+        "c9"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "Yehuda son of Menasya owns the inserted teaching. The resumed question uses an unnamed questioner, not Yehuda.",
+      "claim_ids": [
+        "c14",
+        "c15"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 3,
+      "status": "pass",
+      "reason": "The named questioner and respondent remain unresolved in branch-scoped coreference candidates. The final answer’s speaker remains open.",
+      "claim_ids": [
+        "c10",
+        "c11",
+        "c15",
+        "c17"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "No resumed turn is assigned to Yehuda.",
+      "claim_ids": [
+        "c14",
+        "c15"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "Attendance is preserved without a formal student claim, and no translation-supplied turn is treated as explicit.",
+      "claim_ids": [
+        "c5",
+        "c6",
+        "c10",
+        "c11"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "minor",
+      "type": "contract_limit",
+      "claim_ids": [
+        "c10",
+        "c11"
+      ],
+      "reason": "The same two אמר ליה occurrences are duplicated as m15/m27/m30 and m16/m28/m31. The unresolved role entities use the first pair while their named candidates use the duplicate mentions. Reusing one occurrence ID would bind the role and its candidates more directly.",
+      "source_refs": [
+        "Berakhot 10a:21"
+      ]
+    }
+  ],
+  "summary": "The alternatives, inserted teaching and uncertain speakers are preserved. Duplicate mention IDs make the uncertainty harder to follow mechanically."
+}

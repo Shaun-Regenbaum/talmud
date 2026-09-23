@@ -1,0 +1,22 @@
+{
+  "job_id": "random-yerushalmi-01",
+  "reason": "Storage review M1: saved_file held an absolute path on one laptop, so the case could not be rebuilt or checked elsewhere.",
+  "previous_dossier_sha256": "1198e653a8dfec9937a73b6f1cb1e624b1c917d1a9f8b64f14476c2095a74e58",
+  "dossier_sha256": "cdba032f5d0fe41096aea62117d763e4d1676a80c69856bd7ca7bf3ae88cf2fa",
+  "changes": [
+    {
+      "source_id": "IN",
+      "field": "saved_file",
+      "from": "/Users/shaunie/Documents/Code/talmud/.claude/worktrees/sage-reader-recovery/research/sage-network/pilot/inputs/random-yerushalmi-01.json",
+      "to": "../../../pilot/inputs/random-yerushalmi-01.json"
+    },
+    {
+      "source_id": "IN",
+      "field": "input_path",
+      "from": "/Users/shaunie/Documents/Code/talmud/.claude/worktrees/sage-reader-recovery/research/sage-network/pilot/inputs/random-yerushalmi-01.json",
+      "to": "research/sage-network/pilot/inputs/random-yerushalmi-01.json"
+    }
+  ],
+  "verified": "Only saved_file and input_path strings changed. Source bytes, findings, quotations and all other fields are identical (checked by parsing both files).",
+  "original_preserved_as": "dossier.original.json"
+}

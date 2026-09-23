@@ -1,0 +1,994 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-01",
+    "episode": {
+      "genre": "mixed",
+      "genre_reason": "Sabbath rulings are followed by a rescue story offered to explain a danger.",
+      "form": "Legal teaching, textual uncertainty, and illustrative story",
+      "coverage": "needs_context",
+      "needed_context": [
+        "A textual witness or apparatus is needed to decide whether parenthesized אין belongs in Rav Huna’s ruling."
+      ],
+      "notes": []
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רבנן",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רשב\"ג",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רבי יוסי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "רב הונא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "רב יצחק בר יוסף",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "יוסף",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "ארזא",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "sages",
+        "kind": "group",
+        "label": "The sages teaching the baraita",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "rsbg",
+        "kind": "person",
+        "label": "רשב״ג, unexpanded in this text",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רשב\"ג",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "yosi",
+        "kind": "person",
+        "label": "Rabbi Yosi",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבי יוסי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "huna",
+        "kind": "person",
+        "label": "Rav Huna",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רב הונא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "itzhak",
+        "kind": "person",
+        "label": "Rav Yitzhak son of Yosef",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רב יצחק בר יוסף",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "yosef",
+        "kind": "person",
+        "label": "Yosef in the patronymic",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "יוסף",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "cedar",
+        "kind": "object",
+        "label": "The cedar",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "ארזא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "treatment",
+        "kind": "statement",
+        "label": "Rubbing, incantations for snakes and scorpions, and passing a vessel over the eye on Sabbath",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "סכין וממשמשין בבני מעיים בשבת ולוחשין לחישת נחשים ועקרבים בשבת ומעבירין כלי על גב העין בשבת",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "vessel",
+        "kind": "statement",
+        "label": "Permission applies to a movable vessel; an immovable vessel is forbidden",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "במה דברים אמורים בכלי הניטל אבל בכלי שאינו ניטל אסור",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "sabbath",
+        "kind": "statement",
+        "label": "Do not inquire through demons on Sabbath",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ואין שואלין בדבר שדים בשבת",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "weekday",
+        "kind": "statement",
+        "label": "Inquiry through demons is forbidden even on a weekday",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבי יוסי אומר אף בחול אסור",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "danger",
+        "kind": "statement",
+        "label": "Rabbi Yosi spoke because of danger",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "ואף רבי יוסי לא אמרה אלא משום סכנה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "trapped",
+        "kind": "event",
+        "label": "Yitzhak was swallowed in a cedar",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "דאיבלע בארזא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "rescue",
+        "kind": "event",
+        "label": "The cedar split and released him in a miracle",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "ואתעביד ליה ניסא פקע ארזא ופלטיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "sages",
+        "object": "treatment",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "תנו רבנן סכין וממשמשין בבני מעיים בשבת ולוחשין לחישת נחשים ועקרבים בשבת ומעבירין כלי על גב העין בשבת",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "rsbg",
+        "object": "vessel",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר רשב\"ג במה דברים אמורים בכלי הניטל אבל בכלי שאינו ניטל אסור",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "sages",
+        "object": "sabbath",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ואין שואלין בדבר שדים בשבת",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The baraita gives this rule without naming a separate speaker."
+        ]
+      },
+      {
+        "id": "c4",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "yosi",
+        "object": "weekday",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבי יוסי אומר אף בחול אסור",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "views",
+        "predicate": "explains",
+        "subject": "danger",
+        "object": "weekday",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "ואף רבי יוסי לא אמרה אלא משום סכנה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "views",
+        "predicate": "rules_like",
+        "subject": "huna",
+        "object": "yosi",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "weekday"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר רב הונא (אין) הלכה כר' יוסי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "with_negation"
+        ],
+        "voice": "narrator",
+        "polarity": "negative",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c7",
+        "family": "views",
+        "predicate": "rules_like",
+        "subject": "huna",
+        "object": "yosi",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "weekday"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר רב הונא (אין) הלכה כר' יוסי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "without_negation"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c8",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "itzhak",
+        "object": "yosef",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רב יצחק בר יוסף",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c9",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "itzhak",
+        "object": "trapped",
+        "roles": [
+          {
+            "role": "enclosing_object",
+            "entity": "cedar"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "דרב יצחק בר יוסף דאיבלע בארזא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "דאיבלע",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c10",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "itzhak",
+        "object": "rescue",
+        "roles": [
+          {
+            "role": "cedar",
+            "entity": "cedar"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "ואתעביד ליה ניסא פקע ארזא ופלטיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "released",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c11",
+        "family": "time",
+        "predicate": "before",
+        "subject": "trapped",
+        "object": "rescue",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "דאיבלע בארזא ואתעביד ליה ניסא פקע ארזא ופלטיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      }
+    ],
+    "reading_groups": [
+      {
+        "id": "g1",
+        "kind": "editorial_readings",
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "(אין) הלכה כר' יוסי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          {
+            "id": "with_negation",
+            "label": "Read the parenthesized אין"
+          },
+          {
+            "id": "without_negation",
+            "label": "Read without the parenthesized אין"
+          }
+        ],
+        "historical_compatibility": "unknown",
+        "scope": "Whether Rav Huna rules like Rabbi Yosi.",
+        "rejoin": "The danger explanation is shared.",
+        "notes": [
+          "The parentheses are retained as a textual question, not silently resolved."
+        ]
+      }
+    ],
+    "coreference_candidates": [],
+    "open_questions": [
+      "The text does not specify how Yitzhak entered the cedar or identify an interlocutor there."
+    ]
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "רבנן",
+      "occurrence": 1,
+      "source_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+      "start": 4,
+      "end": 8,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "רשב\"ג",
+      "occurrence": 1,
+      "source_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+      "start": 105,
+      "end": 110,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "רבי יוסי",
+      "occurrence": 1,
+      "source_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+      "start": 191,
+      "end": 199,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s2",
+      "quote": "רב הונא",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 4,
+      "end": 11,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s2",
+      "quote": "רב יצחק בר יוסף",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 74,
+      "end": 89,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s2",
+      "quote": "יוסף",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 85,
+      "end": 89,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s2",
+      "quote": "ארזא",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 98,
+      "end": 102,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sages/evidence/0",
+      "source_id": "s1",
+      "quote": "רבנן",
+      "occurrence": 1,
+      "source_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+      "start": 4,
+      "end": 8,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/rsbg/evidence/0",
+      "source_id": "s1",
+      "quote": "רשב\"ג",
+      "occurrence": 1,
+      "source_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+      "start": 105,
+      "end": 110,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yosi/evidence/0",
+      "source_id": "s1",
+      "quote": "רבי יוסי",
+      "occurrence": 1,
+      "source_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+      "start": 191,
+      "end": 199,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/huna/evidence/0",
+      "source_id": "s2",
+      "quote": "רב הונא",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 4,
+      "end": 11,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/itzhak/evidence/0",
+      "source_id": "s2",
+      "quote": "רב יצחק בר יוסף",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 74,
+      "end": 89,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yosef/evidence/0",
+      "source_id": "s2",
+      "quote": "יוסף",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 85,
+      "end": 89,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/cedar/evidence/0",
+      "source_id": "s2",
+      "quote": "ארזא",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 98,
+      "end": 102,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/treatment/evidence/0",
+      "source_id": "s1",
+      "quote": "סכין וממשמשין בבני מעיים בשבת ולוחשין לחישת נחשים ועקרבים בשבת ומעבירין כלי על גב העין בשבת",
+      "occurrence": 1,
+      "source_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+      "start": 9,
+      "end": 100,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/vessel/evidence/0",
+      "source_id": "s1",
+      "quote": "במה דברים אמורים בכלי הניטל אבל בכלי שאינו ניטל אסור",
+      "occurrence": 1,
+      "source_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+      "start": 111,
+      "end": 163,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sabbath/evidence/0",
+      "source_id": "s1",
+      "quote": "ואין שואלין בדבר שדים בשבת",
+      "occurrence": 1,
+      "source_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+      "start": 164,
+      "end": 190,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/weekday/evidence/0",
+      "source_id": "s1",
+      "quote": "רבי יוסי אומר אף בחול אסור",
+      "occurrence": 1,
+      "source_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+      "start": 191,
+      "end": 217,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/danger/evidence/0",
+      "source_id": "s2",
+      "quote": "ואף רבי יוסי לא אמרה אלא משום סכנה",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 32,
+      "end": 66,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/trapped/evidence/0",
+      "source_id": "s2",
+      "quote": "דאיבלע בארזא",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 90,
+      "end": 102,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/rescue/evidence/0",
+      "source_id": "s2",
+      "quote": "ואתעביד ליה ניסא פקע ארזא ופלטיה",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 103,
+      "end": 135,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "תנו רבנן סכין וממשמשין בבני מעיים בשבת ולוחשין לחישת נחשים ועקרבים בשבת ומעבירין כלי על גב העין בשבת",
+      "occurrence": 1,
+      "source_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+      "start": 0,
+      "end": 100,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר רשב\"ג במה דברים אמורים בכלי הניטל אבל בכלי שאינו ניטל אסור",
+      "occurrence": 1,
+      "source_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+      "start": 101,
+      "end": 163,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "ואין שואלין בדבר שדים בשבת",
+      "occurrence": 1,
+      "source_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+      "start": 164,
+      "end": 190,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s1",
+      "quote": "רבי יוסי אומר אף בחול אסור",
+      "occurrence": 1,
+      "source_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+      "start": 191,
+      "end": 217,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s2",
+      "quote": "ואף רבי יוסי לא אמרה אלא משום סכנה",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 32,
+      "end": 66,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר רב הונא (אין) הלכה כר' יוסי",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 0,
+      "end": 31,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר רב הונא (אין) הלכה כר' יוסי",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 0,
+      "end": 31,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s2",
+      "quote": "רב יצחק בר יוסף",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 74,
+      "end": 89,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s2",
+      "quote": "דרב יצחק בר יוסף דאיבלע בארזא",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 73,
+      "end": 102,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s2",
+      "quote": "ואתעביד ליה ניסא פקע ארזא ופלטיה",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 103,
+      "end": 135,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c11/evidence/0",
+      "source_id": "s2",
+      "quote": "דאיבלע בארזא ואתעביד ליה ניסא פקע ארזא ופלטיה",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 90,
+      "end": 135,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "reading_groups/g1/evidence/0",
+      "source_id": "s2",
+      "quote": "(אין) הלכה כר' יוסי",
+      "occurrence": 1,
+      "source_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+      "start": 12,
+      "end": 31,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "f9d2d1fea3b10364f161e32ab433ad2d266556ee6f143817a11ee4edfb6acffd",
+  "output_sha256": "652f1cb5ec7f8b0b7235d1aef30c5b6d9f5131fea5e220d40c8f1b4564522150",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.292627+00:00"
+}

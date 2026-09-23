@@ -1,0 +1,40 @@
+{
+  "job_id": "random-yerushalmi-02",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "69846742a774a76488e02169a8fe57b2687ee7fad73f2c3d0c423b971085e0df",
+  "historical_graph_eligible": false,
+  "scope": "Separate check of selected graph implications and all declared source spans. Not human adjudication or a historical identity review.",
+  "findings": [
+    {
+      "target": "f01-f02; m9 and first_priest",
+      "decision": "support_proposed_correction",
+      "reason": "The first occurrence belongs to a legal eligibility category. The later occurrence lies in the narrated disqualification of the incumbent. The exact saved text supports moving the story-person anchor. Forty declared offsets were checked against their saved input segments."
+    },
+    {
+      "target": "f01/f11 occurrence counts",
+      "decision": "mechanically_corrected",
+      "reason": "Three counts confused similar but differently pointed or prefixed quotations. The exact saved strings were counted again. mechanical-corrections.json records the three changes and hashes; dossier.original.json preserves the first answer."
+    },
+    {
+      "target": "f11; proposed correction to c1",
+      "decision": "reject_categorical_downgrade",
+      "reason": "Absence of an acting father is not a reason to discard a name-internal family claim. Retain the possible patronymic and local parent node. If a family-name reading is supported, store it as an alternative to literal filiation. Spellings alone do not establish that this is merely a surname. Historical identity remains unresolved."
+    },
+    {
+      "target": "f04; Horayot valid versus invalid",
+      "decision": "keep_as_versioned_claims",
+      "reason": "Preserve the conflicting wording in its own source and passage. A commentary or editorial correction can explain the difference, but should not erase the reading or assume both passages preserve one utterance."
+    },
+    {
+      "target": "f15/f20",
+      "decision": "keep_attributed_interpretation",
+      "reason": "The proposed direction of the hypothetical danger and the owner of the saliva come from commentary. Keep that attribution and its uncertainty. Neither becomes an unqualified narrative assertion from the bare pronouns."
+    },
+    {
+      "target": "f22; parallel personal names",
+      "decision": "qualify",
+      "reason": "Different names in parallel tellings do not justify an accepted person merge. The shared story can still be evidence for a possible relationship between the traditions. Keep candidate identity or narrative-variant links in an evidence pack rather than declaring that the parallels provide no identity evidence."
+    }
+  ]
+}

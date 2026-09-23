@@ -1,0 +1,102 @@
+{
+  "job_id": "random-yerushalmi-02",
+  "input_sha256": "c9755267780ea9f802c9be212ac10cfcf45c98ff8acb5b4a8aee6cb6bbb7fd78",
+  "output_sha256": "ee565408f15f69ecc0897243be39a754d99727ae1ff5649377291e1e1f800ef9",
+  "checks": [
+    {
+      "kind": "source",
+      "index": 0,
+      "status": "pass",
+      "reason": "Megillah 1:10:2 keeps Meir’s bull-offering rule separate from the rabbis’ rule and Ila’s explanation of the contextual difference.",
+      "claim_ids": [
+        "c5",
+        "c6",
+        "c7",
+        "c8"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 1,
+      "status": "pass",
+      "reason": "Haggai’s possible killing in 1:10:4 remains a rhetorical warning, and מֹשֶׁה is not made a historical visitor. The two replacement stories are kept distinct from the hypothetical rules.",
+      "claim_ids": [
+        "c10",
+        "c13",
+        "c14",
+        "c19",
+        "c22"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 2,
+      "status": "pass",
+      "reason": "Kimhit, Shimon and Yehuda are retained with their family claims. Her seven sons are not said to serve on the same day, and her account of her conduct remains her own speech.",
+      "claim_ids": [
+        "c2",
+        "c3",
+        "c4",
+        "c24",
+        "c25",
+        "c26",
+        "c27"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 3,
+      "status": "miss",
+      "reason": "The story’s incumbent priest is linked to m9, whose first לְכֹהֵן גָּדוֹל occurrence in 1:10:5 is actually the hypothetical replacement’s disqualification. The correct story occurrence follows שֶׁאִירַע קֶרִי.",
+      "claim_ids": [
+        "c13",
+        "c14"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 4,
+      "status": "miss",
+      "reason": "The opening rules in 1:10:5 say the first priest retains all priestly duties and the second is fit neither as high priest nor ordinary priest. The extraction gives them entities but no claims stating those rules.",
+      "claim_ids": [
+        "c12"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "major",
+      "type": "unsupported",
+      "claim_ids": [
+        "c13",
+        "c14"
+      ],
+      "reason": "The first_priest entity and m9 point to the wrong לְכֹהֵן גָּדוֹל occurrence. That source span describes the hypothetical second priest’s ineligibility, not the incumbent in Ben Illem’s story. The narrative roles in c13–c14 are otherwise supported, but their person anchor wrongly crosses the legal case and the story.",
+      "source_refs": [
+        "Jerusalem Talmud Megillah 1:10:5"
+      ]
+    },
+    {
+      "severity": "major",
+      "type": "omission",
+      "claim_ids": [
+        "c12"
+      ],
+      "reason": "The first priest’s retained duties and the second priest’s disqualification from both priestly roles are missing as claims. Only the later validity of service performed anyway is retained, losing the condition that makes that later ruling significant.",
+      "source_refs": [
+        "Jerusalem Talmud Megillah 1:10:5"
+      ]
+    },
+    {
+      "severity": "minor",
+      "type": "omission",
+      "claim_ids": [],
+      "reason": "Repeated person mentions are incomplete, including Yohanan’s named statements in 1:10:4 and 1:10:5, each represented only through his earlier 1:10:3 mention.",
+      "source_refs": [
+        "Jerusalem Talmud Megillah 1:10:4",
+        "Jerusalem Talmud Megillah 1:10:5"
+      ]
+    }
+  ],
+  "summary": "The stories, women and hypothetical warning are largely preserved. A wrong repeated-word anchor joins the legal case to the story, and important priestly eligibility rules are missing."
+}

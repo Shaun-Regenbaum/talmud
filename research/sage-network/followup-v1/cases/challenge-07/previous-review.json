@@ -1,0 +1,79 @@
+{
+  "job_id": "challenge-07",
+  "input_sha256": "f5a4153ec09b7b36276181b47c7084e99033b34b4aafeee1a03f677b946c33a0",
+  "output_sha256": "09a58df7bdf9db1cffae43da45a1f8fb6866cf49012bdaf9125a90ae93957dc8",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "Both full son-and-father names are retained, with the correct directed family claims.",
+      "claim_ids": [
+        "c7",
+        "c8"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "The voting explanation has a Rabba branch and a Hillel branch.",
+      "claim_ids": [
+        "c3",
+        "c4"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "Rav’s first-person participation is distinct from the later named explanations.",
+      "claim_ids": [
+        "c1",
+        "c3",
+        "c4"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "Neither father is substituted for the son as the speaker.",
+      "claim_ids": [
+        "c3",
+        "c4",
+        "c7",
+        "c8"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "No attendance, contemporaneity, or shared meeting is inferred for the alternative explainers.",
+      "claim_ids": [
+        "c1",
+        "c3",
+        "c4"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "minor",
+      "type": "uncertainty",
+      "claim_ids": [
+        "c3",
+        "c4",
+        "c5",
+        "c6"
+      ],
+      "reason": "The extraction creates independent alternative groups for the repeated attributions in :6 and :7, and explicitly notes that transmission may connect them. Downstream enumeration must not treat all four combinations as independently reported witnesses.",
+      "source_refs": [
+        "Sanhedrin 36a:6",
+        "Sanhedrin 36a:7"
+      ]
+    }
+  ],
+  "summary": "The complete names and separate speaking roles are preserved. The link between repeated attribution choices remains an explicit limit."
+}

@@ -1,0 +1,1162 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-23",
+    "episode": {
+      "genre": "aggadic",
+      "genre_reason": "A daughter escapes a predicted snake death after giving her meal to a poor person.",
+      "form": "story with prediction and reported recollection",
+      "coverage": "complete_for_supplied_text",
+      "needed_context": [],
+      "notes": [
+        "No groom is identified. The fatal prediction is not recorded as a death event."
+      ]
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רבי עקיבא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ברתא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "כלדאי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "עניא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "כולי עלמא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ישראל",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ההוא יומא דעיילה לבי גננא, טריק לה חיויא, ומיתא.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "מכבנתא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ההוא יומא שקלתה למכבנתא, דצתה בגודא, איתרמי איתיב בעיניה דחיויא.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m10",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "לצפרא כי קא שקלה לה, הוה קא סריך ואתי חיויא בתרה.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m11",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "מאי עבדת?",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m12",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "קאימנא, שקלתיה לריסתנאי דיהבת לי, יהבתיה ניהליה.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m13",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "בפניא אתא עניא, קרא אבבא והוו טרידי כולי עלמא בסעודתא, וליכא דשמעיה.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m14",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "מצוה עבדת.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m15",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "״וצדקה תציל ממות״, ולא ממיתה משונה, אלא ממיתה עצמה.",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "akiva",
+        "kind": "person",
+        "label": "Rabbi Akiva",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבי עקיבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "daughter",
+        "kind": "person",
+        "label": "Rabbi Akiva’s unnamed daughter",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ברתא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "astrologers",
+        "kind": "group",
+        "label": "Chaldean predictors",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "כלדאי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "poor",
+        "kind": "person",
+        "label": "Poor person at the door",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "עניא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "guests",
+        "kind": "group",
+        "label": "Those busy with the feast",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "כולי עלמא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "israel",
+        "kind": "group",
+        "label": "Israel in the opening conclusion",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ישראל",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "prediction",
+        "kind": "statement",
+        "label": "She will die from a snakebite on her wedding day",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ההוא יומא דעיילה לבי גננא, טריק לה חיויא, ומיתא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "pin",
+        "kind": "object",
+        "label": "The daughter’s pin",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "מכבנתא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "pinning",
+        "kind": "event",
+        "label": "She pushes her pin into the wall and it enters the snake’s eye",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ההוא יומא שקלתה למכבנתא, דצתה בגודא, איתרמי איתיב בעיניה דחיויא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "morning",
+        "kind": "event",
+        "label": "She retrieves her pin with the snake attached",
+        "mention_ids": [
+          "m10"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "לצפרא כי קא שקלה לה, הוה קא סריך ואתי חיויא בתרה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "question",
+        "kind": "statement",
+        "label": "What did you do?",
+        "mention_ids": [
+          "m11"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "מאי עבדת?",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "giving",
+        "kind": "event",
+        "label": "Giving her meal to the poor visitor",
+        "mention_ids": [
+          "m12"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "קאימנא, שקלתיה לריסתנאי דיהבת לי, יהבתיה ניהליה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "reply",
+        "kind": "statement",
+        "label": "Her account of feeding the ignored poor visitor",
+        "mention_ids": [
+          "m13"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בפניא אתא עניא, קרא אבבא והוו טרידי כולי עלמא בסעודתא, וליכא דשמעיה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "merit",
+        "kind": "statement",
+        "label": "You performed a commandment",
+        "mention_ids": [
+          "m14"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "מצוה עבדת.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "teaching",
+        "kind": "statement",
+        "label": "Charity saves from death itself",
+        "mention_ids": [
+          "m15"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "״וצדקה תציל ממות״, ולא ממיתה משונה, אלא ממיתה עצמה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "daughter",
+        "object": "akiva",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "דרבי עקיבא הויא ליה ברתא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "astrologers",
+        "object": "akiva",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "prediction"
+          },
+          {
+            "role": "target",
+            "entity": "daughter"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמרי ליה כלדאי: ההוא יומא דעיילה לבי גננא, טריק לה חיויא, ומיתא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "astrologers",
+        "object": "prediction",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ההוא יומא דעיילה לבי גננא, טריק לה חיויא, ומיתא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "astrologers",
+        "polarity": "positive",
+        "modality": "prediction",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c4",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "daughter",
+        "object": "pinning",
+        "roles": [
+          {
+            "role": "instrument",
+            "entity": "pin"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ההוא יומא שקלתה למכבנתא, דצתה בגודא, איתרמי איתיב בעיניה דחיויא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "דצתה",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "daughter",
+        "object": "morning",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "לצפרא כי קא שקלה לה, הוה קא סריך ואתי חיויא בתרה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "שקלה",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "time",
+        "predicate": "before",
+        "subject": "pinning",
+        "object": "morning",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "לצפרא כי קא שקלה לה, הוה קא סריך ואתי חיויא בתרה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c7",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "akiva",
+        "object": "daughter",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "question"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר לה אבוה: מאי עבדת?",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c8",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "daughter",
+        "object": "question",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "akiva"
+          },
+          {
+            "role": "content",
+            "entity": "reply"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמרה ליה בפניא אתא עניא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c9",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "daughter",
+        "object": "giving",
+        "roles": [
+          {
+            "role": "recipient",
+            "entity": "poor"
+          },
+          {
+            "role": "prior_giver",
+            "entity": "akiva"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "קאימנא, שקלתיה לריסתנאי דיהבת לי, יהבתיה ניהליה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "daughter",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "יהבתיה",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c10",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "akiva",
+        "object": "daughter",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "merit"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר לה: מצוה עבדת.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c11",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "akiva",
+        "object": "teaching",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "נפק רבי עקיבא ודרש: ״וצדקה תציל ממות״, ולא ממיתה משונה, אלא ממיתה עצמה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      }
+    ],
+    "reading_groups": [],
+    "coreference_candidates": [],
+    "open_questions": []
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "רבי עקיבא",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 3,
+      "end": 12,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "ברתא",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 53,
+      "end": 57,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "כלדאי",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 68,
+      "end": 73,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s2",
+      "quote": "עניא",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 42,
+      "end": 46,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s2",
+      "quote": "כולי עלמא",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 68,
+      "end": 77,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s1",
+      "quote": "ישראל",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 26,
+      "end": 31,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s1",
+      "quote": "ההוא יומא דעיילה לבי גננא, טריק לה חיויא, ומיתא.",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 75,
+      "end": 123,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s1",
+      "quote": "מכבנתא",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 163,
+      "end": 169,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s1",
+      "quote": "ההוא יומא שקלתה למכבנתא, דצתה בגודא, איתרמי איתיב בעיניה דחיויא.",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 146,
+      "end": 210,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m10/anchor",
+      "source_id": "s1",
+      "quote": "לצפרא כי קא שקלה לה, הוה קא סריך ואתי חיויא בתרה.",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 211,
+      "end": 260,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m11/anchor",
+      "source_id": "s2",
+      "quote": "מאי עבדת?",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 13,
+      "end": 22,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m12/anchor",
+      "source_id": "s2",
+      "quote": "קאימנא, שקלתיה לריסתנאי דיהבת לי, יהבתיה ניהליה.",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 101,
+      "end": 149,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m13/anchor",
+      "source_id": "s2",
+      "quote": "בפניא אתא עניא, קרא אבבא והוו טרידי כולי עלמא בסעודתא, וליכא דשמעיה.",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 32,
+      "end": 100,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m14/anchor",
+      "source_id": "s2",
+      "quote": "מצוה עבדת.",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 158,
+      "end": 168,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m15/anchor",
+      "source_id": "s2",
+      "quote": "״וצדקה תציל ממות״, ולא ממיתה משונה, אלא ממיתה עצמה.",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 189,
+      "end": 240,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/akiva/evidence/0",
+      "source_id": "s1",
+      "quote": "רבי עקיבא",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 3,
+      "end": 12,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/daughter/evidence/0",
+      "source_id": "s1",
+      "quote": "ברתא",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 53,
+      "end": 57,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/astrologers/evidence/0",
+      "source_id": "s1",
+      "quote": "כלדאי",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 68,
+      "end": 73,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/poor/evidence/0",
+      "source_id": "s2",
+      "quote": "עניא",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 42,
+      "end": 46,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/guests/evidence/0",
+      "source_id": "s2",
+      "quote": "כולי עלמא",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 68,
+      "end": 77,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/israel/evidence/0",
+      "source_id": "s1",
+      "quote": "ישראל",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 26,
+      "end": 31,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/prediction/evidence/0",
+      "source_id": "s1",
+      "quote": "ההוא יומא דעיילה לבי גננא, טריק לה חיויא, ומיתא.",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 75,
+      "end": 123,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/pin/evidence/0",
+      "source_id": "s1",
+      "quote": "מכבנתא",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 163,
+      "end": 169,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/pinning/evidence/0",
+      "source_id": "s1",
+      "quote": "ההוא יומא שקלתה למכבנתא, דצתה בגודא, איתרמי איתיב בעיניה דחיויא.",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 146,
+      "end": 210,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/morning/evidence/0",
+      "source_id": "s1",
+      "quote": "לצפרא כי קא שקלה לה, הוה קא סריך ואתי חיויא בתרה.",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 211,
+      "end": 260,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/question/evidence/0",
+      "source_id": "s2",
+      "quote": "מאי עבדת?",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 13,
+      "end": 22,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/giving/evidence/0",
+      "source_id": "s2",
+      "quote": "קאימנא, שקלתיה לריסתנאי דיהבת לי, יהבתיה ניהליה.",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 101,
+      "end": 149,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/reply/evidence/0",
+      "source_id": "s2",
+      "quote": "בפניא אתא עניא, קרא אבבא והוו טרידי כולי עלמא בסעודתא, וליכא דשמעיה.",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 32,
+      "end": 100,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/merit/evidence/0",
+      "source_id": "s2",
+      "quote": "מצוה עבדת.",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 158,
+      "end": 168,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/teaching/evidence/0",
+      "source_id": "s2",
+      "quote": "״וצדקה תציל ממות״, ולא ממיתה משונה, אלא ממיתה עצמה.",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 189,
+      "end": 240,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "דרבי עקיבא הויא ליה ברתא",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 33,
+      "end": 57,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s1",
+      "quote": "אמרי ליה כלדאי: ההוא יומא דעיילה לבי גננא, טריק לה חיויא, ומיתא.",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 59,
+      "end": 123,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "ההוא יומא דעיילה לבי גננא, טריק לה חיויא, ומיתא.",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 75,
+      "end": 123,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s1",
+      "quote": "ההוא יומא שקלתה למכבנתא, דצתה בגודא, איתרמי איתיב בעיניה דחיויא.",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 146,
+      "end": 210,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s1",
+      "quote": "לצפרא כי קא שקלה לה, הוה קא סריך ואתי חיויא בתרה.",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 211,
+      "end": 260,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s1",
+      "quote": "לצפרא כי קא שקלה לה, הוה קא סריך ואתי חיויא בתרה.",
+      "occurrence": 1,
+      "source_sha256": "f0264473ab7632f1b4642a94f8c82fcd7a04a733724616588de532f6dfa4d4e6",
+      "start": 211,
+      "end": 260,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר לה אבוה: מאי עבדת?",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 0,
+      "end": 22,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s2",
+      "quote": "אמרה ליה בפניא אתא עניא",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 23,
+      "end": 46,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s2",
+      "quote": "קאימנא, שקלתיה לריסתנאי דיהבת לי, יהבתיה ניהליה.",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 101,
+      "end": 149,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר לה: מצוה עבדת.",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 150,
+      "end": 168,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c11/evidence/0",
+      "source_id": "s2",
+      "quote": "נפק רבי עקיבא ודרש: ״וצדקה תציל ממות״, ולא ממיתה משונה, אלא ממיתה עצמה.",
+      "occurrence": 1,
+      "source_sha256": "a93262a4ba9cac571abd36273324b11f19a48285774933d6e9b04e44813ba896",
+      "start": 169,
+      "end": 240,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "ba97da0fac783ebdb9ca19dcd74c79cfac5cd1fdf3e23c7e8cc6daf17203f6a5",
+  "output_sha256": "314e34e0b9d31e2c5696903643fa145db8de629b41bb089bc9d2908ef990dd19",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.387451+00:00"
+}

@@ -1,0 +1,940 @@
+{
+  "job_id": "challenge-10",
+  "focal_ref": "Menachot 29b:3",
+  "status": "researched",
+  "question": "Who speaks, acts, is named or is cited in Menachot 29b:3 (with its continuation 29b:4-5)? Which graph claims are explicit, which rest on interpretation, and which alternatives must stay open when the first reading is checked against wider context, translations, commentaries, a manuscript and an early print?",
+  "scope_checked": "Menachot 29a (end) and 29b (Sefaria: Wikisource, William Davidson Aramaic, vocalized and English, Sefaria Community Translation); Rashi; Steinsaltz Hebrew; Maharsha (Chidushei Agadot); Ben Yehoyada; Petach Einayim; Marit HaAyin; parallels Shabbat 89a, Sanhedrin 111a, Berakhot 61b; Sefer Tagin introduction (Otzar Midrashim); Seder HaDorot; Ein Yaakov (Daat vocalized Hebrew; Glick 1916 Hebrew and English); Munich Cod. hebr. 95 page image 0834; Bomberg 1523 page image. Not checked: other manuscripts (for example Vatican or Florence), Hachi Garsinan variant apparatus, Dikdukei Soferim, and the academic studies the Wikipedia article cites.",
+  "sources": [
+    {
+      "source_id": "pilot_input",
+      "input_path": "research/sage-network/pilot/inputs/challenge-10.json",
+      "edition": "Pilot source job: Wikisource Talmud Bavli, Menachot 29b:3-5",
+      "fetched_at": null,
+      "saved_file": "../../../pilot/inputs/challenge-10.json",
+      "sha256": "d8977c7edcdd35ce2c1fc19f497441f7f78b6f437d4a1446bce30b4c2beb9674"
+    },
+    {
+      "source_id": "pilot_output",
+      "input_path": "research/sage-network/pilot/outputs/challenge-10.json",
+      "edition": "First saved reading (passage-pilot-v1)",
+      "fetched_at": null,
+      "saved_file": "../../../pilot/outputs/challenge-10.json",
+      "sha256": "f65a6e1210ad8cddd58625ae034f4f9962f5b5234bbb4b1d07ab4b58e6b90b44"
+    },
+    {
+      "source_id": "prev_review",
+      "input_path": "research/sage-network/followup-v1/cases/challenge-10/previous-review.json",
+      "edition": "Earlier independent review",
+      "fetched_at": null,
+      "saved_file": "previous-review.json",
+      "sha256": "bf94001522e60e3c3736c71469ecd5e630141a147ea60c1408c76b1067db4a1d"
+    },
+    {
+      "source_id": "men29b",
+      "url": "https://www.sefaria.org/api/v3/texts/Menachot.29b?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria v3 Menachot 29b, all versions: Wikisource Talmud Bavli; William Davidson Aramaic and vocalized Aramaic; William Davidson English (Koren Noé); Sefaria Community Translation",
+      "fetched_at": "2026-09-23T08:25:15Z",
+      "saved_file": "sources/men29b_v3.json",
+      "sha256": "2293cc59061d4dc9f4343994374308213aba4cf7aaff123a0ad075b8fb969ab0"
+    },
+    {
+      "source_id": "men29a",
+      "url": "https://www.sefaria.org/api/v3/texts/Menachot.29a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria v3 Menachot 29a, all versions (context before the story)",
+      "fetched_at": "2026-09-23T08:25:15Z",
+      "saved_file": "sources/men29a_v3.json",
+      "sha256": "6cea56a264c960eded6be6084ca88ae18dbd51addd84e8a7feace656b76de0ba"
+    },
+    {
+      "source_id": "links",
+      "url": "https://www.sefaria.org/api/links/Menachot.29b.3-5?with_text=0",
+      "edition": "Sefaria links index for Menachot 29b:3-5",
+      "fetched_at": "2026-09-23T08:25:16Z",
+      "saved_file": "sources/men29b3-5_links.json",
+      "sha256": "08321b460ccb2294ad9bcf7f8be940d9756ff9e51b98c34b22d727065074b403"
+    },
+    {
+      "source_id": "related",
+      "url": "https://www.sefaria.org/api/related/Menachot.29b.3",
+      "edition": "Sefaria related-content index for Menachot 29b:3 (not quoted)",
+      "fetched_at": "2026-09-23T08:25:18Z",
+      "saved_file": "sources/men29b3_related.json",
+      "sha256": "0a6359ac03f63764b37b58a2f7fd02154db6f2a308739a6d8313bb984715eb72"
+    },
+    {
+      "source_id": "rashi",
+      "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Menachot.29b.3-5?version=hebrew%7Call&version=english%7Call",
+      "edition": "Rashi on Menachot 29b:3-5, Vilna edition, with Sefaria Community Translation",
+      "fetched_at": "2026-09-23T08:25:58Z",
+      "saved_file": "sources/rashi_men29b3-5.json",
+      "sha256": "8a92a2491f7cb37786c3ecdbb40334c62552c775b178ce4b02640997cb0b8414"
+    },
+    {
+      "source_id": "steinsaltz",
+      "url": "https://www.sefaria.org/api/v3/texts/Steinsaltz_on_Menachot.29b.3-5?version=hebrew%7Call&version=english%7Call",
+      "edition": "Steinsaltz Hebrew commentary on Menachot 29b:3-5 (William Davidson Edition - Hebrew; same editorial project as the William Davidson English)",
+      "fetched_at": "2026-09-23T08:25:58Z",
+      "saved_file": "sources/steinsaltz_men29b3-5.json",
+      "sha256": "92a90259f29cb84bbc20369966c7a189f152a47391319542117dc27624272b8b"
+    },
+    {
+      "source_id": "maharsha",
+      "url": "https://www.sefaria.org/api/v3/texts/Chidushei_Agadot_on_Menachot.29b?version=hebrew%7Call&version=english%7Call",
+      "edition": "Maharsha, Chidushei Agadot on Menachot 29b, Vilna edition, with Sefaria Community Translation",
+      "fetched_at": "2026-09-23T08:25:59Z",
+      "saved_file": "sources/chidushei_agadot_men29b.json",
+      "sha256": "b6ee5b82c3514c9975217f66cddeb958688f21bf1bf2e2bd7b8708ef6acb14ec"
+    },
+    {
+      "source_id": "ben_yehoyada",
+      "url": "https://www.sefaria.org/api/v3/texts/Ben_Yehoyada_on_Menachot.29b?version=hebrew%7Call&version=english%7Call",
+      "edition": "Ben Yehoyada on Menachot 29b (Senlake 2019, based on Jerusalem 1897)",
+      "fetched_at": "2026-09-23T08:25:59Z",
+      "saved_file": "sources/ben_yehoyada_men29b.json",
+      "sha256": "378badf58ce75d0e03297b509a531b957d3055bef158df5b6575983def855404"
+    },
+    {
+      "source_id": "petach_einayim",
+      "url": "https://www.sefaria.org/api/v3/texts/Petach_Einayim_on_Menachot.29b?version=hebrew%7Call&version=english%7Call",
+      "edition": "Petach Einayim on Menachot 29b, Jerusalem 1959",
+      "fetched_at": "2026-09-23T08:25:59Z",
+      "saved_file": "sources/petach_einayim_men29b.json",
+      "sha256": "1c3917138c9a0b549a0deb3a72c9dc38067972a57c14782997af226a06c7c4c2"
+    },
+    {
+      "source_id": "marit_haayin",
+      "url": "https://www.sefaria.org/api/v3/texts/Marit_HaAyin_on_Menachot.29b?version=hebrew%7Call&version=english%7Call",
+      "edition": "Marit HaAyin on Menachot 29b, Jerusalem 1960",
+      "fetched_at": "2026-09-23T08:26:00Z",
+      "saved_file": "sources/marit_haayin_men29b.json",
+      "sha256": "103c05899756f82fd06297b50f494693baec5a7c12da2ecb61236188a2b389f0"
+    },
+    {
+      "source_id": "shabbat89a",
+      "url": "https://www.sefaria.org/api/v3/texts/Shabbat.89a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria v3 Shabbat 89a, all versions",
+      "fetched_at": "2026-09-23T08:26:00Z",
+      "saved_file": "sources/shabbat89a_v3.json",
+      "sha256": "64a629550e952c8e6eabd237721945f0aa223f6ca727237d599e921c922e9ce4"
+    },
+    {
+      "source_id": "sanhedrin111a",
+      "url": "https://www.sefaria.org/api/v3/texts/Sanhedrin.111a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria v3 Sanhedrin 111a, all versions",
+      "fetched_at": "2026-09-23T08:26:00Z",
+      "saved_file": "sources/sanhedrin111a_v3.json",
+      "sha256": "3d1a1571414c469a382901fcf37c1ea029e697033542633e5a16a122d3de88d9"
+    },
+    {
+      "source_id": "berakhot61b",
+      "url": "https://www.sefaria.org/api/v3/texts/Berakhot.61b?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria v3 Berakhot 61b, all versions",
+      "fetched_at": "2026-09-23T08:26:01Z",
+      "saved_file": "sources/berakhot61b_v3.json",
+      "sha256": "53532e66931dea81d2f02fe1ab7ffd9337d884ef47f77fbc4825b7ca385ff017"
+    },
+    {
+      "source_id": "sefer_tagin",
+      "url": "https://www.sefaria.org/api/v3/texts/Otzar_Midrashim,_Sefer_Tagin_('Crowns'),_Introduction.1?version=hebrew%7Call&version=english%7Call",
+      "edition": "Otzar Midrashim (New York 1915), Sefer Tagin, Introduction 1",
+      "fetched_at": "2026-09-23T08:26:01Z",
+      "saved_file": "sources/sefer_tagin_intro1.json",
+      "sha256": "00dfcbf06d09b8bf5740279bf1617c69946130d075bc4b6f36778911c2ca625b"
+    },
+    {
+      "source_id": "seder_hadorot",
+      "url": "https://www.sefaria.org/api/v3/texts/Seder_HaDorot,_Tanaim_and_Amoraim.2917.11?version=hebrew%7Call&version=english%7Call",
+      "edition": "Seder HaDorot, Tanaim and Amoraim 2917:11 (Warsaw 1878-1882)",
+      "fetched_at": "2026-09-23T08:26:01Z",
+      "saved_file": "sources/seder_hadorot_2917_11.json",
+      "sha256": "c6a10812c911834a3ef0d1f30f890733c13f9f0484820c65588a412bd5943c45"
+    },
+    {
+      "source_id": "ein_yaakov_daat",
+      "url": "https://www.sefaria.org/api/v3/texts/Ein_Yaakov,_Menakhot?version=hebrew%7Call&version=english%7Call",
+      "edition": "Ein Yaakov, Menakhot, vocalized Hebrew (Sefaria version titled Daat, Hebrew title אגדות חז\"ל - דעת)",
+      "fetched_at": "2026-09-23T08:26:43Z",
+      "saved_file": "sources/ein_yaakov_menakhot.json",
+      "sha256": "4fd22d8f168b763513f26fea62663ddefb97af5c3c833adc1acd95bf54aa13fb"
+    },
+    {
+      "source_id": "ein_yaakov_glick",
+      "url": "https://www.sefaria.org/api/v3/texts/Ein_Yaakov_(Glick_Edition),_Menachot?version=hebrew%7Call&version=english%7Call",
+      "edition": "En Jacob, S. H. Glick edition, 1916, Menachot: Hebrew text and English translation (two versions in one file)",
+      "fetched_at": "2026-09-23T08:26:44Z",
+      "saved_file": "sources/ein_yaakov_glick_menachot.json",
+      "sha256": "7655dfef82e6a05a18f0ac3ad28281adc51538983fbb8e5e0a77a37b01c23b47"
+    },
+    {
+      "source_id": "mss_index",
+      "url": "https://www.sefaria.org/api/manuscripts/Menachot%2029b",
+      "edition": "Sefaria manuscripts index for Menachot 29b",
+      "fetched_at": "2026-09-23T08:28:00Z",
+      "saved_file": "sources/men29b_manuscripts.json",
+      "sha256": "8e88b289e81e9d0af1d7a92b31b36a4c9f1ac7dfa6d222e35b74d3fc1bc11300"
+    },
+    {
+      "source_id": "munich95_833",
+      "url": "https://manuscripts.sefaria.org/munich-manuscript/munich-manuscript-95Cod.hebr.95pg.0833.jpg",
+      "edition": "Munich Cod. hebr. 95 (1342), page image 0833 (Menachot 27-29), via Sefaria manuscripts",
+      "fetched_at": "2026-09-23T08:28:05Z",
+      "saved_file": "sources/munich95_pg0833.jpg",
+      "sha256": "b5c43dfc7d74ed30d1a144cb05ee1ad49c638c4631406f1aeabaa30c1fdf1015"
+    },
+    {
+      "source_id": "munich95_834",
+      "url": "https://manuscripts.sefaria.org/munich-manuscript/munich-manuscript-95Cod.hebr.95pg.0834.jpg",
+      "edition": "Munich Cod. hebr. 95 (1342), page image 0834 (Menachot 29b-32a), via Sefaria manuscripts",
+      "fetched_at": "2026-09-23T08:28:07Z",
+      "saved_file": "sources/munich95_pg0834.jpg",
+      "sha256": "1a4256a605afb3228f21b89dcf6ed0b9121c49c504e1a133ceeb6abdf0ef1ba3"
+    },
+    {
+      "source_id": "bomberg",
+      "url": "https://manuscripts.sefaria.org/bomberg/masekhet_06_0059.jpg",
+      "edition": "Bomberg Venice print (1523), Menachot 29b page image, via Sefaria manuscripts",
+      "fetched_at": "2026-09-23T08:28:08Z",
+      "saved_file": "sources/bomberg_men29b.jpg",
+      "sha256": "04ceb39a73b0d206f9cbe2393b198c89df220a717c0c65afab2aeef37b74d579"
+    },
+    {
+      "source_id": "wikipedia",
+      "url": "https://en.wikipedia.org/w/index.php?title=Moses_sees_Rabbi_Akiva_(Menachot_29b)&action=raw",
+      "edition": "English Wikipedia, 'Moses sees Rabbi Akiva (Menachot 29b)', raw wikitext (tertiary; used only as a pointer to scholarship)",
+      "fetched_at": "2026-09-23T08:27:42Z",
+      "saved_file": "sources/wikipedia_moses_sees_akiva_raw.txt",
+      "sha256": "70cdd69333e667209417a18a8bd28de7d45fc965d1df1967cf2af8ffc74654f1"
+    },
+    {
+      "source_id": "steinsaltz_org",
+      "url": "https://steinsaltz.org/daf/menahot29/",
+      "edition": "steinsaltz.org daf page for Menahot 29 (static HTML held no article text; not used as evidence)",
+      "fetched_at": "2026-09-23T08:27:42Z",
+      "saved_file": "sources/steinsaltz_org_menahot29.html",
+      "sha256": "1084da798cb2617f9460b153d874bcb9d028f97e0e4764acb508921800bc7294"
+    },
+    {
+      "source_id": "munich95_834_crop",
+      "derived_from": "munich95_834",
+      "edition": "Researcher crop of the saved page image (rows 90-340 px, columns 110-1530 px) made with macOS sips; no other change",
+      "fetched_at": null,
+      "saved_file": "sources/munich95_pg0834_crop_story.jpg",
+      "sha256": "ea4f6fb77b99cf4fad1f2f4460210c88bf3c59b1f38619d302c13de457d70b4b",
+      "input_path": "sources/munich95_pg0834.jpg"
+    },
+    {
+      "source_id": "bomberg_crop",
+      "derived_from": "bomberg",
+      "edition": "Researcher crop of the saved page image (rows 600-750 px, columns 300-680 px) made with macOS sips; no other change",
+      "fetched_at": null,
+      "saved_file": "sources/bomberg_men29b_crop_story.jpg",
+      "sha256": "85d085c3ff8948db3b85182452b7351fae18689e698eac5ee029c91a4d930b73",
+      "input_path": "sources/bomberg_men29b.jpg"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "F1",
+      "claim": "The whole story is one report: Rav Yehuda states it in Rav's name. Every event and speech inside it is part of what Rav is reported to have said. Neither Rav Yehuda nor Rav appears as a participant in the scenes.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "men29b",
+          "exact_quote": "אמר רב יהודה אמר רב בשעה שעלה משה למרום",
+          "location": "Wikisource 29b:3",
+          "translation_by_researcher": "Rav Yehuda said, Rav said: When Moses went up on high"
+        },
+        {
+          "source_id": "men29b",
+          "exact_quote": "§ <b>Rav Yehuda says</b> that <b>Rav says: When Moses ascended on High,",
+          "location": "William Davidson English 29b:3"
+        },
+        {
+          "source_id": "men29a",
+          "exact_quote": "אמר רב יהודה אמר רב לא נצרכה אלא לקוצה של יוד",
+          "location": "Wikisource 29a:17",
+          "translation_by_researcher": "Rav Yehuda said, Rav said: it was needed only for the thorn of a yod"
+        }
+      ],
+      "reasoning": "The chain opens the story and is never resumed, so it governs 29b:3-5. The same chain is used just before, at 29a:17, for a ruling about the thorn (קוץ) of a yod; the story's 'each and every thorn' picks up that word. That placement is a literary link inside the sugya. It gives no evidence that Rav Yehuda heard Rav tell this particular story on a particular occasion, and it says nothing about when either of them lived.",
+      "confidence": "high",
+      "graph_effect": "Keep c1 (reports_in_name_of Rav Yehuda to Rav) as the only link between the two amoraim. Do not add direct hearing, co-presence or life order. All story claims carry voice = Rav, as transmitted by Rav Yehuda."
+    },
+    {
+      "finding_id": "F2",
+      "claim": "In my visual reading, the Munich 95 manuscript has the same chain, 'Rav Yehuda said, Rav said'.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "munich95_834",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "exact_quote": "[א'] רב יהודה א' רב בשעה שע[לה]",
+          "note": "Visual reading of a page image; not machine-checked; letters may be misread.",
+          "location": "Munich 95 page 0834, end of line 2 of the main text",
+          "translation_by_researcher": "[said] Rav Yehuda, said Rav: at the time that [Moses] went up"
+        }
+      ],
+      "reasoning": "The abbreviation is written as רב יהודה, not ר' יהודה, so it does not point to a tanna. This is one witness only, and I have not checked any others.",
+      "confidence": "medium",
+      "graph_effect": "Supports keeping the chain as printed. No alternative attribution for the story was found in the witnesses checked."
+    },
+    {
+      "finding_id": "F3",
+      "claim": "Akiva son of Yosef is named only inside God's answer to Moses, as a person who will exist 'at the end of several generations'. The patronymic names Yosef as his father. The Hebrew never gives him the title Rabbi. The students call him 'רבי' (my teacher) when they speak to him. The title 'Rabbi Akiva' appears only in the editors' plain-text explanation in the William Davidson English and in Steinsaltz.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "men29b",
+          "exact_quote": "אדם אחד יש שעתיד להיות בסוף כמה דורות ועקיבא בן יוסף שמו",
+          "location": "Wikisource 29b:3",
+          "translation_by_researcher": "There is one man who will be at the end of several generations, and Akiva son of Yosef is his name"
+        },
+        {
+          "source_id": "men29b",
+          "exact_quote": "Moses <b>went and sat at the end of the eighth row</b> in Rabbi Akiva’s study hall",
+          "location": "William Davidson English 29b:4 (plain words are editorial)"
+        },
+        {
+          "source_id": "steinsaltz",
+          "exact_quote": "<b>אמר לו: אדם אחד יש שעתיד להיות בסוף כמה דורות ועקיבא בן יוסף שמו,</b> ר' עקיבא,",
+          "location": "Steinsaltz 29b:3",
+          "translation_by_researcher": "Steinsaltz adds, outside the bold text: Rabbi Akiva"
+        }
+      ],
+      "reasoning": "The father–son relation is written in the name itself (בן יוסף), so it is explicit and stays in the graph with a local placeholder for Yosef, even though Yosef never acts. The whole statement is a prediction spoken by God inside Rav's story. Identifying this Akiva with the tanna Rabbi Akiva is clearly the storyteller's intent and is what the commentators assume. It is still a separate identity decision; the text does not state it. The William Davidson English and Steinsaltz come from the same editorial project, so they count as one editorial voice, not two witnesses.",
+      "confidence": "high",
+      "graph_effect": "Keep c2 (Akiva child_of Yosef) with modality prediction, voice God, and literal kinship. Keep Yosef as a local placeholder. Record the identification with the historical Rabbi Akiva as a separate, pending identity decision whose support comes from commentary."
+    },
+    {
+      "finding_id": "F4",
+      "claim": "In 29b:4 the teacher is never named. The Hebrew says someone 'reached one matter' and 'his students' asked him. It is story coreference that makes this teacher Akiva: Moses has just asked to be shown 'him'. The William Davidson English writes 'Rabbi Akiva' three times in 29b:4, always in plain editorial text.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "men29b",
+          "exact_quote": "אמר לפניו רבש\"ע הראהו לי",
+          "location": "Wikisource 29b:4",
+          "translation_by_researcher": "He said before Him: Master of the Universe, show him to me"
+        },
+        {
+          "source_id": "men29b",
+          "exact_quote": "כיון שהגיע לדבר אחד אמרו לו תלמידיו רבי מנין לך אמר להן הלכה למשה מסיני",
+          "location": "Wikisource 29b:4",
+          "translation_by_researcher": "When he reached one matter, his students said to him: My master, from where do you have this? He said to them: A law to Moses from Sinai"
+        },
+        {
+          "source_id": "men29b",
+          "exact_quote": "<b>When</b> Rabbi Akiva <b>arrived at</b> the discussion of <b>one matter, his students said to him: My teacher, from where do you</b> derive this?",
+          "location": "William Davidson English 29b:4"
+        },
+        {
+          "source_id": "ein_yaakov_glick",
+          "exact_quote": "Moses went back eight rows, but he could not understand what they (R. Akiba and his associates) were arguing.",
+          "location": "Glick 1916 English; the parenthesis is the translator's"
+        }
+      ],
+      "reasoning": "The coreference is secure within the story: God agrees to show 'him', and Moses is taken to a teacher and his students. The link is still a reading of pronouns and possessives, and the graph should mark it that way. The Glick translation (1916, a different editorial line) makes the same identification with the translator's own parenthesis, and it also names 'associates' for 'they'.",
+      "confidence": "high",
+      "graph_effect": "c12, c13 and c14 are right to use basis local_coreference. Add a note that the teacher is unnamed in 29b:4 and that 'Rabbi Akiva' there is editorial. The students stay an unnamed local group, scoped to the depicted scene."
+    },
+    {
+      "finding_id": "F5",
+      "claim": "The witnesses disagree on the number of rows. The Vilna-based texts, the Bomberg 1523 print and the Glick Ein Yaakov (its Hebrew and its English) read 'eight rows'. The Daat Ein Yaakov on Sefaria prints 'eight (teen) rows', with עשרה in parentheses. In my visual reading, Munich 95 reads 'eighteen rows'. Ben Yehoyada says the Ein Yaakov reads 'eighteen rows', and Seder HaDorot paraphrases the passage with eighteen.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "men29b",
+          "exact_quote": "הלך וישב בסוף שמונה שורות ולא היה יודע מה הן אומרים",
+          "location": "Wikisource 29b:4",
+          "translation_by_researcher": "He went and sat at the end of eight rows and did not know what they were saying"
+        },
+        {
+          "source_id": "ein_yaakov_glick",
+          "exact_quote": "הלך וישב לסוף שמונה שורות ולא היה יודע מה הם אומרים",
+          "location": "Glick Ein Yaakov, Hebrew text, Menachot"
+        },
+        {
+          "source_id": "ein_yaakov_daat",
+          "exact_quote": "הָלַךְ וְיָשַׁב לְסוֹף שְׁמוֹנֶה (עֶשְׂרֵה) שׁוּרוֹת, וְלֹא הָיָה יוֹדֵעַ מָה הֵם אוֹמְרִים",
+          "location": "Ein Yaakov (Daat), vocalized; the parenthesis is the edition's",
+          "translation_by_researcher": "He went and sat at the end of eight (teen) rows, and did not know what they were saying"
+        },
+        {
+          "source_id": "bomberg",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "exact_quote": "בסוף שמונה שורות ולא היה יודע מה הן או'",
+          "note": "Visual reading of a page image; not machine-checked; letters may be misread.",
+          "location": "Bomberg 1523, main text",
+          "translation_by_researcher": "at the end of eight rows and did not know what they were saying"
+        },
+        {
+          "source_id": "munich95_834",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "exact_quote": "שמונה עשר שורות ולא היה יודע מה הם או'",
+          "note": "Visual reading of a page image; not machine-checked; letters may be misread.",
+          "location": "Munich 95 page 0834, start of line 5",
+          "translation_by_researcher": "eighteen rows, and he did not know what they were saying"
+        },
+        {
+          "source_id": "ben_yehoyada",
+          "exact_quote": "הָלַךְ וְיָשַׁב לְסוֹף שְׁמוֹנֶה עֶשְׂרֵה שׁוּרוֹת.</b> כן הגירסא בעין יעקב.",
+          "location": "Ben Yehoyada 29b:2",
+          "translation_by_researcher": "He went and sat at the end of eighteen rows. This is the reading in Ein Yaakov."
+        },
+        {
+          "source_id": "seder_hadorot",
+          "exact_quote": "והלך וישב לסוף י\"ח שורות ושמע דבריו",
+          "location": "Seder HaDorot, Tanaim and Amoraim 2917:11",
+          "translation_by_researcher": "and he went and sat at the end of eighteen rows and heard his words"
+        }
+      ],
+      "reasoning": "This is a real source variant. The Munich reading is my own visual reading and needs checking. Ben Yehoyada's report matches the Daat Ein Yaakov, where 'עשרה' is present in parentheses. That edition's parentheses may mark a word it doubts or an alternative; its note policy was not checked. The Glick Ein Yaakov Hebrew reads eight, so the Ein Yaakov editions themselves differ. The count changes no person or relation. It matters for a faithful statement label and as a reminder that the printed text is one witness.",
+      "confidence": "medium",
+      "graph_effect": "No person or edge changes. Store 'eighteen rows' as a variant reading on c10, typed as a manuscript/edition variant, separate from any emendation."
+    },
+    {
+      "finding_id": "F6",
+      "claim": "The witnesses also disagree on the verb 'reached'. The printed text has singular שהגיע ('he reached'), which suits the teacher. The Bomberg print has plural שהגיעו ('they reached'), which suits the whole class, and Maharsha's gloss is also plural.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "men29b",
+          "exact_quote": "כיון שהגיע לדבר אחד",
+          "location": "Wikisource 29b:4",
+          "translation_by_researcher": "when he reached one matter"
+        },
+        {
+          "source_id": "bomberg",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "exact_quote": "תשש כחו כיון שהגיעו לדבר אחד אמרו לו תלמידיו רבי מנין לך",
+          "note": "Visual reading of a page image; not machine-checked; letters may be misread.",
+          "location": "Bomberg 1523, main text",
+          "translation_by_researcher": "his strength failed; when they reached one matter his students said to him: my master, from where do you have this"
+        },
+        {
+          "source_id": "maharsha",
+          "exact_quote": "כיון שהגיעו לדבר אחד דהיינו מסופן לראשן עד הא' שהוא מורה על אחד",
+          "location": "Maharsha on 29b",
+          "translation_by_researcher": "when they reached 'one matter', that is, from the end [of the letters] to their start, up to the alef, which points to One"
+        }
+      ],
+      "reasoning": "With the singular, the teacher is the one who reaches the matter. With the plural, the group does. In both, the students ask and the teacher answers. So the speech turns stay the same, but the actor of 'reaching' should not be fixed as Akiva alone. Maharsha's plural is part of his own gloss, not a quoted lemma, so it is weaker evidence of the text he read.",
+      "confidence": "medium",
+      "graph_effect": "Do not create a claim that Akiva alone 'reached' the matter. If this action is modelled, give it a reading branch: teacher (printed text) or class (Bomberg)."
+    },
+    {
+      "finding_id": "F7",
+      "claim": "The printed text does not say whose mind was put at ease. Rashi says it was Moses's, because Akiva was speaking in Moses's name. The William Davidson English adds 'When Moses heard this' in plain text. In my tentative visual reading, Munich 95 names Moses explicitly at this point.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "men29b",
+          "exact_quote": "אמר להן הלכה למשה מסיני נתיישבה דעתו",
+          "location": "Wikisource 29b:4",
+          "translation_by_researcher": "He said to them: a law to Moses from Sinai. His mind was settled."
+        },
+        {
+          "source_id": "rashi",
+          "exact_quote": "נתיישבה דעתו - של משה הואיל ומשמו אומר אע\"פ שעדיין לא קיבלה:",
+          "location": "Rashi 29b:4:2",
+          "translation_by_researcher": "his mind was settled - Moses's, since he [Akiva] was saying it in his name, although he had not yet received it"
+        },
+        {
+          "source_id": "men29b",
+          "exact_quote": "When Moses heard this, <b>his mind was put at ease,</b>",
+          "location": "William Davidson English 29b:4 (plain words are editorial)"
+        },
+        {
+          "source_id": "munich95_834",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "exact_quote": "כיון ששמע משה כך נתישבה דעתו",
+          "note": "Visual reading of a page image; not machine-checked; letters may be misread.",
+          "location": "Munich 95 page 0834, end of line 5 to start of line 6; letters uncertain",
+          "translation_by_researcher": "once Moses heard this, his mind was settled"
+        }
+      ],
+      "reasoning": "In the printed text, 'his mind' most naturally belongs to Moses, whose weakness was just described. Rashi's reason is itself a claim that Akiva quotes Moses. If my reading of the Munich wording is right, that witness makes Moses explicit. The printed text relies on coreference; that manuscript, as I read it, states the name.",
+      "confidence": "medium",
+      "graph_effect": "Keep c16 on Moses. Add Rashi as commentary support and the Munich wording as a separate evidence type (visual manuscript reading). Mark the basis as coreference for the printed text."
+    },
+    {
+      "finding_id": "F8",
+      "claim": "Akiva's answer 'a law to Moses from Sinai' uses a fixed category name to say where a teaching comes from. It is not a speech by Moses and it does not show that Akiva heard Moses. Translations differ on Moses's role: the William Davidson English says 'to Moses', the Community Translation says 'taught to Moshe', and Glick says 'delivered by Moses'.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "men29b",
+          "exact_quote": "Rabbi Akiva <b>said to them:</b> It is <b>a <i>halakha</i></b> transmitted <b>to Moses from Sinai.</b>",
+          "location": "William Davidson English 29b:4"
+        },
+        {
+          "source_id": "men29b",
+          "exact_quote": "He said to them, \"It is a law [that was taught] to Moshe at Sinai.\"",
+          "location": "Sefaria Community Translation 29b:4"
+        },
+        {
+          "source_id": "ein_yaakov_glick",
+          "exact_quote": "'This law,' replied R. Akiba, 'is a tradition delivered by Moses on Sinai.\"",
+          "location": "Glick 1916"
+        },
+        {
+          "source_id": "rashi",
+          "exact_quote": "הואיל ומשמו אומר",
+          "location": "Rashi 29b:4:2",
+          "translation_by_researcher": "since he says it in his name"
+        }
+      ],
+      "reasoning": "The Hebrew הלכה למשה מסיני literally means 'a law to Moses from Sinai'. This names Moses as the one who received it at Sinai, and each translator fills in the role differently. Rashi calls it speaking 'in his name', which is a citation. The irony of the story is that Moses has not yet received it, as Rashi says. So there is no meeting, no hearing and no teaching link between Moses and Akiva.",
+      "confidence": "high",
+      "graph_effect": "Keep c15 as a source attribution with voice = Akiva, inside Rav's story. Model it as citing the Sinai tradition, with Moses as recipient; do not model it as a speech act by Moses. Keep the earlier note that denies hearing. Do not add teacher/student or transmission edges between Moses and Akiva."
+    },
+    {
+      "finding_id": "F9",
+      "claim": "No one who harms Akiva is named. The Hebrew says only that 'they were weighing his flesh in the meat market'. The Romans, torture and death appear only in the editors' explanations: the William Davidson English plain text and the Steinsaltz Hebrew. Rashi links the scene to Berakhot 61b, where Akiva's flesh is combed with iron combs. The Community Translation renders the phrase itself as 'flaying his flesh with [iron] combs', which is Rashi's gloss rather than the words of the text.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "men29b",
+          "exact_quote": "חזר לאחוריו ראה ששוקלין בשרו במקולין",
+          "location": "Wikisource 29b:5",
+          "translation_by_researcher": "He turned back and saw that they were weighing his flesh in the meat market"
+        },
+        {
+          "source_id": "men29b",
+          "exact_quote": "<b>flesh in a butcher shop [<i>bemakkulin</i>],</b> as Rabbi Akiva was tortured to death by the Romans.",
+          "location": "William Davidson English 29b:5 (plain words are editorial)"
+        },
+        {
+          "source_id": "steinsaltz",
+          "exact_quote": "שנהרג ביסורים על ידי הרומאים",
+          "location": "Steinsaltz 29b:5 (outside bold text)",
+          "translation_by_researcher": "who was killed with torments by the Romans"
+        },
+        {
+          "source_id": "rashi",
+          "exact_quote": "במקולין - מקום הקצבין שוקלין בשרו כדאמר בברכות (דף סא:) שסרקו בשרו במסרקות ברזל:",
+          "location": "Rashi 29b:5:1",
+          "translation_by_researcher": "in the meat market - the butchers' place; they weigh his flesh, as it says in Berakhot (61b) that they combed his flesh with iron combs"
+        },
+        {
+          "source_id": "men29b",
+          "exact_quote": "and saw that they were flaying his flesh with [iron] combs.",
+          "location": "Sefaria Community Translation 29b:5"
+        },
+        {
+          "source_id": "ein_yaakov_glick",
+          "exact_quote": "he noticed that his flesh is being marketed in meat markets",
+          "location": "Glick 1916"
+        }
+      ],
+      "reasoning": "'בשרו' (his flesh) refers to Akiva through 'his Torah … his reward'. The people weighing are an unnamed plural. Glick stays with the market image. The Community Translation follows Rashi's cross-reference. Only the Koren/Steinsaltz editorial layer names Rome, and that is one editorial voice.",
+      "confidence": "high",
+      "graph_effect": "Keep c22 and c23 as a depicted future scene with unnamed weighers. Do not add a Roman agent, a 'killed_by' edge or an execution date from this passage. A later link to Berakhot 61b should be recorded as Rashi's cross-reference, not as the words of this passage."
+    },
+    {
+      "finding_id": "F10",
+      "claim": "A different passage, Berakhot 61b, tells of Akiva's execution. There his students address him, and the ministering angels, not Moses, say 'This is Torah and this its reward?'. The two passages share wording but are separate stories.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "berakhot61b",
+          "exact_quote": "בשעה שהוציאו את ר' עקיבא להריגה זמן ק\"ש היה והיו סורקים את בשרו במסרקות של ברזל",
+          "location": "Wikisource Berakhot 61b:9",
+          "translation_by_researcher": "When they took Rabbi Akiva out to be killed it was the time of Shema, and they were combing his flesh with iron combs"
+        },
+        {
+          "source_id": "berakhot61b",
+          "exact_quote": "<b>The ministering angels said before the Holy One, Blessed be He: This is Torah and this its reward?</b>",
+          "location": "William Davidson English Berakhot 61b:10"
+        },
+        {
+          "source_id": "seder_hadorot",
+          "exact_quote": "ובברכות (שם) אמרו מלאכי השרת זו תורה וזו שכרה והשיב הקב\"ה ממתים ידך ה' ממתים מחלד. ולא השיב להם כמו למשה שתוק",
+          "location": "Seder HaDorot 2917:11",
+          "translation_by_researcher": "In Berakhot the ministering angels said 'this is Torah and this its reward', and God answered … and did not answer them as He answered Moses, 'be silent'"
+        }
+      ],
+      "reasoning": "Seder HaDorot sets the two passages side by side and notes that God answers them differently. That makes them related tellings with different speakers. This passage cannot be treated as a second observation of the Berakhot scene.",
+      "confidence": "high",
+      "graph_effect": "Do not merge speech claims across the two passages. The angels' question belongs to Berakhot 61b; Moses's question belongs to Menachot 29b. Any cross-passage link is a commentary-based relation."
+    },
+    {
+      "finding_id": "F11",
+      "claim": "The opening scene, Moses finding God tying crowns on the letters, also appears at Shabbat 89a, but there Rabbi Yehoshua ben Levi tells it and the dialogue is different. Sanhedrin 111a has a baraita with a similar opening, in which God is writing 'slow to anger'.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "shabbat89a",
+          "exact_quote": "וא\"ר יהושע בן לוי בשעה שעלה משה למרום מצאו להקב\"ה שהיה קושר כתרים לאותיות אמר לו משה אין שלום בעירך",
+          "location": "Wikisource Shabbat 89a:5",
+          "translation_by_researcher": "And Rabbi Yehoshua ben Levi said: When Moses went up on high he found the Holy One tying crowns to letters. He said to him: Moses, is there no greeting in your town?"
+        },
+        {
+          "source_id": "sanhedrin111a",
+          "exact_quote": "כשעלה משה למרום מצאו להקב\"ה שיושב וכותב ארך אפים",
+          "location": "Wikisource Sanhedrin 111a:12",
+          "translation_by_researcher": "When Moses went up on high he found the Holy One sitting and writing 'slow to anger'"
+        }
+      ],
+      "reasoning": "These are separate stories that share a stock opening. They are not rival attributions of the Menachot story, which in every witness checked has Rav Yehuda reporting in Rav's name. The Sefaria link index connects Menachot 29b:3 to both as Mesorat HaShas parallels.",
+      "confidence": "high",
+      "graph_effect": "Do not add Rabbi Yehoshua ben Levi to this passage's graph. Do not treat Shabbat 89a as a textual alternative for c1. Keep each opening scene's claims with its own passage."
+    },
+    {
+      "finding_id": "F12",
+      "claim": "Commentators disagree about what kind of event the classroom visit is. The editorial translation treats it as a future classroom that Moses is shown. Ben Yehoyada says Moses saw the souls of Akiva and his students before they were born. Maharsha reads the rows and the 'one matter' as hints about the order of the letters.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "ben_yehoyada",
+          "exact_quote": "עדיין לא בא רבי עקיבה לעולם הזה והוא מצא את נשמת רבי עקיבה ונשמות תלמידיו לומדים תורה לפני ה'",
+          "location": "Ben Yehoyada 29b:2",
+          "translation_by_researcher": "Rabbi Akiva had not yet come to this world; he found the soul of Rabbi Akiva and the souls of his students studying Torah before God"
+        },
+        {
+          "source_id": "ben_yehoyada",
+          "exact_quote": "ודע דהליכה וישיבה זו היא בהבטת השכל",
+          "location": "Ben Yehoyada 29b:2",
+          "translation_by_researcher": "Know that this going and sitting is by the mind's gaze"
+        },
+        {
+          "source_id": "maharsha",
+          "exact_quote": "וז\"ש שישב משה לסוף ח' שורות דהיינו שיש ח' שורות א\"ב משונות לפי הנקודות",
+          "location": "Maharsha on 29b",
+          "translation_by_researcher": "This is why Moses sat at the end of eight rows: there are eight rows of alphabet that differ by vowel points"
+        }
+      ],
+      "reasoning": "All three readings agree that Moses and Akiva do not share a historical time. The text itself marks the scene as a showing: God says 'turn back', and the scene sits inside a heavenly ascent. The first reading's time_scope 'Future classroom shown inside the story' is right as far as it goes. Whether the scene is a vision, a meeting of souls or an allegory is commentary and should not be decided in the graph.",
+      "confidence": "high",
+      "graph_effect": "Keep the vision/depicted-scene modality on c10, c12-c16, c22 and c23. Never output historical co-presence or a Moses–Akiva teacher/student edge. Store the soul and allegory readings as commentary alternatives, not branches of the text."
+    },
+    {
+      "finding_id": "F13",
+      "claim": "Later kabbalistic commentaries say Akiva was a spark of the patriarch Jacob, or that he came from the soul-root of Issachar and of Cain. These are claims about souls, not family relations, and they do not come from this passage.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "marit_haayin",
+          "exact_quote": "במ\"ש גורי האר\"י ז\"ל שהיה ניצוץ יעקב אבינו ע\"ה ורמוז בשמו עקיבא אותיות יעקב",
+          "location": "Marit HaAyin on 29b:1",
+          "translation_by_researcher": "as the Ari's disciples wrote, that he was a spark of Jacob our father, hinted in his name Akiva, the letters of Yaakov"
+        },
+        {
+          "source_id": "petach_einayim",
+          "exact_quote": "פירש הרב מהרח\"ו זצ\"ל דע כי רבי עקיבא משרש יששכר",
+          "location": "Petach Einayim on 29b:2",
+          "translation_by_researcher": "Rabbi Chaim Vital explained: know that Rabbi Akiva is from the root of Issachar"
+        }
+      ],
+      "reasoning": "A spark or soul-root claim is not kinship and is not evidence about the historical Akiva. It sits in a separate interpretive layer.",
+      "confidence": "high",
+      "graph_effect": "Do not create family, descent or identity edges from these claims. If they are kept at all, they belong in a commentary-reception layer outside the person graph."
+    },
+    {
+      "finding_id": "F14",
+      "claim": "The first reading captured all twelve speech turns in 29b:3-5: five from Moses to God, five from God to Moses, one from the students to the teacher and one from the teacher back. It did miss some mentions: Moses is named inside the teacher's answer, and Akiva is referred to by the descriptions 'one man' and 'such a man', by 'him' in 'show him to me', and by the possessives 'his Torah' and 'his reward'. The first reading attaches Moses's weakness to Moses only through the pronoun in 'his strength'; Munich 95, in my reading, may add 'of Moses' here, but I could not read it with confidence.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "pilot_input",
+          "exact_quote": "אמר לו אדם אחד יש שעתיד להיות",
+          "location": "s1",
+          "translation_by_researcher": "He said to him: there is one man who will be"
+        },
+        {
+          "source_id": "pilot_input",
+          "exact_quote": "יש לך אדם כזה ואתה נותן תורה ע\"י",
+          "location": "s3",
+          "translation_by_researcher": "You have such a man and You give the Torah through me?"
+        },
+        {
+          "source_id": "pilot_input",
+          "exact_quote": "הראיתני תורתו הראני שכרו",
+          "location": "s3",
+          "translation_by_researcher": "You showed me his Torah; show me his reward"
+        },
+        {
+          "source_id": "pilot_input",
+          "exact_quote": "הלכה למשה מסיני",
+          "location": "s2",
+          "translation_by_researcher": "a law to Moses from Sinai"
+        }
+      ],
+      "reasoning": "Speech turns in the listed claims: Moses to God, c5, c8, c18, c20 and c24 (5). God to Moses, c6, c9, c19, c21 and c25 (5). Students to teacher, c13 (1). Teacher to students, c14 (1). That makes 12, matching the text. The mention list has no entry for the Moses inside 'הלכה למשה מסיני' (claim c15 uses it as an object) and none for the descriptive references to Akiva. 'ע\"י' (through me) refers to Moses.",
+      "confidence": "high",
+      "graph_effect": "Add mentions: Moses inside Akiva's answer (s2), and 'אדם אחד', 'אדם כזה', 'הראהו', 'תורתו' and 'שכרו' for Akiva. No new person entities are needed."
+    },
+    {
+      "finding_id": "F15",
+      "claim": "The text says 'turn back' (חזור לאחורך) twice, and the witnesses differ on whether the second one has the word 'behind you'. Wikisource prints it in brackets, the William Davidson Aramaic leaves it out, and both Ein Yaakov texts have it. Munich 95, in my visual reading, has it too.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "men29b",
+          "exact_quote": "אמר לו חזור [לאחורך] חזר לאחוריו",
+          "location": "Wikisource 29b:5"
+        },
+        {
+          "source_id": "men29b",
+          "exact_quote": "אמר לו חזור חזר לאחוריו ראה ששוקלין בשרו במקולין",
+          "location": "William Davidson Aramaic 29b:5"
+        },
+        {
+          "source_id": "ein_yaakov_glick",
+          "exact_quote": "א״ל חזור לאחוריך חזר לאחוריו ראה ששוקלין בשרו במקולין",
+          "location": "Glick Ein Yaakov, Hebrew text"
+        },
+        {
+          "source_id": "ein_yaakov_daat",
+          "exact_quote": "אָמַר לוֹ: חֲזֹר לַאֲחוֹרֶיךָ. חָזַר לַאֲחוֹרָיו, וְרָאָה שֶׁשּׁוֹקְלִין בְּשָׂרוֹ בְּמָקוֹלִין",
+          "location": "Ein Yaakov (Daat), vocalized"
+        },
+        {
+          "source_id": "munich95_834",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "exact_quote": "א\"ל חזור לאחוריך חזר לאחוריו וראה שהין שוקלין בשרו במקולין",
+          "note": "Visual reading of a page image; not machine-checked; letters may be misread.",
+          "location": "Munich 95 page 0834, line 7",
+          "translation_by_researcher": "He said to him: turn behind you. He turned behind him and saw that they were weighing his flesh in the meat market"
+        }
+      ],
+      "reasoning": "The bracket marks an editorial addition in the Wikisource text, and the first reading quoted it as part of the evidence for c21. The wording affects no person. The evidence quote should nonetheless keep the bracket visible and note that the word is absent from the William Davidson Aramaic.",
+      "confidence": "medium",
+      "graph_effect": "c21: keep, and add a variant note on the bracketed word. No change to people."
+    }
+  ],
+  "alternative_readings": [
+    {
+      "id": "A1",
+      "topic": "Number of rows",
+      "readings": [
+        {
+          "reading": "eight rows",
+          "supported_by": [
+            "men29b (Wikisource, William Davidson)",
+            "bomberg (visual)",
+            "ein_yaakov_glick (Hebrew and English)"
+          ]
+        },
+        {
+          "reading": "eight (teen) rows, with עשרה in parentheses",
+          "supported_by": [
+            "ein_yaakov_daat"
+          ]
+        },
+        {
+          "reading": "eighteen rows",
+          "supported_by": [
+            "munich95_834 (visual, tentative)",
+            "ben_yehoyada (reports Ein Yaakov)",
+            "seder_hadorot (paraphrase)"
+          ]
+        }
+      ],
+      "status": "open; no person effect"
+    },
+    {
+      "id": "A2",
+      "topic": "Who 'reached one matter'",
+      "readings": [
+        {
+          "reading": "the teacher (singular שהגיע)",
+          "supported_by": [
+            "men29b",
+            "ein_yaakov_daat"
+          ]
+        },
+        {
+          "reading": "the class (plural שהגיעו)",
+          "supported_by": [
+            "bomberg (visual)",
+            "maharsha (gloss)"
+          ]
+        }
+      ],
+      "status": "open"
+    },
+    {
+      "id": "A3",
+      "topic": "Whose mind was put at ease",
+      "readings": [
+        {
+          "reading": "Moses",
+          "supported_by": [
+            "rashi",
+            "William Davidson English plain text",
+            "munich95_834 (visual, tentative, names Moses)"
+          ]
+        },
+        {
+          "reading": "unspecified in the printed Hebrew (pronoun only)",
+          "supported_by": [
+            "men29b Wikisource"
+          ]
+        }
+      ],
+      "status": "Moses strongly supported; keep the basis as coreference for the printed text"
+    },
+    {
+      "id": "A4",
+      "topic": "What kind of event the classroom visit is",
+      "readings": [
+        {
+          "reading": "a future classroom Moses is shown",
+          "supported_by": [
+            "William Davidson English",
+            "Steinsaltz"
+          ]
+        },
+        {
+          "reading": "a meeting with the souls of Akiva and his students before birth, seen by the mind",
+          "supported_by": [
+            "ben_yehoyada"
+          ]
+        },
+        {
+          "reading": "an allegory of letter order and vowel rows",
+          "supported_by": [
+            "maharsha"
+          ]
+        }
+      ],
+      "status": "commentary alternatives; all deny historical co-presence"
+    },
+    {
+      "id": "A5",
+      "topic": "Moses's role in 'a law to Moses from Sinai'",
+      "readings": [
+        {
+          "reading": "Moses as recipient ('to Moses', 'taught to Moshe')",
+          "supported_by": [
+            "William Davidson English",
+            "Sefaria Community Translation"
+          ]
+        },
+        {
+          "reading": "Moses as the one who passed it on ('delivered by Moses')",
+          "supported_by": [
+            "ein_yaakov_glick"
+          ]
+        },
+        {
+          "reading": "Akiva speaks in Moses's name",
+          "supported_by": [
+            "rashi"
+          ]
+        }
+      ],
+      "status": "translation choices; the Hebrew formula is fixed; model as a source attribution, never as Moses speaking"
+    },
+    {
+      "id": "A6",
+      "topic": "What is done to Akiva's flesh, and by whom",
+      "readings": [
+        {
+          "reading": "unnamed people weigh it in a meat market",
+          "supported_by": [
+            "men29b Hebrew",
+            "ein_yaakov_glick"
+          ]
+        },
+        {
+          "reading": "combed with iron combs (by reference to Berakhot 61b)",
+          "supported_by": [
+            "rashi",
+            "Sefaria Community Translation"
+          ]
+        },
+        {
+          "reading": "tortured to death by the Romans",
+          "supported_by": [
+            "William Davidson English plain text",
+            "Steinsaltz (same editorial project)"
+          ]
+        }
+      ],
+      "status": "the agent is not named in this passage"
+    }
+  ],
+  "unresolved": [
+    "The Munich 95 readings ('eighteen rows'; a possible explicit 'Moses' at the calming, and possibly 'of Moses' after 'his strength failed') are my visual readings and need to be checked against a transcription or variant apparatus.",
+    "Other manuscripts of Menachot (for example the Vatican and Florence manuscripts) and the Hachi Garsinan apparatus were not checked. So the spread of 'eight' versus 'eighteen' and of singular versus plural 'reached' is unknown beyond the witnesses listed.",
+    "The Ein Yaakov edition Ben Yehoyada relied on is not identified. The Daat Ein Yaakov puts 'עשרה' in parentheses and the Glick Ein Yaakov Hebrew lacks it; what the Daat parentheses mean was not checked.",
+    "The text never says which 'one matter' the students asked about.",
+    "Identifying 'Akiva son of Yosef' with the tanna Rabbi Akiva is a separate identity decision. It is supported by commentary and by the story's intent, not by an explicit statement here.",
+    "Academic studies of this story (Rubenstein 2010; Yadin-Israel 2014, cited by Wikipedia) were not read; any claims they make about the story's composition or its links to the sugya are unchecked.",
+    "The steinsaltz.org page was fetched, but its static HTML contained no article text, so it was not used."
+  ],
+  "proposed_corrections": [
+    {
+      "claim_id": "c10",
+      "change": "Add a variant note: 'eighteen rows' (Munich 95 visual reading; reported for Ein Yaakov by Ben Yehoyada; Seder HaDorot). Leave the claim's participants unchanged.",
+      "why": "F5"
+    },
+    {
+      "claim_id": "c12",
+      "change": "Add a note that the teacher is unnamed in 29b:4. The link to Akiva is story coreference, and 'Rabbi Akiva' in the English is editorial. Scope the student relation to the depicted scene.",
+      "why": "F4, F12"
+    },
+    {
+      "claim_id": "c13",
+      "change": "Same note as c12. If the 'reaching' action is ever modelled, add a branch for the Bomberg plural reading.",
+      "why": "F4, F6"
+    },
+    {
+      "claim_id": "c14",
+      "change": "Same note as c12 on the unnamed teacher.",
+      "why": "F4"
+    },
+    {
+      "claim_id": "c15",
+      "change": "Rephrase as citing the Sinai tradition, with Moses as the recipient named in the formula. Add Rashi's 'ומשמו אומר' as commentary. Record that translations differ on whether Moses received or delivered it. Keep the note denying hearing.",
+      "why": "F8"
+    },
+    {
+      "claim_id": "c16",
+      "change": "Add Rashi 29b:4:2 as commentary evidence that the calmed mind is Moses's. Add the Munich 95 wording as a separate manuscript-variant evidence item (visual reading). Keep the basis as local coreference for the printed text.",
+      "why": "F7"
+    },
+    {
+      "claim_id": "c21",
+      "change": "Keep the bracket in the quote, and note that 'לאחורך' is absent from the William Davidson Aramaic but present in both Ein Yaakov texts and, by visual reading, in Munich 95.",
+      "why": "F15"
+    },
+    {
+      "claim_id": "c22",
+      "change": "Add a note that no agent is named in the Hebrew. The Romans and the killing come from the editors' plain text. The link to Berakhot 61b is Rashi's.",
+      "why": "F9, F10"
+    },
+    {
+      "claim_id": "c23",
+      "change": "Keep 'weighers' as an unnamed group. Do not relabel them as Romans.",
+      "why": "F9"
+    },
+    {
+      "claim_id": "c2",
+      "change": "Keep as explicit literal kinship inside a divine prediction. Add a note that identifying him with the tanna Rabbi Akiva is a separate pending decision.",
+      "why": "F3"
+    },
+    {
+      "claim_id": null,
+      "change": "Add mentions for Moses inside 'הלכה למשה מסיני' (s2) and for the descriptions and pronouns referring to Akiva ('אדם אחד', 'אדם כזה', 'הראהו', 'תורתו', 'שכרו').",
+      "why": "F14"
+    },
+    {
+      "claim_id": null,
+      "change": "Previous review: its passes stand. It did not note the unnamed teacher, the source variants, or that the Roman agent is editorial only; add those points.",
+      "why": "F4, F5, F6, F9"
+    }
+  ],
+  "ontology_lessons": [
+    "A scene someone is shown inside a story (vision, heavenly ascent) needs its own modality. Relations inside it, such as students of the teacher, must be scoped to that scene and must never produce historical co-presence or cross-era teaching edges.",
+    "'הלכה למשה מסיני' is a formula naming a legal category and where it comes from. Model it as a source attribution with Moses as the named recipient, not as a speech turn or a hearing.",
+    "Agents added in editorial plain text (here 'the Romans') must not become entities. The William Davidson English and Steinsaltz Hebrew are one editorial voice.",
+    "A translation can take in a commentator's gloss (the Community Translation's 'iron combs' comes from Rashi). Treat a translation's wording as that translator's reading, not as a text variant.",
+    "Kabbalistic spark or soul-root identifications are not kinship and not historical identity. Keep them outside the person graph.",
+    "The same stock opening told by a different sage in another tractate (Shabbat 89a, Rabbi Yehoshua ben Levi) is a parallel story, not an alternative attribution of this one.",
+    "The contract needs a way to type God as a speaker without typing God as a human person, as the earlier review noted.",
+    "Store manuscript and print variants (eight or eighteen; שהגיע or שהגיעו) as a source-variant evidence type, separate from later emendations and from translation choices."
+  ]
+}

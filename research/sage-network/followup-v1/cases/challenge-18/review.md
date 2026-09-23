@@ -1,0 +1,15 @@
+# Review of challenge-18: mostly sound, but changes are needed before it goes into the graph
+
+The passage is a short court story in Ketubot 65a. The wife of Rav Yosef son of Rava comes before a judge, Rav Nehemya son of Rav Yosef. She asks for food, then for wine, and gets both. He explains that the people of Mehoza drink wine. The reader's main conclusions hold up against the saved texts. The woman is unnamed. Her husband, his father Rava, the judge and the judge's father are all separate people in this passage. Nothing here shows that the judge's father "Rav Yosef" is the same man as the husband.
+
+The reader was right that the woman's second request has no "she said" of its own. We know who is speaking only because the turns alternate. I found two more signs of this. The old Soncino English puts "[she demanded]" in brackets there. The Homa story just before uses the same pattern. One small addition: the second request also lacks "to him", so the person she is speaking to is implied as well, not stated.
+
+The main omission is about the medieval Rif, which names the judge as plain "Rav Yosef". The reader added this as an alternative reading. But the claims that depend on the printed name were not tied to the printed reading. These are "Nehemya is son of a Rav Yosef" and the placeholder for that father. They should be labelled as belonging to the printed text, and kept there. Under the Rif's wording the judge is a different, bare "Rav Yosef" with no father named. Later books that quote the printed wording (Rosh, Tashbetz) are not separate votes for it.
+
+On whether she was a widow, the Talmud line says nothing about a death. The reader credited the widow reading to one later chronicle, Seder HaDorot. A second later work, the Tashbetz, also uses this story as proof about a widow's upkeep. That should be recorded too, still as interpretation and not as text.
+
+One argument went further than the texts allow. Elsewhere a man with the judge's name says "I was standing before Rava". The reader took this to fit someone of Rava's sons' generation "rather than a grandson". A grandson could also stand before Rava. Linking that man to this judge is itself only a same-name guess. Seder HaDorot also never argues that the two Yosefs are different people. It files them separately and does not list Nehemya among the husband's sons. That is silence, not a statement.
+
+Some smaller fixes. The judge's "to her" before his explanation appears in the printed Talmud, but not in the Rif, Rosh or Tashbetz quotations. So the addressee should rest on the printed text alone. The reader's clean-up of the earlier record is right: speech and event spans were labelled as names, one mention was duplicated, and one statement was counted twice. One English quotation in the dossier is not an exact string from its source and needs correcting.
+
+Still open, and not decided here: who the judge's father was, whether the husband was alive, and whom the claim was against. Also open is whether the Rif's reading is a copying slip; nobody has checked it against manuscripts. This review approves no identities, dates or graph links.

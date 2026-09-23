@@ -1,0 +1,145 @@
+{
+  "job_id": "original-09",
+  "focal_ref": "Bava Batra 12b:6",
+  "input_lake_snapshot": 2,
+  "original_document": "relation-cases-sources.json",
+  "source": {
+    "ref": "Bava Batra 12b:6",
+    "url": "https://www.sefaria.org/Bava_Batra.12b.6",
+    "api_url": "https://www.sefaria.org/api/texts/Bava%20Batra%2012b%3A6?context=0&pad=0&commentary=0",
+    "hebrew": "תנוקת – מאי היא? כי הא דבת רב חסדא – הוה יתבה בכנפיה דאבוה, הוו יתבי קמיה רבא ורמי בר חמא. אמר לה: מאן מינייהו בעית? אמרה ליה: תרוייהו. אמר רבא: ואנא בתרא.",
+    "hebrew_sha256": "1c4336dc6fab973ceb676cc42c7d8e3291a7c4b3b8bec94a5558165a29c46497",
+    "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+    "hebrew_license": "CC-BY-NC",
+    "english_edition": "William Davidson Edition - English",
+    "pairs": [
+      {
+        "key": "bavli|Bava Batra|12b|6|68|80",
+        "ref": "Bava Batra 12b:6",
+        "a": "רבא",
+        "b": "חמא",
+        "pattern": "קמיה [A] ורמי בר [B]",
+        "kind": "together",
+        "source": "reader",
+        "direction": "",
+        "sure": false,
+        "first_pass": {
+          "kind": "before",
+          "confidence": 0.27,
+          "p": {
+            "follows": 0.01,
+            "teacher": 0.01,
+            "before": 0.33,
+            "together": 0.07,
+            "cites": 0.01,
+            "addresses": 0.24,
+            "disputes": 0.02,
+            "kin": 0.07,
+            "asks": 0.04,
+            "juxtaposed": 0.04,
+            "explains": 0.0,
+            "one-name": 0.0,
+            "same-man": 0.01,
+            "alternative": 0.01,
+            "none": 0.14
+          }
+        }
+      }
+    ]
+  },
+  "earlier_crosscheck": {
+    "ref": "Bava Batra 12b:6",
+    "existing_case_id": "bava_batra",
+    "review_result": "agree_and_add_genre_and_modal_scope",
+    "sources": [
+      {
+        "ref": "Bava Batra 12b:3",
+        "url": "https://www.sefaria.org/Bava_Batra_12b.3",
+        "api_url": "https://www.sefaria.org/api/texts/Bava%20Batra%2012b?context=0&pad=0&commentary=0",
+        "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+        "translation_edition": "William Davidson Edition - English",
+        "hebrew": "אָמַר רַבִּי יוֹחָנָן: מִיּוֹם שֶׁחָרַב בֵּית הַמִּקְדָּשׁ, נִיטְּלָה נְבוּאָה מִן הַנְּבִיאִים וְנִיתְּנָה לַשּׁוֹטִים וְלַתִּינוֹקוֹת. לַשּׁוֹטִים – מַאי הִיא? כִּי הָא דְּמָר בַּר רַב אָשֵׁי – דַּהֲוָה קָאֵי בְּרִסְתְּקָא דְמָחוֹזָא, שַׁמְעֵיהּ לְהָהוּא שׁוֹטֶה דְּקָאָמַר: רֵישׁ מְתִיבְתָּא דְּמָלֵיךְ בְּמָתָא מַחְסֵיָא – ״טַבְיוֹמֵי״ חָתֵים. אֲמַר: מַאן חָתֵים ״טַבְיוֹמֵי״ בְּרַבָּנַן – אֲנָא; שְׁמַע מִינַּהּ לְדִידִי קָיְימָא לִי שַׁעְתָּא. קָם אֲתָא. אַדַּאֲתָא אִימְּנוֹ רַבָּנַן לְאוֹתֹבֵיהּ לְרַב אַחָא מִדִּפְתִּי בְּרֵישָׁא.",
+        "api_hebrew_html_sha256": "5209276562afeb6f9cc27025b3ae64e61307ceb4910cf0872534781bb0047cab"
+      },
+      {
+        "ref": "Bava Batra 12b:6",
+        "url": "https://www.sefaria.org/Bava_Batra_12b.6",
+        "api_url": "https://www.sefaria.org/api/texts/Bava%20Batra%2012b?context=0&pad=0&commentary=0",
+        "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+        "translation_edition": "William Davidson Edition - English",
+        "hebrew": "תִּנוֹקֹת – מַאי הִיא? כִּי הָא דְּבַת רַב חִסְדָּא – הֲוָה יָתְבָה בְּכַנְפֵיהּ דַּאֲבוּהָ, הֲווֹ יָתְבִי קַמֵּיהּ רָבָא וְרָמֵי בַּר חָמָא. אֲמַר לַהּ: מַאן מִינַּיְיהוּ בָּעֵית? אֲמַרָה לֵיהּ: תַּרְוַיְיהוּ. אָמַר רָבָא: וַאֲנָא בָּתְרָא.",
+        "api_hebrew_html_sha256": "8d03146ba4d6c0c180126831166a9c3d5e3d3eec6145c2205f6b36cb8f519b74"
+      }
+    ],
+    "context_read": [
+      "Bava Batra 12b:1-9",
+      "Rashi on Bava Batra 12b; no gloss at segment 6 was returned",
+      "Rashbam on Bava Batra 12b; no Hebrew content was returned"
+    ],
+    "finding": "The daughter has no personal name here, but she is a person in the story. Rav Hisda, his daughter, Rava and Rami bar Hama are depicted together. Her choice and Rava’s response look forward; they are not a report of a completed wedding.",
+    "claims_to_keep": [
+      {
+        "subject": "The daughter mention",
+        "relation": "child_of",
+        "object": "Rav Hisda",
+        "status": "explicit_in_text"
+      },
+      {
+        "subject": "The daughter",
+        "relation": "sits_on_lap_of",
+        "object": "Her father",
+        "status": "reported_scene"
+      },
+      {
+        "subject": "Rava",
+        "relation": "sits_before",
+        "object": "Rav Hisda",
+        "status": "reported_scene"
+      },
+      {
+        "subject": "Rami bar Hama",
+        "relation": "sits_before",
+        "object": "Rav Hisda",
+        "status": "reported_scene"
+      },
+      {
+        "subject": "Rav Hisda",
+        "relation": "asks",
+        "object": "His daughter",
+        "status": "local_pronoun_resolution"
+      },
+      {
+        "subject": "The daughter",
+        "relation": "answers",
+        "object": "Rav Hisda",
+        "status": "local_pronoun_resolution"
+      },
+      {
+        "subject": "Rava",
+        "relation": "states_future_order",
+        "object": "His own place after the other man",
+        "basis": "ואנא בתרא",
+        "status": "reported_speech_not_completed_marriage"
+      }
+    ],
+    "agreement": "The report correctly rejects the truncated Rava-Hama pair and does not derive a completed marriage from this Hebrew segment. The translation supplies a later-marriage explanation.",
+    "correction": "Create a local referent for the daughter, then allow a separate sourced decision about which historical person she is. The episode illustrates prophecy given to children, introduced in 12b:3. It should therefore be tagged aggadic despite appearing on a page that also discusses law. Preserve the reported scene without treating the genre as proof or disproof of the meeting.",
+    "translation_note": "The Davidson English adds a marriage sequence after Rava’s words. If saved, that is a claim from the modern explanation, not an extra sentence in the Hebrew. No independent source for that sequence was established in this review.",
+    "uncertainty": {
+      "local_family_link": "clear",
+      "local_pronouns": "strong_contextual_reading",
+      "global_identity_of_daughter": "not_resolved",
+      "later_marriages": "not_stated_in_this_hebrew_segment",
+      "historical_meeting": "not_independently_verified"
+    },
+    "episode": {
+      "kind": "aggadic",
+      "form": "story_used_to_illustrate_prophecy",
+      "reason": "The opening תנוקת מאי היא continues the statement that prophecy was given to children."
+    },
+    "unresolved_scope": [
+      "No search of other marriage passages was performed.",
+      "An empty commentary API response was treated as unavailable content, not as evidence that no relevant commentary exists."
+    ]
+  }
+}

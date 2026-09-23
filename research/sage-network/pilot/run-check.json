@@ -1,0 +1,264 @@
+{
+  "manifest_sha256": "2fd1a02358f70b86ea4256371711a9a347e7d77cb8bf727ed4b20cccfc8114af",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "jobs": [
+    {
+      "job_id": "challenge-01",
+      "checked_at": "2026-09-22T13:08:52.692119+00:00",
+      "status": "resumed",
+      "claims": 11
+    },
+    {
+      "job_id": "challenge-02",
+      "checked_at": "2026-09-22T13:08:52.692379+00:00",
+      "status": "resumed",
+      "claims": 6
+    },
+    {
+      "job_id": "challenge-03",
+      "checked_at": "2026-09-22T13:08:52.701215+00:00",
+      "status": "resumed",
+      "claims": 11
+    },
+    {
+      "job_id": "challenge-04",
+      "checked_at": "2026-09-22T13:08:52.701792+00:00",
+      "status": "resumed",
+      "claims": 13
+    },
+    {
+      "job_id": "challenge-05",
+      "checked_at": "2026-09-22T13:08:52.714145+00:00",
+      "status": "resumed",
+      "claims": 11
+    },
+    {
+      "job_id": "challenge-06",
+      "checked_at": "2026-09-22T13:08:52.716639+00:00",
+      "status": "resumed",
+      "claims": 12
+    },
+    {
+      "job_id": "challenge-07",
+      "checked_at": "2026-09-22T13:08:52.724772+00:00",
+      "status": "resumed",
+      "claims": 8
+    },
+    {
+      "job_id": "challenge-08",
+      "checked_at": "2026-09-22T13:08:52.725186+00:00",
+      "status": "resumed",
+      "claims": 16
+    },
+    {
+      "job_id": "challenge-09",
+      "checked_at": "2026-09-22T13:08:52.737113+00:00",
+      "status": "resumed",
+      "claims": 7
+    },
+    {
+      "job_id": "challenge-10",
+      "checked_at": "2026-09-22T13:08:52.737520+00:00",
+      "status": "resumed",
+      "claims": 25
+    },
+    {
+      "job_id": "challenge-11",
+      "checked_at": "2026-09-22T13:08:52.753140+00:00",
+      "status": "resumed",
+      "claims": 16
+    },
+    {
+      "job_id": "challenge-12",
+      "checked_at": "2026-09-22T13:08:52.753609+00:00",
+      "status": "resumed",
+      "claims": 33
+    },
+    {
+      "job_id": "challenge-13",
+      "checked_at": "2026-09-22T13:08:52.771908+00:00",
+      "status": "resumed",
+      "claims": 8
+    },
+    {
+      "job_id": "challenge-14",
+      "checked_at": "2026-09-22T13:08:52.772313+00:00",
+      "status": "resumed",
+      "claims": 18
+    },
+    {
+      "job_id": "challenge-15",
+      "checked_at": "2026-09-22T13:08:52.784390+00:00",
+      "status": "resumed",
+      "claims": 10
+    },
+    {
+      "job_id": "challenge-16",
+      "checked_at": "2026-09-22T13:08:52.784785+00:00",
+      "status": "resumed",
+      "claims": 17
+    },
+    {
+      "job_id": "challenge-17",
+      "checked_at": "2026-09-22T13:08:52.798885+00:00",
+      "status": "resumed",
+      "claims": 16
+    },
+    {
+      "job_id": "challenge-18",
+      "checked_at": "2026-09-22T13:08:52.799262+00:00",
+      "status": "resumed",
+      "claims": 10
+    },
+    {
+      "job_id": "challenge-19",
+      "checked_at": "2026-09-22T13:08:52.811164+00:00",
+      "status": "resumed",
+      "claims": 10
+    },
+    {
+      "job_id": "challenge-20",
+      "checked_at": "2026-09-22T13:08:52.811543+00:00",
+      "status": "resumed",
+      "claims": 17
+    },
+    {
+      "job_id": "challenge-21",
+      "checked_at": "2026-09-22T13:08:52.823386+00:00",
+      "status": "resumed",
+      "claims": 42
+    },
+    {
+      "job_id": "challenge-22",
+      "checked_at": "2026-09-22T13:08:52.831064+00:00",
+      "status": "resumed",
+      "claims": 13
+    },
+    {
+      "job_id": "challenge-23",
+      "checked_at": "2026-09-22T13:08:52.842264+00:00",
+      "status": "resumed",
+      "claims": 11
+    },
+    {
+      "job_id": "challenge-24",
+      "checked_at": "2026-09-22T13:08:52.845624+00:00",
+      "status": "resumed",
+      "claims": 7
+    },
+    {
+      "job_id": "challenge-25",
+      "checked_at": "2026-09-22T13:08:52.854741+00:00",
+      "status": "resumed",
+      "claims": 17
+    },
+    {
+      "job_id": "challenge-26",
+      "checked_at": "2026-09-22T13:08:52.855142+00:00",
+      "status": "resumed",
+      "claims": 4
+    },
+    {
+      "job_id": "challenge-27",
+      "checked_at": "2026-09-22T13:08:52.864277+00:00",
+      "status": "resumed",
+      "claims": 20
+    },
+    {
+      "job_id": "challenge-28",
+      "checked_at": "2026-09-22T13:08:52.864626+00:00",
+      "status": "resumed",
+      "claims": 4
+    },
+    {
+      "job_id": "challenge-29",
+      "checked_at": "2026-09-22T13:08:52.876243+00:00",
+      "status": "resumed",
+      "claims": 5
+    },
+    {
+      "job_id": "challenge-30",
+      "checked_at": "2026-09-22T13:08:52.876665+00:00",
+      "status": "resumed",
+      "claims": 6
+    },
+    {
+      "job_id": "random-bavli-01",
+      "checked_at": "2026-09-22T13:08:52.879417+00:00",
+      "status": "resumed",
+      "claims": 5
+    },
+    {
+      "job_id": "random-bavli-02",
+      "checked_at": "2026-09-22T13:08:52.882715+00:00",
+      "status": "resumed",
+      "claims": 6
+    },
+    {
+      "job_id": "random-bavli-03",
+      "checked_at": "2026-09-22T13:08:52.887290+00:00",
+      "status": "resumed",
+      "claims": 9
+    },
+    {
+      "job_id": "random-bavli-04",
+      "checked_at": "2026-09-22T13:08:52.889332+00:00",
+      "status": "resumed",
+      "claims": 5
+    },
+    {
+      "job_id": "random-bavli-05",
+      "checked_at": "2026-09-22T13:08:52.896034+00:00",
+      "status": "resumed",
+      "claims": 10
+    },
+    {
+      "job_id": "random-bavli-06",
+      "checked_at": "2026-09-22T13:08:52.896451+00:00",
+      "status": "resumed",
+      "claims": 11
+    },
+    {
+      "job_id": "random-yerushalmi-01",
+      "checked_at": "2026-09-22T13:08:52.902038+00:00",
+      "status": "resumed",
+      "claims": 35
+    },
+    {
+      "job_id": "random-yerushalmi-02",
+      "checked_at": "2026-09-22T13:08:52.915150+00:00",
+      "status": "resumed",
+      "claims": 28
+    },
+    {
+      "job_id": "random-yerushalmi-03",
+      "checked_at": "2026-09-22T13:08:52.929230+00:00",
+      "status": "resumed",
+      "claims": 24
+    },
+    {
+      "job_id": "random-yerushalmi-04",
+      "checked_at": "2026-09-22T13:08:52.946159+00:00",
+      "status": "resumed",
+      "claims": 16
+    },
+    {
+      "job_id": "random-yerushalmi-05",
+      "checked_at": "2026-09-22T13:08:52.946591+00:00",
+      "status": "resumed",
+      "claims": 22
+    },
+    {
+      "job_id": "random-yerushalmi-06",
+      "checked_at": "2026-09-22T13:08:52.959829+00:00",
+      "status": "resumed",
+      "claims": 27
+    }
+  ],
+  "complete": true
+}

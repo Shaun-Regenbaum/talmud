@@ -5,3 +5,14 @@ data/raw/
 # manifest or a half-corpus count would put numbers in the repository that
 # nobody can reproduce.
 data/*.json
+
+# Fetched sources for the passage pilot and the follow-up research, for the same
+# reason: some are licensed only for display, and manuscript photographs carry
+# their library's terms. They are kept in the private sage_network lake, and each
+# reading records every source's address and SHA256.
+pilot/inputs/
+pilot/attempts/
+followup-v1/cases/*/sources/
+followup-v1/cases/*/work/
+followup-v1/cases/*/review-sources/
+heldout-v2/inputs/

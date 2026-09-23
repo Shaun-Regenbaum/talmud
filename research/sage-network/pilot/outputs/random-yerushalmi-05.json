@@ -1,0 +1,1769 @@
+{
+  "schema_version": "passage-pilot-v1",
+  "job_id": "random-yerushalmi-05",
+  "episode": {
+    "genre": "halachic",
+    "genre_reason": "The passage argues about legal rules.",
+    "form": "Legal argument and attributed teachings",
+    "coverage": "needs_context",
+    "needed_context": [
+      "The preceding Mishnah is needed to check which classes of marriage each compressed pronoun covers.",
+      "The continuation after s5 is needed for the final coercion question."
+    ],
+    "notes": [
+      "All five supplied passages were read. Women and husbands in the legal examples are generic participants, not historical spouses of the named sages."
+    ]
+  },
+  "mentions": [
+    {
+      "id": "m1",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רִבִּי חִזְקִיָּה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m2",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רִבִּי אַבָּהוּ",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m3",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רִבִּי יוֹחָנָן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m4",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רִבִּי אַייבוֹ בַּר נַגָּרִי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m5",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "נַגָּרִי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m6",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רִבִּי אִימִי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m7",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "רִבִּי יִרְמְיָה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m8",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "רִבִּי יוֹסֵי צַיְדָנִיָיא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m9",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רִבִּי יוֹסֵי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m10",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רִבִּי הִילָא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m11",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רִבִּי חִיָיא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m12",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "רִבִּי רְאוּבֶן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m13",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "רִבִּי מָנָא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m14",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "שְׁמוּאֵל",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m15",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "וְהָא תַנִּינָן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m16",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "הַיְּתוֹמָה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m17",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "הַשְּׁנִיָיה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m18",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "הָאַיְילוֹנִית",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m19",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "שֶׁהוּא מְאַבֵּד",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m20",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "לְאִשְׁתּוֹ כְשֵׁירָה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m21",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "לְאִשְׁתּוֹ פְסוּלָה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m22",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "אָדָם",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m23",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "עַבְדֵי שְׁנִייוֹת",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m24",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "בְיִשְׂרָאֵל",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m25",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "בַגּוֹיִם",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m26",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "אַלְמָנָה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m27",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "לְכֹהֵן גָּדוֹל",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m28",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "גְּרוּשָׁה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m29",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "חֲלוּצָה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m30",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "לְכֹהֵן הֶדְיוֹט",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m31",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "הַמַדִּיר",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m32",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "אֶת אִשְׁתּוֹ",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m33",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "פַּרְנָס",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m34",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רִבִּי יוֹסֵי",
+        "occurrence": 1
+      }
+    }
+  ],
+  "entities": [
+    {
+      "id": "hizkiya",
+      "kind": "person",
+      "label": "Rabbi Hizkiya",
+      "mention_ids": [
+        "m1"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי חִזְקִיָּה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "abahu",
+      "kind": "person",
+      "label": "Rabbi Abahu",
+      "mention_ids": [
+        "m2"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי אַבָּהוּ",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yohanan",
+      "kind": "person",
+      "label": "Rabbi Yohanan",
+      "mention_ids": [
+        "m3"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי יוֹחָנָן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "aivo",
+      "kind": "person",
+      "label": "Rabbi Aivo bar Nagari",
+      "mention_ids": [
+        "m4"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי אַייבוֹ בַּר נַגָּרִי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "nagari",
+      "kind": "person",
+      "label": "Nagari in Aivo’s patronymic",
+      "mention_ids": [
+        "m5"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "נַגָּרִי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "imi",
+      "kind": "person",
+      "label": "Rabbi Imi",
+      "mention_ids": [
+        "m6"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי אִימִי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yirmeya",
+      "kind": "person",
+      "label": "Rabbi Yirmeya",
+      "mention_ids": [
+        "m7"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "רִבִּי יִרְמְיָה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yose_sid",
+      "kind": "person",
+      "label": "Rabbi Yose of Sidon",
+      "mention_ids": [
+        "m8"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "רִבִּי יוֹסֵי צַיְדָנִיָיא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yose",
+      "kind": "person",
+      "label": "Rabbi Yose speaking in s3",
+      "mention_ids": [
+        "m9"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רִבִּי יוֹסֵי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "hila",
+      "kind": "person",
+      "label": "Rabbi Hila",
+      "mention_ids": [
+        "m10"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רִבִּי הִילָא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "hiyya",
+      "kind": "person",
+      "label": "Rabbi Hiyya",
+      "mention_ids": [
+        "m11"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רִבִּי חִיָיא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "reuven",
+      "kind": "person",
+      "label": "Rabbi Reuven",
+      "mention_ids": [
+        "m12"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "רִבִּי רְאוּבֶן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "mana",
+      "kind": "person",
+      "label": "Rabbi Mana",
+      "mention_ids": [
+        "m13"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "רִבִּי מָנָא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "shmuel",
+      "kind": "person",
+      "label": "Shmuel",
+      "mention_ids": [
+        "m14"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "שְׁמוּאֵל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "anon",
+      "kind": "group",
+      "label": "Unnamed argumentative voice",
+      "mention_ids": [
+        "m15"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "וְהָא תַנִּינָן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "refusal",
+      "kind": "statement",
+      "label": "The orphan is one who refused the marriage",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "תִּיפְתָּר בִּיתוֹמָה שֶׁמֵּיאֵינָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "penalty",
+      "kind": "statement",
+      "label": "They penalized the man as well as the woman, so he loses even a gold betrothal payment",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "כְּשֵׁם שֶׁקָּנְסוּ בָהּ כָּךְ קָנְסוּ בוֹ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "fruit_only",
+      "kind": "statement",
+      "label": "The man has only the right to consume produce",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "שֶׁאֵין לֹו עָלֶיהָ אֶלָּא אֲכִילַת פֵּירוֹת בִּלְבַד.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "more_rights",
+      "kind": "statement",
+      "label": "He also has rights to her found property, earnings and annulment of vows",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "וְזַכַּאי בִּמְצִיאָתָהּ וּבְמַעֲשֵׂה יָדֶיהָ וּבְהֵפֵר נְדָרֶיהָ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "no_recovery",
+      "kind": "statement",
+      "label": "The woman cannot recover produce he already consumed",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "שֶׁאֵינָהּ יְכוֹלָה לְהוֹצִיא מִמֶּנּוּ אֲכִילַת פֵּירוֹת שֶׁאָכַל.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "repeat",
+      "kind": "statement",
+      "label": "Recite your teaching: he inherits her and may become impure for her",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "תְּנִי מַתְנִיתָךְ. יוֹרְשָׁהּ וּמִיטַמֵּא לָהּ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "wife_rule",
+      "kind": "statement",
+      "label": "A man may become impure for a valid wife but not a disqualified wife",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "מְטַמֵּא הוּא אָדָם לְאִשְׁתּוֹ כְשֵׁירָה. וְאִינוֹ מִיטַמֵּא לְאִשְׁתּוֹ פְסוּלָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "slave_question",
+      "kind": "statement",
+      "label": "May the slaves of women in secondary prohibited marriages eat terumah?",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "עַבְדֵי שְׁנִייוֹת מַהוּ שֶׁיֹּאכְלוּ בַתְּרוּמָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "slave_answer",
+      "kind": "statement",
+      "label": "Be silent; if she eats, would her slaves not eat?",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "שְׁתוֹק וְיָפֶה לָךְ. הִיא אוֹכֶלֶת וַעֲבָדֶיהָ אֵינָן אוֹכְלִין.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "invalid_divorce",
+      "kind": "statement",
+      "label": "The coerced gentile divorce is invalid but disqualifies for priestly marriage",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "פָּסוּל וּפוֹסֵל בִּכְהוּנָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "coercion",
+      "kind": "statement",
+      "label": "Coercion applies to forbidden priestly marriages such as a widow with a high priest",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "אֵין מְעַשִּׂין אֶלָּא כְגוֹן אַלְמָנָה לְכֹהֵן גָּדוֹל. גְּרוּשָׁה וַחֲלוּצָה לְכֹהֵן הֶדְיוֹט.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "coercion_question",
+      "kind": "statement",
+      "label": "Does a requirement to divorce also prove that the court coerces him?",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "שָׁמַעְנוּ שֶׁהוּא מוֹצִיא. שָׁמַעְנוּ שֶׁכּוֹפִין.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "orphan",
+      "kind": "person",
+      "label": "Generic orphaned woman",
+      "mention_ids": [
+        "m16"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הַיְּתוֹמָה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "secondary",
+      "kind": "person",
+      "label": "Generic woman in a secondary prohibited marriage",
+      "mention_ids": [
+        "m17"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הַשְּׁנִיָיה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "aylonit",
+      "kind": "person",
+      "label": "Generic woman described as aylonit",
+      "mention_ids": [
+        "m18"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הָאַיְילוֹנִית",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "man",
+      "kind": "person",
+      "label": "Generic man giving betrothal money",
+      "mention_ids": [
+        "m19"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "שֶׁהוּא מְאַבֵּד",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "wife_valid",
+      "kind": "person",
+      "label": "Generic valid wife",
+      "mention_ids": [
+        "m20"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "לְאִשְׁתּוֹ כְשֵׁירָה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "wife_invalid",
+      "kind": "person",
+      "label": "Generic disqualified wife",
+      "mention_ids": [
+        "m21"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "לְאִשְׁתּוֹ פְסוּלָה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "husband",
+      "kind": "person",
+      "label": "Generic man subject to the wife impurity rule",
+      "mention_ids": [
+        "m22"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "אָדָם",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "slaves",
+      "kind": "group",
+      "label": "Slaves of women in secondary prohibited marriages",
+      "mention_ids": [
+        "m23"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "עַבְדֵי שְׁנִייוֹת",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "israel",
+      "kind": "group",
+      "label": "Israelite agents of coercion in the legal case",
+      "mention_ids": [
+        "m24"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "בְיִשְׂרָאֵל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "gentiles",
+      "kind": "group",
+      "label": "Gentile agents of coercion in the legal case",
+      "mention_ids": [
+        "m25"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "בַגּוֹיִם",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "widow",
+      "kind": "person",
+      "label": "Generic widow",
+      "mention_ids": [
+        "m26"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "אַלְמָנָה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "high_priest",
+      "kind": "person",
+      "label": "Generic high priest",
+      "mention_ids": [
+        "m27"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "לְכֹהֵן גָּדוֹל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "divorced",
+      "kind": "person",
+      "label": "Generic divorced woman",
+      "mention_ids": [
+        "m28"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "גְּרוּשָׁה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "halutza",
+      "kind": "person",
+      "label": "Generic woman who underwent halitzah",
+      "mention_ids": [
+        "m29"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "חֲלוּצָה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "priest",
+      "kind": "person",
+      "label": "Generic ordinary priest",
+      "mention_ids": [
+        "m30"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "לְכֹהֵן הֶדְיוֹט",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "vower",
+      "kind": "person",
+      "label": "Generic husband whose vow bars his wife’s benefit",
+      "mention_ids": [
+        "m31"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "הַמַדִּיר",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "vower_wife",
+      "kind": "person",
+      "label": "His generic wife",
+      "mention_ids": [
+        "m32"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "אֶת אִשְׁתּוֹ",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "provider",
+      "kind": "person",
+      "label": "Generic provider appointed for the wife",
+      "mention_ids": [
+        "m33"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "פַּרְנָס",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "aivo",
+      "object": "nagari",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי אַייבוֹ בַּר נַגָּרִי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c2",
+      "family": "transmission",
+      "predicate": "reports_in_name_of",
+      "subject": "abahu",
+      "object": "yohanan",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "refusal"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי אַבָּהוּ בְשֵׁם רִבִּי יוֹחָנָן",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c3",
+      "family": "transmission",
+      "predicate": "reports_in_name_of",
+      "subject": "hizkiya",
+      "object": "abahu",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "refusal"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי חִזְקִיָּה רִבִּי אַבָּהוּ בְשֵׁם רִבִּי יוֹחָנָן",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "first_sequential"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "medium",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c4",
+      "family": "transmission",
+      "predicate": "reports_in_name_of",
+      "subject": "hizkiya",
+      "object": "yohanan",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "refusal"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי חִזְקִיָּה רִבִּי אַבָּהוּ בְשֵׁם רִבִּי יוֹחָנָן",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "first_parallel"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "medium",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c5",
+      "family": "transmission",
+      "predicate": "attributes_to",
+      "subject": "penalty",
+      "object": "imi",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי אַייבוֹ בַּר נַגָּרִי רִבִּי אִימִי. כְּשֵׁם שֶׁקָּנְסוּ בָהּ כָּךְ קָנְסוּ בוֹ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "medium",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Imi is the last named authority before the teaching; the connector between the names is absent."
+      ]
+    },
+    {
+      "id": "c6",
+      "family": "transmission",
+      "predicate": "reports_in_name_of",
+      "subject": "aivo",
+      "object": "imi",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "penalty"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי אַייבוֹ בַּר נַגָּרִי רִבִּי אִימִי.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "penalty_sequential"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "low",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c7",
+      "family": "transmission",
+      "predicate": "attributes_to",
+      "subject": "penalty",
+      "object": "aivo",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי אַייבוֹ בַּר נַגָּרִי רִבִּי אִימִי.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "penalty_parallel"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "low",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c8",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "yirmeya",
+      "object": "fruit_only",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אָמַר רִבִּי יִרְמְיָה. שֶׁאֵין לֹו עָלֶיהָ אֶלָּא אֲכִילַת פֵּירוֹת בִּלְבַד.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c9",
+      "family": "speech",
+      "predicate": "addresses",
+      "subject": "yose_sid",
+      "object": "yirmeya",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "more_rights"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "תַּנֵּי רִבִּי יוֹסֵי צַיְדָנִיָיא קוֹמֵי רִבִּי יִרְמְיָה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "תַּנֵּי ... קוֹמֵי: recites a teaching before",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c10",
+      "family": "views",
+      "predicate": "opposes",
+      "subject": "yose_sid",
+      "object": "fruit_only",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "more_rights"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "וּפַלִּיג עַל רִבִּי יִרְמְיָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c11",
+      "family": "views",
+      "predicate": "explains",
+      "subject": "anon",
+      "object": "more_rights",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "no_recovery"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "מַהוּ לֹא פֵירוֹת. שֶׁאֵינָהּ יְכוֹלָה לְהוֹצִיא מִמֶּנּוּ אֲכִילַת פֵּירוֹת שֶׁאָכַל.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c12",
+      "family": "speech",
+      "predicate": "addresses",
+      "subject": "hila",
+      "object": "yose",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "repeat"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "בְּכָל שָׁעָה הַוָה רִבִּי הִילָא רִבִּי אָמַר לִי. תְּנִי מַתְנִיתָךְ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Yose reports Hila repeatedly telling him to recite the teaching."
+      ]
+    },
+    {
+      "id": "c13",
+      "family": "teaching",
+      "predicate": "student_of",
+      "subject": "yose",
+      "object": "hila",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רִבִּי הִילָא רִבִּי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "medium",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The second רבי is read as “my teacher” in Yose’s first-person report."
+      ]
+    },
+    {
+      "id": "c14",
+      "family": "transmission",
+      "predicate": "heard_from",
+      "subject": "yose",
+      "object": "hila",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רִבִּי הִילָא רִבִּי אָמַר לִי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Direct speech to Yose is explicit; this is stronger than a bare attribution."
+      ]
+    },
+    {
+      "id": "c15",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "hiyya",
+      "object": "wife_rule",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "וְתַנִּי רִבִּי חִיָיא כֵן. מְטַמֵּא הוּא אָדָם לְאִשְׁתּוֹ כְשֵׁירָה. וְאִינוֹ מִיטַמֵּא לְאִשְׁתּוֹ פְסוּלָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c16",
+      "family": "views",
+      "predicate": "supports",
+      "subject": "wife_rule",
+      "object": "repeat",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "וְתַנִּי רִבִּי חִיָיא כֵן.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The narrator introduces Hiyya’s teaching as support."
+      ]
+    },
+    {
+      "id": "c17",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "reuven",
+      "object": "slave_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "mana"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "רִבִּי רְאוּבֶן בְּעָא קוֹמֵי רִבִּי מָנָא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c18",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "mana",
+      "object": "slave_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "reuven"
+        },
+        {
+          "role": "content",
+          "entity": "slave_answer"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "אָמַר לֵיהּ. שְׁתוֹק וְיָפֶה לָךְ. הִיא אוֹכֶלֶת וַעֲבָדֶיהָ אֵינָן אוֹכְלִין.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The last words are read as a rhetorical question, not a ruling barring the slaves."
+      ]
+    },
+    {
+      "id": "c19",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "shmuel",
+      "object": "invalid_divorce",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "פָּסוּל וּפוֹסֵל בִּכְהוּנָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c20",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "shmuel",
+      "object": "coercion",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "אֵין מְעַשִּׂין אֶלָּא כְגוֹן אַלְמָנָה לְכֹהֵן גָּדוֹל. גְּרוּשָׁה וַחֲלוּצָה לְכֹהֵן הֶדְיוֹט.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c21",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "anon",
+      "object": "coercion_question",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "שָׁמַעְנוּ שֶׁהוּא מוֹצִיא. שָׁמַעְנוּ שֶׁכּוֹפִין.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Read as a contrastive challenge. No general coercion rule is asserted from this question."
+      ]
+    },
+    {
+      "id": "c22",
+      "family": "family",
+      "predicate": "spouse_of",
+      "subject": "vower",
+      "object": "vower_wife",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "הַמַדִּיר אֶת אִשְׁתּוֹ מִלֵּיהֲנוֹת לוֹ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "hypothetical",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    }
+  ],
+  "reading_groups": [
+    {
+      "id": "first_chain",
+      "kind": "interpretation_alternatives",
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי חִזְקִיָּה רִבִּי אַבָּהוּ בְשֵׁם רִבִּי יוֹחָנָן",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        {
+          "id": "first_sequential",
+          "label": "Hizkiya transmits through Abahu"
+        },
+        {
+          "id": "first_parallel",
+          "label": "Hizkiya and Abahu transmit Yohanan"
+        }
+      ],
+      "historical_compatibility": "unknown",
+      "scope": "The sequence of names preceding the orphan explanation.",
+      "rejoin": "The explanation concerns an orphan who refused the marriage.",
+      "notes": []
+    },
+    {
+      "id": "penalty_chain",
+      "kind": "interpretation_alternatives",
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי אַייבוֹ בַּר נַגָּרִי רִבִּי אִימִי.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        {
+          "id": "penalty_sequential",
+          "label": "Aivo reports Imi"
+        },
+        {
+          "id": "penalty_parallel",
+          "label": "Aivo and Imi both give the teaching"
+        }
+      ],
+      "historical_compatibility": "unknown",
+      "scope": "The relation between Aivo and Imi.",
+      "rejoin": "The penalty teaching itself.",
+      "notes": []
+    }
+  ],
+  "coreference_candidates": [
+    {
+      "mention_id": "m34",
+      "entity_ids": [
+        "yose",
+        "yose_sid"
+      ],
+      "branches": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "אָמַר רִבִּי יוֹסֵי.",
+          "occurrence": 1
+        }
+      ],
+      "reason": "The unqualified name may resume Yose of Sidon, but the passage does not say so explicitly."
+    }
+  ],
+  "open_questions": [
+    "Are Yose of Sidon in s2 and Yose in s3 the same local speaker?",
+    "How should the adjacent names in the two s1 attributions be linked?"
+  ]
+}

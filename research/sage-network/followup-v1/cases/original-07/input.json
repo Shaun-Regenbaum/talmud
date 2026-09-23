@@ -1,0 +1,261 @@
+{
+  "job_id": "original-07",
+  "focal_ref": "Pesachim 37a:4",
+  "input_lake_snapshot": 2,
+  "original_document": "relation-cases-sources.json",
+  "source": {
+    "ref": "Pesachim 37a:4",
+    "url": "https://www.sefaria.org/Pesachim.37a.4",
+    "api_url": "https://www.sefaria.org/api/texts/Pesachim%2037a%3A4?context=0&pad=0&commentary=0",
+    "hebrew": "אמר רב ירמיה בר אבא: שאילית את רבי ביחוד, ומנו: רב. איכא דאמרי, רב ירמיה בר אבא אמר רב: שאילית את רבי ביחוד, ומנו: רבינו הקדוש. מאי פת עבה? פת מרובה. ואמאי קרו ליה פת עבה? משום דנפישא בלישה. ואי בעית אימא, באתריה דהאי תנא לפת מרובה — פת עבה קרו ליה.",
+    "hebrew_sha256": "ee3696e6f449f8ecdf94ebfe2fa817c796c5734e5c970ac7c89358f91e52d64a",
+    "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+    "hebrew_license": "CC-BY-NC",
+    "english_edition": "William Davidson Edition - English",
+    "pairs": [
+      {
+        "key": "bavli|Pesachim|37a|4|4|30",
+        "ref": "Pesachim 37a:4",
+        "a": "ר' ירמיה בר אבא",
+        "b": "רבי",
+        "pattern": "אמר [A] שאילית את [B]",
+        "kind": "asks",
+        "source": "reader",
+        "direction": "AB",
+        "sure": true,
+        "first_pass": {
+          "kind": "asks",
+          "confidence": 0.7,
+          "p": {
+            "explains": 0.0,
+            "none": 0.07,
+            "addresses": 0.01,
+            "alternative": 0.08,
+            "together": 0.0,
+            "disputes": 0.02,
+            "asks": 0.73,
+            "before": 0.0,
+            "teacher": 0.02,
+            "kin": 0.0,
+            "same-man": 0.02,
+            "cites": 0.04,
+            "one-name": 0.0,
+            "juxtaposed": 0.01,
+            "follows": 0.0
+          }
+        }
+      },
+      {
+        "key": "bavli|Pesachim|37a|4|30|45",
+        "ref": "Pesachim 37a:4",
+        "a": "רבי",
+        "b": "רב",
+        "pattern": "[A] ביחוד ומנו [B]",
+        "kind": "same-man",
+        "source": "reader",
+        "direction": "",
+        "sure": false,
+        "first_pass": {
+          "kind": "asks",
+          "confidence": 0.77,
+          "p": {
+            "none": 0.04,
+            "explains": 0.0,
+            "addresses": 0.01,
+            "alternative": 0.04,
+            "together": 0.0,
+            "disputes": 0.01,
+            "asks": 0.8,
+            "before": 0.0,
+            "teacher": 0.05,
+            "kin": 0.0,
+            "same-man": 0.02,
+            "cites": 0.02,
+            "one-name": 0.0,
+            "juxtaposed": 0.01,
+            "follows": 0.0
+          }
+        }
+      },
+      {
+        "key": "bavli|Pesachim|37a|4|45|59",
+        "ref": "Pesachim 37a:4",
+        "a": "רב",
+        "b": "רב ירמיה בר אבא",
+        "pattern": "[A] איכא אמרי [B]",
+        "kind": "cites",
+        "source": "reader",
+        "direction": "BA",
+        "sure": false,
+        "first_pass": {
+          "kind": "asks",
+          "confidence": 0.68,
+          "p": {
+            "none": 0.03,
+            "explains": 0.0,
+            "addresses": 0.01,
+            "alternative": 0.07,
+            "together": 0.0,
+            "disputes": 0.02,
+            "asks": 0.71,
+            "before": 0.0,
+            "teacher": 0.05,
+            "kin": 0.0,
+            "same-man": 0.02,
+            "cites": 0.08,
+            "one-name": 0.0,
+            "juxtaposed": 0.01,
+            "follows": 0.0
+          }
+        }
+      },
+      {
+        "key": "bavli|Pesachim|37a|4|59|79",
+        "ref": "Pesachim 37a:4",
+        "a": "רב ירמיה בר אבא",
+        "b": "רב",
+        "pattern": "אמרי [A] אמר [B]",
+        "kind": "cites",
+        "source": "reader",
+        "direction": "AB",
+        "sure": true,
+        "first_pass": {
+          "kind": "cites",
+          "confidence": 0.46,
+          "p": {
+            "none": 0.01,
+            "explains": 0.0,
+            "addresses": 0.01,
+            "alternative": 0.07,
+            "together": 0.0,
+            "disputes": 0.02,
+            "asks": 0.33,
+            "before": 0.0,
+            "kin": 0.0,
+            "teacher": 0.03,
+            "same-man": 0.03,
+            "cites": 0.5,
+            "one-name": 0.0,
+            "juxtaposed": 0.0,
+            "follows": 0.0
+          }
+        }
+      },
+      {
+        "key": "bavli|Pesachim|37a|4|79|92",
+        "ref": "Pesachim 37a:4",
+        "a": "רב",
+        "b": "רבי",
+        "pattern": "אמר [A] שאילית את [B]",
+        "kind": "asks",
+        "source": "reader",
+        "direction": "AB",
+        "sure": true,
+        "first_pass": {
+          "kind": "asks",
+          "confidence": 0.57,
+          "p": {
+            "none": 0.01,
+            "explains": 0.01,
+            "addresses": 0.02,
+            "alternative": 0.05,
+            "together": 0.0,
+            "disputes": 0.01,
+            "asks": 0.61,
+            "before": 0.0,
+            "kin": 0.0,
+            "teacher": 0.03,
+            "same-man": 0.01,
+            "cites": 0.25,
+            "one-name": 0.0,
+            "juxtaposed": 0.0,
+            "follows": 0.0
+          }
+        }
+      }
+    ]
+  },
+  "earlier_crosscheck": {
+    "ref": "Pesachim 37a:4",
+    "existing_case_id": "pesachim_teacher",
+    "review_result": "agree_and_add_explicit_teacher_claims",
+    "sources": [
+      {
+        "ref": "Pesachim 37a:4",
+        "url": "https://www.sefaria.org/Pesachim_37a.4",
+        "api_url": "https://www.sefaria.org/api/texts/Pesachim%2037a?context=0&pad=0&commentary=0",
+        "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+        "translation_edition": "William Davidson Edition - English",
+        "hebrew": "אָמַר רַב יִרְמְיָה בַּר אַבָּא: שְׁאֵילִית אֶת רַבִּי בְּיִחוּד, וּמַנּוּ: רַב. אִיכָּא דְּאָמְרִי, רַב יִרְמְיָה בַּר אַבָּא אָמַר רַב: שְׁאֵילִית אֶת רַבִּי בְּיִחוּד, וּמַנּוּ: רַבֵּינוּ הַקָּדוֹשׁ. מַאי פַּת עָבָה? פַּת מְרוּבָּה. וְאַמַּאי קָרוּ לֵיהּ פַּת עָבָה? מִשּׁוּם דִּנְפִישָׁא בְּלִישָׁה. וְאִי בָּעֵית אֵימָא, בְּאַתְרֵיהּ דְּהַאי תַּנָּא לְפַת מְרוּבָּה — פַּת עָבָה קָרוּ לֵיהּ.",
+        "api_hebrew_html_sha256": "9ca1998031261d7facf33e51e597818ce61285ed33b5c5f1cf947ae1c3ef25f6"
+      },
+      {
+        "ref": "Rashi on Pesachim 37a:4:1",
+        "url": "https://www.sefaria.org/Rashi_on_Pesachim.37a.4.1",
+        "hebrew": "ביחוד - בינו לביני רביה דר' ירמיה רב רביה דרב רבינו הקדוש לישנא אחרינא בייחוד בברור כמו וידעו ביחוד ששם ארון נגנז (יומא דף נד.):"
+      }
+    ],
+    "context_read": [
+      "Pesachim 36b:16",
+      "Pesachim 37a:1-6",
+      "Rashi on Pesachim 37a:4:1"
+    ],
+    "finding": "The first version has Yirmeya bar Abba report his own question to Rav. In the second, he reports Rav’s first-person account of asking Rabbi. The words identifying “my teacher” are part of the text.",
+    "claims_to_keep": [
+      {
+        "subject": "Yirmeya bar Abba",
+        "relation": "asks",
+        "object": "Rav",
+        "scope": "version_A"
+      },
+      {
+        "subject": "Yirmeya bar Abba",
+        "relation": "calls_my_teacher",
+        "object": "Rav",
+        "scope": "version_A",
+        "basis": "שאילית את רבי ... ומנו רב"
+      },
+      {
+        "subject": "Yirmeya bar Abba",
+        "relation": "reports_in_name_of",
+        "object": "Rav",
+        "scope": "version_B"
+      },
+      {
+        "subject": "Rav",
+        "relation": "asks",
+        "object": "רבינו הקדוש",
+        "scope": "version_B"
+      },
+      {
+        "subject": "Rav",
+        "relation": "calls_my_teacher",
+        "object": "רבינו הקדוש",
+        "scope": "version_B",
+        "basis": "שאילית את רבי ... ומנו רבינו הקדוש"
+      }
+    ],
+    "agreement": "The report’s two speech structures are correct. In version B, the first-person speaker of שאילית is Rav.",
+    "correction": "Add the teacher claims. They have explicit support beyond the ordinary asks relation. Keep רבי and its resolving name inside their own version; do not join them globally just because the word is spelled the same. The identification of רבינו הקדוש with Judah HaNasi is an identity assertion with provenance, not the literal name printed here.",
+    "commentary_note": "Rashi explicitly maps Yirmeya’s teacher to Rav and Rav’s teacher to Rabbeinu HaKadosh. He also gives more than one explanation of ביחוד. That lexical question need not make the speaker identity unknown.",
+    "variant_semantics": {
+      "kind": "speaker_and_report_depth",
+      "historically_mutually_exclusive": "not_established",
+      "reason": "Both questions could have occurred; the passage gives alternate forms of this report."
+    },
+    "uncertainty": {
+      "speaker_in_each_branch": "clear",
+      "teacher_designation": "explicit",
+      "meaning_of_biyichud": "commentarial_alternatives",
+      "global_identity": "separate_identity_decision"
+    },
+    "episode": {
+      "kind": "halachic",
+      "form": "reported_question_with_nested_first_person_speech",
+      "reason": "The question concerns the meaning of pat ava in a festival baking rule."
+    },
+    "unresolved_scope": [
+      "No historical reconstruction of the two reported conversations was attempted."
+    ]
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "job_id": "challenge-04",
+  "input_sha256": "2eff8370f04fc1914ffff06aa173014ae001270cffa491d903660833b85a230f",
+  "output_sha256": "b5b13025203ff94212616294a35c92451e6e7ea38369791b715c537a03eddeaa",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "Huna’s transmission of Rav’s ruling is distinct from the later challenge.",
+      "claim_ids": [
+        "c1",
+        "c2",
+        "c5",
+        "c8"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "The two challenger branches point to Huna and keep their names separate.",
+      "claim_ids": [
+        "c5",
+        "c6",
+        "c8",
+        "c9"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "The actual objection is asserted, while its content node and notes explicitly make Rav’s possible retraction conditional.",
+      "claim_ids": [
+        "c6",
+        "c9"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 3,
+      "status": "pass",
+      "reason": "Huna answers the selected challenger in each branch; the shared hearing and non-retraction claims have Huna as voice.",
+      "claim_ids": [
+        "c7",
+        "c10",
+        "c11",
+        "c12"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "Rav’s retraction event is used only with negative polarity.",
+      "claim_ids": [
+        "c12"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "Rav is not made a participant in the conversation; the replies are scoped alternatives, with shared content identified in the reading group.",
+      "claim_ids": [
+        "c7",
+        "c10"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "minor",
+      "type": "contract_limit",
+      "claim_ids": [
+        "c6",
+        "c9"
+      ],
+      "reason": "The conditional force of the objection’s content is in the statement label and notes. Statement nodes have no modality field, while the speech-act claims correctly say that the objection occurs. A consumer reading claim modality alone would lose the counterfactual.",
+      "source_refs": [
+        "Bava Batra 170b:4"
+      ]
+    }
+  ],
+  "summary": "The conditional challenge and Huna’s denial of retraction are semantically correct. Content modality remains partly prose."
+}

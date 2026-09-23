@@ -1,0 +1,20 @@
+{
+  "original_sha256": "bb8b239cac4011ba09ee98fcf474a64586a36ff29d188cb43e7e32f62a76b1f1",
+  "corrected_sha256": "7ffebfa762f819f91dd902a20911136fded80cd6172e31bb1a5446d23b7f3f5b",
+  "changes": [
+    {
+      "source_id": "munich95_834_crop",
+      "field": "input_path",
+      "previous": null,
+      "corrected": "sources/munich95_pg0834.jpg",
+      "reason": "A crop has no web address of its own. Record the saved page image it was cut from (munich95_834)."
+    },
+    {
+      "source_id": "bomberg_crop",
+      "field": "input_path",
+      "previous": null,
+      "corrected": "sources/bomberg_men29b.jpg",
+      "reason": "A crop has no web address of its own. Record the saved page image it was cut from (bomberg)."
+    }
+  ]
+}

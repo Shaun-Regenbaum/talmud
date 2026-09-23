@@ -1,0 +1,118 @@
+{
+  "job_id": "challenge-18",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "00579102430c82b1d6f034095399e7ce2307656064f5f8f6dd60096c7c4f8a40",
+  "historical_graph_eligible": false,
+  "scope": "I checked every dossier quotation against the saved files in sources/ (Aramaic, William Davidson English, Soncino, Rif, Rosh, Tosafot Rid, Tashbetz, Seder HaDorot, Epstein, Ya'avetz, Beitzah 28a and the other cross-passages) and the earlier pilot reading; I did not check manuscripts, other Rif printings, Meiri or Tosafot, and fetched no new sources.",
+  "findings": [
+    {
+      "target": "F3 / proposed correction 'c4 / judge' / alternative_readings A2",
+      "decision": "qualify",
+      "reason": "Adding the Rif branch is right: the Rif (S6) reads 'אתיא לקמיה דרב יוסף' with no Nehemya. But the dossier adds only the branch. It does not scope the claims that depend on the printed name. c3 (judge child_of 'father') and the 'father' placeholder come from 'רב נחמיה בריה דרב יוסף', and c4 names that judge, so all of them belong to reading A1 (S1, S3; also Rosh S8, Tashbetz S9, Tosafot Rid S7 in abbreviation). Under A2 the judge is a separate bare 'Rav Yosef' with no parent. The base-reading father and c3 must be kept, not deleted. Rosh, Tashbetz and Tosafot Rid are later quotations, not independent votes for A1."
+    },
+    {
+      "target": "F2 / proposed correction c7",
+      "decision": "support_proposed_correction",
+      "reason": "Confirmed: the Aramaic has 'אֲמַרָה לֵיהּ' only once, before 'פְּסוֹק לִי מְזוֹנֵי', and 'פְּסוֹק לִי חַמְרָא!' has no speech verb (S1). The Soncino rendering puts the speaker in brackets, '‘Grant me also an allowance of wine’ [she demanded]' (S36), which shows the translator supplied it. The Homa story just before (65a:9) has the same bare 'פְּסוֹק לִי חַמְרָא!', so this is a stock pattern and the continuation inference is secure. Narrow addition: 'ליה' is also missing, so c7's addressee (the judge) is implicit by continuation too, not only its speaker."
+    },
+    {
+      "target": "F5 / proposed correction 'new' (widowhood)",
+      "decision": "add_missing_claim",
+      "reason": "The dossier credits the widow reading only to Seder HaDorot ('אשתו אחר מיתתו', S11). The Tashbetz (S9) also cites this story as proof that a widow keeps her husband's standard of living: 'ניזונית כפי כבודה וכבוד בעלה כאשר היה קיים ... אפי' לאחר מיתה ... ותו אמרינן התם דביתהו דרב יוסף בריה דרבא'. Ya'avetz (S26) reasons from the same rule, 'עולה עמו ואינה יורדת', while comparing Homa with this line. Record the Tashbetz as a second commentary use that implies widowhood. It remains interpretation, not Talmud text, and the Talmud line still says nothing about a death."
+    },
+    {
+      "target": "F6 reasoning / reading.md 'Must stay open' / A3 support list",
+      "decision": "qualify",
+      "reason": "'I was standing before Rava' (S16, Beitzah 28a) is 'compatible with his being of the generation of Rava's sons rather than a grandson'. That overreaches: a grandson could also stand before Rava. Tying the Beitzah speaker to this judge is itself a same-name identification. Seder HaDorot does not argue that the two Yosefs differ. It files 'רב נחמיה בר (רב) יוסף' in its own entry (S10) and leaves Nehemya off its list of sons (S11), which is an argument from silence. Say 'Seder HaDorot does not identify them' rather than 'keeps them apart'. A3 lists S10, S11 and S16 as 'support' when they are cited against A3; relabel them. The no-merge decision stands."
+    },
+    {
+      "target": "c9 / F2 graph_effect (Mehoza statement addressee)",
+      "decision": "keep_evidence_types_separate",
+      "reason": "In the printed Talmud the addressee is marked: 'אֲמַר לַהּ: יָדַעְנָא' (S1, S3). So c9 stays explicit for the base reading. The quotations do not all carry it. The Rif has 'אמר ידענא בהו' (S6), and the Rosh and the Tashbetz also have 'אמר ידענא' with no 'לה' (S8, S9). Tosafot Rid has the ambiguous abbreviation 'א\"ל' (S7). Keep the addressee on the print's evidence only, and do not treat the quotations as confirming it."
+    },
+    {
+      "target": "F11 / proposed corrections m7-m11, m12, coreference_candidates",
+      "decision": "support_proposed_correction",
+      "reason": "Confirmed in the pilot output (S0b): m7-m11 are the requests, awards and explanation, yet they are typed 'name'. m12 is typed 'pronoun' but anchored on 'רב יוסף' occurrence 2, the same span as m5. Occurrence 2 of 'רב יוסף' in the unvocalized text is the one inside 'בריה דרב יוסף', so m5 itself points at the right occurrence. Dropping m12, or turning it into an identity question on m5, is the right fix."
+    },
+    {
+      "target": "proposed correction c10",
+      "decision": "support_proposed_correction",
+      "reason": "c10 (holds_view) quotes 'ידענא בהו בבני מחוזא דשתו חמרא' at the same occurrence as c9's content. It is one utterance. Store it once, as the content of c9, typed as the judge's stated reason. The Rif/Rosh 'accustomed' (רגילה) use and the Rambam/Shulchan Arukh 'local custom' wording stay as later applications (S8, S24, S25), not the judge's words."
+    },
+    {
+      "target": "F7 (Mehoza and Epstein)",
+      "decision": "qualify",
+      "reason": "Agreed: in the text Mehoza is only the topic of the judge's reason, 'בִּבְנֵי מָחוֹזָא'. Epstein's 'נשאר ראש במחוזא במקום אביו' (S14) is a modern historical inference built on this line, so it cannot then be cited back as independent support for a Mehoza residence or leadership edge. Add Ya'avetz (S26), 'והא בסמוך אמר ר\"נ ידענא בבני מחוזא', as a separate commentator who reads the name here as the city. That is still interpretation, not a residence relation for the woman."
+    },
+    {
+      "target": "F9 evidence (S2 quote)",
+      "decision": "correct_occurrence",
+      "reason": "The quote '<b>came before Rav Neḥemya, son of Rav Yosef,</b> for judgment' does not occur in S2. The bold tag opens earlier: '<b>The wife of Rav Yosef, son of Rava, came before Rav Neḥemya, son of Rav Yosef,</b> for judgment.' The point holds, since 'for judgment' is plain editorial text, but the quote must be corrected to the exact string."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "S1",
+      "exact_quote": "דְּבֵיתְהוּ דְּרַב יוֹסֵף בְּרֵיהּ דְּרָבָא אֲתַאי לְקַמֵּיהּ דְּרַב נְחֶמְיָה בְּרֵיהּ דְּרַב יוֹסֵף",
+      "matches_claim": true,
+      "note": "Present in Ketubot 65a:11 of S1. It supports c1, c2, c3 and c4 for the printed reading. The same opening words recur in 65a:12 for a different husband (בריה דרב מנשיא), so the anchor must stay on segment 11."
+    },
+    {
+      "source_id": "S1",
+      "exact_quote": "אֲמַרָה לֵיהּ: פְּסוֹק לִי מְזוֹנֵי! פְּסַק לַהּ. פְּסוֹק לִי חַמְרָא! פְּסַק לַהּ. אֲמַר לַהּ: יָדַעְנָא בְּהוּ בִּבְנֵי מָחוֹזָא דְּשָׁתוּ חַמְרָא.",
+      "matches_claim": true,
+      "note": "Exact. There is one 'אמרה ליה', before the first request only, which confirms F2 and extends it: both the speaker and the addressee of the wine request are unmarked. 'אמר לה' marks the judge's addressee."
+    },
+    {
+      "source_id": "S6",
+      "exact_quote": "דביתהו דרב יוסף בריה דרבא אתיא לקמיה דרב יוסף אמרה ליה פסוק לי מזוני",
+      "matches_claim": true,
+      "note": "Exact in the Rif, Vilna edition. The same passage continues 'אמר ידענא בהו בבני מחוזא' without 'לה', and the next story also reads 'אתאי לקמיה דרב יוסף'."
+    },
+    {
+      "source_id": "S9",
+      "exact_quote": "דביתהו דרב יוסף בריה דרבא אתאי לקמיה דרב נחמיה בריה דרב יוסף",
+      "matches_claim": true,
+      "note": "Exact. The surrounding Tashbetz text uses the story as proof about a widow's maintenance ('אפי' לאחר מיתה'), which the dossier did not record."
+    },
+    {
+      "source_id": "S11",
+      "exact_quote": "אשתו אחר מיתתו אתי' קמיה דרב נחמי' ברב יוסף",
+      "matches_claim": true,
+      "note": "Exact. This is Seder HaDorot commentary. It does not call Nehemya 'בנו', which fits separate filing but is an argument from silence."
+    },
+    {
+      "source_id": "S16",
+      "exact_quote": "אָמַר רַב נְחֶמְיָה בְּרֵיהּ דְּרַב יוֹסֵף: הֲוָה קָאֵימְנָא קַמֵּיהּ דְּרָבָא",
+      "matches_claim": true,
+      "note": "Exact in Beitzah 28a:20. It shows only that a same-named man stood before Rava in another passage. It does not choose between 'Rava's son's generation' and 'grandson'."
+    },
+    {
+      "source_id": "S2",
+      "exact_quote": "<b>came before Rav Neḥemya, son of Rav Yosef,</b> for judgment",
+      "matches_claim": false,
+      "note": "Not an exact string in S2. The actual text is '<b>The wife of Rav Yosef, son of Rava, came before Rav Neḥemya, son of Rav Yosef,</b> for judgment.' The substance (plain-text 'for judgment') holds."
+    },
+    {
+      "source_id": "S36",
+      "exact_quote": "‘Grant me also an allowance of wine’ [she demanded], and he granted her.",
+      "matches_claim": true,
+      "note": "Found in the Soncino text extracted from the PDF. The bracketed speaker supports F2's point that the second request's speaker is supplied by the translator."
+    },
+    {
+      "source_id": "S26",
+      "exact_quote": "והא בסמוך אמר ר\"נ ידענא בבני מחוזא דשתו חמרא",
+      "matches_claim": true,
+      "note": "Ya'avetz, in S26. The dossier lists it in scope but does not use it. It reads Mehoza here as the city and reasons from 'עולה עמו ואינה יורדת'. This is commentary only."
+    },
+    {
+      "source_id": "S0b",
+      "exact_quote": "\"quote\": \"רב יוסף\",\n        \"occurrence\": 2",
+      "matches_claim": true,
+      "note": "The pilot's m5 and m12 both anchor here. Occurrence 2 of 'רב יוסף' in the input text is the judge's patronymic, so m5 is correctly placed and m12 is a duplicate. The dossier's quoted JSON strings differ in whitespace from the file, but the substance matches."
+    }
+  ],
+  "extra_sources": []
+}

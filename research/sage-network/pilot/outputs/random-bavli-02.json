@@ -1,0 +1,488 @@
+{
+  "schema_version": "passage-pilot-v1",
+  "job_id": "random-bavli-02",
+  "episode": {
+    "genre": "halachic",
+    "genre_reason": "The passage argues about legal rules.",
+    "form": "Legal argument and attributed teachings",
+    "coverage": "needs_context",
+    "needed_context": [
+      "Earlier Nazir 43a is needed to name the two proponents and establish the original dispute."
+    ],
+    "notes": [
+      "The two unnamed proponents are distinguished by their proof words. No global identities or direct contact are inferred."
+    ]
+  },
+  "mentions": [
+    {
+      "id": "m1",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ולמ\"ד מלהחלו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m2",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "ולמאן דאמר במותם",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m3",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי אומר",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m4",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "מיתיבי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m5",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "אדם",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m6",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "במי שאינו מחולל",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m7",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "זה שמחולל ועומד",
+        "occurrence": 1
+      }
+    }
+  ],
+  "entities": [
+    {
+      "id": "from_lehachalo",
+      "kind": "person",
+      "label": "Unnamed proponent deriving from להחלו",
+      "mention_ids": [
+        "m1"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ולמ\"ד מלהחלו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "from_bemotam",
+      "kind": "person",
+      "label": "Unnamed proponent deriving from במותם",
+      "mention_ids": [
+        "m2"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "ולמאן דאמר במותם",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "rebbi",
+      "kind": "person",
+      "label": "Rebbi",
+      "mention_ids": [
+        "m3"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי אומר",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "anon",
+      "kind": "group",
+      "label": "Unnamed argumentative voice",
+      "mention_ids": [
+        "m4"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "מיתיבי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "rebbi_rule",
+      "kind": "statement",
+      "label": "The prohibition concerns death, not their lesions or discharges",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "במותם אינו מטמא אבל מטמא בנגעתם ובזיבתם",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "dual_death",
+      "kind": "statement",
+      "label": "The ending of במותם permits two deductions",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "מאי במותם שמעת מינה תרתי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "already_defiled",
+      "kind": "statement",
+      "label": "להחלו excludes one already defiled",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "במי שאינו מחולל יצא זה שמחולל ועומד",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "dual_defile",
+      "kind": "statement",
+      "label": "The ending of להחלו permits two deductions",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "מאי להחלו שמעת מינה תרתי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "corpse_rule",
+      "kind": "statement",
+      "label": "A person does not transmit corpse impurity until death, even if mutilated or dying",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "אדם אינו מטמא אלא עד שתצא נפשו ואפילו מגוייד ואפילו גוסס",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "distinction",
+      "kind": "statement",
+      "label": "Transmitting impurity awaits death, but the personal prohibition already applies",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "לענין טמויי עד דנפקא נפשיה לענין אתחולי הא איתחיל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "human",
+      "kind": "person",
+      "label": "Generic person dying or mutilated",
+      "mention_ids": [
+        "m5"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "אדם",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "undefiled",
+      "kind": "person",
+      "label": "Generic person not yet defiled",
+      "mention_ids": [
+        "m6"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "במי שאינו מחולל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "defiled",
+      "kind": "person",
+      "label": "Generic person already defiled",
+      "mention_ids": [
+        "m7"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "זה שמחולל ועומד",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "earlier_lehachalo_position",
+      "kind": "statement",
+      "label": "The earlier position deriving from להחלו, whose full statement is outside the supplied window",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "ולמ\"ד מלהחלו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "rebbi",
+      "object": "rebbi_rule",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "דתניא רבי אומר במותם אינו מטמא אבל מטמא בנגעתם ובזיבתם",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c2",
+      "family": "views",
+      "predicate": "explains",
+      "subject": "anon",
+      "object": "dual_death",
+      "roles": [
+        {
+          "role": "target",
+          "entity": "from_bemotam"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "ולמאן דאמר במותם הא מיבעי ליה להאי סברא א\"כ לימא קרא במות מאי במותם שמעת מינה תרתי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c3",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "from_bemotam",
+      "object": "already_defiled",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "ולמ\"ד במותם הכתיב להחלו להחלו להכי הוא דאתא במי שאינו מחולל יצא זה שמחולל ועומד",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The anonymous discussion supplies this use of the competing proof word to this proponent."
+      ]
+    },
+    {
+      "id": "c4",
+      "family": "views",
+      "predicate": "explains",
+      "subject": "anon",
+      "object": "dual_defile",
+      "roles": [
+        {
+          "role": "target",
+          "entity": "from_lehachalo"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "ולמ\"ד מלהחלו הא מיבעי ליה להאי סברא א\"כ לימא קרא להחל מאי להחלו שמעת מינה תרתי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c5",
+      "family": "speech",
+      "predicate": "objects_to",
+      "subject": "anon",
+      "object": "earlier_lehachalo_position",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "corpse_rule"
+        },
+        {
+          "role": "target",
+          "entity": "from_lehachalo"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "מיתיבי אדם אינו מטמא אלא עד שתצא נפשו ואפילו מגוייד ואפילו גוסס ולמ\"ד מלהחלו הא קתני דאינו מטמא לענין טמויי עד דנפקא נפשיה לענין אתחולי הא איתחיל:",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "medium",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The objection targets the earlier להחלו position, not the rival proponent’s use of that word in s3. Its full formulation is outside the window."
+      ]
+    },
+    {
+      "id": "c6",
+      "family": "views",
+      "predicate": "explains",
+      "subject": "anon",
+      "object": "corpse_rule",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "distinction"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "מיתיבי אדם אינו מטמא אלא עד שתצא נפשו ואפילו מגוייד ואפילו גוסס ולמ\"ד מלהחלו הא קתני דאינו מטמא לענין טמויי עד דנפקא נפשיה לענין אתחולי הא איתחיל:",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    }
+  ],
+  "reading_groups": [],
+  "coreference_candidates": [],
+  "open_questions": []
+}

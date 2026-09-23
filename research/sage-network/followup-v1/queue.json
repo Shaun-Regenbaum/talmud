@@ -1,0 +1,308 @@
+{
+  "status": "in_progress",
+  "input_lake_snapshot": 2,
+  "input_package": "talmud/sage-network-passage-pilot",
+  "input_revision": 1,
+  "jobs": [
+    {
+      "job_id": "challenge-09",
+      "ref": "Sanhedrin 59b:12",
+      "question": "Who speaks the citation beginning האמר?"
+    },
+    {
+      "job_id": "challenge-11",
+      "ref": "Berakhot 27b:3",
+      "question": "Preserve expressly unsaid speech: ולא אמר מי בדיל מר. Separate a formal question not asked from the exchange that actually occurs. Research student-colleague claims and their limits."
+    },
+    {
+      "job_id": "challenge-30",
+      "ref": "Moed Katan 17a:13",
+      "question": "A sanction target was encoded as a speech recipient although the addressee is unknown. Identify the target, speaker, addressee, and narrated/legal force separately using wider context."
+    },
+    {
+      "job_id": "random-bavli-02",
+      "ref": "Nazir 43a:9",
+      "question": "Collect every named and pronominal mention. Preserve legal roles and the target of each objection, including repeated references."
+    },
+    {
+      "job_id": "random-bavli-03",
+      "ref": "Sotah 45a:13",
+      "question": "Collect every repeated mention and the explanatory link lost in the first reading. Separate transmission from disagreement about the legal issue."
+    },
+    {
+      "job_id": "random-bavli-05",
+      "ref": "Sanhedrin 108a:1",
+      "question": "Collect group references and investigate the scope of the reply in the wider flood-generation discussion. Separate biblical speakers, later interpreters, groups, and reported scenes."
+    },
+    {
+      "job_id": "random-yerushalmi-01",
+      "ref": "Jerusalem Talmud Taanit 1:2:4",
+      "question": "Investigate remembered encounter and pronouns, brother versus חביבך, and later unnamed speaker. Capture the competing rain date third of Marheshvan and narrated precedent. Use translations and commentaries to distinguish certainty from conjecture."
+    },
+    {
+      "job_id": "random-yerushalmi-02",
+      "ref": "Jerusalem Talmud Megillah 1:10:4",
+      "question": "The first_priest span attached to an earlier hypothetical not-fit-as-high-priest occurrence rather than the incumbent in the story. Determine correct occurrences and preserve all relevant priest eligibility rules, unnamed women and story participants."
+    },
+    {
+      "job_id": "random-yerushalmi-03",
+      "ref": "Jerusalem Talmud Sheviit 10:4:6",
+      "question": "Collect repeated mentions and legal conditions missing from the first reading. Investigate disputed transmission chain, dialogue turns and final qualification ascribed to Rav."
+    },
+    {
+      "job_id": "random-yerushalmi-04",
+      "ref": "Jerusalem Talmud Peah 3:3:3",
+      "question": "The actual one-versus-two peah rules were lost. Recover each rule, condition, negation, named opinion, challenge and reply. Distinguish legal scenario roles from historical people."
+    },
+    {
+      "job_id": "random-yerushalmi-05",
+      "ref": "Jerusalem Talmud Ketubot 11:7:4",
+      "question": "Recover restrictive אין מעשין אלא in Shmuel coercion rule and objection about secondary prohibited marriages. Preserve Yose explicitly calling Hila my teacher. Investigate Yose of Sidon versus unqualified Yose without assuming identity. Interpret Mana rhetorical slave answer."
+    },
+    {
+      "job_id": "random-yerushalmi-06",
+      "ref": "Jerusalem Talmud Bava Kamma 9:7:2",
+      "question": "Separate the stolen-deposit scenario and its payment differences from the first deposit dialogue. Recover return rules, named household story and pronouns without merging legal roles and story actors."
+    },
+    {
+      "job_id": "original-01",
+      "ref": "Gittin 50a:5",
+      "question": "Separate the patronymic son-of relationship from quoting Rav Nachman. Investigate whether the father and quoted teacher are the same Rav Nachman, which Mar Zutra this could be, and exactly which conclusions require external biography. בריה means son; do not turn it into son-in-law.",
+      "priority": "original_user_examples"
+    },
+    {
+      "job_id": "original-02",
+      "ref": "Ketubot 62b:6",
+      "question": "Recover family relations, unnamed women, academic journeys, narrated chronology and the distinction between marriage mentioned by the passage and marriage inferred from other sources. Locate pronouns carefully.",
+      "priority": "original_user_examples"
+    },
+    {
+      "job_id": "original-03",
+      "ref": "Chullin 94b:13",
+      "question": "Reconstruct the travel story as a sequence of actions, speakers, addressees, misunderstandings and replies. Which participants actually meet? Which speech is imagined, conditional or remembered? Keep story evidence separate from a generic together edge.",
+      "priority": "original_user_examples"
+    },
+    {
+      "job_id": "original-04",
+      "ref": "Pesachim 103a:5",
+      "question": "Reconstruct the visit, blessings, challenge to practice and cited rulings. Separate action target, addressee and cited authority. Research halachic context and whether any later verse changes the participant identity.",
+      "priority": "original_user_examples"
+    },
+    {
+      "job_id": "original-05",
+      "ref": "Arakhin 20b:9",
+      "question": "Preserve the two versions of the question and their attribution, nested alternatives, and the related repeated passage. Do not attach a quoted opinion to the wrong speaker or count parallel editorial repetitions as independent evidence.",
+      "priority": "original_user_examples"
+    },
+    {
+      "job_id": "original-06",
+      "ref": "Arakhin 13b:4",
+      "question": "Preserve two reported transmission routes as separate claims under one teaching. The textual or need not mean only one event historically happened. Investigate source editions and commentators, and define what a graph may infer from each route.",
+      "priority": "original_user_examples"
+    },
+    {
+      "job_id": "original-07",
+      "ref": "Pesachim 37a:4",
+      "question": "Investigate branch-scoped teacher/student statements and participant identity. Preserve which relationship belongs to which reported version. Read wider context and commentary for exactly who is called a teacher.",
+      "priority": "original_user_examples"
+    },
+    {
+      "job_id": "original-08",
+      "ref": "Jerusalem Talmud Berakhot 1:5:14",
+      "question": "Investigate the packed teaching chains, using Guggenheimer translation and footnote 256 plus Ohr LaYesharim and other available commentaries. Identify where chain boundaries are explicit and where the commentators differ. Earlier Tanna Yirmeya versus later Amora changes chronology; do not settle identity without support. Explain the Hebrew carefully in plain English.",
+      "priority": "original_user_examples"
+    },
+    {
+      "job_id": "original-09",
+      "ref": "Bava Batra 12b:6",
+      "question": "Give Rav Hisdas unnamed daughter her own local person. Recover who sits where, who asks and answers, the prophecy or wish about marriages, and what wider passages say about actual marriages. Distinguish narrative forecasts from completed marriages; link biographies only as independent later evidence.",
+      "priority": "original_user_examples"
+    },
+    {
+      "job_id": "original-10",
+      "ref": "Pesachim 103a:7",
+      "question": "Reconstruct the legal exchange and cited authorities across adjacent segments; distinguish a remembered practice, a live challenge, the response and alternative reported wording. Do not infer direct meetings from all citations.",
+      "priority": "original_user_examples"
+    },
+    {
+      "job_id": "challenge-01",
+      "ref": "Sanhedrin 101a:6",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-02",
+      "ref": "Bava Batra 24a:14",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-03",
+      "ref": "Bava Batra 152b:7",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-04",
+      "ref": "Bava Batra 170b:4",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-05",
+      "ref": "Menachot 62a:12",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-06",
+      "ref": "Menachot 73b:16",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-07",
+      "ref": "Sanhedrin 36a:6",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-08",
+      "ref": "Chagigah 3a:4",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-10",
+      "ref": "Menachot 29b:3",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-12",
+      "ref": "Sanhedrin 97a:6",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-13",
+      "ref": "Berakhot 5b:10",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-14",
+      "ref": "Berakhot 5b:17",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-15",
+      "ref": "Berakhot 10a:2",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-16",
+      "ref": "Berakhot 10a:21",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-17",
+      "ref": "Ketubot 65a:9",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-18",
+      "ref": "Ketubot 65a:11",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-19",
+      "ref": "Ketubot 65a:12",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-20",
+      "ref": "Bava Metzia 59b:10",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-21",
+      "ref": "Bava Metzia 84a:12",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-22",
+      "ref": "Shabbat 156b:2",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-23",
+      "ref": "Shabbat 156b:4",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-24",
+      "ref": "Taanit 23b:8",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-25",
+      "ref": "Taanit 23b:15",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-26",
+      "ref": "Sanhedrin 7a:5",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-27",
+      "ref": "Jerusalem Talmud Berakhot 1:1:21",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-28",
+      "ref": "Eruvin 53b:14",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "challenge-29",
+      "ref": "Bava Metzia 107a:7",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "random-bavli-01",
+      "ref": "Bava Metzia 61a:7",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "random-bavli-04",
+      "ref": "Pesachim 45a:2",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    },
+    {
+      "job_id": "random-bavli-06",
+      "ref": "Bava Kamma 19b:5",
+      "question": "Check the first reading against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution. Do not assume the existing review is right.",
+      "priority": "after_flagged_cases"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+job_id,reference,findings,source_records,checked_quotes,separate_review
+challenge-09,Sanhedrin 59b:12,14,35,42,True
+challenge-11,Berakhot 27b:3,15,41,63,True
+challenge-30,Moed Katan 17a:13,11,38,32,True
+random-bavli-02,Nazir 43a:9,13,24,55,True
+random-bavli-03,Sotah 45a:13,15,27,47,True
+random-bavli-05,Sanhedrin 108a:1,15,27,76,True
+random-yerushalmi-01,Jerusalem Talmud Taanit 1:2:4,22,41,95,True
+random-yerushalmi-02,Jerusalem Talmud Megillah 1:10:4,26,22,104,True
+random-yerushalmi-03,Jerusalem Talmud Sheviit 10:4:6,22,35,101,True
+random-yerushalmi-04,Jerusalem Talmud Peah 3:3:3,19,54,88,True
+random-yerushalmi-05,Jerusalem Talmud Ketubot 11:7:4,19,67,97,True
+random-yerushalmi-06,Jerusalem Talmud Bava Kamma 9:7:2,17,25,83,True
+original-01,Gittin 50a:5,12,41,36,True
+original-02,Ketubot 62b:6,17,22,65,True
+original-03,Chullin 94b:13,15,23,31,True
+original-04,Pesachim 103a:5,10,21,40,True
+original-05,Arakhin 20b:9,12,23,37,True
+original-06,Arakhin 13b:4,9,43,27,True
+original-07,Pesachim 37a:4,13,23,41,True
+original-08,Jerusalem Talmud Berakhot 1:5:14,16,19,50,True
+original-09,Bava Batra 12b:6,14,30,60,True
+original-10,Pesachim 103a:7,12,29,30,True
+challenge-01,Sanhedrin 101a:6,12,27,53,True
+challenge-02,Bava Batra 24a:14,17,31,60,True
+challenge-03,Bava Batra 152b:7,17,37,84,True
+challenge-04,Bava Batra 170b:4,15,40,41,True
+challenge-05,Menachot 62a:12,11,36,46,True
+challenge-06,Menachot 73b:16,14,40,57,True
+challenge-07,Sanhedrin 36a:6,12,38,56,True
+challenge-08,Chagigah 3a:4,17,35,58,True
+challenge-10,Menachot 29b:3,15,28,54,True
+challenge-12,Sanhedrin 97a:6,18,32,73,True
+challenge-13,Berakhot 5b:10,12,33,44,True
+challenge-14,Berakhot 5b:17,19,40,66,True
+challenge-15,Berakhot 10a:2,15,47,74,True
+challenge-16,Berakhot 10a:21,17,25,71,True
+challenge-17,Ketubot 65a:9,12,38,62,False
+challenge-18,Ketubot 65a:11,11,41,32,True

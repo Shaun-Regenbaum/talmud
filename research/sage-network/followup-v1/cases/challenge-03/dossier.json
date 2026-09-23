@@ -1,0 +1,1114 @@
+{
+ "job_id": "challenge-03",
+ "focal_ref": "Bava Batra 152b:7",
+ "status": "researched",
+ "question": "In Bava Batra 152b:7 (with 152b:4-8 and 152a-153a context), which people, speech turns, concessions and school versions are explicit, which rest on interpretation, and what did the first reading and the earlier review miss?",
+ "scope_note": "Checked: Sefaria texts of Bava Batra 152a, 152b, 153a and 135b (Wikisource, William Davidson), Sanhedrin 24b, Jerusalem Talmud Bava Batra 8:7; the commentaries and codes listed in sources; the Soncino English at halakhah.com; Sefaria phrase searches. No manuscripts. Conclusions are scoped to these files.",
+ "quote_rule": "Each exact_quote is a contiguous substring of one text field in the saved JSON (or of the saved HTML for S34). Translations marked 'translation (this dossier)' are brief renderings by this dossier.",
+ "sources": [
+  {
+   "source_id": "S0",
+   "url_or_path": "research/sage-network/pilot/inputs/challenge-03.json",
+   "edition": "Pilot input: Wikisource Talmud Bavli, Bava Batra 152b:4-8 (read-only)",
+   "fetched_at": "2026-09-20T08:23:16Z",
+   "saved_file": "../../../pilot/inputs/challenge-03.json",
+   "sha256": "adbf4ce60e9269201edd91bdf9d67b36bb258d3585c71fa1add8d69a1e183528",
+   "note": "fetched_at is the input's captured_at; file read, not modified"
+  },
+  {
+   "source_id": "S0b",
+   "url_or_path": "research/sage-network/pilot/outputs/challenge-03.json",
+   "edition": "Pilot first reading (read-only)",
+   "fetched_at": null,
+   "saved_file": "../../../pilot/outputs/challenge-03.json",
+   "sha256": "68f51efd5cc8c191dbdd842a010b9d4539cbc014c7664a13dfa766c806eee98d",
+   "note": "The earlier reading under review"
+  },
+  {
+   "source_id": "S0c",
+   "url_or_path": "research/sage-network/followup-v1/cases/challenge-03/previous-review.json",
+   "edition": "Earlier independent review (read-only)",
+   "fetched_at": null,
+   "saved_file": "previous-review.json",
+   "sha256": "856ecf5be9d9ce5fcf714fe4822e8c75b00c5dbc39747a60004a8c2f1412b98c",
+   "note": "Checked, not assumed correct"
+  },
+  {
+   "source_id": "S1",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Bava%20Batra%20152b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sefaria v3 Bava Batra 152b: Wikisource Talmud Bavli; William Davidson Edition (Vocalized Aramaic, Aramaic, English)",
+   "fetched_at": "2026-09-23T08:04:27Z",
+   "saved_file": "sources/sefaria_v3_bb_152b_all.json",
+   "sha256": "d8f1bbfde27347c995cd3c1ff419fa118b9f33a0a6a1480ccf9fad3bf7408645",
+   "note": "Wikisource segments 4-8 equal the pilot input text"
+  },
+  {
+   "source_id": "S2",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Bava%20Batra%20152a?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sefaria v3 Bava Batra 152a: Wikisource; William Davidson Edition",
+   "fetched_at": "2026-09-23T08:04:28Z",
+   "saved_file": "sources/sefaria_v3_bb_152a_all.json",
+   "sha256": "19578bdd7f8242c9e57f059492b3ddbdc9304ef926a09275f899c0cb26019e27",
+   "note": "The earlier dispute referred to in 152b:6-7"
+  },
+  {
+   "source_id": "S3",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Bava%20Batra%20153a?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sefaria v3 Bava Batra 153a: Wikisource; William Davidson Edition",
+   "fetched_at": "2026-09-23T08:04:28Z",
+   "saved_file": "sources/sefaria_v3_bb_153a_all.json",
+   "sha256": "496d839722b3677591bfbd3082378d7f98a0e6a8c1f408871166ee3a0712798b",
+   "note": "Continuation of the Pumbedita report"
+  },
+  {
+   "source_id": "S4",
+   "url_or_path": "https://www.sefaria.org/api/links/Bava%20Batra%20152b:7?with_text=0",
+   "edition": "Sefaria links API, Bava Batra 152b:7",
+   "fetched_at": "2026-09-23T08:04:28Z",
+   "saved_file": "sources/sefaria_links_bb_152b_7.json",
+   "sha256": "682d1697628e9ff4d2e4645f76299492ae6b05155dd3c51efd97477bd212f20c"
+  },
+  {
+   "source_id": "S5",
+   "url_or_path": "https://www.sefaria.org/api/links/Bava%20Batra%20152b:8?with_text=0",
+   "edition": "Sefaria links API, Bava Batra 152b:8",
+   "fetched_at": "2026-09-23T08:04:29Z",
+   "saved_file": "sources/sefaria_links_bb_152b_8.json",
+   "sha256": "b9a241fae66fc7f9ff20a96f15b7e52ffa0fc25aa23d073729764ef2d0a670a1"
+  },
+  {
+   "source_id": "S6",
+   "url_or_path": "https://www.sefaria.org/api/links/Bava%20Batra%20152b:6?with_text=0",
+   "edition": "Sefaria links API, Bava Batra 152b:6",
+   "fetched_at": "2026-09-23T08:04:29Z",
+   "saved_file": "sources/sefaria_links_bb_152b_6.json",
+   "sha256": "a3a1e078e6c498f417734770fd374b6858148287097dd27973d5bdddd12c9638"
+  },
+  {
+   "source_id": "S7",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashbam%20on%20Bava%20Batra%20152b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rashbam on Bava Batra 152b, Vilna Edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:05:12Z",
+   "saved_file": "sources/rashbam_bb_152b.json",
+   "sha256": "adfb0cb013a28d035cfd90e3a770f4a0547291daa8a769396e46176f2cfe2dd6"
+  },
+  {
+   "source_id": "S8",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashbam%20on%20Bava%20Batra%20152a?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rashbam on Bava Batra 152a, Vilna Edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:05:13Z",
+   "saved_file": "sources/rashbam_bb_152a.json",
+   "sha256": "6579adfce21c5d6b215f781a223477c633b1326b98de144ef24a31885f133873"
+  },
+  {
+   "source_id": "S9",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Tosafot%20on%20Bava%20Batra%20152b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Tosafot on Bava Batra 152b, Vilna Edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:05:13Z",
+   "saved_file": "sources/tosafot_bb_152b.json",
+   "sha256": "e452f028b130516115a1b28fd0e361346b3b640ef25ad1f4f08bc84d66b54a63"
+  },
+  {
+   "source_id": "S10",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rabbeinu%20Gershom%20on%20Bava%20Batra%20152b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rabbeinu Gershom on Bava Batra 152b, Vilna Edition (Sefaria), with bracketed editorial footnotes",
+   "fetched_at": "2026-09-23T08:05:13Z",
+   "saved_file": "sources/rabbeinu_gershom_bb_152b.json",
+   "sha256": "8e127df111105a0710fbc919940d98d92da78051217b31c1b5aed9d08e9464dc"
+  },
+  {
+   "source_id": "S11",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Steinsaltz%20on%20Bava%20Batra%20152b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Steinsaltz on Bava Batra 152b, William Davidson Edition - Hebrew (Sefaria)",
+   "fetched_at": "2026-09-23T08:05:14Z",
+   "saved_file": "sources/steinsaltz_bb_152b.json",
+   "sha256": "8c1149569b6f3b7166d0ae676546a21962a823415e2baed14ed073412b50057f",
+   "note": "Same editorial work as the William Davidson English; not an independent witness to it"
+  },
+  {
+   "source_id": "S12",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Yad%20Ramah%20on%20Bava%20Batra%20152b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Yad Ramah on Bava Batra 152b (Sefaria)",
+   "fetched_at": "2026-09-23T08:05:14Z",
+   "saved_file": "sources/yad_ramah_bb_152b.json",
+   "sha256": "88cac98afd73b1289055046932cbf17e4fc617721821facdb478831b9b07484d"
+  },
+  {
+   "source_id": "S13",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Ri%20Migash%20on%20Bava%20Batra%20152b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Ri Migash on Bava Batra 152b, Warsaw 1884 (Sefaria)",
+   "fetched_at": "2026-09-23T08:05:15Z",
+   "saved_file": "sources/ri_migash_bb_152b.json",
+   "sha256": "1991f2b0253044e4b14e592697e1c787bce655935ca87e4c2da9d94fb1950bde"
+  },
+  {
+   "source_id": "S14",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Tosafot%20Rid%20on%20Bava%20Batra%20152b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Tosafot Rid on Bava Batra 152b (Sefaria)",
+   "fetched_at": "2026-09-23T08:05:15Z",
+   "saved_file": "sources/tosafot_rid_bb_152b.json",
+   "sha256": "b33f96d86d645ef174e198647f3ee98e2ff099a26ff561b376135601a3957e95"
+  },
+  {
+   "source_id": "S15",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Chokhmat%20Shlomo%20on%20Bava%20Batra%20152b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Chokhmat Shlomo on Bava Batra 152b, Vilna Edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:05:15Z",
+   "saved_file": "sources/chokhmat_shlomo_bb_152b.json",
+   "sha256": "0824f61f1bc370563be202b9f20af7e9fe0a458171f6743ba9d935125f64424d"
+  },
+  {
+   "source_id": "S16",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rif%20Bava%20Batra%2071b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rif Bava Batra 71b, Vilna Edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:05:15Z",
+   "saved_file": "sources/rif_bb_71b.json",
+   "sha256": "d472506147aa19828e552d7206b819002dcff0bcc106c42d4f6f9755a7214636"
+  },
+  {
+   "source_id": "S17",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Mishneh%20Torah%2C%20Ownerless%20Property%20and%20Gifts%209?version=hebrew%7Call&version=english%7Call",
+   "edition": "Mishneh Torah, Ownerless Property and Gifts 9, Torat Emet (Sefaria)",
+   "fetched_at": "2026-09-23T08:05:16Z",
+   "saved_file": "sources/mt_zekhiya_9.json",
+   "sha256": "b44cbfc58baa652516b9c714f325e000359fd02085f31ccf87f1ec8ba52092ed"
+  },
+  {
+   "source_id": "S18",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Chiddushei%20Ramban%20on%20Bava%20Batra%20152b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Chiddushei HaRamban on Bava Batra 152b, Jerusalem 1928-29 (Sefaria)",
+   "fetched_at": "2026-09-23T08:05:16Z",
+   "saved_file": "sources/ramban_bb_152b.json",
+   "sha256": "fc981dfea8a5c0d52e94a03634c1eb5be60ed5f1467c1eb28bfaf0bc0f356cd3"
+  },
+  {
+   "source_id": "S19",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashba%20on%20Bava%20Batra%20152b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rashba on Bava Batra 152b, Gerlitz edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:05:17Z",
+   "saved_file": "sources/rashba_bb_152b.json",
+   "sha256": "0270e7227c48eac412da2bc215fd3fdc1e2a571a221a30bd566d17149f7558a3"
+  },
+  {
+   "source_id": "S20",
+   "url_or_path": "https://www.sefaria.org/api/search/text/_search",
+   "edition": "Sefaria exact-phrase search: דייתיקי מבטלת דייתיקי",
+   "fetched_at": "2026-09-23T08:06:23Z",
+   "saved_file": "sources/search_dayetiki_mevatelet.json",
+   "sha256": "32b354ddfce7a37e340e332b9a693b504f8fd772288f2f83b64b542b087959f1",
+   "note": "Search index snapshot; hits are pointers, the texts themselves were fetched where used"
+  },
+  {
+   "source_id": "S21",
+   "url_or_path": "https://www.sefaria.org/api/search/text/_search",
+   "edition": "Sefaria exact-phrase search: שלחו ליה מבי רב לשמואל",
+   "fetched_at": "2026-09-23T08:06:25Z",
+   "saved_file": "sources/search_shalchu_mibei_rav_lishmuel.json",
+   "sha256": "5f719567ab5756e81c6d3bf44e00ff46e6ab708b6fff05782a3e80a0c1aa1238"
+  },
+  {
+   "source_id": "S22",
+   "url_or_path": "https://www.sefaria.org/api/search/text/_search",
+   "edition": "Sefaria exact-phrase search: ירמיה בר אבא",
+   "fetched_at": "2026-09-23T08:06:28Z",
+   "saved_file": "sources/search_yirmiya_bar_abba.json",
+   "sha256": "2c54c3250e05c4ffd9c6d27c3241e71cff96e0ec27c8d88a27331707cc8cbc74",
+   "note": "First 100 hits only of a larger total"
+  },
+  {
+   "source_id": "S23",
+   "url_or_path": "https://www.sefaria.org/api/search/text/_search",
+   "edition": "Sefaria exact-phrase search: מבי רב לשמואל",
+   "fetched_at": "2026-09-23T08:06:52Z",
+   "saved_file": "sources/search_mibei_rav_lishmuel.json",
+   "sha256": "cab63c3a20adcefb03dc0ffa880d4f20479fdb44a648cdc47e7675cf1303c4cb"
+  },
+  {
+   "source_id": "S24",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Sanhedrin%2024b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sefaria v3 Sanhedrin 24b: Wikisource; William Davidson Edition",
+   "fetched_at": "2026-09-23T08:07:08Z",
+   "saved_file": "sources/sefaria_v3_sanhedrin_24b_all.json",
+   "sha256": "6275857148ece302d1e739af8b4bac3f50b96e5d496dccaf70d7c3791ed73225",
+   "note": "Parallel Sura/Pumbedita formula"
+  },
+  {
+   "source_id": "S25",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashi%20on%20Sanhedrin%2024b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rashi on Sanhedrin 24b, Vilna Edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:07:08Z",
+   "saved_file": "sources/rashi_sanhedrin_24b.json",
+   "sha256": "0d9a29463cafc1f680f1aee276f64a52215807396e92b1107af7c5a5e7891264"
+  },
+  {
+   "source_id": "S26",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashi%20on%20Gittin%2066b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rashi on Gittin 66b (Sefaria)",
+   "fetched_at": "2026-09-23T08:07:09Z",
+   "saved_file": "sources/rashi_gittin_66b.json",
+   "sha256": "7b2604f25f73215f1fbf8aa625ecea9a4c3202f6afdb1257c86aa99f671cb741",
+   "note": "Fetched to look for a gloss on מבי רב; none found in this file"
+  },
+  {
+   "source_id": "S27",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashi%20on%20Shevuot%2046a?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rashi on Shevuot 46a (Sefaria)",
+   "fetched_at": "2026-09-23T08:07:09Z",
+   "saved_file": "sources/rashi_shevuot_46a.json",
+   "sha256": "e3319a77f8cf12f7b4683c686adb6580702b68daf92bffd7bc6137739e77ec56",
+   "note": "Fetched to look for a gloss on מבי רב; none found in this file"
+  },
+  {
+   "source_id": "S28",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashi%20on%20Gittin%2089b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rashi on Gittin 89b (Sefaria)",
+   "fetched_at": "2026-09-23T08:07:09Z",
+   "saved_file": "sources/rashi_gittin_89b.json",
+   "sha256": "2d7ca9fc3d97367b82d625895391154ffa0aac7e7170f4be44b1538c331acbf3",
+   "note": "Fetched to look for a gloss on מבי רב; none found in this file"
+  },
+  {
+   "source_id": "S29",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Shita%20Mekubetzet%20on%20Bava%20Batra%20152b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Shita Mekubetzet on Bava Batra 152b, Vilna Ed. (Sefaria)",
+   "fetched_at": "2026-09-23T08:07:11Z",
+   "saved_file": "sources/shita_mekubetzet_bb_152b.json",
+   "sha256": "5d19d46a7ecefde7a26dcd20935189a0a965e62aff6a4ba5f758e6582745a839",
+   "note": "Compilation quoting earlier authorities (Rosh, Raavad, others)"
+  },
+  {
+   "source_id": "S30",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Shita%20Mekubetzet%20on%20Bava%20Batra%20152a?version=hebrew%7Call&version=english%7Call",
+   "edition": "Shita Mekubetzet on Bava Batra 152a (Sefaria)",
+   "fetched_at": "2026-09-23T08:07:12Z",
+   "saved_file": "sources/shita_mekubetzet_bb_152a.json",
+   "sha256": "6f6b976379864b9e2af7d5d3dbf229c4910aa674d325e4d54ca574c88c0f543a"
+  },
+  {
+   "source_id": "S31",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashbam%20on%20Bava%20Batra%20153a?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rashbam on Bava Batra 153a, Vilna Edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:07:12Z",
+   "saved_file": "sources/rashbam_bb_153a.json",
+   "sha256": "cb522fc6d183eb053178c5bf347055788df5b102ff01a7d24d25b4efed8ef1fd"
+  },
+  {
+   "source_id": "S32",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Bava%20Batra%20135b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sefaria v3 Bava Batra 135b: Wikisource; William Davidson Edition",
+   "fetched_at": "2026-09-23T08:07:12Z",
+   "saved_file": "sources/sefaria_v3_bb_135b_all.json",
+   "sha256": "e359a3ef24a14569959a87a76613e5720628c46f6262995a1d40e64379cab0b6",
+   "note": "Other Rav Dimi occurrence of the same dictum"
+  },
+  {
+   "source_id": "S33",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Jerusalem%20Talmud%20Bava%20Batra%208%3A7?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sefaria v3 Jerusalem Talmud Bava Batra 8:7 (Guggenheimer; Mechon-Mamre; Venice)",
+   "fetched_at": "2026-09-23T08:07:13Z",
+   "saved_file": "sources/sefaria_v3_yerushalmi_bb_8_7.json",
+   "sha256": "ed8274acb69f501f67266ef18e7f08f6274c40bd7073e0319c6969fb5a2c1404",
+   "note": "Different corpus; parallel wording, not a variant of the Bavli sentence"
+  },
+  {
+   "source_id": "S34",
+   "url_or_path": "https://halakhah.com/bababathra/bababathra_152.html",
+   "edition": "Soncino English translation (I. W. Slotki), Bava Bathra 152, as posted at halakhah.com",
+   "fetched_at": "2026-09-23T08:07:40Z",
+   "saved_file": "sources/soncino_halakhah_com_bava_batra_152.html",
+   "sha256": "243121d838f2f30a35780ae3b3cefd5912dfc15246a7913ffeea0b748d8ff800",
+   "note": "Published translation with footnotes; separate from the Davidson/Steinsaltz editorial work"
+  }
+ ],
+ "failed_requests": [
+  {
+   "url": "https://www.sefaria.org/api/v3/texts/Chiddushei%20Ritva%20on%20Bava%20Batra%20152b?version=hebrew%7Call&version=english%7Call",
+   "fetched_at": "2026-09-23T08:05:16Z",
+   "error": "HTTP Error 404: Not Found",
+   "meaning": "Request failed; this is not evidence that the work does not exist or does not comment here."
+  }
+ ],
+ "findings": [
+  {
+   "finding_id": "F1",
+   "claim": "Both 'concessions' in 152b:7 are the anonymous Gemara's hypothetical reasoning ('one might say'), and the closing צריכא rejects them. Neither Rav nor Shmuel is reported as conceding anything.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "צריכא דאי איתמר בהא בהא קאמר רב משום דקנו מיניה אבל בהא דלא קנו מיניה אימא מודה ליה לשמואל"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "אבל בהך אימא מודה ליה לרב צריכא"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "one might <b>say</b> that <b>he concedes to Shmuel."
+    },
+    {
+     "source_id": "S11",
+     "exact_quote": "על כן <b>צריכא</b> <small>[צריך]</small> שייאמרו שתי המחלוקות."
+    }
+   ],
+   "reasoning": "אימא ('say', i.e. one might suppose) marks a supposition by the Gemara's own voice. The sentence explains why both disputes had to be recorded; the conclusion is that each concession would have been a mistaken inference. The Davidson English and the Steinsaltz Hebrew are one editorial work, so they count as one reading here.",
+   "confidence": "high",
+   "graph_effect": "Keep c6 and c7 as hypothetical and rejected. Their voice is the anonymous Gemara, not a report of what Rav or Shmuel said. No actual agreement or retraction edge between Rav and Shmuel.",
+   "translation (this dossier)": "It is necessary: had it been stated in that case, [one would say] Rav says so there because they performed an act of acquisition with him, but in this case where they did not, say he concedes to Shmuel ... but in that one, say he concedes to Rav. It is necessary."
+  },
+  {
+   "finding_id": "F2",
+   "claim": "In the first half of the צריכא, the first בהא is the earlier case (a gift with an act of acquisition, 152a). 'בהא דלא קנו מיניה' is the present case (wrote and conferred, no act of acquisition). Every commentary and translation checked here that addresses the point reads it this way (Rashbam, Tosafot, Rabbeinu Gershom, Soncino, Davidson/Steinsaltz). One printed note to Rabbeinu Gershom proposes an emendation that makes this explicit.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S7",
+     "exact_quote": "אבל בהך - בתרייתא דלא קנו מיניה"
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "בההיא דלעיל קאמר רב ארכבוה אתרי ריכשי. משום דקנו מיניה וכתבו לו קנין אבל בהא דכתב וזיכה לו דלא קנו מיניה"
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "נראה דצ\"ל דאי איתמר בהא. בההוא דלעיל בהא קאמר רב וכו'."
+    },
+    {
+     "source_id": "S34",
+     "exact_quote": "Since there was no symbolic acquisition."
+    },
+    {
+     "source_id": "S34",
+     "exact_quote": "Where symbolic acquisition did take place."
+    }
+   ],
+   "reasoning": "The printed text uses בהא for both cases in the first half. Only the clauses משום דקנו מיניה and דלא קנו מיניה tell them apart. Rashbam's lemma reads בהך where the Wikisource text has בהא דלא קנו מיניה. That is a small lemma difference, recorded as a text-witness detail only. The Gershom footnote is a later proposed emendation ('נראה דצ\"ל', 'it seems one should read'), not a manuscript reading.",
+   "confidence": "high",
+   "graph_effect": "c6 content = the present zikkui case (the pilot's secondwins); c7 content = the earlier 152a case (the pilot's prior). Both assignments match the pilot. The emendation should be stored as a proposed emendation, separate from source variants."
+  },
+  {
+   "finding_id": "F3",
+   "claim": "The earlier dispute that 152b:6-7 refers to (152a:1-3) does not set Rav's plain ruling against an opposite plain ruling by Shmuel. In the Wikisource/Davidson text, Rav's side is reported by 'בי רב' in Rav's name, and Shmuel's side is doubt: 'I do not know what I should rule'. Witnesses differ on the chain: Rif and the Shita Mekubetzet lemma quote Rav directly, and Rashbam's lemma has 'בי רב אמרי' without 'in Rav's name'.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S2",
+     "exact_quote": "איתמר מתנת שכיב מרע שכתוב בה קנין בי רב משמיה דרב אמרי ארכביה אתרי ריכשי ושמואל אמר לא ידענא מאי אדון בה"
+    },
+    {
+     "source_id": "S2",
+     "exact_quote": "In <b>the study hall of Rav they say in the name of Rav:</b>"
+    },
+    {
+     "source_id": "S16",
+     "exact_quote": "רב אומר ארכבה אתרי ריכשי"
+    },
+    {
+     "source_id": "S30",
+     "exact_quote": "איתמר מתנת שכיב מרע שכתוב בה קנין רב אמר ארכבה אתרי רכשי שמואל אמר לא ידענא מה אידון בה"
+    },
+    {
+     "source_id": "S8",
+     "exact_quote": "מתנת שכיב מרע שכתוב בה קנין בי רב אמרי ארכביה כו'"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "והא איפליגו בה חדא זימנא - לעיל במתנת שכיב מרע שכתוב בה קנין דרב אמר ארכבה אתרי ריכשי"
+    }
+   ],
+   "reasoning": "When 152b:6-7 says simply 'Rav' about the earlier case, it compresses a report that the Wikisource text gives through the school of Rav. The Rif and the Shita Mekubetzet are later works quoting the Gemara. Their wording is a different evidence type (a citation or lemma witness) from the Wikisource/Vilna printed text. Shmuel's stance there is uncertainty ('לא ידענא מאי אדון בה'), which his dispute with Rav in 152b:5 does not reproduce.",
+   "confidence": "high",
+   "graph_effect": "The pilot's prior statement should carry its transmission: בי רב → in the name of Rav (Wikisource), with separate variant branches (Rav directly; בי רב without 'in Rav's name'). Record Shmuel's view in the prior case as doubt, not as 'second acquires'. This recovers the earlier rule the pilot marked as missing.",
+   "translation (this dossier)": "It was said: a dying man's gift in which an act of acquisition is written. The school of Rav say in Rav's name: he mounted him on two steeds. And Shmuel said: I do not know how to rule on it."
+  },
+  {
+   "finding_id": "F4",
+   "claim": "Tosafot hold that the Shmuel half of the צריכא is not really needed, because Shmuel's two rulings do not run parallel and the objection targets Rav only. Rashba repeats the difficulty, calls Tosafot's answer strained, and leaves it open ('ועדיין צריכא עיון').",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S9",
+     "exact_quote": "ומיהו משמואל לא קשיא מידי"
+    },
+    {
+     "source_id": "S9",
+     "exact_quote": "למילתא דשמואל אין צריך כאן שום צריכותא"
+    },
+    {
+     "source_id": "S19",
+     "exact_quote": "ובתוספות דוחקין דאדרב בלחוד קא מקשה"
+    },
+    {
+     "source_id": "S19",
+     "exact_quote": "אבל קושטא דמלתא לשמואל הפוכין הן בדיניהן. ועדיין צריכא עיון."
+    }
+   ],
+   "reasoning": "The Gemara's balanced form (Rav half, Shmuel half) does not prove that Shmuel's positions in the two cases are parallel. Two major commentators question that half, and one leaves the question unresolved.",
+   "confidence": "medium",
+   "graph_effect": "Do not derive any Shmuel-Rav similarity or consistency edge from the Shmuel half of 152b:7. Save it as a rhetorical hypothetical whose necessity is disputed (Tosafot; Rashba unresolved).",
+   "translation (this dossier)": "Tosafot: 'But from Shmuel there is no difficulty at all' / 'for Shmuel's matter no necessity-argument is needed here'. Rashba: 'but in truth, for Shmuel his rulings are reversed; and it still needs study'."
+  },
+  {
+   "finding_id": "F5",
+   "claim": "The meaning of זיכה ('conferred') in the Rav-Shmuel case is disputed, and the commentators name different people for the explanations. Rashbam: he handed over the deed. Rabbeinu Yitzhak bar Meir (in Tosafot) objects. Tosafot: he conferred the property through another person, recorded in the deed. Ramban credits 'the Sages of Spain' with 'go, take hold of the property and acquire', while Rashba credits the same explanation to 'the Geonim'. Raavad (via Shita Mekubetzet): conferring the property itself. Rabbeinu Gershom: 'go and take possession before me'.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S7",
+     "exact_quote": "כתב וזיכה לזה - כתב כל נכסיו לראובן ומסר לו את השטר לראיית זכותו"
+    },
+    {
+     "source_id": "S9",
+     "exact_quote": "פירש רבינו שמואל זיכה שמסר לו את השטר וקשה לרבינו יצחק בר מאיר"
+    },
+    {
+     "source_id": "S9",
+     "exact_quote": "אלא זיכה היינו שזיכה בו את הנכסים וכתב לו בשטר שזיכה לו ע\"י אחר"
+    },
+    {
+     "source_id": "S18",
+     "exact_quote": "ורבני ספרד ז\"ל פירשו בדאמר ליה לך חזק בנכסים וקני"
+    },
+    {
+     "source_id": "S19",
+     "exact_quote": "והגאונים ז\"ל פרשו בדאמר ליה לך חזק בנכסים וקני"
+    },
+    {
+     "source_id": "S29",
+     "exact_quote": "פירוש זיכה הנכסים כמי זכו בשדה זו לפלוני"
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "כתב וזיכה לזה. שא\"ל לך וזכה בה לפני"
+    },
+    {
+     "source_id": "S34",
+     "exact_quote": "wrote [a deed of the gift] and handed"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "conferred possession</b> of the same property"
+    }
+   ],
+   "reasoning": "The legal mechanism does not change who holds which ruling. It does change what the pilot's statement labels say. The Soncino rendering 'handed' follows the Rashbam line; the Davidson 'conferred possession' leaves the mechanism general.",
+   "confidence": "high",
+   "graph_effect": "Keep firstwins/secondwins labelled as 'wrote and conferred (זיכה)' with the mechanism open. When commentators are cited as sources of a reading, keep Ramban's attribution ('Sages of Spain') and Rashba's ('Geonim') separate. Do not merge them."
+  },
+  {
+   "finding_id": "F6",
+   "claim": "In 152b:5 the reasons ('it is like a healthy person's gift' / 'like a dying man's gift') come in the Gemara's restatement of the two rulings. The Davidson edition and Steinsaltz present them as the Gemara's explanation. The text does not show whether Rav and Shmuel themselves stated these reasons.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "רב אמר ראשון קנה הרי היא כמתנת בריא ושמואל אמר שני קנה הרי היא כמתנת שכיב מרע"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "The Gemara explains: <b>Rav says</b>"
+    },
+    {
+     "source_id": "S11",
+     "exact_quote": "ומסבירים את טעמיהם"
+    }
+   ],
+   "reasoning": "The rulings ('first acquires' / 'second acquires') are attributed outright in 152b:4. Segment 5 repeats each ruling with a reason attached. That is a common way the Gemara explains a view, and it is ambiguous between quoting and explaining. The two editorial notes come from one editorial work.",
+   "confidence": "medium",
+   "graph_effect": "Split c3/c4 into (a) the ruling, attributed to Rav or Shmuel (explicit), and (b) the reason, attributed in the Gemara's explanation (voice uncertain)."
+  },
+  {
+   "finding_id": "F7",
+   "claim": "Rav Dimi explicitly said 'a later testament cancels an earlier testament' when he came. The text does not say where he came from or went to. It is the anonymous Gemara that identifies the 'wrote to this one and wrote to that one' case with his teaching. The same statement by Rav Dimi appears at Bava Batra 135b in another context. The Jerusalem Talmud has the same wording as a baraita in the name of Rabban Shimon ben Gamliel.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "פשיטא כתב לזה וכתב לזה היינו דכי אתא רב דימי אמר דייתיקי מבטלת דייתיקי"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "<b>As when Rav Dimi came</b> from Eretz Yisrael to Babylonia"
+    },
+    {
+     "source_id": "S11",
+     "exact_quote": "<b>רב דימי</b> מארץ ישראל לבבל"
+    },
+    {
+     "source_id": "S34",
+     "exact_quote": "R. Dimi enunciated when he came"
+    },
+    {
+     "source_id": "S32",
+     "exact_quote": "מאי תיבדק כי אתא רב דימי אמר דייתיקי מבטלת דייתיקי"
+    },
+    {
+     "source_id": "S33",
+     "exact_quote": "תני רבן שמעון בן גמלי' אומר דייתיקי מבטלת דייתיקי"
+    }
+   ],
+   "reasoning": "'From Eretz Yisrael to Babylonia' is an editorial supplement in the Davidson/Steinsaltz work. Soncino says only 'when he came'. At 135b the statement answers 'what is תיבדק' in Rabbi Yohanan's ruling. That context might suggest Rav Dimi was reporting a Palestinian tradition, but neither 135b nor 152b says he received it from anyone. The Jerusalem Talmud baraita comes from another corpus. It is a parallel attribution, not a variant of this Bavli sentence, and it does not show that Rav Dimi was quoting Rabban Shimon ben Gamliel.",
+   "confidence": "high",
+   "graph_effect": "Keep c1 (Rav Dimi says the dictum) and c2 (the arrival) as explicit, with no origin or destination. Add a separate claim that the anonymous Gemara applies the dictum to the 'wrote to this one, wrote to that one' case. Add no transmission edge from Rabbi Yohanan or Rabban Shimon ben Gamliel to Rav Dimi.",
+   "translation (this dossier)": "It is obvious: wrote to this one and wrote to that one - that is [the case of] what Rav Dimi said when he came: a testament cancels a testament."
+  },
+  {
+   "finding_id": "F8",
+   "claim": "Rav Yirmeya bar Abba is the named reporter ('אמר') of the Pumbedita version. The pilot uses him only as a claim 'voice' and records no speech or transmission claim with him as subject. Witnesses give his name differently: 'רב ירמיה בר אבא' (Wikisource), 'ר' ירמי' בר אבא' (Tosafot Rid lemma), 'א\"ר ירמיה בר אבא' (Rif), and 'רב ירמיה' without patronymic (Rosh as quoted in Shita Mekubetzet). On the next page (153a:8), Rav Nahman sends a case to 'ר' ירמיה בר אבא' in Shum Tamya.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "בפומבדיתא מתנו הכי אמר רב ירמיה בר אבא שלחו ליה מבי רב לשמואל"
+    },
+    {
+     "source_id": "S14",
+     "exact_quote": "אמר ר' ירמי' בר אבא שלחו מבי רב לשמואל"
+    },
+    {
+     "source_id": "S16",
+     "exact_quote": "א\"ר ירמיה בר אבא שלחו ליה מבי רב לשמואל"
+    },
+    {
+     "source_id": "S29",
+     "exact_quote": "מדאמר רב ירמיה בסמוך שלחו מבי רב לשמואל"
+    },
+    {
+     "source_id": "S3",
+     "exact_quote": "שדריה לקמיה דר' ירמיה בר אבא לשום טמיא"
+    },
+    {
+     "source_id": "S3",
+     "exact_quote": "אמר הכא אתרא דשמואל היכי נעביד כוותיה דרב"
+    }
+   ],
+   "reasoning": "The reporter is explicit. 'בר אבא' gives a father named Abba, so the pilot's child_of claim (c8) and the parent placeholder stay, under the project rule. The man at 153a:8 has the same name and is placed in the same sugya. Rav Nahman sends him a case so that a ruling following Rav can be given there, which fits someone tied to Rav's rulings. But a shared name does not establish identity, and 153a:8 does not state any teacher-student link.",
+   "confidence": "high",
+   "graph_effect": "Add a claim: Rav Yirmeya bar Abba says / reports the correspondence (speech/transmission family, branch pumb_report). Keep c8 child_of Abba, with Abba as a local placeholder. Add the 153a:8 person as a coreference candidate only, not a merge. Record the title and patronymic variants as name-form evidence.",
+   "translation (this dossier)": "In Pumbedita they taught it thus: Rav Yirmeya bar Abba said: they sent to Shmuel from the house of Rav ..."
+  },
+  {
+   "finding_id": "F9",
+   "claim": "'Rav Yirmeya bar Abba said: they sent to Shmuel from the house of Rav, let our teacher teach us' is a recurring formula. The same opening appears at Gittin 66b, Gittin 89b and Shevuot 46a. At Sanhedrin 24b the same Sura/Pumbedita layout gives a different reporter (Rav Hanina bar Shelemya) and the same answer formula 'אין לאחר קניין כלום'.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S21",
+     "exact_quote": "אמר רב ירמיה בר אבא שלחו ליה מבי רב לשמואל ילמדנו רבינו יצא עליה קול מראשון"
+    },
+    {
+     "source_id": "S21",
+     "exact_quote": "א\"ר ירמיה בר אבא שלחו ליה מבי רב לשמואל ילמדנו רבינו אמר לשנים כתבו ותנו גט לאשתי"
+    },
+    {
+     "source_id": "S21",
+     "exact_quote": "א\"ר ירמיה בר אבא שלחו ליה מבי רב לשמואל ילמדנו רבינו אומן אומר"
+    },
+    {
+     "source_id": "S24",
+     "exact_quote": "בסורא מתני הכי בפומבדיתא מתני הכי א\"ר חנינא בר שלמיה שלחו ליה מבי רב לשמואל ילמדנו רבינו לפני גמר דין וקנו מידו מאי שלח להו אין לאחר קניין כלום"
+    }
+   ],
+   "reasoning": "The Gittin and Shevuot hits come from the Sefaria search-index snapshot (S21). Their full pages were not fetched for this case. The Sanhedrin page was fetched (S24). A repeated formula is a literary pattern of transmission. It is not evidence that these questions formed one historical exchange, and the same answer wording in two tractates does not make two passages one event.",
+   "confidence": "high",
+   "graph_effect": "Do not merge the Bava Batra and Sanhedrin correspondences, or their reporters, into one event. Rav Yirmeya bar Abba's link to this sending formula recurs across tractates, which is useful for later identity work only as a pattern. It is not an identity or relationship proof."
+  },
+  {
+   "finding_id": "F10",
+   "claim": "'מבי רב' is a group whose name contains Rav ('the house of Rav'). Translators render it 'the academy' (Soncino), 'the study hall of Rav' (Davidson), or 'Rav's study house' (Steinsaltz). Davidson and Steinsaltz add 'after the death of Rav', and Soncino adds a bracketed alternative 'after Rab's death in 247'. The Hebrew text says nothing about Rav's death, and none of the traditional commentaries checked here says so at this place.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "שלחו ליה מבי רב לשמואל ילמדנו רבינו"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "After the death of Rav, the following question <b>was sent from the study hall of Rav to Shmuel:"
+    },
+    {
+     "source_id": "S11",
+     "exact_quote": "לאחר מותו של רב"
+    },
+    {
+     "source_id": "S34",
+     "exact_quote": "was sent from the academy"
+    },
+    {
+     "source_id": "S34",
+     "exact_quote": "[Or, 'from the school of Rab', after Rab's death in 247.]"
+    }
+   ],
+   "reasoning": "The 'after Rav's death' reading, and its date, are historical inference from translators and editors. Davidson and Steinsaltz are one editorial work. Soncino marks the idea as an alternative in brackets. The commentaries checked on this line were Rashbam, Tosafot, Rabbeinu Gershom, Yad Ramah, Ri Migash, Tosafot Rid, Ramban, Rashba and Shita Mekubetzet. None states it here. That finding covers only those files. 'רבינו' ('our teacher') is how the senders address Shmuel. On its own it does not establish a student relationship.",
+   "confidence": "high",
+   "graph_effect": "Add the group→Rav link as a name-embedded affiliation (literal 'house of Rav'; academy vs household vs disciples left open). Add no student_of edge from the senders to Shmuel or Rav, no time scope 'after Rav's death', and no date."
+  },
+  {
+   "finding_id": "F11",
+   "claim": "Tosafot report Rabbeinu Tam's view, which Rashi shares, that 'אמרי בי רב' means Rav Huna unless Rav Hamnuna is evident. This concerns the phrase 'בי רב ... אמרי' (as at 152a:1). It is not about the senders 'שלחו ליה מבי רב' at 152b:8.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S9",
+     "exact_quote": "ועוד דאמרי בי רב הכא ואמרי בי רב היינו רב הונא כמו שמפרש ר\"ת"
+    },
+    {
+     "source_id": "S9",
+     "exact_quote": "וגם רש\"י סובר כן דהיינו רב הונא היכא דלא מוכח שהוא רב המנונא"
+    }
+   ],
+   "reasoning": "This is an interpretive convention reported by one school of commentators, used here in an argument about the halakhah. It is not an explicit statement in the Gemara.",
+   "confidence": "medium",
+   "graph_effect": "Record it as a commentary-sourced identity candidate (בי רב at 152a:1 → Rav Huna), kept separate from text evidence and not applied to the 152b:8 senders."
+  },
+  {
+   "finding_id": "F12",
+   "claim": "How far back does 'בסורא מתנו הכי' ('in Sura they taught thus') reach? Rashbam reports that some explain it as reaching the first dispute (152a). He rejects that view and says, with Rabbeinu Chananel, that it refers to the immediately preceding Rav-Shmuel dispute about 'wrote and conferred'. Tosafot Rid reads the Sura and Pumbedita versions as disagreeing. Rabbeinu Gershom glosses only 'as said above'.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S7",
+     "exact_quote": "בסורא מתנו הכי - אית דמפרשי אדלעיל קאי אפלוגתא קמייתא דמתנת שכיב מרע שכתוב בה קנין"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "אלא אהך דסליק מיניה קאי דפליגי רב ושמואל בכתב וזיכה לזה וכתב וזיכה לזה וכן פר\"ח"
+    },
+    {
+     "source_id": "S14",
+     "exact_quote": "משמע דפליגי סוריא ופומבדיתא"
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "בסורא מתנו הכי כדאמר לעיל"
+    },
+    {
+     "source_id": "S34",
+     "exact_quote": "At Sura they taught as above"
+    }
+   ],
+   "reasoning": "The pilot rightly left the backward reach uncertain. The commentaries give it two named options: 'some explain' (152a) versus Rashbam and Rabbeinu Chananel (152b:4-7). Rav Dimi's line is not in dispute either way.",
+   "confidence": "high",
+   "graph_effect": "The sura_report branch covers at least the 'wrote and conferred' dispute and its צריכא (152b:4 second half through 152b:7). Keep an alternative in which it also covers the 152a dispute. Rav Dimi stays shared."
+  },
+  {
+   "finding_id": "F13",
+   "claim": "The witnesses word the Pumbedita question differently. Wikisource: a dying man wrote all his property to others and they performed an act of acquisition with him. Rif: he wrote and conferred, and they performed an act of acquisition, with a footnote giving the Gemara's other wording. Tosafot Rid: 'some books' read 'and conferred on the first and they performed an act of acquisition'. Rashbam's paraphrase, following Rabbeinu Chananel, is 'wrote and conferred on the first'. Rabbeinu Gershom: an act of acquisition without writing, then given to another. The answer also varies: 'אין אחר קנין' (Wikisource) versus 'אין לאחר קנין' (Rif, Rambam).",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "ילמדנו רבינו שכיב מרע שכתב כל נכסיו לאחרים וקנו מידו מהו שלח להו אין אחר קנין כלום"
+    },
+    {
+     "source_id": "S16",
+     "exact_quote": "וזיכה וקנו מידו מהו שלח להו אין לאחר קנין כלום"
+    },
+    {
+     "source_id": "S16",
+     "exact_quote": "בגמ' איתא ש\"מ שכתב כל נכסיו לאחרים וקנו מידו מהו כו' (ג\"א)"
+    },
+    {
+     "source_id": "S14",
+     "exact_quote": "יש ספרים שכתב בהן וזיכה לראשון וקנו מידו דאיכא תרתי זיכוי וקנין"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "בפומבדיתא מתנו שלחו מבי רב לשמואל ילמדנו רבינו כתב וזיכה לראשון וקנו מידו מאי"
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "קנו מידו בלא כתיבה וחזר ונתנו לאחר מהו"
+    },
+    {
+     "source_id": "S17",
+     "exact_quote": "אֲבָל שְׁכִיב מֵרַע שֶׁכָּתַב וְזִכָּה וְקָנוּ מִיָּדוֹ אֵין לְאַחַר קִנְיָן כְּלוּם"
+    },
+    {
+     "source_id": "S34",
+     "exact_quote": "[but was not entered in the deed]"
+    }
+   ],
+   "reasoning": "These are different evidence types. The Wikisource line is a printed text. The Rif line is a medieval digest's text with a later printed note. 'יש ספרים' in Tosafot Rid reports manuscripts he saw. Rashbam and Rabbeinu Gershom paraphrase. Rambam codifies. Soncino's bracket follows Rabbeinu Gershom. None of these changes who asks or answers. They change what Shmuel is said to rule on in the Pumbedita branch.",
+   "confidence": "high",
+   "graph_effect": "The pilot's question statement should record the Wikisource wording as the text and link the other wordings as variant or interpretive branches of the question's content. The sender (בי רב), addressee (Shmuel) and reporter (Rav Yirmeya bar Abba) stay the same across them."
+  },
+  {
+   "finding_id": "F14",
+   "claim": "Under the readings checked, Shmuel's Pumbedita answer means the gift cannot be withdrawn once the act of acquisition is done: the first recipient keeps it. That outcome matches Rav's 'first acquires' in the Sura version, but it may concern a different set of facts (with an act of acquisition, or with conferring plus acquisition).",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S10",
+     "exact_quote": "וראשון קנה שני לא קנה"
+    },
+    {
+     "source_id": "S34",
+     "exact_quote": "the first donee acquires the legal ownership of the gift"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "קנה ואין יכול לחזור במתנתו וכ\"ש להקנותו לאחר"
+    },
+    {
+     "source_id": "S9",
+     "exact_quote": "שלח ליה אין אחר הקנין כלום ואין יכול לחזור בו"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "רב אמר ראשון קנה"
+    }
+   ],
+   "reasoning": "A shared outcome is not stated agreement. The text never says Shmuel agreed with Rav or changed his mind. It gives two school versions.",
+   "confidence": "medium",
+   "graph_effect": "Keep Shmuel's Sura-branch view (second acquires) and his Pumbedita-branch answer (nothing after acquisition) as separately branched claims. Add no 'Shmuel agrees with Rav' or 'Shmuel retracted' edge."
+  },
+  {
+   "finding_id": "F15",
+   "claim": "The Pumbedita report continues onto 153a:1. Unnamed people 'understood from it' that the rule applies only to giving to another. Rav Hisda said to them that when Rav Huna came from Kufri he explained it applies both to oneself and to others. The pilot job ends at 152b:8, so it lacks these people. Davidson identifies the unnamed group as 'Rav's disciples', which the Hebrew does not say. A later quotation (Bach) reads 'מבי כופר' for 'מכופרי'.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S3",
+     "exact_quote": "סבור מיניה הני מילי לאחר אבל לעצמו לא אמר להו רב חסדא כי אתא רב הונא מכופרי פירשה בין לעצמו בין לאחרים"
+    },
+    {
+     "source_id": "S3",
+     "exact_quote": "Rav’s disciples <b>understood from this</b>"
+    },
+    {
+     "source_id": "S31",
+     "exact_quote": "סבור מיניה הני מילי - דאין לאחר קנין כלום"
+    },
+    {
+     "source_id": "S13",
+     "exact_quote": "אמר להו רב חסדא כי אתא רב הונא פירש' בין לעצמו בין לאחר"
+    },
+    {
+     "source_id": "S21",
+     "exact_quote": "כי אתא רב הונא מבי כופר"
+    }
+   ],
+   "reasoning": "Rashbam's lemma ties 'סבור מיניה' to Shmuel's answer 'אין לאחר קנין כלום', which exists only in the Pumbedita version. So this continuation depends on the Pumbedita branch. That dependency is an interpretation, but a well-grounded one. The subject of סבור מיניה is unnamed. Treating it as the בי רב senders is an editorial inference.",
+   "confidence": "medium",
+   "graph_effect": "Add, scoped to pumb_report: Rav Hisda speaks to an unnamed group (explicit). Rav Hisda reports that Rav Huna, arriving from Kufri, explained Shmuel's ruling (explicit report). Record the unnamed group as an unresolved coreference candidate with בי רב, not a merge.",
+   "translation (this dossier)": "They understood from it: this applies [only] to another, but not to himself. Rav Hisda said to them: when Rav Huna came from Kufri he explained it: both to himself and to others."
+  },
+  {
+   "finding_id": "F16",
+   "claim": "The Gemara itself links the disputants of 152a and 152b ('they already disagreed about this once'). That is textual support for treating 'Rav' and 'Shmuel' as the same local persons across this sugya. The earlier contradiction at 152a:4 also names Rav's other statement through a sending chain: Ravin, in the name of Rabbi Abbahu, reports that Rabbi Elazar sent a ruling 'in the name of our teacher'. The Gemara counts that ruling as Rav's ('דרב אדרב').",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "והא אפליגו בה חדא זימנא במתנת שכיב מרע שכתוב בה קנין"
+    },
+    {
+     "source_id": "S2",
+     "exact_quote": "ורמי דרב אדרב ודשמואל אדשמואל דשלח רבין משמיה דרבי אבהו הוו ידעי ששלח ר' אלעזר לגולה משום רבינו"
+    },
+    {
+     "source_id": "S2",
+     "exact_quote": "<b>in the name of our teacher,</b> Rav"
+    }
+   ],
+   "reasoning": "The link inside the sugya is the Gemara's own claim. It supports local coreference only, not a historical biography. The 152a:4 chain lies outside the pilot window. The identification of 'רבינו' as Rav rests on the Gemara's framing ('דרב אדרב') and on the Davidson gloss.",
+   "confidence": "high",
+   "graph_effect": "Local coreference of Rav and Shmuel between 152a and 152b is supported by the text. Chains from wider context (Ravin ← Rabbi Abbahu ← Rabbi Elazar ← 'our teacher' = Rav) belong to 152a's job, marked as context and not added to this passage's claims."
+  },
+  {
+   "finding_id": "F17",
+   "claim": "Context persons just before the pilot window, 152b:1-3 (with 152a:7): Rav Nahman bar Yitzhak questions Rava. Rava answers ('where he enhances his power'). Rav Hisda defines the formula. Rav Yehuda reports Shmuel's ruling. The one who gestured ('ואחוי ליה בידיה') is unnamed in 152b:1. The Davidson edition supplies Rav Nahman.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "כי קם אמר רב נחמן בר יצחק לרבא מאי אחוי לך אמר ליה במיפה את כחו"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "היכי דמי מיפה את כחו אמר רב חסדא וקנינא מיניה מוסיף על מתנתא דא"
+    },
+    {
+     "source_id": "S2",
+     "exact_quote": "יתיב רב נחמן בר יצחק אחוריה דרבא ויתיב רבא קמיה דרב נחמן קא בעי מיניה"
+    },
+    {
+     "source_id": "S2",
+     "exact_quote": "והא אמר רב יהודה אמר שמואל שכיב מרע שכתב כל נכסיו לאחרים אף על פי שקנו מידו עמד חוזר"
+    }
+   ],
+   "reasoning": "These people lie outside the pilot's five segments. Recording them here keeps the next reader from treating their absence from the window as absence from the passage. Identifying the gesturer comes from 152a:7 ('רבא קמיה דרב נחמן'), which is local coreference.",
+   "confidence": "high",
+   "graph_effect": "No change to this job's claims. Flag these people for the neighbouring job (152a:7-152b:3), so that they are not lost."
+  }
+ ],
+ "alternative_readings": [
+  {
+   "id": "A1",
+   "question": "How far back does 'בסורא מתנו הכי' reach?",
+   "readings": [
+    {
+     "reading": "Only the immediately preceding Rav-Shmuel dispute about 'wrote and conferred' (and its צריכא)",
+     "held_by": "Rashbam; Rabbeinu Chananel as cited by Rashbam"
+    },
+    {
+     "reading": "Back to the first dispute (gift with an act of acquisition, 152a)",
+     "held_by": "'some explain' (אית דמפרשי), as reported and rejected by Rashbam"
+    }
+   ],
+   "evidence": [
+    {
+     "source_id": "S7",
+     "exact_quote": "אית דמפרשי אדלעיל קאי"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "וכן פר\"ח"
+    }
+   ],
+   "status": "open; Rashbam's reading is better supported in the works checked"
+  },
+  {
+   "id": "A2",
+   "question": "Do the Sura and Pumbedita versions disagree, or can both be used?",
+   "readings": [
+    {
+     "reading": "They disagree (two versions of the same material)",
+     "held_by": "Tosafot Rid"
+    },
+    {
+     "reading": "Both rulings are used side by side: zikkui alone follows Shmuel (last acquires), zikkui plus act of acquisition cannot be withdrawn",
+     "held_by": "Rif and Rambam (as codified; this is how the dossier reads their codification, not their stated view on the Sura/Pumbedita question)"
+    },
+    {
+     "reading": "The question from בי רב presupposes Shmuel's known ruling that the second acquires, and asks about adding an act of acquisition",
+     "held_by": "Yad Ramah (as this dossier reads him)"
+    }
+   ],
+   "evidence": [
+    {
+     "source_id": "S14",
+     "exact_quote": "משמע דפליגי סוריא ופומבדיתא"
+    },
+    {
+     "source_id": "S16",
+     "exact_quote": "והלכתא כשמואל בסורא מתנו הכי"
+    },
+    {
+     "source_id": "S12",
+     "exact_quote": "שמעינן ליה לשמואל דקאמר שני קני, ועלה הוא דשלחו ליה מבי רב לשמואל"
+    }
+   ],
+   "status": "open; historical_compatibility unknown"
+  },
+  {
+   "id": "A3",
+   "question": "What case is the Pumbedita question about?",
+   "readings": [
+    {
+     "reading": "All property written to others, with an act of acquisition",
+     "held_by": "Wikisource/Vilna printed text"
+    },
+    {
+     "reading": "Wrote and conferred, with an act of acquisition",
+     "held_by": "Rif text; Tosafot Rid's 'some books'; Rashbam's paraphrase; Rambam"
+    },
+    {
+     "reading": "Act of acquisition without writing, then given to another",
+     "held_by": "Rabbeinu Gershom; Soncino note following him"
+    }
+   ],
+   "evidence": [
+    {
+     "source_id": "S14",
+     "exact_quote": "יש ספרים שכתב בהן וזיכה לראשון וקנו מידו"
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "קנו מידו בלא כתיבה וחזר ונתנו לאחר מהו"
+    }
+   ],
+   "status": "open"
+  },
+  {
+   "id": "A4",
+   "question": "What does זיכה mean?",
+   "readings": [
+    {
+     "reading": "Handed over the deed",
+     "held_by": "Rashbam; Soncino translation"
+    },
+    {
+     "reading": "Conferred the property through another, written into the deed",
+     "held_by": "Tosafot (after Rabbeinu Yitzhak bar Meir's objection)"
+    },
+    {
+     "reading": "'Go, take hold of the property and acquire'",
+     "held_by": "'Sages of Spain' per Ramban; 'Geonim' per Rashba"
+    },
+    {
+     "reading": "Conferred the property (זכו בשדה זו לפלוני)",
+     "held_by": "Raavad, via Shita Mekubetzet"
+    },
+    {
+     "reading": "'Go and take possession before me'",
+     "held_by": "Rabbeinu Gershom"
+    }
+   ],
+   "evidence": [
+    {
+     "source_id": "S18",
+     "exact_quote": "ורבני ספרד ז\"ל פירשו"
+    },
+    {
+     "source_id": "S19",
+     "exact_quote": "והגאונים ז\"ל פרשו"
+    }
+   ],
+   "status": "open; does not affect who holds which view"
+  },
+  {
+   "id": "A5",
+   "question": "Who is the unnamed subject of 'סבור מיניה' (153a:1)?",
+   "readings": [
+    {
+     "reading": "Unnamed",
+     "held_by": "Hebrew text"
+    },
+    {
+     "reading": "Rav's disciples",
+     "held_by": "William Davidson English (editorial)"
+    }
+   ],
+   "evidence": [
+    {
+     "source_id": "S3",
+     "exact_quote": "Rav’s disciples <b>understood from this</b>"
+    }
+   ],
+   "status": "open"
+  },
+  {
+   "id": "A6",
+   "question": "Who is the transmitter of Rav's view in the earlier (152a) dispute?",
+   "readings": [
+    {
+     "reading": "בי רב in the name of Rav",
+     "held_by": "Wikisource / Davidson text"
+    },
+    {
+     "reading": "Rav directly",
+     "held_by": "Rif; Shita Mekubetzet lemma"
+    },
+    {
+     "reading": "בי רב (no 'in Rav's name' in the lemma)",
+     "held_by": "Rashbam lemma"
+    }
+   ],
+   "evidence": [
+    {
+     "source_id": "S16",
+     "exact_quote": "רב אומר ארכבה אתרי ריכשי"
+    },
+    {
+     "source_id": "S8",
+     "exact_quote": "בי רב אמרי ארכביה"
+    }
+   ],
+   "status": "open; variant witnesses, no manuscripts checked"
+  }
+ ],
+ "unresolved": [
+  "No manuscripts were checked (for example Hamburg, Florence, Vatican, Escorial). The variant evidence here rests on printed texts and on commentators' lemmas, citations and 'some books' reports.",
+  "The Chiddushei Ritva request for 152b returned HTTP 404 from Sefaria under the title tried. This says nothing about whether the Ritva comments here.",
+  "Whether 'בי רב' at 152b:8 means Rav's academy, household or disciples, and whether Rav was alive at the time of sending, is not decided by the text or by the traditional commentaries checked.",
+  "Whether the Rav Yirmeya bar Abba of 152b:8 is the person at 153a:8 (Shum Tamya) and in the other 'שלחו ליה מבי רב לשמואל' reports. There is name and formula evidence only.",
+  "Whether Rav Dimi's dictum was his own teaching or one he carried from others (compare the Jerusalem Talmud baraita of Rabban Shimon ben Gamliel, and the Rabbi Yohanan context at 135b).",
+  "Whether the reasons in 152b:5 are Rav's and Shmuel's words or the Gemara's explanation.",
+  "Whether the Sura and Pumbedita versions are incompatible or can both stand (A2).",
+  "Soncino's date 'after Rab's death in 247' was not checked and should not enter the graph from this passage.",
+  "The Gittin 66b, Gittin 89b and Shevuot 46a parallels were read only as search-index snippets (S21), not as full fetched pages."
+ ],
+ "proposed_corrections": [
+  {
+   "existing_claim_id": "c6",
+   "change": "Set voice to the anonymous Gemara (hypothetical reasoning). Predicate 'concedes_to' (hypothetical) fits better than 'rules_like'. Keep modality hypothetical and discourse_status rejected. Content = the present zikkui case.",
+   "why": "F1, F2"
+  },
+  {
+   "existing_claim_id": "c7",
+   "change": "Same voice change as c6. Link the 'prior' content to 152a:1-3, where Shmuel's recorded stance is doubt ('לא ידענא מאי אדון בה'). Add a note that Tosafot deny this half is needed and Rashba leaves it unresolved.",
+   "why": "F1, F3, F4"
+  },
+  {
+   "existing_claim_id": "c5",
+   "change": "Mark it as a derived display of the one Rav-Shmuel dispute in c3/c4, not an independent observation. Store the dispute once as a symmetric relation.",
+   "why": "The inverse display of a relation is not a second observation (project rule)."
+  },
+  {
+   "existing_claim_id": "c3, c4",
+   "change": "Split the ruling (explicit attribution) from the reason 'הרי היא כמתנת בריא / שכיב מרע' (the Gemara's explanation; voice uncertain). Leave the mechanism of זיכה open in the statement labels.",
+   "why": "F5, F6"
+  },
+  {
+   "existing_claim_id": "new",
+   "change": "Add a speech/transmission claim: Rav Yirmeya bar Abba says (reports) the correspondence from בי רב to Shmuel (branch pumb_report). Record the name-form variants (רב / ר' / no patronymic).",
+   "why": "F8: the reporter is explicit but the pilot only used him as a voice."
+  },
+  {
+   "existing_claim_id": "new",
+   "change": "Add a name-embedded affiliation, group 'בי רב' → Rav (literal 'house of Rav'). Add no student_of edge and no 'after Rav's death' time scope.",
+   "why": "F10; the relation embedded in a name is evidence (project rule), but the translators' death note is historical inference."
+  },
+  {
+   "existing_claim_id": "prior (entity)",
+   "change": "Add the transmission chain of the earlier dispute: בי רב in the name of Rav (Wikisource), with variant branches (Rav directly: Rif / Shita lemma; בי רב without 'in the name of Rav': Rashbam lemma).",
+   "why": "F3, A6"
+  },
+  {
+   "existing_claim_id": "c1 / new",
+   "change": "Keep c1. Add a separate claim that the anonymous Gemara identifies the 'wrote to this one and wrote to that one' case with Rav Dimi's dictum. Remove any implied origin/destination from c2 (none is in the text).",
+   "why": "F7"
+  },
+  {
+   "existing_claim_id": "reading_groups.schools",
+   "change": "sura_report covers at least 152b:4 (second half) to 152b:7, with alternative A1 extending it to 152a. pumb_report should extend to 153a:1 (Rav Hisda, Rav Huna, unnamed group), which interprets Shmuel's Pumbedita answer. historical_compatibility stays unknown (A2).",
+   "why": "F12, F15, A2"
+  },
+  {
+   "existing_claim_id": "question (entity)",
+   "change": "Keep the Wikisource wording. Attach variant/interpretive branches for the question's content (A3) and the answer's 'אחר' / 'לאחר' wording.",
+   "why": "F13"
+  },
+  {
+   "existing_claim_id": "sura, pumb (entities)",
+   "change": "Label them as places where versions were taught (loci of transmission). Do not locate Rav, Shmuel, Rav Yirmeya bar Abba or בי רב in Sura or Pumbedita on this evidence.",
+   "why": "The text says only where each version was taught."
+  },
+  {
+   "existing_claim_id": "new (wider context)",
+   "change": "Add Rav Hisda, Rav Huna (from Kufri) and the unnamed group of 153a:1 in the continuation, scoped to pumb_report. Flag the 152b:1-3 people (Rav Nahman, Rava, Rav Nahman bar Yitzhak, Rav Hisda, Rav Yehuda) for the neighbouring job.",
+   "why": "F15, F17"
+  },
+  {
+   "existing_claim_id": "episode.needed_context",
+   "change": "The earlier rule is recovered (152a:1-3). Coverage for this question can move from needs_context to researched.",
+   "why": "F3"
+  },
+  {
+   "existing_claim_id": "previous review",
+   "change": "The review passed every check. It should have flagged the missing speech claim for Rav Yirmeya bar Abba, the Gemara voice of the צריכא hypotheticals, the בי רב→Rav affiliation, the transmission chain in the prior dispute, and the continuation at 153a:1.",
+   "why": "F1, F3, F8, F10, F15"
+  }
+ ],
+ "ontology_lessons": [
+  "'בסורא מתנו הכי / בפומבדיתא מתנו הכי' introduces school-version alternatives. The places are where a version was taught, not where the people in it lived.",
+  "Formulas recur ('אמר רב ירמיה בר אבא שלחו ליה מבי רב לשמואל ילמדנו רבינו', 'אין לאחר קנין כלום'). The same formula in different tractates is a literary pattern, not one event and not evidence for identity.",
+  "The hypotheticals in a צריכא ('אימא מודה ליה') are the anonymous Gemara's rejected suppositions. They need a voice field distinct from the named sages and must never become agreement edges.",
+  "A group label that embeds a person ('בי רב') carries a name-based affiliation. Student relations and timing (such as 'after Rav's death') are not derivable from the label.",
+  "When a later line refers back to an earlier dispute with a bare name ('Rav'), keep the earlier transmission chain ('בי רב משמיה דרב') on the referenced statement.",
+  "Keep evidence types distinct: printed text; a commentator's lemma or citation; 'some books' reports; later 'צ\"ל' emendation proposals; translators' glosses. The Davidson English and Steinsaltz Hebrew are one editorial work.",
+  "A reporter named with 'אמר' needs his own speech/transmission claim. Using him only as the 'voice' of the reported claims loses the speech turn.",
+  "Balanced rhetorical structure (a Rav half and a Shmuel half) is not evidence that both sages' positions are parallel. Commentators can dispute one half."
+ ]
+}

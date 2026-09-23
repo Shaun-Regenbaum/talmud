@@ -1,0 +1,41 @@
+{
+ "job_id": "random-yerushalmi-01",
+ "authority": "automated_review",
+ "status": "changes_required",
+ "dossier_sha256": "cdba032f5d0fe41096aea62117d763e4d1676a80c69856bd7ca7bf3ae88cf2fa",
+ "historical_graph_eligible": false,
+ "scope": "Separate check of selected graph implications and the full saved translation notes for the disputed attribution. Not human adjudication.",
+ "findings": [
+  {
+   "target": "F3/F6; PC1-PC2",
+   "decision": "preserve_both_source_readings",
+   "reason": "The printed phrase supports a sibling relation as one textual branch. Commentators and parallels support a nephew relation as another branch. Prefer the nephew interpretation if warranted, but do not mark the sibling evidence rejected merely because an emendation is persuasive. Keep its exact wording and source. Any identification of the two Hoshaya mentions remains conditional on a branch."
+  },
+  {
+   "target": "F6 statement that both relations cannot describe one person",
+   "decision": "qualify",
+   "reason": "The readings conflict under the straightforward family reconstruction. That is a reason to investigate the text, not a general graph axiom ruling out all overlapping kinship structures. Do not use the wording as an automatic constraint that deletes candidate relations."
+  },
+  {
+   "target": "F19; PC5",
+   "decision": "support_reopening_earlier_review",
+   "reason": "The full saved Guggenheimer notes were checked. Note 107 connects the dew explanation to Mishnah 2. Note 110 explicitly assigns first to Mishnah 3 and second to Mishnah 2. This supports the proposed attribution correction within that interpretation, while the alternative emendation and printed wording must remain separately recorded. The earlier review pass does not settle the question."
+  },
+  {
+   "target": "F11; PC3",
+   "decision": "support_retaining_three_branches",
+   "reason": "The reading heard from is only one of three documented analyses of the verb. Keep the listening, pressing and self-clarification alternatives with their attributed sources. Do not produce one unconditional person-to-person transmission edge."
+  },
+  {
+   "target": "F7/F18 historical identifications",
+   "decision": "keep_as_external_context",
+   "reason": "Generation labels and identification as Hoshaya the second are commentary or scholarly claims. They may inform a future identity pack but are not direct dates or identities supplied by this passage."
+  }
+ ],
+ "dossier_revisions": [
+  {
+   "previous_dossier_sha256": "1198e653a8dfec9937a73b6f1cb1e624b1c917d1a9f8b64f14476c2095a74e58",
+   "change": "Mechanical source-path correction only; see mechanical-corrections.json. The review decisions were made on the previous bytes and still apply because no claim, quotation or source changed."
+  }
+ ]
+}

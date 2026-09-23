@@ -1,0 +1,546 @@
+{
+  "schema": "sage-network-ontology-review-v1",
+  "status": "provisional",
+  "historical_graph_eligible": false,
+  "written": "2026-09-22",
+  "authority": "automated_synthesis",
+  "scope": "Review of the eleven completed follow-up cases (dossier, reading, separate review, previous review, mechanical corrections) against the existing ontology and the frozen pilot contract. Selected saved source files were re-read to check quotations that conclusions depend on. No new public sources were fetched. No case, pilot, ontology or production file was edited. Nothing here approves a historical person merge, identity, date or graph edge.",
+  "ref_format": "case:file:item. Example: challenge-09:review:findings[0] or random-yerushalmi-01:dossier:F6. Pilot claim IDs are written case:pilot:c4.",
+  "inputs": [
+    {"path": "research/sage-network/plan/relationship-ontology.md", "sha256": "8a6c5eba3cc3535749317e5f69c9335fd6aa123bb5b24312c856c4cdb8a0d441"},
+    {"path": "research/sage-network/pilot/README.md", "sha256": "8642c33ab98942ce2d7a03bd9658483951e7086ac6715b4799dc92512cef1352"},
+    {"path": "research/sage-network/pilot/reader.md", "sha256": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5"},
+    {"path": "research/sage-network/pilot/reviewer.md", "sha256": "8d864dc6e548b5ca141abf2b31c219d4a49ef617a11a2a8e6a36bc85e1368194"},
+    {"path": "research/sage-network/pilot/schema.json", "sha256": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871"},
+    {"path": "research/sage-network/pilot/contract.py", "sha256": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f"},
+    {"path": "research/sage-network/pilot/outputs/challenge-09.json", "sha256": "ca3de04aa9865c9684708c7b6cb5b2b98a88a1d9e413e5aaab2d830a8e161324"},
+    {"path": "research/sage-network/pilot/outputs/random-yerushalmi-01.json", "sha256": "3614563007a6ab15c7868126336f2d3e99da86c9466b651a5a7bcc05c1e26bd7"},
+    {"path": "research/sage-network/pilot/outputs/random-yerushalmi-02.json", "sha256": "ee565408f15f69ecc0897243be39a754d99727ae1ff5649377291e1e1f800ef9"},
+    {"path": "research/sage-network/pilot/outputs/challenge-30.json", "sha256": "5d4925189478432a19ca92700a693171ccb42fb3183e1622cf2f3ce295a47b57"},
+    {"path": "research/sage-network/followup-v1/README.md", "sha256": "b14e82ce67d9d321055aa3f12720a43cbd5a6c36576a9582e4b766f2cd8948d1"},
+    {"path": "research/sage-network/followup-v1/queue.json", "sha256": "71a10508922d23cf69d22f16d3d2a18bf6b078b120fba41e6469c711b5a159f6"},
+    {"path": "research/sage-network/followup-v1/validation.json", "sha256": "94107c3222c67869072cd1e980926d7da54b8c527c65389afaeae1ddb3d129fb"},
+    {"path": "research/sage-network/followup-v1/case-counts.csv", "sha256": "c64e2b91bf3cc106e250c5f8db22c2fec560c459f76d7a21f5433548c075b81f"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-09/completion.json", "sha256": "71ae12c87b537447d66cddfc7255076e305c82e2f45a31944e9e934319e0ceb2"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-09/dossier.json", "sha256": "4271ed5b381b49d5b757378a50f641c0e46505eca128b4cf8211928a6caf5a44"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-09/reading.md", "sha256": "ac027cab625de16a3180d8aabaff0e7e198052a451c036f3c06cb98783714d96"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-09/review.json", "sha256": "14b7945744f9e2478ebf0ae214e547ae3226e78adf6a553b6e2720b1073f373d"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-09/review.md", "sha256": "1f766521dd2d46a3d4e843fb8a956e12967be55c51ea9a4efd1bc65fe1021068"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-11/completion.json", "sha256": "76dde871d21799261f4ff33c10ca2fd89772e0bb0a037b21cca0d56897e70b76"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-11/dossier.json", "sha256": "34da1eee200a27acbbdbcd5c28f9ea97768fdeb4db9f0ca1f7d7ab97a1e01edf"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-11/reading.md", "sha256": "020b184f94244586688b7ad19ad955f10c386b1dc1acc81116b0f3fe8ef0946c"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-11/review.json", "sha256": "ec627381fa23a88a8081cff229a41d9f2a32476e7351db1c2854eb25e3692585"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-11/review.md", "sha256": "d2a7f9a995eb8251c2e53e5d405e3e76b0fc8d9d8bb2cd2e7612173a5ff9d684"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-11/previous-review.json", "sha256": "9d188f5c8fe5a737044d84bffd66fd41e81b4851450277afd86d842c3a154cfb"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-30/completion.json", "sha256": "1dcf8ad80a10bdb0cb16852d34ec84d82b6d4fdf095d3db182b73b6d64b42f4a"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-30/dossier.json", "sha256": "74d699625fecda497f1d3123a0e7be6a7a4d9e83d2290ddafd9cf50993f7bbd5"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-30/reading.md", "sha256": "ba476b9e0bb7692066c11d5feb46ef9b1a8f933c802774c8928bb8de527127d0"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-30/review.json", "sha256": "a3d4e62eb8b090b9525876d71b75e3fa833014ebc23be23c77f683db5b48cb1a"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-30/review.md", "sha256": "388e453b2902bfc9ca4b734d8c20ab1205cfbfcf2a35de25f68f53e282c14aaa"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-30/previous-review.json", "sha256": "d1b580e6c3a000df45c4063010e2616c325634163ac904da2ec0fca8f739305a"},
+    {"path": "research/sage-network/followup-v1/cases/original-08/completion.json", "sha256": "deb046ff70fb8c22b26ba8a97cccc88df28f165dce830cb0b7507e5fe870670d"},
+    {"path": "research/sage-network/followup-v1/cases/original-08/dossier.json", "sha256": "f95e1ad27c4b9cd8dbb14bc5fb1abe235643bfc80d092a67db39bc553d5bd896"},
+    {"path": "research/sage-network/followup-v1/cases/original-08/reading.md", "sha256": "100412d6b40504e4cbcb0a8d9867ad9361263cf3a230e4d6189cb8eb36b2e753"},
+    {"path": "research/sage-network/followup-v1/cases/original-08/review.json", "sha256": "7362a56659381ec3b22ff6e1eb532eae5dd1f1bd4a4aa991a957b279a59cdea1"},
+    {"path": "research/sage-network/followup-v1/cases/original-08/review.md", "sha256": "1d7427fd7b9b6b5247cc6975ad5e725e14ef080ec85d25daf2bc949d495fea22"},
+    {"path": "research/sage-network/followup-v1/cases/original-08/input.json", "sha256": "0dfed42656ec4040385dc2998e620a474b47b3bccbd5cc868c8cf70aff764265"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-02/completion.json", "sha256": "2f94eb277815030d339db8054419064142bb66fb50a47d38674771015f370824"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-02/dossier.json", "sha256": "0cce690dc62d903eace6802cf3bede156b8f20c4185da7ee268e8d31c67a21ef"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-02/reading.md", "sha256": "a9434503e319ba3e89526487a2a4ec0c69437b87f75bd162d0c58891cf60f0fc"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-02/review.json", "sha256": "42a6f9237f75d4503a3462b09e556f950a2b8a4fc7dfe2de7cbdfb312bf56610"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-02/review.md", "sha256": "2ad75fcb952d57804e76ed1b854238a6768816ff46ff898b772903d6743c3732"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-02/previous-review.json", "sha256": "25474a06f4b09318928dadbd7c629667e55856692687da9b42415a60e6dc23e9"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-02/mechanical-corrections.json", "sha256": "24e029520ddd71826aaec35518e4f86a08e9c53fb684d0e71d1f1b3f5ddcd472"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-03/completion.json", "sha256": "44eb92a2e8ee6f6df337727e79ea6837dd178d7c716d1de580f1eed4adc41bb0"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-03/dossier.json", "sha256": "0d24c6a9a4ec46a5091b7133fc95c5c9fe4eec0a4aef9e950d62e89e840787e3"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-03/reading.md", "sha256": "792a6e9f0fa8cdda9a9d1c9609aba81517dd337dbeec2d11cfca0e84e90f8e7b"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-03/review.json", "sha256": "be8fdc5da04c81a54ef03f170a080ebc7cb2289022760d664ab776706720d873"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-03/review.md", "sha256": "b5ff23847d9de17ac08244ef35f2c5778b67d6220db0a4b08d2630d458472e95"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-03/previous-review.json", "sha256": "7bb68cdd8c1e951e404356d9f1b794b2bc7db8ed4e455eb64092bd4ed4cb9700"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-03/mechanical-corrections.json", "sha256": "4379589d0c6f357babff1f791cf06563fbd0f0583b3e34aa96ea4b59cd2d7e9e"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-01/completion.json", "sha256": "c8cc6574199b3a0436e58a08ab4796fc77469f5d6e832bf578c1949f1d8125af"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-01/dossier.json", "sha256": "1198e653a8dfec9937a73b6f1cb1e624b1c917d1a9f8b64f14476c2095a74e58"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-01/reading.md", "sha256": "4a0a3cd85078db08d1c7613ef42a5651b05d4da0251a5e4274c6be18a3dbbef3"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-01/review.json", "sha256": "571c2947e5ef258d2f065b3484e02951eea60a5023efbb1dcc6baa19f41965ce"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-01/review.md", "sha256": "7893959cd116343c3adffc3ab4388c2ca931ba4e1454fea27238abdedfe3199b"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-01/previous-review.json", "sha256": "3b90b2291da09f0c6d75ce5abb91c3699a2745e64d56e8fae8ed48c6c26bd938"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-02/completion.json", "sha256": "d47b87d47efcd51ea49d51d91b546ea62199c492bf1ba876efc02f4ff3c535da"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-02/dossier.json", "sha256": "69846742a774a76488e02169a8fe57b2687ee7fad73f2c3d0c423b971085e0df"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-02/reading.md", "sha256": "2d1447409aa179ef802dea84d7b02b2bb582b8b3a5f0c83742ca39c416389b3d"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-02/review.json", "sha256": "5c5f22011206a4e4f99f236b109275f7a4bdf96cce40b93e1ba969864d00544d"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-02/review.md", "sha256": "e3c28f00aa2871939188011aa8d9ad0ac7f50b1c83db760ed439e12fdb3b3802"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-02/previous-review.json", "sha256": "f21fa5a4fd95ad779301f1906d76ebe31621ca3c47166a3c45a2caefd66c5904"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-02/mechanical-corrections.json", "sha256": "b0ae674645d5eade917169548f80ca96456cf24d77f7dba895012604d0e6a10c"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-03/completion.json", "sha256": "2e8cac8ab0667fbda9191c00825811385ddbf7ef27005498f3c6b79b687b7502"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-03/dossier.json", "sha256": "c89bc8a911eef3b4badb496d6df1dbf3a6e0e51b6c45b95dac154048531c3a13"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-03/reading.md", "sha256": "9194aa4d7a763da1bdfebd73d137326907c5f9faa7de083adac77459997cb6e0"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-03/review.json", "sha256": "b8b21416de78ca31de6774b0e58f55c7f8269fe0418fbaf7dca78bb3caae4d1c"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-03/review.md", "sha256": "8546cf4f8bfbfd9d7db50872b6bda13fcd0190f407ed830184a85c742c51c89c"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-03/previous-review.json", "sha256": "1bf00ec7c4206a88bb7430d839b297f0f1ee3d6c6547849077d64af8dc67845b"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-04/completion.json", "sha256": "2f885d71e2a05fe146b338d44f900fe09caee6ad662fcc06a23e13a07efb0053"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-04/dossier.json", "sha256": "ab0e84d435a3b2a98ff15e417f1efe4a3bbd484779ad2c90f0bfd4f4859c15cf"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-04/reading.md", "sha256": "430b33fed770d0f0b9ade49921b19f962ea3f5196ca262272b7237c68d0781d3"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-04/review.json", "sha256": "cf6596f40b35246ba59563a21b75dc7ecf18b46ff9831a98c07000436fe5769a"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-04/review.md", "sha256": "9952ddc96395c918faa7e362e6787164f4c0bdff8a03acfef59d1c55cc2a72c3"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-04/previous-review.json", "sha256": "7f7e33d0db11979ab6d6ec294185b2cf55f3f95974eda745e5e74343ae9f55fa"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-04/mechanical-corrections.json", "sha256": "97274e25306ba8a804e476fea3aa3ce9bcf7087b0daf7531fbbe189a428063cd"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-05/completion.json", "sha256": "0ade93669b968691229eaea6b6a1e84c5af1230ea4d1a15152c0e3f4fc8a05e1"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-05/dossier.json", "sha256": "98dbd8ece1055ef3c793d22df8e8dcddbba61b71db98cc7261d8ed6153c3a7b0"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-05/reading.md", "sha256": "53e69b9523bd58bd9792fd186e099f29c7707b59f42b9bc4275bad2130416d80"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-05/review.json", "sha256": "971414d25c81016c9e1e3598956b9962b11d16e44f75f933f1820b11a3141837"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-05/review.md", "sha256": "59555bb2e15baff3083ef6c143d077cd503c26359cd4bcd058376eac80c0dd93"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-05/previous-review.json", "sha256": "f0ec4c0edd87d87b602b0f2c9e1b8a9e4217fbe89b78c535fbac47e49e778e53"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-05/sources/jt_ketubot_11_7_v3_all.json", "sha256": "a2696365fb1aa9f86d9e042e516eed0ac9f02c1d78bc6f76a44771d187975733"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-05/sources/jt_yevamot_9_4_v3_all.json", "sha256": "f8d3a68fe6161e71367499eef7fb0d4fc54d6d760bc149ee0db1394eb326beac"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-01/sources/jt_megillah_3_he_guggenheimer.json", "sha256": "7269b0b49b4c86bce20f5adbc000ec8ee8db2492182d47d30b81d1a5edd4d6d2"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-01/sources/jt_shabbat_1_2_venice_he.json", "sha256": "439d81503092958b2262cb6c90be655ca5071285e803cf848c9cbe70695bda1a"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-01/sources/jt_taanit_1_2_venice_he.json", "sha256": "5a9d90b59ae4de265ff59fb97fa0b7003afa2375ed9439e686e5634c52261c88"},
+    {"path": "research/sage-network/followup-v1/cases/random-yerushalmi-01/sources/jt_taanit_1_2_guggenheimer_en_with_notes.json", "sha256": "454fd19132b7918e1ad429ed3edb37fae2f807b099b2450b89de609e3078873f"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-09/sources/arukh_gimel_36.json", "sha256": "fd60cc3c57b74a6b32bf68b44e6dc93d76cb21ab5603caad84b8ad7c266d5484"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-09/sources/intro_amoraic_lit_part3_79.json", "sha256": "9471ab3da80afe59d452b8cb12ec7b6d4859014fcbc1fafb57ba86f85e9bfa44"},
+    {"path": "research/sage-network/followup-v1/cases/original-08/sources/ohr-layesharim-1-5-14.json", "sha256": "70f95e362ad45d29cbe7d6715352c301691fb5f368be4f3ad5c9f0012d3abfc1"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-30/sources/ein_yaakov_mk_3_10.json", "sha256": "6201de644d2dfca9cec112b451efc2289e77ea14fbe776f3c5a9386fb351d889"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-30/sources/sefaria_v3_moed_katan_17a_all.json", "sha256": "5dc5187174e2cb117980a29f107f275dabdc2684d9f118cb85bc9addc83ea108"},
+    {"path": "research/sage-network/followup-v1/cases/challenge-30/sources/sefaria_search_a1266f01.json", "sha256": "593f81ce21de2bdf6b39a1eec4a13c433d39a33547abf33a4463283e5624b49e"},
+    {"path": "research/sage-network/followup-v1/cases/random-bavli-03/sources/sotah45a_wikisource_and_davidson_unvoc.json", "sha256": "b7da2aaf199880a470763dd2e31e974ef427949216de3549d121008414c7710e"}
+  ],
+  "excluded_inputs": [
+    {"case": "random-bavli-05", "reason": "Dossier and reading were still being written during this review and there is no completion.json. Not read. validation.json already lists it; that is a structural check only."},
+    {"case": "random-yerushalmi-06", "reason": "Sources and a build script only; no dossier or completion record. Not read."},
+    {"case": "all other queue cases", "reason": "No follow-up research saved. Their IDs are used below only to propose the next pilot."}
+  ],
+  "integrity_checks": [
+    "Every completion.json file hash matches the current dossier.json and reading.md bytes (11 of 11).",
+    "Every separate review.json names the current dossier hash (11 of 11). Six of these reviews appeared while this review was in progress; all were read.",
+    "random-bavli-03 and random-yerushalmi-04 dossiers changed during this review. Their mechanical-corrections.json files say the changes were relative paths and two contiguous-quote fixes; findings unchanged. The current hashes are the ones listed above."
+  ],
+  "quote_spot_checks": [
+    {"case": "random-yerushalmi-05", "file": "sources/jt_ketubot_11_7_v3_all.json", "check": "One Ketubot version has 'רבי הילא רבי אמר לי' (the teacher word); another has 'ר' הילא אמר לי' (no teacher word).", "result": "confirmed", "used_by": ["R07", "R09"]},
+    {"case": "random-yerushalmi-05", "file": "sources/jt_yevamot_9_4_v3_all.json", "check": "Yevamot parallel has 'רבי הילא אמר לי' / 'רבי אילה אמר לי' and no teacher word.", "result": "confirmed", "used_by": ["R07"]},
+    {"case": "random-yerushalmi-01", "file": "sources/jt_taanit_1_2_venice_he.json", "check": "Printed Taanit reads 'לרבי חנניה אחוי דרב הושעיה' and later 'דרב הושעיה חביבך'.", "result": "confirmed", "used_by": ["R02"]},
+    {"case": "random-yerushalmi-01", "file": "sources/jt_megillah_3_he_guggenheimer.json", "check": "Megillah parallel reads 'לרבי חנניה בר אחוי דרב הושעיה' and 'חביבך', but the speaker is bare 'רבי' and the passer-by is 'רבי בא בר זבדא'.", "result": "confirmed", "used_by": ["R02", "R11"]},
+    {"case": "random-yerushalmi-01", "file": "sources/jt_shabbat_1_2_venice_he.json", "check": "Shabbat parallel reads 'רבי חנניה בן אחוי דרב הושעיה'.", "result": "confirmed", "used_by": ["R02"]},
+    {"case": "random-yerushalmi-01", "file": "sources/jt_taanit_1_2_guggenheimer_en_with_notes.json", "check": "Translation keeps 'the brother' in the text and puts the correction 'son of Rav Hoshaia's brother' in note 114, then renders 'your uncle'.", "result": "confirmed", "used_by": ["R02", "R09"]},
+    {"case": "challenge-09", "file": "sources/arukh_gimel_36.json", "check": "Arukh quotes 'אמר רבי יוסי בר אבין ואיתימא בר זבידא' (plain 'said', no first name for the second teacher).", "result": "confirmed", "used_by": ["R09", "R12"]},
+    {"case": "challenge-09", "file": "sources/intro_amoraic_lit_part3_79.json", "check": "Epstein lists places with the Avin/Zevida pair and says Sanhedrin 59b should be read that way.", "result": "confirmed", "used_by": ["R09"]},
+    {"case": "original-08", "file": "sources/ohr-layesharim-1-5-14.json", "check": "The commentary puts '(בשם)' in parentheses before 'וכן אמר רבי ירמיה' and notes an editor who added 'בשם'; it also reports a scribe and a corrector ('מגיה') for another word.", "result": "confirmed", "used_by": ["R09", "R13"]},
+    {"case": "challenge-30", "file": "sources/sefaria_v3_moed_katan_17a_all.json", "check": "Base text: 'אמרה: ליהוי ההוא גברא בשמתא' with no 'ליה'.", "result": "confirmed", "used_by": ["R04"]},
+    {"case": "challenge-30", "file": "sources/ein_yaakov_mk_3_10.json", "check": "Ein Yaakov: 'אמרה ליה: ליהוי ההוא גברא בשמתא' and the parenthesis/bracket around the baraita attribution.", "result": "confirmed", "used_by": ["R04", "R09"]},
+    {"case": "challenge-30", "file": "sources/sefaria_search_a1266f01.json", "check": "The Rosh hit reads 'אמרה להוי ההוא גברא' (no 'ליה') and 'דתניא ר' ישמעאל אומר'.", "result": "confirmed; the Rosh supports the base wording for the addressee while it varies the baraita attribution", "used_by": ["R04", "R09"]},
+    {"case": "random-bavli-03", "file": "sources/sotah45a_wikisource_and_davidson_unvoc.json", "check": "'א\"ל רב כהנא לרב פפי ואמרי לה רב כהנא לרב זביד' (one speech event, alternative addressee).", "result": "confirmed", "used_by": ["R04", "R12"]}
+  ],
+  "rules": [
+    {
+      "id": "R01",
+      "title": "Keep the parent named inside a name",
+      "rule": "Every 'bar/ben/b. R./son of X' inside a name creates a local parent entity and one child_of claim with basis name_internal. The parent does not need to speak or act. Scope the parent and the claim to the reading branch that has that name form. Keep all spellings of the parent's name on one parent entity when only the spelling varies; make separate parent entities when a variant changes the name. Never merge two parents because their names match. A repeated patronymic is more evidence for the same claim, not a new claim. Add an alternative 'fixed name or epithet' reading only when a source says so; a spelling difference alone does not.",
+      "evidence": [
+        "challenge-09:review:findings[0] (rejects dropping Avin and Hanina)",
+        "random-yerushalmi-02:review:findings[2] (rejects downgrading Ben Illem's father; spellings alone do not make a surname)",
+        "original-08:dossier:F13 and original-08:review:findings[3] (Shaul, Zavda, Samuel's father with variants Inia/Mina/Ina)",
+        "random-yerushalmi-04:dossier:F12 and random-yerushalmi-04:review:findings[3] (two Bun parents kept apart)",
+        "random-yerushalmi-03:dossier:PC2 (Zavdi named twice = one claim)",
+        "random-bavli-03:dossier:F13 (Shimon ben Yehuda's father not merged with the Rabbi Yehuda of 45a:10)",
+        "challenge-09:dossier:F5-F6 (bar Hanina vs bar Zevida changes the parent, so two parents on two branches)",
+        "random-yerushalmi-02:dossier:f19 (Shimon ben Kimhit: a name through the mother, and the mother is present in the story)"
+      ],
+      "counterexamples": [
+        "challenge-09:dossier:proposed_corrections[4] and ontology_lessons[5] argued the opposite; the separate review rejected it.",
+        "random-yerushalmi-02:dossier:f11 and ontology_lessons[3] argued 'ben X is not filiation unless X acts'; the separate review rejected it.",
+        "original-08:dossier:F13 leaves Bar Qappara open between kinship and fixed name. That is the case for an alternative branch, not deletion."
+      ]
+    },
+    {
+      "id": "R02",
+      "title": "Keep printed and corrected kinship side by side, with unnamed links",
+      "rule": "When a family relation needs an unnamed person in the middle, create that local person and chain simple claims (child_of, sibling_of). Show the compound label (nephew, uncle) as a derived display, not a stored relation. When the printed text and a correction give different kinship, keep both as branches with their evidence types. A conflict between branches is conditional on an identity choice (for example, that two mentions are one person). Store it as a conditional constraint, never as a rule that deletes a branch. A preferred reading is a decision revision, not a property of the data.",
+      "evidence": [
+        "random-yerushalmi-01:dossier:F3, F5, F6 and random-yerushalmi-01:review:findings[0]-[1]",
+        "quote_spot_checks: printed Taanit 'אחוי'; Megillah 'בר אחוי'; Shabbat 'בן אחוי'; translation note 114",
+        "random-yerushalmi-01:dossier:F4 (the lexical sense 'father's brother' decides that the unnamed link is a father on that branch)",
+        "plan/relationship-ontology.md: compound family paths and 'my brother' as address"
+      ],
+      "counterexamples": [
+        "random-yerushalmi-04:dossier:F14 (brothers who divide an estate are roles in a legal example, not a family edge between real people; see R14).",
+        "random-bavli-02:dossier:F5 ('his father' in the Rosh's legal example is not a family edge)."
+      ]
+    },
+    {
+      "id": "R03",
+      "title": "Give women and household members their own local entities",
+      "rule": "A woman or servant named only through another person (mother of, maidservant of the household of) gets her own local entity, labelled by the source words. Add one new predicate, member_of_household (person to household entity, subtype such as servant or attendant). Do not place the household head in the scene because the household is named. Record who supplies a family link: the passage, a commentary, a translator's gloss, or biblical background. Figures inside a quoted verse and hypothetical people in an unquoted part of a Mishnah are not participants.",
+      "evidence": [
+        "challenge-30:previous-review:additional_findings[1] (no household predicate in the contract)",
+        "challenge-30:dossier:F11 (Rabbi not at the scene; the Rabbi Yehuda HaNasi identification comes from the translation)",
+        "random-yerushalmi-02:dossier:f19 (their mother, then named Kimhit, is one woman; five unnamed sons are a group)",
+        "random-yerushalmi-03:dossier:F2 and F17 (Rav's household and his attendant appear in the saying and a parallel)",
+        "challenge-09:dossier:F13 ('Abraham's second wife' is an unbolded translator gloss)",
+        "random-yerushalmi-02:dossier:f19 and f25 (the king's daughter is a verse figure; Rabbi Yehuda's spare wife is outside the quoted text)"
+      ],
+      "counterexamples": [
+        "challenge-30:review:findings[2] (a similar Yerushalmi maidservant must not be merged, but must not be declared unrelated either)."
+      ]
+    },
+    {
+      "id": "R04",
+      "title": "Keep speaker, addressee, target and content apart",
+      "rule": "A speech claim has separate roles: speaker, addressee, audience, target and content. Fill addressee only when the text marks it (to him, to them, before X) or the target clearly replies. A target can be a person, a statement or an explanation. If witnesses differ on the addressee or its number, make branches. An 'or some say to Y' addressee is one speech event with alternative addressees.",
+      "evidence": [
+        "challenge-30:dossier:F1-F3 and challenge-30:review:findings[0]; quote_spot_checks for base 'אמרה' vs Ein Yaakov 'אמרה ליה'; the Rosh also lacks 'ליה'",
+        "random-yerushalmi-04:dossier:F7 and random-yerushalmi-04:review:findings[1] (to them vs to him)",
+        "random-bavli-03:dossier:F12 (Rav Pappi or Rav Zevid)",
+        "random-yerushalmi-04:dossier:proposed_corrections[6] (the baraita targets the ownerlessness explanation, not Rabbi Yose)",
+        "random-bavli-02:dossier:objection_targets (each challenge has a target position)"
+      ],
+      "counterexamples": [
+        "challenge-30:dossier:F3 (in 17a:14 the third-person ban formula is said to the man, who answers). Third person does not rule out an addressee; it just does not supply one."
+      ]
+    },
+    {
+      "id": "R05",
+      "title": "Type the voice, including the anonymous discussion",
+      "rule": "Every claim records a voice kind: anonymous_discussion, unattributed_opinion (first opinion in a Mishnah or baraita), named_speaker, nested_quote, or later_author. A position label ('the one who says X') is a role reference to the owner of that position, not a new person. An answer built by the anonymous discussion on someone's behalf ('what does X do with it?', 'X needs it for') is that voice's reconstruction, not X's speech. An unattributed first opinion is not the group 'the Sages' unless the text says so. When the text does not mark where a speaker stops, make a speaker-boundary branch.",
+      "evidence": [
+        "random-bavli-02:dossier:F1-F2 and random-bavli-02:review:findings[0]-[1]",
+        "random-yerushalmi-03:dossier:F7 and random-yerushalmi-03:review:findings[0]",
+        "random-bavli-03:dossier:F03 (teaching-to-teaching link, no person edge)",
+        "random-yerushalmi-04:dossier:F1 and ontology_lessons[2]",
+        "random-yerushalmi-05:dossier:PC4 (the 'we learned' voice is not a group of people)",
+        "challenge-09:dossier:F2-F4 and challenge-09:review:findings[5] (speaker of the citation left open)",
+        "challenge-30:dossier:F5 and random-bavli-03:dossier:F11 (reason clause and Rav's 45a:12 boundary)"
+      ],
+      "counterexamples": [
+        "challenge-11:dossier:f3 (the status sentence names no one, but context supplies Rav as the other party; context can fill an object even when voice is anonymous)."
+      ]
+    },
+    {
+      "id": "R06",
+      "title": "Store negation, unsaid words, restriction and rhetoric inside their content",
+      "rule": "A statement about words that were not said is a statement node with negative polarity, used as evidence; it is not an utterance. 'Had he not heard what X said?' concerns knowledge of one teaching; it creates neither a contact edge nor a 'never met' edge. 'Not ... except' needs a scope field (only/except). Rhetorical versus plain readings, and negation that differs by edition, are branches on the content. An edition that lacks a word does not deny what the word says.",
+      "evidence": [
+        "challenge-11:dossier:f1, f14 and challenge-11:review:findings[0]",
+        "original-08:review:findings[0] (rejects 'Yose never met or heard these men')",
+        "random-yerushalmi-05:dossier:F1 and previous-review additional_findings[0] (restrictive coercion rule lost)",
+        "random-yerushalmi-05:dossier:F16-F17 (rhetorical vs declarative slave answer)",
+        "random-yerushalmi-04:dossier:F15 and random-yerushalmi-04:review:findings[3] (negated in one print, positive in others)",
+        "random-yerushalmi-05:review:findings[0] (omission is not denial)"
+      ],
+      "counterexamples": [
+        "original-08:dossier:ontology_lessons[4] proposed 'explicit NON-contact'; the separate review rejected it."
+      ]
+    },
+    {
+      "id": "R07",
+      "title": "Say how a teacher relation is known",
+      "rule": "student_of needs a basis: self_described (first-person 'my teacher'), argued_in_text (the discussion infers it), or later_author (commentary or footnote). 'In the name of' never becomes student_of. Keep the subtype student_colleague. Keep later authors' definitions of a relation with those authors. When the teacher word is present in one version only, scope the edge to that version and keep the plain heard_from edge that all versions share.",
+      "evidence": [
+        "random-yerushalmi-05:dossier:F6-F8 and random-yerushalmi-05:review:findings[0]; quote_spot_checks (teacher word present in one Ketubot version, absent in another and in Yevamot)",
+        "challenge-11:dossier:f2, f4 and challenge-11:review:findings[1]",
+        "challenge-11:dossier:f11 (the same inference from address form at Bava Batra 158b)",
+        "original-08:dossier:F14 (footnotes add 'student of Aha' and 'trained under Rav')",
+        "random-yerushalmi-04:dossier:F12 (translator makes Yaakov bar Bun a student of R. Yose b. R. Hanina)",
+        "challenge-11:dossier:f8 (Rivash: Rav was not his main teacher)"
+      ],
+      "counterexamples": [
+        "random-yerushalmi-05:dossier:F8 notes the teacher word may have been added by analogy with a similar formula. Self-description is explicit only within the reading that has it."
+      ]
+    },
+    {
+      "id": "R08",
+      "title": "Store direction once and derive inverses",
+      "rule": "Store each directed relation once, with named roles (hearer and source, child and parent, speaker and addressee). Derive inverse labels for display. One utterance can show as 'X addressed Y' and 'Y heard from X'; that is one observation, and it must not be counted twice. When parallels reverse who asks whom, keep each version's direction in its own passage; do not import it.",
+      "evidence": [
+        "random-yerushalmi-05:review:findings[1] (corrects the heard_from direction written in dossier F6)",
+        "pilot/reader.md (child_of subject is the child; no duplicate inverse edges)",
+        "random-yerushalmi-03:dossier:F14 and random-yerushalmi-03:review:findings[3] (Shevuot has Yaakov bar Zavdi asking Abbahu)",
+        "random-yerushalmi-01:dossier:F6 (nephew derived from a child_of plus sibling_of path)"
+      ],
+      "counterexamples": [
+        "random-bavli-03:dossier:F04 (one transmission named three times is one edge with three anchors, not three edges)."
+      ]
+    },
+    {
+      "id": "R09",
+      "title": "Label every wording by what kind of evidence it is",
+      "rule": "Each wording used as evidence gets one evidence type: printed_edition, manuscript_reported_by (name the reporter), manuscript_inspected, in_manuscript_correction, later_quotation, emendation (with its stated grounds), translation, commentary_reading, lexicon, or project_inference. Never overwrite the printed text; an emendation is a branch. A later author's paraphrase or omission of a name is not a variant. In the eleven cases no manuscript was inspected directly, so every manuscript reading here is reported by someone else.",
+      "evidence": [
+        "challenge-09:dossier:F5-F6, F14 and challenge-09:review:findings[3] (Arukh quotation vs Epstein emendation; Meiri omits names)",
+        "original-08:dossier:F6 and original-08:review:findings[2] (Rome reading, corrector, later editor)",
+        "challenge-11:dossier:f6, f7, f12, f13 (Sekhel Tov, Tosafot's report of 'most copies', Rif abridgement, Ramban)",
+        "challenge-30:dossier:F2, F6 (Ein Yaakov, Ran, bracketed supplement; Rosh attribution)",
+        "random-bavli-02:dossier:F8 (Halakhot Gedolot names Abaye and Rava; the Rosh prints Rabbah)",
+        "random-yerushalmi-04:dossier:F11, F13, F15 (emendation on chronological grounds; 'thus we read'; Penei Moshe adds a word)",
+        "random-yerushalmi-01:dossier:F11, F19 (conjectural one-word reading; a commentary that swaps names)",
+        "random-yerushalmi-03:dossier:F13, F15 (translation turns juxtaposed names into 'or'; two later proposals)",
+        "random-yerushalmi-02:dossier:f04 and random-yerushalmi-02:review:findings[3] (valid vs invalid kept in their own passages)"
+      ],
+      "counterexamples": [
+        "challenge-09:dossier:F8 is the dossier's own guess about scribal influence. It is useful only as project_inference with low confidence."
+      ]
+    },
+    {
+      "id": "R10",
+      "title": "List who holds a reading; do not count dependent sources as votes",
+      "rule": "Group sources by editorial project and by known copying. Record dependency as known, suspected or unknown, with the reason. For each branch, list holders by group. Never turn holders into a vote count or a score. Repeated quotations inside one passage and parallel passages are related reports, not independent witnesses. A translation reused from another passage cannot confirm a name in this one.",
+      "evidence": [
+        "challenge-09:review:findings[2] (Davidson English and Steinsaltz Hebrew share an editorial basis)",
+        "challenge-11:dossier:f14 and ontology_lessons[6]; random-bavli-02:dossier:F2; random-bavli-03:dossier:unresolved[1]",
+        "random-yerushalmi-05:dossier:F18 (the Ketubot English partly reuses the Yevamot rendering)",
+        "random-yerushalmi-03:dossier:ontology_lessons[8] (Guggenheimer Hebrew and English are one work)",
+        "random-yerushalmi-01:dossier:F11 (Lieberman endorses the Sha'arei Torat Eretz Yisrael emendation; one proposal with a supporter)",
+        "random-bavli-03:review:findings[0] and random-yerushalmi-03:dossier:F2 (repetition inside an argument)"
+      ],
+      "counterexamples": [
+        "random-yerushalmi-04:dossier:ontology_lessons[8] says the editions 'all derive from the Venice print'. The saved cases show the Guggenheimer edition reporting a Leiden scribe and corrector (random-yerushalmi-01:dossier:F16; random-yerushalmi-02:dossier:f04) and Ohr LaYesharim reporting a Rome manuscript. Dependence is likely but its exact form is unchecked; record it as suspected, not as known Venice derivation."
+      ]
+    },
+    {
+      "id": "R11",
+      "title": "Link parallel tellings, but do not import their people",
+      "rule": "Save a parallel_telling link between episodes, with a list of differences. A parallel can support a wording (it is evidence for a text reading). It does not fill an anonymous speaker, add a participant or prove that one event is meant. Different protagonists in parallel tellings are evidence about the traditions; keep them for a later identity or narrative pack. Do not write 'no evidence about either person', and do not merge.",
+      "evidence": [
+        "random-yerushalmi-01:dossier:F5 and unresolved[6]; quote_spot_checks (the Megillah scene has the same wording but a bare 'Rabbi' as speaker and R. Ba bar Zavda passing)",
+        "random-yerushalmi-03:review:findings[3] (a named speaker in one parallel cannot fill an anonymous one in another)",
+        "random-bavli-03:review:findings[3] (rejects 'not evidence about either man')",
+        "random-yerushalmi-02:review:findings[5] (Yosef ben Ilim/Elem; Yishmael ben Kimhit)",
+        "challenge-30:review:findings[2] (Bar Pata's maidservant)",
+        "random-yerushalmi-03:dossier:F16-F18 and random-yerushalmi-03:review:findings[4] (compare law with law, practice with practice)"
+      ],
+      "counterexamples": [
+        "random-yerushalmi-05:dossier:F5 (the extra Shmuel line in Yevamot and Gittin should be a variant of one ruling, not a separate teaching)."
+      ]
+    },
+    {
+      "id": "R12",
+      "title": "Source alternatives are not historical exclusivity",
+      "rule": "Keep the branch kinds apart: reported_alternative (the text itself says 'some say'), witness_variant, emendation, interpretation, segmentation. Within one reading a group may require exactly one choice. Whether the alternatives could all be historically true stays unknown by default and is a separate field. Allow nested branches (a variant inside an alternative) and explicit requires/excludes links between branches of different groups.",
+      "evidence": [
+        "challenge-09:review:findings[1] (two attributions do not prove only one teacher said it)",
+        "random-bavli-03:dossier:alternative_readings[2] (one event, two addressees; neither one nor both conversations is shown)",
+        "original-08:dossier:F8 (Hiyya or the colleagues as reporter; Simai unchanged)",
+        "challenge-09:dossier:alternative_readings[1] (bar Hanina or bar Zevida nested inside the 'some say' branch)",
+        "original-08:dossier:F4-F5 (segmentation and identity chosen together)",
+        "random-yerushalmi-01:dossier:F11-F12 (three verb readings; one removes Hananya from the exchange)",
+        "pilot/README.md (nested dependencies need a future contract revision)"
+      ],
+      "counterexamples": [
+        "random-yerushalmi-01:review:findings[1] (the brother/nephew conflict is real under one identity choice, so some exclusions do exist; they are conditional)."
+      ]
+    },
+    {
+      "id": "R13",
+      "title": "Do not let a reading prove the assumption it was built on",
+      "rule": "Record the grounds of each emendation, segmentation or identity proposal (grammar, parallel, reported manuscript, chronology, identity). A proposal grounded in a chronology or identity cannot count as evidence for that same chronology or identity. A generation label alone does not make a citation impossible.",
+      "evidence": [
+        "random-yerushalmi-04:dossier:F11 and random-yerushalmi-04:review:findings[2] (Mana to Ami because of an assumed Bun bar Hiyya identity and death)",
+        "original-08:dossier:F4-F5 and original-08:review:findings[1] (identity and typography cannot validate each other)",
+        "plan/relationship-ontology.md, corrections section (the Yohanan-before-Yirmeya objection depended on choosing the later identity first)"
+      ],
+      "counterexamples": [
+        "random-yerushalmi-01:dossier:F6 (the nephew emendation rests on parallels and a lexicon, not on chronology; it may count as textual evidence)."
+      ]
+    },
+    {
+      "id": "R14",
+      "title": "Separate legal roles from people, and keep the whole rule",
+      "rule": "Add entity kind legal_role for hypothetical people in rules (the second priest, the buyer, the depositary, brothers who divide). Their kinship stays inside the rule. A rule statement stores condition, outcome, count and scope, and its polarity may differ by branch. Check each anchor against the word that governs it: the same phrase can be a role category in one place and a story person a few words later.",
+      "evidence": [
+        "random-yerushalmi-02:dossier:f01-f03, f17 and random-yerushalmi-02:review:findings[0] (wrong occurrence joined a legal category to the story's high priest)",
+        "random-yerushalmi-04:dossier:F2, F14-F15 and previous-review additional_findings[0] (one vs two peah lost)",
+        "random-yerushalmi-03:dossier:F4 and previous-review checks[3] (four acquisition conditions lost)",
+        "random-yerushalmi-05:dossier:F1 and PC11",
+        "random-bavli-02:dossier:F5 (verse pronouns and generic priests)"
+      ],
+      "counterexamples": [
+        "random-yerushalmi-02:dossier:f08 (the Tosefta links the story's Ben Illem to the legal 'second priest'; a story person can instantiate a role, but only as an attributed interpretation)."
+      ]
+    },
+    {
+      "id": "R15",
+      "title": "Tag what a story is doing in a legal argument",
+      "rule": "Keep episode genre (halachic, aggadic, mixed, unknown) and add a function for a narrated unit that is cited: precedent, proof, illustration, attributed_precedent (inside someone's view), or personal_practice. Legal force belongs to the voice that states it. Later codifiers and commentators who generalise or reconstruct a story are later voices. Genre and function describe the text; they are not a probability that the event happened.",
+      "evidence": [
+        "challenge-30:dossier:F4, F8-F9 and challenge-30:review:findings[1], [3] (three years stated by R. Shmuel bar Nachmani at 17a:9; the release is commentary)",
+        "challenge-11:dossier:f2 (the exchange is cited as proof)",
+        "random-yerushalmi-02:dossier:f05 and proposed_corrections[6] (story cited to answer 'from whose property?')",
+        "random-yerushalmi-01:dossier:F17 (the Joel precedent is inside R. Yose's view)",
+        "random-yerushalmi-03:dossier:F11 and random-yerushalmi-03:review:findings[2] (law vs piety narrows but does not delete the earlier claim)",
+        "plan/relationship-ontology.md (genre is not a measured probability)"
+      ],
+      "counterexamples": [
+        "challenge-30 as a whole: an aggadic story inside a halachic discussion. A single episode tag ('mixed') loses which part carries the force; the unit function is needed."
+      ]
+    },
+    {
+      "id": "R16",
+      "title": "Keep time claims with their voice and kind",
+      "rule": "Store a time claim with its voice and a kind: habitual, remembered_past, duration, relative_order, undated, or time_anchor (a biblical period used as a marker). Commentary dating of an event is a later voice. Calendar dates inside a legal rule are rule content, not event dates. Generation labels from commentators go into identity packs as biography proposals. Add no calendar dates.",
+      "evidence": [
+        "random-yerushalmi-05:dossier:F6 and PC5 ('at all times' is habitual)",
+        "random-yerushalmi-01:dossier:PC9 (the remembered scene is R. Yose's recollection)",
+        "challenge-30:dossier:F4 (three years is a reported claim)",
+        "challenge-11:dossier:f9 (Rashi dates the exchange two ways; the Rashash objects)",
+        "random-yerushalmi-01:dossier:F15, F17 (3rd vs 7th Marheshvan is a rule; Joel is a time anchor)",
+        "original-08:dossier:F4-F5; random-yerushalmi-04:dossier:F12; random-yerushalmi-01:dossier:F7, F18 (generation labels)"
+      ],
+      "counterexamples": [
+        "challenge-11:dossier:f9 (an exchange cited as proof may or may not be the nearby visit; 'same occasion' is itself a sourced link)."
+      ]
+    },
+    {
+      "id": "R17",
+      "title": "Inventory every occurrence mechanically, then read it",
+      "rule": "Count every exact occurrence of every name, group label, pronoun and position label in the window before claims are written. State whether counts use exact strings or consonant skeletons. Link repeated mentions to one local entity and to the claims they support. Expand abbreviations only with a stated basis. Keep spelling variants on one mention.",
+      "evidence": [
+        "random-bavli-02:previous-review:checks[2] (missed first Rebbi reference)",
+        "random-bavli-03:dossier:F01 (3 of 11 mentions missed) and random-bavli-03:review:findings[1] (pronoun count given as five, supported as four)",
+        "random-yerushalmi-03:dossier:F1 (Rav named nine times)",
+        "random-yerushalmi-02:mechanical-corrections (three counts confused pointed or prefixed forms) and random-yerushalmi-02:dossier:f24",
+        "random-yerushalmi-05:previous-review:additional_findings[1] (the second 'Rabbi' was not a mention)",
+        "random-bavli-02:dossier:F11 (an abbreviation that means 'that is to say'); random-bavli-03:dossier:F05; random-yerushalmi-01:dossier:F21",
+        "challenge-09:dossier:F9 (Oshaya/Hoshaya on one mention)"
+      ],
+      "counterexamples": [
+        "random-yerushalmi-04:previous-review:additional_findings[2] (two mention records for one occurrence, to hold two referents). One occurrence needs one mention with several candidate referents."
+      ]
+    },
+    {
+      "id": "R18",
+      "title": "Confidence without invented numbers",
+      "rule": "Keep reading confidence as high/medium/low with its basis, holders and dependency groups. Keep identity and historical confidence empty in the passage reading. Record source hedges ('possible', 'apparently', 'probably') as hedges. Old pair-table probabilities stay as legacy data and are never shown as confidence. Commentary agreement is a basis label, not 'explicit'. A failed request or a search with no hits says nothing beyond its own scope.",
+      "evidence": [
+        "original-08:input.json and original-08:dossier:proposed_corrections[5] (a 0.93 'cites' row rests on a word the commentator supplied)",
+        "original-08:dossier:proposed_corrections[0] (first-pass 'disputes' should be 'explains')",
+        "random-yerushalmi-01:dossier:ontology_lessons[5], [7] and PC4",
+        "random-yerushalmi-01:dossier:fetch_failures_and_empty_responses; random-yerushalmi-04:dossier:fetch_failures_and_empty_responses",
+        "original-08:dossier:F16 and challenge-09:review:findings[4] (search scope)"
+      ],
+      "counterexamples": [
+        "random-yerushalmi-01:dossier:PC4 wants 'high but not explicit' for commentary consensus plus internal support. That is allowed, but the basis must say commentary, and the dependency among the commentaries is unknown."
+      ]
+    },
+    {
+      "id": "R19",
+      "title": "Build an evidence pack before any identity decision",
+      "rule": "An identity question opens a pack. The pack holds every local mention and its branch, name variants with evidence types, emendation grounds, parallel tellings, in-text identity statements, and outside biography claims with who made them. Its answer can be 'cannot tell'. A report inside the Talmud that 'it was not X but Y' is itself a source claim with a voice, not a decision.",
+      "evidence": [
+        "challenge-11:review:findings[3] (Yirmiya bar Abba: two sages or one; which teacher)",
+        "challenge-09:dossier:F7 (Yevamot 45b: Rav Sheshet via Rav Geza says it was Yosi b. R. Zevida, not Yosi bar Avin)",
+        "original-08:dossier:F4-F7 (early or late Yirmeya and Miasha)",
+        "random-yerushalmi-01:review:findings[4] (Hoshaya II and generation labels are outside context)",
+        "random-yerushalmi-05:review:findings[3] (Yose Tsaydaniya and Rav Yosef Tsidoni)",
+        "random-yerushalmi-02:dossier:f09-f10, f22 (Ben Illem and Yosef ben Elem; a Josephus identification known only through a commentary)",
+        "random-bavli-03:dossier:F06 (two R. Elazar figures in different layers)",
+        "random-bavli-02:dossier:F13 and challenge-30:dossier:F11 (bare 'Rabbi' expanded by a translation)"
+      ],
+      "counterexamples": [
+        "random-bavli-02:dossier:F4 (the sugya itself treats two Rebbi baraitot as one person's teachings; local coreference inside one argument is fine without a pack, but it stays local)."
+      ]
+    }
+  ],
+  "proposed_changes": [
+    {"id": "PC-A", "target": "contract", "change": "Entity kinds: add legal_role and household. Keep person, group, statement, event, place, object, work, unknown.", "rules": ["R03", "R14"]},
+    {"id": "PC-B", "target": "contract", "change": "Claim field voice_kind with values anonymous_discussion, unattributed_opinion, named_speaker, nested_quote, later_author. Keep voice as the entity ID where there is one.", "rules": ["R05"]},
+    {"id": "PC-C", "target": "contract", "change": "Replace basis with: explicit, name_internal, local_coreference, argued_in_text, self_described, commentary, translation, project_inference.", "rules": ["R01", "R07", "R18"]},
+    {"id": "PC-D", "target": "contract", "change": "Speech claims: named roles speaker, addressee, audience, target, content. addressee may be absent. Remove the pilot habit of putting the target in object when no addressee is marked.", "rules": ["R04"]},
+    {"id": "PC-E", "target": "contract", "change": "Statement fields: condition, outcome, count, scope (general/only/except), mood (plain/question/rhetorical), function (rule, precedent, proof, illustration, attributed_precedent, personal_practice), each allowed to vary by branch.", "rules": ["R06", "R14", "R15"]},
+    {"id": "PC-F", "target": "contract", "change": "Two new predicates only: member_of_household (family family) and cites_statement (views family; statement to statement, with a function role: proof, objection, precedent, use). Everything else uncommon stays an event with the source verb and roles.", "rules": ["R03", "R05", "R15"]},
+    {"id": "PC-G", "target": "contract", "change": "Reading groups: add kinds witness_variant, emendation, segmentation (keep reported_alternatives and interpretation_alternatives). Each branch gets evidence_type, held_by (source IDs), grounds, parent_branch, requires and excludes. Keep historical_compatibility separate and default unknown.", "rules": ["R09", "R12", "R13"]},
+    {"id": "PC-H", "target": "contract", "change": "Source records: editorial_project, derived_from, dependency_status (known/suspected/unknown) with reason. Support summaries list holders by dependency group; no vote counts.", "rules": ["R10"]},
+    {"id": "PC-I", "target": "contract", "change": "Constraint records: within_reading_exclusive, or conditional_incompatible with the identity hypothesis it depends on. No constraint deletes a branch.", "rules": ["R02", "R12"]},
+    {"id": "PC-J", "target": "contract", "change": "Cross-passage records outside claims: parallel_telling (episodes, differences, which wording it supports) and in_text_identity_statement (voice, content).", "rules": ["R11", "R19"]},
+    {"id": "PC-K", "target": "contract", "change": "Time claim kind: habitual, remembered_past, duration, relative_order, undated, time_anchor; always with voice.", "rules": ["R16"]},
+    {"id": "PC-L", "target": "validator", "change": "Mechanical checks: every exact occurrence of listed names and pronouns has a mention; every patronymic has a parent entity and child_of claim; no inverse duplicates; every branch has evidence_type and held_by; every emendation has grounds; no numeric confidence fields; parent entity branch matches its name's branch; one mention per occurrence.", "rules": ["R01", "R08", "R09", "R17", "R18"]},
+    {"id": "PC-M", "target": "reader", "change": "Two passes. Pass A reads only the base Hebrew or Aramaic and wider context, and marks what needs outside evidence. Pass B adds translations, commentaries and parallels as typed branches for the marked items only. Pass B never overwrites Pass A.", "rules": ["R09", "R10"]},
+    {"id": "PC-N", "target": "reader", "change": "Automatic context growth: expand the window to the first mention when the text uses 'what is it?', a position label, an unresolved pronoun or 'Rav disagrees' without its object; record which segments were added.", "rules": ["R05", "R17"]},
+    {"id": "PC-O", "target": "ontology", "change": "Replace the three alternative kinds in the ontology with the five branch kinds of R12, and split 'witnesses differ' and 'readers differ' into the evidence types of R09.", "rules": ["R09", "R12"]},
+    {"id": "PC-P", "target": "graph view", "change": "Default view may hide non-acting parents, legal roles and later voices, but the data keeps them. Show derived labels (nephew, teacher of) with their path and the branch they depend on.", "rules": ["R01", "R02", "R08"]}
+  ],
+  "disagreements": [
+    {"with": "challenge-09:dossier:proposed_corrections[4], ontology_lessons[5]", "position": "Disagree. Parents inside names stay as local entities (R01). Agrees with challenge-09:review:findings[0]."},
+    {"with": "random-yerushalmi-02:dossier:f11, proposed_corrections[8], ontology_lessons[3]", "position": "Disagree for the same reason. Agrees with the separate review."},
+    {"with": "random-yerushalmi-01:dossier:F6 graph_effect ('keep the printed brother as a rejected/variant reading')", "position": "Disagree with 'rejected'. It is a printed_edition branch. Also disagree mildly with random-yerushalmi-01:review:findings[0] 'prefer the nephew interpretation': a preference belongs in a decision revision, not in the extracted data."},
+    {"with": "original-08:dossier:F2 and ontology_lessons[4] ('explicit NON-contact')", "position": "Disagree. Agrees with original-08:review:findings[0]."},
+    {"with": "challenge-30:dossier:ontology_lessons[3]; random-bavli-03:dossier:F14; random-yerushalmi-02:dossier:f22", "position": "Qualify. No merge, but keep a parallel_telling link for later packs. Agrees with the three reviews."},
+    {"with": "challenge-09:dossier:F12 ('not two people who both taught it')", "position": "Qualify. Agrees with challenge-09:review:findings[1]."},
+    {"with": "random-yerushalmi-05:dossier:F6 graph_effect (heard_from direction)", "position": "Disagree. Agrees with random-yerushalmi-05:review:findings[1]."},
+    {"with": "random-yerushalmi-04:dossier:ontology_lessons[8] ('all derive from the Venice print')", "position": "Qualify. Not addressed by its review. The saved cases show Leiden scribe and corrector reports and Rome reports; record dependence as suspected, with reasons."},
+    {"with": "random-bavli-03:dossier:F02 ('five pronouns')", "position": "Agree with random-bavli-03:review:findings[1]: four are supported."},
+    {"with": "One-off predicates proposed in dossiers: recites_before and instructs_to_recite (random-yerushalmi-05 ontology_lessons[1], F9), cites_precedent (random-yerushalmi-01 PC7), illustrated_by (random-yerushalmi-02 proposed_corrections[6]), answered_by (challenge-09 F12), harmonises (random-bavli-03 proposed_corrections[10]), strikes/sees/pronounces ban (challenge-30 graph list)", "position": "Disagree with adding these as standard terms. Use events with source verbs, plus one cites_statement predicate that covers the recurring statement-to-statement uses in six cases (PC-F). This follows the ontology's own rule to review recurring unclassified actions first."},
+    {"with": "challenge-11:dossier:proposed_corrections[1] ('Speaker: Yirmiya' on the not_said record)", "position": "Qualify. The unused wording is content attached to Yirmiya's actual question, not a speech act by him. Agrees with challenge-11:review:findings[0]."},
+    {"with": "random-yerushalmi-05:dossier:ontology_lessons[0] (address-formula title 'should be recorded as explicit')", "position": "Qualify: explicit only inside the reading that has the word (R07). Agrees with the review."},
+    {"with": "pilot outputs challenge-09:pilot:c4/c6 and random-yerushalmi-02:pilot:c1", "position": "Keep the claims but change basis from explicit to name_internal, and scope the parent entity to the same branch as its name (the pilot has the Avin entity shared across branches while its claim is branch-scoped)."},
+    {"with": "random-yerushalmi-01:previous-review:checks[0] (passed c9/c10)", "position": "The follow-up reversed it (random-yerushalmi-01:dossier:F19) and the review supported reopening. Earlier passes are not locks; any rule set must allow reopening a passed check."},
+    {"with": "plan/relationship-ontology.md episode genre alone", "position": "Insufficient for mixed passages; add unit function (R15). Not a replacement."}
+  ],
+  "unresolved": [
+    "No manuscript was inspected directly in any of the eleven cases. Every manuscript statement is reported by an editor or commentator.",
+    "The textual basis and mutual dependence of the Guggenheimer Hebrew, the Venice print and the Mechon-Mamre text were not checked.",
+    "What evidence should allow a 'fixed name or epithet' branch for a patronymic (Bar Qappara, original-08:dossier:F13) is not settled.",
+    "No criteria yet for when a parallel telling may support 'same event' rather than only 'same wording'.",
+    "member_of_household rests on two cases (challenge-30, random-yerushalmi-03). It needs more examples before its subtypes are fixed.",
+    "How far automatic context growth should go before it stops (challenge-30 needed 17a:9; random-bavli-03 needed 44b:11 and 45a:10; random-yerushalmi-04 needed 3:1:4).",
+    "Whether commentary agreement can ever justify high reading confidence when the commentaries' dependence is unknown (random-yerushalmi-01:dossier:PC4).",
+    "The eleven cases are now tuning material. They cannot measure the new rules; only held-out cases can.",
+    "random-bavli-05 and random-yerushalmi-06 were still in progress and are not reflected here."
+  ],
+  "next_pilot": {
+    "name": "passage-pilot-v2 (proposal)",
+    "principle": "Real cases only. Tuning cases and held-out cases stay apart. No accuracy estimate from small sets; report per-rule counts with case IDs.",
+    "tuning_regression_set": {
+      "cases": ["challenge-09", "challenge-11", "challenge-30", "original-08", "random-bavli-02", "random-bavli-03", "random-yerushalmi-01", "random-yerushalmi-02", "random-yerushalmi-03", "random-yerushalmi-04", "random-yerushalmi-05"],
+      "use": "Write expected checks from the dossiers and separate reviews (for example: parent entities present; addressee absent in challenge-30 base branch; four acquisition conditions in random-yerushalmi-03; heard_from direction in random-yerushalmi-05). A new recipe must pass them. Passing proves only that the recipe can represent these cases."
+    },
+    "held_out_named_cases": [
+      {"case": "original-01", "ref": "Gittin 50a:5", "tests": ["R01", "R19"], "why": "Patronymic father vs quoted Rav Nachman (queue question)."},
+      {"case": "original-02", "ref": "Ketubot 62b:6", "tests": ["R03", "R16", "R15"], "why": "Family, unnamed women, journeys, narrated chronology (queue question)."},
+      {"case": "original-03", "ref": "Chullin 94b:13", "tests": ["R04", "R06"], "why": "Travel story; who meets; imagined or remembered speech (queue question)."},
+      {"case": "original-05", "ref": "Arakhin 20b:9", "tests": ["R12", "R10", "R11"], "why": "Nested alternatives and a repeated passage (queue question; ontology corrections section)."},
+      {"case": "original-06", "ref": "Arakhin 13b:4", "tests": ["R12"], "why": "Two transmission routes that need not exclude each other (queue question)."},
+      {"case": "original-07", "ref": "Pesachim 37a:4", "tests": ["R07", "R12"], "why": "Branch-scoped 'my teacher' claims (queue question)."},
+      {"case": "original-09", "ref": "Bava Batra 12b:6", "tests": ["R03", "R06", "R15"], "why": "Rav Hisda's unnamed daughter; forecast vs completed marriage (queue question)."},
+      {"case": "challenge-20", "ref": "Bava Metzia 59b:10", "tests": ["R03", "R02"], "why": "Imma Shalom links husband and brother (ontology table)."},
+      {"case": "challenge-28", "ref": "Eruvin 53b:14", "tests": ["R03", "R12"], "why": "A phrase that may mean a woman or a tractate (ontology table)."},
+      {"case": "challenge-05", "ref": "Menachot 62a:12", "tests": ["R08", "R12"], "why": "Versions reverse two speakers' roles (ontology table)."},
+      {"case": "challenge-01", "ref": "Sanhedrin 101a:6", "tests": ["R06", "R09"], "why": "Parenthesised negation; translation must not decide it (ontology table)."},
+      {"case": "challenge-08", "ref": "Chagigah 3a:4", "tests": ["R02"], "why": "Alternative family paths for the same unnamed learners (ontology table)."},
+      {"case": "challenge-25", "ref": "Taanit 23b:15", "tests": ["R16", "R04"], "why": "Attendance changes from one circle to another (ontology table)."},
+      {"case": "challenge-27", "ref": "Jerusalem Talmud Berakhot 1:1:21", "tests": ["R17", "R10"], "why": "The only unresearched Yerushalmi challenge case in the queue."},
+      {"case": "random-bavli-01", "ref": "Bava Metzia 61a:7", "tests": ["R17", "R14"], "why": "Earlier random draw, not researched in the follow-up."},
+      {"case": "random-bavli-04", "ref": "Pesachim 45a:2", "tests": ["R17", "R14"], "why": "Earlier random draw, not researched in the follow-up."},
+      {"case": "random-bavli-06", "ref": "Bava Kamma 19b:5", "tests": ["R17", "R14"], "why": "Earlier random draw, not researched in the follow-up."}
+    ],
+    "held_out_fresh_random": "Draw six Bavli and six Yerushalmi passage versions from lake snapshot 2 with the seeded SHA256 ordering described in pilot/README.md, excluding all 42 pilot passages and every queue case. Record the seed and the excluded list before reading. This replaces the exhausted Yerushalmi random pool (random-yerushalmi-01 to 05 are now tuning cases; 06 is in progress).",
+    "not_in_held_out": ["random-bavli-05", "random-yerushalmi-06"],
+    "contamination_note": "The earlier random cases (random-bavli-01, 04, 06) were reviewed in the first pilot, and the challenge cases shaped the first ontology. They are held out from these new rules, not from all earlier work.",
+    "procedure": [
+      "Freeze the contract changes PC-A to PC-L and the reader changes PC-M and PC-N in a new run directory. Do not edit the frozen pilot.",
+      "Pass A on all held-out passages: base text plus wider context; mechanical mention inventory first.",
+      "Pass B only for items Pass A marks: add typed translation, commentary and parallel evidence with dependency groups.",
+      "Run the validator checks in PC-L. Keep failures visible per passage.",
+      "A separate reader checks each rule on each passage (pass, miss, not_applicable) without seeing expected outcomes for fresh random passages.",
+      "Report per rule: the case IDs where it failed, with the source words. No population accuracy."
+    ],
+    "per_rule_measures": {
+      "R01": "Patronymics in the inventory without parent entity or child_of claim.",
+      "R04": "Speech claims with an addressee but no marker or reply in the text.",
+      "R06": "Negative, restrictive or rhetorical content stored as positive plain content.",
+      "R08": "Inverse duplicates; direction errors against the role definitions.",
+      "R09": "Branches without evidence_type; emendations without grounds; printed text overwritten.",
+      "R10": "Support statements that count holders from one dependency group more than once.",
+      "R12": "Alternatives stored as historically exclusive without a stated reason.",
+      "R14": "Legal roles stored as persons; rules missing condition or count.",
+      "R17": "Exact occurrences in the window without a mention."
+    }
+  },
+  "next_steps": [
+    "1. Human review of this proposal, especially R01, R02, R09, R10 and PC-F. Nothing here is accepted until then.",
+    "2. Write contract v2 and validator checks in a new directory (PC-A to PC-L). Keep the frozen pilot unchanged.",
+    "3. Turn the eleven researched cases into regression checks from their dossiers and separate reviews.",
+    "4. Record the fresh random draw (seed and exclusions) before any reading.",
+    "5. Run Pass A, then Pass B, on the held-out set.",
+    "6. Separate rule-by-rule review; publish failures with case IDs.",
+    "7. Only after that, open identity packs for the questions in R19, starting with Yirmiya bar Abba (challenge-11), Yosi bar Hanina/bar Zevida (challenge-09) and Rav Hoshaya (random-yerushalmi-01).",
+    "8. Biography and date work after identity packs, as sourced claims with dependencies."
+  ]
+}

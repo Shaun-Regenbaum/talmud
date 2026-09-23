@@ -1,0 +1,1282 @@
+{
+ "job_id": "random-yerushalmi-01",
+ "focal_ref": "Jerusalem Talmud Taanit 1:2:4",
+ "status": "researched",
+ "question": "Investigate remembered encounter and pronouns, brother versus חביבך, and later unnamed speaker. Capture the competing rain date third of Marheshvan and narrated precedent. Use translations and commentaries to distinguish certainty from conjecture.",
+ "scope_checked": "Read: JT Taanit 1:1-1:3 (Guggenheimer Hebrew + English with notes; Venice; Mechon-Mamre; Schwab French for 1:2); commentaries on 1:2:4 available on Sefaria (Penei Moshe, Korban HaEdah, Mareh HaPanim, Sha'arei Torat Eretz Yisrael, Ohr LaYesharim), Penei Moshe and Korban HaEdah on 1:2:5 and 1:3:1; parallels JT Megillah 3:7:3, JT Shabbat 1:2, JT Sanhedrin 10:1, JT Shekalim 6:2:6 and 7:2:9, Bavli Taanit 3a and 4b; quoting commentaries (Tosefta Kifshutah Terumot 5:10, Lieberman's Sifrei Zuta study §79, Mishnat Eretz Yisrael); lexicon entries (Jastrow חביב, צות/צית, בולי, נהר; A Dictionary of the Talmud צית). Not checked: manuscripts directly (Leiden, Escorial), Guggenheimer's Megillah/Shabbat printed introductions, Sheyarei Korban (request returned 404; this does not show that it has nothing on the passage), Ridbaz, Sefer Nir, Lieberman's Yerushalmi Kifshuto. The Sefaria Community Translation returned no text for 1:2; that says nothing about whether other translations exist.",
+ "sources": [
+  {
+   "source_id": "IN",
+   "url": null,
+   "input_path": "research/sage-network/pilot/inputs/random-yerushalmi-01.json",
+   "edition": "Pilot input package (segments s1-s5, Venice Edition text as captured 2026-09-20)",
+   "fetched_at": null,
+   "saved_file": "../../../pilot/inputs/random-yerushalmi-01.json",
+   "sha256": "05e422e85f2659b189807d54a84083c8712345513c89fe7caf98bec14df0cd40"
+  },
+  {
+   "source_id": "JT12",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Taanit.1.2?version=hebrew&version=english&return_format=text_only",
+   "input_path": null,
+   "edition": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015; The Jerusalem Talmud, translation and commentary by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015 (text only, notes stripped)",
+   "fetched_at": "2026-09-22T19:28:22Z",
+   "saved_file": "sources/jt_taanit_1_2_v3.json",
+   "sha256": "d0371ec20e9f67a34762be50947c9fd3d37e99b2768f616d234510c4d524fde0"
+  },
+  {
+   "source_id": "JT12_GUG_EN",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Taanit.1.2?version=english|The%20Jerusalem%20Talmud,%20translation%20and%20commentary%20by%20Heinrich%20W.%20Guggenheimer.%20Berlin,%20De%20Gruyter,%201999-2015",
+   "input_path": null,
+   "edition": "The Jerusalem Talmud, translation and commentary by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015 (with footnotes)",
+   "fetched_at": "2026-09-22T19:29:32Z",
+   "saved_file": "sources/jt_taanit_1_2_guggenheimer_en_with_notes.json",
+   "sha256": "454fd19132b7918e1ad429ed3edb37fae2f807b099b2450b89de609e3078873f"
+  },
+  {
+   "source_id": "JT12_VEN",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Taanit.1.2?version=hebrew|Venice%20Edition",
+   "input_path": null,
+   "edition": "Venice Edition (Sefaria)",
+   "fetched_at": "2026-09-22T19:29:35Z",
+   "saved_file": "sources/jt_taanit_1_2_venice_he.json",
+   "sha256": "5a9d90b59ae4de265ff59fb97fa0b7003afa2375ed9439e686e5634c52261c88"
+  },
+  {
+   "source_id": "JT12_MM",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Taanit.1.2?version=hebrew|Mechon-Mamre",
+   "input_path": null,
+   "edition": "Mechon-Mamre (Sefaria)",
+   "fetched_at": "2026-09-22T19:29:36Z",
+   "saved_file": "sources/jt_taanit_1_2_mechon_mamre_he.json",
+   "sha256": "f9f89fb743e10e9e354edb76ec4ab527773e70239937f2f4e39eac5a22766ac5"
+  },
+  {
+   "source_id": "JT12_SCHWAB",
+   "url": "https://www.sefaria.org/api/texts/Jerusalem_Talmud_Taanit.1.2?ven=Le_Talmud_de_J%C3%A9rusalem,_traduit_par_Moise_Schwab,_1878-1890_%5Bfr%5D&context=0",
+   "input_path": null,
+   "edition": "Le Talmud de Jérusalem, traduit par Moise Schwab, 1878-1890 [fr] (Sefaria)",
+   "fetched_at": "2026-09-22T19:29:51Z",
+   "saved_file": "sources/jt_taanit_1_2_schwab_fr_v1.json",
+   "sha256": "6a64ad6beaec83018bd3ebb69be57fd4acfe63dbd46f4cf75f1c8ac9219a2cf2"
+  },
+  {
+   "source_id": "JT13",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Taanit.1.3?version=hebrew&version=english&return_format=text_only",
+   "input_path": null,
+   "edition": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015; The Jerusalem Talmud, translation and commentary by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015 (text only)",
+   "fetched_at": "2026-09-22T19:28:23Z",
+   "saved_file": "sources/jt_taanit_1_3_v3.json",
+   "sha256": "ed68ec71796434bfeaa29ea6b0fac91b31fc406e6a18a63533d70677676ead28"
+  },
+  {
+   "source_id": "JT11",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Taanit.1.1?version=hebrew&version=english&return_format=text_only",
+   "input_path": null,
+   "edition": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015; The Jerusalem Talmud, translation and commentary by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015 (text only)",
+   "fetched_at": "2026-09-22T19:28:24Z",
+   "saved_file": "sources/jt_taanit_1_1_v3.json",
+   "sha256": "aec002c1a9c2cf76ff847a4f300a609ac14840451faac1df6036b46dd58ef94b"
+  },
+  {
+   "source_id": "MISHNAH",
+   "url": "https://www.sefaria.org/api/v3/texts/Mishnah_Taanit.1",
+   "input_path": null,
+   "edition": "Mishnah Taanit 1, Torat Emet 357 (Sefaria default Hebrew)",
+   "fetched_at": "2026-09-22T19:30:41Z",
+   "saved_file": "sources/mishnah_taanit_1.json",
+   "sha256": "e4504bcbb2d42ca78d436cc729f10165111ff7be8a8599c556d1b6e169a26373"
+  },
+  {
+   "source_id": "PM124",
+   "url": "https://www.sefaria.org/api/v3/texts/Penei_Moshe_on_Jerusalem_Talmud_Taanit.1.2.4",
+   "input_path": null,
+   "edition": "Penei Moshe, Piotrków, 1898-1900 (as digitized on Sefaria)",
+   "fetched_at": "2026-09-22T19:30:26Z",
+   "saved_file": "sources/penei_moshe_jt_taanit_1_2_4.json",
+   "sha256": "539e57a2a08290374faad7ccf2575fce1cc2a610aa71e6ba7bf06ae5721b9ab7"
+  },
+  {
+   "source_id": "KH124",
+   "url": "https://www.sefaria.org/api/v3/texts/Korban_HaEdah_on_Jerusalem_Talmud_Taanit.1.2.4",
+   "input_path": null,
+   "edition": "Korban HaEdah, Piotrków, 1898-1900 (as digitized on Sefaria)",
+   "fetched_at": "2026-09-22T19:30:29Z",
+   "saved_file": "sources/korban_haedah_jt_taanit_1_2_4.json",
+   "sha256": "3cb072159732fd982b2d157754a5e1f7bc0bf07e5605e4a8a38258c5a36ff782"
+  },
+  {
+   "source_id": "MHP124",
+   "url": "https://www.sefaria.org/api/v3/texts/Mareh_HaPanim_on_Jerusalem_Talmud_Taanit.1.2.4",
+   "input_path": null,
+   "edition": "Mareh HaPanim, Piotrków, 1898-1900 (as digitized on Sefaria)",
+   "fetched_at": "2026-09-22T19:30:32Z",
+   "saved_file": "sources/mareh_hapanim_jt_taanit_1_2_4.json",
+   "sha256": "b5374bbbe4cbb8d2640c8e55be42fe3d0436f0b0e6037ea9f391cacaba85933a"
+  },
+  {
+   "source_id": "STEY124",
+   "url": "https://www.sefaria.org/api/v3/texts/Sha'arei_Torat_Eretz_Yisrael_on_Jerusalem_Talmud_Taanit.1.2.4",
+   "input_path": null,
+   "edition": "Sha'arei Torat Eretz Yisrael, Jerusalem 1940 (Sefaria)",
+   "fetched_at": "2026-09-22T19:30:34Z",
+   "saved_file": "sources/shaarei_torat_ey_jt_taanit_1_2_4.json",
+   "sha256": "3a23821e680fc57fe144b3b4fd9336594e57369723e92c43bb93af9325e20f67"
+  },
+  {
+   "source_id": "OLY124",
+   "url": "https://www.sefaria.org/api/v3/texts/Ohr_LaYesharim_on_Jerusalem_Talmud_Taanit.1.2.4",
+   "input_path": null,
+   "edition": "Ohr LaYesharim, Machon HaYerushalmi, R. Yehoshua Buch, 2004 (Sefaria)",
+   "fetched_at": "2026-09-22T19:30:33Z",
+   "saved_file": "sources/ohr_layesharim_jt_taanit_1_2_4.json",
+   "sha256": "b5d3d7b326333c4c39addb723a28d9e994aa750bad445aae6331bbda015ed10a"
+  },
+  {
+   "source_id": "PM125",
+   "url": "https://www.sefaria.org/api/v3/texts/Penei_Moshe_on_Jerusalem_Talmud_Taanit.1.2.5",
+   "input_path": null,
+   "edition": "Penei Moshe, Piotrków, 1898-1900 (as digitized on Sefaria)",
+   "fetched_at": "2026-09-22T19:30:35Z",
+   "saved_file": "sources/penei_moshe_jt_taanit_1_2_5.json",
+   "sha256": "2ce966d08ceca1cf5114889068af946e7e79ce62a2eccdf750c2b83b1e93f653"
+  },
+  {
+   "source_id": "KH125",
+   "url": "https://www.sefaria.org/api/v3/texts/Korban_HaEdah_on_Jerusalem_Talmud_Taanit.1.2.5",
+   "input_path": null,
+   "edition": "Korban HaEdah, Piotrków, 1898-1900 (as digitized on Sefaria)",
+   "fetched_at": "2026-09-22T19:30:36Z",
+   "saved_file": "sources/korban_haedah_jt_taanit_1_2_5.json",
+   "sha256": "c1d9b3c6408fc22b237776dcaf8077890167e49e813c58420318477a2241f630"
+  },
+  {
+   "source_id": "PM131",
+   "url": "https://www.sefaria.org/api/v3/texts/Penei_Moshe_on_Jerusalem_Talmud_Taanit.1.3.1",
+   "input_path": null,
+   "edition": "Penei Moshe, Piotrków, 1898-1900 (as digitized on Sefaria)",
+   "fetched_at": "2026-09-22T19:30:37Z",
+   "saved_file": "sources/penei_moshe_jt_taanit_1_3_1.json",
+   "sha256": "183e00cc039f4b0fb322d4bf340ba670dd9b19aad1fb409051e86e1543f01c26"
+  },
+  {
+   "source_id": "KH131",
+   "url": "https://www.sefaria.org/api/v3/texts/Korban_HaEdah_on_Jerusalem_Talmud_Taanit.1.3.1",
+   "input_path": null,
+   "edition": "Korban HaEdah, Piotrków, 1898-1900 (as digitized on Sefaria)",
+   "fetched_at": "2026-09-22T19:30:37Z",
+   "saved_file": "sources/korban_haedah_jt_taanit_1_3_1.json",
+   "sha256": "01ba1cb32d2948eebb81bb9951851a9909778d30280ff53f762d973d0fc63845"
+  },
+  {
+   "source_id": "LINKS124",
+   "url": "https://www.sefaria.org/api/links/Jerusalem_Talmud_Taanit.1.2.4?with_text=1",
+   "input_path": null,
+   "edition": "Sefaria links index for Jerusalem Talmud Taanit 1:2:4",
+   "fetched_at": "2026-09-22T19:28:29Z",
+   "saved_file": "sources/links_jt_taanit_1_2_4.json",
+   "sha256": "46f92aae334e0db7fee0faf94213880e1364e927025035d0343039fb81532604"
+  },
+  {
+   "source_id": "LINKS125",
+   "url": "https://www.sefaria.org/api/links/Jerusalem_Talmud_Taanit.1.2.5?with_text=1",
+   "input_path": null,
+   "edition": "Sefaria links index for Jerusalem Talmud Taanit 1:2:5",
+   "fetched_at": "2026-09-22T19:28:39Z",
+   "saved_file": "sources/links_jt_taanit_1_2_5.json",
+   "sha256": "c6edb038e4017b5884dcbd1183eed6d79557ab49ba801f5c78cdbb70616d5255"
+  },
+  {
+   "source_id": "LINKS131",
+   "url": "https://www.sefaria.org/api/links/Jerusalem_Talmud_Taanit.1.3.1?with_text=1",
+   "input_path": null,
+   "edition": "Sefaria links index for Jerusalem Talmud Taanit 1:3:1",
+   "fetched_at": "2026-09-22T19:28:52Z",
+   "saved_file": "sources/links_jt_taanit_1_3_1.json",
+   "sha256": "c600e8a8c00e76acf584a2d3315c53b0c8a115086204b28dfc05e626d9fb65c6"
+  },
+  {
+   "source_id": "B3A",
+   "url": "https://www.sefaria.org/api/v3/texts/Taanit.3a",
+   "input_path": null,
+   "edition": "Bavli Taanit 3a, William Davidson Edition - Vocalized Aramaic",
+   "fetched_at": "2026-09-22T19:34:19Z",
+   "saved_file": "sources/bavli_taanit_3a.json",
+   "sha256": "6d7bc307c0e6448832f962682e18d86a1ebc10e63d0b345936fea731f4602e27"
+  },
+  {
+   "source_id": "B3A_EN",
+   "url": "https://www.sefaria.org/api/v3/texts/Taanit.3a?version=english|William%20Davidson%20Edition%20-%20English",
+   "input_path": null,
+   "edition": "Bavli Taanit 3a, William Davidson Edition - English",
+   "fetched_at": "2026-09-22T19:34:22Z",
+   "saved_file": "sources/bavli_taanit_3a_davidson_en.json",
+   "sha256": "b48d6618124cb0b06d5f7a56180e49c8bde84f94eb115d7d2493912abba1d798"
+  },
+  {
+   "source_id": "B4B",
+   "url": "https://www.sefaria.org/api/v3/texts/Taanit.4b",
+   "input_path": null,
+   "edition": "Bavli Taanit 4b, William Davidson Edition - Vocalized Aramaic",
+   "fetched_at": "2026-09-22T19:30:37Z",
+   "saved_file": "sources/bavli_taanit_4b.json",
+   "sha256": "8e39c7293b7d2cdc74d3a2c9c6ce5317d3fcc10c98054f08c23874d45c3dfcd1"
+  },
+  {
+   "source_id": "B4B_EN",
+   "url": "https://www.sefaria.org/api/v3/texts/Taanit.4b?version=english|William%20Davidson%20Edition%20-%20English",
+   "input_path": null,
+   "edition": "Bavli Taanit 4b, William Davidson Edition - English",
+   "fetched_at": "2026-09-22T19:31:47Z",
+   "saved_file": "sources/bavli_taanit_4b_davidson_en.json",
+   "sha256": "3d1923a3475efaca2590376b44cb8c548974f9103d2f98202eacd2f0d15ce70c"
+  },
+  {
+   "source_id": "MEG3_HE",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Megillah.3?version=hebrew",
+   "input_path": null,
+   "edition": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015",
+   "fetched_at": "2026-09-22T19:32:45Z",
+   "saved_file": "sources/jt_megillah_3_he_guggenheimer.json",
+   "sha256": "7269b0b49b4c86bce20f5adbc000ec8ee8db2492182d47d30b81d1a5edd4d6d2"
+  },
+  {
+   "source_id": "MEG3_EN",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Megillah.3?version=english",
+   "input_path": null,
+   "edition": "The Jerusalem Talmud, translation and commentary by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015",
+   "fetched_at": "2026-09-22T19:32:47Z",
+   "saved_file": "sources/jt_megillah_3_en_guggenheimer.json",
+   "sha256": "edf40f6655169520c1acce05ab8cc7fe6a8dc71684062d775c3b7687b76ec383"
+  },
+  {
+   "source_id": "SHAB12_EN",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Shabbat.1.2?version=english|The%20Jerusalem%20Talmud,%20translation%20and%20commentary%20by%20Heinrich%20W.%20Guggenheimer.%20Berlin,%20De%20Gruyter,%201999-2015",
+   "input_path": null,
+   "edition": "The Jerusalem Talmud, translation and commentary by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015",
+   "fetched_at": "2026-09-22T19:31:51Z",
+   "saved_file": "sources/jt_shabbat_1_2_guggenheimer_en.json",
+   "sha256": "3ae41e0d282573657d7de346355c2eeace67212cd96e22cbca0e54f1b8676aa3"
+  },
+  {
+   "source_id": "SHAB12_VEN",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Shabbat.1.2?version=hebrew|Venice%20Edition",
+   "input_path": null,
+   "edition": "Venice Edition (Sefaria)",
+   "fetched_at": "2026-09-22T19:31:54Z",
+   "saved_file": "sources/jt_shabbat_1_2_venice_he.json",
+   "sha256": "439d81503092958b2262cb6c90be655ca5071285e803cf848c9cbe70695bda1a"
+  },
+  {
+   "source_id": "SANH101",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Sanhedrin.10.1?version=hebrew",
+   "input_path": null,
+   "edition": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015 and other Hebrew versions returned",
+   "fetched_at": "2026-09-22T19:32:54Z",
+   "saved_file": "sources/jt_sanhedrin_10_1_he.json",
+   "sha256": "4727a6597f5ab3004df056f040b094a20d0cdc9e1fdf8b2d4a729e9b6e9fc321"
+  },
+  {
+   "source_id": "SHEK626",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Shekalim.6.2.6",
+   "input_path": null,
+   "edition": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015",
+   "fetched_at": "2026-09-22T19:30:56Z",
+   "saved_file": "sources/jt_shekalim_6_2_6.json",
+   "sha256": "996c345a329dcae4d60482aec7843d3217a1d08fb65a7f32827fac142d59e827"
+  },
+  {
+   "source_id": "SHEK729",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Shekalim.7.2.9",
+   "input_path": null,
+   "edition": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015",
+   "fetched_at": "2026-09-22T19:30:55Z",
+   "saved_file": "sources/jt_shekalim_7_2_9.json",
+   "sha256": "7a9d53de7927ad5ee9b586a33024fda888d502ed65f6b7e55ee81ba0f71d4b27"
+  },
+  {
+   "source_id": "TK",
+   "url": "https://www.sefaria.org/api/v3/texts/Tosefta_Kifshutah_on_Terumot_5:10:18",
+   "input_path": null,
+   "edition": "Tosefta Kifshutah (S. Lieberman) on Terumot 5:10:18, Sefaria",
+   "fetched_at": "2026-09-22T19:32:38Z",
+   "saved_file": "sources/tosefta_kifshutah_terumot_5_10_18.json",
+   "sha256": "2866567cd84143e63ddd9772dd54f5178888582250d60dd45f042d8c605241fa"
+  },
+  {
+   "source_id": "SZ79",
+   "url": "https://www.sefaria.org/api/v3/texts/Sifrei_Zuta%3B_Midrashah_shel_Lod,_Place_of_Compilation_of_Sifrei_Zuta_and_Its_Final_Redactor_79",
+   "input_path": null,
+   "edition": "Sifrei Zuta; Midrashah shel Lod (S. Lieberman) 79, Sefaria",
+   "fetched_at": "2026-09-22T19:32:42Z",
+   "saved_file": "sources/sifrei_zuta_midrashah_shel_lod_79.json",
+   "sha256": "96aa65eb658ed6358345bb79b79dffa8ac1ce6f4d89ded7b4aeabec1f1febb27"
+  },
+  {
+   "source_id": "MEY_TAAN",
+   "url": "https://www.sefaria.org/api/v3/texts/Mishnat_Eretz_Yisrael_on_Mishnah_Taanit_1:2:5",
+   "input_path": null,
+   "edition": "Mishnat Eretz Yisrael on Mishnah Taanit 1:2:5, Sefaria",
+   "fetched_at": "2026-09-22T19:32:41Z",
+   "saved_file": "sources/mishnat_ey_taanit_1_2_5.json",
+   "sha256": "515be1c6efe98c00859ad88a7dd2f58aa1bb84c98e6e9c34d93a3db410b3d559"
+  },
+  {
+   "source_id": "MEY_BER",
+   "url": "https://www.sefaria.org/api/v3/texts/Mishnat_Eretz_Yisrael_on_Mishnah_Berakhot_5:2:4",
+   "input_path": null,
+   "edition": "Mishnat Eretz Yisrael on Mishnah Berakhot 5:2:4, Sefaria",
+   "fetched_at": "2026-09-22T19:32:40Z",
+   "saved_file": "sources/mishnat_ey_berakhot_5_2_4.json",
+   "sha256": "5954bb765202a0d7fc1a0b02a3f0b4f6776bb2e226eba8163637c0365fb4b200"
+  },
+  {
+   "source_id": "JAS_HAVIV",
+   "url": "https://www.sefaria.org/api/words/%D7%97%D7%91%D7%99%D7%91",
+   "input_path": null,
+   "edition": "Sefaria lexicon lookup חביב (Jastrow; Klein)",
+   "fetched_at": "2026-09-22T19:31:56Z",
+   "saved_file": "sources/lexicon_haviv.json",
+   "sha256": "6002158a56bac7fe55db9c00c85c33c1f806a4ce928d737938c7058bf5c6ae02"
+  },
+  {
+   "source_id": "JAS_TSYT",
+   "url": "https://www.sefaria.org/api/words/%D7%A6%D7%99%D7%AA",
+   "input_path": null,
+   "edition": "Sefaria lexicon lookup צית (Jastrow; Klein)",
+   "fetched_at": "2026-09-22T19:32:17Z",
+   "saved_file": "sources/lexicon_tsyt.json",
+   "sha256": "fab32a5e0c5f49763efaa9c57b852017d980df056b646a1b37f543f5e57fbb01"
+  },
+  {
+   "source_id": "DICT_TSAYET",
+   "url": "https://www.sefaria.org/api/v3/texts/A_Dictionary_of_the_Talmud,_%D7%A6%D6%B7%D7%99%D6%B5%D6%BC%D7%AA_1",
+   "input_path": null,
+   "edition": "A Dictionary of the Talmud, entry צַיֵּת, Sefaria",
+   "fetched_at": "2026-09-22T19:32:43Z",
+   "saved_file": "sources/dictionary_of_talmud_tsayet.json",
+   "sha256": "e6f7f96701d488c8c8989a43f764bb23f849464cd948da169dd26a7d7a6439e2"
+  },
+  {
+   "source_id": "JAS_BULI",
+   "url": "https://www.sefaria.org/api/v3/texts/Jastrow,_%2A%D7%91%D6%BC%D7%95%D6%BC%D7%9C%D6%B4%D7%99_I_1",
+   "input_path": null,
+   "edition": "Jastrow, *בּוּלִי I, Sefaria",
+   "fetched_at": "2026-09-22T19:32:44Z",
+   "saved_file": "sources/jastrow_buli_1.json",
+   "sha256": "643bf56e3ee3f06377c60b7da07305dd4171ae71e24f381d48ed49a5ab856d03"
+  },
+  {
+   "source_id": "JAS_NEHAR",
+   "url": "https://www.sefaria.org/api/v3/texts/Jastrow,_%D7%A0%D6%B0%D7%94%D6%B7%D7%A8_I_1",
+   "input_path": null,
+   "edition": "Jastrow, נְהַר I, Sefaria",
+   "fetched_at": "2026-09-22T19:32:44Z",
+   "saved_file": "sources/jastrow_nehar_1.json",
+   "sha256": "013304e74563ac6d010250b8f78c6475e0f25b947c9be7310fff78430ec47af4"
+  }
+ ],
+ "fetch_failures_and_empty_responses": [
+  {
+   "url": "https://www.sefaria.org/api/v3/texts/Sheyarei_Korban_on_Jerusalem_Talmud_Taanit.1.2.4",
+   "error": "<HTTPError 404: 'Not Found'>"
+  },
+  {
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Taanit.1.2?version=english|Sefaria%20Community%20Translation",
+   "note": "HTTP 200 but no text returned for this section in the requested version; not used as evidence and not taken as proof that no such translation exists"
+  },
+  {
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Taanit.1.2?version=english|Le%20Talmud%20de%20J%C3%A9rusalem,%20traduit%20par%20Moise%20Schwab,%201878-1890%20%5Bfr%5D",
+   "note": "HTTP 200 but no text returned for this section in the requested version; not used as evidence and not taken as proof that no such translation exists"
+  },
+  {
+   "url": "https://www.sefaria.org/api/texts/Jerusalem_Talmud_Taanit.1.2?ven=Sefaria_Community_Translation&context=0",
+   "note": "HTTP 200 but no text returned for this section in the requested version; not used as evidence and not taken as proof that no such translation exists"
+  }
+ ],
+ "findings": [
+  {
+   "finding_id": "F1",
+   "claim": "The halakhah opens with an unnamed plural group asking a question 'before him', and 'he' answers 'them': practice is that where one mentions rain one also asks for it. The text names neither the askers nor the one who answers.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "בעון קומוי או נימר כאן להזכיר כאן לשאלה אמר לון הלכה מקום שמזכירין שואלין"
+    },
+    {
+     "source_id": "JT12_GUG_EN",
+     "exact_quote": "They asked before him"
+    }
+   ],
+   "reasoning": "בעון is a 3rd-person plural verb ('they asked'). קומוי is 'before him'. אמר לון is 'he said to them'. None of these has a named antecedent in the segment. (My translation: 'They asked before him: or should we say, here it is about mentioning and there about asking? He said to them: the practice is that where one mentions, one asks.')",
+   "confidence": "high",
+   "graph_effect": "Keep the askers as an unnamed group node. Keep the answerer as a pronoun mention until coreference is resolved (see F2)."
+  },
+  {
+   "finding_id": "F2",
+   "claim": "Every consulted commentary that comments on this phrase (Penei Moshe, Korban HaEdah, Ohr LaYesharim), and both translations, take 'him' (the one asked, who then answers) to be R. Yohanan. The text also supports this: two lines later, R. Hiyya bar Ba brings the same formula from Tyre in R. Yohanan's name.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "PM124",
+     "exact_quote": "דר' יוחנן או דילמא נימר דכאן ברישא דהמתני' להזכיר"
+    },
+    {
+     "source_id": "KH124",
+     "exact_quote": "הקשו לפני רבי יוחנן"
+    },
+    {
+     "source_id": "OLY124",
+     "exact_quote": "שאלו לפניו (לפני רבי יוחנן)"
+    },
+    {
+     "source_id": "JT12_GUG_EN",
+     "exact_quote": "R. Joḥanan."
+    },
+    {
+     "source_id": "JT12_SCHWAB",
+     "exact_quote": "fut-il demandé à R. Yohanan"
+    },
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "רבי חייה בר בא אתא מן צור ואמר מן שמיה דרבי יוחנן הלכה מקום שמזכירין שואלין"
+    }
+   ],
+   "reasoning": "R. Yohanan is the last named authority in 1:2:2-1:2:3. The same halakhic formula is later brought explicitly in his name, so the commentators' identification fits the text. It is still a coreference reading, not an explicit naming.",
+   "confidence": "high",
+   "graph_effect": "Link the opening answerer to R. Yohanan, with basis = commentary consensus plus internal support (not 'explicit'). The askers stay unnamed. Do not identify them with R. Yose and R. Hananya, whose remembered scene is a separate report."
+  },
+  {
+   "finding_id": "F3",
+   "claim": "As printed, R. Yose addresses 'R. Hananya the brother of Rav Hoshaya' (אחוי דרב הושעיה). In the same sentence he calls the shop owner 'Rav Hoshaya חביבך'.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "א\"ר יוסה לרבי חנניה אחוי דרב הושעיה נהיר את כד הוינן קיימין קומי חנותיה דרב הושעיה חביבך"
+    },
+    {
+     "source_id": "JT12_MM",
+     "exact_quote": "אמר רבי יוסה לרבי חנייה אחוי דרב הושעיה נהיר את כד הוינן קיימין קומי חנותיה דרב הושעיה חביבך"
+    },
+    {
+     "source_id": "JAS_NEHAR",
+     "exact_quote": "dost thou remember when we were standing &c.?"
+    }
+   ],
+   "reasoning": "Venice and Mechon-Mamre agree on אחוי ('his brother'). Mechon-Mamre spells the addressee חנייה. נהיר את = 'do you remember' (Jastrow).",
+   "confidence": "high",
+   "graph_effect": "Record the printed epithet 'brother of Rav Hoshaya' as a textual reading only (see F5-F6 for why it should not become a sibling edge)."
+  },
+  {
+   "finding_id": "F4",
+   "claim": "חביב has two lexical senses: 'beloved' and 'uncle, father's brother'. Every interpreter consulted takes the uncle sense here: Korban HaEdah and Ohr LaYesharim (דודך), Guggenheimer ('your uncle'), Schwab ('ton oncle').",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "JAS_HAVIV",
+     "exact_quote": "uncle, father’s brother"
+    },
+    {
+     "source_id": "JAS_HAVIV",
+     "exact_quote": "beloved, dear, precious; favored, privileged."
+    },
+    {
+     "source_id": "KH124",
+     "exact_quote": "זכור אתה כשהיינו עומדין לפני חנותו של ר\"ה דודך"
+    },
+    {
+     "source_id": "OLY124",
+     "exact_quote": "כאשר היינו עומדים לפני חנותו של רב הושעיה דודך"
+    },
+    {
+     "source_id": "JT12_GUG_EN",
+     "exact_quote": "do you remember when we were standing in front of your uncle Rav Hoshaia’s store"
+    },
+    {
+     "source_id": "JT12_SCHWAB",
+     "exact_quote": "devant la boutique de R. Oshia ton oncle"
+    }
+   ],
+   "reasoning": "The 'beloved' sense is lexically possible, but none of the commentaries or translations I checked adopts it for this line. It stays a live lexical option with no interpretive support in the checked sources.",
+   "confidence": "high",
+   "graph_effect": "Treat the 'uncle' reading as primary. Keep 'beloved' as a low-support alternative branch."
+  },
+  {
+   "finding_id": "F5",
+   "claim": "Two parallel Yerushalmi passages give Hananya's epithet as 'son of the brother of Rav Hoshaya'. JT Megillah 3:7:3 repeats almost the same remembered scene at Rav Hoshaya's shop and uses both בר אחוי and חביבך.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "MEG3_HE",
+     "exact_quote": "לְרִבִּי חֲנַנְיָה בַּר אָחוֹי דְּרַב הוֹשַׁעְיָה. נָהִיר אַתְּ כַּד דַּהֲוִינָן קַיָימִין קֳדָם חָנוּתָה דְּרַב הוֹשַׁעְיָה חָבִיבָךְ"
+    },
+    {
+     "source_id": "MEG3_EN",
+     "exact_quote": "said to Rebbi Ḥanania the son of Rav Hoshaia’s brother, do you remember when we were standing in front of your uncle’s store"
+    },
+    {
+     "source_id": "SHAB12_VEN",
+     "exact_quote": "רבי חנניה בן אחוי דרב הושעיה אמר מתניתין בעמי הארץ"
+    },
+    {
+     "source_id": "SHAB12_EN",
+     "exact_quote": "Rebbi Ḥananiah the son of Rav Hoshaia’s brother"
+    }
+   ],
+   "reasoning": "In Megillah the full epithet and חביבך occur together without contradiction. That suggests the Taanit reading אחוי is short by one word (בר). In Megillah the speaker is printed as bare רבי (Guggenheimer n.150 cites Soferim 13:4 with a different speaker), and the sage who passes is R. Abba bar Zavda. So the Megillah scene is a parallel formula, not proof that the same event is meant.",
+   "confidence": "high",
+   "graph_effect": "This supports a nephew relation through an unnamed parent. Do not merge the Megillah and Taanit scenes into one event."
+  },
+  {
+   "finding_id": "F6",
+   "claim": "Guggenheimer and Ohr LaYesharim both emend the Taanit text to 'son of Rav Hoshaya's brother'. On that reading Hananya is Rav Hoshaya's nephew, and the Hoshaya in his epithet and the shop owner are the same person. Read literally, 'brother of Rav Hoshaya' plus 'your uncle Rav Hoshaya' cannot both describe one Hoshaya. No source I checked proposes two different Hoshayas here. Schwab translates both phrases literally and does not comment.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "JT12_GUG_EN",
+     "exact_quote": "From the following it is obvious that one has to read “son of Rav Hoshaia’s brother”"
+    },
+    {
+     "source_id": "OLY124",
+     "exact_quote": "(צריך לומר: בר אחוי)"
+    },
+    {
+     "source_id": "OLY124",
+     "exact_quote": "בן אחיו של רב הושעיה (אמורא בדור השלישי)"
+    },
+    {
+     "source_id": "JT12_SCHWAB",
+     "exact_quote": "R. Yossé dit à R. Hanina, frère de R. Oshia: tu te souviens"
+    }
+   ],
+   "reasoning": "The emendation rests on three things: the internal contradiction, the lexical sense 'father's brother', and the parallels in F5. It remains an emendation of the printed text.",
+   "confidence": "medium",
+   "graph_effect": "Replace the explicit sibling_of(Hananya, Rav Hoshaya) with: child_of(Hananya, unnamed parent) plus sibling_of(unnamed parent, Rav Hoshaya), both with basis = emendation/commentary. Make the two Rav Hoshaya mentions one entity under this branch. Keep the printed 'brother' as a rejected/variant reading, not as an asserted edge."
+  },
+  {
+   "finding_id": "F7",
+   "claim": "Lieberman identifies the shop owner as 'R. Hoshaya the second', who had a shop in Tiberias. He cites this passage and JT Megillah 3. JT Sanhedrin 10:1 has 'the Tiberians' measuring distance 'up to the shop of R. Hoshaya'. Ohr LaYesharim places Rav Hoshaya in the third Amoraic generation.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "SZ79",
+     "exact_quote": "והוא ר' הושעיה השני שהיתה לו חנות בטבריא, כמפורש בירושלמי תענית פ\"א ה\"ב"
+    },
+    {
+     "source_id": "SANH101",
+     "exact_quote": "טִיבֵּרִיאֵי אָמְרִין. מִן סִידְרָא רַבָּה עַד חָנוּתֵיהּ דְרִבִּי הוֹשַׁעְיָה"
+    },
+    {
+     "source_id": "OLY124",
+     "exact_quote": "בן אחיו של רב הושעיה (אמורא בדור השלישי)"
+    }
+   ],
+   "reasoning": "This is scholarly historical identification. The Sanhedrin passage spells the name רבי הושעיה, not רב, and gives no kinship. Placing the shop in Tiberias is an inference that joins passages, not a statement in Taanit. The same chapter (JT Taanit 1:3:2) also has a ruling 'in the name of R. Hoshaya' that should not be merged by name alone.",
+   "confidence": "low",
+   "graph_effect": "At most, add an optional historical-identity hypothesis (shop owner = 'R. Hoshaya II', Tiberias) with basis = modern scholarship. Do not attach a place edge from Taanit alone. Do not merge with other Hoshaya mentions by name."
+  },
+  {
+   "finding_id": "F8",
+   "claim": "'We' in the remembered scene (הוינן 'we were', שאלנן 'we asked') includes at least R. Yose, the speaker, and very likely R. Hananya: Yose asks him to remember the scene, and at the end speaks of Hananya's own action ('you ...'). The text does not say whether anyone else was present.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "נהיר את כד הוינן קיימין"
+    },
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "עבר רבי זעורה ושאלנן ליה ואמר עוד אנא היא צריכה לי עבר רבי יסא ושאלנן ליה ואמר עוד אנא היא צריכה לי"
+    },
+    {
+     "source_id": "KH124",
+     "exact_quote": "ושאלנו ליה ואמר גם לדידי קמיבעיא לי"
+    }
+   ],
+   "reasoning": "Asking the addressee whether he remembers presupposes he was there. The plural verb does not limit the group to two. The whole scene is Yose's recollection inside the halakhah, so it has the status of reported speech.",
+   "confidence": "medium",
+   "graph_effect": "Participation edges for Yose (high) and Hananya (medium-high). Give them voice = R. Yose (reported recollection), not narrator. The unnamed parent and Rav Hoshaya are not participants, only the owner of the landmark."
+  },
+  {
+   "finding_id": "F9",
+   "claim": "R. Zeura and then R. Yasa each passed by, were asked, and replied 'עוד אנא היא צריכה לי'. Commentators read עוד two ways: 'still' (Penei Moshe, Guggenheimer) or 'I too' (Korban HaEdah, Ohr LaYesharim). Either way, each sage says he is himself unsure.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "PM124",
+     "exact_quote": "עדיין אני מסופק בדבר זה אם יש לחלק בין הזכרה לבין שאלה"
+    },
+    {
+     "source_id": "KH124",
+     "exact_quote": "גם לדידי קמיבעיא לי"
+    },
+    {
+     "source_id": "JT12_GUG_EN",
+     "exact_quote": "this is still problematic for me"
+    }
+   ],
+   "reasoning": "The 'I too' reading implies the questioners were also unsure. The 'still' reading implies an ongoing doubt. Neither changes who spoke.",
+   "confidence": "high",
+   "graph_effect": "asks(Yose+Hananya → Zeura), asks(Yose+Hananya → Yasa), answers-with-doubt from each. These stay inside R. Yose's recollection."
+  },
+  {
+   "finding_id": "F10",
+   "claim": "Interpreters differ on what exactly the two sages were asked. Penei Moshe and Ohr LaYesharim say it was whether mentioning rain and asking for rain can be separated (the 'או נימר' question). Guggenheimer says it was the best date to start praying for rain.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "PM124",
+     "exact_quote": "אם יש לחלק בין הזכרה לבין שאלה"
+    },
+    {
+     "source_id": "JT12_GUG_EN",
+     "exact_quote": "The date when best to start praying for rain."
+    }
+   ],
+   "reasoning": "The text only says 'we asked him'. The content has to be supplied from context. The two readings are close: Guggenheimer's n.113 connects the mention/request rule to the autumn start date.",
+   "confidence": "medium",
+   "graph_effect": "The content role of the asks edges should point to the mention-vs-request question, noting Guggenheimer's start-date reading as an alternative."
+  },
+  {
+   "finding_id": "F11",
+   "claim": "'ובסופה את מציית ליה ואמר לא שנייא' is read in three ways. (a) 'At the end you made him listen / pressed him, and he said...': Jastrow, A Dictionary of the Talmud, Penei Moshe, Korban HaEdah ('you cried out with him in argument'), Schwab. (b) 'At the end you heard from him': Guggenheimer. (c) Emend to one word אתמציית, 'at the end it became clear to him': Sha'arei Torat Eretz Yisrael (R. Z. W. Rabinovitz), endorsed by Lieberman and followed by Ohr LaYesharim. On (a) and (b) Hananya takes part in the final exchange. On (c) he does not.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "JAS_TSYT",
+     "exact_quote": "and finally thou madest him listen (to thee), and he said &c."
+    },
+    {
+     "source_id": "DICT_TSAYET",
+     "exact_quote": "פַעל, גרם להקשבה ולציות"
+    },
+    {
+     "source_id": "DICT_TSAYET",
+     "exact_quote": "to cause to listen"
+    },
+    {
+     "source_id": "PM124",
+     "exact_quote": "שלחצת אותו לומר לך האמת"
+    },
+    {
+     "source_id": "KH124",
+     "exact_quote": "ולבסוף אתה צעקת עמו דרך פלפול"
+    },
+    {
+     "source_id": "JT12_SCHWAB",
+     "exact_quote": "Ce n’est qu’après l’avoir poussé à bout et pressé, qu’il finit par s’écrier"
+    },
+    {
+     "source_id": "JT12_GUG_EN",
+     "exact_quote": "But at the end you heard from him: there is no difference; where one mentions one asks."
+    },
+    {
+     "source_id": "STEY124",
+     "exact_quote": "פי' שזכר ונמצא לו דין זה, ומלת \"אתמציית\" נתחלקה לשתים"
+    },
+    {
+     "source_id": "TK",
+     "exact_quote": "כלומר ובסוף נתמצתה לו [ההלכה] ואמר וכו'"
+    },
+    {
+     "source_id": "OLY124",
+     "exact_quote": "ובסוף נמצאה לו (נודעה ונתבררה לרבי אסי שאלה זו), שידע להשיב עליה"
+    }
+   ],
+   "reasoning": "Both printed Hebrew texts have two words, את מציית. Reading (c) is a conjectural emendation, though highly regarded (Lieberman calls it 'הגהתו היפה', 'his fine emendation'). Reading (b) is the most neutral translation and treats the clause as transmission. Reading (a) treats it as a pressured exchange.",
+   "confidence": "medium",
+   "graph_effect": "Branch the final exchange. (a) speech: Hananya presses the sage, and the sage answers; (b) transmission: Hananya hears the ruling from the sage; (c) the sage comes to know the ruling himself and states it (no Hananya edge). The earlier single heard_from edge is branch (b) only."
+  },
+  {
+   "finding_id": "F12",
+   "claim": "The pronoun 'him' (ליה), the one who finally says 'לא שנייא', is not named. The nearest antecedent is R. Yasa. Ohr LaYesharim names him outright ('R. Assi'), and Schwab's French continues from R. Yassa. No consulted source makes it R. Zeura.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "OLY124",
+     "exact_quote": "ובסוף נמצאה לו (נודעה ונתבררה לרבי אסי שאלה זו)"
+    },
+    {
+     "source_id": "OLY124",
+     "exact_quote": "עבר רבי יסא (רבי אסי, אמורא ארץ ישראלי בדור השלישי)"
+    },
+    {
+     "source_id": "JT12_SCHWAB",
+     "exact_quote": "et la même question ayant été adressée à R. Yassa qui passa, il y répondit de même"
+    },
+    {
+     "source_id": "OLY124",
+     "exact_quote": "ולרבי אסי היו דברי רבי יוחנן ברורים, ולרבי זירא היו הדברים מסופקים."
+    },
+    {
+     "source_id": "B4B",
+     "exact_quote": "אֲמַר לֵיהּ רַבִּי זֵירָא לְרַבִּי אַסִּי: וּמִי אָמַר רַבִּי יוֹחָנָן הָכִי?"
+    }
+   ],
+   "reasoning": "Penei Moshe, Korban HaEdah, Guggenheimer and Jastrow leave 'him' unnamed. Ohr LaYesharim supports R. Yasa by linking to Bavli Taanit 4b, where R. Assi transmits R. Yohanan and R. Zeira questions him. That is cross-text support, and it depends on identifying Yerushalmi יסא with Bavli אסי, which is a commentator's identification, not something the text states.",
+   "confidence": "medium",
+   "graph_effect": "Resolve the final speaker to R. Yasa at medium confidence (basis: nearest antecedent plus one commentary). Zeura is a low-confidence alternative. Do not create a Yasa–Yohanan transmission edge from this Yerushalmi passage: Yasa is not said to cite Yohanan here."
+  },
+  {
+   "finding_id": "F13",
+   "claim": "R. Hiyya bar Ba came from Tyre and said the ruling in R. Yohanan's name. Ohr LaYesharim suggests, explicitly as a possibility, that he had heard it from R. Yohanan in Tyre.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "רבי חייה בר בא אתא מן צור ואמר מן שמיה דרבי יוחנן"
+    },
+    {
+     "source_id": "OLY124",
+     "exact_quote": "אפשר, שכשחזר רבי חייא בר אבא מצור, אמר משמו של רבי יוחנן מה ששמע ממנו בצור."
+    }
+   ],
+   "reasoning": "The travel and the attribution are textual. The claim that R. Yohanan was in Tyre, and that the ruling was heard there, is marked 'אפשר' ('it is possible') by the commentator. It is conjecture.",
+   "confidence": "high",
+   "graph_effect": "reports_in_name_of(Hiyya bar Ba → Yohanan) and origin = Tyre stay explicit. Do not add co-location of Yohanan in Tyre."
+  },
+  {
+   "finding_id": "F14",
+   "claim": "R. Aha preached in the study house and R. Yirmeya in the 'כנישתא דבולי'. The ruling formula follows once, after both clauses. Ohr LaYesharim says both preached R. Yohanan's ruling. What בולי means is disputed: a place called Buli (Penei Moshe, Korban HaEdah), 'importance' (Penei Moshe's alternative), the city council (Guggenheimer; Ohr LaYesharim, which conjectures Tiberias), or 'prob.' the senate building in Sepphoris (Jastrow).",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "רבי אחא דרש בבית מדרשא רבי ירמיה דרש בכנישתא דבולי הלכה מקום שמזכירין שואלין"
+    },
+    {
+     "source_id": "OLY124",
+     "exact_quote": "שניהם דרשו כדברי רבי יוחנן"
+    },
+    {
+     "source_id": "PM124",
+     "exact_quote": "מקום הנקרא בולי. א\"נ בולי לשון חשיבות הוא"
+    },
+    {
+     "source_id": "KH124",
+     "exact_quote": "בבית הכנסת של עיר בולי"
+    },
+    {
+     "source_id": "JAS_BULI",
+     "exact_quote": "prob. the assembly building of the Senate in Sepphoris"
+    },
+    {
+     "source_id": "OLY124",
+     "exact_quote": "כנראה נערכו בבית הכנסת של הבולי בטבריה כינוסי מועצת העיר"
+    },
+    {
+     "source_id": "SHEK729",
+     "exact_quote": "נוּקְנִיקָה אִישְׁתַּכַּח בִּכְנִישְׁתָּא דְבוּלֵי. אֲתַא עוֹבְדָא קוֹמֵי רִבִּי יִרְמְיָה."
+    }
+   ],
+   "reasoning": "The two preachings are separate events in separate places. Saying they share the same content is a reasonable syntactic reading. JT Shekalim 7:2 connects a case in the same synagogue with R. Yirmeya, but that is a co-occurrence, not evidence of where the building was.",
+   "confidence": "medium",
+   "graph_effect": "Two public-teaching events. Content = the mention/request ruling (medium-high). The place 'כנישתא דבולי' has no fixed city: Sepphoris (Jastrow) and Tiberias (Ohr LaYesharim) are both hedged conjectures."
+  },
+  {
+   "finding_id": "F15",
+   "claim": "The competing dates come from the Mishnah (JT 1:3:1 / Mishnah Taanit 1:3). The anonymous first opinion asks for rain from the 3rd of Marheshvan. Rabban Gamliel says the 7th, fifteen days after the festival, so that the last Israelite pilgrim can reach the Euphrates. The Yerushalmi's own halakhah on that Mishnah (1:3:2) calls the anonymous opinion R. Meir's, and gives a ruling 'in the name of R. Hoshaya' that follows the 3rd.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "JT13",
+     "exact_quote": "בִּשְׁלשָׁה בְּמַרְחֶשְׁוָן שׁוֹאֲלִין אֶת הַגְּשָׁמִים. רַבָּן גַּמְלִיאֵל אוֹמֵר בְּשִׁבְעָה בוֹ חֲמִשָּׁה עָשָׂר יוֹם אַחַר הֶחָג כְּדֵי שֶׁיַּגִּיעַ הָאַחֲרוֹן שֶׁבְּיִשְׂרָאֵל לִנְהַר פְּרָת."
+    },
+    {
+     "source_id": "MISHNAH",
+     "exact_quote": "בִּשְׁלשָׁה בְמַרְחֶשְׁוָן שׁוֹאֲלִין אֶת הַגְּשָׁמִים. רַבָּן גַּמְלִיאֵל אוֹמֵר, בְּשִׁבְעָה בוֹ"
+    },
+    {
+     "source_id": "JT13",
+     "exact_quote": "מַתְנִיתָא דְרִבִּי מֵאִיר."
+    },
+    {
+     "source_id": "JT13",
+     "exact_quote": "רִבִּי אַבָּא בַּר זְמִינָא רִבִּי לָעְזָר בְּשֵׁם רִבִּי הוֹשַׁעְיָה. הֲלָכָה כְמִי שֶׁהוּא אוֹמֵר. בִּשְׁלשָׁה בְּמַרְחֶשְׁוָן שׁוֹאֲלִין אֶת הַגְּשָׁמִים."
+    },
+    {
+     "source_id": "KH131",
+     "exact_quote": "דזמן רביעה ראשונה בג' במרחשון וכר\"מ וכדמפרש בגמרא"
+    }
+   ],
+   "reasoning": "The anonymous Mishnah voice is not a person node. The Yerushalmi's 'this is R. Meir's Mishnah' is an attribution made by the Talmud, and the same line adds 'there are tannaim who switch' (אית תניי תני ומחלף). The Bavli has a different ruling (R. Elazar: halakhah like Rabban Gamliel, B. Taanit 4b), and Penei Moshe on 1:3:1 rules like Rabban Gamliel. So the halakhic outcome is disputed between sources.",
+   "confidence": "high",
+   "graph_effect": "Add the missing claim: anonymous Mishnah (tanna kamma) holds_view 'ask from 3 Marheshvan', and Rabban Gamliel holds_view 'ask from 7 Marheshvan' (reason: pilgrims reach the Euphrates). Add an attribution claim: the Yerushalmi (stam) attributes the anonymous opinion to R. Meir. Add the ruling: R. Abba bar Zamina, R. La'zar in the name of R. Hoshaya, halakhah like the 3rd. Keep this R. Hoshaya separate from the shop owner."
+  },
+  {
+   "finding_id": "F16",
+   "claim": "In 1:2:4 the anonymous challenge ('והא תנינן') quotes that Mishnah against the rule 'where one mentions, one asks'. R. Tanhum bar Hiyya answers: 'בשעת המקדש שאני' ('Temple times are different'). Commentators explain the delay as time for pilgrims to get home. In Guggenheimer's edition the word 'בשלשה' in the challenge is a corrector's addition in brackets, and he writes that the scribe's shorter text may be correct.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "והא תנינן בשלשה במרחשון שואלין את הגשמים אמר רבי תנחום בר חייה בשעת המקדש שאני"
+    },
+    {
+     "source_id": "JT12",
+     "exact_quote": "וְהָא תַנִּינָן. [בִּשְׁלשָׁה] בְּמַרְחֶשְׁוָן שׁוֹאֲלִין אֶת הַגְּשָׁמִים."
+    },
+    {
+     "source_id": "JT12_GUG_EN",
+     "exact_quote": "It is possible that the scribe’s text correctly gives the argument."
+    },
+    {
+     "source_id": "PM124",
+     "exact_quote": "דהוי עולי רגלים ואין מזכירין ושואלין עד ג' במרחשון שלא יטרדו בחזירתן מחמת הגשמים"
+    },
+    {
+     "source_id": "KH124",
+     "exact_quote": "דאיכא עולי רגלים לא היו שואלין עד ג' במרחשון אבל בזמן הזה הלכה במקום שמזכירין שואלין"
+    },
+    {
+     "source_id": "OLY124",
+     "exact_quote": "בזמן שבית המקדש קיים שנו את דברי המשנה"
+    },
+    {
+     "source_id": "MHP124",
+     "exact_quote": "בשעת מקדש שאני הכי משני ומסיק נמי בבבלי דף ד ע\"ב"
+    },
+    {
+     "source_id": "B4B",
+     "exact_quote": "כָּאן בִּזְמַן שֶׁבֵּית הַמִּקְדָּשׁ קַיָּים, כָּאן בִּזְמַן שֶׁאֵין בֵּית הַמִּקְדָּשׁ קַיָּים."
+    }
+   ],
+   "reasoning": "The challenger is the anonymous Talmud voice, not a person. Tanhum's answer limits the 3rd-of-Marheshvan rule to Temple times. Ohr LaYesharim notes the vocalized שַנֵי should read שָנוּ ('they taught'); the meaning is the same. The pilgrim explanation is commentary, though it follows the Mishnah's own Euphrates reason. Venice has 'בשלשה', so whether the challenge names the 3rd depends on the witness.",
+   "confidence": "high",
+   "graph_effect": "Tanhum bar Hiyya: an 'explains/limits' claim targeting the anonymous 3rd-of-Marheshvan Mishnah opinion, not the same_rule formula. Mark the date word in the challenge as a witness variant (Guggenheimer's Leiden-based text: corrector's addition)."
+  },
+  {
+   "finding_id": "F17",
+   "claim": "In 1:2:5 R. Yose supports his prediction about the future with a precedent: 'for so we find that grain grew in the days of Joel in fifteen days and the omer was offered from it.' This precedent is spoken inside R. Yose's attributed view and derived from Joel 2:23. The narrator does not assert it as an event.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "שכן מצאנו שעשת התבואה בימי יואל לחמשה עשר יום וקרב העומר ממנה מה טעמא ובני ציון גילו ושמחו"
+    },
+    {
+     "source_id": "JT12_GUG_EN",
+     "exact_quote": "for so we find that grain grew in the days of Joel in fifteen days, and the ‘"
+    },
+    {
+     "source_id": "PM125",
+     "exact_quote": "כדדריש מיניה ר' יוסי שעשת התבואה בימי יואל לחמשה עשר יום"
+    },
+    {
+     "source_id": "KH125",
+     "exact_quote": "היינו בר\"ח ניסן ירדו הגשמים וכתיב בני ציון גילו ושמחו בה' אלהיכם היינו הקרבת העומר"
+    },
+    {
+     "source_id": "SHEK626",
+     "exact_quote": "שֶׁכֵּן מָצָאנוּ שֶׁעָשָׂת הַתְּבוּאָה בִימֵי יוֹאֵל לַחֲמִשָּׁה עָשָׂר יוֹם וְקָרֵב מִמֶּנָּה הָעוֹמֵר."
+    }
+   ],
+   "reasoning": "'We find' (מצאנו) plus the prooftext 'מה טעמא' marks this as an inference from the verse. Korban HaEdah spells it out: rain on 1 Nisan ('בראשון') and the omer by the 16th. Guggenheimer n.119 says the whole passage is copied from JT Shekalim 6:2, which has the same wording. Joel appears only as a time marker ('in the days of Joel').",
+   "confidence": "high",
+   "graph_effect": "Add: R. Yose cites_precedent → event 'grain ripened in 15 days, omer offered, in the days of Joel', with modality = attributed/exegetical, not historical. Joel = time anchor. No person-person edge between Yose and Joel."
+  },
+  {
+   "finding_id": "F18",
+   "claim": "The R. Yose of 1:2:5 (רבי יוסי, disputing R. Yehuda inside a baraita introduced by תני) and the R. Yose of 1:2:4 (רבי יוסה, recalling the scene with R. Hananya) should not be merged by name. Ohr LaYesharim places the 1:2:4 speaker among fourth-generation Palestinian Amoraim. The 1:2:5 figure speaks inside a tannaitic baraita.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "תני אמר רבי יודה לפי שבעולם הזה"
+    },
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "רבי יוסי אומר לפי שבעולם הזה"
+    },
+    {
+     "source_id": "OLY124",
+     "exact_quote": "(אמוראים ארץ ישראלים בדור הרביעי)"
+    }
+   ],
+   "reasoning": "The תני form and the pairing with R. Yehuda are text-internal signs of a tannaitic setting. Which R. Yose each one is historically is not established by the name.",
+   "confidence": "medium",
+   "graph_effect": "Keep two separate entities (as the earlier output did). Add a do-not-merge note."
+  },
+  {
+   "finding_id": "F19",
+   "claim": "Context 1:2:3: all three interpreters I consulted conclude that the Mishnah ruling 'העובר לפני התיבה' (the last prayer leader mentions rain) is the one R. Yehuda said in Ben Betera's name, and that the 'until Passover has passed' ruling is his own. Guggenheimer keeps the printed words and reads 'first' as Mishnah 3. Mishnat Eretz Yisrael emends the printed text by swapping the two names. Schwab translates the swapped sense. Bavli Taanit 3a has a baraita with this very ruling 'in the name of Ben Betera'.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "הא הדא אמרה קדמייתא בשם גרמיה ותינייתא בשם רבי יודה בן בתירה"
+    },
+    {
+     "source_id": "JT12_GUG_EN",
+     "exact_quote": "“First” here must refer to "
+    },
+    {
+     "source_id": "JT12_GUG_EN",
+     "exact_quote": "R. Abun’s statement must refer to "
+    },
+    {
+     "source_id": "MEY_TAAN",
+     "exact_quote": "עצמו, צריך לומר: בשם רבי יהודה בן בתירה"
+    },
+    {
+     "source_id": "JT12_SCHWAB",
+     "exact_quote": "cela prouve que le premier avis exprimé l’est au nom de R. Juda b. Bethera, et le deuxième en son propre nom."
+    },
+    {
+     "source_id": "B3A",
+     "exact_quote": "רַבִּי יְהוּדָה אוֹמֵר מִשּׁוּם בֶּן בְּתִירָה: הָעוֹבֵר לִפְנֵי הַתֵּיבָה בְּיוֹם טוֹב הָאַחֲרוֹן שֶׁל חַג"
+    }
+   ],
+   "reasoning": "R. Yohanan's dew reason ('so that the festivals end in dew') fits only the 'one who stands before the ark' ruling (Guggenheimer n.107). The printed wording only works if 'first' is re-read or the names are swapped. Either way the result is the reverse of the earlier output's c9.",
+   "confidence": "high",
+   "graph_effect": "Reverse c9/c10: Yehuda reports_in_name_of Ben Betera for the 'העובר לפני התיבה' ruling, and holds_view (own) for 'until Passover passes'. Note the textual crux."
+  },
+  {
+   "finding_id": "F20",
+   "claim": "Which Ben Betera is meant differs between the Talmuds. The Yerushalmi names 'R. Yehuda ben Betera'. The Bavli asks 'which Ben Betera?' and R. Nahman bar Yitzhak answers R. Yehoshua ben Betera. Schwab's French once writes 'R. Josué b. Bethera' in 1:2:3.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "חדא בשם גרמיה וחדא בשם רבי יודה בן בתירה"
+    },
+    {
+     "source_id": "B3A",
+     "exact_quote": "אָמַר רַב נַחְמָן בַּר יִצְחָק: תְּהֵא בְּרַבִּי יְהוֹשֻׁעַ בֶּן בְּתִירָה"
+    },
+    {
+     "source_id": "JT12_SCHWAB",
+     "exact_quote": "un autre au nom de R. Josué b. Bethera"
+    }
+   ],
+   "reasoning": "A shared patronymic does not settle identity. The two Talmuds may be naming different people for the same tradition.",
+   "confidence": "high",
+   "graph_effect": "In the Yerushalmi graph keep 'R. Yehuda ben Betera' as named. Do not project the Bavli's R. Yehoshua ben Betera onto it, and do not merge the two."
+  },
+  {
+   "finding_id": "F21",
+   "claim": "The abbreviation ר\"ג in the input's Venice copy of Mishnah 1:3 is written out as 'Rabban Gamliel' in the Guggenheimer Hebrew and the Mishnah text. Which Rabban Gamliel is not established by these sources.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "IN",
+     "exact_quote": "ר\"ג אומ' בשבעה בו"
+    },
+    {
+     "source_id": "JT13",
+     "exact_quote": "רַבָּן גַּמְלִיאֵל אוֹמֵר בְּשִׁבְעָה בוֹ"
+    }
+   ],
+   "reasoning": "The earlier output labelled the entity 'R. G.', which hides a routine expansion.",
+   "confidence": "high",
+   "graph_effect": "Relabel the entity 'rg' as Rabban Gamliel (unspecified). No generational identity."
+  },
+  {
+   "finding_id": "F22",
+   "claim": "Minor witness variants in the focal segment: Mechon-Mamre reads 'עבד רבי זעירה ושאלינן' where Venice reads 'עבר רבי זעורה ושאלנן', and 'חנייה' where Venice reads 'חנניה'. Penei Moshe's paraphrase of the final answer reads 'לא שנינו', where the text has 'לא שנייא'.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "JT12_MM",
+     "exact_quote": "עבד רבי זעירה ושאלינן ליה"
+    },
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "עבר רבי זעורה ושאלנן ליה"
+    },
+    {
+     "source_id": "PM124",
+     "exact_quote": "ואמר לא שנינו הלכה מקום שמזכירין שואלין"
+    }
+   ],
+   "reasoning": "עבד ('did') for עבר ('passed') is very probably a copying slip, since the parallel clause for R. Yasa has עבר in both texts. None of these variants changes the people or the relations.",
+   "confidence": "medium",
+   "graph_effect": "None beyond recording name-form variants (זעורה/זעירה, חנניה/חנייה) as surface forms of the same mention."
+  }
+ ],
+ "alternative_readings": [
+  {
+   "id": "A1",
+   "topic": "Hananya's relation to Rav Hoshaya",
+   "readings": [
+    {
+     "reading": "Nephew: 'son of Rav Hoshaya's brother'; חביבך = your (paternal) uncle; the shop owner is the same Rav Hoshaya",
+     "held_by": "Guggenheimer n.114 (emendation); Ohr LaYesharim (צריך לומר: בר אחוי); supported by the JT Megillah 3:7:3 and JT Shabbat 1:2 parallels",
+     "support": "strongest"
+    },
+    {
+     "reading": "As printed: brother of Rav Hoshaya; then חביבך would have to mean a different uncle, or 'beloved'",
+     "held_by": "printed text (Venice, Mechon-Mamre); Schwab translates 'frère' and 'ton oncle' side by side without comment",
+     "support": "weak; internally inconsistent if both refer to one Hoshaya"
+    },
+    {
+     "reading": "חביבך = 'your beloved' (affectionate)",
+     "held_by": "lexically possible (Jastrow חביב I); not adopted by any consulted commentary or translation",
+     "support": "weak"
+    }
+   ],
+   "evidence": [
+    {
+     "source_id": "MEG3_HE",
+     "exact_quote": "חֲנַנְיָה בַּר אָחוֹי דְּרַב הוֹשַׁעְיָה"
+    },
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "לרבי חנניה אחוי דרב הושעיה"
+    }
+   ]
+  },
+  {
+   "id": "A2",
+   "topic": "'ובסופה את מציית ליה' and Hananya's role",
+   "readings": [
+    {
+     "reading": "You (Hananya) pressed him / made him listen, and he said 'no difference'",
+     "held_by": "Jastrow; A Dictionary of the Talmud; Penei Moshe; Korban HaEdah; Schwab"
+    },
+    {
+     "reading": "You heard from him",
+     "held_by": "Guggenheimer"
+    },
+    {
+     "reading": "Emend to אתמציית: in the end it became clear to him, and he said",
+     "held_by": "Sha'arei Torat Eretz Yisrael; Lieberman (Tosefta Kifshutah); Ohr LaYesharim"
+    }
+   ],
+   "evidence": [
+    {
+     "source_id": "TK",
+     "exact_quote": "צ\"ל: אתמציית, במלה אחת, כהגהתו היפה של רזו\"ו רבינוביץ בשערי תורת א\"י"
+    }
+   ]
+  },
+  {
+   "id": "A3",
+   "topic": "Referent of ליה / speaker of 'לא שנייא'",
+   "readings": [
+    {
+     "reading": "R. Yasa",
+     "held_by": "Ohr LaYesharim explicitly; Schwab's syntax; nearest antecedent"
+    },
+    {
+     "reading": "R. Zeura",
+     "held_by": "no consulted source; only a structural possibility"
+    },
+    {
+     "reading": "left unspecified",
+     "held_by": "Penei Moshe, Korban HaEdah, Guggenheimer, Jastrow"
+    }
+   ]
+  },
+  {
+   "id": "A4",
+   "topic": "Location of כנישתא דבולי",
+   "readings": [
+    {
+     "reading": "a place named Buli",
+     "held_by": "Penei Moshe (first option); Korban HaEdah"
+    },
+    {
+     "reading": "a synagogue of importance",
+     "held_by": "Penei Moshe (second option)"
+    },
+    {
+     "reading": "council (βουλή) synagogue, probably in Sepphoris",
+     "held_by": "Jastrow (marked 'prob.')"
+    },
+    {
+     "reading": "council synagogue, possibly in Tiberias",
+     "held_by": "Ohr LaYesharim (marked 'כנראה'); Guggenheimer translates 'council synagogue' without a city"
+    }
+   ]
+  },
+  {
+   "id": "A5",
+   "topic": "Which Mishnah ruling R. Yehuda said in Ben Betera's name (1:2:3)",
+   "readings": [
+    {
+     "reading": "'העובר לפני התיבה' in Ben Betera's name, via re-reading 'first'/'second'",
+     "held_by": "Guggenheimer n.110"
+    },
+    {
+     "reading": "same result via emending the printed names",
+     "held_by": "Mishnat Eretz Yisrael; Schwab's translation"
+    },
+    {
+     "reading": "literal printed sense: 'העובר' ruling is his own",
+     "held_by": "the earlier pilot output; no consulted interpreter"
+    }
+   ]
+  },
+  {
+   "id": "A6",
+   "topic": "Halakhic outcome of the 3rd vs 7th Marheshvan dispute",
+   "readings": [
+    {
+     "reading": "3rd (and today: right after the festival in the Land of Israel)",
+     "held_by": "JT 1:3:2, R. Abba bar Zamina–R. La'zar in the name of R. Hoshaya (3rd); R. Tanhum bar Hiyya limits the Mishnah's delay to Temple times"
+    },
+    {
+     "reading": "7th",
+     "held_by": "Bavli 4b R. Elazar: halakhah like Rabban Gamliel; Penei Moshe on 1:3:1 'והלכה כר\"ג'"
+    }
+   ],
+   "evidence": [
+    {
+     "source_id": "B4B",
+     "exact_quote": "וְאָמַר רַבִּי אֶלְעָזָר: הֲלָכָה כְּרַבָּן גַּמְלִיאֵל!"
+    },
+    {
+     "source_id": "PM131",
+     "exact_quote": "שלא יטרידום הגשמים והלכה כר\"ג"
+    }
+   ]
+  }
+ ],
+ "unresolved": [
+  "Whether the Taanit reading אחוי is a scribal shortening of בר אחוי (strongly suggested by the parallels), or whether some manuscript actually reads בר אחוי here. No manuscript was checked directly.",
+  "Who says 'לא שנייא': R. Yasa is the best-supported candidate, but only one consulted commentary names him.",
+  "Whether Hananya actively took part in the final exchange. This depends on the unresolved את מציית / אתמציית reading.",
+  "Whether the unnamed askers in 'בעון קומוי' include any of the named later figures. No consulted source says so.",
+  "Whether the challenge in 1:2:4 named the 3rd day in the original Leiden scribe's text (Guggenheimer n.117 raises the possibility that it did not).",
+  "The historical identity of 'Rav Hoshaya' (Lieberman: R. Hoshaya II, Tiberias) and the location of כנישתא דבולי. Both are scholarly hypotheses.",
+  "Whether the Megillah 3:7:3 scene and the Taanit 1:2:4 scene reflect one remembered occasion or a recurring framing formula."
+ ],
+ "proposed_corrections": [
+  {
+   "correction_id": "PC1",
+   "existing_claim_id": "c4",
+   "change": "Downgrade sibling_of(hananya, hoshaya_brother) from asserted/explicit/high to a printed-text reading flagged as a textual variant, and prefer the nephew branch (see PC2).",
+   "why": "Commentators emend the phrase. Two Yerushalmi parallels read 'son of the brother'. Read literally, 'brother' contradicts חביבך ('uncle') if both mean one Hoshaya.",
+   "evidence": [
+    {
+     "source_id": "JT12_GUG_EN",
+     "exact_quote": "From the following it is obvious that one has to read “son of Rav Hoshaia’s brother”"
+    },
+    {
+     "source_id": "SHAB12_VEN",
+     "exact_quote": "רבי חנניה בן אחוי דרב הושעיה"
+    }
+   ]
+  },
+  {
+   "correction_id": "PC2",
+   "existing_claim_id": "c16, c17; coreference candidate for m28",
+   "change": "Under the 'uncle' branch, merge hoshaya_brother and hoshaya_shop into one entity. Keep child_of(hananya, unnamed parent) and sibling_of(unnamed parent, Rav Hoshaya) with basis = emendation + lexicon + parallels. Jastrow specifies 'father's brother', so the parent is the father on this reading. Lower the 'beloved' branch to weak.",
+   "why": "Commentators and translations consistently read uncle, and the parallels support it. No consulted source supports 'beloved' here.",
+   "evidence": [
+    {
+     "source_id": "JAS_HAVIV",
+     "exact_quote": "uncle, father’s brother"
+    },
+    {
+     "source_id": "KH124",
+     "exact_quote": "חנותו של ר\"ה דודך"
+    }
+   ]
+  },
+  {
+   "correction_id": "PC3",
+   "existing_claim_id": "c26; coreference candidate for m30",
+   "change": "Replace the single heard_from(hananya → later_speaker) with three branches (press/make-listen; heard-from; self-clarification with no Hananya edge). Resolve later_speaker to R. Yasa at medium, with Zeura as a low alternative. Change reading_confidence from high to medium.",
+   "why": "The verb is read three ways (Jastrow/Penei Moshe/Korban HaEdah vs Guggenheimer vs Sha'arei Torat EY/Lieberman), and only one commentary names the speaker.",
+   "evidence": [
+    {
+     "source_id": "JAS_TSYT",
+     "exact_quote": "and finally thou madest him listen (to thee), and he said &c."
+    },
+    {
+     "source_id": "TK",
+     "exact_quote": "כלומר ובסוף נתמצתה לו [ההלכה] ואמר וכו'"
+    }
+   ]
+  },
+  {
+   "correction_id": "PC4",
+   "existing_claim_id": "c11, c12; coreference candidate for m26",
+   "change": "Resolve opening_teacher to R. Yohanan (basis: commentary consensus + internal support; confidence high but not 'explicit').",
+   "why": "Penei Moshe, Korban HaEdah, Ohr LaYesharim, Guggenheimer and Schwab all identify him. The same formula is later brought in his name by R. Hiyya bar Ba.",
+   "evidence": [
+    {
+     "source_id": "KH124",
+     "exact_quote": "הקשו לפני רבי יוחנן"
+    }
+   ]
+  },
+  {
+   "correction_id": "PC5",
+   "existing_claim_id": "c9, c10 and reading_group 'attribution'",
+   "change": "Reverse the resolved branch: the 'העובר לפני התיבה' ruling (entity earlier_rule) is the one said in Ben Betera's name. The 'until Passover passes' ruling is Yehuda's own. The entity later_rule is mislabelled: the dew reason belongs to the העובר ruling. The earlier independent review marked this 'pass'. It should be revisited.",
+   "why": "Guggenheimer (n.107, n.110), Mishnat Eretz Yisrael, Schwab, and the Bavli 3a baraita all agree on this attribution.",
+   "evidence": [
+    {
+     "source_id": "B3A",
+     "exact_quote": "רַבִּי יְהוּדָה אוֹמֵר מִשּׁוּם בֶּן בְּתִירָה: הָעוֹבֵר לִפְנֵי הַתֵּיבָה"
+    },
+    {
+     "source_id": "MEY_TAAN",
+     "exact_quote": "עצמו, צריך לומר: בשם רבי יהודה בן בתירה"
+    }
+   ]
+  },
+  {
+   "correction_id": "PC6",
+   "existing_claim_id": "entity 'third' (no claim); c35; c31",
+   "change": "Add holds_view(anonymous Mishnah voice → 'ask from 3 Marheshvan'). Add the Yerushalmi's attribution of that voice to R. Meir (JT 1:3:2). Retarget c31 (Tanhum bar Hiyya) from same_rule to a 'limits to Temple times' claim about the 3rd-of-Marheshvan opinion. Record that the anonymous challenger ('והא תנינן') is the stam voice.",
+   "why": "This is the omission the previous review flagged. Tanhum's answer limits the Mishnah; it does not explain the same_rule formula.",
+   "evidence": [
+    {
+     "source_id": "JT13",
+     "exact_quote": "מַתְנִיתָא דְרִבִּי מֵאִיר."
+    }
+   ]
+  },
+  {
+   "correction_id": "PC7",
+   "existing_claim_id": "c33; entity yoel",
+   "change": "Add cites_precedent(yose_future → event 'grain in 15 days, omer offered, in the days of Joel'), with modality attributed/exegetical. Make Joel a time anchor, not a participant.",
+   "why": "The precedent is spoken inside R. Yose's view, with 'we find' and a prooftext. It is not narrated as fact.",
+   "evidence": [
+    {
+     "source_id": "JT12_VEN",
+     "exact_quote": "שכן מצאנו שעשת התבואה בימי יואל לחמשה עשר יום וקרב העומר ממנה"
+    }
+   ]
+  },
+  {
+   "correction_id": "PC8",
+   "existing_claim_id": "entity rg",
+   "change": "Relabel as Rabban Gamliel (which one not specified).",
+   "why": "The abbreviation is written out in the Guggenheimer Hebrew and the Mishnah.",
+   "evidence": [
+    {
+     "source_id": "JT13",
+     "exact_quote": "רַבָּן גַּמְלִיאֵל אוֹמֵר בְּשִׁבְעָה בוֹ"
+    }
+   ]
+  },
+  {
+   "correction_id": "PC9",
+   "existing_claim_id": "c14, c15, c18-c25",
+   "change": "Set the voice of the remembered-scene claims to R. Yose (reported recollection), not narrator. Lower Hananya's inclusion in 'we' to medium-high (local inference from 'do you remember'). Give the question content a branch (mention-vs-request per Penei Moshe/Ohr LaYesharim; start date per Guggenheimer).",
+   "why": "The whole scene is embedded speech, and commentators differ on what was asked.",
+   "evidence": [
+    {
+     "source_id": "JT12_GUG_EN",
+     "exact_quote": "The date when best to start praying for rain."
+    }
+   ]
+  }
+ ],
+ "ontology_lessons": [
+  "A kinship epithet in the printed text ('אחוי') can conflict with a kinship term in the same sentence ('חביבך'). The graph needs a way to store an explicit-but-emended reading without asserting it.",
+  "Parallel passages with the same framing formula (JT Taanit 1:2:4 and JT Megillah 3:7:3) are strong evidence for a text reading. They are not evidence that the same event is meant.",
+  "A verb's construal can decide whether a person takes part in an exchange at all (את מציית 'you pressed/heard' vs אתמציית 'it became clear to him'). Claims should be able to branch on the reading, not just on the referent.",
+  "Separate three kinds of voice: the anonymous Talmud voice (challenger), the anonymous Mishnah voice (the 3rd-of-Marheshvan opinion), and attributions the Talmud itself makes ('this is R. Meir's Mishnah'). None should become a person node by default.",
+  "A precedent spoken inside an attributed view ('שכן מצאנו ... בימי יואל') is an attributed exegetical claim. A biblical name used as a time anchor is not a relationship partner.",
+  "Commentators often mark conjectures with 'אפשר' or 'כנראה', and a lexicon may mark one with 'prob.'. Keep these hedges as a separate confidence basis from lexical or textual evidence.",
+  "Shared patronymics across Talmuds (Yehuda vs Yehoshua ben Betera) and shared names within one chapter (several R. Hoshaya and R. Yose mentions) must not merge automatically.",
+  "When commentary consensus resolves a pronoun (בעון קומוי → R. Yohanan), record the basis as commentary consensus plus internal evidence, distinct from 'explicit'."
+ ]
+}

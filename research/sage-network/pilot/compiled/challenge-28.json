@@ -1,0 +1,663 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-28",
+    "episode": {
+      "genre": "aggadic",
+      "genre_reason": "A cryptic answer about someone’s whereabouts receives two readings.",
+      "form": "riddle and reported interpretations",
+      "coverage": "complete_for_supplied_text",
+      "needed_context": [],
+      "notes": []
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רבנן",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רבי אבהו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רבי אלעאי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "הצפיננו היכן רבי אלעאי צפון.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "אשה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "מסכתא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "rabbis",
+        "kind": "group",
+        "label": "Rabbis asking where Rabbi Ilai is",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "abahu",
+        "kind": "person",
+        "label": "Rabbi Abahu",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבי אבהו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "ilai",
+        "kind": "person",
+        "label": "Rabbi Ilai",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבי אלעאי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "question",
+        "kind": "statement",
+        "label": "Where Rabbi Ilai is hidden",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "הצפיננו היכן רבי אלעאי צפון.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "reply",
+        "kind": "statement",
+        "label": "Cryptic reply about a young Aaronic figure",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "woman",
+        "kind": "person",
+        "label": "A woman in the first interpretation",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אשה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "branch_woman_reading"
+        ]
+      },
+      {
+        "id": "tractate",
+        "kind": "work",
+        "label": "A tractate in the second interpretation",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "מסכתא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "branch_tractate_reading"
+        ]
+      },
+      {
+        "id": "delight_w",
+        "kind": "event",
+        "label": "Ilai’s delight involving a woman",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "branch_woman_reading"
+        ]
+      },
+      {
+        "id": "delight_t",
+        "kind": "event",
+        "label": "Ilai’s delight involving a tractate",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "branch_tractate_reading"
+        ]
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "rabbis",
+        "object": "abahu",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "question"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמרו ליה רבנן לרבי אבהו: הצפיננו היכן רבי אלעאי צפון.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "abahu",
+        "object": "question",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "rabbis"
+          },
+          {
+            "role": "content",
+            "entity": "reply"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר להן: עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "ilai",
+        "object": "delight_w",
+        "roles": [
+          {
+            "role": "associated_with",
+            "entity": "woman"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "branch_woman_reading"
+        ],
+        "voice": "abahu",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "medium",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "עלץ / והנעירתו",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c4",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "ilai",
+        "object": "delight_t",
+        "roles": [
+          {
+            "role": "associated_with",
+            "entity": "tractate"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "branch_tractate_reading"
+        ],
+        "voice": "abahu",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "medium",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "עלץ / והנעירתו",
+        "time_scope": null,
+        "notes": []
+      }
+    ],
+    "reading_groups": [
+      {
+        "id": "referent",
+        "kind": "reported_alternatives",
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמרי לה אשה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          {
+            "id": "branch_woman_reading",
+            "label": "A woman"
+          },
+          {
+            "id": "branch_tractate_reading",
+            "label": "A tractate"
+          }
+        ],
+        "historical_compatibility": "unknown",
+        "scope": "The referent of the cryptic young woman in the answer.",
+        "rejoin": null,
+        "notes": [
+          "The second alternative is ואמרי לה מסכתא in s3. No marriage or particular tractate name is supplied."
+        ]
+      }
+    ],
+    "coreference_candidates": [],
+    "open_questions": []
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "רבנן",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 9,
+      "end": 13,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "רבי אבהו",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 15,
+      "end": 23,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "רבי אלעאי",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 38,
+      "end": 47,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s1",
+      "quote": "הצפיננו היכן רבי אלעאי צפון.",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 25,
+      "end": 53,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s1",
+      "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 63,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s2",
+      "quote": "אשה",
+      "occurrence": 1,
+      "source_sha256": "508c0cc31aa888518f6b1a470da3e8fad3d70f92eaa3c4e9052218600393f6b7",
+      "start": 8,
+      "end": 11,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s3",
+      "quote": "מסכתא",
+      "occurrence": 1,
+      "source_sha256": "c080f3a2d89dbef7a88e357d47123b813623a1460c75b01b8f36dcba91f7b662",
+      "start": 9,
+      "end": 14,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s1",
+      "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 63,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s1",
+      "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 63,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/rabbis/evidence/0",
+      "source_id": "s1",
+      "quote": "רבנן",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 9,
+      "end": 13,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/abahu/evidence/0",
+      "source_id": "s1",
+      "quote": "רבי אבהו",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 15,
+      "end": 23,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/ilai/evidence/0",
+      "source_id": "s1",
+      "quote": "רבי אלעאי",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 38,
+      "end": 47,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/question/evidence/0",
+      "source_id": "s1",
+      "quote": "הצפיננו היכן רבי אלעאי צפון.",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 25,
+      "end": 53,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/reply/evidence/0",
+      "source_id": "s1",
+      "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 63,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/woman/evidence/0",
+      "source_id": "s2",
+      "quote": "אשה",
+      "occurrence": 1,
+      "source_sha256": "508c0cc31aa888518f6b1a470da3e8fad3d70f92eaa3c4e9052218600393f6b7",
+      "start": 8,
+      "end": 11,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/tractate/evidence/0",
+      "source_id": "s3",
+      "quote": "מסכתא",
+      "occurrence": 1,
+      "source_sha256": "c080f3a2d89dbef7a88e357d47123b813623a1460c75b01b8f36dcba91f7b662",
+      "start": 9,
+      "end": 14,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/delight_w/evidence/0",
+      "source_id": "s1",
+      "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 63,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/delight_t/evidence/0",
+      "source_id": "s1",
+      "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 63,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "אמרו ליה רבנן לרבי אבהו: הצפיננו היכן רבי אלעאי צפון.",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 0,
+      "end": 53,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר להן: עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 54,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 63,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s1",
+      "quote": "עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+      "occurrence": 1,
+      "source_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+      "start": 63,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "reading_groups/referent/evidence/0",
+      "source_id": "s2",
+      "quote": "אמרי לה אשה.",
+      "occurrence": 1,
+      "source_sha256": "508c0cc31aa888518f6b1a470da3e8fad3d70f92eaa3c4e9052218600393f6b7",
+      "start": 0,
+      "end": 12,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "2d2af192a945b9a02b3e60d2e2803e13d40638429d42ba2df0039cc46cda9c0b",
+  "output_sha256": "11928927e50aca38a8bd6e5b6e3fb03e3011dc81e782da845d98f1352263f35d",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.404460+00:00"
+}

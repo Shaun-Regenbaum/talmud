@@ -1,0 +1,889 @@
+{
+  "job_id": "random-bavli-02",
+  "focal_ref": "Nazir 43a:9",
+  "status": "researched",
+  "question": "Collect every named and pronominal mention. Preserve legal roles and the target of each objection, including repeated references.",
+  "scope_note": "Checked: Nazir 42b-43a (focus 43a:5-11) in the Wikisource and William Davidson editions with Koren English; Rashi, Tosafot, Rosh, Shita Mekubbetzet, Rashash and Steinsaltz on 43a; Malbim, Torah Temimah and Sifra on Lev 21:4; Mishnah Oholot 1:6; Halakhot Gedolot 22:6; Sefer Yereim 322 with Toafot Re'em; Haamek Sheilah 103:10; Mishpetei Uziel VI YD 123:24. Not checked: manuscripts, the Yerushalmi, Sifrei Zuta, Yevamot 120b. Nazir 43a:9 itself names no one. Its only people are role references and anonymous voices.",
+  "mention_inventory_43a_9": [
+    {
+      "quote": "ולמ\"ד במותם",
+      "type": "role reference (position label)",
+      "refers_to": "Rebbi's position (43a:5), as the Gemara construes it",
+      "role": "target of the challenge",
+      "basis": "F1, F2"
+    },
+    {
+      "quote": "הכתיב",
+      "type": "anonymous Gemara voice (implicit speaker)",
+      "refers_to": "the anonymous Gemara voice asking",
+      "role": "challenger",
+      "basis": "F2"
+    },
+    {
+      "quote": "להחלו",
+      "type": "verse word with a pronoun suffix",
+      "refers_to": "the priest of Lev 21:4 ('himself')",
+      "role": "legal subject of the verse",
+      "basis": "F5"
+    },
+    {
+      "quote": "להכי הוא דאתא",
+      "type": "pronoun",
+      "refers_to": "the verse להחלו (not a person)",
+      "role": "none",
+      "basis": "F5"
+    },
+    {
+      "quote": "במי שאינו מחולל",
+      "type": "generic legal role",
+      "refers_to": "a priest who is not profaned",
+      "role": "person to whom the prohibition applies",
+      "basis": "F5, F7"
+    },
+    {
+      "quote": "זה שמחולל ועומד",
+      "type": "generic legal role",
+      "refers_to": "a priest who is profaned and remains so (scope disputed)",
+      "role": "excluded case",
+      "basis": "F5, F7"
+    }
+  ],
+  "repeated_reference_chains": [
+    {
+      "local_entity": "Rebbi",
+      "mentions": [
+        "43a:5 'רבי אומר'",
+        "43a:6 'למ\"ד במותם'",
+        "43a:7 'לכדרבי'",
+        "43a:7 'רבי אומר'",
+        "43a:8 'ולמאן דאמר במותם' + 'ליה'",
+        "43a:9 'ולמ\"ד במותם'"
+      ],
+      "note": "Position-label mentions are role references to Rebbi's position as the Gemara construes it."
+    },
+    {
+      "local_entity": "Anonymous first tanna (ת\"ר; 'רבנן' in Halakhot Gedolot)",
+      "mentions": [
+        "43a:5 'ת\"ר'",
+        "43a:6 'למאן דאמר מלהחלו'",
+        "43a:7 'ולמ\"ד מלהחלו' + 'ליה'",
+        "43a:10 'ולמ\"ד מלהחלו'",
+        "43a:11 'ולמ\"ד מלהחלו'"
+      ]
+    },
+    {
+      "local_entity": "Reish Lakish (branch: Rava; Rabbah in the Rosh's report)",
+      "mentions": [
+        "43a:6 'ר\"ל אמר' / 'ריש לקיש אמר'"
+      ],
+      "note": "Frames 43a:7-11 according to Koren, Steinsaltz and Rashi (F3)."
+    },
+    {
+      "local_entity": "Rabbi Yochanan (branch: Abaye)",
+      "mentions": [
+        "43a:6 'אמר ר' יוחנן'"
+      ]
+    },
+    {
+      "local_entity": "Anonymous Gemara voice",
+      "mentions": [
+        "43a:6 'מאי בינייהו'",
+        "43a:7 'הכתיב'",
+        "43a:8 'הא מיבעי ליה'",
+        "43a:9 'הכתיב'",
+        "43a:10 'הא מיבעי ליה'",
+        "43a:11 'מיתיבי' and answer"
+      ]
+    }
+  ],
+  "objection_targets": [
+    {
+      "segment": "43a:7",
+      "challenger": "anonymous Gemara voice",
+      "target": "the anonymous first tanna (להחלו side)",
+      "content": "verse במותם",
+      "answer": "needed for Rebbi's lesion/discharge teaching"
+    },
+    {
+      "segment": "43a:8",
+      "challenger": "anonymous Gemara voice",
+      "target": "Rebbi (במותם side)",
+      "content": "במותם is already needed for the lesion/discharge teaching",
+      "answer": "the extra ending ם teaches two things"
+    },
+    {
+      "segment": "43a:9",
+      "challenger": "anonymous Gemara voice",
+      "target": "Rebbi (במותם side)",
+      "content": "verse להחלו",
+      "answer": "להחלו excludes one who is 'מחולל ועומד'"
+    },
+    {
+      "segment": "43a:10",
+      "challenger": "anonymous Gemara voice",
+      "target": "the anonymous first tanna (להחלו side)",
+      "content": "להחלו is already needed for the מחולל ועומד exclusion",
+      "answer": "the extra ending ו teaches two things"
+    },
+    {
+      "segment": "43a:11",
+      "challenger": "anonymous Gemara voice ('מיתיבי')",
+      "target": "the anonymous first tanna as construed by Reish Lakish (Rashi: 'קשיא לר\"ל')",
+      "content": "Mishnah Oholot 1:6 (Rashi: a baraita)",
+      "answer": "imparting impurity versus profanation"
+    }
+  ],
+  "sources": [
+    {
+      "source_id": "S0",
+      "url_or_path": "research/sage-network/pilot/inputs/random-bavli-02.json",
+      "edition": "Pilot input: Wikisource Talmud Bavli, Nazir 43a:7-11 (read-only)",
+      "fetched_at": null,
+      "saved_file": "../../../pilot/inputs/random-bavli-02.json",
+      "sha256": "b8a2727c59e6dfc21074a3b4c91638ba690e0cdb738be175b0679b8ff260a305",
+      "note": "Read, not modified. captured_at in the file is 2026-09-20T08:20:12Z."
+    },
+    {
+      "source_id": "S1",
+      "url_or_path": "research/sage-network/pilot/outputs/random-bavli-02.json",
+      "edition": "Earlier pilot reading of this job (read-only)",
+      "fetched_at": null,
+      "saved_file": "../../../pilot/outputs/random-bavli-02.json",
+      "sha256": "eee1ac10d2d56ebb89030a97a85227f8ce8a77ffdcff50ad67f1883a3c20634d",
+      "note": "Read, not modified."
+    },
+    {
+      "source_id": "S2",
+      "url_or_path": "research/sage-network/followup-v1/cases/random-bavli-02/previous-review.json",
+      "edition": "Earlier independent review, copied unchanged",
+      "fetched_at": null,
+      "saved_file": "previous-review.json",
+      "sha256": "25474a06f4b09318928dadbd7c629667e55856692687da9b42415a60e6dc23e9",
+      "note": "Read, not modified."
+    },
+    {
+      "source_id": "S3",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Nazir.43a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria v3 texts, Nazir 43a, all Hebrew and English versions: William Davidson Edition (Vocalized Aramaic, Aramaic, English), Wikisource Talmud Bavli",
+      "fetched_at": "2026-09-22T19:50:23Z",
+      "saved_file": "sources/sefaria_v3_nazir_43a_all.json",
+      "sha256": "83e83b371dc57dcaf43e8d1191896be0b81566f61ebd329dfacbe51cf3301267"
+    },
+    {
+      "source_id": "S4",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Nazir.42b?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria v3 texts, Nazir 42b, all versions (same editions as S3)",
+      "fetched_at": "2026-09-22T19:50:22Z",
+      "saved_file": "sources/sefaria_v3_nazir_42b_all.json",
+      "sha256": "9398f91472bc494b682a890a09f759688ede5f185de6be5ecc25ed5947dc6d5f"
+    },
+    {
+      "source_id": "S5",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Nazir.43b?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria v3 texts, Nazir 43b, all versions (same editions as S3); read for the following context only",
+      "fetched_at": "2026-09-22T19:50:23Z",
+      "saved_file": "sources/sefaria_v3_nazir_43b_all.json",
+      "sha256": "af7655f70754025975748c85e29aa6ecd264e4c7435708c70b53a65081216eaf"
+    },
+    {
+      "source_id": "S6",
+      "url_or_path": "https://www.sefaria.org/api/links/Nazir.43a.9?with_text=0",
+      "edition": "Sefaria links API, Nazir 43a:9",
+      "fetched_at": "2026-09-22T19:50:24Z",
+      "saved_file": "sources/sefaria_links_nazir_43a_9.json",
+      "sha256": "ba60d21f9d05effc5487fde08980f80cde559770a4d0ae7e3860fd795fee3477"
+    },
+    {
+      "source_id": "S7",
+      "url_or_path": "https://www.sefaria.org/api/links/Nazir.43a?with_text=0",
+      "edition": "Sefaria links API, Nazir 43a",
+      "fetched_at": "2026-09-22T19:50:24Z",
+      "saved_file": "sources/sefaria_links_nazir_43a.json",
+      "sha256": "10c75ce3e922e7188d7187c098e5246d01bedc7c0dae8a2de16321302604e036"
+    },
+    {
+      "source_id": "S8",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashi%20on%20Nazir%2043a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Rashi on Nazir 43a, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-22T19:50:53Z",
+      "saved_file": "sources/rashi_nazir_43a.json",
+      "sha256": "9c8f6c12e559a336c5bbdfb143e213f45b329b56871276117c12313b9d07d693"
+    },
+    {
+      "source_id": "S9",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Tosafot%20on%20Nazir%2043a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Tosafot on Nazir 43a, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-22T19:50:54Z",
+      "saved_file": "sources/tosafot_nazir_43a.json",
+      "sha256": "65cb0ebdad8758596e5dfc90db410e53e40742cdec4a5bc986c53d16189589d9"
+    },
+    {
+      "source_id": "S10",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Steinsaltz%20on%20Nazir%2043a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Steinsaltz on Nazir 43a, William Davidson Edition - Hebrew (Sefaria)",
+      "fetched_at": "2026-09-22T19:50:54Z",
+      "saved_file": "sources/steinsaltz_nazir_43a.json",
+      "sha256": "9677884c549c4f5a274f9d57a8cd20313abdd74a27495442c143f18f9bb0c303"
+    },
+    {
+      "source_id": "S11",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Commentary%20of%20the%20Rosh%20on%20Nazir%2043a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Commentary of the Rosh on Nazir 43a, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-22T19:50:54Z",
+      "saved_file": "sources/rosh_nazir_43a.json",
+      "sha256": "7d7ce110d4cf51b3099f2fb378be36713b47a6857c16168c98fb1728ed1e45f5"
+    },
+    {
+      "source_id": "S12",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Shita%20Mekubbetzet%20on%20Nazir%2043a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Shita Mekubbetzet on Nazir 43a, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-22T19:50:54Z",
+      "saved_file": "sources/shita_mekubbetzet_nazir_43a.json",
+      "sha256": "a3d9c81a32ea865e30511867aa725dee96a9b9d4c0c8c64c6a585e21021f0dc5"
+    },
+    {
+      "source_id": "S13",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Malbim%20on%20Leviticus%2C%20Emor%2010%3A1?version=hebrew%7Call&version=english%7Call",
+      "edition": "Malbim on Leviticus, Emor 10:1, Malbim on Vayikra - Wikisource (Sefaria)",
+      "fetched_at": "2026-09-22T19:50:55Z",
+      "saved_file": "sources/malbim_emor_10_1.json",
+      "sha256": "1975af0f95ba4f7584e5a2c098108ed8f611254afeb355328320342dfc04d1ac"
+    },
+    {
+      "source_id": "S14",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Mishpetei%20Uziel%2C%20Volume%20VI%2C%20Yoreh%20De%27ah%20123%3A24?version=hebrew%7Call&version=english%7Call",
+      "edition": "Mishpetei Uziel, Volume VI, Yoreh De'ah 123:24, Jerusalem 1995-2005 (Sefaria)",
+      "fetched_at": "2026-09-22T19:50:55Z",
+      "saved_file": "sources/mishpetei_uziel_vi_yd_123_24.json",
+      "sha256": "5354189be937b20e16aa713fb71ed27bac79e640dbb8596152c5d3bcb4cd6c99"
+    },
+    {
+      "source_id": "S15",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Torah%20Temimah%20on%20Torah%2C%20Leviticus%2021%3A4?version=hebrew%7Call&version=english%7Call",
+      "edition": "Torah Temimah on Leviticus 21:4, Vilna 1904 (Sefaria, two digitisations)",
+      "fetched_at": "2026-09-22T19:50:55Z",
+      "saved_file": "sources/torah_temimah_lev_21_4.json",
+      "sha256": "871f7ab6017f9408f20038759495b384b1288e2a2e739004d7a4be2cf662347d"
+    },
+    {
+      "source_id": "S16",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Mishnah%20Oholot%201%3A6?version=hebrew%7Call&version=english%7Call",
+      "edition": "Mishnah Oholot 1:6, Torat Emet 357; Romm Vilna 1913; Kaufmann manuscript ed. Be'eri; and others (Sefaria)",
+      "fetched_at": "2026-09-22T19:50:56Z",
+      "saved_file": "sources/mishnah_oholot_1_6.json",
+      "sha256": "cbd73b82a27a6da88b54761f8a16fa984507c599c478b4d79bc11e3cd272d370"
+    },
+    {
+      "source_id": "S17",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashash%20on%20Nazir%2043a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Rashash on Nazir 43a, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-22T19:50:56Z",
+      "saved_file": "sources/rashash_nazir_43a.json",
+      "sha256": "1d4b5fca948eff7e704b0c3173ed9ca30595d39117e5f8a8f5ea0fa27a75c2e4"
+    },
+    {
+      "source_id": "S18",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Sifra%2C%20Emor%2C%20Section%201?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sifra, Emor, Section 1 (Sefaria)",
+      "fetched_at": "2026-09-22T19:50:56Z",
+      "saved_file": "sources/sifra_emor_section_1.json",
+      "sha256": "4f499648434331bd4a92cf2ae761131aa3a56cef06e760da355c970af5b586d3"
+    },
+    {
+      "source_id": "S19",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Halakhot%20Gedolot%2022%3A6?version=hebrew%7Call&version=english%7Call",
+      "edition": "Halakhot Gedolot 22:6, Warsaw 1874 (Sefaria)",
+      "fetched_at": "2026-09-22T19:52:42Z",
+      "saved_file": "sources/halakhot_gedolot_22_6.json",
+      "sha256": "92846e415e6123bfbf4fdd42ab09f3317cb7643f78ba384c8170f8c39374feb4"
+    },
+    {
+      "source_id": "S20",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Sefer%20Yereim%20322%3A1?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefer Yereim 322:1, Sefer Yereim HaShalem, Vilna 1892-1901 (Sefaria)",
+      "fetched_at": "2026-09-22T19:52:43Z",
+      "saved_file": "sources/sefer_yereim_322_1.json",
+      "sha256": "e9107df42edb964485a5891d5c433cfc00543539c7ba5411bc31a470c795e8dc"
+    },
+    {
+      "source_id": "S21",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Haamek%20Sheilah%20on%20Sheiltot%20d%27Rav%20Achai%20Gaon%20103%3A10%3A1?version=hebrew%7Call&version=english%7Call",
+      "edition": "Haamek Sheilah on Sheiltot d'Rav Achai Gaon 103:10:1, Vilna 1861 (Sefaria)",
+      "fetched_at": "2026-09-22T19:52:43Z",
+      "saved_file": "sources/haamek_sheilah_103_10_1.json",
+      "sha256": "c127bb8e36019ee2b54e501e5c4b931b5ca7096d964fd56b344d3352650396f1"
+    },
+    {
+      "source_id": "S22",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Toafot%20Re%27em%20322%3A8?version=hebrew%7Call&version=english%7Call",
+      "edition": "Toafot Re'em 322:8, printed in Sefer Yereim HaShalem, Vilna 1892-1901 (Sefaria)",
+      "fetched_at": "2026-09-22T19:52:43Z",
+      "saved_file": "sources/toafot_reem_322_8.json",
+      "sha256": "e3d17e5a81c7bfde007d06696b586c75ef66aa230e90359379c6a46ae13f87e9"
+    },
+    {
+      "source_id": "S23",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Toafot%20Re%27em%20322%3A9?version=hebrew%7Call&version=english%7Call",
+      "edition": "Toafot Re'em 322:9, printed in Sefer Yereim HaShalem, Vilna 1892-1901 (Sefaria)",
+      "fetched_at": "2026-09-22T19:52:44Z",
+      "saved_file": "sources/toafot_reem_322_9.json",
+      "sha256": "7b01113d444106cd7b4cafb2a02bb739550106935a091bd5e2ad6abec520b7ae"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "F1",
+      "claim": "The two positions that 43a:9 calls 'the one who says במותם' and 'the one who says מלהחלו' are set up at 43a:5. An anonymous baraita voice (ת\"ר, 'the Sages taught') derives the rule from להחלו (Lev 21:4, said of a priest). Rebbi derives it from במותם, said of a nazirite. So in this sugya, 'the one who says במותם' in 43a:9 is Rebbi's position, and 'the one who says מלהחלו' is the anonymous first tanna.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S3",
+          "exact_quote": "ת\"ר (ויקרא כא, ד) להחלו עד שעה שימות רבי אומר (ויקרא יא, לב) במותם יטמא עד שימות",
+          "translation_by_this_dossier": "The Rabbis taught: 'to profane himself' - until the time he dies. Rebbi says: 'when they die ... he becomes impure' - until he dies."
+        },
+        {
+          "source_id": "S3",
+          "exact_quote": "למאן דאמר מלהחלו אפילו גוסס למ\"ד במותם עד שימות אין גוסס לא",
+          "translation_by_this_dossier": "According to the one who says [it is derived] from 'to profane himself', even a dying person; according to the one who says 'when they die', until he dies yes, a dying person no."
+        },
+        {
+          "source_id": "S8",
+          "exact_quote": "ת\"ר לא יטמא בעל בעמיו להחלו עד שעה שימות - מותר לעסוק בו ואינו עובר עליו משום לא יחלל עד שעה שימות והאי קרא קאי בכהן והוא הדין לנזיר",
+          "translation_by_this_dossier": "Rashi: 'the Rabbis taught ... to profane himself, until he dies' - he may attend to him and does not transgress 'he shall not profane' until he dies; this verse is about a priest, and the same applies to a nazirite."
+        },
+        {
+          "source_id": "S8",
+          "exact_quote": "רבי אומר לא יטמא להם במותם עד שימות - והאי קרא בנזיר קאי והוא הדין בכהן",
+          "translation_by_this_dossier": "Rashi: 'Rebbi says: he shall not become impure for them when they die' - this verse is about a nazirite, and the same applies to a priest."
+        },
+        {
+          "source_id": "S19",
+          "exact_quote": "פליגי בה רבי ורבנן דרבנן אמרי בההיא שעתא דקבעיא מימת אסור לכהן למיקרב ליה",
+          "translation_by_this_dossier": "Halakhot Gedolot: Rebbi and the Rabbis disagree about it; the Rabbis say that at the time he is about to die a priest may not come near him."
+        }
+      ],
+      "reasoning": "The segment labels 'למאן דאמר X' first occur at 43a:6, where they sort the two sides of the 43a:5 baraita by their proof word. 43a:7-11 keep the same labels. Rashi on 43a:5 matches each proof word to its speaker. Halakhot Gedolot names the two sides 'Rebbi and the Rabbis'. That name for the anonymous side is a later authority's label. The baraita itself says only ת\"ר.",
+      "confidence": "high",
+      "graph_effect": "Link the 43a:9 mention 'ולמ\"ד במותם' to the local person Rebbi as a role reference (a position label resolved by the sugya), not as a new unnamed person. Link 'ולמ\"ד מלהחלו' (43a:7, 43a:10, 43a:11) to a local group voice: the anonymous first tanna of the 43a:5 baraita. Keep the position node, since 43a:7-11 are argued on the Gemara's construction of each position (F3). This closes the earlier needed_context."
+    },
+    {
+      "finding_id": "F2",
+      "claim": "In 43a:9 no one is named. An unmarked anonymous Gemara voice asks the question and gives the answer. The question targets Rebbi's במותם position: 'isn't להחלו written?' The answer gives that position a use for the verse: להחלו applies to one who is not profaned, and excludes one who is profaned and remains so. The Gemara constructs this use on the position's behalf. The text does not quote Rebbi as saying it.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S3",
+          "exact_quote": "ולמ\"ד במותם הכתיב להחלו להחלו להכי הוא דאתא במי שאינו מחולל יצא זה שמחולל ועומד",
+          "translation_by_this_dossier": "And according to the one who says 'when they die' - isn't 'to profane himself' written? 'To profane himself' comes for this: [the prohibition applies] to one who is not profaned, excluding this one who is profaned and remains so."
+        },
+        {
+          "source_id": "S3",
+          "exact_quote": "The Gemara asks the reverse question: And according to the one who says that the source for the earliest time of the impurity of a corpse is the verse “when they die,” isn’t it written: “To profane himself”? What does he derive from that verse?"
+        },
+        {
+          "source_id": "S10",
+          "exact_quote": "ושואלים מצד אחר: ולמאן דאמר [ולדעת מי שאומר] שהמקור הוא ממה שנאמר \"במותם\", הכתיב [הרי נאמר] \"להחלו\" ומה עושה הוא בכתוב זה?",
+          "translation_by_this_dossier": "Steinsaltz: They ask from the other side: according to the one who says the source is 'when they die' - isn't 'to profane himself' written, and what does he do with this verse?"
+        }
+      ],
+      "reasoning": "There is no attribution formula (אמר, תניא, מיתיבי) in 43a:9. The frame 'ולמ\"ד X הכתיב Y' is the anonymous Gemara's question. The same voice answers. The Koren English and Steinsaltz Hebrew both frame it as a question and answer about 'the one who says'. They come from the same editorial project and are not independent witnesses.",
+      "confidence": "high",
+      "graph_effect": "Add one speech/challenge claim: anonymous Gemara voice -> challenges -> Rebbi's במותם position. The content is the verse להחלו (Lev 21:4). Add one views claim: that position, as constructed by the anonymous Gemara voice, uses להחלו to exclude one who is 'מחולל ועומד'. Record the basis as the Gemara's construction, not Rebbi's speech. Create no new person nodes for 43a:9."
+    },
+    {
+      "finding_id": "F3",
+      "claim": "The editors and Rashi read the questions in 43a:7-11 as working inside Reish Lakish's account of the dispute. On that account the two sides differ over a dying person. Rashi says the objection at 43a:11 is difficult 'for Reish Lakish, who derives from להחלו that even a dying person is forbidden'. So the target of the 43a:11 objection includes Reish Lakish's construction of the anonymous tanna's position, and not only that tanna.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "S3",
+          "exact_quote": "The Gemara asks with regard to Reish Lakish’s opinion: And according to the one who says that it is derived from “to profane himself,” isn’t it written: “When they die”?"
+        },
+        {
+          "source_id": "S10",
+          "exact_quote": "ושואלים לשיטת ריש לקיש: ולמאן דאמר [ולדעת מי שאומר] מ\"להחלו\", הכתיב [הרי נאמר] \"במותם\"!",
+          "translation_by_this_dossier": "Steinsaltz: They ask according to Reish Lakish's approach: according to the one who says 'from to profane himself', isn't 'when they die' written?"
+        },
+        {
+          "source_id": "S8",
+          "exact_quote": "מגוייד - חתוך לאיבריו ואפילו הכי אינו מטמא וקשיא לר\"ל דמשמע ליה מלהחלו דאפילו לגוסס אסור",
+          "translation_by_this_dossier": "Rashi: 'mutilated' - cut into limbs, and even so he does not transmit impurity; and this is difficult for Reish Lakish, who understands from 'to profane himself' that even for a dying person it is forbidden."
+        },
+        {
+          "source_id": "S3",
+          "exact_quote": "ריש לקיש אמר גוסס איכא בינייהו"
+        }
+      ],
+      "reasoning": "Rashi's 'קשיא לר\"ל' names whom the difficulty is for. The Koren English and Steinsaltz Hebrew name Reish Lakish as the frame for 43a:7. Rashi is a separate commentary tradition from the Koren/Steinsaltz editorial layer. The Gemara text itself does not name Reish Lakish after 43a:6. This is therefore commentary interpretation, not a textual statement.",
+      "confidence": "medium",
+      "graph_effect": "Keep the local person Reish Lakish (43a:6) in the episode. Record that 43a:7-11 argue within his account. Give the 43a:11 objection (earlier claim c5) a second, interpretive target role: Reish Lakish's construction, citing Rashi. Mark it basis=commentary. Leave Rabbi Yochanan's account (43a:6) as the alternative framing, in which the two sides differ only in their proof verse."
+    },
+    {
+      "finding_id": "F4",
+      "claim": "Rebbi is referred to repeatedly across 43a:5-10: by name at 43a:5 and twice at 43a:7 ('לכדרבי', 'רבי אומר'), and by the position label 'למאן דאמר במותם' at 43a:6, 43a:8 and 43a:9. At 43a:7 the anonymous tanna's side needs במותם for a second teaching of Rebbi: death, not lesions or discharges. At 43a:8 the Gemara treats that same teaching as one Rebbi's own במותם position also needs. So the sugya reads the two Rebbi baraitot as one person's teachings within the argument.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S3",
+          "exact_quote": "ולמ\"ד מלהחלו הכתיב במותם מיבעי ליה לכדרבי דתניא רבי אומר במותם אינו מטמא אבל מטמא בנגעתם ובזיבתם",
+          "translation_by_this_dossier": "And according to the one who says 'from to profane himself', isn't 'when they die' written? He needs it for Rebbi's [teaching], as it was taught: Rebbi says: 'when they die' - he does not become impure, but he does become impure through their lesions and their discharges."
+        },
+        {
+          "source_id": "S3",
+          "exact_quote": "ולמאן דאמר במותם הא מיבעי ליה להאי סברא א\"כ לימא קרא במות מאי במותם שמעת מינה תרתי",
+          "translation_by_this_dossier": "And according to the one who says 'when they die' - he needs it for this reasoning! If so, let the verse say 'when [one] dies'; why 'when they die'? Learn two things from it."
+        },
+        {
+          "source_id": "S8",
+          "exact_quote": "הא מיבעי ליה להאי סברא - במותם אין מטמאין אבל מטמאין בנגעם ובזיבתם",
+          "translation_by_this_dossier": "Rashi: 'he needs it for this reasoning' - when they die they may not become impure, but they may become impure through their lesions and discharges."
+        }
+      ],
+      "reasoning": "Rashi on 43a:8 names 'this reasoning' as the lesion/discharge teaching of 43a:7. So the במותם position (Rebbi at 43a:5) is said to need Rebbi's other baraita. 'לכדרבי' and 'רבי אומר' in 43a:7 are two mentions in one attribution: an anticipatory reference and the baraita's own attribution. The earlier review already flagged the missing 'לכדרבי' mention.",
+      "confidence": "high",
+      "graph_effect": "Add mention records for 'לכדרבי' (43a:7), 'למאן דאמר במותם' (43a:6), 'ולמאן דאמר במותם' (43a:8, with the pronoun 'ליה') and 'ולמ\"ד במותם' (43a:9). Link them all to the one local Rebbi, with the position-label mentions marked as role references. Add a teaching/views relation: the anonymous tanna's position is construed as adopting Rebbi's lesion/discharge teaching (43a:7). It is not a transmission or a meeting. 'Rebbi' in both baraitot is one local person in this sugya. Koren's expansion to 'Rabbi Yehuda HaNasi' is an editorial identification, recorded separately."
+    },
+    {
+      "finding_id": "F5",
+      "claim": "The pronominal mentions in and around 43a:9 point to biblical or generic legal figures, not to sages. In להחלו the suffix 'him(self)' is the priest of Lev 21:4 (Rashi: 'this verse is about a priest'). The 'them' in במותם, נגעתם and זיבתם are the nazirite's dead relatives in Num 6:7. The Rosh reads the discharge case as 'if his father was a zav or a metzora'. 'One who is not profaned' and 'this one who is profaned and remains so' are generic priest roles. 'הוא' in 'להכי הוא דאתא' refers to the verse.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "S8",
+          "exact_quote": "והאי קרא קאי בכהן והוא הדין לנזיר"
+        },
+        {
+          "source_id": "S9",
+          "exact_quote": "רבי אומר במותם - בנזיר כתיב לאביו ולאמו לא יטמא להם במותם",
+          "translation_by_this_dossier": "Tosafot: 'Rebbi says: when they die' - it is written of a nazirite: for his father and his mother he shall not become impure for them when they die."
+        },
+        {
+          "source_id": "S11",
+          "exact_quote": "אבל מטמא הוא בזיבה ובנגעים אם היה אביו זב או מצורע",
+          "translation_by_this_dossier": "Rosh: but he may become impure through discharge and lesions, if his father was a zav or a metzora."
+        },
+        {
+          "source_id": "S8",
+          "exact_quote": "א\"כ - דלא נדרוש ליה אלא חד טעמא נימא קרא להחל דמשמע לענין מי שאינו מחולל ומדקאמר להחלו שמע מינה תרתי",
+          "translation_by_this_dossier": "Rashi: 'if so' - if we were to derive only one reason from it, let the verse say 'to profane', which would mean [only] about one who is not profaned; since it says 'to profane himself', learn two things."
+        }
+      ],
+      "reasoning": "The pronoun suffixes come from the quoted verses. Rashi and Tosafot name the verse contexts. These are legal-example figures, not people in the narrative.",
+      "confidence": "high",
+      "graph_effect": "Keep 'מי שאינו מחולל' and 'זה שמחולל ועומד' as generic legal roles (a priest), not as local persons. Relabel the earlier 'Generic person not yet defiled/already defiled' (m6/m7) as legal roles of a priest. Save the relatives of Num 6:7 as biblical generic roles only if the ontology keeps verse referents. Draw no family edges from 'his father' in the verse. It is a legal category, not a relation between Talmudic people."
+    },
+    {
+      "finding_id": "F6",
+      "claim": "The 43a:9 formula 'במי שאינו מחולל יצא זה שמחולל ועומד' also appears one page earlier, in a baraita that Abaye brings as an objection (Nazir 42b:3). There it is attached to 'ולא יחלל', in the case of a priest who has a corpse on his shoulder and is handed another. In 43a:9 the Gemara attaches the same exclusion to להחלו.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S4",
+          "exact_quote": "איתיביה אביי כהן שהיה לו מת מונח על כתיפו והושיטו לו מתו ומת אחר ונגע בו יכול יהא חייב ת\"ל (ויקרא כא, ו) ולא יחלל במי שאינו מחולל יצא זה שהוא מחולל ועומד",
+          "translation_by_this_dossier": "Abaye objected to him: a priest who had a corpse lying on his shoulder, and they handed him his [relative's] corpse and another corpse and he touched it - one might think he is liable; the verse says 'and he shall not profane' - [this applies] to one who is not profaned, excluding this one who is profaned and remains so."
+        },
+        {
+          "source_id": "S4",
+          "exact_quote": "Abaye raised an objection to Rav Yosef from a baraita"
+        }
+      ],
+      "reasoning": "The wording is nearly identical. The verse behind 'ולא יחלל' is marked differently by the editors: Wikisource brackets say (ויקרא כא, ו) and the Koren English says Leviticus 21:12. That is an editorial verse identification. 'איתיביה' has a pronoun target. The Koren English supplies Rav Yosef, and Rav Yosef answers at 42b:4 ('א\"ל').",
+      "confidence": "high",
+      "graph_effect": "No person edge for 43a:9. Save a cross-reference: the exclusion used for the במותם position at 43a:9 matches baraita wording that Abaye cites at 42b:3. This does not make Abaye a participant in 43a:9. The objection target at 42b:3 (Rav Yosef) belongs to the 42b episode and should not be copied into 43a."
+    },
+    {
+      "finding_id": "F7",
+      "claim": "Commentators and translators disagree about what 'זה שמחולל ועומד' excludes. The Koren English and Steinsaltz render it broadly: a priest who is already impure is not forbidden to become impure again. Sifra, Malbim, Torah Temimah and Tosafot limit it to the time a priest is still in contact with, or busy with, the first corpse. Once he separates, the prohibition applies again. Mishpetei Uziel reports that the Ra'avad drew a broad rule from the related exegesis: priests today are already impure from the dead and carry no liability. Mishpetei Uziel then rejects that rule.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "S3",
+          "exact_quote": "“To profane himself” comes for this purpose, that the prohibition against becoming impure apply only to one who is not profaned, excluding one who is already profaned. There is no prohibition against a ritually impure priest becoming impure from a corpse."
+        },
+        {
+          "source_id": "S10",
+          "exact_quote": "הן שאסור להיטמא לגוסס, והן שאין איסור למי שכבר טמא לחזור ולהיטמא",
+          "translation_by_this_dossier": "Steinsaltz on 43a:10: both that it is forbidden to become impure for a dying person, and that there is no prohibition for one already impure to become impure again."
+        },
+        {
+          "source_id": "S18",
+          "exact_quote": "\"להחלו\" – נהג מנהג כזה הרי הוא חולין. יכול יהא חולין לעולם? תלמוד לומר \"להחלו\" – בזמן שהוא מתעסק עמו הרי הוא חולין. פירש, הרי הוא בקדושתו.",
+          "translation_by_this_dossier": "Sifra: 'to profane himself' - if he acted so, he is profane. Might he be profane forever? The verse says 'to profane himself': while he is occupied with him he is profane; once he has separated, he is in his holiness."
+        },
+        {
+          "source_id": "S13",
+          "exact_quote": "ורמז גם כן הדרוש שדרשו בנזיר (דף מג) \"להחלו\" – במי שאינו מחולל. יצא זה שמחולל ועומד דהיינו בזמן שמתעסק במת מותר ליגע במת אחר באותו שעה. והאזהרה הוא רק אם פירש מן המת שאז אינו מחולל והוא בקדושתו.",
+          "translation_by_this_dossier": "Malbim: it also alludes to the exegesis in Nazir 43: 'to profane himself' - one who is not profaned, excluding one profaned and remaining so, i.e. while he is occupied with a corpse he may touch another corpse at that time; the warning applies only once he has separated from the corpse, when he is not profaned and is in his holiness."
+        },
+        {
+          "source_id": "S15",
+          "exact_quote": "מי שאינו מחולל, יצא מי שמחולל ועומד",
+          "translation_by_this_dossier": "Torah Temimah (main text on 'to profane himself'): one not profaned, excluding one profaned and remaining so."
+        },
+        {
+          "source_id": "S15",
+          "exact_quote": "ר\"ל אם בעת שנטמא לקרובו המת נטמא למת אחר אינו חייב מלקות, כיון דמחולל הוא מטומאת מתו, אבל לאחר שפירש ממתו חייב",
+          "translation_by_this_dossier": "Torah Temimah (his footnote ל): that is to say, if at the time he became impure for his dead relative he became impure for another corpse, he is not liable to lashes, since he is profaned by the impurity of his dead; but after he has separated from his dead he is liable."
+        },
+        {
+          "source_id": "S9",
+          "exact_quote": "מהכא משמע דכהן אסור [ליטמא לאחרים אף כשהוא מטומא כבר] לקרוביו ואף כי מחולל ועומד הוא דאף לפי דברי רבה אם פירש אסור ליטמא",
+          "translation_by_this_dossier": "Tosafot: from here it follows that a priest is forbidden [to become impure for others even when he is already impure] for his relatives, even though he is profaned and remains so, for even according to Rabbah, if he separated he is forbidden to become impure."
+        },
+        {
+          "source_id": "S14",
+          "exact_quote": "הראב\"ד ז\"ל חדש הלכה זו דכהנים בזמן הזה טמאי מת הן ועוד אין עליהן חיוב טומאה",
+          "translation_by_this_dossier": "Mishpetei Uziel: the Ra'avad introduced this ruling, that priests nowadays are impure from the dead and there is no further liability of impurity upon them."
+        },
+        {
+          "source_id": "S14",
+          "exact_quote": "אולם הלכה מחודשת זו היא תמוהה לע\"ד",
+          "translation_by_this_dossier": "Mishpetei Uziel: but this novel ruling is, in my humble opinion, puzzling."
+        }
+      ],
+      "reasoning": "Every position here is a commentator's or translator's reading. The Gemara text of 43a:9 says only 'מחולל ועומד'. The narrow reading fits the 42b:3 baraita, which is about a corpse still on the priest's shoulder, and the concurrent-contact distinction at 42b:5. Koren English and Steinsaltz Hebrew come from one editorial project, so they count as one reading.",
+      "confidence": "medium",
+      "graph_effect": "Replace the earlier statement label 'להחלו excludes one already defiled' with a neutral wording: 'להחלו excludes one who is profaned and remains so'. Record two interpretation branches: (a) already impure in general (Koren/Steinsaltz rendering); (b) only while still in contact with or occupied by the first corpse (Sifra, Malbim, Torah Temimah, Tosafot). Attribute the Ra'avad's broad halakhic use to him as reported by Mishpetei Uziel, which disputes it. None of these commentators becomes a participant in the 43a:9 episode."
+    },
+    {
+      "finding_id": "F8",
+      "claim": "Halakhot Gedolot has a different text of 43a:6. It gives the two explanations of the Rebbi/Rabbis dispute to Abaye ('interpretation of the verses') and Rava ('a dying person'), not to Rabbi Yochanan and Reish Lakish. Tosafot, Sefer Yereim and Haamek Sheilah report the reading as Abaye and Rava. The printed Rosh reports it as Abaye and 'רבה' (Rabbah).",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S19",
+          "exact_quote": "מאי בינייהו אמר אביי משמעות דורשין איכא בינייהו רבא אמר גוסס איכא בינייהו",
+          "translation_by_this_dossier": "Halakhot Gedolot: what is between them? Abaye said: the interpretation of the verses is between them; Rava said: a dying person is between them."
+        },
+        {
+          "source_id": "S3",
+          "exact_quote": "מאי בינייהו אמר ר' יוחנן משמעות דורשין איכא בינייהו ר\"ל אמר גוסס איכא בינייהו"
+        },
+        {
+          "source_id": "S9",
+          "exact_quote": "ומיהו בה\"ג גריס אביי במקום רבי יוחנן ורבא במקום ר\"ל",
+          "translation_by_this_dossier": "Tosafot: however, Halakhot Gedolot reads Abaye in place of Rabbi Yochanan and Rava in place of Reish Lakish."
+        },
+        {
+          "source_id": "S11",
+          "exact_quote": "ומיהו בה\"ג גורס אביי במקום ר' יוחנן ורבה במקום ר\"ל",
+          "translation_by_this_dossier": "Rosh: however, Halakhot Gedolot reads Abaye in place of Rabbi Yochanan and Rabbah in place of Reish Lakish."
+        },
+        {
+          "source_id": "S20",
+          "exact_quote": "ועוד  בהלכות גדולות אמר אביי משמעות דורשין איכא בינייהו רבא אמר גוסס איכא בינייהו",
+          "translation_by_this_dossier": "Sefer Yereim: and further, in Halakhot Gedolot: Abaye said: the interpretation of the verses is between them; Rava said: a dying person is between them."
+        },
+        {
+          "source_id": "S21",
+          "exact_quote": "וקאמר אביי דמשמעות דורשין איכא בינייהו ורבא אמר גוסס א\"ב. וכך היה נוסחת בה\"ג.",
+          "translation_by_this_dossier": "Haamek Sheilah: and Abaye says that the interpretation of the verses is between them, and Rava said a dying person is between them. And that was the text of Halakhot Gedolot."
+        }
+      ],
+      "reasoning": "This is a source variant that a later work preserves. Tosafot, the Rosh, Yereim and Haamek Sheilah report it, and the Warsaw 1874 Halakhot Gedolot confirms it directly. The Rosh's 'רבה' disagrees with the other reports of 'רבא'. I did not check whether this is a print difference in the Rosh. The variant says which pair the two explanations are attributed to. It does not establish who historically said them. 'ר\"ל' here is Reish Lakish: Tosafot and the Rosh set it against 'רבי יוחנן'.",
+      "confidence": "high",
+      "graph_effect": "Put the 43a:6 speakers on a reading-group branch. Branch A (Sefaria editions, Tosafot/Rosh base text): Rabbi Yochanan and Reish Lakish. Branch B (Halakhot Gedolot): Abaye and Rava. Branch B' (the Rosh's report of Halakhot Gedolot): Abaye and Rabbah. Do not merge Reish Lakish with Rava or Rabbah, or Rabbi Yochanan with Abaye. Because 43a:7-11 are framed by the 'dying person' explanation (F3), that framing voice carries the same branches."
+    },
+    {
+      "finding_id": "F9",
+      "claim": "The commentators who draw a ruling from this sugya disagree about what follows for a priest and a dying person. Tosafot and the Rosh say that on the standard text the halakha follows Rabbi Yochanan, so a priest is not warned about a dying person, but on the Halakhot Gedolot text a priest is warned. Haamek Sheilah says Halakhot Gedolot itself ruled that a priest is not warned, 'the exact opposite' of what Tosafot reports in its name. Yereim argues for a prohibition.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "S11",
+          "exact_quote": "ומהכא שמעינן דכהן אינו מוזהר על הגוסס דקי\"ל כר\"י לגבי ר\"ל דאמר משמעות דורשים איכא בינייהו",
+          "translation_by_this_dossier": "Rosh: from here we learn that a priest is not warned about a dying person, since we hold like Rabbi Yochanan against Reish Lakish; [Rabbi Yochanan] said the difference is the interpretation of the verses."
+        },
+        {
+          "source_id": "S11",
+          "exact_quote": "ולפ\"ז הלכה כרבה לגבי אביי ולרבה פליגי ר' ורבנן בגוסס ואין הלכה כר' מחביריו נמצא כהן מוזהר על הגוסס",
+          "translation_by_this_dossier": "Rosh: accordingly the halakha follows Rabbah against Abaye, and according to Rabbah, Rebbi and the Rabbis disagree about a dying person, and the halakha does not follow Rebbi against his colleagues; it turns out a priest is warned about a dying person."
+        },
+        {
+          "source_id": "S21",
+          "exact_quote": "והוא להיפך ממש\"כ התוס' נזיר ד\"ה ומהכא בשם בה\"ג דכהן מוזהר על הגוסס",
+          "translation_by_this_dossier": "Haamek Sheilah: and this is the opposite of what Tosafot wrote in Nazir, s.v. u-mehakha, in the name of Halakhot Gedolot, that a priest is warned about a dying person."
+        },
+        {
+          "source_id": "S20",
+          "exact_quote": "לכן נראה לי איסור בגוסס כאשר פירשתי",
+          "translation_by_this_dossier": "Sefer Yereim: therefore it seems to me there is a prohibition regarding a dying person, as I explained."
+        }
+      ],
+      "reasoning": "This is later halakhic reasoning, not a relationship between Talmudic people. It shows that Rebbi and the Rabbis are treated as holding opposed practical positions only on the Reish Lakish (or Rava) account. Here 'ר\"י' is set against 'ר\"ל' and is Rabbi Yochanan.",
+      "confidence": "medium",
+      "graph_effect": "No Talmudic person edges. Record the practical-disagreement flag between Rebbi and the anonymous tanna as dependent on the framing branch. On Rabbi Yochanan's account they differ only in exegesis, so no 'disagrees_on_ruling' edge. On the Reish Lakish/Rava account they disagree about a dying person. Save it as conditional, not as a plain dispute edge."
+    },
+    {
+      "finding_id": "F10",
+      "claim": "The 43a:11 objection ('מיתיבי') cites a text that matches Mishnah Oholot 1:6. The Koren English calls it a mishna, citing Oholot 1:6. Rashi says it is 'the opening of the baraita in [the chapter] העור והרוטב'. The Koren English itself later calls it 'this baraita'. The answer is the anonymous Gemara's. The objection targets the להחלו position as Reish Lakish construes it (F3).",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S3",
+          "exact_quote": "מיתיבי אדם אינו מטמא אלא עד שתצא נפשו ואפילו מגוייד ואפילו גוסס ולמ\"ד מלהחלו הא קתני דאינו מטמא לענין טמויי עד דנפקא נפשיה לענין אתחולי הא איתחיל:"
+        },
+        {
+          "source_id": "S16",
+          "exact_quote": "אדם אינו מטמא עד שתצא נפשו. ואפילו מגוייד. ואפילו גוסס."
+        },
+        {
+          "source_id": "S3",
+          "exact_quote": "The Gemara raises an objection from a mishna (Oholot 1:6)"
+        },
+        {
+          "source_id": "S8",
+          "exact_quote": "מיתיבי אדם - הכי הויא רישא דברייתא בהעור והרוטב",
+          "translation_by_this_dossier": "Rashi: 'they objected: a person' - this is the opening of the baraita in [the chapter] Ha-Or ve-ha-Rotev."
+        }
+      ],
+      "reasoning": "Wikisource and the Davidson Aramaic read 'אלא עד'. The Davidson vocalized text puts '(אלא)' in parentheses. The Vilna Mishnah has 'עד' without 'אלא'. Halakhot Gedolot quotes the Mishnah with 'ואפילו צלוב' in place of 'ואפילו גוסס'; Toafot Re'em 322:9 discusses this. These wording differences do not change a person reference.",
+      "confidence": "high",
+      "graph_effect": "Keep earlier claims c5 and c6. Identify the objection's source text as matching Mishnah Oholot 1:6, noting Rashi's 'baraita' label as an alternative description. Add the interpretive second target (Reish Lakish's construction) per F3. The 'אדם' of the Mishnah is a generic legal subject, not a person node."
+    },
+    {
+      "finding_id": "F11",
+      "claim": "Abbreviations in the sources can be misread as sage names. In Torah Temimah, 'ר\"ל' opening footnote ל means 'that is to say', not Reish Lakish. In the Talmud text and in Tosafot and the Rosh, 'ר\"ל' is Reish Lakish, set against Rabbi Yochanan. Sefer Yereim spells him out as 'ר\"ש בן לקיש'. At 43a:2, Wikisource 'ר\"א' is expanded by the Davidson edition to 'רבי אלעזר'.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "S15",
+          "exact_quote": "ר\"ל אם בעת שנטמא לקרובו המת"
+        },
+        {
+          "source_id": "S20",
+          "exact_quote": "י\"ל שאינו חולק על ר\"ש בן לקיש"
+        },
+        {
+          "source_id": "S3",
+          "exact_quote": "אלא אמר ר\"א צירף ידו"
+        },
+        {
+          "source_id": "S3",
+          "exact_quote": "אלא אמר רבי אלעזר צירף ידו"
+        }
+      ],
+      "reasoning": "Syntax shows the Torah Temimah case: 'ר\"ל אם בעת...' opens an explanatory clause. The Yereim expansion is a later author's usage. It supports but does not prove the historical identity behind the nickname.",
+      "confidence": "high",
+      "graph_effect": "Do not create a Reish Lakish mention from Torah Temimah. Expand abbreviations for graph mentions only from the Talmud text, where the context sets a name against its pair."
+    },
+    {
+      "finding_id": "F12",
+      "claim": "Editors disagree about which verse Rebbi's 'במותם יטמא' (43a:5) comes from. The Wikisource brackets cite Leviticus 11:32, about creeping things. The Koren English, Rashi and Tosafot place it in the nazirite verse, Numbers 6:7. Sefaria's links list both.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "S3",
+          "exact_quote": "רבי אומר (ויקרא יא, לב) במותם יטמא עד שימות"
+        },
+        {
+          "source_id": "S3",
+          "exact_quote": "Rabbi Yehuda HaNasi says that the verse stated with regard to a nazirite: “He shall not become impure for his father, or for his mother, for his brother, or for his sister, when they die” (Numbers 6:7)"
+        },
+        {
+          "source_id": "S9",
+          "exact_quote": "רבי אומר במותם - בנזיר כתיב לאביו ולאמו לא יטמא להם במותם"
+        },
+        {
+          "source_id": "S7",
+          "exact_quote": "Leviticus 11:32"
+        },
+        {
+          "source_id": "S7",
+          "exact_quote": "Numbers 6:7"
+        }
+      ],
+      "reasoning": "The words 'במותם יטמא' match Lev 11:31-32, while the Gemara's argument (nazirite, 'לאביו ולאמו') follows Num 6:7. The bracket in Wikisource is editorial. Rashi's and Tosafot's placement is commentary. This affects what 'them' refers to (creeping things or relatives), not which person holds the view.",
+      "confidence": "medium",
+      "graph_effect": "Record the verse identification as an editorial note on Rebbi's 43a:5 statement. Do not use the Wikisource bracket as evidence about the referent of 'them'. The Rebbi attribution itself is unaffected."
+    },
+    {
+      "finding_id": "F13",
+      "claim": "Koren expands the bare 'רבי' in 43a:5 and 43a:7 to 'Rabbi Yehuda HaNasi'. That is an editorial historical identification. The Hebrew says only 'רבי', and the dossier found no source in the checked passage that ties it to a biography.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "S3",
+          "exact_quote": "He requires that verse for that which was taught by Rabbi Yehuda HaNasi. As it is taught in a baraita that Rabbi Yehuda HaNasi says"
+        },
+        {
+          "source_id": "S3",
+          "exact_quote": "מיבעי ליה לכדרבי דתניא רבי אומר"
+        }
+      ],
+      "reasoning": "Bare 'רבי' is conventionally read as Rabbi Yehuda HaNasi. The graph treats that as a separate historical decision.",
+      "confidence": "high",
+      "graph_effect": "Keep one local person 'Rebbi' for 43a:5-9. Store the identification with Rabbi Yehuda HaNasi as a provisional candidate, citing the Koren English expansion as an editorial source, not as text evidence."
+    }
+  ],
+  "alternative_readings": [
+    {
+      "topic": "Speakers of the two 43a:6 explanations, whose 'dying person' account frames 43a:7-11",
+      "readings": [
+        {
+          "reading": "Rabbi Yochanan (verse interpretation) and Reish Lakish (dying person)",
+          "held_by": "Wikisource and William Davidson Hebrew texts; base text quoted by Tosafot and Rosh",
+          "evidence_source_ids": [
+            "S3",
+            "S9",
+            "S11"
+          ]
+        },
+        {
+          "reading": "Abaye and Rava",
+          "held_by": "Halakhot Gedolot (Warsaw 1874); reported by Tosafot, Sefer Yereim, Haamek Sheilah",
+          "evidence_source_ids": [
+            "S19",
+            "S9",
+            "S20",
+            "S21"
+          ]
+        },
+        {
+          "reading": "Abaye and Rabbah",
+          "held_by": "Rosh's report of Halakhot Gedolot, as printed",
+          "evidence_source_ids": [
+            "S11"
+          ]
+        }
+      ],
+      "note": "Textual alternatives preserved by later works. They say who the explanations are attributed to, not who historically said them."
+    },
+    {
+      "topic": "Scope of 'זה שמחולל ועומד' (43a:9)",
+      "readings": [
+        {
+          "reading": "Any priest already impure from a corpse is not forbidden to become impure again",
+          "held_by": "Koren English and Steinsaltz Hebrew (one editorial project)",
+          "evidence_source_ids": [
+            "S3",
+            "S10"
+          ]
+        },
+        {
+          "reading": "Only while still in contact with or occupied by the first corpse; after separating, the prohibition returns",
+          "held_by": "Sifra; Malbim; Torah Temimah; Tosafot (43a s.v. mehakha)",
+          "evidence_source_ids": [
+            "S18",
+            "S13",
+            "S15",
+            "S9"
+          ]
+        },
+        {
+          "reading": "Priests nowadays are impure from the dead and carry no further liability",
+          "held_by": "The Ra'avad, as reported by Mishpetei Uziel, who rejects it",
+          "evidence_source_ids": [
+            "S14"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Framing of 43a:7-11",
+      "readings": [
+        {
+          "reading": "The questions work within Reish Lakish's account",
+          "held_by": "Koren English and Steinsaltz on 43a:7; Rashi on 43a:11 ('קשיא לר\"ל')",
+          "evidence_source_ids": [
+            "S3",
+            "S10",
+            "S8"
+          ]
+        },
+        {
+          "reading": "Rabbi Yochanan's account also has each side use the other verse for another matter (Steinsaltz on 43a:6), so the 43a:7-10 questions could apply to both accounts; the 43a:11 objection applies only to the dying-person account",
+          "held_by": "Inference by this dossier from Steinsaltz on 43a:6; no commentator checked states it for 43a:9",
+          "evidence_source_ids": [
+            "S10"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Source of the 43a:11 objection text",
+      "readings": [
+        {
+          "reading": "Mishnah Oholot 1:6",
+          "held_by": "Koren English; Sefaria mesorat hashas link",
+          "evidence_source_ids": [
+            "S3",
+            "S7",
+            "S16"
+          ]
+        },
+        {
+          "reading": "Opening of a baraita in the chapter העור והרוטב",
+          "held_by": "Rashi",
+          "evidence_source_ids": [
+            "S8"
+          ]
+        }
+      ]
+    }
+  ],
+  "unresolved": [
+    "I did not check manuscript witnesses of Nazir 43a (for example Munich 95 or the Vatican manuscripts) for 43a:6 or 43a:9. The Abaye/Rava reading is known here only through Halakhot Gedolot and the later works that report it.",
+    "The Rosh prints 'רבה' where Tosafot, Yereim, Haamek Sheilah and the Halakhot Gedolot print 'רבא'. I did not check other editions of the Rosh.",
+    "Toafot Re'em 322:8 mentions a Yerushalmi Nazir passage (ch. 3) about a שמעון בר ווא and a dying person, tied to Reish Lakish. I did not fetch or read that Yerushalmi passage, and this dossier draws nothing from it.",
+    "The Sefaria links also list Sifrei Zuta and Yevamot 120b for these segments. I did not read them. Tosafot at 43a says there is a tannaitic dispute about a mutilated person at Yevamot 120b.",
+    "It is unresolved whether the 43a:7-10 questions are meant only within Reish Lakish's account. Rashi says nothing explicit on 43a:7-10, and no commentator I checked addresses 43a:9 directly on this point."
+  ],
+  "proposed_corrections": [
+    {
+      "existing_claim_id": "entity from_bemotam",
+      "change": "Link this entity, as a role reference, to local person 'rebbi' (43a:5 'רבי אומר ... במותם'). Keep it as a position node: 'Rebbi's position, as the Gemara construes it within Reish Lakish's account'.",
+      "why": "F1, F3, F4: the 43a:5 baraita and Rashi on 43a:5 name Rebbi as the במותם side."
+    },
+    {
+      "existing_claim_id": "entity from_lehachalo",
+      "change": "Relabel as the anonymous first tanna of the 43a:5 baraita (ת\"ר). Note that Halakhot Gedolot calls this side 'רבנן'.",
+      "why": "F1."
+    },
+    {
+      "existing_claim_id": "mentions (new)",
+      "change": "Add mentions: 'לכדרבי' (43a:7) -> rebbi; 'ולמאן דאמר במותם' (43a:8, with the pronoun 'ליה') -> from_bemotam/rebbi; 'ולמ\"ד במותם' (43a:9) -> from_bemotam/rebbi; 'ליה' in 43a:7 -> from_lehachalo; 'ולמ\"ד מלהחלו' (43a:10) and (43a:11) -> from_lehachalo. Also add the out-of-window 43a:5-6 mentions if the window is widened: 'ת\"ר', 'רבי אומר', 'ר' יוחנן', 'ר\"ל'.",
+      "why": "F4 and the earlier review's omission finding. The question asks for all repeated references."
+    },
+    {
+      "existing_claim_id": "c3",
+      "change": "Keep the views claim, but mark it as the Gemara's construction for the במותם position (basis = anonymous Gemara answer). Add a separate speech claim: anonymous Gemara voice objects_to from_bemotam, with content = verse להחלו ('הכתיב להחלו').",
+      "why": "F2: the challenge in 43a:9 is a distinct speech act with its own target, and it is missing."
+    },
+    {
+      "existing_claim_id": "s1 challenge (new)",
+      "change": "Add the parallel speech claim for 43a:7: anonymous Gemara voice objects_to from_lehachalo, with content = verse במותם ('הכתיב במותם'). The answer cites Rebbi's lesion/discharge teaching.",
+      "why": "F4: parallel structure. The earlier output recorded Rebbi's view (c1) but not the challenge or its target."
+    },
+    {
+      "existing_claim_id": "c5",
+      "change": "Keep target from_lehachalo. Add an interpretive second target, Reish Lakish's construction (basis = commentary, Rashi on 43a:11). Note that the source text matches Mishnah Oholot 1:6, which Rashi calls a baraita.",
+      "why": "F3, F10."
+    },
+    {
+      "existing_claim_id": "entity already_defiled",
+      "change": "Relabel as 'להחלו excludes one who is profaned and remains so'. Attach the two interpretation branches from F7.",
+      "why": "F7: 'already defiled' takes one side of a commentator disagreement."
+    },
+    {
+      "existing_claim_id": "entities undefiled / defiled (m6, m7)",
+      "change": "Retype as generic legal roles (a priest), not local persons.",
+      "why": "F5."
+    },
+    {
+      "existing_claim_id": "episode.coverage / needed_context",
+      "change": "Resolve the needed context. The two proponents are the anonymous first tanna and Rebbi (43a:5). Reish Lakish or Rabbi Yochanan (43a:6) frame the analysis, with the Halakhot Gedolot variant Abaye/Rava.",
+      "why": "F1, F8."
+    }
+  ],
+  "ontology_lessons": [
+    "A 'למאן דאמר X' label is a role reference to a position. Resolve it to the speaker who first set up X in the wider sugya. Do not create a new unnamed person for it. Keep the position node, because the Gemara argues about its construction of the position.",
+    "An objection in a 'dying person' (goses) framework can have two targets: the tanna whose position is challenged, and the amora whose account of that position creates the difficulty. Store the second as commentary-based unless the text names it.",
+    "A later work that quotes a different attribution (here Halakhot Gedolot: Abaye/Rava for R. Yochanan/Reish Lakish) is a source variant. Save it as a reading branch, never as a merge of the two people.",
+    "Reports of one variant can disagree (Rava vs Rabbah). Store each report with its own source rather than harmonising.",
+    "Pronoun suffixes in quoted verses (להחלו 'himself', במותם 'them') refer to biblical legal figures. Keep them as legal roles, and draw no family edges from 'his father' in a verse.",
+    "Abbreviation expansion needs context: 'ר\"ל' is Reish Lakish in the Talmud text and 'that is to say' in Torah Temimah.",
+    "Translations and commentary from one editorial project (Koren English and Steinsaltz Hebrew) count as one reading, not two."
+  ],
+  "graph_status": "All proposals are provisional. No historical identity, merge or date is established here."
+}

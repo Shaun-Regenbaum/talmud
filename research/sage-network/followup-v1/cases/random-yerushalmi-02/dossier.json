@@ -1,0 +1,1361 @@
+{
+  "job_id": "random-yerushalmi-02",
+  "focal_ref": "Jerusalem Talmud Megillah 1:10:4",
+  "status": "researched",
+  "question": "The first_priest span attached to an earlier hypothetical not-fit-as-high-priest occurrence rather than the incumbent in the story. Determine correct occurrences and preserve all relevant priest eligibility rules, unnamed women and story participants.",
+  "scope": "Read: the five pilot input segments (JT Megillah 1:10:2-1:10:6); the rest of 1:10 on Sefaria, including the Mishnah lemma; Guggenheimer English and notes; Venice and Mechon-Mamre Hebrew; Penei Moshe, Korban HaEdah, Mareh HaPanim, Ohr LaYesharim and Chiddushei Ridbaz as linked on Sefaria for 1:10:3-1:10:6; parallels in JT Yoma 1:1 and JT Horayot 3:2; Tosefta Yoma 1:4 and 3:20; Bavli Yoma 12b-13a, Yoma 47a and Megillah 9b; Mishnah Megillah 1:9 and Yoma 1:1; Mishneh Torah (two linked halakhot). Not read: manuscripts, Sheyarei Korban, Tosafot Yoma 12b (cited by Ridbaz), Josephus, Lieberman's Tosefta ki-Fshutah (known only through Ohr LaYesharim and Guggenheimer).",
+  "quote_method": "Quotes are exact slices of the saved bytes. The occurrence number on an input quote counts consonant-skeleton matches in that segment, so a match inside a prefixed or joined word also counts. For the key anchor, s4 לְכֹהֵן גָּדוֹל, exact-string occurrences 1 and 2 (the pilot convention) and skeleton occurrences 1 and 2 fall at the same offsets (99 and 304). The skeleton also matches a third time inside מִשֵׁלְּכֹהֵן. Offsets are the authoritative anchor. For JSON sources, HTML tags were removed from the decoded strings before matching. Hebrew quotes were located by consonant skeleton and then copied from the original string. Input offsets are zero-based and end-exclusive, and index the saved segment text.",
+  "sources": [
+    {
+      "source_id": "in_s1",
+      "ref": "Jerusalem Talmud Megillah 1:10:2",
+      "url_or_input_path": "research/sage-network/pilot/inputs/random-yerushalmi-02.json",
+      "edition": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015 (Hebrew text as saved in the pilot input)",
+      "fetched_at": null,
+      "saved_file": "sources/input_s1_JT_Megillah_1_10_2.txt",
+      "sha256": "0731d0798e40d1ca719ea285dc7b91e7ee359a7e577c92e0b356a5912b6820f4",
+      "note": "Exact text of the pilot input segment, saved as UTF-8 bytes. Its hash equals the input record hash."
+    },
+    {
+      "source_id": "in_s2",
+      "ref": "Jerusalem Talmud Megillah 1:10:3",
+      "url_or_input_path": "research/sage-network/pilot/inputs/random-yerushalmi-02.json",
+      "edition": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015 (Hebrew text as saved in the pilot input)",
+      "fetched_at": null,
+      "saved_file": "sources/input_s2_JT_Megillah_1_10_3.txt",
+      "sha256": "2e6d0dec6167092393941c03b87f1dbc52f432dad6c21c957583262aa4dc836e",
+      "note": "Exact text of the pilot input segment, saved as UTF-8 bytes. Its hash equals the input record hash."
+    },
+    {
+      "source_id": "in_s3",
+      "ref": "Jerusalem Talmud Megillah 1:10:4 (focal)",
+      "url_or_input_path": "research/sage-network/pilot/inputs/random-yerushalmi-02.json",
+      "edition": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015 (Hebrew text as saved in the pilot input)",
+      "fetched_at": null,
+      "saved_file": "sources/input_s3_JT_Megillah_1_10_4.txt",
+      "sha256": "28f27f7387fb5f477be1469562eeb0cb5027ab02993728d67bf85e9381e8aa9f",
+      "note": "Exact text of the pilot input segment, saved as UTF-8 bytes. Its hash equals the input record hash."
+    },
+    {
+      "source_id": "in_s4",
+      "ref": "Jerusalem Talmud Megillah 1:10:5",
+      "url_or_input_path": "research/sage-network/pilot/inputs/random-yerushalmi-02.json",
+      "edition": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015 (Hebrew text as saved in the pilot input)",
+      "fetched_at": null,
+      "saved_file": "sources/input_s4_JT_Megillah_1_10_5.txt",
+      "sha256": "c07ce2072760d6d2564b5cde7bd8096cec92f9074df7453270c5e5acc2cc5471",
+      "note": "Exact text of the pilot input segment, saved as UTF-8 bytes. Its hash equals the input record hash."
+    },
+    {
+      "source_id": "in_s5",
+      "ref": "Jerusalem Talmud Megillah 1:10:6",
+      "url_or_input_path": "research/sage-network/pilot/inputs/random-yerushalmi-02.json",
+      "edition": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015 (Hebrew text as saved in the pilot input)",
+      "fetched_at": null,
+      "saved_file": "sources/input_s5_JT_Megillah_1_10_6.txt",
+      "sha256": "74aadd96cfe37d75e17d7c6181df48c59617ce74742763d7c25d653ec859d13b",
+      "note": "Exact text of the pilot input segment, saved as UTF-8 bytes. Its hash equals the input record hash."
+    },
+    {
+      "source_id": "jt_meg_1_10",
+      "ref": "Jerusalem Talmud Megillah 1:10 (all segments)",
+      "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Megillah.1.10?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria API v3: Guggenheimer Hebrew and English translation with notes (CC-BY); Mechon-Mamre Hebrew; Venice Edition Hebrew",
+      "fetched_at": "2026-09-22T19:29:05Z",
+      "saved_file": "sources/sefaria_v3_JT_Megillah_1_10_all.json",
+      "sha256": "392695ca7456470c0b96190a0a25d85390788585cfdf53251dc5fc14823c36ce",
+      "note": "Includes the Mishnah lemma (segment 1) that the input job did not supply."
+    },
+    {
+      "source_id": "links_1_10_3",
+      "ref": "Commentary links on Jerusalem Talmud Megillah 1:10:3",
+      "url_or_input_path": "https://www.sefaria.org/api/links/Jerusalem_Talmud_Megillah.1.10.3?with_text=1",
+      "edition": "Sefaria links API with text: Penei Moshe, Korban HaEdah, Ohr LaYesharim",
+      "fetched_at": "2026-09-22T19:29:28Z",
+      "saved_file": "sources/sefaria_links_JT_Megillah_1_10_3.json",
+      "sha256": "92d7a3c34455fd3ee8336bee6e507fb5d5fc3389f343699211f7aeff0f64008c",
+      "note": ""
+    },
+    {
+      "source_id": "links_1_10_4",
+      "ref": "Commentary links on Jerusalem Talmud Megillah 1:10:4",
+      "url_or_input_path": "https://www.sefaria.org/api/links/Jerusalem_Talmud_Megillah.1.10.4?with_text=1",
+      "edition": "Sefaria links API with text: Penei Moshe, Korban HaEdah, Ohr LaYesharim, and linked passages",
+      "fetched_at": "2026-09-22T19:29:17Z",
+      "saved_file": "sources/sefaria_links_JT_Megillah_1_10_4.json",
+      "sha256": "89d40684365630332c9255ff8b918a71784e4b2c6e95c5d22212c5e92b9b5b35",
+      "note": ""
+    },
+    {
+      "source_id": "links_1_10_5",
+      "ref": "Commentary links on Jerusalem Talmud Megillah 1:10:5",
+      "url_or_input_path": "https://www.sefaria.org/api/links/Jerusalem_Talmud_Megillah.1.10.5?with_text=1",
+      "edition": "Sefaria links API with text: Penei Moshe, Korban HaEdah, Mareh HaPanim, Ohr LaYesharim, Chiddushei Ridbaz",
+      "fetched_at": "2026-09-22T19:29:27Z",
+      "saved_file": "sources/sefaria_links_JT_Megillah_1_10_5.json",
+      "sha256": "5e5c9d5248783c2ca9b3e36ace506ccca651571e1276dcab68c410c112ccf309",
+      "note": ""
+    },
+    {
+      "source_id": "links_1_10_6",
+      "ref": "Commentary links on Jerusalem Talmud Megillah 1:10:6",
+      "url_or_input_path": "https://www.sefaria.org/api/links/Jerusalem_Talmud_Megillah.1.10.6?with_text=1",
+      "edition": "Sefaria links API with text: Penei Moshe, Korban HaEdah, Ohr LaYesharim",
+      "fetched_at": "2026-09-22T19:30:05Z",
+      "saved_file": "sources/sefaria_links_JT_Megillah_1_10_6_with_text.json",
+      "sha256": "77a7e8130a3e4c7b1c2114d0b89973900e7365398c0664657a677625c991596e",
+      "note": ""
+    },
+    {
+      "source_id": "jt_yoma_1_1",
+      "ref": "Jerusalem Talmud Yoma 1:1 (parallel)",
+      "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Yoma.1.1?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria API v3: Guggenheimer Hebrew/English, Mechon-Mamre, Venice Edition",
+      "fetched_at": "2026-09-22T19:30:55Z",
+      "saved_file": "sources/sefaria_v3_JT_Yoma_1_1_all.json",
+      "sha256": "f557a1473a1aaba357efe5657306a871cb01c3db2d9c5a184db62da8b1c24d0d",
+      "note": ""
+    },
+    {
+      "source_id": "jt_horayot_3_2",
+      "ref": "Jerusalem Talmud Horayot 3:2 (parallel)",
+      "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Horayot.3.2?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria API v3: Guggenheimer Hebrew/English, Mechon-Mamre, Venice Edition",
+      "fetched_at": "2026-09-22T19:31:12Z",
+      "saved_file": "sources/sefaria_v3_JT_Horayot_3_2_all.json",
+      "sha256": "e391ecf5fa6387234aaa66d8f927269f4f23dc2ac29799a8be19ee2755efaa55",
+      "note": ""
+    },
+    {
+      "source_id": "tosefta_yoma_1_4",
+      "ref": "Tosefta Yoma 1:4 (Lieberman)",
+      "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Tosefta_Yoma_(Lieberman).1.4?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria API v3: The Tosefta according to codex Vienna, JTS (Lieberman)",
+      "fetched_at": "2026-09-22T19:31:15Z",
+      "saved_file": "sources/sefaria_v3_Tosefta_Yoma_Lieberman_1_4.json",
+      "sha256": "9f721ef86dd0a37e584d70f8d4a5e05a2ffe95035eb580d6e328841943b60063",
+      "note": ""
+    },
+    {
+      "source_id": "tosefta_yoma_3_20",
+      "ref": "Tosefta Yoma 3:20 (Lieberman)",
+      "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Tosefta_Yoma_(Lieberman).3.20?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria API v3: The Tosefta according to codex Vienna, JTS (Lieberman)",
+      "fetched_at": "2026-09-22T19:31:16Z",
+      "saved_file": "sources/sefaria_v3_Tosefta_Yoma_Lieberman_3_20.json",
+      "sha256": "e0cffbca084817c34189b69ec6f6a2e8f8fff3bee81c13fa552e252436be9b3b",
+      "note": ""
+    },
+    {
+      "source_id": "bavli_yoma_12b",
+      "ref": "Bavli Yoma 12b:11-13a:2",
+      "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Yoma.12b.11-13a.2?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria API v3: William Davidson Edition (Aramaic, vocalized, English); Wikisource Talmud Bavli",
+      "fetched_at": "2026-09-22T19:31:17Z",
+      "saved_file": "sources/sefaria_v3_Bavli_Yoma_12b-13a.json",
+      "sha256": "5396b6d5c6b4579a93f54f6dffc1680d72a37e8e60c1192a0a59ed21bbc004be",
+      "note": ""
+    },
+    {
+      "source_id": "bavli_yoma_47a",
+      "ref": "Bavli Yoma 47a",
+      "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Yoma.47a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria API v3: William Davidson Edition; Wikisource Talmud Bavli",
+      "fetched_at": "2026-09-22T19:31:20Z",
+      "saved_file": "sources/sefaria_v3_Bavli_Yoma_47a.json",
+      "sha256": "250331765ef0e309e15bb7f77327ebdfb25f69e0d0d71cb2dbb136f659cb8a16",
+      "note": ""
+    },
+    {
+      "source_id": "bavli_megillah_9b",
+      "ref": "Bavli Megillah 9b",
+      "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Megillah.9b?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria API v3: William Davidson Edition; Wikisource Talmud Bavli; Daf Shevui",
+      "fetched_at": "2026-09-22T19:31:28Z",
+      "saved_file": "sources/sefaria_v3_Bavli_Megillah_9b.json",
+      "sha256": "40dd0bdf8925558d6c04a9c3b9ffe6f4f8f24a729bde1d29cf28c9fe25d6bb3f",
+      "note": ""
+    },
+    {
+      "source_id": "mishnah_megillah_1_9",
+      "ref": "Mishnah Megillah 1:9",
+      "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Mishnah_Megillah.1.9?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria API v3: Torat Emet; Vilna; Kaufmann (Be'eri); William Davidson English; Kulp; Bartenura (Silverstein)",
+      "fetched_at": "2026-09-22T19:31:23Z",
+      "saved_file": "sources/sefaria_v3_Mishnah_Megillah_1_9.json",
+      "sha256": "b33fbaf9b03fb14a2b16a376109445d649b2856c6f1b4aeb9d44ef086e8f9d14",
+      "note": ""
+    },
+    {
+      "source_id": "mishnah_yoma_1_1",
+      "ref": "Mishnah Yoma 1:1",
+      "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Mishnah_Yoma.1.1?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria API v3: Torat Emet; Vilna; Kaufmann (Be'eri); several English versions",
+      "fetched_at": "2026-09-22T19:31:25Z",
+      "saved_file": "sources/sefaria_v3_Mishnah_Yoma_1_1.json",
+      "sha256": "37ff216fc50968571f9ecb0f61aba94ccfee7230c9ad97701a22cfca69cefd5e",
+      "note": ""
+    },
+    {
+      "source_id": "mt_klei_4_15",
+      "ref": "Mishneh Torah, Vessels of the Sanctuary 4:15",
+      "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Mishneh_Torah,_Vessels_of_the_Sanctuary_and_Those_Who_Serve_Therein.4.15?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria API v3: Torat Emet; Wikisource; Touger English",
+      "fetched_at": "2026-09-22T19:32:13Z",
+      "saved_file": "sources/sefaria_v3_MT_Klei_HaMikdash_4_15.json",
+      "sha256": "7ee467c61d47dbb468422e1603796d7317f473a3fa7af9395dbe97e0374c5cf6",
+      "note": ""
+    },
+    {
+      "source_id": "mt_yk_1_3",
+      "ref": "Mishneh Torah, Service on the Day of Atonement 1:3",
+      "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Mishneh_Torah,_Service_on_the_Day_of_Atonement.1.3?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria API v3: Torat Emet; Wikisource; Touger English",
+      "fetched_at": "2026-09-22T19:32:13Z",
+      "saved_file": "sources/sefaria_v3_MT_Avodat_YK_1_3.json",
+      "sha256": "aad4bf188ae6817da032ad7abb67d34661b3f30c6185122c87ea802203f9a218",
+      "note": ""
+    },
+    {
+      "source_id": "links_1_10_6_list",
+      "ref": "Link list (no text) for Jerusalem Talmud Megillah 1:10:6",
+      "url_or_input_path": "https://www.sefaria.org/api/links/Jerusalem_Talmud_Megillah.1.10.6?with_text=0",
+      "edition": "Sefaria links API without text",
+      "fetched_at": "2026-09-22T19:29:28Z",
+      "saved_file": "sources/sefaria_links_JT_Megillah_1_10_6.json",
+      "sha256": "6cd202cdc28b69fe7f3fe6a81e8df962d95d8dbb1c10e6805be1e30fb8ef2544",
+      "note": "Used only to see which commentaries and parallels are linked."
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "f01",
+      "claim": "In Megillah 1:10:5 the string לְכֹהֵן גָּדוֹל occurs twice. The first occurrence (offsets 99-114) belongs to the rule about the hypothetical second priest: he is fit neither \"for high priest\" nor \"for ordinary priest\". It is an eligibility category, not a person. The second occurrence (offsets 304-319), right after שֶׁאִירַע קֶרִי, is the incumbent high priest in the Ben Illem story.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "in_s4",
+          "exact_quote": "הַשֵּׁינִי אֵינוֹ כָשֵׁר לֹא לְכֹהֵן גָּדוֹל וְלֹא לְכֹהֵן הֶדְיוֹט",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 70,
+          "end": 137
+        },
+        {
+          "source_id": "in_s4",
+          "exact_quote": "לְכֹהֵן גָּדוֹל",
+          "occurrence": 1,
+          "occurrences_in_segment": 2,
+          "start": 99,
+          "end": 114
+        },
+        {
+          "source_id": "in_s4",
+          "exact_quote": "שֶׁאִירַע קֶרִי לְכֹהֵן גָּדוֹל בְּיוֹם הַכִּיפּוּרִים",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 288,
+          "end": 342
+        },
+        {
+          "source_id": "in_s4",
+          "exact_quote": "לְכֹהֵן גָּדוֹל",
+          "occurrence": 2,
+          "occurrences_in_segment": 2,
+          "start": 304,
+          "end": 319
+        }
+      ],
+      "reasoning": "The first occurrence is governed by אֵינוֹ כָשֵׁר לֹא ... וְלֹא, a paired list of roles for which the second priest is unfit. The parallel לְכֹהֵן הֶדְיוֹט cannot be a person either. Only the second occurrence is the object of אירע (\"it happened to\"), within the narrated story.",
+      "confidence": "high",
+      "graph_effect": "Move the first_priest anchor (m9) from s4 occurrence 1 to s4 occurrence 2 (start 304, end 319). Attach no person to occurrence 1. Treat it and לְכֹהֵן הֶדְיוֹט as role categories in an eligibility rule.",
+      "working_translation": "Working translation: \"the second is fit neither for high priest nor for ordinary priest\" ... \"that a seminal emission happened to the high priest on the Day of Atonement\"."
+    },
+    {
+      "finding_id": "f02",
+      "claim": "The incumbent high priest of the story is referred to twice more. תַּחְתָּיו (\"in his stead\", offsets 378-388) points to him. In Ben Illem's question, the third occurrence of the string כֹהֵן גָּדוֹל (inside מִשֵׁלְּכֹהֵן גָּדוֹל, offsets 525-538) names him as the other possible owner of the offerings.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "in_s4",
+          "exact_quote": "וְנִכְנַס בֶּן אִילֵּם וְשִׁימֵּשׁ תַּחְתָּיו בִּכְהוּנָּה גְדוֹלָה",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 343,
+          "end": 410
+        },
+        {
+          "source_id": "in_s4",
+          "exact_quote": "פָּר וְשָׂעִיר שֶׁל יוֹם מִשֶׁלִּי הֵן קְרֵיבִים אוֹ מִשֵׁלְּכֹהֵן גָּדוֹל",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 464,
+          "end": 538
+        },
+        {
+          "source_id": "in_s4",
+          "exact_quote": "כֹהֵן גָּדוֹל",
+          "occurrence": 3,
+          "occurrences_in_segment": 3,
+          "start": 525,
+          "end": 538
+        },
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "משלי – מכספי, הן קריבים או משל כהן גדול – מכספו של הכוהן הגדול שאת מקומו מילאתי",
+          "locator": "Ohr LaYesharim on Jerusalem Talmud Megillah 1:10:5"
+        }
+      ],
+      "reasoning": "The only antecedent of the suffix in תַּחְתָּיו is the high priest to whom the emission happened. Ben Illem contrasts \"mine\" with \"the high priest's\", so the second party is the priest he replaced. Ohr LaYesharim glosses it that way (\"the high priest whose place I filled\"). The label כֹהֵן גָּדוֹל is contested within the story itself: Ben Illem has just served as high priest. The reference is therefore high confidence for תחתיו and medium-high for the speech mention.",
+      "confidence": "high",
+      "graph_effect": "Add mentions of first_priest at s4 תַּחְתָּיו (378-388) and at s4 כֹהֵן גָּדוֹל occurrence 3 (525-538; speaker Ben Illem). Keep the offering-ownership question as speech content, not as an asserted ownership relation.",
+      "working_translation": "Working translation: \"are the bull and goat of the day offered from mine, or from the high priest's?\""
+    },
+    {
+      "finding_id": "f03",
+      "claim": "The eligibility rules at the head of 1:10:5 concern two generic priests: \"this one passed and that one served\". The first bears all the priestly commandments. The second is fit neither as high priest nor as ordinary priest. The earlier extraction created entities for these roles, but it gave them no rule claims.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "in_s4",
+          "exact_quote": "עָבַר זֶה וְשִׁימֵּשׁ זֶה. הָרִאשׁוֹן כָּל מִצְוַת כְּהוּנָּה עָלָיו.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 0,
+          "end": 69
+        },
+        {
+          "source_id": "in_s4",
+          "exact_quote": "הַשֵּׁינִי אֵינוֹ כָשֵׁר לֹא לְכֹהֵן גָּדוֹל וְלֹא לְכֹהֵן הֶדְיוֹט.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 70,
+          "end": 138
+        },
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "הראשון. לאחר שיעבור פסולו חוזר הוא לעבודתו וכל קדושת כהונה גדולה עליו",
+          "locator": "Penei Moshe on Jerusalem Talmud Megillah 1:10:5:2"
+        },
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "השני אינו כשר לא לכ\"ג. מפני האיבה ואין לו ג\"כ דין כהן הדיוט לפי שמעלין בקדש ואין מורידין",
+          "locator": "Penei Moshe on Jerusalem Talmud Megillah 1:10:5:3"
+        },
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "לא לכה\"ג. לשמש בשמנהבגדים",
+          "locator": "Korban HaEdah on Jerusalem Talmud Megillah 1:10:5:3"
+        },
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "ולא לכהן הדיוט. לשמש בארבעה",
+          "locator": "Korban HaEdah on Jerusalem Talmud Megillah 1:10:5:4"
+        }
+      ],
+      "reasoning": "The Yerushalmi states the two rules without reasons. Penei Moshe supplies them: enmity bars the second as high priest, and \"one raises in holiness and does not lower\" bars him as ordinary priest. Korban HaEdah maps the two roles to eight and four garments. These are commentary explanations, kept separate from the text.",
+      "confidence": "high",
+      "graph_effect": "Add two rule claims. first_legal retains all priestly duties. second_legal is ineligible as high priest and ineligible as ordinary priest. Mark both as generic, hypothetical and legal. The reasons (enmity; no lowering in holiness) are commentary-voiced notes and do not belong to the text's own claim.",
+      "working_translation": "Working translation: \"If this one passed [out of service] and that one served: the first has all the commandment of priesthood on him; the second is fit neither for high priest nor for ordinary priest.\""
+    },
+    {
+      "finding_id": "f04",
+      "claim": "Rabbi Yohanan rules that if the second priest nevertheless served, his service is valid. Penei Moshe and Korban HaEdah make the second priest the subject. Korban HaEdah limits validity to service in eight garments. The parallel in Horayot has a reading \"invalid\" in the saved Venice and Mechon-Mamre texts. Guggenheimer rejects that reading.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "in_s4",
+          "exact_quote": "אָמַר רִבִּי יוֹחָנָן. עָבַר וְעָבַד עֲבוֹדָתוֹ כְשֵׁירָה.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 139,
+          "end": 197
+        },
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "עבר. השני ועבד ואעבודת יה\"כ קאי שאינה כשירה אלא בכ\"ג",
+          "locator": "Penei Moshe on Jerusalem Talmud Megillah 1:10:5:4"
+        },
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "עבר ועבד. השני בשמנה בגדים עבודתו כשרה דהא כה\"ג הוא אלא דאסרו חכמים משום איבה אבל בארבעה פסולה לכ\"ע דה\"ל מחוסר בגדים",
+          "locator": "Korban HaEdah on Jerusalem Talmud Megillah 1:10:5:5"
+        },
+        {
+          "source_id": "jt_horayot_3_2",
+          "exact_quote": "אמר רבי יוחנן עבר ועבד עבודתו פסולה",
+          "locator": "Jerusalem Talmud Horayot 3:2, Venice and Mechon-Mamre Hebrew"
+        },
+        {
+          "source_id": "jt_horayot_3_2",
+          "exact_quote": "his officiating is (invalid) [valid]",
+          "locator": "Guggenheimer English, Horayot 3:2, with note 152"
+        },
+        {
+          "source_id": "bavli_yoma_12b",
+          "exact_quote": "וּמוֹדֶה רַבִּי יוֹסֵי שֶׁאִם עָבַר וְעָבַד — עֲבוֹדָתוֹ כְּשֵׁרָה",
+          "locator": "Bavli Yoma 13a, via Rabbah bar bar Hana in the name of Rabbi Yohanan"
+        }
+      ],
+      "reasoning": "The Megillah and Yoma Yerushalmi texts read כשירה. The Horayot text as saved reads פסולה. Guggenheimer reports that the Leiden manuscript reads \"invalid\" and prints \"valid\" from another witness and the parallels. The Bavli attributes the same concession, through Rabbah bar bar Hana, to Rabbi Yohanan's ruling on Rabbi Yose's view. That supports the valid reading. It does not prove that the Yerushalmi statements are one utterance.",
+      "confidence": "high",
+      "graph_effect": "Keep c12 (Yohanan holds that service performed anyway is valid) and give second_legal the subject role. Record the Horayot \"invalid\" reading as a variant branch, not a separate Yohanan view. The eight-versus-four-garments limit is Korban HaEdah's qualification.",
+      "working_translation": "Working translation: \"Rabbi Yohanan said: if he transgressed and served, his service is valid.\""
+    },
+    {
+      "finding_id": "f05",
+      "claim": "The next question, עֲבוֹדָתוֹ מִשֶּׁל מִי (\"his service, from whose [property]?\"), is answered by citing the Ben Illem story. The commentaries disagree about what the story proves. Penei Moshe says the offerings come from the incumbent's property. Ohr LaYesharim says they come from the replacement's.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "in_s4",
+          "exact_quote": "עֲבוֹדָתוֹ מִשֶּׁל מִי. נִישְׁמְעִינָהּ מִן הָדָא.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 198,
+          "end": 248
+        },
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "אלמא דמשל כ\"ג הן קריבין ולא משל זה העובד לפי שעה",
+          "locator": "Penei Moshe on Jerusalem Talmud Megillah 1:10:5:10"
+        },
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "הפר אינו משל הכוהן הגדול, אלא משל הכוהן הממלא את מקומו",
+          "locator": "Ohr LaYesharim on Jerusalem Talmud Megillah 1:10:5"
+        }
+      ],
+      "reasoning": "The Yerushalmi does not state the resolution. It lets the king's reply and Ben Illem's removal speak. Penei Moshe infers ownership by the incumbent, since Ben Illem was told to be content and understood he was removed. Ohr LaYesharim reads the question as rhetorical (\"are they not mine?\"), with the replacement owning the offerings. Both are commentary inferences.",
+      "confidence": "high",
+      "graph_effect": "Do not assert any ownership relation between a priest and the offerings. The story supports an \"illustrates\" link to the question, with two commentary-attributed resolutions saved as alternative readings.",
+      "working_translation": "Working translation: \"His service - from whose? Let us learn it from this.\""
+    },
+    {
+      "finding_id": "f06",
+      "claim": "The Ben Illem story has three participants: Ben Illem of Tzipporin (named), the incumbent high priest (unnamed) and the king (unnamed). The earlier output omitted one narrated step: the king understood what Ben Illem was asking. Ben Illem's removal is passive (שֶׁהוּסַּע). The text does not say who removed him.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "in_s4",
+          "exact_quote": "מַעֲשֶׂה בְּבֶן אִילֵּם מִצִּיפּוֹרִין",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 249,
+          "end": 287
+        },
+        {
+          "source_id": "in_s4",
+          "exact_quote": "וְאָמַר לַמֶּלֶךְ כְּשֶׁיָּצָא. אֲדוֹנִי הַמֶּלֶךְ.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 412,
+          "end": 463
+        },
+        {
+          "source_id": "in_s4",
+          "exact_quote": "וְיָדַע הַמֶּלֶךְ מַה שָׁאֲלוּ.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 540,
+          "end": 571
+        },
+        {
+          "source_id": "in_s4",
+          "exact_quote": "וְיָדַע בֶּן אִילֵּם שֶׁהוּסַּע מִכְּהוּנָּה גְּדוֹלָה.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 699,
+          "end": 754
+        },
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "וידע המלך מה שאלו. שהבין דעתו שישאר הוא להיות כ\"ג",
+          "locator": "Penei Moshe on Jerusalem Talmud Megillah 1:10:5:9"
+        },
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "שהוסע. שהעבירו מלעבוד עוד בכה\"ג אלא שהראשון חוזר לעבודתו",
+          "locator": "Korban HaEdah on Jerusalem Talmud Megillah 1:10:5:11"
+        }
+      ],
+      "reasoning": "The king is addressed and replies. His understanding of the question is narrated separately. Penei Moshe reads the question as a bid to remain high priest. Ben Illem's removal is inferred by Ben Illem from the reply. Assigning the removal to the king is plausible from the story but is not stated.",
+      "confidence": "high",
+      "graph_effect": "Add an event: the king understands Ben Illem's question (commentary note: as a bid to stay in office). Keep \"Ben Illem removed from high priesthood\" with an unstated agent. A king-removes-Ben-Illem edge, if added, should be marked implicit (basis: inference from the reply).",
+      "working_translation": "Working translation: \"The king knew what he was asking ... Ben Illem knew that he had been removed from the high priesthood.\""
+    },
+    {
+      "finding_id": "f07",
+      "claim": "Commentators disagree about what שֶׁאִירַע קֶרִי means. Guggenheimer and Ohr LaYesharim read it literally as a seminal emission. Korban HaEdah reads it as some other defilement, because the Mishnah in Avot says this never happened to a high priest on Yom Kippur. The Bavli parallel says only פְּסוּל (a disqualification).",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "in_s4",
+          "exact_quote": "שֶׁאִירַע קֶרִי לְכֹהֵן גָּדוֹל",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 288,
+          "end": 319
+        },
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "שאירע קרי. מקרה שנטמא ע\"י אחת מטומאות אבל קרי ממש אי אפשר לומר דתנן במס' אבות שלא אירע קרי לכה\"ג ביה\"כ מעולם",
+          "locator": "Korban HaEdah on Jerusalem Talmud Megillah 1:10:5:7"
+        },
+        {
+          "source_id": "jt_meg_1_10",
+          "exact_quote": "that the High Priest experienced an emission of semen on the Day of Atonement",
+          "locator": "Guggenheimer English translation and notes, Megillah 1:10:5"
+        },
+        {
+          "source_id": "bavli_yoma_12b",
+          "exact_quote": "שֶׁאֵירַע בּוֹ פְּסוּל בְּכֹהֵן גָּדוֹל",
+          "locator": "Bavli Yoma 12b"
+        }
+      ],
+      "reasoning": "The Yerushalmi word is קרי. Only its sense is disputed, so the graph should keep the event type loose.",
+      "confidence": "high",
+      "graph_effect": "Label the incumbent's event \"disqualifying incident (text: קרי)\". Keep literal emission and Korban HaEdah's general defilement as commentary-attributed alternatives."
+    },
+    {
+      "finding_id": "f08",
+      "claim": "The story's incumbent and Ben Illem correspond to the legal \"first\" and \"second\" priests. The Yerushalmi does not state this correspondence. The Tosefta does: it says Ben Illem \"was not fit either for high priest or for ordinary priest\". Ohr LaYesharim makes the same link.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "tosefta_yoma_1_4",
+          "exact_quote": "מעשה היה ביוסף בן אילים מציפורי ששימש תחת כהן גדול שעה אחת, ולא היה כשר לא לכהן גדול ולא לכהן הדיוט"
+        },
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "בן אילם הבין שהועבר מתפקיד הכהונה הגדולה",
+          "locator": "Ohr LaYesharim on Jerusalem Talmud Megillah 1:10:5"
+        }
+      ],
+      "reasoning": "In the Yerushalmi the story is cited for the \"from whose?\" question, and ends with Ben Illem removed from the high priesthood. It never says he was also barred from ordinary service. That second bar comes from the Tosefta parallel and the commentary.",
+      "confidence": "medium",
+      "graph_effect": "Optionally add role-instantiation edges: first_priest as first_legal, and ben_illem as second_legal. Mark them interpretation, with evidence from the Tosefta parallel and Ohr LaYesharim. Do not write \"Ben Illem barred from ordinary priesthood\" as a Yerushalmi claim."
+    },
+    {
+      "finding_id": "f09",
+      "claim": "The parallels name the replacement differently and give the ruling to a different authority. The Tosefta has \"Yosef ben Ilim of Tzippori\", with Rabbi Yose telling the story and the king replying. The Bavli has \"Yosef ben Elem\" (Megillah 9b: \"Rabbi Yosef ben Elem\"), with the Sages ruling. The Yerushalmi gives no first name and no teller.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "tosefta_yoma_1_4",
+          "exact_quote": "אמ' ר' יוסה מעשה היה ביוסף בן אילים מציפורי"
+        },
+        {
+          "source_id": "tosefta_yoma_1_4",
+          "exact_quote": "ידע המלך על מה אמ' לו"
+        },
+        {
+          "source_id": "bavli_yoma_12b",
+          "exact_quote": "אָמַר רַבִּי יוֹסֵי: מַעֲשֶׂה בְּיוֹסֵף בֶּן אִלֵּם בְּצִיפּוֹרִי"
+        },
+        {
+          "source_id": "bavli_yoma_12b",
+          "exact_quote": "וְאָמְרוּ חֲכָמִים: רִאשׁוֹן — חוֹזֵר לַעֲבוֹדָתוֹ"
+        },
+        {
+          "source_id": "bavli_megillah_9b",
+          "exact_quote": "ואמר רבי יוסי מעשה ברבי יוסף בן אלם מציפורי"
+        },
+        {
+          "source_id": "jt_meg_1_10",
+          "exact_quote": "where, however, the ruling is not the king’s (necessarily of the Herodian dynasty) but “the rabbis’.”",
+          "locator": "Guggenheimer English translation and notes, note 431"
+        }
+      ],
+      "reasoning": "These are parallel tellings of one tradition, and each sits in its own text. The first name Yosef, the teller Rabbi Yose and the Sages as deciders belong to the parallels, not to this Yerushalmi passage. Guggenheimer calls the king \"necessarily of the Herodian dynasty\". That is his historical inference.",
+      "confidence": "high",
+      "graph_effect": "Keep ben_illem local to this passage. Record \"Yosef ben Ilim/Elem\" only as a parallel-tradition name candidate for a separate identity pack, not a merge. Do not add Rabbi Yose or the Sages to this passage's graph. Leave the king unnamed, with \"Herodian\" attributed to Guggenheimer."
+    },
+    {
+      "finding_id": "f10",
+      "claim": "A commentary gives a historical identification that is not in the text: Josephus named the replaced high priest as Matthias son of Theophilus. Ohr LaYesharim reports this with its own uncertainty, since two high priests bore that name. The Yerushalmi does not name the incumbent.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "והוא מזכיר את שם הכוהן הגדול שאת מקומו מילא יוסף בן אילם: מתתיהו בן תיאופילוס",
+          "locator": "Ohr LaYesharim on Jerusalem Talmud Megillah 1:10:5"
+        },
+        {
+          "source_id": "links_1_10_5",
+          "exact_quote": "היו שני כוהנים גדולים בשם זה",
+          "locator": "Ohr LaYesharim on Jerusalem Talmud Megillah 1:10:5"
+        }
+      ],
+      "reasoning": "This is a secondary report of a historian, relayed by a modern commentary. No Josephus text was fetched in this case.",
+      "confidence": "low",
+      "graph_effect": "Do not name first_priest. At most, keep a historical-identity hypothesis (\"Josephus, reported by Ohr LaYesharim\"), outside the passage graph."
+    },
+    {
+      "finding_id": "f11",
+      "claim": "Earlier claim c1 treats Ben Illem as child_of a person named Illem. The text uses בֶּן אִילֵּם only as the man's name. No person called Illem acts or is described. The parallels spell the name בן אילים, בן אלם or בן אלם.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "in_s4",
+          "exact_quote": "בֶן אִילֵּם",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 261,
+          "end": 272
+        },
+        {
+          "source_id": "tosefta_yoma_1_4",
+          "exact_quote": "בן אילים"
+        },
+        {
+          "source_id": "jt_horayot_3_2",
+          "exact_quote": "מעשה בבן אלם",
+          "locator": "Jerusalem Talmud Horayot 3:2, Mechon-Mamre Hebrew"
+        }
+      ],
+      "reasoning": "A \"ben X\" name may be a patronymic or a family name. Treating it as a filiation edge to a separate person adds a node the passage never uses.",
+      "confidence": "medium",
+      "graph_effect": "Downgrade c1 from a family relation to a name-structure annotation. Illem's entity should not be counted as a participant."
+    },
+    {
+      "finding_id": "f12",
+      "claim": "Megillah 1:10:4 quotes Mishnah Yoma 1:1 (\"one prepares another priest in his place lest a disqualification befall him\") and asks whether the two priests are secluded together. Rabbi Haggai answers that the incumbent would kill him. The derivation \"אותו\" follows: one high priest is anointed, not two. Rabbi Yohanan says \"because of enmity\".",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "in_s3",
+          "exact_quote": "מַתְקִינִין לוֹ כֹהֵן אַחֵר תַּחְתָּיו שֶׁמָּא יֶאֱרַע לוֹ פְסוּל.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 0,
+          "end": 66
+        },
+        {
+          "source_id": "in_s3",
+          "exact_quote": "מַה. מְיַיחֲדִין לֵיהּ עִימֵּיהּ.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 67,
+          "end": 100
+        },
+        {
+          "source_id": "in_s3",
+          "exact_quote": "אָמַר רִבִּי חַגַּי. מֹשֶׁה. דִּינּוּן מְיַיחֲדִין לֵיהּ עִימֵּיהּ דּוּ קְטִיל לֵיהּ.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 101,
+          "end": 186
+        },
+        {
+          "source_id": "in_s3",
+          "exact_quote": "אוֹתוֹ. אֶחָד מוֹשְׁחִין וְאֵין מוֹשְׁחִין שְׁנַיִם.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 187,
+          "end": 239
+        },
+        {
+          "source_id": "in_s3",
+          "exact_quote": "אָמַר רִבִּי יוֹחָנָן. מִפְּנֵי אֵיבָה.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 240,
+          "end": 279
+        },
+        {
+          "source_id": "mishnah_yoma_1_1",
+          "exact_quote": "וּמַתְקִינִין לוֹ כֹהֵן אַחֵר תַּחְתָּיו, שֶׁמָּא יֶאֱרַע בּוֹ פְסוּל"
+        }
+      ],
+      "reasoning": "All actors in 1:10:4 are generic: the incumbent (לוֹ), the backup priest (כֹהֵן אַחֵר) and the unexpressed \"they\" who prepare, seclude and anoint. The named voices are Rabbi Haggai and Rabbi Yohanan.",
+      "confidence": "high",
+      "graph_effect": "Keep generic_incumbent and generic_replacement as non-historical role entities. Add rule claims: a backup priest is prepared; one high priest is anointed, not two; Yohanan gives enmity as the reason. Keep Haggai's remark as a hypothetical warning.",
+      "working_translation": "Working translation: \"One prepares for him another priest in his place, lest a disqualification befall him. What - does one seclude him with him? Rabbi Haggai said: Moses! If they seclude him with him, he will kill him. 'Him': one anoints one and does not anoint two. Rabbi Yohanan said: because of enmity.\""
+    },
+    {
+      "finding_id": "f13",
+      "claim": "Interpreters differ on how Rabbi Yohanan's \"because of enmity\" relates to the derivation. Penei Moshe, Korban HaEdah and Ohr LaYesharim read it as the reason for \"one, not two\". Guggenheimer reads it as a disagreement: the rule is practical, not biblical.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "links_1_10_4",
+          "exact_quote": "אין מושחין אותו וכדמפרש ר' יוחנן טעמא מפני האיבה",
+          "locator": "Penei Moshe on Jerusalem Talmud Megillah 1:10:4:5"
+        },
+        {
+          "source_id": "links_1_10_4",
+          "exact_quote": "מפני איבה. לכך אין מושחין שנים דחיישינן לשנאה שתהיה ביניהם",
+          "locator": "Korban HaEdah on Jerusalem Talmud Megillah 1:10:4:4"
+        },
+        {
+          "source_id": "jt_meg_1_10",
+          "exact_quote": "He disagrees and holds that while the two could not have been anointed on the same day, they could have been anointed on different days. The rule that the back-up Cohen has lower status is practical, not biblical",
+          "locator": "Guggenheimer English translation and notes, note 428"
+        }
+      ],
+      "reasoning": "The Hebrew places Yohanan's remark straight after the derivation, with no marker of dispute. Both readings are possible.",
+      "confidence": "high",
+      "graph_effect": "Keep c11 as \"explains / gives reason\". Add a Guggenheimer-attributed alternative branch in which Yohanan disputes the derivation."
+    },
+    {
+      "finding_id": "f14",
+      "claim": "Commentators read Rabbi Haggai's מֹשֶׁה as an oath, \"by Moses\" (Penei Moshe, Guggenheimer, Ohr LaYesharim). Moses is not a participant. The Yoma parallel reads משם, which Guggenheimer calls a scribal error. Korban HaEdah reads משם and glosses it as Rabbi Haggai \"who was from Babylonia\".",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "links_1_10_4",
+          "exact_quote": "משה. שבועה היא וכך היה דרכו של ר' חגיי",
+          "locator": "Penei Moshe on Jerusalem Talmud Megillah 1:10:4:3"
+        },
+        {
+          "source_id": "jt_yoma_1_1",
+          "exact_quote": "א\"ר חגיי משם דאין מייחדין ליה עימיה",
+          "locator": "Jerusalem Talmud Yoma 1:1, Mechon-Mamre Hebrew"
+        },
+        {
+          "source_id": "links_1_10_4",
+          "exact_quote": "ה\"ג א\"ר חגיי משם דאין מייחדין ליה עמו. וכ\"ה ביומא וה\"פ ר' חגיי שהיה מבבל אמר",
+          "locator": "Korban HaEdah on Jerusalem Talmud Megillah 1:10:4:2"
+        },
+        {
+          "source_id": "jt_horayot_3_2",
+          "exact_quote": "In Yoma “because of”, a scribal error. “By Moses” was a preferred expression of R. Ḥaggai’s.",
+          "locator": "Guggenheimer English, Horayot 3:2, note 148"
+        }
+      ],
+      "reasoning": "The Megillah and Horayot texts read מֹשֶׁה. Only one commentary, built on a variant, attaches a Babylonian origin to Rabbi Haggai.",
+      "confidence": "high",
+      "graph_effect": "No Moses node or edge. If Haggai's origin is recorded at all, it goes in an identity pack as \"Korban HaEdah, on the reading משם\". It does not belong in this passage graph."
+    },
+    {
+      "finding_id": "f15",
+      "claim": "It is unclear who would kill whom in Rabbi Haggai's warning. The Aramaic has only pronouns. Penei Moshe and Ohr LaYesharim say the incumbent would kill the backup.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "in_s3",
+          "exact_quote": "דּוּ קְטִיל לֵיהּ",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 168,
+          "end": 185
+        },
+        {
+          "source_id": "links_1_10_4",
+          "exact_quote": "אם היו מייחדין לזה עמו בודאי יהרגנו שאינו יכול לסבלו ולראות צרה שלו בצידו",
+          "locator": "Penei Moshe on Jerusalem Talmud Megillah 1:10:4:4"
+        },
+        {
+          "source_id": "links_1_10_4",
+          "exact_quote": "יש לחשוש שמא הכוהן הגדול יהרוג את הכוהן האחר",
+          "locator": "Ohr LaYesharim on Jerusalem Talmud Megillah 1:10:4"
+        }
+      ],
+      "reasoning": "This is a hypothetical danger, not a narrated killing. The direction comes from commentary.",
+      "confidence": "medium",
+      "graph_effect": "If kept, add a hypothetical-risk claim with modality \"counterfactual/warning\" and direction per Penei Moshe and Ohr LaYesharim. Never add a kills event."
+    },
+    {
+      "finding_id": "f16",
+      "claim": "The unstated subject of Rabbi Yohanan's 1:10:3 ruling (\"if he transgressed and brought his tenth of an ephah, it is valid\") is the former high priest (כֹּהֵן שֶׁעָבַר) of the Mishnah lemma. This answers the earlier open question.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "jt_meg_1_10",
+          "exact_quote": "אין בין כהן ששימש לכהן שעבר אלא פר יוה\"כ ועשירית האיפה",
+          "locator": "Jerusalem Talmud Megillah 1:10:1, Mechon-Mamre Hebrew"
+        },
+        {
+          "source_id": "mishnah_megillah_1_9",
+          "exact_quote": "אֵין בֵּין כֹּהֵן מְשַׁמֵּשׁ לְכֹהֵן שֶׁעָבַר אֶלָּא פַּר יוֹם הַכִּפּוּרִים וַעֲשִׂירִית הָאֵיפָה"
+        },
+        {
+          "source_id": "links_1_10_3",
+          "exact_quote": "כלומר משיח שעבר דתנן שאין מביא עשירית האיפה",
+          "locator": "Penei Moshe on Jerusalem Talmud Megillah 1:10:3:1"
+        },
+        {
+          "source_id": "links_1_10_3",
+          "exact_quote": "עבר. כהן שעבר והביא עשירית האיפה משלו כשר",
+          "locator": "Korban HaEdah on Jerusalem Talmud Megillah 1:10:3:1"
+        },
+        {
+          "source_id": "jt_meg_1_10",
+          "exact_quote": "if the ex-High Priest, who, as will be explained later in the Halakhah, should be unfit to serve as High Priest",
+          "locator": "Guggenheimer English translation and notes, note 424"
+        }
+      ],
+      "reasoning": "The Mishnah separates the serving priest from the one who \"passed\" only by the Yom Kippur bull and the tenth of an ephah. Yohanan's ruling is about the latter offering. Penei Moshe, Korban HaEdah, Ohr LaYesharim and Guggenheimer all name the former high priest as subject. The Venice Mishnah lemma reads שעבד, which looks like a graphic variant of שעבר; no commentary relies on it.",
+      "confidence": "high",
+      "graph_effect": "Relabel tenth_priest as \"former high priest (כהן שעבר), generic\". Link c9 to the Mishnah rule. Change the episode's needs_context note to resolved."
+    },
+    {
+      "finding_id": "f17",
+      "claim": "The full rule set in scope concerns high priests. (a) Mishnah: an anointed priest and a priest invested by garments differ only in the bull for all the commandments. (b) Mishnah: a serving priest and a former priest differ only in the Yom Kippur bull and the tenth of an ephah. (c) Tanna: the anointed priest brings the bull and the garment-invested priest does not; Rabbi Meir disagrees. (d) Rabbi Yohanan: a former priest's tenth of an ephah brought anyway is valid. (e)-(h) are in 1:10:4-5: the backup priest, \"one, not two\", the first and second priest, and \"valid if served\".",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "mishnah_megillah_1_9",
+          "exact_quote": "אֵין בֵּין כֹּהֵן מָשׁוּחַ בְּשֶׁמֶן הַמִּשְׁחָה לִמְרֻבֶּה בְגָדִים אֶלָּא פַּר הַבָּא עַל כָּל הַמִּצְוֹת"
+        },
+        {
+          "source_id": "in_s1",
+          "exact_quote": "כֹּהֵן מָשִׁיחַ מֵבִיא פָּר. אֵין הַמְרוּבֶּה בְגָדִים מֵבִיא פָּר. וּדְלֹא כְרִבִּי מֵאִיר.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 15,
+          "end": 107
+        },
+        {
+          "source_id": "in_s2",
+          "exact_quote": "אָמַר רִבִּי יוֹחָנָן עָבַר וְהֵבִיא עֲשִׂירִית הָאֵיפָה שֶׁלּוֹ כָשֵׁר.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 0,
+          "end": 72
+        }
+      ],
+      "reasoning": "These are the eligibility and offering rules that the saved segments and their lemma state. Rules (e)-(h) are evidenced in findings f03, f04 and f12.",
+      "confidence": "high",
+      "graph_effect": "Every rule should have a claim with a generic legal-role subject, and no rule should be attached to a story person."
+    },
+    {
+      "finding_id": "f18",
+      "claim": "The Yerushalmi says \"the first\" bears all the priestly commandments. The Tosefta (as Rabbi Meir's view) and the Bavli (Rabbi Meir) say that \"all the commandments of the high priesthood\" rest on the SECOND priest. The Mishneh Torah also applies that phrase to the second. The Yoma and Horayot Yerushalmi parallels read קדושת (\"sanctity\") where Megillah reads מצות.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "in_s4",
+          "exact_quote": "הָרִאשׁוֹן כָּל מִצְוַת כְּהוּנָּה עָלָיו",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 27,
+          "end": 68
+        },
+        {
+          "source_id": "jt_yoma_1_1",
+          "exact_quote": "הראשון כל קדושת כהונה עליו",
+          "locator": "Jerusalem Talmud Yoma 1:1, Mechon-Mamre Hebrew"
+        },
+        {
+          "source_id": "tosefta_yoma_1_4",
+          "exact_quote": "וכהן גדול חוזר לכהונה, וזה ששימש תחתיו כל מצות כהונה גדולה עליו דברי ר' מאיר"
+        },
+        {
+          "source_id": "bavli_yoma_12b",
+          "exact_quote": "שֵׁנִי — כׇּל מִצְוֹת כְּהוּנָּה גְּדוֹלָה עָלָיו, דִּבְרֵי רַבִּי מֵאִיר"
+        },
+        {
+          "source_id": "mt_yk_1_3",
+          "exact_quote": "הֲרֵי הָרִאשׁוֹן חוֹזֵר לַעֲבוֹדָתוֹ וְהַשֵּׁנִי עוֹבֵר וְכָל מִצְוֹת כְּהֻנָּה גְּדוֹלָה עָלָיו"
+        }
+      ],
+      "reasoning": "The graph should follow the Yerushalmi wording for this passage and note the parallel difference. Ohr LaYesharim, citing Tosefta ki-Fshutah, argues that in the Yerushalmi Rabbi Yose adds to Rabbi Meir rather than disputing him. That is commentary.",
+      "confidence": "high",
+      "graph_effect": "Attach \"all priestly commandments on him\" to first_legal, as the Yerushalmi says. Do not import Rabbi Meir or Rabbi Yose from the Tosefta or Bavli into this passage. Record the second-priest version as a parallel-text difference."
+    },
+    {
+      "finding_id": "f19",
+      "claim": "The Kimhit story in 1:10:6 has these participants: Shimon ben Kimhit; a king (\"Arab king\", subject to variants); his brother Yehuda; their mother, called \"their mother\" and then named Kimhit; the seven sons, five of them unnamed; the Sages who send to her; and the unmarked \"they\" who say the flour saying and recite the verse. Kimhit is the only woman participant in the checked segments. \"The king's daughter\" is a figure in the quoted verse, not a person in the scene.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "in_s5",
+          "exact_quote": "וְרָאָת אִימָּן שְׁנֵי בָנֶיהָ כֹּהֲנִים גְּדוֹלִים בְּיוֹם אֶחָד.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 244,
+          "end": 310
+        },
+        {
+          "source_id": "in_s5",
+          "exact_quote": "שִׁבְעָה בָנִים הָיוּ לְקִמְחִית",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 311,
+          "end": 343
+        },
+        {
+          "source_id": "in_s5",
+          "exact_quote": "שָׁלְחוּ חֲכָמִים וְאָמְרוּ לָהּ.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 390,
+          "end": 423
+        },
+        {
+          "source_id": "in_s5",
+          "exact_quote": "אָמְרָה לָהֶן.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 462,
+          "end": 476
+        },
+        {
+          "source_id": "in_s5",
+          "exact_quote": "אָמְרוּן. כָּל קִמְחַיָּא קֶמַח וְקִימְחָא דְקִימְחִית סוֹלֶת. וְקָרְוּן עֲלָהּ",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 564,
+          "end": 643
+        },
+        {
+          "source_id": "in_s5",
+          "exact_quote": "כָּל כְּבוּדָּה בַת מֶלֶךְ פְּנִימָה",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 644,
+          "end": 680
+        }
+      ],
+      "reasoning": "The name Shimon ben Kimhit, the \"seven sons to Kimhit\" and the sages' address to her make \"their mother\" and Kimhit the same woman. The subject of אָמְרוּן and קָרְוּן is not stated. The Bavli parallel has the Sages answer her (\"אמרו לה חכמים\"), which supports the sages, but here it is local inference.",
+      "confidence": "high",
+      "graph_effect": "Keep kimhit with mentions אִימָּן (252-259), לְקִמְחִית (333-343), לָהּ (418-422), אָמְרָה (462-469) and עֲלָהּ (637-643). Give c28's speakers a branch: the sages (inferred) or unspecified speakers. Add no person for בַת מֶלֶךְ. Keep the five other sons as a group and do not create individuals for them."
+    },
+    {
+      "finding_id": "f20",
+      "claim": "The saliva came \"from his mouth\" (מִפִּיו). The Hebrew does not say whose. Korban HaEdah and Ohr LaYesharim say it was the king's.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "in_s5",
+          "exact_quote": "וְנִתְּזָה צִינּוֹרָה שֶׁלְּרוֹק מִפִּיו עַל בְּגָדָיו",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 111,
+          "end": 165
+        },
+        {
+          "source_id": "links_1_10_6",
+          "exact_quote": "טיפה מן הרוק של המלך ניתז על בגדיו ורוק עכו\"ם מטמא כרוקו של זב",
+          "locator": "Korban HaEdah on Jerusalem Talmud Megillah 1:10:6:2"
+        },
+        {
+          "source_id": "links_1_10_6",
+          "exact_quote": "ונתזה צנורה (זרם, קילוח) של רוק מפיו – של המלך, על בגדיו – של הכוהן הגדול",
+          "locator": "Ohr LaYesharim on Jerusalem Talmud Megillah 1:10:6"
+        }
+      ],
+      "reasoning": "The commentaries agree, and the legal logic (a gentile's saliva defiles) needs the king as source. The text's pronoun alone is ambiguous.",
+      "confidence": "medium",
+      "graph_effect": "Resolve the m23 coreference candidate to arab_king on a commentary basis (not explicit). Shimon stays the one whose garments are defiled."
+    },
+    {
+      "finding_id": "f21",
+      "claim": "The king's description and the timing vary by witness. Venice Megillah has \"an Arab king, the eve of Yom Kippur at dusk\". Guggenheimer's Megillah bracket marks the time phrase as an addition. The Yoma parallel reads \"the king, the eve of Yom Kippur\". Horayot reads \"to walk with the king on the eve of Yom Kippur at dusk\". Tosefta 3:20 reads \"the king, ערבית\". The Bavli has an Arab in the market. Guggenheimer's notes lean different ways in different tractates. Ohr LaYesharim (following Tosefta ki-Fshutah) prefers \"Arab king\" on Yom Kippur itself.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "in_s5",
+          "exact_quote": "שֶׁיָּצָא לְדַבֵּר עִם מֶלֶךְ עָרְבִי [עֶרֶב יוֹם כִּפּוּרִים עִם חֲשֵׁכָה]",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 35,
+          "end": 110
+        },
+        {
+          "source_id": "jt_yoma_1_1",
+          "exact_quote": "שיצא לדבר עם המלך ערב יום הכפורים",
+          "locator": "Jerusalem Talmud Yoma 1:1, Mechon-Mamre Hebrew"
+        },
+        {
+          "source_id": "jt_horayot_3_2",
+          "exact_quote": "שיצא לטייל עם המלך ערב יום הכיפורים עם חשיכה",
+          "locator": "Jerusalem Talmud Horayot 3:2, Mechon-Mamre Hebrew"
+        },
+        {
+          "source_id": "tosefta_yoma_3_20",
+          "exact_quote": "שיצא לדבר עם המלך ערבית"
+        },
+        {
+          "source_id": "jt_yoma_1_1",
+          "exact_quote": "There can be little doubt that the scribe’s text is the correct one; the corrector’s text is an unjustified emendation.",
+          "locator": "Guggenheimer English, Yoma 1:1, note 128"
+        },
+        {
+          "source_id": "jt_meg_1_10",
+          "exact_quote": "Probably it should read “with the king at sundown before the Day of Atonement.”",
+          "locator": "Guggenheimer English translation and notes, Megillah note 434"
+        },
+        {
+          "source_id": "links_1_10_6",
+          "exact_quote": "והנכון הוא: 'לדבר עם מלך ערבי / המלך הערבי', ומעשה שהיה ביום הכיפורים עצמו היה",
+          "locator": "Ohr LaYesharim on Jerusalem Talmud Megillah 1:10:6"
+        }
+      ],
+      "reasoning": "ערב (\"eve\") and ערבי (\"Arab\") are graphically close. The king's ethnicity and the time of the incident depend on the reading.",
+      "confidence": "high",
+      "graph_effect": "Keep one king entity (\"the king Shimon went out to speak with\"). \"Arab\" and the timing are reading-branch attributes. Do not identify this king with the king in the Ben Illem story."
+    },
+    {
+      "finding_id": "f22",
+      "claim": "The Bavli tells the saliva story twice about Yishmael ben Kimhit, with brothers Yeshevav and Yosef. The Tosefta leaves the brother unnamed. The Yerushalmi has Shimon and Yehuda. These are different name traditions, not evidence of identity.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "bavli_yoma_47a",
+          "exact_quote": "אמרו עליו על רבי ישמעאל בן קמחית פעם אחת סיפר דברים עם ערבי אחד בשוק ונתזה צינורא מפיו על בגדיו ונכנס ישבב אחיו ושמש תחתיו"
+        },
+        {
+          "source_id": "bavli_yoma_47a",
+          "exact_quote": "וְנִכְנַס יוֹסֵף (עִם) אָחִיו וְשִׁמֵּשׁ תַּחְתָּיו"
+        },
+        {
+          "source_id": "tosefta_yoma_3_20",
+          "exact_quote": "נכנס אחיו ושמש תחתיו בכהונה גדולה"
+        }
+      ],
+      "reasoning": "Different names in parallel tellings of one motif cannot justify a merge.",
+      "confidence": "high",
+      "graph_effect": "Keep shimon and yehuda local. Do not merge them with Yishmael, Yeshevav or Yosef. Parallel-name links may go only into an identity pack."
+    },
+    {
+      "finding_id": "f23",
+      "claim": "All seven sons served as high priests. The text does not say on the same day, or how. Ohr LaYesharim explains that each served in turn as a replacement. The Bavli's English gloss adds \"or as his substitute\". These are explanations.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "in_s5",
+          "exact_quote": "שִׁבְעָה בָנִים הָיוּ לְקִמְחִית וְכוּלְּהֹם שִׁימְּשׁוּ בִכְהוּנָּה גְדוֹלָה.",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 311,
+          "end": 389
+        },
+        {
+          "source_id": "links_1_10_6",
+          "exact_quote": "שבכל פעם שאירע פסול לשמעון בן קמחית ביום הכיפורים ולא עשה עבודתו, נכנס אחד מאחיו",
+          "locator": "Ohr LaYesharim on Jerusalem Talmud Megillah 1:10:6"
+        }
+      ],
+      "reasoning": "Only the fact that all seven served is textual.",
+      "confidence": "high",
+      "graph_effect": "Keep c25 as is. The replacement mechanism is a commentary note only."
+    },
+    {
+      "finding_id": "f24",
+      "claim": "Rabbi Yohanan is named in three separate segments (1:10:3, 1:10:4, 1:10:5). The earlier output recorded only the first mention. Rabbi Haggai is named once, in 1:10:4.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "in_s2",
+          "exact_quote": "רִבִּי יוֹחָנָן",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 6,
+          "end": 21
+        },
+        {
+          "source_id": "in_s3",
+          "exact_quote": "רִבִּי יוֹחָנָן",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 246,
+          "end": 261
+        },
+        {
+          "source_id": "in_s4",
+          "exact_quote": "רִבִּי יוֹחָנָן",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 145,
+          "end": 160
+        },
+        {
+          "source_id": "in_s3",
+          "exact_quote": "רִבִּי חַגַּי",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 107,
+          "end": 120
+        }
+      ],
+      "reasoning": "Joining the three mentions to one local entity is ordinary local coreference within one sugya. It does not establish a historical identity.",
+      "confidence": "high",
+      "graph_effect": "Add mentions for yohanan at s3 246-261 and s4 145-160. Link c11 and c12 to them."
+    },
+    {
+      "finding_id": "f25",
+      "claim": "The Mishnah that 1:10:4 quotes (Yoma 1:1) goes on with Rabbi Yehuda's view that a second wife is prepared in case the high priest's wife dies. That woman and the wife appear in the Mishnah and in the Yoma Yerushalmi discussion. The Megillah passage quotes only the clause about the backup priest.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "mishnah_yoma_1_1",
+          "exact_quote": "רַבִּי יְהוּדָה אוֹמֵר, אַף אִשָּׁה אַחֶרֶת מַתְקִינִין לוֹ, שֶׁמָּא תָמוּת אִשְׁתּוֹ"
+        },
+        {
+          "source_id": "in_s3",
+          "exact_quote": "מַתְקִינִין לוֹ כֹהֵן אַחֵר תַּחְתָּיו",
+          "occurrence": 1,
+          "occurrences_in_segment": 1,
+          "start": 0,
+          "end": 38
+        }
+      ],
+      "reasoning": "The unnamed, hypothetical women belong to the wider Mishnah context. They are not in the Megillah text read here.",
+      "confidence": "high",
+      "graph_effect": "Add no women to the Megillah 1:10:4 graph from this. If the Yoma parallel is ever read, it should carry them as hypothetical legal roles."
+    },
+    {
+      "finding_id": "f26",
+      "claim": "Maimonides codifies the rules this way. A backup high priest is prepared. After Yom Kippur the first returns; the second passes out of service, bears all the high-priestly commandments, does not serve as high priest, has valid service if he served, and succeeds if the first dies. Two high priests are not appointed together.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "mt_yk_1_3",
+          "exact_quote": "וְהַשֵּׁנִי עוֹבֵר וְכָל מִצְוֹת כְּהֻנָּה גְּדוֹלָה עָלָיו אֶלָּא שֶׁאֵינוֹ עוֹבֵד כְּכֹהֵן גָּדוֹל וְאִם עָבַד עֲבוֹדָתוֹ כְּשֵׁרָה"
+        },
+        {
+          "source_id": "mt_klei_4_15",
+          "exact_quote": "וְאֵין מְמַנִּין שְׁנֵי כֹּהֲנִים גְּדוֹלִים כְּאַחַת"
+        }
+      ],
+      "reasoning": "This is a later codifier's synthesis and draws on the Bavli as well. It is useful for checking the rule list, but it is not evidence for the Yerushalmi's wording.",
+      "confidence": "medium",
+      "graph_effect": "None for the passage graph. It is a cross-check only."
+    }
+  ],
+  "alternative_readings": [
+    {
+      "topic": "Who owns the Yom Kippur offerings when the replacement serves",
+      "readings": [
+        {
+          "by": "Penei Moshe",
+          "reading": "The incumbent high priest; the story shows the replacement is only temporary.",
+          "finding": "f05"
+        },
+        {
+          "by": "Ohr LaYesharim",
+          "reading": "The replacement; Ben Illem's question is rhetorical (\"are they not mine?\").",
+          "finding": "f05"
+        }
+      ]
+    },
+    {
+      "topic": "Meaning of קרי in the Ben Illem story",
+      "readings": [
+        {
+          "by": "Guggenheimer; Ohr LaYesharim",
+          "reading": "A literal seminal emission."
+        },
+        {
+          "by": "Korban HaEdah",
+          "reading": "Some other defilement, since Avot says a keri never happened to the high priest on Yom Kippur."
+        },
+        {
+          "by": "Bavli parallel",
+          "reading": "Only \"a disqualification\" (פסול)."
+        }
+      ]
+    },
+    {
+      "topic": "Rabbi Yohanan's \"because of enmity\"",
+      "readings": [
+        {
+          "by": "Penei Moshe; Korban HaEdah; Ohr LaYesharim",
+          "reading": "The reason for \"one is anointed, not two\"."
+        },
+        {
+          "by": "Guggenheimer note 428",
+          "reading": "A disagreement: the rule is practical, not biblical; two could be anointed on different days."
+        }
+      ]
+    },
+    {
+      "topic": "Rabbi Haggai's מֹשֶׁה",
+      "readings": [
+        {
+          "by": "Penei Moshe; Guggenheimer; Ohr LaYesharim",
+          "reading": "An oath, \"by Moses\"."
+        },
+        {
+          "by": "Korban HaEdah (on the reading משם)",
+          "reading": "Glossed as Rabbi Haggai \"who was from Babylonia\"."
+        },
+        {
+          "by": "Ohr LaYesharim",
+          "reading": "The oath may support or protest the question; the direction is hard to decide."
+        }
+      ]
+    },
+    {
+      "topic": "Rabbi Yohanan on service performed anyway",
+      "readings": [
+        {
+          "by": "JT Megillah and Yoma; Bavli Yoma 13a",
+          "reading": "Valid."
+        },
+        {
+          "by": "JT Horayot 3:2 as saved (Venice, Mechon-Mamre)",
+          "reading": "Invalid (פסולה); Guggenheimer judges this impossible."
+        }
+      ]
+    },
+    {
+      "topic": "Shimon ben Kimhit's interlocutor and the time",
+      "readings": [
+        {
+          "by": "Guggenheimer Megillah main text; Venice Megillah",
+          "reading": "An Arab king (Venice adds eve of Yom Kippur at dusk)."
+        },
+        {
+          "by": "JT Yoma; JT Horayot",
+          "reading": "The king, on the eve of Yom Kippur (Horayot: at dusk, \"to walk\")."
+        },
+        {
+          "by": "Ohr LaYesharim after Tosefta ki-Fshutah",
+          "reading": "An Arab king, on Yom Kippur itself; the eve phrase is an explanatory addition."
+        },
+        {
+          "by": "Bavli Yoma 47a",
+          "reading": "An Arab (or an officer) in the market; the priest is Yishmael ben Kimhit."
+        }
+      ]
+    },
+    {
+      "topic": "Whose mouth (מִפִּיו)",
+      "readings": [
+        {
+          "by": "Korban HaEdah; Ohr LaYesharim",
+          "reading": "The king's."
+        },
+        {
+          "by": "Text alone",
+          "reading": "Unresolved pronoun."
+        }
+      ]
+    },
+    {
+      "topic": "Who speaks אָמְרוּן and קָרְוּן",
+      "readings": [
+        {
+          "by": "Local inference; Bavli parallel (אמרו לה חכמים)",
+          "reading": "The sages."
+        },
+        {
+          "by": "Text alone",
+          "reading": "Unspecified speakers."
+        }
+      ]
+    },
+    {
+      "topic": "Who bears \"all the commandments of priesthood\"",
+      "readings": [
+        {
+          "by": "JT Megillah (מצות) / Yoma and Horayot (קדושת)",
+          "reading": "The first (returning) priest."
+        },
+        {
+          "by": "Tosefta (R. Meir); Bavli (R. Meir); Mishneh Torah",
+          "reading": "The second (replacement) priest."
+        }
+      ]
+    }
+  ],
+  "unresolved": [
+    "Whether the Yerushalmi thinks Ben Illem was also barred from ordinary priesthood. Only the Tosefta says so explicitly.",
+    "Who removed Ben Illem. The verb is passive, and the king is only the likely agent.",
+    "The historical identity of the unnamed incumbent. The Josephus identification is known here only through Ohr LaYesharim.",
+    "The true reading of the Kimhit story's king and timing. Witnesses and Guggenheimer's own notes disagree.",
+    "Who is the grammatical subject of אָמְרוּן and קָרְוּן.",
+    "Manuscript readings were not checked directly. Variant reports come from printed texts and Guggenheimer's notes."
+  ],
+  "proposed_corrections": [
+    {
+      "existing_id": "m9",
+      "change": "Change the anchor from s4 \"לְכֹהֵן גָּדוֹל\" occurrence 1 (99-114) to occurrence 2 (304-319).",
+      "why": "Occurrence 1 is the role category in the second priest's ineligibility rule (f01)."
+    },
+    {
+      "existing_id": "first_priest",
+      "change": "Update the evidence to occurrence 2. Add mentions for תַּחְתָּיו (378-388) and כֹהֵן גָּדוֹל occurrence 3 (525-538, inside Ben Illem's speech). Change the label to \"Unnamed incumbent high priest in the Ben Illem story\".",
+      "why": "f01, f02."
+    },
+    {
+      "existing_id": "c13",
+      "change": "Keep the claim; its evidence quote is already the correct phrase. Its subject anchor is fixed through m9. Loosen the subtype to \"disqualifying incident (text: קרי)\".",
+      "why": "f01, f07."
+    },
+    {
+      "existing_id": "c14",
+      "change": "Keep the claim. The replaced role now points to the correctly anchored first_priest.",
+      "why": "f01."
+    },
+    {
+      "existing_id": null,
+      "change": "Add rule claims: first_legal bears all priestly commandments; second_legal is ineligible as high priest and as ordinary priest. Both are generic and legal.",
+      "why": "f03; flagged as missed in the previous review."
+    },
+    {
+      "existing_id": "c12",
+      "change": "Give the rule the subject second_legal, keeping Yohanan as speaker. Add a variant branch for the Horayot reading \"invalid\".",
+      "why": "f04."
+    },
+    {
+      "existing_id": null,
+      "change": "Add the question \"his service, from whose?\" as a statement. Add an \"illustrated_by\" link to the Ben Illem story. Save the Penei Moshe and Ohr LaYesharim resolutions as alternatives. Assert no ownership edge.",
+      "why": "f05."
+    },
+    {
+      "existing_id": null,
+      "change": "Add the event \"the king understands what Ben Illem asked\" (s4 וְיָדַע הַמֶּלֶךְ מַה שָׁאֲלוּ).",
+      "why": "f06."
+    },
+    {
+      "existing_id": "c1",
+      "change": "Downgrade from a family child_of relation to a name-structure note. Do not count the illem entity as a participant.",
+      "why": "f11."
+    },
+    {
+      "existing_id": "tenth_priest",
+      "change": "Relabel as \"former high priest (כהן שעבר), generic\". Link it to the Mishnah lemma rule. Close open question 1.",
+      "why": "f16."
+    },
+    {
+      "existing_id": "c11",
+      "change": "Keep \"explains\". Add a Guggenheimer-attributed alternative in which Yohanan disputes the derivation.",
+      "why": "f13."
+    },
+    {
+      "existing_id": "m23",
+      "change": "Resolve the coreference to arab_king, marked commentary-based (Korban HaEdah, Ohr LaYesharim).",
+      "why": "f20."
+    },
+    {
+      "existing_id": "arab_king",
+      "change": "Treat \"Arab\" and the eve-of-Yom-Kippur timing as reading-branch attributes.",
+      "why": "f21."
+    },
+    {
+      "existing_id": "c28",
+      "change": "Split the speaker into branches: sages (inferred) or unspecified.",
+      "why": "f19."
+    },
+    {
+      "existing_id": "yohanan",
+      "change": "Add mentions at s3 (246-261) and s4 (145-160), and link c11 and c12 to them.",
+      "why": "f24."
+    },
+    {
+      "existing_id": "m7",
+      "change": "Add the first name mention inside בְּבֶן אִילֵּם (s4 258-272). m8 (אִילֵּם occurrence 1) is also inside that phrase.",
+      "why": "The first mention of Ben Illem sits inside the prefixed form. The current m7 anchors his second mention."
+    },
+    {
+      "existing_id": "episode.coverage",
+      "change": "The needs_context note about s2 can be resolved from the Mishnah lemma (JT Megillah 1:10:1).",
+      "why": "f16."
+    }
+  ],
+  "ontology_lessons": [
+    "A repeated legal term can name a role category (\"fit for high priest\") in one place and a person (\"happened to the high priest\") a few words later. An anchor needs an occurrence number checked against its governing verb, not just the string.",
+    "Eligibility rules need a claim type whose subject is a generic legal role (first/second priest) and whose object is a role category (high priest, ordinary priest). No person node should be created for the category.",
+    "When a story is cited to answer a legal question, link it with \"illustrates\" or \"role-instantiation\" edges marked as interpretation. Do not copy the rule's predicates onto the story persons.",
+    "A \"ben X\" name is not a filiation edge to a person X unless X appears or acts.",
+    "Parallel tellings give different names (Yosef ben Ilim/Elem; Yishmael and Yeshevav/Yosef ben Kimhit). They belong in identity packs as candidates, never as merges inside a passage graph.",
+    "Some attributes depend on the reading, such as \"Arab\" versus \"eve\", or valid versus invalid. They need branch labels, with the witness or editor that supports each.",
+    "Commentary disagreements (Penei Moshe versus Ohr LaYesharim on ownership; Korban HaEdah versus Guggenheimer on קרי) should be stored with the commentator as voice. They should not be collapsed into one gloss.",
+    "Figures in quoted verses (\"the king's daughter\") and hypothetical people in a Mishnah that is only partly quoted (Rabbi Yehuda's spare wife) are not participants in the quoting passage."
+  ]
+}

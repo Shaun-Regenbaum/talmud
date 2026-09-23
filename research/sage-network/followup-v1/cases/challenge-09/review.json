@@ -1,0 +1,40 @@
+{
+  "job_id": "challenge-09",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "4271ed5b381b49d5b757378a50f641c0e46505eca128b4cf8211928a6caf5a44",
+  "scope": "Separate review of the proposed graph changes, saved source wording and quotation checks. This is not human adjudication or a full historical identity review.",
+  "historical_graph_eligible": false,
+  "findings": [
+    {
+      "target": "proposed_corrections: c4/c6 and entities avin, hanina; reading.md Relations",
+      "decision": "reject_proposed_change",
+      "reason": "A father named within a patronymic still supplies a local family relation. The parent need not speak or act elsewhere in the passage. Keep a local parent entity and a branch-qualified child_of proposal where the name supports it. Do not assign a global historical identity from the patronymic alone. The user explicitly requested these name-internal relations."
+    },
+    {
+      "target": "F12; reading.md The two attributed teachers",
+      "decision": "qualify",
+      "reason": "The passage reports alternative attributions. It does not establish that both teachers historically said the teaching, but neither does it establish that only one did. Replace categorical wording that they are not two people who both taught it with that narrower statement."
+    },
+    {
+      "target": "F3",
+      "decision": "keep_with_dependency_note",
+      "reason": "The English Davidson translation and the Steinsaltz Hebrew explanation share an editorial basis. They show how that edition reads the speaker boundary; they are not two independent witnesses voting for it. Soncino supplies a separate published explanation, not proof of historical speech."
+    },
+    {
+      "target": "F5-F6",
+      "decision": "keep_evidence_types_separate",
+      "reason": "Keep the Arukh quotation as a textual witness and Epstein's proposed correction as a scholarly emendation. Neither replaces the saved printed text. Bar Zevida in the Arukh lacks the full first name at that position; the expanded identification depends on additional interpretation."
+    },
+    {
+      "target": "F7",
+      "decision": "scope_to_checked_search",
+      "reason": "Search results document the examples actually returned and checked. They do not establish an exhaustive count across all textual witnesses."
+    },
+    {
+      "target": "c5/c7 speaker assignment",
+      "decision": "support_proposed_correction",
+      "reason": "The saved Hebrew lacks an explicit new speaker, while the checked published explanations supply an anonymous reply. Keep the named objector separate from the citation voice and preserve the remaining interpretive branch. None of this proves a meeting or direct hearing."
+    }
+  ]
+}

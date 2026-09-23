@@ -1,0 +1,912 @@
+{
+ "job_id": "challenge-06",
+ "focal_ref": "Menachot 73b:16",
+ "status": "researched",
+ "question": "In Menachot 73b:16 the Talmud offers two ways to name the tanna of an anonymous baraita (Rabbi Yosei HaGelili with 'wine' deleted, or Rabbi Akiva with 'a burnt offering and all its accompaniments'). Which person, view and attribution claims are explicit, which depend on interpretation, and what did the first reading and its review miss?",
+ "scope_checked": [
+  "Bavli Menachot 73b:1-20 and 73a:16 (William Davidson vocalized Aramaic and English); pilot Wikisource segments 73b:12-16.",
+  "Mishnah Shekalim 7:4-7 (Torat Emet Hebrew, William Davidson English).",
+  "Commentaries on Menachot 73b: Rashi, Ktav Yad Rashi, Tosafot, Rabbeinu Gershom, Steinsaltz on 73b:16.",
+  "Tannaitic parallels: Sifra Emor 7:2 (Venice 1545) with Ra'avad and Chafetz Chaim; Tosefta Shekalim 1:7 (Lieberman, codex Vienna) with its variant apparatus and Tosefta Kifshutah.",
+  "Bavli parallels: Temurah 2b-3a (the same 'ezrach' baraita, and a baraita naming Rabbi Shimon); Menachot 51b (the same Shekalim mishnah); Nazir 62a and Chullin 13b (opening line only, no names).",
+  "Tosafot Yom Tov on Mishnah Shekalim 7:6; Mishneh Torah, Sacrificial Procedure 3:2-5.",
+  "Not checked: manuscripts of Bavli Menachot, Shita Mekubetzet, Bach, Dikdukei Soferim or any page image. No claim is made about readings in those witnesses."
+ ],
+ "sources": [
+  {
+   "source_id": "pilot_input",
+   "input_path": "research/sage-network/pilot/inputs/challenge-06.json",
+   "edition": "Pilot source job: Wikisource Talmud Bavli, Menachot 73b:12-16",
+   "fetched_at": null,
+   "saved_file": "../../../pilot/inputs/challenge-06.json",
+   "sha256": "862635b3928c6de516623f649ce652f68664468db6a5a88a4c8a1a525059ccac"
+  },
+  {
+   "source_id": "pilot_output",
+   "input_path": "research/sage-network/pilot/outputs/challenge-06.json",
+   "edition": "First saved reading (passage-pilot-v1)",
+   "fetched_at": null,
+   "saved_file": "../../../pilot/outputs/challenge-06.json",
+   "sha256": "13bfc3fe629908283a0c135bc988bb88b303090a780acc77ce6c2cd03df10c01"
+  },
+  {
+   "source_id": "previous_review",
+   "input_path": "research/sage-network/followup-v1/cases/challenge-06/previous-review.json",
+   "edition": "Earlier independent review of the first reading",
+   "fetched_at": null,
+   "saved_file": "previous-review.json",
+   "sha256": "3a7b57b8d41195a480dd7a224170da20a0ec3270ee0ac3a9ad1caa3925bf9ff0"
+  },
+  {
+   "source_id": "men73b",
+   "url": "https://www.sefaria.org/api/v3/texts/Menachot.73b?version=hebrew&version=english&return_format=default",
+   "edition": "Sefaria: William Davidson Edition, vocalized Aramaic (Koren Noé text) and William Davidson English",
+   "fetched_at": "2026-09-23T08:17:53Z",
+   "saved_file": "sources/menachot_73b_v3.json",
+   "sha256": "cd5bb3ed428650f6e07ed695a14395883d3c15a83de011dd016fb87da0ba0376"
+  },
+  {
+   "source_id": "men73a",
+   "url": "https://www.sefaria.org/api/v3/texts/Menachot.73a?version=hebrew&version=english&return_format=default",
+   "edition": "Sefaria: William Davidson Edition, Menachot 73a (Hebrew and English)",
+   "fetched_at": "2026-09-23T08:17:53Z",
+   "saved_file": "sources/menachot_73a_v3.json",
+   "sha256": "0665ad22d258491a663b038be3a6832e28a5c9a4a4b80f6eb7f6cba7ab05956a"
+  },
+  {
+   "source_id": "shek7",
+   "url": "https://www.sefaria.org/api/v3/texts/Mishnah_Shekalim.7?version=hebrew&version=english",
+   "edition": "Sefaria: Mishnah Shekalim 7, Torat Emet 357 Hebrew and William Davidson English",
+   "fetched_at": "2026-09-23T08:18:35Z",
+   "saved_file": "sources/mishnah_shekalim_7.json",
+   "sha256": "b8ab220fb40f9fa02ccbf6f0c969b8096e265d131b6713929769f609dcbf165d"
+  },
+  {
+   "source_id": "rashi",
+   "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Menachot.73b?version=hebrew",
+   "edition": "Sefaria: Rashi on Menachot 73b, Vilna edition",
+   "fetched_at": "2026-09-23T08:19:03Z",
+   "saved_file": "sources/rashi_menachot_73b.json",
+   "sha256": "978972dee721c519841d168d8dfce901c37a7f323bbd31c32b0610b0ed5a9911"
+  },
+  {
+   "source_id": "ktav_yad_rashi",
+   "url": "https://www.sefaria.org/api/v3/texts/Ktav_Yad_Rashi_on_Menachot.73b?version=hebrew",
+   "edition": "Sefaria: Ktav Yad Rashi on Menachot 73b (Wikisource), the commentary printed in Vilna as a second Rashi",
+   "fetched_at": "2026-09-23T08:19:04Z",
+   "saved_file": "sources/ktav_yad_rashi_menachot_73b.json",
+   "sha256": "031d33b82ff4683164b28596fa02e88fc5d23fcf7fc5f36656b256254f25d6fd"
+  },
+  {
+   "source_id": "tosafot",
+   "url": "https://www.sefaria.org/api/v3/texts/Tosafot_on_Menachot.73b?version=hebrew",
+   "edition": "Sefaria: Tosafot on Menachot 73b, Vilna edition",
+   "fetched_at": "2026-09-23T08:19:03Z",
+   "saved_file": "sources/tosafot_menachot_73b.json",
+   "sha256": "29969f1d463d4873f1cfb25c847183efbafbcb118876094a087b2b4cd77752bc"
+  },
+  {
+   "source_id": "gershom",
+   "url": "https://www.sefaria.org/api/v3/texts/Rabbeinu_Gershom_on_Menachot.73b?version=hebrew",
+   "edition": "Sefaria: Rabbeinu Gershom on Menachot 73b, Vilna edition, with printed footnotes",
+   "fetched_at": "2026-09-23T08:19:04Z",
+   "saved_file": "sources/rabbeinu_gershom_menachot_73b.json",
+   "sha256": "ad29feff1c3dbf10a7fa834e45110f1c71740705a5ec489a9530e9844b66ff1c"
+  },
+  {
+   "source_id": "steinsaltz",
+   "url": "https://www.sefaria.org/api/v3/texts/Steinsaltz_on_Menachot.73b.16?version=hebrew",
+   "edition": "Sefaria: Steinsaltz Hebrew commentary on Menachot 73b:16 (William Davidson)",
+   "fetched_at": "2026-09-23T08:20:26Z",
+   "saved_file": "sources/steinsaltz_73b16.json",
+   "sha256": "51c2661d12fcbb19c70655cafd777cb8ec16874e5f7ae62833deb6befd3e8d7b"
+  },
+  {
+   "source_id": "sifra",
+   "url": "https://www.sefaria.org/api/v3/texts/Sifra,_Emor,_Section_7.2?version=hebrew&version=english",
+   "edition": "Sefaria: Sifra, Emor, Section 7:2, Venice 1545 Hebrew (from Wikisource) and Shraga Silverstein English",
+   "fetched_at": "2026-09-23T08:19:05Z",
+   "saved_file": "sources/sifra_emor_7_2.json",
+   "sha256": "dd2f5ab19ee65f93bf66be1d142b8bbff68ad81bafa859c4fcae0888d361aa36"
+  },
+  {
+   "source_id": "raavad_sifra",
+   "url": "https://www.sefaria.org/api/v3/texts/Ra'avad_on_Sifra,_Emor,_Section_7.2?version=hebrew",
+   "edition": "Sefaria: Ra'avad on Sifra, Emor 7:2, Vienna 1862 edition",
+   "fetched_at": "2026-09-23T08:20:34Z",
+   "saved_file": "sources/raavad_sifra_emor_7_2.json",
+   "sha256": "55691a9169e8129911656651ac2bf5dbba1e9206cb71e3b71eef0391c165283e"
+  },
+  {
+   "source_id": "chafetz_sifra",
+   "url": "https://www.sefaria.org/api/v3/texts/Chafetz_Chaim_on_Sifra,_Emor,_Section_7.2?version=hebrew",
+   "edition": "Sefaria: Chafetz Chaim on Sifra, Emor 7:2 (Wikisource)",
+   "fetched_at": "2026-09-23T08:20:34Z",
+   "saved_file": "sources/chafetz_chaim_sifra_emor_7_2.json",
+   "sha256": "65af50fb9aee7c06c0c0ec8964c06d7b5500c63be20cbe699fc166c05c2a4430"
+  },
+  {
+   "source_id": "tosefta",
+   "url": "https://www.sefaria.org/api/v3/texts/Tosefta_Shekalim_(Lieberman).1.7?version=hebrew",
+   "edition": "Sefaria: Tosefta Shekalim 1:7, Lieberman edition according to codex Vienna, JTS 2001",
+   "fetched_at": "2026-09-23T08:19:05Z",
+   "saved_file": "sources/tosefta_shekalim_1_7.json",
+   "sha256": "b46db3d04e842c1eacdf9ecd1986acd8814ceb5eb55b7e2f4e0ee128419d8141"
+  },
+  {
+   "source_id": "tosefta_var",
+   "url": "https://www.sefaria.org/api/v3/texts/Variants_on_Shekalim.1.7?version=hebrew",
+   "edition": "Sefaria: Variants apparatus on Tosefta Shekalim 1:7 (Lieberman, JTS 2001)",
+   "fetched_at": "2026-09-23T08:20:33Z",
+   "saved_file": "sources/tosefta_variants_shekalim_1_7.json",
+   "sha256": "c47b73c4d105731dd49fa5125ab4a9573c976cc4ff35088e5083786f91659aa8"
+  },
+  {
+   "source_id": "kifshutah",
+   "url": "https://www.sefaria.org/api/v3/texts/Tosefta_Kifshutah_on_Shekalim.1.7?version=hebrew",
+   "edition": "Sefaria: Tosefta Kifshutah on Shekalim 1:7 (Lieberman, JTS 2001)",
+   "fetched_at": "2026-09-23T08:20:25Z",
+   "saved_file": "sources/tosefta_kifshutah_shekalim_1_7.json",
+   "sha256": "5d6e39f6cce42ebe56243a89395e98d86b5e0939693e66a34721827702c89cdc"
+  },
+  {
+   "source_id": "tyt",
+   "url": "https://www.sefaria.org/api/v3/texts/Tosafot_Yom_Tov_on_Mishnah_Shekalim.7.6?version=hebrew",
+   "edition": "Sefaria: Tosafot Yom Tov on Mishnah Shekalim 7:6, Romm Vilna 1913",
+   "fetched_at": "2026-09-23T08:19:06Z",
+   "saved_file": "sources/tosafot_yom_tov_shekalim_7_6.json",
+   "sha256": "9760ccf3c94ead95d68e28d1203d5acc3c8e9037efbe6fcd79415b545576a913"
+  },
+  {
+   "source_id": "mt",
+   "url": "https://www.sefaria.org/api/v3/texts/Mishneh_Torah,_Sacrificial_Procedure.3?version=hebrew&version=english",
+   "edition": "Sefaria: Mishneh Torah, Sacrificial Procedure 3, Torat Emet Hebrew and Touger English",
+   "fetched_at": "2026-09-23T08:19:06Z",
+   "saved_file": "sources/mt_sacrificial_procedure_3.json",
+   "sha256": "21c054e406cf5ed03821c924b47f4bb793c03dd985bcffb7510e9d10937d4905"
+  },
+  {
+   "source_id": "temurah_2b",
+   "url": "https://www.sefaria.org/api/v3/texts/Temurah.2b?version=hebrew&version=english",
+   "edition": "Sefaria: William Davidson Edition, Temurah 2b (Hebrew and English)",
+   "fetched_at": "2026-09-23T08:23:26Z",
+   "saved_file": "sources/temurah_2b.json",
+   "sha256": "25846fc7bc55f6447db8137fe0c0f2fdffc01dab85917afbfba7276974026e81"
+  },
+  {
+   "source_id": "temurah_3a",
+   "url": "https://www.sefaria.org/api/v3/texts/Temurah.3a?version=hebrew&version=english",
+   "edition": "Sefaria: William Davidson Edition, Temurah 3a (Hebrew and English)",
+   "fetched_at": "2026-09-23T08:19:06Z",
+   "saved_file": "sources/temurah_3a.json",
+   "sha256": "11e72695a30cc5f4ddb7c4b91e0f2c2ce134c1404b81274ff1ec9cc49c2d4177"
+  },
+  {
+   "source_id": "related16",
+   "url": "https://www.sefaria.org/api/related/Menachot.73b.16",
+   "edition": "Sefaria related-links index for Menachot 73b:16",
+   "fetched_at": "2026-09-23T08:17:53Z",
+   "saved_file": "sources/related_73b16.json",
+   "sha256": "c6e7bbbf58dcfd13035c428e90e477631c74bc498d29512c72a7ec90422d89e1"
+  },
+  {
+   "source_id": "ctx_mishnah_shekalim_7_6",
+   "url": "https://www.sefaria.org/api/v3/texts/Mishnah_Shekalim.7.6?version=hebrew&version=english",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:17:54Z",
+   "saved_file": "sources/mishnah_shekalim_7_6.json",
+   "sha256": "34c2ba19a685309d7cbeb06fb8f72f7d446e9c7b2bc6669a62e64348c80a2025"
+  },
+  {
+   "source_id": "ctx_related_73b_12",
+   "url": "https://www.sefaria.org/api/related/Menachot.73b.12",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:18:46Z",
+   "saved_file": "sources/related_73b_12.json",
+   "sha256": "9d24acf1729b34d3d109f62f85083f138fd3c6d4188e2bebc442f510d58ed4c3"
+  },
+  {
+   "source_id": "ctx_related_73b_13",
+   "url": "https://www.sefaria.org/api/related/Menachot.73b.13",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:18:47Z",
+   "saved_file": "sources/related_73b_13.json",
+   "sha256": "77164965d8fdc954e58d2ec5e51f6ff7f1f6ccedc24ffb2cf89d9b2116c4e9cd"
+  },
+  {
+   "source_id": "ctx_related_73b_14",
+   "url": "https://www.sefaria.org/api/related/Menachot.73b.14",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:18:48Z",
+   "saved_file": "sources/related_73b_14.json",
+   "sha256": "d4fb35c4928700a86facaa007180687a978b36d8a76f13c0454dae5b72a02b94"
+  },
+  {
+   "source_id": "ctx_related_73b_15",
+   "url": "https://www.sefaria.org/api/related/Menachot.73b.15",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:18:48Z",
+   "saved_file": "sources/related_73b_15.json",
+   "sha256": "13178e9314e9808abebcdb1ecd7088ccb8775da5d8e6b3a7ebe03553fa50ef0e"
+  },
+  {
+   "source_id": "ctx_related_73b_8",
+   "url": "https://www.sefaria.org/api/related/Menachot.73b.8",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:18:49Z",
+   "saved_file": "sources/related_73b_8.json",
+   "sha256": "4fe891983bb70ba008f279525b24d741df169d9abd5c877f5dccf58bb59e5111"
+  },
+  {
+   "source_id": "ctx_related_73b_9",
+   "url": "https://www.sefaria.org/api/related/Menachot.73b.9",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:18:49Z",
+   "saved_file": "sources/related_73b_9.json",
+   "sha256": "a00f63a627c2d7aeb195a3afb32da96d3e75bf1306dfe4e28db5b4dbd4834ded"
+  },
+  {
+   "source_id": "ctx_related_73b_5",
+   "url": "https://www.sefaria.org/api/related/Menachot.73b.5",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:18:50Z",
+   "saved_file": "sources/related_73b_5.json",
+   "sha256": "75e4051767bf63f020f68b70baf256892daaa4e272b5301145be41f6d1892f2b"
+  },
+  {
+   "source_id": "ctx_steinsaltz_menachot_73b",
+   "url": "https://www.sefaria.org/api/v3/texts/Steinsaltz_on_Menachot.73b?version=hebrew",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:19:04Z",
+   "saved_file": "sources/steinsaltz_menachot_73b.json",
+   "sha256": "e409ae9124522355e4ac718596d447efee3a403336f84dde22a363c90de4cd33"
+  },
+  {
+   "source_id": "ctx_zevachim_45a",
+   "url": "https://www.sefaria.org/api/v3/texts/Zevachim.45a?version=hebrew&version=english",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:19:05Z",
+   "saved_file": "sources/zevachim_45a.json",
+   "sha256": "3365431c172ad5b37ac5dcbaaacecb1ef7a45b2238a4b31a0c8dba70aa2758b5"
+  },
+  {
+   "source_id": "ctx_menachot_51b",
+   "url": "https://www.sefaria.org/api/v3/texts/Menachot.51b?version=hebrew&version=english",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:19:06Z",
+   "saved_file": "sources/menachot_51b.json",
+   "sha256": "3d3257a10a37037f5ee3c4a612e60849e10921913b1f69f8dad20470691a7f84"
+  },
+  {
+   "source_id": "ctx_nazir_61b",
+   "url": "https://www.sefaria.org/api/v3/texts/Nazir.61b?version=hebrew&version=english",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:19:07Z",
+   "saved_file": "sources/nazir_61b.json",
+   "sha256": "fa0bd82a29dd62291ff84d467b3dbbf6afd27090ca0c7bb8d67c939a9ec7a15b"
+  },
+  {
+   "source_id": "ctx_related_tosefta_shekalim_1_7",
+   "url": "https://www.sefaria.org/api/related/Tosefta_Shekalim_(Lieberman).1.7",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:20:24Z",
+   "saved_file": "sources/related_tosefta_shekalim_1_7.json",
+   "sha256": "32e60c6eb523c8a888252e08dfd98b616a1a0ec0319f04a10951e61533f20e48"
+  },
+  {
+   "source_id": "ctx_yerushalmi_shekalim_1_4",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Shekalim.1.4?version=hebrew&version=english",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:20:25Z",
+   "saved_file": "sources/yerushalmi_shekalim_1_4.json",
+   "sha256": "3113b8fd865966ea6ac578420b1c21f121e548e083993b41097ad0fa52908551"
+  },
+  {
+   "source_id": "ctx_related_sifra_emor_7_2",
+   "url": "https://www.sefaria.org/api/related/Sifra,_Emor,_Section_7.2",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:20:25Z",
+   "saved_file": "sources/related_sifra_emor_7_2.json",
+   "sha256": "c6d0210eeaf71f4632e85919a3d6def4aec7dd633cf3a5107d0b02015797f25f"
+  },
+  {
+   "source_id": "ctx_sifra_versions",
+   "url": "https://www.sefaria.org/api/texts/versions/Sifra",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:20:26Z",
+   "saved_file": "sources/sifra_versions.json",
+   "sha256": "93653a8494854d82f5dad11c7fcf5180844dc877288ebdb700278dfdb275a7ba"
+  },
+  {
+   "source_id": "ctx_nazir_62a",
+   "url": "https://www.sefaria.org/api/v3/texts/Nazir.62a?version=hebrew&version=english",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:21:04Z",
+   "saved_file": "sources/nazir_62a.json",
+   "sha256": "3300ad6144d4f2e8f93258a6943f093fe3f45de3b0466da64d99d06d41a40aa6"
+  },
+  {
+   "source_id": "ctx_chullin_13b",
+   "url": "https://www.sefaria.org/api/v3/texts/Chullin.13b?version=hebrew",
+   "edition": "Sefaria API response saved for context checks; not quoted in findings",
+   "fetched_at": "2026-09-23T08:21:05Z",
+   "saved_file": "sources/chullin_13b.json",
+   "sha256": "42f1dadb048853cedaee626cf0e84ce5f78f61723a0328f9ba4f6d76b113f6ba"
+  }
+ ],
+ "failed_requests": [
+  {
+   "url": "https://www.sefaria.org/api/v3/texts/Jastrow,_אֲבִזְרָא_1",
+   "fetched_at": "2026-09-23T08:19:06Z",
+   "error": "'ascii' codec can't encode characters in position 27-35: ordinal not in range(128)"
+  }
+ ],
+ "findings": [
+  {
+   "finding_id": "F01",
+   "claim": "The 'wine' that 73b:16 proposes to delete is the word in the earlier baraita at 73b:8, whose inclusive list 73b:9 closes as 'the statement of Rabbi Yosei HaGelili'. Rashi and Rabbeinu Gershom both say the corrected baraita should read 'birds and frankincense' without wine.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "men73b",
+     "exact_quote": "מִנַּיִן לְרַבּוֹת הָעוֹפוֹת, וְהַיַּיִן, וְהַלְּבוֹנָה, וְהָעֵצִים?",
+     "location": "Menachot 73b:8, William Davidson vocalized",
+     "translation_mine": "My translation: From where [do we learn] to include birds, and wine, and frankincense, and wood?"
+    },
+    {
+     "source_id": "men73b",
+     "exact_quote": "פְּרָט לִנְזִירוּת, דִּבְרֵי רַבִּי יוֹסֵי הַגְּלִילִי",
+     "location": "Menachot 73b:9",
+     "translation_mine": "My translation: excluding naziriteship; [these are] the words of Rabbi Yosei HaGelili."
+    },
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "איבעית אימא ר' יוסי הגלילי סמי מההיא יין",
+     "location": "Menachot 73b:16, Wikisource (pilot s5)",
+     "translation_mine": "My translation: If you like, say [it is] Rabbi Yosei HaGelili: delete 'wine' from that one."
+    },
+    {
+     "source_id": "rashi",
+     "exact_quote": "סמי מכאן נסכי יין - ואמר מנין לרבות העופות והלבונה ולא תיתני היין",
+     "location": "Rashi on Menachot 73b:16:1",
+     "translation_mine": "My translation: Delete from here the wine libations, and say 'from where to include birds and frankincense', and do not teach 'wine'."
+    },
+    {
+     "source_id": "gershom",
+     "exact_quote": "סמי מההיא יין. אלא מנין לרבות העופות והלבונה",
+     "location": "Rabbeinu Gershom on Menachot 73b [12]",
+     "translation_mine": "My translation: Delete wine from that one: rather, 'from where to include birds and frankincense'."
+    }
+   ],
+   "reasoning": "מההיא ('from that one') needs an antecedent. The only earlier text with wine in a Yosei HaGelili teaching is the list at 73b:8, and 73b:15 cites exactly that ('he says even wine'). Two commentaries name the corrected wording. The pilot window (73b:12-16) did not include 73b:8-9, so the first reading anchored Yosei's wine view only to the Gemara's paraphrase at 73b:15.",
+   "confidence": "high",
+   "graph_effect": "Anchor Yosei's inclusive view (entity 'wine', claim c3) to the baraita at 73b:8-9 as the primary evidence; keep 73b:15 as the Gemara's paraphrase. The target of 'delete' is a clause in a baraita attributed to Yosei, not a statement by Yosei."
+  },
+  {
+   "finding_id": "F02",
+   "claim": "'Delete wine' is an emendation proposed by the anonymous Talmud voice, offered as only one of two answers. It is a later proposed correction of a tannaitic text, not a reported manuscript reading and not a report that Yosei changed his mind.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "men73b",
+     "exact_quote": "אִיבָּעֵית אֵימָא: רַבִּי יוֹסֵי הַגְּלִילִי – סְמִי מֵהַהִיא ״יַיִן״",
+     "location": "Menachot 73b:16, vocalized",
+     "translation_mine": "My translation: If you like, say Rabbi Yosei HaGelili: delete 'wine' from that one."
+    },
+    {
+     "source_id": "men73b",
+     "exact_quote": "<b>omit from that</b> <i>baraita</i> that the <i>tanna</i> allows gentiles to bring <b>wine,</b>",
+     "location": "Menachot 73b:16, William Davidson English (bold = translation; plain words 'baraita that the tanna allows gentiles to bring' are the editor's explanation)"
+    },
+    {
+     "source_id": "steinsaltz",
+     "exact_quote": "מדברי ר' יוסי את המלה",
+     "location": "Steinsaltz on Menachot 73b:16",
+     "translation_mine": "My translation: from the words of R. Yosei, the word [wine]"
+    },
+    {
+     "source_id": "steinsaltz",
+     "exact_quote": "ואף לדעתו אין הגוי מביא נסכים לעצמם",
+     "location": "Steinsaltz on Menachot 73b:16",
+     "translation_mine": "My translation: and even in his view a gentile does not bring libations by themselves."
+    }
+   ],
+   "reasoning": "סמי is an imperative addressed to whoever recites the baraita. It is framed by איבעית אימא, a formula for alternative answers. Nothing in the segment says any witness lacked the word. Steinsaltz reads the result as a statement about Yosei's opinion ('even in his view'), which is commentary, not the Talmud's words.",
+   "confidence": "high",
+   "graph_effect": "Save the deletion as evidence_type 'proposed_emendation' on the transmission of the 73b:8 baraita, inside branch yosi_solution. Claim c8 (Yosei holds_view wine, negative) should become a dependent inference from that emendation, not a free-standing view claim."
+  },
+  {
+   "finding_id": "F03",
+   "claim": "The Yosei view that includes wine (c3) is shared by the objection and the Akiva answer, but the Yosei answer withdraws it. The first reading saved c3 with an empty branch list, which by the pilot's rules means 'true in every reading'.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "אי רבי יוסי הגלילי הא אמר אפילו יין נמי",
+     "location": "Menachot 73b:15, Wikisource (pilot s4)",
+     "translation_mine": "My translation: If Rabbi Yosei HaGelili, doesn't he say even wine too?"
+    },
+    {
+     "source_id": "pilot_output",
+     "exact_quote": "Yosi’s earlier view includes wine",
+     "location": "pilot output entity 'wine' (used by c3)"
+    },
+    {
+     "source_id": "pilot_output",
+     "exact_quote": "This follows the proposed deletion; it is not a report that Yosi personally withdrew an opinion.",
+     "location": "pilot output claim c8 note"
+    }
+   ],
+   "reasoning": "Under yosi_solution the baraita text that grounds c3 is corrected, so c3 and c8 cannot both hold with no branch. c3 holds in the objection (73b:15) and is untouched in akiva_solution, where the anonymous baraita is aligned with Akiva instead.",
+   "confidence": "high",
+   "graph_effect": "Condition c3 on 'not yosi_solution' (or mark it as the premise of the objection), and keep c8 only inside yosi_solution."
+  },
+  {
+   "finding_id": "F04",
+   "claim": "The Akiva answer's key phrase has recorded wording variants: 'חבירתה' (its companions) in the Wikisource text and in Rashi's comment, a bracketed replacement 'אבזרהא' (its accessories) in the vocalized text on Sefaria, and 'אביזרא' / 'אביזריהו' in the lemmas of Ktav Yad Rashi and Rabbeinu Gershom. All the commentaries checked explain it as the libations that come with the burnt offering.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "ואיבעית אימא רבי עקיבא עולה וכל חבירתה:",
+     "location": "Menachot 73b:16, Wikisource (pilot s5)",
+     "translation_mine": "My translation: and if you like, say Rabbi Akiva: a burnt offering and all its companions."
+    },
+    {
+     "source_id": "men73b",
+     "exact_quote": "עוֹלָה וְכׇל (חַבְירָתַהּ) [אַבְזָרַהָא]",
+     "location": "Menachot 73b:16, William Davidson vocalized (parentheses and brackets as printed)"
+    },
+    {
+     "source_id": "rashi",
+     "exact_quote": "עולה וכל חבירתה דהיינו נסכים אבל נסכים לחודייהו לא",
+     "location": "Rashi on Menachot 73b:13:3",
+     "translation_mine": "My translation: a burnt offering and all its companions, that is, libations; but libations by themselves, no."
+    },
+    {
+     "source_id": "ktav_yad_rashi",
+     "exact_quote": "וכל אביזרא - כל חברותיה דהיינו נמי נסכים הבאים עמה",
+     "location": "Ktav Yad Rashi on Menachot 73b:13:2",
+     "translation_mine": "My translation: and all accessories: all its companions, which also means libations that come with it."
+    },
+    {
+     "source_id": "gershom",
+     "exact_quote": "וכל אביזריהו. כל מה שצריך לה נודרין דהיינו נסכין",
+     "location": "Rabbeinu Gershom on Menachot 73b [8]",
+     "translation_mine": "My translation: and all its accessories: whatever it needs they [gentiles] may vow, that is, libations."
+    }
+   ],
+   "reasoning": "The saved vocalized text marks one word as replaced, but the saved API response does not name who made the replacement. The meaning agreed by these commentaries is the same for both words. No person is affected.",
+   "confidence": "high",
+   "graph_effect": "Label entity 'associated' as 'libations that accompany a burnt offering (commentary reading); libations by themselves excluded'. Save the wording difference as a source variant, not as a separate claim."
+  },
+  {
+   "finding_id": "F05",
+   "claim": "Tosafot considers and rejects a third way out: reading Yosei's 'wine' as wine that comes with an offering, which would make the baraita fit Yosei without deleting anything. Tosafot also reports a reading difference in the parallel at Temurah 3a.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "tosafot",
+     "exact_quote": "ולא מצי למימר דיין נמי דאמר רבי יוסי הגלילי בבא עם הזבח",
+     "location": "Tosafot on Menachot 73b:15:1",
+     "translation_mine": "My translation: And one cannot say that the wine Rabbi Yosei HaGelili also mentioned is [wine] that comes with the offering."
+    },
+    {
+     "source_id": "tosafot",
+     "exact_quote": "ועוד מדחשיב ליה בהדי עופות ומנחות דבאין בפני עצמן",
+     "location": "Tosafot on Menachot 73b:15:1",
+     "translation_mine": "My translation: and further, since he counts it together with birds and meal offerings, which come by themselves."
+    },
+    {
+     "source_id": "tosafot",
+     "exact_quote": "מיהו ברוב ספרים לא גרסי' עליהם אבל בספר רבינו גרשם כתוב עליהם",
+     "location": "Tosafot on Menachot 73b:15:1",
+     "translation_mine": "My translation: However, most books do not read 'on them', but in the book of Rabbeinu Gershom 'on them' is written."
+    }
+   ],
+   "reasoning": "This is a commentator's argument, not the Talmud's. It supports keeping only two branches for 73b:16 and records a considered and rejected alternative. Tosafot's 'birds and meal offerings' does not match the Bavli list at 73b:8, which has no meal offerings; the Sifra list does (F07). That suggests Tosafot is not quoting the Bavli list exactly, but this was not checked further.",
+   "confidence": "medium",
+   "graph_effect": "Record 'Yosei's wine = wine with an offering' as an alternative rejected by Tosafot. Do not add it as a third branch of the Talmud's answer."
+  },
+  {
+   "finding_id": "F06",
+   "claim": "Other witnesses to the tannaitic dispute swap the two names. In the saved Sifra (Venice 1545) the inclusive list is Rabbi Akiva's and Rabbi Yosei HaGelili answers 'only a burnt offering'. Lieberman reports the same swap in the Erfurt and London manuscripts of the Tosefta. The Bavli's order matches the Tosefta's Vienna manuscript and first printing. Ra'avad's own Sifra text follows the Menachot order, and he notes that other Sifra versions have the swap.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "sifra",
+     "exact_quote": "פרט לנזירות, דברי ר' עקיבא [גירס' הגמרא ריה\"ג]. אמר לו ר' יוסי הגלילי [גירס' הגמרא ר\"ע] אפילו אתה מרבה כל היום אין כאן אלא עולה בלבד.",
+     "location": "Sifra, Emor, Section 7:2, Venice 1545 text as saved (bracketed notes as printed there)",
+     "translation_mine": "My translation: excluding naziriteship, the words of R. Akiva [Gemara's reading: R. Yosei HaGelili]. R. Yosei HaGelili [Gemara's reading: R. Akiva] said to him: even if you include all day, there is only a burnt offering here."
+    },
+    {
+     "source_id": "sifra",
+     "exact_quote": "These are the words of R. Akiva. R. Yossi Haglili said to him",
+     "location": "Sifra Emor 7:2, Shraga Silverstein English (follows the same Sifra text, so it is not independent of it)"
+    },
+    {
+     "source_id": "kifshutah",
+     "exact_quote": "וכ\"ה בד. אבל בכי\"ע ובכי\"ל: דברי ר' עקיבא. א' לו ר' יוסי הגלילי וכו'.",
+     "location": "Tosefta Kifshutah on Shekalim 1:7 [3]",
+     "translation_mine": "My translation: And so in the printed edition. But in the Erfurt and London manuscripts: the words of R. Akiva; R. Yosei HaGelili said to him, etc."
+    },
+    {
+     "source_id": "kifshutah",
+     "exact_quote": "אבל בבבלי מנחות ע\"ג ב' המסורת במחלוקת זו היא כגירסת ד וכי\"ו.",
+     "location": "Tosefta Kifshutah on Shekalim 1:7 [3]",
+     "translation_mine": "My translation: But in Bavli Menachot 73b the tradition in this dispute is like the reading of the printed edition and the Vienna manuscript."
+    },
+    {
+     "source_id": "tosefta_var",
+     "exact_quote": "<b>יוסה הגלילי </b>| <big>ד</big> יוסי הגלילי <big>א</big> <big>ל</big> עקיבא.",
+     "location": "Variants on Tosefta Shekalim 1:7:7 (apparatus sigla as printed)"
+    },
+    {
+     "source_id": "raavad_sifra",
+     "exact_quote": "ואיכא נסחי דכתיב בהו דברי ר' עקיבא אמר לו ר' יוסי הגלילי מיהו האי נסחא דכתיבנא איתא במנחות",
+     "location": "Ra'avad on Sifra, Emor 7:2",
+     "translation_mine": "My translation: And there are versions in which is written 'the words of R. Akiva; R. Yosei HaGelili said to him'; but the version I wrote is found in Menachot."
+    },
+    {
+     "source_id": "chafetz_sifra",
+     "exact_quote": "ובמנחות (מנחות עג, ב) הגירסא להיפך",
+     "location": "Chafetz Chaim on Sifra, Emor 7:2 [10]",
+     "translation_mine": "My translation: and in Menachot 73b the reading is the reverse."
+    }
+   ],
+   "reasoning": "These are source variants in parallel tannaitic works, recorded by editors and commentators; they are not proposed emendations. The Silverstein English and the Venice Hebrew are one witness, not two. The saved text does not show whether the bracketed 'Gemara's reading' notes are in the 1545 printing or were added by the online editor. I read the apparatus siglum א as the manuscript Kifshutah calls כי\"ע (Erfurt), because both report the same reading; that match is my inference.",
+   "confidence": "high",
+   "graph_effect": "Qualify c3 and c4 as 'per the Bavli's baraita (73b:8-9)'. Save a textual_alternative that swaps the positions of the two sages, with its witnesses (Sifra Venice; Tosefta Erfurt and London as reported by Lieberman). The whole of 73b:12-16 works only with the Bavli's assignment. The swap does not prove which sage held which view historically."
+  },
+  {
+   "finding_id": "F07",
+   "claim": "The parallels also differ in content. The Tosefta (Vienna) list of offerings accepted from gentiles has no wine; it has meal offerings and salt, and its Akiva allows 'a burnt offering and peace offerings only'. The Sifra list includes meal offerings and wine. The Bavli list at 73b:8 has wine but no meal offerings, and its Akiva allows 'a burnt offering only'.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "tosefta",
+     "exact_quote": "עופות, ומנחות, ",
+     "location": "Tosefta Shekalim 1:7, Vienna (short piece; variant markers sit between the words)",
+     "translation_mine": "My translation: birds, and meal offerings,"
+    },
+    {
+     "source_id": "tosefta",
+     "exact_quote": "עצים, ולבונה, ומלח, דברי ",
+     "location": "Tosefta Shekalim 1:7, Vienna (short piece)",
+     "translation_mine": "My translation: wood, and frankincense, and salt; the words of"
+    },
+    {
+     "source_id": "tosefta",
+     "exact_quote": "עולה ושלמים בלבד.",
+     "location": "Tosefta Shekalim 1:7, Vienna (short piece)",
+     "translation_mine": "My translation: a burnt offering and peace offerings only."
+    },
+    {
+     "source_id": "kifshutah",
+     "exact_quote": "בתו\"כ אמור ובבבלי מנחות הנ\"ל: אלא עולה בלבד.",
+     "location": "Tosefta Kifshutah on Shekalim 1:7 [4]",
+     "translation_mine": "My translation: In the Sifra (Emor) and in Bavli Menachot cited above: 'only a burnt offering'."
+    },
+    {
+     "source_id": "sifra",
+     "exact_quote": "מנין לרבות את העופות והמנחות והיין והלבונה והעצים?",
+     "location": "Sifra Emor 7:2, Venice 1545",
+     "translation_mine": "My translation: From where to include birds, meal offerings, wine, frankincense and wood?"
+    }
+   ],
+   "reasoning": "The saved Tosefta apparatus lists no witness that adds wine; I checked only the entries in that saved apparatus. So the item that the Talmud's Yosei answer deletes is missing from one parallel witness and present in another. This is parallel-text evidence. It does not show that the Talmud's editors knew such a text, and it does not turn the proposed emendation into a manuscript reading.",
+   "confidence": "medium",
+   "graph_effect": "Save as parallel-witness evidence attached to the proposed emendation in yosi_solution, as a separate evidence type from the emendation."
+  },
+  {
+   "finding_id": "F08",
+   "claim": "In the Tosefta and the Sifra the dispute is framed as one sage speaking to the other ('said to him'). The Bavli baraita at 73b:9 instead lists the two views side by side. Who addresses whom depends on the witness, and the London Tosefta manuscript seems to lack 'said to him'.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "kifshutah",
+     "exact_quote": "דברי ר' יוסה הגלילי. אמ' לו ר' עקיבא אפי' אתה יושב ודורש כל היום וכו'.",
+     "location": "Tosefta Kifshutah on Shekalim 1:7 [3], lemma of the Vienna text",
+     "translation_mine": "My translation: the words of R. Yosei HaGelili. R. Akiva said to him: even if you sit and expound all day, etc."
+    },
+    {
+     "source_id": "men73b",
+     "exact_quote": "רַבִּי עֲקִיבָא אוֹמֵר: ״אֲשֶׁר יַקְרִיבוּ לַה׳ לְעֹלָה״ – אֵין לִי אֶלָּא עוֹלָה בִּלְבָד.",
+     "location": "Menachot 73b:9",
+     "translation_mine": "My translation: Rabbi Akiva says: 'which they will offer to the Lord as a burnt offering' - I have only a burnt offering alone."
+    },
+    {
+     "source_id": "tosefta_var",
+     "exact_quote": "<b>לו </b>| <big>ל</big> ח'.",
+     "location": "Variants on Tosefta Shekalim 1:7:9",
+     "translation_mine": "My translation: 'to him': London lacks it."
+    },
+    {
+     "source_id": "tosefta_var",
+     "exact_quote": "<b>עקיבא </b>| <big>א</big> יוסי הגלילי <big>ל</big> יוסי הגלילי [או'].",
+     "location": "Variants on Tosefta Shekalim 1:7:10",
+     "translation_mine": "My translation: 'Akiva': Erfurt 'Yosei HaGelili'; London 'Yosei HaGelili [says]'."
+    }
+   ],
+   "reasoning": "I read ח' as the usual abbreviation for 'missing'. 'Said to him' is a literary framing of a dispute. It does not show that the two men met or spoke, and its direction changes with the witness. None of this is in the focal segment.",
+   "confidence": "medium",
+   "graph_effect": "If the parallels are added, save an addressed-speech turn between Yosei HaGelili and Akiva with direction branched by witness. Do not add any addressed-speech or meeting relation to Menachot 73b:16."
+  },
+  {
+   "finding_id": "F09",
+   "claim": "In the Mishnah, 'and this is one of them' points back to the rule about a found animal's libations (Shekalim 7:5). The gentile's burnt offering is the next of the seven ordinances, not the rule 'this' refers to. Menachot quotes the mishnah without 7:5, which hides this.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "shek7",
+     "exact_quote": "הִתְקִינוּ בֵּית דִּין שֶׁיְּהוּ נְסָכֶיהָ בָּאִין מִשֶּׁל צִבּוּר",
+     "location": "Mishnah Shekalim 7:5, Torat Emet",
+     "translation_mine": "My translation: the court instituted that its libations come from public funds."
+    },
+    {
+     "source_id": "ktav_yad_rashi",
+     "exact_quote": "וזה אחד מהו - לעיל מיניה קא מיירי שהתקינו בהמה הנמצא בעזרה יהיה נסכיה קריבין משל צבור",
+     "location": "Ktav Yad Rashi on Menachot 73b:12:1",
+     "translation_mine": "My translation: 'and this is one of them' refers to what is just before it: that they instituted for an animal found in the courtyard that its libations be offered from public funds."
+    },
+    {
+     "source_id": "tyt",
+     "exact_quote": "וזה שאמרנו אחד מהן והדר מפרש לאינך שש נכרי כו'",
+     "location": "Tosafot Yom Tov on Mishnah Shekalim 7:6 [1] (citing Rashi on Menachot 51b)",
+     "translation_mine": "My translation: this that we said is one of them, and then it explains the other six: a gentile, etc."
+    },
+    {
+     "source_id": "pilot_output",
+     "exact_quote": "A gentile’s overseas burnt offering has his supplied libations or public libations if none were sent",
+     "location": "pilot output entity 'decree' (c1 content role)"
+    }
+   ],
+   "reasoning": "The Mishnah text and two commentaries agree. The William Davidson English says the same in plain (editorial) words.",
+   "confidence": "high",
+   "graph_effect": "Keep c1 (court instituted seven ordinances, voice Rabbi Shimon). Give it a separate 'found-animal libations' item as the referent of 'this', and make the gentile rule 'another of the seven'. No person changes."
+  },
+  {
+   "finding_id": "F10",
+   "claim": "The questions 'In accordance with whom…?' and 'Let us say Rabbi Yosei HaGelili' ask whose view a teaching agrees with. The mishnah is already said in Rabbi Shimon's name, reporting a court ordinance. Saving it as 'decree attributes_to Yosei/Akiva' (c5, c6, c10) confuses agreement with authorship. For the anonymous baraita ('who is the tanna'), naming a tanna is closer to attribution, but the two answers leave it open.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "כמאן אזלא הא דתנן אמר ר\"ש",
+     "location": "Menachot 73b:12, Wikisource (pilot s1)",
+     "translation_mine": "My translation: In accordance with whom is that which we learned: R. Sh[imon] said…"
+    },
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "מאן תנא להא דתנו רבנן",
+     "location": "Menachot 73b:14, Wikisource (pilot s3)",
+     "translation_mine": "My translation: Who is the tanna of this that the Rabbis taught?"
+    },
+    {
+     "source_id": "rashi",
+     "exact_quote": "לימא רבי יוסי היא - דמרבי ביין דהיינו נסכים",
+     "location": "Rashi on Menachot 73b:13:1",
+     "translation_mine": "My translation: Let us say it is Rabbi Yosei: who includes wine, that is, libations."
+    },
+    {
+     "source_id": "tyt",
+     "exact_quote": "כרבי עקיבא דס\"ל דאין מקבלין מהן אלא עולה",
+     "location": "Tosafot Yom Tov on Mishnah Shekalim 7:6 [2]",
+     "translation_mine": "My translation: [The mishnah is] according to Rabbi Akiva, who holds that only a burnt offering is accepted from them."
+    }
+   ],
+   "reasoning": "A commentator (Tosafot Yom Tov) aligns the mishnah with Akiva, using the Menachot answer. That alignment is a view on agreement, not a claim that Akiva said the mishnah. Rabbi Shimon remains its speaker.",
+   "confidence": "high",
+   "graph_effect": "Use a predicate such as accords_with_view_of (teaching -> sage) for c5, c6 and c10, separate from attributes_to. For c7 and c9 (anonymous baraita), keep the two branches and mark each as a proposed identification of the anonymous tanna."
+  },
+  {
+   "finding_id": "F11",
+   "claim": "Another Bavli passage attributes the same rule as the anonymous 'ezrach' baraita (a gentile does not bring libations, but his offering needs them) to a named 'Rabbi Shimon', and gives the same 'ezrach' baraita as its source. Menachot 73b:12-16 does not consider Rabbi Shimon as the baraita's tanna.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "temurah_2b",
+     "exact_quote": "וְאֵין מְבִיאִין עֲלֵיהֶם נְסָכִים, אֲבָל קׇרְבָּנוֹ טָעוּן נְסָכִים, דִּבְרֵי רַבִּי שִׁמְעוֹן.",
+     "location": "Temurah 2b:9 (baraita cited by Rava), William Davidson vocalized",
+     "translation_mine": "My translation: and one does not bring libations for them, but his offering requires libations: the words of Rabbi Shimon."
+    },
+    {
+     "source_id": "temurah_3a",
+     "exact_quote": "מְנָא הָנֵי מִילֵּי? דְּתָנוּ רַבָּנַן: ״אֶזְרָח״ — אֶזְרָח מֵבִיא נְסָכִים וְאֵין הַגּוֹי מֵבִיא נְסָכִים.",
+     "location": "Temurah 3a:10",
+     "translation_mine": "My translation: From where are these matters? As the Rabbis taught: 'home-born' - a home-born person brings libations, and a gentile does not bring libations."
+    },
+    {
+     "source_id": "temurah_3a",
+     "exact_quote": "וְאֵין מֵבִיא (עֲלֵיהֶן) נְסָכִים",
+     "location": "Temurah 3a:10 (word in parentheses as printed)",
+     "translation_mine": "My translation: and he does not bring (for them) libations"
+    }
+   ],
+   "reasoning": "This is the passage Tosafot cites in F05. Temurah uses the baraita as the source for Rabbi Shimon's rule; it does not say that Rabbi Shimon taught it. The 'Rabbi Shimon' of Temurah 2b, the Rabbi Shimon of the Shekalim mishnah, and the Rabbi Shimon of Menachot 73b:17 share a name. That does not show they are one person.",
+   "confidence": "high",
+   "graph_effect": "Outside the focal segment. If the rule is linked across passages, add a separate, cross-passage 'same ruling also attributed to R. Shimon (Temurah 2b)' observation. Keep a local R. Shimon for each passage; historical identity stays open."
+  },
+  {
+   "finding_id": "F12",
+   "claim": "The wider sugya names more people before the pilot window: Rav Huna (73a:16), Rav Chama bar Gurya, Rava, Rav Sheizevi and Rabbi Yochanan (73b:3-5). Rabbi Yochanan is the named amora who first sets 'Rabbi Yosei HaGelili' against 'Rabbi Akiva' on gentile offerings. Rav Chama bar Gurya's name contains a patronymic.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "men73a",
+     "exact_quote": "אָמַר רַב הוּנָא:",
+     "location": "Menachot 73a:16",
+     "translation_mine": "My translation: Rav Huna said:"
+    },
+    {
+     "source_id": "men73b",
+     "exact_quote": "מֵתִיב רַב חָמָא בַּר גּוּרְיָא",
+     "location": "Menachot 73b:3",
+     "translation_mine": "My translation: Rav Chama bar Gurya raises an objection"
+    },
+    {
+     "source_id": "men73b",
+     "exact_quote": "אָמַר רָבָא: הָכִי קָא אָמַר",
+     "location": "Menachot 73b:4",
+     "translation_mine": "My translation: Rava said: this is what it says"
+    },
+    {
+     "source_id": "men73b",
+     "exact_quote": "מֵתִיב רַב שֵׁיזְבִי",
+     "location": "Menachot 73b:5",
+     "translation_mine": "My translation: Rav Sheizevi raises an objection"
+    },
+    {
+     "source_id": "men73b",
+     "exact_quote": "אָמַר רַבִּי יוֹחָנָן: לָא קַשְׁיָא, הָא רַבִּי יוֹסֵי הַגְּלִילִי, הָא רַבִּי עֲקִיבָא.",
+     "location": "Menachot 73b:5",
+     "translation_mine": "My translation: Rabbi Yochanan said: it is not difficult; this is Rabbi Yosei HaGelili, that is Rabbi Akiva."
+    }
+   ],
+   "reasoning": "73b:12-16 is spoken by the anonymous Talmud voice. It continues the Yosei and Akiva framework set by Rabbi Yochanan's answer, but it does not quote him, so no speech turn in 73b:16 should be credited to him. 'bar Gurya' supports a father named Gurya under the project's patronymic rule. Whether 'bar' is literal kinship here is not tested by any source I checked.",
+   "confidence": "high",
+   "graph_effect": "Not part of the focal segment's graph. If the job is widened to 73a:16-73b:16, add these local persons, the speech and objection turns, and a local parent placeholder 'Gurya' (father_of Rav Chama, basis: patronymic)."
+  },
+  {
+   "finding_id": "F13",
+   "claim": "The first reading's person list for 73b:12-16 is complete for named people: Rabbi Shimon (the abbreviation ר\"ש is spelled out as Rabbi Shimon in the Mishnah text), Rabbi Yosei HaGelili and Rabbi Akiva. No family relation appears in these segments. The 'citizen' entity is a word of the verse, not a person.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "אזרח אזרח מביא נסכים ואין העובד כוכבים מביא נסכים",
+     "location": "Menachot 73b:14, Wikisource (pilot s3)",
+     "translation_mine": "My translation: 'Home-born': a home-born person brings libations, and a gentile does not bring libations."
+    },
+    {
+     "source_id": "pilot_output",
+     "exact_quote": "Generic citizen in the interpretation",
+     "location": "pilot output entity 'citizen'"
+    },
+    {
+     "source_id": "shek7",
+     "exact_quote": "אָמַר רַבִּי שִׁמְעוֹן, שִׁבְעָה דְּבָרִים הִתְקִינוּ בֵּית דִּין",
+     "location": "Mishnah Shekalim 7:6, Torat Emet",
+     "translation_mine": "My translation: Rabbi Shimon said: seven things the court instituted."
+    }
+   ],
+   "reasoning": "'אזרח' is first a quoted word of Numbers 15:13 and then a legal category (a native Israelite). 'תנו רבנן' is the usual formula for citing a baraita. The segment itself asks who its tanna is, so the 'Rabbis' should not become a group that holds a view competing with Yosei and Akiva.",
+   "confidence": "medium",
+   "graph_effect": "Change 'citizen' from kind person to a legal-category or description entity. Save 'teachers' (רבנן) as a citation formula linked to the anonymous tanna, not as a group with its own view."
+  },
+  {
+   "finding_id": "F14",
+   "claim": "The earlier review's five passes hold on their own terms. It did not check the deleted text's source (73b:8-9), the name swap in the parallels, c3's missing branch condition, the confusion of agreement with authorship, or the referent of 'this is one of them'.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "previous_review",
+     "exact_quote": "The Yosi solution requires the anchored deletion of wine and does not call it a personal retraction.",
+     "location": "previous-review.json, checks preserve[1]"
+    },
+    {
+     "source_id": "previous_review",
+     "exact_quote": "No meeting or unconditional agreement between the named people is asserted.",
+     "location": "previous-review.json, checks avoid[1]"
+    }
+   ],
+   "reasoning": "The review only checked against the supplied segments and its checklist. The gaps above come from wider context and parallel texts.",
+   "confidence": "high",
+   "graph_effect": "No reversal of the review's passes. Add the corrections listed below."
+  }
+ ],
+ "alternative_readings": [
+  {
+   "id": "A1",
+   "reading": "Anonymous baraita (73b:14) = Rabbi Yosei HaGelili, with 'wine' deleted from his baraita (73b:8).",
+   "who_says": "The Talmud 73b:16 (first answer); explained by Rashi, Rabbeinu Gershom and Steinsaltz.",
+   "status": "Offered by the Talmud as one of two answers"
+  },
+  {
+   "id": "A2",
+   "reading": "Anonymous baraita = Rabbi Akiva, whose 'only a burnt offering' includes its accompanying libations.",
+   "who_says": "The Talmud 73b:16 (second answer), repeating 73b:13; Rashi 73b:13:3; Tosafot Yom Tov uses this line for the Shekalim mishnah.",
+   "status": "Offered by the Talmud as one of two answers"
+  },
+  {
+   "id": "A3",
+   "reading": "Yosei's 'wine' means wine that comes with an offering, so the baraita fits Yosei with no deletion.",
+   "who_says": "Considered and rejected by Tosafot on 73b:15.",
+   "status": "Rejected by a commentary; keep as a rejected alternative only"
+  },
+  {
+   "id": "A4",
+   "reading": "The two tannaitic positions belong the other way round (inclusive list = Akiva; 'only a burnt offering' = Yosei HaGelili).",
+   "who_says": "Sifra Emor 7:2 (Venice 1545 as saved); Tosefta Erfurt and London manuscripts as reported by Lieberman; Ra'avad reports such Sifra versions, though his own text follows Menachot.",
+   "status": "Source variant in parallel works; the Bavli's answers in 73b:12-16 assume the other order"
+  },
+  {
+   "id": "A5",
+   "reading": "The 'no separate libations' rule is Rabbi Shimon's.",
+   "who_says": "Baraita at Temurah 2b:9, with the 'ezrach' baraita given as its source at Temurah 3a:10.",
+   "status": "Parallel Bavli attribution; not considered in Menachot 73b"
+  }
+ ],
+ "unresolved": [
+  "Whether any manuscript of Bavli Menachot lacks 'wine' at 73b:8, or reads the names differently at 73b:9. Bavli manuscripts, Dikdukei Soferim and page images were not checked.",
+  "Who made the (חבירתה) [אבזרהא] replacement in the printed text. The saved sources do not say, and Bach and Shita Mekubetzet were not checked.",
+  "Whether the '[גירס' הגמרא ...]' notes in the saved Sifra text belong to the 1545 printing or to the online editor.",
+  "Which Rabbi Shimon speaks in the Shekalim mishnah. The name alone does not settle it, and he is not identified with the Rabbi Shimon of Menachot 73b:17 or Temurah 2b.",
+  "Whether the two answers in 73b:16 are meant as equally good or as ranked. The text gives no preference, and no commentary checked chooses between them for the baraita."
+ ],
+ "proposed_corrections": [
+  {
+   "claim_id": "c3",
+   "change": "Anchor to 73b:8-9 (the baraita), with 73b:15 as the Gemara's paraphrase. Add a branch condition: not asserted in yosi_solution. Add the qualifier 'per the Bavli's baraita' (see A4).",
+   "why": "F01, F03, F06"
+  },
+  {
+   "claim_id": "c4",
+   "change": "Anchor to 73b:9 'רבי עקיבא אומר … אין לי אלא עולה בלבד'. Note that in akiva_solution this is reinterpreted to include accompanying libations. Add the qualifier 'per the Bavli's baraita' (see A4).",
+   "why": "F06, F04"
+  },
+  {
+   "claim_id": "c8",
+   "change": "Save as a transmission claim: the anonymous Talmud proposes deleting 'wine' from the baraita attributed to Yosei (evidence_type proposed_emendation, branch yosi_solution). Keep any 'Yosei does not include wine' view claim only as a dependent inference.",
+   "why": "F02"
+  },
+  {
+   "claim_id": "c5, c6, c10",
+   "change": "Change predicate from attributes_to to accords_with_view_of (the Rabbi Shimon mishnah agrees with a sage's view). Rabbi Shimon remains the speaker.",
+   "why": "F10"
+  },
+  {
+   "claim_id": "c7, c9",
+   "change": "Keep as two branches, and mark each as a proposed identification of the anonymous tanna, not settled authorship.",
+   "why": "F10"
+  },
+  {
+   "claim_id": "c1",
+   "change": "Separate the referent of 'this is one of them' (the found-animal libations, Shekalim 7:5) from the gentile rule, which is another of the seven.",
+   "why": "F09"
+  },
+  {
+   "claim_id": "entity citizen",
+   "change": "Change kind from person to a legal category or verse-word description.",
+   "why": "F13"
+  },
+  {
+   "claim_id": "entity associated",
+   "change": "Relabel as 'libations that accompany a burnt offering (commentary reading)'. Save חבירתה / אבזרהא as a wording variant.",
+   "why": "F04"
+  },
+  {
+   "claim_id": "new (reading_groups)",
+   "change": "Add a textual_alternative group for the swapped attribution in the Sifra and Tosefta (A4), and parallel-witness evidence (the Tosefta list without wine) attached to yosi_solution.",
+   "why": "F06, F07"
+  }
+ ],
+ "ontology_lessons": [
+  "A proposed deletion ('סמי') changes the transmitted text of a teaching. Model it as a transmission event on the source, not as a change in the sage's view.",
+  "A claim whose premise is withdrawn in one branch cannot keep an empty branch list. Premises of an objection need their own branch scope.",
+  "'Whose view does this follow?' (כמאן, לימא) is agreement between a teaching and a sage. 'Who is the tanna?' (מאן תנא) is closer to attribution. Neither is authorship when the teaching already has a named speaker.",
+  "Put parallel-work variants (Sifra, Tosefta manuscripts), a Talmud-internal proposed emendation, and a commentator's rejected reading into three separate evidence types.",
+  "An addressed-speech frame ('said to him') can exist in one witness and not another. Its direction can flip too. It is literary evidence of a debate, not of a meeting.",
+  "A translation made from the same text (Silverstein on the Venice Sifra) is not independent support for that text's reading."
+ ]
+}

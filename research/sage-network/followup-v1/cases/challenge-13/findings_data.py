@@ -1,0 +1,321 @@
+# Findings for challenge-13. Loaded by build_dossier.py, which checks every text quote.
+VIS = "researcher_visual_reading_of_page_image"
+
+FINDINGS = [
+ {
+  "finding_id": "F1",
+  "claim": ("The text names two people who act, Rabbi Hiyya bar Abba and Rabbi Yohanan, plus a father named Abba through the patronymic. "
+            "It names the sick man and the visitor. After that, the four speech and action turns use only 'said to him' and 'gave him'. "
+            "Nobody is named again. Speakers are assigned by turn-taking, as the first reading did."),
+  "kind": "textual",
+  "evidence": [
+   {"source_id": "S1", "exact_quote": "רַבִּי חִיָּיא בַּר אַבָּא חֲלַשׁ. עָל לְגַבֵּיהּ רַבִּי יוֹחָנָן אֲמַר לֵיהּ: חֲבִיבִין עָלֶיךָ יִסּוּרִין? אֲמַר לֵיהּ: לֹא הֵן וְלֹא שְׂכָרָן. אֲמַר לֵיהּ: הַב לִי יְדָךְ. יְהַב לֵיהּ יְדֵיהּ, וְאוֹקְמֵיהּ.",
+    "translation_by_this_dossier": "Rabbi Hiyya bar Abba fell ill. Rabbi Yohanan went in to him [and] said to him: Are sufferings dear to you? He said to him: Neither they nor their reward. He said to him: Give me your hand. He gave him his hand, and he raised him."},
+   {"source_id": "S2", "exact_quote": "רבי חייא בר אבא חלש על לגביה ר' יוחנן א\"ל חביבין עליך יסורין א\"ל לא הן ולא שכרן א\"ל הב לי ידך יהב ליה ידיה ואוקמיה."},
+   {"source_id": "S4", "exact_quote": "He gave him his hand and R. Johanan raised him."}
+  ],
+  "reasoning": ("The Wikisource (Vilna-based) and William Davidson Aramaic agree word for word, apart from abbreviations and vowels. "
+                "The alternation is the only way to read the turns: the visitor asks, the sick man answers, the visitor asks for the hand, "
+                "the sick man gives it, the visitor raises him. The Cohen and William Davidson English supply the name of the raiser. "
+                "That is the translators' resolution, not extra wording in the Aramaic."),
+  "confidence": "high",
+  "graph_effect": "Confirms c1-c8 roles and directions. Their basis stays local_coreference, except c3's subject, which is named."
+ },
+ {
+  "finding_id": "F2",
+  "claim": ("This scene is not self-contained in the sugya. Next, Rabbi Yohanan falls ill and Rabbi Hanina raises him the same way (5b:11). "
+            "The Gemara then asks why Rabbi Yohanan did not raise himself, and answers that a prisoner cannot free himself (5b:12-13). "
+            "The question takes for granted that Rabbi Yohanan could raise a sick person. The only earlier case of him doing so in the sugya is 5b:10."),
+  "kind": "textual",
+  "evidence": [
+   {"source_id": "S1", "exact_quote": "רַבִּי יוֹחָנָן חֲלַשׁ. עָל לְגַבֵּיהּ רַבִּי חֲנִינָא.", "translation_by_this_dossier": "Rabbi Yohanan fell ill. Rabbi Hanina went in to him."},
+   {"source_id": "S1", "exact_quote": "אַמַּאי, לוֹקִים רַבִּי יוֹחָנָן לְנַפְשֵׁיהּ?", "translation_by_this_dossier": "Why? Let Rabbi Yohanan raise himself!"},
+   {"source_id": "S1", "exact_quote": "אָמְרִי: אֵין חָבוּשׁ מַתִּיר עַצְמוֹ מִבֵּית הָאֲסוּרִים.", "translation_by_this_dossier": "They say: a prisoner does not free himself from prison."},
+   {"source_id": "S9", "exact_quote": "כדמוכח בעובדא דר' חייא ב\"א לעיל דיהיב ליה ידיה גם שראה בו שקם",
+    "translation_by_this_dossier": "(Maharsha) as is shown by the earlier story of R. Hiyya b. Abba, where he gave him his hand and he saw that he rose."}
+  ],
+  "reasoning": ("The text does not say which earlier case the question means, but Maharsha makes the link explicitly. "
+                "Maharsha also explains why the Gemara does not ask the same question about Rabbi Hiyya bar Abba. "
+                "The first reading's job held only 5b:10, so it could not see this dependency."),
+  "confidence": "high",
+  "graph_effect": ("The raising event (c7/c8) is the presupposed premise of the anonymous question in 5b:12. "
+                   "Add a cross-segment context link, and list 5b:11-13 in episode.needed_context.")
+ },
+ {
+  "finding_id": "F3",
+  "claim": ("The witnesses arrange this story differently. In the Vilna-based text and the William Davidson edition, it is a stand-alone scene "
+            "before Rabbi Yohanan's own illness. The Ein Yaakov text in the Glick edition (1916) puts Rabbi Yohanan's illness first. "
+            "It then cites the Hiyya bar Abba story inside the Gemara's question, introduced by 'for' (דהא), as proof that Rabbi Yohanan could raise others. "
+            "My visual reading of Munich Cod. hebr. 95 seems to show the same arrangement."),
+  "kind": "textual",
+  "evidence": [
+   {"source_id": "S6", "exact_quote": "ואמאי לוקים ר׳ יוחנן לנפשיה דהא רבי חייא בר אבא חלש ועל לגביה רבי יוחנן ואמר ליה חביבין עליך יסורין אמר ליה לא הן ולא שכרן אמר ליה הב לי ידך יהב ליה ידא ואוקמיה וליקום איהו לנפשיה אמרי אין חבוש מתיר את עצמו מבית האסורין",
+    "translation_by_this_dossier": "And why did R. Yohanan not raise himself, for R. Hiyya bar Abba fell ill and R. Yohanan went in to him and said to him: Are sufferings dear to you? He said to him: Neither they nor their reward. He said to him: Give me your hand. He gave him the hand and he raised him. So let him raise himself! They say: a prisoner does not free himself from prison."},
+   {"source_id": "S7", "exact_quote": "Why did not R. Jochanan make himself well without the aid of R. Chanina? [Did it not happen that] when R. Chiya b. Abba once became sick, he was visited by R. Jochanan"},
+   {"source_id": "S8b", "evidence_type": VIS,
+    "exact_quote": "א\"ל הב לי ידך יהב ליה ידיה ואוקמיה. ואמאי ליקום ר' יוחנן לנפשיה.",
+    "note": "Researcher's visual transcription of the Munich 95 page image, not machine-checked. The words end the Rabbi Hanina / Rabbi Yohanan story and begin the question."},
+   {"source_id": "S8c", "evidence_type": VIS,
+    "exact_quote": "[?]הא ר' חייא בר [word not securely read]",
+    "note": "Researcher's visual reading, not machine-checked. On the same line, right after the question, a name beginning 'R. Hiyya' appears. I could not read the introductory letter or the patronymic with confidence."},
+   {"source_id": "S8d", "evidence_type": VIS,
+    "exact_quote": "חלש על לגביה ר' יוחנן לשיולי ביה א\"ל חביבין עליך יסורין",
+    "note": "Researcher's visual reading, not machine-checked. The next line starts the embedded story: 'fell ill; R. Yohanan went in to him to ask after him; he said to him: Are sufferings dear to you'."},
+   {"source_id": "S8c", "evidence_type": VIS,
+    "exact_quote": "אין חבוש מתיר עצמו מבית האסורין",
+    "note": "Researcher's visual reading, not machine-checked. The prisoner answer follows the embedded story directly."}
+  ],
+  "reasoning": ("In the Ein Yaakov arrangement, the anonymous Talmud voice recalls the story to build its question. The narrator does not present it as a scene of its own. "
+                "The people, the turns and the directions are the same in both arrangements. What changes is the voice and discourse status of claims c2-c8. "
+                "I have not checked whether the Glick Hebrew follows an early Ein Yaakov print or a manuscript. "
+                "A shared arrangement in Ein Yaakov and Munich 95 does not prove that the two are independent. "
+                "Glick's bracketed English words are the translator's framing."),
+  "confidence": "medium",
+  "graph_effect": ("Add a reading group on discourse framing. Branch A: a narrator-stated scene before 5b:11 (Vilna/Wikisource, William Davidson). "
+                   "Branch B: a precedent the anonymous Talmud cites inside the question of 5b:12 (Ein Yaakov Glick; Munich 95 by visual reading). "
+                   "Participants and roles are shared across the branches. Do not count this as a second occurrence of the event.")
+ },
+ {
+  "finding_id": "F4",
+  "claim": ("In the Munich 95 image, the embedded Hiyya story seems to differ from the printed text in two small ways. "
+            "It adds 'to ask after him' (לשיולי ביה) to the visit. "
+            "It also seems to go straight from the refusal to the hand-giving, without 'He said to him: Give me your hand'. This is a tentative visual reading."),
+  "kind": "uncertainty",
+  "evidence": [
+   {"source_id": "S8e", "evidence_type": VIS,
+    "exact_quote": "א\"ל לא הן ולא שכרן הב ליה ידיה ואוקמיה",
+    "note": "Researcher's visual reading, not machine-checked. I did not see 'א\"ל הב לי ידך' between the refusal and the hand-giving. The word I read as הב may be a compressed יהב."},
+   {"source_id": "S8a", "evidence_type": VIS,
+    "exact_quote": "לשיולי ביה א\"ל חביבין עליך יסורין א\"ל לא הן ולא שכ",
+    "note": "Researcher's visual reading, not machine-checked. The same 'to ask after him' seems to appear in the Rabbi Hanina story on the line above."}
+  ],
+  "reasoning": ("These readings come from enlarged crops of one manuscript page. The hand is small and my reading is not verified. "
+                "They should be checked against a published transcription before any claim is changed."),
+  "confidence": "low",
+  "graph_effect": ("Keep c6 in branch A. In branch B, c6 is attested in Ein Yaakov (S6) but may be missing from Munich 95. "
+                   "Mark it as witness-dependent. Do not delete it.")
+ },
+ {
+  "finding_id": "F5",
+  "claim": ("ואוקמיה literally says Rabbi Yohanan 'raised / stood him up'. That he was healed is the translators' and commentators' interpretation, "
+            "backed by the sugya's own question (F2). The William Davidson English and Steinsaltz state the recovery in their explanatory, non-bold words. "
+            "Cohen translates 'raised him' and gives 'cured' only in a footnote. Glick renders it 'made him well'."),
+  "kind": "interpretation",
+  "evidence": [
+   {"source_id": "S1", "exact_quote": "Rabbi Yoḥanan <b>stood him up</b> and restored him to health."},
+   {"source_id": "S3", "exact_quote": "ר' יוחנן על רגליו ממטת חוליו, וחזר ר' חייא בר אבא לבריאותו.",
+    "translation_by_this_dossier": "(Steinsaltz, explanatory words) R. Yohanan [stood him] on his feet from his sickbed, and R. Hiyya bar Abba returned to health."},
+   {"source_id": "S5", "exact_quote": "Cured him of his ailment by the healing touch."},
+   {"source_id": "S7", "exact_quote": "R. Jochanan asked for his hand and made him well."}
+  ],
+  "reasoning": ("The William Davidson English and Steinsaltz come from one editorial project and count as one interpretive witness. "
+                "In both, the recovery wording is outside the bold translation. The first reading's note ('a separate medical outcome is not added') is correct at the text level. "
+                "The healing sense can be added only as a separate interpretation-level claim."),
+  "confidence": "medium",
+  "graph_effect": ("Keep c8 as 'raises', stated by the narrator. Optionally add an interpretation claim, 'the raising cures the illness', "
+                   "with basis translation/commentary plus sugya context (5b:12). Do not upgrade it to explicit.")
+ },
+ {
+  "finding_id": "F6",
+  "claim": ("The Aramaic of 5b:10 states no teacher-student relation between Rabbi Yohanan and Rabbi Hiyya bar Abba. "
+            "The William Davidson English adds 'Rabbi Yoḥanan’s student' in plain, non-bold words, and Steinsaltz adds 'who was his student' and 'his teacher'. "
+            "Seder HaDorot calls Rabbi Hiyya bar Abba a close student of Rabbi Yohanan, citing other passages. That is prosopography, not this text."),
+  "kind": "interpretation",
+  "evidence": [
+   {"source_id": "S1", "exact_quote": "Rabbi Yoḥanan’s student, <b>Rabbi Ḥiyya bar Abba, fell ill.</b>"},
+   {"source_id": "S3", "exact_quote": "<b>ר' חייא בר אבא</b> שהיה תלמידו של ר' יוחנן <b>חלש</b>",
+    "translation_by_this_dossier": "(Steinsaltz) R. Hiyya bar Abba, who was R. Yohanan's student, fell ill."},
+   {"source_id": "S3", "exact_quote": "<b>ר' יוחנן</b> רבו לביקור חולים",
+    "translation_by_this_dossier": "(Steinsaltz) R. Yohanan, his teacher, [entered] to visit the sick."},
+   {"source_id": "S1", "exact_quote": "If he was able to heal his student, <b>let Rabbi Yoḥanan stand himself up.</b>"},
+   {"source_id": "S14", "exact_quote": "תלמיד מובהק של ר' יוחנן ועלה מבבל",
+    "translation_by_this_dossier": "(Seder HaDorot) a distinguished student of R. Yohanan, who came up from Babylonia."}
+  ],
+  "reasoning": ("Every 'student' word here is outside the Talmud's own wording. Seder HaDorot cites passages elsewhere (e.g. Hullin 86b, Berakhot 38b), which I did not check. "
+                "Any teacher relation needs its own evidence pack from those passages. "
+                "The later identification of this Hiyya bar Abba with the student figure is a historical-identity decision."),
+  "confidence": "high",
+  "graph_effect": ("Do not add teacher_of or student_of from 5b:10. The first reading's note ('No kinship or teacher relationship ... is stated') is correct and should stay. "
+                   "Flag the William Davidson plain text as a known source of relation leakage.")
+ },
+ {
+  "finding_id": "F7",
+  "claim": ("The patronymic 'bar Abba' is the passage's only kinship evidence. It supports child_of(Hiyya, Abba) as a name-embedded relation, with a local placeholder for Abba. "
+            "Seder HaDorot's heading adds the priestly epithet 'ha-Kohen', which this passage lacks. "
+            "Elsewhere, Seder HaDorot worries that the name was confused with Rav Hiyya bar Adda. So the name alone does not fix a historical person."),
+  "kind": "uncertainty",
+  "evidence": [
+   {"source_id": "S0", "exact_quote": "רבי חייא בר אבא חלש."},
+   {"source_id": "S14", "exact_quote": "ר' חייא בר אבא הכהן,"},
+   {"source_id": "S14", "exact_quote": "ולולא דמסתפינא אמינא דט\"ס וצ\"ל רב חייא בר אדא",
+    "translation_by_this_dossier": "(Seder HaDorot, on Ketubot 8b) Were I not afraid, I would say it is a scribal error and one should read Rav Hiyya bar Adda."}
+  ],
+  "reasoning": ("By the project rule, c1 and the Abba placeholder stay. The 'ha-Kohen' epithet and any merge with other 'Hiyya bar Abba' passages belong to the identity stage. "
+                "I could not securely read the patronymic in Munich 95 (F3), so this witness neither supports nor challenges 'bar Abba'."),
+  "confidence": "high",
+  "graph_effect": "Keep c1 as it is, with the abba placeholder. Add no priestly title or identity link from this passage."
+ },
+ {
+  "finding_id": "F8",
+  "claim": ("Commentators explain why the sick man turns down both the suffering and its reward. Maharsha says these illnesses were so severe that they stopped Torah study. "
+            "Etz Yosef explains the parallel refusal in Shir HaShirim Rabbah the same way and refers to Berakhot 5b. Marit HaAyin gives a symbolic reading of the hand. "
+            "These are motives that commentators infer. The text does not state them."),
+  "kind": "interpretation",
+  "evidence": [
+   {"source_id": "S9", "exact_quote": "אבל כל הנהו עובדי דהכא משמע דהוו חלישי כ\"כ שהיה ביסורים שלהם ביטול תורה כדאמר דהיו צריכים להקים אותן ולכך קאמרי דלא הן ולא שכרן",
+    "translation_by_this_dossier": "(Maharsha) But all these stories here imply they were so weak that their suffering involved neglect of Torah, as it says they had to be raised; therefore they said 'neither they nor their reward'."},
+   {"source_id": "S13", "exact_quote": "אין אני חפץ בהם ולא בשכרם, שלפי שהיה היסורים קשים עליו עד שביטל מחמתם לימוד תורה",
+    "translation_by_this_dossier": "(Etz Yosef) I want neither them nor their reward, since the suffering was so hard on him that he stopped Torah study because of it."},
+   {"source_id": "S17", "exact_quote": "וכשא\"ל לא הן ולא שכרן ש\"מ דאין לו חטא והיסורין לשכר",
+    "translation_by_this_dossier": "(Marit HaAyin, citing Eretz HaChayim) When he said 'neither they nor their reward', this shows he had no sin and the suffering was for reward."}
+  ],
+  "reasoning": "These are separate commentary layers. None changes who speaks or who acts.",
+  "confidence": "high",
+  "graph_effect": "At most, attach commentary notes to the 'rejection' statement entity. Make no new claim."
+ },
+ {
+  "finding_id": "F9",
+  "claim": ("Shir HaShirim Rabbah 2:16 tells a related tradition with a different cast. Rabbi Yohanan is ill and Rabbi Hanina helps him with a word. "
+            "Later Rabbi Hanina is ill and Rabbi Yohanan visits. There Rabbi Hanina says 'I want neither them nor their reward', "
+            "and explains that one inside cannot vouch for himself. The same refusal also recurs in the Bavli with Rabbi Yohanan (5b:11) and Rabbi Elazar (5b:16) as the patients."),
+  "kind": "textual",
+  "evidence": [
+   {"source_id": "S12", "exact_quote": "לְבָתַר יוֹמִין אִתְּשַׁשׁ רַבִּי חֲנִינָא סְלַק רַבִּי יוֹחָנָן לִמְבַקְּרֵיהּ",
+    "translation_by_this_dossier": "After some days R. Hanina fell ill; R. Yohanan went up to visit him."},
+   {"source_id": "S12", "exact_quote": "אֲמַר לֵיהּ לָא אֲנָא בָּעֵי לְהוֹן וְלָא לְאַגְרֵיהוֹן.",
+    "translation_by_this_dossier": "He said to him: I want neither them nor their reward."},
+   {"source_id": "S12", "exact_quote": "[Rabbi Ḥanina] said to him: ‘I want neither them nor their reward.’"},
+   {"source_id": "S13", "exact_quote": "והוא כמו שאמרו במס' ברכות דף הנזכר לעיל אין חבוש מתיר עצמו מבית האסורים",
+    "translation_by_this_dossier": "(Etz Yosef) And this is like what they said in tractate Berakhot, on the page mentioned above: a prisoner does not free himself from prison."},
+   {"source_id": "S1", "exact_quote": "רַבִּי אֶלְעָזָר חֲלַשׁ. עַל לְגַבֵּיהּ רַבִּי יוֹחָנָן."}
+  ],
+  "reasoning": ("In the Midrash the refusal is spoken by the patient, just as in 5b:10, but the patient is Rabbi Hanina. "
+                "This is a parallel tradition with different participants, not another witness to the 5b:10 scene. "
+                "The recurring formula shows a literary pattern. It cannot establish that any of these visits happened."),
+  "confidence": "high",
+  "graph_effect": ("Record Shir HaShirim Rabbah 2:16 as a separate episode, linked as a parallel. Do not merge its events with 5b:10, 5b:11 or 5b:16. "
+                   "Do not use it to reassign any speaker in 5b:10.")
+ },
+ {
+  "finding_id": "F10",
+  "claim": ("Ben Yehoyada's commentary on the dark-room scene calls the weeping patient 'Rabbi Hiyya'. Sefaria links that comment to 5b:14, where the Talmud names Rabbi Elazar. "
+            "His comment on the hand-giving, which Sefaria links to 5b:10, talks about Rabbi Yohanan's and Rabbi Hiyya's hands. "
+            "The commentary may conflate the stories, or may be a slip. It is not evidence of another Hiyya-Yohanan scene."),
+  "kind": "uncertainty",
+  "evidence": [
+   {"source_id": "S15", "exact_quote": "ושאל אותו אמאי קא בכית? והשיב על האי שופרא דבלי, פירוש כי רבי חייא היה מחשב ומצייר אותה שעה בדעתו",
+    "translation_by_this_dossier": "(Ben Yehoyada) He asked him, why are you weeping? He answered, over this beauty that will decay; meaning that R. Hiyya was contemplating at that moment..."},
+   {"source_id": "S15", "exact_quote": "הרי נעשה שמאל רבי יוחנן בימין של רבי חייא",
+    "translation_by_this_dossier": "(Ben Yehoyada) thus R. Yohanan's left was placed in R. Hiyya's right."},
+   {"source_id": "S1", "exact_quote": "אֲמַר לֵיהּ: לְהַאי שׁוּפְרָא דְּבָלֵי בְּעַפְרָא קָא בָּכֵינָא."}
+  ],
+  "reasoning": ("The saved text of 5b:14-15 names Rabbi Elazar (S1). The comment-to-segment mapping comes from Sefaria's link data (S16). "
+                "Ben Yehoyada quotes the formula with the punctuation of 5b:16 in the Sefaria edition, so which segment he meant is uncertain."),
+  "confidence": "medium",
+  "graph_effect": "Do not add a weeping or beauty scene between Hiyya bar Abba and Yohanan on the strength of this commentary."
+ },
+ {
+  "finding_id": "F11",
+  "claim": ("The earlier review's one finding is wrong. It says pronoun mentions m4-m10 are not attached to either participant. "
+            "The first reading attaches m4, m5, m7, m9 and m10 to hiyya, and m6 and m8 to yohanan. "
+            "Counting the four occurrences of ליה in the saved text confirms the pattern Hiyya, Yohanan, Hiyya, Yohanan. "
+            "The real gaps are smaller. עליך and ידך (Hiyya) and לי (Yohanan) are not inventoried. m10 (ואוקמיה) is linked only to its object, Hiyya, "
+            "although its unexpressed subject is Yohanan."),
+  "kind": "textual",
+  "evidence": [
+   {"source_id": "S0c", "exact_quote": "The standalone pronoun mentions m4–m10 are not attached to either participant’s mention_ids or resolved through a mention map."},
+   {"source_id": "S0b", "exact_quote": "Rabbi Hiyya son of Abba"},
+   {"source_id": "S0", "exact_quote": "אמר ליה: חביבין עליך יסורין? אמר ליה: לא הן ולא שכרן. אמר ליה: הב לי ידך. יהב ליה ידיה, ואוקמיה."}
+  ],
+  "reasoning": ("In S0b, entity 'hiyya' lists mention_ids m1, m4, m5, m7, m9, m10, and 'yohanan' lists m3, m6, m8. "
+                "In S0, ליה occurs four times: said-to-him (to Hiyya), said-to-him (to Yohanan), said-to-him (to Hiyya), gave-him (to Yohanan). "
+                "That matches m5-m8."),
+  "confidence": "high",
+  "graph_effect": ("Reject the review's omission finding. Replace it with a narrower mention-inventory note. "
+                   "No claim changes.")
+ },
+ {
+  "finding_id": "F12",
+  "claim": ("Seder HaDorot reports a claim that Rabbi Hiyya bar Abba died before Rabbi Yohanan and questions its source. "
+            "It points to this passage, where Rabbi Yohanan raised him. That is a historical inference about death order. The passage states nothing about when either man died."),
+  "kind": "interpretation",
+  "evidence": [
+   {"source_id": "S14", "exact_quote": "ב) ומת קודם ר' יוחנן."},
+   {"source_id": "S14", "exact_quote": "לא ידעתי מנ\"ל אי משום דאי' בברכות (ה' ב') ר' חייא בר אבא חלש על לגביה ר' יוחנן",
+    "translation_by_this_dossier": "(Seder HaDorot) I do not know his source; if it is because it says in Berakhot 5b: R. Hiyya bar Abba fell ill, R. Yohanan went in to him..."},
+   {"source_id": "S14", "exact_quote": "הרי מפורש שר' יוחנן אוקמי'",
+    "translation_by_this_dossier": "...it is explicit that R. Yohanan raised him."}
+  ],
+  "reasoning": ("Seder HaDorot's point cuts against using this illness as a death scene. The passage shows only that, in this story, the illness did not end his life. "
+                "Relative-death claims belong to the historical layer, and I did not check their sources here."),
+  "confidence": "high",
+  "graph_effect": "Add no death-order, survival or lifespan claim from 5b:10."
+ }
+]
+
+ALTS = [
+ {"alternative_id": "A1", "topic": "Discourse framing of the whole scene",
+  "readings": [
+   {"reading": "A narrator-stated stand-alone scene before Rabbi Yohanan's illness",
+    "supported_by": ["S1 (William Davidson Aramaic)", "S2 (Wikisource, Vilna-based)"]},
+   {"reading": "A precedent the anonymous Talmud recalls inside the question 'why did Rabbi Yohanan not raise himself', introduced by דהא",
+    "supported_by": ["S6 (Ein Yaakov, Glick 1916 Hebrew)", "S7 (Glick English, same edition)", "S8 (Munich 95, researcher's visual reading only)"]}],
+  "status": "keep both open; same participants and roles in each"},
+ {"alternative_id": "A2", "topic": "What ואוקמיה means",
+  "readings": [
+   {"reading": "Literal: he stood him up / raised him", "supported_by": ["S1 Aramaic", "S4 Cohen translation"]},
+   {"reading": "He healed him (the raising ends the illness)",
+    "supported_by": ["S1 William Davidson English, plain words", "S3 Steinsaltz, plain words (same project as S1 English)", "S5 Cohen footnote", "S7 Glick", "sugya context S1 5b:12, S9 Maharsha"]}],
+  "status": "Both are compatible. Store the literal claim as stated by the narrator and the healing as an interpretation."},
+ {"alternative_id": "A3", "topic": "Whether Rabbi Yohanan's request 'Give me your hand' is present",
+  "readings": [
+   {"reading": "Present", "supported_by": ["S1", "S2", "S6"]},
+   {"reading": "Possibly absent in the embedded version", "supported_by": ["S8 (researcher's visual reading, low confidence)"]}],
+  "status": "unresolved; needs a checked transcription of Munich 95"}
+]
+
+UNRESOLVED = [
+ "The patronymic, and the word introducing the embedded story, in Munich Cod. hebr. 95 page 0279 were not securely read. A published transcription (e.g. a manuscript database) should be checked.",
+ "Whether Munich 95's embedded version lacks 'He said to him: Give me your hand' (F4).",
+ "Other Bavli manuscripts and Genizah fragments for Berakhot 5b (e.g. Florence, Paris, Oxford) were not checked, so the spread of the two arrangements (A1) is unknown.",
+ "Which Ein Yaakov print or manuscript the Glick 1916 Hebrew follows was not established.",
+ "Sefaria links Rif Berakhot 1b:4 to Berakhot 5b:10-11. The saved Rif 1b text (S19) ends mid-sentence and does not contain the story. The link's target was not traced further, so it is unknown whether the Rif quotes the story.",
+ "The Goldschmidt German request (sources/berakhot_5b_goldschmidt.json) returned no text versions. That translation was not read.",
+ "Seder HaDorot's evidence for a teacher relation (e.g. Hullin 86b, Berakhot 38b) and for the priestly epithet was not checked here.",
+ "Which Talmud segment Ben Yehoyada's hand comment addresses (5b:10 or 5b:16) is uncertain."
+]
+
+CORRECTIONS = [
+ {"existing_claim_id": "episode.needed_context / episode.notes",
+  "change": "List Berakhot 5b:11-13 as required context. The question in 5b:12 presupposes the raising in 5b:10, and some witnesses embed 5b:10 inside that question.",
+  "why": "F2, F3"},
+ {"existing_claim_id": "c2-c8 (new reading group)",
+  "change": ("Add reading group g1 on discourse framing. Branch A: narrator scene (S1, S2). Branch B: a precedent the anonymous Talmud cites inside the question of 5b:12 (S6/S7; S8 visual). "
+             "Keep the participants and roles as they are in both branches. Change only voice/discourse_status in branch B."),
+  "why": "F3"},
+ {"existing_claim_id": "c6",
+  "change": "Keep. Add a note that one manuscript may lack the request in the embedded version (visual reading, low confidence), pending a checked transcription.",
+  "why": "F4"},
+ {"existing_claim_id": "c8",
+  "change": "Keep 'raises' as stated by the narrator. Optionally add a separate interpretation-level claim that the raising heals. Base it on translations and commentary plus the 5b:12 context, and never make it explicit.",
+  "why": "F5, F2"},
+ {"existing_claim_id": "(none; guard)",
+  "change": "Do not add teacher_of or student_of between Yohanan and Hiyya bar Abba from this passage. The 'student' wording comes only from the William Davidson English plain text and Steinsaltz, both one editorial project.",
+  "why": "F6"},
+ {"existing_claim_id": "previous-review additional_findings[0]",
+  "change": ("Reject the review's omission finding: m4-m10 are already linked in mention_ids. "
+             "Replace it with a narrower note: add mentions for עליך and ידך (Hiyya) and לי (Yohanan), and record Yohanan as the unexpressed subject of ואוקמיה (m10)."),
+  "why": "F11"},
+ {"existing_claim_id": "c3",
+  "change": "No change. Optional low-confidence note: Munich 95 seems to add 'to ask after him' (לשיולי ביה) as the purpose of the visit.",
+  "why": "F4"}
+]
+
+LESSONS = [
+ "A story in a series can be a narrator's scene in one witness and a cited precedent inside a question in another. Discourse status and voice need branches of their own, independent of the event and its roles.",
+ "A later anonymous question can depend on an earlier scene (5b:12 on 5b:10). The contract needs a cross-segment 'presupposes' link, so single-segment jobs flag the dependency.",
+ "A recurring formula (Bavli 5b:10, 5b:11, 5b:16; Shir HaShirim Rabbah 2:16) is a literary pattern. Parallels with different casts are separate episodes. They are not extra witnesses to one event and do not justify reassigning speakers.",
+ "In the William Davidson English, plain words add relations such as 'Rabbi Yoḥanan’s student' and outcomes such as 'restored him to health'. Treat them as commentary, and count them with Steinsaltz as one project.",
+ "Prosopographic works (Seder HaDorot) use narrative details for chronology and teacher lists. Store those uses as historical inference, apart from text claims.",
+ "Re-check review findings against the saved output. The earlier review reported missing mention links that were present."
+]

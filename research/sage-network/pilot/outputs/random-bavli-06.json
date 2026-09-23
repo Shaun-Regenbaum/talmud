@@ -1,0 +1,808 @@
+{
+  "schema_version": "passage-pilot-v1",
+  "job_id": "random-bavli-06",
+  "episode": {
+    "genre": "halachic",
+    "genre_reason": "The passage argues about legal rules.",
+    "form": "Legal argument and attributed teachings",
+    "coverage": "complete_for_supplied_text",
+    "needed_context": [],
+    "notes": [
+      "All five segments were read. The two seated sages are named, but the questioner and respondent are not assigned by name. An anonymous objection and answer follow."
+    ]
+  },
+  "mentions": [
+    {
+      "id": "m1",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי יהודה נשיאה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m2",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי אושעיא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m3",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי יהודה",
+        "occurrence": 2
+      }
+    },
+    {
+      "id": "m4",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "רב עינא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m5",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "רב הונא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m6",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי יהודה",
+        "occurrence": 2
+      }
+    },
+    {
+      "id": "m7",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "אידך",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m8",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "אידך",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m9",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "הכי השתא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m10",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "אדם",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m11",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "יאחזנה",
+        "occurrence": 1
+      }
+    }
+  ],
+  "entities": [
+    {
+      "id": "yehuda",
+      "kind": "person",
+      "label": "Rabbi Yehuda Nesia",
+      "mention_ids": [
+        "m1"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי יהודה נשיאה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "oshaya",
+      "kind": "person",
+      "label": "Rabbi Oshaya",
+      "mention_ids": [
+        "m2"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי אושעיא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "gate_owner",
+      "kind": "person",
+      "label": "Rabbi Yehuda whose gate is mentioned",
+      "mention_ids": [
+        "m3"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי יהודה",
+          "occurrence": 2
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "eina",
+      "kind": "person",
+      "label": "Rav Eina",
+      "mention_ids": [
+        "m4"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "רב עינא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "huna",
+      "kind": "person",
+      "label": "Rav Huna",
+      "mention_ids": [
+        "m5"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "רב הונא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "gate",
+      "kind": "place",
+      "label": "Gate or entrance of Rabbi Yehuda",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אקילעא דרבי יהודה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "seated",
+      "kind": "event",
+      "label": "The two sages sit at Rabbi Yehuda’s entrance",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "יתיב רבי יהודה נשיאה ורבי אושעיא אקילעא דרבי יהודה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "tail_question",
+      "kind": "statement",
+      "label": "Whether damage by tail-wagging entails liability",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "כשכשה בזנבה מהו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "tail_reply",
+      "kind": "statement",
+      "label": "Must its owner hold its tail while walking?",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "וכי יאחזנה בזנבה וילך",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "other",
+      "kind": "unknown",
+      "label": "Unassigned other speaker",
+      "mention_ids": [
+        "m7"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אידך",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "anon",
+      "kind": "group",
+      "label": "Anonymous argumentative voice",
+      "mention_ids": [
+        "m9"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "הכי השתא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "horn_comparison",
+      "kind": "statement",
+      "label": "Why not likewise require holding the horn?",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אי הכי קרן נמי נימא וכי יאחזנה בקרן וילך",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "habit",
+      "kind": "statement",
+      "label": "Horn damage is unusual while tail-wagging is usual",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "הכי השתא קרן לאו אורחיה הא אורחיה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "excess",
+      "kind": "statement",
+      "label": "The question concerns excessive tail-wagging",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "כשכוש יתירא מבעיא ליה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "eina_question",
+      "kind": "statement",
+      "label": "Whether the animal’s genital movement resembles horn damage driven by impulse or differs for lacking harmful intent",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "בעי רב עינא כשכשה באמתה מהו מי אמרינן מידי דהוה אקרן קרן לאו יצרא קתקיף ליה הכא נמי לא שנא או דלמא קרן כוונתו להזיק הא אין כוונתה להזיק תיקו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "huna_rule",
+      "kind": "statement",
+      "label": "The rooster rule applies when the object tied itself on; a person who tied it is liable",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "לא שנו אלא שנקשר מאליו אבל קשרו אדם חייב",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "tier",
+      "kind": "person",
+      "label": "Generic person who ties the object",
+      "mention_ids": [
+        "m10"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "אדם",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "owner",
+      "kind": "person",
+      "label": "Generic animal owner imagined holding the tail or horn",
+      "mention_ids": [
+        "m11"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "יאחזנה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "yehuda",
+      "object": "seated",
+      "roles": [
+        {
+          "role": "location",
+          "entity": "gate"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "יתיב רבי יהודה נשיאה ורבי אושעיא אקילעא דרבי יהודה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "יתיב: seated",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c2",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "oshaya",
+      "object": "seated",
+      "roles": [
+        {
+          "role": "location",
+          "entity": "gate"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "יתיב רבי יהודה נשיאה ורבי אושעיא אקילעא דרבי יהודה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "יתיב: seated",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c3",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "yehuda",
+      "object": "tail_question",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "נפק מילתא מבינייהו כשכשה בזנבה מהו",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "yehuda_asks"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "medium",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c4",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "oshaya",
+      "object": "tail_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "yehuda"
+        },
+        {
+          "role": "content",
+          "entity": "tail_reply"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר ליה אידך וכי יאחזנה בזנבה וילך",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "yehuda_asks"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "medium",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The reply is rhetorical; no actual tail-holding event is asserted."
+      ]
+    },
+    {
+      "id": "c5",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "oshaya",
+      "object": "tail_question",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "נפק מילתא מבינייהו כשכשה בזנבה מהו",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "oshaya_asks"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "medium",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c6",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "yehuda",
+      "object": "tail_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "oshaya"
+        },
+        {
+          "role": "content",
+          "entity": "tail_reply"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר ליה אידך וכי יאחזנה בזנבה וילך",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "oshaya_asks"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "medium",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The reply is rhetorical; no actual tail-holding event is asserted."
+      ]
+    },
+    {
+      "id": "c7",
+      "family": "speech",
+      "predicate": "objects_to",
+      "subject": "anon",
+      "object": "tail_reply",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "horn_comparison"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אי הכי קרן נמי נימא וכי יאחזנה בקרן וילך",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c8",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "anon",
+      "object": "horn_comparison",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "habit"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "הכי השתא קרן לאו אורחיה הא אורחיה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c9",
+      "family": "views",
+      "predicate": "explains",
+      "subject": "anon",
+      "object": "tail_question",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "excess"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "וכי מאחר דאורחיה מאי מבעיא ליה כשכוש יתירא מבעיא ליה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c10",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "eina",
+      "object": "eina_question",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "בעי רב עינא כשכשה באמתה מהו מי אמרינן מידי דהוה אקרן קרן לאו יצרא קתקיף ליה הכא נמי לא שנא או דלמא קרן כוונתו להזיק הא אין כוונתה להזיק תיקו",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "תיקו leaves the question unresolved. Neither option is an asserted event or settled ruling."
+      ]
+    },
+    {
+      "id": "c11",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "huna",
+      "object": "huna_rule",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "התרנגולין מועדין להלך כדרכן ולשבר וכו׳ אמר רב הונא לא שנו אלא שנקשר מאליו אבל קשרו אדם חייב",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    }
+  ],
+  "reading_groups": [
+    {
+      "id": "speakers",
+      "kind": "interpretation_alternatives",
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "נפק מילתא מבינייהו כשכשה בזנבה מהו אמר ליה אידך",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        {
+          "id": "yehuda_asks",
+          "label": "Yehuda asks; Oshaya replies"
+        },
+        {
+          "id": "oshaya_asks",
+          "label": "Oshaya asks; Yehuda replies"
+        }
+      ],
+      "historical_compatibility": "unknown",
+      "scope": "Assignment of the unnamed question and reply only.",
+      "rejoin": "The anonymous comparison with horn damage follows.",
+      "notes": []
+    }
+  ],
+  "coreference_candidates": [
+    {
+      "mention_id": "m6",
+      "entity_ids": [
+        "yehuda",
+        "gate_owner"
+      ],
+      "branches": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אקילעא דרבי יהודה",
+          "occurrence": 1
+        }
+      ],
+      "reason": "The abbreviated name could refer to Yehuda Nesia or another Yehuda. No global identification is supplied."
+    },
+    {
+      "mention_id": "m8",
+      "entity_ids": [
+        "yehuda",
+        "oshaya"
+      ],
+      "branches": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר ליה אידך",
+          "occurrence": 1
+        }
+      ],
+      "reason": "The text specifies the other member of the pair but not which name."
+    }
+  ],
+  "open_questions": [
+    "Which seated sage asked the tail question?",
+    "Is Rabbi Yehuda at the gate the same local person as Rabbi Yehuda Nesia?"
+  ]
+}

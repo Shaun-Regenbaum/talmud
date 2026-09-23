@@ -1,0 +1,105 @@
+{
+  "job_id": "challenge-12",
+  "input_sha256": "2d3320ec2dcbb2c53aeefbc906366f506c05c5515374cbeb2a258ae78edaebda",
+  "output_sha256": "ef06f7318caacc370b0a8568b6a55be662395a715f24d7df4310fb8045641d36",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "Rava reports hearing a sage whose identity is selected by the Tavut/Tavyumi branch.",
+      "claim_ids": [
+        "c2",
+        "c14"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "The marriage and fatherhood claims belong to the branch-selected storyteller, never to Rava.",
+      "claim_ids": [
+        "c5",
+        "c12",
+        "c13",
+        "c17",
+        "c24",
+        "c25"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "The wife, two individual sons and their plural group are retained. Family formation and later deaths are separate.",
+      "claim_ids": [
+        "c6",
+        "c18",
+        "c26",
+        "c27",
+        "c31"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 3,
+      "status": "pass",
+      "reason": "The identity-dependent story claims are correctly scoped, while actions of the wife and sons can remain shared.",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6",
+        "c16",
+        "c17",
+        "c18",
+        "c29",
+        "c31"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "Rava is not assigned the storyteller’s wife or sons.",
+      "claim_ids": [
+        "c5",
+        "c12",
+        "c13",
+        "c17",
+        "c24",
+        "c25"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "The two names are alternatives, not simultaneous people or a global identity merger.",
+      "claim_ids": [
+        "c2",
+        "c14"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "minor",
+      "type": "contract_limit",
+      "claim_ids": [
+        "c26",
+        "c27",
+        "c29",
+        "c30",
+        "c31",
+        "c32",
+        "c33"
+      ],
+      "reason": "Shared claims use unknown voice because the teller’s entity ID changes by branch. The episode explains the nested report, so the reading is not false, but the single-string voice field cannot directly express a shared role whose name is branch-dependent.",
+      "source_refs": [
+        "Sanhedrin 97a:6",
+        "Sanhedrin 97a:7"
+      ]
+    }
+  ],
+  "summary": "The quotation stays with the selected storyteller and the two sons remain distinct from Rava’s family."
+}

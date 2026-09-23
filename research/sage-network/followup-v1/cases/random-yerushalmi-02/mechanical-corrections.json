@@ -1,0 +1,30 @@
+{
+  "original_sha256": "76d24494e3648ae65246553843b792d8fb74f5e8742dbe44984d74fc60d49cf4",
+  "corrected_sha256": "69846742a774a76488e02169a8fe57b2687ee7fad73f2c3d0c423b971085e0df",
+  "changes": [
+    {
+      "finding_id": "f01",
+      "evidence_index": 1,
+      "field": "occurrences_in_segment",
+      "previous": 3,
+      "corrected": 2,
+      "reason": "Count the exact saved quotation, including vowel marks and prefixes, rather than a similar spelling."
+    },
+    {
+      "finding_id": "f01",
+      "evidence_index": 3,
+      "field": "occurrences_in_segment",
+      "previous": 3,
+      "corrected": 2,
+      "reason": "Count the exact saved quotation, including vowel marks and prefixes, rather than a similar spelling."
+    },
+    {
+      "finding_id": "f11",
+      "evidence_index": 0,
+      "field": "occurrences_in_segment",
+      "previous": 4,
+      "corrected": 1,
+      "reason": "Count the exact saved quotation, including vowel marks and prefixes, rather than a similar spelling."
+    }
+  ]
+}

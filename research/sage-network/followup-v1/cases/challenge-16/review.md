@@ -1,0 +1,15 @@
+# Changes needed: mostly sound, but it skipped two manuscript notes that affect who speaks
+
+The passage (Berakhot 10a:21-25) tells of a man, named either Rav Shimi bar Ukva or Mar Ukva, who used to spend time with Rabbi Shimon ben Pazi. There is also a mention of someone arranging stories and teachings before Rabbi Yehoshua ben Levi. Then two people talk about a psalm verse, and the Hebrew never says which one is speaking.
+
+Most of the investigation holds up. Its quotes match the saved sources. It rightly keeps both of the man's names as two ways of naming one role. It records "was often in the company of" as time spent together, not as a teacher and student. It flags that the William Davidson English contradicts itself about who asks and who answers. It also refuses to bring in speakers from other books that tell a similar teaching. Its reading of the manuscript notes on the name and on "who used to arrange" is careful, and it rightly counts the three reports of those readings as possibly one source, not three votes.
+
+The main gap is at the end of the conversation. The same manuscript note the investigation quotes also says that one manuscript, MS A, has no question there at all: just "these five 'Bless my soul' are about the Holy One." That manuscript also has the speaker say "I heard thus" instead of "I was saying to you." So in that version, one person passes on a teaching he heard, and nobody answers him. The graph should get a version with no answering turn. "Rabbi Shimon ben Pazi answers" should be tied to the printed text only.
+
+The second gap is the reasoning about who asked. The investigation leans on Rashi, who says the first answer misunderstood the question, to argue that the man who later explains himself is the one who asked. A footnote on that same answer reports that in the manuscripts the question asks directly about the words the answer discusses. If so, there was no misunderstanding, and the argument works only for the printed text.
+
+A smaller correction concerns where translators put names. The English translators who name the speakers mostly do so at the later turn, not the first one. At the first question, only one modern Hebrew commentary names Rabbi Shimon ben Pazi as the person asked. So "the man asked Rabbi Shimon ben Pazi" is worked out backwards from later notes and should be stored that way.
+
+A few narrower points follow. A later reference work credits the arranging to the man only under his "Mar Ukva" name, not under "Rav Shimi". One manuscript's naming of a speaker for "there is no artist like our God" may be an added line or a replacement for the printed one; the investigation said "added". A 1921 translator's note treats "arranged before" as a formal lecture-hall job. The text says only "arranged before", so no teacher-student link should come from that note.
+
+Still open: who arranged the teachings, who asked whom, and who speaks the closing comparisons. No manuscript was looked at directly; every manuscript reading here is secondhand. This review approves no identity, date or link in the graph.

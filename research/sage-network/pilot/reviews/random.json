@@ -1,0 +1,953 @@
+{
+  "reviewer_role": "Independent source-based semantic reviewer of the twelve frozen random passage readings",
+  "limits": [
+    "This is a provisional review, not human gold. Both the readings and this review may contain mistakes.",
+    "Only the saved random inputs and corresponding frozen outputs were used as evidence. No outside chronology, biographies, translations or unsupplied text were consulted.",
+    "Checks cover participants, relations, speech, alternatives, hypothetical versus narrated events, and important omissions across every supplied segment. They are not an exhaustive gold claim list.",
+    "Open pronouns and interpretation alternatives are not penalized merely for remaining unresolved. A quoted source span does not by itself preserve a missing claim or fix a wrong occurrence link.",
+    "Repeated mention omissions are concrete examples, not a complete count of all absent mentions. Duplicate mention records should not inflate coverage counts.",
+    "This tiny set cannot establish population accuracy. Pass counts summarize these selected checks only.",
+    "Input and output hashes identify the exact reviewed file bytes. Extraction outputs were not edited."
+  ],
+  "cases": [
+    {
+      "job_id": "random-bavli-01",
+      "input_sha256": "d75182bed4fa15c1166b280fa22ab251ec6fd4a3756991459382416fd26ca001",
+      "output_sha256": "a378d778fba4983537eaa25cd4a9faca8f7e3f10ce01246a6764c44bc2eab886",
+      "checks": [
+        {
+          "kind": "source",
+          "index": 0,
+          "status": "pass",
+          "reason": "Rava asks why interest, robbery and overcharging need separate prohibitions in Bava Metzia 61a:7. c3 preserves the question and does not invent an addressee.",
+          "claim_ids": [
+            "c3"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 1,
+          "status": "pass",
+          "reason": "The anonymous explanation in 61a:6 keeps the counterfactual אילו לא נאמר separate from the actual wording, and c4–c5 preserve the conditional comparisons in 61a:8–9 as arguments rather than narrated transactions.",
+          "claim_ids": [
+            "c2",
+            "c4",
+            "c5"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 2,
+          "status": "pass",
+          "reason": "The unnamed tanna, Rava and generic lender, borrower and victim are kept distinct. The request for preceding and following context accurately describes the limits of the supplied window.",
+          "claim_ids": [
+            "c1",
+            "c2",
+            "c3"
+          ]
+        }
+      ],
+      "additional_findings": [],
+      "summary": "The main question and conditional reasoning are preserved. No material unsupported person relationship or omission was found in this supplied window."
+    },
+    {
+      "job_id": "random-bavli-02",
+      "input_sha256": "b8a2727c59e6dfc21074a3b4c91638ba690e0cdb738be175b0679b8ff260a305",
+      "output_sha256": "eee1ac10d2d56ebb89030a97a85227f8ce8a77ffdcff50ad67f1883a3c20634d",
+      "checks": [
+        {
+          "kind": "source",
+          "index": 0,
+          "status": "pass",
+          "reason": "The two proponents are identified by their proof words rather than assigned names from outside Nazir 43a:7–11. Rebbi’s rule about death, lesions and discharges remains a cited teaching.",
+          "claim_ids": [
+            "c1",
+            "c2",
+            "c3",
+            "c4"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 1,
+          "status": "pass",
+          "reason": "The objection in 43a:11 targets the earlier להחלו position. The answer distinguishes transmitting impurity from the prohibition already applying, rather than turning the objection into a settled contradiction.",
+          "claim_ids": [
+            "c5",
+            "c6"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 2,
+          "status": "miss",
+          "reason": "Mention records are not complete: 43a:7 first refers to Rebbi in לכדרבי and then names him in רבי אומר, but only the latter occurrence has a mention.",
+          "claim_ids": [
+            "c1"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [
+            "c1"
+          ],
+          "reason": "The earlier Rebbi reference in לכדרבי has no mention record. The attribution itself is preserved; the loss concerns source-occurrence coverage.",
+          "source_refs": [
+            "Nazir 43a:7"
+          ]
+        }
+      ],
+      "summary": "The legal roles and objection target are preserved, with one visible repeated-reference omission."
+    },
+    {
+      "job_id": "random-bavli-03",
+      "input_sha256": "bc9d0af585ea4d0895ea0b3591b1a6c21f7c25c7c2aa7e21efa7d8b950198692",
+      "output_sha256": "234e7d0000d462e6f148cc47fce3febf4230af1b8438fd0bda61d729b434997c",
+      "checks": [
+        {
+          "kind": "source",
+          "index": 0,
+          "status": "pass",
+          "reason": "Sotah 45a:15 attributes the exclusion of floated sheaves through Rabbi Abahu to Rabbi Elazar. c6–c7 preserve that direction without asserting a meeting.",
+          "claim_ids": [
+            "c6",
+            "c7"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 1,
+          "status": "pass",
+          "reason": "The rabbis’ use of the בשדה/בשדך distinction and Rabbi Yehuda’s refusal to draw it remain opposing readings of a particular phrase.",
+          "claim_ids": [
+            "c8",
+            "c9"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 2,
+          "status": "miss",
+          "reason": "The opening of 45a:15 says Rabbi Yehuda needs the wording for the teaching transmitted by Abahu from Elazar. That use by Yehuda is missing, although the transmission and the rabbis’ different derivation survive.",
+          "claim_ids": [
+            "c6",
+            "c7",
+            "c8",
+            "c9"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [
+            "c6",
+            "c7"
+          ],
+          "reason": "The extraction preserves the transmitted teaching but omits Rabbi Yehuda’s stated use of it in ור' יהודה מיבעי ליה לכדרבי אבהו אמר ר' אלעזר.",
+          "source_refs": [
+            "Sotah 45a:15"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [],
+          "reason": "Several repeated name occurrences lack mentions, including the second רבי אבהו and second ר' יהודה in 45a:15, and the רבנן reference in that segment. The named entities exist, but the occurrence inventory is incomplete.",
+          "source_refs": [
+            "Sotah 45a:15"
+          ]
+        }
+      ],
+      "summary": "Transmission direction and issue-specific disagreement are sound. One explanatory link and several repeated mentions are missing."
+    },
+    {
+      "job_id": "random-bavli-04",
+      "input_sha256": "158e859affbc5aba214bb1f55de2456b42892152b8f0f409da8c96c8ea07b030",
+      "output_sha256": "c4fab99cdddaf2a8f349389e208b5508d2a6ec555e5a09ea3ed99e6e8fb9d8f8",
+      "checks": [
+        {
+          "kind": "source",
+          "index": 0,
+          "status": "pass",
+          "reason": "The isolated אמר ליה at Pesachim 44b:18 is represented by unnamed speaker and recipient. The extraction correctly requests preceding context instead of inventing names.",
+          "claim_ids": [
+            "c1",
+            "c2"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 1,
+          "status": "pass",
+          "reason": "The Nazirite and sin-offering are treated as legal topics, and 45a:2–3 retain absorption and the resulting invalidity or stricter eating rules as teachings rather than meetings.",
+          "claim_ids": [
+            "c3",
+            "c4"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 2,
+          "status": "pass",
+          "reason": "The final challenge about the rabbis in 45a:4 remains a question. No answer or direct encounter with the rabbis is invented.",
+          "claim_ids": [
+            "c5"
+          ]
+        }
+      ],
+      "additional_findings": [],
+      "summary": "The short cross-page passage is handled cautiously. No material unsupported claim or omission was found."
+    },
+    {
+      "job_id": "random-bavli-05",
+      "input_sha256": "00c3f1cce6fec2a2e21b7907da63397b09dd56fd5d775f4d6c3171c4111cc7a2",
+      "output_sha256": "621b5a2a763f1c8908781d705524b7a4bc89c14cc1256345546f59732aab7998",
+      "checks": [
+        {
+          "kind": "source",
+          "index": 0,
+          "status": "pass",
+          "reason": "Sanhedrin 107b:18 distinguishes the Flood generation, dispersion generation and Sodom. c1–c3 preserve the different judgment claims instead of flattening them into one fate.",
+          "claim_ids": [
+            "c1",
+            "c2",
+            "c3"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 1,
+          "status": "pass",
+          "reason": "Nehemya’s verse and the unnamed reply continue into 108a:1. The reply is linked to Nehemya, while its precise target group remains an open question.",
+          "claim_ids": [
+            "c5",
+            "c6",
+            "c7"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 2,
+          "status": "pass",
+          "reason": "The spies and wilderness generation remain separate groups. Akiva’s exclusion and Eliezer’s counter-verse are attributed views, not reported events.",
+          "claim_ids": [
+            "c4",
+            "c8",
+            "c9",
+            "c10"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 3,
+          "status": "miss",
+          "reason": "The mentions do not cover the repeated דור המבול and אנשי סדום references in 108a:1. Their entities are preserved through earlier mentions only.",
+          "claim_ids": [
+            "c5"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [
+            "c5"
+          ],
+          "reason": "Repeated group references in the interpretation of Nehemya’s verse lack mention records, even though c5 uses them to identify the two groups.",
+          "source_refs": [
+            "Sanhedrin 108a:1"
+          ]
+        }
+      ],
+      "summary": "The different groups, views and reply are preserved. Repeated group mentions are incomplete; the reply’s scope is honestly left open."
+    },
+    {
+      "job_id": "random-bavli-06",
+      "input_sha256": "ee9c15b4e0111a2d792a2c5e08fba79ac31c4a47997a92966e3dd5ab0b323f53",
+      "output_sha256": "081af97250181f4f0d1fd3a032ec186cba89edde487bd82a61e97d21550dc5b4",
+      "checks": [
+        {
+          "kind": "source",
+          "index": 0,
+          "status": "pass",
+          "reason": "Bava Kamma 19b:3 puts Yehuda Nesia and Oshaya at an entrance. c1–c6 keep that scene and two possible assignments of its unnamed question and reply. The owner’s identity remains open.",
+          "claim_ids": [
+            "c1",
+            "c2",
+            "c3",
+            "c4",
+            "c5",
+            "c6"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 1,
+          "status": "pass",
+          "reason": "The horn comparison and excessive-wagging explanation remain arguments. Rav Eina’s alternatives end in תיקו and are not promoted to a settled rule.",
+          "claim_ids": [
+            "c7",
+            "c8",
+            "c9",
+            "c10"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 2,
+          "status": "pass",
+          "reason": "Rav Huna’s rooster statement is kept separate from the earlier seated scene, with the distinction between accidental attachment and a person tying the object.",
+          "claim_ids": [
+            "c11"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "contract_limit",
+          "claim_ids": [],
+          "reason": "m3 and m6 duplicate the same second רבי יהודה anchor, and m7 and m8 duplicate the same אידך anchor. The extra records exist to hold candidate links, but a mention count would double-count these source occurrences unless it deduplicates them.",
+          "source_refs": [
+            "Bava Kamma 19b:3"
+          ]
+        }
+      ],
+      "summary": "The scene, uncertain speakers and unresolved legal question are preserved. Duplicate mention records need care in coverage measurements."
+    },
+    {
+      "job_id": "random-yerushalmi-01",
+      "input_sha256": "05e422e85f2659b189807d54a84083c8712345513c89fe7caf98bec14df0cd40",
+      "output_sha256": "3614563007a6ab15c7868126336f2d3e99da86c9466b651a5a7bcc05c1e26bd7",
+      "checks": [
+        {
+          "kind": "source",
+          "index": 0,
+          "status": "pass",
+          "reason": "Taanit 1:2:2–3 distinguishes Yehuda’s own earlier ruling from the later ruling in Betera’s name. The rejected attribution remains marked rejected, and Yohanan’s ruling and Avun’s transmission are retained.",
+          "claim_ids": [
+            "c5",
+            "c6",
+            "c7",
+            "c8",
+            "c9",
+            "c10"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 1,
+          "status": "pass",
+          "reason": "In 1:2:4, Yose recalls standing with Hananya and questioning Zeura and Isa as each passes. The claims preserve the reporting voice and do not make the shop owner a participant merely from his name.",
+          "claim_ids": [
+            "c13",
+            "c14",
+            "c15",
+            "c18",
+            "c19",
+            "c20",
+            "c21",
+            "c22",
+            "c23",
+            "c24",
+            "c25"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 2,
+          "status": "pass",
+          "reason": "Hiyya’s arrival from Tyre, his transmission in Yohanan’s name, and the separate public expositions by Aha and Yirmeya are retained. Future crop predictions remain attributed views.",
+          "claim_ids": [
+            "c27",
+            "c28",
+            "c29",
+            "c30",
+            "c32",
+            "c33"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 3,
+          "status": "miss",
+          "reason": "The third-of-Marheshvan ruling in 1:3:1 has only the unlinked statement entity third. The seventh-day ruling has c35, so the two competing dates are not both represented as claims.",
+          "claim_ids": [
+            "c35"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 4,
+          "status": "miss",
+          "reason": "The account supporting Yose’s prediction in 1:2:5, that grain grew in fifteen days in Joel’s days and supplied the omer, has a Joel mention but no event or attributed claim.",
+          "claim_ids": [
+            "c33"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "major",
+          "type": "omission",
+          "claim_ids": [
+            "c35"
+          ],
+          "reason": "The anonymous third-of-Marheshvan rain-request ruling is omitted as a claim, although its statement entity exists. A claims-only reader sees the seventh-day view without its stated alternative.",
+          "source_refs": [
+            "Jerusalem Talmud Taanit 1:3:1"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [
+            "c33"
+          ],
+          "reason": "The reported precedent in Joel’s days and the offering made from that grain are absent as claims. They should remain reported support for the prediction, not independent agricultural facts.",
+          "source_refs": [
+            "Jerusalem Talmud Taanit 1:2:5"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [],
+          "reason": "Repeated named mentions are not complete: the names in the long attribution argument of 1:2:3 have no mentions in that source, and Rabbi Yehuda’s new occurrence introducing the crop teaching in 1:2:5 is not separately anchored.",
+          "source_refs": [
+            "Jerusalem Talmud Taanit 1:2:3",
+            "Jerusalem Talmud Taanit 1:2:5"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "contract_limit",
+          "claim_ids": [
+            "c5"
+          ],
+          "reason": "The rules_like object is the person yehuda, while the particular rule is only in the content role. The full record is issue-specific, but a projection of subject/predicate/object alone would turn it into general agreement.",
+          "source_refs": [
+            "Jerusalem Talmud Taanit 1:2:2"
+          ]
+        }
+      ],
+      "summary": "The long remembered encounter and its uncertain pronouns are handled carefully. The anonymous competing date and a narrated precedent are missing, and mention coverage is incomplete."
+    },
+    {
+      "job_id": "random-yerushalmi-02",
+      "input_sha256": "c9755267780ea9f802c9be212ac10cfcf45c98ff8acb5b4a8aee6cb6bbb7fd78",
+      "output_sha256": "ee565408f15f69ecc0897243be39a754d99727ae1ff5649377291e1e1f800ef9",
+      "checks": [
+        {
+          "kind": "source",
+          "index": 0,
+          "status": "pass",
+          "reason": "Megillah 1:10:2 keeps Meir’s bull-offering rule separate from the rabbis’ rule and Ila’s explanation of the contextual difference.",
+          "claim_ids": [
+            "c5",
+            "c6",
+            "c7",
+            "c8"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 1,
+          "status": "pass",
+          "reason": "Haggai’s possible killing in 1:10:4 remains a rhetorical warning, and מֹשֶׁה is not made a historical visitor. The two replacement stories are kept distinct from the hypothetical rules.",
+          "claim_ids": [
+            "c10",
+            "c13",
+            "c14",
+            "c19",
+            "c22"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 2,
+          "status": "pass",
+          "reason": "Kimhit, Shimon and Yehuda are retained with their family claims. Her seven sons are not said to serve on the same day, and her account of her conduct remains her own speech.",
+          "claim_ids": [
+            "c2",
+            "c3",
+            "c4",
+            "c24",
+            "c25",
+            "c26",
+            "c27"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 3,
+          "status": "miss",
+          "reason": "The story’s incumbent priest is linked to m9, whose first לְכֹהֵן גָּדוֹל occurrence in 1:10:5 is actually the hypothetical replacement’s disqualification. The correct story occurrence follows שֶׁאִירַע קֶרִי.",
+          "claim_ids": [
+            "c13",
+            "c14"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 4,
+          "status": "miss",
+          "reason": "The opening rules in 1:10:5 say the first priest retains all priestly duties and the second is fit neither as high priest nor ordinary priest. The extraction gives them entities but no claims stating those rules.",
+          "claim_ids": [
+            "c12"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "major",
+          "type": "unsupported",
+          "claim_ids": [
+            "c13",
+            "c14"
+          ],
+          "reason": "The first_priest entity and m9 point to the wrong לְכֹהֵן גָּדוֹל occurrence. That source span describes the hypothetical second priest’s ineligibility, not the incumbent in Ben Illem’s story. The narrative roles in c13–c14 are otherwise supported, but their person anchor wrongly crosses the legal case and the story.",
+          "source_refs": [
+            "Jerusalem Talmud Megillah 1:10:5"
+          ]
+        },
+        {
+          "severity": "major",
+          "type": "omission",
+          "claim_ids": [
+            "c12"
+          ],
+          "reason": "The first priest’s retained duties and the second priest’s disqualification from both priestly roles are missing as claims. Only the later validity of service performed anyway is retained, losing the condition that makes that later ruling significant.",
+          "source_refs": [
+            "Jerusalem Talmud Megillah 1:10:5"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [],
+          "reason": "Repeated person mentions are incomplete, including Yohanan’s named statements in 1:10:4 and 1:10:5, each represented only through his earlier 1:10:3 mention.",
+          "source_refs": [
+            "Jerusalem Talmud Megillah 1:10:4",
+            "Jerusalem Talmud Megillah 1:10:5"
+          ]
+        }
+      ],
+      "summary": "The stories, women and hypothetical warning are largely preserved. A wrong repeated-word anchor joins the legal case to the story, and important priestly eligibility rules are missing."
+    },
+    {
+      "job_id": "random-yerushalmi-03",
+      "input_sha256": "b0b2214368a27a0f3254786ece85e0e70eeee08207a1beaf96bbead73c072c5e",
+      "output_sha256": "79c7f5c05c0b6551b7fca1d259fd5748a15822859f917a126e46a7125472c365",
+      "checks": [
+        {
+          "kind": "source",
+          "index": 0,
+          "status": "pass",
+          "reason": "Sheviit 10:4:5–6 keeps the adjacent-name transmission parses as interpretations rather than explicit source variants. Abahu’s transmission from Yohanan remains shared.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6",
+            "c10",
+            "c11",
+            "c12"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 1,
+          "status": "pass",
+          "reason": "Zeira’s question to Abahu and Yose’s objection before Yaakov have the correct local directions. Rav’s description of instructing his household is conditional practice, not a dated gift event.",
+          "claim_ids": [
+            "c7",
+            "c8",
+            "c15",
+            "c16",
+            "c17",
+            "c18"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 2,
+          "status": "pass",
+          "reason": "The challenge to Rav is followed by explanations, including the final distinction between legal duty and pious conduct. The salt client’s account is not silently assigned a buyer or seller identity.",
+          "claim_ids": [
+            "c19",
+            "c20",
+            "c21",
+            "c22",
+            "c23",
+            "c24"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 3,
+          "status": "miss",
+          "reason": "The quoted acquisition rules in 10:4:6 are reduced to the broad acquisition_rule label. The actual conditions for acquisition in each domain are not extracted as claims.",
+          "claim_ids": [
+            "c19",
+            "c20"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [
+            "c19",
+            "c20"
+          ],
+          "reason": "The baraita’s different acquisition conditions are present only inside a large evidence quote and a general statement label. The claims do not retain which acts suffice in the buyer’s, seller’s or deposit-holder’s domain.",
+          "source_refs": [
+            "Jerusalem Talmud Sheviit 10:4:6"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [],
+          "reason": "Repeated named references lack mentions, including Zeira and Abahu in their direct question in 10:4:5 and Yaakov’s second named occurrence in the encounter with Yose in 10:4:6.",
+          "source_refs": [
+            "Jerusalem Talmud Sheviit 10:4:5",
+            "Jerusalem Talmud Sheviit 10:4:6"
+          ]
+        }
+      ],
+      "summary": "Transmission uncertainty, dialogue and the final qualification of Rav are sound. Detailed legal conditions and repeated mentions are incomplete."
+    },
+    {
+      "job_id": "random-yerushalmi-04",
+      "input_sha256": "93990b4398756c2636e701b0213874a5ece8b88cfe5e0223c5f10eb6aea541bd",
+      "output_sha256": "dfc6a3b73b12107f9bbbd5897f62db7fc15f24153bec0c29c7327b2db52e4edc",
+      "checks": [
+        {
+          "kind": "source",
+          "index": 0,
+          "status": "pass",
+          "reason": "Peah 3:3:1 keeps Yose’s separate-allocation ruling apart from the sages’ one-allocation ruling. האמהות is correctly kept as onion terminology, not human mothers.",
+          "claim_ids": [
+            "c3",
+            "c4",
+            "c5",
+            "c8"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 1,
+          "status": "pass",
+          "reason": "Yaakov bar Bun’s transmission from Hanina and Bun bar Hiyya’s question to Mana are preserved without identifying the two Bun mentions. The plural reply addressees are kept visible.",
+          "claim_ids": [
+            "c1",
+            "c2",
+            "c9",
+            "c11",
+            "c12",
+            "c13"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 2,
+          "status": "pass",
+          "reason": "The later explanation about storage is retained after the ownerlessness explanation. The brothers and partners of 3:4 are treated as hypothetical participants.",
+          "claim_ids": [
+            "c10",
+            "c14",
+            "c15",
+            "c16"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 3,
+          "status": "miss",
+          "reason": "The brothers’ two allocations after division and one after reunion, and the two buyers’ joint versus separate tree allocations in 3:4:1, are not recorded as rules. c15 only records a generic division event.",
+          "claim_ids": [
+            "c15"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 4,
+          "status": "miss",
+          "reason": "The opening anonymous ruling that onion mother plants are liable in 3:3:1 is omitted. Yose’s exemption is recorded without the positive ruling it contests.",
+          "claim_ids": [
+            "c3"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "major",
+          "type": "omission",
+          "claim_ids": [
+            "c15",
+            "c16"
+          ],
+          "reason": "The legal outcomes in 3:4:1–2 are missing. Generic division and harvest events do not preserve one versus two allocations or the stated restrictions on allocating between earlier and later portions. These are supplied text, not missing context.",
+          "source_refs": [
+            "Jerusalem Talmud Peah 3:4:1",
+            "Jerusalem Talmud Peah 3:4:2"
+          ]
+        },
+        {
+          "severity": "major",
+          "type": "omission",
+          "claim_ids": [
+            "c3"
+          ],
+          "reason": "האמהות של בצלים חייבות בפיאה is an explicit anonymous positive ruling. Keeping only Yose’s exemption loses the opposing position.",
+          "source_refs": [
+            "Jerusalem Talmud Peah 3:3:1"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "contract_limit",
+          "claim_ids": [
+            "c12",
+            "c13"
+          ],
+          "reason": "m14 and m15 duplicate the same להן occurrence to store both a plural audience and a candidate link. Coverage counts need one source occurrence with several possible referents.",
+          "source_refs": [
+            "Jerusalem Talmud Peah 3:3:3"
+          ]
+        }
+      ],
+      "summary": "People, speech direction and hypothetical status survive, but several explicit legal positions are missing despite the complete-for-supplied-text label."
+    },
+    {
+      "job_id": "random-yerushalmi-05",
+      "input_sha256": "390e07a1bf06bd52469d1ec54c79f23250372265dce58bb913e06aef7f8ec9ae",
+      "output_sha256": "c3ba39b447ad1b064e6f55454249d5f91aab3f8211aceedbed5131939071a060",
+      "checks": [
+        {
+          "kind": "source",
+          "index": 0,
+          "status": "pass",
+          "reason": "Ketubot 11:7:2 preserves competing parses for both adjacent-name sequences. Aivo’s embedded parent and the generic women are retained separately from the sages.",
+          "claim_ids": [
+            "c1",
+            "c2",
+            "c3",
+            "c4",
+            "c5",
+            "c6",
+            "c7"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 1,
+          "status": "pass",
+          "reason": "Yose of Sidon’s teaching before Yirmeya and its conflict with fruit-only rights are preserved. The subsequent unqualified Yose is not automatically merged with him.",
+          "claim_ids": [
+            "c8",
+            "c9",
+            "c10",
+            "c11",
+            "c12"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 2,
+          "status": "pass",
+          "reason": "Hila’s repeated address to Yose remains reported speech. The teacher reading is explicitly marked interpretation; Mana’s answer about slaves is explicitly identified as a rhetorical reading.",
+          "claim_ids": [
+            "c12",
+            "c13",
+            "c14",
+            "c17",
+            "c18"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 3,
+          "status": "miss",
+          "reason": "Shmuel says אין מעשין אלא, limiting coercion, and the discussion then challenges this with secondary prohibited marriages. The coercion statement label loses that restriction and the intermediate challenge is missing.",
+          "claim_ids": [
+            "c20",
+            "c21"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "major",
+          "type": "omission",
+          "claim_ids": [
+            "c20",
+            "c21"
+          ],
+          "reason": "The limitation in אין מעשין אלא and the objection והא תנינן שניות with its reply are not represented. c20 only says coercion applies to certain forbidden marriages. The final question is preserved, but the steps connecting it to the restrictive ruling are lost.",
+          "source_refs": [
+            "Jerusalem Talmud Ketubot 11:7:6"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [
+            "c13"
+          ],
+          "reason": "The second רבי in רבי הילא רבי אמר לי supports the proposed my-teacher reading, but it has no distinct mention. Other repeated named occurrences, including the second Shmuel statement in 11:7:6, are also unrecorded as mentions.",
+          "source_refs": [
+            "Jerusalem Talmud Ketubot 11:7:4",
+            "Jerusalem Talmud Ketubot 11:7:6"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [],
+          "reason": "The quoted rule in 11:7:6 says to appoint a provider for up to thirty days and then divorce with payment. The provider is represented as an entity, but the timing, obligation and payment are absent as claims.",
+          "source_refs": [
+            "Jerusalem Talmud Ketubot 11:7:6"
+          ]
+        }
+      ],
+      "summary": "The transmission and dialogue readings are cautious. The restrictive coercion rule and intermediate argument are incomplete; some quoted legal obligations and mentions are missing."
+    },
+    {
+      "job_id": "random-yerushalmi-06",
+      "input_sha256": "d0678aa78c8cd4dd79c89c9fbd9310a8e30d25ee1b63c73c29f07fcb51dcf60b",
+      "output_sha256": "085cda926f8d40b2c8bd36e3e1e30e9d47829bcfbec0bd5196f8b15a5dc3da18",
+      "checks": [
+        {
+          "kind": "source",
+          "index": 0,
+          "status": "pass",
+          "reason": "Bava Kamma 9:7:2 retains the dying wife, her husband and her daughter. Her ownership statement is her claim, and the daughter is not automatically made the husband’s child.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c9",
+            "c10",
+            "c11",
+            "c12"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 1,
+          "status": "pass",
+          "reason": "The case coming before Rav is not converted into a personal visit by the wife or husband. Rav’s principle is linked as support without inventing an explicit transfer judgment.",
+          "claim_ids": [
+            "c13",
+            "c14",
+            "c15"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 2,
+          "status": "pass",
+          "reason": "Generic family examples remain hypothetical. Yirmeya and Yose ben Hanina share the house ruling, while the later unqualified Yose remains a separate possible identity.",
+          "claim_ids": [
+            "c17",
+            "c18",
+            "c19",
+            "c20",
+            "c21",
+            "c22",
+            "c23"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 3,
+          "status": "miss",
+          "reason": "In 9:7:1 the lost-deposit and stolen-deposit cases have different testimony and repayment outcomes. Only the first demand, lost answer and oath are extracted; the second case and repayment differences are absent.",
+          "claim_ids": [
+            "c24",
+            "c25",
+            "c26",
+            "c27"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 4,
+          "status": "miss",
+          "reason": "In 9:7:2 the no-deposit rule and the different returns to a woman, husband, slave, master, minor and father are not recorded as obligations, although those people have entities.",
+          "claim_ids": [
+            "c21",
+            "c22"
+          ]
+        },
+        {
+          "kind": "source",
+          "index": 5,
+          "status": "miss",
+          "reason": "The father-and-son vow in 9:8:1 has different inheritance outcomes depending on its wording. Only their hypothetical kinship is extracted from that segment.",
+          "claim_ids": [
+            "c23"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "major",
+          "type": "omission",
+          "claim_ids": [
+            "c24",
+            "c25",
+            "c26",
+            "c27"
+          ],
+          "reason": "The stolen-deposit answer, testimony, double payment and contrasting voluntary-confession payments in 9:7:1 are missing. The extracted lost-deposit exchange does not represent the second legal case.",
+          "source_refs": [
+            "Jerusalem Talmud Bava Kamma 9:7:1"
+          ]
+        },
+        {
+          "severity": "major",
+          "type": "omission",
+          "claim_ids": [
+            "c21",
+            "c22"
+          ],
+          "reason": "The deposit rules in 9:7:2 are mostly an entity list without the stated obligations: refusal to accept, returns during life or after death, and the instruction to preserve value for the minor.",
+          "source_refs": [
+            "Jerusalem Talmud Bava Kamma 9:7:2"
+          ]
+        },
+        {
+          "severity": "major",
+          "type": "omission",
+          "claim_ids": [
+            "c23"
+          ],
+          "reason": "The different inheritance outcomes and redistribution instructions in 9:8:1 are absent as claims. The later house and asset rules do not replace this father-and-son case.",
+          "source_refs": [
+            "Jerusalem Talmud Bava Kamma 9:8:1"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [],
+          "reason": "Repeated names are not fully anchored: Yirmeya’s second named occurrence in 9:8:2 lacks a mention. The second deposit case also has no separate depositor/keeper occurrence records.",
+          "source_refs": [
+            "Jerusalem Talmud Bava Kamma 9:8:2",
+            "Jerusalem Talmud Bava Kamma 9:7:1"
+          ]
+        }
+      ],
+      "summary": "The named household story is careful and preserves uncertainty. Large parts of the supplied legal cases are absent despite the complete-for-supplied-text label."
+    }
+  ]
+}
