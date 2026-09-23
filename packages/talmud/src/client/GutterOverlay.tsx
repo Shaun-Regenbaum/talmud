@@ -18,7 +18,7 @@
 
 import { paintRangeOverlay, resetOverlay } from '@corpus/ui/highlightOverlay';
 import { clusterByLine, MarginPod, type MarginPodItem } from '@corpus/ui/MarginPod';
-import { createMemo, Index, type JSX } from 'solid-js';
+import { createMemo, For, type JSX } from 'solid-js';
 import { type GutterItem, type GutterKind, titleForKind } from './GutterIcons';
 import { type GutterSide, type GutterStackEntry, gutterEntries } from './gutterStack';
 
@@ -29,6 +29,9 @@ interface Placed {
 }
 
 interface Cluster {
+  /** Identifies the pod by its side and line, so a pod keeps its place (and
+   *  stays open) while icons elsewhere on the daf finish loading. */
+  key: string;
   side: GutterSide;
   /** y-position in px relative to daf-root, averaged across the line. */
   top: number;
@@ -70,6 +73,7 @@ export function clustersFromEntries(
     for (const line of clusterByLine(placed, Y_BUCKET)) {
       line.sort((a, b) => KIND_ORDER.indexOf(a.item.kind) - KIND_ORDER.indexOf(b.item.kind));
       out.push({
+        key: `${side}:${Math.round(line[0].y)}`,
         side,
         top: line.reduce((s, p) => s + p.y, 0) / line.length,
         atEdge: line.some((p) => p.item.atEdge),
@@ -84,11 +88,7 @@ const itemKey = (kind: GutterKind, index: number) => `${kind}:${index}`;
 
 /** The words an icon is attached to: from its marker to the matching end
  *  marker when the kind has one, otherwise the marker's excerpt. */
-export function gutterPreviewRange(
-  root: Element,
-  kind: GutterKind,
-  index: number,
-): Range | null {
+export function gutterPreviewRange(root: Element, kind: GutterKind, index: number): Range | null {
   const start = root.querySelector<HTMLElement>(`.daf-${kind}-anchor[data-idx="${index}"]`);
   const mainText = root.querySelector<HTMLElement>('.daf-main .daf-text');
   if (!start || !mainText) return null;
@@ -110,6 +110,7 @@ export function gutterPreviewRange(
 export function GutterOverlay(): JSX.Element {
   let layer: HTMLDivElement | undefined;
   const clusters = createMemo(() => clustersFromEntries(gutterEntries()));
+  const byKey = createMemo(() => new Map(clusters().map((c) => [c.key, c])));
 
   // Highlight the words of the icon under the pointer (or keyboard focus) in a
   // layer of its own, so it never disturbs the highlight of an open note.
@@ -135,10 +136,11 @@ export function GutterOverlay(): JSX.Element {
       class="gutter-overlay"
       style={{ position: 'absolute', inset: 0, 'pointer-events': 'none' }}
     >
-      {/* Index, not For: a re-measure moves pods in place instead of rebuilding
-          them, so an open pod stays open while the note it opened loads. */}
-      <Index each={clusters()}>
-        {(c, ci) => {
+      {/* Keyed by line: new icons loading elsewhere never rebuild or move an
+          open pod out from under the pointer. */}
+      <For each={clusters().map((c) => c.key)}>
+        {(key, ci) => {
+          const c = createMemo<Cluster>((prev) => byKey().get(key) ?? (prev as Cluster));
           const items = () =>
             c().items.map(({ item }) => ({
               id: itemKey(item.kind, item.index),
@@ -167,11 +169,11 @@ export function GutterOverlay(): JSX.Element {
                 placed?.entry.onClick(placed.item.kind, placed.item.index);
               }}
               onPreview={preview}
-              tour={ci === 0 ? 'gutter' : undefined}
+              tour={ci() === 0 ? 'gutter' : undefined}
             />
           );
         }}
-      </Index>
+      </For>
     </div>
   );
 }

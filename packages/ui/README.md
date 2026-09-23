@@ -21,7 +21,8 @@ Use `--bg`, `--fg`, `--muted`, `--line`, `--surface`, `--surface-sunk`, `--accen
 | `Pill`, `PillRow` | Reader topic choices. |
 | `Drawer`, `BottomSheet`, `Prose` | Side panel on desktop, bottom sheet on phones, and bilingual reading text. |
 | `Charts`, `DataTable` | Line charts, chart cards, sortable tables, ranked bars, meters and rate chips. Used by Talmud usage. |
-| `ReaderIcon` | Distinct category colors with consistent rounded outline icons, separate from annotation placement. |
+| `ReaderIcon` | One solid glyph per note kind (speech bubbles, scales, quill, oil lamp, Torah scroll, books, city wall, table) in muted inks that sit beside the maroon accent. Separate from placement. |
+| `MarginPod` | The icons in the margin beside the text. Icons on one line share a pod: overlapping at rest, spread on hover, tap or Tab. The mouse gets a forgiving edge and a short grace before closing; touch opens on the first tap and closes only on a tap well away; Esc closes. `onPreview` reports the icon under the pointer so the reader can highlight its words. `clusterByLine` groups measured icons into lines. Readers only measure and place. |
 | `GraphView`, `GraphEdge`, `GraphConnectionDetails` | Compact argument maps, full-screen passage maps, curved connectors and connection inspection. |
 | `Graph` | Card styles and basic SVG cards and paths for specialized diagrams. |
 | `Study` | Source cards, selectable rows, counted filters, section headings, inputs, summary cards and status messages. Used throughout Tanach. |
@@ -45,7 +46,7 @@ For navigation links, use an anchor with `class="ui-button"`. Do not make a butt
 - Tanach's chapter footer uses the same button as the header. Its existing topic pills, drawers, progress and inspector already use the package.
 - Graph selection, tutorial highlights and mobile controls now read the shared accent token.
 
-The printed daf, Torah columns, annotation placement and corpus-specific panels keep their own layouts. Talmud's large study sidebar and the two usage pages still have different structures. These are not interchangeable components. This package currently supplies one light theme; a complete dark theme needs a separate review of reading surfaces and diagrams.
+The printed daf, Torah columns, where each margin icon sits and corpus-specific panels keep their own layouts. How margin icons look and behave is shared (`MarginPod`). Talmud's large study sidebar and the two usage pages still have different structures. These are not interchangeable components. This package currently supplies one light theme; a complete dark theme needs a separate review of reading surfaces and diagrams.
 
 ## Open the component gallery
 

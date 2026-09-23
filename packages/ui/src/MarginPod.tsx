@@ -147,6 +147,10 @@ function listen(): void {
 export function MarginPod(props: MarginPodProps): JSX.Element {
   const id = createUniqueId();
   const [mode, setMode] = createSignal<Mode>('mouse');
+  // How much the reader shrinks its page (the Talmud daf fits a phone by
+  // scaling). An open pod grows by the inverse so a finger still gets a full
+  // target.
+  const [scale, setScale] = createSignal(1);
   let root: HTMLDivElement | undefined;
   let hit: HTMLDivElement | undefined;
   let openTimer: ReturnType<typeof setTimeout> | undefined;
@@ -159,6 +163,9 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
   const open = (m: Mode) => {
     if (count() < 2) return;
     clearTimeout(closeTimer);
+    const frame = root?.offsetParent as HTMLElement | null | undefined;
+    const drawn = frame?.getBoundingClientRect().width ?? 0;
+    setScale(frame && frame.offsetWidth > 0 && drawn > 0 ? drawn / frame.offsetWidth : 1);
     setMode(m);
     setOpenPod(id);
   };
@@ -184,13 +191,17 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
     const n = count();
     const spread = isOpen();
     const touch = mode() === 'touch';
-    const size = spread ? (touch ? POD_TOUCH_SIZE : POD_OPEN_SIZE) : POD_REST_SIZE;
-    const gap = touch ? GAP.touch : GAP.mouse;
+    // Open sizes are meant on screen, so undo the page's scale; resting icons
+    // shrink with the page as they always have.
+    const k = spread ? 1 / scale() : 1;
+    const size = spread ? (touch ? POD_TOUCH_SIZE : POD_OPEN_SIZE) * k : POD_REST_SIZE;
+    const gap = (touch ? GAP.touch : GAP.mouse) * k;
+    const pad = BG_PAD * k;
     let ys: number[];
     let podH = 0;
     if (spread) {
       const h = n * size + (n - 1) * gap;
-      podH = h + BG_PAD * 2;
+      podH = h + pad * 2;
       ys = props.items.map((_, i) => -h / 2 + size / 2 + i * (size + gap));
     } else {
       ys = props.items.map((_, i) => i * SLIVER - ((n - 1) * SLIVER) / 2);
@@ -198,8 +209,8 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
     // Keep an open pod below the top of its reader.
     const shift = spread ? Math.max(0, podH / 2 - props.y + 2) : 0;
     ys = ys.map((y) => y + shift);
-    const podW = size + BG_PAD * 2;
-    const edge = touch ? EDGE.touch : EDGE.mouse;
+    const podW = size + pad * 2;
+    const edge = (touch ? EDGE.touch : EDGE.mouse) * k;
     const restTop = ys[0] - size / 2;
     const restBottom = ys[ys.length - 1] + size / 2;
     const hitBox = spread

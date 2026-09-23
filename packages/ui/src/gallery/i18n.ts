@@ -99,9 +99,15 @@ const catalog = {
 
   icons: { en: 'Reader icons', he: 'סמלי הקורא' },
   iconsHint: {
-    en: 'Each subject keeps its own color and shape. Rounded strokes keep the icons in one family.',
-    he: 'לכל נושא צבע וצורה משלו. קווים מעוגלים אחידים מחברים בין הסמלים.',
+    en: 'Each subject keeps its own color and shape. Solid glyphs in muted inks sit quietly beside the text.',
+    he: 'לכל נושא צבע וצורה משלו. סמלים מלאים בגוונים שקטים יושבים בנחת לצד הטקסט.',
   },
+  pods: { en: 'Icons in the margin', he: 'סמלים בשוליים' },
+  podsHint: {
+    en: 'Icons on the same line share one pod. Point at it, tap it, or tab to it. The words it belongs to light up in the reader.',
+    he: 'סמלים באותה שורה חולקים תרמיל אחד. הצביעו, הקישו או עברו אליו במקלדת. בקורא, המילים שלו מודגשות.',
+  },
+  podsPicked: { en: 'Would open', he: 'ייפתח' },
   argument: { en: 'Arguments', he: 'טיעונים' },
   halacha: { en: 'Halacha', he: 'הלכה' },
   chart: { en: 'Charts', he: 'תרשימים' },

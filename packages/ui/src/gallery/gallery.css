@@ -416,6 +416,14 @@ a {
   gap: 16px;
   margin: 20px 0;
 }
+.gallery-pod-demo {
+  position: relative;
+  margin: 12px 44px 0;
+  font: 22px / 1.8 var(--font-hebrew, serif);
+}
+.gallery-pod-demo p {
+  margin: 0;
+}
 .gallery-icon-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));

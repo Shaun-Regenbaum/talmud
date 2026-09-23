@@ -18,7 +18,6 @@ import {
   createResource,
   createSignal,
   For,
-  Index,
   type JSX,
   onCleanup,
   onMount,
@@ -63,6 +62,16 @@ function parseRef(ref: string): { book: string; chapter: number } | null {
 /** Drop niqqud + cantillation for the bare ktav-STAM look. Maqaf -> space. */
 function stripNikud(html: string): string {
   return html.replace(/־/g, ' ').replace(/[֑-ֽֿ-ׇ]/g, '');
+}
+
+/** Source icons that share a line of the scroll, drawn as one MarginPod. The
+ *  key names the line, so a pod keeps its place while others change. */
+interface VersePod {
+  key: string;
+  x: number;
+  y: number;
+  side: 'left' | 'right';
+  items: { v: number; kind: SourceKind }[];
 }
 
 const PETUCHA = '\u0001';
@@ -315,9 +324,7 @@ export function App(): JSX.Element {
     { v: string; label: string; top: number; left: number; side: 'left' | 'right' }[]
   >([]);
   // One pod per line of source icons, shared with the Talmud gutter.
-  const [verseIcons, setVerseIcons] = createSignal<
-    { x: number; y: number; side: 'left' | 'right'; items: { v: number; kind: SourceKind }[] }[]
-  >([]);
+  const [verseIcons, setVerseIcons] = createSignal<VersePod[]>([]);
   // The verse whose icon is under the pointer; highlighted like a selection.
   const [iconHoverVerse, setIconHoverVerse] = createSignal<number | null>(null);
   const [reflow, setReflow] = createSignal(0);
@@ -404,6 +411,7 @@ export function App(): JSX.Element {
     setVerseIcons(
       (['left', 'right'] as const).flatMap((side) =>
         clusterByLine(icons.filter((ic) => ic.side === side)).map((line) => ({
+          key: `${side}:${Math.round(line[0].y)}`,
           side,
           x: line[0].x,
           y: line.reduce((sum, ic) => sum + ic.y, 0) / line.length,
@@ -1039,28 +1047,33 @@ export function App(): JSX.Element {
                 </button>
               )}
             </For>
-            <Index each={verseIcons()}>
-              {(pod) => (
-                <MarginPod
-                  items={pod().items.map(({ v, kind }) => ({
-                    id: `${v}:${kind}`,
-                    kind,
-                    label: `${t(kind, loc().lang)} \u00b7 ${t('verse', loc().lang)} ${v}`,
-                  }))}
-                  textSide={pod().side === 'right' ? 'left' : 'right'}
-                  x={pod().x}
-                  y={pod().y}
-                  activeId={source() ? `${source()?.verse}:${source()?.kind}` : null}
-                  onActivate={(item) => {
-                    const [v, kind] = item.id.split(':');
-                    openSource(Number(v), kind as SourceKind);
-                  }}
-                  onPreview={(item) =>
-                    setIconHoverVerse(item ? Number(item.id.split(':')[0]) : null)
-                  }
-                />
-              )}
-            </Index>
+            <For each={verseIcons().map((pod) => pod.key)}>
+              {(key) => {
+                const pod = createMemo<VersePod>(
+                  (prev) => verseIcons().find((p) => p.key === key) ?? (prev as VersePod),
+                );
+                return (
+                  <MarginPod
+                    items={pod().items.map(({ v, kind }) => ({
+                      id: `${v}:${kind}`,
+                      kind,
+                      label: `${t(kind, loc().lang)} \u00b7 ${t('verse', loc().lang)} ${v}`,
+                    }))}
+                    textSide={pod().side === 'right' ? 'left' : 'right'}
+                    x={pod().x}
+                    y={pod().y}
+                    activeId={source() ? `${source()?.verse}:${source()?.kind}` : null}
+                    onActivate={(item) => {
+                      const [v, kind] = item.id.split(':');
+                      openSource(Number(v), kind as SourceKind);
+                    }}
+                    onPreview={(item) =>
+                      setIconHoverVerse(item ? Number(item.id.split(':')[0]) : null)
+                    }
+                  />
+                );
+              }}
+            </For>
             <Show when={selected()}>
               {(sel) => (
                 <div
