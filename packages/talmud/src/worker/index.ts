@@ -3476,12 +3476,6 @@ async function startDafGeneration(
   lang: 'en' | 'he',
 ): Promise<DafGenerateOutcome> {
   const wf = c.env.DAF_WARM_WORKFLOW;
-  if (!wf) {
-    return {
-      status: 503,
-      body: { generating: false, error: 'DAF_WARM_WORKFLOW binding not available' },
-    };
-  }
   // A page outside the tractate's real extent (e.g. Megillah 32b — Megillah
   // ends at 32a) must not spawn a Workflow: every Sefaria-backed step gets a
   // permanent ref error, the queue retries hard-fail, and the LLM steps bill
@@ -3499,6 +3493,14 @@ async function startDafGeneration(
         error: pauseErrorMessage(gate.scope),
         ...pausedAiFields(gate.scope),
       },
+    };
+  }
+  // Checked after the budget gate so staging, which has no Workflow binding and
+  // GENERATION_DISABLED=1, answers with the paused envelope rather than a 503.
+  if (!wf) {
+    return {
+      status: 503,
+      body: { generating: false, error: 'DAF_WARM_WORKFLOW binding not available' },
     };
   }
   // Provider-down circuit breaker: out-of-credits / key-cap / provider outage
@@ -5875,7 +5877,7 @@ app.post('/api/run', async (c) => {
   // background — so bumping a cache_version never makes readers wait. (No
   // human-edit path writes the enrichment cache today; when one exists it must
   // be CAS-guarded so this never overwrites an edit.)
-  if (!job.bypass_cache && job.enrichment_id && c.env.CACHE && c.env.ENRICHMENT_QUEUE) {
+  if (!job.bypass_cache && job.enrichment_id && c.env.CACHE) {
     const def = await loadEnrichmentDef(c.env, job.enrichment_id);
     if (def) {
       // Mirror the hot path's section-range guard via the store's accept
@@ -5912,6 +5914,7 @@ app.post('/api/run', async (c) => {
         const customRun = !!(job.enrichment_id.endsWith('.qa') && job.user_question);
         let refreshing = false;
         if (
+          c.env.ENRICHMENT_QUEUE &&
           !skipExperimentalWarm &&
           !costPaused &&
           (explicitWarm || !(await readAiDown(c.env.CACHE))) &&
@@ -5979,9 +5982,6 @@ app.post('/api/run', async (c) => {
     }
   }
 
-  if (!c.env.ENRICHMENT_QUEUE) {
-    return c.json({ error: 'ENRICHMENT_QUEUE binding not available' }, 503);
-  }
   // Budget gate before enqueueing real LLM work. Cache hits already returned
   // above (free, ungated). The queue consumer re-checks at the runLLM
   // chokepoint, but failing here gives the client an immediate paused signal.
@@ -5999,6 +5999,11 @@ app.post('/api/run', async (c) => {
       },
       429,
     );
+  }
+  // After the budget gate so staging (no queue, GENERATION_DISABLED=1) answers
+  // with the paused envelope rather than a 503.
+  if (!c.env.ENRICHMENT_QUEUE) {
+    return c.json({ error: 'ENRICHMENT_QUEUE binding not available' }, 503);
   }
   job.runId = await makeRunId(job);
   // Compute the canonical cache key up-front so the client can use it as a

@@ -4,6 +4,19 @@ type StoredMetadata = { deleted?: boolean; original?: unknown };
 type ReadOptions = { type?: 'text' | 'json' | 'arrayBuffer' | 'stream'; cacheTtl?: number };
 type Cursor = { phase: 'local' | 'source'; cursor?: string; prefix: string };
 
+/** Everything staging writes expires within a day, so a staging copy never
+ *  hides production's newer value for long. */
+const STAGING_TTL_SECONDS = 86_400;
+
+function stagingExpiry(options?: KVNamespacePutOptions): KVNamespacePutOptions {
+  const latest = Math.floor(Date.now() / 1000) + STAGING_TTL_SECONDS;
+  if (options?.expiration !== undefined)
+    return { expiration: Math.min(options.expiration, latest) };
+  return {
+    expirationTtl: Math.min(options?.expirationTtl ?? STAGING_TTL_SECONDS, STAGING_TTL_SECONDS),
+  };
+}
+
 export interface StagingEnv {
   APP_ENV?: string;
   BUILD_SHA?: string;
@@ -64,53 +77,64 @@ export function stagingCache(local: KVNamespace, source: Fetcher, corpus: string
     ) {
       return local.put(key, value, {
         ...options,
+        ...stagingExpiry(options),
         metadata: { original: options?.metadata ?? null },
       });
     },
     delete(key: string) {
-      return local.put(key, '', { metadata: { deleted: true } });
+      return local.put(key, '', {
+        expirationTtl: STAGING_TTL_SECONDS,
+        metadata: { deleted: true },
+      });
     },
     async list(options: KVNamespaceListOptions = {}): Promise<KVNamespaceListResult<unknown>> {
       const prefix = options.prefix ?? '';
-      const state: Cursor = options.cursor
+      let state: Cursor = options.cursor
         ? JSON.parse(decodeURIComponent(options.cursor))
         : { phase: 'local', prefix };
       if (state.prefix !== prefix || !['local', 'source'].includes(state.phase))
         throw new Error('Invalid staging cursor');
-      const limit = Math.min(100, options.limit ?? 100);
+      const limit = Math.min(1000, Math.max(1, options.limit ?? 1000));
+      const keys: KVNamespaceListKey<unknown>[] = [];
+      // Staging's own keys come first. When they run out, the same call carries
+      // on into production's first page, so a caller that reads only one page
+      // still sees production's keys. One call can return up to 2 x limit keys.
       if (state.phase === 'local') {
         const page = await local.list<StoredMetadata>({ prefix, limit, cursor: state.cursor });
-        const next: Cursor = page.list_complete
-          ? { phase: 'source', prefix }
-          : { ...state, cursor: page.cursor };
-        if (page.list_complete && page.keys.length === 0) {
-          return cache.list({ ...options, cursor: encodeURIComponent(JSON.stringify(next)) });
+        for (const k of page.keys) {
+          if (!k.metadata?.deleted) keys.push({ ...k, metadata: k.metadata?.original });
         }
-        return {
-          keys: page.keys
-            .filter((k) => !k.metadata?.deleted)
-            .map((k) => ({ ...k, metadata: k.metadata?.original })),
-          list_complete: false,
-          cursor: encodeURIComponent(JSON.stringify(next)),
-          cacheStatus: null,
-        };
+        if (!page.list_complete) {
+          const next: Cursor = { ...state, cursor: page.cursor };
+          return {
+            keys,
+            list_complete: false,
+            cursor: encodeURIComponent(JSON.stringify(next)),
+            cacheStatus: null,
+          };
+        }
+        state = { phase: 'source', prefix };
       }
       const params = new URLSearchParams({ prefix, limit: String(limit) });
       if (state.cursor) params.set('cursor', state.cursor);
       const response = await source.fetch(`https://saved/${corpus}/keys?${params}`);
       if (!response.ok) throw new Error(`Saved content listing unavailable (${response.status})`);
       const page = await response.json<KVNamespaceListResult<unknown>>();
-      const keys = [];
-      for (const key of page.keys) {
-        const override = await local.get(key.name, 'stream');
-        if (override === null) keys.push(key);
-        else await override.cancel();
+      // A production key that staging has edited or deleted was already listed
+      // (or hidden) above. Bulk reads take at most 100 keys.
+      const names = page.keys.map((k) => k.name);
+      const shadowed = new Set<string>();
+      for (let i = 0; i < names.length; i += 100) {
+        const found = await local.get(names.slice(i, i + 100));
+        for (const [name, value] of found) if (value !== null) shadowed.add(name);
       }
+      for (const k of page.keys) if (!shadowed.has(k.name)) keys.push(k);
       if (page.list_complete) return { keys, list_complete: true, cacheStatus: null };
+      const next: Cursor = { ...state, cursor: page.cursor };
       return {
         keys,
         list_complete: false,
-        cursor: encodeURIComponent(JSON.stringify({ ...state, cursor: page.cursor })),
+        cursor: encodeURIComponent(JSON.stringify(next)),
         cacheStatus: null,
       };
     },

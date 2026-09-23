@@ -3,7 +3,7 @@
 # The normal path to production is the Release workflow (docs/deployment.md):
 # merge into staging, review it, approve the Production job. This script is the
 # fallback for when that workflow is broken. It only ships what master already
-# holds, and master only moves after approval, so it cannot skip the review.
+# holds, and in normal use master only moves after approval.
 # Blocks the two ways prod has silently diverged from master in this repo:
 #   - deploying from a worktree whose content was never merged (a later deploy
 #     from another agent then clobbers it), and

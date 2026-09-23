@@ -37,6 +37,9 @@ const source = await fetch('https://staging.talmud.dev/api/daf-view/Berakhot/2a?
 assert.equal(source.status, 200, 'Saved Berakhot 2a');
 const saved = await source.text();
 assert.ok(saved.includes('Berakhot') && saved.length > 1000, 'Saved study content is available');
+// The app's page-not-found fallback also answers 200, so look for the
+// library's own page title.
 const gallery = await fetch('https://staging.talmud.dev/components/');
 assert.equal(gallery.status, 200, 'Component library');
+assert.ok((await gallery.text()).includes('Reader component library'), 'Component library page');
 console.log(`Both staging apps serve ${sha}`);

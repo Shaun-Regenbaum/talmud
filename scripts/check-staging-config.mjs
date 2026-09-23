@@ -3,6 +3,10 @@ import { readFile } from 'node:fs/promises';
 
 const app = process.argv[2];
 assert.ok(['talmud', 'tanach'].includes(app));
+// `wrangler deploy` follows .wrangler/deploy/config.json, so check the file it
+// points at is the one checked here.
+const pointer = JSON.parse(await readFile(`packages/${app}/.wrangler/deploy/config.json`, 'utf8'));
+assert.equal(pointer.configPath, `../../dist/${app}/wrangler.json`);
 const config = JSON.parse(await readFile(`packages/${app}/dist/${app}/wrangler.json`, 'utf8'));
 assert.equal(config.name, `${app}-staging`);
 assert.equal(config.vars.APP_ENV, 'staging');

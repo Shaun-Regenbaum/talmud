@@ -2,15 +2,6 @@ name = "talmud"
 main = "src/worker/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
-# Custom production domains. Both zones must be active on the same Cloudflare
-# account (PropheX) that `wrangler whoami` reports. talmud.dev and
-# talmud.shaunregenbaum.com point at this same worker — identical backend,
-# KV cache, queues, and crons (one deployment, three hostnames).
-routes = [
-  { pattern = "talmud.shaunregenbaum.com", custom_domain = true },
-  { pattern = "talmud.dev", custom_domain = true },
-  { pattern = "www.talmud.dev", custom_domain = true }
-]
 
 # Dynamic Worker Loader — powers the code-mode MCP server at /mcp. The `execute`
 # tool runs LLM-written code in an isolated worker spun up via env.LOADER; the
@@ -26,6 +17,16 @@ worker_loaders = [{ binding = "LOADER" }]
 [[analytics_engine_datasets]]
 binding = "SURFACE"
 dataset = "talmud_surface"
+
+# Custom production domains. Both zones must be active on the same Cloudflare
+# account (PropheX) that `wrangler whoami` reports. talmud.dev and
+# talmud.shaunregenbaum.com point at this same worker — identical backend,
+# KV cache, queues, and crons (one deployment, three hostnames).
+routes = [
+  { pattern = "talmud.shaunregenbaum.com", custom_domain = true },
+  { pattern = "talmud.dev", custom_domain = true },
+  { pattern = "www.talmud.dev", custom_domain = true }
+]
 
 [assets]
 directory = "./dist/client"

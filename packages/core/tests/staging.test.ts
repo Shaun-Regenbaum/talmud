@@ -74,6 +74,25 @@ describe('staging content isolation', () => {
     expect(names.sort()).toEqual(['list:both', 'list:local', 'list:source']);
     expect(await source.get('list:deleted')).toBe(content);
   });
+  it('shows production keys on the first page even when staging has its own', async () => {
+    await source.put('page:prod', content);
+    await cache.put('page:local', content);
+    const page = await cache.list({ prefix: 'page:' });
+    expect(page.keys.map((k) => k.name).sort()).toEqual(['page:local', 'page:prod']);
+    expect(page.list_complete).toBe(true);
+  });
+  it('expires every staging write within a day', async () => {
+    const now = Math.floor(Date.now() / 1000);
+    await cache.put('ttl:default', content);
+    await cache.put('ttl:long', content, { expirationTtl: 30 * 86_400 });
+    await cache.put('ttl:short', content, { expirationTtl: 3600 });
+    await cache.delete('ttl:gone');
+    const { keys } = await local.list({ prefix: 'ttl:' });
+    const expiry = Object.fromEntries(keys.map((k) => [k.name, k.expiration ?? Infinity]));
+    for (const name of ['ttl:default', 'ttl:long', 'ttl:gone'])
+      expect(expiry[name]).toBeLessThanOrEqual(now + 86_400 + 5);
+    expect(expiry['ttl:short']).toBeLessThanOrEqual(now + 3600 + 5);
+  });
   it('rejects writes at the source service', async () => {
     for (const method of ['POST', 'PUT', 'DELETE']) {
       const response = await sourceWorker.fetch(

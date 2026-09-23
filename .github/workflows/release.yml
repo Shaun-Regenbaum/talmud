@@ -59,11 +59,13 @@ jobs:
     steps:
       # A newer merge into staging has its own run. This one stops here, and
       # its Production job is skipped, so only the newest version asks for
-      # approval.
+      # approval. A failed lookup fails the job rather than skipping silently.
       - name: Check this is still the newest staging commit
         id: latest
         run: |
-          if [ "$(gh api repos/$GITHUB_REPOSITORY/git/ref/heads/staging --jq .object.sha)" = "$GITHUB_SHA" ]; then
+          head="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/staging" --jq .object.sha)"
+          test -n "$head"
+          if [ "$head" = "$GITHUB_SHA" ]; then
             echo latest=true >> "$GITHUB_OUTPUT"
           else
             echo latest=false >> "$GITHUB_OUTPUT"
@@ -71,6 +73,8 @@ jobs:
           fi
       - if: steps.latest.outputs.latest == 'true'
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - if: steps.latest.outputs.latest == 'true'
         uses: pnpm/action-setup@v6
         with:
@@ -80,12 +84,10 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - name: Deploy staging
+      - name: Build staging and check its bindings
         if: steps.latest.outputs.latest == 'true'
         run: |
           pnpm install --frozen-lockfile
-          pnpm --filter talmud exec wrangler deploy -c wrangler.staging-source.toml
-          pnpm --filter talmud exec wrangler d1 migrations apply corpus-billing-staging --env staging --remote
           CLOUDFLARE_ENV=staging pnpm --filter talmud exec vite build
           pnpm --filter tanach exec vite build --config vite.gallery.config.ts --base=/components/
           cp -R packages/ui/dist/gallery packages/talmud/dist/client/components
@@ -95,8 +97,26 @@ jobs:
             printf 'User-agent: *\nDisallow: /\n' > "packages/$app/dist/client/robots.txt"
             printf '/*\n  X-Robots-Tag: noindex\n' >> "packages/$app/dist/client/_headers"
           done
+          # Nothing touches Cloudflare until both configs prove they are staging's.
           node scripts/check-staging-config.mjs talmud
           node scripts/check-staging-config.mjs tanach
+      # The read-only content service is the one staging Worker bound to
+      # production storage. Once master has it, it only changes after approval:
+      # a staging commit that edits it keeps the approved version running here.
+      - name: Deploy the read-only content service
+        if: steps.latest.outputs.latest == 'true'
+        run: |
+          files='packages/core/src/cache/staging-source.ts packages/talmud/wrangler.staging-source.toml'
+          if git cat-file -e origin/master:packages/core/src/cache/staging-source.ts 2>/dev/null \
+            && ! git diff --quiet origin/master HEAD -- $files; then
+            echo 'The read-only content service changed. It deploys after Production approval.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            pnpm --filter talmud exec wrangler deploy -c wrangler.staging-source.toml
+          fi
+      - name: Deploy staging
+        if: steps.latest.outputs.latest == 'true'
+        run: |
+          pnpm --filter talmud exec wrangler d1 migrations apply corpus-billing-staging --env staging --remote
           pnpm --filter talmud exec wrangler deploy --env staging --var BUILD_SHA:$GITHUB_SHA
           pnpm --filter tanach exec wrangler deploy --env staging --var BUILD_SHA:$GITHUB_SHA
       - name: Verify both staged releases and saved content
@@ -119,7 +139,7 @@ jobs:
       group: deploy-prod
       cancel-in-progress: false
     permissions:
-      contents: write
+      contents: read
       statuses: write
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -139,14 +159,28 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Refuse approval for a replaced preview
         run: |
-          test "$(gh api repos/$GITHUB_REPOSITORY/git/ref/heads/staging --jq .object.sha)" = "$GITHUB_SHA"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/staging" --jq .object.sha)" = "$GITHUB_SHA"
           node scripts/check-staging.mjs "$GITHUB_SHA"
           git fetch origin master
           git merge-base --is-ancestor origin/master "$GITHUB_SHA"
-      - name: Mark the exact staged commit as approved and advance production
+      # The run's own GitHub token may never move a branch across a change to
+      # workflow files, and every release eventually carries one. A write key
+      # for this repository only, readable only by this approved job, moves
+      # master instead. A plain push only fast-forwards; branch protection still
+      # requires `check` and `staging-approved` on the commit.
+      - name: Mark the exact staged commit as approved and advance master
+        env:
+          RELEASE_DEPLOY_KEY: ${{ secrets.RELEASE_DEPLOY_KEY }}
         run: |
           gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f state=success -f context=staging-approved -f description='Reviewed on staging and approved for production' -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-          gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/master" -f sha="$GITHUB_SHA" -F force=false
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$RELEASE_DEPLOY_KEY" > ~/.ssh/release_key
+          chmod 600 ~/.ssh/release_key
+          echo 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl' > ~/.ssh/known_hosts
+          GIT_SSH_COMMAND='ssh -i ~/.ssh/release_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes' \
+            git push "git@github.com:$GITHUB_REPOSITORY.git" "$GITHUB_SHA:refs/heads/master"
+          rm -f ~/.ssh/release_key
+      - run: pnpm --filter talmud exec wrangler deploy -c wrangler.staging-source.toml
       - run: pnpm --filter talmud exec wrangler d1 migrations apply corpus-billing --remote
       - run: pnpm --filter talmud exec wrangler deploy -c wrangler.generator.toml
       - run: pnpm --filter talmud exec vite build
