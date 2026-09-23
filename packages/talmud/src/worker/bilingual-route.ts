@@ -1,29 +1,28 @@
 /**
  * POST /api/bilingual — the Jev half of the bilingual house rule (see
- * src/lib/bilingual.ts): a name or term keeps its Hebrew once, on its first
- * mention in the paragraph. The reader sends the English paragraphs it is
- * about to show; each one with Hebrew parentheses is judged by Jev once and
- * the cleaned text is cached forever by content hash, so a page is cleaned
- * the first time anyone opens it and served from KV after that.
+ * src/lib/bilingual.ts: Hebrew first, English in parentheses once). The
+ * reader sends the English paragraphs it is about to show; each one with
+ * Hebrew parentheses is judged by Jev once, and the result (quotations
+ * flipped, plus the name/term pairs Jev pinned down) is cached forever by
+ * content hash. The reader applies the pairs with hebrewFirst.
  *
  * GET /api/bilingual/glossary/:tractate/:page builds the page glossary: the
  * names and terms whose Hebrew some paragraph on the page gives, so the
- * reader can give every paragraph on the page the same Hebrew on first
- * mention. It reads the page's saved prose through /api/daf-view and shares
+ * reader can put the same Hebrew first in every paragraph on the page. It reads the page's saved prose through /api/daf-view and shares
  * the per-paragraph judgments (and their cache entries) with the POST.
  *
- * Never fails a paragraph: a Jev error (no key, budget pause, staging's
- * read-only guard, timeout) returns the text unchanged and caches nothing, so
+ * Never fails a paragraph: a Jev error (no key, budget pause, timeout) returns the text unchanged and caches nothing, so
  * the next open tries again.
  */
 
 import { runJev } from '@corpus/core/llm/jev';
 import type { Hono } from 'hono';
 import {
-  applyBilingual,
+  type BilingualItem,
   buildBilingualQuestions,
   buildGlossary,
   findHebrewParens,
+  flipQuotes,
   type GlossaryEntry,
   pairsFromDecisions,
   proseWithHebrew,
@@ -48,11 +47,12 @@ async function sha256Hex(s: string): Promise<string> {
     .join('');
 }
 
-/** What one paragraph comes to under the house rule: the cleaned text, and
- *  the name/term pairs Jev pinned down in it (the page glossary's input). */
+/** What Jev settles for one paragraph: the text with its quotations flipped
+ *  to Hebrew-first, and the name/term pairs it pinned down (which the reader
+ *  applies with hebrewFirst, and the page glossary is built from). */
 interface Judged {
   text: string;
-  pairs: GlossaryEntry[];
+  pairs: BilingualItem[];
 }
 
 /** Judge one paragraph: KV hit, else one Jev request. Null on a Jev failure
@@ -76,7 +76,7 @@ async function judge(
     });
     const decisions = readDecisions(text, parens, res.answers);
     const out: Judged = {
-      text: applyBilingual(text, parens, decisions),
+      text: flipQuotes(text, parens, decisions),
       pairs: pairsFromDecisions(parens, decisions),
     };
     if (env.CACHE) {
@@ -119,10 +119,12 @@ export function registerBilingualRoutes(app: Hono<{ Bindings: Bindings }>): void
       return c.json({ error: `at most ${BILINGUAL_MAX_TEXTS} texts` }, 413);
     }
     const waitUntil = (p: Promise<unknown>) => c.executionCtx.waitUntil(p);
-    const out = await pool(texts as string[], async (t) =>
-      t.length > BILINGUAL_MAX_CHARS ? t : ((await judge(c.env, t, waitUntil))?.text ?? t),
+    const judged = await pool(texts as string[], async (t) =>
+      t.length > BILINGUAL_MAX_CHARS ? null : judge(c.env, t, waitUntil),
     );
-    return c.json({ texts: out });
+    const out = judged.map((j, i) => j?.text ?? (texts as string[])[i]);
+    const pairs = judged.map((j) => j?.pairs ?? []);
+    return c.json({ texts: out, pairs });
   });
 
   // GET /api/bilingual/glossary/:tractate/:page — the page glossary: every

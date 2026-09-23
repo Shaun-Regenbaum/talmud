@@ -12,10 +12,10 @@ export const PARSHA_HEBREW_STYLE = `STYLE — Hebrew + English mixing (apply UNI
 
 English carries the grammar; HEBREW SCRIPT carries the content. Every key word or phrase of the passage itself, and every standing term of Jewish learning, appears AS Hebrew with a short English gloss in parens on first mention. A paragraph should carry SEVERAL Hebrew anchors — if a paragraph has fewer than two, you are under-hebraizing. Ordinary connective English ("the passage then", "the people must not") stays English; the nouns and verbs that carry the Torah's meaning go Hebrew.
 
-FORM A (DEFAULT) — Hebrew script first, English gloss in parens. The passage's own words, legal/ritual terms, repeated key phrases:
+ONE ORDER — Hebrew script first, English gloss in parens. It applies to everything: the passage's own words, legal/ritual terms, repeated key phrases, AND names of people and places:
   "a ברכה (blessing) and a קללה (curse)", "each case opens with כי (if)", "the מסית (enticer) receives no pity", "burned כליל (entire, as a whole-offering)", "the עיר הנדחת (subverted town)", "מעשר שני (the second tithe)"
-FORM B — English first, Hebrew in parens. ONLY for proper nouns and standing English-first terms:
-  "Mount Gerizim (הר גריזים)", "Passover (פסח)", "the Levite (הלוי)"
+  Names too: "הר גריזים (Mount Gerizim)", "פסח (Passover)", "the לוי (Levite)", "משה (Moses)"
+  WRONG (English first): "Mount Gerizim (הר גריזים)", "Passover (פסח)".
 
 QUOTING THE VERSES: the Torah's words go in Hebrew script INSIDE the quote marks, English gloss in parens after — "תבער הרע מקרבך" (sweep out the evil from your midst), "וכל ישראל ישמעו ויראו" (all Israel will hear and be afraid).
   WRONG: the phrase 'sweep out evil from your midst' (תבער הרע מקרבך) — an English quote with the Hebrew demoted to parens.

@@ -1039,8 +1039,8 @@ export const CODE_MARKS: MarkDefinition[] = [
 // placeholder is JSON-stringified by renderTemplate, so we extract fields
 // inline in the user prompt.
 
-// Shared style guide for all rabbi enrichments. Hebrew script in parens,
-// no transliteration, terse English.
+// Shared style guide for all rabbi enrichments. Hebrew first, English in
+// parens, no transliteration, terse English.
 /**
  * Shared Hebrew-gloss style guide. Every enrichment prompt that emits prose
  * appends this so the worker-side output uses ONE consistent convention for
@@ -1053,26 +1053,30 @@ export const CODE_MARKS: MarkDefinition[] = [
  */
 const HEBREW_GLOSS_STYLE = `STYLE — Hebrew + English mixing (apply UNIFORMLY across all prose):
 
-Plain English is the BASE; Hebrew script is the technical anchor — use it only where a word is genuinely the technical concept, not on every common word.
+Plain English is the BASE of every sentence. Names, technical terms and quotations are written in Hebrew script.
 
-FORM A (DEFAULT) — Hebrew script first, English gloss in parens. Use for technical/halachic terms and verbatim daf language:
-  "performed לכתחילה (the ideal standard)", "a גזירה שווה (verbal analogy)", "the verse 'בשכבך ובקומך' (when you lie down and when you rise)"
+ONE RULE — HEBREW FIRST, ENGLISH IN PARENTHESES. It applies to everything below; there is no other order.
+  People:  "רבי אליעזר (Rabbi Eliezer)", "רבי יוחנן (Rabbi Yochanan)"
+  Places:  "סורא (Sura)", "יבנה (Yavneh)"
+  Terms:   "a גזירה שווה (verbal analogy)", "the בית דין (court)", "performed לכתחילה (the ideal standard)", "קריאת שמע של ערבית (the evening Shema)"
+  Quotes from the daf or a verse: the Hebrew goes inside the quote marks, the English meaning in parentheses after — the verse 'בשכבך ובקומך' (when you lie down and when you rise)
+  WRONG (English first): "Rabbi Eliezer (רבי אליעזר)", "court (בית דין)", "the evening Shema (קריאת שמע של ערבית)", "at Yavneh (יבנה)".
 
-FORM B — English first, Hebrew in parens. Use ONLY for proper nouns and standing English-first terms:
-  "Rabbi Yochanan (רבי יוחנן)", "at Yavneh (יבנה)", "court (בית דין)", "kosher (כשר)"
+GLOSS ONCE: the parentheses go on the FIRST mention in a paragraph only. Later mentions in the same paragraph use the Hebrew alone, with no parentheses: "רבי אליעזר (Rabbi Eliezer) rules strictly … later רבי אליעזר answers." Every term carries a hover tooltip, so a repeated parenthetical is just clutter.
 
-GLOSS ONCE: gloss a term on its FIRST use only; write it bare afterwards. Every term carries a hover tooltip, so a repeated parenthetical is just clutter.
+ORDINARY WORDS STAY ENGLISH: the rule covers names, technical terms and quotations only. Do not force Hebrew onto everyday words ("house", "day", "argues", "rule").
 
 HARD RULES (output is rejected if violated):
-- NEVER write a transliteration — not in parens "(terumah)", not bare "Lechatchila, one may eat…". Pair Hebrew script with an English meaning, OR lead with the Hebrew: "לכתחילה (the ideal standard), one may eat…".
-- NEVER calque a fixed Hebrew/Aramaic phrase into bare English (a word-for-word literal that only makes sense if you already know the term). Keep the term in Hebrew, gloss in parens.
+- NEVER write a transliteration — not in parens "(terumah)", not "(lechatchila)", not bare "Lechatchila, one may eat…". Write the Hebrew script, then the English meaning: "לכתחילה (the ideal standard), one may eat…".
+- The parentheses hold the ENGLISH meaning, never the same Hebrew again: no "רבי עקיבא (רבי עקיבא)".
+- NEVER calque a fixed Hebrew/Aramaic phrase into bare English (a word-for-word literal that only makes sense if you already know the term). Keep the term in Hebrew, English meaning in parens.
     BAD:  "without most flesh" (רוב בשר) · "a son of his year" (בן שנתו) · "the house of justice" (בית דין)
-    GOOD: "without רוב בשר (the majority of surrounding flesh)" · "a בן שנתו (year-old animal)" · "court (בית דין)"
+    GOOD: "without רוב בשר (the majority of surrounding flesh)" · "a בן שנתו (year-old animal)" · "the בית דין (court)"
   Heuristic: read it aloud in English — if a reader who doesn't know the term must ask "most WHAT?", you calqued. Restore the Hebrew.
-- ALWAYS hebraize these (pair with Hebrew script whenever used):
+- ALWAYS hebraize these (Hebrew script first, English meaning in parens on first mention):
 ${alwaysHebraizeBlock()}
 - Verbatim daf/pasuk quotes go in Hebrew/Aramaic script inside quote marks — NEVER transliteration in quotes ('hutz'u' is wrong; 'הוצאו' is right). If you don't recall the Hebrew, paraphrase in English rather than fake a transliterated quote.
-- THE DAF'S OWN GLOSSARY IS AUTHORITATIVE: when the prompt provides this daf's background terms (English label + Hebrew + gloss), use EXACTLY that Hebrew spelling — given "Tevul Yom / טבול יום", write "טבול יום (one who immersed that day)", never "tevul yom" or English alone.
+- THE DAF'S OWN GLOSSARY IS AUTHORITATIVE: when the prompt provides this daf's background terms (English label + Hebrew + gloss), use EXACTLY that Hebrew spelling — given "Tevul Yom / טבול יום", write "טבול יום (one who immersed that day)", never "tevul yom", English alone, or English first.
 - SCRIPT HYGIENE: emit ONLY English + Hebrew/Aramaic script (plus ordinary punctuation). No other writing system — no Korean, Cyrillic, Arabic, CJK, Devanagari, emoji. If you reach for a non-English word, use its plain English equivalent.`;
 
 /**
@@ -1387,7 +1391,7 @@ FORBIDDEN words/phrases (do NOT use any of these — they are LLM puff-prose or 
 
 REQUIRED form: subject-verb-object sentences with named entities, plain English. Example of the style we want:
 
-"Abaye (אביי) was a 4th-generation Babylonian Amora (אמורא) at Pumbedita, c. 280–339 CE; he is classified as a halachist, known across the Bavli for his fine logical distinctions in legal disputes. Orphaned young, he was raised and taught by his uncle Rabbah bar Nachmani, whom he succeeded as head of the academy. His most famous interlocutor is Rava, whose presence on this daf brings the canonical Abaye–Rava (אביי ורבא) debate pair into view; tradition records that the halacha follows Rava except in the six cases enumerated under YA'AL KGAM. Abaye's broader stance is methodical and procedure-driven — he is the figure later authorities cite when they need a clean structural reading of a dispute."
+"אביי (Abaye) was a 4th-generation Babylonian אמורא (Amora) at פומבדיתא (Pumbedita), c. 280–339 CE; he is classified as a halachist, known across the Bavli for his fine logical distinctions in legal disputes. Orphaned young, he was raised and taught by his uncle רבה בר נחמני (Rabbah bar Nachmani), whom he succeeded as head of the academy. His most famous interlocutor is רבא (Rava), whose presence on this daf brings the canonical אביי–רבא debate pair into view; tradition records that the halacha follows רבא except in the six cases remembered by the mnemonic יע״ל קג״ם. His broader stance is methodical and procedure-driven — אביי is the figure later authorities cite when they need a clean structural reading of a dispute."
 
 Notice: era, region, dates, classification token ("halachist"), relationships (Rabbah, Rava), broad stance — NO summary of what Abaye says on the page.
 
@@ -1477,7 +1481,7 @@ Inputs about the subject rabbi:
 OTHER rabbis named on this daf (read this list to find classical relationships you should name):
 {{anchors.rabbi}}
 
-Daf term glossary — for any of these terms that appears in your prose, write it in the given Hebrew form (Form A/B), exact spelling:
+Daf term glossary — for any of these terms that appears in your prose, write it Hebrew first with the English in parens, using the given Hebrew spelling exactly:
 {{depends.daf-background.concepts}}
 
 Compose ONE tight paragraph per the schema. The rabbi is the subject; the daf is the lens. When the OTHER-rabbis list contains a known partner/teacher/student of the subject, name them and the relationship. Do NOT summarize what the subject says on this daf.`;
@@ -2362,7 +2366,7 @@ Rules:
 - "excerpt" MUST be copied verbatim from the daf text (the opening words of the beat), so the beat can be located on the page. Do not paraphrase or translate it.
 - Actors are CHARACTERS in the story. Demons, kings, animals, and biblical figures are valid actors.
 - Do NOT invent opposing "sides" or legal positions.
-- Plain English for "action"; Hebrew script in parentheses for technical terms, never transliteration.
+- Plain English for "action"; technical terms Hebrew first with the English in parens (style below), never transliteration.
 
 ${HEBREW_GLOSS_STYLE}`;
 
@@ -2422,7 +2426,7 @@ Output STRICT JSON only:
 }
 
 Rules:
-- Plain English. Use Hebrew script in parentheses for technical terms (תרומה, יצר הרע) — never transliteration.
+- Plain English. Technical terms Hebrew first with the English in parens — "תרומה (the priestly portion)", "יצר הרע (the evil inclination)" — never transliteration.
 - Reference Mishnayot or earlier dafim by canonical citation when the section assumes them.
 
 ${HEBREW_GLOSS_STYLE}`;
@@ -2465,7 +2469,7 @@ HARD RULES:
 - When two rabbis are paired with an established relationship (Abaye–Rava, Rav–Shmuel), name it.
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "intricate", "profound", "deeply", "lens", "captures", "embodies".
 - NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
-- Hebrew script (not transliteration) for technical terms in parentheses; verbatim short Aramaic phrases only when distinctive.
+- Technical terms Hebrew first with the English in parens (not transliteration); verbatim short Aramaic phrases only when distinctive.
 
 ${HEBREW_GLOSS_STYLE}`;
 
@@ -2492,7 +2496,7 @@ Rashi + Tosafot + other rishonim available for the daf (refer briefly if it shar
 Rabbis identified on the daf:
 {{anchors.rabbi}}
 
-Daf term glossary — for any of these terms that appears in your prose, write it in the given Hebrew form (Form A/B), exact spelling:
+Daf term glossary — for any of these terms that appears in your prose, write it Hebrew first with the English in parens, using the given Hebrew spelling exactly:
 {{depends.daf-background.concepts}}
 
 Compose ONE paragraph per the schema.`;
@@ -2792,7 +2796,7 @@ HARD RULES:
 - GROUND the entry frame. State cross-daf continuation ONLY if the incoming-context note provides it; name a Mishnah ONLY if it is in the study context. NEVER recall from memory what the previous daf said.
 - Whole-daf orientation, not a section recap. Per-section detail lives in argument.synthesis.
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "intricate", "profound", "lens", "captures".
-- Hebrew script (not transliteration) for technical terms in parentheses.
+- Technical terms Hebrew first with the English in parens (not transliteration).
 
 ${HEBREW_GLOSS_STYLE}`;
 
@@ -2946,7 +2950,7 @@ Rules:
 - Omit a category entirely (do not emit an empty group) when nothing fits it.
 - Order terms within a group by how central they are to following the daf.
 - NO puff: forbidden "this teaches us", "we see that", "highlights", "underscores", "profound", "lens".
-- The "term"/"termHe" fields are a SPLIT: English label in "term", Hebrew script in "termHe". Never put Hebrew in "term" and never repeat the English in "termHe". The bilingual style below governs the "gloss" PROSE only (for technical TERMS) — NOT the "term"/"termHe" fields, and never parenthesize a sage's name in Hebrew.
+- The "term"/"termHe" fields are a SPLIT: English label in "term", Hebrew script in "termHe". Never put Hebrew in "term" and never repeat the English in "termHe". The bilingual style below (Hebrew first, English in parens — for terms and names alike) governs the "gloss" PROSE only — NOT the "term"/"termHe" fields.
 
 ${HEBREW_GLOSS_STYLE}`;
 
@@ -3025,7 +3029,7 @@ Output STRICT JSON only:
 
 HARD RULES:
 - ONE sentence. Point at the prerequisites, do not list every term.
-- NO puff. Hebrew script (not transliteration) for technical terms in parentheses.
+- NO puff. Technical terms Hebrew first with the English in parens (not transliteration).
 - Write plainly. Never use academic jargon — in particular NEVER the word "realia"; name the concrete things directly (everyday objects, places, measures).
 
 ${HEBREW_GLOSS_STYLE}`;
@@ -3156,7 +3160,7 @@ VOICE — you are TELLING the reader something worth knowing; be engaging:
 - Draw the reader in. Lead with the concrete and the surprising, keep a light narrative pull, and speak to them plainly — it is fine to address the reader directly ("Notice…", "Picture the scene:"). Tell it the way you'd tell a friend something genuinely interesting, not the way you'd write an essay about it.
 - SIMPLE AND DIRECT. Plain everyday words, short sentences. Concrete specifics over abstractions — the actual verse, person, or thing they did, not a sweeping generalization about it.
 - Say the point ONCE. Do NOT restate it three ways for emphasis, and do NOT end on a grand abstraction ("the entire Talmudic project…", "the Oral Law does not stand alone", "X does not invent, it receives"). One clear, concrete line beats three echoes — if two sentences say the same thing, cut one.
-- Hebrew script paired with a short English gloss for technical terms — e.g. "a גט (bill of divorce)", "performed לכתחילה (the ideal standard)". Hebrew names for ספרים (קהלת, not Ecclesiastes; דברים, not Deuteronomy). Hebrew verse refs.
+- Technical terms Hebrew first with a short English gloss in parens — e.g. "a גט (bill of divorce)", "performed לכתחילה (the ideal standard)". Hebrew names for ספרים (קהלת, not Ecclesiastes; דברים, not Deuteronomy). Hebrew verse refs.
 - Plain English is the base; Hebrew is the technical anchor — do not hebraize every common word.
 - Name rishonim/commentators in LATIN: Rashi, Tosafot, Rambam, Ramban, Rashba, Ritva, Meiri. Do NOT write their Hebrew abbreviations (no רמב"ם / רמב"ן / רשב"א): the gershayim is a straight quote that corrupts the JSON output. Same for ש"ס — write "the Talmud" or "the Bavli".
 - FORBIDDEN flourish: "lens", "captures", "embodies", "profound", "intricate", "this teaches us", "we see that", "highlights", "underscores", "to a modern ear", "reads like", "sketches a theory". No puff, no meta-commentary about what the daf "reveals".
@@ -3204,7 +3208,7 @@ The daf's argument sections (structure):
 Whole-daf orientation (what the daf is about and where it lands):
 {{depends.argument-overview.synthesis}}
 
-Background concepts a reader needs going in — this is also THE DAF'S TERM GLOSSARY: when your prose uses any term below, write it in the given Hebrew form (Form A/B) using exactly that spelling:
+Background concepts a reader needs going in — this is also THE DAF'S TERM GLOSSARY: when your prose uses any term below, write it Hebrew first with the English in parens, using exactly that Hebrew spelling:
 {{depends.daf-background.concepts}}
 
 Sages on this daf:
@@ -3408,7 +3412,7 @@ VOICE — you are walking the reader THROUGH a problem; be engaging, simple, and
 - Tell it, don't write an essay about it. Open with the difficulty as a real puzzle the reader can feel ("Here is what's strange:" / "Notice the problem:"), then take them through it step by step. Speak to the reader plainly; it is fine to address them.
 - Simple and direct even though the content is technical. Short sentences, plain everyday words, one idea per sentence. Precision over polish — do NOT dumb the substance down, but do NOT bury it in abstraction either. Assume a reader who learns gemara but wants it told clearly.
 - Say each move ONCE. No restating a position three ways, no grand abstract summing-up at the end — land on the actual resolution or the open question, plainly.
-- Hebrew script + a short English gloss for technical terms (Form A/B): "a קושיא (difficulty)", "the סברא that …", "a גזירה שווה (verbal analogy)".
+- Technical terms Hebrew first with a short English gloss in parens: "a קושיא (difficulty)", "the סברא that …", "a גזירה שווה (verbal analogy)".
 - Name rishonim in LATIN: Rashi, Tosafot, Ramban, Rashba, Ritva, Ran, Meiri, Rosh. Do NOT use Hebrew abbreviations with gershayim (no רמב"ן / רשב"א): a straight quote corrupts the JSON.
 - NO empty flourish ("lens", "captures", "profound"), NO dramatic closers, NO anthropomorphizing the gemara ("the gemara knows…"). End on the substance.
 
@@ -3764,7 +3768,7 @@ Output STRICT JSON only:
 Rules:
 - About THIS move only — do NOT summarize the surrounding section.
 - Empty string when a commentator is silent — don't pad.
-- Hebrew script in parentheses for technical terms (תרומה, יצר הרע) — never transliteration.
+- Technical terms Hebrew first with the English in parens — "תרומה (the priestly portion)", "יצר הרע (the evil inclination)" — never transliteration.
 - Plain English. NO puff. NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
 
 ${HEBREW_GLOSS_STYLE}`;
@@ -3800,7 +3804,7 @@ HARD RULES:
 - Ground every claim in the move's actual content. Don't invent positions.
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "intricate", "profound", "lens", "captures", "embodies".
 - NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
-- Hebrew script (not transliteration) for technical terms in parentheses; verbatim short Aramaic phrases only when distinctive.
+- Technical terms Hebrew first with the English in parens (not transliteration); verbatim short Aramaic phrases only when distinctive.
 - If the move is purely a Stam connector with nothing to say, output a single short factual sentence and stop.
 
 ${HEBREW_GLOSS_STYLE}`;
@@ -3858,7 +3862,7 @@ Rules:
 - Aim at the *mechanism*: why does the objection bite, what unstated premise gets violated, what does a resolution have to concede, why is this particular verse the one quoted, why does the questioner expect a different phrasing, etc.
 - One question per concrete sub-issue. Don't duplicate.
 - Plain English. NO puff.
-- Hebrew SCRIPT (not transliteration) in parentheses for technical terms — write '(מעשה)' not '(ma\\'aseh)', '(קושיא)' not '(kushya)', '(דרשה)' not '(derashah)'. English concept first, Hebrew in parens.
+- Technical terms in Hebrew SCRIPT, never transliteration — write 'מעשה' not 'ma\\'aseh', 'קושיא' not 'kushya', 'דרשה' not 'derashah'. Hebrew first, English meaning in parens: 'a קושיא (difficulty)'.
 - If the move is a pure Stam connector with nothing interesting to ask about, return ONE question that probes whatever substance does exist; do not pad.
 
 ${HEBREW_GLOSS_STYLE}`;
@@ -3901,7 +3905,7 @@ Output STRICT JSON only:
 }
 
 Structure (in order):
-1. ONE sentence: the direct answer. If the question turns on a category of Talmudic argumentation (precedent stories / מעשה, objections / קושיא, derashot, etc.), name it and gloss it inside this sentence — half a clause is enough, e.g. "it counts as a ma'aseh (מעשה) — a recorded sage-action the Gemara treats as its own class of evidence."
+1. ONE sentence: the direct answer. If the question turns on a category of Talmudic argumentation (precedent stories / מעשה, objections / קושיא, derashot, etc.), name it and gloss it inside this sentence — half a clause is enough, e.g. "it counts as a מעשה (precedent story) — a recorded sage-action the Gemara treats as its own class of evidence."
 2. ONE sentence: the specific mechanism on THIS move — what assumption is at stake, what verse-phrasing or logical move drives it.
 3. OPTIONAL ONE clause: Rashi/Tosafot, only if they actually sharpen the answer.
 4. STOP. Do not add a closing sentence that reflects on what the question or answer reveals.
@@ -3918,12 +3922,12 @@ Other hard rules:
 - Answer the LEARNER'S question, not whatever question you'd rather answer. If the question doesn't make sense for this move, say so plainly in one sentence and set confidence='low'.
 - If the available sources don't contain enough to ground a real answer, give your best partial read in 2-3 sentences and set confidence='low'.
 - Ground every claim in the move's actual content or the cited verse / commentary. Don't invent positions.
-- Hebrew script (not transliteration) in parens — write '(מעשה)' not '(ma\\'aseh)', '(קושיא)' not '(kushya)'. English concept first, Hebrew in parens.
+- Hebrew script, never transliteration — write 'מעשה' not 'ma\\'aseh', 'קושיא' not 'kushya'. Hebrew first, English meaning in parens: 'a קושיא (difficulty)'.
 - NO scholarly jargon: "transmitter" not "tradent", "interpret" not "exegete".
 
 Example of the right shape (3 sentences, not 7):
   Question: "Why does the Gemara open with 'where is the tanna standing'?"
-  GOOD: "It's a stock Gemara move called תנא היכא קאי — a question that asks what topic the Mishnah is presupposing when it dives in without naming one. Here, the Mishnah opens with 'from when' (מאימתי) but never says what mitzvah is being timed, so the Gemara is flagging the missing subject before going on to identify it as the obligation to recite Shema. Rashi adds that the tanna should have first stated the matter (דבר) before asking about its time."
+  GOOD: "It's a stock Gemara move called תנא היכא קאי — a question that asks what topic the Mishnah is presupposing when it dives in without naming one. Here, the Mishnah opens with 'מאימתי' (from when) but never says what mitzvah is being timed, so the Gemara is flagging the missing subject before going on to identify it as the obligation to recite Shema. Rashi adds that the tanna should have first stated the subject before asking about its time."
   → Three sentences: category named + glossed; mechanism on this move; brief Rashi clarification. No meta-commentary, no closing reflection. Done.
 
 ${HEBREW_GLOSS_STYLE}`;
@@ -4353,7 +4357,7 @@ HARD RULES:
 - Daf-agnostic: describe the place itself, NOT any one sugya. Do not reference "this daf".
 - Ground every claim in actual history — no invented detail. Hedge when uncertain ("traditionally", "by the late amoraic period").
 - NO puff: avoid "this teaches us", "underscores", "highlights", "intricate", "profound".
-- Hebrew in parentheses for technical terms (ישיבה, מתיבתא) — never transliteration.
+- Technical terms Hebrew first with the English in parens — "ישיבה (academy)", "מתיבתא (study hall)" — never transliteration.
 
 ${HEBREW_GLOSS_STYLE}`;
 
@@ -4370,7 +4374,7 @@ HARD RULES:
 - Daf-agnostic: the place's standing role, not one sugya.
 - Concrete function over adjectives. If it's a halachic category, name the category.
 - NO puff. Forbidden: "this teaches us", "underscores", "highlights", "intricate", "profound".
-- Hebrew in parentheses for technical terms — never transliteration.
+- Technical terms Hebrew first with the English in parens — never transliteration.
 
 ${HEBREW_GLOSS_STYLE}`;
 
@@ -4386,7 +4390,7 @@ HARD RULES:
 - 1-2 sentences. Hard ceiling.
 - Name real, attested associations only — do NOT invent a sage-place tie.
 - Use conventional English names (Rav, Shmuel, Rav Ashi, Rabbi Yochanan).
-- Hebrew in parentheses only for technical terms — names stay in English.
+- Names and technical terms Hebrew first with the English in parens: "רבי יוחנן (Rabbi Yochanan)".
 - NO puff.
 
 ${HEBREW_GLOSS_STYLE}`;
@@ -4508,7 +4512,7 @@ HARD RULES:
 - 2-3 sentences. Hard ceiling.
 - Ground every claim in actual history — no invented anecdotes. If uncertain, hedge ("traditionally associated with…", "by the time of the late amoraim…").
 - NO puff: avoid "this teaches us", "underscores", "highlights", "intricate", "profound".
-- Hebrew in parentheses for technical terms (ישיבה, מתיבתא) — never transliteration.
+- Technical terms Hebrew first with the English in parens — "ישיבה (academy)", "מתיבתא (study hall)" — never transliteration.
 - If the place is generic (e.g. "ארץ ישראל" used as a halachic category, not a setting), focus on its halachic/legal force on this daf rather than geographic detail.
 
 ${HEBREW_GLOSS_STYLE}`;
@@ -4666,7 +4670,7 @@ HARD RULES (output is rejected if violated):
 - Ground every claim in the supplied commentary text — do NOT invent positions a rishon didn't take.
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "intricate", "profound", "lens", "captures", "embodies".
 - NO jargon: write "transmitter" not "tradent", "interpret" not "exegete".
-- Hebrew script (not transliteration) for technical terms in parentheses; verbatim short Aramaic phrases only when distinctive.
+- Technical terms Hebrew first with the English in parens (not transliteration); verbatim short Aramaic phrases only when distinctive.
 - If a rishon is silent or trivially restates the segment, skip them.
 - If only ONE commentary exists, just summarize their reading in 1-2 sentences — don't pad.
 
@@ -4804,7 +4808,7 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const HALACHA_PRACTICAL_SYSTEM_PROMPT = `You are a scholar of halacha and practical psak. Given ONE halachic topic surfaced on a daf, state the PRACTICAL bottom line — what a person actually does — in the SHAPE that fits the ruling. Plain English first; the Hebrew term is a tag, not the main word.
+const HALACHA_PRACTICAL_SYSTEM_PROMPT = `You are a scholar of halacha and practical psak. Given ONE halachic topic surfaced on a daf, state the PRACTICAL bottom line — what a person actually does — in the SHAPE that fits the ruling. Plain English sentences; a Hebrew term is a tag, not the main word.
 
 First choose the shape:
 - "best-fallback" — a timing / measure rule with a לכתחילה ideal AND a בדיעבד fallback (e.g. say the evening שמע before חצות; after the fact it still counts until dawn).
@@ -4815,8 +4819,8 @@ Output STRICT JSON only — fill ONLY the fields for the chosen shape, leave the
 
 {
   "shape": "best-fallback" | "statement" | "taxonomy",
-  "best":      "best-fallback ONLY. ONE sentence: the ideal practice, plain words first. e.g. 'Say it before halachic midnight (חצות).'",
-  "fallback":  "best-fallback ONLY. ONE sentence: the after-the-fact standard. e.g. 'Any time until dawn (עלות השחר) still counts.' Empty if there is genuinely no fallback.",
+  "best":      "best-fallback ONLY. ONE sentence: the ideal practice, plain words first. e.g. 'Say it before חצות (halachic midnight).'",
+  "fallback":  "best-fallback ONLY. ONE sentence: the after-the-fact standard. e.g. 'Any time until עלות השחר (dawn) still counts.' Empty if there is genuinely no fallback.",
   "statement": "statement ONLY. ONE plain sentence of what to do / not do / the requirement.",
   "rows":      [ { "when": "the case, plain (e.g. 'Tree fruit')", "value": "the answer (e.g. 'בורא פרי העץ')" } ],
   "note":      "OPTIONAL single plain-language heads-up or exception (e.g. 'A sick person is exempt'). Empty when none — do NOT pad."
@@ -4825,7 +4829,7 @@ Output STRICT JSON only — fill ONLY the fields for the chosen shape, leave the
 Rules:
 - Choose exactly ONE shape and fill only its fields. Do NOT invent a בדיעבד fallback to fill best-fallback — if there's no real after-the-fact distinction, use "statement".
 - "note" is ONE short plain sentence, not a list — the most important single caveat, or "" if none. (The old chip lists are retired.)
-- Plain English leads; attach the Hebrew term once, glossed, per the style below ("before halachic midnight (חצות)", not "חצות (midnight)").
+- Plain English sentences; attach each Hebrew term once, Hebrew first with the English in parens, per the style below ("before חצות (halachic midnight)", not "before halachic midnight (חצות)").
 - NO puff. NO jargon: "transmitter" not "tradent".
 
 ${HEBREW_GLOSS_STYLE}`;
@@ -4917,7 +4921,7 @@ Dispute object (present=false when the topic is settled):
 Hebrew/Aramaic source for the daf (for grounding only):
 {{gemara_he}}
 
-Daf term glossary — for any of these terms that appears in your prose, write it in the given Hebrew form (Form A/B), exact spelling:
+Daf term glossary — for any of these terms that appears in your prose, write it Hebrew first with the English in parens, using the given Hebrew spelling exactly:
 {{depends.daf-background.concepts}}
 
 Produce the synthesis per the schema.`;
@@ -5198,18 +5202,17 @@ const TANACH_NAMING_STYLE = `STYLE — Tanach naming:
 - Verse refs in the form "Devarim 6:7" or in Hebrew script "דברים ו:ז" — not "Deut 6:7" / "Deuteronomy 6:7".
 - Use yeshivish-traditional terms in body prose: "pasuk" / "pesukim" rather than "verse" / "verses"; "Chumash" rather than "Pentateuch"; "sugya" rather than "passage"; "sefer" rather than "book" when the meaning is clear.
 
-STYLE — Hebrew + gloss formatting (BOTH forms welcome; pick whichever reads better in context):
-  Form A — Hebrew SCRIPT first, English gloss in parens. Use when the Hebrew word IS the subject of the clause:
+STYLE — Hebrew + gloss formatting (ONE order: Hebrew SCRIPT first, English in parens — for names, places, technical terms and quotations alike):
       "the gemara invokes a גזירה שווה (verbal analogy from a shared word)"
-      "applies the rule of יצא (an excluded case)"
       "from the כלל ופרט (general followed by specific)"
+      "a leading תנא (Tanna) at יבנה (Yavneh)"
+      "קריאת שמע של ערבית (the evening Shema)"
+      "כפרה (atonement) does not delay the priest's eating"
       "the verse 'בשכבך ובקומך' (when you lie down and when you rise) governs the time"
-  Form B — English/transliteration first, Hebrew script in parens. Use when the Hebrew is a parenthetical aid to an English-flowing sentence:
-      "a leading Tanna (תנא) at Yavneh (יבנה)"
-      "the evening Shema (קריאת שמע של ערבית)"
-      "atonement (כפרה) does not delay the priest's eating"
-- NEVER write a transliteration alone in parens (e.g. "(terumah)", "(gezeira shava)") — always pair the Hebrew script with the English meaning when you gloss, not transliteration with itself.
-- NEVER repeat the same word/phrase on both sides of the parens. FORBIDDEN: "ח׳ (ח׳)", "רבי עקיבא (רבי עקיבא)", "דוד המלך (דוד המלך)", "חז״ל (חז״ל)". For proper names (rabbis, places, titles) and bare Hebrew letters the parens would just echo — DROP the parens and pick ONE script based on the surrounding language.
+  WRONG (English first): "a leading Tanna (תנא) at Yavneh (יבנה)", "the evening Shema (קריאת שמע של ערבית)".
+  The parens go on the FIRST mention in a paragraph only; later mentions use the Hebrew alone. Ordinary English words need no Hebrew.
+- NEVER write a transliteration, alone or in parens (e.g. "(terumah)", "(gezeira shava)") — always pair the Hebrew script with its English meaning.
+- NEVER repeat the same word/phrase on both sides of the parens. FORBIDDEN: "ח׳ (ח׳)", "רבי עקיבא (רבי עקיבא)", "דוד המלך (דוד המלך)", "חז״ל (חז״ל)". The parens hold the ENGLISH meaning: "רבי עקיבא (Rabbi Akiva)", "דוד המלך (King David)". For a bare Hebrew letter the parens would just echo — DROP them.
 - NEVER calque-translate a fixed Hebrew/Aramaic halachic phrase into bare English. A "calque" is a word-for-word literal translation that produces grammatically marked or meaningless English. If the English would only make sense to someone who already knows the underlying Hebrew term, the term IS the technical concept and MUST appear in Hebrew script. The English is then a gloss in parens — not a replacement.
     BAD:  "Eli's broken neck occurred without most flesh"                  (calque of רוב בשר)
     BAD:  "the requirement of severing most of the flesh"                  (same calque, padded)
@@ -5303,19 +5306,19 @@ Not every citation invokes a formal method — sometimes a verse is just plain p
 Output STRICT JSON only:
 
 {
-  "mechanism": "1-2 sentences. The exact exegetical or rhetorical move. When the gemara invokes a named midah (גזירה שווה, היקש, קל וחומר, ריבוי ומיעוט, כלל ופרט, אסמכתא, דבר הלמד מעניינו, etc.), NAME IT with the Hebrew in parens, and say what word / phrase / juxtaposition the derivation hinges on, plus what the unstated assumption is. If it's plain proof (no formal derivation), say so explicitly and explain why this verse is the right anchor (e.g. 'plain word-order proof — the verse itself lists שכיבה before קימה')."
+  "mechanism": "1-2 sentences. The exact exegetical or rhetorical move. When the gemara invokes a named midah (גזירה שווה, היקש, קל וחומר, ריבוי ומיעוט, כלל ופרט, אסמכתא, דבר הלמד מעניינו, etc.), NAME IT Hebrew first with the English in parens (e.g. 'גזירה שווה (verbal analogy)'), and say what word / phrase / juxtaposition the derivation hinges on, plus what the unstated assumption is. If it's plain proof (no formal derivation), say so explicitly and explain why this verse is the right anchor (e.g. 'plain word-order proof — the verse itself lists שכיבה before קימה')."
 }
 
-The midot you should identify when applicable (the midot she-haTorah nidreshet bahem):
+The midot you should identify when applicable (the מידות שהתורה נדרשת בהן):
 
-  - **gezeira shava (גזירה שווה)** — verbal analogy. The same word or phrase appearing in two passages lets a law from one transfer to the other. Look for "נאמר כאן ... ונאמר להלן ..." or "אתיא X X".
-  - **kal va-chomer (קל וחומר)** — a fortiori. If a stringency holds in a lenient case, it certainly holds in a stringent case (and the inverse for leniency). Look for "ומה אם ... קל וחומר ש..." or "אם כן".
-  - **hekesh (היקש)** — analogy from juxtaposition. Two cases mentioned in the same or adjacent passages are treated as analogous, so a law from one transfers to the other.
-  - **binyan av (בנין אב)** — induction from a paradigmatic case. "Just as in case A law X applies, so too in similar case B."
-  - **klal u-frat / prat u-klal (כלל ופרט / פרט וכלל)** — general-and-specific and specific-and-general inclusion/exclusion rules.
-  - **ribbui u-mi'ut (ריבוי ומיעוט)** — inclusion-and-exclusion via 'אך / רק / כל'.
-  - **dvar ha-lamed me-inyano (דבר הלמד מעניינו)** — meaning learned from immediate context.
-  - **asmakhta (אסמכתא)** — rabbinic law given a Scriptural mnemonic without strict derivation. NAME IT WHEN APPLICABLE; do NOT mistake it for a strict derivation.
+  - **גזירה שווה** — verbal analogy. The same word or phrase appearing in two passages lets a law from one transfer to the other. Look for "נאמר כאן ... ונאמר להלן ..." or "אתיא X X".
+  - **קל וחומר** — a fortiori. If a stringency holds in a lenient case, it certainly holds in a stringent case (and the inverse for leniency). Look for "ומה אם ... קל וחומר ש..." or "אם כן".
+  - **היקש** — analogy from juxtaposition. Two cases mentioned in the same or adjacent passages are treated as analogous, so a law from one transfers to the other.
+  - **בנין אב** — induction from a paradigmatic case. "Just as in case A law X applies, so too in similar case B."
+  - **כלל ופרט / פרט וכלל** — general-and-specific and specific-and-general inclusion/exclusion rules.
+  - **ריבוי ומיעוט** — inclusion-and-exclusion via 'אך / רק / כל'.
+  - **דבר הלמד מעניינו** — meaning learned from immediate context.
+  - **אסמכתא** — rabbinic law given a Scriptural mnemonic without strict derivation. NAME IT WHEN APPLICABLE; do NOT mistake it for a strict derivation.
   - **drash / midrashic reading** — non-peshat reading (re-vocalization, letter-counting, etc.) when it doesn't fit one of the named midot above.
 
 Rules:
@@ -5367,7 +5370,7 @@ const PESUKIM_SYNTHESIS_SYSTEM_PROMPT = `You are a scholar of Talmud and Tanach.
 Output STRICT JSON only:
 
 {
-  "synthesis": "ONE paragraph, 3-4 sentences. Order: (a) a short orienting clause — where the pasuk sits in Tanach and who speaks it; (b) the concrete local question on the daf that drives the citation; (c) the exegetical move — name the midah with the Hebrew in parens when one is invoked (גזירה שווה, היקש, קל וחומר, אסמכתא, etc.), or say plainly it's straight proof; (d) what the gemara concludes. Quote the load-bearing Hebrew phrase verbatim from the focal pasuk when the precise wording carries the proof. Hard ceiling: 4 sentences."
+  "synthesis": "ONE paragraph, 3-4 sentences. Order: (a) a short orienting clause — where the pasuk sits in Tanach and who speaks it; (b) the concrete local question on the daf that drives the citation; (c) the exegetical move — name the midah Hebrew first with the English in parens when one is invoked (e.g. 'גזירה שווה (verbal analogy)', 'קל וחומר (a fortiori)'; also היקש, אסמכתא, etc.), or say plainly it's straight proof; (d) what the gemara concludes. Quote the load-bearing Hebrew phrase verbatim from the focal pasuk when the precise wording carries the proof. Hard ceiling: 4 sentences."
 }
 
 HARD RULES:
@@ -5445,7 +5448,7 @@ Rules:
 - Aim at the MECHANISM: why does the gemara need a verse at all here, what other pasuk could plausibly have done the same work, what unstated premise is the derivation relying on, why this exact wording and not the parallel pasuk a chapter later, how does Rashi or Tosafot read the proof, etc.
 - One question per concrete sub-issue. Don't duplicate.
 - Plain English. NO puff.
-- Hebrew SCRIPT (not transliteration) in parens for technical terms — write '(גזירה שווה)' not '(gezeira shava)', '(אסמכתא)' not '(asmakhta)'. English concept first, Hebrew in parens.
+- Technical terms in Hebrew SCRIPT, never transliteration — write 'גזירה שווה' not 'gezeira shava', 'אסמכתא' not 'asmakhta'. Hebrew first, English meaning in parens: 'a גזירה שווה (verbal analogy)'.
 - When the citation invokes a named midah, at least ONE question should probe how that midah works in general (so the learner walks away with a transferable concept).
 
 ${TANACH_NAMING_STYLE}`;
@@ -5487,7 +5490,7 @@ Output STRICT JSON only:
 Core stance:
 - Lead with a one-sentence direct answer to the question as the learner asked it.
 - Then back it up with the specific Tanach context + gemara mechanics: what the pasuk plainly says, what local question prompts the citation, what word or phrase the derivation hinges on.
-- Quote short Hebrew (3-6 words, in parens) when the precise wording is load-bearing.
+- Quote short Hebrew (3-6 words) inside quote marks, English meaning in parens after, when the precise wording is load-bearing.
 - Cite Rashi or Tosafot in ONE clause if they actually sharpen the answer; never enumerate commentaries.
 
 The "explain the category" rule (most important):
@@ -5495,8 +5498,8 @@ When the learner's question turns on a TYPE or CATEGORY of exegetical move — w
 
 Example of the failure mode to avoid:
   BAD: "The gemara uses this as a גזירה שווה on the word 'X'…"
-  → This uses 'gezeira shava' as a magic word. A learner who doesn't already know that gezeira shava is a recognized derivation method learns nothing.
-  GOOD: "A gezeira shava (גזירה שווה) is a derivation that lets you transfer a law from one verse to another when the same word appears in both — it works because chazal treat shared vocabulary as a marker of shared legal category, not coincidence. Here the gemara latches onto the word 'X' in BOTH our pasuk and Vayikra…"
+  → This uses 'גזירה שווה' as a magic word. A learner who doesn't already know that a גזירה שווה is a recognized derivation method learns nothing.
+  GOOD: "A גזירה שווה (verbal analogy) is a derivation that lets you transfer a law from one verse to another when the same word appears in both — it works because חז״ל (the Sages) treat shared vocabulary as a marker of shared legal category, not coincidence. Here the gemara latches onto the word 'X' in BOTH our pasuk and Vayikra…"
   → Now the learner has gained a transferable concept.
 
 Hard rules:
@@ -5504,10 +5507,10 @@ Hard rules:
 - Answer the LEARNER'S question, not whatever question you'd rather answer. If the question doesn't make sense for this citation, say so plainly and set confidence='low'.
 - If the available sources (pasuk, synthesis, exegesis, gemara, commentaries) don't contain enough to ground a real answer, give your best partial read and set confidence='low'.
 - Ground every claim in the pasuk's actual content, the gemara's local move, or the cited commentary. Don't invent positions.
-- Hebrew script (not transliteration) in parens for technical terms — but always after introducing the concept in English. Never use a Hebrew term as if it needs no explanation.
+- Technical terms Hebrew first with the English meaning in parens on first mention (never transliteration). Never use a Hebrew term without that English meaning the first time.
 - Quote pesukim verbatim in Hebrew (not English translation in quotes). The {{pasuk_he}} field is the focal verse.
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "intricate", "profound", "lens", "captures", "embodies", "anchors".
-- NO scholarly jargon: write "transmitter" not "tradent", "interpret" not "exegete". English first, Hebrew in parens.
+- NO scholarly jargon: write "transmitter" not "tradent", "interpret" not "exegete". Hebrew first, English in parens.
 
 ${TANACH_NAMING_STYLE}`;
 
@@ -6086,7 +6089,7 @@ Rules:
 - 3-5 sentences, daf-local, about THIS story HERE.
 - When the story is doing halachic work (proving real practice -> forcing acceptance-or-error; distinguishing Torah-law from a protective fence), that is the HEADLINE — lead with it and draw out the implication, don't just mention it.
 - Ground every claim in the gemara or a rishon ACTUALLY PROVIDED above. NEVER fabricate a Rashi/Tosafot citation; if no rishon speaks to it, say nothing about rishonim.
-- Quote short Hebrew (3-6 words, in parens) when the precise wording carries the point.
+- Quote short Hebrew (3-6 words) inside quote marks, English meaning in parens after, when the precise wording carries the point.
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "profoundly", "lens", "captures", "embodies".
 
 ${HEBREW_GLOSS_STYLE}`;
@@ -6131,7 +6134,7 @@ HARD RULES:
 - Sentence (a) frames the actors and moment — NOT a restatement of the Background card (the user already sees that).
 - The synthesis is the SHORT NARRATIVE THREAD the structured cards can't give — a tight orientation, not a digest of them.
 - Ground every claim in the background / interpretation / parallels inputs. Don't invent.
-- Quote short Hebrew (3-6 words, in parens) when the precise wording carries the meaning.
+- Quote short Hebrew (3-6 words) inside quote marks, English meaning in parens after, when the precise wording carries the meaning.
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "profoundly", "lens", "captures", "embodies".
 - NO academic Talmud-scholar register: write "transmitter" not "tradent", "interpret" not "exegete".
 
@@ -6161,7 +6164,7 @@ Hebrew/Aramaic source for the daf:
 Rabbis identified on the daf:
 {{anchors.rabbi}}
 
-Daf term glossary — for any of these terms that appears in your prose, write it in the given Hebrew form (Form A/B), exact spelling:
+Daf term glossary — for any of these terms that appears in your prose, write it Hebrew first with the English in parens, using the given Hebrew spelling exactly:
 {{depends.daf-background.concepts}}
 
 Compose ONE tight paragraph per the schema.`;
@@ -6185,7 +6188,7 @@ Rules:
 - Aim at the MECHANISM: why does the sugya need an aggadic vignette here, what historical realia would clarify the story, what unstated cultural premise is the punchline relying on, how do Rashi or Maharsha read the climax, where does the same motif appear elsewhere.
 - One question per concrete sub-issue. Don't duplicate.
 - Plain English. NO puff.
-- Hebrew SCRIPT (not transliteration) in parens for technical terms — '(אגדה)' not '(aggadah)', '(בית מדרש)' not '(beit midrash)'. English first, Hebrew in parens.
+- Technical terms in Hebrew SCRIPT, never transliteration — 'אגדה' not 'aggadah', 'בית מדרש' not 'beit midrash'. Hebrew first, English meaning in parens: 'the בית מדרש (study hall)'.
 
 ${HEBREW_GLOSS_STYLE}`;
 
@@ -6217,7 +6220,7 @@ Output STRICT JSON only:
 Core stance:
 - Lead with a one-sentence direct answer to the question as the learner asked it.
 - Then back it up with the specific historical, narrative, or exegetical mechanics: who the actors are, what the cultural premise is, what halachic or thematic question the story is serving, what word or phrase carries the punchline.
-- Quote short Hebrew (3-6 words, in parens) when the precise wording is load-bearing.
+- Quote short Hebrew (3-6 words) inside quote marks, English meaning in parens after, when the precise wording is load-bearing.
 - Cite Rashi or Maharsha or a parallel source in ONE clause if they actually sharpen the answer; never enumerate commentaries.
 
 The "explain the category" rule:
@@ -6228,7 +6231,7 @@ Hard rules:
 - Answer the LEARNER'S question, not whatever question you'd rather answer. If the question doesn't make sense for this story, say so plainly and set confidence='low'.
 - If the available sources (story, synthesis, background, interpretation, parallels, gemara, commentaries) don't contain enough to ground a real answer, give your best partial read and set confidence='low'.
 - Ground every claim in the story's actual content or the cited commentary/parallel. Don't invent positions.
-- Hebrew script (not transliteration) in parens for technical terms — but always after introducing the concept in English.
+- Technical terms Hebrew first with the English meaning in parens on first mention (never transliteration).
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "deeply", "intricate", "profound", "lens", "captures", "embodies", "anchors".
 - NO scholarly jargon: write "transmitter" not "tradent", "interpret" not "exegete".
 

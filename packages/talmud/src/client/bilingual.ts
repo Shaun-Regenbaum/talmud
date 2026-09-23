@@ -1,39 +1,52 @@
 /**
- * Reader side of POST /api/bilingual (the Hebrew-once house rule, see
- * src/lib/bilingual.ts). Paragraphs render immediately as generated; the
- * cleaned text swaps in when the server answers. Requests from one render pass
- * are batched into a single POST, and each paragraph is asked for once per
- * page load. English mode only: Hebrew-mode prose has no English to gloss.
+ * Reader side of POST /api/bilingual (the Hebrew-first house rule, see
+ * src/lib/bilingual.ts). Paragraphs render immediately as generated; Jev's
+ * result (quotations flipped + the paragraph's name/term pairs) swaps in when
+ * the server answers. Requests from one render pass are batched into a single
+ * POST, and each paragraph is asked for once per page load. English mode
+ * only: Hebrew-mode prose has no English to gloss.
  */
 import { createEffect, createSignal, onCleanup } from 'solid-js';
-import type { GlossaryEntry } from '../lib/bilingual';
+import type { BilingualItem, GlossaryEntry } from '../lib/bilingual';
 import { lang } from './i18n';
 
-/** A Hebrew-only parenthesis somewhere in the text — the only thing the
- *  server ever changes, so anything without one skips the round trip. */
+/** A Hebrew-only parenthesis somewhere in the text — the only thing Jev is
+ *  asked about, so anything without one skips the round trip. */
 const HAS_HE_PAREN = /\([^()A-Za-z0-9]*[\u05D0-\u05EA][^()A-Za-z0-9]*\)/;
+
+/** One paragraph after Jev: its text and the pairs it pinned down. */
+export interface Judged {
+  text: string;
+  pairs: BilingualItem[];
+}
 
 const BATCH = 40;
 const MAX_CHARS = 4000;
-const memo = new Map<string, Promise<string>>();
-let queue: { text: string; resolve: (s: string) => void }[] = [];
+const memo = new Map<string, Promise<Judged>>();
+type Pending = { text: string; resolve: (j: Judged) => void };
+let queue: Pending[] = [];
 let timer: ReturnType<typeof setTimeout> | undefined;
 
-async function post(batch: { text: string; resolve: (s: string) => void }[]): Promise<void> {
+async function post(batch: Pending[]): Promise<void> {
   try {
     const res = await fetch('/api/bilingual', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ texts: batch.map((b) => b.text) }),
     });
-    const body = res.ok ? ((await res.json()) as { texts?: unknown }) : null;
+    const body = res.ok ? ((await res.json()) as { texts?: unknown; pairs?: unknown }) : null;
     const texts = Array.isArray(body?.texts) ? (body.texts as unknown[]) : [];
+    const pairs = Array.isArray(body?.pairs) ? (body.pairs as unknown[]) : [];
     batch.forEach((b, i) => {
       const t = texts[i];
-      b.resolve(typeof t === 'string' ? t : b.text);
+      const p = pairs[i];
+      b.resolve({
+        text: typeof t === 'string' ? t : b.text,
+        pairs: Array.isArray(p) ? (p as BilingualItem[]) : [],
+      });
     });
   } catch {
-    for (const b of batch) b.resolve(b.text);
+    for (const b of batch) b.resolve({ text: b.text, pairs: [] });
   }
 }
 
@@ -44,12 +57,14 @@ function flush(): void {
   for (let i = 0; i < all.length; i += BATCH) void post(all.slice(i, i + BATCH));
 }
 
-/** The paragraph under the house rule; resolves to the input on any failure. */
-export function cleanBilingual(text: string): Promise<string> {
-  if (!text || text.length > MAX_CHARS || !HAS_HE_PAREN.test(text)) return Promise.resolve(text);
+/** Jev's result for one paragraph; the input and no pairs on any failure. */
+export function judgeBilingual(text: string): Promise<Judged> {
+  if (!text || text.length > MAX_CHARS || !HAS_HE_PAREN.test(text)) {
+    return Promise.resolve({ text, pairs: [] });
+  }
   const hit = memo.get(text);
   if (hit) return hit;
-  const p = new Promise<string>((resolve) => {
+  const p = new Promise<Judged>((resolve) => {
     queue.push({ text, resolve });
     if (!timer) timer = setTimeout(flush, 30);
   });
@@ -57,14 +72,14 @@ export function cleanBilingual(text: string): Promise<string> {
   return p;
 }
 
-/** Reactive wrapper: the source text until its cleaned version arrives. */
-export function useBilingual(text: () => string): () => string {
-  const [done, setDone] = createSignal<{ src: string; out: string } | null>(null);
+/** Reactive wrapper: the source text (no pairs) until Jev's result arrives. */
+export function useBilingual(text: () => string): () => Judged {
+  const [done, setDone] = createSignal<{ src: string; out: Judged } | null>(null);
   createEffect(() => {
     const t = text();
     if (lang() !== 'en') return;
     let live = true;
-    void cleanBilingual(t).then((out) => {
+    void judgeBilingual(t).then((out) => {
       if (live) setDone({ src: t, out });
     });
     onCleanup(() => {
@@ -74,7 +89,7 @@ export function useBilingual(text: () => string): () => string {
   return () => {
     const t = text();
     const d = done();
-    return d && d.src === t && lang() === 'en' ? d.out : t;
+    return d && d.src === t && lang() === 'en' ? d.out : { text: t, pairs: [] };
   };
 }
 

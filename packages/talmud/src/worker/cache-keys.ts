@@ -232,14 +232,14 @@ export function keyForHebraize(hash: string): string {
  *  mention), keyed by a content hash of the paragraph as generated. Bump the
  *  version when the Jev questions or applyBilingual change what comes out. */
 export function keyForBilingual(hash: string): string {
-  return `bilingual:v2:${hash}`;
+  return `bilingual:v3:${hash}`;
 }
 
 /** A page's bilingual glossary: the name/term pairs (English + Hebrew) its
  *  saved prose pins down, used to give every paragraph on the page the same
  *  Hebrew on first mention. */
 export function keyForBilingualGlossary(tractate: string, page: string): string {
-  return `bilingual-glossary:v1:${tractate}:${page}`;
+  return `bilingual-glossary:v2:${tractate}:${page}`;
 }
 
 /** A rabbi's global bio enrichment, keyed by slug alone. */
