@@ -1,0 +1,78 @@
+{
+  "job_id": "challenge-12",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "a2655b187e79cd479677b85b82562b700b9858d58e08997b4c65ab29f97d0401",
+  "historical_graph_eligible": false,
+  "scope": "I checked every dossier finding and proposed correction against the saved sources in sources/ (all text quotes found verbatim) and read the Vilna, Bomberg 1523 and Munich 95 page images myself; I did not check other manuscripts, Dikdukei Soferim or any source not already saved, and fetched nothing new.",
+  "findings": [
+    {
+      "target": "f04 / proposed correction 'c7, c10, c19, c22, c26-c31 (voice)' / alt_narrator_person",
+      "decision": "qualify",
+      "reason": "The alternative to the teller's first person is misnamed. The whole unit sits under 'אמר רבא', and nothing in the printed third-person wording 'סבר ... אמר לה ... אמר להו' marks a switch to the anonymous Talmudic voice. So the printed reading is most naturally Rava retelling in the third person, which is how Soncino ('told me that he once came') and Glick ('It happened once, that he came') render it. The first-person evidence is also thinner than the finding says. The Vilna margin note 'י\"ג סברי . אמרי' (I confirmed it on the image) covers only the two asterisked words. Koren prints 'סְבַרִי ... אֲמַרִי לַהּ' but then 'בְּנֵיהּ' and 'אֲמַר לְהוּ', and the Davidson English of the same edition has 'He thought ... He said to her' throughout. Koren, Davidson and Steinsaltz are one editorial work, not three votes. Record the voice as 'Rava, reporting the branch-selected teller' under both readings. Keep a reading group for first against third person, with the printed Vilna reading kept as printed. An anonymous-narrator voice should be at most a low-confidence note."
+    },
+    {
+      "target": "proposed_corrections voice list (c8, c9, c11, c20, c21, c23, c32, c33)",
+      "decision": "add_missing_claim",
+      "reason": "The voice correction leaves out claims that also carry voice 'unknown' in the first reading. c32 and c33 rest on 'ולא הוו משני בדיבורייהו ולא הוה מיית איניש מהתם בלא זימניה'. That sentence is in 97a:6, right after the first-person 'איקלעי' and before 'נסיבי', so in every witness it is the teller speaking, as reported by Rava. It is the strongest case for fixing the voice, and it was missed. c8/c20 (the residents come 'לקמיה'), c9/c21 (the question 'מאי האי') and c11/c23 (the plea) are in 97a:7 like c7 and c10. They should get the same voice treatment as the other 97a:7 claims."
+    },
+    {
+      "target": "f09 (parenthood c12, c13, c24-c27; c28 derived; c31 coreference)",
+      "decision": "qualify",
+      "reason": "Support: in the printed text 'והוו לי תרתין בנין מינה' states the father ('לי') and the mother ('מינה'). Bomberg has the same (I read 'והוו לי תרתין בני מינה'). But on the Munich 95 image I read 'נסיבי איתתא מינייהו והוו לי תרי בני יומ' חד', with no 'מינה'. That is my own visual reading and it is uncertain. So scope c26/c27 (mother) as explicit in the printed reading. In a Munich-type reading the mother is inferred from the marriage just before. The father link is repeated in 97a:7 by 'שכיבו ליה' ('died to him'). That supports tying c31's dying sons to the same group by local coreference. c28 as derived is correct."
+    },
+    {
+      "target": "f05 (neighbor_of neighbour, wife; addressee and person the words are about)",
+      "decision": "support_proposed_correction",
+      "reason": "'אתאי שיבבתה טרפא אדשא' has the feminine verbs אתאי/טרפא and the possessive ־ה ('her neighbour'), which points back to 'דביתהו'. The husband's 'אמר לה ליתא הכא' marks the neighbour as addressee with 'לה'. 'She is not here' is about the wife. Keep the addressee (neighbour) and the person spoken about (wife) as separate roles, as proposed. Do not add any spoken request by the neighbour. Rashi's 'שהיתה שואלת אותה' is commentary (f06)."
+    },
+    {
+      "target": "f07 (new thought claim before the denial)",
+      "decision": "support_proposed_correction",
+      "reason": "'סבר לאו אורח ארעא' is an explicit thought turn by the husband before 'אמר לה'. Its content is only 'not proper conduct'. What was improper comes from Rashi ('לומר היכן היא הואיל וחייפ' רישה') and from Steinsaltz/Davidson plain text ('to tell the neighbor that his wife is bathing'). Those are one editorial line and one commentary, not the text. Its grammatical person follows the same reading group as f04."
+    },
+    {
+      "target": "f03 (recode c3/c15; drop 'offerers')",
+      "decision": "support_proposed_correction",
+      "reason": "'דאי הוו יהבי ליה כל חללי דעלמא לא הוה משני בדבוריה' is a counterfactual ('if they were to give him') about the sage, in third person ('ליה', 'בדבוריה'). It sits inside Rava's framing sentence. It describes a trait. No offer ever takes place, so the imagined givers do not refer to anyone and should not be a participant group. Iyun Yaakov's sales example (via Petach Einayim) is commentary on the trait. It does not create an event."
+    },
+    {
+      "target": "f14, f15 and the Bava Metzia coreference candidate",
+      "decision": "keep_evidence_types_separate",
+      "reason": "Support the unmerged candidate. Also record that Be'er Sheva's emendation is based on this very passage ('דהכי גרסינן בפרק חלק דף צ\"ז ע\"א ושם עיקר מקומו'), so it cannot count as evidence that the two passages share a person. Doing so would be circular. Seder HaDorot's 'או שהאריך רב טבות כ\"כ ימים' already assumes that identity, so it cannot support it either. The printed Bava Metzia reading 'רב שמואל בר זוטרא' stays as printed, and any emendation must not erase it. If that branch is ever recorded, its embedded parent (child_of Zutra) belongs to the Bava Metzia reading only. The Bava Metzia chain ('אמר רב פפי אמר לי רבינא לדידי אמר לי ההוא מרבנן') is one direction per link. None of it enters this passage."
+    },
+    {
+      "target": "f10 (member_of wife, residents; resided_in teller, town)",
+      "decision": "qualify",
+      "reason": "'נסיבי איתתא מינהון' explicitly makes the wife one of 'them'. 'Them' is the implied subject of 'לא הוו משני בדיבורייהו', the people of Kushta. The residents group in the first reading, however, is anchored at 'אינשי דאתרא' in 97a:7. So linking the wife to that group entity is local coreference, not explicit. resided_in(teller, town) as interpretation from 'פוק מאתרין' is fine. No departure is reported."
+    },
+    {
+      "target": "f02 (אמר לי / אמר ליה on c2, c14)",
+      "decision": "support_proposed_correction",
+      "reason": "I confirmed on the image that Bomberg reads 'ליכא קושטא בעלמא אמר / ליה ההוא מרבנן'. I confirmed that Munich reads 'א\"ל ההו' מרבנן', which can be expanded either way. Chokhmat Shlomo's 'אמר ליה ההוא כו' צ\"ל אמר לי' is a correction, and Maharal's 'אמר ליה' comes inside his Moses allegory. Keep c2/c14 as in the Vilna text with a variant note. Under 'ליה' the addressee is a pronoun whose nearest antecedent is Rava; the words do not name him. So the addressee is Rava at medium confidence in that reading. Neither reading makes this a meeting beyond the one reported telling. Glick's 'met' (f17) is translation wording."
+    },
+    {
+      "target": "f08, f11, f12 (cause of deaths, answer content, expulsion)",
+      "decision": "support_proposed_correction",
+      "reason": "The Aramaic gives only 'אמר לה ליתא הכא שכיבו ליה תרתין בנין' in sequence. 'Since he deviated from the truth' is Davidson plain text, 'וכיון ששינה בדיבורו' is Steinsaltz, and '[As a punishment for this]' is a Soncino bracket, so any causal edge is interpretation. The answer is only 'הכי הוה מעשה'. The residents ask him to leave ('במטותא מינך פוק מאתרין'), but no leaving is reported. Reshit Chokhmah's 'וגירשוהו' is a later retelling and adds no event."
+    }
+  ],
+  "quote_checks": [
+    {"source_id": "vilna_image", "exact_quote": "י\"ג סברי . אמרי", "matches_claim": true, "note": "Confirmed on the image: outer-margin gloss beside the asterisked '*סבר' and '*אמר לה' in the main text. It covers those two words only, not 'אמר להו' or 'ליה'."},
+    {"source_id": "vilna_image", "exact_quote": "[ב\"מ מט. ע\"ש]", "matches_claim": true, "note": "Confirmed on the image: margin cross-reference beside 'אמר לי *ההוא מרבנן'. The main text there reads 'אמר לי'."},
+    {"source_id": "bomberg_image", "exact_quote": "ליכא קושטא בעלמא אמר ליה ההוא מרבנן ורב", "matches_claim": true, "note": "Confirmed: 'אמר' ends one line and 'ליה ההוא מרבנן ורב' begins the next. The first name after 'ורב' is hard to read, as the dossier says."},
+    {"source_id": "bomberg_image", "exact_quote": "אדשא סבר לאו אורח ארעא אמרי לה ליתה הכא שכיבו ליה תרתי' בניה", "matches_claim": true, "note": "Confirmed in substance: 'סבר' then 'אמרי לה ליתה הכא שכיבו / ליה תרתי' בניה'. I read the spelling 'ארח' rather than 'אורח', which is a minor spelling point. The line before reads 'והוו לי תרתין בני מינה', so Bomberg has 'מינה'."},
+    {"source_id": "bomberg_image", "exact_quote": "מאי האי אמרי להו הכי הוה מעשה", "matches_claim": true, "note": "Confirmed: 'א\"ל מאי האי אמרי / להו הכי הוה מעשה'. The residents' question is introduced there by the abbreviation 'א\"ל'."},
+    {"source_id": "munich95_image", "exact_quote": "מריש הו\"א ליכא קושטא בעלמ' א\"ל ההו' מרבנן ורב", "matches_claim": true, "note": "Confirmed: 'א' רבא מריש הו\"א ליכא קושט' בעלמ' א\"ל ההו' מרבנן ורב'. I read 'קושט'' where the dossier has 'קושטא', a minor difference."},
+    {"source_id": "munich95_image", "exact_quote": "טבות שמי' ואמרי לה רב טביומי שמי'", "matches_claim": true, "note": "Confirmed. Both names are present, followed by 'דאי הוו יהבי לי' כל'."},
+    {"source_id": "munich95_image", "exact_quote": "לאו אורח ארעא אמרי לה ליתה הכא", "matches_claim": true, "note": "Confirmed for 'אמרי לה ליתה הכא'. I could not read the word before 'לאו' with confidence, so the 'אמינא' guess stays unverified. The next words look like 'שכיבו לה בני'. I could not read a number word, and the pronoun may be לה or ליה."},
+    {"source_id": "munich95_image", "exact_quote": "אמינא להו הכי הוה מעשה אמרו לי במטות' מינך פוק מאתרין", "matches_claim": true, "note": "Broadly confirmed at low legibility: '...אמינא להו הכי הוה מעשה אמרו לי במטו' מינך פוק / מאתרין ולא תיגרי בהו מותנא בהנך אינשי'. The earlier line reads 'נסיבי איתתא מינייהו והוו לי תרי בני יומ' חד הוה יתבא דביתהו'. I see no 'מינה', which bears on f09."},
+    {"source_id": "wikisource_he", "exact_quote": "נסיבי איתתא מינהון והוו לי תרתין בנין מינה", "matches_claim": true, "note": "Found once in 97a:6. It is the occurrence f09 needs: father 'לי', mother 'מינה'."},
+    {"source_id": "wikisource_he", "exact_quote": "אתאי שיבבתה טרפא אדשא", "matches_claim": true, "note": "Found once in 97a:7. The feminine verbs and possessive support f05."},
+    {"source_id": "koren_he", "exact_quote": "סְבַרִי: לָאו אוֹרַח אַרְעָא. אֲמַרִי לַהּ: לֵיתַהּ הָכָא. שְׁכִיבוּ לֵיהּ תְּרֵין בְּנֵיה", "matches_claim": true, "note": "Found. The same segment continues 'אֲמַר לְהוּ: הָכִי הֲוָה מַעֲשֶׂה', in third person. The Davidson English of the same edition renders 'He thought ... He said to her', so Koren is internally mixed and is not an independent first-person witness."},
+    {"source_id": "davidson_en", "exact_quote": "<b>He said to her: She is not here.</b> Since he deviated from the truth <b>his two sons died.", "matches_claim": true, "note": "Found. The causal clause is outside the bold, so it is editorial, as f08 says."},
+    {"source_id": "beer_sheva", "exact_quote": "נראה לי שיש טעות סופר וצריך להגיה ואמרי לה רב טביומי שמיה דאי כו' דהכי גרסינן בפרק חלק דף צ\"ז ע\"א ושם עיקר מקומו", "matches_claim": true, "note": "Found. The emendation cites Sanhedrin 97a as its ground, so it cannot in turn support a Sanhedrin to Bava Metzia identity."},
+    {"source_id": "wikisource_he", "exact_quote": "ולא הוו משני בדיבורייהו ולא הוה מיית איניש מהתם בלא זימניה", "matches_claim": true, "note": "Found in 97a:6, between first-person 'איקלעי' and 'נסיבי'. This supports the teller's voice for c32/c33, which the dossier's voice correction omitted."}
+  ],
+  "extra_sources": []
+}

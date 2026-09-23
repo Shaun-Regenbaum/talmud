@@ -1,0 +1,1891 @@
+{
+  "schema_version": "passage-pilot-v1",
+  "job_id": "random-yerushalmi-02",
+  "episode": {
+    "genre": "mixed",
+    "genre_reason": "Rules for high priests are illustrated by stories of replacement priests and Kimhit’s sons.",
+    "form": "Legal argument and attributed teachings",
+    "coverage": "needs_context",
+    "needed_context": [
+      "The preceding discussion is needed to identify exactly which priest is the unstated subject of s2."
+    ],
+    "notes": [
+      "All five supplied segments were read, including the bracketed wording. The stories are recorded as narrated events, with no historical confidence assigned. Hypothetical priestly cases are kept separate from the named stories."
+    ]
+  },
+  "mentions": [
+    {
+      "id": "m1",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רִבִּי מֵאִיר",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m2",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רַבָּנִן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m3",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רִבִּי אִילָא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m4",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "אַהֲרֹן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m5",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "רִבִּי יוֹחָנָן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m6",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רִבִּי חַגַּי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m7",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "בֶּן אִילֵּם",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m8",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "אִילֵּם",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m9",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "לְכֹהֵן גָּדוֹל",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m10",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "לַמֶּלֶךְ",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m11",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "שִׁמְעוֹן בֶּן קִמְחִית",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m12",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "קִמְחִית",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m13",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "מֶלֶךְ עָרְבִי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m14",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "יְהוּדָה אָחִיו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m15",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "שִׁבְעָה בָנִים",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m16",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "חֲכָמִים",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m17",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "מִחְלְפָה שִׁיטַּתּוֹן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m18",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "אִימָּן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m19",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "לְקִמְחִית",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m20",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "אָחִיו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m21",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "שֶׁלּוֹ",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m22",
+      "kind": "ambiguous",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "מֹשֶׁה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m23",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "מִפִּיו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m24",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "כֹּהֵן מָשִׁיחַ",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m25",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "הַמְרוּבֶּה בְגָדִים",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m26",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "מְשׁוּחַ מִלְחָמָה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m27",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "הַמֶּלֶךְ",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m28",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "לוֹ",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m29",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "כֹהֵן אַחֵר",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m30",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "הָרִאשׁוֹן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m31",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "הַשֵּׁינִי",
+        "occurrence": 1
+      }
+    }
+  ],
+  "entities": [
+    {
+      "id": "meir",
+      "kind": "person",
+      "label": "Rabbi Meir",
+      "mention_ids": [
+        "m1"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי מֵאִיר",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "rabbis",
+      "kind": "group",
+      "label": "The rabbis interpreting the priestly verses",
+      "mention_ids": [
+        "m2"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רַבָּנִן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "ila",
+      "kind": "person",
+      "label": "Rabbi Ila",
+      "mention_ids": [
+        "m3"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רִבִּי אִילָא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "aaron",
+      "kind": "person",
+      "label": "Aaron in the scriptural discussion",
+      "mention_ids": [
+        "m4"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אַהֲרֹן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yohanan",
+      "kind": "person",
+      "label": "Rabbi Yohanan",
+      "mention_ids": [
+        "m5"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "רִבִּי יוֹחָנָן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "haggai",
+      "kind": "person",
+      "label": "Rabbi Haggai",
+      "mention_ids": [
+        "m6"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רִבִּי חַגַּי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "ben_illem",
+      "kind": "person",
+      "label": "Ben Illem of Tzipporin",
+      "mention_ids": [
+        "m7"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "בֶּן אִילֵּם",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "illem",
+      "kind": "person",
+      "label": "Illem in Ben Illem’s name",
+      "mention_ids": [
+        "m8"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "אִילֵּם",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "first_priest",
+      "kind": "person",
+      "label": "Unnamed high priest replaced by Ben Illem",
+      "mention_ids": [
+        "m9"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "לְכֹהֵן גָּדוֹל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "king",
+      "kind": "person",
+      "label": "Unnamed king addressed by Ben Illem",
+      "mention_ids": [
+        "m10"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "לַמֶּלֶךְ",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "shimon",
+      "kind": "person",
+      "label": "Shimon ben Kimhit",
+      "mention_ids": [
+        "m11"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "שִׁמְעוֹן בֶּן קִמְחִית",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "kimhit",
+      "kind": "person",
+      "label": "Kimhit, mother of the priests",
+      "mention_ids": [
+        "m12",
+        "m18",
+        "m19"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "קִמְחִית",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "arab_king",
+      "kind": "person",
+      "label": "Arab king who speaks with Shimon",
+      "mention_ids": [
+        "m13"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "מֶלֶךְ עָרְבִי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yehuda",
+      "kind": "person",
+      "label": "Yehuda, Shimon’s brother",
+      "mention_ids": [
+        "m14",
+        "m20"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "יְהוּדָה אָחִיו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "seven_sons",
+      "kind": "group",
+      "label": "Kimhit’s seven sons",
+      "mention_ids": [
+        "m15"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "שִׁבְעָה בָנִים",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "sages",
+      "kind": "group",
+      "label": "Sages who send a question to Kimhit",
+      "mention_ids": [
+        "m16"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "חֲכָמִים",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "anon",
+      "kind": "group",
+      "label": "Unnamed voice comparing the legal texts",
+      "mention_ids": [
+        "m17"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "מִחְלְפָה שִׁיטַּתּוֹן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "meir_rule",
+      "kind": "statement",
+      "label": "The priest installed through garments also brings the bull",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הַמְרוּבֶּה בְגָדִים מֵבֵיא פָּר.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "rabbis_rule",
+      "kind": "statement",
+      "label": "The anointed priest brings the bull; the priest installed by garments does not",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "כֹּהֵן מָשִׁיחַ מֵבִיא פָּר. אֵין הַמְרוּבֶּה בְגָדִים מֵבִיא פָּר.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "context",
+      "kind": "statement",
+      "label": "Each interpretation follows its own context; whether the section already concerns Aaron changes what כהן adds",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "כָּל מִדְרַשׁ וּמִדְרַשׁ בְּעִנְיָינוֹ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "tenth",
+      "kind": "statement",
+      "label": "If he brought his tenth-ephah offering anyway it is valid",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "עָבַר וְהֵבִיא עֲשִׂירִית הָאֵיפָה שֶׁלּוֹ כָשֵׁר.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "tenth_priest",
+      "kind": "person",
+      "label": "Priest whose offering is discussed without a renewed name",
+      "mention_ids": [
+        "m21"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "שֶׁלּוֹ",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "haggai_warning",
+      "kind": "statement",
+      "label": "Publicly setting a replacement alongside him could lead him to kill the replacement",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "דִּינּוּן מְיַיחֲדִין לֵיהּ עִימֵּיהּ דּוּ קְטִיל לֵיהּ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "moshe_formula",
+      "kind": "unknown",
+      "label": "The expression Moshe in Haggai’s utterance",
+      "mention_ids": [
+        "m22"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "מֹשֶׁה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "enmity",
+      "kind": "statement",
+      "label": "One priest is anointed rather than two because of enmity",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "אָמַר רִבִּי יוֹחָנָן. מִפְּנֵי אֵיבָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "second_service",
+      "kind": "statement",
+      "label": "If the replacement priest performed service anyway, it is valid",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "עָבַר וְעָבַד עֲבוֹדָתוֹ כְשֵׁירָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "tzipporin",
+      "kind": "place",
+      "label": "Tzipporin, Ben Illem’s stated place",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "מִצִּיפּוֹרִין",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "emission",
+      "kind": "event",
+      "label": "The incumbent high priest has an emission on Yom Kippur",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "שֶׁאִירַע קֶרִי לְכֹהֵן גָּדוֹל בְּיוֹם הַכִּיפּוּרִים",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "illem_service",
+      "kind": "event",
+      "label": "Ben Illem serves as high priest in the incumbent’s place",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "וְנִכְנַס בֶּן אִילֵּם וְשִׁימֵּשׁ תַּחְתָּיו בִּכְהוּנָּה גְדוֹלָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "offering_question",
+      "kind": "statement",
+      "label": "Are the day’s bull and goat offered from my property or the high priest’s?",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "פָּר וְשָׂעִיר שֶׁל יוֹם מִשֶׁלִּי הֵן קְרֵיבִים אוֹ מִשֵׁלְּכֹהֵן גָּדוֹל.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "king_reply",
+      "kind": "statement",
+      "label": "It is enough that you served for one hour",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "לֹא דַּיֶיךָּ אֶלָּא שֶׁשִּׁימַּשְׁתָּה שָׁעָה אַחַת לִפְנֵי מִי שֶׁאָמַר וְהָיָה הָעוֹלָם דַּיֶיךָּ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "illem_understands",
+      "kind": "event",
+      "label": "Ben Illem understands that he is removed from the high priesthood",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "וְיָדַע בֶּן אִילֵּם שֶׁהוּסַּע מִכְּהוּנָּה גְּדוֹלָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "royal_conversation",
+      "kind": "event",
+      "label": "Shimon goes to speak with the Arab king near the eve of Yom Kippur",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "שֶׁיָּצָא לְדַבֵּר עִם מֶלֶךְ עָרְבִי [עֶרֶב יוֹם כִּפּוּרִים עִם חֲשֵׁכָה]",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "saliva",
+      "kind": "event",
+      "label": "Saliva splashes onto Shimon’s garments and makes him impure",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "וְנִתְּזָה צִינּוֹרָה שֶׁלְּרוֹק מִפִּיו עַל בְּגָדָיו וְטִימְּאַתּוּ",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yehuda_service",
+      "kind": "event",
+      "label": "Yehuda serves in Shimon’s place",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "וְנִכְנַס יְהוּדָה אָחִיו וְשִׁימֵּשׁ תַּחְתָּיו בִּכְהוּנָּה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "mother_sees",
+      "kind": "event",
+      "label": "Their mother sees two sons as high priests on one day",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "וְרָאָת אִימָּן שְׁנֵי בָנֶיהָ כֹּהֲנִים גְּדוֹלִים בְּיוֹם אֶחָד.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "seven_service",
+      "kind": "event",
+      "label": "All seven sons of Kimhit serve as high priests",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "שִׁבְעָה בָנִים הָיוּ לְקִמְחִית וְכוּלְּהֹם שִׁימְּשׁוּ בִכְהוּנָּה גְדוֹלָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "merit_question",
+      "kind": "statement",
+      "label": "What good deeds have you done?",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "מַה מַעֲשִׂים טוֹבִים יֵשׁ בְּיָדָךְ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "modesty_answer",
+      "kind": "statement",
+      "label": "Kimhit says the beams of her house never saw her hair or the hem of her garment",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "יָבוֹא עָלַי אִם רָאוּ קוֹרוֹת בֵּיתִי שְׂעָרוֹת רֹאשִׁי וְאִימְרַת חָלוקִי מִיָּמַיי.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "praise",
+      "kind": "event",
+      "label": "The sages praise Kimhit with a flour comparison and a verse about a king’s daughter",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "אָמְרוּן. כָּל קִמְחַיָּא קֶמַח וְקִימְחָא דְקִימְחִית סוֹלֶת. וְקָרְוּן עֲלָהּ כָּל כְּבוּדָּה בַת מֶלֶךְ פְּנִימָה מִמִּשְׁבְּצוֹת זָהָב לְבוּשָׁהּ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "anointed",
+      "kind": "person",
+      "label": "Generic anointed priest",
+      "mention_ids": [
+        "m24"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "כֹּהֵן מָשִׁיחַ",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "garments",
+      "kind": "person",
+      "label": "Generic priest installed by garments",
+      "mention_ids": [
+        "m25"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הַמְרוּבֶּה בְגָדִים",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "war_priest",
+      "kind": "person",
+      "label": "Generic priest anointed for war",
+      "mention_ids": [
+        "m26"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "מְשׁוּחַ מִלְחָמָה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "generic_king",
+      "kind": "person",
+      "label": "Generic king in the rejected scriptural derivation",
+      "mention_ids": [
+        "m27"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הַמֶּלֶךְ",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "generic_incumbent",
+      "kind": "person",
+      "label": "Generic incumbent high priest in the replacement question",
+      "mention_ids": [
+        "m28"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "לוֹ",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "generic_replacement",
+      "kind": "person",
+      "label": "Generic replacement priest",
+      "mention_ids": [
+        "m29"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "כֹהֵן אַחֵר",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "first_legal",
+      "kind": "person",
+      "label": "First priest in the restored-service rule",
+      "mention_ids": [
+        "m30"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "הָרִאשׁוֹן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "second_legal",
+      "kind": "person",
+      "label": "Second priest in the restored-service rule",
+      "mention_ids": [
+        "m31"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "הַשֵּׁינִי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "ben_illem",
+      "object": "illem",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "בְּבֶן אִילֵּם",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c2",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "shimon",
+      "object": "kimhit",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "שִׁמְעוֹן בֶּן קִמְחִית",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c3",
+      "family": "family",
+      "predicate": "sibling_of",
+      "subject": "yehuda",
+      "object": "shimon",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "וְנִכְנַס יְהוּדָה אָחִיו",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c4",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "yehuda",
+      "object": "kimhit",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "וְרָאָת אִימָּן שְׁנֵי בָנֶיהָ",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The two just-named brothers share the mother who sees both sons serving."
+      ]
+    },
+    {
+      "id": "c5",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "meir",
+      "object": "meir_rule",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "דְּרִבִּי מֵאִיר אָמַר. הַמְרוּבֶּה בְגָדִים מֵבֵיא פָּר.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c6",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "rabbis",
+      "object": "rabbis_rule",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "מַה טַעֲמוֹן דְּרַבָּנִן. מָשִׁיחַ. יָכוֹל זֶה הַמֶּלֶךְ. תַּלְמוּד לֹומַר כֹּהֵן. אִי כֹהֵן יָכוֹל אַף מְרוּבֶּה בְגָדִים. תַּלְמוּד לוֹמַר מָשִׁיחַ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c7",
+      "family": "views",
+      "predicate": "opposes",
+      "subject": "meir",
+      "object": "rabbis_rule",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "וּדְלֹא כְרִבִּי מֵאִיר. דְּרִבִּי מֵאִיר אָמַר. הַמְרוּבֶּה בְגָדִים מֵבֵיא פָּר.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c8",
+      "family": "views",
+      "predicate": "explains",
+      "subject": "ila",
+      "object": "rabbis_rule",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "context"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אָמַר רִבִּי אִילָא. כָּל מִדְרַשׁ וּמִדְרַשׁ בְּעִנְיָינוֹ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Ila answers the alleged inconsistency in how משיח and כהן are interpreted."
+      ]
+    },
+    {
+      "id": "c9",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "yohanan",
+      "object": "tenth",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אָמַר רִבִּי יוֹחָנָן עָבַר וְהֵבִיא עֲשִׂירִית הָאֵיפָה שֶׁלּוֹ כָשֵׁר.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c10",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "haggai",
+      "object": "haggai_warning",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "אָמַר רִבִּי חַגַּי. מֹשֶׁה. דִּינּוּן מְיַיחֲדִין לֵיהּ עִימֵּיהּ דּוּ קְטִיל לֵיהּ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "This is a rhetorical warning within a hypothetical appointment question. It does not narrate a killing. מֹשֶׁה is kept as an unresolved formula, not a person addressed in a meeting."
+      ]
+    },
+    {
+      "id": "c11",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "yohanan",
+      "object": "enmity",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "אוֹתוֹ. אֶחָד מוֹשְׁחִין וְאֵין מוֹשְׁחִין שְׁנַיִם. אָמַר רִבִּי יוֹחָנָן. מִפְּנֵי אֵיבָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c12",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "yohanan",
+      "object": "second_service",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "אָמַר רִבִּי יוֹחָנָן. עָבַר וְעָבַד עֲבוֹדָתוֹ כְשֵׁירָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c13",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "first_priest",
+      "object": "emission",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "שֶׁאִירַע קֶרִי לְכֹהֵן גָּדוֹל בְּיוֹם הַכִּיפּוּרִים",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "אירע קרי",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c14",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "ben_illem",
+      "object": "illem_service",
+      "roles": [
+        {
+          "role": "replaced",
+          "entity": "first_priest"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "וְנִכְנַס בֶּן אִילֵּם וְשִׁימֵּשׁ תַּחְתָּיו בִּכְהוּנָּה גְדוֹלָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "שימש תחתיו",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c15",
+      "family": "time",
+      "predicate": "before",
+      "subject": "emission",
+      "object": "illem_service",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "שֶׁאִירַע קֶרִי לְכֹהֵן גָּדוֹל בְּיוֹם הַכִּיפּוּרִים וְנִכְנַס בֶּן אִילֵּם וְשִׁימֵּשׁ תַּחְתָּיו בִּכְהוּנָּה גְדוֹלָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c16",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "ben_illem",
+      "object": "offering_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "king"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "וְאָמַר לַמֶּלֶךְ כְּשֶׁיָּצָא. אֲדוֹנִי הַמֶּלֶךְ. פָּר וְשָׂעִיר שֶׁל יוֹם מִשֶׁלִּי הֵן קְרֵיבִים אוֹ מִשֵׁלְּכֹהֵן גָּדוֹל.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c17",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "king",
+      "object": "offering_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "ben_illem"
+        },
+        {
+          "role": "content",
+          "entity": "king_reply"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "אָמַר לוֹ. בֶּן אִילֵּם. לֹא דַּיֶיךָּ אֶלָּא שֶׁשִּׁימַּשְׁתָּה שָׁעָה אַחַת לִפְנֵי מִי שֶׁאָמַר וְהָיָה הָעוֹלָם דַּיֶיךָּ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c18",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "ben_illem",
+      "object": "illem_understands",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "וְיָדַע בֶּן אִילֵּם שֶׁהוּסַּע מִכְּהוּנָּה גְּדוֹלָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "וידע: understands his removal",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c19",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "shimon",
+      "object": "royal_conversation",
+      "roles": [
+        {
+          "role": "interlocutor",
+          "entity": "arab_king"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "מַעֲשֶׂה בְשִׁמְעוֹן בֶּן קִמְחִית שֶׁיָּצָא לְדַבֵּר עִם מֶלֶךְ עָרְבִי [עֶרֶב יוֹם כִּפּוּרִים עִם חֲשֵׁכָה]",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "יצא לדבר",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c20",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "arab_king",
+      "object": "royal_conversation",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "שֶׁיָּצָא לְדַבֵּר עִם מֶלֶךְ עָרְבִי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "interlocutor",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c21",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "shimon",
+      "object": "saliva",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "וְנִתְּזָה צִינּוֹרָה שֶׁלְּרוֹק מִפִּיו עַל בְּגָדָיו וְטִימְּאַתּוּ",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "garments splashed; rendered impure",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c22",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "yehuda",
+      "object": "yehuda_service",
+      "roles": [
+        {
+          "role": "replaced",
+          "entity": "shimon"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "וְנִכְנַס יְהוּדָה אָחִיו וְשִׁימֵּשׁ תַּחְתָּיו בִּכְהוּנָּה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "שימש תחתיו",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c23",
+      "family": "time",
+      "predicate": "before",
+      "subject": "saliva",
+      "object": "yehuda_service",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "וְטִימְּאַתּוּ וְנִכְנַס יְהוּדָה אָחִיו וְשִׁימֵּשׁ תַּחְתָּיו בִּכְהוּנָּה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c24",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "kimhit",
+      "object": "mother_sees",
+      "roles": [
+        {
+          "role": "first_son",
+          "entity": "shimon"
+        },
+        {
+          "role": "second_son",
+          "entity": "yehuda"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "וְרָאָת אִימָּן שְׁנֵי בָנֶיהָ כֹּהֲנִים גְּדוֹלִים בְּיוֹם אֶחָד.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "וראת",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c25",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "seven_sons",
+      "object": "seven_service",
+      "roles": [
+        {
+          "role": "mother",
+          "entity": "kimhit"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "שִׁבְעָה בָנִים הָיוּ לְקִמְחִית וְכוּלְּהֹם שִׁימְּשׁוּ בִכְהוּנָּה גְדוֹלָה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "all served",
+      "time_scope": null,
+      "notes": [
+        "The five other sons are unnamed. This does not say all seven served on the same day."
+      ]
+    },
+    {
+      "id": "c26",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "sages",
+      "object": "merit_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "kimhit"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "שָׁלְחוּ חֲכָמִים וְאָמְרוּ לָהּ. מַה מַעֲשִׂים טוֹבִים יֵשׁ בְּיָדָךְ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "They send the question. A personal visit is not stated."
+      ]
+    },
+    {
+      "id": "c27",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "kimhit",
+      "object": "merit_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "sages"
+        },
+        {
+          "role": "content",
+          "entity": "modesty_answer"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "אָמְרָה לָהֶן. יָבוֹא עָלַי אִם רָאוּ קוֹרוֹת בֵּיתִי שְׂעָרוֹת רֹאשִׁי וְאִימְרַת חָלוקִי מִיָּמַיי.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The autobiographical content is her sworn claim."
+      ]
+    },
+    {
+      "id": "c28",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "sages",
+      "object": "praise",
+      "roles": [
+        {
+          "role": "target",
+          "entity": "kimhit"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "אָמְרוּן. כָּל קִמְחַיָּא קֶמַח וְקִימְחָא דְקִימְחִית סוֹלֶת. וְקָרְוּן עֲלָהּ כָּל כְּבוּדָּה בַת מֶלֶךְ פְּנִימָה מִמִּשְׁבְּצוֹת זָהָב לְבוּשָׁהּ.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "אמרון; וקרון עלה",
+      "time_scope": null,
+      "notes": [
+        "The quoted royal-daughter image does not establish that Kimhit’s father was a king."
+      ]
+    }
+  ],
+  "reading_groups": [],
+  "coreference_candidates": [
+    {
+      "mention_id": "m23",
+      "entity_ids": [
+        "arab_king",
+        "shimon"
+      ],
+      "branches": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "שֶׁיָּצָא לְדַבֵּר עִם מֶלֶךְ עָרְבִי [עֶרֶב יוֹם כִּפּוּרִים עִם חֲשֵׁכָה] וְנִתְּזָה צִינּוֹרָה שֶׁלְּרוֹק מִפִּיו",
+          "occurrence": 1
+        }
+      ],
+      "reason": "The nearest noun is the king, making him the likely source, but the possessive alone does not name the speaker."
+    }
+  ],
+  "open_questions": [
+    "Which priest is the unstated subject of s2?",
+    "What precise force does מֹשֶׁה have in Haggai’s remark? It is not used to assert an encounter with Moses.",
+    "Whose mouth supplies the saliva? The king is the nearest antecedent, but the wording uses a pronoun."
+  ]
+}

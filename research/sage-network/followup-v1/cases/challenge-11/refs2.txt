@@ -1,0 +1,7 @@
+Kiddushin 46a|sefaria_v3_kiddushin_46a_all.json
+Pesachim 106b|sefaria_v3_pesachim_106b_all.json
+Eruvin 40b|sefaria_v3_eruvin_40b_all.json
+Rashi on Eruvin 40b|rashi_eruvin_40b.json
+Rashash on Berakhot 27b|rashash_berakhot_27b.json
+Tosafot on Berakhot 27b:2:1|tosafot_berakhot_27b_2_1.json
+Berakhot 27b:4-9|sefaria_v3_berakhot_27b_4-9.json

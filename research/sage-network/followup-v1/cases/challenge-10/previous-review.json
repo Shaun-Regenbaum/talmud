@@ -1,0 +1,93 @@
+{
+  "job_id": "challenge-10",
+  "input_sha256": "d8977c7edcdd35ce2c1fc19f497441f7f78b6f437d4a1446bce30b4c2beb9674",
+  "output_sha256": "f65a6e1210ad8cddd58625ae034f4f9962f5b5234bbb4b1d07ab4b58e6b90b44",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "Yehuda’s transmission from Rav is separate from the story’s inner speakers and actions.",
+      "claim_ids": [
+        "c1",
+        "c3",
+        "c5",
+        "c13"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "Moses’s classroom scene is explicitly a future showing within the story, not an ordinary historical visit.",
+      "claim_ids": [
+        "c10"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "The students address Akiva, who replies with the Sinai tradition; that tradition is attributed to Moses without direct hearing.",
+      "claim_ids": [
+        "c13",
+        "c14",
+        "c15"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 3,
+      "status": "pass",
+      "reason": "Moses, the divine speaker, Akiva and the students retain their story roles apart from Yehuda and Rav.",
+      "claim_ids": [
+        "c3",
+        "c5",
+        "c6",
+        "c12",
+        "c13",
+        "c14"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "No ordinary student relation or historical co-presence of Moses and Akiva is asserted. The note explicitly rejects that inference.",
+      "claim_ids": [
+        "c10",
+        "c15"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "The report uses reports_in_name_of without adding direct hearing or lifetime ordering.",
+      "claim_ids": [
+        "c1"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "minor",
+      "type": "contract_limit",
+      "claim_ids": [
+        "c4",
+        "c6",
+        "c9",
+        "c19",
+        "c21",
+        "c25"
+      ],
+      "reason": "The divine interlocutor is typed person so that the contract permits speech and participation claims. The episode explicitly denies an assertion of humanity. This is a type-system limit, not a claim that God is a historical sage.",
+      "source_refs": [
+        "Menachot 29b:3",
+        "Menachot 29b:4",
+        "Menachot 29b:5"
+      ]
+    }
+  ],
+  "summary": "The transmission, extraordinary future scenes and inner dialogue remain distinct. Divine speaker typing is an acknowledged contract limit."
+}

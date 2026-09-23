@@ -1,0 +1,32 @@
+Rashi on Berakhot 27b:3|rashi_berakhot_27b_3.json
+Rashi on Berakhot 27b:1-4|rashi_berakhot_27b_1-4.json
+Rashi on Berakhot 27a:15-17|rashi_berakhot_27a_15-17.json
+Steinsaltz on Berakhot 27b:1-4|steinsaltz_berakhot_27b_1-4.json
+Steinsaltz on Berakhot 27a:15-17|steinsaltz_berakhot_27a_15-17.json
+Tosafot on Berakhot 27b|tosafot_berakhot_27b.json
+Tosafot on Berakhot 27a|tosafot_berakhot_27a.json
+Gilyon HaShas on Berakhot 27b|gilyon_hashas_berakhot_27b.json
+Abraham Cohen Footnotes to the English Translation of Masechet Berakhot 27b:1-4|cohen_footnotes_berakhot_27b_1-4.json
+Mishneh Torah, Torah Study 5|mishneh_torah_torah_study_5.json
+Shulchan Arukh, Orach Chayim 90:24-25|shulchan_arukh_oc_90_24-25.json
+Tur, Orach Chayim 90|tur_oc_90.json
+Meiri on Berakhot 27b|meiri_berakhot_27b.json
+Rif Berakhot 18b|rif_berakhot_18b.json
+Rosh on Berakhot 4:5|rosh_berakhot_4_5.json
+Tosafot HaRosh on Berakhot 27b|tosafot_harosh_berakhot_27b.json
+Shita Mekubetzet on Berakhot 27b|shita_mekubetzet_berakhot_27b.json
+Penei Yehoshua on Berakhot 27b|penei_yehoshua_berakhot_27b.json
+Ritva on Berakhot 27b|ritva_berakhot_27b.json
+Tziyyun LeNefesh Chayyah on Berakhot 27b|tzlach_berakhot_27b.json
+Tosafot on Kiddushin 46a:1:1|tosafot_kiddushin_46a_1_1.json
+Tosafot on Pesachim 106b:3:2|tosafot_pesachim_106b_3_2.json
+Ritva on Kiddushin 46a:1|ritva_kiddushin_46a_1.json
+Turei Zahav on Shulchan Arukh, Yoreh De'ah 242:14|taz_yd_242_14.json
+Bach, Yoreh De'ah 242:8|bach_yd_242_8.json
+Shulchan Arukh, Yoreh De'ah 242:24|shulchan_arukh_yd_242_24.json
+Beit Yosef, Orach Chayim 263:6|beit_yosef_oc_263_6.json
+Rosh on Shabbat 2:26|rosh_shabbat_2_26.json
+Kol Bo 31:7|kol_bo_31_7.json
+Chiddushei Ramban on Pesachim 54b:1|ramban_pesachim_54b_1.json
+Rashash on Eruvin 40b:2|rashash_eruvin_40b_2.json
+Jastrow, חָבֵר 1|jastrow_chaver_1.json

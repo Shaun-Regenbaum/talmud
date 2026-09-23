@@ -1,0 +1,69 @@
+{
+  "job_id": "original-01",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "a5ded29b20a1c4fe2aba99ad30feb415b5096e51d0b95abe4a250579762a1fdd",
+  "historical_graph_eligible": false,
+  "scope": "I checked every dossier quote against the saved bytes in sources/ and read Gittin 49b:9-50a:12 (Aramaic and English), Rashi, Steinsaltz, Rif, Rosh via Yam shel Shelomoh, Ramban, Rashba, Meiri, Tosafot Rid, Maggid Mishneh, Seder HaDorot, the Sefaria topic records, the Hebrew Wikipedia extract and the seven Bavli parallels; I fetched nothing new and did not check manuscripts, Hyman, Albeck or the Tosafot passage on which Rav Nachman an unqualified name means.",
+  "findings": [
+    {
+      "target": "F04",
+      "decision": "correct_occurrence",
+      "reason": "The one-local-person conclusion holds, but the graph effect lists Mar Zutra mentions at 49b:12 and 49b:14-15 that do not exist in the Aramaic. Those lines are 'אָמַר רָבָא: תָּא שְׁמַע', 'אָמַר אַבָּיֵי, תָּא שְׁמַע' and 'אָמַר רַב אַחָא בַּר יַעֲקֹב: הָכָא בְּמַאי עָסְקִינַן'. They argue about his view without naming him. The name 'Mar Zutra' there appears only in the Davidson English ('against the opinion of Mar Zutra'). The Aramaic mentions are 49b:9, 50a:4 and 50a:5. At 49b:12-15 his teaching is the target of the arguments, but he is not a mention, and the English wording should be recorded as editorial evidence."
+    },
+    {
+      "target": "F04 / 50a:4 (missing voices)",
+      "decision": "add_missing_claim",
+      "reason": "The dossier cites 'תְּיוּבְתָּא דְּמָר זוּטְרָא תְּיוּבְתָּא' as 'the refutation of Mar Zutra' but leaves out who speaks. The argument is Ravina's ('אָמַר רָבִינָא: תָּא שְׁמַע מֵעִיקָּרָא דְּתַקַּנְתִּין'), and the verdict is the anonymous Talmud voice. Record Ravina as the speaker, with Mar Zutra's 49b:9 teaching as the target. Record the verdict as unattributed. None of this is contact between Ravina and Mar Zutra, and it sets no birth order."
+    },
+    {
+      "target": "F05",
+      "decision": "qualify",
+      "reason": "The same-person candidate between P2 and P3 at medium confidence is sound. One piece of the reasoning is unsourced, though: 'Rav Nachman bar Yitzchak is also often called just Rav Nachman'. The only saved source on this (S39) says the opposite, that he is 'המוזכר בדרך כלל יחד עם שם אביו' (usually mentioned together with his father's name). S39 reports the bar-Yitzchak reading only second-hand, as Tosafot's report of Rashi's view. The 'naming convention' support listed on the proposed edge is the reader's own inference, not evidence. Label it that way, or drop it from the support list."
+    },
+    {
+      "target": "F09 (Hebrew Wikipedia)",
+      "decision": "qualify",
+      "reason": "The dossier says the Wikipedia sons list ('בניו של רב נחמן - הון, מר זוטרא, רבה...') has no cited source. But S39 was fetched with explaintext=1, which strips footnotes, so the saved bytes cannot show whether a citation exists. Say 'citation status unknown from the saved extract'. The low confidence and the external_biography label stay. The list also names a 'מר הונא בר רב נחמן', which is relevant to the open sibling question but does not create a sibling edge."
+    },
+    {
+      "target": "F10 / unresolved (Bekhorot 54b)",
+      "decision": "qualify",
+      "reason": "F10 uses S28 'אמר ליה מר זוטרא בריה דרב נחמן לרבא' to place Mar Zutra with Rava. S09, Seder HaDorot, indexes the same page differently: 'אמר לרב הונא ברי' דרב נחמן בכורות (נ\"ד ב')'. The saved Aramaic has 'מתקיף לה רב הונא בריה דרב נחמן' just before, so who is addressed there is uncertain across sources. Note this as a disagreement about the addressee in a parallel passage. F10 is already low confidence and adds no edge at Gittin 50a:5, so it changes only the supporting note."
+    },
+    {
+      "target": "F12",
+      "decision": "qualify",
+      "reason": "'Medieval codifiers rule in favour of Rav Nachman/Abaye against Rava' is too broad. Tosafot Rid (S16) rules the other way: 'והלכתא כרבא דקי\"ל כל אביי ורבא הלכה כרבא'. Ramban (S15) also suggests Rava may have argued only against Abaye's proof: 'ולדחויי תדע דידיה ולאו למיפלג עליה דרב נחמן'. The local text supports Rava speaking to Abaye ('אֲמַר לֵיהּ רָבָא'), with Abaye's proof as his target. In 50a:8 Rava goes on to argue against the ruling itself. Whether Rava disputes Rav Nachman's ruling, or only Abaye's proof, should stay a commentary question."
+    },
+    {
+      "target": "F01 / proposed_corrections[0]",
+      "decision": "support_proposed_correction",
+      "reason": "S01 50a:5 reads 'אָמַר מָר זוּטְרָא בְּרֵיהּ דְּרַב נַחְמָן, מִשְּׁמֵיהּ דְּרַב נַחְמָן'. This is one speaker with two separately written Rav Nachman mentions. The patronymic gives child_of P1->P2, and the father stays as a placeholder even though he does not act. משמיה gives reports_in_name_of P1->P3, with no meeting or teacher edge (F11). Splitting the single 'cites' label this way is correct. Ramban, Yam shel Shelomoh and Rashba are commentary on this passage, not extra text witnesses."
+    },
+    {
+      "target": "F07 / F03 (Yam shel Shelomoh)",
+      "decision": "keep_evidence_types_separate",
+      "reason": "Yam shel Shelomoh introduces its 'רב נחמן ומר זוטרא בריה ואביי קיימי בחדא שיטתא' with 'וכתב הרא\"ש מדברי הרי\"ף'. The Rif line it reworks reads only 'כיון דאביי ורב נחמן קיימי בחדא שיטתא'. So 'בריה' is Yam shel Shelomoh's own wording, one later commentator's reading, and it rests on the same Rif-Rosh chain. Rif, Rosh and Yam shel Shelomoh therefore count as one line of transmission, not three votes. The dossier treats this correctly at medium confidence. Keep it as commentary support for the same-person candidate, not as text."
+    },
+    {
+      "target": "50a:5 legal roles (missing note)",
+      "decision": "add_missing_claim",
+      "reason": "The ruling is a hypothetical legal case. Rashi glosses 'היוצא על היתומים - שלוה אביהם', so it involves a creditor, orphans and their dead father who took the loan. These are legal roles, not people, and must not become nodes. The orphans' 'father' in Rashi is especially easy to confuse with Mar Zutra's father P2. Add an explicit note to keep them out of the graph."
+    }
+  ],
+  "quote_checks": [
+    {"source_id": "S01", "exact_quote": "אָמַר מָר זוּטְרָא בְּרֵיהּ דְּרַב נַחְמָן, מִשְּׁמֵיהּ דְּרַב נַחְמָן", "matches_claim": true, "note": "Found once, at 50a:5 (segment 5 of the saved array). Supports child_of P1->P2 and reports_in_name_of P1->P3 as two separate mentions."},
+    {"source_id": "S01", "exact_quote": "תְּיוּבְתָּא דְּמָר זוּטְרָא תְּיוּבְתָּא", "matches_claim": true, "note": "Found once, at 50a:4. It refers back to Mar Zutra's 49b:9 distinction. The argument is Ravina's and the verdict is anonymous; the dossier leaves out both voices."},
+    {"source_id": "S03", "exact_quote": "אָמַר מָר זוּטְרָא בְּרֵיהּ דְּרַב נַחְמָן: לָא אֲמַרַן אֶלָּא מִיַּתְמֵי", "matches_claim": true, "note": "Found once, at 49b:9. This is the only full-name Mar Zutra mention on 49b. Segments 12, 14 and 15 do not name him in the Aramaic, so F04's mention list is wrong there."},
+    {"source_id": "S18", "exact_quote": "וכיון דרב נחמן ומר זוטרא בריה ואביי קיימי בחדא שיטתא", "matches_claim": true, "note": "Present in the saved JSON, where it is escaped. It is introduced by 'וכתב הרא\"ש מדברי הרי\"ף', so it is Yam shel Shelomoh's rewording of Rif-via-Rosh, and a commentary identification."},
+    {"source_id": "S15", "exact_quote": "והא ודאי כר' נחמן קי\"ל, דרביה דרבא הוא", "matches_claim": true, "note": "In context this is about the 50a:5 ruling, since the same passage goes on 'ולאו למיפלג עליה דרב נחמן'. It is Ramban's identification of the quoted Rav Nachman as Rava's teacher. It does not say 'bar Yaakov'."},
+    {"source_id": "S23", "exact_quote": "אמר ליה מר זוטרא בריה דרב נחמן לרב נחמן היכי דמי פדגרא אמר ליה כמחט בבשר החי", "matches_claim": true, "note": "Sotah 10a:14. The addressee is marked by 'לרב נחמן'. The explanations that follow ('מיחש הוה חש ביה', 'מרביה שמע ליה') do not mention kinship. Together with S24 it is one cross-passage observation."},
+    {"source_id": "S25", "exact_quote": "אמרוה רבנן קמיה דרבא משמיה דמר זוטרא בריה דרב נחמן דאמר משמיה דרב נחמן", "matches_claim": true, "note": "Bava Batra 151b:4. The speakers are the Rabbis, speaking before Rava. Mar Zutra and Rav Nachman appear only as cited links in the chain. This does not show that Mar Zutra was present before Rava."},
+    {"source_id": "S39", "exact_quote": "בניו של רב נחמן - הון, מר זוטרא, רבה, מר הונא בר רב נחמן, רב אחא, ורבין - היו תלמידי חכמים.", "matches_claim": true, "note": "Present. But the explaintext extract strips footnotes, so the dossier's 'without a cited source' cannot be checked from these bytes."},
+    {"source_id": "S39", "exact_quote": "לעומת רב נחמן בר יצחק המאוחר יותר, המוזכר בדרך כלל יחד עם שם אביו", "matches_claim": false, "note": "Quoted by the reviewer. It contradicts F05's unsourced reasoning that Rav Nachman bar Yitzchak is 'often called just Rav Nachman'."},
+    {"source_id": "S28", "exact_quote": "אמר ליה מר זוטרא בריה דרב נחמן לרבא", "matches_claim": true, "note": "Present in Bekhorot 54b:7, right after 'מתקיף לה רב הונא בריה דרב נחמן'. Seder HaDorot (S09) indexes this page as Mar Zutra speaking to Rav Huna brei deRav Nachman, so the addressee is disputed between sources."},
+    {"source_id": "S16", "exact_quote": "והלכתא כרבא דקי\"ל כל אביי ורבא הלכה כרבא", "matches_claim": false, "note": "Quoted by the reviewer. Tosafot Rid rules for Rava, against F12's claim that the medieval codifiers side with Rav Nachman and Abaye."}
+  ],
+  "extra_sources": []
+}

@@ -1,0 +1,60 @@
+{
+  "job_id": "challenge-06",
+  "input_sha256": "862635b3928c6de516623f649ce652f68664468db6a5a88a4c8a1a525059ccac",
+  "output_sha256": "13bfc3fe629908283a0c135bc988bb88b303090a780acc77ce6c2cd03df10c01",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "The proposed alignments with Yosi and Akiva have separate branches and remain hypothetical.",
+      "claim_ids": [
+        "c7",
+        "c9"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "The Yosi solution requires the anchored deletion of wine and does not call it a personal retraction.",
+      "claim_ids": [
+        "c7",
+        "c8"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "The Akiva solution points to the burnt offering and its accompanying requirements.",
+      "claim_ids": [
+        "c9"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "The alternatives are proposed reconciliations, not independent testimony establishing authorship.",
+      "claim_ids": [
+        "c7",
+        "c9"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "No meeting or unconditional agreement between the named people is asserted.",
+      "claim_ids": [
+        "c5",
+        "c6",
+        "c7",
+        "c9"
+      ]
+    }
+  ],
+  "additional_findings": [],
+  "summary": "The proposed text change and the two offered reconciliations remain distinct from settled attribution."
+}

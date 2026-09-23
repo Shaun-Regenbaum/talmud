@@ -1,0 +1,3 @@
+duckdb==1.5.5
+jsonschema==4.26.0
+prophex-lake @ git+https://github.com/Phase-Zero-Labs/prophex-research-app.git@a8b9c7b2bdb33eea2a8d7607d906c1b7fd1c517c#subdirectory=pipelines/lake

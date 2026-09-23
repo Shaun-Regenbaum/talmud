@@ -1,0 +1,2250 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-10",
+    "episode": {
+      "genre": "aggadic",
+      "genre_reason": "Moses is shown a future teacher and his fate in a narrated encounter with God.",
+      "form": "Teaching chain and story with predictions and future scenes",
+      "coverage": "complete_for_supplied_text",
+      "needed_context": [],
+      "notes": [
+        "The entire story is transmitted by Yehuda in Rav’s name; inner dialogue uses the depicted speakers. The divine interlocutor uses person as a narrative speaker type, without asserting humanity. No dream is named and no calendar dates are supplied."
+      ]
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב יהודה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "אמר רב בשעה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "משה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "הקב\"ה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "עקיבא בן יוסף",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "יוסף",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "תלמידיו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "הן",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "ששוקלין",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m10",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "למרום",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m11",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "במקולין",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m12",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "מסיני",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m13",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "תורה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m14",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "לפניו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m15",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "לו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m16",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "כחו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m17",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "לו",
+          "occurrence": 2
+        }
+      },
+      {
+        "id": "m18",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "להן",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m19",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "דעתו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m20",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "בשרו",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "yehuda",
+        "kind": "person",
+        "label": "Rav Yehuda",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב יהודה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "rav",
+        "kind": "person",
+        "label": "Rav",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר רב בשעה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "moses",
+        "kind": "person",
+        "label": "Moses",
+        "mention_ids": [
+          "m3",
+          "m16",
+          "m19",
+          "m15"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "משה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "god",
+        "kind": "person",
+        "label": "The divine interlocutor in the story",
+        "mention_ids": [
+          "m4",
+          "m14"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "הקב\"ה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "akiva",
+        "kind": "person",
+        "label": "Akiva son of Yosef",
+        "mention_ids": [
+          "m5",
+          "m17",
+          "m20"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "עקיבא בן יוסף",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "yosef",
+        "kind": "person",
+        "label": "Yosef in the patronymic",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "יוסף",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "students",
+        "kind": "group",
+        "label": "Akiva’s students in the viewed classroom",
+        "mention_ids": [
+          "m7",
+          "m18"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "תלמידיו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "class",
+        "kind": "group",
+        "label": "People speaking in the classroom",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "הן",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "weighers",
+        "kind": "group",
+        "label": "Unnamed people weighing flesh",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ששוקלין",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "height",
+        "kind": "place",
+        "label": "The heights Moses ascends to",
+        "mention_ids": [
+          "m10"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "למרום",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "market",
+        "kind": "place",
+        "label": "The meat market in the viewed scene",
+        "mention_ids": [
+          "m11"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "במקולין",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "sinai",
+        "kind": "place",
+        "label": "Sinai in the legal attribution",
+        "mention_ids": [
+          "m12"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "מסיני",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "torah",
+        "kind": "work",
+        "label": "Torah being given",
+        "mention_ids": [
+          "m13"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "תורה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "crowns_question",
+        "kind": "statement",
+        "label": "Who delays your hand?",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "מי מעכב על ידך",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "future",
+        "kind": "statement",
+        "label": "A future Akiva son of Yosef will derive many laws from each point",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אדם אחד יש שעתיד להיות בסוף כמה דורות ועקיבא בן יוסף שמו שעתיד לדרוש על כל קוץ וקוץ תילין תילין של הלכות",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "show",
+        "kind": "statement",
+        "label": "Show him to me",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "הראהו לי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "turn",
+        "kind": "statement",
+        "label": "Turn backward",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "חזור לאחורך",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "source_question",
+        "kind": "statement",
+        "label": "Teacher, where do you get this?",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רבי מנין לך",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "received",
+        "kind": "statement",
+        "label": "A law to Moses from Sinai",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "הלכה למשה מסיני",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "torah_question",
+        "kind": "statement",
+        "label": "With a person like this, why give Torah through me?",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "יש לך אדם כזה ואתה נותן תורה ע\"י",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "silence",
+        "kind": "statement",
+        "label": "Be silent; this is what arose in my thought",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "שתוק כך עלה במחשבה לפני",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "reward_request",
+        "kind": "statement",
+        "label": "Show me his reward",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "הראני שכרו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "reward_question",
+        "kind": "statement",
+        "label": "This is Torah and this its reward?",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "זו תורה וזו שכרה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "ascent",
+        "kind": "event",
+        "label": "Moses ascends and finds the divine crowning of letters",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "בשעה שעלה משה למרום מצאו להקב\"ה שיושב וקושר כתרים לאותיות",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "crowning",
+        "kind": "event",
+        "label": "The divine figure ties crowns to letters",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "שיושב וקושר כתרים לאותיות",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "lesson",
+        "kind": "event",
+        "label": "Moses sits at the back of eight rows without understanding the lesson",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "הלך וישב בסוף שמונה שורות ולא היה יודע מה הן אומרים",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "weakness",
+        "kind": "event",
+        "label": "Moses becomes discouraged",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "תשש כחו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "relief",
+        "kind": "event",
+        "label": "Moses regains composure after the attribution to him",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "נתיישבה דעתו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "return",
+        "kind": "event",
+        "label": "Moses returns before God",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "חזר ובא לפני הקב\"ה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "fate",
+        "kind": "event",
+        "label": "Moses sees Akiva’s flesh weighed in a market",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ראה ששוקלין בשרו במקולין",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "derivation",
+        "kind": "event",
+        "label": "Akiva’s future derivation of laws from letter points",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "שעתיד לדרוש על כל קוץ וקוץ תילין תילין של הלכות",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "transmission",
+        "predicate": "reports_in_name_of",
+        "subject": "yehuda",
+        "object": "rav",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר רב יהודה אמר רב",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "akiva",
+        "object": "yosef",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ועקיבא בן יוסף שמו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "god",
+        "polarity": "positive",
+        "modality": "prediction",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": "Future person as named inside the story",
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "moses",
+        "object": "ascent",
+        "roles": [
+          {
+            "role": "location",
+            "entity": "height"
+          },
+          {
+            "role": "encountered",
+            "entity": "god"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "בשעה שעלה משה למרום מצאו להקב\"ה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "ascended_and_found",
+        "time_scope": "Narrated heavenly encounter",
+        "notes": []
+      },
+      {
+        "id": "c4",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "god",
+        "object": "crowning",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "שיושב וקושר כתרים לאותיות",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "ties_crowns",
+        "time_scope": "Narrated heavenly encounter",
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "moses",
+        "object": "god",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "crowns_question"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר לפניו רבש\"ע מי מעכב על ידך",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "god",
+        "object": "crowns_question",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "moses"
+          },
+          {
+            "role": "content",
+            "entity": "future"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר לו אדם אחד יש שעתיד להיות בסוף כמה דורות ועקיבא בן יוסף שמו שעתיד לדרוש על כל קוץ וקוץ תילין תילין של הלכות",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The answer occurs in the story; its content predicts a future teacher."
+        ]
+      },
+      {
+        "id": "c7",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "akiva",
+        "object": "derivation",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "שעתיד לדרוש על כל קוץ וקוץ תילין תילין של הלכות",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "god",
+        "polarity": "positive",
+        "modality": "prediction",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "will_derive_laws",
+        "time_scope": "After several generations within the prediction",
+        "notes": []
+      },
+      {
+        "id": "c8",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "moses",
+        "object": "god",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "show"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר לפניו רבש\"ע הראהו לי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c9",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "god",
+        "object": "show",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "moses"
+          },
+          {
+            "role": "content",
+            "entity": "turn"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר לו חזור לאחורך",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c10",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "moses",
+        "object": "lesson",
+        "roles": [
+          {
+            "role": "classroom_speakers",
+            "entity": "class"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "הלך וישב בסוף שמונה שורות ולא היה יודע מה הן אומרים",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "sits_without_understanding",
+        "time_scope": "Future classroom shown inside the story",
+        "notes": [
+          "Sitting in this depicted classroom does not make Moses a historical student of Akiva."
+        ]
+      },
+      {
+        "id": "c11",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "moses",
+        "object": "weakness",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "תשש כחו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "strength_wanes",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c12",
+        "family": "teaching",
+        "predicate": "student_of",
+        "subject": "students",
+        "object": "akiva",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמרו לו תלמידיו רבי מנין לך",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": "Future classroom shown inside the story",
+        "notes": []
+      },
+      {
+        "id": "c13",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "students",
+        "object": "akiva",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "source_question"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמרו לו תלמידיו רבי מנין לך",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c14",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "akiva",
+        "object": "source_question",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "students"
+          },
+          {
+            "role": "content",
+            "entity": "received"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר להן הלכה למשה מסיני",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c15",
+        "family": "transmission",
+        "predicate": "attributes_to",
+        "subject": "received",
+        "object": "moses",
+        "roles": [
+          {
+            "role": "location",
+            "entity": "sinai"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "הלכה למשה מסיני",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "akiva",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "A traditional attribution within the classroom dialogue, not evidence of Akiva hearing Moses."
+        ]
+      },
+      {
+        "id": "c16",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "moses",
+        "object": "relief",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "נתיישבה דעתו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "regains_composure",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c17",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "moses",
+        "object": "return",
+        "roles": [
+          {
+            "role": "before",
+            "entity": "god"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "חזר ובא לפני הקב\"ה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "returns",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c18",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "moses",
+        "object": "god",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "torah_question"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמר לפניו רבונו של עולם יש לך אדם כזה ואתה נותן תורה ע\"י",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c19",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "god",
+        "object": "torah_question",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "moses"
+          },
+          {
+            "role": "content",
+            "entity": "silence"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמר לו שתוק כך עלה במחשבה לפני",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c20",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "moses",
+        "object": "god",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "reward_request"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמר לפניו רבונו של עולם הראיתני תורתו הראני שכרו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c21",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "god",
+        "object": "reward_request",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "moses"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמר לו חזור [לאחורך]",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c22",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "moses",
+        "object": "fate",
+        "roles": [
+          {
+            "role": "person_depicted",
+            "entity": "akiva"
+          },
+          {
+            "role": "location",
+            "entity": "market"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "חזר לאחוריו ראה ששוקלין בשרו במקולין",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "views_future_fate",
+        "time_scope": "Future scene shown inside the story",
+        "notes": []
+      },
+      {
+        "id": "c23",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "weighers",
+        "object": "fate",
+        "roles": [
+          {
+            "role": "person_depicted",
+            "entity": "akiva"
+          },
+          {
+            "role": "location",
+            "entity": "market"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ששוקלין בשרו במקולין",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "weigh_flesh",
+        "time_scope": "Future scene shown inside the story",
+        "notes": []
+      },
+      {
+        "id": "c24",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "moses",
+        "object": "god",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "reward_question"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמר לפניו רבש\"ע זו תורה וזו שכרה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c25",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "god",
+        "object": "reward_question",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "moses"
+          },
+          {
+            "role": "content",
+            "entity": "silence"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "א\"ל שתוק כך עלה במחשבה לפני",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rav",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      }
+    ],
+    "reading_groups": [],
+    "coreference_candidates": [],
+    "open_questions": [
+      "The particular law attributed to Moses is not specified."
+    ]
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "רב יהודה",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 4,
+      "end": 12,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "אמר רב בשעה",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 13,
+      "end": 24,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "משה",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 30,
+      "end": 33,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s1",
+      "quote": "הקב\"ה",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 46,
+      "end": 51,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s1",
+      "quote": "עקיבא בן יוסף",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 155,
+      "end": 168,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s1",
+      "quote": "יוסף",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 164,
+      "end": 168,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s2",
+      "quote": "תלמידיו",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 132,
+      "end": 139,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s2",
+      "quote": "הן",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 86,
+      "end": 88,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s3",
+      "quote": "ששוקלין",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 193,
+      "end": 200,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m10/anchor",
+      "source_id": "s1",
+      "quote": "למרום",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 34,
+      "end": 39,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m11/anchor",
+      "source_id": "s3",
+      "quote": "במקולין",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 206,
+      "end": 213,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m12/anchor",
+      "source_id": "s2",
+      "quote": "מסיני",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 170,
+      "end": 175,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m13/anchor",
+      "source_id": "s3",
+      "quote": "תורה",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 67,
+      "end": 71,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m14/anchor",
+      "source_id": "s1",
+      "quote": "לפניו",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 82,
+      "end": 87,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m15/anchor",
+      "source_id": "s1",
+      "quote": "לו",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 113,
+      "end": 115,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m16/anchor",
+      "source_id": "s2",
+      "quote": "כחו",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 100,
+      "end": 103,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m17/anchor",
+      "source_id": "s2",
+      "quote": "לו",
+      "occurrence": 2,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 129,
+      "end": 131,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m18/anchor",
+      "source_id": "s2",
+      "quote": "להן",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 156,
+      "end": 159,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m19/anchor",
+      "source_id": "s2",
+      "quote": "דעתו",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 184,
+      "end": 188,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m20/anchor",
+      "source_id": "s3",
+      "quote": "בשרו",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 201,
+      "end": 205,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yehuda/evidence/0",
+      "source_id": "s1",
+      "quote": "רב יהודה",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 4,
+      "end": 12,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/rav/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר רב בשעה",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 13,
+      "end": 24,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/moses/evidence/0",
+      "source_id": "s1",
+      "quote": "משה",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 30,
+      "end": 33,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/god/evidence/0",
+      "source_id": "s1",
+      "quote": "הקב\"ה",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 46,
+      "end": 51,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/akiva/evidence/0",
+      "source_id": "s1",
+      "quote": "עקיבא בן יוסף",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 155,
+      "end": 168,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yosef/evidence/0",
+      "source_id": "s1",
+      "quote": "יוסף",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 164,
+      "end": 168,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/students/evidence/0",
+      "source_id": "s2",
+      "quote": "תלמידיו",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 132,
+      "end": 139,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/class/evidence/0",
+      "source_id": "s2",
+      "quote": "הן",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 86,
+      "end": 88,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/weighers/evidence/0",
+      "source_id": "s3",
+      "quote": "ששוקלין",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 193,
+      "end": 200,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/height/evidence/0",
+      "source_id": "s1",
+      "quote": "למרום",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 34,
+      "end": 39,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/market/evidence/0",
+      "source_id": "s3",
+      "quote": "במקולין",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 206,
+      "end": 213,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sinai/evidence/0",
+      "source_id": "s2",
+      "quote": "מסיני",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 170,
+      "end": 175,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/torah/evidence/0",
+      "source_id": "s3",
+      "quote": "תורה",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 67,
+      "end": 71,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/crowns_question/evidence/0",
+      "source_id": "s1",
+      "quote": "מי מעכב על ידך",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 94,
+      "end": 108,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/future/evidence/0",
+      "source_id": "s1",
+      "quote": "אדם אחד יש שעתיד להיות בסוף כמה דורות ועקיבא בן יוסף שמו שעתיד לדרוש על כל קוץ וקוץ תילין תילין של הלכות",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 116,
+      "end": 220,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/show/evidence/0",
+      "source_id": "s2",
+      "quote": "הראהו לי",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 16,
+      "end": 24,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/turn/evidence/0",
+      "source_id": "s2",
+      "quote": "חזור לאחורך",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 32,
+      "end": 43,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/source_question/evidence/0",
+      "source_id": "s2",
+      "quote": "רבי מנין לך",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 140,
+      "end": 151,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/received/evidence/0",
+      "source_id": "s2",
+      "quote": "הלכה למשה מסיני",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 160,
+      "end": 175,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/torah_question/evidence/0",
+      "source_id": "s3",
+      "quote": "יש לך אדם כזה ואתה נותן תורה ע\"י",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 43,
+      "end": 75,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/silence/evidence/0",
+      "source_id": "s3",
+      "quote": "שתוק כך עלה במחשבה לפני",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 83,
+      "end": 106,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/reward_request/evidence/0",
+      "source_id": "s3",
+      "quote": "הראני שכרו",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 145,
+      "end": 155,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/reward_question/evidence/0",
+      "source_id": "s3",
+      "quote": "זו תורה וזו שכרה",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 230,
+      "end": 246,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/ascent/evidence/0",
+      "source_id": "s1",
+      "quote": "בשעה שעלה משה למרום מצאו להקב\"ה שיושב וקושר כתרים לאותיות",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 20,
+      "end": 77,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/crowning/evidence/0",
+      "source_id": "s1",
+      "quote": "שיושב וקושר כתרים לאותיות",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 52,
+      "end": 77,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/lesson/evidence/0",
+      "source_id": "s2",
+      "quote": "הלך וישב בסוף שמונה שורות ולא היה יודע מה הן אומרים",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 44,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/weakness/evidence/0",
+      "source_id": "s2",
+      "quote": "תשש כחו",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 96,
+      "end": 103,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/relief/evidence/0",
+      "source_id": "s2",
+      "quote": "נתיישבה דעתו",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 176,
+      "end": 188,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/return/evidence/0",
+      "source_id": "s3",
+      "quote": "חזר ובא לפני הקב\"ה",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 0,
+      "end": 18,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/fate/evidence/0",
+      "source_id": "s3",
+      "quote": "ראה ששוקלין בשרו במקולין",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 189,
+      "end": 213,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/derivation/evidence/0",
+      "source_id": "s1",
+      "quote": "שעתיד לדרוש על כל קוץ וקוץ תילין תילין של הלכות",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 173,
+      "end": 220,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר רב יהודה אמר רב",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 0,
+      "end": 19,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s1",
+      "quote": "ועקיבא בן יוסף שמו",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 154,
+      "end": 172,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "בשעה שעלה משה למרום מצאו להקב\"ה",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 20,
+      "end": 51,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s1",
+      "quote": "שיושב וקושר כתרים לאותיות",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 52,
+      "end": 77,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר לפניו רבש\"ע מי מעכב על ידך",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 78,
+      "end": 108,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר לו אדם אחד יש שעתיד להיות בסוף כמה דורות ועקיבא בן יוסף שמו שעתיד לדרוש על כל קוץ וקוץ תילין תילין של הלכות",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 109,
+      "end": 220,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s1",
+      "quote": "שעתיד לדרוש על כל קוץ וקוץ תילין תילין של הלכות",
+      "occurrence": 1,
+      "source_sha256": "56d3e1e319a8c2f7e17acdb7e8d1d0d92ce9c51cca08035cb8b142d97c2ae058",
+      "start": 173,
+      "end": 220,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר לפניו רבש\"ע הראהו לי",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 0,
+      "end": 24,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר לו חזור לאחורך",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 25,
+      "end": 43,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s2",
+      "quote": "הלך וישב בסוף שמונה שורות ולא היה יודע מה הן אומרים",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 44,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c11/evidence/0",
+      "source_id": "s2",
+      "quote": "תשש כחו",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 96,
+      "end": 103,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c12/evidence/0",
+      "source_id": "s2",
+      "quote": "אמרו לו תלמידיו רבי מנין לך",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 124,
+      "end": 151,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c13/evidence/0",
+      "source_id": "s2",
+      "quote": "אמרו לו תלמידיו רבי מנין לך",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 124,
+      "end": 151,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c14/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר להן הלכה למשה מסיני",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 152,
+      "end": 175,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c15/evidence/0",
+      "source_id": "s2",
+      "quote": "הלכה למשה מסיני",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 160,
+      "end": 175,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c16/evidence/0",
+      "source_id": "s2",
+      "quote": "נתיישבה דעתו",
+      "occurrence": 1,
+      "source_sha256": "ce4cbbdf82f1278db01d47fd2aefbf07f349e20d47b127ccb5ef5cd2fef60d20",
+      "start": 176,
+      "end": 188,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c17/evidence/0",
+      "source_id": "s3",
+      "quote": "חזר ובא לפני הקב\"ה",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 0,
+      "end": 18,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c18/evidence/0",
+      "source_id": "s3",
+      "quote": "אמר לפניו רבונו של עולם יש לך אדם כזה ואתה נותן תורה ע\"י",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 19,
+      "end": 75,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c19/evidence/0",
+      "source_id": "s3",
+      "quote": "אמר לו שתוק כך עלה במחשבה לפני",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 76,
+      "end": 106,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c20/evidence/0",
+      "source_id": "s3",
+      "quote": "אמר לפניו רבונו של עולם הראיתני תורתו הראני שכרו",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 107,
+      "end": 155,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c21/evidence/0",
+      "source_id": "s3",
+      "quote": "אמר לו חזור [לאחורך]",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 156,
+      "end": 176,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c22/evidence/0",
+      "source_id": "s3",
+      "quote": "חזר לאחוריו ראה ששוקלין בשרו במקולין",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 177,
+      "end": 213,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c23/evidence/0",
+      "source_id": "s3",
+      "quote": "ששוקלין בשרו במקולין",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 193,
+      "end": 213,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c24/evidence/0",
+      "source_id": "s3",
+      "quote": "אמר לפניו רבש\"ע זו תורה וזו שכרה",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 214,
+      "end": 246,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c25/evidence/0",
+      "source_id": "s3",
+      "quote": "א\"ל שתוק כך עלה במחשבה לפני",
+      "occurrence": 1,
+      "source_sha256": "9722a6f94807f8c7d826a747169d91f0dc0336add511a5a20fd2358d40619fa7",
+      "start": 247,
+      "end": 274,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "d8977c7edcdd35ce2c1fc19f497441f7f78b6f437d4a1446bce30b4c2beb9674",
+  "output_sha256": "f65a6e1210ad8cddd58625ae034f4f9962f5b5234bbb4b1d07ab4b58e6b90b44",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.320874+00:00"
+}

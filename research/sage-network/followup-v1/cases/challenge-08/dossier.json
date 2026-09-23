@@ -1,0 +1,998 @@
+{
+ "job_id": "challenge-08",
+ "focal_ref": "Chagigah 3a:4",
+ "status": "researched",
+ "question": "In the story of the two mute men near Rabbi (Chagigah 3a:4-5), which people and relations are stated by the text, which rest on interpretation, and which alternatives must stay open? Focus: the short 'Rabbi Yohanan' in the 'some say' report, the plural 'before them', missed relations, speech turns and source attributions.",
+ "scope_checked": "Checked: Chagigah 3a:2-6 in Wikisource (Vilna-based) and William Davidson Aramaic/vocalized Aramaic; three translations (William Davidson English, Sefaria Community English, Goldschmidt German); Steinsaltz Hebrew; Rashi, Tosafot and Rabbeinu Chananel on 3a; Ben Yehoyada and Petach Einayim; four later quotations of the story (Epistle of Rav Sherira Gaon, Oxford 1888 edition; Ein Yaakov in two editions; Yalkut Shimoni, Torat Emet text); the Tosefta and Yerushalmi Terumot 1:1 parallel with Tosefta Kifshutah; Mishnat Eretz Yisrael; Seder HaDorot; Jastrow. Not checked: Bavli manuscripts or Dikdukei Soferim, the printed Yuchasin, or Maharsha and other commentaries that Sefaria anchors to other lines of 3a. No manuscript image was read.",
+ "sources": [
+  {
+   "source_id": "pilot_input",
+   "input_path": "research/sage-network/pilot/inputs/challenge-08.json",
+   "edition": "Pilot source job (Wikisource Talmud Bavli, Chagigah 3a:3-5)",
+   "saved_file": "../../../pilot/inputs/challenge-08.json",
+   "evidence_type": "base_text",
+   "sha256": "13a11cfa4e437a0a0881af3e0bdaeb053dc6afa01105e9f877d0fcc9599a4fb5",
+   "fetched_at": null
+  },
+  {
+   "source_id": "pilot_output",
+   "input_path": "research/sage-network/pilot/outputs/challenge-08.json",
+   "edition": "First saved reading (passage-pilot-v1)",
+   "saved_file": "../../../pilot/outputs/challenge-08.json",
+   "evidence_type": "prior_reading",
+   "sha256": "3276943965c122b20972d12505a70fbc666412408de68ffcfb35d5d0783b72dc",
+   "fetched_at": null
+  },
+  {
+   "source_id": "previous_review",
+   "input_path": "research/sage-network/followup-v1/cases/challenge-08/previous-review.json",
+   "edition": "Earlier independent review",
+   "saved_file": "previous-review.json",
+   "evidence_type": "prior_review",
+   "sha256": "86c5ac5b46f984bb3cf6d45202bf52cb7f363da9c47cb104b8b4e0be996ddab2",
+   "fetched_at": null
+  },
+  {
+   "source_id": "wd_3a",
+   "edition": "William Davidson Edition - Vocalized Aramaic and William Davidson Edition - English (Koren Noé / Steinsaltz), via Sefaria v3 API",
+   "saved_file": "sources/chagigah_3a_v3.json",
+   "evidence_type": "base_text_and_translation",
+   "sha256": "a92c0d549bedc64b53fc5592a4773454b1048d13033f29c28cd0c92f6641bd10",
+   "url": "https://www.sefaria.org/api/v3/texts/Chagigah.3a?version=hebrew&version=english",
+   "fetched_at": "2026-09-23T08:23:04Z"
+  },
+  {
+   "source_id": "wikisource_3a",
+   "edition": "Wikisource Talmud Bavli (Vilna-based), via Sefaria",
+   "saved_file": "sources/chagigah_3a_wikisource.json",
+   "evidence_type": "base_text",
+   "sha256": "a0f5b9e2207cb88f12fcabda5e674d2688a754d4dd7935aaab645b4717731081",
+   "url": "https://www.sefaria.org/api/v3/texts/Chagigah.3a?version=hebrew%7CWikisource%20Talmud%20Bavli",
+   "fetched_at": "2026-09-23T08:23:22Z"
+  },
+  {
+   "source_id": "wd_aramaic_3a",
+   "edition": "William Davidson Edition - Aramaic (unvocalized), via Sefaria",
+   "saved_file": "sources/chagigah_3a_wd_aramaic.json",
+   "evidence_type": "base_text",
+   "sha256": "bec356294439b7fbb6a748f690efaec55e09d7533bf98802ca7c0a91ce8a6cb3",
+   "url": "https://www.sefaria.org/api/v3/texts/Chagigah.3a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Aramaic",
+   "fetched_at": "2026-09-23T08:23:23Z"
+  },
+  {
+   "source_id": "wikisource_3a6",
+   "edition": "Wikisource Talmud Bavli, Chagigah 3a:6",
+   "saved_file": "sources/chagigah_3a6_wikisource.json",
+   "evidence_type": "base_text",
+   "sha256": "396dadb9d01701da996cc57ca7a7559f679ab905dc688413411f9468693b9d8c",
+   "url": "https://www.sefaria.org/api/v3/texts/Chagigah.3a.6?version=hebrew%7CWikisource%20Talmud%20Bavli",
+   "fetched_at": "2026-09-23T08:27:08Z"
+  },
+  {
+   "source_id": "community_en_3a",
+   "edition": "Sefaria Community Translation (English)",
+   "saved_file": "sources/chagigah_3a_community_en.json",
+   "evidence_type": "translation",
+   "sha256": "475bde7c6edf9df80ec19581ca556a8f51072a36fe2c4dada9c549d45fad155f",
+   "url": "https://www.sefaria.org/api/v3/texts/Chagigah.3a?version=english%7CSefaria%20Community%20Translation",
+   "fetched_at": "2026-09-23T08:23:22Z"
+  },
+  {
+   "source_id": "goldschmidt_3a",
+   "edition": "Talmud Bavli. German trans. by Lazarus Goldschmidt, 1929",
+   "saved_file": "sources/chagigah_3a_goldschmidt_de.json",
+   "evidence_type": "translation",
+   "sha256": "4ba2cad331ab0188dcaaab1bddd92a1a0fee08946f59c92e94124065c968a40f",
+   "url": "https://www.sefaria.org/api/v3/texts/Chagigah.3a?version=german%7CTalmud%20Bavli.%20German%20trans.%20by%20Lazarus%20Goldschmidt%2C%201929%20%5Bde%5D",
+   "fetched_at": "2026-09-23T08:23:39Z"
+  },
+  {
+   "source_id": "steinsaltz_3a4",
+   "edition": "Steinsaltz on Chagigah 3a:4, William Davidson Edition - Hebrew",
+   "saved_file": "sources/steinsaltz_3a4.json",
+   "evidence_type": "commentary_same_editorial_work_as_wd_english",
+   "sha256": "def0cf69da76614171b5e68eedc08285570ff5d2c0a41f4ac475c239e728538e",
+   "url": "https://www.sefaria.org/api/v3/texts/Steinsaltz_on_Chagigah.3a.4",
+   "fetched_at": "2026-09-23T08:24:06Z"
+  },
+  {
+   "source_id": "steinsaltz_3a5",
+   "edition": "Steinsaltz on Chagigah 3a:5, William Davidson Edition - Hebrew",
+   "saved_file": "sources/steinsaltz_3a5.json",
+   "evidence_type": "commentary_same_editorial_work_as_wd_english",
+   "sha256": "2ae8941583956a7ceb4633a674f7ca3f2c3539b226fbcce5e9a5f414739019d3",
+   "url": "https://www.sefaria.org/api/v3/texts/Steinsaltz_on_Chagigah.3a.5",
+   "fetched_at": "2026-09-23T08:24:06Z"
+  },
+  {
+   "source_id": "rashi_3a",
+   "edition": "Rashi on Chagigah 3a, Vilna Edition",
+   "saved_file": "sources/rashi_chagigah_3a.json",
+   "evidence_type": "commentary",
+   "sha256": "243a4ddb8c5a3b13959b47913713cd5f21a0bc91219430021a74db48a02ea059",
+   "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Chagigah.3a",
+   "fetched_at": "2026-09-23T08:24:05Z"
+  },
+  {
+   "source_id": "tosafot_3a",
+   "edition": "Tosafot on Chagigah 3a, Vilna Edition",
+   "saved_file": "sources/tosafot_chagigah_3a.json",
+   "evidence_type": "commentary",
+   "sha256": "e7ea54b11c2e4f8662caadc5c82cf2d6a1ecbaebb0ef73ecc424660c2c9275f1",
+   "url": "https://www.sefaria.org/api/v3/texts/Tosafot_on_Chagigah.3a",
+   "fetched_at": "2026-09-23T08:24:05Z"
+  },
+  {
+   "source_id": "rch_3a",
+   "edition": "Rabbeinu Chananel on Chagigah 3a, Vilna Edition",
+   "saved_file": "sources/rabbeinu_chananel_3a1.json",
+   "evidence_type": "commentary_paraphrase",
+   "sha256": "0eac9054aea05e914a59a64bec710a56723e73ad204d2f2511c701fd4cebf04c",
+   "url": "https://www.sefaria.org/api/v3/texts/Rabbeinu_Chananel_on_Chagigah.3a.1?version=hebrew",
+   "fetched_at": "2026-09-23T08:25:55Z"
+  },
+  {
+   "source_id": "ben_yehoyada",
+   "edition": "Ben Yehoyada on Chagigah 3a:4 (Jerusalem 1897 base)",
+   "saved_file": "sources/ben_yehoyada_3a4.json",
+   "evidence_type": "commentary",
+   "sha256": "0402be8b0229de2914f2668c28c9c6876fbd13588c24173762dbe8fb2cad1512",
+   "url": "https://www.sefaria.org/api/v3/texts/Ben_Yehoyada_on_Chagigah.3a.4?version=hebrew",
+   "fetched_at": "2026-09-23T08:25:34Z"
+  },
+  {
+   "source_id": "petach_einayim",
+   "edition": "Petach Einayim on Chagigah 3a:1 (Jerusalem 1959)",
+   "saved_file": "sources/petach_einayim_3a1.json",
+   "evidence_type": "commentary",
+   "sha256": "6e2d7ee5dadea5af374d4a7cee65b9c5c2c0054a86e69f9399b0d34ff4f4b538",
+   "url": "https://www.sefaria.org/api/v3/texts/Petach_Einayim_on_Chagigah.3a.1?version=hebrew",
+   "fetched_at": "2026-09-23T08:25:34Z"
+  },
+  {
+   "source_id": "sherira",
+   "edition": "Epistle of Rav Sherira Gaon 1:38, Seder HaChachamim, Oxford 1888, with Sefaria Community Translation",
+   "saved_file": "sources/sherira_epistle_1_38.json",
+   "evidence_type": "later_quotation_witness",
+   "sha256": "c0825c3a0ceafe14050c1355915577f3924795f0925a4fe5dd9b30a14d76a7fa",
+   "url": "https://www.sefaria.org/api/v3/texts/Epistle_of_Rav_Sherira_Gaon.1.38?version=hebrew&version=english",
+   "fetched_at": "2026-09-23T08:24:16Z"
+  },
+  {
+   "source_id": "ein_yaakov_glick",
+   "edition": "Ein Yaakov (Glick Edition), Khagigah 1:1, Hebrew with S.H. Glick English (1916)",
+   "saved_file": "sources/ein_yaakov_khagigah_1_1.json",
+   "evidence_type": "later_quotation_witness_and_translation",
+   "sha256": "3f46fc5114fc59d63607f61022a0bacff880f9a88eb4916624c06bf7912657cd",
+   "url": "https://www.sefaria.org/api/v3/texts/Ein_Yaakov_(Glick_Edition),_Khagigah.1.1?version=hebrew&version=english",
+   "fetched_at": "2026-09-23T08:24:06Z"
+  },
+  {
+   "source_id": "ein_yaakov_daat",
+   "edition": "Ein Yaakov, Khagigah 1:2, Daat edition",
+   "saved_file": "sources/ein_yaakov_daat_khagigah_1_2.json",
+   "evidence_type": "later_quotation_witness",
+   "sha256": "a7e913008f56108a27f7ef5fd1db25322431a26fea3e5c940808426cbbeb02f5",
+   "url": "https://www.sefaria.org/api/v3/texts/Ein_Yaakov,_Khagigah.1.2?version=hebrew",
+   "fetched_at": "2026-09-23T08:25:55Z"
+  },
+  {
+   "source_id": "yalkut_356_3",
+   "edition": "Yalkut Shimoni on Torah 356:3, Torat Emet text",
+   "saved_file": "sources/yalkut_shimoni_torah_356_3.json",
+   "evidence_type": "later_quotation_witness",
+   "sha256": "9b0e884950e1e364ee05f26abb74905b2f6bd65116e3f2379819950c65c2e66d",
+   "url": "https://www.sefaria.org/api/v3/texts/Yalkut_Shimoni_on_Torah.356.3?version=hebrew",
+   "fetched_at": "2026-09-23T08:25:54Z"
+  },
+  {
+   "source_id": "tosefta_terumot",
+   "edition": "Tosefta Terumot 1:1 (Sefaria Hebrew with Community Translation)",
+   "saved_file": "sources/tosefta_terumot_1_1.json",
+   "evidence_type": "parallel_text",
+   "sha256": "1f8a4361425b31cec67f98134d1f2fb870bfced8312afad4010f98a2f7817fbf",
+   "url": "https://www.sefaria.org/api/v3/texts/Tosefta_Terumot.1.1?version=hebrew&version=english",
+   "fetched_at": "2026-09-23T08:24:07Z"
+  },
+  {
+   "source_id": "tosefta_lieberman",
+   "edition": "Tosefta Terumot 1:1, Lieberman, codex Vienna, JTS 2001",
+   "saved_file": "sources/tosefta_terumot_lieberman_1_1.json",
+   "evidence_type": "parallel_text",
+   "sha256": "eb4ba77b7855b5bbf6b2fa3ec5c63386c5a4995b70bf962d65189ceab157df62",
+   "url": "https://www.sefaria.org/api/v3/texts/Tosefta_Terumot_(Lieberman).1.1?version=hebrew",
+   "fetched_at": "2026-09-23T08:25:09Z"
+  },
+  {
+   "source_id": "yerushalmi_terumot",
+   "edition": "Jerusalem Talmud Terumot 1:1, Guggenheimer edition and translation",
+   "saved_file": "sources/yerushalmi_terumot_1_1.json",
+   "evidence_type": "parallel_text_and_translation",
+   "sha256": "1b95bec3015898a1c71514c5149cda37f923a93c50c64f16b2cd0ea4debd1d06",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Terumot.1.1?version=hebrew&version=english",
+   "fetched_at": "2026-09-23T08:24:17Z"
+  },
+  {
+   "source_id": "tk_terumot",
+   "edition": "Tosefta Kifshutah on Terumot 1:1:2, JTS 2001",
+   "saved_file": "sources/tosefta_kifshutah_terumot_1_1_2.json",
+   "evidence_type": "modern_commentary",
+   "sha256": "f905f61c30b75a5370e05cdd5311a51fef4181b94ca958324efcdab96f06f6b1",
+   "url": "https://www.sefaria.org/api/v3/texts/Tosefta_Kifshutah_on_Terumot.1.1.2",
+   "fetched_at": "2026-09-23T08:24:06Z"
+  },
+  {
+   "source_id": "mey_terumot",
+   "edition": "Mishnat Eretz Yisrael on Mishnah Terumot 1:1:48",
+   "saved_file": "sources/mey_terumot_1_1_48.json",
+   "evidence_type": "modern_commentary",
+   "sha256": "0169edad205a83ea675f281aff47ad71e925c672057284326438b55b27613b00",
+   "url": "https://www.sefaria.org/api/v3/texts/Mishnat_Eretz_Yisrael_on_Mishnah_Terumot.1.1.48?version=hebrew",
+   "fetched_at": "2026-09-23T08:25:09Z"
+  },
+  {
+   "source_id": "seder_hadorot",
+   "edition": "Seder HaDorot, Tanaim and Amoraim 1818, Warsaw 1878-1882",
+   "saved_file": "sources/seder_hadorot_1818.json",
+   "evidence_type": "biographical_compilation",
+   "sha256": "ff03626c83c2f4d95badfdc7d6dc4cabd741cf340185f9e39fecd819da202e8e",
+   "url": "https://www.sefaria.org/api/v3/texts/Seder_HaDorot,_Tanaim_and_Amoraim.1818?version=hebrew",
+   "fetched_at": "2026-09-23T08:24:16Z"
+  },
+  {
+   "source_id": "jastrow_gudgada",
+   "edition": "Jastrow Dictionary via Sefaria words API",
+   "saved_file": "sources/words_gudgada.json",
+   "evidence_type": "reference_work",
+   "sha256": "a55367ff97719de39a60da372581eccf52d22602e0040267409844cd40727328",
+   "url": "https://www.sefaria.org/api/words/%D7%92%D7%95%D7%93%D7%92%D7%93%D7%90?lookup_ref=Chagigah%203a:4",
+   "fetched_at": "2026-09-23T08:27:13Z"
+  },
+  {
+   "source_id": "links_3a4",
+   "edition": "Sefaria links API for Chagigah 3a:4",
+   "saved_file": "sources/links_3a4.json",
+   "evidence_type": "link_index",
+   "sha256": "7ac6f194eef9f67f06173ec94f10690681fbee4cf1737ad53c6f8c9a0a6f2165",
+   "url": "https://www.sefaria.org/api/links/Chagigah.3a.4?with_text=1",
+   "fetched_at": "2026-09-23T08:23:05Z"
+  },
+  {
+   "source_id": "links_3a5",
+   "edition": "Sefaria links API for Chagigah 3a:5",
+   "saved_file": "sources/links_3a5.json",
+   "evidence_type": "link_index",
+   "sha256": "bc59522a4fdfb39cfe3d2e25fcc3fd7f2a48c523f1c4e743dc281c9a0f8d6305",
+   "url": "https://www.sefaria.org/api/links/Chagigah.3a.5?with_text=1",
+   "fetched_at": "2026-09-23T08:24:05Z"
+  },
+  {
+   "source_id": "links_3a_all",
+   "edition": "Sefaria links API for Chagigah 3a",
+   "saved_file": "sources/links_3a_all.json",
+   "evidence_type": "link_index",
+   "sha256": "4dec88986a80bae4dd68a95feb66ffe2528b8b677edfb72505f65ef4135ff36a",
+   "url": "https://www.sefaria.org/api/links/Chagigah.3a",
+   "fetched_at": "2026-09-23T08:25:10Z"
+  },
+  {
+   "source_id": "versions_chagigah",
+   "edition": "Sefaria versions list for Chagigah",
+   "saved_file": "sources/versions_chagigah.json",
+   "evidence_type": "index",
+   "sha256": "bed93f98c5a3e58518415eba6a56f27855c293c7ab709d899fca0d1bf8dbb954",
+   "url": "https://www.sefaria.org/api/texts/versions/Chagigah",
+   "fetched_at": "2026-09-23T08:23:05Z"
+  },
+  {
+   "source_id": "search_phrase_1",
+   "edition": "Sefaria search, exact phrase בני ברתיה",
+   "saved_file": "sources/search_phrase_1.json",
+   "evidence_type": "search_index",
+   "sha256": "b3c1d18b7a0b8f38886182c454eea1e1b082566261a91e6d97abf2acf3984ee2",
+   "url": "https://www.sefaria.org/api/search-wrapper",
+   "fetched_at": "2026-09-23T08:28:10Z"
+  },
+  {
+   "source_id": "search_phrase_2",
+   "edition": "Sefaria search, exact phrase תרי אלמי",
+   "saved_file": "sources/search_phrase_2.json",
+   "evidence_type": "search_index",
+   "sha256": "2e6c2e49c6d397694a5bf70bc382ae604cbfc9248562393a378a43910481a07e",
+   "url": "https://www.sefaria.org/api/search-wrapper",
+   "fetched_at": "2026-09-23T08:28:11Z"
+  },
+  {
+   "source_id": "search_phrase_3",
+   "edition": "Sefaria search, exact phrase תרי אילמי",
+   "saved_file": "sources/search_phrase_3.json",
+   "evidence_type": "search_index",
+   "sha256": "a0c7d87af56f3131a21f36fd99572e34642f921f58c7bb2e97234a87a4c72d2b",
+   "url": "https://www.sefaria.org/api/search-wrapper",
+   "fetched_at": "2026-09-23T08:28:12Z"
+  },
+  {
+   "source_id": "search_gudgada",
+   "edition": "Sefaria search, lemma גודגדא",
+   "saved_file": "sources/search_gudgada.json",
+   "evidence_type": "search_index",
+   "sha256": "a0cc85dd6939124db4a6ff016d9e9a05c5aababf1d4dac2d0408952c65246484",
+   "url": "https://www.sefaria.org/api/search-wrapper",
+   "fetched_at": "2026-09-23T08:24:58Z"
+  }
+ ],
+ "failed_requests": [
+  {
+   "url": "https://www.sefaria.org/api/v3/texts/Chagigah.3a?version=english|Talmud Bavli. German trans. ...",
+   "result": "Empty versions list: the German version sits under the 'german' language key. Refetched successfully as sources/chagigah_3a_goldschmidt_de.json."
+  },
+  {
+   "url": "https://www.sefaria.org/api/v3/texts/Jastrow,_גּוּדְגָּדָא",
+   "result": "HTTP 404. The entry was then obtained from the words API (sources/words_gudgada.json)."
+  },
+  {
+   "url": "https://www.sefaria.org/api/search-wrapper (GET)",
+   "result": "Unsupported method. Searches were redone by POST."
+  },
+  {
+   "url": "https://www.sefaria.org/api/v3/texts/Yalkut_Shimoni_on_Torah.356",
+   "result": "Fetched, but section 356 as a whole starts elsewhere; the story is in 356:3 (saved separately). Whole-section file kept as sources/yalkut_shimoni_torah_356.json."
+  }
+ ],
+ "findings": [
+  {
+   "finding_id": "F01",
+   "claim": "The first report gives the full name 'Rabbi Yohanan ben Gudgada'. The 'some say' report gives only 'Rabbi Yohanan'. In both checked Aramaic texts on Sefaria, the Aramaic of the second report has no patronymic.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "בני ברתיה דרבי יוחנן בן גודגדא ואמרי לה בני אחתיה דרבי יוחנן דכל אימת",
+     "location": "Chagigah 3a:4, Wikisource",
+     "translation_mine": "Researcher's translation: sons of the daughter of Rabbi Yohanan ben Gudgada, and some say: sons of the sister of Rabbi Yohanan, who every time..."
+    },
+    {
+     "source_id": "wd_aramaic_3a",
+     "exact_quote": "בני ברתיה דרבי יוחנן בן גודגדא ואמרי לה בני אחתיה דרבי יוחנן דכל אימת",
+     "location": "Chagigah 3a:4, William Davidson Aramaic"
+    }
+   ],
+   "reasoning": "The two Aramaic texts agree word for word here. Both share the Vilna-type print tradition, so they are not independent witnesses. The short name follows immediately and is naturally read as the same man, but the words do not say so.",
+   "confidence": "high",
+   "graph_effect": "Give the short 'Rabbi Yohanan' in the sister report its own mention. Link it to the Yohanan ben Gudgada entity only as a local coreference candidate (basis: local_coreference / interpretation), not as the same mention."
+  },
+  {
+   "finding_id": "F02",
+   "claim": "Translations and commentaries that expand the short name all make it ben Gudgada. In the William Davidson English and in Steinsaltz, 'ben Gudgeda' appears only as editor's text. Glick renders it as 'his sister'. The Community and Goldschmidt translations keep the bare name.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "wd_3a",
+     "exact_quote": "<b>sons of the sister of Rabbi Yoḥanan</b> ben Gudgeda",
+     "location": "Chagigah 3a:4, William Davidson English",
+     "evidence_type": "translation_editorial_plain_text",
+     "note": "Bold = Aramaic; plain 'ben Gudgeda' = editor's addition."
+    },
+    {
+     "source_id": "steinsaltz_3a4",
+     "exact_quote": "<b>בני אחתיה</b> <small>[אחותו]</small> של <b>ר' יוחנן</b> בן גודגדא",
+     "location": "Steinsaltz on Chagigah 3a:4",
+     "evidence_type": "commentary_same_editorial_work_as_wd_english",
+     "translation_mine": "Researcher's translation: sons of his sister of R. Yohanan [unbolded:] ben Gudgada."
+    },
+    {
+     "source_id": "ein_yaakov_glick",
+     "exact_quote": "sons of the daughter of R. Jochanan b. Gudgada, and others say, sons of his sister",
+     "location": "Ein Yaakov (Glick) Khagigah 1:1, English"
+    },
+    {
+     "source_id": "community_en_3a",
+     "exact_quote": "(and some say it was the sons of R. Yochanan's sister)",
+     "location": "Chagigah 3a:4, Community Translation"
+    },
+    {
+     "source_id": "goldschmidt_3a",
+     "exact_quote": "Schwesterssöhne R. Joḥanans",
+     "location": "Chagigah 3a:4, Goldschmidt",
+     "translation_mine": "Researcher's translation: sister's sons of R. Johanan."
+    },
+    {
+     "source_id": "seder_hadorot",
+     "exact_quote": "בני בתו או בני אחותו היו אלמים ושומעים",
+     "location": "Seder HaDorot 1818, entry R. Yohanan ben Gudgada",
+     "translation_mine": "Researcher's translation: the sons of his daughter or the sons of his sister were mute and hearing."
+    }
+   ],
+   "reasoning": "The William Davidson English and Steinsaltz come from one editorial work, so they count as one interpretation. Glick and Seder HaDorot also read the pronoun as the same man. None of these is a textual witness for the patronymic in the second report.",
+   "confidence": "high",
+   "graph_effect": "The coreference is well supported as an interpretation. Record who holds it (Steinsaltz/WD editor, Glick, Seder HaDorot). Never cite the plain 'ben Gudgeda' in the English as Talmud text."
+  },
+  {
+   "finding_id": "F03",
+   "claim": "Rav Sherira Gaon's Epistle, in the Oxford 1888 edition, quotes the story with the two reports reversed. The sister report comes first and the daughter report is 'some say'. The full name 'Rabbi Yohanan ben Gudgada' appears in both. The Sefaria Community translation of this passage mistranslates the 'some say' formula.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "sherira",
+     "exact_quote": "בני אחתיה דר' יוחנן בן גודגדא ואמרי ליה בני ברתיה דר' יוחנן בן גודגדא",
+     "location": "Epistle of Rav Sherira Gaon 1:38, Hebrew/Aramaic",
+     "evidence_type": "later_quotation_witness",
+     "translation_mine": "Researcher's translation: sons of the sister of R. Yohanan ben Gudgada, and some say: sons of the daughter of R. Yohanan ben Gudgada."
+    },
+    {
+     "source_id": "sherira",
+     "exact_quote": "And the sons of the daughter of Rabbi Yohanan ben Gudgada said that whenever Rabbi would enter the study hall",
+     "location": "Epistle 1:38, Sefaria Community Translation",
+     "evidence_type": "translation",
+     "note": "This translation turns ואמרי ליה ('and some say') into speech by the daughter's sons. The Aramaic does not support that."
+    }
+   ],
+   "reasoning": "This is a quotation in a later work, not a Bavli manuscript. It shows that at least one transmitted form of the story named ben Gudgada in both reports and ordered them the other way. So neither report is textually 'primary', and the short name in the printed Bavli is not the only transmitted form.",
+   "confidence": "medium",
+   "graph_effect": "The two kinship branches must stay symmetric. Neither should be labelled the main reading. Save the Sherira form as a separate quotation-witness variant, not as corroboration of the print. Ignore the Community translation's speech reading: it creates no speech turn."
+  },
+  {
+   "finding_id": "F04",
+   "claim": "In the Torat Emet text, Yalkut Shimoni quotes the story with only the daughter report. It has no 'some say' sister clause.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "yalkut_356_3",
+     "exact_quote": "בְּנֵי בְּרַתֵּיהּ דְּרַבִּי יוֹחָנָן בֶּן גּוּדְגְּדָא, דְּכָל אֵימַת",
+     "location": "Yalkut Shimoni on Torah 356:3",
+     "evidence_type": "later_quotation_witness",
+     "translation_mine": "Researcher's translation: sons of the daughter of Rabbi Yohanan ben Gudgada, who every time..."
+    }
+   ],
+   "reasoning": "An anthology may shorten what it quotes, so this does not prove that a Bavli text lacked the clause. It does show that the sister alternative is absent from one transmitted form.",
+   "confidence": "medium",
+   "graph_effect": "Record this as a variant that lacks the sister branch. Do not drop the sister branch, which the print, both Ein Yaakov editions and Sherira all have."
+  },
+  {
+   "finding_id": "F05",
+   "claim": "Witnesses differ on 'before them' (plural) and 'before him' (singular), and translators resolve the pronoun differently. Vilna/Wikisource and William Davidson read plural קמייהו. Ein Yaakov (both editions), Sherira and Yalkut read singular קמיה. The William Davidson English and Steinsaltz make it 'the Sages'. The Community and Goldschmidt translations make it 'him', meaning Rabbi.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "הוו עיילי ויתבי קמייהו",
+     "location": "Chagigah 3a:4, Wikisource"
+    },
+    {
+     "source_id": "ein_yaakov_glick",
+     "exact_quote": "הוו עיילי ויתבי קמיה",
+     "location": "Ein Yaakov (Glick) Khagigah 1:1, Hebrew",
+     "evidence_type": "later_quotation_witness"
+    },
+    {
+     "source_id": "ein_yaakov_daat",
+     "exact_quote": "וְיַתְבֵי קַמֵּיהּ",
+     "location": "Ein Yaakov (Daat) Khagigah 1:2",
+     "evidence_type": "later_quotation_witness"
+    },
+    {
+     "source_id": "sherira",
+     "exact_quote": "הוו עיילין ויתבין קמיה",
+     "location": "Epistle of Rav Sherira Gaon 1:38",
+     "evidence_type": "later_quotation_witness"
+    },
+    {
+     "source_id": "yalkut_356_3",
+     "exact_quote": "הֲווּ עָיְילֵי קַמֵּיהּ",
+     "location": "Yalkut Shimoni on Torah 356:3",
+     "evidence_type": "later_quotation_witness"
+    },
+    {
+     "source_id": "wd_3a",
+     "exact_quote": "<b>enter and sit before</b> the Sages",
+     "location": "Chagigah 3a:4, William Davidson English",
+     "evidence_type": "translation_editorial_plain_text"
+    },
+    {
+     "source_id": "steinsaltz_3a4",
+     "exact_quote": "<small>[היו נכנסים ויושבים לפניהם,</small> לפני החכמים<small>]</small>",
+     "location": "Steinsaltz on Chagigah 3a:4",
+     "evidence_type": "commentary_same_editorial_work_as_wd_english",
+     "translation_mine": "Researcher's translation: [they would enter and sit before them,] before the Sages."
+    },
+    {
+     "source_id": "community_en_3a",
+     "exact_quote": "they would enter and sit before him",
+     "location": "Chagigah 3a:4, Community Translation"
+    },
+    {
+     "source_id": "goldschmidt_3a",
+     "exact_quote": "sich vor ihn setzten",
+     "location": "Chagigah 3a:4, Goldschmidt",
+     "translation_mine": "Researcher's translation: sat down before him."
+    }
+   ],
+   "reasoning": "In the singular reading, the natural antecedent is Rabbi, who has just been named. In the plural reading, the text names no group; 'the Sages' is the editor's resolution. Community and Goldschmidt may translate a singular text or may be resolving the plural freely. Their base text was not stated in the saved files.",
+   "confidence": "high",
+   "graph_effect": "Keep the first reading's coreference candidates [rabbi, listeners]. Attach the singular/plural variant, and attribute 'the Sages' to the William Davidson/Steinsaltz editor. A 'sat before Rabbi' edge is supported only under the singular variant or by interpretation."
+  },
+  {
+   "finding_id": "F06",
+   "claim": "The text states that the two men lived in Rabbi's neighbourhood. The first reading recorded no relation for this.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "הנהו תרי אילמי דהוו בשבבותיה דרבי",
+     "location": "Chagigah 3a:4, Wikisource",
+     "translation_mine": "Researcher's translation: those two mutes who were in the neighbourhood of Rabbi."
+    },
+    {
+     "source_id": "wd_3a",
+     "exact_quote": "<b>two mute people who were in the neighborhood of Rabbi</b> Yehuda HaNasi",
+     "location": "Chagigah 3a:4, William Davidson English"
+    }
+   ],
+   "reasoning": "שבבותא means neighbourhood. This is a stated relation between the pair and Rabbi, shared by both kinship branches. The sources quoting the story (Sherira, Ein Yaakov, Yalkut) all keep it.",
+   "confidence": "high",
+   "graph_effect": "Add a shared claim: pair lives_near / neighbour_of rabbi (voice narrator, basis explicit). Do not upgrade it to a household, patron or teacher relation."
+  },
+  {
+   "finding_id": "F07",
+   "claim": "The text does not say that the two learned from Rabbi or were his students. It says they came into the study house whenever Rabbi did, sat, nodded and moved their lips, and were later found to know the material. Guggenheimer and Sherira read this as learning in Rabbi's study house.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "דכל אימת דהוה עייל רבי לבי מדרשא הוו עיילי ויתבי קמייהו ומניידי ברישייהו ומרחשין שפוותייהו",
+     "location": "Chagigah 3a:4, Wikisource",
+     "translation_mine": "Researcher's translation: whenever Rabbi entered the study house they would enter and sit before them, nod their heads and move their lips."
+    },
+    {
+     "source_id": "yerushalmi_terumot",
+     "exact_quote": "They went to the lectures of Rebbi and when Rebbi prayed that they should be healed, it turned out that they had learned the entire Mishnah and halakhic Midrashim from his lectures.",
+     "location": "Guggenheimer, note 34 on Jerusalem Talmud Terumot 1:1",
+     "evidence_type": "modern_commentary"
+    },
+    {
+     "source_id": "sherira",
+     "exact_quote": "דביומיה דרבי איתרצן תוספתא ומתניין מן ההוא זימנא במדרשיה דר'. ומיתחזי האי סברא מההיא מימרא דמסכ' חגיגה",
+     "location": "Epistle of Rav Sherira Gaon 1:38",
+     "evidence_type": "commentary_use_of_quotation",
+     "translation_mine": "Researcher's translation: in the days of Rabbi the Tosefta was arranged and taught from that time in Rabbi's study house; and this view appears from that saying in tractate Chagigah."
+    }
+   ],
+   "reasoning": "Being present in the same study house is not the same as a teacher-student relation. Sherira uses the story as evidence about when the Tosefta was taught. That is his inference and depends on his reading of the list of works.",
+   "confidence": "high",
+   "graph_effect": "Keep co-attendance as explicit. Any taught_by / student_of edge from the pair to Rabbi must be an interpretation claim attributed to Guggenheimer or Sherira, never an explicit claim."
+  },
+  {
+   "finding_id": "F08",
+   "claim": "Rabbi prays for the two, and they are healed. The text says Rabbi 'asked for mercy for them'. It does not name God or any healer; 'God' is the translator's addition.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "ובעי רבי רחמי עלייהו ואיתסו",
+     "location": "Chagigah 3a:5, Wikisource",
+     "translation_mine": "Researcher's translation: and Rabbi asked for mercy for them, and they were healed."
+    },
+    {
+     "source_id": "wd_3a",
+     "exact_quote": "<b>prayed for</b> God to have <b>mercy upon them, and they were healed.",
+     "location": "Chagigah 3a:5, William Davidson English",
+     "evidence_type": "translation_editorial_plain_text"
+    }
+   ],
+   "reasoning": "The prayer and its beneficiaries are stated. That the prayer caused the healing comes from the order of the clauses joined by 'and'; it is not stated as cause. Rabbeinu Chananel paraphrases the result as 'ואתפתחו' ('they were opened').",
+   "confidence": "high",
+   "graph_effect": "Keep c12 and c15. If a divine addressee is added, make it interpretation (editor's plain text), not a speaker or participant stated by the text."
+  },
+  {
+   "finding_id": "F09",
+   "claim": "Source attribution and speech turns. The exclusions come from an anonymous baraita introduced by 'and it was taught'. The objection is in the anonymous voice of the Gemara. In the wider text (3a:6), Mar Zutra and Rav Ashi answer the objection. Rashi says Rav Ashi's reading would hold even without the difficulty of the two mutes.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "ותניא למען ישמעו פרט למדבר ואינו שומע ולמען ילמדו פרט לשומע ואינו מדבר",
+     "location": "Chagigah 3a:3, Wikisource",
+     "translation_mine": "Researcher's translation: and it was taught [in a baraita]: 'that they may hear' excludes one who speaks but does not hear; 'and that they may learn' excludes one who hears but does not speak."
+    },
+    {
+     "source_id": "wikisource_3a6",
+     "exact_quote": "אמר מר זוטרא קרי ביה למען ילמדו רב אשי אמר ודאי למען ילמדו הוא",
+     "location": "Chagigah 3a:6, Wikisource",
+     "translation_mine": "Researcher's translation: Mar Zutra said: read in it 'that they may teach'. Rav Ashi said: it certainly is 'that they may teach'."
+    },
+    {
+     "source_id": "rashi_3a",
+     "exact_quote": "בלאו קושיא דהנך תרי אילמי ליכא לאוקמי לדרשה דתנא דמעיט מהכא שומע ואינו מדבר אלא מלמען ילמדו",
+     "location": "Rashi on Chagigah 3a:6",
+     "evidence_type": "commentary",
+     "translation_mine": "Researcher's translation: even without the difficulty of those two mutes, one cannot base the tanna's exclusion of one who hears but does not speak on anything other than 'that they may learn'."
+    }
+   ],
+   "reasoning": "The first reading kept the exclusion as a statement with no source voice. ותניא marks a tannaitic source, and no tanna is named. Mar Zutra and Rav Ashi fall outside the saved input window, but they are the named respondents to the objection that the story supports.",
+   "confidence": "high",
+   "graph_effect": "Attach the exclusion statement to an unnamed 'baraita' source voice. When the window is widened to 3a:6, add speech claims: Mar Zutra and Rav Ashi each respond to the anonymous objection. No relation between Mar Zutra/Rav Ashi and the story's people follows from this."
+  },
+  {
+   "finding_id": "F10",
+   "claim": "The text calls the two 'sons' of one daughter (ברתיה) or one sister (אחתיה). They therefore share a mother in either report, and they are counted as two.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "תרי אילמי",
+     "location": "Chagigah 3a:4, Wikisource",
+     "translation_mine": "Researcher's translation: two mutes."
+    },
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "בני ברתיה",
+     "location": "Chagigah 3a:4",
+     "translation_mine": "Researcher's translation: sons of his daughter (singular)."
+    },
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "בני אחתיה",
+     "location": "Chagigah 3a:4",
+     "translation_mine": "Researcher's translation: sons of his sister (singular)."
+    }
+   ],
+   "reasoning": "The singular mother noun supports the first reading's c8 (sibling_of) as a close inference. Whether they are full brothers is not stated. No father is named, so no father placeholder is required.",
+   "confidence": "high",
+   "graph_effect": "Keep c4-c8. Label c8 as derived from a shared mother (maternal siblings at minimum). Do not add a father node. The grandchild relation to Yohanan is derived from c2+c4/c6 and is not a new observation."
+  },
+  {
+   "finding_id": "F11",
+   "claim": "The text calls him only 'Rabbi'. That he is Rabbi Yehuda HaNasi comes from the editor's plain text in the William Davidson English and from commentators such as Ben Yehoyada ('רבינו הקדוש').",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "wd_3a",
+     "exact_quote": "<b>Whenever Rabbi</b> Yehuda HaNasi <b>would enter the study hall",
+     "location": "Chagigah 3a:4, William Davidson English",
+     "evidence_type": "translation_editorial_plain_text"
+    },
+    {
+     "source_id": "ben_yehoyada",
+     "exact_quote": "לכך רפואתם היתה על ידי רבינו הקדוש",
+     "location": "Ben Yehoyada on Chagigah 3a:4",
+     "evidence_type": "commentary",
+     "translation_mine": "Researcher's translation: therefore their healing came through our holy Rabbi."
+    }
+   ],
+   "reasoning": "This is the standard use of the bare title, but it is still an identification. It should be scored at the identity stage.",
+   "confidence": "high",
+   "graph_effect": "Keep the local entity 'Rabbi'. Record the Yehuda HaNasi identification as an interpretation attributed to the editor and commentators."
+  },
+  {
+   "finding_id": "F12",
+   "claim": "The Tosefta and Yerushalmi (Terumot 1:1) contain a different report. There Rabbi Yehuda tells of the sons ('בניו') of Rabbi Yohanan ben Gudgada, who were deaf, and says all the ritually pure food of Jerusalem was prepared under their supervision. Tosefta Kifshutah holds that these are his actual sons in Temple times, while the Bavli tells of his grandsons in Rabbi's time. It adds that Yuchasin tried to harmonise the two.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "tosefta_terumot",
+     "exact_quote": "מעשה בבניו של ר' יוחנן בן גודגדה שהיו חרשים והיו כל הטהרות שבירושלים נעשות על גבם",
+     "location": "Tosefta Terumot 1:1",
+     "evidence_type": "parallel_text",
+     "translation_mine": "Researcher's translation: it happened with the sons of R. Yohanan ben Gudgada, who were deaf, and all the purities in Jerusalem were prepared under their supervision."
+    },
+    {
+     "source_id": "tosefta_lieberman",
+     "exact_quote": "מעשה בבניו של ר' יוחנן בן",
+     "location": "Tosefta Terumot 1:1, Lieberman (codex Vienna)",
+     "evidence_type": "parallel_text"
+    },
+    {
+     "source_id": "yerushalmi_terumot",
+     "exact_quote": "מַעֲשֶׂה בְּבָנָיו שֶׁל רִבִּי יוֹחָנָן בֶּן גּוּדְגָּדָא שֶׁהָיוּ כּוּלָּן חֱרֵשִׁים",
+     "location": "Jerusalem Talmud Terumot 1:1",
+     "evidence_type": "parallel_text",
+     "translation_mine": "Researcher's translation: it happened with the sons of Rabbi Yohanan ben Gudgada, who were all deaf."
+    },
+    {
+     "source_id": "tk_terumot",
+     "exact_quote": "וכנראה שרצה להשוות את המעשה בבבלי עם מסורת התוספתא והירושלמי",
+     "location": "Tosefta Kifshutah on Terumot 1:1:2",
+     "evidence_type": "modern_commentary",
+     "translation_mine": "Researcher's translation: apparently he [Yuchasin] wanted to equate the story in the Bavli with the tradition of the Tosefta and Yerushalmi."
+    },
+    {
+     "source_id": "tk_terumot",
+     "exact_quote": "ולא עוד אלא שכאן מדברים בבניו ממש שהיו בזמן הבית",
+     "location": "Tosefta Kifshutah on Terumot 1:1:2",
+     "evidence_type": "modern_commentary",
+     "translation_mine": "Researcher's translation: moreover, here they speak of his actual sons, who lived in Temple times."
+    },
+    {
+     "source_id": "tk_terumot",
+     "exact_quote": "ובבבלי מסופר על נכדיו שהיו בזמנו של רבי",
+     "location": "Tosefta Kifshutah on Terumot 1:1:2",
+     "evidence_type": "modern_commentary",
+     "translation_mine": "Researcher's translation: and in the Bavli the story is about his grandsons, who lived in Rabbi's time."
+    }
+   ],
+   "reasoning": "The Tosefta and Yerushalmi texts are textual. The claim that they describe different people from the Bavli pair is Tosefta Kifshutah's interpretation, and it opposes a harmonising earlier compiler. Tosefta Kifshutah's 'grandsons' also follows only the daughter report.",
+   "confidence": "medium",
+   "graph_effect": "Do not merge the Tosefta/Yerushalmi 'sons' (a plural group, number not stated) with the Bavli pair. If those passages enter the graph, they add a separate child_of claim to Yohanan ben Gudgada, reported by R. Yehuda, in their own passages. Any identity link to the Bavli pair is a separate, disputed identity decision."
+  },
+  {
+   "finding_id": "F13",
+   "claim": "Modern summaries simplify the passage in ways the texts do not support. Guggenheimer gives only the daughter report ('sons of his normal daughter'). Mishnat Eretz Yisrael says Yohanan ben Gudgada had 'two sons' who were deaf, but the saved Tosefta says only 'his sons' and the Yerushalmi says 'all of them'.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "yerushalmi_terumot",
+     "exact_quote": "it is reported that his grandsons, the sons of his normal daughter, were ostensibly deaf-mutes",
+     "location": "Guggenheimer, note 34 on Jerusalem Talmud Terumot 1:1",
+     "evidence_type": "modern_commentary"
+    },
+    {
+     "source_id": "mey_terumot",
+     "exact_quote": "שני בניו היו חירשים",
+     "location": "Mishnat Eretz Yisrael on Mishnah Terumot 1:1:48",
+     "evidence_type": "modern_commentary",
+     "translation_mine": "Researcher's translation: his two sons were deaf."
+    }
+   ],
+   "reasoning": "A summary can fold a Bavli detail (two) into a Tosefta report, or drop an alternative. Neither summary is evidence for a count or for a single branch.",
+   "confidence": "high",
+   "graph_effect": "Do not take a count of two for the Tosefta sons from Mishnat Eretz Yisrael. Do not collapse the Bavli kinship to the daughter branch on the strength of Guggenheimer."
+  },
+  {
+   "finding_id": "F14",
+   "claim": "A later kabbalistic tradition identifies the two mutes as reincarnations of Eldad and Medad. The Chida (Petach Einayim) cites it from the Rama of Fano, received from R. Israel Saruk, and Ben Yehoyada repeats it.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "petach_einayim",
+     "exact_quote": "כתוב בגלגולי הנשמות שקבל הרמ\"ע ממהר\"י סרוק דהני אלמי היו גלגול אלדד ומידד",
+     "location": "Petach Einayim on Chagigah 3a:1",
+     "evidence_type": "commentary",
+     "translation_mine": "Researcher's translation: it is written in Gilgulei HaNeshamot, which the Rama received from R. Israel Saruk, that these mutes were a reincarnation of Eldad and Medad."
+    },
+    {
+     "source_id": "ben_yehoyada",
+     "exact_quote": "עיין פתח עינים שהיו גלגול אלדד ומידד",
+     "location": "Ben Yehoyada on Chagigah 3a:4",
+     "evidence_type": "commentary"
+    }
+   ],
+   "reasoning": "This is a mystical soul identification by later authors. It is not an identity of persons and not a historical claim about the two men.",
+   "confidence": "high",
+   "graph_effect": "Do not link the pair to Eldad or Medad in the person graph. If kept at all, store it as a reception-history claim attributed to these authors, not eligible for the historical graph."
+  },
+  {
+   "finding_id": "F15",
+   "claim": "The list of works varies between witnesses. The input (Wikisource) ends 'וכולה הש\"ס'. The William Davidson text reads 'וכולה תלמודא'. Sherira, Ein Yaakov, Yalkut and Rabbeinu Chananel add Tosefta. Glick's English drops Sifra and Sifrei.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "הלכתא וספרא וספרי וכולה הש\"ס",
+     "location": "Chagigah 3a:5, Wikisource"
+    },
+    {
+     "source_id": "wd_aramaic_3a",
+     "exact_quote": "הלכתא וספרא וספרי וכולה תלמודא",
+     "location": "Chagigah 3a:5, William Davidson Aramaic"
+    },
+    {
+     "source_id": "sherira",
+     "exact_quote": "הלכתא וסיפרא וסיפרי ותוספתא וכוליה תלמודא",
+     "location": "Epistle of Rav Sherira Gaon 1:38",
+     "evidence_type": "later_quotation_witness"
+    },
+    {
+     "source_id": "ein_yaakov_glick",
+     "exact_quote": "וספרא וספרי ותוספתא וכולי גמרא",
+     "location": "Ein Yaakov (Glick) Khagigah 1:1, Hebrew",
+     "evidence_type": "later_quotation_witness"
+    },
+    {
+     "source_id": "yalkut_356_3",
+     "exact_quote": "וְתוֹסֶפְתָּא",
+     "location": "Yalkut Shimoni on Torah 356:3",
+     "evidence_type": "later_quotation_witness"
+    },
+    {
+     "source_id": "rch_3a",
+     "exact_quote": "הלכתא וסיפרי וסיפרא ותוספתא וכולה תלמודא",
+     "location": "Rabbeinu Chananel on Chagigah 3a",
+     "evidence_type": "commentary_paraphrase"
+    },
+    {
+     "source_id": "ein_yaakov_glick",
+     "exact_quote": "they were well versed on Halacha, and on the entire six sections of the Mishnah",
+     "location": "Ein Yaakov (Glick), English",
+     "evidence_type": "translation"
+    },
+    {
+     "source_id": "rashi_3a",
+     "exact_quote": "הלכתא - משניות:",
+     "location": "Rashi on Chagigah 3a:5",
+     "evidence_type": "commentary",
+     "translation_mine": "Researcher's translation: 'halakha' means mishnayot."
+    }
+   ],
+   "reasoning": "This does not change any person or kinship claim. It does change the work mentions m14-m17. Sherira's argument about the Tosefta depends on the reading that includes it. Ein Yaakov (Daat) prints Tosefta in parentheses.",
+   "confidence": "high",
+   "graph_effect": "Keep work mentions tied to their witness. Tosefta is a variant work mention, and הש\"ס versus תלמודא is a wording variant. 'Halakha' is a genre (Rashi: mishnayot), not a named work."
+  },
+  {
+   "finding_id": "F16",
+   "claim": "'Gudgada' is a father's name inside the patronymic, and Jastrow reads it as 'father of R. Johanan'. Jastrow also notes that the printed Eduyot 7:9 has 'Nechunya ben Gudgada' where the Munich manuscript has 'Yohanan'. So the first name paired with Gudgada is unstable elsewhere in the corpus.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "pilot_input",
+     "exact_quote": "רבי יוחנן בן גודגדא",
+     "location": "Chagigah 3a:4"
+    },
+    {
+     "source_id": "jastrow_gudgada",
+     "exact_quote": "<i>Gudgada</i>, father of R. Johanan.",
+     "location": "Jastrow, גּוּדְגָּדָא",
+     "evidence_type": "reference_work"
+    },
+    {
+     "source_id": "jastrow_gudgada",
+     "exact_quote": "<span dir=\"rtl\">ר׳ נחוניה בן ג׳</span> ed. (Ms. M.",
+     "location": "Jastrow, גּוּדְגָּדָא",
+     "evidence_type": "reference_work"
+    }
+   ],
+   "reasoning": "Under the project rule, the patronymic keeps a parent placeholder. Reading it as a literal father is the default, and no checked source reads it as a clan name. The Eduyot variant belongs to identity work, not to this passage.",
+   "confidence": "medium",
+   "graph_effect": "Keep entity 'gudgada' and claim c1 (literal father, high reading confidence). Note that identifying this Yohanan with the Yohanan/Nechunya ben Gudgada of the Mishnah is a later identity decision."
+  },
+  {
+   "finding_id": "F17",
+   "claim": "Nothing checked settles the dates. Tosefta Kifshutah places Yohanan ben Gudgada's sons in Temple times and the Bavli pair in Rabbi's time as grandsons. Guggenheimer calls ben Gudgada a first-generation Tanna and Levite gatekeeper. Whether the daughter report or the sister report fits these dates better is a historical inference that no checked source works out. No checked source proposes a different 'Rabbi Yohanan' for the short name.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "yerushalmi_terumot",
+     "exact_quote": "A Tanna of the first generation. A Levite who in the Temple was a guardian of the gates.",
+     "location": "Guggenheimer, note 34 on Jerusalem Talmud Terumot 1:1",
+     "evidence_type": "modern_commentary"
+    },
+    {
+     "source_id": "tk_terumot",
+     "exact_quote": "ובבבלי מסופר על נכדיו שהיו בזמנו של רבי",
+     "location": "Tosefta Kifshutah on Terumot 1:1:2",
+     "evidence_type": "modern_commentary"
+    }
+   ],
+   "reasoning": "The 'some say' formula records a disagreement over the family relation. It does not show that either report is historically wrong. The short name alone does not rule out a different Yohanan, but no source supports one, so that option stays open only in structure.",
+   "confidence": "low",
+   "graph_effect": "Keep historical_compatibility 'unknown' on the kinship reading group. Do not use date reasoning to prune a branch at the reading stage."
+  }
+ ],
+ "alternative_readings": [
+  {
+   "id": "A1",
+   "question": "Whose sons are the two?",
+   "options": [
+    "Sons of a daughter of R. Yohanan ben Gudgada (first in Vilna/WD/Ein Yaakov; the only reading in Yalkut; 'some say' in Sherira)",
+    "Sons of a sister of R. Yohanan (short name in Vilna/WD/Ein Yaakov; first reading, with full name, in Sherira)"
+   ],
+   "status": "Both must stay open. Neither is primary across witnesses.",
+   "evidence_findings": [
+    "F01",
+    "F03",
+    "F04"
+   ]
+  },
+  {
+   "id": "A2",
+   "question": "Is the 'Rabbi Yohanan' of the sister report ben Gudgada?",
+   "options": [
+    "Yes: local coreference, supported by the Sherira text form and by Steinsaltz/WD, Glick and Seder HaDorot as interpretation",
+    "Open in structure: the printed Bavli words alone do not state the patronymic (no checked source proposes another Yohanan)"
+   ],
+   "status": "Preferred as a coreference candidate, not a merged mention.",
+   "evidence_findings": [
+    "F01",
+    "F02",
+    "F03",
+    "F17"
+   ]
+  },
+  {
+   "id": "A3",
+   "question": "Before whom did they sit?",
+   "options": [
+    "Rabbi (singular קמיה: Ein Yaakov, Sherira, Yalkut; Community and Goldschmidt translations)",
+    "An unnamed plural, 'the Sages' per WD/Steinsaltz, possibly including Rabbi (plural קמייהו: Vilna, WD)"
+   ],
+   "status": "Open. Depends on the witness.",
+   "evidence_findings": [
+    "F05"
+   ]
+  },
+  {
+   "id": "A4",
+   "question": "Did the two learn from Rabbi?",
+   "options": [
+    "Not stated (text)",
+    "Yes, in Rabbi's study house (Guggenheimer; Sherira's use of the story)"
+   ],
+   "status": "Interpretation only.",
+   "evidence_findings": [
+    "F07"
+   ]
+  },
+  {
+   "id": "A5",
+   "question": "Are the Bavli pair the same people as the deaf 'sons' in Tosefta/Yerushalmi Terumot 1:1?",
+   "options": [
+    "Different generations (Tosefta Kifshutah)",
+    "Equated or harmonised (Yuchasin, as reported by Tosefta Kifshutah)"
+   ],
+   "status": "Identity decision for a later stage. Do not merge.",
+   "evidence_findings": [
+    "F12",
+    "F13"
+   ]
+  }
+ ],
+ "unresolved": [
+  "Bavli manuscripts of Chagigah 3a (for example Munich 95, Vatican, Göttingen) were not checked. So it is unknown whether any manuscript has the full patronymic in the sister report, the reversed order, or singular קמיה.",
+  "The printed Yuchasin entry was read only as quoted in Tosefta Kifshutah and Seder HaDorot.",
+  "The base texts behind the Community and Goldschmidt 'before him' are not stated in the saved files.",
+  "Maharsha (Chidushei Agadot) and other later commentaries linked to 3a on Sefaria are anchored to other lines. Their silence on 3a:4 was not established beyond that link index.",
+  "Whether the pair's mother (daughter or sister) is the same person as anyone else in the corpus: nothing in the checked sources names her."
+ ],
+ "proposed_corrections": [
+  {
+   "existing_claim_id": "c1",
+   "change": "Remove the daughter_report branch restriction and make c1 shared.",
+   "why": "Yohanan's patronymic is evidenced by the wording itself, which stands whichever kinship report is right, and Sherira's form has the full name in both reports. Branching a name-embedded relation implies that it lapses under the other report."
+  },
+  {
+   "existing_claim_id": "c3",
+   "change": "Add a separate mention for 'רבי יוחנן' in the sister clause and a coreference candidate to entity 'yohanan' (basis: local_coreference, interpretation attributed to Steinsaltz/WD editor, Glick and Seder HaDorot; variant support from Sherira). Keep c3 in the sister_report branch.",
+   "why": "The previous review is right that the structure is stronger than the text. The fuller check shows the coreference is well supported, so this is a candidate link, not a separate person."
+  },
+  {
+   "existing_claim_id": null,
+   "change": "Add a shared claim: pair neighbour_of / lives_near rabbi, evidence 'הנהו תרי אילמי דהוו בשבבותיה דרבי'.",
+   "why": "This relation is stated but was missing."
+  },
+  {
+   "existing_claim_id": "m9 coreference",
+   "change": "Keep candidates [rabbi, listeners]. Attach the variant קמיה (singular, pointing to Rabbi) from Ein Yaakov, Sherira and Yalkut. Attribute 'the Sages' to the WD/Steinsaltz editor, and 'him' to the Community and Goldschmidt translations.",
+   "why": "Witnesses and translations disagree. The first reading's caution is right, but it lacked the variant evidence."
+  },
+  {
+   "existing_claim_id": "exclusion (entity) / c16",
+   "change": "Give the exclusion statement a source voice: an anonymous baraita (ותניא). When 3a:6 is added, add Mar Zutra and Rav Ashi as named respondents to the objection.",
+   "why": "The attribution to a baraita is missing, and the named respondents are part of the same argument."
+  },
+  {
+   "existing_claim_id": "m14-m17",
+   "change": "Change the mention kind from 'name' to work/genre. Mark 'הש\"ס' as a wording variant of 'תלמודא', and note Tosefta as an added work in other witnesses.",
+   "why": "'Halakha' is a genre (Rashi: mishnayot), and the list differs between witnesses."
+  },
+  {
+   "existing_claim_id": "c8",
+   "change": "Note that this is derived from the singular mother noun (ברתיה/אחתיה) and means maternal siblings at minimum.",
+   "why": "Full siblinghood is not stated."
+  },
+  {
+   "existing_claim_id": null,
+   "change": "Do not add a taught_by / student_of edge between the pair and Rabbi as explicit. If added, attribute it to Guggenheimer or Sherira as interpretation.",
+   "why": "The text states co-attendance only."
+  }
+ ],
+ "ontology_lessons": [
+  "A short name inside a 'some say' alternative needs its own mention and a coreference candidate. Editor's plain-text expansions in translations (for example 'ben Gudgeda') are interpretation, not textual evidence.",
+  "Branch only the claims whose truth depends on the branch. A relation embedded in a name (a patronymic) rests on wording that appears in the text regardless of which alternative report is right.",
+  "The number of a pronoun suffix (קמייהו against קמיה) can differ between witnesses and change coreference, so coreference candidates should carry variant evidence.",
+  "Later works that quote a passage (a Geonic epistle, Yalkut, Ein Yaakov) are a distinct evidence type, a quotation witness. They can reorder or drop alternatives. They are neither translations nor independent Bavli manuscripts, and they may depend on each other.",
+  "Parallel stories about 'the sons of X' in other corpora must not be merged with a Bavli 'daughter's sons of X' without an explicit identity decision.",
+  "A mystical soul identification (gilgul) is a reception claim, never a person merge.",
+  "Being in the same study house does not make a teacher-student relation.",
+  "A neighbour/residence relation between persons is needed as a predicate.",
+  "Translation errors in secondary sources (for example 'ואמרי ליה' rendered as the daughter's sons 'said') must not create speech turns."
+ ]
+}

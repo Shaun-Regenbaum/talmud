@@ -1,0 +1,50 @@
+{
+  "status": "passed",
+  "scope": "Software transport and storage checks only; not research data or semantic validation.",
+  "source_jobs": [
+    "challenge-01",
+    "challenge-02"
+  ],
+  "checks": [
+    {
+      "check": "external_success_preserves_streams_and_compiles",
+      "passed": true
+    },
+    {
+      "check": "resume_does_not_rerun_or_rewrite",
+      "passed": true
+    },
+    {
+      "check": "resume_rejects_compiled_record_changed_against_raw",
+      "passed": true
+    },
+    {
+      "check": "resume_rejects_changed_raw_bytes",
+      "passed": true
+    },
+    {
+      "check": "nonzero_exit_keeps_private_streams_and_status",
+      "passed": true
+    },
+    {
+      "check": "timeout_preserves_private_streams_and_kills_process_group",
+      "passed": true
+    },
+    {
+      "check": "one_failed_job_preserves_successful_job_and_fails_batch",
+      "passed": true
+    },
+    {
+      "check": "storage_accepts_actual_challenge_reading_and_applicable_packs",
+      "passed": true
+    },
+    {
+      "check": "storage_rejects_dangling_role_after_refreshing_all_hashes",
+      "passed": true
+    },
+    {
+      "check": "storage_rejects_wrong_quote_occurrence_with_matching_text_span",
+      "passed": true
+    }
+  ]
+}

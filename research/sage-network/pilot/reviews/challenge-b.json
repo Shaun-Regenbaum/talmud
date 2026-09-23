@@ -1,0 +1,1141 @@
+{
+  "reviewer_role": "Independent source reader reviewing saved extractions not produced by this reader",
+  "limits": [
+    "This is a provisional reading of the supplied source text, not human gold or historical verification.",
+    "The checklist was used after the source readings. Its restrictions were not treated as proof against an explicitly uncertain interpretation.",
+    "No biographies, commentary, other editions or unsupplied passages were consulted. Exact-file hashes bind this review to the saved input and output bytes.",
+    "All fifteen supplied passages and their outputs were read, including claims beyond the checklist. Structural validation was supplied separately; this review focuses on meaning.",
+    "Full statement and event spans frequently use mention kind name. The review records representative mention defects but is not an exhaustive token or mention-kind audit.",
+    "These selected difficult passages do not support a corpus-wide accuracy estimate."
+  ],
+  "cases": [
+    {
+      "job_id": "challenge-16",
+      "input_sha256": "35d47e756c715d72d43ad85d307e2974522b6816efae079f69b1afd3de90d998",
+      "output_sha256": "2bff25da87e5c8757e3f36e4920459555e0ccf529c4e515f848457d34663417b",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Separate reported-name branches place Shimi or Mar Ukva before Shimon.",
+          "claim_ids": [
+            "c5",
+            "c6"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The arranging event retains Yehoshua as the person before whom it occurs; scoped interpretations allow the initial visitor or Shimon to arrange.",
+          "claim_ids": [
+            "c7",
+            "c8",
+            "c9"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "Yehuda son of Menasya owns the inserted teaching. The resumed question uses an unnamed questioner, not Yehuda.",
+          "claim_ids": [
+            "c14",
+            "c15"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 3,
+          "status": "pass",
+          "reason": "The named questioner and respondent remain unresolved in branch-scoped coreference candidates. The final answer’s speaker remains open.",
+          "claim_ids": [
+            "c10",
+            "c11",
+            "c15",
+            "c17"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "No resumed turn is assigned to Yehuda.",
+          "claim_ids": [
+            "c14",
+            "c15"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "Attendance is preserved without a formal student claim, and no translation-supplied turn is treated as explicit.",
+          "claim_ids": [
+            "c5",
+            "c6",
+            "c10",
+            "c11"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "contract_limit",
+          "claim_ids": [
+            "c10",
+            "c11"
+          ],
+          "reason": "The same two אמר ליה occurrences are duplicated as m15/m27/m30 and m16/m28/m31. The unresolved role entities use the first pair while their named candidates use the duplicate mentions. Reusing one occurrence ID would bind the role and its candidates more directly.",
+          "source_refs": [
+            "Berakhot 10a:21"
+          ]
+        }
+      ],
+      "summary": "The alternatives, inserted teaching and uncertain speakers are preserved. Duplicate mention IDs make the uncertainty harder to follow mechanically."
+    },
+    {
+      "job_id": "challenge-17",
+      "input_sha256": "2955ea8468db5bba259cee336670b21c43758ac2fb57032047cdcb6c518329ec",
+      "output_sha256": "476e77e67d30bc9dc0e79cb2d6995a1b824e739b3d5d2ddb796c3af7971a295c",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Homa is Abaye’s wife, visits Rava and requests food and wine.",
+          "claim_ids": [
+            "c1",
+            "c3",
+            "c4",
+            "c6"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "Hisda’s daughter is a separate person, his child, and asks Rava who was in court.",
+          "claim_ids": [
+            "c2",
+            "c13"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The daughter is the agent of pursuit, beating and expulsion; Homa is the target.",
+          "claim_ids": [
+            "c15"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 3,
+          "status": "pass",
+          "reason": "The three-death statement is recorded as the daughter’s hostile speech, with an explicit caution against treating it as established killing.",
+          "claim_ids": [
+            "c16"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "The women retain their own actions; Abaye is not put at the hearing.",
+          "claim_ids": [
+            "c3",
+            "c4",
+            "c13",
+            "c15"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "The daughter is retained between Rava and Hisda. The proposed marriage is marked interpretation at medium reading confidence, not explicit wording.",
+          "claim_ids": [
+            "c2",
+            "c12"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "uncertainty",
+          "claim_ids": [
+            "c12"
+          ],
+          "reason": "The spouse claim c12 is an unbranched asserted interpretation of the home and intimacy scene. The note correctly admits that marriage is not named here. Keep that inference qualified in later use; the source alone does not state a wedding or use a wife label for this daughter.",
+          "source_refs": [
+            "Ketubot 65a:10"
+          ]
+        }
+      ],
+      "summary": "The court and household roles are read correctly. The inferred Rava–daughter marriage remains weaker than the explicit Homa–Abaye marriage."
+    },
+    {
+      "job_id": "challenge-18",
+      "input_sha256": "c1b30ba276aeabcf7badf06f6d1b44fa1192d20da4709b38d8ddaae97edd5323",
+      "output_sha256": "3a811d413a445b5064e9da7685ec5a412da34a7cb9901179c79ca4dc5d740a58",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "The unnamed woman, her husband Yosef and his father Rava remain separate; she is the petitioner.",
+          "claim_ids": [
+            "c1",
+            "c2",
+            "c4",
+            "c5"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "Nehemya is the judge and has a separate father-Yosef record.",
+          "claim_ids": [
+            "c3"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "Requests run from the woman to Nehemya; food and wine awards run from him to her.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6",
+            "c7",
+            "c8"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "Neither the husband nor his father replaces the petitioner or becomes a hearing participant.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c7"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "The two Yosefs are separate local entities with a recorded unresolved identity question.",
+          "claim_ids": [
+            "c2",
+            "c3"
+          ]
+        }
+      ],
+      "additional_findings": [],
+      "summary": "The unnamed petitioner and both nested names are preserved without merging the two Yosefs."
+    },
+    {
+      "job_id": "challenge-19",
+      "input_sha256": "0aeea4eeea05f2e553e52193d97a56c6760386a44950f60a21188e4e725cb08d",
+      "output_sha256": "3e9fea63a9603089e9e9e694d12643cc282b752c7944e8ccd8cbc541ac159915",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "The unnamed wife petitions; her husband is a separate Yosef who is Menashya’s son.",
+          "claim_ids": [
+            "c1",
+            "c2",
+            "c3"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The judge Yosef is kept separate and receives each request.",
+          "claim_ids": [
+            "c3",
+            "c4",
+            "c6",
+            "c8"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "Dvil is retained as a place entity, and the open question leaves its attachment to father or son unresolved.",
+          "claim_ids": []
+        },
+        {
+          "kind": "preserve",
+          "index": 3,
+          "status": "pass",
+          "reason": "The silk request, the judge’s question, and her answer are separate speech turns.",
+          "claim_ids": [
+            "c8",
+            "c9",
+            "c10"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "No same-name husband/judge merge is made.",
+          "claim_ids": [
+            "c1",
+            "c3"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "No settled place attachment or silk award is added.",
+          "claim_ids": [
+            "c8",
+            "c9",
+            "c10"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "uncertainty",
+          "claim_ids": [
+            "c10"
+          ],
+          "reason": "The companion entity is labeled as addressed in the reply, although the actual addressee is the judge and the companion is only referred to. The further-companions group also settles plurality for לחברורך without explaining that reading. The speech claims themselves correctly keep the judge as addressee.",
+          "source_refs": [
+            "Ketubot 65a:12"
+          ]
+        }
+      ],
+      "summary": "The family description and court exchange are preserved. The extra companion labels are more definite than the short wording warrants."
+    },
+    {
+      "job_id": "challenge-20",
+      "input_sha256": "b60e6f19760f79d76f5330fcf980444313babb1d2c4bc79f75358f8d5130b424",
+      "output_sha256": "e54149a85e0a06d2600231f34507ea09279160a75f18c58a768380baf5977994",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Imma Shalom is the subject of both spouse and sibling claims.",
+          "claim_ids": [
+            "c1",
+            "c2"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "Her prevention is shared; calendar confusion and feeding a visitor are separate report branches.",
+          "claim_ids": [
+            "c5",
+            "c7",
+            "c8",
+            "c9"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "Her accusation remains speech in both editorial wordings, separate from the narrator’s death announcement.",
+          "claim_ids": [
+            "c12",
+            "c13",
+            "c14"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 3,
+          "status": "pass",
+          "reason": "The inherited teaching comes from her ancestral household; no direct hearing from a named grandfather is invented.",
+          "claim_ids": [
+            "c16",
+            "c17"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "No biological sibling edge joins Eliezer and Gamliel.",
+          "claim_ids": [
+            "c1",
+            "c2"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "No independent causal killing claim is extracted from the accusation.",
+          "claim_ids": [
+            "c12",
+            "c13",
+            "c14"
+          ]
+        }
+      ],
+      "additional_findings": [],
+      "summary": "The family paths, independent report and wording alternatives, accusation, and inherited teaching are all retained with appropriate scope."
+    },
+    {
+      "job_id": "challenge-21",
+      "input_sha256": "ebaa47c74404cfcc304986f8d365ad5bfa0fea3b5e13743ed9a2ae9234d120d5",
+      "output_sha256": "d8d65804963b6b1d5bb9a71cba1cc4bd5365b5e3c864d10d2f309f70e5f7b79d",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "The Jordan meeting and conditional offer have separate records. The sister is retained; a later marital inference uses her widowhood plea.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c8",
+            "c9",
+            "c24"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "Actual teaching is distinct from the later dispute, and the furnace and water thresholds retain their speakers.",
+          "claim_ids": [
+            "c12",
+            "c13",
+            "c14",
+            "c15",
+            "c16",
+            "c17"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The sister’s visit and pleas, Lakish’s death, and Elazar’s subsequent visit are distinct.",
+          "claim_ids": [
+            "c23",
+            "c25",
+            "c27",
+            "c29",
+            "c33"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 3,
+          "status": "pass",
+          "reason": "The spellings are treated as one local story referent, with an explicit no-global-identity note. The remembered questions have Yohanan’s voice and retrospective notes. The source continuity supports this local resolution.",
+          "claim_ids": [
+            "c2",
+            "c29",
+            "c36",
+            "c37",
+            "c39"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "No completed marriage is inferred from the initial offer alone.",
+          "claim_ids": [
+            "c9",
+            "c24"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "Elazar is confined to the later consolation scene.",
+          "claim_ids": [
+            "c32",
+            "c33",
+            "c34"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 2,
+          "status": "pass",
+          "reason": "The opposition concerns the specific furnace threshold, not a timeless personal opposition.",
+          "claim_ids": [
+            "c18"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "contract_limit",
+          "claim_ids": [
+            "c25"
+          ],
+          "reason": "The sister’s children are an unnumbered group, and their mother relationship is retained only in the entity label and plea context. The open question correctly refuses to invent a count, but the person-only child_of contract leaves this explicit family relationship without a machine-readable parent link.",
+          "source_refs": [
+            "Bava Metzia 84a:15"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [
+            "c22"
+          ],
+          "reason": "The named loss of composure חלש דעתיה דרבי יוחנן is folded into the illness event label but has no participation claim for Yohanan. c22 records only Lakish’s illness. The later grief and breakdown are correctly separate.",
+          "source_refs": [
+            "Bava Metzia 84a:15"
+          ]
+        }
+      ],
+      "summary": "The changing scenes, conditional offer, actual teaching, legal disagreement and retrospective exchanges are distinguished. Two smaller details remain only in labels or prose."
+    },
+    {
+      "job_id": "challenge-22",
+      "input_sha256": "6d651255f217ad8505d29cba4b9b9532445e2a5e6aae09b9269812245c2f63c6",
+      "output_sha256": "36ab66b9ce1016ff7fb6d1ef56a1332c4a19368cdeab11f4095e44147263b3d2",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Both named people participate in watching; Avlet’s snake-death statement is explicitly prediction.",
+          "claim_ids": [
+            "c1",
+            "c2",
+            "c3",
+            "c4"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The return is narrated and Shmuel asks the returned man, not Avlet.",
+          "claim_ids": [
+            "c7",
+            "c9"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The man owns the meal account and protective action; Shmuel owns the later charity teaching.",
+          "claim_ids": [
+            "c10",
+            "c11",
+            "c13"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "No predicted death is treated as fulfilled and the worker’s reply is not given to Avlet.",
+          "claim_ids": [
+            "c4",
+            "c7",
+            "c10"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "Avlet is only a local person; no outside biography or sage status is added.",
+          "claim_ids": []
+        }
+      ],
+      "additional_findings": [],
+      "summary": "The prediction, successful return, anonymous worker’s report and Shmuel’s teaching are kept separate."
+    },
+    {
+      "job_id": "challenge-23",
+      "input_sha256": "ba97da0fac783ebdb9ca19dcd74c79cfac5cd1fdf3e23c7e8cc6daf17203f6a5",
+      "output_sha256": "314e34e0b9d31e2c5696903643fa145db8de629b41bb089bc9d2908ef990dd19",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "The daughter has her own person entity and a child-to-Akiva edge.",
+          "claim_ids": [
+            "c1"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The astrologers’ fatal forecast is prediction, separate from the pin and snake events.",
+          "claim_ids": [
+            "c2",
+            "c3",
+            "c4",
+            "c5"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The father is resolved to Akiva; he questions his daughter, whose answer and gift to the poor man have her voice.",
+          "claim_ids": [
+            "c7",
+            "c8",
+            "c9"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 3,
+          "status": "pass",
+          "reason": "Akiva’s later charity teaching is distinct from the daughter’s act.",
+          "claim_ids": [
+            "c9",
+            "c11"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "The unnamed daughter is preserved and no groom is invented.",
+          "claim_ids": [
+            "c1"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "The predicted death is not recorded as fulfilled.",
+          "claim_ids": [
+            "c3",
+            "c4",
+            "c5"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 2,
+          "status": "pass",
+          "reason": "No worried-person claim is imposed from a translation.",
+          "claim_ids": []
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [],
+          "reason": "הוה דאיג אמילתא טובא is omitted entirely, rather than retained as a worry event with any needed subject uncertainty. The masculine wording favors a male subject in this source; the checklist’s uncertainty does not require erasing the narrated worry.",
+          "source_refs": [
+            "Shabbat 156b:4"
+          ]
+        }
+      ],
+      "summary": "The prediction and rescue story are handled carefully. The worry sentence has no retained event or open question."
+    },
+    {
+      "job_id": "challenge-24",
+      "input_sha256": "efaad896356793147dade715f6af1c91c809b54b6f544b4e33f89186f305c318",
+      "output_sha256": "e4b36a56356e34a607f779d50e8cc31361adf4789a481abbb45a5681f7a0f4c9",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Hanan’s family path goes through his unnamed mother to Honi.",
+          "claim_ids": [
+            "c1",
+            "c2"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The rabbis send children, and the children grasp Hanan’s garment and make the request.",
+          "claim_ids": [
+            "c3",
+            "c4",
+            "c5"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The children’s father-address and rain request are preserved in their speech evidence.",
+          "claim_ids": [
+            "c5"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "There is no direct Hanan-to-Honi child edge, and the mother remains a person.",
+          "claim_ids": [
+            "c1",
+            "c2"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "The address is not turned into parenthood; the sending sages are not claimed to visit.",
+          "claim_ids": [
+            "c3",
+            "c5"
+          ]
+        }
+      ],
+      "additional_findings": [],
+      "summary": "The intermediate mother, senders, child visitors, rain request and prayer are all preserved."
+    },
+    {
+      "job_id": "challenge-25",
+      "input_sha256": "654f9eb03245af164b6d37a450ae00aac34cb8395ae8554d62de49a15605232d",
+      "output_sha256": "573bd836599ae5825bf32c413c8fd187ab84ef4ae6bba33780f9ede3e8bf1c00",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Regular attendance, leaving, and arrival before Ashi are retained in the source’s order.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "Ashi reports Shmuel’s rule; the visitor hears Ashi across the supplied page break.",
+          "claim_ids": [
+            "c7",
+            "c8",
+            "c9"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The self-identification is retained, and the printed ben Rabbi Avin form remains in the attribution evidence alongside the initial bar Avin name.",
+          "claim_ids": [
+            "c1",
+            "c11",
+            "c12",
+            "c13"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 3,
+          "status": "pass",
+          "reason": "The later questions explicitly refer back to the old attendance and departure.",
+          "claim_ids": [
+            "c14",
+            "c15",
+            "c16",
+            "c17"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "Yokrat and the quoted Shmuel are not put in the Ashi conversation.",
+          "claim_ids": [
+            "c7",
+            "c10",
+            "c11",
+            "c14"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "Attendance is not a formal appointment, and its termination is explicitly retained.",
+          "claim_ids": [
+            "c4",
+            "c5"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "contract_limit",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6"
+          ],
+          "reason": "The chronology is readable in evidence and claim order, but no before claim or time_scope links attendance to departure. That order should not be lost when claims are stored or displayed independently.",
+          "source_refs": [
+            "Taanit 23b:15"
+          ]
+        }
+      ],
+      "summary": "The local self-identification and teaching attribution are supported, and the former attendance is shown ending. Chronology is carried mainly by the quoted prose."
+    },
+    {
+      "job_id": "challenge-26",
+      "input_sha256": "b7d188e074fd627d4229be949386a9c2f1db6294570db6695d61afb7dac1c055",
+      "output_sha256": "9d1c6b631906261b846e90052c8896ea47a59539c67f60447cff23b26c238c2e",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Abaye the Elder is one complete local name.",
+          "claim_ids": []
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The bridge comparison belongs to Abaye, separate from Huna’s water-channel comparison.",
+          "claim_ids": [
+            "c3",
+            "c4"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "No historical identification with another Abaye is made.",
+          "claim_ids": []
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "No meeting or directed conversation is inferred from adjacent teachings.",
+          "claim_ids": [
+            "c3",
+            "c4"
+          ]
+        }
+      ],
+      "additional_findings": [],
+      "summary": "The complete name and distinct attributed analogies are preserved. Missing antecedents for the tannaim are explicitly requested."
+    },
+    {
+      "job_id": "challenge-27",
+      "input_sha256": "ab41d2610d6d3ff351096f9f7569cb76c6274dbbc5277937b1924394d06d52a0",
+      "output_sha256": "a1e39f48b106171ad930af3988995277a26759833bd5faece2726596fb9f0708",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Hiyya remains one complete name; c8 explicitly records the local רבא/רבה spelling link.",
+          "claim_ids": [
+            "c5",
+            "c8"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "Hiyya and Shimon walk together in Arbel at dawn.",
+          "claim_ids": [
+            "c5",
+            "c6",
+            "c7"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "Hiyya addresses Shimon; the biblical examples are kept as the separate analogy, while the unmarked continuation’s voice is left unknown.",
+          "claim_ids": [
+            "c8",
+            "c10",
+            "c11",
+            "c12",
+            "c13",
+            "c14",
+            "c15",
+            "c16"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "No Rava or Rabba entity is split off from Hiyya.",
+          "claim_ids": []
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "Only Hiyya and Shimon join the walk. Biblical figures participate in separate quoted events; Yosei is not put there.",
+          "claim_ids": [
+            "c5",
+            "c6",
+            "c12",
+            "c13",
+            "c14",
+            "c15"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "uncertainty",
+          "claim_ids": [
+            "c4"
+          ],
+          "reason": "c4 unconditionally attributes the two-rays explanation to Yosei while its note admits that it may be the narrator’s continuation. Medium confidence and interpretation flag the weakness, but the competing speaker reading is not represented. An unknown voice or explicit alternate attribution would preserve that uncertainty more directly.",
+          "source_refs": [
+            "Jerusalem Talmud Berakhot 1:1:21"
+          ]
+        }
+      ],
+      "summary": "The Hiyya spellings, walking scene and embedded biblical sequence are kept apart. One unmarked explanatory continuation is assigned more firmly than its note supports."
+    },
+    {
+      "job_id": "challenge-28",
+      "input_sha256": "2d2af192a945b9a02b3e60d2e2803e13d40638429d42ba2df0039cc46cda9c0b",
+      "output_sha256": "11928927e50aca38a8bd6e5b6e3fb03e3011dc81e782da845d98f1352263f35d",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "The sages ask Abahu and Abahu answers them about absent Ilai.",
+          "claim_ids": [
+            "c1",
+            "c2"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The woman and tractate are different entity types in separate reported-reading branches.",
+          "claim_ids": [
+            "c3",
+            "c4"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The question and answer are shared; only the answer’s interpreted referent and event differ.",
+          "claim_ids": [
+            "c1",
+            "c2",
+            "c3",
+            "c4"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "No unconditional wife or marriage relation is created.",
+          "claim_ids": []
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "Ilai is only the subject of the report, not an interlocutor, and no second-marriage or particular tractate detail is imported.",
+          "claim_ids": [
+            "c1",
+            "c2",
+            "c3",
+            "c4"
+          ]
+        }
+      ],
+      "additional_findings": [],
+      "summary": "The person-versus-work ambiguity is preserved without changing the shared conversation or inventing a marriage."
+    },
+    {
+      "job_id": "challenge-29",
+      "input_sha256": "029211f10c1c1d54d11523b402d347f7bdde713a0866605a1b8c8e335b1d67b0",
+      "output_sha256": "67ea8ef0f64b1d8613333928621f0d51904ce162a82dce475d73bf528fdc0af6",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Ravin son of Nahman and his father remain distinct, with a correctly directed child edge.",
+          "claim_ids": [
+            "c1"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "Yehuda addresses Ravin and the אחי wording remains in the evidence.",
+          "claim_ids": [
+            "c2",
+            "c5"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The leaning-tree custom is retained as the content of the directed speech.",
+          "claim_ids": [
+            "c3"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "uncertain",
+          "reason": "There is no shared biological sibling edge, but c4 does introduce one inside a low-confidence literal-reading branch based only on אחי. That is an explicitly uncertain semantic candidate, not a settled historical claim. The checklist does not clearly distinguish those cases.",
+          "claim_ids": [
+            "c4",
+            "c5"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "The complete name is not split, and the supplied edition’s exact anchors are used.",
+          "claim_ids": [
+            "c1",
+            "c2"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "uncertainty",
+          "claim_ids": [
+            "c4"
+          ],
+          "reason": "The literal-brother branch states sibling_of using only אחי. The alternative friendly-address branch, low confidence, unknown historical confidence and needs_context prevent this from being a settled family fact. Still, this branch assumes the very lexical sense that would need independent support before a family claim is accepted.",
+          "source_refs": [
+            "Bava Metzia 107a:7"
+          ]
+        }
+      ],
+      "summary": "The speech and patronymic are preserved. The branch-only sibling possibility should remain unresolved; it is not independent evidence of biological brotherhood."
+    },
+    {
+      "job_id": "challenge-30",
+      "input_sha256": "888b55cb670fb2155be3131e91ab9b86a2c9533a918cee05a40224bf54e27239",
+      "output_sha256": "5d4925189478432a19ca92700a693171ccb42fb3183e1622cf2f3ce295a47b57",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "The unnamed servant and Rabbi’s household remain separate entities, and her household affiliation is retained in the label and evidence.",
+          "claim_ids": []
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The father, adult son, child relationship and beating have the right roles.",
+          "claim_ids": [
+            "c1",
+            "c2"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The sanction declaration, its father target, and its stumbling-block rationale are retained, though the directed speech claim has an addressee problem.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "Rabbi is not put at the scene and no household kinship is invented.",
+          "claim_ids": []
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "No institutionally settled ban or approval by Rabbi is added; the claim is the servant’s declaration.",
+          "claim_ids": [
+            "c4"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "major",
+          "type": "unsupported",
+          "claim_ids": [
+            "c4"
+          ],
+          "reason": "c4 uses addresses(servant, father), which makes the father the recipient of directed speech. The source says only אמרה and refers to that man in the third person. The note correctly says he is the target and a face-to-face addressee is not explicit, but that does not repair the asserted direction. Preserve a declaration event or statement with a target role for the father and leave the addressee unknown.",
+          "source_refs": [
+            "Moed Katan 17a:13"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "contract_limit",
+          "claim_ids": [],
+          "reason": "The servant’s explicit affiliation with Rabbi’s household is retained only in her label and evidence, not a relationship or role connecting servant and house. The contract has no household-affiliation predicate.",
+          "source_refs": [
+            "Moed Katan 17a:13"
+          ]
+        }
+      ],
+      "summary": "The unnamed participants and sanction are preserved, but the sanction target is incorrectly promoted to an asserted speech recipient."
+    }
+  ]
+}

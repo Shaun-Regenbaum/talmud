@@ -1,0 +1,625 @@
+{
+  "schema_version": "passage-pilot-v1",
+  "job_id": "challenge-18",
+  "episode": {
+    "genre": "mixed",
+    "genre_reason": "A support ruling is told as a court visit.",
+    "form": "court story",
+    "coverage": "needs_context",
+    "needed_context": [
+      "Whether the two occurrences of Rav Yosef refer to the same person."
+    ],
+    "notes": []
+  },
+  "mentions": [
+    {
+      "id": "m1",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "דביתהו דרב יוסף בריה דרבא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m2",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רב יוסף בריה דרבא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m3",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m4",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רב נחמיה בריה דרב יוסף",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m5",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רב יוסף",
+        "occurrence": 2
+      }
+    },
+    {
+      "id": "m6",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "בבני מחוזא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m7",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "פסוק לי מזוני!",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m8",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "פסק לה.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m9",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "פסוק לי חמרא!",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m10",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "פסק לה.",
+        "occurrence": 2
+      }
+    },
+    {
+      "id": "m11",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ידענא בהו בבני מחוזא דשתו חמרא.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m12",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רב יוסף",
+        "occurrence": 2
+      }
+    }
+  ],
+  "entities": [
+    {
+      "id": "woman",
+      "kind": "person",
+      "label": "Unnamed wife of Rav Yosef son of Rava",
+      "mention_ids": [
+        "m1"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "דביתהו דרב יוסף בריה דרבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "husband",
+      "kind": "person",
+      "label": "Rav Yosef son of Rava",
+      "mention_ids": [
+        "m2"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רב יוסף בריה דרבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "rava",
+      "kind": "person",
+      "label": "Rava",
+      "mention_ids": [
+        "m3"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "judge",
+      "kind": "person",
+      "label": "Rav Nehemya son of Rav Yosef",
+      "mention_ids": [
+        "m4"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רב נחמיה בריה דרב יוסף",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "father",
+      "kind": "person",
+      "label": "Rav Yosef, father of Rav Nehemya",
+      "mention_ids": [
+        "m5"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רב יוסף",
+          "occurrence": 2
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "townsfolk",
+      "kind": "group",
+      "label": "People of Mehoza",
+      "mention_ids": [
+        "m6"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "בבני מחוזא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "food",
+      "kind": "statement",
+      "label": "Request for food",
+      "mention_ids": [
+        "m7"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "פסוק לי מזוני!",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "foodaward",
+      "kind": "event",
+      "label": "Award of food",
+      "mention_ids": [
+        "m8"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "פסק לה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "wine",
+      "kind": "statement",
+      "label": "Request for wine",
+      "mention_ids": [
+        "m9"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "פסוק לי חמרא!",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "wineaward",
+      "kind": "event",
+      "label": "Award of wine",
+      "mention_ids": [
+        "m10"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "פסק לה.",
+          "occurrence": 2
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "explanation",
+      "kind": "statement",
+      "label": "The people of Mehoza drink wine",
+      "mention_ids": [
+        "m11"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ידענא בהו בבני מחוזא דשתו חמרא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "family": "family",
+      "predicate": "spouse_of",
+      "subject": "woman",
+      "object": "husband",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "דביתהו דרב יוסף",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c2",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "husband",
+      "object": "rava",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רב יוסף בריה דרבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c3",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "judge",
+      "object": "father",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רב נחמיה בריה דרב יוסף",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c4",
+      "family": "scenes",
+      "predicate": "visits",
+      "subject": "woman",
+      "object": "judge",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אתאי לקמיה דרב נחמיה בריה דרב יוסף",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c5",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "woman",
+      "object": "judge",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "food"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "פסוק לי מזוני!",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The request occurs; the requested award is not asserted by this claim."
+      ]
+    },
+    {
+      "id": "c6",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "judge",
+      "object": "foodaward",
+      "roles": [
+        {
+          "role": "beneficiary",
+          "entity": "woman"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "פסק לה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "פסק לה",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c7",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "woman",
+      "object": "judge",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "wine"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "פסוק לי חמרא!",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The request occurs; the requested award is not asserted by this claim."
+      ]
+    },
+    {
+      "id": "c8",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "judge",
+      "object": "wineaward",
+      "roles": [
+        {
+          "role": "beneficiary",
+          "entity": "woman"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "פסק לה.",
+          "occurrence": 2
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "פסק לה",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c9",
+      "family": "speech",
+      "predicate": "addresses",
+      "subject": "judge",
+      "object": "woman",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "explanation"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר לה: ידענא בהו בבני מחוזא דשתו חמרא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c10",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "judge",
+      "object": "explanation",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ידענא בהו בבני מחוזא דשתו חמרא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "judge",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    }
+  ],
+  "reading_groups": [],
+  "coreference_candidates": [
+    {
+      "mention_id": "m12",
+      "entity_ids": [
+        "father",
+        "husband"
+      ],
+      "branches": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רב יוסף",
+          "occurrence": 2
+        }
+      ],
+      "reason": "Repeated name alone does not establish that the judge is the husband’s son. Two local referents are retained pending context."
+    }
+  ],
+  "open_questions": [
+    "Is the judge’s father the same Rav Yosef as the woman’s husband? No such merger is asserted."
+  ]
+}

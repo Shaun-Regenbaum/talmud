@@ -1,0 +1,40 @@
+{
+  "job_id": "random-yerushalmi-06",
+  "authority": "automated_review",
+  "status": "qualified_proposals",
+  "dossier_sha256": "f1bbafd32d4111da2698694300cd30bb4896b15d70d0774e8fbea38f9a26bdc3",
+  "historical_graph_eligible": false,
+  "scope": "Separate review of selected graph implications. Source hashes and quotation matches checked separately. Not human adjudication or exhaustive historical verification.",
+  "findings": [
+    {
+      "target": "F10 wife, daughter and husband",
+      "decision": "support_separate_local_people",
+      "reason": "The wife and her daughter each need a local person even though neither is named. Her marriage and her statement my daughter do not by themselves prove that the husband fathered the daughter. Keep the proposed pronoun resolution attributed."
+    },
+    {
+      "target": "F10 case before Rav",
+      "decision": "retain_narrow_event",
+      "reason": "A case coming before Rav records adjudication. It does not identify who travelled, who attended, or whether the wife was alive when it reached him."
+    },
+    {
+      "target": "F11 object name",
+      "decision": "support_neutral_object",
+      "reason": "Keep the disputed ring or other item and its interpretations. Do not turn a possible betrothal-gift meaning into a narrated betrothal event."
+    },
+    {
+      "target": "F13/F14 parallel story",
+      "decision": "reject_premature_separation_or_merge",
+      "reason": "Different names and beneficiaries require separate passage records. They do not prove either separate historical events or a single event. Keep the shared-story and identity hypotheses, including the commentator’s proposed match, for a later evidence pack."
+    },
+    {
+      "target": "F1/F6 generic roles",
+      "decision": "support_separate_scenario_roles",
+      "reason": "Keep the two hypothetical deposit cases and their people separate from the narrated household. The hypothetical family roles are relationships inside the legal scenarios, not additions to the historical person graph."
+    },
+    {
+      "target": "F10 count of people",
+      "decision": "distinguish_actors_from_referents",
+      "reason": "The short claim says three people, but the daughter is also a person mentioned in the account, and Hana is a patronymic parent. If three counts only active story participants, label that explicitly. Keep every supported referent even when absent from the action."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "original_sha256": "2f466f244ba3bfed5b4ff159c4d483f4c7ad2fb213a9035804fee9a52616a2de",
+  "corrected_sha256": "0cce690dc62d903eace6802cf3bede156b8f20c4185da7ee268e8d31c67a21ef",
+  "changes": [
+    {
+      "finding_id": "F12",
+      "evidence_index": 3,
+      "field": "exact_quote",
+      "previous": "\"Leviticus 11:32\"",
+      "corrected": "Leviticus 11:32",
+      "reason": "Quote the bibliographic string value, excluding the surrounding JSON syntax."
+    },
+    {
+      "finding_id": "F12",
+      "evidence_index": 4,
+      "field": "exact_quote",
+      "previous": "\"Numbers 6:7\"",
+      "corrected": "Numbers 6:7",
+      "reason": "Quote the bibliographic string value, excluding the surrounding JSON syntax."
+    }
+  ]
+}

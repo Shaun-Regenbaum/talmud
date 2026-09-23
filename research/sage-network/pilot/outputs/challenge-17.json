@@ -1,0 +1,1137 @@
+{
+  "schema_version": "passage-pilot-v1",
+  "job_id": "challenge-17",
+  "episode": {
+    "genre": "mixed",
+    "genre_reason": "A support hearing is followed by jealousy and violence.",
+    "form": "court and household story",
+    "coverage": "needs_context",
+    "needed_context": [
+      "The three men in the accusation are unnamed; their deaths and relationship to Homa are not independently narrated."
+    ],
+    "notes": []
+  },
+  "mentions": [
+    {
+      "id": "m1",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "חומא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m2",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "אביי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m3",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m4",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "נחמני",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m5",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "בת רב חסדא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m6",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "רב חסדא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m7",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "תלתא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m8",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "אחרינא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m9",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "בי דינא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m10",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "מחוזא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m11",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "פסוק לי מזוני!",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m12",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "פסוק לי חמרא!",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m13",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "פסק לה.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m14",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ידענא ביה בנחמני דלא הוה שתי חמרא.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m15",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "חיי דמר דהוה משקי לי בשופרזי כי האי.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m16",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "בהדי דקא מחויא ליה איגלי דרעא, נפל נהורא בבי דינא.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m17",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "קם רבא, על לביתיה תבעה לבת רב חסדא.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m18",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "מאן הוי האידנא בבי דינא?",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m19",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "חומא דביתהו דאביי.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m20",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "נפקא אבתרה, מחתא לה בקולפי דשידא עד דאפקה לה מכולי מחוזא.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m21",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "קטלת ליך תלתא, ואתת למיקטל אחרינא?!",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m22",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "נחמני",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m23",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "דהוה משקי לי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m24",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "אחרינא",
+        "occurrence": 1
+      }
+    }
+  ],
+  "entities": [
+    {
+      "id": "homa",
+      "kind": "person",
+      "label": "Homa",
+      "mention_ids": [
+        "m1"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "חומא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "abaye",
+      "kind": "person",
+      "label": "Abaye, Homa’s husband",
+      "mention_ids": [
+        "m2"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אביי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "rava",
+      "kind": "person",
+      "label": "Rava",
+      "mention_ids": [
+        "m3"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "nahmani",
+      "kind": "person",
+      "label": "Nahmani named by Rava",
+      "mention_ids": [
+        "m4"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "נחמני",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "daughter",
+      "kind": "person",
+      "label": "Rav Hisda’s unnamed daughter",
+      "mention_ids": [
+        "m5"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "בת רב חסדא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "hisda",
+      "kind": "person",
+      "label": "Rav Hisda",
+      "mention_ids": [
+        "m6"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "רב חסדא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "three",
+      "kind": "group",
+      "label": "Three people referred to in the accusation",
+      "mention_ids": [
+        "m7"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "תלתא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "other",
+      "kind": "person",
+      "label": "Another prospective victim in the accusation",
+      "mention_ids": [
+        "m8"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אחרינא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "court",
+      "kind": "place",
+      "label": "Courtroom",
+      "mention_ids": [
+        "m9"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "בי דינא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "mehoza",
+      "kind": "place",
+      "label": "Mehoza",
+      "mention_ids": [
+        "m10"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "מחוזא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "food",
+      "kind": "statement",
+      "label": "Request for food support",
+      "mention_ids": [
+        "m11"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "פסוק לי מזוני!",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "wine",
+      "kind": "statement",
+      "label": "Request for wine support",
+      "mention_ids": [
+        "m12"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "פסוק לי חמרא!",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "foodaward",
+      "kind": "event",
+      "label": "Award of food support",
+      "mention_ids": [
+        "m13"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "פסק לה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "abstains",
+      "kind": "statement",
+      "label": "Rava says Nahmani did not drink wine",
+      "mention_ids": [
+        "m14"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ידענא ביה בנחמני דלא הוה שתי חמרא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "served",
+      "kind": "statement",
+      "label": "Homa says he gave her large cups of wine",
+      "mention_ids": [
+        "m15"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "חיי דמר דהוה משקי לי בשופרזי כי האי.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "arm",
+      "kind": "event",
+      "label": "Her arm is exposed while demonstrating and light falls in court",
+      "mention_ids": [
+        "m16"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "בהדי דקא מחויא ליה איגלי דרעא, נפל נהורא בבי דינא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "intimacy",
+      "kind": "event",
+      "label": "Rava goes home and seeks intimacy with Rav Hisda’s daughter",
+      "mention_ids": [
+        "m17"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "קם רבא, על לביתיה תבעה לבת רב חסדא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "who",
+      "kind": "statement",
+      "label": "Who was in court today?",
+      "mention_ids": [
+        "m18"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "מאן הוי האידנא בבי דינא?",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "answer",
+      "kind": "statement",
+      "label": "Homa, wife of Abaye, was there",
+      "mention_ids": [
+        "m19"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "חומא דביתהו דאביי.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "beating",
+      "kind": "event",
+      "label": "Rav Hisda’s daughter beats and drives Homa out of Mehoza",
+      "mention_ids": [
+        "m20"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "נפקא אבתרה, מחתא לה בקולפי דשידא עד דאפקה לה מכולי מחוזא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "accusation",
+      "kind": "statement",
+      "label": "You killed three and came to kill another?",
+      "mention_ids": [
+        "m21"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "קטלת ליך תלתא, ואתת למיקטל אחרינא?!",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "family": "family",
+      "predicate": "spouse_of",
+      "subject": "homa",
+      "object": "abaye",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "חומא דביתהו דאביי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c2",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "daughter",
+      "object": "hisda",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "בת רב חסדא",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c3",
+      "family": "scenes",
+      "predicate": "visits",
+      "subject": "homa",
+      "object": "rava",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אתאי לקמיה דרבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c4",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "homa",
+      "object": "rava",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "food"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמרה ליה: פסוק לי מזוני!",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c5",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "rava",
+      "object": "foodaward",
+      "roles": [
+        {
+          "role": "beneficiary",
+          "entity": "homa"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "פסק לה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "פסק",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c6",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "homa",
+      "object": "rava",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "wine"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "פסוק לי חמרא!",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c7",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "rava",
+      "object": "wine",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "homa"
+        },
+        {
+          "role": "content",
+          "entity": "abstains"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר ליה: ידענא ביה בנחמני דלא הוה שתי חמרא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The masculine אמר ליה occurs in the supplied text; the dialogue favors Rava answering Homa."
+      ]
+    },
+    {
+      "id": "c8",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "rava",
+      "object": "abstains",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ידענא ביה בנחמני דלא הוה שתי חמרא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "rava",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c9",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "homa",
+      "object": "abstains",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "rava"
+        },
+        {
+          "role": "content",
+          "entity": "served"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמרה ליה: חיי דמר דהוה משקי לי בשופרזי כי האי.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c10",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "homa",
+      "object": "arm",
+      "roles": [
+        {
+          "role": "observer",
+          "entity": "rava"
+        },
+        {
+          "role": "location",
+          "entity": "court"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "בהדי דקא מחויא ליה איגלי דרעא, נפל נהורא בבי דינא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "מחויא / איגלי",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c11",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "rava",
+      "object": "intimacy",
+      "roles": [
+        {
+          "role": "requested_partner",
+          "entity": "daughter"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "קם רבא, על לביתיה תבעה לבת רב חסדא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "תבעה",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c12",
+      "family": "family",
+      "predicate": "spouse_of",
+      "subject": "rava",
+      "object": "daughter",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "על לביתיה תבעה לבת רב חסדא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "medium",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "A spouse relationship is suggested by the home and intimacy scene, not named with דביתהו here."
+      ]
+    },
+    {
+      "id": "c13",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "daughter",
+      "object": "rava",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "who"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אמרה ליה בת רב חסדא: מאן הוי האידנא בבי דינא?",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c14",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "rava",
+      "object": "who",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "daughter"
+        },
+        {
+          "role": "content",
+          "entity": "answer"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אמר לה: חומא דביתהו דאביי.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c15",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "daughter",
+      "object": "beating",
+      "roles": [
+        {
+          "role": "target",
+          "entity": "homa"
+        },
+        {
+          "role": "location",
+          "entity": "mehoza"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "נפקא אבתרה, מחתא לה בקולפי דשידא עד דאפקה לה מכולי מחוזא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "מחתא / אפקה",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c16",
+      "family": "speech",
+      "predicate": "addresses",
+      "subject": "daughter",
+      "object": "homa",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "accusation"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אמרה לה: קטלת ליך תלתא, ואתת למיקטל אחרינא?!",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "A hostile rhetorical question is not an independently established killing."
+      ]
+    }
+  ],
+  "reading_groups": [],
+  "coreference_candidates": [
+    {
+      "mention_id": "m22",
+      "entity_ids": [
+        "nahmani",
+        "abaye"
+      ],
+      "branches": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "נחמני",
+          "occurrence": 1
+        }
+      ],
+      "reason": "The conversation suggests that Nahmani is the husband already named Abaye, but no explicit alias statement appears."
+    },
+    {
+      "mention_id": "m23",
+      "entity_ids": [
+        "nahmani",
+        "abaye"
+      ],
+      "branches": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "דהוה משקי לי",
+          "occurrence": 1
+        }
+      ],
+      "reason": "The unnamed giver is locally the husband under discussion. The name equivalence is not separately established."
+    },
+    {
+      "mention_id": "m24",
+      "entity_ids": [
+        "other",
+        "rava"
+      ],
+      "branches": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אחרינא",
+          "occurrence": 1
+        }
+      ],
+      "reason": "Rava is the likely intended new victim, but the accusation names no one."
+    }
+  ],
+  "open_questions": []
+}

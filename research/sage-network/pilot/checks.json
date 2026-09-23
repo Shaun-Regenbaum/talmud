@@ -1,0 +1,103 @@
+{
+  "status": "passed",
+  "scope": "Structure and source anchors only; semantic review is separate.",
+  "real_jobs": 42,
+  "real_claims": 602,
+  "checks": [
+    {
+      "check": "all_real_readings",
+      "passed": true,
+      "jobs": 42
+    },
+    {
+      "check": "changed_source_text",
+      "passed": true,
+      "expected_rejection": "source_hash",
+      "source_job": "challenge-01"
+    },
+    {
+      "check": "wrong_job",
+      "passed": true,
+      "expected_rejection": "job_id",
+      "source_job": "challenge-01"
+    },
+    {
+      "check": "missing_required_field",
+      "passed": true,
+      "expected_rejection": "schema",
+      "source_job": "challenge-01"
+    },
+    {
+      "check": "unexpected_field",
+      "passed": true,
+      "expected_rejection": "schema",
+      "source_job": "challenge-01"
+    },
+    {
+      "check": "absent_quote",
+      "passed": true,
+      "expected_rejection": "anchor_quote",
+      "source_job": "challenge-01"
+    },
+    {
+      "check": "wrong_occurrence",
+      "passed": true,
+      "expected_rejection": "anchor_quote",
+      "source_job": "challenge-01"
+    },
+    {
+      "check": "missing_source",
+      "passed": true,
+      "expected_rejection": "anchor_source",
+      "source_job": "challenge-01"
+    },
+    {
+      "check": "repeated_id",
+      "passed": true,
+      "expected_rejection": "duplicate_id",
+      "source_job": "challenge-01"
+    },
+    {
+      "check": "dangling_person",
+      "passed": true,
+      "expected_rejection": "entity_reference",
+      "source_job": "challenge-01"
+    },
+    {
+      "check": "wrong_family",
+      "passed": true,
+      "expected_rejection": "predicate_family",
+      "source_job": "challenge-01"
+    },
+    {
+      "check": "missing_branch",
+      "passed": true,
+      "expected_rejection": "branch_reference",
+      "source_job": "challenge-01"
+    },
+    {
+      "check": "unearned_historical_score",
+      "passed": true,
+      "expected_rejection": "schema",
+      "source_job": "challenge-01"
+    },
+    {
+      "check": "unearned_identity_score",
+      "passed": true,
+      "expected_rejection": "schema",
+      "source_job": "challenge-01"
+    },
+    {
+      "check": "context_flag_disagrees",
+      "passed": true,
+      "expected_rejection": "context_status",
+      "source_job": "challenge-01"
+    },
+    {
+      "check": "branch_local_person_leaks",
+      "passed": true,
+      "expected_rejection": "branch_scope",
+      "source_job": "challenge-08"
+    }
+  ]
+}

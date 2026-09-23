@@ -1,0 +1,73 @@
+{
+  "job_id": "original-02",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "b59d4c8f47ac3fd5eb56c10bb5ed335b2c0192464310dd1141817c26d995d680",
+  "historical_graph_eligible": false,
+  "scope": "I checked every exact_quote in dossier.json against its saved file (all 62 are present, at the occurrences claimed), reread Ketubot 62b:3-11 in the four saved versions, the Yerushalmi Bikkurim 3:3:13 witnesses with Penei Moshe, Sirilio and Seder HaDorot, and fetched Bavli Niddah 27a; I did not check Bavli manuscripts, the unread linked commentaries or any historical identity.",
+  "findings": [
+    {
+      "target": "F8 (Yerushalmi honour scene and student group) and reading.md 'The Yerushalmi tells it differently'",
+      "decision": "qualify_unstated_subject_and_correct_attribution",
+      "reason": "In Venice, 'והוה יתיב ליה על אתר תלי בגין מיחמיניה ומקים לי' מן קומוי' does not name the one who sits and rises. The next clauses, 'אמרי' ליה תלמידוי' and 'אמר לון אין ישיבה לפני סיני', do not name the teacher of 'his students' or say who is 'Sinai'. Only Penei Moshe names R. Yannai ('והיה ר' ינאי יושב במקום אחד'). Sirilio glosses only 'על מקום גבוה', and Guggenheimer writes only 'He used to sit'. So reading.md is wrong to credit Sirilio and Guggenheimer with R. Yannai as the sitter. Seder HaDorot's paraphrase keeps Yehuda as the running subject ('היה רגיל לשאול בשלום ר' ינאי חמיו ... והיה עומד במקום גבוה לראותו מרחוק כדי לעמוד לפניו אמרו לו תלמידיו'), which would reverse the direction of honour. Store 'rises for' and 'teacher of G2' as an unfilled sitter slot, with R. Yannai as Penei Moshe's filling (medium) and Yehuda as a possible alternative (low). Do not store them as settled edges P3 -> P1 and P3 -> G2."
+    },
+    {
+      "target": "proposed_corrections 1-3 (son_in_law_of direction, child_of R. Hiyya, unnamed wife P4); F1, F2, F3",
+      "decision": "support_proposed_correction",
+      "reason": "Both Bavli editions read 'יהודה בריה דרבי חייא חתניה דרבי ינאי' (Wikisource 'דר''), so the parent inside the name and the directed son-in-law relation are text. R. Hiyya stays as a local parent even though he never acts. The Yerushalmi 'דרבי ינאי חמוה' is a parallel telling of the same relation, not a second vote. The dossier rightly separates two claims. That Yehuda married a daughter of R. Yannai is implied by חתניה. That she is the wife behind 'מטתו ... עונתו' is inference, at medium confidence. Nothing in 62b:6 names her, dates the marriage or mentions children."
+    },
+    {
+      "target": "F14 (tagging 62b:6 under Rava's remark) and reading.md 'The study journey and the order of events'",
+      "decision": "qualify",
+      "reason": "Only 62b:4 is tied to Rava's remark by a connecting formula: 'כי הא דרב רחומי'. Rashi's 'שנענשים ומתים' glosses 'בנפשייהו' in 62b:3. It does not comment on the Yehuda story. 62b:6 has no connecting formula. It follows 62b:5, 'עונה של תלמידי חכמים אימת ... מערב שבת לערב שבת', and turns on 'עונתו'. Yehuda also comes home at every twilight, so he is not a case of leaving home for two or three years without permission. Tag 62b:6 as illustrating the scholars' conjugal-time rule in a theme-ordered chain that shares the formula 'יומא חד משכתיה שמעתא' with 62b:4. Do not tag it as a case of Rava's warning. The ban on before/after edges from segment order stands."
+    },
+    {
+      "target": "F15 (son of Rabbi in 62b:7-10) and unresolved item 4",
+      "decision": "qualify_do_not_merge",
+      "reason": "62b:7 says 'רבי איעסק ליה לבריה' and 62b:8 says 'אזיל איעסק ליה לבריה'. Each is an unnamed 'his son'. The text never says they are the same son, although that is the natural reading of 'he went and arranged' after the first match failed. Keep two local 'son of Rabbi' mentions, each with child_of -> Rabbi from 'בריה'. Record 'same son' as a reading (medium), not a merge. The arranged-but-not-completed status of the first match ('כי מטא למיכתב כתובה נח נפשה דרביתא') and the completed marriage in 62b:10 ('איעקרא דביתהו') are correct."
+    },
+    {
+      "target": "F12 (Hizqiyya and the twin claim) and reading.md table row 'Yehuda's brother Hizqiah; twins'",
+      "decision": "add_missing_source_and_correct_wording",
+      "reason": "The dossier traces the twin claim only to Guggenheimer's note and Seder HaDorot. Seder HaDorot does not say 'twins'. It says 'נולדו מטיפה אחת, ונתעכב לידתן זה אחר זה ג' חדשים' (born from one drop, their births three months apart). That report is in the Bavli itself, at Niddah 27a (saved in review-sources). There Rav Menahem, cited by R. Avin bar Rav Adda, tells of a second child born three months after the first. The anonymous question 'ומאן נינהו' then names them 'יהודה וחזקיה בני רבי חייא'. This is still not evidence from Ketubot 62b:6, so the ruling of no sibling edge from this segment stands. A sibling claim from Niddah 27a or Sanhedrin 38a belongs to those passages and waits on the identity decision."
+    },
+    {
+      "target": "F8 and F17 (who concludes Yehuda has died in the Yerushalmi); A4",
+      "decision": "qualify_speaker_and_keep_evidence_types_separate",
+      "reason": "The Yerushalmi has a second, separately marked 'אמ' לית איפשר דלא יגיעון ייסורין בההוא גופא צדיק'' and then an unattributed 'מסתברא שאין לנו יהודה ב\"ר'. The text names no speaker for either, although continuing with R. Yannai is the natural reading and Penei Moshe makes it explicit. Guggenheimer's English, 'it is impossible that sufferings should come over this holy body', drops the negation 'דלא' that his own Hebrew prints ('דְּלָא יְגִיעוּן'), and his note 50 builds on that translation. His Hebrew, English and notes are one editorial line, so F10 should not cite S12G and S12E as two witnesses. A4's 'suffering reached the righteous body' follows the printed text correctly."
+    },
+    {
+      "target": "pronoun_map_62b6 'כיון דלא חזי' (confidence high) vs F5 (confidence medium)",
+      "decision": "qualify",
+      "reason": "In 'כיון דלא חזי ההוא סימנא אמר להו רבי ינאי' the subject of 'לא חזי' is no more stated than the subject of the earlier 'הוה קא חזי'. It is supplied from the main verb 'אמר ... רבי ינאי'. That is a strong reading, and Steinsaltz and Davidson (one editorial line) make it explicit. But the pronoun map should say 'supplied from the main clause', not 'text'. It is also inconsistent to rate the failed seeing high and the habitual seeing medium when the second is inferred from the first. Daf Shevui's 'When he did not see the sign, R. Yannai said' keeps the ambiguity."
+    },
+    {
+      "target": "F6, F7, F9 and proposed_corrections 4-5 (speech to unnamed group, death, no child_of from ברי)",
+      "decision": "support_proposed_correction",
+      "reason": "'אמר להו רבי ינאי' names the speaker and marks only a plural addressee. 'the family' (Davidson; Steinsaltz 'לבני המשפחה') is editorial, so G1 stays an unnamed group and the wife is not made an addressee. Yehuda is the target of the speech ('שאילמלי יהודה קיים'), not its addressee. The link from utterance to death rests on 'הואי כשגגה שיוצא מלפני השליט ונח נפשיה', given by the anonymous narrator, and is rightly labelled literary. The Yerushalmi 'יהודה ברי' is a form of address in the same segment that calls R. Yannai 'חמוה', so no child_of -> R. Yannai."
+    }
+  ],
+  "quote_checks": [
+    {"source_id": "S1", "exact_quote": "יהודה בריה דרבי חייא חתניה דרבי ינאי", "matches_claim": true, "note": "Ketubot 62b:6, Davidson Aramaic, one occurrence. Supports child_of(P1 -> R. Hiyya) from the name and son_in_law_of(P1 -> R. Yannai). Wikisource has the same words with 'דר''."},
+    {"source_id": "S1", "exact_quote": "כיון דלא חזי ההוא סימנא אמר להו רבי ינאי כפו מטתו", "matches_claim": true, "note": "62b:6. The speaker is named and the addressee is only 'להו'. The subject of 'לא חזי' is supplied from the main clause, not stated."},
+    {"source_id": "S1", "exact_quote": "הואי כשגגה שיוצא מלפני השליט ונח נפשיה", "matches_claim": true, "note": "62b:6, the anonymous narrator's voice. The one who dies is unnamed in the Aramaic. All translations supply Yehuda, which fits the story's logic."},
+    {"source_id": "S12", "exact_quote": "יהודה בר חייה הוה יליף סליק ושאיל בשלמיה דרבי ינאי חמוה מערב שבת לערב שבת", "matches_claim": true, "note": "Yerushalmi Bikkurim 3:3:13, Venice. A parallel attestation of the in-law relation. Mechon-Mamre reads 'חמוי' and repeats the sentence."},
+    {"source_id": "S12", "exact_quote": "והוה יתיב ליה על אתר תלי בגין מיחמיניה ומקים לי' מן קומוי", "matches_claim": false, "note": "The quote is exact, but the claim that R. Yannai is the one who sits and rises is not in these words. The subject is unstated, and only Penei Moshe (S15) names R. Yannai."},
+    {"source_id": "S11", "exact_quote": "<b>על אתר תלי.</b> על מקום גבוה:", "matches_claim": false, "note": "Sirilio glosses only the place. reading.md cites Sirilio for R. Yannai as the sitter, but Sirilio does not say who sits, and his next gloss ('שינה מלעלות על אותו מקום גבוה') can be read with Yehuda as the one who goes up."},
+    {"source_id": "S10", "exact_quote": "יהודה וחזקיה בני ר' חייא נולדו מטיפה אחת, ונתעכב לידתן זה אחר זה ג' חדשים", "matches_claim": false, "note": "The dossier quotes only the first half and summarises it as 'twins'. The chronicle says births three months apart, which Bavli Niddah 27a reports."},
+    {"source_id": "S12E", "exact_quote": "it is impossible that sufferings should come over this holy body", "matches_claim": false, "note": "Guggenheimer's English drops the 'דלא' printed in Venice and in his own Hebrew ('דְּלָא יְגִיעוּן'). It is not a faithful witness to who concludes what."},
+    {"source_id": "S5", "exact_quote": "בנפשייהו - והוא בא להם ליטול מהם נפשות שנענשים ומתים:", "matches_claim": false, "note": "The quote is exact, but it is Rashi on 62b:3 (Rava's remark). It does not tie the 62b:6 story to Rava's warning. Rashi's only comment on 62b:6 is 'כפו מטתו - כדת המתאבלים'."},
+    {"source_id": "S1", "exact_quote": "רבי איעסק ליה לבריה בי רבי חייא כי מטא למיכתב כתובה נח נפשה דרביתא", "matches_claim": true, "note": "62b:7, the correct occurrence. The match was arranged, not completed. The girl is 'of R. Hiyya's household'. 'Daughter' is Rashi's reading."}
+  ],
+  "extra_sources": [
+    {
+      "source_id": "R1",
+      "url": "https://www.sefaria.org/api/v3/texts/Niddah.27a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English",
+      "saved_file": "review-sources/sefaria_v3_niddah_27a_davidson.json",
+      "sha256": "681aafcf9bc90a3209563a13dfc822ab81ad8395fab4c815283d5d19be051c5c",
+      "fetched_at": "2026-09-23",
+      "exact_quote": "אמר רבי אבין בר רב אדא אמר רב מנחם איש כפר שערים ואמרי לה בית שערים מעשה ונשתהה ולד אחד אחר חבירו שלשה חדשים והרי הם יושבים לפנינו בבית המדרש ומאן נינהו יהודה וחזקיה בני רבי חייא",
+      "used_for": "Finding on F12. It is the Bavli source behind Seder HaDorot's three-months-apart birth report. The identification is made by the anonymous 'ומאן נינהו', not by the named speaker."
+    }
+  ]
+}

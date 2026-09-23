@@ -1,0 +1,99 @@
+{
+  "job_id": "challenge-14",
+  "input_sha256": "2426f3aad5255a054b8d01945eb9f5003689fb3c7465c41324bdd5f7f96d368c",
+  "output_sha256": "4e2bc23360669312d5af06115072823a93e3393402c99d46f7a387d032463216",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "The named visitor is Yehuda or Adda in separate branches, with the sages shared.",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "Yehuda’s relation to Sala is a sibling claim within the Yehuda branch.",
+      "claim_ids": [
+        "c1"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "The speaking delegation addresses Huna, who undertakes to give the sharecropper his share without inventing payment.",
+      "claim_ids": [
+        "c7",
+        "c11",
+        "c16"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 3,
+      "status": "pass",
+      "reason": "A second independent group preserves restoration versus price-rise outcomes without matching them to visitor branches.",
+      "claim_ids": [
+        "c17",
+        "c18"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "Sala is retained only as Yehuda’s brother and is not made a visitor.",
+      "claim_ids": [
+        "c1",
+        "c4"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "The named visitors are alternatives, not a single definite delegation.",
+      "claim_ids": [
+        "c4",
+        "c5"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 2,
+      "status": "pass",
+      "reason": "The reading groups explicitly say the choices are independent and do not count combinations as new evidence.",
+      "claim_ids": [
+        "c17",
+        "c18"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "minor",
+      "type": "contract_limit",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c11",
+        "c16"
+      ],
+      "reason": "The entity visitors stands for the branch-dependent delegation, but there is no explicit membership relation joining it to the named visitor and sages. Labels, companion roles and group scope preserve the meaning for a reader; a bare graph needs a membership mechanism.",
+      "source_refs": [
+        "Berakhot 5b:17",
+        "Berakhot 5b:18",
+        "Berakhot 5b:20"
+      ]
+    }
+  ],
+  "summary": "Both independent alternatives and the accusation/promise distinction are preserved."
+}

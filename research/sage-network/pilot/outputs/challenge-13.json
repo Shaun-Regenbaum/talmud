@@ -1,0 +1,483 @@
+{
+  "schema_version": "passage-pilot-v1",
+  "job_id": "challenge-13",
+  "episode": {
+    "genre": "aggadic",
+    "genre_reason": "A visit during illness becomes a dialogue about suffering and a helping hand.",
+    "form": "Illness visit and short dialogue",
+    "coverage": "complete_for_supplied_text",
+    "needed_context": [],
+    "notes": [
+      "The alternating replies and hand actions are read from this local exchange. No kinship or teacher relationship between the visitors is stated. ואוקמיה reports raising him; a separate medical outcome is not added."
+    ]
+  },
+  "mentions": [
+    {
+      "id": "m1",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי חייא בר אבא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m2",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "אבא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m3",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי יוחנן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m4",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "לגביה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m5",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ליה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m6",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ליה",
+        "occurrence": 2
+      }
+    },
+    {
+      "id": "m7",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ליה",
+        "occurrence": 3
+      }
+    },
+    {
+      "id": "m8",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ליה",
+        "occurrence": 4
+      }
+    },
+    {
+      "id": "m9",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ידיה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m10",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ואוקמיה",
+        "occurrence": 1
+      }
+    }
+  ],
+  "entities": [
+    {
+      "id": "hiyya",
+      "kind": "person",
+      "label": "Rabbi Hiyya son of Abba",
+      "mention_ids": [
+        "m1",
+        "m4",
+        "m5",
+        "m7",
+        "m9",
+        "m10"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי חייא בר אבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "abba",
+      "kind": "person",
+      "label": "Abba in the patronymic",
+      "mention_ids": [
+        "m2"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yohanan",
+      "kind": "person",
+      "label": "Rabbi Yohanan",
+      "mention_ids": [
+        "m3",
+        "m6",
+        "m8"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי יוחנן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "illness",
+      "kind": "event",
+      "label": "Hiyya becomes ill",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי חייא בר אבא חלש.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "raising",
+      "kind": "event",
+      "label": "Hiyya gives his hand and Yohanan raises him",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "יהב ליה ידיה, ואוקמיה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "question",
+      "kind": "statement",
+      "label": "Are sufferings dear to you?",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "חביבין עליך יסורין?",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "rejection",
+      "kind": "statement",
+      "label": "Neither they nor their reward",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "לא הן ולא שכרן.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "hand",
+      "kind": "statement",
+      "label": "Give me your hand",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הב לי ידך.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "hiyya",
+      "object": "abba",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי חייא בר אבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c2",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "hiyya",
+      "object": "illness",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי חייא בר אבא חלש.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "became_ill",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c3",
+      "family": "scenes",
+      "predicate": "visits",
+      "subject": "yohanan",
+      "object": "hiyya",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "על לגביה רבי יוחנן",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c4",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "yohanan",
+      "object": "hiyya",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "question"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר ליה: חביבין עליך יסורין?",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c5",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "hiyya",
+      "object": "question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "yohanan"
+        },
+        {
+          "role": "content",
+          "entity": "rejection"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר ליה: לא הן ולא שכרן.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c6",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "yohanan",
+      "object": "hiyya",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "hand"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר ליה: הב לי ידך.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c7",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "hiyya",
+      "object": "raising",
+      "roles": [
+        {
+          "role": "recipient",
+          "entity": "yohanan"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "יהב ליה ידיה, ואוקמיה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "gives_hand",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c8",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "yohanan",
+      "object": "raising",
+      "roles": [
+        {
+          "role": "person_raised",
+          "entity": "hiyya"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "יהב ליה ידיה, ואוקמיה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "raises",
+      "time_scope": null,
+      "notes": []
+    }
+  ],
+  "reading_groups": [],
+  "coreference_candidates": [],
+  "open_questions": []
+}

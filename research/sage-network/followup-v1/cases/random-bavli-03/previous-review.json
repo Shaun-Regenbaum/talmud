@@ -1,0 +1,63 @@
+{
+  "job_id": "random-bavli-03",
+  "input_sha256": "bc9d0af585ea4d0895ea0b3591b1a6c21f7c25c7c2aa7e21efa7d8b950198692",
+  "output_sha256": "234e7d0000d462e6f148cc47fce3febf4230af1b8438fd0bda61d729b434997c",
+  "checks": [
+    {
+      "kind": "source",
+      "index": 0,
+      "status": "pass",
+      "reason": "Sotah 45a:15 attributes the exclusion of floated sheaves through Rabbi Abahu to Rabbi Elazar. c6–c7 preserve that direction without asserting a meeting.",
+      "claim_ids": [
+        "c6",
+        "c7"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 1,
+      "status": "pass",
+      "reason": "The rabbis’ use of the בשדה/בשדך distinction and Rabbi Yehuda’s refusal to draw it remain opposing readings of a particular phrase.",
+      "claim_ids": [
+        "c8",
+        "c9"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 2,
+      "status": "miss",
+      "reason": "The opening of 45a:15 says Rabbi Yehuda needs the wording for the teaching transmitted by Abahu from Elazar. That use by Yehuda is missing, although the transmission and the rabbis’ different derivation survive.",
+      "claim_ids": [
+        "c6",
+        "c7",
+        "c8",
+        "c9"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "minor",
+      "type": "omission",
+      "claim_ids": [
+        "c6",
+        "c7"
+      ],
+      "reason": "The extraction preserves the transmitted teaching but omits Rabbi Yehuda’s stated use of it in ור' יהודה מיבעי ליה לכדרבי אבהו אמר ר' אלעזר.",
+      "source_refs": [
+        "Sotah 45a:15"
+      ]
+    },
+    {
+      "severity": "minor",
+      "type": "omission",
+      "claim_ids": [],
+      "reason": "Several repeated name occurrences lack mentions, including the second רבי אבהו and second ר' יהודה in 45a:15, and the רבנן reference in that segment. The named entities exist, but the occurrence inventory is incomplete.",
+      "source_refs": [
+        "Sotah 45a:15"
+      ]
+    }
+  ],
+  "summary": "Transmission direction and issue-specific disagreement are sound. One explanatory link and several repeated mentions are missing."
+}

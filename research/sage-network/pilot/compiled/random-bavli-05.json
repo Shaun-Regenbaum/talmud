@@ -1,0 +1,1212 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "random-bavli-05",
+    "episode": {
+      "genre": "aggadic",
+      "genre_reason": "The passage disputes the fate of biblical generations in the world to come.",
+      "form": "Mishnaic disagreement and scriptural interpretation",
+      "coverage": "complete_for_supplied_text",
+      "needed_context": [],
+      "notes": [
+        "Claims record attributed views about future judgment, not independently verified events. The anonymous reply follows Rabbi Nehemya across a segment boundary."
+      ]
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "דור המבול",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "דור הפלגה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "אנשי סדום",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "מרגלים",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "דור המדבר",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "רבי נחמיה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "רבי עקיבא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "רבי אליעזר",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "אמרו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m10",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "מתני׳",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m11",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "עדת צדיקים",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m12",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "עדת רשעים",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m13",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "לו",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "flood",
+        "kind": "group",
+        "label": "Generation of the Flood",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "דור המבול",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "dispersion",
+        "kind": "group",
+        "label": "Generation of the dispersion",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "דור הפלגה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "sodom",
+        "kind": "group",
+        "label": "People of Sodom",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אנשי סדום",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "spies",
+        "kind": "group",
+        "label": "The spies",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "מרגלים",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "wilderness",
+        "kind": "group",
+        "label": "Wilderness generation",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "דור המדבר",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "nehemya",
+        "kind": "person",
+        "label": "Rabbi Nehemya",
+        "mention_ids": [
+          "m6",
+          "m13"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רבי נחמיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "akiva",
+        "kind": "person",
+        "label": "Rabbi Akiva",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "רבי עקיבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "eliezer",
+        "kind": "person",
+        "label": "Rabbi Eliezer",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "רבי אליעזר",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "respondents",
+        "kind": "group",
+        "label": "Unnamed respondents to Nehemya",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמרו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "anonymous_teaching",
+        "kind": "group",
+        "label": "Unnamed voice of the Mishnah",
+        "mention_ids": [
+          "m10"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "מתני׳",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "righteous",
+        "kind": "group",
+        "label": "Assembly of the righteous in the quoted verse",
+        "mention_ids": [
+          "m11"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "עדת צדיקים",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "wicked",
+        "kind": "group",
+        "label": "Assembly of the wicked in the reply",
+        "mention_ids": [
+          "m12"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "עדת רשעים",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "flood_fate",
+        "kind": "statement",
+        "label": "The Flood generation has no share and does not stand in judgment",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "דור המבול אין להם חלק לעולם הבא ואין עומדין בדין",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "dispersion_fate",
+        "kind": "statement",
+        "label": "The dispersion generation has no share in the world to come",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "דור הפלגה אין להם חלק לעולם הבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "sodom_fate",
+        "kind": "statement",
+        "label": "Sodom has no share but stands in judgment",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אנשי סדום אין להם חלק לעולם הבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "spies_fate",
+        "kind": "statement",
+        "label": "The spies have no share in the world to come",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "מרגלים אין להם חלק לעולם הבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "nehemya_fate",
+        "kind": "statement",
+        "label": "Neither the Flood generation nor Sodom stands in judgment",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אלו ואלו אין עומדין בדין",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "reply",
+        "kind": "statement",
+        "label": "They stand with the wicked, although not with the righteous",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אינם עומדין בעדת צדיקים אבל עומדין בעדת רשעים",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "akiva_fate",
+        "kind": "statement",
+        "label": "The wilderness generation has no share and does not stand in judgment",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "דור המדבר אין להם חלק לעולם הבא ואין עומדין בדין",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "eliezer_fate",
+        "kind": "statement",
+        "label": "Gather my faithful ones is said of the wilderness generation",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "עליהם הוא אומר אספו לי חסידי כרתי בריתי עלי זבח",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "anonymous_teaching",
+        "object": "flood_fate",
+        "roles": [
+          {
+            "role": "target",
+            "entity": "flood"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "מתני׳ דור המבול אין להם חלק לעולם הבא ואין עומדין בדין שנאמר לא ידון רוחי באדם לעלם לא דין ולא רוח דור הפלגה אין להם חלק לעולם הבא שנאמר ויפץ ה׳ אתם משם על פני כל הארץ וכתיב ומשם הפיצם ויפץ ה׳ אתם בעולם הזה ומשם הפיצם ה׳ לעולם הבא אנשי סדום אין להם חלק לעולם הבא שנאמר ואנשי סדם רעים וחטאים לה׳ מאד רעים בעולם הזה וחטאים לעולם הבא אבל עומדין בדין",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "anonymous_teaching",
+        "object": "dispersion_fate",
+        "roles": [
+          {
+            "role": "target",
+            "entity": "dispersion"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "מתני׳ דור המבול אין להם חלק לעולם הבא ואין עומדין בדין שנאמר לא ידון רוחי באדם לעלם לא דין ולא רוח דור הפלגה אין להם חלק לעולם הבא שנאמר ויפץ ה׳ אתם משם על פני כל הארץ וכתיב ומשם הפיצם ויפץ ה׳ אתם בעולם הזה ומשם הפיצם ה׳ לעולם הבא אנשי סדום אין להם חלק לעולם הבא שנאמר ואנשי סדם רעים וחטאים לה׳ מאד רעים בעולם הזה וחטאים לעולם הבא אבל עומדין בדין",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "anonymous_teaching",
+        "object": "sodom_fate",
+        "roles": [
+          {
+            "role": "target",
+            "entity": "sodom"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "מתני׳ דור המבול אין להם חלק לעולם הבא ואין עומדין בדין שנאמר לא ידון רוחי באדם לעלם לא דין ולא רוח דור הפלגה אין להם חלק לעולם הבא שנאמר ויפץ ה׳ אתם משם על פני כל הארץ וכתיב ומשם הפיצם ויפץ ה׳ אתם בעולם הזה ומשם הפיצם ה׳ לעולם הבא אנשי סדום אין להם חלק לעולם הבא שנאמר ואנשי סדם רעים וחטאים לה׳ מאד רעים בעולם הזה וחטאים לעולם הבא אבל עומדין בדין",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c4",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "anonymous_teaching",
+        "object": "spies_fate",
+        "roles": [
+          {
+            "role": "target",
+            "entity": "spies"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "מרגלים אין להם חלק לעולם הבא שנאמר וימתו האנשים מוצאי דבת הארץ רעה במגפה לפני ה׳ וימתו בעולם הזה במגפה לעולם הבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "nehemya",
+        "object": "nehemya_fate",
+        "roles": [
+          {
+            "role": "target",
+            "entity": "flood"
+          },
+          {
+            "role": "other_target",
+            "entity": "sodom"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רבי נחמיה אומר אלו ואלו אין עומדין בדין שנאמר על כן לא יקמו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "respondents",
+        "object": "nehemya_fate",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "nehemya"
+          },
+          {
+            "role": "content",
+            "entity": "reply"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמרו לו אינם עומדין בעדת צדיקים אבל עומדין בעדת רשעים",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c7",
+        "family": "views",
+        "predicate": "opposes",
+        "subject": "respondents",
+        "object": "nehemya_fate",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמרו לו אינם עומדין בעדת צדיקים אבל עומדין בעדת רשעים",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c8",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "akiva",
+        "object": "akiva_fate",
+        "roles": [
+          {
+            "role": "target",
+            "entity": "wilderness"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "דור המדבר אין להם חלק לעולם הבא ואין עומדין בדין שנאמר במדבר הזה יתמו ושם ימתו דברי רבי עקיבא רבי אליעזר אומר עליהם הוא אומר אספו לי חסידי כרתי בריתי עלי זבח",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c9",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "eliezer",
+        "object": "eliezer_fate",
+        "roles": [
+          {
+            "role": "target",
+            "entity": "wilderness"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "דור המדבר אין להם חלק לעולם הבא ואין עומדין בדין שנאמר במדבר הזה יתמו ושם ימתו דברי רבי עקיבא רבי אליעזר אומר עליהם הוא אומר אספו לי חסידי כרתי בריתי עלי זבח",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c10",
+        "family": "views",
+        "predicate": "opposes",
+        "subject": "eliezer",
+        "object": "akiva_fate",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "דור המדבר אין להם חלק לעולם הבא ואין עומדין בדין שנאמר במדבר הזה יתמו ושם ימתו דברי רבי עקיבא רבי אליעזר אומר עליהם הוא אומר אספו לי חסידי כרתי בריתי עלי זבח",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "His counter-verse contests Akiva’s exclusion; the precise account of judgment is not spelled out."
+        ]
+      }
+    ],
+    "reading_groups": [],
+    "coreference_candidates": [],
+    "open_questions": [
+      "Does the anonymous reply in s3 concern only Sodom or also the Flood generation? The reply’s plural does not restate its targets."
+    ]
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "דור המבול",
+      "occurrence": 1,
+      "source_sha256": "722285c9f3d385d8c146219939c188cfd898623bc695ccb83e9bde857862d9a1",
+      "start": 6,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "דור הפלגה",
+      "occurrence": 1,
+      "source_sha256": "722285c9f3d385d8c146219939c188cfd898623bc695ccb83e9bde857862d9a1",
+      "start": 99,
+      "end": 108,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "אנשי סדום",
+      "occurrence": 1,
+      "source_sha256": "722285c9f3d385d8c146219939c188cfd898623bc695ccb83e9bde857862d9a1",
+      "start": 231,
+      "end": 240,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s4",
+      "quote": "מרגלים",
+      "occurrence": 1,
+      "source_sha256": "a57c19396e902c6a834ea3962bae1b27a2f35e86b6dc25a5a79146a96a71c9dc",
+      "start": 0,
+      "end": 6,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s5",
+      "quote": "דור המדבר",
+      "occurrence": 1,
+      "source_sha256": "c07d13de1245ffa21aceb8cfdcda8e4bda216091f9c57e03a1cd5652a5dee16f",
+      "start": 0,
+      "end": 9,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s2",
+      "quote": "רבי נחמיה",
+      "occurrence": 1,
+      "source_sha256": "7946d0c7c2380f369e46fe05cbdda4c52eaa77855acdb62897935d2a8ef0e847",
+      "start": 0,
+      "end": 9,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s5",
+      "quote": "רבי עקיבא",
+      "occurrence": 1,
+      "source_sha256": "c07d13de1245ffa21aceb8cfdcda8e4bda216091f9c57e03a1cd5652a5dee16f",
+      "start": 84,
+      "end": 93,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s5",
+      "quote": "רבי אליעזר",
+      "occurrence": 1,
+      "source_sha256": "c07d13de1245ffa21aceb8cfdcda8e4bda216091f9c57e03a1cd5652a5dee16f",
+      "start": 94,
+      "end": 104,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s3",
+      "quote": "אמרו",
+      "occurrence": 1,
+      "source_sha256": "c2748e820ec4fa3cf4fd8c732b68d1452e4adb6bfc9dcf5e2b1c711e83108df5",
+      "start": 104,
+      "end": 108,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m10/anchor",
+      "source_id": "s1",
+      "quote": "מתני׳",
+      "occurrence": 1,
+      "source_sha256": "722285c9f3d385d8c146219939c188cfd898623bc695ccb83e9bde857862d9a1",
+      "start": 0,
+      "end": 5,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m11/anchor",
+      "source_id": "s3",
+      "quote": "עדת צדיקים",
+      "occurrence": 1,
+      "source_sha256": "c2748e820ec4fa3cf4fd8c732b68d1452e4adb6bfc9dcf5e2b1c711e83108df5",
+      "start": 20,
+      "end": 30,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m12/anchor",
+      "source_id": "s3",
+      "quote": "עדת רשעים",
+      "occurrence": 1,
+      "source_sha256": "c2748e820ec4fa3cf4fd8c732b68d1452e4adb6bfc9dcf5e2b1c711e83108df5",
+      "start": 148,
+      "end": 157,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m13/anchor",
+      "source_id": "s3",
+      "quote": "לו",
+      "occurrence": 1,
+      "source_sha256": "c2748e820ec4fa3cf4fd8c732b68d1452e4adb6bfc9dcf5e2b1c711e83108df5",
+      "start": 91,
+      "end": 93,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/flood/evidence/0",
+      "source_id": "s1",
+      "quote": "דור המבול",
+      "occurrence": 1,
+      "source_sha256": "722285c9f3d385d8c146219939c188cfd898623bc695ccb83e9bde857862d9a1",
+      "start": 6,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/dispersion/evidence/0",
+      "source_id": "s1",
+      "quote": "דור הפלגה",
+      "occurrence": 1,
+      "source_sha256": "722285c9f3d385d8c146219939c188cfd898623bc695ccb83e9bde857862d9a1",
+      "start": 99,
+      "end": 108,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sodom/evidence/0",
+      "source_id": "s1",
+      "quote": "אנשי סדום",
+      "occurrence": 1,
+      "source_sha256": "722285c9f3d385d8c146219939c188cfd898623bc695ccb83e9bde857862d9a1",
+      "start": 231,
+      "end": 240,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/spies/evidence/0",
+      "source_id": "s4",
+      "quote": "מרגלים",
+      "occurrence": 1,
+      "source_sha256": "a57c19396e902c6a834ea3962bae1b27a2f35e86b6dc25a5a79146a96a71c9dc",
+      "start": 0,
+      "end": 6,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/wilderness/evidence/0",
+      "source_id": "s5",
+      "quote": "דור המדבר",
+      "occurrence": 1,
+      "source_sha256": "c07d13de1245ffa21aceb8cfdcda8e4bda216091f9c57e03a1cd5652a5dee16f",
+      "start": 0,
+      "end": 9,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/nehemya/evidence/0",
+      "source_id": "s2",
+      "quote": "רבי נחמיה",
+      "occurrence": 1,
+      "source_sha256": "7946d0c7c2380f369e46fe05cbdda4c52eaa77855acdb62897935d2a8ef0e847",
+      "start": 0,
+      "end": 9,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/akiva/evidence/0",
+      "source_id": "s5",
+      "quote": "רבי עקיבא",
+      "occurrence": 1,
+      "source_sha256": "c07d13de1245ffa21aceb8cfdcda8e4bda216091f9c57e03a1cd5652a5dee16f",
+      "start": 84,
+      "end": 93,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/eliezer/evidence/0",
+      "source_id": "s5",
+      "quote": "רבי אליעזר",
+      "occurrence": 1,
+      "source_sha256": "c07d13de1245ffa21aceb8cfdcda8e4bda216091f9c57e03a1cd5652a5dee16f",
+      "start": 94,
+      "end": 104,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/respondents/evidence/0",
+      "source_id": "s3",
+      "quote": "אמרו",
+      "occurrence": 1,
+      "source_sha256": "c2748e820ec4fa3cf4fd8c732b68d1452e4adb6bfc9dcf5e2b1c711e83108df5",
+      "start": 104,
+      "end": 108,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/anonymous_teaching/evidence/0",
+      "source_id": "s1",
+      "quote": "מתני׳",
+      "occurrence": 1,
+      "source_sha256": "722285c9f3d385d8c146219939c188cfd898623bc695ccb83e9bde857862d9a1",
+      "start": 0,
+      "end": 5,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/righteous/evidence/0",
+      "source_id": "s3",
+      "quote": "עדת צדיקים",
+      "occurrence": 1,
+      "source_sha256": "c2748e820ec4fa3cf4fd8c732b68d1452e4adb6bfc9dcf5e2b1c711e83108df5",
+      "start": 20,
+      "end": 30,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/wicked/evidence/0",
+      "source_id": "s3",
+      "quote": "עדת רשעים",
+      "occurrence": 1,
+      "source_sha256": "c2748e820ec4fa3cf4fd8c732b68d1452e4adb6bfc9dcf5e2b1c711e83108df5",
+      "start": 148,
+      "end": 157,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/flood_fate/evidence/0",
+      "source_id": "s1",
+      "quote": "דור המבול אין להם חלק לעולם הבא ואין עומדין בדין",
+      "occurrence": 1,
+      "source_sha256": "722285c9f3d385d8c146219939c188cfd898623bc695ccb83e9bde857862d9a1",
+      "start": 6,
+      "end": 54,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/dispersion_fate/evidence/0",
+      "source_id": "s1",
+      "quote": "דור הפלגה אין להם חלק לעולם הבא",
+      "occurrence": 1,
+      "source_sha256": "722285c9f3d385d8c146219939c188cfd898623bc695ccb83e9bde857862d9a1",
+      "start": 99,
+      "end": 130,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sodom_fate/evidence/0",
+      "source_id": "s1",
+      "quote": "אנשי סדום אין להם חלק לעולם הבא",
+      "occurrence": 1,
+      "source_sha256": "722285c9f3d385d8c146219939c188cfd898623bc695ccb83e9bde857862d9a1",
+      "start": 231,
+      "end": 262,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/spies_fate/evidence/0",
+      "source_id": "s4",
+      "quote": "מרגלים אין להם חלק לעולם הבא",
+      "occurrence": 1,
+      "source_sha256": "a57c19396e902c6a834ea3962bae1b27a2f35e86b6dc25a5a79146a96a71c9dc",
+      "start": 0,
+      "end": 28,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/nehemya_fate/evidence/0",
+      "source_id": "s2",
+      "quote": "אלו ואלו אין עומדין בדין",
+      "occurrence": 1,
+      "source_sha256": "7946d0c7c2380f369e46fe05cbdda4c52eaa77855acdb62897935d2a8ef0e847",
+      "start": 15,
+      "end": 39,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/reply/evidence/0",
+      "source_id": "s3",
+      "quote": "אינם עומדין בעדת צדיקים אבל עומדין בעדת רשעים",
+      "occurrence": 1,
+      "source_sha256": "c2748e820ec4fa3cf4fd8c732b68d1452e4adb6bfc9dcf5e2b1c711e83108df5",
+      "start": 112,
+      "end": 157,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/akiva_fate/evidence/0",
+      "source_id": "s5",
+      "quote": "דור המדבר אין להם חלק לעולם הבא ואין עומדין בדין",
+      "occurrence": 1,
+      "source_sha256": "c07d13de1245ffa21aceb8cfdcda8e4bda216091f9c57e03a1cd5652a5dee16f",
+      "start": 0,
+      "end": 48,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/eliezer_fate/evidence/0",
+      "source_id": "s5",
+      "quote": "עליהם הוא אומר אספו לי חסידי כרתי בריתי עלי זבח",
+      "occurrence": 1,
+      "source_sha256": "c07d13de1245ffa21aceb8cfdcda8e4bda216091f9c57e03a1cd5652a5dee16f",
+      "start": 110,
+      "end": 157,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "מתני׳ דור המבול אין להם חלק לעולם הבא ואין עומדין בדין שנאמר לא ידון רוחי באדם לעלם לא דין ולא רוח דור הפלגה אין להם חלק לעולם הבא שנאמר ויפץ ה׳ אתם משם על פני כל הארץ וכתיב ומשם הפיצם ויפץ ה׳ אתם בעולם הזה ומשם הפיצם ה׳ לעולם הבא אנשי סדום אין להם חלק לעולם הבא שנאמר ואנשי סדם רעים וחטאים לה׳ מאד רעים בעולם הזה וחטאים לעולם הבא אבל עומדין בדין",
+      "occurrence": 1,
+      "source_sha256": "722285c9f3d385d8c146219939c188cfd898623bc695ccb83e9bde857862d9a1",
+      "start": 0,
+      "end": 346,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s1",
+      "quote": "מתני׳ דור המבול אין להם חלק לעולם הבא ואין עומדין בדין שנאמר לא ידון רוחי באדם לעלם לא דין ולא רוח דור הפלגה אין להם חלק לעולם הבא שנאמר ויפץ ה׳ אתם משם על פני כל הארץ וכתיב ומשם הפיצם ויפץ ה׳ אתם בעולם הזה ומשם הפיצם ה׳ לעולם הבא אנשי סדום אין להם חלק לעולם הבא שנאמר ואנשי סדם רעים וחטאים לה׳ מאד רעים בעולם הזה וחטאים לעולם הבא אבל עומדין בדין",
+      "occurrence": 1,
+      "source_sha256": "722285c9f3d385d8c146219939c188cfd898623bc695ccb83e9bde857862d9a1",
+      "start": 0,
+      "end": 346,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "מתני׳ דור המבול אין להם חלק לעולם הבא ואין עומדין בדין שנאמר לא ידון רוחי באדם לעלם לא דין ולא רוח דור הפלגה אין להם חלק לעולם הבא שנאמר ויפץ ה׳ אתם משם על פני כל הארץ וכתיב ומשם הפיצם ויפץ ה׳ אתם בעולם הזה ומשם הפיצם ה׳ לעולם הבא אנשי סדום אין להם חלק לעולם הבא שנאמר ואנשי סדם רעים וחטאים לה׳ מאד רעים בעולם הזה וחטאים לעולם הבא אבל עומדין בדין",
+      "occurrence": 1,
+      "source_sha256": "722285c9f3d385d8c146219939c188cfd898623bc695ccb83e9bde857862d9a1",
+      "start": 0,
+      "end": 346,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s4",
+      "quote": "מרגלים אין להם חלק לעולם הבא שנאמר וימתו האנשים מוצאי דבת הארץ רעה במגפה לפני ה׳ וימתו בעולם הזה במגפה לעולם הבא",
+      "occurrence": 1,
+      "source_sha256": "a57c19396e902c6a834ea3962bae1b27a2f35e86b6dc25a5a79146a96a71c9dc",
+      "start": 0,
+      "end": 112,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s2",
+      "quote": "רבי נחמיה אומר אלו ואלו אין עומדין בדין שנאמר על כן לא יקמו",
+      "occurrence": 1,
+      "source_sha256": "7946d0c7c2380f369e46fe05cbdda4c52eaa77855acdb62897935d2a8ef0e847",
+      "start": 0,
+      "end": 59,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s3",
+      "quote": "אמרו לו אינם עומדין בעדת צדיקים אבל עומדין בעדת רשעים",
+      "occurrence": 1,
+      "source_sha256": "c2748e820ec4fa3cf4fd8c732b68d1452e4adb6bfc9dcf5e2b1c711e83108df5",
+      "start": 104,
+      "end": 157,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s3",
+      "quote": "אמרו לו אינם עומדין בעדת צדיקים אבל עומדין בעדת רשעים",
+      "occurrence": 1,
+      "source_sha256": "c2748e820ec4fa3cf4fd8c732b68d1452e4adb6bfc9dcf5e2b1c711e83108df5",
+      "start": 104,
+      "end": 157,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s5",
+      "quote": "דור המדבר אין להם חלק לעולם הבא ואין עומדין בדין שנאמר במדבר הזה יתמו ושם ימתו דברי רבי עקיבא רבי אליעזר אומר עליהם הוא אומר אספו לי חסידי כרתי בריתי עלי זבח",
+      "occurrence": 1,
+      "source_sha256": "c07d13de1245ffa21aceb8cfdcda8e4bda216091f9c57e03a1cd5652a5dee16f",
+      "start": 0,
+      "end": 157,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s5",
+      "quote": "דור המדבר אין להם חלק לעולם הבא ואין עומדין בדין שנאמר במדבר הזה יתמו ושם ימתו דברי רבי עקיבא רבי אליעזר אומר עליהם הוא אומר אספו לי חסידי כרתי בריתי עלי זבח",
+      "occurrence": 1,
+      "source_sha256": "c07d13de1245ffa21aceb8cfdcda8e4bda216091f9c57e03a1cd5652a5dee16f",
+      "start": 0,
+      "end": 157,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s5",
+      "quote": "דור המדבר אין להם חלק לעולם הבא ואין עומדין בדין שנאמר במדבר הזה יתמו ושם ימתו דברי רבי עקיבא רבי אליעזר אומר עליהם הוא אומר אספו לי חסידי כרתי בריתי עלי זבח",
+      "occurrence": 1,
+      "source_sha256": "c07d13de1245ffa21aceb8cfdcda8e4bda216091f9c57e03a1cd5652a5dee16f",
+      "start": 0,
+      "end": 157,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "00c3f1cce6fec2a2e21b7907da63397b09dd56fd5d775f4d6c3171c4111cc7a2",
+  "output_sha256": "621b5a2a763f1c8908781d705524b7a4bc89c14cc1256345546f59732aab7998",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.420702+00:00"
+}

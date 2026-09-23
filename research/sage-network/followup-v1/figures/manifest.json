@@ -1,0 +1,100 @@
+[
+  {
+    "filename": "figures/ban-1.svg",
+    "caption": "The target is clear. The addressee depends on the version. — Base text: “she said”",
+    "data_files": [
+      "examples.json"
+    ]
+  },
+  {
+    "filename": "figures/ban-2.svg",
+    "caption": "The target is clear. The addressee depends on the version. — Other version: “she said to him”",
+    "data_files": [
+      "examples.json"
+    ]
+  },
+  {
+    "filename": "figures/kinship-1.svg",
+    "caption": "Brother in the printed text. Nephew in a proposed correction. — Printed wording",
+    "data_files": [
+      "examples.json"
+    ]
+  },
+  {
+    "filename": "figures/kinship-2.svg",
+    "caption": "Brother in the printed text. Nephew in a proposed correction. — Commentary and parallel reading",
+    "data_files": [
+      "examples.json"
+    ]
+  },
+  {
+    "filename": "figures/voice-1.svg",
+    "caption": "An objection and its answer need different speakers. — Reply reading",
+    "data_files": [
+      "examples.json"
+    ]
+  },
+  {
+    "filename": "figures/voice-2.svg",
+    "caption": "An objection and its answer need different speakers. — Continuation reading",
+    "data_files": [
+      "examples.json"
+    ]
+  },
+  {
+    "filename": "figures/unsaid-1.svg",
+    "caption": "Words that were not said can still be evidence. — Focal passage",
+    "data_files": [
+      "examples.json"
+    ]
+  },
+  {
+    "filename": "figures/unsaid-2.svg",
+    "caption": "Words that were not said can still be evidence. — Later quotation",
+    "data_files": [
+      "examples.json"
+    ]
+  },
+  {
+    "filename": "figures/priest-1.svg",
+    "caption": "The same words can name a role or refer to a person. — Legal rule",
+    "data_files": [
+      "examples.json"
+    ]
+  },
+  {
+    "filename": "figures/priest-2.svg",
+    "caption": "The same words can name a role or refer to a person. — Story",
+    "data_files": [
+      "examples.json"
+    ]
+  },
+  {
+    "filename": "figures/chains-1.svg",
+    "caption": "Two commentaries divide the same names differently. — Printed links, retained by Guggenheimer",
+    "data_files": [
+      "examples.json"
+    ]
+  },
+  {
+    "filename": "figures/chains-2.svg",
+    "caption": "Two commentaries divide the same names differently. — Ohr LaYesharim’s reconstruction",
+    "data_files": [
+      "examples.json"
+    ]
+  },
+  {
+    "filename": "figures/teacher-1.svg",
+    "caption": "One extra word supplies an explicit teacher relationship. — Ketubot wording with “my teacher”",
+    "data_files": [
+      "examples.json"
+    ]
+  },
+  {
+    "filename": "figures/teacher-2.svg",
+    "caption": "One extra word supplies an explicit teacher relationship. — Parallel wording without that title",
+    "data_files": [
+      "examples.json"
+    ]
+  }
+]

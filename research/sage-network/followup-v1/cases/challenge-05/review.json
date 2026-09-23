@@ -1,0 +1,76 @@
+{
+  "job_id": "challenge-05",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "78504df18e69ab4965e804d7bd391e4c0b6623c91e33031032ecf4765b5c24c3",
+  "historical_graph_eligible": false,
+  "scope": "I checked every finding and proposed correction in dossier.json and reading.md against the saved files in sources/ (Menachot 62a, 98a, Sotah 37a, Shabbat 97a:17, Sifra, Yalkut, Malbim, Tosafot, Rashi, Rabbeinu Gershom, Steinsaltz, the Soncino text layer and the exact-phrase search); I fetched nothing new and did not check Bavli manuscripts or the Tosefta.",
+  "findings": [
+    {
+      "target": "proposed_corrections c7 / F3 / AR2",
+      "decision": "qualify_keep_citing_act_separate_from_content",
+      "reason": "The proof in 62a:13 ('אתה אומר על בסמוך או אינו אלא על ממש כשהוא אומר וסכות על הארון את הפרוכת הוי אומר על בסמוך') comes after 'רבי אומר' and is inside the cited baraita. It is not spoken by the amora or by the anonymous Talmud: the Davidson English says 'The baraita asks' and 'The baraita explains', and Soncino closes Rabbi's words at 'Rabbi says, ‘Al means near to’.' The open citation_boundary group (amora or anonymous Talmud) is right, but it belongs on a separate act, 'cites this baraita in support of רבי לטעמיה', not on c7. c7's voice should be the baraita. A second question stays open: are the 'you say ... when it says' lines Rabbi's own derivation or the baraita's unnamed voice? The earlier review mixed these layers in the same way."
+    },
+    {
+      "target": "F8 (name variants of Hanina ben Hakhinai)",
+      "decision": "add_missing_claim",
+      "reason": "Tosafot on Sotah 37a quotes our baraita with 'וכו' ר' חכינאי אומר מניח הלחם בין שתי יריכותיהם של כבשים ומניף'. That wording names the speaker by the father's name alone, with a title. The dossier quotes this same file (S18) for F10 but leaves this form out of the variant set. Record it as a later-quotation variant, a separate evidence type from the printed Bavli, the Sifra and the Yalkut. It must not make Hakhinai the speaker in the Bavli reading, merge the father into the son, or weaken the child_of claim c1, which is scoped to the readings that have 'בן'."
+    },
+    {
+      "target": "F7 / proposed_corrections episode.needed_context",
+      "decision": "add_missing_claim",
+      "reason": "The dossier widens the context to 62a:7-10 and proposes edges to 'Yosi ben HaMeshullam', but it records no name-internal relation for him. 'רבי יוסי בן המשולם אומר כבשים למעלה' (62a:10) carries a patronymic, so a parent placeholder and a child_of claim are needed, scoped to that reading. Flag it as possibly a fixed name: it has the article ה, and the Sifra reads 'ר' יוסי בן משולם' without it. Rav Papa ('היכא אמר רב פפא במילואים', 62a:9) enters as an amoraic speaker with no addressee, interjected into the baraita. The 'anonymous first view' is the baraita's unattributed voice, not a person node."
+    },
+    {
+      "target": "F6 vs F7 graph_effect and AR4",
+      "decision": "qualify_make_basis_consistent",
+      "reason": "F6 calls Rabbi's target an interpretation: 'The target is fixed by context and by the commentaries'. F7 and AR4 call the same Hanina target 'explicit'. The text says only 'אמר רבי לפני מלך בשר ודם אין עושין כן', with no name, and 'כן' points back to the view just stated. Use one basis in all three places: close context (the view immediately before), high confidence, backed by Rashi's 'אין עושין כן - לתת לחם בין ירכים'. The 'differs in view' edges to the unnamed first view and to Yosi ben HaMeshullam rest on the content of the arrangements, not on any word aimed at them. Keep them as interpretation, as F7 already says."
+    },
+    {
+      "target": "F5 and reading.md 'One Rabbi' ('the Talmud itself joins them')",
+      "decision": "qualify_voice",
+      "reason": "Adding רבי mentions in s2 and s3 is right, and I support it. But 'רבי לטעמיה דאמר על בסמוך' comes after 'א\"ל רב חסדא לרב המנונא ...'. The link is therefore made by whichever sage answers, not by the anonymous Talmud. The content is the same in both branches, so the link holds whichever way the answer ran. The tie to the particular Rabbi of the frankincense baraita is made by 'דתניא', and who says that word is itself open (AR2). The coreference basis should read 'stated by the answering sage, in both branches; the baraita is joined by a citation whose speaker is open', not 'the Talmud's own voice'."
+    },
+    {
+      "target": "F9 (Yalkut anonymous answer)",
+      "decision": "qualify_reasoning_keep_conclusion",
+      "reason": "The conclusion holds: an anthology witness must not delete Rav Hisda and Rav Hamnuna from the Bavli reading. But 'it often shortens what it quotes' undersells what the saved text shows. In this same section the Yalkut keeps 'אָמַר רַב פַּפָּא: בְּמִלּוּאִים', R. Hiyya bar Abba, R. Yohanan, Rava, Rav Papa and Ravina. It lacks the pair at both of its points, 62a:12 ('וְהָא בָּעִינַן \"עַל\", רַבִּי לְטַעְמֵהּ') and the 62a:19 material ('רַבָּנָן סָבְרִי'). Record it as an anthology reading without the pair at both reversal points. Keep it open whether this is editing or a different source text, and do not use it to date or remove the attribution."
+    },
+    {
+      "target": "F1 (two directions) and reading.md 'Every witness in the Bavli editions checked keeps both'",
+      "decision": "support_with_evidence_types_separate",
+      "reason": "Wikisource and both Davidson Aramaic forms read 'רב חסדא לרב המנונא ואמרי לה רב המנונא לרב חסדא', and I support the graph effect: one undirected pairing shared by both branches, directed said-to edges kept inside their branch, and no meeting. But these Hebrew/Aramaic 'witnesses' are all the one printed text, just as the two English translations are. Tosafot Sotah 37a gives a separate, later quotation that also keeps both directions ('אמר רב חסדא לרב המנונא ואמרי לה רב המנונא לרב חסדא רבי לטעמיה דתניא וכו''). That quotation skips 'דאמר על בסמוך'. Label it a later quotation, not a vote."
+    },
+    {
+      "target": "F2 (recurring formula; 98a:19 parallel)",
+      "decision": "qualify",
+      "reason": "The search hits check out: four Bavli segments (62a:12, 62a:19, 98a:19, Shabbat 97a:17), each in three versions. The answer line at 98a:19 is word for word the same. The baraita is not: the order of its words differs ('דתניא רבי אומר ונתת על המערכת לבונה זכה על בסמוך' against 62a's 'דתניא ונתת על המערכת לבונה זכה רבי אומר על בסמוך'). Counting 62a:12 and 98a:19 once is sound, and the dossier rightly calls the 'one transmitted answer' an inference. The occurrences at 62a:19 and Shabbat 97a:17 belong to other passages. They should not be added to this passage's graph, and any counting of how often the pair appears together belongs to a separate cross-passage step."
+    },
+    {
+      "target": "F4 / AR3 (anonymous objection)",
+      "decision": "support_proposed_correction",
+      "reason": "'והא בעינן על' stands before 'א\"ל' with no speaker. Steinsaltz's impersonal 'ומקשים על שיטת רבי' and the same pattern at 98a:18 ('והא בעינן ... ונתת על') agree. Adding no 'asks' edge from either sage is correct. The same text sets the addressee only through 'לרב המנונא' / 'לרב חסדא', and only inside each branch."
+    },
+    {
+      "target": "F11 (non-persons)",
+      "decision": "support_proposed_correction",
+      "reason": "Retyping is right: the 'מלך בשר ודם' is a figure in a comparison, the unnamed subject of 'מניח' is a generic ritual role, and 'והא בעינן על' is the editorial voice. The Mishneh Torah quote ('וּמַנִּיחָן בְּצַד שְׁתֵּי הַלֶּחֶם') shows only that Rambam rules like Rabbi. It says nothing about who these figures are, so it should not serve as evidence for this retyping."
+    }
+  ],
+  "quote_checks": [
+    {"source_id": "S1", "exact_quote": "והא בעינן על א\"ל רב חסדא לרב המנונא ואמרי לה רב המנונא לרב חסדא רבי לטעמיה דאמר על בסמוך", "matches_claim": true, "note": "Exact in Wikisource 62a:12, the right occurrence (not 62a:19). Davidson Aramaic spells out 'אמר ליה'. Supports F1 and F4."},
+    {"source_id": "S1", "exact_quote": "דתניא (ויקרא כד, ז) ונתת על המערכת לבונה זכה רבי אומר על בסמוך", "matches_claim": true, "note": "Exact in Wikisource 62a:13. The same segment goes on 'אתה אומר ... הוי אומר על בסמוך', so the proof is inside the baraita (see the c7 finding)."},
+    {"source_id": "S1", "exact_quote": "אמר רבי לפני מלך בשר ודם אין עושין כן", "matches_claim": true, "note": "Exact in Wikisource 62a:11. There is no addressee and no name: the target comes from context, not from an explicit word."},
+    {"source_id": "S1", "exact_quote": "רבי יוסי בן המשולם אומר כבשים למעלה", "matches_claim": true, "note": "Exact in 62a:10. It confirms the needed context, and the patronymic is not recorded in the dossier."},
+    {"source_id": "S17_text", "exact_quote": "follows his general view that ‘al means ‘near to’; as it was taught:", "matches_claim": true, "note": "Soncino line 11333. It runs on with a semicolon, as F3 says. Line 11334 closes Rabbi's words at 'Rabbi says, ‘Al means near to’.' before 'You say that ...'."},
+    {"source_id": "S18", "exact_quote": "ר' חכינאי אומר מניח הלחם בין שתי יריכותיהם של כבשים ומניף", "matches_claim": false, "note": "A later-quotation name form that F8 leaves out. It does not match F8's claim of 'three forms'."},
+    {"source_id": "S18", "exact_quote": "ונראה אפי' רבי מאיר ור' יהודה דפליגי התם אאבא שאול ואמרי על ממש", "matches_claim": true, "note": "Exact. It is Tosafot's own inference, as F10 says, and stays at the commentary level."},
+    {"source_id": "S14", "exact_quote": "וְהָא בָּעִינַן \"עַל\", רַבִּי לְטַעְמֵהּ, דְּאָמַר \"עַל\" בְּסָמוּךְ", "matches_claim": true, "note": "Exact. The same section keeps 'אָמַר רַב פַּפָּא: בְּמִלּוּאִים' and later names Rav Papa and Ravina, so the missing pair is not general name-stripping."},
+    {"source_id": "S14", "exact_quote": "חֲנַנְיָה בֶּן חֲכִינַאי אוֹמֵר", "matches_claim": true, "note": "Exact. Supports F8's חנניה variant."},
+    {"source_id": "S11", "exact_quote": "חנינא בן עכינאי אומר מניח שתי הלחם בן ירכותיהם של כבשים ומניף", "matches_claim": true, "note": "Exact in Sifra Venice 13:8. The same passage reads 'ר' יוסי בן משולם' without the article."},
+    {"source_id": "S9", "exact_quote": "אמר ליה רב חסדא לרב המנונא ואמרי לה רב המנונא לרב חסדא רבי לטעמיה דאמר על בסמוך דתניא רבי אומר", "matches_claim": true, "note": "Exact in 98a:19. The answer is identical, but the baraita's word order differs from 62a:13."},
+    {"source_id": "S3", "exact_quote": "אין עושין כן - לתת לחם בין ירכים:", "matches_claim": true, "note": "Exact. This is commentary support for the target of Rabbi's objection."},
+    {"source_id": "S19", "exact_quote": "Menachot 62a:19", "matches_claim": true, "note": "The saved search lists Bavli hits only at Menachot 62a:12, 62a:19, 98a:19 and Shabbat 97a:17, each in three versions. The rest are commentary."}
+  ],
+  "extra_sources": []
+}

@@ -1,0 +1,1868 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-14",
+    "episode": {
+      "genre": "mixed",
+      "genre_reason": "A story about soured wine includes a dispute about a sharecropper’s due and a promise to pay.",
+      "form": "Corrective visit, quoted accusation, promise, and independent alternative outcomes",
+      "coverage": "complete_for_supplied_text",
+      "needed_context": [],
+      "notes": [
+        "The report contains claims made by the visitors and by Huna. Keeping their voices does not decide the factual truth of either accusation."
+      ]
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב הונא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב יהודה אחוה דרב סלא חסידא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב סלא חסידא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב אדא בר אהבה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "אהבה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ורבנן",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ואמרו ליה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "לאריסיה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "קודשא בריך הוא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m10",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "אינשי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m11",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "גנבא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m12",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "גנוב",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m13",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ארבע מאה דני דחמרא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m14",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "מר",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m15",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "מר",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m16",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "ליה",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "huna",
+        "kind": "person",
+        "label": "Rav Huna",
+        "mention_ids": [
+          "m1",
+          "m14",
+          "m15"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב הונא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "yehuda",
+        "kind": "person",
+        "label": "Rav Yehuda, brother of Rav Sala the pious",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב יהודה אחוה דרב סלא חסידא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "yehuda_visits"
+        ]
+      },
+      {
+        "id": "sala",
+        "kind": "person",
+        "label": "Rav Sala the pious",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב סלא חסידא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "yehuda_visits"
+        ]
+      },
+      {
+        "id": "ada",
+        "kind": "person",
+        "label": "Rav Adda son of Ahava",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב אדא בר אהבה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "ada_visits"
+        ]
+      },
+      {
+        "id": "ahava",
+        "kind": "person",
+        "label": "Ahava in the patronymic",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אהבה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "ada_visits"
+        ]
+      },
+      {
+        "id": "sages",
+        "kind": "group",
+        "label": "The accompanying sages",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ורבנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "visitors",
+        "kind": "group",
+        "label": "The speaking delegation, whose named member varies",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ואמרו ליה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "farmer",
+        "kind": "person",
+        "label": "Huna’s sharecropper",
+        "mention_ids": [
+          "m8",
+          "m16"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "לאריסיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "god",
+        "kind": "unknown",
+        "label": "The Holy One in the visitors’ question",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "קודשא בריך הוא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "people",
+        "kind": "group",
+        "label": "People who say the proverb",
+        "mention_ids": [
+          "m10"
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "אינשי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "thief",
+        "kind": "person",
+        "label": "Generic thief within the proverb",
+        "mention_ids": [
+          "m11"
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "גנבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "retaliator",
+        "kind": "person",
+        "label": "Generic person stealing from a thief in the proverb",
+        "mention_ids": [
+          "m12"
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "גנוב",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "wine",
+        "kind": "object",
+        "label": "Four hundred barrels of Huna’s wine",
+        "mention_ids": [
+          "m13"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ארבע מאה דני דחמרא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "souring",
+        "kind": "event",
+        "label": "Four hundred barrels of Huna’s wine sour",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב הונא תקיפו ליה ארבע מאה דני דחמרא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "visit",
+        "kind": "event",
+        "label": "A delegation visits Huna",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן, ואמרי לה רב אדא בר אהבה ורבנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "theft",
+        "kind": "event",
+        "label": "Alleged taking of all the share by the sharecropper",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "הא קא גניב ליה כוליה!",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "restoration",
+        "kind": "event",
+        "label": "The vinegar turns back into wine",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "הדר חלא והוה חמרא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "wine_restored"
+        ]
+      },
+      {
+        "id": "sale",
+        "kind": "event",
+        "label": "Vinegar price rises and it sells at the price of wine",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "אייקר חלא, ואיזדבן בדמי דחמרא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "vinegar_sold"
+        ]
+      },
+      {
+        "id": "examine",
+        "kind": "statement",
+        "label": "Examine your conduct",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "לעיין מר במיליה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "suspected",
+        "kind": "statement",
+        "label": "Am I suspect in your eyes?",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ומי חשידנא בעינייכו?",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "justice",
+        "kind": "statement",
+        "label": "Would God be suspected of unjust judgment?",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "מי חשיד קודשא בריך הוא דעביד דינא בלא דינא?!",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "tell",
+        "kind": "statement",
+        "label": "Let whoever has heard something about me say it",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אי איכא מאן דשמיע עלי מלתא — לימא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "withheld",
+        "kind": "statement",
+        "label": "The visitors have heard that Huna does not give vine shoots to his sharecropper",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "הכי שמיע לן, דלא יהיב מר שבישא לאריסיה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "defense",
+        "kind": "statement",
+        "label": "Does he leave me anything? He steals all of it",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "מי קא שביק לי מידי מיניה? הא קא גניב ליה כוליה!",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "proverb",
+        "kind": "statement",
+        "label": "A proverbial rebuke about stealing after a thief",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "״בתר גנבא גנוב, וטעמא טעים״",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "promise",
+        "kind": "statement",
+        "label": "Huna undertakes to give the sharecropper his share",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "קבילנא עלי דיהיבנא ליה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "family",
+        "predicate": "sibling_of",
+        "subject": "yehuda",
+        "object": "sala",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב יהודה אחוה דרב סלא חסידא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "yehuda_visits"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "ada",
+        "object": "ahava",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב אדא בר אהבה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "ada_visits"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "huna",
+        "object": "souring",
+        "roles": [
+          {
+            "role": "property",
+            "entity": "wine"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב הונא תקיפו ליה ארבע מאה דני דחמרא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "owner_of_soured_wine",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c4",
+        "family": "scenes",
+        "predicate": "visits",
+        "subject": "yehuda",
+        "object": "huna",
+        "roles": [
+          {
+            "role": "companions",
+            "entity": "sages"
+          },
+          {
+            "role": "scene",
+            "entity": "visit"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן, ואמרי לה רב אדא בר אהבה ורבנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "yehuda_visits"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "scenes",
+        "predicate": "visits",
+        "subject": "ada",
+        "object": "huna",
+        "roles": [
+          {
+            "role": "companions",
+            "entity": "sages"
+          },
+          {
+            "role": "scene",
+            "entity": "visit"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן, ואמרי לה רב אדא בר אהבה ורבנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "ada_visits"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "scenes",
+        "predicate": "visits",
+        "subject": "sages",
+        "object": "huna",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן, ואמרי לה רב אדא בר אהבה ורבנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c7",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "visitors",
+        "object": "huna",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "examine"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ואמרו ליה: לעיין מר במיליה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c8",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "huna",
+        "object": "examine",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "visitors"
+          },
+          {
+            "role": "content",
+            "entity": "suspected"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר להו: ומי חשידנא בעינייכו?",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "A reported answer whose content is itself a question."
+        ]
+      },
+      {
+        "id": "c9",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "visitors",
+        "object": "suspected",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "huna"
+          },
+          {
+            "role": "content",
+            "entity": "justice"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמרו ליה: מי חשיד קודשא בריך הוא דעביד דינא בלא דינא?!",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c10",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "huna",
+        "object": "visitors",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "tell"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר להו: אי איכא מאן דשמיע עלי מלתא — לימא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c11",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "visitors",
+        "object": "tell",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "huna"
+          },
+          {
+            "role": "content",
+            "entity": "withheld"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמרו ליה: הכי שמיע לן, דלא יהיב מר שבישא לאריסיה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "They report having heard an accusation; no informant is identified."
+        ]
+      },
+      {
+        "id": "c12",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "huna",
+        "object": "withheld",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "visitors"
+          },
+          {
+            "role": "content",
+            "entity": "defense"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמר להו: מי קא שביק לי מידי מיניה? הא קא גניב ליה כוליה!",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c13",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "farmer",
+        "object": "theft",
+        "roles": [
+          {
+            "role": "alleged_victim",
+            "entity": "huna"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "הא קא גניב ליה כוליה!",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "huna",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "allegedly_steals_share",
+        "time_scope": null,
+        "notes": [
+          "This is Huna’s accusation in his defense, not an independently confirmed fact."
+        ]
+      },
+      {
+        "id": "c14",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "visitors",
+        "object": "defense",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "huna"
+          },
+          {
+            "role": "content",
+            "entity": "proverb"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "אמרו ליה: היינו דאמרי אינשי: ״בתר גנבא גנוב, וטעמא טעים״.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c15",
+        "family": "transmission",
+        "predicate": "attributes_to",
+        "subject": "proverb",
+        "object": "people",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "היינו דאמרי אינשי: ״בתר גנבא גנוב, וטעמא טעים״",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "visitors",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c16",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "huna",
+        "object": "visitors",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "promise"
+          },
+          {
+            "role": "intended_recipient",
+            "entity": "farmer"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "אמר להו: קבילנא עלי דיהיבנא ליה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "undertakes_to_give",
+        "time_scope": null,
+        "notes": [
+          "The promise is asserted. An actual transfer is not separately narrated."
+        ]
+      },
+      {
+        "id": "c17",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "huna",
+        "object": "restoration",
+        "roles": [
+          {
+            "role": "property",
+            "entity": "wine"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "הדר חלא והוה חמרא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "wine_restored"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "owner_benefits",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c18",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "huna",
+        "object": "sale",
+        "roles": [
+          {
+            "role": "property",
+            "entity": "wine"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "אייקר חלא, ואיזדבן בדמי דחמרא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "vinegar_sold"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "owner_benefits",
+        "time_scope": null,
+        "notes": []
+      }
+    ],
+    "reading_groups": [
+      {
+        "id": "visitors_group",
+        "kind": "reported_alternatives",
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן, ואמרי לה רב אדא בר אהבה ורבנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          {
+            "id": "yehuda_visits",
+            "label": "Yehuda, Sala’s brother, and sages visit"
+          },
+          {
+            "id": "ada_visits",
+            "label": "Adda son of Ahava and sages visit"
+          }
+        ],
+        "historical_compatibility": "unknown",
+        "scope": "Identity of the named visitor.",
+        "rejoin": "The whole dialogue and either outcome follow either visiting delegation.",
+        "notes": []
+      },
+      {
+        "id": "outcomes",
+        "kind": "reported_alternatives",
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "איכא דאמרי: הדר חלא והוה חמרא. ואיכא דאמרי: אייקר חלא, ואיזדבן בדמי דחמרא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          {
+            "id": "wine_restored",
+            "label": "The vinegar becomes wine again"
+          },
+          {
+            "id": "vinegar_sold",
+            "label": "Vinegar becomes valuable and sells at wine’s price"
+          }
+        ],
+        "historical_compatibility": "unknown",
+        "scope": "What happened to the vinegar after Huna’s promise.",
+        "rejoin": "End of supplied text.",
+        "notes": [
+          "This alternative is independent of the visiting delegation. No matching between the two groups is imposed."
+        ]
+      }
+    ],
+    "coreference_candidates": [],
+    "open_questions": []
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "רב הונא",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 0,
+      "end": 7,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "רב יהודה אחוה דרב סלא חסידא",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 47,
+      "end": 74,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "רב סלא חסידא",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 62,
+      "end": 74,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s1",
+      "quote": "רב אדא בר אהבה",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 91,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s1",
+      "quote": "אהבה",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 101,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s1",
+      "quote": "ורבנן",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 75,
+      "end": 80,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s1",
+      "quote": "ואמרו ליה",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 113,
+      "end": 122,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s2",
+      "quote": "לאריסיה",
+      "occurrence": 1,
+      "source_sha256": "f76242dc6f6b41b13f7bf6b883a7e7ea4dcedaa6a720c6b75002a7771a387087",
+      "start": 85,
+      "end": 92,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s1",
+      "quote": "קודשא בריך הוא",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 189,
+      "end": 203,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m10/anchor",
+      "source_id": "s4",
+      "quote": "אינשי",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 22,
+      "end": 27,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m11/anchor",
+      "source_id": "s4",
+      "quote": "גנבא",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 34,
+      "end": 38,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m12/anchor",
+      "source_id": "s4",
+      "quote": "גנוב",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 39,
+      "end": 43,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m13/anchor",
+      "source_id": "s1",
+      "quote": "ארבע מאה דני דחמרא",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 18,
+      "end": 36,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m14/anchor",
+      "source_id": "s1",
+      "quote": "מר",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 33,
+      "end": 35,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m15/anchor",
+      "source_id": "s2",
+      "quote": "מר",
+      "occurrence": 1,
+      "source_sha256": "f76242dc6f6b41b13f7bf6b883a7e7ea4dcedaa6a720c6b75002a7771a387087",
+      "start": 1,
+      "end": 3,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m16/anchor",
+      "source_id": "s4",
+      "quote": "ליה",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 5,
+      "end": 8,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/huna/evidence/0",
+      "source_id": "s1",
+      "quote": "רב הונא",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 0,
+      "end": 7,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yehuda/evidence/0",
+      "source_id": "s1",
+      "quote": "רב יהודה אחוה דרב סלא חסידא",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 47,
+      "end": 74,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sala/evidence/0",
+      "source_id": "s1",
+      "quote": "רב סלא חסידא",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 62,
+      "end": 74,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/ada/evidence/0",
+      "source_id": "s1",
+      "quote": "רב אדא בר אהבה",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 91,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/ahava/evidence/0",
+      "source_id": "s1",
+      "quote": "אהבה",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 101,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sages/evidence/0",
+      "source_id": "s1",
+      "quote": "ורבנן",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 75,
+      "end": 80,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/visitors/evidence/0",
+      "source_id": "s1",
+      "quote": "ואמרו ליה",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 113,
+      "end": 122,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/farmer/evidence/0",
+      "source_id": "s2",
+      "quote": "לאריסיה",
+      "occurrence": 1,
+      "source_sha256": "f76242dc6f6b41b13f7bf6b883a7e7ea4dcedaa6a720c6b75002a7771a387087",
+      "start": 85,
+      "end": 92,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/god/evidence/0",
+      "source_id": "s1",
+      "quote": "קודשא בריך הוא",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 189,
+      "end": 203,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/people/evidence/0",
+      "source_id": "s4",
+      "quote": "אינשי",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 22,
+      "end": 27,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/thief/evidence/0",
+      "source_id": "s4",
+      "quote": "גנבא",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 34,
+      "end": 38,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/retaliator/evidence/0",
+      "source_id": "s4",
+      "quote": "גנוב",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 39,
+      "end": 43,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/wine/evidence/0",
+      "source_id": "s1",
+      "quote": "ארבע מאה דני דחמרא",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 18,
+      "end": 36,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/souring/evidence/0",
+      "source_id": "s1",
+      "quote": "רב הונא תקיפו ליה ארבע מאה דני דחמרא.",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 0,
+      "end": 37,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/visit/evidence/0",
+      "source_id": "s1",
+      "quote": "על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן, ואמרי לה רב אדא בר אהבה ורבנן",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 38,
+      "end": 111,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/theft/evidence/0",
+      "source_id": "s3",
+      "quote": "הא קא גניב ליה כוליה!",
+      "occurrence": 1,
+      "source_sha256": "56cf8076d03d90ccb7387d5bdf94dadeae59d6de0654b1cb791129d5d2724718",
+      "start": 35,
+      "end": 56,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/restoration/evidence/0",
+      "source_id": "s4",
+      "quote": "הדר חלא והוה חמרא",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 103,
+      "end": 120,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sale/evidence/0",
+      "source_id": "s4",
+      "quote": "אייקר חלא, ואיזדבן בדמי דחמרא.",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 135,
+      "end": 165,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/examine/evidence/0",
+      "source_id": "s1",
+      "quote": "לעיין מר במיליה.",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 124,
+      "end": 140,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/suspected/evidence/0",
+      "source_id": "s1",
+      "quote": "ומי חשידנא בעינייכו?",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 150,
+      "end": 170,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/justice/evidence/0",
+      "source_id": "s1",
+      "quote": "מי חשיד קודשא בריך הוא דעביד דינא בלא דינא?!",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 181,
+      "end": 225,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/tell/evidence/0",
+      "source_id": "s2",
+      "quote": "אי איכא מאן דשמיע עלי מלתא — לימא.",
+      "occurrence": 1,
+      "source_sha256": "f76242dc6f6b41b13f7bf6b883a7e7ea4dcedaa6a720c6b75002a7771a387087",
+      "start": 9,
+      "end": 43,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/withheld/evidence/0",
+      "source_id": "s2",
+      "quote": "הכי שמיע לן, דלא יהיב מר שבישא לאריסיה.",
+      "occurrence": 1,
+      "source_sha256": "f76242dc6f6b41b13f7bf6b883a7e7ea4dcedaa6a720c6b75002a7771a387087",
+      "start": 54,
+      "end": 93,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/defense/evidence/0",
+      "source_id": "s3",
+      "quote": "מי קא שביק לי מידי מיניה? הא קא גניב ליה כוליה!",
+      "occurrence": 1,
+      "source_sha256": "56cf8076d03d90ccb7387d5bdf94dadeae59d6de0654b1cb791129d5d2724718",
+      "start": 9,
+      "end": 56,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/proverb/evidence/0",
+      "source_id": "s4",
+      "quote": "״בתר גנבא גנוב, וטעמא טעים״",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 29,
+      "end": 56,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/promise/evidence/0",
+      "source_id": "s4",
+      "quote": "קבילנא עלי דיהיבנא ליה.",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 67,
+      "end": 90,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "רב יהודה אחוה דרב סלא חסידא",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 47,
+      "end": 74,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s1",
+      "quote": "רב אדא בר אהבה",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 91,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "רב הונא תקיפו ליה ארבע מאה דני דחמרא.",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 0,
+      "end": 37,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s1",
+      "quote": "על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן, ואמרי לה רב אדא בר אהבה ורבנן",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 38,
+      "end": 111,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s1",
+      "quote": "על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן, ואמרי לה רב אדא בר אהבה ורבנן",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 38,
+      "end": 111,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s1",
+      "quote": "על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן, ואמרי לה רב אדא בר אהבה ורבנן",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 38,
+      "end": 111,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s1",
+      "quote": "ואמרו ליה: לעיין מר במיליה.",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 113,
+      "end": 140,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר להו: ומי חשידנא בעינייכו?",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 141,
+      "end": 170,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s1",
+      "quote": "אמרו ליה: מי חשיד קודשא בריך הוא דעביד דינא בלא דינא?!",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 171,
+      "end": 225,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר להו: אי איכא מאן דשמיע עלי מלתא — לימא.",
+      "occurrence": 1,
+      "source_sha256": "f76242dc6f6b41b13f7bf6b883a7e7ea4dcedaa6a720c6b75002a7771a387087",
+      "start": 0,
+      "end": 43,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c11/evidence/0",
+      "source_id": "s2",
+      "quote": "אמרו ליה: הכי שמיע לן, דלא יהיב מר שבישא לאריסיה.",
+      "occurrence": 1,
+      "source_sha256": "f76242dc6f6b41b13f7bf6b883a7e7ea4dcedaa6a720c6b75002a7771a387087",
+      "start": 44,
+      "end": 93,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c12/evidence/0",
+      "source_id": "s3",
+      "quote": "אמר להו: מי קא שביק לי מידי מיניה? הא קא גניב ליה כוליה!",
+      "occurrence": 1,
+      "source_sha256": "56cf8076d03d90ccb7387d5bdf94dadeae59d6de0654b1cb791129d5d2724718",
+      "start": 0,
+      "end": 56,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c13/evidence/0",
+      "source_id": "s3",
+      "quote": "הא קא גניב ליה כוליה!",
+      "occurrence": 1,
+      "source_sha256": "56cf8076d03d90ccb7387d5bdf94dadeae59d6de0654b1cb791129d5d2724718",
+      "start": 35,
+      "end": 56,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c14/evidence/0",
+      "source_id": "s4",
+      "quote": "אמרו ליה: היינו דאמרי אינשי: ״בתר גנבא גנוב, וטעמא טעים״.",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 0,
+      "end": 57,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c15/evidence/0",
+      "source_id": "s4",
+      "quote": "היינו דאמרי אינשי: ״בתר גנבא גנוב, וטעמא טעים״",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 10,
+      "end": 56,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c16/evidence/0",
+      "source_id": "s4",
+      "quote": "אמר להו: קבילנא עלי דיהיבנא ליה.",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 58,
+      "end": 90,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c17/evidence/0",
+      "source_id": "s4",
+      "quote": "הדר חלא והוה חמרא",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 103,
+      "end": 120,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c18/evidence/0",
+      "source_id": "s4",
+      "quote": "אייקר חלא, ואיזדבן בדמי דחמרא.",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 135,
+      "end": 165,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "reading_groups/visitors_group/evidence/0",
+      "source_id": "s1",
+      "quote": "על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן, ואמרי לה רב אדא בר אהבה ורבנן",
+      "occurrence": 1,
+      "source_sha256": "e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf",
+      "start": 38,
+      "end": 111,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "reading_groups/outcomes/evidence/0",
+      "source_id": "s4",
+      "quote": "איכא דאמרי: הדר חלא והוה חמרא. ואיכא דאמרי: אייקר חלא, ואיזדבן בדמי דחמרא.",
+      "occurrence": 1,
+      "source_sha256": "c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90",
+      "start": 91,
+      "end": 165,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "2426f3aad5255a054b8d01945eb9f5003689fb3c7465c41324bdd5f7f96d368c",
+  "output_sha256": "4e2bc23360669312d5af06115072823a93e3393402c99d46f7a387d032463216",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.341733+00:00"
+}

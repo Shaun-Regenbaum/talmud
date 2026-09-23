@@ -1,0 +1,125 @@
+{
+  "job_id": "challenge-16",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "69b7e64ae5a96fd5c77c850ecfcfaf42dbf60c2a3cf111a9ed2bb3f8f52c1adc",
+  "historical_graph_eligible": false,
+  "scope": "I checked every finding and proposed correction in dossier.json and reading.md against the saved sources (William Davidson Aramaic/English, Steinsaltz, Rashi, Cohen 1921 text and footnotes, Soncino, the Hebrew Wikisource explained edition and its template page, Seder HaDorot, Midrash Tehillim 103); I fetched nothing new, viewed no manuscript, and did not re-check Devarim Rabbah, Vayikra Rabbah or Pesikta Rabbati beyond the dossier's own limited claims.",
+  "findings": [
+    {
+      "target": "F8, F9, alternative A5 (voice of the 10a:24-25 answer)",
+      "decision": "add_missing_claim",
+      "reason": "The same Wikisource note that F8 quotes goes on to report that MS A reads only 'הני חמשה ברכי נפשי – כנגד הקב\"ה' ('these five Bless my soul: corresponding to the Holy One'), with no question 'כנגד מי אמרן דוד' and no 'soul'; it also reports 'אלא כנגד הקב\"ה ונשמה' for ס\"פ, ד' and א\"ח. F8 records only the M/P reading. Taken with MS A's 'אנא הכי שמיע לי' ('I heard thus'), the MS A branch has one speaker stating a heard tradition, with no question left for anyone to answer. Add this as a reported-variant branch on c15/c17 in which there is no answering turn at all, so the 'R. Shimon ben Pazi answers' option in A5 is scoped to the printed text (and to the one editorial project that supplies 'he answered him')."
+    },
+    {
+      "target": "F6 and proposed correction for c10, c11, c15 (attendee asks, Shimon answers, attendee clarifies)",
+      "decision": "qualify",
+      "reason": "F6 leans on Rashi's 'הוא סבר דהכי בעי מאי שנא קרבים דנקט' (the answerer thought the question was about 'inward parts') to show that the answerer misread the question, so the 10a:24 clarifier must be the original asker. The Wikisource footnote on that very answer reports 'ובכתה\"י השאלה היא \"מאי דכתיב וכל קרבי\"': in the manuscripts the question itself asks about 'and all my inward parts'. In that branch the first answer does not misread anything, so Rashi's logic does not carry over. Keep the asker/answerer/clarifier interpretation claims, but scope them to the printed text, and record the reported question wording as a separate variant that weakens the clarifier-equals-asker inference."
+    },
+    {
+      "target": "F6 evidence and reading.md 'Who asked and who answered'",
+      "decision": "correct_occurrence",
+      "reason": "Most of the translator names F6 cites sit at 10a:24, not 10a:21. Cohen footnote 15 ('Rab Shimi to R. Simeon b. Pazzi. What follows is an alternative explanation...') and Soncino note 29 ('R. Shimi to R. Simeon b. Pazzi.') are attached to 'He said to him' before 'I tell thee as follows'. At 10a:21, Soncino note 26 names only the asker, in both forms ('R. Shimi or Mar 'Ukba.'), with no addressee. Cohen names no one there ('He asked him'). Only the Steinsaltz Hebrew names R. Shimon ben Pazi as the 10a:21 addressee. So the claim that the attendee asked R. Shimon ben Pazi at 10a:21 is inferred backwards from the 10a:24 notes. Store it that way, and do not present it as 'most sources' naming both parties at 10a:21."
+    },
+    {
+      "target": "F2, F3 and proposed correction for reading groups 'visitor' and 'arranger'",
+      "decision": "support_proposed_correction",
+      "reason": "The quoted notes are exact. 'ובכתה\"י ליתא' uses the plural abbreviation, as 'ובשאר כתה\"י' and 'ברוב כתה\"י' do elsewhere on the page, so the dossier's parse (the Mar Ukva clause is reported absent in the manuscripts) is reasonable at medium confidence. 'והוה{{דקס|בכתה\"י|דהוה}}', Cohen note 13 ('Reading with M. דהוה') and Soncino note 25 are correctly tied to the arranger clause. The printed Mar Ukva branch stays, labelled as printed-edition text. The three reports stay one possibly shared line of evidence, not three votes. 'bar Akaviah' changes only the father's name form, so the child_of claim is kept in that witness."
+    },
+    {
+      "target": "F4, F15 (Seder HaDorot as support for 'the attendee arranged')",
+      "decision": "qualify",
+      "reason": "Only the Mar Ukva entry (2859) files 'קמי' ריב\"ל מסדר אגדתא ברכות (י' ע\"א)' as that person's act. The Rav Shimi bar Ukva entry (3299) copies the printed line with a neutral 'והוה מסדר אגדתא', so it takes no side. The compiler's support for branch_visitor_arranges therefore belongs to the Mar Ukva name branch only. It is a filing by name, the same filing F15 treats as unproven identity with Shmuel's-era Mar Ukva. It should not be spread to the Shimi branch."
+    },
+    {
+      "target": "F11 and proposed correction for c13 (MS M attribution of 'no artist like our God')",
+      "decision": "qualify",
+      "reason": "The note reads 'אין צייר כאלהינו.{{דקס|בכת\"י מ'|אמר רב יהודה בר מנש': אל תקרי צור אלא צייר.}}' with no 'נוסף' ('added'). Neighbouring notes on the same page mark additions explicitly ('בכת\"י מ' ופ' נוסף'), and the template page defines no default. So 'MS M adds' is the dossier's parse: MS M may add the line or read it in place of the anonymous gloss. Either way the attribution branch for c13 holds as a reported variant. Keep 'Rav Yehuda bar Menash[ya]' (title Rav, name abbreviated) as a local name slot, and do not merge it automatically with 10a:23's 'Rabbi Yehuda bar Menasya'."
+    },
+    {
+      "target": "Missed: Cohen footnote 14 on the arranging relation (c7-c9)",
+      "decision": "keep_evidence_types_separate",
+      "reason": "Cohen note 14 glosses the arranging as a lecture-hall practice: 'the lecturer used to give the gist of his discourse to the Amora who then expounded it in fuller detail to the disciples.' That would turn 'מסדר אגדתא קמיה דר' יהושע בן לוי' into a formal expounder-for-a-master role. The Aramaic says only 'arranged aggadah before'. If the note is recorded, record it as a translator's interpretation. The predicate should stay 'arranged aggadah before', with no student_of, meturgeman or teacher edge."
+    },
+    {
+      "target": "F5, F13, F14, F17",
+      "decision": "support_finding",
+      "reason": "The William Davidson English does put 'Rabbi Shimon ben Pazi' as the 10a:21 asker and 'Rav Shimi bar Ukva said to Rabbi Shimon ben Pazi: Come and see' in plain text. Its own 10a:24 says 'This did not satisfy Rav Shimi bar Ukva', which contradicts that, so F5 is right to set it aside. Soncino has 'before R. Johanan' against every Hebrew text, as F13 says. The Midrash Tehillim quotes in F14 are exact and rightly kept out of this scene. 'Generic human artist' appears as an entity in the pilot output and should be retyped as a class, not a person."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "S15",
+      "exact_quote": "רב שימי בר עוקבא{{דקס|בכת\"י א|בר עקביה. {{ק|ובכתה\"י ליתא}} ואמרי לה מר עוקבא}}",
+      "matches_claim": true,
+      "note": "Exact, at the 10a:21 name line. It supports the dossier's parse at medium confidence only: the note is compressed and the page does not expand its sigla."
+    },
+    {
+      "source_id": "S15",
+      "exact_quote": "והוה{{דקס|בכתה\"י|דהוה}} מסדר אגדתא קמיה דרבי יהושע בן לוי",
+      "matches_claim": true,
+      "note": "Exact. It is the arranger clause, so it supports F3's reported variant for branch_shimon_arranges."
+    },
+    {
+      "source_id": "S7",
+      "exact_quote": "Reading with M. דהוה \"who used\" instead of edd. והוה \"and he used\"; i.e. the subject of the verb is Simeon b. Pazzi.",
+      "matches_claim": true,
+      "note": "Cohen footnote 13, correctly tied to the arranger clause. It reports the Munich reading. It is not an independent witness to it."
+    },
+    {
+      "source_id": "S15",
+      "exact_quote": "לא אמרן אלא כנגד הקב\"ה וכנגד נשמה{{דקס|בכת\"י מ' ופ'|אלא כנגד מידותיו של הקב\"ה. {{ק|ובכת\"י ס\"פ וד' וא\"ח:}} אלא כנגד הקב\"ה ונשמה. {{ק|ובכת\"י א':}} הני חמשה ברכי נפשי – כנגד הקב\"ה.}}",
+      "matches_claim": false,
+      "note": "F8 quotes only the opening M/P part of this note. The rest, which F8 left out, reports that MS A has no 'about whom did David say them?' question. That bears on who, if anyone, answers in 10a:24 (see finding 1)."
+    },
+    {
+      "source_id": "S15",
+      "exact_quote": "הוא סבר דהכי בעי: מאי שנא 'קרבים' דנקט. {{ק|רש\"י. ובכתה\"י השאלה היא \"מאי דכתיב וכל קרבי\" וכו'}}",
+      "matches_claim": false,
+      "note": "The dossier missed this footnote on the first 'אמר ליה' answer. It reports a manuscript wording of the question that undercuts the Rashi-based inference F6 uses (see finding 2)."
+    },
+    {
+      "source_id": "S7",
+      "exact_quote": "Rab Shimi to R. Simeon b. Pazzi. What follows is an alternative explanation of the fivefold \"Bless the Lord, O my soul\" as given in the last paragraph but one.",
+      "matches_claim": true,
+      "note": "Exact, but it is Cohen note 15 on the 10a:24 turn. It names the 10a:24 speaker and addressee, not the 10a:21 ones. It also supports F12's teaching-to-teaching link."
+    },
+    {
+      "source_id": "S8",
+      "exact_quote": "R. Shimi or Mar 'Ukba.",
+      "matches_claim": true,
+      "note": "Soncino note 26, on 'He said to him' in 10a:21. It names the asker in both branches and gives no addressee."
+    },
+    {
+      "source_id": "S8",
+      "exact_quote": "used to arrange aggadahs [and recite them] before R. Johanan. He",
+      "matches_claim": true,
+      "note": "Exact. The Soncino divergence from 'R. Yehoshua ben Levi' is confirmed. Note 25 explains only the 'who' reading, so F13 stands."
+    },
+    {
+      "source_id": "S9",
+      "exact_quote": "קמי' ריב\"ל מסדר אגדתא ברכות (י' ע\"א)",
+      "matches_claim": true,
+      "note": "Found in the Mar Ukva entry only. The Rav Shimi bar Ukva entry (S10) copies the neutral printed 'והוה מסדר אגדתא'."
+    },
+    {
+      "source_id": "S1",
+      "exact_quote": "This did not satisfy Rav Shimi bar Ukva, who <b>said to</b> Rabbi Shimon ben Pazi: <b>I</b> meant to <b>say to you as follows:",
+      "matches_claim": true,
+      "note": "Exact. Set against the same edition's 10a:21 'Rav Shimi bar Ukva <b>said to</b> Rabbi Shimon ben Pazi: <b>Come and see', it confirms F5's internal inconsistency. Every name here is outside the bold, so it is editors' text."
+    },
+    {
+      "source_id": "S15",
+      "exact_quote": "אין צייר כאלהינו.{{דקס|בכת\"י מ'|אמר רב יהודה בר מנש': אל תקרי צור אלא צייר.}}",
+      "matches_claim": true,
+      "note": "Exact. It supports a reported MS M attribution, but it does not say 'נוסף', so the dossier's 'adds' is its own parse."
+    },
+    {
+      "source_id": "S3",
+      "exact_quote": "בא וראה וכו' – הוא סבר דהכי בעי מאי שנא קרבים דנקט:",
+      "matches_claim": true,
+      "note": "Exact in the Vilna Rashi. It names no one. It supports 'the answerer misread the question' only for the printed wording of the question."
+    }
+  ],
+  "extra_sources": []
+}

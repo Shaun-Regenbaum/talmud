@@ -1,0 +1,1282 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-03",
+    "episode": {
+      "genre": "halachic",
+      "genre_reason": "The discussion compares rules for gifts and records different versions of the discussion.",
+      "form": "Dispute, counterfactual comparison, and alternative school report",
+      "coverage": "needs_context",
+      "needed_context": [
+        "The preceding discussion is needed for the full earlier acquisition rule and the exact backward scope of the Sura version."
+      ],
+      "notes": []
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב אמר",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "שמואל",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב דימי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "רב ירמיה בר אבא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "אבא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "מבי רב",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "בסורא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "בפומבדיתא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "כתב לזה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m10",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ראשון",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m11",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "שני",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m12",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "שכיב מרע שכתב כל נכסיו לאחרים",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m13",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "לאחרים",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "rav",
+        "kind": "person",
+        "label": "Rav",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב אמר",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "shmuel",
+        "kind": "person",
+        "label": "Shmuel",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "שמואל",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "dimi",
+        "kind": "person",
+        "label": "Rav Dimi",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב דימי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "yirmiya",
+        "kind": "person",
+        "label": "Rav Yirmiya son of Abba",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "רב ירמיה בר אבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "abba",
+        "kind": "person",
+        "label": "Abba in the patronymic",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "אבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "school",
+        "kind": "group",
+        "label": "People of Rav’s school",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "מבי רב",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "sura",
+        "kind": "place",
+        "label": "Sura",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "בסורא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "pumb",
+        "kind": "place",
+        "label": "Pumbedita",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "בפומבדיתא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "giver",
+        "kind": "person",
+        "label": "Hypothetical donor",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "כתב לזה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "first",
+        "kind": "person",
+        "label": "First recipient",
+        "mention_ids": [
+          "m10"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ראשון",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "second",
+        "kind": "person",
+        "label": "Second recipient",
+        "mention_ids": [
+          "m11"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "שני",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "sick",
+        "kind": "person",
+        "label": "Sick donor in the sent question",
+        "mention_ids": [
+          "m12"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "שכיב מרע שכתב כל נכסיו לאחרים",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "others",
+        "kind": "group",
+        "label": "Recipients in the sent question",
+        "mention_ids": [
+          "m13"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "לאחרים",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "replace",
+        "kind": "statement",
+        "label": "A later testament cancels an earlier testament",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "דייתיקי מבטלת דייתיקי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "firstwins",
+        "kind": "statement",
+        "label": "After writing and conveying to each, the first acquires",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רב אמר ראשון קנה הרי היא כמתנת בריא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "secondwins",
+        "kind": "statement",
+        "label": "After writing and conveying to each, the second acquires",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "ושמואל אמר שני קנה הרי היא כמתנת שכיב מרע",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "question",
+        "kind": "statement",
+        "label": "What if a sick donor writes all assets to others and they perform acquisition?",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "ילמדנו רבינו שכיב מרע שכתב כל נכסיו לאחרים וקנו מידו מהו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "answer",
+        "kind": "statement",
+        "label": "Nothing can undo the acquisition",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "אין אחר קנין כלום",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "prior",
+        "kind": "statement",
+        "label": "Earlier dispute about a sick person’s gift containing an acquisition",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "במתנת שכיב מרע שכתוב בה קנין",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "arrival",
+        "kind": "event",
+        "label": "Rav Dimi’s arrival",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "כי אתא רב דימי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "dimi",
+        "object": "replace",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב דימי אמר דייתיקי מבטלת דייתיקי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "dimi",
+        "object": "arrival",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "כי אתא רב דימי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "arrived",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "rav",
+        "object": "firstwins",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רב אמר ראשון קנה הרי היא כמתנת בריא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "sura_report"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c4",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "shmuel",
+        "object": "secondwins",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "ושמואל אמר שני קנה הרי היא כמתנת שכיב מרע",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "sura_report"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "views",
+        "predicate": "opposes",
+        "subject": "rav",
+        "object": "secondwins",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב אמר ראשון קנה ושמואל אמר שני קנה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "sura_report"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "views",
+        "predicate": "rules_like",
+        "subject": "rav",
+        "object": "shmuel",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "secondwins"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "אבל בהא דלא קנו מיניה אימא מודה ליה לשמואל",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "sura_report"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "hypothetical",
+        "discourse_status": "rejected",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "A counterfactual inference if only one dispute had been taught; צריכא blocks making this a real concession."
+        ]
+      },
+      {
+        "id": "c7",
+        "family": "views",
+        "predicate": "rules_like",
+        "subject": "shmuel",
+        "object": "rav",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "prior"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "אבל בהך אימא מודה ליה לרב צריכא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "sura_report"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "hypothetical",
+        "discourse_status": "rejected",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The full earlier rule of Rav is absent; prior identifies that specific missing dispute, not the present first-recipient ruling."
+        ]
+      },
+      {
+        "id": "c8",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "yirmiya",
+        "object": "abba",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "רב ירמיה בר אבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c9",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "school",
+        "object": "shmuel",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "question"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "שלחו ליה מבי רב לשמואל ילמדנו רבינו שכיב מרע שכתב כל נכסיו לאחרים וקנו מידו מהו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "pumb_report"
+        ],
+        "voice": "yirmiya",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "Sending a question is asserted; its gift case remains hypothetical. The honorific רבינו alone is not made a student relationship."
+        ]
+      },
+      {
+        "id": "c10",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "shmuel",
+        "object": "question",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "school"
+          },
+          {
+            "role": "content",
+            "entity": "answer"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "שלח להו אין אחר קנין כלום",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "pumb_report"
+        ],
+        "voice": "yirmiya",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c11",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "shmuel",
+        "object": "answer",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "שלח להו אין אחר קנין כלום",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "pumb_report"
+        ],
+        "voice": "yirmiya",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      }
+    ],
+    "reading_groups": [
+      {
+        "id": "schools",
+        "kind": "reported_alternatives",
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "בסורא מתנו הכי בפומבדיתא מתנו הכי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          {
+            "id": "sura_report",
+            "label": "The preceding Sura version"
+          },
+          {
+            "id": "pumb_report",
+            "label": "The following Pumbedita version"
+          }
+        ],
+        "historical_compatibility": "unknown",
+        "scope": "The two school reports of the gift discussion.",
+        "rejoin": "No explicit rejoining sentence is supplied.",
+        "notes": [
+          "The exact backward reach of הכי is uncertain; the immediate dispute and its צריכא are scoped to Sura. The earlier Dimi teaching is kept shared."
+        ]
+      }
+    ],
+    "coreference_candidates": [],
+    "open_questions": []
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "רב אמר",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 99,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "שמואל",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 117,
+      "end": 122,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "רב דימי",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 37,
+      "end": 44,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s5",
+      "quote": "רב ירמיה בר אבא",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 38,
+      "end": 53,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s5",
+      "quote": "אבא",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 50,
+      "end": 53,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s5",
+      "quote": "מבי רב",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 63,
+      "end": 69,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s5",
+      "quote": "בסורא",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 0,
+      "end": 5,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s5",
+      "quote": "בפומבדיתא",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 15,
+      "end": 24,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s1",
+      "quote": "כתב לזה",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 6,
+      "end": 13,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m10/anchor",
+      "source_id": "s1",
+      "quote": "ראשון",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 106,
+      "end": 111,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m11/anchor",
+      "source_id": "s1",
+      "quote": "שני",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 127,
+      "end": 130,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m12/anchor",
+      "source_id": "s5",
+      "quote": "שכיב מרע שכתב כל נכסיו לאחרים",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 90,
+      "end": 119,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m13/anchor",
+      "source_id": "s5",
+      "quote": "לאחרים",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 113,
+      "end": 119,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/rav/evidence/0",
+      "source_id": "s1",
+      "quote": "רב אמר",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 99,
+      "end": 105,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/shmuel/evidence/0",
+      "source_id": "s1",
+      "quote": "שמואל",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 117,
+      "end": 122,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/dimi/evidence/0",
+      "source_id": "s1",
+      "quote": "רב דימי",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 37,
+      "end": 44,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yirmiya/evidence/0",
+      "source_id": "s5",
+      "quote": "רב ירמיה בר אבא",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 38,
+      "end": 53,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/abba/evidence/0",
+      "source_id": "s5",
+      "quote": "אבא",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 50,
+      "end": 53,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/school/evidence/0",
+      "source_id": "s5",
+      "quote": "מבי רב",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 63,
+      "end": 69,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sura/evidence/0",
+      "source_id": "s5",
+      "quote": "בסורא",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 0,
+      "end": 5,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/pumb/evidence/0",
+      "source_id": "s5",
+      "quote": "בפומבדיתא",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 15,
+      "end": 24,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/giver/evidence/0",
+      "source_id": "s1",
+      "quote": "כתב לזה",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 6,
+      "end": 13,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/first/evidence/0",
+      "source_id": "s1",
+      "quote": "ראשון",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 106,
+      "end": 111,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/second/evidence/0",
+      "source_id": "s1",
+      "quote": "שני",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 127,
+      "end": 130,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sick/evidence/0",
+      "source_id": "s5",
+      "quote": "שכיב מרע שכתב כל נכסיו לאחרים",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 90,
+      "end": 119,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/others/evidence/0",
+      "source_id": "s5",
+      "quote": "לאחרים",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 113,
+      "end": 119,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/replace/evidence/0",
+      "source_id": "s1",
+      "quote": "דייתיקי מבטלת דייתיקי",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 49,
+      "end": 70,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/firstwins/evidence/0",
+      "source_id": "s2",
+      "quote": "רב אמר ראשון קנה הרי היא כמתנת בריא",
+      "occurrence": 1,
+      "source_sha256": "bfe89a410370a50b16cc74ec0d281d307aa4577427fc058484a9ca7add619add",
+      "start": 0,
+      "end": 35,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/secondwins/evidence/0",
+      "source_id": "s2",
+      "quote": "ושמואל אמר שני קנה הרי היא כמתנת שכיב מרע",
+      "occurrence": 1,
+      "source_sha256": "bfe89a410370a50b16cc74ec0d281d307aa4577427fc058484a9ca7add619add",
+      "start": 36,
+      "end": 77,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/question/evidence/0",
+      "source_id": "s5",
+      "quote": "ילמדנו רבינו שכיב מרע שכתב כל נכסיו לאחרים וקנו מידו מהו",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 77,
+      "end": 133,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/answer/evidence/0",
+      "source_id": "s5",
+      "quote": "אין אחר קנין כלום",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 142,
+      "end": 159,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/prior/evidence/0",
+      "source_id": "s3",
+      "quote": "במתנת שכיב מרע שכתוב בה קנין",
+      "occurrence": 1,
+      "source_sha256": "dc6776ccb5672efa3e6aa69947a00c75c8fd36887a85c88c34e91944094f5dc3",
+      "start": 24,
+      "end": 52,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/arrival/evidence/0",
+      "source_id": "s1",
+      "quote": "כי אתא רב דימי",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 30,
+      "end": 44,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "רב דימי אמר דייתיקי מבטלת דייתיקי",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 37,
+      "end": 70,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s1",
+      "quote": "כי אתא רב דימי",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 30,
+      "end": 44,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s2",
+      "quote": "רב אמר ראשון קנה הרי היא כמתנת בריא",
+      "occurrence": 1,
+      "source_sha256": "bfe89a410370a50b16cc74ec0d281d307aa4577427fc058484a9ca7add619add",
+      "start": 0,
+      "end": 35,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s2",
+      "quote": "ושמואל אמר שני קנה הרי היא כמתנת שכיב מרע",
+      "occurrence": 1,
+      "source_sha256": "bfe89a410370a50b16cc74ec0d281d307aa4577427fc058484a9ca7add619add",
+      "start": 36,
+      "end": 77,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s1",
+      "quote": "רב אמר ראשון קנה ושמואל אמר שני קנה",
+      "occurrence": 1,
+      "source_sha256": "54f94e7eda9887a267249120f651ca30599fd2f5654a193f5d68cd62b0ea659b",
+      "start": 99,
+      "end": 134,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s4",
+      "quote": "אבל בהא דלא קנו מיניה אימא מודה ליה לשמואל",
+      "occurrence": 1,
+      "source_sha256": "a065011f839eb0e8c26a725278f2e4f541f3b5acc0a2e28dc071c664e7674310",
+      "start": 48,
+      "end": 90,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s4",
+      "quote": "אבל בהך אימא מודה ליה לרב צריכא",
+      "occurrence": 1,
+      "source_sha256": "a065011f839eb0e8c26a725278f2e4f541f3b5acc0a2e28dc071c664e7674310",
+      "start": 120,
+      "end": 151,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s5",
+      "quote": "רב ירמיה בר אבא",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 38,
+      "end": 53,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s5",
+      "quote": "שלחו ליה מבי רב לשמואל ילמדנו רבינו שכיב מרע שכתב כל נכסיו לאחרים וקנו מידו מהו",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 54,
+      "end": 133,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s5",
+      "quote": "שלח להו אין אחר קנין כלום",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 134,
+      "end": 159,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c11/evidence/0",
+      "source_id": "s5",
+      "quote": "שלח להו אין אחר קנין כלום",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 134,
+      "end": 159,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "reading_groups/schools/evidence/0",
+      "source_id": "s5",
+      "quote": "בסורא מתנו הכי בפומבדיתא מתנו הכי",
+      "occurrence": 1,
+      "source_sha256": "a0db6fe3f28d65073a9fc4700ebdade48b8ce98c08d1a680fdef1a6d16f3bd75",
+      "start": 0,
+      "end": 33,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "adbf4ce60e9269201edd91bdf9d67b36bb258d3585c71fa1add8d69a1e183528",
+  "output_sha256": "68f51efd5cc8c191dbdd842a010b9d4539cbc014c7664a13dfa766c806eee98d",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.298804+00:00"
+}

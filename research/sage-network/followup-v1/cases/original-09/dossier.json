@@ -1,0 +1,983 @@
+{
+ "job_id": "original-09",
+ "focal_ref": "Bava Batra 12b:6",
+ "status": "researched",
+ "question": "Give Rav Hisda's unnamed daughter her own local person. Recover who sits where, who asks and answers, the prophecy or wish about marriages, and what wider passages say about actual marriages. Distinguish narrative forecasts from completed marriages; link biographies only as independent later evidence.",
+ "scope_note": "Checked: Bava Batra 12b:3-7 in two Hebrew/Aramaic texts and two translations; commentary linked to 12b:6 by Sefaria; Rashi and Tosafot on the page; Yevamot 34b with Rashi and Tosafot; Berakhot 47b, 56a (with Rashi) and 62a; Shabbat 129a (with Rashi) and 140b; Ketubot 39b, 65a and 85a; Chagigah 5a; Chullin 44b (with Rashi and a second text); Eruvin 65a; Beitzah 29b. Exact-phrase searches only. No manuscripts.",
+ "sources": [
+  {
+   "source_id": "S0",
+   "edition": "Case input: lake snapshot 2 segment text plus earlier cross-check (read only, not modified)",
+   "saved_file": "input.json",
+   "sha256": "daa2382d28f58023ee8ef92df165e59ead20ee142999f563086ed31c20018ddc",
+   "url_or_input_path": "research/sage-network/followup-v1/cases/original-09/input.json",
+   "fetched_at": null,
+   "note": "Not fetched; case input read from disk and left unchanged."
+  },
+  {
+   "source_id": "S1",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Hebrew/Aramaic) with William Davidson Edition - English, Sefaria v3 API",
+   "saved_file": "sources/bb12b-v3-he.json",
+   "sha256": "29a4f219e19fcea380450591ecf35d0b8d2156f3d759d71d061eaefae9b962ad",
+   "url": "https://www.sefaria.org/api/v3/texts/Bava_Batra.12b?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&return_format=text_only",
+   "fetched_at": "2026-09-22T20:22:06Z"
+  },
+  {
+   "source_id": "S2",
+   "edition": "Wikisource Talmud Bavli (unvocalized Hebrew/Aramaic), Sefaria v3 API",
+   "saved_file": "sources/bb12b-wikisource.json",
+   "sha256": "349f7e90ddd38ac27d2d0ad30787e4a04ae51634c8fd17aa6f13830ff4c6ae1f",
+   "url": "https://www.sefaria.org/api/v3/texts/Bava_Batra.12b?version=hebrew%7CWikisource%20Talmud%20Bavli&return_format=text_only",
+   "fetched_at": "2026-09-22T20:24:04Z"
+  },
+  {
+   "source_id": "S3",
+   "edition": "Talmud Bavli. German trans. by Lazarus Goldschmidt, 1929, Sefaria v3 API",
+   "saved_file": "sources/bb12b-goldschmidt.json",
+   "sha256": "32ba3ab48f2c7a1729bdf00fbf3f15d34bb12677a707a615298e24d104ab88e9",
+   "url": "https://www.sefaria.org/api/v3/texts/Bava_Batra.12b?version=german%7CTalmud%20Bavli.%20German%20trans.%20by%20Lazarus%20Goldschmidt%2C%201929%20%5Bde%5D&return_format=text_only",
+   "fetched_at": "2026-09-22T20:24:11Z"
+  },
+  {
+   "source_id": "S4",
+   "edition": "Sefaria links API with_text for Bava Batra 12b:6. Records used: Steinsaltz (William Davidson Edition - Hebrew); Chidushei Agadot [Maharsha] (Vilna Edition); Rabbeinu Gershom (Vilna Edition); Ben Yehoyada (Senlake edition 2019, based on Jerusalem 1897); Benayahu on Berakhot 47b (Senlake edition 2019, based on Jerusalem 1905); Sha'arei Torat Bavel on Berakhot 47b (Jerusalem, 1961); Korban Netanel on Beitzah (Vilna Edition); Seder HaDorot (Warsaw, 1878-1882); Chakham Tzvi 135 (Debrecen, 1942)",
+   "saved_file": "sources/bb12b-links.json",
+   "sha256": "6f04fb98ea4c4aeeea15d055c81f3cb625ddecf0655b173771a3e58540e8fa31",
+   "url": "https://www.sefaria.org/api/links/Bava_Batra.12b.6?with_text=1",
+   "fetched_at": "2026-09-22T20:22:07Z"
+  },
+  {
+   "source_id": "S5",
+   "edition": "Rashi on Bava Batra 12b, Vilna Edition, Sefaria v3 API",
+   "saved_file": "sources/rashi-bb12b.json",
+   "sha256": "0aa75eecab8261fba9fd3b2d456c71bbb4cb5ba126e708204ce578c37c693978",
+   "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Bava_Batra.12b?version=hebrew",
+   "fetched_at": "2026-09-22T20:22:08Z"
+  },
+  {
+   "source_id": "S6",
+   "edition": "Tosafot on Bava Batra 12b, Vilna Edition, Sefaria v3 API",
+   "saved_file": "sources/tosafot-bb12b.json",
+   "sha256": "1df79b53f3e382e1ec81cc9a8e656f24b15be7e7bfb75bcce58c88f45c48cf3c",
+   "url": "https://www.sefaria.org/api/v3/texts/Tosafot_on_Bava_Batra.12b?version=hebrew",
+   "fetched_at": "2026-09-22T20:24:04Z"
+  },
+  {
+   "source_id": "S7",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Hebrew/Aramaic) with William Davidson Edition - English, Sefaria v3 API",
+   "saved_file": "sources/yevamot-34b-v3.json",
+   "sha256": "430876340306ac8746594d9c9e428bc5545b36a1051684a24396cc836f945861",
+   "url": "https://www.sefaria.org/api/v3/texts/Yevamot.34b?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&return_format=text_only",
+   "fetched_at": "2026-09-22T20:22:37Z"
+  },
+  {
+   "source_id": "S8",
+   "edition": "Rashi on Yevamot 34b, Vilna Edition, Sefaria v3 API",
+   "saved_file": "sources/rashi-yevamot-34b.json",
+   "sha256": "0e79e0775f1932f8eeb9c01aefb9ed25a4031745d91081d057e5cfa9cc779b3a",
+   "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Yevamot.34b?version=hebrew",
+   "fetched_at": "2026-09-22T20:23:04Z"
+  },
+  {
+   "source_id": "S9",
+   "edition": "Tosafot on Yevamot 34b, Vilna Edition, Sefaria v3 API",
+   "saved_file": "sources/tosafot-yevamot34b.json",
+   "sha256": "84b30008df298e70801fbeb08bd1bfaa30b54b84d2d3957c6d8a44e7829106a1",
+   "url": "https://www.sefaria.org/api/v3/texts/Tosafot_on_Yevamot.34b?version=hebrew",
+   "fetched_at": "2026-09-22T20:22:39Z"
+  },
+  {
+   "source_id": "S10",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Hebrew/Aramaic) with William Davidson Edition - English, Sefaria v3 API",
+   "saved_file": "sources/berakhot-47b-v3.json",
+   "sha256": "08fdc62ca2ae68086bafc8e1eb799f1070c28ad2e6899c97589fc91aaaad8d75",
+   "url": "https://www.sefaria.org/api/v3/texts/Berakhot.47b?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&return_format=text_only",
+   "fetched_at": "2026-09-22T20:22:37Z"
+  },
+  {
+   "source_id": "S11",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Hebrew/Aramaic) with William Davidson Edition - English, Sefaria v3 API",
+   "saved_file": "sources/berakhot-56a-v3.json",
+   "sha256": "2c104d17e2e26c336c249a804676f59a938a56b336a65b476c4fbc1b14c52153",
+   "url": "https://www.sefaria.org/api/v3/texts/Berakhot.56a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&return_format=text_only",
+   "fetched_at": "2026-09-22T20:22:38Z"
+  },
+  {
+   "source_id": "S12",
+   "edition": "Rashi on Berakhot 56a, Vilna Edition, Sefaria v3 API",
+   "saved_file": "sources/rashi-berakhot-56a.json",
+   "sha256": "4f0bf01ccf29237cd338691ccf1973e6f5a220f34e28e3717d5be2d947c5ff48",
+   "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Berakhot.56a?version=hebrew",
+   "fetched_at": "2026-09-22T20:23:05Z"
+  },
+  {
+   "source_id": "S13",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Hebrew/Aramaic) with William Davidson Edition - English, Sefaria v3 API",
+   "saved_file": "sources/shabbat-129a-v3.json",
+   "sha256": "0094bd27ccb6f1f852a351370f5dd213789fe6636640b94f8a5308fd92b9b92b",
+   "url": "https://www.sefaria.org/api/v3/texts/Shabbat.129a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&return_format=text_only",
+   "fetched_at": "2026-09-22T20:22:38Z"
+  },
+  {
+   "source_id": "S14",
+   "edition": "Rashi on Shabbat 129a, Vilna Edition, Sefaria v3 API",
+   "saved_file": "sources/rashi-shabbat-129a.json",
+   "sha256": "ec27709cb1775cdd1dc7158aad3d75a9fcef08225410f921dd1fda35e6b902b5",
+   "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Shabbat.129a?version=hebrew",
+   "fetched_at": "2026-09-22T20:23:04Z"
+  },
+  {
+   "source_id": "S15",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Hebrew/Aramaic) with William Davidson Edition - English, Sefaria v3 API",
+   "saved_file": "sources/ketubot-85a-v3.json",
+   "sha256": "194df39615652184c4496745186cbafb9faae82d23f6c6b6735c5c99a23dc4cc",
+   "url": "https://www.sefaria.org/api/v3/texts/Ketubot.85a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&return_format=text_only",
+   "fetched_at": "2026-09-22T20:23:29Z"
+  },
+  {
+   "source_id": "S16",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Hebrew/Aramaic) with William Davidson Edition - English, Sefaria v3 API",
+   "saved_file": "sources/berakhot-62a-v3.json",
+   "sha256": "f0fb66c73df592d4b4b170c4506e05ec6a83b8b31429a7565384dd82375ec1d5",
+   "url": "https://www.sefaria.org/api/v3/texts/Berakhot.62a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&return_format=text_only",
+   "fetched_at": "2026-09-22T20:23:30Z"
+  },
+  {
+   "source_id": "S17",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Hebrew/Aramaic) with William Davidson Edition - English, Sefaria v3 API",
+   "saved_file": "sources/ketubot-39b-v3.json",
+   "sha256": "bf854571a8be5927a2ff69e4a9871f342f6fcfb18931d9df972c6c85ed2e9918",
+   "url": "https://www.sefaria.org/api/v3/texts/Ketubot.39b?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&return_format=text_only",
+   "fetched_at": "2026-09-22T20:23:31Z"
+  },
+  {
+   "source_id": "S18",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Hebrew/Aramaic) with William Davidson Edition - English, Sefaria v3 API",
+   "saved_file": "sources/ketubot-65a-v3.json",
+   "sha256": "8fb43982f9529c991c41f92e34f9e941d4ab7850d5f63a2cf330b2b38ac13c9f",
+   "url": "https://www.sefaria.org/api/v3/texts/Ketubot.65a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&return_format=text_only",
+   "fetched_at": "2026-09-22T20:23:31Z"
+  },
+  {
+   "source_id": "S19",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Hebrew/Aramaic) with William Davidson Edition - English, Sefaria v3 API",
+   "saved_file": "sources/chagigah-5a-v3.json",
+   "sha256": "0e91367e97bb8daa3f07746b07c921e6a4b39ddf269d1c6a292518085f9d3cdf",
+   "url": "https://www.sefaria.org/api/v3/texts/Chagigah.5a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&return_format=text_only",
+   "fetched_at": "2026-09-22T20:23:29Z"
+  },
+  {
+   "source_id": "S20",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Hebrew/Aramaic) with William Davidson Edition - English, Sefaria v3 API",
+   "saved_file": "sources/chullin-44b-v3.json",
+   "sha256": "ce4954c81d397e8bfbeb11a5c39a24280102e30b4a4a3560e084fac34b9c0941",
+   "url": "https://www.sefaria.org/api/v3/texts/Chullin.44b?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&return_format=text_only",
+   "fetched_at": "2026-09-22T20:23:30Z"
+  },
+  {
+   "source_id": "S21",
+   "edition": "Wikisource Talmud Bavli, Sefaria v3 API",
+   "saved_file": "sources/chullin-44b-wikisource.json",
+   "sha256": "db7ba22ed2e549951c512610acc2888b4255df7edee7a1ad93424abc9d9a3302",
+   "url": "https://www.sefaria.org/api/v3/texts/Chullin.44b?version=hebrew%7CWikisource%20Talmud%20Bavli&return_format=text_only",
+   "fetched_at": "2026-09-22T20:23:45Z"
+  },
+  {
+   "source_id": "S22",
+   "edition": "Rashi on Chullin 44b, Vilna Edition, Sefaria v3 API",
+   "saved_file": "sources/rashi-chullin-44b.json",
+   "sha256": "b40f174a01b698849412eeeb91261f222ca15591ebcb845aa283b5902178b9e7",
+   "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Chullin.44b?version=hebrew",
+   "fetched_at": "2026-09-22T20:23:45Z"
+  },
+  {
+   "source_id": "S23",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Hebrew/Aramaic) with William Davidson Edition - English, Sefaria v3 API",
+   "saved_file": "sources/eruvin-65a-v3.json",
+   "sha256": "b4d086a2ffefd701d30ddc515f461982210ce3314f9b684592872c84da3ba7a5",
+   "url": "https://www.sefaria.org/api/v3/texts/Eruvin.65a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&return_format=text_only",
+   "fetched_at": "2026-09-22T20:23:32Z"
+  },
+  {
+   "source_id": "S24",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Hebrew/Aramaic) with William Davidson Edition - English, Sefaria v3 API",
+   "saved_file": "sources/shabbat-140b-v3.json",
+   "sha256": "1c56f43ea7b6dae03015b46119a88c45ec7119addf373e23b7cd4f97957b237b",
+   "url": "https://www.sefaria.org/api/v3/texts/Shabbat.140b?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&return_format=text_only",
+   "fetched_at": "2026-09-22T20:23:44Z"
+  },
+  {
+   "source_id": "S25",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Hebrew/Aramaic) with William Davidson Edition - English, Sefaria v3 API",
+   "saved_file": "sources/beitzah-29b-v3.json",
+   "sha256": "654aeac4c9b2d5fb45364a857001f471d24120b99881781896963965296ad2d8",
+   "url": "https://www.sefaria.org/api/v3/texts/Beitzah.29b?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&return_format=text_only",
+   "fetched_at": "2026-09-22T20:22:39Z"
+  },
+  {
+   "source_id": "S26",
+   "edition": "Sefaria search-wrapper, exact field, filter Talmud/Bavli, query 'בת רב חסדא' (search index result, not a text edition)",
+   "saved_file": "sources/search-bat-rav-hisda-exact.json",
+   "sha256": "27d9906c8e653a8c69a7d5a9c6ac6978269aea1d29e93e9f6c5776bd99d71fde",
+   "url": "https://www.sefaria.org/api/search-wrapper",
+   "fetched_at": "2026-09-22T20:23:05Z",
+   "post_body": "{\"query\":\"בת רב חסדא\",\"type\":\"text\",\"field\":\"exact\",\"size\":100,\"slop\":0,\"filters\":[\"Talmud/Bavli\"],\"filter_fields\":[\"path\"],\"source_proj\":[\"ref\",\"version\",\"lang\"]}"
+  },
+  {
+   "source_id": "S27",
+   "edition": "Sefaria search-wrapper, exact field, filter Talmud/Bavli, query 'ברתיה דרב חסדא' (search index result)",
+   "saved_file": "sources/search-berateh-derav-hisda-exact.json",
+   "sha256": "4ded40e8832f6669eab7a52bbfc708be93c98491212bcfabba12217960afd0f9",
+   "url": "https://www.sefaria.org/api/search-wrapper",
+   "fetched_at": "2026-09-22T20:23:06Z",
+   "post_body": "{\"query\":\"ברתיה דרב חסדא\",\"type\":\"text\",\"field\":\"exact\",\"size\":100,\"slop\":0,\"filters\":[\"Talmud/Bavli\"],\"filter_fields\":[\"path\"],\"source_proj\":[\"ref\",\"version\",\"lang\"]}"
+  },
+  {
+   "source_id": "S28",
+   "edition": "Sefaria v3 API request for 'Sefaria Community Translation' of Bava Batra 12b (returned a no-version warning)",
+   "saved_file": "sources/bb12b-community.json",
+   "sha256": "40805889a584b3f1ad49f89d7051dfbc516a7f8956809fc14b4b800e16376b5d",
+   "url": "https://www.sefaria.org/api/v3/texts/Bava_Batra.12b?version=english%7CSefaria%20Community%20Translation&return_format=text_only",
+   "fetched_at": "2026-09-22T20:24:11Z"
+  },
+  {
+   "source_id": "S29",
+   "edition": "Sefaria versions list for Bava Batra",
+   "saved_file": "sources/bb12b-versions-index.json",
+   "sha256": "79595a807820e9b7c72e4180312440de2441a28915859989643547ec466f000f",
+   "url": "https://www.sefaria.org/api/texts/versions/Bava_Batra",
+   "fetched_at": "2026-09-22T20:24:05Z"
+  }
+ ],
+ "search_only_records": [
+  {
+   "saved_file": "sources/search-bat-rav-hisda.json",
+   "sha256": "bb28c151ebf4b2274f3db5b7018be1610f1bfe38281eccb4761f3c291529d839",
+   "url": "https://www.sefaria.org/api/search-wrapper",
+   "post_body": "{\"query\":\"רב חסדא\",\"type\":\"text\",\"field\":\"exact\",\"size\":0}",
+   "fetched_at": "2026-09-22T20:22:40Z"
+  },
+  {
+   "saved_file": "sources/search-benateh-derav-hisda-exact.json",
+   "sha256": "10161c25dbf91da84f18eb2c9247dd6e9945022ee191a1da914a897058be6c35",
+   "url": "https://www.sefaria.org/api/search-wrapper",
+   "post_body": "{\"query\":\"בנתיה דרב חסדא\",\"type\":\"text\",\"field\":\"exact\",\"size\":100,\"slop\":0,\"filters\":[\"Talmud/Bavli\"],\"filter_fields\":[\"path\"],\"source_proj\":[\"ref\",\"version\",\"lang\"]}",
+   "fetched_at": "2026-09-22T20:23:07Z"
+  },
+  {
+   "saved_file": "sources/search-hatneh-derav-hisda-exact.json",
+   "sha256": "23add164323abe978e3d19d49650ea3995c59151bb51c352688eb8144184df0b",
+   "url": "https://www.sefaria.org/api/search-wrapper",
+   "post_body": "{\"query\":\"חתניה דרב חסדא\",\"type\":\"text\",\"field\":\"exact\",\"size\":100,\"slop\":0,\"filters\":[\"Talmud/Bavli\"],\"filter_fields\":[\"path\"],\"source_proj\":[\"ref\",\"version\",\"lang\"]}",
+   "fetched_at": "2026-09-22T20:23:07Z"
+  },
+  {
+   "saved_file": "sources/search-devitehu-derava-exact.json",
+   "sha256": "0b62e108deae00cab75eda5212731e3660c4a0cf7725d374c3a57a3df21fc5f0",
+   "url": "https://www.sefaria.org/api/search-wrapper",
+   "post_body": "{\"query\":\"דביתהו דרבא\",\"type\":\"text\",\"field\":\"exact\",\"size\":100,\"slop\":0,\"filters\":[\"Talmud/Bavli\"],\"filter_fields\":[\"path\"],\"source_proj\":[\"ref\",\"version\",\"lang\"]}",
+   "fetched_at": "2026-09-22T20:23:08Z"
+  },
+  {
+   "saved_file": "sources/search-devitehu-derami-bar-hama-exact.json",
+   "sha256": "d66a13c3ecc28652de20a9c15b8318c8345eed2ad427d0ea48b72df85ffd177b",
+   "url": "https://www.sefaria.org/api/search-wrapper",
+   "post_body": "{\"query\":\"דביתהו דרמי בר חמא\",\"type\":\"text\",\"field\":\"exact\",\"size\":100,\"slop\":0,\"filters\":[\"Talmud/Bavli\"],\"filter_fields\":[\"path\"],\"source_proj\":[\"ref\",\"version\",\"lang\"]}",
+   "fetched_at": "2026-09-22T20:23:08Z"
+  }
+ ],
+ "local_persons": [
+  {
+   "id": "P1",
+   "label": "Rav Hisda",
+   "basis": "named; 'her father'",
+   "global_identity": "not decided here"
+  },
+  {
+   "id": "P2",
+   "label": "daughter of Rav Hisda (Bava Batra 12b:6)",
+   "basis": "descriptor 'בת רב חסדא'; sits, is addressed, answers",
+   "personal_name": null,
+   "global_identity": "not decided; candidate link to Rava's wife is commentary-supported (F7)"
+  },
+  {
+   "id": "P3",
+   "label": "Rava",
+   "basis": "named; speaks",
+   "global_identity": "not decided here"
+  },
+  {
+   "id": "P4",
+   "label": "Rami bar Hama",
+   "basis": "named; sits",
+   "global_identity": "not decided here"
+  },
+  {
+   "id": "P5",
+   "label": "Hama, father of Rami",
+   "basis": "patronymic 'בר חמא' only; placeholder parent",
+   "global_identity": "not decided"
+  }
+ ],
+ "proposed_local_edges": [
+  {
+   "s": "P2",
+   "rel": "child_of",
+   "o": "P1",
+   "status": "explicit; literal (דאבוה)",
+   "findings": [
+    "F1"
+   ]
+  },
+  {
+   "s": "P4",
+   "rel": "child_of",
+   "o": "P5",
+   "status": "from patronymic; literal reading",
+   "findings": [
+    "F1"
+   ]
+  },
+  {
+   "s": "P2",
+   "rel": "sits_in_lap_of",
+   "o": "P1",
+   "status": "reported scene",
+   "findings": [
+    "F2"
+   ]
+  },
+  {
+   "s": "P3",
+   "rel": "sits_before",
+   "o": "P1",
+   "status": "reported scene",
+   "findings": [
+    "F2"
+   ]
+  },
+  {
+   "s": "P4",
+   "rel": "sits_before",
+   "o": "P1",
+   "status": "reported scene",
+   "findings": [
+    "F2"
+   ]
+  },
+  {
+   "s": "P3",
+   "rel": "together",
+   "o": "P4",
+   "status": "symmetric co-presence; saved once",
+   "findings": [
+    "F2",
+    "F14"
+   ]
+  },
+  {
+   "s": "P1",
+   "rel": "asks",
+   "o": "P2",
+   "status": "pronoun resolution, strong",
+   "findings": [
+    "F3"
+   ]
+  },
+  {
+   "s": "P2",
+   "rel": "answers",
+   "o": "P1",
+   "status": "pronoun resolution, strong",
+   "findings": [
+    "F3"
+   ]
+  },
+  {
+   "s": "P2",
+   "rel": "wishes_or_foretells_marrying",
+   "o": [
+    "P3",
+    "P4"
+   ],
+   "modality": "prophecy frame; not completed",
+   "findings": [
+    "F3",
+    "F5"
+   ]
+  },
+  {
+   "s": "P3",
+   "rel": "forecasts_order_as_later_spouse_after",
+   "o": "P4",
+   "about": "P2",
+   "modality": "forecast/wish; not completed",
+   "findings": [
+    "F4",
+    "F10"
+   ]
+  }
+ ],
+ "later_evidence_not_merged": [
+  {
+   "claim": "Rava married_to a 'daughter of Rav Hisda'",
+   "evidence_type": "Talmud text, separate passages",
+   "strength": "explicit in Ketubot 65a; strong context in Yevamot 34b, Shabbat 129a, Berakhot 56a and others",
+   "findings": [
+    "F6",
+    "F8"
+   ]
+  },
+  {
+   "claim": "That woman = P2",
+   "evidence_type": "commentary link (Rabbeinu Tam in Tosafot on Yevamot 34b)",
+   "strength": "provisional",
+   "findings": [
+    "F7",
+    "F11"
+   ]
+  },
+  {
+   "claim": "Rami bar Hama married_to a 'daughter of Rav Hisda', before Rava",
+   "evidence_type": "commentary identification (Rashi on Yevamot 34b); repeated by Korban Netanel and Seder HaDorot, which are not independent",
+   "strength": "provisional",
+   "findings": [
+    "F9"
+   ]
+  },
+  {
+   "claim": "Rami bar Hama died in Rava's lifetime",
+   "evidence_type": "Talmud text (Berakhot 47b)",
+   "strength": "explicit",
+   "findings": [
+    "F9"
+   ]
+  }
+ ],
+ "findings": [
+  {
+   "finding_id": "F1",
+   "claim": "The segment names four people and implies a fifth. Named: Rav Hisda; his daughter, called only 'the daughter of Rav Hisda' and 'her father's' child; Rava; Rami bar Hama. Implied by the patronymic: Hama, Rami's father, who does not speak or act.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "כִּי הָא דְּבַת רַב חִסְדָּא – הֲוָה יָתְבָה בְּכַנְפֵיהּ דַּאֲבוּהָ",
+     "translation_by_this_dossier": "Translation by this dossier: 'like that [case] of the daughter of Rav Hisda: she was sitting in the lap of her father.'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "הֲווֹ יָתְבִי קַמֵּיהּ רָבָא וְרָמֵי בַּר חָמָא",
+     "translation_by_this_dossier": "Translation by this dossier: 'Rava and Rami bar Hama were sitting before him.'"
+    },
+    {
+     "source_id": "S2",
+     "exact_quote": "דבת רב חסדא הוה יתבה בכנפיה דאבוה הוו יתבי קמיה רבא ורמי בר חמא",
+     "note": "Same wording in the unvocalized Wikisource text."
+    }
+   ],
+   "reasoning": "The daughter has no personal name, but she sits, is addressed and answers. That makes her a person in the story. 'Her father' (דאבוה) right after 'daughter of Rav Hisda' shows literal kinship, not a title. 'bar Hama' is a patronymic, so it supports a father placeholder. It is not a speaking role.",
+   "confidence": "high",
+   "graph_effect": "Create local persons for this passage only: P1 Rav Hisda, P2 the daughter of Rav Hisda (unnamed, no global identity), P3 Rava, P4 Rami bar Hama, P5 Hama (placeholder parent). Edges: P2 child_of P1 (explicit, literal); P4 child_of P5 (from the name, literal reading; the parent is kept even though he plays no role)."
+  },
+  {
+   "finding_id": "F2",
+   "claim": "Seating: the daughter sits in her father's lap. Rava and Rami bar Hama sit 'before him'. The nearest masculine referent for 'him' is her father, Rav Hisda. The text states only the seating. Steinsaltz adds that he was sitting and teaching, and Rabbeinu Gershom glosses בכנפיה as 'in his bosom'.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "הֲווֹ יָתְבִי קַמֵּיהּ"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "בכנפיה. בחיקו:",
+     "commentary": "Rabbeinu Gershom on Bava Batra 12b:14 (linked to 12b:6)",
+     "translation_by_this_dossier": "Translation by this dossier: 'In his kanaf: in his bosom.'"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "כאשר היה יושב ומלמד",
+     "commentary": "Steinsaltz on Bava Batra 12b:6",
+     "translation_by_this_dossier": "Translation by this dossier: 'while he was sitting and teaching.'"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "שהיה תלמיד רב חסדא כדמוכח פ\"ק דב\"ב י\"ב ב'",
+     "commentary": "Seder HaDorot 3232:1, citing Yuhasin",
+     "translation_by_this_dossier": "Translation by this dossier: 'that he [Rami bar Hama] was a student of Rav Hisda, as is shown in the first chapter of Bava Batra 12b.'"
+    }
+   ],
+   "reasoning": "Sitting before a sage often means attending him as a student. Here, however, the text gives only the seating. The teaching setting is Steinsaltz's explanation. Seder HaDorot's article on Rami bar Hama cites this page as showing that Rami was Rav Hisda's student. That is a later inference.",
+   "confidence": "high",
+   "graph_effect": "P3 sits_before P1; P4 sits_before P1; P2 sits_in_lap_of P1 (reported scene). Record P3 and P4 as co-present once, as a symmetric fact of the scene. Do not add an edge where Rava sits before Rami bar Hama. Any student-of edge should be a separate interpretive branch, supported by Steinsaltz and Seder HaDorot, not the text."
+  },
+  {
+   "finding_id": "F3",
+   "claim": "The asker and the person who answers are identified only by pronouns: 'he said to her ... she said to him'. The question is 'Which of them do you want?' The word 'husband' does not appear. Davidson English and Steinsaltz name the asker as Rav Hisda and say he spoke in jest. Steinsaltz adds 'as a groom'. Goldschmidt keeps the pronoun: 'Da fragte er sie'.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "אֲמַר לַהּ: מַאן מִינַּיְיהוּ בָּעֵית? אֲמַרָה לֵיהּ: תַּרְוַיְיהוּ.",
+     "translation_by_this_dossier": "Translation by this dossier: 'He said to her: Which of them do you want? She said to him: Both of them.'"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "אמר לה רב חסדא בצחוק לבתו",
+     "commentary": "Steinsaltz on Bava Batra 12b:6",
+     "translation_by_this_dossier": "Translation by this dossier: 'Rav Hisda said to his daughter jokingly.'"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "כחתן",
+     "commentary": "Steinsaltz on Bava Batra 12b:6",
+     "translation_by_this_dossier": "Translation by this dossier: 'as a groom.'"
+    },
+    {
+     "source_id": "S3",
+     "exact_quote": "Da fragte er sie: Wen von ihnen willst du haben? Sie erwiderte: Beide."
+    }
+   ],
+   "reasoning": "'Which of them' excludes Rava and Rami bar Hama as the asker. The daughter sits in her father's lap, so reading the speaker as Rav Hisda is strong. It is still a pronoun reading. The marriage sense of 'want' comes from Rava's reply and the frame, not from a marriage word. Davidson English and Steinsaltz Hebrew come from related editorial work. They are not independent witnesses.",
+   "confidence": "high",
+   "graph_effect": "P1 asks P2 (pronoun resolution, strong). P2 answers P1 (pronoun resolution, strong). The answer's content is P2 choosing both P3 and P4 as prospective spouses. Its modality is 'wish or forecast within a prophecy frame', not a completed marriage. The marriage sense should be recorded as a contextual reading."
+  },
+  {
+   "finding_id": "F4",
+   "claim": "Rava's reply is 'And I [will be] last/after.' In both Hebrew/Aramaic texts checked, the segment ends there. The Davidson English and Steinsaltz Hebrew add that it happened: she married Rami bar Hama first, and Rava after Rami died. Goldschmidt's German ends with Rava's words and has no such sentence.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "אָמַר רָבָא: וַאֲנָא בָּתְרָא.",
+     "translation_by_this_dossier": "Translation by this dossier: 'Rava said: And I [will be] after / last.'"
+    },
+    {
+     "source_id": "S2",
+     "exact_quote": "אמר רבא ואנא בתרא"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "And this is what happened; first she married Rami bar Ḥama, and when he died she married Rava."
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "ואכן כך אירע, שנישאה קודם לרמי בר חמא, ואחרי מותו נישאה לרבא",
+     "commentary": "Steinsaltz on Bava Batra 12b:6"
+    },
+    {
+     "source_id": "S3",
+     "exact_quote": "Da sprach Raba: mich nachher."
+    }
+   ],
+   "reasoning": "The fulfilment sentence is an editorial explanation, not a sentence of the Talmud text. The segment itself contains only a forecast or wish. It has no verb of marrying and no report of an outcome.",
+   "confidence": "high",
+   "graph_effect": "Do NOT create married_to edges from this segment. Record Rava's statement as a forecast by P3 about P3, P4 and P2. Its content is that P3 comes after P4. Save the Davidson/Steinsaltz fulfilment sentence as an editorial claim with its own source type."
+  },
+  {
+   "finding_id": "F5",
+   "claim": "The Gemara frames the episode as an example of Rabbi Yohanan's teaching. According to that teaching, after the Temple's destruction prophecy was given to fools and to children. 'Children – what is it?' introduces this story as the children example. So the passage presents the girl's answer as prophecy. Rava's own reply carries no genre label.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "נִיטְּלָה נְבוּאָה מִן הַנְּבִיאִים וְנִיתְּנָה לַשּׁוֹטִים וְלַתִּינוֹקוֹת",
+     "translation_by_this_dossier": "Translation by this dossier: 'prophecy was taken from the prophets and given to fools and to children.'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "תִּנוֹקֹת – מַאי הִיא?"
+    },
+    {
+     "source_id": "S9",
+     "exact_quote": "והיתה מצפה שתתקיים נבואתה",
+     "commentary": "Tosafot on Yevamot 34b, citing Rabbeinu Tam",
+     "translation_by_this_dossier": "Translation by this dossier: 'and she was waiting for her prophecy to be fulfilled.'"
+    }
+   ],
+   "reasoning": "The opening line ties the story to the 12b:3 statement, so the frame is explicit. Whether the frame makes the girl's answer a real forecast is a reading of the genre. Rabbeinu Tam calls her answer 'her prophecy'. Rava's line could be a forecast, a wish or a request. Commentators differ on how his words work (F9).",
+   "confidence": "high",
+   "graph_effect": "Tag the episode as aggadic: a story used to illustrate a teaching. Link it to Rabbi Yohanan's statement in 12b:3 as the frame. Set modality to 'prophecy frame' on P2's answer and 'forecast/wish' on P3's reply. The genre neither proves nor disproves that the meeting happened."
+  },
+  {
+   "finding_id": "F6",
+   "claim": "Yevamot 34b sets a ten-year rule beside a short exchange. First, Rabbi Yohanan's rule: a woman who waits ten years after her husband and then remarries no longer bears children. Rav Nahman limits it to a woman who did not intend to remarry. Then Rava tells 'the daughter of Rav Hisda' that the Rabbis are gossiping about her. She answers, 'My mind was on you.' The Talmud text here does not name a first husband or call her Rava's wife. Rashi supplies both: she is Rava's wife, and her first husband was Rami bar Hama, after whom she waited ten years.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S7",
+     "exact_quote": "כׇּל שֶׁשָּׁהֲתָה אַחַר בַּעֲלָהּ עֶשֶׂר שָׁנִים וְנִשֵּׂאת — שׁוּב אֵינָהּ יוֹלֶדֶת"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "אֲמַר לֵיהּ רָבָא לְבַת רַב חִסְדָּא: קָא מְרַנְּנִי רַבָּנַן אַבָּתְרִיךָ! אֲמַרָה לֵיהּ: אֲנָא דַּעְתַּאי עֲלָךְ הֲוַאי.",
+     "translation_by_this_dossier": "Translation by this dossier: 'Rava said to the daughter of Rav Hisda: The Rabbis are murmuring about you! She said to him: My mind was on you.'"
+    },
+    {
+     "source_id": "S8",
+     "exact_quote": "לבת רב חסדא - אשתו דרבא:",
+     "commentary": "Rashi on Yevamot 34b"
+    },
+    {
+     "source_id": "S8",
+     "exact_quote": "ששהית עשר שנים אחר בעליך הראשון ורמי בר חמא הוה",
+     "commentary": "Rashi on Yevamot 34b",
+     "translation_by_this_dossier": "Translation by this dossier: 'that you waited ten years after your first husband, and it was Rami bar Hama.'"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "Indeed, it is told that already as a young girl she prophesized that she would marry Rava."
+    }
+   ],
+   "reasoning": "In the Talmud text, the rule and Rav Nahman's qualifier suggest that she remarried after a long gap, and her answer points to Rava. That is a strong contextual reading of a completed marriage to Rava. The first husband's identity as Rami bar Hama comes from Rashi, not from this Talmud text. The Davidson English ties the story back to Bava Batra 12b. That is the same editorial project's cross-reference, not new evidence.",
+   "confidence": "medium",
+   "graph_effect": "Local person Y1 'daughter of Rav Hisda (Yevamot 34b)'. Y1 married_to Rava: a strong contextual reading of this passage. Y1 formerly married to Rami bar Hama: Rashi's reading only, with the evidence type 'commentary identification'. Y1 = P2: a provisional identity decision, supported by commentary (F7, F8), not by text."
+  },
+  {
+   "finding_id": "F7",
+   "claim": "Tosafot on Yevamot 34b, citing Rabbeinu Tam, connects the two passages. The woman there is the girl who said 'I want both' in Bava Batra 12b. She hoped her prophecy would be fulfilled. Because Rava had another wife, she was late in marrying him but still waited for him. Chakham Tzvi repeats this, saying she waited ten years for Rava although he had another wife.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S9",
+     "exact_quote": "דאמרה בת רב חסדא תרווייהו קבעינא",
+     "commentary": "Tosafot on Yevamot 34b"
+    },
+    {
+     "source_id": "S9",
+     "exact_quote": "לפי שהיה לרבא אשה אחרת איחרה לינשא לו ואפ\"ה היתה מצפה לו",
+     "commentary": "Tosafot on Yevamot 34b",
+     "translation_by_this_dossier": "Translation by this dossier: 'because Rava had another wife, she was late in marrying him, and even so she was waiting for him.'"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "אף שהיתה לרבא אשה אחרת",
+     "commentary": "Chakham Tzvi 135:3"
+    }
+   ],
+   "reasoning": "This is the explicit medieval link between the child in Bava Batra 12b and Rava's wife in Yevamot 34b. It is interpretation. Tosafot quotes her answer as 'תרווייהו קבעינא' ('I want both'), a fuller wording than the printed 'תרוייהו'. That is a later work's quotation form, not a manuscript witness. Chakham Tzvi cites Tosafot, so it is not independent.",
+   "confidence": "high",
+   "graph_effect": "Supports the provisional identity P2 = Y1 = Rava's wife, with evidence type 'commentary link' (Rabbeinu Tam via Tosafot). Adds a commentary claim that Rava had another wife while she waited. Save the quotation form 'תרווייהו קבעינא' as a separate evidence type (quotation in a later work), not as a text variant."
+  },
+  {
+   "finding_id": "F8",
+   "claim": "Several other Bavli passages show Rava with 'the daughter of Rav Hisda' in a marital or household setting. Ketubot 65a is the most explicit: Rava goes home and asks the daughter of Rav Hisda for intercourse, and she then drives Homa out of Mehoza. Shabbat 129a is part of Rava's own statement: the daughter of Rav Hisda immersed away from her husband, caught cold, and her bier was carried after Rava to Pumbedita. Berakhot 56a: bar Hadaya tells Rava his wife will die, and Rava forgives him for everything except the daughter of Rav Hisda. Rashi there says Rava's wife was the daughter of Rav Hisda. Ketubot 39b, Berakhot 62a, Ketubot 85a and Chagigah 5a show the same pairing in household or court settings.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S18",
+     "exact_quote": "קָם רָבָא, עָל לְבֵיתֵיהּ תַּבְעַהּ לְבַת רַב חִסְדָּא",
+     "translation_by_this_dossier": "Translation by this dossier: 'Rava arose, went into his house, and asked the daughter of Rav Hisda [for intercourse].'"
+    },
+    {
+     "source_id": "S18",
+     "exact_quote": "קְטַלְתְּ לִיךְ תְּלָתָא, וְאָתֵת לְמִיקְטַל אַחֲרִינָא"
+    },
+    {
+     "source_id": "S13",
+     "exact_quote": "כִּי הָא דִּבְרַתֵּיה דְּרַב חִסְדָּא טְבַלָה בְּגוֹ תְּלָתִין יוֹמִין שֶׁלֹּא בִּפְנֵי בַּעְלָהּ וְאִצְטְנִיאַת, וְאַמְטְיוּהָא לְעַרְסַהּ בָּתְרֵיהּ דְּרָבָא לְפוּמְבְּדִיתָא",
+     "translation_by_this_dossier": "Translation by this dossier: 'as with the daughter of Rav Hisda, who immersed within thirty days not in her husband's presence and caught cold, and they carried her bier after Rava to Pumbedita.'"
+    },
+    {
+     "source_id": "S11",
+     "exact_quote": "אֲמַר לֵיהּ: אִשְׁתְּךָ שָׁכְבָא"
+    },
+    {
+     "source_id": "S11",
+     "exact_quote": "כּוּלְּהוּ מָחֵילְנָא לָךְ, בַּר מִבְּרַתֵּיה דְּרַב חִסְדָּא"
+    },
+    {
+     "source_id": "S12",
+     "exact_quote": "בת רב חסדא היתה",
+     "commentary": "Rashi on Berakhot 56a"
+    },
+    {
+     "source_id": "S17",
+     "exact_quote": "רָבָא אָמַר: אֲמַרָה לִי בַּת רַב חִסְדָּא: כִּי רִיבְדָּא דְכוּסִילְתָּא"
+    },
+    {
+     "source_id": "S16",
+     "exact_quote": "רָבָא, מִקַּמֵּי דַּהֲוָה רֵישָׁא, מְקַרְקְשָׁא לֵיהּ בַּת רַב חִסְדָּא אַמְגּוּזָא בְּלָקָנָא"
+    },
+    {
+     "source_id": "S15",
+     "exact_quote": "אֲמַרָה לֵיהּ בַּת רַב חִסְדָּא: יָדְעָנָא בָּהּ דַּחֲשׁוּדָה אַשְּׁבוּעָה"
+    },
+    {
+     "source_id": "S19",
+     "exact_quote": "שָׁאנֵי בַּת רַב חִסְדָּא, דְּקִים לֵיהּ בְּגַוַּוהּ דִּבְקִיאָה"
+    }
+   ],
+   "reasoning": "Most of these passages say 'the daughter of Rav Hisda' and leave 'his wife' to context. The Davidson English adds 'his wife' in each. Ketubot 65a's conjugal act, and Shabbat 129a's 'her husband' within Rava's teaching, are the clearest text-level signs of a completed marriage. Each passage is a separate narrative occurrence. They count as later evidence about Rava's marriage, not as proof that the child of Bava Batra 12b is the same woman.",
+   "confidence": "high",
+   "graph_effect": "Create a local person for each passage (daughter of Rav Hisda @ Ketubot 65a, Shabbat 129a, Berakhot 56a, etc.). Each is married_to Rava locally: explicit in Ketubot 65a, strong context in the others. Offer them as a candidate cluster, 'Rava's wife, daughter of Rav Hisda'. Merging the cluster, and linking it to P2, are separate identity decisions."
+  },
+  {
+   "finding_id": "F9",
+   "claim": "In the Talmud passages checked, no text states that Rami bar Hama married a daughter of Rav Hisda. That marriage appears in commentary and reference works. Rashi on Yevamot 34b names him as the first husband. Korban Netanel says Rami was Rav Hisda's son-in-law and that his wife married Rava after he died, 'as in Bava Batra 12'. Seder HaDorot calls Rav Hisda his father-in-law and teacher. Berakhot 47b does record, as text, that Rami bar Hama died while Rava was alive: Rava explains his death.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S4",
+     "exact_quote": "רמי בר חמא חתנותא דרב חסדא הוי ובתר דשכיב רמי בר חמא נסיבא איתתיה לרבא כדאיתא בב\"ב דף י\"ב",
+     "commentary": "Korban Netanel on Beitzah 66:1"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "רב חסדא חותנו ורבו",
+     "commentary": "Seder HaDorot, Tanaim and Amoraim 3232:1 (Rami bar Hama)"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "ואיתא ביבמות (ל\"ד ב') רבא נשא בת רב חסדא אחר מות בעלה רמי ב\"ח י' שנים",
+     "commentary": "Seder HaDorot 650:6"
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "כִּי נָח נַפְשֵׁיהּ דְּרָמֵי בַּר חָמָא, אָמַר רָבָא: לָא נָח נַפְשֵׁיהּ דְּרָמֵי בַּר חָמָא אֶלָּא דְּלָא אַזְמֵין אַרַב מְנַשְּׁיָא בַּר תַּחְלִיפָא"
+    }
+   ],
+   "reasoning": "Korban Netanel gives Bava Batra 12b as its source, but that page has only a forecast (F4). Seder HaDorot reads Yevamot 34b through Rashi's gloss. So the Rami bar Hama marriage rests on one commentary tradition: the forecast, read as fulfilled, plus Rashi. Later works repeating it are not independent. Berakhot 47b supports only the fact that Rami died before Rava, which fits the tradition without stating it.",
+   "confidence": "medium",
+   "graph_effect": "If a Rami bar Hama married_to (daughter of Rav Hisda) edge is kept, mark its evidence type as commentary identification (Rashi on Yevamot 34b), not Talmud text. Its modality is completed. Its status is provisional. Add a separate text-level fact: Rami bar Hama died during Rava's lifetime (Berakhot 47b). Do not count Korban Netanel or Seder HaDorot as extra independent observations."
+  },
+  {
+   "finding_id": "F10",
+   "claim": "Commentators disagree about how Rava's 'I will be last' works. Maharsha says it was not a curse that Rami would die, but that Rami would divorce her and Rava would then marry her. He explains why Rava, not Rami, said 'last': Rami would avoid marrying a divorcee. Ben Yehoyada objects to that reasoning and offers alternatives, including that Rami may have been a priest. Benayahu and Sha'arei Torat Bavel read Rava's remark in Berakhot 47b as clearing himself of blame for Rami's death, a blame that arose from 'ואנא בתרא'.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S4",
+     "exact_quote": "לא קללו שימות רמי בר חמא לפניו אלא שיגרשה רמי בר חמא ואח\"כ ישא אותה רבא",
+     "commentary": "Chidushei Agadot (Maharsha) on Bava Batra 12b"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "וקשיא לי בדבריו",
+     "commentary": "Ben Yehoyada on Bava Batra 12b"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "מפני דאפשר רמי בר חמא היה כהן",
+     "commentary": "Ben Yehoyada on Bava Batra 12b"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "כדי שלא יאמרו על רבא שהוא גרם שיפטר רמי בר חמא",
+     "commentary": "Benayahu on Berakhot 47b"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "נראה דרבא אמר כן לצאת ידי הבריות שהיו מרננים עליו",
+     "commentary": "Sha'arei Torat Bavel on Berakhot 47b"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "וכן הוה להו שנשאה רמי בר חמא תחלה ונפטר, ואחר כך נשאה רבא",
+     "commentary": "Benayahu on Berakhot 47b"
+    }
+   ],
+   "reasoning": "These are later interpretations. They assume the marriages took place and debate the mechanism: death or divorce. Maharsha's divorce option shows that even commentary did not take 'last' to mean 'after Rami's death'. Ben Yehoyada's 'perhaps a priest' is a conjecture ('אפשר').",
+   "confidence": "high",
+   "graph_effect": "Record interpretive branches on Rava's forecast: (a) Rava after Rami's death [Steinsaltz, Davidson English, Benayahu]; (b) Rava after a divorce [Maharsha, followed by Sha'arei Torat Bavel]. Do not make Rami a priest (Ben Yehoyada's conjecture). Link Berakhot 47b to this episode only as a commentary connection."
+  },
+  {
+   "finding_id": "F11",
+   "claim": "The Talmud shows that Rav Hisda had more than one daughter. It also shows a 'daughter of Rav Hisda' married to Rabba, not Rava, in Chullin 44b. There, both Hebrew texts checked read רבה, and the Davidson English calls her 'His wife'. Eruvin 65a has an unnamed daughter speaking to her father, Rav Hisda.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "S24",
+     "exact_quote": "אֲמַר לְהוּ רַב חִסְדָּא לִבְנָתֵיהּ",
+     "translation_by_this_dossier": "Translation by this dossier: 'Rav Hisda said to his daughters.'"
+    },
+    {
+     "source_id": "S20",
+     "exact_quote": "כִּי הָא דְּרַבָּה שְׁרָא טְרֵפְתָּא וּזְבַן מִינַּהּ בִּישְׂרָא, אֲמַרָה לֵיהּ בַּת רַב חִסְדָּא: אַבָּא שָׁרֵי בּוּכְרָא"
+    },
+    {
+     "source_id": "S21",
+     "exact_quote": "כי הא דרבה שרא טרפתא וזבן מינה בישרא אמרה ליה בת רב חסדא"
+    },
+    {
+     "source_id": "S20",
+     "exact_quote": "His wife, the daughter of Rav Ḥisda, said to him"
+    },
+    {
+     "source_id": "S23",
+     "exact_quote": "אֲמַרָה לֵיהּ בַּרְתֵּיהּ דְּרַב חִסְדָּא לְרַב חִסְדָּא"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "רב עוקבא אחיו לקח ג\"כ בת רב חסדא",
+     "commentary": "Seder HaDorot 3232:1 (Rami bar Hama)",
+     "translation_by_this_dossier": "Translation by this dossier: 'Rav Ukva his brother also took a daughter of Rav Hisda.'"
+    }
+   ],
+   "reasoning": "'Daughter of Rav Hisda' is a descriptor, not a unique name. Chullin 44b could mean a different daughter married to Rabba, or a Rabba/Rava name confusion. I did not check manuscripts, so neither reading is established. Either way, the descriptor cannot be merged across passages automatically. Seder HaDorot also claims that Rami's brother, Rav Ukva, married a daughter of Rav Hisda; I did not verify that in the Talmud.",
+   "confidence": "high",
+   "graph_effect": "Keep every 'daughter of Rav Hisda' mention as its own local person. Put the Chullin 44b woman in a separate candidate group (spouse: Rabba as printed), with an open Rabba/Rava variant question. Do not add her to Rava's wife cluster without variant evidence."
+  },
+  {
+   "finding_id": "F12",
+   "claim": "Seder HaDorot and Tosafot quote the Bava Batra line in their own words. Seder HaDorot also infers that Rava and Rami bar Hama were peers of similar age. Benayahu says both were young children when they sat before Rav Hisda. The Talmud text states neither age nor peer status.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "S4",
+     "exact_quote": "הרי רבא ורמי ב\"ח הוו בני גילי",
+     "commentary": "Seder HaDorot 650:6"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "דרבא ורמי בר חמא בעודם ילדים קטנים, הוו יתבי קמיה דרב חסדא",
+     "commentary": "Benayahu on Berakhot 47b"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "הֲווֹ יָתְבִי קַמֵּיהּ רָבָא וְרָמֵי בַּר חָמָא"
+    }
+   ],
+   "reasoning": "The text says only that the two men sat before Rav Hisda. Their ages are later inferences, and the two commentaries do not even agree that they were children.",
+   "confidence": "high",
+   "graph_effect": "No age or peer edge from the text. If kept, a 'contemporaries' relation between Rava and Rami bar Hama is a Seder HaDorot inference with its own evidence type."
+  },
+  {
+   "finding_id": "F13",
+   "claim": "A second Rami bar Hama marriage thread concerns his daughter, and it carries a reading variant. In Beitzah 29b, Rav Ashi says his wife is the daughter of Rami bar Hama. Korban Netanel finds this chronologically difficult and reports that Halakhot Gedolot reads 'Rami bar Abba' in a related line. Seder HaDorot also questions it.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "S25",
+     "exact_quote": "אָמַר רַב אָשֵׁי: הָא דִּידַן, בְּרַתֵּיה דְּרָמֵי בַּר חָמָא"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "ומצאתי נוסחא אמתית בהלכות גדולות רמי בר אבא דהוי שכיח קמי' דרב פפי",
+     "commentary": "Korban Netanel on Beitzah 66:1"
+    }
+   ],
+   "reasoning": "This does not bear directly on Rav Hisda's daughter. The printed text does not say who the mother of Rami's daughter was. It is recorded because Korban Netanel's chronology assumes that Rami's widow married Rava, and because it shows a name variant that bears on Rami bar Hama's marriages.",
+   "confidence": "medium",
+   "graph_effect": "Out of scope for this passage's graph. If added elsewhere: Rav Ashi married_to (daughter of Rami bar Hama) is explicit in the printed Beitzah 29b. The Halakhot Gedolot 'Rami bar Abba' reading should be saved as a variant reported in a later work, not verified here. Do not infer who her mother was."
+  },
+  {
+   "finding_id": "F14",
+   "claim": "The lake pair for this segment joins 'רבא' to a bare 'חמא', which cuts 'רמי בר חמא' short. Its first-pass kind was 'before', meaning Rava sits before Hama. The text instead places Rava and Rami bar Hama side by side, both before Rav Hisda.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S0",
+     "exact_quote": "קמיה [A] ורמי בר [B]"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "הֲווֹ יָתְבִי קַמֵּיהּ רָבָא וְרָמֵי בַּר חָמָא"
+    }
+   ],
+   "reasoning": "The pattern shows B filled by the patronymic's last word. 'קמיה' governs both men and refers back to her father.",
+   "confidence": "high",
+   "graph_effect": "Change the pair from (Rava, Hama) to (Rava, Rami bar Hama), kind together (co-present, symmetric, saved once). Add Rava sits_before Rav Hisda and Rami bar Hama sits_before Rav Hisda. Hama stays only as Rami's placeholder father."
+  }
+ ],
+ "alternative_readings": [
+  {
+   "id": "A1",
+   "about": "Who asks 'Which of them do you want?'",
+   "readings": [
+    "Rav Hisda, her father (Davidson English, Steinsaltz; strong from the lap scene and 'of them')",
+    "Unspecified 'he' (Goldschmidt keeps the pronoun). No other candidate fits, because Rava and Rami are 'them'."
+   ],
+   "status": "Keep the pronoun resolution labeled as such; treat it as strong."
+  },
+  {
+   "id": "A2",
+   "about": "What 'ואנא בתרא' is",
+   "readings": [
+    "A forecast that comes true: Rava after Rami's death (Steinsaltz, Davidson English, Benayahu)",
+    "A forecast of a divorce, not a death (Maharsha, followed by Sha'arei Torat Bavel)",
+    "Taken alone in the text: a wish, request or jest, whose outcome the segment does not report"
+   ],
+   "status": "Unresolved in the text; commentary branches preserved separately."
+  },
+  {
+   "id": "A3",
+   "about": "Meaning of בתרא",
+   "readings": [
+    "'last' (Davidson English: 'And I will be last')",
+    "'after(wards)' (Goldschmidt: 'mich nachher'; Steinsaltz: 'האחרון')"
+   ],
+   "status": "Both give the same order; neither implies a completed event."
+  },
+  {
+   "id": "A4",
+   "about": "Whose words are the prophecy",
+   "readings": [
+    "The girl's answer 'both' (the Gemara's frame; Rabbeinu Tam calls it 'her prophecy')",
+    "The girl's answer together with Rava's completion of the order (commentary reads them together)"
+   ],
+   "status": "The frame applies to children, so the girl's answer is the direct example."
+  },
+  {
+   "id": "A5",
+   "about": "Is the child of Bava Batra 12b the same woman as Rava's wife elsewhere?",
+   "readings": [
+    "Same woman (Rabbeinu Tam in Tosafot on Yevamot 34b; Rashi on Yevamot 34b implicitly; Seder HaDorot; Davidson English cross-reference)",
+    "Not established: Rav Hisda had several daughters (Shabbat 140b), and one is married to 'Rabba' in the printed Chullin 44b"
+   ],
+   "status": "Provisional identity. Commentary supports the link; the text does not state it."
+  },
+  {
+   "id": "A6",
+   "about": "First husband",
+   "readings": [
+    "Rami bar Hama (Rashi on Yevamot 34b; Korban Netanel; Seder HaDorot; Davidson/Steinsaltz on Bava Batra 12b)",
+    "Unnamed in the Talmud text of Yevamot 34b; the only Talmud-text support is the forecast in Bava Batra 12b"
+   ],
+   "status": "A commentary-only completed marriage."
+  }
+ ],
+ "unresolved": [
+  "No manuscript or print variants were checked for Bava Batra 12b:6 or Chullin 44b:8 (Rabba/Rava). The two Hebrew/Aramaic texts checked (Davidson vocalized, Wikisource) agree for 12b:6, but they are not independent manuscript witnesses.",
+  "Rashi on Bava Batra 12b (Vilna, via Sefaria) returned an empty list for segment 6, as did Tosafot on Bava Batra 12b. This shows only that the digitized data has no gloss at that segment. It does not show that no commentary exists. Rashbam's commentary on Bava Batra, which begins later in the tractate, was not checked for this page.",
+  "The corpus search used exact phrases, and it misses forms with prefixes such as דבת, לבת, מברתיה and דברתיה. Yevamot 34b, Berakhot 56a and Shabbat 129a were found through commentary links and remembered cross-references, not the search. Other passages about Rava's wife, or about Rami bar Hama as Rav Hisda's son-in-law, may exist. Searches for בנתיה דרב חסדא, חתניה דרב חסדא, דביתהו דרבא and דביתהו דרמי בר חמא returned no hits in the exact field. That does not mean the phrases are absent.",
+  "The Jerusalem Talmud and midrashic parallels were not checked.",
+  "The order and number of Rava's marriages were not settled. Berakhot 56a has 'you will divorce two women' and 'your wife will die'. Tosafot says Rava had another wife while she waited. Shabbat 129a and Berakhot 56a both concern the death of 'the daughter of Rav Hisda'. Whether they describe one death was not assessed.",
+  "Seder HaDorot's claim that Rav Ukva, Rami bar Hama's brother, also married a daughter of Rav Hisda was not traced to a Talmud source.",
+  "The request for a Sefaria Community Translation of Bava Batra 12b returned a no-version warning, although that title appears in the tractate's versions list. That translation was therefore not read for 12b.",
+  "No historical identity, date or chronology is accepted here."
+ ],
+ "proposed_corrections": [
+  {
+   "existing_claim_id": "bavli|Bava Batra|12b|6|68|80",
+   "change": "Replace participant B 'חמא' with 'רמי בר חמא'. Keep kind 'together' as symmetric co-presence and reject the first-pass 'before' between them. Add Rava sits_before Rav Hisda and Rami bar Hama sits_before Rav Hisda.",
+   "why": "The pattern cut the patronymic short. קמיה refers to 'her father', Rav Hisda (F2, F14)."
+  },
+  {
+   "existing_claim_id": "bava_batra (earlier cross-check): 'The daughter mention child_of Rav Hisda'",
+   "change": "Keep it and make it a local person P2 with no global identity. Add P4 Rami bar Hama child_of P5 Hama as a placeholder parent from the patronymic.",
+   "why": "She acts and speaks, and 'דאבוה' confirms literal kinship. The project rule keeps parents named in patronymics (F1)."
+  },
+  {
+   "existing_claim_id": "bava_batra (earlier cross-check): Rava states_future_order",
+   "change": "Keep it, and store the Davidson English/Steinsaltz fulfilment sentence as an editorial claim with source type 'modern explanation'. Add commentary branches (death vs divorce) as separate interpretation claims.",
+   "why": "The Hebrew ends at 'ואנא בתרא'. Goldschmidt adds no fulfilment sentence. Maharsha reads divorce, not death (F4, F10)."
+  },
+  {
+   "existing_claim_id": null,
+   "change": "Add cross-passage local persons for 'daughter of Rav Hisda' in Yevamot 34b, Ketubot 65a, Shabbat 129a, Berakhot 56a, Ketubot 39b, Berakhot 62a, Ketubot 85a and Chagigah 5a, each married_to Rava locally. Offer them as one candidate cluster. Keep Chullin 44b (Rabba) and Eruvin 65a apart. Record a Rami bar Hama marriage only as a commentary identification (Rashi on Yevamot 34b).",
+   "why": "These are later, separate passages. The identity link to the child is supported by commentary (Rabbeinu Tam), not by the text (F6-F9, F11)."
+  }
+ ],
+ "ontology_lessons": [
+  "Relations need modality. 'Chooses as a prospective spouse' and 'forecasts marrying after X' are different edges from married_to. A later completed marriage must be a separate edge with its own evidence.",
+  "Explanatory sentences in translations, such as 'And this is what happened...', are editorial claims. They are not text. Davidson English and Steinsaltz Hebrew share an editorial lineage and count as one source family.",
+  "'Daughter of X' is a role descriptor. Each mention should be its own local person. Joining them into one woman is an identity decision made on sourced evidence, especially when the text shows X had several daughters.",
+  "Later works that cite a forecast passage as their source for a completed marriage are circular (Korban Netanel citing Bava Batra 12). They add no independent observation.",
+  "A commentary's identification (Rashi: 'the first husband was Rami bar Hama') needs its own evidence type, distinct from Talmud text and from a modern translation.",
+  "A later work's quotation form (Tosafot: 'תרווייהו קבעינא') is not a manuscript variant. A reported reading in another work (Halakhot Gedolot 'Rami bar Abba') is a variant claim that still needs checking.",
+  "An aggadic frame (prophecy given to children) is episode metadata. It neither confirms nor denies the scene."
+ ],
+ "graph_status": "All proposals are provisional and local. None is eligible for a historical person merge without a separate reviewed identity decision."
+}

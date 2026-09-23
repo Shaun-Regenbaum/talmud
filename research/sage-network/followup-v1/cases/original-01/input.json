@@ -1,0 +1,104 @@
+{
+  "job_id": "original-01",
+  "focal_ref": "Gittin 50a:5",
+  "input_lake_snapshot": 2,
+  "original_document": "relation-cases-sources.json",
+  "source": {
+    "ref": "Gittin 50a:5",
+    "url": "https://www.sefaria.org/Gittin.50a.5",
+    "api_url": "https://www.sefaria.org/api/texts/Gittin%2050a%3A5?context=0&pad=0&commentary=0",
+    "hebrew": "אמר מר זוטרא בריה דרב נחמן, משמיה דרב נחמן: שטר חוב היוצא על היתומין, אף על פי שכתוב בו שבח, אינו גובה אלא מן הזיבורית.",
+    "hebrew_sha256": "7f3fcf7abdbb3e06533062a7280336d92054ed390a53925f86f9242d7a0f7a77",
+    "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+    "hebrew_license": "CC-BY-NC",
+    "english_edition": "William Davidson Edition - English",
+    "pairs": [
+      {
+        "key": "bavli|Gittin|50a|5|4|34",
+        "ref": "Gittin 50a:5",
+        "a": "מר זוטרא בריה דרב נחמן",
+        "b": "רב נחמן",
+        "pattern": "אמר [A] משמיה ד[B]",
+        "kind": "cites",
+        "source": "reader",
+        "direction": "AB",
+        "sure": true,
+        "first_pass": {
+          "kind": "cites",
+          "confidence": 0.86,
+          "p": {
+            "before": 0.0,
+            "disputes": 0.0,
+            "one-name": 0.0,
+            "addresses": 0.0,
+            "alternative": 0.0,
+            "juxtaposed": 0.0,
+            "cites": 0.88,
+            "follows": 0.0,
+            "kin": 0.11,
+            "teacher": 0.01,
+            "same-man": 0.0,
+            "together": 0.0,
+            "none": 0.0,
+            "explains": 0.0,
+            "asks": 0.0
+          }
+        }
+      }
+    ]
+  },
+  "earlier_crosscheck": {
+    "ref": "Gittin 50a:5",
+    "existing_case_id": "gittin",
+    "review_result": "agree_with_qualification",
+    "sources": [
+      {
+        "ref": "Gittin 50a:5",
+        "url": "https://www.sefaria.org/Gittin_50a.5",
+        "api_url": "https://www.sefaria.org/api/texts/Gittin%2050a?context=0&pad=0&commentary=0",
+        "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+        "translation_edition": "William Davidson Edition - English",
+        "hebrew": "אָמַר מָר זוּטְרָא בְּרֵיהּ דְּרַב נַחְמָן, מִשְּׁמֵיהּ דְּרַב נַחְמָן: שְׁטַר חוֹב הַיּוֹצֵא עַל הַיְּתוֹמִין, אַף עַל פִּי שֶׁכָּתוּב בּוֹ שֶׁבַח, אֵינוֹ גּוֹבֶה אֶלָּא מִן הַזִּיבּוּרִית.",
+        "api_hebrew_html_sha256": "68ba48b324004c52376fd63c348ad24ab943d74f405d90e2fe2a4f39ec28050b"
+      }
+    ],
+    "context_read": [
+      "Gittin 50a:4-8",
+      "Rashi on Gittin 50a:5"
+    ],
+    "finding": "Mar Zutra is described as the son of Rav Nachman and reports a ruling in Rav Nachman’s name. These are two claims, even if both Rav Nachman mentions turn out to name the same person.",
+    "claims_to_keep": [
+      {
+        "subject": "Mar Zutra mention",
+        "relation": "child_of",
+        "object": "Rav Nachman mention inside the patronymic",
+        "basis": "בריה דרב נחמן",
+        "status": "explicit_in_text"
+      },
+      {
+        "subject": "Mar Zutra mention",
+        "relation": "reports_in_name_of",
+        "object": "Rav Nachman mention after משמיה",
+        "basis": "משמיה דרב נחמן",
+        "status": "explicit_in_text",
+        "content": "The restriction on collecting a debt from an orphan’s inherited land."
+      }
+    ],
+    "agreement": "The existing report correctly separates the family claim from the reported teaching. The old single pair label cannot express both.",
+    "correction": "Keep separate mention IDs, with a plausible same-person candidate for the two Rav Nachman mentions. Do not convert that caution into a claim that there were two different men. Reporting in someone’s name does not itself establish direct hearing, a meeting, or a teacher relationship.",
+    "uncertainty": {
+      "text_reading": "clear",
+      "local_coreference": "plausible_but_not_explicit",
+      "historical_identity": "not_resolved",
+      "direct_contact": "not_stated"
+    },
+    "episode": {
+      "kind": "halachic",
+      "form": "attributed_ruling",
+      "reason": "The teaching concerns collection of debts from heirs."
+    },
+    "unresolved_scope": [
+      "No biographical or parallel-passage identity study of the two Rav Nachman mentions was performed."
+    ]
+  }
+}

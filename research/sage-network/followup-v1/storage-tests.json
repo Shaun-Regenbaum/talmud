@@ -1,0 +1,31 @@
+{
+  "passed_checks": 25,
+  "checks": [
+    "Real 38-case projection passes",
+    "Changed source file rejected",
+    "Missing source file rejected",
+    "Changed quote with updated dossier hash rejected",
+    "Wrong occurrence offset rejected",
+    "Wrong quotation count rejected",
+    "Review of different dossier rejected",
+    "Historical approval rejected",
+    "Widened review status rejected",
+    "Unknown review authority rejected",
+    "Absolute source path rejected",
+    "One-character quotation rejected",
+    "Unlinked review rejected",
+    "Stale completion record rejected",
+    "Edited stored checker rejected",
+    "Changed checker pin rejected",
+    "Malformed superseded run rejected",
+    "Changed image bytes rejected",
+    "A quotation cited from an image is reported as not found, not a crash",
+    "Linked files refused, line endings kept byte for byte, non-UTF-8 text refused",
+    "All fields in the 23 earlier tables are unchanged",
+    "All stored research rows rebuild from saved files",
+    "Changed indexed finding rejected",
+    "Run superseding a missing run rejected",
+    "Restored files reproduce the same indexed records"
+  ],
+  "note": "Damage tests use temporary copies of actual research. They do not create research evidence. Structural checks do not approve interpretations."
+}

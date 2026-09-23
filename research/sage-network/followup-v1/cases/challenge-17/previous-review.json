@@ -1,0 +1,83 @@
+{
+  "job_id": "challenge-17",
+  "input_sha256": "2955ea8468db5bba259cee336670b21c43758ac2fb57032047cdcb6c518329ec",
+  "output_sha256": "476e77e67d30bc9dc0e79cb2d6995a1b824e739b3d5d2ddb796c3af7971a295c",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "Homa is Abaye’s wife, visits Rava and requests food and wine.",
+      "claim_ids": [
+        "c1",
+        "c3",
+        "c4",
+        "c6"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "Hisda’s daughter is a separate person, his child, and asks Rava who was in court.",
+      "claim_ids": [
+        "c2",
+        "c13"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "The daughter is the agent of pursuit, beating and expulsion; Homa is the target.",
+      "claim_ids": [
+        "c15"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 3,
+      "status": "pass",
+      "reason": "The three-death statement is recorded as the daughter’s hostile speech, with an explicit caution against treating it as established killing.",
+      "claim_ids": [
+        "c16"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "The women retain their own actions; Abaye is not put at the hearing.",
+      "claim_ids": [
+        "c3",
+        "c4",
+        "c13",
+        "c15"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "The daughter is retained between Rava and Hisda. The proposed marriage is marked interpretation at medium reading confidence, not explicit wording.",
+      "claim_ids": [
+        "c2",
+        "c12"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "minor",
+      "type": "uncertainty",
+      "claim_ids": [
+        "c12"
+      ],
+      "reason": "The spouse claim c12 is an unbranched asserted interpretation of the home and intimacy scene. The note correctly admits that marriage is not named here. Keep that inference qualified in later use; the source alone does not state a wedding or use a wife label for this daughter.",
+      "source_refs": [
+        "Ketubot 65a:10"
+      ]
+    }
+  ],
+  "summary": "The court and household roles are read correctly. The inferred Rava–daughter marriage remains weaker than the explicit Homa–Abaye marriage."
+}

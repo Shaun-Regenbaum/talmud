@@ -1,0 +1,1956 @@
+{
+  "schema_version": "passage-pilot-v1",
+  "job_id": "random-yerushalmi-06",
+  "episode": {
+    "genre": "mixed",
+    "genre_reason": "Legal discussions of deposits and vows include a story about a woman’s dying statement.",
+    "form": "Legal argument and attributed teachings",
+    "coverage": "complete_for_supplied_text",
+    "needed_context": [],
+    "notes": [
+      "All five supplied passages were read. Generic family examples are distinguished from the named household in the deposit story. The daughter is identified through her mother’s words; the passage does not independently establish that the husband is her father."
+    ]
+  },
+  "mentions": [
+    {
+      "id": "m1",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי יונתן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m2",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רבי זבידא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m3",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רבי בא בר ממל",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m4",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "ממל",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m5",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רבי בא בר חנה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m6",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "חנה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m7",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "איתת דרבי בא בר חנה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m8",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "ברתי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m9",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רב אמר",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m10",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "רבי ירמיה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m11",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "רבי יוסי בן חנינה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m12",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "חנינה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m13",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "רבי יוסי",
+        "occurrence": 2
+      }
+    },
+    {
+      "id": "m14",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "תני",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m15",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "והוא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m16",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "רבי יוסי",
+        "occurrence": 2
+      }
+    },
+    {
+      "id": "m17",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "הגוזל",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m18",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "חבירו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m19",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "איכן פקדוני",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m20",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "אמר לו אבד",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m21",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "העדי'",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m22",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "הגוזל את אביו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m23",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "אביו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m24",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "לבניו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m25",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "לאחיו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m26",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "בעלי החוב",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m27",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "מנשים",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m28",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "ועבדים",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m29",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "וקטנים",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m30",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "מאשה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m31",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "לבעלה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m32",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "מעבד",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m33",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "לרבו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m34",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "מקטן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m35",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "לאביו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m36",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "לפלוני",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m37",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "האומר לבנו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m38",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "לבנו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m39",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "לבניו",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m40",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "לאחיו",
+        "occurrence": 1
+      }
+    }
+  ],
+  "entities": [
+    {
+      "id": "yonatan",
+      "kind": "person",
+      "label": "Rabbi Yonatan",
+      "mention_ids": [
+        "m1"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי יונתן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "zevida",
+      "kind": "person",
+      "label": "Rabbi Zevida",
+      "mention_ids": [
+        "m2"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי זבידא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "ba_mamal",
+      "kind": "person",
+      "label": "Rabbi Ba bar Mamal",
+      "mention_ids": [
+        "m3"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי בא בר ממל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "mamal",
+      "kind": "person",
+      "label": "Mamal in Ba’s patronymic",
+      "mention_ids": [
+        "m4"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "ממל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "ba_hana",
+      "kind": "person",
+      "label": "Rabbi Ba bar Hana",
+      "mention_ids": [
+        "m5",
+        "m15"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי בא בר חנה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "hana",
+      "kind": "person",
+      "label": "Hana in Ba’s patronymic",
+      "mention_ids": [
+        "m6"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "חנה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "wife",
+      "kind": "person",
+      "label": "Wife of Rabbi Ba bar Hana",
+      "mention_ids": [
+        "m7"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "איתת דרבי בא בר חנה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "daughter",
+      "kind": "person",
+      "label": "Daughter named by the dying woman",
+      "mention_ids": [
+        "m8"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "ברתי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "rav",
+      "kind": "person",
+      "label": "Rav",
+      "mention_ids": [
+        "m9"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רב אמר",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yirmeya",
+      "kind": "person",
+      "label": "Rabbi Yirmeya",
+      "mention_ids": [
+        "m10"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "רבי ירמיה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yose_hanina",
+      "kind": "person",
+      "label": "Rabbi Yose ben Hanina",
+      "mention_ids": [
+        "m11"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "רבי יוסי בן חנינה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "hanina",
+      "kind": "person",
+      "label": "Hanina in Yose’s patronymic",
+      "mention_ids": [
+        "m12"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "חנינה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yose",
+      "kind": "person",
+      "label": "Unqualified Rabbi Yose later in s5",
+      "mention_ids": [
+        "m13"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "רבי יוסי",
+          "occurrence": 2
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "anon",
+      "kind": "group",
+      "label": "Unnamed legal discussion voice",
+      "mention_ids": [
+        "m14"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "תני",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "fifth",
+      "kind": "statement",
+      "label": "The added fifth becomes principal upon payment",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "בנתינת החומש נעשה חומש קרן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "witness_rule",
+      "kind": "statement",
+      "label": "The dying ownership instruction requires witnesses",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "ובלבד בעדים",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "death_statement",
+      "kind": "event",
+      "label": "The wife makes a statement while dying",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "איתת דרבי בא בר חנה מי דמכא אמרה אהן קידושא דברתי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "daughter_property",
+      "kind": "statement",
+      "label": "This is my daughter’s betrothal property",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "אהן קידושא דברתי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "husband_property",
+      "kind": "statement",
+      "label": "It is only mine",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "לית הוא אלא דידי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "case",
+      "kind": "event",
+      "label": "The ownership dispute comes before Rav",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "אתא עובדא קומי רב",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "dying_truth",
+      "kind": "statement",
+      "label": "A person is not likely to lie at the time of death",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "אין אדם מצוי לשקר בשעת מיתה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "vow_question",
+      "kind": "statement",
+      "label": "Why distinguish single-life wording from both-life-and-death wording?",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "מה בין אהן דמר חדא חדא להן דמר תרתי תרתי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "house_rule",
+      "kind": "statement",
+      "label": "Specifying this house prohibits it both during life and after death",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "כיון שאמר לבית זה אסרו עליו בין בחיים בין לאחר מיתה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "property_rule",
+      "kind": "statement",
+      "label": "Specifying these assets prohibits them both during life and after death",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "כיון שאמ' אילו אסרן עליו בין בחיים בין לאחר מיתה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "robber",
+      "kind": "person",
+      "label": "Generic robber in the earlier rule",
+      "mention_ids": [
+        "m17"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הגוזל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "robbed",
+      "kind": "person",
+      "label": "Generic person robbed",
+      "mention_ids": [
+        "m18"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "חבירו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "depositor",
+      "kind": "person",
+      "label": "Generic owner demanding a deposit",
+      "mention_ids": [
+        "m19"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "איכן פקדוני",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "keeper",
+      "kind": "person",
+      "label": "Generic deposit-holder answering the demand",
+      "mention_ids": [
+        "m20"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אמר לו אבד",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "witnesses",
+      "kind": "group",
+      "label": "Witnesses in the deposit cases",
+      "mention_ids": [
+        "m21"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "העדי'",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "son_robber",
+      "kind": "person",
+      "label": "Generic son who robs his father",
+      "mention_ids": [
+        "m22"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "הגוזל את אביו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "father_robbed",
+      "kind": "person",
+      "label": "His father in the legal case",
+      "mention_ids": [
+        "m23"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אביו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "sons_repaid",
+      "kind": "group",
+      "label": "Sons mentioned as recipients of repayment",
+      "mention_ids": [
+        "m24"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "לבניו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "brothers_repaid",
+      "kind": "group",
+      "label": "Brothers mentioned as recipients of repayment",
+      "mention_ids": [
+        "m25"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "לאחיו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "creditors",
+      "kind": "group",
+      "label": "Generic creditors",
+      "mention_ids": [
+        "m26"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "בעלי החוב",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "women",
+      "kind": "group",
+      "label": "Women from whom one should not accept deposits",
+      "mention_ids": [
+        "m27"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "מנשים",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "slaves",
+      "kind": "group",
+      "label": "Slaves from whom one should not accept deposits",
+      "mention_ids": [
+        "m28"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "ועבדים",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "minors",
+      "kind": "group",
+      "label": "Minors from whom one should not accept deposits",
+      "mention_ids": [
+        "m29"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "וקטנים",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "generic_woman",
+      "kind": "person",
+      "label": "Generic woman depositor",
+      "mention_ids": [
+        "m30"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "מאשה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "generic_husband",
+      "kind": "person",
+      "label": "Her generic husband",
+      "mention_ids": [
+        "m31"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "לבעלה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "generic_slave",
+      "kind": "person",
+      "label": "Generic slave depositor",
+      "mention_ids": [
+        "m32"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "מעבד",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "master",
+      "kind": "person",
+      "label": "His generic master",
+      "mention_ids": [
+        "m33"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "לרבו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "minor",
+      "kind": "person",
+      "label": "Generic minor depositor",
+      "mention_ids": [
+        "m34"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "מקטן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "minor_father",
+      "kind": "person",
+      "label": "His generic father",
+      "mention_ids": [
+        "m35"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "לאביו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "recipient",
+      "kind": "person",
+      "label": "Unnamed designated owner in the dying instructions",
+      "mention_ids": [
+        "m36"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "לפלוני",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "vow_father",
+      "kind": "person",
+      "label": "Generic father prohibiting benefit to his son",
+      "mention_ids": [
+        "m37"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "האומר לבנו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "vow_son",
+      "kind": "person",
+      "label": "Generic son barred from benefit",
+      "mention_ids": [
+        "m38"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "לבנו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "vow_sons",
+      "kind": "group",
+      "label": "Sons receiving the prohibited estate",
+      "mention_ids": [
+        "m39"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "לבניו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "vow_brothers",
+      "kind": "group",
+      "label": "Brothers receiving the prohibited estate",
+      "mention_ids": [
+        "m40"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "לאחיו",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "deposit_question",
+      "kind": "statement",
+      "label": "Where is my deposit?",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "איכן פקדוני",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "lost_answer",
+      "kind": "statement",
+      "label": "The deposit was lost",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אבד",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "swear",
+      "kind": "event",
+      "label": "The deposit owner imposes an oath and the keeper accepts it",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "משביעך אני ואמ' אמן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "ba_mamal",
+      "object": "mamal",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי בא בר ממל",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c2",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "ba_hana",
+      "object": "hana",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי בא בר חנה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c3",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "yose_hanina",
+      "object": "hanina",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "רבי יוסי בן חנינה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c4",
+      "family": "family",
+      "predicate": "spouse_of",
+      "subject": "wife",
+      "object": "ba_hana",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "איתת דרבי בא בר חנה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c5",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "daughter",
+      "object": "wife",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "אמרה אהן קידושא דברתי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "wife",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c6",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "yonatan",
+      "object": "fifth",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר רבי יונתן בנתינת החומש נעשה חומש קרן",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c7",
+      "family": "transmission",
+      "predicate": "reports_in_name_of",
+      "subject": "zevida",
+      "object": "ba_mamal",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "witness_rule"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי זבידא בשם רבי בא בר ממל ובלבד בעדים",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c8",
+      "family": "transmission",
+      "predicate": "attributes_to",
+      "subject": "witness_rule",
+      "object": "ba_mamal",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי זבידא בשם רבי בא בר ממל ובלבד בעדים",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c9",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "wife",
+      "object": "death_statement",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "מי דמכא אמרה אהן קידושא דברתי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "מי דמכא אמרה: dying declaration",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c10",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "wife",
+      "object": "daughter_property",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "אמרה אהן קידושא דברתי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "wife",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Ownership is the woman’s claim, not an unqualified narrator assertion."
+      ]
+    },
+    {
+      "id": "c11",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "ba_hana",
+      "object": "husband_property",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "והוא אמר לית הוא אלא דידי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "ba_hana",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c12",
+      "family": "views",
+      "predicate": "opposes",
+      "subject": "ba_hana",
+      "object": "daughter_property",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "husband_property"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "והוא אמר לית הוא אלא דידי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c13",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "rav",
+      "object": "case",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "אתא עובדא קומי רב",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "Case heard before him",
+      "time_scope": null,
+      "notes": [
+        "The text says the case came before Rav, not that the wife or husband personally visited him."
+      ]
+    },
+    {
+      "id": "c14",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "rav",
+      "object": "dying_truth",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רב אמר אין אדם מצוי לשקר בשעת מיתה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c15",
+      "family": "views",
+      "predicate": "supports",
+      "subject": "dying_truth",
+      "object": "daughter_property",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "אתא עובדא קומי רב אמר אין אדם מצוי לשקר בשעת מיתה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Rav’s stated principle favors the woman’s account; no separate wording of a property transfer is supplied."
+      ]
+    },
+    {
+      "id": "c16",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "yirmeya",
+      "object": "vow_question",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "אמר רבי ירמיה חמי היך תנינן הכא",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The initial attributed comparison is followed by this question in the same discussion."
+      ]
+    },
+    {
+      "id": "c17",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "yirmeya",
+      "object": "house_rule",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "רבי ירמיה ורבי יוסי בן חנינה תריהון אמרין קונם לבית זה שאיני נכנס בחיי ובמותי כיון שאמר לבית זה אסרו עליו בין בחיים בין לאחר מיתה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c18",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "yose_hanina",
+      "object": "house_rule",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "רבי ירמיה ורבי יוסי בן חנינה תריהון אמרין קונם לבית זה שאיני נכנס בחיי ובמותי כיון שאמר לבית זה אסרו עליו בין בחיים בין לאחר מיתה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c19",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "yose",
+      "object": "property_rule",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "אמר רבי יוסי תנינן בנזקין מה דלא תנינן בנדרין קונם הניית נכסיי אילו עלי בחיי ובמותי כיון שאמ' אילו אסרן עליו בין בחיים בין לאחר מיתה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c20",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "son_robber",
+      "object": "father_robbed",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "הגוזל את אביו",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "hypothetical",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c21",
+      "family": "family",
+      "predicate": "spouse_of",
+      "subject": "generic_woman",
+      "object": "generic_husband",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "קיבל מאשה יחזיר לה מתה יחזיר לבעלה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "hypothetical",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c22",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "minor",
+      "object": "minor_father",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "מקטן יחזיר לו מת יחזיר לאביו",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "hypothetical",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c23",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "vow_son",
+      "object": "vow_father",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "האומר לבנו",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "hypothetical",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c24",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "depositor",
+      "object": "deposit_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "keeper"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "איכן פקדוני אמר לו אבד",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "hypothetical",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c25",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "keeper",
+      "object": "deposit_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "depositor"
+        },
+        {
+          "role": "content",
+          "entity": "lost_answer"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אמר לו אבד",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "hypothetical",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c26",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "depositor",
+      "object": "swear",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "משביעך אני ואמ' אמן",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "hypothetical",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "imposes oath",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c27",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "keeper",
+      "object": "swear",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "משביעך אני ואמ' אמן",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "hypothetical",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "answers amen",
+      "time_scope": null,
+      "notes": []
+    }
+  ],
+  "reading_groups": [],
+  "coreference_candidates": [
+    {
+      "mention_id": "m16",
+      "entity_ids": [
+        "yose",
+        "yose_hanina"
+      ],
+      "branches": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "אמר רבי יוסי תנינן בנזקין",
+          "occurrence": 1
+        }
+      ],
+      "reason": "The shortened name may refer to Yose ben Hanina, but this is not explicit."
+    }
+  ],
+  "open_questions": [
+    "Is the daughter of the dying woman also a daughter of Rabbi Ba bar Hana? Only the mother’s relation is explicit.",
+    "Does the unqualified Rabbi Yose resume Yose ben Hanina?",
+    "Whose sons and brothers are intended in the compressed repayment and inheritance instructions? No historical family edges are inferred."
+  ]
+}

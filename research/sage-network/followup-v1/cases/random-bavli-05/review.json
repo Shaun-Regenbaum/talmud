@@ -1,0 +1,30 @@
+{
+  "job_id": "random-bavli-05",
+  "authority": "automated_review",
+  "status": "qualified_proposals",
+  "dossier_sha256": "9a261ffea2ac7e2eb6a0a0e58cbad02ba116f45258aa5dbd989b44d3cf8721ae",
+  "historical_graph_eligible": false,
+  "scope": "Separate review of selected graph implications. Source hashes and quotation matches checked separately. Not human adjudication or exhaustive historical verification.",
+  "findings": [
+    {
+      "target": "F2/F3 anonymous reply and Sodom scope",
+      "decision": "support_qualified_reading",
+      "reason": "Keep the unnamed plural respondents and their singular addressee. Attribute the identification as Sages to its editions and commentators. The Sodom-only scope is an interpretation supported by context and commentary, not an explicit noun in the reply."
+    },
+    {
+      "target": "F4/F7 agreement and parallel attribution",
+      "decision": "retain_distinct_claims",
+      "reason": "Two voices agreeing does not make them the same speaker. The named parallel respondent remains in that work; it does not fill the Bavli’s unnamed group."
+    },
+    {
+      "target": "F11–F15 nested stories and legal or verse categories",
+      "decision": "support_typed_entities",
+      "reason": "Keep narrated people, collective groups, verse categories, personified robbery and speaking animals distinguishable. The framing sage reports an exegesis; that does not place the sage inside Noah’s story. Kinship inside the story remains textual evidence."
+    },
+    {
+      "target": "F5/F6 source variants and translation discrepancy",
+      "decision": "retain_source_specific_scope",
+      "reason": "Keep each version’s list of generations. A translation that interprets both differently must not overwrite the adjacent Hebrew or be counted as independent confirmation."
+    }
+  ]
+}

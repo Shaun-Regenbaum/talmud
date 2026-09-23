@@ -1,0 +1,1328 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-22",
+    "episode": {
+      "genre": "aggadic",
+      "genre_reason": "A predicted snake death is avoided and explained through charity.",
+      "form": "story with prediction and reported recollection",
+      "coverage": "complete_for_supplied_text",
+      "needed_context": [],
+      "notes": [
+        "The returned worker is not given a name or an explicit family relationship. The opening conclusion is the narrator’s theological inference."
+      ]
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "שמואל",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "אבלט",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "הנך אינשי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "האי גברא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ישראל",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "אגמא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "חד מינן דלא הוה ליה ריפתא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "שמואל ואבלט הוו יתבי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "האי גברא אזיל ולא אתי, טריק ליה חיויא ומיית.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m10",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "אי בר ישראל הוא, אזיל ואתי.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m11",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "אזל ואתא.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m12",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "קם אבלט שדיה לטוניה, אשכח ביה חיויא דפסיק ושדי בתרתי גובי.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m13",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "מאי עבדת?",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m14",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "כי מטאי לגביה, שואי נפשאי כמאן דשקילי מיניה, כי היכי דלא ליכסיף.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m15",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "כל יומא הוה מרמינן ריפתא בהדי הדדי ואכלינן. האידנא הוה איכא חד מינן דלא הוה ליה ריפתא, הוה קא מיכסף.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m16",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "מצוה עבדת.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m17",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "״וצדקה תציל ממות״, ולא ממיתה משונה, אלא ממיתה עצמה.",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "shmuel",
+        "kind": "person",
+        "label": "Shmuel",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "שמואל",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "avlet",
+        "kind": "person",
+        "label": "Avlet",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אבלט",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "workers",
+        "kind": "group",
+        "label": "People going to the marsh",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "הנך אינשי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "man",
+        "kind": "person",
+        "label": "The worker singled out by Avlet",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "האי גברא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "israel",
+        "kind": "group",
+        "label": "Israel in the opening conclusion",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ישראל",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "marsh",
+        "kind": "place",
+        "label": "Marsh",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אגמא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "poorworker",
+        "kind": "person",
+        "label": "Worker who had no bread",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "חד מינן דלא הוה ליה ריפתא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "sitting",
+        "kind": "event",
+        "label": "Shmuel and Avlet sitting together",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "שמואל ואבלט הוו יתבי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "forecast",
+        "kind": "statement",
+        "label": "The singled out man will die from a snakebite",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "האי גברא אזיל ולא אתי, טריק ליה חיויא ומיית.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "counter",
+        "kind": "statement",
+        "label": "If he is an Israelite he will return",
+        "mention_ids": [
+          "m10"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אי בר ישראל הוא, אזיל ואתי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "trip",
+        "kind": "event",
+        "label": "The man goes and returns",
+        "mention_ids": [
+          "m11"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אזל ואתא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "inspection",
+        "kind": "event",
+        "label": "Avlet unloads the man’s bundle and finds a severed snake",
+        "mention_ids": [
+          "m12"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "קם אבלט שדיה לטוניה, אשכח ביה חיויא דפסיק ושדי בתרתי גובי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "question",
+        "kind": "statement",
+        "label": "What did you do?",
+        "mention_ids": [
+          "m13"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "מאי עבדת?",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "kindness",
+        "kind": "event",
+        "label": "Collecting bread while concealing a worker’s inability to contribute",
+        "mention_ids": [
+          "m14"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "כי מטאי לגביה, שואי נפשאי כמאן דשקילי מיניה, כי היכי דלא ליכסיף.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "recollection",
+        "kind": "statement",
+        "label": "The man describes the shared meal and his action",
+        "mention_ids": [
+          "m15"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "כל יומא הוה מרמינן ריפתא בהדי הדדי ואכלינן. האידנא הוה איכא חד מינן דלא הוה ליה ריפתא, הוה קא מיכסף.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "merit",
+        "kind": "statement",
+        "label": "You performed a commandment",
+        "mention_ids": [
+          "m16"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "מצוה עבדת.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "teaching",
+        "kind": "statement",
+        "label": "Charity saves from death itself",
+        "mention_ids": [
+          "m17"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "״וצדקה תציל ממות״, ולא ממיתה משונה, אלא ממיתה עצמה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "shmuel",
+        "object": "sitting",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "שמואל ואבלט הוו יתבי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "יתבי",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "avlet",
+        "object": "sitting",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "שמואל ואבלט הוו יתבי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "יתבי",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "avlet",
+        "object": "shmuel",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "forecast"
+          },
+          {
+            "role": "target",
+            "entity": "man"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר ליה אבלט לשמואל: האי גברא אזיל ולא אתי, טריק ליה חיויא ומיית.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The speech occurs; its content is a prediction contradicted by the return."
+        ]
+      },
+      {
+        "id": "c4",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "avlet",
+        "object": "forecast",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "האי גברא אזיל ולא אתי, טריק ליה חיויא ומיית.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "avlet",
+        "polarity": "positive",
+        "modality": "prediction",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "shmuel",
+        "object": "forecast",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "avlet"
+          },
+          {
+            "role": "content",
+            "entity": "counter"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר ליה שמואל: אי בר ישראל הוא, אזיל ואתי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "shmuel",
+        "object": "counter",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אי בר ישראל הוא, אזיל ואתי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "shmuel",
+        "polarity": "positive",
+        "modality": "conditional",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c7",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "man",
+        "object": "trip",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אדיתבי אזל ואתא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "אזל ואתא",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c8",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "avlet",
+        "object": "inspection",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "קם אבלט שדיה לטוניה, אשכח ביה חיויא דפסיק ושדי בתרתי גובי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "שדיה לטוניה / אשכח",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c9",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "shmuel",
+        "object": "man",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "question"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר ליה שמואל: מאי עבדת?",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c10",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "man",
+        "object": "question",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "shmuel"
+          },
+          {
+            "role": "content",
+            "entity": "recollection"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר ליה: כל יומא הוה מרמינן ריפתא בהדי הדדי ואכלינן.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c11",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "man",
+        "object": "kindness",
+        "roles": [
+          {
+            "role": "beneficiary",
+            "entity": "poorworker"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "כי מטאי לגביה, שואי נפשאי כמאן דשקילי מיניה, כי היכי דלא ליכסיף.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "man",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "שואי נפשאי כמאן דשקילי מיניה",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c12",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "shmuel",
+        "object": "man",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "merit"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר ליה: מצוה עבדת.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c13",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "shmuel",
+        "object": "teaching",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "נפק שמואל ודרש: ״וצדקה תציל ממות״, ולא ממיתה משונה, אלא ממיתה עצמה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      }
+    ],
+    "reading_groups": [],
+    "coreference_candidates": [],
+    "open_questions": []
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "שמואל",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 3,
+      "end": 8,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "אבלט",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 37,
+      "end": 41,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "הנך אינשי",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 63,
+      "end": 72,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s1",
+      "quote": "האי גברא",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 101,
+      "end": 109,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s1",
+      "quote": "ישראל",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 22,
+      "end": 27,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s1",
+      "quote": "אגמא",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 74,
+      "end": 78,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s2",
+      "quote": "חד מינן דלא הוה ליה ריפתא",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 153,
+      "end": 178,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s1",
+      "quote": "שמואל ואבלט הוו יתבי",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 30,
+      "end": 50,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s1",
+      "quote": "האי גברא אזיל ולא אתי, טריק ליה חיויא ומיית.",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 101,
+      "end": 145,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m10/anchor",
+      "source_id": "s1",
+      "quote": "אי בר ישראל הוא, אזיל ואתי.",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 161,
+      "end": 188,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m11/anchor",
+      "source_id": "s1",
+      "quote": "אזל ואתא.",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 196,
+      "end": 205,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m12/anchor",
+      "source_id": "s2",
+      "quote": "קם אבלט שדיה לטוניה, אשכח ביה חיויא דפסיק ושדי בתרתי גובי.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 0,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m13/anchor",
+      "source_id": "s2",
+      "quote": "מאי עבדת?",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 74,
+      "end": 83,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m14/anchor",
+      "source_id": "s2",
+      "quote": "כי מטאי לגביה, שואי נפשאי כמאן דשקילי מיניה, כי היכי דלא ליכסיף.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 225,
+      "end": 289,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m15/anchor",
+      "source_id": "s2",
+      "quote": "כל יומא הוה מרמינן ריפתא בהדי הדדי ואכלינן. האידנא הוה איכא חד מינן דלא הוה ליה ריפתא, הוה קא מיכסף.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 93,
+      "end": 193,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m16/anchor",
+      "source_id": "s2",
+      "quote": "מצוה עבדת.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 299,
+      "end": 309,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m17/anchor",
+      "source_id": "s2",
+      "quote": "״וצדקה תציל ממות״, ולא ממיתה משונה, אלא ממיתה עצמה.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 326,
+      "end": 377,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/shmuel/evidence/0",
+      "source_id": "s1",
+      "quote": "שמואל",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 3,
+      "end": 8,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/avlet/evidence/0",
+      "source_id": "s1",
+      "quote": "אבלט",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 37,
+      "end": 41,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/workers/evidence/0",
+      "source_id": "s1",
+      "quote": "הנך אינשי",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 63,
+      "end": 72,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/man/evidence/0",
+      "source_id": "s1",
+      "quote": "האי גברא",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 101,
+      "end": 109,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/israel/evidence/0",
+      "source_id": "s1",
+      "quote": "ישראל",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 22,
+      "end": 27,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/marsh/evidence/0",
+      "source_id": "s1",
+      "quote": "אגמא",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 74,
+      "end": 78,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/poorworker/evidence/0",
+      "source_id": "s2",
+      "quote": "חד מינן דלא הוה ליה ריפתא",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 153,
+      "end": 178,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sitting/evidence/0",
+      "source_id": "s1",
+      "quote": "שמואל ואבלט הוו יתבי",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 30,
+      "end": 50,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/forecast/evidence/0",
+      "source_id": "s1",
+      "quote": "האי גברא אזיל ולא אתי, טריק ליה חיויא ומיית.",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 101,
+      "end": 145,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/counter/evidence/0",
+      "source_id": "s1",
+      "quote": "אי בר ישראל הוא, אזיל ואתי.",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 161,
+      "end": 188,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/trip/evidence/0",
+      "source_id": "s1",
+      "quote": "אזל ואתא.",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 196,
+      "end": 205,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/inspection/evidence/0",
+      "source_id": "s2",
+      "quote": "קם אבלט שדיה לטוניה, אשכח ביה חיויא דפסיק ושדי בתרתי גובי.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 0,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/question/evidence/0",
+      "source_id": "s2",
+      "quote": "מאי עבדת?",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 74,
+      "end": 83,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/kindness/evidence/0",
+      "source_id": "s2",
+      "quote": "כי מטאי לגביה, שואי נפשאי כמאן דשקילי מיניה, כי היכי דלא ליכסיף.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 225,
+      "end": 289,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/recollection/evidence/0",
+      "source_id": "s2",
+      "quote": "כל יומא הוה מרמינן ריפתא בהדי הדדי ואכלינן. האידנא הוה איכא חד מינן דלא הוה ליה ריפתא, הוה קא מיכסף.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 93,
+      "end": 193,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/merit/evidence/0",
+      "source_id": "s2",
+      "quote": "מצוה עבדת.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 299,
+      "end": 309,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/teaching/evidence/0",
+      "source_id": "s2",
+      "quote": "״וצדקה תציל ממות״, ולא ממיתה משונה, אלא ממיתה עצמה.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 326,
+      "end": 377,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "שמואל ואבלט הוו יתבי",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 30,
+      "end": 50,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s1",
+      "quote": "שמואל ואבלט הוו יתבי",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 30,
+      "end": 50,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר ליה אבלט לשמואל: האי גברא אזיל ולא אתי, טריק ליה חיויא ומיית.",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 80,
+      "end": 145,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s1",
+      "quote": "האי גברא אזיל ולא אתי, טריק ליה חיויא ומיית.",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 101,
+      "end": 145,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר ליה שמואל: אי בר ישראל הוא, אזיל ואתי.",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 146,
+      "end": 188,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s1",
+      "quote": "אי בר ישראל הוא, אזיל ואתי.",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 161,
+      "end": 188,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s1",
+      "quote": "אדיתבי אזל ואתא.",
+      "occurrence": 1,
+      "source_sha256": "c7a080aa46a27d600edd774452fb2217c94d474e0e0c173d5f35119b88886b72",
+      "start": 189,
+      "end": 205,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s2",
+      "quote": "קם אבלט שדיה לטוניה, אשכח ביה חיויא דפסיק ושדי בתרתי גובי.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 0,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר ליה שמואל: מאי עבדת?",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 59,
+      "end": 83,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר ליה: כל יומא הוה מרמינן ריפתא בהדי הדדי ואכלינן.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 84,
+      "end": 136,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c11/evidence/0",
+      "source_id": "s2",
+      "quote": "כי מטאי לגביה, שואי נפשאי כמאן דשקילי מיניה, כי היכי דלא ליכסיף.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 225,
+      "end": 289,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c12/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר ליה: מצוה עבדת.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 290,
+      "end": 309,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c13/evidence/0",
+      "source_id": "s2",
+      "quote": "נפק שמואל ודרש: ״וצדקה תציל ממות״, ולא ממיתה משונה, אלא ממיתה עצמה.",
+      "occurrence": 1,
+      "source_sha256": "7cc084951da32fe5ffadaf3f38fb4403757bb24c13c2443ca71902e697864368",
+      "start": 310,
+      "end": 377,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "6d651255f217ad8505d29cba4b9b9532445e2a5e6aae09b9269812245c2f63c6",
+  "output_sha256": "36ab66b9ce1016ff7fb6d1ef56a1332c4a19368cdeab11f4095e44147263b3d2",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.374455+00:00"
+}

@@ -1,0 +1,83 @@
+{
+  "job_id": "original-03",
+  "focal_ref": "Chullin 94b:13",
+  "input_lake_snapshot": 2,
+  "original_document": "relation-cases-sources.json",
+  "source": {
+    "ref": "Chullin 94b:13",
+    "url": "https://www.sefaria.org/Chullin.94b.13",
+    "api_url": "https://www.sefaria.org/api/texts/Chullin%2094b%3A13?context=0&pad=0&commentary=0",
+    "hebrew": "כי הא דמר זוטרא בריה דרב נחמן הוה קאזיל מסיכרא לבי מחוזא, ורבא ורב ספרא הוו קא אתו לסיכרא, פגעו אהדדי. הוא סבר לאפיה הוא דקאתו, אמר להו: למה להו לרבנן דטרוח ואתו כולי האי? אמר ליה רב ספרא: אנן לא הוה ידעינן דקאתי מר, אי הוה ידעינן טפי הוה טרחינן.",
+    "hebrew_sha256": "abbdae067d1211d72b8e2c077cea4422255d43c9316371d7c2a2c79edde8b0ff",
+    "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+    "hebrew_license": "unknown",
+    "english_edition": "William Davidson Edition - English",
+    "pairs": [
+      {
+        "key": "bavli|Chullin|94b|13|10|58",
+        "ref": "Chullin 94b:13",
+        "a": "זוטרא בריה דרב נחמן",
+        "b": "רבא",
+        "pattern": "[A] הוה קאזיל מסיכרא לבי מחוזא ו[B]",
+        "kind": "together",
+        "source": "reader",
+        "direction": "",
+        "sure": true,
+        "first_pass": {
+          "kind": "together",
+          "confidence": 0.64,
+          "p": {
+            "teacher": 0.01,
+            "cites": 0.0,
+            "disputes": 0.02,
+            "juxtaposed": 0.02,
+            "before": 0.0,
+            "kin": 0.01,
+            "explains": 0.0,
+            "together": 0.67,
+            "one-name": 0.0,
+            "alternative": 0.0,
+            "follows": 0.0,
+            "asks": 0.01,
+            "same-man": 0.0,
+            "none": 0.12,
+            "addresses": 0.14
+          }
+        }
+      },
+      {
+        "key": "bavli|Chullin|94b|13|58|63",
+        "ref": "Chullin 94b:13",
+        "a": "רבא",
+        "b": "רב ספרא",
+        "pattern": "ו[A]  ו[B]",
+        "kind": "together",
+        "source": "reader",
+        "direction": "",
+        "sure": true,
+        "first_pass": {
+          "kind": "together",
+          "confidence": 0.64,
+          "p": {
+            "teacher": 0.01,
+            "cites": 0.0,
+            "disputes": 0.05,
+            "juxtaposed": 0.03,
+            "before": 0.01,
+            "kin": 0.02,
+            "explains": 0.0,
+            "together": 0.67,
+            "one-name": 0.0,
+            "alternative": 0.0,
+            "follows": 0.0,
+            "asks": 0.01,
+            "same-man": 0.0,
+            "none": 0.09,
+            "addresses": 0.11
+          }
+        }
+      }
+    ]
+  },
+  "earlier_crosscheck": null
+}

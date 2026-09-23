@@ -1,0 +1,1783 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "random-yerushalmi-04",
+    "episode": {
+      "genre": "halachic",
+      "genre_reason": "The passage argues about legal rules.",
+      "form": "Legal argument and attributed teachings",
+      "coverage": "complete_for_supplied_text",
+      "needed_context": [],
+      "notes": [
+        "All five supplied segments were read. האמהות describes onion plants, not human mothers. The last two segments move to hypothetical partners and inheritance divisions."
+      ]
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ר' יוסי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "חכמים",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "רב",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "שמואל",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "רבי יעקב בר בון",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "בון",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "רבי חנינא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "רבי בון בר חייא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "חייא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m10",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "רבי מנא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m11",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "והתני",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m12",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ר' יוסי",
+          "occurrence": 2
+        }
+      },
+      {
+        "id": "m13",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "רבי יוסי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m14",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "להן",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m15",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "להן",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m16",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "האחים",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m17",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "שנים שלקחו את האילן",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m18",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "זה צפונו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m19",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "זה דרומו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m20",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "בשותפות",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "yosi",
+        "kind": "person",
+        "label": "Rabbi Yose in the Mishnah",
+        "mention_ids": [
+          "m1",
+          "m12",
+          "m13"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ר' יוסי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "rabbis",
+        "kind": "group",
+        "label": "The sages",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "חכמים",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "rav",
+        "kind": "person",
+        "label": "Rav",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רב",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "shmuel",
+        "kind": "person",
+        "label": "Shmuel",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "שמואל",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "yaakov",
+        "kind": "person",
+        "label": "Rabbi Yaakov bar Bun",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "רבי יעקב בר בון",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "bun_father",
+        "kind": "person",
+        "label": "Bun in Yaakov’s patronymic",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "בון",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "hanina",
+        "kind": "person",
+        "label": "Rabbi Hanina",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "רבי חנינא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "bun",
+        "kind": "person",
+        "label": "Rabbi Bun bar Hiyya",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "רבי בון בר חייא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "hiyya",
+        "kind": "person",
+        "label": "Hiyya in Bun’s patronymic",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "חייא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "mana",
+        "kind": "person",
+        "label": "Rabbi Mana",
+        "mention_ids": [
+          "m10"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "רבי מנא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "anon",
+        "kind": "group",
+        "label": "Unnamed argument voice",
+        "mention_ids": [
+          "m11"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "והתני",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "exempt",
+        "kind": "statement",
+        "label": "Onion mother plants are exempt from peah",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ר' יוסי פוטר",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "separate",
+        "kind": "statement",
+        "label": "Each onion bed among vegetables requires its own peah",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פיאה מכל אחד ואחד",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "together",
+        "kind": "statement",
+        "label": "One peah allocation covers all the onion beds",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "מאחד על הכל",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "rav_gloss",
+        "kind": "statement",
+        "label": "Rav explains the onion expression as פורגרה",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רב אמר פורגרה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "shmuel_gloss",
+        "kind": "statement",
+        "label": "Shmuel explains it as צומחתה",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "שמואל אמר צומחתה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "ownerless",
+        "kind": "statement",
+        "label": "Rabbi Yose’s reason is ownerlessness",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "לא אמר רבי יוסי אלא משום הבקר",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "question",
+        "kind": "statement",
+        "label": "Is ownerless produce subject to peah?",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "והבקר חייב בפיאה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "answer",
+        "kind": "statement",
+        "label": "The case is acquiring the items one at a time",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "בזכה בהן אחת אחת",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "listeners",
+        "kind": "group",
+        "label": "Plural addressees of the reply",
+        "mention_ids": [
+          "m14"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "להן",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "preservation",
+        "kind": "statement",
+        "label": "Keeping produce for storage is the explanation, since small amounts endure although large amounts do not",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אף על פי שאינן מתקיימות לו במרובה מתקיימות בממועט הוי לית טעמא דלא משום מכניסו לקייום",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "brothers",
+        "kind": "group",
+        "label": "Generic brothers dividing and rejoining their property",
+        "mention_ids": [
+          "m16"
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "האחים",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "buyers",
+        "kind": "group",
+        "label": "Two generic buyers of a tree",
+        "mention_ids": [
+          "m17"
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "שנים שלקחו את האילן",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "north_buyer",
+        "kind": "person",
+        "label": "Generic buyer of the northern part",
+        "mention_ids": [
+          "m18"
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "זה צפונו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "south_buyer",
+        "kind": "person",
+        "label": "Generic buyer of the southern part",
+        "mention_ids": [
+          "m19"
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "זה דרומו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "partners",
+        "kind": "group",
+        "label": "Generic partners harvesting and dividing a field",
+        "mention_ids": [
+          "m20"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "בשותפות",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "division",
+        "kind": "event",
+        "label": "Division and reunion of brothers’ holdings",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "האחים שחלקו נותנין שתי פיאות חזרו ונשתתפו נותנין פיאה אחת",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "harvest",
+        "kind": "event",
+        "label": "Partners harvest and divide the field under the allocation rules",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "קצר חצי שדה בשותפות וחלקו אינו מפריש משלו לא בתחילה ולא בסוף הלכה ה' חזרו וחלקו ונשתתפו וקצרו חצי שדה בשותפות וחלקו אינו מפריש שבסוף על חבירו שבסוף אבל לא משלו שבתחילה על חבירו שבתחילה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "yaakov",
+        "object": "bun_father",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "רבי יעקב בר בון",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "bun",
+        "object": "hiyya",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "רבי בון בר חייא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The two occurrences of Bun are not identified with each other."
+        ]
+      },
+      {
+        "id": "c3",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "yosi",
+        "object": "exempt",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ר' יוסי פוטר",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c4",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "yosi",
+        "object": "separate",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פיאה מכל אחד ואחד",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "rabbis",
+        "object": "together",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "מאחד על הכל",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "rav",
+        "object": "rav_gloss",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רב אמר פורגרה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c7",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "shmuel",
+        "object": "shmuel_gloss",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "שמואל אמר צומחתה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c8",
+        "family": "views",
+        "predicate": "opposes",
+        "subject": "rabbis",
+        "object": "separate",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "וחכמים אומרים מאחד על הכל",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c9",
+        "family": "transmission",
+        "predicate": "reports_in_name_of",
+        "subject": "yaakov",
+        "object": "hanina",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "ownerless"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "רבי יעקב בר בון בשם רבי חנינא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c10",
+        "family": "views",
+        "predicate": "explains",
+        "subject": "hanina",
+        "object": "exempt",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "ownerless"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "רבי חנינא לא אמר רבי יוסי אלא משום הבקר",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c11",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "bun",
+        "object": "question",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "mana"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "רבי בון בר חייא בעי קומי רבי מנא והבקר חייב בפיאה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c12",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "mana",
+        "object": "question",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "answer"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמר להן בזכה בהן אחת אחת",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "Mana is the locally likely answering speaker. The plural addressees are preserved separately."
+        ]
+      },
+      {
+        "id": "c13",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "mana",
+        "object": "listeners",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "answer"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמר להן בזכה בהן אחת אחת",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c14",
+        "family": "views",
+        "predicate": "opposes",
+        "subject": "anon",
+        "object": "ownerless",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "preservation"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "והתני אף על פי שאינן מתקיימות לו במרובה מתקיימות בממועט הוי לית טעמא דלא משום מכניסו לקייום",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The passage moves from an ownerlessness explanation to storage as the reason."
+        ]
+      },
+      {
+        "id": "c15",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "brothers",
+        "object": "division",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "האחים שחלקו נותנין שתי פיאות חזרו ונשתתפו נותנין פיאה אחת",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "hypothetical",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "חלקו; נשתתפו",
+        "time_scope": null,
+        "notes": [
+          "A legal case, not a historical family event."
+        ]
+      },
+      {
+        "id": "c16",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "partners",
+        "object": "harvest",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "קצר חצי שדה בשותפות וחלקו אינו מפריש משלו לא בתחילה ולא בסוף הלכה ה' חזרו וחלקו ונשתתפו וקצרו חצי שדה בשותפות וחלקו אינו מפריש שבסוף על חבירו שבסוף אבל לא משלו שבתחילה על חבירו שבתחילה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "hypothetical",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "קצר; חלקו; נשתתפו",
+        "time_scope": null,
+        "notes": []
+      }
+    ],
+    "reading_groups": [],
+    "coreference_candidates": [
+      {
+        "mention_id": "m15",
+        "entity_ids": [
+          "listeners",
+          "bun"
+        ],
+        "branches": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "רבי בון בר חייא בעי קומי רבי מנא והבקר חייב בפיאה אמר להן",
+            "occurrence": 1
+          }
+        ],
+        "reason": "Bun is the named questioner, but the reply addresses a plural audience."
+      }
+    ],
+    "open_questions": []
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "ר' יוסי",
+      "occurrence": 1,
+      "source_sha256": "535b2c4236241e703f37dffac39a87035a6fba5c53d311093c93435ac8f059c5",
+      "start": 29,
+      "end": 36,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "חכמים",
+      "occurrence": 1,
+      "source_sha256": "535b2c4236241e703f37dffac39a87035a6fba5c53d311093c93435ac8f059c5",
+      "start": 98,
+      "end": 103,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s2",
+      "quote": "רב",
+      "occurrence": 1,
+      "source_sha256": "0b454615bc55410401aec5c370a36a65f4d48cd7fba32f8d893987767ad94a38",
+      "start": 8,
+      "end": 10,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s2",
+      "quote": "שמואל",
+      "occurrence": 1,
+      "source_sha256": "0b454615bc55410401aec5c370a36a65f4d48cd7fba32f8d893987767ad94a38",
+      "start": 23,
+      "end": 28,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s3",
+      "quote": "רבי יעקב בר בון",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 0,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s3",
+      "quote": "בון",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 12,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s3",
+      "quote": "רבי חנינא",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 20,
+      "end": 29,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s3",
+      "quote": "רבי בון בר חייא",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 60,
+      "end": 75,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s3",
+      "quote": "חייא",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 71,
+      "end": 75,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m10/anchor",
+      "source_id": "s3",
+      "quote": "רבי מנא",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 85,
+      "end": 92,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m11/anchor",
+      "source_id": "s3",
+      "quote": "והתני",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 135,
+      "end": 140,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m12/anchor",
+      "source_id": "s1",
+      "quote": "ר' יוסי",
+      "occurrence": 2,
+      "source_sha256": "535b2c4236241e703f37dffac39a87035a6fba5c53d311093c93435ac8f059c5",
+      "start": 66,
+      "end": 73,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m13/anchor",
+      "source_id": "s3",
+      "quote": "רבי יוסי",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 37,
+      "end": 45,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m14/anchor",
+      "source_id": "s3",
+      "quote": "להן",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 114,
+      "end": 117,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m15/anchor",
+      "source_id": "s3",
+      "quote": "להן",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 114,
+      "end": 117,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m16/anchor",
+      "source_id": "s4",
+      "quote": "האחים",
+      "occurrence": 1,
+      "source_sha256": "8309bb371c6c960c83ab10495aaf2e8f7549549dac04807a1dc60a196c6cea64",
+      "start": 0,
+      "end": 5,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m17/anchor",
+      "source_id": "s4",
+      "quote": "שנים שלקחו את האילן",
+      "occurrence": 1,
+      "source_sha256": "8309bb371c6c960c83ab10495aaf2e8f7549549dac04807a1dc60a196c6cea64",
+      "start": 58,
+      "end": 77,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m18/anchor",
+      "source_id": "s4",
+      "quote": "זה צפונו",
+      "occurrence": 1,
+      "source_sha256": "8309bb371c6c960c83ab10495aaf2e8f7549549dac04807a1dc60a196c6cea64",
+      "start": 98,
+      "end": 106,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m19/anchor",
+      "source_id": "s4",
+      "quote": "זה דרומו",
+      "occurrence": 1,
+      "source_sha256": "8309bb371c6c960c83ab10495aaf2e8f7549549dac04807a1dc60a196c6cea64",
+      "start": 108,
+      "end": 116,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m20/anchor",
+      "source_id": "s5",
+      "quote": "בשותפות",
+      "occurrence": 1,
+      "source_sha256": "b0427ddfff49f3413654d82a71bd8d4ea0cb2c3ed7878b26883750864ece7125",
+      "start": 12,
+      "end": 19,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yosi/evidence/0",
+      "source_id": "s1",
+      "quote": "ר' יוסי",
+      "occurrence": 1,
+      "source_sha256": "535b2c4236241e703f37dffac39a87035a6fba5c53d311093c93435ac8f059c5",
+      "start": 29,
+      "end": 36,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/rabbis/evidence/0",
+      "source_id": "s1",
+      "quote": "חכמים",
+      "occurrence": 1,
+      "source_sha256": "535b2c4236241e703f37dffac39a87035a6fba5c53d311093c93435ac8f059c5",
+      "start": 98,
+      "end": 103,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/rav/evidence/0",
+      "source_id": "s2",
+      "quote": "רב",
+      "occurrence": 1,
+      "source_sha256": "0b454615bc55410401aec5c370a36a65f4d48cd7fba32f8d893987767ad94a38",
+      "start": 8,
+      "end": 10,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/shmuel/evidence/0",
+      "source_id": "s2",
+      "quote": "שמואל",
+      "occurrence": 1,
+      "source_sha256": "0b454615bc55410401aec5c370a36a65f4d48cd7fba32f8d893987767ad94a38",
+      "start": 23,
+      "end": 28,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yaakov/evidence/0",
+      "source_id": "s3",
+      "quote": "רבי יעקב בר בון",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 0,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/bun_father/evidence/0",
+      "source_id": "s3",
+      "quote": "בון",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 12,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/hanina/evidence/0",
+      "source_id": "s3",
+      "quote": "רבי חנינא",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 20,
+      "end": 29,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/bun/evidence/0",
+      "source_id": "s3",
+      "quote": "רבי בון בר חייא",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 60,
+      "end": 75,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/hiyya/evidence/0",
+      "source_id": "s3",
+      "quote": "חייא",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 71,
+      "end": 75,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/mana/evidence/0",
+      "source_id": "s3",
+      "quote": "רבי מנא",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 85,
+      "end": 92,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/anon/evidence/0",
+      "source_id": "s3",
+      "quote": "והתני",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 135,
+      "end": 140,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/exempt/evidence/0",
+      "source_id": "s1",
+      "quote": "ר' יוסי פוטר",
+      "occurrence": 1,
+      "source_sha256": "535b2c4236241e703f37dffac39a87035a6fba5c53d311093c93435ac8f059c5",
+      "start": 29,
+      "end": 41,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/separate/evidence/0",
+      "source_id": "s1",
+      "quote": "פיאה מכל אחד ואחד",
+      "occurrence": 1,
+      "source_sha256": "535b2c4236241e703f37dffac39a87035a6fba5c53d311093c93435ac8f059c5",
+      "start": 79,
+      "end": 96,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/together/evidence/0",
+      "source_id": "s1",
+      "quote": "מאחד על הכל",
+      "occurrence": 1,
+      "source_sha256": "535b2c4236241e703f37dffac39a87035a6fba5c53d311093c93435ac8f059c5",
+      "start": 111,
+      "end": 122,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/rav_gloss/evidence/0",
+      "source_id": "s2",
+      "quote": "רב אמר פורגרה",
+      "occurrence": 1,
+      "source_sha256": "0b454615bc55410401aec5c370a36a65f4d48cd7fba32f8d893987767ad94a38",
+      "start": 8,
+      "end": 21,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/shmuel_gloss/evidence/0",
+      "source_id": "s2",
+      "quote": "שמואל אמר צומחתה",
+      "occurrence": 1,
+      "source_sha256": "0b454615bc55410401aec5c370a36a65f4d48cd7fba32f8d893987767ad94a38",
+      "start": 23,
+      "end": 39,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/ownerless/evidence/0",
+      "source_id": "s3",
+      "quote": "לא אמר רבי יוסי אלא משום הבקר",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 30,
+      "end": 59,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/question/evidence/0",
+      "source_id": "s3",
+      "quote": "והבקר חייב בפיאה",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 93,
+      "end": 109,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/answer/evidence/0",
+      "source_id": "s3",
+      "quote": "בזכה בהן אחת אחת",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 118,
+      "end": 134,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/listeners/evidence/0",
+      "source_id": "s3",
+      "quote": "להן",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 114,
+      "end": 117,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/preservation/evidence/0",
+      "source_id": "s3",
+      "quote": "אף על פי שאינן מתקיימות לו במרובה מתקיימות בממועט הוי לית טעמא דלא משום מכניסו לקייום",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 141,
+      "end": 226,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/brothers/evidence/0",
+      "source_id": "s4",
+      "quote": "האחים",
+      "occurrence": 1,
+      "source_sha256": "8309bb371c6c960c83ab10495aaf2e8f7549549dac04807a1dc60a196c6cea64",
+      "start": 0,
+      "end": 5,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/buyers/evidence/0",
+      "source_id": "s4",
+      "quote": "שנים שלקחו את האילן",
+      "occurrence": 1,
+      "source_sha256": "8309bb371c6c960c83ab10495aaf2e8f7549549dac04807a1dc60a196c6cea64",
+      "start": 58,
+      "end": 77,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/north_buyer/evidence/0",
+      "source_id": "s4",
+      "quote": "זה צפונו",
+      "occurrence": 1,
+      "source_sha256": "8309bb371c6c960c83ab10495aaf2e8f7549549dac04807a1dc60a196c6cea64",
+      "start": 98,
+      "end": 106,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/south_buyer/evidence/0",
+      "source_id": "s4",
+      "quote": "זה דרומו",
+      "occurrence": 1,
+      "source_sha256": "8309bb371c6c960c83ab10495aaf2e8f7549549dac04807a1dc60a196c6cea64",
+      "start": 108,
+      "end": 116,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/partners/evidence/0",
+      "source_id": "s5",
+      "quote": "בשותפות",
+      "occurrence": 1,
+      "source_sha256": "b0427ddfff49f3413654d82a71bd8d4ea0cb2c3ed7878b26883750864ece7125",
+      "start": 12,
+      "end": 19,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/division/evidence/0",
+      "source_id": "s4",
+      "quote": "האחים שחלקו נותנין שתי פיאות חזרו ונשתתפו נותנין פיאה אחת",
+      "occurrence": 1,
+      "source_sha256": "8309bb371c6c960c83ab10495aaf2e8f7549549dac04807a1dc60a196c6cea64",
+      "start": 0,
+      "end": 57,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/harvest/evidence/0",
+      "source_id": "s5",
+      "quote": "קצר חצי שדה בשותפות וחלקו אינו מפריש משלו לא בתחילה ולא בסוף הלכה ה' חזרו וחלקו ונשתתפו וקצרו חצי שדה בשותפות וחלקו אינו מפריש שבסוף על חבירו שבסוף אבל לא משלו שבתחילה על חבירו שבתחילה",
+      "occurrence": 1,
+      "source_sha256": "b0427ddfff49f3413654d82a71bd8d4ea0cb2c3ed7878b26883750864ece7125",
+      "start": 0,
+      "end": 184,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s3",
+      "quote": "רבי יעקב בר בון",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 0,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s3",
+      "quote": "רבי בון בר חייא",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 60,
+      "end": 75,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "ר' יוסי פוטר",
+      "occurrence": 1,
+      "source_sha256": "535b2c4236241e703f37dffac39a87035a6fba5c53d311093c93435ac8f059c5",
+      "start": 29,
+      "end": 41,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s1",
+      "quote": "פיאה מכל אחד ואחד",
+      "occurrence": 1,
+      "source_sha256": "535b2c4236241e703f37dffac39a87035a6fba5c53d311093c93435ac8f059c5",
+      "start": 79,
+      "end": 96,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s1",
+      "quote": "מאחד על הכל",
+      "occurrence": 1,
+      "source_sha256": "535b2c4236241e703f37dffac39a87035a6fba5c53d311093c93435ac8f059c5",
+      "start": 111,
+      "end": 122,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s2",
+      "quote": "רב אמר פורגרה",
+      "occurrence": 1,
+      "source_sha256": "0b454615bc55410401aec5c370a36a65f4d48cd7fba32f8d893987767ad94a38",
+      "start": 8,
+      "end": 21,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s2",
+      "quote": "שמואל אמר צומחתה",
+      "occurrence": 1,
+      "source_sha256": "0b454615bc55410401aec5c370a36a65f4d48cd7fba32f8d893987767ad94a38",
+      "start": 23,
+      "end": 39,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s1",
+      "quote": "וחכמים אומרים מאחד על הכל",
+      "occurrence": 1,
+      "source_sha256": "535b2c4236241e703f37dffac39a87035a6fba5c53d311093c93435ac8f059c5",
+      "start": 97,
+      "end": 122,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s3",
+      "quote": "רבי יעקב בר בון בשם רבי חנינא",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 0,
+      "end": 29,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s3",
+      "quote": "רבי חנינא לא אמר רבי יוסי אלא משום הבקר",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 20,
+      "end": 59,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c11/evidence/0",
+      "source_id": "s3",
+      "quote": "רבי בון בר חייא בעי קומי רבי מנא והבקר חייב בפיאה",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 60,
+      "end": 109,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c12/evidence/0",
+      "source_id": "s3",
+      "quote": "אמר להן בזכה בהן אחת אחת",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 110,
+      "end": 134,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c13/evidence/0",
+      "source_id": "s3",
+      "quote": "אמר להן בזכה בהן אחת אחת",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 110,
+      "end": 134,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c14/evidence/0",
+      "source_id": "s3",
+      "quote": "והתני אף על פי שאינן מתקיימות לו במרובה מתקיימות בממועט הוי לית טעמא דלא משום מכניסו לקייום",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 135,
+      "end": 226,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c15/evidence/0",
+      "source_id": "s4",
+      "quote": "האחים שחלקו נותנין שתי פיאות חזרו ונשתתפו נותנין פיאה אחת",
+      "occurrence": 1,
+      "source_sha256": "8309bb371c6c960c83ab10495aaf2e8f7549549dac04807a1dc60a196c6cea64",
+      "start": 0,
+      "end": 57,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c16/evidence/0",
+      "source_id": "s5",
+      "quote": "קצר חצי שדה בשותפות וחלקו אינו מפריש משלו לא בתחילה ולא בסוף הלכה ה' חזרו וחלקו ונשתתפו וקצרו חצי שדה בשותפות וחלקו אינו מפריש שבסוף על חבירו שבסוף אבל לא משלו שבתחילה על חבירו שבתחילה",
+      "occurrence": 1,
+      "source_sha256": "b0427ddfff49f3413654d82a71bd8d4ea0cb2c3ed7878b26883750864ece7125",
+      "start": 0,
+      "end": 184,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "coreference_candidates/0/evidence/0",
+      "source_id": "s3",
+      "quote": "רבי בון בר חייא בעי קומי רבי מנא והבקר חייב בפיאה אמר להן",
+      "occurrence": 1,
+      "source_sha256": "970a57733a1abd94810eccad375b18cc97447e8fee9189c9587d6de37ba7b2be",
+      "start": 60,
+      "end": 117,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "93990b4398756c2636e701b0213874a5ece8b88cfe5e0223c5f10eb6aea541bd",
+  "output_sha256": "dfc6a3b73b12107f9bbbd5897f62db7fc15f24153bec0c29c7327b2db52e4edc",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.447907+00:00"
+}

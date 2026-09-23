@@ -1,0 +1,123 @@
+{
+  "job_id": "challenge-13",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "b17c5910defa37647f690799ae4713a81ac9f01bdaa85474c3e3de6dd91e75b9",
+  "historical_graph_eligible": false,
+  "scope": "I checked every graph-relevant finding and proposed correction against the saved sources: the William Davidson, Wikisource, Cohen, Steinsaltz, Ein Yaakov (Hebrew and English), Maharsha, Seder HaDorot and Shir HaShirim Rabbah texts. I read the Munich 95 page image myself and fetched Berakhot 5a from Sefaria. I did not check other manuscripts, Dikdukei Soferim, the Bomberg or Vilna page images, or the passages Seder HaDorot cites for a teacher relation.",
+  "findings": [
+    {
+      "target": "F6, F7 and episode.needed_context (missing 5a:16)",
+      "decision": "add_missing_claim",
+      "reason": "Earlier in the same discussion of suffering, Berakhot 5a:16 has 'אמר להו רבי אבא בריה דרבי חייא בר אבא, הכי אמר רבי חייא בר אבא, אמר רבי יוחנן'. That is the same name, Hiyya bar Abba, passing on a teaching of Rabbi Yohanan, reported by his own son, Rabbi Abba. The dossier checked only 5b:8-16 and never mentions it, even though the Maharsha motive in F8 ('ביטול תורה') answers the 5a:16 teaching. Record it as a same-name coreference candidate and as its own transmission chain (son reports father, father reports Yohanan, each direction stored once). Do not merge people, and do not add student_of: 'in the name of' is not discipleship. Also keep the father-placeholder 'abba' in c1 apart from this son, Rabbi Abba. They are different people who share a name."
+    },
+    {
+      "target": "F3 / reading group g1 (branch B, Munich 95)",
+      "decision": "support_proposed_correction",
+      "reason": "I read the Munich 95 image myself and confirm the order. After the children discussion ('דין גרמא דעשיראה ביר ... לא קשיא'), the line goes straight to 'ר' יוחנן חלש על לגביה ר' חנינא לשיולי ביה'. There is no separate Hiyya scene before it. The Hiyya story follows 'ליקום ר' יוחנן לנפשיה' and runs straight into 'אין חבוש מתיר עצמו מבית האסורין'. The two-branch framing and the shared roles are right. Glick's English (S7) translates the Glick Hebrew (S6), so branch B has two textual witnesses (Ein Yaakov, Munich), not three. Do not count S7 as a vote."
+    },
+    {
+      "target": "F4 / proposed correction on c6",
+      "decision": "qualify",
+      "reason": "My reading agrees that the embedded Munich story goes from 'לא הן ולא שכרן' directly to '[י]הב ליה ידיה ואוקמיה', with no 'א\"ל הב לי ידך'. So in Munich, c6 (Yohanan asks for the hand) is not merely doubtful: on my reading it is absent. The hand-giving (c7) and the raising (c8) remain. Mark c6 as absent in Munich 95 by two independent visual readings, still low confidence until a published transcription is checked. Do not delete c6 from the printed-text branch."
+    },
+    {
+      "target": "F7 / S8c (patronymic in Munich 95)",
+      "decision": "keep_evidence_types_separate",
+      "reason": "I could not securely read the word after 'ר' חייא' either. I see 'דה[א/וו] ר' חייא' and then a cramped cluster at the line end that I cannot resolve into 'בר אבא'. The dossier is right that Munich neither supports nor challenges the patronymic. c1 (child_of Abba) stays, scoped to the printed text and Ein Yaakov, which both read 'רבי חייא בר אבא'. It may be a fixed name rather than literal kinship, but the name is still evidence."
+    },
+    {
+      "target": "F2 / proposed correction on episode.needed_context",
+      "decision": "qualify",
+      "reason": "The link is sound. Maharsha writes 'כדמוכח בעובדא דר' חייא ב\"א לעיל דיהיב ליה ידיה גם שראה בו שקם'. But the word 'presupposes' fits only branch A, where 5b:10 is a separate earlier scene. In branch B (Ein Yaakov, Munich) the question itself contains the story ('דהא רבי חייא בר אבא חלש'), so nothing earlier is presupposed. Word the cross-segment link per branch: 'presupposed by 5b:12' in A, 'cited inside 5b:12' in B."
+    },
+    {
+      "target": "F1 evidence S4 (Cohen)",
+      "decision": "correct_occurrence",
+      "reason": "The quote 'He gave him his hand and R. Johanan raised him.' appears twice in the saved Cohen text: at segment 10 (Hiyya) and again at segment 16 (Elazar). The dossier gives no occurrence. It must point at segment 10, the first occurrence, or it could be read as support from the Elazar scene. The conclusion (the English supplies the raiser's name, the Aramaic does not) is unchanged."
+    },
+    {
+      "target": "F11 / proposed correction on previous-review",
+      "decision": "support_proposed_correction",
+      "reason": "In the first reading, entity 'hiyya' lists m1, m4, m5, m7, m9, m10 and 'yohanan' lists m3, m6, m8. The four ליה in 'אמר ליה ... אמר ליה ... אמר ליה ... יהב ליה' do alternate Hiyya, Yohanan, Hiyya, Yohanan. So the earlier review's omission finding is wrong. The narrower gaps are real: עליך and ידך refer to Hiyya, לי refers to Yohanan, and Yohanan is the unstated subject of ואוקמיה."
+    },
+    {
+      "target": "F5, F6, F9, F10, F12 (guards)",
+      "decision": "support_proposed_correction",
+      "reason": "Checked and correct. 'student' appears only in the William Davidson English plain words and in Steinsaltz ('שהיה תלמידו של ר' יוחנן', 'רבו'), one editorial project. Healing is interpretation over literal 'ואוקמיה'. Shir HaShirim Rabbah has the sick Rabbi Hanina say 'לא אנא בעי להון ולא לאגריהון', a separate episode. Seder HaDorot's 'הרי מפורש שר' יוחנן אוקמי'' is a death-order inference. One small addition for F10: the saved Wikisource text names the 5b:14 patient 'רבי אליעזר', while William Davidson has 'רבי אלעזר'. That is a name variant outside the focal passage, to note and not resolve here."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "S1",
+      "exact_quote": "רַבִּי חִיָּיא בַּר אַבָּא חֲלַשׁ. עָל לְגַבֵּיהּ רַבִּי יוֹחָנָן אֲמַר לֵיהּ: חֲבִיבִין עָלֶיךָ יִסּוּרִין? אֲמַר לֵיהּ: לֹא הֵן וְלֹא שְׂכָרָן. אֲמַר לֵיהּ: הַב לִי יְדָךְ. יְהַב לֵיהּ יְדֵיהּ, וְאוֹקְמֵיהּ.",
+      "matches_claim": true,
+      "note": "Segment 10 of the saved William Davidson Aramaic. Only the opening names the two men, and the four ליה alternate as c4-c8 assume. The same formula recurs at segments 11 and 16. This quote is the 5b:10 occurrence."
+    },
+    {
+      "source_id": "S6",
+      "exact_quote": "ואמאי לוקים ר׳ יוחנן לנפשיה דהא רבי חייא בר אבא חלש ועל לגביה רבי יוחנן",
+      "matches_claim": true,
+      "note": "Found in Ein Yaakov (Glick) segment 19, after the Rabbi Yohanan / Rabbi Hanina story. It supports branch B: the anonymous question cites the story as a precedent."
+    },
+    {
+      "source_id": "S8b",
+      "exact_quote": "א\"ל הב לי ידך יהב ליה ידיה ואוקמיה. ואמאי ליקום ר' יוחנן לנפשיה.",
+      "matches_claim": true,
+      "note": "Visual reading of the page image: I confirmed it. This is the end of the Hanina story, where the hand request IS present. That contrasts with the embedded Hiyya story. I also confirmed that no Hiyya scene comes before the Hanina story on this page."
+    },
+    {
+      "source_id": "S8e",
+      "exact_quote": "א\"ל לא הן ולא שכרן הב ליה ידיה ואוקמיה",
+      "matches_claim": true,
+      "note": "Visual reading of the page image: I confirmed it. No 'א\"ל הב לי ידך' appears between the refusal and the hand-giving. The word 'הב' may be a compressed 'יהב'. The prisoner line 'אין חבוש מתיר עצמו מבית האסורין' follows after a smudged gap."
+    },
+    {
+      "source_id": "S8d",
+      "exact_quote": "חלש על לגביה ר' יוחנן לשיולי ביה א\"ל חביבין עליך יסורין",
+      "matches_claim": true,
+      "note": "Visual reading of the page image: I confirmed it, including the added purpose 'לשיולי ביה'."
+    },
+    {
+      "source_id": "S8c",
+      "exact_quote": "[?]הא ר' חייא בר [word not securely read]",
+      "matches_claim": true,
+      "note": "Visual reading of the page image: I could not read it either. I see 'דה[א/וו] ר' חייא' and then an unresolved cluster at the line end. The patronymic stays unverified in Munich."
+    },
+    {
+      "source_id": "S9",
+      "exact_quote": "כדמוכח בעובדא דר' חייא ב\"א לעיל דיהיב ליה ידיה גם שראה בו שקם",
+      "matches_claim": true,
+      "note": "Present once, in Maharsha on 'לוקים רבי יוחנן לנפשיה'. It supports the F2 link in branch A. This is commentary, not text."
+    },
+    {
+      "source_id": "S4",
+      "exact_quote": "He gave him his hand and R. Johanan raised him.",
+      "matches_claim": true,
+      "note": "It occurs twice, at segments 10 and 16. The claim needs occurrence 1 (segment 10). The raiser's name is the translator's addition."
+    },
+    {
+      "source_id": "S3",
+      "exact_quote": "שהיה תלמידו של ר' יוחנן",
+      "matches_claim": true,
+      "note": "Steinsaltz's explanatory words, not the Talmud's text. It supports the guard against adding student_of from 5b:10."
+    },
+    {
+      "source_id": "R1",
+      "exact_quote": "אמר להו רבי אבא בריה דרבי חייא בר אבא, הכי אמר רבי חייא בר אבא, אמר רבי יוחנן: אלו ואלו יסורין של אהבה הן",
+      "matches_claim": true,
+      "note": "Berakhot 5a:16, which I fetched (vowels removed for this quote). It is the missing same-name mention and transmission chain in the same sugya (finding 1)."
+    }
+  ],
+  "extra_sources": [
+    {
+      "source_id": "R1",
+      "edition": "Sefaria: William Davidson Edition - Vocalized Aramaic + English, Berakhot 5a",
+      "saved_file": "review-sources/berakhot_5a_wde.json",
+      "url": "https://www.sefaria.org/api/v3/texts/Berakhot.5a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English",
+      "sha256": "3fc96c692737c1d860feac9f240536a0e3918629aa77f27829100d2d1fcf1264",
+      "fetched_at": "2026-09-23",
+      "why": "Segment 16 has a Hiyya bar Abba / Rabbi Yohanan transmission and a son, Rabbi Abba, in the same sugya. The dossier did not list it."
+    }
+  ]
+}

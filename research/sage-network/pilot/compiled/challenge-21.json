@@ -1,0 +1,3647 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-21",
+    "episode": {
+      "genre": "mixed",
+      "genre_reason": "A meeting and teaching relationship lead to a legal dispute, illness and grief.",
+      "form": "extended story with legal debate and remembered exchanges",
+      "coverage": "complete_for_supplied_text",
+      "needed_context": [],
+      "notes": []
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רבי יוחנן",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ריש לקיש",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "לקיש",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "אחותי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "בני",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "רבנן",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "רבי אלעזר בן פדת",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "פדת",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ירדנא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m10",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "בי מדרשא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m11",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "התם ״רבי״ קרו לי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m12",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "הכא ״רבי״ קרו לי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m13",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "הוה קא סחי רבי יוחנן בירדנא.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m14",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "חזייה ריש לקיש ושוור לירדנא אבתריה.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m15",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "בעי למיהדר לאתויי מאניה ולא מצי הדר.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m16",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "אקרייה ואתנייה ושוייה גברא רבא.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m17",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "יומא חד הוו מפלגי בי מדרשא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m18",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "חלש דעתיה דרבי יוחנן, חלש ריש לקיש.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m19",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "נח נפשיה דרבי שמעון בן לקיש",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m20",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "והוה קא מצטער רבי יוחנן בתריה טובא.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m21",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s6",
+          "quote": "אזל יתיב קמיה.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m22",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s7",
+          "quote": "הוה קא אזיל וקרע מאניה וקא בכי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m23",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s7",
+          "quote": "בעו רבנן רחמי עליה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m24",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s7",
+          "quote": "ונח נפשיה.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m25",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "חילך לאורייתא.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m26",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "שופרך לנשי.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m27",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "אי הדרת בך יהיבנא לך אחותי, דשפירא מינאי.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m28",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "קביל עליה.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m29",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "הסייף והסכין והפגיון והרומח ומגל יד ומגל קציר מאימתי מקבלין טומאה – משעת גמר מלאכתן.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m30",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "משיצרפם בכבשן.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m31",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "משיצחצחן במים.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m32",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "לסטאה בלסטיותיה ידע.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m33",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "ומאי אהנית לי? התם ״רבי״ קרו לי, הכא ״רבי״ קרו לי!",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m34",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "אהנאי לך דאקרבינך תחת כנפי השכינה.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m35",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "עשה בשביל בני!",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m36",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "עזבה יתמיך אני אחיה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m37",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "עשה בשביל אלמנותי!",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m38",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s4",
+          "quote": "ואלמנותיך עלי תבטחו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m39",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s5",
+          "quote": "ניזיל רבי אלעזר בן פדת, דמחדדין שמעתתיה.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m40",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s6",
+          "quote": "תניא דמסייעא לך.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m41",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s6",
+          "quote": "בר לקישא, כי הוה אמינא מילתא, הוה מקשי לי עשרין וארבע קושייתא, ומפרקינא ליה עשרין וארבעה פרוקי, וממילא רווחא שמעתא.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m42",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s7",
+          "quote": "היכא את בר לקישא, היכא את בר לקישא",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "yohanan",
+        "kind": "person",
+        "label": "Rabbi Yohanan",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבי יוחנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "lakish",
+        "kind": "person",
+        "label": "Resh Lakish, later named Rabbi Shimon son of Lakish",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ריש לקיש",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "father",
+        "kind": "person",
+        "label": "Lakish in the later patronymic",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "לקיש",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "sister",
+        "kind": "person",
+        "label": "Yohanan’s unnamed sister",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אחותי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "children",
+        "kind": "group",
+        "label": "Her children",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "בני",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "rabbis",
+        "kind": "group",
+        "label": "Rabbis considering who should console Yohanan",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "רבנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "elazar",
+        "kind": "person",
+        "label": "Rabbi Elazar son of Pedat",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "רבי אלעזר בן פדת",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "pedat",
+        "kind": "person",
+        "label": "Pedat",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "פדת",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "jordan",
+        "kind": "place",
+        "label": "Jordan",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ירדנא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "school",
+        "kind": "place",
+        "label": "Study house",
+        "mention_ids": [
+          "m10"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בי מדרשא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "former",
+        "kind": "group",
+        "label": "Those who formerly called Lakish Rabbi",
+        "mention_ids": [
+          "m11"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "התם ״רבי״ קרו לי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "current",
+        "kind": "group",
+        "label": "Those now calling Lakish Rabbi",
+        "mention_ids": [
+          "m12"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "הכא ״רבי״ קרו לי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "swim",
+        "kind": "event",
+        "label": "Yohanan swims in the Jordan",
+        "mention_ids": [
+          "m13"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "הוה קא סחי רבי יוחנן בירדנא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "jump",
+        "kind": "event",
+        "label": "Lakish jumps into the Jordan after him",
+        "mention_ids": [
+          "m14"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "חזייה ריש לקיש ושוור לירדנא אבתריה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "return",
+        "kind": "event",
+        "label": "Lakish cannot return for his belongings",
+        "mention_ids": [
+          "m15"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "בעי למיהדר לאתויי מאניה ולא מצי הדר.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "teach",
+        "kind": "event",
+        "label": "Yohanan teaches Lakish scripture and learning",
+        "mention_ids": [
+          "m16"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אקרייה ואתנייה ושוייה גברא רבא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "dispute",
+        "kind": "event",
+        "label": "Dispute in the study house",
+        "mention_ids": [
+          "m17"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "יומא חד הוו מפלגי בי מדרשא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "illness",
+        "kind": "event",
+        "label": "Lakish falls ill after Yohanan is hurt",
+        "mention_ids": [
+          "m18"
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "חלש דעתיה דרבי יוחנן, חלש ריש לקיש.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "death",
+        "kind": "event",
+        "label": "Death of Rabbi Shimon son of Lakish",
+        "mention_ids": [
+          "m19"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "נח נפשיה דרבי שמעון בן לקיש",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "grief",
+        "kind": "event",
+        "label": "Yohanan grieves after him",
+        "mention_ids": [
+          "m20"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "והוה קא מצטער רבי יוחנן בתריה טובא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "visit",
+        "kind": "event",
+        "label": "Elazar sits before Yohanan",
+        "mention_ids": [
+          "m21"
+        ],
+        "evidence": [
+          {
+            "source_id": "s6",
+            "quote": "אזל יתיב קמיה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "breakdown",
+        "kind": "event",
+        "label": "Yohanan tears clothes and cries until losing his mind",
+        "mention_ids": [
+          "m22"
+        ],
+        "evidence": [
+          {
+            "source_id": "s7",
+            "quote": "הוה קא אזיל וקרע מאניה וקא בכי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "prayer",
+        "kind": "event",
+        "label": "Rabbis pray for Yohanan",
+        "mention_ids": [
+          "m23"
+        ],
+        "evidence": [
+          {
+            "source_id": "s7",
+            "quote": "בעו רבנן רחמי עליה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "ydeath",
+        "kind": "event",
+        "label": "Yohanan dies",
+        "mention_ids": [
+          "m24"
+        ],
+        "evidence": [
+          {
+            "source_id": "s7",
+            "quote": "ונח נפשיה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "strength",
+        "kind": "statement",
+        "label": "Your strength for Torah",
+        "mention_ids": [
+          "m25"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "חילך לאורייתא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "beauty",
+        "kind": "statement",
+        "label": "Your beauty for women",
+        "mention_ids": [
+          "m26"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "שופרך לנשי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "offer",
+        "kind": "statement",
+        "label": "If you return I will give you my sister",
+        "mention_ids": [
+          "m27"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אי הדרת בך יהיבנא לך אחותי, דשפירא מינאי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "acceptance",
+        "kind": "statement",
+        "label": "Lakish accepts",
+        "mention_ids": [
+          "m28"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "קביל עליה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "completion",
+        "kind": "statement",
+        "label": "Tools receive impurity when their manufacture is finished",
+        "mention_ids": [
+          "m29"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "הסייף והסכין והפגיון והרומח ומגל יד ומגל קציר מאימתי מקבלין טומאה – משעת גמר מלאכתן.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "furnace",
+        "kind": "statement",
+        "label": "Completion occurs when heated in the furnace",
+        "mention_ids": [
+          "m30"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "משיצרפם בכבשן.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "water",
+        "kind": "statement",
+        "label": "Completion occurs when polished in water",
+        "mention_ids": [
+          "m31"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "משיצחצחן במים.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "taunt",
+        "kind": "statement",
+        "label": "A bandit knows his banditry",
+        "mention_ids": [
+          "m32"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "לסטאה בלסטיותיה ידע.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "benefitq",
+        "kind": "statement",
+        "label": "What benefit did you give me if I was called Rabbi in both places?",
+        "mention_ids": [
+          "m33"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ומאי אהנית לי? התם ״רבי״ קרו לי, הכא ״רבי״ קרו לי!",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "benefit",
+        "kind": "statement",
+        "label": "I brought you under the wings of the divine presence",
+        "mention_ids": [
+          "m34"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אהנאי לך דאקרבינך תחת כנפי השכינה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "childrenplea",
+        "kind": "statement",
+        "label": "Act for my children",
+        "mention_ids": [
+          "m35"
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "עשה בשביל בני!",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "orphans",
+        "kind": "statement",
+        "label": "Scriptural reply about sustaining orphans",
+        "mention_ids": [
+          "m36"
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "עזבה יתמיך אני אחיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "widowplea",
+        "kind": "statement",
+        "label": "Act for my widowhood",
+        "mention_ids": [
+          "m37"
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "עשה בשביל אלמנותי!",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "widowreply",
+        "kind": "statement",
+        "label": "Scriptural reply about widows trusting",
+        "mention_ids": [
+          "m38"
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "ואלמנותיך עלי תבטחו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "plan",
+        "kind": "statement",
+        "label": "Send Elazar to settle Yohanan’s mind",
+        "mention_ids": [
+          "m39"
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "ניזיל רבי אלעזר בן פדת, דמחדדין שמעתתיה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "support",
+        "kind": "statement",
+        "label": "A teaching supports you",
+        "mention_ids": [
+          "m40"
+        ],
+        "evidence": [
+          {
+            "source_id": "s6",
+            "quote": "תניא דמסייעא לך.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "contrast",
+        "kind": "statement",
+        "label": "Lakish used to challenge with twenty-four questions and Yohanan answer them",
+        "mention_ids": [
+          "m41"
+        ],
+        "evidence": [
+          {
+            "source_id": "s6",
+            "quote": "בר לקישא, כי הוה אמינא מילתא, הוה מקשי לי עשרין וארבע קושייתא, ומפרקינא ליה עשרין וארבעה פרוקי, וממילא רווחא שמעתא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "lament",
+        "kind": "statement",
+        "label": "Where are you, son of Lakish?",
+        "mention_ids": [
+          "m42"
+        ],
+        "evidence": [
+          {
+            "source_id": "s7",
+            "quote": "היכא את בר לקישא, היכא את בר לקישא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "family",
+        "predicate": "sibling_of",
+        "subject": "sister",
+        "object": "yohanan",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר ליה אי הדרת בך יהיבנא לך אחותי, דשפירא מינאי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "yohanan",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "lakish",
+        "object": "father",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "רבי שמעון בן לקיש",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The contiguous account identifies the deceased with Resh Lakish; no global identity claim is made."
+        ]
+      },
+      {
+        "id": "c3",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "elazar",
+        "object": "pedat",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "רבי אלעזר בן פדת",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c4",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "yohanan",
+        "object": "swim",
+        "roles": [
+          {
+            "role": "location",
+            "entity": "jordan"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "הוה קא סחי רבי יוחנן בירדנא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "סחי",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "lakish",
+        "object": "jump",
+        "roles": [
+          {
+            "role": "followed",
+            "entity": "yohanan"
+          },
+          {
+            "role": "location",
+            "entity": "jordan"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "חזייה ריש לקיש ושוור לירדנא אבתריה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "שוור",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "yohanan",
+        "object": "lakish",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "strength"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר ליה חילך לאורייתא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c7",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "lakish",
+        "object": "yohanan",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "beauty"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר ליה שופרך לנשי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c8",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "yohanan",
+        "object": "lakish",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "offer"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר ליה אי הדרת בך יהיבנא לך אחותי, דשפירא מינאי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c9",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "yohanan",
+        "object": "offer",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אי הדרת בך יהיבנא לך אחותי, דשפירא מינאי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "yohanan",
+        "polarity": "positive",
+        "modality": "conditional",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The marriage promise is conditional at this point."
+        ]
+      },
+      {
+        "id": "c10",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "lakish",
+        "object": "offer",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "yohanan"
+          },
+          {
+            "role": "content",
+            "entity": "acceptance"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "קביל עליה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "acceptance",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c11",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "lakish",
+        "object": "return",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "בעי למיהדר לאתויי מאניה ולא מצי הדר.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "בעי למיהדר / לא מצי",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c12",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "yohanan",
+        "object": "teach",
+        "roles": [
+          {
+            "role": "taught",
+            "entity": "lakish"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אקרייה ואתנייה ושוייה גברא רבא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "אקרייה ואתנייה",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c13",
+        "family": "teaching",
+        "predicate": "student_of",
+        "subject": "lakish",
+        "object": "yohanan",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אקרייה ואתנייה ושוייה גברא רבא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "Actual teaching is narrated, unlike the earlier conditional proposal."
+        ]
+      },
+      {
+        "id": "c14",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "yohanan",
+        "object": "dispute",
+        "roles": [
+          {
+            "role": "location",
+            "entity": "school"
+          },
+          {
+            "role": "content",
+            "entity": "completion"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "יומא חד הוו מפלגי בי מדרשא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "מפלגי",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c15",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "lakish",
+        "object": "dispute",
+        "roles": [
+          {
+            "role": "location",
+            "entity": "school"
+          },
+          {
+            "role": "content",
+            "entity": "completion"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "יומא חד הוו מפלגי בי מדרשא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "מפלגי",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c16",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "yohanan",
+        "object": "furnace",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "רבי יוחנן אומר: משיצרפם בכבשן.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c17",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "lakish",
+        "object": "water",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ריש לקיש אמר: משיצחצחן במים.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c18",
+        "family": "views",
+        "predicate": "opposes",
+        "subject": "lakish",
+        "object": "furnace",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ריש לקיש אמר: משיצחצחן במים.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The named answers give different thresholds for completion."
+        ]
+      },
+      {
+        "id": "c19",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "yohanan",
+        "object": "lakish",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "taunt"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמר ליה לסטאה בלסטיותיה ידע.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c20",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "lakish",
+        "object": "yohanan",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "benefitq"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמר ליה: ומאי אהנית לי? התם ״רבי״ קרו לי, הכא ״רבי״ קרו לי!",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c21",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "yohanan",
+        "object": "benefitq",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "lakish"
+          },
+          {
+            "role": "content",
+            "entity": "benefit"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמר ליה: אהנאי לך דאקרבינך תחת כנפי השכינה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c22",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "lakish",
+        "object": "illness",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "חלש דעתיה דרבי יוחנן, חלש ריש לקיש.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "חלש",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c23",
+        "family": "scenes",
+        "predicate": "visits",
+        "subject": "sister",
+        "object": "yohanan",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "אתאי אחתיה קא בכיא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The sister introduced through Yohanan’s offer now pleads for her family."
+        ]
+      },
+      {
+        "id": "c24",
+        "family": "family",
+        "predicate": "spouse_of",
+        "subject": "sister",
+        "object": "lakish",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "עשה בשביל אלמנותי!",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "sister",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "Her anticipated widowhood and the illness of Lakish support fulfillment of the earlier marriage proposal."
+        ]
+      },
+      {
+        "id": "c25",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "sister",
+        "object": "yohanan",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "childrenplea"
+          },
+          {
+            "role": "beneficiary",
+            "entity": "children"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "אמרה ליה: עשה בשביל בני!",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c26",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "yohanan",
+        "object": "childrenplea",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "sister"
+          },
+          {
+            "role": "content",
+            "entity": "orphans"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "אמר לה: ״עזבה יתמיך אני אחיה״.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "This is a quoted scriptural reply about anticipated loss, not a statement that the children are already orphaned."
+        ]
+      },
+      {
+        "id": "c27",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "sister",
+        "object": "yohanan",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "widowplea"
+          },
+          {
+            "role": "beneficiary",
+            "entity": "sister"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "עשה בשביל אלמנותי!",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c28",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "yohanan",
+        "object": "widowplea",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "sister"
+          },
+          {
+            "role": "content",
+            "entity": "widowreply"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s4",
+            "quote": "אמר לה: ״ואלמנותיך עלי תבטחו״.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "This is a quoted scriptural reply about anticipated loss, not a statement that the children are already orphaned."
+        ]
+      },
+      {
+        "id": "c29",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "lakish",
+        "object": "death",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "נח נפשיה דרבי שמעון בן לקיש",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "נח נפשיה",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c30",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "yohanan",
+        "object": "grief",
+        "roles": [
+          {
+            "role": "mourned",
+            "entity": "lakish"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "והוה קא מצטער רבי יוחנן בתריה טובא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "מצטער",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c31",
+        "family": "time",
+        "predicate": "after",
+        "subject": "grief",
+        "object": "death",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "נח נפשיה דרבי שמעון בן לקיש, והוה קא מצטער רבי יוחנן בתריה טובא.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c32",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "rabbis",
+        "object": "plan",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s5",
+            "quote": "אמרו רבנן: מאן ליזיל ליתביה לדעתיה? ניזיל רבי אלעזר בן פדת, דמחדדין שמעתתיה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "proposed",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c33",
+        "family": "scenes",
+        "predicate": "sits_before",
+        "subject": "elazar",
+        "object": "yohanan",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s6",
+            "quote": "אזל יתיב קמיה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c34",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "elazar",
+        "object": "yohanan",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "support"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s6",
+            "quote": "כל מילתא דהוה אמר רבי יוחנן אמר ליה: תניא דמסייעא לך.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "No specific legal statement is supplied for the repeatedly asserted support."
+        ]
+      },
+      {
+        "id": "c35",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "yohanan",
+        "object": "elazar",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "contrast"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s6",
+            "quote": "אמר: את כבר לקישא?!",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c36",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "lakish",
+        "object": "yohanan",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s6",
+            "quote": "הוה מקשי לי עשרין וארבע קושייתא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "yohanan",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "repeated questions",
+        "time_scope": null,
+        "notes": [
+          "Yohanan’s retrospective report, not a present exchange with the deceased."
+        ]
+      },
+      {
+        "id": "c37",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "yohanan",
+        "object": "lakish",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s6",
+            "quote": "ומפרקינא ליה עשרין וארבעה פרוקי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "yohanan",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "repeated replies",
+        "time_scope": null,
+        "notes": [
+          "The remembered questions are not individually supplied."
+        ]
+      },
+      {
+        "id": "c38",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "yohanan",
+        "object": "breakdown",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s7",
+            "quote": "הוה קא אזיל וקרע מאניה וקא בכי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "קרע / בכי",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c39",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "yohanan",
+        "object": "lakish",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "lament"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s7",
+            "quote": "היכא את בר לקישא, היכא את בר לקישא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "Lament addressing the deceased; no co-presence implied."
+        ]
+      },
+      {
+        "id": "c40",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "rabbis",
+        "object": "prayer",
+        "roles": [
+          {
+            "role": "beneficiary",
+            "entity": "yohanan"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s7",
+            "quote": "בעו רבנן רחמי עליה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "בעו רחמי",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c41",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "yohanan",
+        "object": "ydeath",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s7",
+            "quote": "ונח נפשיה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "נח נפשיה",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c42",
+        "family": "time",
+        "predicate": "before",
+        "subject": "prayer",
+        "object": "ydeath",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s7",
+            "quote": "בעו רבנן רחמי עליה ונח נפשיה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      }
+    ],
+    "reading_groups": [],
+    "coreference_candidates": [],
+    "open_questions": [
+      "The children are an unnamed plural group. Individual child_of edges cannot be expressed without inventing their number; the plea and its family context are retained."
+    ]
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "רבי יוחנן",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 19,
+      "end": 28,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "ריש לקיש",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 43,
+      "end": 51,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s5",
+      "quote": "לקיש",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 23,
+      "end": 27,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s1",
+      "quote": "אחותי",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 145,
+      "end": 150,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s4",
+      "quote": "בני",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 76,
+      "end": 79,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s5",
+      "quote": "רבנן",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 70,
+      "end": 74,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s5",
+      "quote": "רבי אלעזר בן פדת",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 107,
+      "end": 123,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s5",
+      "quote": "פדת",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 120,
+      "end": 123,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s1",
+      "quote": "ירדנא",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 30,
+      "end": 35,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m10/anchor",
+      "source_id": "s2",
+      "quote": "בי מדרשא",
+      "occurrence": 1,
+      "source_sha256": "4e40c2e50a3ac225fe89828385145c7349c8c168c5f0d0fda9279da56c37a541",
+      "start": 50,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m11/anchor",
+      "source_id": "s3",
+      "quote": "התם ״רבי״ קרו לי",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 133,
+      "end": 149,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m12/anchor",
+      "source_id": "s3",
+      "quote": "הכא ״רבי״ קרו לי",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 151,
+      "end": 167,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m13/anchor",
+      "source_id": "s1",
+      "quote": "הוה קא סחי רבי יוחנן בירדנא.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 8,
+      "end": 36,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m14/anchor",
+      "source_id": "s1",
+      "quote": "חזייה ריש לקיש ושוור לירדנא אבתריה.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 37,
+      "end": 72,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m15/anchor",
+      "source_id": "s1",
+      "quote": "בעי למיהדר לאתויי מאניה ולא מצי הדר.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 177,
+      "end": 213,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m16/anchor",
+      "source_id": "s2",
+      "quote": "אקרייה ואתנייה ושוייה גברא רבא.",
+      "occurrence": 1,
+      "source_sha256": "4e40c2e50a3ac225fe89828385145c7349c8c168c5f0d0fda9279da56c37a541",
+      "start": 0,
+      "end": 31,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m17/anchor",
+      "source_id": "s2",
+      "quote": "יומא חד הוו מפלגי בי מדרשא",
+      "occurrence": 1,
+      "source_sha256": "4e40c2e50a3ac225fe89828385145c7349c8c168c5f0d0fda9279da56c37a541",
+      "start": 32,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m18/anchor",
+      "source_id": "s4",
+      "quote": "חלש דעתיה דרבי יוחנן, חלש ריש לקיש.",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 0,
+      "end": 35,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m19/anchor",
+      "source_id": "s5",
+      "quote": "נח נפשיה דרבי שמעון בן לקיש",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 0,
+      "end": 27,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m20/anchor",
+      "source_id": "s5",
+      "quote": "והוה קא מצטער רבי יוחנן בתריה טובא.",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 29,
+      "end": 64,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m21/anchor",
+      "source_id": "s6",
+      "quote": "אזל יתיב קמיה.",
+      "occurrence": 1,
+      "source_sha256": "0a15e33197fd0f367b9929bfbc77d3e9d908c8a925ca607e88c7f1242d639d49",
+      "start": 0,
+      "end": 14,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m22/anchor",
+      "source_id": "s7",
+      "quote": "הוה קא אזיל וקרע מאניה וקא בכי",
+      "occurrence": 1,
+      "source_sha256": "d4a82690fa5250688ed9c10e1a8ba49810d2c633bb6de8d0aee5a2f8d59ebed2",
+      "start": 0,
+      "end": 30,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m23/anchor",
+      "source_id": "s7",
+      "quote": "בעו רבנן רחמי עליה",
+      "occurrence": 1,
+      "source_sha256": "d4a82690fa5250688ed9c10e1a8ba49810d2c633bb6de8d0aee5a2f8d59ebed2",
+      "start": 107,
+      "end": 125,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m24/anchor",
+      "source_id": "s7",
+      "quote": "ונח נפשיה.",
+      "occurrence": 1,
+      "source_sha256": "d4a82690fa5250688ed9c10e1a8ba49810d2c633bb6de8d0aee5a2f8d59ebed2",
+      "start": 126,
+      "end": 136,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m25/anchor",
+      "source_id": "s1",
+      "quote": "חילך לאורייתא.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 81,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m26/anchor",
+      "source_id": "s1",
+      "quote": "שופרך לנשי.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 104,
+      "end": 115,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m27/anchor",
+      "source_id": "s1",
+      "quote": "אי הדרת בך יהיבנא לך אחותי, דשפירא מינאי.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 124,
+      "end": 165,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m28/anchor",
+      "source_id": "s1",
+      "quote": "קביל עליה.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 166,
+      "end": 176,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m29/anchor",
+      "source_id": "s2",
+      "quote": "הסייף והסכין והפגיון והרומח ומגל יד ומגל קציר מאימתי מקבלין טומאה – משעת גמר מלאכתן.",
+      "occurrence": 1,
+      "source_sha256": "4e40c2e50a3ac225fe89828385145c7349c8c168c5f0d0fda9279da56c37a541",
+      "start": 60,
+      "end": 144,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m30/anchor",
+      "source_id": "s3",
+      "quote": "משיצרפם בכבשן.",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 36,
+      "end": 50,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m31/anchor",
+      "source_id": "s3",
+      "quote": "משיצחצחן במים.",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 65,
+      "end": 79,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m32/anchor",
+      "source_id": "s3",
+      "quote": "לסטאה בלסטיותיה ידע.",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 88,
+      "end": 108,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m33/anchor",
+      "source_id": "s3",
+      "quote": "ומאי אהנית לי? התם ״רבי״ קרו לי, הכא ״רבי״ קרו לי!",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 118,
+      "end": 168,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m34/anchor",
+      "source_id": "s3",
+      "quote": "אהנאי לך דאקרבינך תחת כנפי השכינה.",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 178,
+      "end": 212,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m35/anchor",
+      "source_id": "s4",
+      "quote": "עשה בשביל בני!",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 66,
+      "end": 80,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m36/anchor",
+      "source_id": "s4",
+      "quote": "עזבה יתמיך אני אחיה",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 90,
+      "end": 109,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m37/anchor",
+      "source_id": "s4",
+      "quote": "עשה בשביל אלמנותי!",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 112,
+      "end": 130,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m38/anchor",
+      "source_id": "s4",
+      "quote": "ואלמנותיך עלי תבטחו",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 140,
+      "end": 159,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m39/anchor",
+      "source_id": "s5",
+      "quote": "ניזיל רבי אלעזר בן פדת, דמחדדין שמעתתיה.",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 101,
+      "end": 141,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m40/anchor",
+      "source_id": "s6",
+      "quote": "תניא דמסייעא לך.",
+      "occurrence": 1,
+      "source_sha256": "0a15e33197fd0f367b9929bfbc77d3e9d908c8a925ca607e88c7f1242d639d49",
+      "start": 52,
+      "end": 68,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m41/anchor",
+      "source_id": "s6",
+      "quote": "בר לקישא, כי הוה אמינא מילתא, הוה מקשי לי עשרין וארבע קושייתא, ומפרקינא ליה עשרין וארבעה פרוקי, וממילא רווחא שמעתא.",
+      "occurrence": 1,
+      "source_sha256": "0a15e33197fd0f367b9929bfbc77d3e9d908c8a925ca607e88c7f1242d639d49",
+      "start": 89,
+      "end": 204,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m42/anchor",
+      "source_id": "s7",
+      "quote": "היכא את בר לקישא, היכא את בר לקישא",
+      "occurrence": 1,
+      "source_sha256": "d4a82690fa5250688ed9c10e1a8ba49810d2c633bb6de8d0aee5a2f8d59ebed2",
+      "start": 38,
+      "end": 72,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yohanan/evidence/0",
+      "source_id": "s1",
+      "quote": "רבי יוחנן",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 19,
+      "end": 28,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/lakish/evidence/0",
+      "source_id": "s1",
+      "quote": "ריש לקיש",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 43,
+      "end": 51,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/father/evidence/0",
+      "source_id": "s5",
+      "quote": "לקיש",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 23,
+      "end": 27,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sister/evidence/0",
+      "source_id": "s1",
+      "quote": "אחותי",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 145,
+      "end": 150,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/children/evidence/0",
+      "source_id": "s4",
+      "quote": "בני",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 76,
+      "end": 79,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/rabbis/evidence/0",
+      "source_id": "s5",
+      "quote": "רבנן",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 70,
+      "end": 74,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/elazar/evidence/0",
+      "source_id": "s5",
+      "quote": "רבי אלעזר בן פדת",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 107,
+      "end": 123,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/pedat/evidence/0",
+      "source_id": "s5",
+      "quote": "פדת",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 120,
+      "end": 123,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/jordan/evidence/0",
+      "source_id": "s1",
+      "quote": "ירדנא",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 30,
+      "end": 35,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/school/evidence/0",
+      "source_id": "s2",
+      "quote": "בי מדרשא",
+      "occurrence": 1,
+      "source_sha256": "4e40c2e50a3ac225fe89828385145c7349c8c168c5f0d0fda9279da56c37a541",
+      "start": 50,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/former/evidence/0",
+      "source_id": "s3",
+      "quote": "התם ״רבי״ קרו לי",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 133,
+      "end": 149,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/current/evidence/0",
+      "source_id": "s3",
+      "quote": "הכא ״רבי״ קרו לי",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 151,
+      "end": 167,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/swim/evidence/0",
+      "source_id": "s1",
+      "quote": "הוה קא סחי רבי יוחנן בירדנא.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 8,
+      "end": 36,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/jump/evidence/0",
+      "source_id": "s1",
+      "quote": "חזייה ריש לקיש ושוור לירדנא אבתריה.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 37,
+      "end": 72,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/return/evidence/0",
+      "source_id": "s1",
+      "quote": "בעי למיהדר לאתויי מאניה ולא מצי הדר.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 177,
+      "end": 213,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/teach/evidence/0",
+      "source_id": "s2",
+      "quote": "אקרייה ואתנייה ושוייה גברא רבא.",
+      "occurrence": 1,
+      "source_sha256": "4e40c2e50a3ac225fe89828385145c7349c8c168c5f0d0fda9279da56c37a541",
+      "start": 0,
+      "end": 31,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/dispute/evidence/0",
+      "source_id": "s2",
+      "quote": "יומא חד הוו מפלגי בי מדרשא",
+      "occurrence": 1,
+      "source_sha256": "4e40c2e50a3ac225fe89828385145c7349c8c168c5f0d0fda9279da56c37a541",
+      "start": 32,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/illness/evidence/0",
+      "source_id": "s4",
+      "quote": "חלש דעתיה דרבי יוחנן, חלש ריש לקיש.",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 0,
+      "end": 35,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/death/evidence/0",
+      "source_id": "s5",
+      "quote": "נח נפשיה דרבי שמעון בן לקיש",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 0,
+      "end": 27,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/grief/evidence/0",
+      "source_id": "s5",
+      "quote": "והוה קא מצטער רבי יוחנן בתריה טובא.",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 29,
+      "end": 64,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/visit/evidence/0",
+      "source_id": "s6",
+      "quote": "אזל יתיב קמיה.",
+      "occurrence": 1,
+      "source_sha256": "0a15e33197fd0f367b9929bfbc77d3e9d908c8a925ca607e88c7f1242d639d49",
+      "start": 0,
+      "end": 14,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/breakdown/evidence/0",
+      "source_id": "s7",
+      "quote": "הוה קא אזיל וקרע מאניה וקא בכי",
+      "occurrence": 1,
+      "source_sha256": "d4a82690fa5250688ed9c10e1a8ba49810d2c633bb6de8d0aee5a2f8d59ebed2",
+      "start": 0,
+      "end": 30,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/prayer/evidence/0",
+      "source_id": "s7",
+      "quote": "בעו רבנן רחמי עליה",
+      "occurrence": 1,
+      "source_sha256": "d4a82690fa5250688ed9c10e1a8ba49810d2c633bb6de8d0aee5a2f8d59ebed2",
+      "start": 107,
+      "end": 125,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/ydeath/evidence/0",
+      "source_id": "s7",
+      "quote": "ונח נפשיה.",
+      "occurrence": 1,
+      "source_sha256": "d4a82690fa5250688ed9c10e1a8ba49810d2c633bb6de8d0aee5a2f8d59ebed2",
+      "start": 126,
+      "end": 136,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/strength/evidence/0",
+      "source_id": "s1",
+      "quote": "חילך לאורייתא.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 81,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/beauty/evidence/0",
+      "source_id": "s1",
+      "quote": "שופרך לנשי.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 104,
+      "end": 115,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/offer/evidence/0",
+      "source_id": "s1",
+      "quote": "אי הדרת בך יהיבנא לך אחותי, דשפירא מינאי.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 124,
+      "end": 165,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/acceptance/evidence/0",
+      "source_id": "s1",
+      "quote": "קביל עליה.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 166,
+      "end": 176,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/completion/evidence/0",
+      "source_id": "s2",
+      "quote": "הסייף והסכין והפגיון והרומח ומגל יד ומגל קציר מאימתי מקבלין טומאה – משעת גמר מלאכתן.",
+      "occurrence": 1,
+      "source_sha256": "4e40c2e50a3ac225fe89828385145c7349c8c168c5f0d0fda9279da56c37a541",
+      "start": 60,
+      "end": 144,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/furnace/evidence/0",
+      "source_id": "s3",
+      "quote": "משיצרפם בכבשן.",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 36,
+      "end": 50,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/water/evidence/0",
+      "source_id": "s3",
+      "quote": "משיצחצחן במים.",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 65,
+      "end": 79,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/taunt/evidence/0",
+      "source_id": "s3",
+      "quote": "לסטאה בלסטיותיה ידע.",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 88,
+      "end": 108,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/benefitq/evidence/0",
+      "source_id": "s3",
+      "quote": "ומאי אהנית לי? התם ״רבי״ קרו לי, הכא ״רבי״ קרו לי!",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 118,
+      "end": 168,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/benefit/evidence/0",
+      "source_id": "s3",
+      "quote": "אהנאי לך דאקרבינך תחת כנפי השכינה.",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 178,
+      "end": 212,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/childrenplea/evidence/0",
+      "source_id": "s4",
+      "quote": "עשה בשביל בני!",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 66,
+      "end": 80,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/orphans/evidence/0",
+      "source_id": "s4",
+      "quote": "עזבה יתמיך אני אחיה",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 90,
+      "end": 109,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/widowplea/evidence/0",
+      "source_id": "s4",
+      "quote": "עשה בשביל אלמנותי!",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 112,
+      "end": 130,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/widowreply/evidence/0",
+      "source_id": "s4",
+      "quote": "ואלמנותיך עלי תבטחו",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 140,
+      "end": 159,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/plan/evidence/0",
+      "source_id": "s5",
+      "quote": "ניזיל רבי אלעזר בן פדת, דמחדדין שמעתתיה.",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 101,
+      "end": 141,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/support/evidence/0",
+      "source_id": "s6",
+      "quote": "תניא דמסייעא לך.",
+      "occurrence": 1,
+      "source_sha256": "0a15e33197fd0f367b9929bfbc77d3e9d908c8a925ca607e88c7f1242d639d49",
+      "start": 52,
+      "end": 68,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/contrast/evidence/0",
+      "source_id": "s6",
+      "quote": "בר לקישא, כי הוה אמינא מילתא, הוה מקשי לי עשרין וארבע קושייתא, ומפרקינא ליה עשרין וארבעה פרוקי, וממילא רווחא שמעתא.",
+      "occurrence": 1,
+      "source_sha256": "0a15e33197fd0f367b9929bfbc77d3e9d908c8a925ca607e88c7f1242d639d49",
+      "start": 89,
+      "end": 204,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/lament/evidence/0",
+      "source_id": "s7",
+      "quote": "היכא את בר לקישא, היכא את בר לקישא",
+      "occurrence": 1,
+      "source_sha256": "d4a82690fa5250688ed9c10e1a8ba49810d2c633bb6de8d0aee5a2f8d59ebed2",
+      "start": 38,
+      "end": 72,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר ליה אי הדרת בך יהיבנא לך אחותי, דשפירא מינאי.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 116,
+      "end": 165,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s5",
+      "quote": "רבי שמעון בן לקיש",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 10,
+      "end": 27,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s5",
+      "quote": "רבי אלעזר בן פדת",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 107,
+      "end": 123,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s1",
+      "quote": "הוה קא סחי רבי יוחנן בירדנא.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 8,
+      "end": 36,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s1",
+      "quote": "חזייה ריש לקיש ושוור לירדנא אבתריה.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 37,
+      "end": 72,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר ליה חילך לאורייתא.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 73,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר ליה שופרך לנשי.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 96,
+      "end": 115,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר ליה אי הדרת בך יהיבנא לך אחותי, דשפירא מינאי.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 116,
+      "end": 165,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s1",
+      "quote": "אי הדרת בך יהיבנא לך אחותי, דשפירא מינאי.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 124,
+      "end": 165,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s1",
+      "quote": "קביל עליה.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 166,
+      "end": 176,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c11/evidence/0",
+      "source_id": "s1",
+      "quote": "בעי למיהדר לאתויי מאניה ולא מצי הדר.",
+      "occurrence": 1,
+      "source_sha256": "31696b8225499c83ef2ab652465efc61537d0deda51f2d8c4d94a12fb28e2a4a",
+      "start": 177,
+      "end": 213,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c12/evidence/0",
+      "source_id": "s2",
+      "quote": "אקרייה ואתנייה ושוייה גברא רבא.",
+      "occurrence": 1,
+      "source_sha256": "4e40c2e50a3ac225fe89828385145c7349c8c168c5f0d0fda9279da56c37a541",
+      "start": 0,
+      "end": 31,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c13/evidence/0",
+      "source_id": "s2",
+      "quote": "אקרייה ואתנייה ושוייה גברא רבא.",
+      "occurrence": 1,
+      "source_sha256": "4e40c2e50a3ac225fe89828385145c7349c8c168c5f0d0fda9279da56c37a541",
+      "start": 0,
+      "end": 31,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c14/evidence/0",
+      "source_id": "s2",
+      "quote": "יומא חד הוו מפלגי בי מדרשא",
+      "occurrence": 1,
+      "source_sha256": "4e40c2e50a3ac225fe89828385145c7349c8c168c5f0d0fda9279da56c37a541",
+      "start": 32,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c15/evidence/0",
+      "source_id": "s2",
+      "quote": "יומא חד הוו מפלגי בי מדרשא",
+      "occurrence": 1,
+      "source_sha256": "4e40c2e50a3ac225fe89828385145c7349c8c168c5f0d0fda9279da56c37a541",
+      "start": 32,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c16/evidence/0",
+      "source_id": "s3",
+      "quote": "רבי יוחנן אומר: משיצרפם בכבשן.",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 20,
+      "end": 50,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c17/evidence/0",
+      "source_id": "s3",
+      "quote": "ריש לקיש אמר: משיצחצחן במים.",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 51,
+      "end": 79,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c18/evidence/0",
+      "source_id": "s3",
+      "quote": "ריש לקיש אמר: משיצחצחן במים.",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 51,
+      "end": 79,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c19/evidence/0",
+      "source_id": "s3",
+      "quote": "אמר ליה לסטאה בלסטיותיה ידע.",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 80,
+      "end": 108,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c20/evidence/0",
+      "source_id": "s3",
+      "quote": "אמר ליה: ומאי אהנית לי? התם ״רבי״ קרו לי, הכא ״רבי״ קרו לי!",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 109,
+      "end": 168,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c21/evidence/0",
+      "source_id": "s3",
+      "quote": "אמר ליה: אהנאי לך דאקרבינך תחת כנפי השכינה.",
+      "occurrence": 1,
+      "source_sha256": "edf1605741a1981065d16076584e6fb8fc18bb48b0fac386a4c6fca3c492d678",
+      "start": 169,
+      "end": 212,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c22/evidence/0",
+      "source_id": "s4",
+      "quote": "חלש דעתיה דרבי יוחנן, חלש ריש לקיש.",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 0,
+      "end": 35,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c23/evidence/0",
+      "source_id": "s4",
+      "quote": "אתאי אחתיה קא בכיא.",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 36,
+      "end": 55,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c24/evidence/0",
+      "source_id": "s4",
+      "quote": "עשה בשביל אלמנותי!",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 112,
+      "end": 130,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c25/evidence/0",
+      "source_id": "s4",
+      "quote": "אמרה ליה: עשה בשביל בני!",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 56,
+      "end": 80,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c26/evidence/0",
+      "source_id": "s4",
+      "quote": "אמר לה: ״עזבה יתמיך אני אחיה״.",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 81,
+      "end": 111,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c27/evidence/0",
+      "source_id": "s4",
+      "quote": "עשה בשביל אלמנותי!",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 112,
+      "end": 130,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c28/evidence/0",
+      "source_id": "s4",
+      "quote": "אמר לה: ״ואלמנותיך עלי תבטחו״.",
+      "occurrence": 1,
+      "source_sha256": "fa54c8226b966cf1c5c140f7a61e554f2bf32376b85afe03f52e4ab19e9da9f0",
+      "start": 131,
+      "end": 161,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c29/evidence/0",
+      "source_id": "s5",
+      "quote": "נח נפשיה דרבי שמעון בן לקיש",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 0,
+      "end": 27,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c30/evidence/0",
+      "source_id": "s5",
+      "quote": "והוה קא מצטער רבי יוחנן בתריה טובא.",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 29,
+      "end": 64,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c31/evidence/0",
+      "source_id": "s5",
+      "quote": "נח נפשיה דרבי שמעון בן לקיש, והוה קא מצטער רבי יוחנן בתריה טובא.",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 0,
+      "end": 64,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c32/evidence/0",
+      "source_id": "s5",
+      "quote": "אמרו רבנן: מאן ליזיל ליתביה לדעתיה? ניזיל רבי אלעזר בן פדת, דמחדדין שמעתתיה.",
+      "occurrence": 1,
+      "source_sha256": "2262d07d4ea6f8ab863557abe5a5fc103c17bedc2a8635b7af7d05880e3db9c1",
+      "start": 65,
+      "end": 141,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c33/evidence/0",
+      "source_id": "s6",
+      "quote": "אזל יתיב קמיה.",
+      "occurrence": 1,
+      "source_sha256": "0a15e33197fd0f367b9929bfbc77d3e9d908c8a925ca607e88c7f1242d639d49",
+      "start": 0,
+      "end": 14,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c34/evidence/0",
+      "source_id": "s6",
+      "quote": "כל מילתא דהוה אמר רבי יוחנן אמר ליה: תניא דמסייעא לך.",
+      "occurrence": 1,
+      "source_sha256": "0a15e33197fd0f367b9929bfbc77d3e9d908c8a925ca607e88c7f1242d639d49",
+      "start": 15,
+      "end": 68,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c35/evidence/0",
+      "source_id": "s6",
+      "quote": "אמר: את כבר לקישא?!",
+      "occurrence": 1,
+      "source_sha256": "0a15e33197fd0f367b9929bfbc77d3e9d908c8a925ca607e88c7f1242d639d49",
+      "start": 69,
+      "end": 88,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c36/evidence/0",
+      "source_id": "s6",
+      "quote": "הוה מקשי לי עשרין וארבע קושייתא",
+      "occurrence": 1,
+      "source_sha256": "0a15e33197fd0f367b9929bfbc77d3e9d908c8a925ca607e88c7f1242d639d49",
+      "start": 119,
+      "end": 150,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c37/evidence/0",
+      "source_id": "s6",
+      "quote": "ומפרקינא ליה עשרין וארבעה פרוקי",
+      "occurrence": 1,
+      "source_sha256": "0a15e33197fd0f367b9929bfbc77d3e9d908c8a925ca607e88c7f1242d639d49",
+      "start": 152,
+      "end": 183,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c38/evidence/0",
+      "source_id": "s7",
+      "quote": "הוה קא אזיל וקרע מאניה וקא בכי",
+      "occurrence": 1,
+      "source_sha256": "d4a82690fa5250688ed9c10e1a8ba49810d2c633bb6de8d0aee5a2f8d59ebed2",
+      "start": 0,
+      "end": 30,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c39/evidence/0",
+      "source_id": "s7",
+      "quote": "היכא את בר לקישא, היכא את בר לקישא",
+      "occurrence": 1,
+      "source_sha256": "d4a82690fa5250688ed9c10e1a8ba49810d2c633bb6de8d0aee5a2f8d59ebed2",
+      "start": 38,
+      "end": 72,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c40/evidence/0",
+      "source_id": "s7",
+      "quote": "בעו רבנן רחמי עליה",
+      "occurrence": 1,
+      "source_sha256": "d4a82690fa5250688ed9c10e1a8ba49810d2c633bb6de8d0aee5a2f8d59ebed2",
+      "start": 107,
+      "end": 125,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c41/evidence/0",
+      "source_id": "s7",
+      "quote": "ונח נפשיה.",
+      "occurrence": 1,
+      "source_sha256": "d4a82690fa5250688ed9c10e1a8ba49810d2c633bb6de8d0aee5a2f8d59ebed2",
+      "start": 126,
+      "end": 136,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c42/evidence/0",
+      "source_id": "s7",
+      "quote": "בעו רבנן רחמי עליה ונח נפשיה.",
+      "occurrence": 1,
+      "source_sha256": "d4a82690fa5250688ed9c10e1a8ba49810d2c633bb6de8d0aee5a2f8d59ebed2",
+      "start": 107,
+      "end": 136,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "ebaa47c74404cfcc304986f8d365ad5bfa0fea3b5e13743ed9a2ae9234d120d5",
+  "output_sha256": "d8d65804963b6b1d5bb9a71cba1cc4bd5365b5e3c864d10d2f309f70e5f7b79d",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.373051+00:00"
+}

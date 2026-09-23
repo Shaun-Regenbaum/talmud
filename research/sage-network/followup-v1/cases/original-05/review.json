@@ -1,0 +1,107 @@
+{
+  "job_id": "original-05",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "ad9dc581d99247cacf99372370e90b03407974c55d32de9575cdea759c3e2c1b",
+  "historical_graph_eligible": false,
+  "scope": "I checked every graph-relevant finding and proposed correction in dossier.json and reading.md against the saved sources (Sefaria texts of Arakhin 20b and 21a in four versions, Rashi, Steinsaltz, Rashash, Tosefta, Tosafot, the Sefaria search results and the Temurah and Sotah parallels) and re-verified all saved-file hashes; I did not consult manuscripts, other commentaries or any new network source.",
+  "findings": [
+    {
+      "target": "F6 graph_effect; AR3 status; structure.count_check; proposed_corrections 'missing'",
+      "decision": "keep_evidence_types_separate",
+      "reason": "The printed Hebrew at 21a:4 reads 'וְאָמְרִי לַהּ רַב מָרִי בַּר חָמָא לְרַב חִסְדָּא' in all three fetched Hebrew versions, and the Davidson English there also has 'Rav Mari bar Ḥama'. F6 says 'no new person or edge is needed in either case' and AR3 says the variant 'does not change the person count'. Both statements assume Rashash's emendation ('רמי בר חמא ... כצ\"ל כדלעיל'), so the preferred correction quietly replaces the printed reading. That the passage is repeated means there is one tradition and it adds no extra weight. It does not mean the two name forms belong to one person. The count_check already says the count changes if the printed form is kept distinct, so the dossier contradicts itself. Add a scoped claim: under PLACE-RENTAL, printed reading, PAIR-B, 'רב מרי בר חמא' asks Rav Hisda. Link it to the same tradition, give it no added weight, and attach Rashash's 'same as Rami bar Hama' proposal as a separate emendation layer. Leave the person question open."
+    },
+    {
+      "target": "F7 (name-embedded father)",
+      "decision": "qualify",
+      "reason": "Keeping a local placeholder 'Hama, father of Rami bar Hama' from 'רָמֵי בַּר חָמָא' (20b:9), scoped to PAIR-B with medium confidence, follows the rule that a parent named inside a name is evidence. The note that 'bar Hama' may be a fixed name is correct. However, F7 keeps the second placeholder ('Hama, father of Rav Mari bar Hama', from 'רַב מָרִי בַּר חָמָא' at 21a:4) only 'if the 21a:4 string is kept distinct'. The printed string is always kept as evidence, so this placeholder should be kept, scoped to the 21a:4 printed reading. The two placeholders would merge only through a separate identity decision, and this review approves no such decision."
+    },
+    {
+      "target": "F4; proposed correction for bavli|Arakhin|20b|9|53|67 (Rav Hisda follows Rabbi Meir)",
+      "decision": "support_proposed_correction",
+      "reason": "'כְּמַאן? כְּרַבִּי מֵאִיר, דְּאָמַר: אָדָם מַקְדִּישׁ דָּבָר שֶׁלֹּא בָּא לָעוֹלָם?' asks whose opinion the anonymous baraita follows. It comes right after the objection 'וְהָא אֵין אָדָם מַקְדִּישׁ דָּבָר שֶׁלֹּא בָּא לָעוֹלָם?' in 20b:8. Nothing says that Rav Hisda or Abaye rules like Rabbi Meir, so removing the 'follows' edge is correct. Keep the roles within each version apart: the asker puts forward the attribution as a question, and the addressee confirms it with the rhetorical 'וְאֶלָּא כְּמַאן?'. Rabbi Meir is a cited legal position, not a participant. Steinsaltz on 21a:4 glosses the question as 'כמאן [כמי] אתה מפרש דבר זה?' ('according to whom do you explain this?'). That is a commentary rendering that the Aramaic does not have. It must not be used to make the addressee the author of the attribution."
+    },
+    {
+      "target": "F8; F2 FORM-REPORT branch",
+      "decision": "add_missing_claim",
+      "reason": "F8 records only 'Rav Yehuda reports in the name of Rav'. F4 records the Rabbi Meir attribution only for the exchange version. In 20b:8, 'אָמַר רַב יְהוּדָה אָמַר רַב: הָא מַנִּי? רַבִּי מֵאִיר הִיא', the one who attributes the baraita to Rabbi Meir is Rav, and Rav Yehuda passes it on. Add an explicit FORM-REPORT content claim: Rav's reported statement attributes the baraita to Rabbi Meir's position. Rav is the speaker, Rav Yehuda the transmitter, and no addressee is marked. This matches the earlier cross-check's 'claims_to_keep', which the dossier endorses but never writes out. The report must not become a student_of link or a meeting."
+    },
+    {
+      "target": "F3; AR2 (who answers)",
+      "decision": "support",
+      "reason": "The Aramaic reply is only 'אֲמַר לֵיהּ: וְאֶלָּא כְּמַאן?', and Steinsaltz on 20b:9 also leaves it unnamed ('אמר ליה [לו]: ואלא כמאן'). The Davidson English at 20b:9 adds 'Abaye said to him', which fits only PAIR-A. At 21a:4 the same translation has 'He said to him', and Steinsaltz there has 'הנשאל' ('the one asked'). Assigning the reply to Abaye in PAIR-A and to Rav Hisda in PAIR-B is correct. Treating the English 'Abaye' as a translation choice from the same editorial project, not as a vote, is also correct."
+    },
+    {
+      "target": "F1; F10; proposed corrections for bavli|Arakhin|20b|9|19|27 and bavli|Arakhin|20b|9|27|53",
+      "decision": "support",
+      "reason": "'אֲמַר לֵיהּ רַב פָּפָּא לְאַבָּיֵי, וְאָמְרִי לַהּ רָמֵי בַּר חָמָא לְרַב חִסְדָּא' prints two complete asker-addressee pairs. So 'Rav Pappa asks Abaye' (PAIR-A) and 'Rami bar Hama asks Rav Hisda' (PAIR-B) are each tied to their version. Abaye and Rav Hisda (and likewise Rav Pappa and Rami bar Hama) are alternative holders of the same role, with no social link, so 'none' as a person relation is correct. One narrow caution on F1's general wording that the formula 'swaps the whole pair'. In Temurah 33b:6 ('ואמרי לה רבא לרבי יוחנן דמוקים לה') the words after 'לרבי' mean 'according to Rabbi Yohanan', not an addressee, and the Davidson English there changes only the asker. Whether the whole pair changes has to be read from each passage, not assumed from the formula."
+    },
+    {
+      "target": "F5 (placement and repetition); reading.md 'What the text says' item 1",
+      "decision": "qualify",
+      "reason": "'וְאִיכָּא דְּמַתְנֵי לַהּ אַהָא' (20b:10) supports treating 21a:4 as the same discussion under a second placement, adding no extra weight. Rashi's gloss 'להא דרב יהודה ואביי ורמי בר חמא' is a commentator's short label for the unit that moves. It names Abaye (who answers in PAIR-A) and Rami bar Hama (who asks in PAIR-B), so it assigns no roles and yields no edges. It is also a note on 20b, so it must not be counted as a witness to the 21a:4 name (see the first finding). Small fix: PLACE-BULL is '20b:6-9' in structure but '20b:7-9' in F5's graph_effect. One range should be chosen."
+    },
+    {
+      "target": "F2 / AR1; F11",
+      "decision": "support",
+      "reason": "'אִיכָּא דְּאָמְרִי' at the start of 20b:9 makes the exchange an alternative to the report in 20b:8. Leaving open whether it replaces the report or only rephrases it is right, because neither the Aramaic nor Steinsaltz's 'דבר זה בלשון אחרת' decides the question. Nested branches (placement > form > pair) are the right structure. All edges stay historical_graph_eligible=false: the words say nothing about meetings, seniority or dates."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "S1",
+      "exact_quote": "אֲמַר לֵיהּ רַב פָּפָּא לְאַבָּיֵי, וְאָמְרִי לַהּ רָמֵי בַּר חָמָא לְרַב חִסְדָּא: כְּמַאן?",
+      "matches_claim": true,
+      "note": "Davidson Vocalized Aramaic 20b:9. Both pairs are printed in full. Wikisource and the Davidson unvocalized text agree ('רמי בר חמא')."
+    },
+    {
+      "source_id": "S1",
+      "exact_quote": "אֲמַר לֵיהּ: וְאֶלָּא כְּמַאן?",
+      "matches_claim": true,
+      "note": "20b:9. The reply has no named speaker. The Davidson English at the same segment adds 'Abaye', which is the translation's choice."
+    },
+    {
+      "source_id": "S2",
+      "exact_quote": "וְאָמְרִי לַהּ רַב מָרִי בַּר חָמָא לְרַב חִסְדָּא",
+      "matches_claim": true,
+      "note": "21a:4, the repetition (not the 20b:9 occurrence). Wikisource and the Davidson unvocalized text also read 'רב מרי בר חמא'. This is the printed reading that must be kept as its own scoped mention."
+    },
+    {
+      "source_id": "S11",
+      "exact_quote": "<b>גמרא ואמרי לה רמי בר חמא לר\"ח. </b>כצ\"ל כדלעיל:",
+      "matches_claim": true,
+      "note": "Rashash on 21a, segment 1. This is a later proposed correction ('so it should read, as above'), not a manuscript reading."
+    },
+    {
+      "source_id": "S1",
+      "exact_quote": "אָמַר רַב יְהוּדָה אָמַר רַב: הָא מַנִּי? רַבִּי מֵאִיר הִיא, דְּאָמַר: אָדָם מַקְדִּישׁ דָּבָר שֶׁלֹּא בָּא לָעוֹלָם.",
+      "matches_claim": true,
+      "note": "20b:8. Rav is the speaker of the attribution and Rav Yehuda the transmitter. It supports F8 and the added FORM-REPORT content claim."
+    },
+    {
+      "source_id": "S5",
+      "exact_quote": "ואיכא דמתני לה - להא דרב יהודה ואביי ורמי בר חמא:",
+      "matches_claim": true,
+      "note": "Rashi 20b, segment 10:1. It supports the claim that the whole unit moves. It is a commentator's shorthand that names one person from each pair and assigns no roles."
+    },
+    {
+      "source_id": "S10",
+      "exact_quote": "אמר ליה</b> <small>[לו]</small> הנשאל: <b>ואלא כמאן</b>",
+      "matches_claim": true,
+      "note": "Steinsaltz 21a:4. The respondent is 'the one asked'. It comes from the same editorial project as the Davidson English, so it is not an independent witness."
+    },
+    {
+      "source_id": "S19",
+      "exact_quote": "אמר ליה רב פפא לאביי ואמרי לה רבא",
+      "matches_claim": true,
+      "note": "Temurah 33b:6. The quote is accurate but cut short. The text continues 'לרבי יוחנן דמוקים לה', which means 'according to R. Yohanan', not an addressee. It supports F10's point that the formula alone creates no relation."
+    },
+    {
+      "source_id": "S22",
+      "exact_quote": "רב <b>מרי</b> <b>בר</b> <b>חמא</b> לרב חסדא",
+      "matches_claim": true,
+      "note": "Search highlight (Wikisource, Arakhin 21a:4) for the query \"מרי בר חמא\". All 4 version-hits are at Arakhin 21a:4 or Steinsaltz on 21a:4, as F6 says. This covers only Sefaria's indexed texts."
+    }
+  ],
+  "extra_sources": []
+}

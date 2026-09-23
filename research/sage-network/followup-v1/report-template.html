@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reading the relationships</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>@@CSS@@</style></head><body><main class="wrap">
+<header class="masthead framed"><span class="xm tl"></span><span class="xm tr"></span><span class="xm bl"></span><span class="xm br"></span>
+<div class="topline"><span class="eyebrow">Prophex / Talmud study</span><button id="theme" class="btn" type="button">Change theme</button></div>
+<h1>The same line can produce different graphs.</h1>
+<p class="lead">The graph needs to show who spoke, who met, and who was related. When the text leaves two possibilities, we should be able to see both.</p>
+<p>These passages were read again with more context, translations and commentaries. The new findings are proposals. None approves a historical person merge or a calendar date.</p>
+<div id="stats" class="stats"></div>
+</header>
+<nav class="contents" aria-label="Report contents"><a href="#examples">See the relationships change</a><a href="#learned">What changed</a><a href="#readings">Inspect the readings</a><a href="#next">What comes next</a></nav>
+
+<section id="examples"><span class="eyebrow">01 / One passage, more than one reading</span>
+<h2>Choose a case, then change the reading.</h2>
+<p>The arrows show proposed relationships from real passages. Switching the reading changes which arrows the evidence supports.</p>
+<div class="controls"><label>Passage<select id="example" aria-label="Choose a passage"></select></label><label>Reading<select id="variant" aria-label="Choose a reading"></select></label></div>
+<div id="example-content"></div>
+</section>
+
+<section id="learned"><span class="eyebrow">02 / What the closer reading changes</span>
+<h2>We need more than a label between two names.</h2>
+<div class="wide" role="region" aria-label="What each relationship needs"><table class="dense"><thead><tr><th>Keep this</th><th>Why it matters</th><th>A real example</th></tr></thead><tbody>
+<tr><td>Speaker, addressee and target</td><td>The person being discussed may not be the person spoken to.</td><td>The maidservant’s ban targets a father. Only some versions name an addressee.</td></tr>
+<tr><td>The exact occurrence</td><td>The same phrase can refer to a role in one place and a person in another.</td><td>“High priest” appears in a legal rule and then in a story.</td></tr>
+<tr><td>What was not said</td><td>A denial or omission can be the argument’s evidence.</td><td>The missing address “Master” supports a student-colleague relationship.</td></tr>
+<tr><td>A source for each reading</td><td>A proposed correction must not erase the printed text.</td><td>Hananya is a brother in one reading and a nephew in another.</td></tr>
+<tr><td>People inside names</td><td>A father still matters even if he never speaks.</td><td>Keep the local parent behind a supported patronymic. Resolve his historical identity later.</td></tr>
+<tr><td>Words only in the translation</td><td>The English often explains more than the Aramaic says.</td><td>In the Davidson English, only bold words translate the text. “And this is what happened; first she married Rami bar Hama” is plain text, so it is the editor's note.</td></tr>
+<tr><td>Every form of a name</td><td>A later quotation can give a different father inside the name.</td><td>The visitor at Rava's house is “son of Yehuda”, “berabbi Yehuda” or, in the Rosh, “son of Rav Yehoshua”. Each form keeps its own parent.</td></tr>
+<tr><td>Thought versus speech</td><td>What someone believes is not something anyone said.</td><td>In the printed text, Mar Zutra thinks Rava and Rav Safra came out to honour him. They had not, so there is no honour link. Rabbeinu Gershom even says Mar Zutra knew.</td></tr>
+<tr><td>The kind of passage</td><td>A legal example, a story and a quoted opinion make different claims.</td><td>Keep halachic, aggadic, mixed or unknown context with the relation. A genre tag is not a calibrated probability.</td></tr>
+</tbody></table></div>
+<p>The seven main families still work: <strong>Family, Transmission, Teaching, Speech, Views, Scenes and Time.</strong> These extra fields explain what each relationship means and when it applies.</p>
+<div class="note"><p><strong>The new research also needed correction.</strong> Some first proposals would have removed fathers found inside names, or treated a textual “or” as proof that only one event happened. The separate reviews reject those shortcuts.</p></div>
+<p>An earlier review also passed an attribution that the new source reading challenges. Reviews remain attached to the evidence, so they can be questioned later.</p>
+</section>
+
+<section id="readings"><span class="eyebrow">03 / Inspect the actual work</span><h2>Every finding keeps its source words.</h2>
+<p id="scope"></p><label for="search">Find a passage, person or relationship</label><input id="search" type="search" placeholder="For example: Hoshaya, teacher, alternative">
+<p id="visible-count" class="muted mono"></p><div id="cases" class="acc"></div>
+</section>
+
+<section id="next"><span class="eyebrow">04 / Turn the findings into a better graph</span><h2>The next step is a revised reading format.</h2>
+<ol class="steps">
+<li><strong>Save the extra distinctions.</strong> Add clearer speech roles, exact repeated mentions, legal conditions and source-specific alternatives. This prevents a correct quotation from creating the wrong relationship.</li>
+<li><strong>Try the revised format on unseen passages.</strong> Check what was missed as well as what was wrongly added. These selected cases do not measure performance across the Talmud.</li>
+<li><strong>Compare people through evidence packs.</strong> Bring passages together without merging their people too soon. Save each candidate match, its reasons, its objections and any sourced biography.</li>
+<li><strong>Build the historical graph from reviewed decisions.</strong> Each edge should open its evidence. Dates and relative order come after the relevant identities and reading branches have been checked.</li>
+</ol>
+<p>Several possible graphs can remain open. Numeric probabilities have not been calibrated here. A stronger reading should not turn a weaker source version into deleted evidence.</p>
+<div class="acc"><details><summary>What the checks establish</summary><div class="ac-body"><p>Source hashes and quotation matches are checked. Declared character positions and occurrence counts are checked where supplied. These checks do not prove that an interpretation is correct, that the quoted occurrence is the intended one, or that several editions are independent witnesses.</p><p>Some translations contain commentary or follow a parallel passage rather than the Hebrew displayed beside them. The edition and source of each claim therefore stay visible.</p><p>Human adjudication, manuscript checks and historical identity decisions remain outstanding where the individual readings say so. The older pilot is preserved.</p></div></details>
+<details><summary>Saved files and source history</summary><div class="ac-body"><p>The earlier pilot is saved in sage_network lake snapshot 2 and in <a href="https://dss.402.network/analyses/talmud/sage-network-passage-pilot?revision=1">the fixed pilot publication</a>. New public-source fetches retain their addresses, editions, capture times and hashes.</p><p>This page contains its findings and works on its own. The full dossiers, separate reviews and source files are kept with the research. <a href="report-data.json">Report data</a> · <a href="case-counts.csv">Counts by passage</a> · <a href="README.md">Reading instructions</a>.</p><p id="built" class="muted"></p></div></details></div>
+</section><footer>Provisional source research. Text evidence, commentary and historical inference remain separate.</footer>
+</main><script id="data" type="application/json">@@DATA@@</script><script>
+const D=JSON.parse(document.getElementById('data').textContent),$=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cases=Object.fromEntries(D.cases.map(c=>[c.job_id,c]));
+const sourceURL=s=>s?.address&&/^https?:\/\//.test(s.address)?s.address:null;
+const hebrew=s=>(s.match(/[\u0590-\u05ff]/g)||[]).length>(s.match(/[a-z]/gi)||[]).length;
+function quoteHTML(e,c){const s=c.sources.find(s=>s.source_id===e.source_id),url=sourceURL(s);return `<div class="evidence"><blockquote ${hebrew(e.exact_quote)?'dir="rtl" lang="he"':''}>${esc(e.exact_quote)}</blockquote><div class="evidence-meta">${url?`<a href="${esc(url)}" target="_blank" rel="noopener">${esc(s.edition)}</a>`:esc(s?.edition??e.source_id)}${e.locator?' · '+esc(e.locator):''}</div></div>`;}
+function lines(text,max){let out=[],line='';for(const word of String(text).split(' ')){if((line+' '+word).trim().length>max&&line){out.push(line);line=word;}else line=(line+' '+word).trim();}if(line)out.push(line);return out;}
+function boxText(text,x,y,width){const words=lines(text,Math.max(15,Math.floor(width/7.4)));return `<text x="${x}" y="${y-(words.length-1)*9}" text-anchor="middle">${words.map((t,i)=>`<tspan x="${x}" dy="${i?19:0}">${esc(t)}</tspan>`).join('')}</text>`;}
+function drawGraph(edges){
+ const container=$('example-graph'),w=Math.max(300,container.clientWidth),phone=w<650,nodeW=phone?w-32:Math.min(250,(w-330)/2),right=w-20-nodeW,h=edges.length*(phone?222:112)+22;
+ let paths='',nodes='';
+ edges.forEach(([a,relation,b],i)=>{
+  const uncertain=relation.includes('?'),symmetric=relation==='brother of',arrows=`marker-end="url(#arrow)" ${symmetric?'marker-start="url(#arrow)"':''}`;
+  if(phone){
+   let y=20+i*222,x=w/2;
+   paths+=`<path class="edge${uncertain?' open':''}" d="M${x} ${y+56} V${y+148}" ${arrows}/>`;
+   nodes+=`<rect class="label-ground" x="22" y="${y+87}" width="${w-44}" height="26"/><text class="edge-label" x="${x}" y="${y+104}" text-anchor="middle">${esc(relation)}</text><rect class="node" x="16" y="${y}" width="${nodeW}" height="56" rx="6"/><rect class="node" x="16" y="${y+148}" width="${nodeW}" height="56" rx="6"/>${boxText(a,x,y+33,nodeW-18)}${boxText(b,x,y+181,nodeW-18)}`;
+  }else{
+   let y=60+i*112;
+   paths+=`<path class="edge${uncertain?' open':''}" d="M${20+nodeW} ${y} H${right}" ${arrows}/>`;
+   nodes+=`<rect class="node" x="20" y="${y-28}" width="${nodeW}" height="56" rx="6"/><rect class="node" x="${right}" y="${y-28}" width="${nodeW}" height="56" rx="6"/>${boxText(a,20+nodeW/2,y+4,nodeW-18)}${boxText(b,right+nodeW/2,y+4,nodeW-18)}<text class="edge-label" x="${w/2}" y="${y-15}" text-anchor="middle">${esc(relation)}</text>`;
+  }
+ });
+ container.innerHTML=`<svg class="chart" xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Proposed relations for the selected reading"><defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto-start-reverse"><path d="M0,0 L6,3 L0,6" fill="none" stroke="var(--green)"/></marker></defs>${paths}${nodes}</svg>`;
+}
+function showExample(){let e=D.examples[+$('example').value],v=e.variants[+$('variant').value],c=cases[e.job_id];$('example-content').innerHTML=`<div class="passage-ref">${esc(c.ref)}</div><h3>${esc(e.title)}</h3><p>${esc(e.explanation)}</p><div id="example-graph" class="figure"></div><div class="note"><p>${esc(v.note)}</p></div><div class="acc"><details><summary>Read the source words behind this reading</summary><div class="ac-body">${v.finding_ids.map(id=>{let f=c.findings.find(f=>f.finding_id===id);return `<div class="finding"><p class="finding-title">${esc(f.claim)}</p>${f.evidence.map(q=>quoteHTML(q,c)).join('')}<p>${esc(f.reasoning)}</p></div>`;}).join('')}</div></details></div>`;drawGraph(v.edges);}
+function chooseExample(){let e=D.examples[+$('example').value];$('variant').innerHTML=e.variants.map((v,i)=>`<option value="${i}">${esc(v.label)}</option>`).join('');showExample();}
+const exampleLabels={ban:'Who was spoken to?',kinship:'Brother or nephew?',voice:'Who quotes the teacher?',unsaid:'Words not said',priest:'Role or person?',chains:'Where do the chains split?',teacher:'My teacher',father:'Father or source?',daughter:'Text or translation?',road:'Who had the last word?'};
+$('example').innerHTML=D.examples.map((e,i)=>`<option value="${i}">${esc(cases[e.job_id].ref)} · ${esc(exampleLabels[e.id])}</option>`).join('');
+$('example').addEventListener('change',chooseExample);$('variant').addEventListener('change',showExample);if(D.examples.length)chooseExample();
+const s=D.summary;$('stats').innerHTML=[[s.cases,'passages read more closely'],[s.findings,'proposed findings'],[s.quotations,'source quotations checked'],[s.separate_reviews,'separate reviews of graph claims']].map(([n,label])=>`<div><strong>${n.toLocaleString()}</strong><span>${label}</span></div>`).join('');
+$('scope').textContent=`${s.cases} of the ${s.queued} queued cases appear in this saved report. They contain ${s.source_records} source records. Repeated editions and parallel texts are not independent votes. These are closer readings of earlier examples, not an accuracy test on new passages.`;
+$('built').textContent='Report built '+new Date(D.created_at).toLocaleString()+'.';
+function reviewHTML(c){if(!c.review)return '<p class="muted">A separate review of the conclusions is still pending.</p>';return `<h3>Separate review of the proposed graph changes</h3><p>${esc(c.review.scope)}</p>${c.review.findings.map(f=>`<div class="review"><strong>${esc(f.target)}</strong><p>${esc(f.reason)}</p><span class="evidence-meta">${esc(f.decision.replaceAll('_',' '))}</span></div>`).join('')}`;}
+function showCases(){let q=$('search').value.trim().toLowerCase(),shown=D.cases.filter(c=>JSON.stringify(c).toLowerCase().includes(q));$('visible-count').textContent=`${shown.length} of ${D.cases.length} saved cases shown`;$('cases').innerHTML=shown.map(c=>`<details><summary><span><span class="case-title">${esc(c.ref)}</span><span class="case-meta">${c.findings.length} findings · ${c.quote_count} checked quotations</span></span><span class="muted">${c.review?'Review attached':'Review pending'}</span></summary><div class="ac-body"><p>${esc(c.question)}</p>${reviewHTML(c)}<h3>Findings from the source reading</h3>${c.findings.map(f=>`<div class="finding"><p class="finding-title">${esc(f.finding_id)} · ${esc(f.claim)}</p><p>${esc(f.reasoning)}</p><p><strong>Effect on the proposed graph:</strong> ${esc(f.graph_effect)}</p><p class="evidence-meta">${esc(f.kind)} · confidence in this reading: ${esc(f.confidence)}</p><details><summary>Source words and editions</summary><div class="ac-body">${f.evidence.map(e=>quoteHTML(e,c)).join('')}</div></details></div>`).join('')}<h3>Still open</h3><pre style="white-space:pre-wrap;font:inherit">${esc(typeof c.unresolved==='string'?c.unresolved:JSON.stringify(c.unresolved,null,2))}</pre></div></details>`).join('');}
+$('search').addEventListener('input',showCases);showCases();
+let printing=false;
+document.addEventListener('toggle',e=>{if(printing||e.target.tagName!=='DETAILS'||!e.target.open)return;const parent=e.target.parentElement;[...parent.children].filter(x=>x!==e.target&&x.tagName==='DETAILS').forEach(x=>x.open=false);},true);
+$('theme').addEventListener('click',()=>{let current=document.documentElement.dataset.theme??(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.dataset.theme=current==='dark'?'light':'dark';});
+let resize;window.addEventListener('resize',()=>{clearTimeout(resize);resize=setTimeout(()=>{if(D.examples.length){const e=D.examples[+$('example').value];drawGraph(e.variants[+$('variant').value].edges);}},80);});
+let previous=[];window.addEventListener('beforeprint',()=>{printing=true;previous=[...document.querySelectorAll('details')].map(d=>[d,d.open]);previous.forEach(([d])=>d.open=true)});window.addEventListener('afterprint',()=>{previous.forEach(([d,open])=>d.open=open);setTimeout(()=>printing=false,0)});
+</script></body></html>

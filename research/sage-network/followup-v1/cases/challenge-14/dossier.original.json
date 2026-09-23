@@ -1,0 +1,951 @@
+{
+  "job_id": "challenge-14",
+  "focal_ref": "Berakhot 5b:17",
+  "status": "researched",
+  "question": "Berakhot 5b:17-20 (Rav Huna's soured wine): which people, family relations, speech turns and source attributions does the text state, which depend on interpretation, and which alternatives must stay open? Check the first reading and the earlier review against wider Talmudic context, published translations, commentaries and reported manuscript variants.",
+  "scope_checked": "Sefaria texts of Berakhot 5a:8-12 and 5b:13-24 (Davidson Aramaic and English, Wikisource Bavli, Cohen 1921 English), Ein Yaakov (Daat and Glick editions), commentaries linked by Sefaria for 5b:17-20 (Rashi, Tosafot, Tosafot HaRosh, Steinsaltz, Maharsha, Meiri, Petach Einayim, Ben Yehoyada, Benayahu, Chokhmat Shlomo, Cohen footnotes), Seder HaDorot entries, the other Bavli passages naming Rav Yehuda brother of Rav Sala Hasida and Rav Yosef son of Rav Sala Hasida, Taanit 20b, and the Hebrew Wikisource annotated page for Berakhot 5 which reports manuscript variants. No manuscript image or printed Dikdukei Soferim page was read directly. Many Sefaria-linked later works (responsa, Musar, Chasidut) were not read.",
+  "sources": [
+    {
+      "source_id": "P_IN",
+      "input_path": "research/sage-network/pilot/inputs/challenge-14.json",
+      "edition": "Frozen pilot job: William Davidson Edition - Vocalized Aramaic, vowel marks removed (segments s1-s4 = Berakhot 5b:17-20)",
+      "saved_file": "../../../pilot/inputs/challenge-14.json",
+      "sha256": "2426f3aad5255a054b8d01945eb9f5003689fb3c7465c41324bdd5f7f96d368c"
+    },
+    {
+      "source_id": "P_OUT",
+      "input_path": "research/sage-network/pilot/outputs/challenge-14.json",
+      "edition": "First saved reading (pilot output)",
+      "saved_file": "../../../pilot/outputs/challenge-14.json",
+      "sha256": "4e2bc23360669312d5af06115072823a93e3393402c99d46f7a387d032463216"
+    },
+    {
+      "source_id": "P_COMP",
+      "input_path": "research/sage-network/pilot/compiled/challenge-14.json",
+      "edition": "Compiled first reading with resolved character spans",
+      "saved_file": "../../../pilot/compiled/challenge-14.json",
+      "sha256": "4dd8523b172a2dbaff0514c6797bc91ddb3291ef3c8e26952534dd87041717b7"
+    },
+    {
+      "source_id": "P_REV",
+      "input_path": "research/sage-network/followup-v1/cases/challenge-14/previous-review.json",
+      "edition": "Earlier independent review",
+      "saved_file": "previous-review.json",
+      "sha256": "164ff8e5bfad0b6a03af3c4a662abea70464cb8719be92d792daf615fa960a3e"
+    },
+    {
+      "source_id": "DAV",
+      "url": "https://www.sefaria.org/api/v3/texts/Berakhot.5b.13-24?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English",
+      "edition": "Sefaria: William Davidson Edition - Vocalized Aramaic + William Davidson Edition - English (Koren/Steinsaltz), Berakhot 5b:13-24",
+      "fetched_at": "2026-09-23T08:38:47+00:00",
+      "saved_file": "sources/sefaria-v3-berakhot-5b-13-24-davidson.json",
+      "sha256": "b22341872ba3110c7229ae7f2239f2f2bec3c0d51ce4b3d07ea6b677e292ae5b"
+    },
+    {
+      "source_id": "DAV_AR",
+      "url": "https://www.sefaria.org/api/v3/texts/Berakhot.5b.17-20?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Aramaic",
+      "edition": "Sefaria: William Davidson Edition - Aramaic (unvocalized), Berakhot 5b:17-20",
+      "fetched_at": "2026-09-23T08:40:33+00:00",
+      "saved_file": "sources/sefaria-v3-berakhot-5b-17-20-William_Davidson_Edition___Aramaic_.json",
+      "sha256": "9b5f10189f8b4d2601e2b896a5d6964fa750e53c51ec765ec2dd7aee5c2181a0"
+    },
+    {
+      "source_id": "WS_BAVLI",
+      "url": "https://www.sefaria.org/api/v3/texts/Berakhot.5b.17-20?version=hebrew%7CWikisource%20Talmud%20Bavli",
+      "edition": "Sefaria: Wikisource Talmud Bavli, Berakhot 5b:17-20",
+      "fetched_at": "2026-09-23T08:40:33+00:00",
+      "saved_file": "sources/sefaria-v3-berakhot-5b-17-20-Wikisource_Talmud_Bavli_.json",
+      "sha256": "ac751986b18ec7e861ca61fe3ec3e3ac9b8aaf1a8390e777a4db7758aa5da801"
+    },
+    {
+      "source_id": "COHEN",
+      "url": "https://www.sefaria.org/api/v3/texts/Berakhot.5b.17-20?version=english%7CTractate%20Berakot%20by%20A.%20Cohen%2C%20Cambridge%20University%20Press%2C%201921",
+      "edition": "Sefaria: Tractate Berakot by A. Cohen, Cambridge University Press, 1921 (English)",
+      "fetched_at": "2026-09-23T08:40:32+00:00",
+      "saved_file": "sources/sefaria-v3-berakhot-5b-17-20-Tractate_Berakot_by_A__Cohen__Cambridge_.json",
+      "sha256": "259e4e3c1e6618a18877be71340ecefa1348054fe07caf764fbe5fd37d555af4"
+    },
+    {
+      "source_id": "COHEN_FN",
+      "url": "https://www.sefaria.org/api/texts/Abraham_Cohen_Footnotes_to_the_English_Translation_of_Masechet_Berakhot.5b.14-17?context=0&commentary=0",
+      "edition": "Sefaria: Abraham Cohen footnotes to his 1921 translation, Berakhot 5b notes 14-17",
+      "fetched_at": "2026-09-23T08:39:31+00:00",
+      "saved_file": "sources/sefaria-Abraham_Cohen_Footnotes_to_the_English_Translation_of_Masechet_Berakhot.5b.14-17.json",
+      "sha256": "94501e1d60cccad099807da7db6d396ebdb7919b943c6da1c7afffb6e6c31482"
+    },
+    {
+      "source_id": "RELATED",
+      "url": "https://www.sefaria.org/api/related/Berakhot.5b.17-20",
+      "edition": "Sefaria related-links index for Berakhot 5b:17-20",
+      "fetched_at": "2026-09-23T08:38:48+00:00",
+      "saved_file": "sources/sefaria-related-berakhot-5b-17-20.json",
+      "sha256": "b747131f8f0c01c03838d9cd69b451d7ece65c0352ffe21fda29e0cc49cb5dd7"
+    },
+    {
+      "source_id": "RASHI",
+      "url": "https://www.sefaria.org/api/texts/Rashi_on_Berakhot.5b.17-20?context=0&commentary=0",
+      "edition": "Rashi on Berakhot, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-23T08:39:28+00:00",
+      "saved_file": "sources/sefaria-Rashi_on_Berakhot.5b.17-20.json",
+      "sha256": "19421394b91e80d2659d8f751531aa15a26633840b2dab90ba78eaa521b59595"
+    },
+    {
+      "source_id": "TOS",
+      "url": "https://www.sefaria.org/api/texts/Tosafot_on_Berakhot.5b.17?context=0&commentary=0",
+      "edition": "Tosafot on Berakhot, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-23T08:39:29+00:00",
+      "saved_file": "sources/sefaria-Tosafot_on_Berakhot.5b.17.json",
+      "sha256": "b414f2f979794f2c9c5e18c623fbec6bdf1ad75ba8daa7a8a4117365e02c0657"
+    },
+    {
+      "source_id": "TOS_ROSH",
+      "url": "https://www.sefaria.org/api/texts/Tosafot_HaRosh_on_Berakhot.5b.6?context=0&commentary=0",
+      "edition": "Tosafot HaRosh on Berakhot, Warsaw 1863 (Sefaria)",
+      "fetched_at": "2026-09-23T08:39:31+00:00",
+      "saved_file": "sources/sefaria-Tosafot_HaRosh_on_Berakhot.5b.6.json",
+      "sha256": "207934d289535d6b31fcbd1dd0ec6b9e5ecbf89a9149113ce6382d3986bf6e93"
+    },
+    {
+      "source_id": "STEIN",
+      "url": "https://www.sefaria.org/api/texts/Steinsaltz_on_Berakhot.5b.17-20?context=0&commentary=0",
+      "edition": "Steinsaltz on Berakhot, William Davidson Edition - Hebrew (Sefaria); same editorial family as DAV English",
+      "fetched_at": "2026-09-23T08:39:29+00:00",
+      "saved_file": "sources/sefaria-Steinsaltz_on_Berakhot.5b.17-20.json",
+      "sha256": "ada05ecb31dd1d15a267e8d246ccb92b965a60e8ca33735104c490710b72321b"
+    },
+    {
+      "source_id": "MAHARSHA",
+      "url": "https://www.sefaria.org/api/texts/Chidushei_Agadot_on_Berakhot.5b.12-13?context=0&commentary=0",
+      "edition": "Chidushei Agadot (Maharsha), Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-23T08:39:30+00:00",
+      "saved_file": "sources/sefaria-Chidushei_Agadot_on_Berakhot.5b.12-13.json",
+      "sha256": "7f170a31055abaf85556affc109a3951d32ae4527ac80199c081271b62744c3f"
+    },
+    {
+      "source_id": "PETACH",
+      "url": "https://www.sefaria.org/api/texts/Petach_Einayim_on_Berakhot.5b.3-5?context=0&commentary=0",
+      "edition": "Petach Einayim, Jerusalem 1959 (Sefaria)",
+      "fetched_at": "2026-09-23T08:39:30+00:00",
+      "saved_file": "sources/sefaria-Petach_Einayim_on_Berakhot.5b.3-5.json",
+      "sha256": "81818f58ecde233dede04fc6736159f05dfda8ccc501597a2ded3f21dd16fb67"
+    },
+    {
+      "source_id": "MEIRI",
+      "url": "https://www.sefaria.org/api/texts/Meiri_on_Berakhot.5b.1?context=0&commentary=0",
+      "edition": "Meiri on Berakhot, Wikisource text (Sefaria)",
+      "fetched_at": "2026-09-23T08:39:31+00:00",
+      "saved_file": "sources/sefaria-Meiri_on_Berakhot.5b.1.json",
+      "sha256": "c1e6e24c1408c9ed0c3434dff0f8f0d73b3c006cfb236305293feb4f01aac354"
+    },
+    {
+      "source_id": "BEN_Y",
+      "url": "https://www.sefaria.org/api/texts/Ben_Yehoyada_on_Berakhot.5b.6-9?context=0&commentary=0",
+      "edition": "Ben Yehoyada, Senlake edition 2019 based on Jerusalem 1897 (Sefaria)",
+      "fetched_at": "2026-09-23T08:39:31+00:00",
+      "saved_file": "sources/sefaria-Ben_Yehoyada_on_Berakhot.5b.6-9.json",
+      "sha256": "1bee63fe4f9035dce95a598f8aeb58c01aad1da3eb548657bbd5fb5ec54d8774"
+    },
+    {
+      "source_id": "BENAYAHU",
+      "url": "https://www.sefaria.org/api/texts/Benayahu_on_Berakhot.5b.2?context=0&commentary=0",
+      "edition": "Benayahu, Senlake edition 2019 based on Jerusalem 1905 (Sefaria)",
+      "fetched_at": "2026-09-23T08:39:33+00:00",
+      "saved_file": "sources/sefaria-Benayahu_on_Berakhot.5b.2.json",
+      "sha256": "11859a96157db34f28fe118093e417a716fefff4e299b4853c6fd02bbd0b7782"
+    },
+    {
+      "source_id": "CHOKHMAT",
+      "url": "https://www.sefaria.org/api/texts/Chokhmat_Shlomo_on_Berakhot.5b.4?context=0&commentary=0",
+      "edition": "Chokhmat Shlomo, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-23T08:39:32+00:00",
+      "saved_file": "sources/sefaria-Chokhmat_Shlomo_on_Berakhot.5b.4.json",
+      "sha256": "3ef88f1ffbfbf28942cd2b1cce33e26b9229f64e7f0f0eddace30160b252c54c"
+    },
+    {
+      "source_id": "SHD_958_7",
+      "url": "https://www.sefaria.org/api/texts/Seder_HaDorot,_Tanaim_and_Amoraim.958.7?context=0&commentary=0",
+      "edition": "Seder HaDorot, Tanaim and Amoraim, Warsaw 1878-1882 (Sefaria), entry 958:7 (Rav Huna)",
+      "fetched_at": "2026-09-23T08:39:35+00:00",
+      "saved_file": "sources/sefaria-Seder_HaDorot__Tanaim_and_Amoraim.958.7.json",
+      "sha256": "30f8c8e69f9e7e395d55a13e1dc288f14b28a8a7a5e34c386a142118b052fa16"
+    },
+    {
+      "source_id": "SHD_1695_1",
+      "url": "https://www.sefaria.org/api/texts/Seder_HaDorot,_Tanaim_and_Amoraim.1695.1?context=0&commentary=0",
+      "edition": "Seder HaDorot, Tanaim and Amoraim, Warsaw 1878-1882 (Sefaria), entry 1695:1",
+      "fetched_at": "2026-09-23T08:39:35+00:00",
+      "saved_file": "sources/sefaria-Seder_HaDorot__Tanaim_and_Amoraim.1695.1.json",
+      "sha256": "798545de46f9dd2e2c8b169217e129d08f43178d38faae8e1b57449ea5f3cfd1"
+    },
+    {
+      "source_id": "SHD_2801_1",
+      "url": "https://www.sefaria.org/api/texts/Seder_HaDorot,_Tanaim_and_Amoraim.2801.1?context=0&commentary=0",
+      "edition": "Seder HaDorot, Tanaim and Amoraim, Warsaw 1878-1882 (Sefaria), entry 2801:1",
+      "fetched_at": "2026-09-23T08:41:05+00:00",
+      "saved_file": "sources/sefaria-Seder_HaDorot__Tanaim_and_Amoraim.2801.1.json",
+      "sha256": "d05340c4118f60e271d4446a93e0c5639a81819d75ae9fbdaeae07c734d0db3b"
+    },
+    {
+      "source_id": "SHD_2031_1",
+      "url": "https://www.sefaria.org/api/texts/Seder_HaDorot,_Tanaim_and_Amoraim.2031.1?context=0&commentary=0",
+      "edition": "Seder HaDorot, Tanaim and Amoraim, Warsaw 1878-1882 (Sefaria), entry 2031:1",
+      "fetched_at": "2026-09-23T08:41:06+00:00",
+      "saved_file": "sources/sefaria-Seder_HaDorot__Tanaim_and_Amoraim.2031.1.json",
+      "sha256": "ae288825b1ab822b43493680e3319f100e85d15d8c94f4cc7d29d38ae6b7a7df"
+    },
+    {
+      "source_id": "YOMA19B",
+      "url": "https://www.sefaria.org/api/texts/Yoma.19b.16?context=0&commentary=0&ven=William%20Davidson%20Edition%20-%20English&vhe=William%20Davidson%20Edition%20-%20Aramaic",
+      "edition": "Sefaria: Yoma 19b:16, William Davidson Edition - Aramaic + English",
+      "fetched_at": "2026-09-23T08:41:02+00:00",
+      "saved_file": "sources/sefaria-Yoma.19b.16-davidson.json",
+      "sha256": "6798c8d374908b2454c6bec67331f3387bfa1ad8db90221495876dce8dae8a9b"
+    },
+    {
+      "source_id": "BER29B",
+      "url": "https://www.sefaria.org/api/texts/Berakhot.29b.16?context=0&commentary=0&ven=William%20Davidson%20Edition%20-%20English&vhe=William%20Davidson%20Edition%20-%20Aramaic",
+      "edition": "Sefaria: Berakhot 29b:16, William Davidson Edition - Aramaic + English",
+      "fetched_at": "2026-09-23T08:41:02+00:00",
+      "saved_file": "sources/sefaria-Berakhot.29b.16-davidson.json",
+      "sha256": "2de9327fd51e7d73659c4894ab8ae7548d66ffaac465901835d9698ff8d0e934"
+    },
+    {
+      "source_id": "SAN97B",
+      "url": "https://www.sefaria.org/api/texts/Sanhedrin.97b.2?context=0&commentary=0&ven=William%20Davidson%20Edition%20-%20English&vhe=William%20Davidson%20Edition%20-%20Aramaic",
+      "edition": "Sefaria: Sanhedrin 97b:2, William Davidson Edition - Aramaic + English",
+      "fetched_at": "2026-09-23T08:41:03+00:00",
+      "saved_file": "sources/sefaria-Sanhedrin.97b.2-davidson.json",
+      "sha256": "646afdc759cd41a65c3727fe989f57d1084fc02805cb3e7c303d4a181d1459f7"
+    },
+    {
+      "source_id": "SHAB112A",
+      "url": "https://www.sefaria.org/api/texts/Shabbat.112a.6?context=0&commentary=0&ven=William%20Davidson%20Edition%20-%20English&vhe=William%20Davidson%20Edition%20-%20Aramaic",
+      "edition": "Sefaria: Shabbat 112a:6, William Davidson Edition - Aramaic + English",
+      "fetched_at": "2026-09-23T08:41:03+00:00",
+      "saved_file": "sources/sefaria-Shabbat.112a.6-davidson.json",
+      "sha256": "295c90618e968e4fe9841fbecb1701f6f352df5bed0d8b751519fe251d0f2cd0"
+    },
+    {
+      "source_id": "PES73B",
+      "url": "https://www.sefaria.org/api/texts/Pesachim.73b.11?context=0&commentary=0&ven=William%20Davidson%20Edition%20-%20English&vhe=William%20Davidson%20Edition%20-%20Aramaic",
+      "edition": "Sefaria: Pesachim 73b:11, William Davidson Edition - Aramaic + English",
+      "fetched_at": "2026-09-23T08:41:04+00:00",
+      "saved_file": "sources/sefaria-Pesachim.73b.11-davidson.json",
+      "sha256": "44838f658f22ab3ad41f43ad8518b8bb8d2b5992698ab5f2bf0fa1e1a0e7c72d"
+    },
+    {
+      "source_id": "CHUL74B",
+      "url": "https://www.sefaria.org/api/texts/Chullin.74b.9?context=0&commentary=0&ven=William%20Davidson%20Edition%20-%20English&vhe=William%20Davidson%20Edition%20-%20Aramaic",
+      "edition": "Sefaria: Chullin 74b:9, William Davidson Edition - Aramaic + English",
+      "fetched_at": "2026-09-23T08:41:04+00:00",
+      "saved_file": "sources/sefaria-Chullin.74b.9-davidson.json",
+      "sha256": "e99df8e822fbf8dc9f28a0047b8bae64c75ed223baff0c11c38ff1cf24263355"
+    },
+    {
+      "source_id": "ARAKH33B",
+      "url": "https://www.sefaria.org/api/texts/Arakhin.33b.24?context=0&commentary=0&ven=William%20Davidson%20Edition%20-%20English&vhe=William%20Davidson%20Edition%20-%20Aramaic",
+      "edition": "Sefaria: Arakhin 33b:24, William Davidson Edition - Aramaic + English",
+      "fetched_at": "2026-09-23T08:41:04+00:00",
+      "saved_file": "sources/sefaria-Arakhin.33b.24-davidson.json",
+      "sha256": "af748cefc772a354864778e1f1381498e1acd6f5d8698eb2c7d33207395b3f7d"
+    },
+    {
+      "source_id": "BER5A_89",
+      "url": "https://www.sefaria.org/api/texts/Berakhot.5a.8-9?context=0&commentary=0&ven=William%20Davidson%20Edition%20-%20English&vhe=William%20Davidson%20Edition%20-%20Aramaic",
+      "edition": "Sefaria: Berakhot 5a:8-9, William Davidson Edition - Aramaic + English",
+      "fetched_at": "2026-09-23T08:41:04+00:00",
+      "saved_file": "sources/sefaria-Berakhot.5a.8-9-davidson.json",
+      "sha256": "0f5f47f6459ded4320ac4e53587301afd312078299f6601fcbc8debadbe10358"
+    },
+    {
+      "source_id": "BER5A_1012",
+      "url": "https://www.sefaria.org/api/texts/Berakhot.5a.10-12?context=0&commentary=0&ven=William%20Davidson%20Edition%20-%20English&vhe=William%20Davidson%20Edition%20-%20Aramaic",
+      "edition": "Sefaria: Berakhot 5a:10-12, William Davidson Edition - Aramaic + English",
+      "fetched_at": "2026-09-23T08:42:16+00:00",
+      "saved_file": "sources/sefaria-Berakhot.5a.10-12-davidson.json",
+      "sha256": "cef24d94d4a8a7403f2be9af216f651d00095c806b318f51e7e535360e1f9d42"
+    },
+    {
+      "source_id": "TAANIT20B",
+      "url": "https://www.sefaria.org/api/texts/Taanit.20b?context=0&commentary=0&ven=William%20Davidson%20Edition%20-%20English&vhe=William%20Davidson%20Edition%20-%20Aramaic",
+      "edition": "Sefaria: Taanit 20b, William Davidson Edition - Aramaic + English",
+      "fetched_at": "2026-09-23T08:42:28+00:00",
+      "saved_file": "sources/sefaria-Taanit.20b-davidson.json",
+      "sha256": "f1839758639ba46110698df33a8501007fd9553d97f35b550b917da995362caa"
+    },
+    {
+      "source_id": "EY_DAAT",
+      "url": "https://www.sefaria.org/api/texts/Ein_Yaakov,_Berakhot.1.28?context=0&commentary=0",
+      "edition": "Ein Yaakov, Daat edition (Sefaria), Berakhot 1:28",
+      "fetched_at": "2026-09-23T08:41:05+00:00",
+      "saved_file": "sources/sefaria-Ein_Yaakov__Berakhot.1.28.json",
+      "sha256": "dfaa74f7b823fceda824c064387bc998f8e97d0a34d137ad8cbf2d3ac238e50c"
+    },
+    {
+      "source_id": "EY_GLICK",
+      "url": "https://www.sefaria.org/api/texts/Ein_Yaakov_(Glick_Edition),_Berakhot.1.19?context=0&commentary=0",
+      "edition": "Ein Yaakov (Glick Edition): En Jacob, translated by S. H. Glick, 1916 (Sefaria), Berakhot 1:19",
+      "fetched_at": "2026-09-23T08:41:05+00:00",
+      "saved_file": "sources/sefaria-Ein_Yaakov__Glick_Edition___Berakhot.1.19.json",
+      "sha256": "94fb642872c3e146035f86698318d7e395199a34f84836d6c8c9189e98b828fe"
+    },
+    {
+      "source_id": "WS_BIUR",
+      "url": "https://he.wikisource.org/w/index.php?title=%D7%91%D7%99%D7%90%D7%95%D7%A8:%D7%91%D7%91%D7%9C%D7%99_%D7%91%D7%A8%D7%9B%D7%95%D7%AA_%D7%93%D7%A3_%D7%94&action=raw",
+      "edition": "Hebrew Wikisource, ביאור:בבלי ברכות דף ה (community annotated Gemara), raw wikitext; variant notes use template דקס",
+      "fetched_at": "2026-09-23T08:41:44+00:00",
+      "saved_file": "sources/wikisource-biur-bavli-berakhot-daf-5-raw.txt",
+      "sha256": "39db0f727a20055183f354f5bd8b53f7bbaecf4243c41bd8f933da30e2d6c602",
+      "note": "Secondary, community-edited report of manuscript variants; the sigla (מ', פ', א') are not expanded on the page as saved."
+    },
+    {
+      "source_id": "WS_DKS_TPL",
+      "url": "https://he.wikisource.org/w/index.php?title=%D7%AA%D7%91%D7%A0%D7%99%D7%AA:%D7%93%D7%A7%D7%A1&action=raw",
+      "edition": "Hebrew Wikisource, תבנית:דקס (template documentation), raw wikitext",
+      "fetched_at": "2026-09-23T08:42:00+00:00",
+      "saved_file": "sources/wikisource-template-dks-raw.txt",
+      "sha256": "1a6ebcdd8028ba9b32acb732dc75ebdc04f76cdca075f6b681df7a9e07212fa3"
+    },
+    {
+      "source_id": "SEARCH_ACHUHA",
+      "url": "https://www.sefaria.org/api/search-wrapper",
+      "edition": "Sefaria search-wrapper POST, exact phrase 'אחוה דרב סלא' (first 60 hits)",
+      "fetched_at": "2026-09-23T08:40:49+00:00",
+      "saved_file": "sources/sefaria-search-achuha-derav-sala.json",
+      "sha256": "d1cb77f7474a1b508a4391a8997e74d520e13cdb07ccd030bd25b702209a0667"
+    },
+    {
+      "source_id": "SEARCH_SALA",
+      "url": "https://www.sefaria.org/api/search-wrapper",
+      "edition": "Sefaria search-wrapper POST, exact phrase 'סלא חסידא' (first 60 hits)",
+      "fetched_at": "2026-09-23T08:40:51+00:00",
+      "saved_file": "sources/sefaria-search-sala-chasida.json",
+      "sha256": "0acd87ef6fd8a1137cb61d9c79d0edd0915e229b9153b62adb0e3e64d3b05d58"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "F01",
+      "claim": "The named visitor is given as two alternatives: Rav Yehuda brother of Rav Sala Hasida with rabbis, or ('and some say') Rav Adda bar Ahava with rabbis. Each alternative carries its own 'and the rabbis' (ורבנן appears twice).",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "P_IN",
+          "exact_quote": "על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן, ואמרי לה רב אדא בר אהבה ורבנן"
+        },
+        {
+          "source_id": "COHEN",
+          "exact_quote": "There visited him Rab Judah the brother of Rab Sala Hasida and other Rabbis.  (Another version : Rab Adda b. Ahaba and other Rabbis.)"
+        }
+      ],
+      "translation": "Researcher translation: 'Rav Yehuda, brother of Rav Sala the Pious, and rabbis came in to him; and some say it: Rav Adda bar Ahava and rabbis.'",
+      "reasoning": "ואמרי לה introduces a reported alternative about who visited. It does not say both visited. The unnamed rabbis are stated inside each alternative, so the accompanying group is attested in both branches but is not shown to be the same set of people.",
+      "confidence": "high",
+      "graph_effect": "Keep two visitor branches. The sages group is present in both branches; anchor both occurrences of ורבנן (see C02). No combined 'both visited' claim."
+    },
+    {
+      "finding_id": "F02",
+      "claim": "Rav Yehuda is described as brother (אחוה) of Rav Sala Hasida. The same description recurs in other Bavli passages, where it identifies the speaker or actor, so it works as a distinguishing label as well as a stated kinship.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "P_IN",
+          "exact_quote": "רב יהודה אחוה דרב סלא חסידא"
+        },
+        {
+          "source_id": "YOMA19B",
+          "exact_quote": "דאמר ליה אליהו לרב יהודה אחוה דרב סלא חסידא"
+        },
+        {
+          "source_id": "SAN97B",
+          "exact_quote": "אמר ליה אליהו לרב יהודה אחוה דרב סלא חסידא"
+        },
+        {
+          "source_id": "SHAB112A",
+          "exact_quote": "דרב יהודה אחוה דרב סלא חסידא הוה ליה ההוא זוגא דסנדלי"
+        },
+        {
+          "source_id": "BER29B",
+          "exact_quote": "אמר ליה אליהו לרב יהודה אחוה רב סלא חסידא"
+        },
+        {
+          "source_id": "SHD_2801_1",
+          "exact_quote": "<b>רב סלא חסידא</b> <small>רב יהודה אחיו. רב יוסף בנו</small>:"
+        }
+      ],
+      "translation": "Researcher translation: 'Rav Yehuda, brother of Rav Sala the Pious'; Seder HaDorot: 'Rav Sala Hasida - Rav Yehuda his brother. Rav Yosef his son.'",
+      "reasoning": "The plain sense of אחוה is 'his brother'. Its repetition as a fixed epithet shows it is used to tell this Rav Yehuda apart from others; that is a function of the label, not evidence against literal kinship. The Davidson Aramaic at Berakhot 29b lacks the ד ('אחוה רב סלא'); the meaning is unchanged. Seder HaDorot is a later compilation and is not an independent witness to the kinship; it restates the Talmud's epithets. Whether the Rav Yehuda of all these passages is one historical person is a separate identity decision not made here.",
+      "confidence": "high",
+      "graph_effect": "Keep c1 sibling_of(yehuda, sala) in the yehuda_visits branch, basis explicit, marked as a kinship embedded in a name/epithet. Keep Rav Sala Hasida as a local person placeholder even though he does not act. Do not make Sala a visitor."
+    },
+    {
+      "finding_id": "F03",
+      "claim": "Seder HaDorot heads its entry 'Rav Yehuda חמוהי (father-in-law) of Rav Sala Hasida' and then itself corrects it: 'read אחוה (brother)', citing Shabbat and Yoma 19b. This is a later compilation's slip and self-correction, not a Talmud variant.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "SHD_1695_1",
+          "exact_quote": "<b>רב יהודה חמוהי דרב סלא חסידא</b> <small>צ\"ל אחוה דר\"ס חסידא וכ\"ה ר\"פ אלו קשרים ויומא (י\"ט ב')</small> נכנס לפני רב הונא כד תקיפי ליה ת' דני דחמרא."
+        }
+      ],
+      "translation": "Researcher translation: 'Rav Yehuda, father-in-law of Rav Sala Hasida [small print: should read \"brother of R. Sala Hasida\", and so it is at the start of chapter Elu Kesharim and Yoma 19b] came in before Rav Huna when four hundred barrels of wine soured on him.'",
+      "reasoning": "The heading form חמוהי appears only in this compilation among what was checked; the same entry marks it for correction to the Talmud's אחוה. Treat it as evidence about the compilation, not as a manuscript reading. It must not produce a father-in-law relation.",
+      "confidence": "high",
+      "graph_effect": "No father-in-law edge. If recorded at all, record as a later-compilation variant form that its own author corrects, evidence type separate from Talmud text witnesses."
+    },
+    {
+      "finding_id": "F04",
+      "claim": "Elsewhere in the Bavli, Rav Sala Hasida is named as father of Rav Yosef (בריה דרב סלא חסידא). This is outside Berakhot 5b but belongs to the same name-cluster in the wider graph.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "PES73B",
+          "exact_quote": "תרגמא רב יוסף בריה דרב סלא חסידא קמיה דרב פפא"
+        },
+        {
+          "source_id": "CHUL74B",
+          "exact_quote": "תרגמא רב יוסף בריה דרב סלא חסידא קמיה דרב פפא"
+        },
+        {
+          "source_id": "ARAKH33B",
+          "exact_quote": "תרגמה רב יוסף בריה דרב סלא חסידא קמיה דרב פפא"
+        }
+      ],
+      "translation": "Researcher translation: 'Rav Yosef son of Rav Sala Hasida explained it before Rav Pappa.'",
+      "reasoning": "Each passage explicitly gives the patronymic. That these passages and Berakhot 5b refer to one Rav Sala Hasida rests on the shared name and epithet only; it is plausible but is a historical identification, to be decided separately.",
+      "confidence": "medium",
+      "graph_effect": "Not a claim for this passage. For the wider graph: a candidate same-person link between the local Rav Sala Hasida placeholder here and the father of Rav Yosef, marked as name-based and provisional."
+    },
+    {
+      "finding_id": "F05",
+      "claim": "Every speech by the visitors uses a plural verb (אמרו ליה / ואמרו ליה). The text never singles out an individual speaker among the named sage and the rabbis.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "P_IN",
+          "exact_quote": "ואמרו ליה: לעיין מר במיליה."
+        },
+        {
+          "source_id": "P_IN",
+          "exact_quote": "אמרו ליה: הכי שמיע לן, דלא יהיב מר שבישא לאריסיה."
+        },
+        {
+          "source_id": "P_IN",
+          "exact_quote": "אמרו ליה: היינו דאמרי אינשי"
+        },
+        {
+          "source_id": "EY_GLICK",
+          "exact_quote": "אמרו ליה ליעיין מר במליה אמר להו ומי חשידנא בעינייכו אמרי ליה מי חשיד קודשא בריך הוא"
+        }
+      ],
+      "translation": "Researcher translation: 'and they said to him: Let the master examine his affairs' / 'they said to him: thus we have heard, that the master does not give the vine-shoots to his sharecropper' / 'they said to him: this is what people say'.",
+      "reasoning": "The speaker of every visitor turn is the whole delegation of whichever branch is chosen. Glick's Ein Yaakov text alternates אמרו (past) and אמרי (present) but stays plural. Assigning a line to Rav Yehuda or Rav Adda individually would be an addition.",
+      "confidence": "high",
+      "graph_effect": "Speech claims c7, c9, c11, c14 keep the group 'visitors' as speaker. Add explicit membership edges (C01) so the named visitor inherits speaker status only through the branch and only as group member, not as individual speaker."
+    },
+    {
+      "finding_id": "F06",
+      "claim": "Four visitor turns and four Huna turns are in the printed text (visitors: 'examine', 'is God suspect', 'thus we have heard', proverb; Huna: 'am I suspect', 'if anyone heard', 'he steals it all', 'I undertake to give him'). Reported manuscript readings add wording to two Huna turns, including one extra question.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "WS_BIUR",
+          "exact_quote": ":אמר להו: ומי חשידנא בעינייכו{{דקס|בכת\"י מ' נוסף|דעבידנא מילתא בלא דינא}}?",
+          "evidence_type": "secondary_report_of_manuscript_variant"
+        },
+        {
+          "source_id": "WS_BIUR",
+          "exact_quote": ":אמר להו:{{דקס|בכת\"י מ' נוסף|שמעו רבנן מילתא דעבדי בלא דינא?}} אי איכא מאן דשמיע עלי מלתא – לימא",
+          "evidence_type": "secondary_report_of_manuscript_variant"
+        },
+        {
+          "source_id": "WS_DKS_TPL",
+          "exact_quote": "כתיבת שינויי נוסחאות (בעיקר מדקדוקי סופרים, או מפרוייקט \"הכי גרסינן\") בגמרא המבוארת."
+        },
+        {
+          "source_id": "MEIRI",
+          "exact_quote": "וכשאמר להם מי חשידנא בעינייכו דעבידנא מילתא דלאו דינא השיבוהו ומי חשיד קודשא בריך הוא דעביד מילתא דלא דינא"
+        }
+      ],
+      "translation": "Researcher translation: Wikisource notes that 'manuscript מ' adds' to 'Am I suspect in your eyes' the words 'that I do a thing without justice'; and before 'if anyone has heard something against me, let him say it' adds 'Have the rabbis heard a thing that I did without justice?'. Meiri paraphrases: 'when he said to them, am I suspect in your eyes that I do a thing that is not just, they answered, is the Holy One suspect of doing a thing that is not just'.",
+      "reasoning": "These are reports of variants on a community-edited page whose template says the notes come mainly from Dikdukei Soferim or the Hachi Garsinan project; the manuscript sigla are not expanded in the saved page. Meiri's paraphrase has the fuller wording, which fits such a text but is a paraphrase, not a witness to exact words. The extra line does not add a person: it is Huna asking whether the rabbis heard something. It is a speech turn only in that text form.",
+      "confidence": "medium",
+      "graph_effect": "Optionally record a variant speech turn (Huna asks the rabbis whether they heard of an unjust act) as a text-variant alternative, evidence type 'secondary report of manuscript variant'. It must not be counted as an independent observation of the printed turn c10."
+    },
+    {
+      "finding_id": "F07",
+      "claim": "Huna's promise: printed text 'I undertake that I will give him' (object unstated). A reported manuscript reading adds 'all of them' (לכולהו); the annotator explains that by the printed text he undertook to give the sharecropper his share, by that manuscript to give him everything.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "P_IN",
+          "exact_quote": "אמר להו: קבילנא עלי דיהיבנא ליה."
+        },
+        {
+          "source_id": "WS_BIUR",
+          "exact_quote": "קבילנא עלי דיהיבנא ליה!{{דקס|בכת\"י מ'|לכולהו}}{{הערה|והיינו דלפי נוסחתנו, קיבל עליו ליתן לו חלקו, למחצה לשליש ולרביע; ולפי כת\"י מ', ליתן לו הכל.}}",
+          "evidence_type": "secondary_report_of_manuscript_variant"
+        },
+        {
+          "source_id": "COHEN",
+          "exact_quote": "He said to them,  \"I undertake to give him what is due.\""
+        }
+      ],
+      "translation": "Researcher translation: 'I take upon myself that I will give [it] to him' ; variant note: 'manuscript מ': all of them'; annotator: 'that is, by our text he undertook to give him his share, a half, a third or a quarter; by manuscript מ', to give him everything.' Cohen renders 'what is due', which supplies an object.",
+      "reasoning": "The recipient (ליה) is the sharecropper by local coreference with Huna's defense and the visitors' charge. The object of the gift is unstated in print; 'his share' (Davidson, Steinsaltz) and 'what is due' (Cohen) are translators' completions. A promise is not a narrated transfer.",
+      "confidence": "high",
+      "graph_effect": "Keep c16 as an undertaking, with the promise object open between 'his share' (print, as completed by translators) and 'all of them' (reported manuscript variant). Anchor the recipient to the second ליה in s4 (C04)."
+    },
+    {
+      "finding_id": "F08",
+      "claim": "The visitors report hearsay without a named informant ('thus we have heard'). Tosafot and Tosafot HaRosh interpret that they already knew about the vine-shoots and meant to hint; the Davidson English puts this into plain (editorial) text citing Tosafot.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "P_IN",
+          "exact_quote": "הכי שמיע לן"
+        },
+        {
+          "source_id": "TOS",
+          "exact_quote": "הרבה צדיקים יש שלוקין בגופם ובממונם אלא הם היו יודעים שלא היה נותן שבישא לאריסיה והיו רוצים לרמוז לו שלא יעשה עוד"
+        },
+        {
+          "source_id": "TOS_ROSH",
+          "exact_quote": "אבל הם היו יודעים דלא יהיב שבשתא לאריסיה והיו רוצין לומר לו שלא יעשה עוד"
+        },
+        {
+          "source_id": "DAV",
+          "exact_quote": "The Sages were aware of a flaw in Rav Huna’s conduct, to which they alluded (<i>Tosafot</i>)."
+        }
+      ],
+      "translation": "Researcher translation of Tosafot: 'Many righteous people are afflicted in body and property; rather, they knew that he was not giving the vine-shoots to his sharecropper and wanted to hint to him that he should not do so again.'",
+      "reasoning": "The Talmud text states only that the visitors say they heard it. That they knew beforehand, and that their first two lines were a hint, is commentary. The Davidson sentence is in plain type, so it is editorial explanation, not the Talmud's words.",
+      "confidence": "high",
+      "graph_effect": "Record 'visitors report hearing an accusation' (voice: visitors, discourse: reported hearsay, informant unknown). A 'visitors knew beforehand' claim, if kept, is commentary-sourced (Tosafot), not textual."
+    },
+    {
+      "finding_id": "F09",
+      "claim": "The accusation is that Huna does not give his sharecropper the vine-shoots (שבישא). Aramaic has one sharecropper (לאריסיה, singular); the Davidson English bold text says 'tenant farmers' (plural). Rashi explains שבישא as the sharecropper's portion of pruned vine-shoots.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "P_IN",
+          "exact_quote": "דלא יהיב מר שבישא לאריסיה"
+        },
+        {
+          "source_id": "DAV",
+          "exact_quote": "does not give</b> a share of his <b>grapevines to his tenant farmers.</b>"
+        },
+        {
+          "source_id": "COHEN",
+          "exact_quote": "that our master has not given the vine-tendrils to his labourer."
+        },
+        {
+          "source_id": "RASHI",
+          "exact_quote": "שבישא – חלקו בזמורות הגפן שחותכין מהן בשעת הזמיר"
+        }
+      ],
+      "translation": "Researcher translation: 'that the master does not give the vine-shoots to his sharecropper'; Rashi: 'שבישא: his share in the vine-branches that are cut off at pruning time'.",
+      "reasoning": "The singular suffix and the singular verbs that follow (גניב, 'he steals') support one sharecropper. The plural in the Davidson English is a translation choice; Cohen keeps the singular.",
+      "confidence": "high",
+      "graph_effect": "Keep a single local 'sharecropper' person (entity farmer). Do not create several tenant farmers from the English."
+    },
+    {
+      "finding_id": "F10",
+      "claim": "Huna's counter-charge that the sharecropper 'steals it all' is Huna's own claim. Rashi softens it to 'steals from me much more than his share'; Maharsha says that by Huna's own view he was taking what was his, and that the proverb fits only as the visitors heard it.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "P_IN",
+          "exact_quote": "הא קא גניב ליה כוליה!"
+        },
+        {
+          "source_id": "RASHI",
+          "exact_quote": "וכי אינו חשוד בעיניכם שהוא גונב לי הרבה יותר מחלקו"
+        },
+        {
+          "source_id": "CHOKHMAT",
+          "exact_quote": "מי שביק כו' שהוא גנב לי כו' כצ\"ל"
+        },
+        {
+          "source_id": "MAHARSHA",
+          "exact_quote": "גם שאין המשל הזה דומה ממש לעובדא דרב הונא שהוא נוטל את שלו לפי דעתו מ\"מ לפי מאי דשמיע להו ולא היה חשוד להם הוה קצת בדומה"
+        }
+      ],
+      "translation": "Researcher translation: 'Why, he steals it all!'; Rashi: 'Is he not suspect in your eyes of stealing from me much more than his share?'; Maharsha: 'although this proverb does not exactly match Rav Huna's case, since by his own opinion he was taking what was his, still, according to what they had heard, and he was not suspect to them, it is somewhat similar.'",
+      "reasoning": "Neither theft (the sharecropper's, alleged by Huna; Huna's, implied by the visitors' proverb) is narrated as fact. Chokhmat Shlomo is a wording correction to Rashi's gloss, not a new reading of the Talmud.",
+      "confidence": "high",
+      "graph_effect": "c13 stays in Huna's voice as an allegation. No 'Huna stole from the sharecropper' fact edge; the proverb applies theft language in the visitors' voice only."
+    },
+    {
+      "finding_id": "F11",
+      "claim": "The proverb is attributed to 'people' (אינשי) generally; its thief and the one who steals after him are figures of the saying, not persons in the story.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "P_IN",
+          "exact_quote": "היינו דאמרי אינשי: ״בתר גנבא גנוב, וטעמא טעים״."
+        },
+        {
+          "source_id": "RASHI",
+          "exact_quote": "הגונב מן הגנב אף הוא טועם טעם גנבה"
+        },
+        {
+          "source_id": "COHEN_FN",
+          "exact_quote": "To rob even a thief is also stealing."
+        }
+      ],
+      "translation": "Researcher translation: 'This is what people say: steal after a thief and you taste [the taste of theft].' Rashi: 'one who steals from a thief also tastes the taste of theft.'",
+      "reasoning": "The visitors apply the saying to Huna and the sharecropper, but the saying's figures are generic.",
+      "confidence": "high",
+      "graph_effect": "Type entities 'thief' and 'retaliator' as generic figures of a quoted saying, excluded from the person network (C05). Keep 'people' as the anonymous source group of the proverb (c15)."
+    },
+    {
+      "finding_id": "F12",
+      "claim": "Two anonymous reports of the outcome ('some say ... and some say'). The text does not state that the outcome was caused by Huna's promise; causal wording ('thereupon', 'as a result of Rav Huna's repentance') is supplied by translators.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "P_IN",
+          "exact_quote": "איכא דאמרי: הדר חלא והוה חמרא. ואיכא דאמרי: אייקר חלא, ואיזדבן בדמי דחמרא."
+        },
+        {
+          "source_id": "DAV",
+          "exact_quote": "Thereupon, as a result of Rav Huna’s repentance, God restored his loss."
+        },
+        {
+          "source_id": "COHEN",
+          "exact_quote": "Some declare  that thereupon the vinegar turned back into wine,  but others say  that vinegar became very dear and was sold at the price of wine."
+        }
+      ],
+      "translation": "Researcher translation: 'Some say: the vinegar turned back and became wine. And some say: vinegar became dear and was sold at the price of wine.'",
+      "reasoning": "The Davidson sentence is entirely plain type (editorial). The juxtaposition invites a causal reading, and commentators read it that way, but the text itself only narrates the sequence. The seller in 'was sold' is not named; Huna as owner is a local inference.",
+      "confidence": "high",
+      "graph_effect": "Keep the outcomes group with two branches, independent of the visitor branches. Mark c17/c18 as the owner's benefit by local inference, with no explicit causal link to c16. Optionally add a transmission note: each outcome is reported by an anonymous 'some say' group."
+    },
+    {
+      "finding_id": "F13",
+      "claim": "Commentators differ on what the two outcome reports represent: Petach Einayim suggests they disagree on whether Huna's promise covered the past; Ben Yehoyada suggests both groups heard the same report of the sale at wine's price and reasoned differently about how the miracle happened.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "PETACH",
+          "exact_quote": "אפשר דהני תרי לישני פליגי בפירוש דברי רב הונא שאמר קבילנא דיהיבנא ליה"
+        },
+        {
+          "source_id": "BEN_Y",
+          "exact_quote": "ששני כתות אלה שניהם שמעו דרב הונא מכר החבית"
+        }
+      ],
+      "translation": "Researcher translation: Petach Einayim: 'Possibly these two versions disagree over the meaning of Rav Huna's words \"I undertake to give him\"'. Ben Yehoyada: 'that these two groups both heard that Rav Huna sold the barrel'.",
+      "reasoning": "Both are explicitly offered as possibilities ('אפשר', 'נראה לי'). They do not add people. Ben Yehoyada makes Huna the seller, which is his reading, not the text's.",
+      "confidence": "medium",
+      "graph_effect": "No new edges. Keep the two outcome branches open; record these as commentary interpretations of the branches if the graph stores interpretations."
+    },
+    {
+      "finding_id": "F14",
+      "claim": "The visitors' advice echoes the teaching two folios earlier, 'if a person sees suffering come upon him, let him examine his deeds'. In print that teaching is by 'Rava, and some say Rav Hisda'; the Wikisource annotation reports that manuscripts read 'Rava said Rav Sechora said Rav Huna said'; Petach Einayim says Ein Yaakov also gives it as Rav Huna's; Ben Yehoyada builds on that to explain the visitors' phrasing.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "BER5A_89",
+          "exact_quote": "אמר רבא ואיתימא רב חסדא אם רואה אדם שיסורין באין עליו יפשפש במעשיו"
+        },
+        {
+          "source_id": "WS_BIUR",
+          "exact_quote": "אמר רבא ואיתימא רב חסדא{{דקס|בכתה\"י|אמר רבא אמר רב סחורה אמר רב הונא}}",
+          "evidence_type": "secondary_report_of_manuscript_variant"
+        },
+        {
+          "source_id": "PETACH",
+          "exact_quote": "ומ\"ש הרב ישרש יעקב דלעיל היא מימרת רב הונא הא דאם רואה שיסורין באים עליו. כן הוא גירסת עין יעקב אך בש\"ס דקמן הגירסא אמר רבא ואי תימא רב חסדא"
+        },
+        {
+          "source_id": "BEN_Y",
+          "exact_quote": ""
+        },
+        {
+          "source_id": "BER5A_1012",
+          "exact_quote": "אמר רבא אמר רב סחורה אמר רב הונא כל שהקדוש ברוך הוא חפץ בו מדכאו ביסורין"
+        }
+      ],
+      "translation": "Researcher translation: print: 'Rava said, and some say Rav Hisda: if a person sees suffering coming on him, let him examine his deeds'; Wikisource note: 'in the manuscripts: Rava said Rav Sechora said Rav Huna said'; Petach Einayim: 'what the author of Yashresh Yaakov wrote, that the earlier statement is Rav Huna's, is the Ein Yaakov reading, but in our Talmud the reading is \"Rava said, and some say Rav Hisda\"'; Ben Yehoyada: 'the dictum \"let him examine his deeds\" was said in Rav Huna's own name, so out of courtesy they did not say to him \"let him examine his deeds\" but \"let the master look into his affairs\"'.",
+      "reasoning": "This is a source attribution question for Berakhot 5a, not for 5b:17. The link between that teaching and the visitors' words is an interpretation (Ben Yehoyada), not stated in the story. The printed text does have a separate Rava - Rav Sechora - Rav Huna chain on suffering at 5a:11, which may be why commentators connect the two. The Ein Yaakov claim is reported by Petach Einayim; the Ein Yaakov text of 5a was not read here.",
+      "confidence": "medium",
+      "graph_effect": "For the 5a job: keep attribution alternatives open (Rava / Rav Hisda in print; Rava from Rav Sechora from Rav Huna reported for manuscripts and Ein Yaakov), with evidence types kept apart. For 5b:17: no 'visitors quote Huna' edge; at most an interpretation note citing Ben Yehoyada."
+    },
+    {
+      "finding_id": "F15",
+      "claim": "Ein Yaakov witnesses differ in small ways: Glick's text calls the visitor 'ר׳ יהודה' and keeps the Rav Adda alternative; the Daat text prints the Rav Adda alternative in square brackets and replaces a parenthesized opening with the Bavli wording.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "EY_GLICK",
+          "exact_quote": "על לגביה ר׳ יהודה אחוה דרב סלא חסידא ורבנן. ואמרי לה רב אדא בר אהבה ורבנן"
+        },
+        {
+          "source_id": "EY_DAAT",
+          "exact_quote": ""
+        },
+        {
+          "source_id": "EY_GLICK",
+          "exact_quote": "R. Juda, brother of R. Sala the pions, accompanied by Rabbis, or as some say, R. Ada b. Ahaba, accompanied by Rabbis, came to visit him."
+        }
+      ],
+      "translation": "Researcher translation of Daat: 'Rav Huna (had four hundred barrels of wine; it soured) [four hundred barrels of wine soured on him]. Rav Yehuda brother of Rav Sala Hasida and rabbis came in to him. [And some say: Rav Adda bar Ahava and rabbis]'.",
+      "reasoning": "The Daat edition's bracket convention is not stated in the saved file. It may mean the Rav Adda alternative was absent from an Ein Yaakov base text and restored from the Bavli, but that is not established here. The title ר׳ vs רב in Glick is a single-letter abbreviation difference and does not create a different person.",
+      "confidence": "low",
+      "graph_effect": "No change to branches. Note that the Rav Adda alternative may be missing in some Ein Yaakov text form, pending a check of the Daat edition's conventions or a printed Ein Yaakov."
+    },
+    {
+      "finding_id": "F16",
+      "claim": "The names in the passage have no variant flagged in the Wikisource variant notes that were read, and all Bavli texts checked (Davidson, Wikisource Bavli, Ein Yaakov) have Rav Huna, Rav Yehuda brother of Rav Sala Hasida and Rav Adda bar Ahava. Steinsaltz's lemma reads ואמרי ליה where the Davidson Aramaic has ואמרי לה; he still glosses it 'and some say'.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "WS_BIUR",
+          "exact_quote": "על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן, {{ב|ואמרי לה|ויש אומרים שהיו אלו}} רב אדא בר אהבה ורבנן"
+        },
+        {
+          "source_id": "WS_BAVLI",
+          "exact_quote": "על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן ואמרי לה  רב אדא בר אהבה ורבנן"
+        },
+        {
+          "source_id": "STEIN",
+          "exact_quote": "<b>ואמרי ליה</b> <small>[ויש אומרים]</small> שהיו אלה <b>רב אדא בר אהבה ורבנן</b>"
+        }
+      ],
+      "translation": "Researcher translation of Steinsaltz: 'and some say [ויש אומרים] that these were Rav Adda bar Ahava and rabbis'.",
+      "reasoning": "Absence of a name variant note on one community page is not proof that manuscripts agree on the names; no manuscript was read directly. Steinsaltz and Davidson are one editorial family, so the לה/ליה difference is internal to that family and its gloss shows the same meaning.",
+      "confidence": "medium",
+      "graph_effect": "No change. Names stay as in print; a direct manuscript check remains open."
+    },
+    {
+      "finding_id": "F17",
+      "claim": "Identity is not settled by the passage. 'Rav Huna' has no patronymic here. Seder HaDorot files this story under the Rav Huna it describes as Rav's disciple. Taanit 20b tells another wine story joining a Rav Huna and a Rav Adda bar Ahava. Shabbat 112a has Rav Yehuda brother of Rav Sala Hasida bringing a question to Abaye.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "SHD_958_7",
+          "exact_quote": "ו) רב הונא היה תלמיד מובהק לרב"
+        },
+        {
+          "source_id": "SHD_958_7",
+          "exact_quote": "פ\"ק דברכות <small>(ה' ב')</small> ר\"ה ה\"ל ת' דני דחמרא איתקוף עאל לגביה רב יהודה אחוה דרב סלא חסידא ורבנן"
+        },
+        {
+          "source_id": "TAANIT20B",
+          "exact_quote": "רב הונא הוה ליה ההוא חמרא בההוא ביתא רעיעא ובעי לפנוייה עייליה לרב אדא בר אהבה להתם"
+        },
+        {
+          "source_id": "SHAB112A",
+          "exact_quote": "זמנין דנפיק ביה איהו זימנין נפיק ביה ינוקיה אתא לקמיה דאביי"
+        }
+      ],
+      "translation": "Researcher translation: Seder HaDorot: 'Rav Huna was a principal disciple of Rav'; its paraphrase of our story names only Rav Yehuda brother of Rav Sala Hasida (no Rav Adda alternative). Taanit: 'Rav Huna had some wine in a dilapidated house and wanted to clear it; he brought Rav Adda bar Ahava in there.' Shabbat: 'sometimes he went out in them, sometimes his child went out in them; he came before Abaye.'",
+      "reasoning": "Seder HaDorot's identification and its shortened paraphrase are a later compiler's decisions. Taanit 20b shows the same two names together elsewhere; that is a co-occurrence of names, not proof that they are the same two people. Shabbat 112a raises a chronology question if one Rav Yehuda is meant throughout; it is not resolved here, and citation or consultation direction does not establish relative age.",
+      "confidence": "medium",
+      "graph_effect": "Keep local persons (huna, yehuda, ada, sala, ahava) unlinked to global identities. Record Seder HaDorot's Rav Huna identification as a proposal from a later compilation. Note that Seder HaDorot's paraphrase dropping the Rav Adda branch is a summary, not a text witness."
+    },
+    {
+      "finding_id": "F18",
+      "claim": "Rav Adda bar Ahava's patronymic gives a father named Ahava; he never appears and says nothing. The first reading keeps him as a placeholder with child_of(ada, ahava), in the Rav Adda branch only.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "P_IN",
+          "exact_quote": "רב אדא בר אהבה"
+        },
+        {
+          "source_id": "COHEN",
+          "exact_quote": "Rab Adda b. Ahaba"
+        }
+      ],
+      "translation": "Researcher translation: 'Rav Adda son of Ahava'.",
+      "reasoning": "Under project rules a patronymic is kinship evidence and the parent is kept as a local placeholder. The relation holds only if the Rav Adda branch is chosen.",
+      "confidence": "high",
+      "graph_effect": "Keep c2 and entity ahava as they are, branch ada_visits."
+    },
+    {
+      "finding_id": "F19",
+      "claim": "In the compiled first reading, three pronoun anchors resolve to the wrong words, and one of them attaches the sharecropper to a pronoun that refers to Huna. The second 'ורבנן' has no anchor.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "P_COMP",
+          "exact_quote": "\"path\": \"mentions/m16/anchor\",\n      \"source_id\": \"s4\",\n      \"quote\": \"ליה\",\n      \"occurrence\": 1,\n      \"source_sha256\": \"c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90\",\n      \"start\": 5,\n      \"end\": 8"
+        },
+        {
+          "source_id": "P_IN",
+          "exact_quote": "אמרו ליה: היינו דאמרי אינשי"
+        },
+        {
+          "source_id": "P_IN",
+          "exact_quote": "קבילנא עלי דיהיבנא ליה"
+        },
+        {
+          "source_id": "P_COMP",
+          "exact_quote": "\"path\": \"mentions/m14/anchor\",\n      \"source_id\": \"s1\",\n      \"quote\": \"מר\",\n      \"occurrence\": 1,\n      \"source_sha256\": \"e75c495eba8e61a29707dcc8dedf315b01b01f5bfe897358193182af82f8b2bf\",\n      \"start\": 33,\n      \"end\": 35"
+        },
+        {
+          "source_id": "P_IN",
+          "exact_quote": "ארבע מאה דני דחמרא"
+        },
+        {
+          "source_id": "P_COMP",
+          "exact_quote": "\"path\": \"mentions/m15/anchor\",\n      \"source_id\": \"s2\",\n      \"quote\": \"מר\",\n      \"occurrence\": 1,\n      \"source_sha256\": \"f76242dc6f6b41b13f7bf6b883a7e7ea4dcedaa6a720c6b75002a7771a387087\",\n      \"start\": 1,\n      \"end\": 3"
+        }
+      ],
+      "reasoning": "Checked against the compiled spans: m14 'מר' resolves to s1 chars 33-35, inside דחמרא ('of wine'); the intended 'לעיין מר' is occurrence 4 (chars 130-132). m15 'מר' resolves to s2 chars 1-3, inside אמר ('said'); the intended 'יהיב מר' is occurrence 3 (chars 76-78). m16 'ליה' resolves to s4 chars 5-8, in 'אמרו ליה' ('they said to him', meaning Huna); the sharecropper pronoun 'דיהיבנא ליה' is occurrence 2 (chars 86-89). ורבנן occurs twice in s1 (chars 75-80 and 106-111); only the first is anchored. The earlier review passed all checks and did not catch these slips.",
+      "confidence": "high",
+      "graph_effect": "Fix occurrences (C03, C04) and add the second ורבנן (C02). As saved, m16 wrongly makes the sharecropper the person spoken to in the proverb turn."
+    }
+  ],
+  "alternative_readings": [
+    {
+      "id": "ALT1",
+      "about": "Who visited Huna",
+      "options": [
+        "Rav Yehuda brother of Rav Sala Hasida and rabbis",
+        "Rav Adda bar Ahava and rabbis"
+      ],
+      "basis": "Explicit ואמרי לה in all Bavli texts checked. Reported alternative only; it does not prove that only one of them was ever there.",
+      "evidence_finding_ids": [
+        "F01",
+        "F15",
+        "F16"
+      ]
+    },
+    {
+      "id": "ALT2",
+      "about": "Outcome after the promise",
+      "options": [
+        "vinegar turned back into wine",
+        "vinegar rose in price and was sold at the price of wine"
+      ],
+      "basis": "Explicit איכא דאמרי ... ואיכא דאמרי; independent of ALT1. Commentators explain the difference in different ways (F13).",
+      "evidence_finding_ids": [
+        "F12",
+        "F13"
+      ]
+    },
+    {
+      "id": "ALT3",
+      "about": "What Huna undertook to give",
+      "options": [
+        "an unstated object, completed by translators as 'his share' or 'what is due'",
+        "'all of them' (לכולהו), reported for manuscript מ'"
+      ],
+      "basis": "Printed text vs secondary report of a manuscript variant; keep evidence types apart.",
+      "evidence_finding_ids": [
+        "F07"
+      ]
+    },
+    {
+      "id": "ALT4",
+      "about": "Huna's replies",
+      "options": [
+        "printed wording",
+        "fuller wording reported for manuscript מ', including an added question 'have the rabbis heard a thing that I did without justice?'"
+      ],
+      "basis": "Secondary report of manuscript variant; Meiri's paraphrase is consistent with the fuller wording.",
+      "evidence_finding_ids": [
+        "F06"
+      ]
+    },
+    {
+      "id": "ALT5",
+      "about": "Why the visitors spoke as they did (commentary, not text)",
+      "options": [
+        "they already knew of the vine-shoots and hinted (Tosafot, Tosafot HaRosh)",
+        "they avoided quoting Huna's own 'examine his deeds' teaching to him out of courtesy (Ben Yehoyada, relying on the Ein Yaakov attribution)",
+        "a financial loss is not 'suffering of love', so it must be punishment (Ben Yehoyada)"
+      ],
+      "basis": "Commentary interpretations; none is stated in the Talmud.",
+      "evidence_finding_ids": [
+        "F08",
+        "F14"
+      ]
+    }
+  ],
+  "unresolved": [
+    "No manuscript image or printed Dikdukei Soferim page was read. The manuscript variants come from a secondary, community-edited page whose sigla (מ', פ', א') are not expanded there; the identification of מ' with the Munich manuscript is likely but unconfirmed here.",
+    "Whether any manuscript varies the names (Rav Yehuda / Rav Sala Hasida / Rav Adda bar Ahava) was not checked directly.",
+    "The Daat Ein Yaakov bracket convention is unknown, so it is open whether some Ein Yaakov text lacked the Rav Adda alternative.",
+    "The Ein Yaakov text of Berakhot 5a (said by Petach Einayim to attribute 'examine his deeds' to Rav Huna) was not read.",
+    "Historical identity of Rav Huna, Rav Yehuda brother of Rav Sala Hasida, Rav Adda bar Ahava and Rav Sala Hasida across passages is not decided; the chronology question raised by Shabbat 112a (a question brought to Abaye) is open.",
+    "Sefaria also links responsa, Musar and Chasidut works to this passage; they were not read and may contain further readings."
+  ],
+  "proposed_corrections": [
+    {
+      "id": "C01",
+      "existing_claim_id": "c4, c5, c6 (and entity visitors)",
+      "change": "Add explicit membership: member_of(yehuda, visitors) in branch yehuda_visits; member_of(ada, visitors) in branch ada_visits; member_of(sages, visitors) in both branches. Keep the speech claims on the group.",
+      "why": "The earlier review noted the group has no membership link. The text gives only plural speech (F05), so named individuals should reach the speeches only through the group."
+    },
+    {
+      "id": "C02",
+      "existing_claim_id": "m6 / entity sages",
+      "change": "Anchor ורבנן occurrence 2 (s1 chars 106-111) as well as occurrence 1. Either one sages mention per branch, or one group entity with two anchors, each tied to its branch.",
+      "why": "Each alternative states its own 'and the rabbis' (F01); the second is currently unanchored."
+    },
+    {
+      "id": "C03",
+      "existing_claim_id": "m14, m15",
+      "change": "m14 'מר' occurrence 1 -> 4 (the 'לעיין מר' in s1). m15 'מר' occurrence 1 -> 3 (the 'יהיב מר' in s2). Better: use longer quotes such as 'לעיין מר' and 'יהיב מר'.",
+      "why": "Compiled spans put m14 inside דחמרא and m15 inside אמר (F19)."
+    },
+    {
+      "id": "C04",
+      "existing_claim_id": "m16 (entity farmer), c16",
+      "change": "m16 'ליה' occurrence 1 -> 2, or quote 'דיהיבנא ליה'.",
+      "why": "Occurrence 1 is in 'אמרו ליה', addressed to Huna; as saved, the sharecropper is wrongly tied to Huna's pronoun (F19)."
+    },
+    {
+      "id": "C05",
+      "existing_claim_id": "entities thief, retaliator",
+      "change": "Change kind from person to a generic figure within a quoted saying, excluded from person counts.",
+      "why": "They are figures of a popular proverb attributed to 'people', not participants (F11)."
+    },
+    {
+      "id": "C06",
+      "existing_claim_id": "c16",
+      "change": "Add an open promise-object alternative: unstated in print (translators supply 'his share'/'what is due') vs 'לכולהו' reported for one manuscript. Evidence type for the variant: secondary report of manuscript variant.",
+      "why": "F07."
+    },
+    {
+      "id": "C07",
+      "existing_claim_id": "c17, c18",
+      "change": "Add a note that no causal link to the promise is stated, and that the seller in איזדבן is not named (Huna by local inference). Optionally add attributes_to for each outcome report to an anonymous 'some say' tradent group.",
+      "why": "Causal wording appears only in translators' added text (F12)."
+    },
+    {
+      "id": "C08",
+      "existing_claim_id": "c11",
+      "change": "Keep 'informant unknown'. If a 'visitors knew beforehand' claim is added, give it basis commentary (Tosafot, Tosafot HaRosh), not text.",
+      "why": "F08."
+    },
+    {
+      "id": "C09",
+      "existing_claim_id": "c1",
+      "change": "No change to the relation. Add a note that אחוה דרב סלא חסידא is also a fixed distinguishing epithet (recurs at Yoma 19b, Sanhedrin 97b, Shabbat 112a, Berakhot 29b) and that Seder HaDorot's heading 'חמוהי' is a later slip that its author corrects; no father-in-law edge.",
+      "why": "F02, F03."
+    },
+    {
+      "id": "C10",
+      "existing_claim_id": "previous-review summary",
+      "change": "The review's 'pass' on all checks should be qualified: the branch structure is right, but the anchor slips in F19 were missed.",
+      "why": "A review that checks claim structure without checking resolved spans can pass a record whose anchors point at the wrong words."
+    }
+  ],
+  "ontology_lessons": [
+    "Single-word or two-letter quotes (מר, ליה) need occurrence checks against compiled spans, or longer quotes; short substrings occur inside other words (דחמרא, אמר).",
+    "When an alternative ('ואמרי לה') repeats a companion phrase (ורבנן), each repetition is a separate mention belonging to its own branch.",
+    "A group speaker needs explicit, branch-scoped membership edges so a named member does not become an individual speaker.",
+    "Kinship epithets that also serve as disambiguating labels (אחוה דרב סלא חסידא) remain kinship evidence; record the label function as a note, not as a reason to drop the relation.",
+    "Keep evidence types apart: printed text, secondary report of a manuscript variant, commentator's paraphrase (Meiri), later compilation heading (Seder HaDorot), and translator's plain-text additions.",
+    "Figures inside a quoted proverb are generic and should not count as persons.",
+    "An outcome narrated after an act is not a stated causal link; translators often add the cause.",
+    "A teaching's attribution variant in nearby context (Berakhot 5a) can affect how commentators read a story's dialogue; store it with the teaching's own passage, and link it to the story only as interpretation."
+  ]
+}

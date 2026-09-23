@@ -1,0 +1,15 @@
+# Mostly sound; small changes needed so a later correction does not overwrite the printed name at 21a
+
+The passage (Arakhin 20b:9) asks which earlier teacher an anonymous ruling follows. The answer is that it follows Rabbi Meir. The Talmud tells this in several ways. In one, Rav Yehuda passes on Rav's answer. In another, someone asks a question and gets a one-line reply. Even the question comes with two sets of names: Rav Pappa asks Abaye, "and some say" Rami bar Hama asks Rav Hisda. The whole discussion is then repeated a page later (21a:4), attached to a different ruling.
+
+I checked the dossier's main conclusions against the saved texts, and they hold. Each "asks" link belongs only to the version that names those two people. The unnamed reply ("He said to him: then like whom else?") comes from whoever was asked in that version. The English translation's "Abaye" at 20b:9 is the translator's choice, and it fits only one version. The old link "Rav Hisda follows Rabbi Meir" should go. The question is about where a ruling comes from, not about anyone's loyalty. Abaye and Rav Hisda are two different answers to "who was asked", not two people who spoke to each other.
+
+The main problem is at 21a:4. Every printed Hebrew text there reads "Rav Mari bar Hama", not "Rami bar Hama". A later commentator, Rashash, says it should read "Rami bar Hama, as above". The dossier keeps the printed wording. Yet in two places it says the variant needs no new person and does not change the count. That quietly assumes the correction is right. The graph should keep a separate mention of "Rav Mari bar Hama asks Rav Hisda", tied to the 21a version and counted as the same discussion, not as extra evidence. Rashash's correction should sit beside it as a proposal. Whether the two names mean one man stays open.
+
+The same applies to the fathers. "Bar Hama" means "son of Hama". The dossier rightly keeps an unnamed father Hama behind Rami bar Hama, marked as possibly just part of a fixed name. It should also keep the father behind Rav Mari bar Hama. At present it does so only if the printed name is kept, and the printed name is always kept.
+
+One small thing is missing. In the Rav Yehuda version, the one who links the ruling to Rabbi Meir is Rav, and Rav Yehuda only passes it on. The dossier records who passed on what, but not what Rav said. That should be added. It is not evidence that the two men met or that one taught the other.
+
+Minor notes. Rashi's gloss on 20b names "Abaye and Rami bar Hama" as a short label for the section that moves, so it creates no links. It also should not count as evidence for the name printed at 21a. The page range for the first placement is written two different ways in the dossier.
+
+What stays open: whether the two name forms are one person; whether the question-and-reply version replaces Rav's statement or only rewords it; and anything historical. Nothing here shows a meeting, who was older, or a date. No manuscripts were checked. This review approves no identity, merge or graph link.

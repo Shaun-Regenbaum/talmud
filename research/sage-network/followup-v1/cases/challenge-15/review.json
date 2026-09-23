@@ -1,0 +1,154 @@
+{
+  "job_id": "challenge-15",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "dd1dc062c8a37605fdb5a7383074e40de427f047f2ce1caeff77a9b8b103d4ca",
+  "historical_graph_eligible": false,
+  "scope": "I checked every text quote in dossier.json against its saved file in sources/, reread Berakhot 9b:26-31 and 10a:1-7 and all the saved commentaries, Ein Yaakov texts and the Midrash Tehillim parallel around each quote, and read the Munich 95 crops myself; I did not fetch new sources, check other manuscripts, or judge who Berurya was historically.",
+  "findings": [
+    {
+      "target": "F8 / proposed relabel of statement 'reading'",
+      "decision": "qualify",
+      "reason": "The proposed label 'Berurya reads חטאים as sins rather than sinners' takes one side of an open question. Two saved commentaries give a different reading that keeps the vowels. Chokhmat Shlomo goes on to say 'חטאים היינו כמו חוטאים אלא קרי חטאים בדרך מפעיל', meaning 'those who make others sin'. Ben Yehoyada's last answer reads 'חטאים כתיב, שהוא פועל יוצא לאחרים שהם מחטיאים אחרים'. So F8's summary of Chokhmat Shlomo is incomplete, and A3 is wrong to call this line of reading 'tertiary and unattributed'. Keep a neutral label ('the verse writes חטאים, not חוטאים') with separate branches: 'sins' (Cohen, Tosafot HaRosh, Ya'avetz), 'those who cause others to sin' (Chokhmat Shlomo, Ben Yehoyada), and both senses at once (Maharsha). None of this changes a person or an edge."
+    },
+    {
+      "target": "F5 / c8 (Meir accepts Berurya's view)",
+      "decision": "correct_evidence_statement",
+      "reason": "F5 says Meir's agreement 'appears only in editors' words: Davidson's plain text ... and Steinsaltz'. That misstates the saved sources. The Tzelach, which the dossier quotes in F3, says 'ברוריא הביאה הוכחה לדברי' ור\"מ שמע וקיבל דברי''. Ben Yehoyada reports 'הרי\"ף' as saying 'דלמסקנא הודה ר' מאיר לברוריה'. The conclusion still holds, because the Aramaic 'בעא רחמי עלויהו' names no one and says nothing of agreement. But the evidence list for any 'accepts view of' edge should include these as commentary voices, kept apart from Davidson and Steinsaltz (one editorial project) and never marked as stated in the text."
+    },
+    {
+      "target": "F6 / c3 alternative branch 'begun or intended, not completed'",
+      "decision": "qualify",
+      "reason": "The progressive form 'הֲוָה קָא בָּעֵי' is really in the text, so adding that aspect to c3 is right. But in the saved sources nobody holds the 'not completed' reading. It comes from a two-sided question that Ben Yehoyada reports from 'ספר חסידים' ('אם כבר ר\"מ בקש ... ואם לא בקש עדיין'). Ben Yehoyada then answers 'דלעולם בקש' (he did pray). Tosafot HaRosh also treats the prayer as made and defends it ('שמא היו מצערין אותו יותר מדאי'). Record the branch as a question raised in a reported commentary, with low confidence. Do not present it as an alternative reading someone holds."
+    },
+    {
+      "target": "F12 / proposed neighbourhood claim",
+      "decision": "support_proposed_correction",
+      "reason": "'הנהו בריוני דהוו בשבבותיה דרבי מאיר' says outright, in the narrator's voice, that the group lived in Meir's neighbourhood. The pilot saved this only in a label. Add it as an explicit claim, with the group left unnamed and uncounted. Keep Rashi's 'פריצים' and Tosafot HaRosh's 'לסטים ישראל' as commentary glosses, not attributes of the group. Record the Midrash Tehillim 'ההוא מינא בשיבבותיה' separately, and do not merge it into this claim."
+    },
+    {
+      "target": "F4 / c6, c7 speaker and addressee of 10a:3",
+      "decision": "support_proposed_correction",
+      "reason": "10a:3 names no new speaker. 'ועוד' continues Berurya's speech from 10a:2 ('אמרה ליה ברוריא דביתהו'), and the second-person masculine imperatives 'שפיל' and 'בעי' mark Meir as the addressee. So the addressee is marked by the text, while the speaker is known only because the speech continues. A basis like 'speech continuation', rather than bare local_coreference, is accurate. One small point: Cohen turns the 'כיון ...' clause into a statement ('i.e. when sins will cease, then the wicked will be no more'), while Davidson and the dossier read it as a rhetorical question. That affects only the content label of 'ending'."
+    },
+    {
+      "target": "F15 / proposed implicit mentions",
+      "decision": "support_proposed_correction",
+      "reason": "I checked the pilot's anchors. m5 is the 'ליה' in 'מצערו ליה' and m6 is the 'ליה' in 'אמרה ליה', and both mean Meir. m7-m9 are the 'עלויהו' in s1-s3, and all mean the troublemakers. The mentions without a pronoun word (the suffix in 'דעתך', the addressee of 'שפיל/בעי', the unnamed subject of 'בעא', and the subjects of 'דלימותו', 'דלהדרו' and 'והדרו') are exactly what c7 and c8 rest on. Adding them creates no new person or edge."
+    },
+    {
+      "target": "F2 / narrator of the story (and 10a:1 transmitter)",
+      "decision": "qualify",
+      "reason": "The main conclusion holds. The chain at 9b:31 (Davidson: 'דאמר רבי שמואל בר נחמני אמר רבי יוחנן') introduces only 10a:1, and the story at 10a:2 opens a new unit with no teller. The dossier quotes the right occurrence (9b:31, not the 'דאמר' at 9b:29). However, the dossier's own saved Glick Ein Yaakov reads 'דאמר (דף י) רשב״ג אמר רבי יוחנן' at that point. This is a witness variant in the name of the 10a:1 transmitter. Record it for the 10a:1 statement without resolving it (it may be a print confusion), and still attach no chain to the story."
+    },
+    {
+      "target": "F10, F11 / Munich 95 visual readings",
+      "decision": "keep_evidence_types_separate",
+      "reason": "I read the crops myself (see quote_checks). I confirm, in broad terms, the margin note beside story line 3 ('כיון דיתמו ח... / ורשעים עוד אינם', with a small insertion mark), the main-line 'ועוד שפיל לסיפיה דקרא ורשעים עוד אינם', and 'אמרה ליה ברורי[?] דביתהו'. I cannot tell whether the name ends in א or ה. Like the dossier, I could not read the main-line words of the first prayer clause under the small interlinear writing. These stay visual readings, kept apart from printed text, and they cannot settle the wording of c3."
+    },
+    {
+      "target": "F9, F13 / parallels and cross-passage joins",
+      "decision": "support_with_note",
+      "reason": "Midrash Tehillim 104:22 has one 'מינא', the wife called 'ברוריה אתתיה', 'הוה בעי עליה דלימות', and no repentance. The Community Translation does reverse her argument. So the parallel needs its own record and must not import a min into the Bavli. Avodah Zarah 18a ('ברוריא דביתהו דר' מאיר ברתיה דר' חנינא בן תרדיון הואי') gives a father and a sister only in that passage, and a join stays a proposal. A further note: the saved Glick Ein Yaakov goes straight from 'והדרי בתשובה' to 'א״ל ההוא צדוקי לר׳ אבהו'. That text has no 10a:5 challenge to Berurya at this point, so an extractor must not attach that tzeduki to Berurya."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "pilot_input",
+      "exact_quote": "אמרה ליה ברוריא דביתהו",
+      "matches_claim": true,
+      "note": "Present in s1 (Berakhot 10a:2), the only occurrence. It supports c1 spouse_of, and the possessor is the Meir addressed by 'ליה'."
+    },
+    {
+      "source_id": "pilot_input",
+      "exact_quote": "הנהו בריוני דהוו בשבבותיה דרבי מאיר",
+      "matches_claim": true,
+      "note": "Present at the opening of s1. It supports the explicit neighbourhood claim proposed in F12."
+    },
+    {
+      "source_id": "ber10a",
+      "exact_quote": "Rabbi Meir saw that Berurya was correct <b>and he prayed for</b>",
+      "matches_claim": true,
+      "note": "Davidson English 10a:4. The agreement clause is plain (editorial) text, as F5 says."
+    },
+    {
+      "source_id": "tzelach",
+      "exact_quote": "הנה אף שברוריא הביאה הוכחה לדברי' ור\"מ שמע וקיבל דברי'",
+      "matches_claim": false,
+      "note": "The reviewer's quote. It contradicts F5's claim that agreement appears only in Davidson and Steinsaltz. A commentator also states it, though not the Talmud's text."
+    },
+    {
+      "source_id": "ben_yehoyada",
+      "exact_quote": "כיון דלמסקנא הודה ר' מאיר לברוריה ובעי רחמי והדרי בתשובה",
+      "matches_claim": false,
+      "note": "Ben Yehoyada reporting 'הרי\"ף'. A second commentary voice for Meir's agreement that F5 omits."
+    },
+    {
+      "source_id": "ben_yehoyada",
+      "exact_quote": "קושית הגאון ספר חסידים ז\"ל שהקשה אם כבר ר\"מ בקש כאשר רצה ולא נענה הוה ליה למימר להש\"ס לזכור זה, ואם לא בקש עדיין רק היה רוצה לבקש ולא הניחתו ברוריה, הוה ליה למימר הכי הוה קא בעי למבעי רחמי וכו'?",
+      "matches_claim": true,
+      "note": "Quoted exactly. It is a two-sided question, and Ben Yehoyada then answers 'דלעולם בקש'. So it supports raising the aspect question, not a held 'not completed' reading (F6)."
+    },
+    {
+      "source_id": "chokhmat_shlomo",
+      "exact_quote": "וכן נ\"ל פירושו חטאים היינו כמו חוטאים אלא קרי חטאים בדרך מפעיל",
+      "matches_claim": false,
+      "note": "The reviewer's quote, following the words F8 quotes. Chokhmat Shlomo gives a causative ('makers of sin') reading, which F8 and A3 leave out."
+    },
+    {
+      "source_id": "ben_yehoyada",
+      "exact_quote": "מי כתיב חוטאים חטאים כתיב, שהוא פועל יוצא לאחרים שהם מחטיאים אחרים",
+      "matches_claim": false,
+      "note": "The reviewer's quote. A named, saved source for a vowel-keeping reading, against A3's 'tertiary and unattributed'."
+    },
+    {
+      "source_id": "ber10a",
+      "exact_quote": "מִי כְּתִיב ״חוֹטְאִים״? ״חַטָּאִים״ כְּתִיב.",
+      "matches_claim": true,
+      "note": "Davidson vocalized 10a:2. Berurya's 'חטאים כתיב' is pointed with the Masoretic vowels. The vocalization itself does not mark 'sins', so the relabel should not be presented as the text's own reading."
+    },
+    {
+      "source_id": "ber9b",
+      "exact_quote": "דְּאָמַר רַבִּי שְׁמוּאֵל בַּר נַחְמָנִי אָמַר רַבִּי יוֹחָנָן:",
+      "matches_claim": true,
+      "note": "Correct occurrence (9b:31, which introduces 10a:1). The saved Glick Ein Yaakov reads 'רשב״ג אמר רבי יוחנן' here instead, which is a witness variant."
+    },
+    {
+      "source_id": "ey_daat",
+      "exact_quote": "ועוד שפיל לסיפיה דקרא ורשעים עוד אינם אלא בעי רחמי עלייהו דלהדרי בתשובה",
+      "matches_claim": true,
+      "note": "Confirms that the Daat Ein Yaakov lacks the 'כיון דיתמו חטאים ורשעים עוד אינם' clause (F10)."
+    },
+    {
+      "source_id": "midrash_tehillim",
+      "exact_quote": "מי כתיב חוטאים יסופון. חטאים כתיב יתמו חובייא ורשעים עוד אינם.",
+      "matches_claim": true,
+      "note": "Confirms that the Hebrew makes the 'sins, not sinners' argument, and that the Community Translation reverses it (F9)."
+    },
+    {
+      "source_id": "munich95_282_margin",
+      "exact_quote": "כיון דיתמו ח[...] / ורשעים עוד [...]",
+      "matches_claim": true,
+      "note": "Visual check: confirmed in broad terms. Beside story line 3 I read 'כיון דיתמו ח...' with a small insertion mark above, and a second line that seems to read 'ורשעים עוד אינם' in full. Scribe or later hand not determined."
+    },
+    {
+      "source_id": "munich95_282_right",
+      "exact_quote": "ועוד שפיל לסיפיה דקרא ורשעים עוד אינ[ם]",
+      "matches_claim": true,
+      "note": "Visual check: confirmed at the start of story line 3."
+    },
+    {
+      "source_id": "munich95_282_left",
+      "exact_quote": "אמרה ליה ברוריא דביתהו",
+      "matches_claim": true,
+      "note": "Visual check: I read 'אמרה ליה ברורי? דביתהו' in line 2. I could not tell whether the last letter of the name is א or ה. The relation word דביתהו is clear enough to support c1 in this witness."
+    },
+    {
+      "source_id": "munich95_282_interlinear",
+      "exact_quote": "ע[ל]ייהו רחמ[י] כי היכי דלי[מותו]",
+      "matches_claim": true,
+      "note": "Visual check: I read roughly the same small interlinear writing. The main-line words beneath it I could not read securely either. Whether they differ from the print stays open, as in F11."
+    }
+  ],
+  "extra_sources": []
+}

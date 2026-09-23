@@ -1,0 +1,28 @@
+{
+  "job_id": "random-bavli-03",
+  "original_sha256": "cbcbdaffcb8492ae4f2f9560222a82ffd2a359feedb38fe98100f76cc0f38044",
+  "corrected_sha256": "0d24c6a9a4ec46a5091b7133fc95c5c9fe4eec0a4aef9e950d62e89e840787e3",
+  "changes": [
+    {
+      "source_id": "INPUT",
+      "field": "saved_file",
+      "old": "research/sage-network/pilot/inputs/random-bavli-03.json",
+      "new": "../../../pilot/inputs/random-bavli-03.json",
+      "reason": "Make the path relative to this dossier directory; saved bytes unchanged."
+    },
+    {
+      "source_id": "EARLIER",
+      "field": "saved_file",
+      "old": "research/sage-network/pilot/outputs/random-bavli-03.json",
+      "new": "../../../pilot/outputs/random-bavli-03.json",
+      "reason": "Make the path relative to this dossier directory; saved bytes unchanged."
+    },
+    {
+      "source_id": "PREVREVIEW",
+      "field": "saved_file",
+      "old": "research/sage-network/followup-v1/cases/random-bavli-03/previous-review.json",
+      "new": "previous-review.json",
+      "reason": "Make the path relative to this dossier directory; saved bytes unchanged."
+    }
+  ]
+}

@@ -1,0 +1,602 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "passage-pilot-v1"
+    },
+    "job_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "episode": {
+      "type": "object",
+      "properties": {
+        "genre": {
+          "enum": [
+            "halachic",
+            "aggadic",
+            "mixed",
+            "unknown"
+          ]
+        },
+        "genre_reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "form": {
+          "type": "string",
+          "minLength": 1
+        },
+        "coverage": {
+          "enum": [
+            "complete_for_supplied_text",
+            "needs_context"
+          ]
+        },
+        "needed_context": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "genre",
+        "genre_reason",
+        "form",
+        "coverage",
+        "needed_context",
+        "notes"
+      ],
+      "additionalProperties": false
+    },
+    "mentions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "name",
+              "description",
+              "pronoun",
+              "group",
+              "ambiguous"
+            ]
+          },
+          "anchor": {
+            "type": "object",
+            "properties": {
+              "source_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "quote": {
+                "type": "string",
+                "minLength": 1
+              },
+              "occurrence": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "source_id",
+              "quote",
+              "occurrence"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "anchor"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "person",
+              "group",
+              "statement",
+              "event",
+              "place",
+              "object",
+              "work",
+              "unknown"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mention_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "occurrence": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "source_id",
+                "quote",
+                "occurrence"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          },
+          "branches": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "mention_ids",
+          "evidence",
+          "branches"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "family": {
+            "enum": [
+              "family",
+              "transmission",
+              "teaching",
+              "speech",
+              "views",
+              "scenes",
+              "time"
+            ]
+          },
+          "predicate": {
+            "enum": [
+              "child_of",
+              "spouse_of",
+              "sibling_of",
+              "child_in_law_of",
+              "reports_in_name_of",
+              "heard_from",
+              "attributes_to",
+              "student_of",
+              "addresses",
+              "asks",
+              "answers",
+              "objects_to",
+              "holds_view",
+              "rules_like",
+              "supports",
+              "opposes",
+              "explains",
+              "participates_in",
+              "visits",
+              "sits_before",
+              "travels_with",
+              "before",
+              "after",
+              "during"
+            ]
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1
+          },
+          "object": {
+            "type": "string",
+            "minLength": 1
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "entity": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "role",
+                "entity"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 0
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "occurrence": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "source_id",
+                "quote",
+                "occurrence"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          },
+          "branches": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "voice": {
+            "type": "string",
+            "minLength": 1
+          },
+          "polarity": {
+            "enum": [
+              "positive",
+              "negative",
+              "uncertain"
+            ]
+          },
+          "modality": {
+            "enum": [
+              "asserted",
+              "question",
+              "hypothetical",
+              "conditional",
+              "prediction",
+              "dream",
+              "parable",
+              "uncertain"
+            ]
+          },
+          "discourse_status": {
+            "enum": [
+              "stated",
+              "proposed",
+              "answered",
+              "rejected",
+              "withdrawn",
+              "uncertain"
+            ]
+          },
+          "basis": {
+            "enum": [
+              "explicit",
+              "local_coreference",
+              "interpretation"
+            ]
+          },
+          "reading_confidence": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "identity_confidence": {
+            "type": "null"
+          },
+          "historical_confidence": {
+            "type": "null"
+          },
+          "subtype": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "time_scope": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "id",
+          "family",
+          "predicate",
+          "subject",
+          "object",
+          "roles",
+          "evidence",
+          "branches",
+          "voice",
+          "polarity",
+          "modality",
+          "discourse_status",
+          "basis",
+          "reading_confidence",
+          "identity_confidence",
+          "historical_confidence",
+          "subtype",
+          "time_scope",
+          "notes"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "reading_groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "reported_alternatives",
+              "editorial_readings",
+              "interpretation_alternatives"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "occurrence": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "source_id",
+                "quote",
+                "occurrence"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          },
+          "branches": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "id",
+                "label"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 2
+          },
+          "historical_compatibility": {
+            "enum": [
+              "unknown",
+              "compatible",
+              "incompatible"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rejoin": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "evidence",
+          "branches",
+          "historical_compatibility",
+          "scope",
+          "rejoin",
+          "notes"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "coreference_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mention_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "entity_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "branches": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "occurrence": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "source_id",
+                "quote",
+                "occurrence"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "mention_id",
+          "entity_ids",
+          "branches",
+          "evidence",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    }
+  },
+  "required": [
+    "schema_version",
+    "job_id",
+    "episode",
+    "mentions",
+    "entities",
+    "claims",
+    "reading_groups",
+    "coreference_candidates",
+    "open_questions"
+  ],
+  "additionalProperties": false
+}

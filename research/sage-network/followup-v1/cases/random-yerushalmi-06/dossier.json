@@ -1,0 +1,1182 @@
+{
+ "job_id": "random-yerushalmi-06",
+ "focal_ref": "Jerusalem Talmud Bava Kamma 9:7:2",
+ "status": "researched",
+ "question": "Separate the stolen-deposit scenario and its payment differences from the first deposit dialogue. Recover return rules, named household story and pronouns without merging legal roles and story actors.",
+ "scope_note": "Checked: Yerushalmi Bava Kamma 9:6-9:8 (Venice, Mechon-Mamre, Guggenheimer Hebrew and English); Penei Moshe, Mareh HaPanim, Sha'arei Torat Eretz Yisrael and Noam Yerushalmi on 9:7; Tosefta Bava Kamma (Lieberman) 11:1; Bavli Bava Batra 51b, 52a (with Rashbam) and 175a; Mishnah Bava Kamma 9:7-10 in several versions and translations; Yerushalmi Bava Kamma 10:1 and 10:9 for the specific points cited; Mishneh Torah Borrowing and Deposit 7:10 and Marriage 22:32; Shulchan Arukh Even HaEzer 86:1; Jastrow. Not checked: Korban HaEdah and Sheyarei Korban on this halakhah (not found among the Sefaria links for 9:7:2), manuscripts of the Yerushalmi (e.g. Leiden), Lieberman's Tosefta Kifshutah, and the Tosefta variant apparatus. Absence of a commentary from this list is not evidence that none exists.",
+ "evidence_type_key": {
+  "base_text": "Venice Edition of the Yerushalmi as saved in the pilot input or refetched",
+  "text_variant": "Another edition's wording of the same passage (Mechon-Mamre; Guggenheimer Hebrew)",
+  "parallel": "A version of the teaching or story in another work (Tosefta, Bavli, Mishnah)",
+  "translation": "A published translation; translator notes are marked translator_note",
+  "translator_note": "An explanatory or historical note by a translator",
+  "commentary": "A traditional commentary's interpretation",
+  "proposed_emendation": "A commentator's or translator's proposal to change the wording",
+  "later_code": "A later legal code's ruling",
+  "lexicon": "A dictionary entry",
+  "earlier_reading": "The pilot's first reading or its review"
+ },
+ "sources": [
+  {
+   "source_id": "S0",
+   "url_or_path": "research/sage-network/pilot/inputs/random-yerushalmi-06.json",
+   "edition": "Pilot input: Venice Edition segments 9:6:2-9:8:2 (read-only)",
+   "fetched_at": "2026-09-20T08:27:08Z",
+   "saved_file": "../../../pilot/inputs/random-yerushalmi-06.json",
+   "sha256": "d0678aa78c8cd4dd79c89c9fbd9310a8e30d25ee1b63c73c29f07fcb51dcf60b",
+   "note": "fetched_at is the input's captured_at; file read, not modified"
+  },
+  {
+   "source_id": "S0b",
+   "url_or_path": "research/sage-network/pilot/outputs/random-yerushalmi-06.json",
+   "edition": "Pilot first reading (read-only)",
+   "fetched_at": null,
+   "saved_file": "../../../pilot/outputs/random-yerushalmi-06.json",
+   "sha256": "085cda926f8d40b2c8bd36e3e1e30e9d47829bcfbec0bd5196f8b15a5dc3da18",
+   "note": "The earlier reading under review"
+  },
+  {
+   "source_id": "S0c",
+   "url_or_path": "research/sage-network/followup-v1/cases/random-yerushalmi-06/previous-review.json",
+   "edition": "Earlier independent review (read-only)",
+   "fetched_at": null,
+   "saved_file": "previous-review.json",
+   "sha256": "d602d566a4094bc91a563f490edbc1deddaaf2640350d627955a8bc1568c88ce",
+   "note": "Copied unchanged before this round"
+  },
+  {
+   "source_id": "S1",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Bava_Kamma.9.7?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sefaria v3 Jerusalem Talmud Bava Kamma 9:7, all versions: Venice Edition; Mechon-Mamre; Guggenheimer Hebrew (vocalized) and Guggenheimer English translation with notes",
+   "fetched_at": "2026-09-22T20:12:53Z",
+   "saved_file": "sources/yer_bk_9_7.json",
+   "sha256": "98b2b7dc50a5729688f7782ce5d4bfcc4ce984eb4f1ee19aa7ccce37b8228f45",
+   "note": "Focal halakhah plus its mishnah. Guggenheimer Hebrew and English are one editorial work, not two witnesses."
+  },
+  {
+   "source_id": "S2",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Bava_Kamma.9.6?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sefaria v3 Jerusalem Talmud Bava Kamma 9:6, all versions",
+   "fetched_at": "2026-09-22T20:12:54Z",
+   "saved_file": "sources/yer_bk_9_6.json",
+   "sha256": "2af31e014e691deb6741b68c3b2404470a52a247adf145d0bed43c6fe26b150b",
+   "note": "Preceding context"
+  },
+  {
+   "source_id": "S3",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Bava_Kamma.9.8?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sefaria v3 Jerusalem Talmud Bava Kamma 9:8, all versions",
+   "fetched_at": "2026-09-22T20:12:55Z",
+   "saved_file": "sources/yer_bk_9_8.json",
+   "sha256": "e8aba4a2ee0de0c21e8f75a8fe2a913ce3de568cbb167b5ded3828cce68b3f50",
+   "note": "Following context"
+  },
+  {
+   "source_id": "S4",
+   "url_or_path": "https://www.sefaria.org/api/links/Jerusalem_Talmud_Bava_Kamma.9.7.2?with_text=0",
+   "edition": "Sefaria links API for 9:7:2",
+   "fetched_at": "2026-09-22T20:12:55Z",
+   "saved_file": "sources/links_yer_bk_9_7_2.json",
+   "sha256": "dc9cf54b6afc27c8d338c1569c173f1bf2e624d9d155d0cab8dfba7cc05307a1",
+   "note": "Used to find commentaries and parallels"
+  },
+  {
+   "source_id": "S5",
+   "url_or_path": "https://www.sefaria.org/api/links/Jerusalem_Talmud_Bava_Kamma.9.7.1?with_text=0",
+   "edition": "Sefaria links API for 9:7:1",
+   "fetched_at": "2026-09-22T20:12:56Z",
+   "saved_file": "sources/links_yer_bk_9_7_1.json",
+   "sha256": "0246931227e15cf22373d95151ab2e929728d3d9c6ddc684689a1b2e45d88074",
+   "note": "Used to find commentaries and parallels"
+  },
+  {
+   "source_id": "S6",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Penei_Moshe_on_Jerusalem_Talmud_Bava_Kamma.9.7?version=hebrew%7Call&version=english%7Call",
+   "edition": "Penei Moshe on Yerushalmi Bava Kamma 9:7 (Piotrkow 1898-1900 via Sefaria)",
+   "fetched_at": "2026-09-22T20:13:13Z",
+   "saved_file": "sources/penei_moshe_9_7.json",
+   "sha256": "07ce913d93958e6fb61f723ff3a3d289ca1286e5beab29d4440e46a862567d9f",
+   "note": ""
+  },
+  {
+   "source_id": "S7",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Mareh_HaPanim_on_Jerusalem_Talmud_Bava_Kamma.9.7?version=hebrew%7Call&version=english%7Call",
+   "edition": "Mareh HaPanim on Yerushalmi Bava Kamma 9:7 (Piotrkow 1898-1900 via Sefaria)",
+   "fetched_at": "2026-09-22T20:13:13Z",
+   "saved_file": "sources/mareh_hapanim_9_7.json",
+   "sha256": "732f266225920f23a85715a869311123212df8c6ebf04ec41afbece762207baa",
+   "note": ""
+  },
+  {
+   "source_id": "S8",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Sha'arei_Torat_Eretz_Yisrael_on_Jerusalem_Talmud_Bava_Kamma.9.7?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sha'arei Torat Eretz Yisrael on Yerushalmi Bava Kamma 9:7 (Jerusalem 1940 via Sefaria)",
+   "fetched_at": "2026-09-22T20:13:14Z",
+   "saved_file": "sources/shaarei_torat_ey_9_7.json",
+   "sha256": "eb3ce81c97be7d05b3579e29555ffcb6e010663043ffcf33f97e1fc8799247ec",
+   "note": ""
+  },
+  {
+   "source_id": "S9",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Noam_Yerushalmi_on_Bava_Kamma.9.7?version=hebrew%7Call&version=english%7Call",
+   "edition": "Noam Yerushalmi on Bava Kamma 9:7 (Vilna 1869 via Sefaria)",
+   "fetched_at": "2026-09-22T20:13:14Z",
+   "saved_file": "sources/noam_yerushalmi_9_7.json",
+   "sha256": "31695cd82c511ae9f12c5b40d6ca5cd51e7d69144161b3dc28140e97e5da4f7b",
+   "note": ""
+  },
+  {
+   "source_id": "S10",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Tosefta_Bava_Kamma_(Lieberman).11.1?version=hebrew%7Call&version=english%7Call",
+   "edition": "Tosefta Bava Kamma 11:1, Lieberman edition (codex Vienna, JTS 2001 via Sefaria)",
+   "fetched_at": "2026-09-22T20:13:14Z",
+   "saved_file": "sources/tosefta_bk_lieberman_11_1.json",
+   "sha256": "eba34c5810540274d2a8194e1e28c4e593bc649b3c0be6bde64fb71839693c16",
+   "note": "Variant markers are present but the apparatus text was not in the saved response"
+  },
+  {
+   "source_id": "S11",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Bava_Batra.51b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Bavli Bava Batra 51b, all versions (Wikisource; William Davidson Aramaic and English)",
+   "fetched_at": "2026-09-22T20:13:15Z",
+   "saved_file": "sources/bavli_bb_51b.json",
+   "sha256": "140002c46ee30a0fef9f550ed80f123faab190acc5e7bec769d631fab3ede3d5",
+   "note": ""
+  },
+  {
+   "source_id": "S12",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Bava_Batra.52a?version=hebrew%7Call&version=english%7Call",
+   "edition": "Bavli Bava Batra 52a, all versions (Wikisource; William Davidson Aramaic and English)",
+   "fetched_at": "2026-09-22T20:13:15Z",
+   "saved_file": "sources/bavli_bb_52a.json",
+   "sha256": "84b301132b466309e3a7dda1b0200be44e33b6696e83059b4df777c0f3ad393f",
+   "note": "Parallel story. Wikisource and William Davidson Aramaic are both printed-edition texts, not independent manuscripts."
+  },
+  {
+   "source_id": "S13",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Bava_Batra.175a?version=hebrew%7Call&version=english%7Call",
+   "edition": "Bavli Bava Batra 175a, all versions",
+   "fetched_at": "2026-09-22T20:13:15Z",
+   "saved_file": "sources/bavli_bb_175a.json",
+   "sha256": "20897d0d579eef61762350417c72fe2675677dd69c2bef83f7c8cfbc2d61be19",
+   "note": ""
+  },
+  {
+   "source_id": "S14",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Mishnah_Bava_Kamma.9.7-10?version=hebrew%7Call&version=english%7Call",
+   "edition": "Mishnah Bava Kamma 9:7-10, all versions (Torat Emet; Vilna 1913; Kaufmann-based; William Davidson English; Kulp; Sefaria Community; Bartenura English)",
+   "fetched_at": "2026-09-22T20:13:16Z",
+   "saved_file": "sources/mishnah_bk_9_7-10.json",
+   "sha256": "cdf76372a22e58588b534eb27df36dd88e0e31d81f67a3d442a6ca852fd3c19b",
+   "note": "Separate Mishnah transmission of the same mishnayot quoted in the Yerushalmi"
+  },
+  {
+   "source_id": "S15",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Bava_Kamma.10.1?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sefaria v3 Jerusalem Talmud Bava Kamma 10:1, all versions",
+   "fetched_at": "2026-09-22T20:13:16Z",
+   "saved_file": "sources/yer_bk_10_1.json",
+   "sha256": "cf3550e971ebe0f2a03b9605b510207c20fe9d657fc3aa965f184d67b2479f62",
+   "note": "Checked only because Guggenheimer cites it for the identity of the husband"
+  },
+  {
+   "source_id": "S16",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Bava_Kamma.10.9?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sefaria v3 Jerusalem Talmud Bava Kamma 10:9, all versions",
+   "fetched_at": "2026-09-22T20:13:17Z",
+   "saved_file": "sources/yer_bk_10_9.json",
+   "sha256": "a15ceb75b8f8e8c4c9de28853c31f2c9316c419502171c01bca1104201eb3dea",
+   "note": "The same baraita opening recurs here"
+  },
+  {
+   "source_id": "S17",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Mishneh_Torah,_Borrowing_and_Deposit.7.10?version=hebrew%7Call&version=english%7Call",
+   "edition": "Mishneh Torah, Borrowing and Deposit 7:10 (Sefaria)",
+   "fetched_at": "2026-09-22T20:13:17Z",
+   "saved_file": "sources/mt_borrowing_deposit_7_10.json",
+   "sha256": "550cd20a445e341a51d0492540a927ddd0c4669dfcad2f5b0ba69508191a1753",
+   "note": ""
+  },
+  {
+   "source_id": "S18",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Mishneh_Torah,_Marriage.22.32?version=hebrew%7Call&version=english%7Call",
+   "edition": "Mishneh Torah, Marriage 22:32 (Sefaria)",
+   "fetched_at": "2026-09-22T20:13:17Z",
+   "saved_file": "sources/mt_marriage_22_32.json",
+   "sha256": "9a33ca14aa1ffa33f038387ee4a4f6a3644758d49909a7a9d66fe306936bae97",
+   "note": ""
+  },
+  {
+   "source_id": "S19",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Shulchan_Arukh,_Even_HaEzer.86.1?version=hebrew%7Call&version=english%7Call",
+   "edition": "Shulchan Arukh, Even HaEzer 86:1 (Sefaria)",
+   "fetched_at": "2026-09-22T20:13:18Z",
+   "saved_file": "sources/sa_eh_86_1.json",
+   "sha256": "57454be68936fb2216d43e8457a1ea2fcc71276a52bf143f9cb7191a71bc3e08",
+   "note": ""
+  },
+  {
+   "source_id": "S20",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Jastrow,_%D7%A7%D6%B4%D7%99%D7%93%D6%BC%D7%95%D6%BC%D7%A9%D6%B8%D7%81%D7%90_1?version=english%7Call",
+   "edition": "Jastrow Dictionary, entry קִידּוּשָׁא (London 1903 via Sefaria)",
+   "fetched_at": "2026-09-22T20:13:23Z",
+   "saved_file": "sources/jastrow_kidusha_1.json",
+   "sha256": "d9af6cbb40998bc50d21fc5e6c1d5eaa6ea304515b928cbc00d70ffef0551fcc",
+   "note": ""
+  },
+  {
+   "source_id": "S21",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashbam_on_Bava_Batra.52a?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rashbam on Bava Batra 52a (Vilna Edition via Sefaria)",
+   "fetched_at": "2026-09-22T20:13:47Z",
+   "saved_file": "sources/rashbam_bb_52a.json",
+   "sha256": "8da7c134c5ca371c774431fbe07eb73446eba7d541318854e89500139007eb1d",
+   "note": ""
+  },
+  {
+   "source_id": "S22",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashbam_on_Bava_Batra.51b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rashbam on Bava Batra 51b (Vilna Edition via Sefaria)",
+   "fetched_at": "2026-09-22T20:13:47Z",
+   "saved_file": "sources/rashbam_bb_51b.json",
+   "sha256": "0476b707bd7e030c8f5db1aa57c42dfabce8a689c923eeaddcde3062cc727414",
+   "note": "Saved; not quoted"
+  }
+ ],
+ "findings": [
+  {
+   "finding_id": "F1",
+   "claim": "The mishnah at 9:7:1 contains two separate deposit dialogues. They share the same frame (demand, answer, oath, 'amen', witnesses) but differ in the keeper's answer: 'it was lost' in the first and 'it was stolen' in the second. They are two hypothetical cases, not one exchange.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "איכן פקדוני אמר לו אבד משביעך אני ואמ' אמן והעדי' מעידין אותו שאכלו משלם את הקרן הודה מעצמו משלם קרן וחומש ואשם",
+     "evidence_type": "base_text",
+     "where": "Venice 9:7:1",
+     "translation_by_this_dossier": "Translation by this dossier: 'Where is my deposit?' He said to him, 'It was lost.' 'I make you swear,' and he said 'Amen.' If witnesses testify that he ate it, he pays the principal. If he admitted on his own, he pays principal, a fifth and a guilt offering."
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "איכן פקדוני אמר לו נגנב משביעך אני ואמר אמן והעדים מעידין אותו שגנבו משלם תשלומי כפל הודה מעצמו משלם קרן וחומש ואשם",
+     "evidence_type": "base_text",
+     "where": "Venice 9:7:1",
+     "translation_by_this_dossier": "Translation by this dossier: 'Where is my deposit?' He said to him, 'It was stolen.' 'I make you swear,' and he said 'Amen.' If witnesses testify that he stole it, he pays double. If he admitted on his own, he pays principal, a fifth and a guilt offering."
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "י\"א איכן פקדוני",
+     "evidence_type": "base_text",
+     "where": "Venice numbers the first dialogue as mishnah 11",
+     "translation_by_this_dossier": "Translation by this dossier: '11. Where is my deposit'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "י\"ב איכן פקדוני",
+     "evidence_type": "base_text",
+     "where": "Venice numbers the stolen dialogue separately as mishnah 12",
+     "translation_by_this_dossier": "Translation by this dossier: '12. Where is my deposit'"
+    },
+    {
+     "source_id": "S14",
+     "exact_quote": "היכן פקדוני אמר לו נגנב. משביעך אני ואמר אמן. והעדים מעידין אותו שגנבו. משלם תשלומי כפל.",
+     "evidence_type": "parallel",
+     "where": "Mishnah Vilna 1913, 9:8 in standard Mishnah numbering"
+    }
+   ],
+   "reasoning": "The Venice text numbers the two dialogues 11 and 12. The standard Mishnah also prints them as separate mishnayot. Only the answer word and the result differ. The earlier reading extracted only the first dialogue.",
+   "confidence": "high",
+   "graph_effect": "Create two scenario instances (lost-claim case and stolen-claim case). Each has its own local generic depositor and keeper role. Do not merge the two keepers into one person, and do not attach the stolen case's double payment to the first dialogue."
+  },
+  {
+   "finding_id": "F2",
+   "claim": "The payments differ by the keeper's answer and by how the lie comes out. Lost claim, then witnesses say he ate it: principal only. Stolen claim, then witnesses say he stole it: double payment. Admission on his own after the oath, in either case: principal, a fifth and a guilt offering.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "והעדי' מעידין אותו שאכלו משלם את הקרן",
+     "evidence_type": "base_text",
+     "where": "Venice 9:7:1, first case",
+     "translation_by_this_dossier": "Translation by this dossier: 'and the witnesses testify that he ate it: he pays the principal'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "והעדים מעידין אותו שגנבו משלם תשלומי כפל",
+     "evidence_type": "base_text",
+     "where": "Venice 9:7:1, second case",
+     "translation_by_this_dossier": "Translation by this dossier: 'and the witnesses testify that he stole it: he pays double'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "הודה מעצמו משלם קרן וחומש ואשם",
+     "evidence_type": "base_text",
+     "where": "Venice 9:7:1, identical in both cases",
+     "translation_by_this_dossier": "Translation by this dossier: 'if he admitted on his own, he pays principal, a fifth and a guilt offering'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "For the unpaid trustee who claimed falsely that the deposit was stolen, double restitution is required by ",
+     "evidence_type": "translator_note",
+     "where": "Guggenheimer note 92"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "Nobody pays multiple restitution on his own confession since a confession is not acceptable in a criminal trial.",
+     "evidence_type": "translator_note",
+     "where": "Guggenheimer note 93"
+    }
+   ],
+   "reasoning": "The mishnah states these results. The notes give reasons and are interpretation, kept in F3. They do not change the stated outcomes.",
+   "confidence": "high",
+   "graph_effect": "Add conditional legal-consequence claims on the generic keeper of each scenario: (lost + witnesses -> principal), (stolen + witnesses -> double), (either + self-admission -> principal, fifth, guilt offering). These are rules, not events, and create no person-to-person relation beyond the scenario roles."
+  },
+  {
+   "finding_id": "F3",
+   "claim": "Commentary explains the difference. Penei Moshe: double payment applies only when the keeper made a theft claim. Even if witnesses say he stole it after a 'lost' claim, he does not pay double. A self-admission does not bring double payment, because the verse excludes one who convicts himself. The fifth and the guilt offering come only with a self-admission after the oath.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S6",
+     "exact_quote": "ובטוען טענת אבד ליכא כפל",
+     "evidence_type": "commentary",
+     "where": "Penei Moshe 9:7:1:1",
+     "translation_by_this_dossier": "Translation by this dossier: 'and when he claims a claim of loss, there is no double payment'"
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "לא מיבעיא אם מעידין שגנבו אלא אפילו אכלו אינו בעולם פטור מן הכפל הואיל וטען טענת אבד ובטוען טענת גנב כדקתני בסיפא משלם הוא כפל כגנב עצמו",
+     "evidence_type": "commentary",
+     "where": "Penei Moshe 9:7:1:2"
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "וחומש ואשם נמי ליכא דאין חומש ואשם אלא בהודה מעצמו אחר שנשבע",
+     "evidence_type": "commentary",
+     "where": "Penei Moshe 9:7:1:3",
+     "translation_by_this_dossier": "Translation by this dossier: 'and there is also no fifth and guilt offering, since these apply only when he admits on his own after he swore'"
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "אבל בהודה מעצמו אינו משלם כפל דכתיב אשר ירשיעון האלהים פרט למרשיע את עצמו",
+     "evidence_type": "commentary",
+     "where": "Penei Moshe 9:7:1:4",
+     "translation_by_this_dossier": "Translation by this dossier: 'but when he admits on his own he does not pay double, as it is written \"whom the judges convict\", excluding one who convicts himself'"
+    }
+   ],
+   "reasoning": "This is commentary, not the Yerushalmi's own discussion. The Yerushalmi halakhah that follows does not discuss these payments (see F5).",
+   "confidence": "high",
+   "graph_effect": "Attach as rationale on the F2 consequence claims, credited to Penei Moshe. No new people."
+  },
+  {
+   "finding_id": "F4",
+   "claim": "Pronouns in both dialogues: 'אמר לו' is the keeper answering the depositor. 'משביעך אני' ('I make you swear') is the depositor. 'ואמר אמן' is the keeper. 'מעידין אותו' and 'שאכלו' or 'שגנבו' refer to the keeper: he himself ate or stole the deposit.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "אמר לו אבד משביעך אני ואמ' אמן",
+     "evidence_type": "base_text",
+     "where": "Venice 9:7:1; no speaker labels",
+     "translation_by_this_dossier": "Translation by this dossier: 'He said to him: lost. I make you swear. And he said: amen.'"
+    },
+    {
+     "source_id": "S14",
+     "exact_quote": "If the owner asked the bailee: Where is my deposit, and the bailee said to him: It was stolen; and the owner said: I administer an oath to you, and the bailee said: Amen",
+     "evidence_type": "translation",
+     "where": "Mishnah, William Davidson English"
+    },
+    {
+     "source_id": "S14",
+     "exact_quote": "[If a man said], “Where is my deposit?” and the other said, “It is stolen,”",
+     "evidence_type": "translation",
+     "where": "Mishnah, Kulp English, marks the added speaker in brackets"
+    }
+   ],
+   "reasoning": "The Hebrew does not name speakers. Speakers change silently. The translations supply owner/bailee labels, and the legal logic requires them: the owner imposes the oath and the keeper accepts it. This is an interpretation with no stated rival.",
+   "confidence": "high",
+   "graph_effect": "Speech roles per scenario: depositor asks and imposes the oath; keeper answers and swears. The same assignment holds in both scenarios, but in separate instances."
+  },
+  {
+   "finding_id": "F5",
+   "claim": "The focal halakhah (9:7:2) opens by quoting only the first dialogue as its heading ('Where is my deposit, and he said to him: lost, etc.'). It then brings a baraita about deposits from women, slaves and minors. In the text checked, it does not discuss the stolen-deposit case or the payment differences. The mishnah on robbing one's father is not discussed either.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "הלכה י\"א איכן פקדוני ואמר לו אבד כו' תני אין מקבלין פיקדון מנשים ועבדים וקטנים",
+     "evidence_type": "base_text",
+     "where": "Venice 9:7:2",
+     "translation_by_this_dossier": "Translation by this dossier: 'Halakhah 11. \"Where is my deposit, and he said to him: lost\" etc. It was taught: one does not accept a deposit from women, slaves or minors.'"
+    },
+    {
+     "source_id": "S3",
+     "exact_quote": "הלכה י\"ד האומר לבנו קונם",
+     "evidence_type": "base_text",
+     "where": "Venice 9:8:2: the next halakhah heading jumps to mishnah 14",
+     "translation_by_this_dossier": "Translation by this dossier: 'Halakhah 14. One who says to his son, konam'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "Since the Yerushalmi does not discuss this Mishnah, we do not know whether the intention is that the robber has to pay to the father’s brothers or other sons ot to his own sons or brothers.",
+     "evidence_type": "translator_note",
+     "where": "Guggenheimer note 103, on the father mishnah"
+    }
+   ],
+   "reasoning": "The heading 'כו'' ('etc.') cites the start of the mishnah unit. It is a citation, not a new dialogue or a new speaker. Between halakhah 11 (9:7:2) and halakhah 14 (9:8:2), the Venice text has no halakhah headed by mishnah 12 (stolen) or 13 (father). This is scoped to the segments checked. The baraita may still bear on deposits in general.",
+   "confidence": "high",
+   "graph_effect": "Do not treat the heading as a third deposit exchange. Do not attach the halakhah's return rules or the household story to the stolen-deposit scenario's roles."
+  },
+  {
+   "finding_id": "F6",
+   "claim": "Return rules in the baraita. One should not accept deposits from women, slaves or minors. If one did: from a woman, return it to her, or to her husband if she died. From a slave, return it to him, or to his master if he died. From a minor, return it to him, or to his father if he died, and invest it safely ('סגולה'). All of these are hypothetical roles. The person who accepted the deposit is an unnamed generic bailee.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "קיבל מאשה יחזיר לה מתה יחזיר לבעלה מעבד יחזיר לו ואם מת יחזיר לרבו מקטן יחזיר לו מת יחזיר לאביו ועושה בהן סגולה",
+     "evidence_type": "base_text",
+     "where": "Venice 9:7:2",
+     "translation_by_this_dossier": "Translation by this dossier: 'If he received from a woman, he returns it to her; if she died, he returns it to her husband. From a slave, he returns it to him, and if he died, to his master. From a minor, he returns it to him; if he died, to his father; and he makes of them a safe investment.'"
+    },
+    {
+     "source_id": "S11",
+     "exact_quote": "תנו רבנן אין מקבלין פקדונות לא מן הנשים ולא מן העבדים ולא מן התינוקות",
+     "evidence_type": "parallel",
+     "where": "Bavli Bava Batra 51b"
+    },
+    {
+     "source_id": "S16",
+     "exact_quote": "תני אין מקבלין פקדונות לא מנשים ולא מעבדים ולא מקטנים קיבל מן האשה יחזיר לה מתה יחזיר לבעלה",
+     "evidence_type": "parallel",
+     "where": "Venice, Yerushalmi Bava Kamma 10:9: the same baraita opening in the wider tractate"
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "דחזקה שאינו שלהן",
+     "evidence_type": "commentary",
+     "where": "Penei Moshe 9:7:2:2, reason for the rule",
+     "translation_by_this_dossier": "Translation by this dossier: 'because of the presumption that it is not theirs'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "Who is her heir.",
+     "evidence_type": "translator_note",
+     "where": "Guggenheimer note 96, on the husband"
+    }
+   ],
+   "reasoning": "The subject of 'קיבל' (he received) and 'יחזיר' (he returns) is not named. It is the one who accepted the deposit. 'לה' refers to the woman, 'לבעלה' to her husband, 'לו' to the slave or minor, 'לרבו' to the slave's master and 'לאביו' to the minor's father. These are legal roles.",
+   "confidence": "high",
+   "graph_effect": "Add return-obligation claims from the generic bailee to each role, conditioned on alive or dead. Keep spouse_of (generic woman and her husband), child_of (generic minor and his father) and a master relation (generic slave and his master) as hypothetical, scenario-scoped relations. Do not link them to Rabbi Ba bar Hana's household."
+  },
+  {
+   "finding_id": "F7",
+   "claim": "The minor clause reads differently in different texts. The Yerushalmi editions checked read 'return to him; if he died, to his father; and make an investment'. The Tosefta reads 'make an investment for him; if he died, return to his father'. The Bavli reads 'make an investment for him; if he died, return to his heirs'. Three readers propose reordering the Yerushalmi to match the Tosefta: Penei Moshe, Sha'arei Torat Eretz Yisrael and Guggenheimer.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "מקטן יחזיר לו מת יחזיר לאביו ועושה בהן סגולה",
+     "evidence_type": "base_text",
+     "where": "Venice 9:7:2"
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "קבל מן הקטן, עושה לו בהן סגולה, מת, יחזיר לאביו.",
+     "evidence_type": "parallel",
+     "where": "Tosefta Bava Kamma (Lieberman) 11:1",
+     "translation_by_this_dossier": "Translation by this dossier: 'If he received from the minor, he makes an investment for him with them; if he died, he returns it to his father.'"
+    },
+    {
+     "source_id": "S12",
+     "exact_quote": "קבל מן הקטן יעשה לו סגולה ואם מת יחזיר ליורשיו",
+     "evidence_type": "parallel",
+     "where": "Bavli Bava Batra 52a",
+     "translation_by_this_dossier": "Translation by this dossier: 'If he received from the minor, he makes an investment for him, and if he died, he returns it to his heirs.'"
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "מקטן יעשה בהן סגולה מת יחזיר לאביו כצ\"ל",
+     "evidence_type": "proposed_emendation",
+     "where": "Penei Moshe 9:7:2:4",
+     "translation_by_this_dossier": "Translation by this dossier: 'From a minor he makes an investment with them; if he died he returns to his father. So it should read.'"
+    },
+    {
+     "source_id": "S8",
+     "exact_quote": "צ\"ל: מקטן עושה בהן סגולה מת יחזיר לאביו",
+     "evidence_type": "proposed_emendation",
+     "where": "Sha'arei Torat Eretz Yisrael 9:7:2:1"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "It seems that this sentence should be rearranged as in the Tosephta",
+     "evidence_type": "proposed_emendation",
+     "where": "Guggenheimer note 97"
+    }
+   ],
+   "reasoning": "Parallels in other works and later emendations are separate kinds of evidence. The emendations are proposals based on the Tosefta; no Yerushalmi witness checked here has that order. The difference between 'his father' and 'his heirs' is between works. It is not a variant of the Yerushalmi.",
+   "confidence": "high",
+   "graph_effect": "Keep the Yerushalmi's 'לאביו' role, since all three Yerushalmi editions checked have it. Record the proposed reorder as an emendation affecting the order of obligations, not the people. Do not import the Bavli's 'heirs' role into the Yerushalmi reading."
+  },
+  {
+   "finding_id": "F8",
+   "claim": "The dying-instruction clause, 'יעשה פירוש לפירושו', is read by the Yerushalmi commentators checked as 'carry out what they specified'. The Bavli uses the same phrase as the contrasting 'if not' case, meaning disregard the statement. The two works do not share one meaning for the phrase.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "וכולן שאמרו בשעת מותן יינתנו לפלוני שהן שלו יעשה פירוש לפירושו",
+     "evidence_type": "base_text",
+     "where": "Venice 9:7:2",
+     "translation_by_this_dossier": "Translation by this dossier: 'And all of them who said at the time of their death, \"let them be given to So-and-so, for they are his\": he should act according to his specification.'"
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "כלומר שיעשה הפירוש כמו שפירשו ויקיים צוואה שלהן דחזקה שאינם משקרין בשעת מיתה",
+     "evidence_type": "commentary",
+     "where": "Penei Moshe 9:7:2:5",
+     "translation_by_this_dossier": "Translation by this dossier: 'that is, he should carry out the specification as they specified and fulfill their will, for there is a presumption that they do not lie at the time of death'"
+    },
+    {
+     "source_id": "S8",
+     "exact_quote": "וביאור זה שיקיים כמו שאמרו",
+     "evidence_type": "commentary",
+     "where": "Sha'arei Torat Eretz Yisrael 9:7:2:1",
+     "translation_by_this_dossier": "Translation by this dossier: 'and its meaning is that he fulfills what they said'"
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "וכולן אם אמרו בשעת מיתה ינתן לפלני שהן שלו, יעשה מפורש בפירוש.",
+     "evidence_type": "parallel",
+     "where": "Tosefta (Lieberman) 11:1"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "If any of these said at the moment of their death, it should be given to X because it is his property, one should follow his interpretation",
+     "evidence_type": "translation",
+     "where": "Guggenheimer English 9:7:2"
+    },
+    {
+     "source_id": "S12",
+     "exact_quote": "וכולן שאמרו בשעת מיתתן של פלוני הן יעשה כפירושן ואם לאו יעשה פירוש לפירושן",
+     "evidence_type": "parallel",
+     "where": "Bavli Bava Batra 52a",
+     "translation_by_this_dossier": "Translation by this dossier: '... he acts according to their specification; and if not, he makes an interpretation of their specification.'"
+    },
+    {
+     "source_id": "S21",
+     "exact_quote": "ואם לא מהימן לההוא נפקד שהפקדון של אותו פלוני הוא אלא של בעלים שלהם הוא",
+     "evidence_type": "commentary",
+     "where": "Rashbam on Bava Batra 52a"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "ושם גריס וכולן שאמרו וכו' יעשה כפירושן ואם לאו יעשה פירוש לפירושן",
+     "evidence_type": "commentary",
+     "where": "Mareh HaPanim 9:7:2:1, noting the Bavli wording"
+    }
+   ],
+   "reasoning": "Penei Moshe and Sha'arei Torat Eretz Yisrael both say to fulfil the instruction. Guggenheimer's 'follow his interpretation' follows Lieberman (note 98, not independently checked here) and does not conflict. The Yerushalmi then introduces the story with 'כהדא' ('like this case'), which Penei Moshe calls support for relying on dying statements. That fits the 'carry out' reading. The Bavli's two-branch wording differs.",
+   "confidence": "medium",
+   "graph_effect": "The dying depositor (a generic role) directs the bailee to give the item to an unnamed 'פלוני' (So-and-so). Keep 'פלוני' as a hypothetical placeholder, not a person in the story. Do not import the Bavli's 'disregard' branch into the Yerushalmi rule."
+  },
+  {
+   "finding_id": "F9",
+   "claim": "Rabbi Zevida, in the name of Rabbi Ba bar Mamal, adds 'only with witnesses'. This is a transmission relation from a later tradent to a named authority. The patronymic gives Rabbi Ba a local parent placeholder, Mamal. The commentators disagree on what the witnesses must see.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "רבי זבידא בשם רבי בא בר ממל ובלבד בעדים",
+     "evidence_type": "base_text",
+     "where": "Venice 9:7:2",
+     "translation_by_this_dossier": "Translation by this dossier: 'Rabbi Zevida in the name of Rabbi Ba bar Mamal: provided it is with witnesses.'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "ר' זביד' בשם ר' בא בר ממל ובלבד בעדים",
+     "evidence_type": "text_variant",
+     "where": "Mechon-Mamre, abbreviated 'זביד''"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "Rebbi Zebida in the name of Rebbi Abba bar Mamal: Only before witnesses",
+     "evidence_type": "translation",
+     "where": "Guggenheimer English renders בא as Abba"
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "שימסור לפלוני שאמרו בפני עדים",
+     "evidence_type": "commentary",
+     "where": "Penei Moshe 9:7:2:6",
+     "translation_by_this_dossier": "Translation by this dossier: 'that he delivers to So-and-so whom they said, before witnesses' (the phrase can also be read: 'whom they named before witnesses')"
+    },
+    {
+     "source_id": "S9",
+     "exact_quote": "והוא תמוה דמאי קא משמע לן",
+     "evidence_type": "commentary",
+     "where": "Noam Yerushalmi, on Penei Moshe's explanation",
+     "translation_by_this_dossier": "Translation by this dossier: 'and it is puzzling: what does it teach us?'"
+    },
+    {
+     "source_id": "S9",
+     "exact_quote": "הירושלמי לטעמי' דלא אמרינן מיגו בממון",
+     "evidence_type": "commentary",
+     "where": "Noam Yerushalmi: witnesses are needed because the bailee alone is not believed",
+     "translation_by_this_dossier": "Translation by this dossier: 'the Yerushalmi follows its own view that we do not apply migo in money matters'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "Dispositions of a last will which do not follow the general rule should be executed only in the presence of witnesses, to protect the trustee against claims of the legal heirs.",
+     "evidence_type": "translator_note",
+     "where": "Guggenheimer note 99"
+    }
+   ],
+   "reasoning": "The transmission is explicit. What the witnesses attest is interpretation. Penei Moshe's wording is ambiguous between the delivery and the dying statement. Noam Yerushalmi says the dying statement itself needs witnesses, because the bailee's own word is not accepted. Guggenheimer speaks of executing the disposition before witnesses. Rendering 'בא' as 'Abba' is the translator's choice and is not an identification.",
+   "confidence": "high",
+   "graph_effect": "Keep transmission: Zevida reports_in_name_of Ba bar Mamal, content 'only with witnesses', scoped to the dying-instruction rule. Keep Ba bar Mamal child_of Mamal from the patronymic, with a local parent placeholder, even though Mamal plays no other role. Record 'זביד'' and 'Abba' as name-form variants only."
+  },
+  {
+   "finding_id": "F10",
+   "claim": "The named household story involves three people. Rabbi Ba bar Hana's unnamed wife, while dying, says the item is her daughter's. 'He' says it is only his. The case comes before Rav, who says a person is not given to lying at the time of death. The text does not state the outcome, who brought the case, or that the daughter is Rabbi Ba bar Hana's child.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "כהדא איתת דרבי בא בר חנה מי דמכא אמרה אהן קידושא דברתי והוא אמר לית הוא אלא דידי אתא עובדא קומי רב אמר אין אדם מצוי לשקר בשעת מיתה",
+     "evidence_type": "base_text",
+     "where": "Venice 9:7:2",
+     "translation_by_this_dossier": "Translation by this dossier: 'As in this: the wife of Rabbi Ba bar Hana, when she was dying, said: \"This קידושא is my daughter's.\" And he said: \"It is nothing but mine.\" The case came before Rav. He said: a person is not given to lying at the time of death.'"
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "והוא אמר. בעלה",
+     "evidence_type": "commentary",
+     "where": "Penei Moshe 9:7:2:9 identifies the pronoun",
+     "translation_by_this_dossier": "Translation by this dossier: '\"and he said\": her husband'"
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "מייתי סייעתא דסומכין על מה שמצויין בשעת מיתה",
+     "evidence_type": "commentary",
+     "where": "Penei Moshe 9:7:2:7",
+     "translation_by_this_dossier": "Translation by this dossier: 'he brings support that one relies on what they instruct at the time of death'"
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "ואפילו בגוונא שלא היתה נאמנת בחייה",
+     "evidence_type": "commentary",
+     "where": "Penei Moshe 9:7:2:10",
+     "translation_by_this_dossier": "Translation by this dossier: 'even in a case where she would not have been believed during her life'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "When Rebbi Abba bar Ḥana’s wife was dying, she said, these rings belong to my daughter. But he said no, they are mine.",
+     "evidence_type": "translation",
+     "where": "Guggenheimer English"
+    }
+   ],
+   "reasoning": "'איתת דרבי בא בר חנה' ('the wife of Rabbi Ba bar Hana') states the marriage. 'ברתי' ('my daughter') is in the wife's own speech, so the mother-daughter relation carries her voice. Nothing makes the daughter the husband's child. 'והוא אמר' has no named antecedent. The husband is the only male in the story before it, and Penei Moshe says so. The first reading's resolution stands. 'אתא עובדא קומי רב' means the case came before Rav; it does not say the husband or wife visited him. Rav's words are a principle. The ruling for the wife is inferred (Penei Moshe), not stated.",
+   "confidence": "high",
+   "graph_effect": "Named-story actors: wife_of_Ba_bar_Hana (local, unnamed) spouse_of Ba bar Hana; daughter (local, unnamed) child_of wife, voice=wife; Ba bar Hana child_of Hana (patronymic placeholder, kept); 'והוא' coreferent with Ba bar Hana (commentary-supported); Rav: case came before him, plus a stated view. Keep the story actors separate from the baraita's generic woman, husband and bailee. 'Supports the wife's claim' stays an interpretation."
+  },
+  {
+   "finding_id": "F11",
+   "claim": "What the disputed 'קידושא' is remains uncertain, and the sources disagree. Jastrow's main gloss is 'betrothal-gift', though he suggests it is probably to be read 'ring'. Penei Moshe says a nose-ring. Sha'arei Torat Eretz Yisrael says earrings, the same as the Bavli's 'כיפי'. Guggenheimer translates 'rings'. Mechon-Mamre reads 'קירושא'. The earlier reading's 'betrothal property' follows only Jastrow's first gloss.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "S20",
+     "exact_quote": "token of betrothal, betrothal-gift.",
+     "evidence_type": "lexicon",
+     "where": "Jastrow sense 4, citing this passage"
+    },
+    {
+     "source_id": "S20",
+     "exact_quote": "prob. to be read: קַדִּישָׁא or קָדָשָׁא ring",
+     "evidence_type": "lexicon",
+     "where": "Jastrow, same entry"
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "בשעת מיתתה אמרה זה הנזם של בתי הוא נזם זהב תרגומו קרשא דדהבא",
+     "evidence_type": "commentary",
+     "where": "Penei Moshe 9:7:2:8",
+     "translation_by_this_dossier": "Translation by this dossier: 'at the time of her death she said, this nose-ring is my daughter's; \"golden nose-ring\" is rendered in the Targum קרשא דדהבא'"
+    },
+    {
+     "source_id": "S8",
+     "exact_quote": "הן עגילי אזן",
+     "evidence_type": "commentary",
+     "where": "Sha'arei Torat Eretz Yisrael 9:7:2:2",
+     "translation_by_this_dossier": "Translation by this dossier: 'they are earrings'"
+    },
+    {
+     "source_id": "S8",
+     "exact_quote": "והן הן כיפי דבבלי",
+     "evidence_type": "commentary",
+     "where": "Sha'arei Torat Eretz Yisrael 9:7:2:2",
+     "translation_by_this_dossier": "Translation by this dossier: 'and they are the כיפי of the Bavli'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "אהן קירושא דברתי",
+     "evidence_type": "text_variant",
+     "where": "Mechon-Mamre spelling"
+    },
+    {
+     "source_id": "S0b",
+     "exact_quote": "This is my daughter’s betrothal property",
+     "evidence_type": "earlier_reading",
+     "where": "Pilot entity daughter_property label"
+    }
+   ],
+   "reasoning": "If 'betrothal' is taken literally, it can suggest an unstated betrothal event and a groom for the daughter. None of the jewellery readings implies either. The text supports only a claim that some item belongs to the daughter.",
+   "confidence": "medium",
+   "graph_effect": "Relabel the disputed object neutrally: 'this item (קידושא: jewellery per most sources; betrothal gift per Jastrow's main gloss) is my daughter's'. Do not create a betrothal event or a spouse for the daughter."
+  },
+  {
+   "finding_id": "F12",
+   "claim": "The husband's name is spelled differently in the editions checked. Venice and Guggenheimer's Hebrew read 'בר חנה'; Mechon-Mamre reads 'בר חנא'. Guggenheimer's English gives 'Abba bar Ḥana'. These are spelling and rendering variants of one name in one passage.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "איתת דרבי בא בר חנה",
+     "evidence_type": "base_text",
+     "where": "Venice"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "איתת דר' בא בר חנא",
+     "evidence_type": "text_variant",
+     "where": "Mechon-Mamre"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "כְּהָדָא אִיתַת דְּרִבִּי בָּא בַּר חָנָה",
+     "evidence_type": "text_variant",
+     "where": "Guggenheimer Hebrew, vocalized"
+    }
+   ],
+   "reasoning": "Final ה and final א are often interchanged in Aramaic spelling. The variant does not change the local person. The Venice and Guggenheimer texts are not independent corroboration; the Guggenheimer Hebrew is an edited text.",
+   "confidence": "high",
+   "graph_effect": "One local person, Ba bar Hana, with name forms בר חנה / בר חנא. The parent placeholder Hana keeps both spellings."
+  },
+  {
+   "finding_id": "F13",
+   "claim": "The Bavli (Bava Batra 52a) tells a parallel story that differs in actors and outcome. The husband is Rabbah bar bar Hana. The dying wife says the rings belong to 'Marta and the sons of [the] daughter'. The case comes 'before Rav'. Rav gives a conditional answer (if you trust her, do as she said; if not, disregard it), and there is a second version of his answer. Rashbam explains Marta as a sage, the brother of Rabbi Hiyya.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S12",
+     "exact_quote": "דביתהו דרבה בר בר חנה כי קא שכבה אמרה הני כיפי דמרתא ובני ברתא אתא לקמיה דרב אמר ליה אי מהימנא לך עשה כפירושה ואי לא עשה פירוש לפירושה",
+     "evidence_type": "parallel",
+     "where": "Bavli Bava Batra 52a, William Davidson Aramaic",
+     "translation_by_this_dossier": "Translation by this dossier: 'The wife of Rabbah bar bar Hana, when she was dying, said: \"These rings are Marta's and the daughter's sons'.\" It came before Rav. He said to him: if she is trustworthy to you, do as she specified; if not, make an interpretation of her specification.'"
+    },
+    {
+     "source_id": "S12",
+     "exact_quote": "ואיכא דאמרי הכי אמר ליה אי אמידא לך עשה כפירושה ואי לא עשה פירוש לפירושה",
+     "evidence_type": "parallel",
+     "where": "Bavli Bava Batra 52a, second version"
+    },
+    {
+     "source_id": "S12",
+     "exact_quote": "belong to Marta and the sons of her daughter.",
+     "evidence_type": "translation",
+     "where": "William Davidson English"
+    },
+    {
+     "source_id": "S21",
+     "exact_quote": "דמרתא - שם חכם אחיו של ר' חייא",
+     "evidence_type": "commentary",
+     "where": "Rashbam on Bava Batra 52a",
+     "translation_by_this_dossier": "Translation by this dossier: 'Marta: the name of a sage, the brother of Rabbi Hiyya'"
+    },
+    {
+     "source_id": "S21",
+     "exact_quote": "ובני ברתא - של מרתא ושל בני בתו",
+     "evidence_type": "commentary",
+     "where": "Rashbam; the possessor of 'בתו' is ambiguous",
+     "translation_by_this_dossier": "Translation by this dossier: 'and the daughter's sons: [they belong to] Marta and to the sons of his (or her) daughter'"
+    },
+    {
+     "source_id": "S21",
+     "exact_quote": "עשה פירוש לפירושה - עכב לעצמך",
+     "evidence_type": "commentary",
+     "where": "Rashbam",
+     "translation_by_this_dossier": "Translation by this dossier: 'make an interpretation of her specification: keep it for yourself'"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "ומייתי נמי התם האי עובדא דדביתהו דרבה בר בר חנה",
+     "evidence_type": "commentary",
+     "where": "Mareh HaPanim links the two stories"
+    }
+   ],
+   "reasoning": "This is a parallel in another work, not another witness to the Yerushalmi's wording. Its beneficiaries, its husband's name and Rav's answer all differ. The William Davidson English makes the daughter 'her daughter'; Rashbam's 'בתו' may mean Marta's daughter. That changes who the daughter's sons belong to.",
+   "confidence": "high",
+   "graph_effect": "Record as a separate parallel episode with its own local actors: Rabbah bar bar Hana's wife, Marta, the daughter's sons, Rav. Do not merge the Bavli's Marta or grandsons into the Yerushalmi's daughter. Linking the two husbands is an identity question (F14), not a fact of either text."
+  },
+  {
+   "finding_id": "F14",
+   "claim": "Guggenheimer argues that the Bavli's attribution (in his words 'Abba bar bar Ḥana') is correct and that the Yerushalmi's Abba bar Ḥana is the man the Bavli calls Abba bar bar Ḥana. His argument depends on biographical claims. It is the translator's historical inference, not something the text states. The Bavli text saved here reads 'רבה בר בר חנה', not 'Abba'.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "There, the husband is Abba bar bar Ḥana. This is the correct attribution since Abba bar Ḥana, the elder R. Ḥiyya’s brother, died before the birth of his son, therefore also before his wife.",
+     "evidence_type": "translator_note",
+     "where": "Guggenheimer note 100"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "This proves that the person called Abba bar Ḥana in the Yerushalmi is called Abba bar bar Ḥana in the Babli.",
+     "evidence_type": "translator_note",
+     "where": "Guggenheimer note 100"
+    },
+    {
+     "source_id": "S15",
+     "exact_quote": "אמר רבי בא בר חנה לא הוה רבי חייה חביבי פתר לה",
+     "evidence_type": "base_text",
+     "where": "Venice, Yerushalmi Bava Kamma 10:1 (the passage Guggenheimer cites)",
+     "translation_by_this_dossier": "Translation by this dossier: 'Rabbi Ba bar Hana said: Rabbi Hiyya, חביבי, explained it only as ...'"
+    },
+    {
+     "source_id": "S15",
+     "exact_quote": "Rebbi Abba bar Ḥanan said, my uncle Rebbi Ḥiyya explained this",
+     "evidence_type": "translation",
+     "where": "Guggenheimer English at 10:1 (spelled 'Ḥanan' there)"
+    },
+    {
+     "source_id": "S12",
+     "exact_quote": "דביתהו דרבה בר בר חנה",
+     "evidence_type": "parallel",
+     "where": "Bavli Bava Batra 52a reads Rabbah, not Abba"
+    }
+   ],
+   "reasoning": "A shared name, or a similar story, does not establish identity. The argument relies on outside claims that were not checked here: when Abba bar Hana died, and his relation to R. Hiyya. It also relies on 'חביבי' meaning 'my uncle' in 10:1, which is Guggenheimer's translation. 'רבה' and 'אבא' may be related name forms, but the saved Bavli text does not say 'Abba'. Guggenheimer is one editorial source, so his Hebrew and English are not two confirmations.",
+   "confidence": "medium",
+   "graph_effect": "Add only a provisional identity candidate: Yerushalmi 'Ba bar Hana' (this story) ~ Bavli 'Rabbah bar bar Hana' (Bava Batra 52a), proposer Guggenheimer, status unreviewed. Do not merge. The Bavli form 'bar bar Hana' would make Hana a grandfather, not a father, so it cannot be merged with this passage's child_of edge."
+  },
+  {
+   "finding_id": "F15",
+   "claim": "Guggenheimer compares Rav's principle ('a person is not given to lying at the time of death') to a statement of Rava in Bava Batra 175a. The wording there is different: Rava resolves that 'a person does not jest at the time of death'. The two are similar legal presumptions from different named speakers, with different verbs.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "אין אדם מצוי לשקר בשעת מיתה",
+     "evidence_type": "base_text",
+     "where": "Venice 9:7:2, Rav",
+     "translation_by_this_dossier": "Translation by this dossier: 'a person is not given to lying at the time of death'"
+    },
+    {
+     "source_id": "S13",
+     "exact_quote": "בתר דבעיא הדר פשטה אין אדם משטה בשעת מיתה",
+     "evidence_type": "parallel",
+     "where": "Bavli Bava Batra 175a, Rava",
+     "translation_by_this_dossier": "Translation by this dossier: 'after he asked it, he resolved it: a person does not jest at the time of death'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "A statement of Rava in the ",
+     "evidence_type": "translator_note",
+     "where": "Guggenheimer note 101"
+    }
+   ],
+   "reasoning": "'לשקר' (to lie) and 'משטה' (to jest) are different claims about a dying speaker. The attribution differs as well (Rav here, Rava there).",
+   "confidence": "high",
+   "graph_effect": "Keep Rav's view claim as-is. At most add a 'similar principle' link between two statements. Do not reassign the speaker or treat it as one statement."
+  },
+  {
+   "finding_id": "F16",
+   "claim": "Pronouns in the father mishnah. 'ומת' ('and he died') is the father. The payer is the son who robbed and swore falsely. Whose 'sons or brothers' receive the payment is interpreted. Penei Moshe, Mareh HaPanim (following Rashi and Rambam) and Bartenura say the father's sons or brothers. Guggenheimer says the Yerushalmi leaves it undetermined.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "הגוזל את אביו ונשבע לו ומת הרי זה משלם קרן וחומש לבניו או לאחיו",
+     "evidence_type": "base_text",
+     "where": "Venice 9:7:1",
+     "translation_by_this_dossier": "Translation by this dossier: 'One who robs his father and swore to him, and he died: he pays principal and a fifth to his sons or to his brothers.'"
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "אביו ואחר מיתת האב הודה",
+     "evidence_type": "commentary",
+     "where": "Penei Moshe 9:7:1:5",
+     "translation_by_this_dossier": "Translation by this dossier: '[the one who died is] his father, and after the father's death he admitted'"
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "של אביו או לאחיו של אביו אם אין לו בנים",
+     "evidence_type": "commentary",
+     "where": "Penei Moshe 9:7:1:6",
+     "translation_by_this_dossier": "Translation by this dossier: '[the sons] of his father, or to his father's brothers if he has no sons'"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "משמעות לשון המשנה משמע כפי' רש\"י דלבניו אבני הנגזל קאי",
+     "evidence_type": "commentary",
+     "where": "Mareh HaPanim 9:7:1:2",
+     "translation_by_this_dossier": "Translation by this dossier: 'the plain sense of the mishnah fits Rashi: \"his sons\" refers to the sons of the one robbed'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "The father.",
+     "evidence_type": "translator_note",
+     "where": "Guggenheimer note 102, on who died"
+    }
+   ],
+   "reasoning": "The Hebrew antecedents are ambiguous. The commentators checked agree on the father, and Guggenheimer's note 103 (quoted in F5) records the uncertainty. Everyone involved is a hypothetical legal role.",
+   "confidence": "medium",
+   "graph_effect": "Keep hypothetical son child_of father. Record the sons and brothers who receive payment as the father's sons (the robber's brothers) and the father's brothers under the commentary branch, with an undetermined branch per Guggenheimer. No named people."
+  },
+  {
+   "finding_id": "F17",
+   "claim": "The later codes checked (Rambam, Shulchan Arukh) make the dying-statement rule conditional on the bailee's trust ('if they are trusted by him ... otherwise to their heirs'). This follows the Bavli's two-branch form, not the Yerushalmi's plain instruction. Mareh HaPanim discusses the difference.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S17",
+     "exact_quote": "וכולן שאמרו בשעת מיתתן של פלוני הם אם נאמנין לו יעשה כפירושן ואם לאו יחזיר ליורשיהם",
+     "evidence_type": "later_code",
+     "where": "Mishneh Torah, Borrowing and Deposit 7:10"
+    },
+    {
+     "source_id": "S19",
+     "exact_quote": "ואם אמרה בשעת מיתתה של פלוני הם אם נאמנת לו יעשה כדבריה ואם לאו יתן ליורשיה",
+     "evidence_type": "later_code",
+     "where": "Shulchan Arukh, Even HaEzer 86:1"
+    }
+   ],
+   "reasoning": "This concerns how the rule was received later. It does not change who is in the Yerushalmi passage.",
+   "confidence": "high",
+   "graph_effect": "None for people. It supports keeping the Yerushalmi and Bavli rule versions as separate statements."
+  }
+ ],
+ "alternative_readings": [
+  {
+   "id": "vehu_referent",
+   "question": "Who is 'והוא' ('and he') in 'והוא אמר לית הוא אלא דידי'?",
+   "branches": [
+    {
+     "id": "husband",
+     "reading": "Rabbi Ba bar Hana, the husband, claims the item as his own.",
+     "held_by": [
+      "Penei Moshe 9:7:2:9 (S6)",
+      "Guggenheimer English 'But he said no, they are mine' in context (S1)",
+      "earlier pilot claim c11 (S0b)"
+     ]
+    },
+    {
+     "id": "other_male_holder",
+     "reading": "Some other male holder, such as a bailee, is speaking.",
+     "held_by": [
+      "No source checked holds this. It is listed only because the Hebrew has no explicit antecedent. It is disfavoured: the only prior male is the husband."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "kidusha_object",
+   "question": "What is the 'קידושא' the wife assigns to her daughter?",
+   "branches": [
+    {
+     "id": "jewellery",
+     "reading": "A ring, nose-ring or earrings.",
+     "held_by": [
+      "Penei Moshe: nose-ring (S6)",
+      "Sha'arei Torat Eretz Yisrael: earrings (S8)",
+      "Guggenheimer: rings (S1)",
+      "Jastrow's bracketed alternative (S20)"
+     ]
+    },
+    {
+     "id": "betrothal_gift",
+     "reading": "A betrothal gift or token.",
+     "held_by": [
+      "Jastrow sense 4 (S20)",
+      "earlier pilot label (S0b)"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "witness_scope",
+   "question": "What must happen before witnesses under Rabbi Ba bar Mamal's condition?",
+   "branches": [
+    {
+     "id": "statement_before_witnesses",
+     "reading": "The dying person's instruction must be made before witnesses.",
+     "held_by": [
+      "Noam Yerushalmi (S9)",
+      "one possible parse of Penei Moshe (S6)"
+     ]
+    },
+    {
+     "id": "delivery_before_witnesses",
+     "reading": "The bailee must execute or deliver before witnesses.",
+     "held_by": [
+      "Guggenheimer note 99 (S1)",
+      "another possible parse of Penei Moshe (S6)"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "minor_clause_order",
+   "question": "Order of the minor clause in the baraita.",
+   "branches": [
+    {
+     "id": "as_printed",
+     "reading": "Return to him; if he died, to his father; and make an investment.",
+     "held_by": [
+      "Venice, Mechon-Mamre, Guggenheimer Hebrew (S1)"
+     ]
+    },
+    {
+     "id": "tosefta_order",
+     "reading": "Make an investment; if he died, return to his father.",
+     "held_by": [
+      "Tosefta (S10)",
+      "proposed by Penei Moshe (S6), Sha'arei Torat Eretz Yisrael (S8) and Guggenheimer note 97 (S1)"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "heirs_of_father",
+   "question": "Whose sons or brothers receive payment in the father mishnah?",
+   "branches": [
+    {
+     "id": "fathers",
+     "reading": "The robbed father's sons, otherwise his brothers.",
+     "held_by": [
+      "Penei Moshe (S6)",
+      "Mareh HaPanim after Rashi and Rambam (S7)",
+      "Bartenura English (S14)",
+      "William Davidson and Kulp Mishnah translations (S14)"
+     ]
+    },
+    {
+     "id": "undetermined",
+     "reading": "The Yerushalmi does not settle whose.",
+     "held_by": [
+      "Guggenheimer note 103 (S1)"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "husband_identity",
+   "question": "Is the Yerushalmi's Ba bar Hana the same person as the Bavli's Rabbah bar bar Hana in the parallel story?",
+   "branches": [
+    {
+     "id": "same_person_proposed",
+     "reading": "The same man; the Bavli form is correct.",
+     "held_by": [
+      "Guggenheimer note 100 (S1)"
+     ]
+    },
+    {
+     "id": "not_decided",
+     "reading": "The texts attribute a similar story to differently formed names. Identity is not established by this evidence.",
+     "held_by": [
+      "this dossier"
+     ]
+    }
+   ]
+  }
+ ],
+ "unresolved": [
+  "Is the daughter also Rabbi Ba bar Hana's daughter? The text gives only the mother's relation, in her own voice.",
+  "How was the case resolved? Rav's principle implies the wife is believed (Penei Moshe), but no ruling or transfer is stated.",
+  "Who brought the case to Rav? 'אתא עובדא' ('the case came') names no one. The Bavli parallel implies the husband came.",
+  "Where was the item? The story does not say whether it was deposited with a third party, as in the baraita, or held by the husband. How the story fits the baraita's deposit setting is therefore interpretive.",
+  "The Leiden manuscript and other Yerushalmi witnesses were not checked for the name forms or 'קידושא'.",
+  "Korban HaEdah and Sheyarei Korban on this halakhah were not obtained. They did not appear in the Sefaria link list for 9:7:2. That does not show they have no comment.",
+  "Lieberman's discussion of 'פירוש לפירושו' in Tosefta Kifshutah is cited by Guggenheimer but was not read.",
+  "Whether the unqualified 'Rav' here is the Babylonian amora Rav is a historical-identity question. It was not decided here."
+ ],
+ "proposed_corrections": [
+  {
+   "existing_claim_id": null,
+   "change": "Add a second scenario for the stolen-deposit dialogue in s2 (9:7:1). Give it its own local depositor and keeper roles, a question, the answer 'נגנב' ('stolen'), the oath and amen, witnesses testifying 'שגנבו' ('that he stole it'), and consequence claims: double payment with witnesses; principal, fifth and guilt offering with self-admission.",
+   "why": "F1, F2 and the earlier review's miss (index 3). The stolen case has different testimony and payment and is a separate numbered mishnah."
+  },
+  {
+   "existing_claim_id": "c24, c25, c26, c27",
+   "change": "Scope these to scenario 'lost-claim' explicitly. Add consequence claims: principal only with witnesses; principal, fifth and guilt offering with self-admission.",
+   "why": "F2. Prevents the stolen case from inheriting the first dialogue's roles or outcomes."
+  },
+  {
+   "existing_claim_id": "c21, c22",
+   "change": "Add return-obligation claims: generic bailee returns to the woman (alive) or her husband (dead); to the slave (alive) or his master (dead); to the minor (alive) or his father (dead), with a safe investment. Add the prohibition on accepting deposits from women, slaves and minors as a stated rule. Add a master relation for generic_slave and master. Mark all as hypothetical.",
+   "why": "F6 and the earlier review's miss (index 4)."
+  },
+  {
+   "existing_claim_id": null,
+   "change": "Add a rule claim: dying instruction 'יינתנו לפלוני' ('let them be given to So-and-so') is to be carried out (Yerushalmi reading), with an alternative-readings note that the Bavli's parallel phrase means the opposite branch.",
+   "why": "F8."
+  },
+  {
+   "existing_claim_id": "daughter_property (entity label)",
+   "change": "Change 'This is my daughter’s betrothal property' to a neutral label: 'This item (קידושא) is my daughter's'. Record the jewellery and betrothal-gift alternatives.",
+   "why": "F11. Most sources read jewellery; the betrothal gloss risks inventing a betrothal event."
+  },
+  {
+   "existing_claim_id": "c15",
+   "change": "Keep basis 'interpretation', but lower reading_confidence to medium. Cite Penei Moshe 9:7:2:7 and 9:7:2:10 as the source of the inference.",
+   "why": "F10. The ruling for the wife is implicit."
+  },
+  {
+   "existing_claim_id": "c11",
+   "change": "Keep the coreference of 'והוא' with ba_hana. Add Penei Moshe 9:7:2:9 as supporting commentary evidence.",
+   "why": "F10 and alternative 'vehu_referent'."
+  },
+  {
+   "existing_claim_id": "c8",
+   "change": "Mark c8 (witness_rule attributes_to ba_mamal) as a derived view of c7, not a second observation. Or drop it.",
+   "why": "Same words and same relation. An inverse or duplicate display is not independent evidence."
+  },
+  {
+   "existing_claim_id": "m7, m8",
+   "change": "Change mention kind from 'name' to 'description' (a kinship description): 'איתת דרבי בא בר חנה' ('the wife of Rabbi Ba bar Hana') and 'ברתי' ('my daughter') are not names.",
+   "why": "F10. Neither person is named."
+  },
+  {
+   "existing_claim_id": "ba_hana, hana, zevida (entities)",
+   "change": "Add name-form variants: בר חנא (Mechon-Mamre); ר' זביד' (Mechon-Mamre); English 'Abba' for בא (Guggenheimer). Keep each as the same local person.",
+   "why": "F9 and F12."
+  },
+  {
+   "existing_claim_id": null,
+   "change": "Add a provisional identity candidate (not a merge): the local ba_hana in this story and the Bavli Bava Batra 52a 'רבה בר בר חנה'. Proposer: Guggenheimer note 100. Status: unreviewed.",
+   "why": "F13 and F14. Keeps the proposal and its authority visible without merging people."
+  },
+  {
+   "existing_claim_id": null,
+   "change": "Add father-mishnah pronoun resolutions: 'ומת' refers to the father; recipients are the father's sons or brothers under the commentary branch.",
+   "why": "F16. The earlier open question about whose sons and brothers is answered by commentary, with Guggenheimer dissenting as undetermined."
+  },
+  {
+   "existing_claim_id": "episode.coverage",
+   "change": "Change 'complete_for_supplied_text' to partial, or add the missing claims above.",
+   "why": "The earlier review. The stolen case, return rules and father-mishnah consequences were not extracted."
+  }
+ ],
+ "ontology_lessons": [
+  "Repeated mishnah cases with the same frame ('Where is my deposit? ...') are separate hypothetical scenarios. Roles need a scenario scope so the keeper of case 1 is not the keeper of case 2.",
+  "A legal consequence depends on a condition: the claim made (lost or stolen) and how the lie comes out (witnesses or self-admission). The contract needs a conditional-consequence claim, not only person-to-person relations.",
+  "A halakhah heading ('איכן פקדוני ... כו'') cites a mishnah unit. It is not a new speech event.",
+  "A story introduced by 'כהדא' ('like this case') illustrates a rule. Its named actors do not fill the rule's generic roles (woman, husband, bailee, So-and-so) unless the text maps them.",
+  "A parallel story in another Talmud with different names, beneficiaries and ruling is a separate episode. It is not corroboration of each detail and not a basis for merging actors.",
+  "An uncertain lexical gloss can create people or events that are not there (for example, a betrothal and a groom). Object labels should stay neutral when glosses disagree.",
+  "A patronymic of the form 'bar bar X' encodes a grandparent. Two name forms for one story can yield incompatible kinship edges, which is another reason not to merge on name similarity.",
+  "A translator's historical note is an identity or biography proposal from that translator. Store it with its authority, separate from the text's own evidence."
+ ],
+ "graph_status": "All graph proposals are provisional. No historical identity merge or date is proposed as accepted."
+}

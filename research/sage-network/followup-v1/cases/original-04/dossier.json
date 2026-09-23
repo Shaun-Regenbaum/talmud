@@ -1,0 +1,700 @@
+{
+ "job_id": "original-04",
+ "focal_ref": "Pesachim 103a:5",
+ "status": "researched",
+ "question": "Reconstruct the visit, blessings, challenge to practice and cited rulings. Separate action target, addressee and cited authority. Research halachic context and whether any later verse changes the participant identity.",
+ "scope_note": "Checked Pesachim 103a:1-10 (WD vocalized, WD English, Wikisource, Goldschmidt German), Rashbam and Tosafot on 103a, Rif and Rosh on the passage, Halakhot Gedolot 2:6, the Berakhot 52b parallel (WD, Wikisource, Rif Berakhot via links), Mishnah Berakhot 8:5, Seder HaDorot 995, Rambam Shabbat 29, Tur and Shulchan Arukh OC 296. No manuscripts. WD English and WD Aramaic are one editorial project; Wikisource shares the Vilna base.",
+ "sources": [
+  {
+   "source_id": "S0",
+   "url_or_input_path": "research/sage-network/followup-v1/cases/original-04/input.json",
+   "edition": "Case input: lake snapshot 2 segment, William Davidson vocalized Aramaic plus earlier pair judgments (read only, unchanged)",
+   "fetched_at": null,
+   "saved_file": "input.json",
+   "sha256": "7506d7b55aefccd9fcf0339c547924541905486ec77b25e931820ee8c41b1a27",
+   "note": "Not fetched; read from disk."
+  },
+  {
+   "source_id": "S1",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Pesachim.103a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English",
+   "edition": "Sefaria v3 API, Pesachim 103a, William Davidson Edition - Vocalized Aramaic and William Davidson Edition - English (Koren/Steinsaltz)",
+   "fetched_at": "2026-09-23T07:42:57Z",
+   "saved_file": "sources/pesachim-103a-v3.json",
+   "sha256": "5d4f27e6666a6f2bad31bf5010be791d7ba7187b4f2fab8887d9a6e68b2a4b1d"
+  },
+  {
+   "source_id": "S2",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Pesachim.103a?version=hebrew%7CWikisource%20Talmud%20Bavli",
+   "edition": "Sefaria v3 API, Pesachim 103a, Wikisource Talmud Bavli (unvocalized, Vilna-based)",
+   "fetched_at": "2026-09-23T07:44:07Z",
+   "saved_file": "sources/pesachim-103a-wikisource.json",
+   "sha256": "039281b5d9e97cd402fcb5b7da83a9989242d8d774ab987ddbbd3c59ffa6ddc2"
+  },
+  {
+   "source_id": "S3",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Pesachim.103a?version=german%7CTalmud%20Bavli.%20German%20trans.%20by%20Lazarus%20Goldschmidt,%201929%20%5Bde%5D",
+   "edition": "Sefaria v3 API, Pesachim 103a, Lazarus Goldschmidt German translation (1929)",
+   "fetched_at": "2026-09-23T07:45:58Z",
+   "saved_file": "sources/pesachim-103a-goldschmidt-de.json",
+   "sha256": "6138d2985d5bc7626e4268da6db84f20f5e528db95df924c848f94a00f5c9d06"
+  },
+  {
+   "source_id": "S4",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Rashbam_on_Pesachim.103a",
+   "edition": "Sefaria v3 API, Rashbam on Pesachim 103a, Vilna Edition",
+   "fetched_at": "2026-09-23T07:43:48Z",
+   "saved_file": "sources/rashbam-pesachim-103a.json",
+   "sha256": "72db44b813c03de867fb6f056b42a9878da8623088a233f00a480664c4ccf71c"
+  },
+  {
+   "source_id": "S5",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Tosafot_on_Pesachim.103a",
+   "edition": "Sefaria v3 API, Tosafot on Pesachim 103a, Vilna Edition",
+   "fetched_at": "2026-09-23T07:43:49Z",
+   "saved_file": "sources/tosafot-pesachim-103a.json",
+   "sha256": "c0b82da03f3fa9cd00f04a159d7e9959a54b3c9ce7a36b19161877afb2889489"
+  },
+  {
+   "source_id": "S6",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Rif_Pesachim.20b.5-21a.1",
+   "edition": "Sefaria v3 API, Rif Pesachim 20b:5-21a:1, Vilna Edition",
+   "fetched_at": "2026-09-23T07:43:50Z",
+   "saved_file": "sources/rif-pesachim-20b-21a.json",
+   "sha256": "dac99663bd1ef7a690b184f9941f01a6e31758baa99b332dc9360284bb070d2d"
+  },
+  {
+   "source_id": "S7",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Rosh_on_Pesachim.10",
+   "edition": "Sefaria v3 API, Rosh on Pesachim chapter 10, Vilna Edition",
+   "fetched_at": "2026-09-23T07:45:16Z",
+   "saved_file": "sources/rosh-pesachim-10.json",
+   "sha256": "783f746057bcabdebbd549a9ab0d07038db64de7a5e557e48bd6176383f2ea79"
+  },
+  {
+   "source_id": "S8",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Halakhot_Gedolot.2.6",
+   "edition": "Sefaria v3 API, Halakhot Gedolot 2:6, Warsaw 1874",
+   "fetched_at": "2026-09-23T07:45:16Z",
+   "saved_file": "sources/halakhot-gedolot-2-6.json",
+   "sha256": "3673bb7e7d25a0c418eba03e8e8043c31b71a8a0f90006fa53a7d0a4f1e347a6"
+  },
+  {
+   "source_id": "S9",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Berakhot.52b?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English",
+   "edition": "Sefaria v3 API, Berakhot 52b, William Davidson vocalized Aramaic and English",
+   "fetched_at": "2026-09-23T07:43:51Z",
+   "saved_file": "sources/berakhot-52b-v3.json",
+   "sha256": "68739e4705cd585aff929074fa407c8448eb2c3bcfc329630bed1e7a473be7be"
+  },
+  {
+   "source_id": "S10",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Berakhot.52b?version=hebrew%7CWikisource%20Talmud%20Bavli",
+   "edition": "Sefaria v3 API, Berakhot 52b, Wikisource Talmud Bavli",
+   "fetched_at": "2026-09-23T07:44:07Z",
+   "saved_file": "sources/berakhot-52b-wikisource.json",
+   "sha256": "e67bd7fa04e9121ee05d5e4c2417473c656f03b679defa7371795fa513c42496"
+  },
+  {
+   "source_id": "S11",
+   "url_or_input_path": "https://www.sefaria.org/api/links/Berakhot.52b.24?with_text=1",
+   "edition": "Sefaria links API with text for Berakhot 52b:24 (includes Mishnah Berakhot 8:5 and Rif Berakhot 39a:4 texts)",
+   "fetched_at": "2026-09-23T07:44:08Z",
+   "saved_file": "sources/berakhot-52b-links-24.json",
+   "sha256": "9581d8464cc8b0907c154f333fc8f90abfe956c9904443f5d64d394a63832626"
+  },
+  {
+   "source_id": "S12",
+   "url_or_input_path": "https://www.sefaria.org/api/links/Pesachim.103a.5?with_text=1",
+   "edition": "Sefaria links API with text for Pesachim 103a:5",
+   "fetched_at": "2026-09-23T07:43:07Z",
+   "saved_file": "sources/pesachim-103a-5-links.json",
+   "sha256": "0987470e0e64b6aaf0644144e6cdd45185f2e9e74950d44050bd58d828240f7a"
+  },
+  {
+   "source_id": "S13",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Seder_HaDorot,_Tanaim_and_Amoraim.995",
+   "edition": "Sefaria v3 API, Seder HaDorot, Tanaim and Amoraim 995, Warsaw 1878-1882",
+   "fetched_at": "2026-09-23T07:43:50Z",
+   "saved_file": "sources/seder-hadorot-995.json",
+   "sha256": "4fc79b98ead4a1114e0729e9ef61f99d770edacd17e23b9b81fe5746315238aa"
+  },
+  {
+   "source_id": "S14",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Mishneh_Torah,_Sabbath.29",
+   "edition": "Sefaria v3 API, Mishneh Torah, Sabbath 29, Torat Emet 363",
+   "fetched_at": "2026-09-23T07:44:44Z",
+   "saved_file": "sources/mt-shabbat-29.json",
+   "sha256": "0cbbc707e9bd38ca850753a452e114cee54fb457f6932dea9e72ecc4f77f4f92"
+  },
+  {
+   "source_id": "S15",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Tur,_Orach_Chaim.296",
+   "edition": "Sefaria v3 API, Tur, Orach Chaim 296, Vilna 1923",
+   "fetched_at": "2026-09-23T07:44:37Z",
+   "saved_file": "sources/tur-oc-296.json",
+   "sha256": "921f7a61cb7c2eed538ec138f65a266d690bdf8560d72e0fabae4924df9bf18a"
+  },
+  {
+   "source_id": "S16",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Shulchan_Arukh,_Orach_Chayim.296.1",
+   "edition": "Sefaria v3 API, Shulchan Arukh, Orach Chayim 296:1, Lemberg 1893",
+   "fetched_at": "2026-09-23T07:44:37Z",
+   "saved_file": "sources/sa-oc-296.json",
+   "sha256": "c504ad8cf9d119e42a04296b7db7128037cd1c10068a1a925b123815f26b1588"
+  },
+  {
+   "source_id": "S17",
+   "url_or_input_path": "https://www.sefaria.org/api/search-wrapper POST הונא בר יהודה איקלע",
+   "edition": "Sefaria search-wrapper, exact phrase 'הונא בר יהודה איקלע', size 40",
+   "fetched_at": "2026-09-23T07:45:02Z",
+   "saved_file": "sources/search-huna-bar-yehuda-ikla.json",
+   "sha256": "04963771547dae83f15ae21325845564bf4f2720d7a9453c382597c02743dbf9",
+   "note": "Search index result; relevance-ranked sample of 32 hits, not an exhaustive concordance."
+  },
+  {
+   "source_id": "S18",
+   "url_or_input_path": "https://www.sefaria.org/api/search-wrapper POST רב הונא ברבי יהודה",
+   "edition": "Sefaria search-wrapper, exact phrase 'רב הונא ברבי יהודה', size 40",
+   "fetched_at": "2026-09-23T07:45:03Z",
+   "saved_file": "sources/search-huna-berabbi-yehuda.json",
+   "sha256": "45c9f84e675bfac45c6de4d4a3026fd9e2b6a74c63a3cc4a2fa65eb7da022dc1"
+  },
+  {
+   "source_id": "S19",
+   "url_or_input_path": "https://www.sefaria.org/api/texts/versions/Pesachim",
+   "edition": "Sefaria versions list for Pesachim",
+   "fetched_at": "2026-09-23T07:43:07Z",
+   "saved_file": "sources/pesachim-103a-versions.json",
+   "sha256": "8a9a7d1cbe713e47e82f1f51e81bd3a51a153b30796fce41f7157e43aba365f7"
+  },
+  {
+   "source_id": "S20",
+   "url_or_input_path": "https://www.sefaria.org/api/links/Rif_Pesachim.20b.5?with_text=1",
+   "edition": "Sefaria links API with text for Rif Pesachim 20b:5 (includes Hagahot Chavot Yair on Pesachim 20b:1)",
+   "fetched_at": "2026-09-23T07:48:48Z",
+   "saved_file": "sources/rif-pesachim-20b-5-links.json",
+   "sha256": "18947b6419c8e9905070995d8c7dd3de99bc5e6349c0ba229bdbb79f67b23820"
+  }
+ ],
+ "fetched_but_not_quoted": [
+  {
+   "saved_file": "sources/pesachim-103a-goldschmidt.json",
+   "note": "Failed request (wrong language key); Sefaria returned a warning, no text. Retried successfully as S3."
+  },
+  {
+   "saved_file": "sources/rashi-berakhot-52b.json",
+   "note": "Fetched; no gloss on the Rav Huna bar Yehuda line was found in the returned text. Not evidence that no gloss exists elsewhere."
+  },
+  {
+   "saved_file": "sources/tosafot-berakhot-52b.json",
+   "note": "Fetched; no gloss on this line found in the returned text."
+  },
+  {
+   "saved_file": "sources/rosh-berakhot-8-2.json",
+   "note": "Fetched; discusses the one-cup case of the mishnah, not the visit."
+  }
+ ],
+ "local_persons": [
+  {
+   "id": "P1",
+   "name": "רב הונא בר יהודה",
+   "variants": [
+    "רב הונא ברבי יהודה (Rif Pesachim)"
+   ],
+   "role": "visitor; speaker of the challenge (inferred)"
+  },
+  {
+   "id": "P2",
+   "name": "רבא",
+   "role": "host; performs blessings; addressee; replies and cites"
+  },
+  {
+   "id": "P3",
+   "name": "יהודה (father of P1)",
+   "role": "name-embedded parent; silent",
+   "note": "Title uncertain by variant (F7)."
+  },
+  {
+   "id": "G1",
+   "name": "unnamed household bringers (אייתו)",
+   "role": "agents who bring light and spices",
+   "type": "group"
+  }
+ ],
+ "cited_authorities": [
+  {
+   "name": "בית שמאי",
+   "type": "school",
+   "cited_by": "anonymous editor (Pesachim) / P1 (Berakhot)"
+  },
+  {
+   "name": "בית הלל",
+   "type": "school",
+   "cited_by": "anonymous editor (Pesachim) / P1 (Berakhot)"
+  },
+  {
+   "name": "רבי מאיר",
+   "type": "tanna",
+   "cited_by": "P2"
+  },
+  {
+   "name": "רבי יהודה",
+   "type": "tanna",
+   "cited_by": "P2",
+   "note": "Not P3."
+  },
+  {
+   "name": "רבי יוחנן",
+   "type": "amora",
+   "cited_by": "P2 or editor (unresolved)"
+  }
+ ],
+ "proposed_local_edges": [
+  {
+   "a": "P1",
+   "b": "P2",
+   "kind": "visits",
+   "direction": "AB",
+   "evidence": "F1"
+  },
+  {
+   "a": "P1",
+   "b": "P2",
+   "kind": "together",
+   "direction": "",
+   "evidence": "F1, F8"
+  },
+  {
+   "a": "P1",
+   "b": "P2",
+   "kind": "addresses (challenges practice)",
+   "direction": "AB",
+   "evidence": "F2",
+   "note": "speaker inferred"
+  },
+  {
+   "a": "P2",
+   "b": "P1",
+   "kind": "responds_to",
+   "direction": "AB",
+   "evidence": "F2, F5"
+  },
+  {
+   "a": "P3",
+   "b": "P1",
+   "kind": "father_of",
+   "direction": "AB",
+   "evidence": "F1, F7",
+   "note": "name-embedded"
+  },
+  {
+   "a": "P2",
+   "b": "רבי מאיר",
+   "kind": "cites",
+   "direction": "AB",
+   "evidence": "F4"
+  },
+  {
+   "a": "P2",
+   "b": "רבי יהודה (tanna)",
+   "kind": "cites",
+   "direction": "AB",
+   "evidence": "F4"
+  }
+ ],
+ "findings": [
+  {
+   "finding_id": "F1",
+   "claim": "The focal segment names two people: Rav Huna bar Yehuda (the visitor) and Rava (the host). The patronymic implies a third, Yehuda, Rav Huna's father, who does not act. Unnamed plural agents bring the light and spices.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "רַב הוּנָא בַּר יְהוּדָה אִיקְּלַע לְבֵי רָבָא, אַיְיתוֹ לְקַמַּיְיהוּ מָאוֹר וּבְשָׂמִים.",
+     "translation_by_this_dossier": "Translation by this dossier: 'Rav Huna bar Yehuda happened to come to the house of Rava; they brought before them light and spices.'"
+    },
+    {
+     "source_id": "S0",
+     "exact_quote": "רב הונא בר יהודה איקלע לבי רבא, אייתו לקמייהו מאור ובשמים."
+    },
+    {
+     "source_id": "S2",
+     "exact_quote": "רב הונא בר יהודה איקלע לבי רבא אייתו לקמייהו מאור ובשמים",
+     "note": "Same wording in the unvocalized Wikisource text (shares Vilna base; not an independent witness)."
+    }
+   ],
+   "reasoning": "'איקלע לבי X' is a visit formula: the subject arrives at X's household. 'אייתו' is a third-person plural verb with no named subject, so the bringers are unnamed members of the household (servants or family); they are agents but not named persons. 'לקמייהו' (before them, plural) places both men at the table. 'bar Yehuda' is a patronymic, which by project rule supports a father placeholder.",
+   "confidence": "high",
+   "graph_effect": "Local persons: P1 Rav Huna bar Yehuda; P2 Rava; P3 Yehuda (father of P1, name-embedded, silent); G1 unnamed household bringers (group, no identity). Edge P3 -father_of-> P1 (source: patronymic; literal kinship is the plain reading, with the variant note in F7)."
+  },
+  {
+   "finding_id": "F2",
+   "claim": "Action, target, addressee and cited authority are distinct. Action: Rava recites blessings. Objects: spices first, then light (things, not people). Addressee of the challenge: Rava. Speaker of the challenge: Rav Huna bar Yehuda, who is not named at the verb.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "בָּרֵיךְ רָבָא אַבְּשָׂמִים בְּרֵישָׁא וַהֲדַר אַמָּאוֹר. אֲמַר לֵיהּ: וְהָא בֵּין בֵּית שַׁמַּאי וּבֵין בֵּית הִילֵּל — מָאוֹר בְּרֵישָׁא וַהֲדַר אַבְּשָׂמִים.",
+     "translation_by_this_dossier": "Translation by this dossier: 'Rava blessed over the spices first and then over the light. He said to him: But [according to] both Beit Shammai and Beit Hillel, light is first and then spices!'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "עָנֵי רָבָא בָּתְרֵיהּ וְאָמַר",
+     "translation_by_this_dossier": "Translation by this dossier: 'Rava answered after him and said.'"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "א\"ל - רב הונא לרבא לאחר שגמר הבדלה",
+     "translation_by_this_dossier": "Translation by this dossier: Rashbam: '\"He said to him\" - Rav Huna to Rava, after he had finished havdala.'"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "אמר ליה רב הונא והא בין ב\"ש וב\"ה מאור ואחר כך בשמים",
+     "translation_by_this_dossier": "Translation by this dossier: Rosh's quotation of the passage: 'Rav Huna said to him: But between Beit Shammai and Beit Hillel, light and afterwards spices.'"
+    }
+   ],
+   "reasoning": "'אמר ליה' has no named subject. The later segment names Rava as the one who answers ('עני רבא בתריה'), so the challenger must be the other man present, Rav Huna. Rashbam states this explicitly, and the Rosh's quotation inserts 'רב הונא' as subject. These are commentary and codifier readings, not a different Talmud text. The spices and light are objects of the blessing, so the 'target' of the action is not a person.",
+   "confidence": "high",
+   "graph_effect": "Edge P1 -addresses/challenges-> P2 (direction P1 to P2), resolved from context; mark speaker as 'inferred from later segment, confirmed by Rashbam'. Edge P2 -responds_to-> P1 from 103a:7. The response is part of the same exchange, not a second independent observation of the same relation. No person edge from the blessing itself."
+  },
+  {
+   "finding_id": "F3",
+   "claim": "In the Pesachim version the anonymous Gemara, not Rav Huna, supplies the source for his objection (the mishnah of Beit Shammai and Beit Hillel). In the Berakhot 52b parallel Rav Huna himself cites the source. The cited authority differs by version in who does the citing.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "וּמַאי הִיא? דִּתְנַן, בֵּית שַׁמַּאי אוֹמְרִים: נֵר וּמָזוֹן, בְּשָׂמִים וְהַבְדָּלָה. וּבֵית הִילֵּל אוֹמְרִים: נֵר וּבְשָׂמִים, וּמָזוֹן וְהַבְדָּלָה.",
+     "translation_by_this_dossier": "Translation by this dossier: 'And what is it? As we learned [in a mishnah]: Beit Shammai say: candle and food, spices and havdala. And Beit Hillel say: candle and spices, food and havdala.'"
+    },
+    {
+     "source_id": "S9",
+     "exact_quote": "אֲמַר לֵיהּ: מִכְּדִי בֵּית שַׁמַּאי וּבֵית הִלֵּל אַמָּאוֹר לָא פְּלִיגִי, דְּתַנְיָא בֵּית שַׁמַּאי אוֹמְרִים: נֵר וּמָזוֹן, בְּשָׂמִים וְהַבְדָּלָה.",
+     "translation_by_this_dossier": "Translation by this dossier: Berakhot 52b: 'He said to him: Since Beit Shammai and Beit Hillel do not disagree about the light, as it is taught: Beit Shammai say: candle and food, spices and havdala.'"
+    },
+    {
+     "source_id": "S11",
+     "exact_quote": "בֵּית שַׁמַּאי אוֹמְרִים, נֵר וּמָזוֹן וּבְשָׂמִים וְהַבְדָּלָה. וּבֵית הִלֵּל אוֹמְרִים, נֵר וּבְשָׂמִים וּמָזוֹן וְהַבְדָּלָה.",
+     "note": "Mishnah Berakhot 8:5, the cited source."
+    }
+   ],
+   "reasoning": "'ומאי היא' is the stam editor's question interrupting the story, so in Pesachim the explicit citation belongs to the editor's voice glossing Rav Huna's claim. In Berakhot the citation continues Rav Huna's own sentence. The Berakhot WD text has 'דתניא' (a baraita formula) while the source is a mishnah; Rif Berakhot (S11) reads 'דתנן'.",
+   "confidence": "medium",
+   "graph_effect": "Record Beit Shammai and Beit Hillel as cited groups (schools), not persons. Attach the citation to P1 only for the Berakhot version; for Pesachim attach it to the anonymous editorial voice with P1's claim as the target. No person-to-person edge between P1 and the schools."
+  },
+  {
+   "finding_id": "F4",
+   "claim": "Rava's reply cites two tannaim: he assigns the mishnah's version to Rabbi Meir and quotes Rabbi Yehuda's contrary version, in which Beit Hillel put spices before light. A statement of Rabbi Yohanan follows: people follow Beit Hillel as Rabbi Yehuda reports them.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "זוֹ דִּבְרֵי רַבִּי מֵאִיר, אֲבָל רַבִּי יְהוּדָה אוֹמֵר: לֹא נֶחְלְקוּ בֵּית שַׁמַּאי וּבֵית הִילֵּל עַל הַמָּזוֹן שֶׁהוּא בַּתְּחִלָּה וְעַל הַבְדָּלָה שֶׁהִיא בַּסּוֹף,",
+     "translation_by_this_dossier": "Translation by this dossier: 'This is the statement of Rabbi Meir; but Rabbi Yehuda says: Beit Shammai and Beit Hillel did not disagree about food, that it is first, and about havdala, that it is last.'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "וּבֵית הִילֵּל אוֹמְרִים: בְּשָׂמִים וְאַחַר כָּךְ מָאוֹר. וְאָמַר רַבִּי יוֹחָנָן: נָהֲגוּ הָעָם כְּבֵית הִילֵּל וְאַלִּיבָּא דְּרַבִּי יְהוּדָה.",
+     "translation_by_this_dossier": "Translation by this dossier: 'And Beit Hillel say: spices and afterwards light. And Rabbi Yohanan said: The people are accustomed [to follow] Beit Hillel according to Rabbi Yehuda.'"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "זו דברי ר\"מ - דהכי הוו תני לפלוגתייהו דב\"ש וב\"ה דסתם מתני' ר\"מ",
+     "translation_by_this_dossier": "Translation by this dossier: Rashbam: 'This is the statement of R. Meir - for so he would teach their dispute; an anonymous mishnah is R. Meir.'"
+    }
+   ],
+   "reasoning": "Rabbi Meir and Rabbi Yehuda are cited authorities for rival versions of a school dispute. They are not present. Whether 'ואמר רבי יוחנן' is still Rava speaking or the editor adding a ruling is not marked in the text. In Berakhot 52b the WD edition sets it as a separate segment (52b:26). Goldschmidt renders it 'Hierzu sagte R. Joḥanan' ('On this R. Yohanan said'), also without placing it in Rava's mouth. Rabbi Yehuda the tanna here shares a name with Yehuda, father of Rav Huna. A shared name is not an identity.",
+   "confidence": "high",
+   "graph_effect": "Edges P2 -cites-> R. Meir (attribution of a version) and P2 -cites-> R. Yehuda (tanna). R. Yohanan: cited authority for the custom, with the citer left uncertain (P2 or the editor). No contact edge between P2 and R. Yohanan. Keep R. Yehuda (tanna) separate from P3 Yehuda."
+  },
+  {
+   "finding_id": "F5",
+   "claim": "The later segments do not change who the participants are. 103a:7 names Rava as the answerer, which fixes the addressee of the challenge. 103a:9 starts a separate visit by a different man, Rav Ya'akov bar Abba, to Rava's house. It must not be merged with Rav Huna bar Yehuda's visit.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "עָנֵי רָבָא בָּתְרֵיהּ וְאָמַר: זוֹ דִּבְרֵי רַבִּי מֵאִיר"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "רַב יַעֲקֹב בַּר אַבָּא אִיקְּלַע לְבֵי רָבָא, חַזְיֵהּ דְּבָרֵיךְ ״בּוֹרֵא פְּרִי הַגֶּפֶן״ אַכָּסָא קַמָּא",
+     "translation_by_this_dossier": "Translation by this dossier: 'Rav Ya'akov bar Abba happened to come to Rava's house; he saw that he blessed \"who creates the fruit of the vine\" over the first cup.'"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "רבי יעקב בר אבא איקלע לבי רבא - שבת הוא",
+     "translation_by_this_dossier": "Translation by this dossier: Rashbam: 'R. Ya'akov bar Abba happened to Rava's house - it was Shabbat.'",
+     "note": "Rashbam's lemma reads 'רבי' where the WD Gemara reads 'רב'; a title variant in the next episode, noted only."
+    }
+   ],
+   "reasoning": "The same visit formula recurs with a different visitor and a different practice (wine blessings), and Rashbam dates it to Shabbat itself, while he places the Rav Huna visit on an ordinary Saturday night. Nothing in 103a:6-8 introduces a new speaker who could be the challenger. Scope: checked 103a:1-10 in the WD edition and Rashbam/Tosafot on 103a.",
+   "confidence": "high",
+   "graph_effect": "No identity change. Keep the Rav Ya'akov bar Abba visit (103a:9) as a separate event with its own local persons. Do not carry the 'challenger' role across episodes."
+  },
+  {
+   "finding_id": "F6",
+   "claim": "Commentary adds a setting the Aramaic does not state. Rashbam puts the visit on an ordinary Saturday night, says the challenge came after havdala was finished, and says Rava's order matches his own community's custom. The WD English 'After Shabbat' and 'Rava acted as dictated by this custom' are translator glosses.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S4",
+     "exact_quote": "רב הונא בר יהודה איקלע לבי רבא - במוצאי שבת של חול",
+     "translation_by_this_dossier": "Translation by this dossier: Rashbam: 'on an ordinary (weekday) Saturday night' (i.e., not a festival following Shabbat)."
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "בריך אבשמים ברישא - כמנהג שלנו",
+     "translation_by_this_dossier": "Translation by this dossier: Rashbam: 'blessed over spices first - as our custom is.'"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "After Shabbat, <b>they brought before them a light and spices.",
+     "note": "WD English: 'After Shabbat' is unbolded, i.e., the translator's addition."
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "Rava acted as dictated by this custom.",
+     "note": "WD English, unbolded gloss at the end of 103a:8."
+    }
+   ],
+   "reasoning": "The sugya before (103a:1-4) concerns a festival that follows Shabbat. Rashbam separates this story from that case. The bold/unbold convention in the WD English marks literal translation versus added explanation. The glosses are reasonable, but they are interpretation, not text.",
+   "confidence": "high",
+   "graph_effect": "Event attributes (Saturday night, after havdala) are commentary-sourced and should be tagged as such. They do not change persons or edges."
+  },
+  {
+   "finding_id": "F7",
+   "claim": "The name has a textual variant. Rif on Pesachim reads 'רב הונא ברבי יהודה'. The Talmud editions checked, the Rif on Berakhot, the Rosh on Pesachim and Halakhot Gedolot read 'בר יהודה'. The variant bears on whether the father is a titled Rav/Rabbi Yehuda. It does not remove the father relation.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "S6",
+     "exact_quote": "רב הונא ברבי יהודה ",
+     "translation_by_this_dossier": "Translation by this dossier: Rif Pesachim: 'Rav Huna berabbi Yehuda'",
+     "note": "In the saved text a Hagahot Chavot Yair marker (label א) stands between this and the next words 'איקלע לבי רבא'; quoted as two pieces."
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "איקלע לבי רבא",
+     "translation_by_this_dossier": "Translation by this dossier: 'happened to Rava's house'"
+    },
+    {
+     "source_id": "S20",
+     "exact_quote": "עיין ברי\"ף בברכות פ' אלו דברים",
+     "translation_by_this_dossier": "Translation by this dossier: Hagahot Chavot Yair on Rif Pesachim 20b:1: 'See the Rif in Berakhot, chapter Elu Devarim' (a cross-reference to the parallel, which reads 'בר יהודה'). It does not comment on the name."
+    },
+    {
+     "source_id": "S11",
+     "exact_quote": "רב הונא בר יהודה איקלע לבי רבא חזייה דבריך אבשמים והדר אמאור",
+     "note": "Rif Berakhot 39a:4, same event, reads 'בר'."
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "רב הונא בר יהודה איקלע לבי רבא אייתי לקמיה מאור ובשמים",
+     "note": "Rosh on Pesachim 10:9."
+    },
+    {
+     "source_id": "S8",
+     "exact_quote": "דרב הונא בר יהודה איקלע לבי רבא אייתי לקמייהו מאור ובשמים",
+     "note": "Halakhot Gedolot 2:6."
+    },
+    {
+     "source_id": "S13",
+     "exact_quote": "איקלע לבי רבא ברכות (נ\"ב ב') פסחים (ק\"ג א')",
+     "note": "Seder HaDorot lists both visits under Rav Huna bar Yehuda."
+    },
+    {
+     "source_id": "S13",
+     "exact_quote": "גם צ\"ע שהיה בימי רב יהודה ורבא אם לא שנים היו",
+     "translation_by_this_dossier": "Translation by this dossier: Seder HaDorot: 'also needs study, that he lived in the days of Rav Yehuda and of Rava, unless there were two.'"
+    }
+   ],
+   "reasoning": "'ברבי' can mean 'son of Rabbi/Rav' or be a scribal expansion of an abbreviated 'ב\"ר'. The Rosh elsewhere writes 'רב הונא ב\"ר יהודה' (S7, 10:8), which shows how the abbreviation can arise. The Rif Pesachim reading is one printed witness against several; manuscripts were not checked. Seder HaDorot's doubt about one or two men of this name is a later historical question, not a text variant.",
+   "confidence": "medium",
+   "graph_effect": "Keep P1 with name forms ['רב הונא בר יהודה' (majority of checked witnesses), 'רב הונא ברבי יהודה' (Rif Pesachim)]. Keep P3 as the father, marked 'title of father uncertain by variant'. Do not merge P1 with 'Rav Huna son of Rav Yehuda' or with any other Rav Huna globally without an identity pack."
+  },
+  {
+   "finding_id": "F8",
+   "claim": "Some witnesses say the items were brought 'before him' (singular, Rava) rather than 'before them'. The Rif and Rosh also add 'פתח רבא' ('Rava began'). Rava's presence is certain either way. Rav Huna's presence at the table rests on the visit plus his speaking, not only on 'before them'.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S6",
+     "exact_quote": "אייתו לקמיה מאור ובשמים פתח רבא בריך אבשמים ברישא",
+     "translation_by_this_dossier": "Translation by this dossier: Rif: 'they brought before him light and spices; Rava began, blessed over spices first.'"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "אייתי לקמיה מאור ובשמים פתח רבא בריך",
+     "note": "Rosh, singular 'לקמיה'."
+    },
+    {
+     "source_id": "S8",
+     "exact_quote": "אייתי לקמייהו מאור ובשמים שקל רבא בריך על בשמים ברישא",
+     "note": "Halakhot Gedolot, plural 'לקמייהו', with 'שקל רבא' ('Rava took')."
+    }
+   ],
+   "reasoning": "A co-presence edge between P1 and P2 should cite the visit formula and the direct speech, which appear in all versions checked, not the plural pronoun alone.",
+   "confidence": "high",
+   "graph_effect": "P1-P2 co-present (symmetric, saved once), evidence = 'איקלע לבי' + 'אמר ליה'. Tag 'לקמייהו' as version-dependent."
+  },
+  {
+   "finding_id": "F9",
+   "claim": "Halakhic context: the practice Rava followed, spices before light, is the rule adopted by Halakhot Gedolot (which cites this story), the Rambam, the Tur and the Shulchan Arukh. The codes also put wine first. That part does not come from this passage.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S8",
+     "exact_quote": "וכד איכא בשמים ומאור בהבדלה מברך על הבשמים ברישא והדר על מאור (פסחים קג.)",
+     "translation_by_this_dossier": "Translation by this dossier: Halakhot Gedolot: 'And when there are spices and light at havdala, one blesses over the spices first and then over the light (Pesachim 103a).'"
+    },
+    {
+     "source_id": "S14",
+     "exact_quote": "סֵדֶר הַבְדָּלָה בְּמוֹצָאֵי שַׁבָּת. מְבָרֵךְ עַל הַיַּיִן וְאַחַר כָּךְ עַל הַבְּשָׂמִים וְאַחַר כָּךְ עַל הַנֵּר.",
+     "translation_by_this_dossier": "Translation by this dossier: Rambam, Shabbat 29:24: 'The order of havdala on Saturday night: bless over wine, then spices, then the candle.'"
+    },
+    {
+     "source_id": "S15",
+     "exact_quote": "סדר הבדלה ",
+     "translation_by_this_dossier": "Translation by this dossier: Tur OC 296: 'Order of havdala:'",
+     "note": "A commentator marker (Darkhei Moshe) stands between the two pieces in the saved text."
+    },
+    {
+     "source_id": "S15",
+     "exact_quote": "יין בשמים נר הבדלה",
+     "translation_by_this_dossier": "Translation by this dossier: 'wine, spices, candle, havdala.'"
+    },
+    {
+     "source_id": "S16",
+     "exact_quote": "הבדלה יין בשמים נר הבדלה וסימנך יבנ\"ה",
+     "translation_by_this_dossier": "Translation by this dossier: Shulchan Arukh OC 296:1: '[The order of] havdala: wine, spices, candle, havdala; and your mnemonic is YaBNeH.'",
+     "note": "The preceding word 'סדר' is separated from this piece by a Ba'er Hetev marker in the saved text."
+    },
+    {
+     "source_id": "S5",
+     "exact_quote": "ואמר רבי יוחנן נהגו העם כבית הלל - והשתא חולק רבי יוחנן אסתם משנה",
+     "translation_by_this_dossier": "Translation by this dossier: Tosafot: 'And R. Yohanan said the people follow Beit Hillel - so now R. Yohanan disagrees with an anonymous mishnah.'"
+    }
+   ],
+   "reasoning": "The halakhic outcome confirms Rava's practice, not Rav Huna's objection. Tosafot notes the tension with the anonymous mishnah and distinguishes this 'נהגו' from a weaker 'נהגו' (Taanit 26b). This is legal reception, not evidence about the people.",
+   "confidence": "high",
+   "graph_effect": "None for persons. Optional: link the event to a halakha node (spices before light at havdala) as its later reception."
+  },
+  {
+   "finding_id": "F10",
+   "claim": "The same visit is told in Berakhot 52b with different wording ('he saw Rava blessing', 'since ... do not disagree about light', 'דתניא'). Rashbam says the reading 'ולא פליגי' does not belong in Pesachim, which suggests some texts carried Berakhot-like wording into Pesachim. The two tellings are one event, not two independent observations.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S9",
+     "exact_quote": "רַב הוּנָא בַּר יְהוּדָה אִיקְּלַע לְבֵי רָבָא. חַזְיֵיהּ לְרָבָא דְּבָרֵיךְ אַבְּשָׂמִים בְּרֵישָׁא.",
+     "translation_by_this_dossier": "Translation by this dossier: Berakhot 52b: 'Rav Huna bar Yehuda happened to Rava's house. He saw Rava blessing over spices first.'"
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "רב הונא בר יהודה איקלע לבי רבא חזייה לרבא דבריך אבשמים ברישא"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "והא בין ב\"ש כו' ולא פליגי לא גרסינן",
+     "translation_by_this_dossier": "Translation by this dossier: Rashbam: '\"But between Beit Shammai...\" - we do not read \"and they do not disagree\".'"
+    }
+   ],
+   "reasoning": "Parallel tellings share the event and participants. In Berakhot 'חזייה לרבא' makes Rav Huna an observer of Rava, which is a stronger explicit co-presence than Pesachim. Counting both toward edge strength would double-count one story.",
+   "confidence": "high",
+   "graph_effect": "Merge Pesachim 103a:5-8 and Berakhot 52b:24-26 as one event with two textual attestations (parallel_of). Edge weights count the event once."
+  }
+ ],
+ "alternative_readings": [
+  {
+   "id": "A1",
+   "topic": "Who says 'ואמר רבי יוחנן'",
+   "readings": [
+    "Rava continues his reply and adds R. Yohanan's report of custom (continuous speech in 103a:8 WD).",
+    "The editor adds R. Yohanan's statement after Rava's reply (Berakhot 52b WD sets it as a separate segment; Goldschmidt: 'Hierzu sagte R. Joḥanan')."
+   ],
+   "evidence": [
+    "S1 103a:8",
+    "S9 52b:26",
+    "S3 segment 8"
+   ],
+   "status": "unresolved"
+  },
+  {
+   "id": "A2",
+   "topic": "Meaning of 'עני רבא בתריה'",
+   "readings": [
+    "WD English: 'Rava answered after him' (a response to Rav Huna).",
+    "Goldschmidt: 'Da fuhr Raba fort' ('Then Rava continued')."
+   ],
+   "evidence": [
+    "S1",
+    "S3"
+   ],
+   "status": "Both keep Rava as speaker; only the discourse relation (reply vs continuation) differs."
+  },
+  {
+   "id": "A3",
+   "topic": "Name of the visitor",
+   "readings": [
+    "רב הונא בר יהודה (WD, Wikisource, Rif Berakhot, Rosh, Halakhot Gedolot).",
+    "רב הונא ברבי יהודה (Rif Pesachim), possibly 'son of Rabbi/Rav Yehuda' or an expanded abbreviation."
+   ],
+   "evidence": [
+    "S6",
+    "S11",
+    "S7",
+    "S8"
+   ],
+   "status": "Source variant, not an emendation. Manuscripts not checked."
+  },
+  {
+   "id": "A4",
+   "topic": "Plural or singular 'before them/him'",
+   "readings": [
+    "לקמייהו (WD, Wikisource, Halakhot Gedolot)",
+    "לקמיה (Rif, Rosh)"
+   ],
+   "evidence": [
+    "S1",
+    "S6",
+    "S7",
+    "S8"
+   ],
+   "status": "Does not affect participants."
+  }
+ ],
+ "unresolved": [
+  "Manuscript readings (e.g., Munich, Vatican, JTS) for Pesachim 103a and Berakhot 52b were not checked; no claim is made about whether any manuscript reads Rabbah for Rava or a different name for the visitor.",
+  "Whether Rav Huna bar Yehuda here is the same man as 'Rav Huna son of Rav Yehuda' elsewhere, or one of two men of this name (Seder HaDorot's doubt). This is a historical identity question left for an identity pack.",
+  "Whether R. Yohanan's statement belongs to Rava's reply or to the editor (A1).",
+  "Only a relevance-ranked search sample (S17, 32 hits) was used to find other Rav Huna bar Yehuda visits (Shabbat 24a, Bava Kamma 117a). It is not a full concordance."
+ ],
+ "proposed_corrections": [
+  {
+   "existing_claim": "bavli|Pesachim|103a|5|0|27 (reader kind 'addresses', direction AB; first_pass 'before' 0.65)",
+   "change": "Replace first-pass 'before' with a visit/co-presence relation (P1 visits P2's house; symmetric co-presence saved once). Keep 'addresses' P1 -> P2, but source it to 'אמר ליה' with the speaker resolved from 103a:7 and Rashbam, not to the visit pattern '[A] איקלע לבי [B]'. Add P2 -responds_to-> P1 (103a:7).",
+   "why": "'איקלע לבי' is a visit formula, not 'sitting before' a master. 'לקמייהו' refers to objects placed before both men and is singular in some witnesses. The addressing is a separate act in the next clause."
+  },
+  {
+   "existing_claim": "bavli|Pesachim|103a|5|27|62 (rule 'same-man' רבא/רבא; first_pass 'before' 0.64)",
+   "change": "Keep 'same-man' (coreference of 'לבי רבא' and 'בריך רבא' to local P2). Drop the first-pass 'before'.",
+   "why": "Both mentions are the host. The pattern spans the bringing of objects, and no second person is involved."
+  },
+  {
+   "existing_claim": "(missing)",
+   "change": "Add P3 Yehuda (father of Rav Huna) as a name-embedded placeholder with a father_of edge; add cited authorities R. Meir and R. Yehuda (cited by Rava), R. Yohanan (citer uncertain); Beit Shammai and Beit Hillel as groups.",
+   "why": "Project rule: patronymics are kinship evidence. Cited authorities are distinct from addressee and actor."
+  }
+ ],
+ "ontology_lessons": [
+  "The visit formula 'X איקלע לבי Y' should map to visits/co-present, not to 'before' (student sits before master).",
+  "An unnamed 'אמר ליה' speaker is resolved from the next named turn ('עני רבא בתריה'). Save the resolution as inferred and cite the commentary that confirms it.",
+  "Separate the actor (Rava blesses), the object (spices, light: not persons), the addressee (Rava), the speaker (Rav Huna) and the cited authorities (schools, R. Meir, R. Yehuda, R. Yohanan).",
+  "Editorial interjections ('ומאי היא? דתנן') can take over a citation from a character. Who cites a source can differ between parallel tellings.",
+  "Parallel tellings (Pesachim 103a / Berakhot 52b) are one event and should not double edge weight.",
+  "A tanna named Yehuda in the same passage as a patronymic 'bar Yehuda' is a name collision, not an identity.",
+  "Translator glosses (unbolded WD English) are interpretation and must not be stored as text facts."
+ ],
+ "graph_status": "All edges provisional; local persons only; no historical identity asserted."
+}

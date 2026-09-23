@@ -1,0 +1,51 @@
+{
+  "job_id": "original-02",
+  "focal_ref": "Ketubot 62b:6",
+  "input_lake_snapshot": 2,
+  "original_document": "relation-cases-sources.json",
+  "source": {
+    "ref": "Ketubot 62b:6",
+    "url": "https://www.sefaria.org/Ketubot.62b.6",
+    "api_url": "https://www.sefaria.org/api/texts/Ketubot%2062b%3A6?context=0&pad=0&commentary=0",
+    "hebrew": "יהודה בריה דרבי חייא, חתניה דרבי ינאי, הוה אזיל ויתיב בבי רב, וכל בי שמשי הוה אתי לביתיה, וכי הוה אתי, הוה קא חזי קמיה עמודא דנורא. יומא חד משכתיה שמעתא. כיון דלא חזי ההוא סימנא, אמר להו רבי ינאי: כפו מטתו, שאילמלי יהודה קיים לא ביטל עונתו. הואי כ״שגגה שיוצא מלפני השליט״, ונח נפשיה.",
+    "hebrew_sha256": "3b2a6435abbf3b19f0007eb1030384ed99d17e1e49537fbc8a878a49ce4d2ceb",
+    "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+    "hebrew_license": "CC-BY-NC",
+    "english_edition": "William Davidson Edition - English",
+    "pairs": [
+      {
+        "key": "bavli|Ketubot|62b|6|0|27",
+        "ref": "Ketubot 62b:6",
+        "a": "יהודה בריה דר' חייא",
+        "b": "ר' ינאי",
+        "pattern": "[A] חתניה ד[B]",
+        "kind": "kin",
+        "source": "cheap",
+        "direction": null,
+        "confidence": 0.96,
+        "first_pass": {
+          "kind": "kin",
+          "confidence": 0.96,
+          "p": {
+            "alternative": 0.0,
+            "same-man": 0.0,
+            "juxtaposed": 0.0,
+            "one-name": 0.0,
+            "explains": 0.0,
+            "disputes": 0.0,
+            "addresses": 0.0,
+            "together": 0.0,
+            "kin": 0.96,
+            "teacher": 0.01,
+            "asks": 0.0,
+            "cites": 0.0,
+            "none": 0.01,
+            "before": 0.02,
+            "follows": 0.0
+          }
+        }
+      }
+    ]
+  },
+  "earlier_crosscheck": null
+}

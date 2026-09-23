@@ -1,0 +1,130 @@
+{
+  "job_id": "challenge-07",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "e76fdee76fe6f9dd04f7c0095093a0193d7482dd8683ebf55e8ae45b8e01b6e4",
+  "historical_graph_eligible": false,
+  "scope": "I checked every quotation in dossier.json against the saved files in sources/, and checked the findings and proposed corrections against Sanhedrin 36a:5-13, Gittin 58b:15-59a:9, Rashi, Tosafot, Yad Ramah, Steinsaltz, the William Davidson English, Jastrow, Seder HaDorot, Chatam Sofer, Arukh LaNer, Petach Einayim, Avodah Zarah 52b and Yerushalmi Kilayim 9:1; I fetched nothing new and did not check manuscripts, Dikdukei Soferim, or any history.",
+  "findings": [
+    {
+      "target": "F7 / proposed correction 'combined (entity) / c5 / c6'",
+      "decision": "qualify",
+      "reason": "Replacing the old label is right, but the new wording, 'Between Moses and Rabbi no one else combined Torah and greatness', goes too far. The Gemara's answers ('הוה אלעזר', 'הוו זקנים', 'הוה שמואל') accept that Joshua, Saul and the others had both Torah and greatness. What they deny is that any of them stood alone, without an equal. Rashi on 36a:7 explains 'במקום אחד' as 'באדם אחד שאין כמותו בכל ישראל בתורה ובגדולה', one person with no equal in all Israel. The label should read something like 'From Moses until Rabbi, no single person was unrivalled in both Torah and greatness'. The narrower condition in 'כולהו שניה קאמרינן' (for all his years) comes from the anonymous Gemara's answers, not from the named speaker. That Moses and Rabbi themselves had both qualities stays a Rashi and Yad Ramah reading."
+    },
+    {
+      "target": "mentions (rabba, rava, hillel, voles) in s3; claims c5, c6, c7, c8",
+      "decision": "add_missing_claim",
+      "reason": "Both names, each with its father's name inside it, appear a second time in 36a:7: 'ואמר רבה בריה דרבא ואיתימא רבי הלל בריה דר' וולס'. The first reading anchored all four name mentions (m3-m6) in s2 only. The dossier added the repeated 'רבי' in s3 (F8) but missed these names. c5 and c6 have speakers with no name mention in the segment that attributes to them. Add mentions in s3 for both sons and both fathers, and let c7 and c8 cite both places. In s3, Wikisource abbreviates the father's title as 'דר' וולס', where the William Davidson Aramaic has 'דרבי וולס'."
+    },
+    {
+      "target": "F4 / proposed correction 'c1 / voting (event)'",
+      "decision": "correct_occurrence",
+      "reason": "Rav's report in Gittin does not come 'directly after' 'רבי הושיב ב\"ד ונמנו' (58b:15). Rav Ashi's comment on the baraita comes in between: 'אמר רב אשי כי תניא ההיא לאחר שבאו מעות לידו'. The speaker tag 'אמר רב' closes 58b:16, and his words go on in 59a:1. The dossier's S15 quote leaves that tag out, so Rav's role as speaker in Gittin should be anchored at the end of 58b:16. The candidate link to the sicarii vote can stay, with basis 'parallel placement plus Rashi (Sanhedrin 36a:5, Gittin 59a)', not 'directly after'."
+    },
+    {
+      "target": "F11 (Huna bar Natan and Rav Ashi; 'I too say' speakers)",
+      "decision": "qualify",
+      "reason": "The line 'הונא בר נתן מיכף הוה כייף ליה לרב אשי' answers the anonymous objection 'ולא והא הוה הונא בר נתן'. Its voice is the anonymous Gemara, not Rav Adda bar Ahava, and in Gittin not Rav Acha son of Rava either ('שאני הונא בר נתן דמיכף...'). Store the relation once, in one direction: Huna bar Natan submitted to Rav Ashi. It is the voice of the discussion used to answer a challenge, not a reported event. I support keeping Rav Adda bar Ahava (Sanhedrin 36a:13) and Rav Acha son of Rava (Gittin 59a:9) as a difference between the two parallels, without merging them. Rabbi and Rav Ashi are end points of a comparison ('about' roles), not people in contact."
+    },
+    {
+      "target": "F12 (presence and time of the two explainers)",
+      "decision": "qualify",
+      "reason": "I support the core decision: no presence, meeting or same-time edges. But the reasoning, 'The explainers comment on Rav's report after the fact', slips in an order in time. The text only places 'אמר רבה בריה דרבא ואיתימא...' as the answer to the anonymous objection 'והא אנן מתחילין מן הגדול תנן'. It does not say the explainer heard Rav, answered him, or lived after him. Word it as an arrangement of the discussion, not a sequence. It is not a claim about who spoke to whom, and no addressee is marked. For Avodah Zarah 52b:15 the saved text does have R. Hillel son of R. Volas alone. Seder HaDorot 1042 puts 'ואי תימא רבה בריה דרבא' next to that list of references, but this does not import the alternation into AZ."
+    },
+    {
+      "target": "F2 (patronymics c7, c8)",
+      "decision": "support_with_scope_note",
+      "reason": "Keep both parent placeholders and both child_of claims, as F2 proposes. Add the project's caution that 'בריה ד...' may work as a fixed name, and that the kinship holds only for the reading carrying the name. Seder HaDorot 3190, the dossier's own source, notes that for another passage one text seems to read 'רבא ברי' דרבה', with father and son reversed. So the direction of this pair can flip in transmission elsewhere, even though nothing here reverses it. Seder HaDorot's identification of the father with the well-known Rava is a later biographer's identification and does not come from this passage. F2 already says this."
+    },
+    {
+      "target": "F5, F6, F8, A3, A4 (rank, motive, Rabbi = Yehuda HaNasi)",
+      "decision": "keep_evidence_types_separate",
+      "reason": "I support these. The saved Aramaic says only 'ומינאי דידי הוו מתחלי ברישא' and gives no motive. 'Youngest', 'junior', 'Yehuda HaNasi' and 'held in such high esteem' appear only in the plain, unbolded words of the William Davidson English and in Steinsaltz. Rashi on Gittin 59a keeps two views of Rav's rank: 'בינוני' (middling) and 'ואני שמעתי שקטן שבהם היה' (I heard he was the smallest of them). The William Davidson English and Steinsaltz come from one editorial project. In A3 and A4 they must count as one editorial witness, not two, as F8 already says."
+    },
+    {
+      "target": "F3 (Volas spelling)",
+      "decision": "support_proposed_correction",
+      "reason": "Jastrow's parenthesis '(Ms. M. ולס, Ar. ed. Koh. וילס)' follows 'Snh. 36a', so it applies to this passage. It must be stored as a manuscript reading that Jastrow reports, not one this dossier checked. The Chatam Sofer's 'ובסנהדרין כתב כך שמו' reports a Rashi wording that the saved Vilna Rashi on 36a:7 does not have (it has only the heading 'בריה דרבי וולס:'). Keep it as a later quotation of Rashi, not as Rashi's text. None of these spellings creates a new person."
+    },
+    {
+      "target": "F1, F10, A1, A2 (one explanation, two alternative speakers; repeated pair)",
+      "decision": "support_proposed_correction",
+      "reason": "In both Sanhedrin and Gittin, 'ואיתימא' gives two alternative names for the same words. In each branch the son is the speaker. The alternative does not prove that only one of them historically said it. The second statement repeats the same pair after 'ואמר', so the dossier's choice to treat the two groups as one linked doubt is a fair modelling default, and it is labelled as not stated by the text. The Gittin copy is a parallel and does not count as a second observation."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "S1",
+      "exact_quote": "אמר רבה בריה דרבא ואיתימא רבי הלל בריה דרבי וולס שאני מניינא דבי רבי דכולהו מנינייהו מן הצד הוו מתחלי",
+      "matches_claim": true,
+      "note": "Sanhedrin 36a:6 exactly, one occurrence. Supports F1, F2 and the local parents in c7 and c8."
+    },
+    {
+      "source_id": "S1",
+      "exact_quote": "ואמר רבה בריה דרבא ואיתימא רבי הלל בריה דר' וולס מימות משה ועד רבי לא מצינו תורה וגדולה במקום אחד",
+      "matches_claim": true,
+      "note": "36a:7 exactly. The same names, fathers included, are repeated here, and the first reading gave them no mentions. Note the abbreviation 'דר''."
+    },
+    {
+      "source_id": "S1",
+      "exact_quote": "ולא הא הוה יהושע הוה אלעזר והא הוה פנחס הוו זקנים",
+      "matches_claim": false,
+      "note": "36a:8. The 'between Moses and Rabbi' reading holds, but these answers name a peer for each candidate. They do not deny that the candidate had both qualities, so the dossier's 'no one else combined' wording overreaches (see the F7 finding)."
+    },
+    {
+      "source_id": "S7",
+      "exact_quote": "במקום אחד - תורתן וגדולתן של ישראל באדם אחד שאין כמותו בכל ישראל בתורה ובגדולה",
+      "matches_claim": true,
+      "note": "Rashi on 36a:7: one person with no equal. This supports the narrower label I propose. The dossier quoted only the later clause, about Moses and Rabbi."
+    },
+    {
+      "source_id": "S13",
+      "exact_quote": "רבי הושיב ב\"ד ונמנו שאם שהתה בפני סיקריקון שנים עשר חודש כל הקודם ליקח זכה",
+      "matches_claim": false,
+      "note": "The quote is exact (Gittin 58b:15), but it does not support 'directly after'. Next comes 58b:16, 'אמר רב אשי כי תניא ההיא לאחר שבאו מעות לידו אמר רב', and only then Rav's words in 59a:1."
+    },
+    {
+      "source_id": "S15",
+      "exact_quote": "אמר רב אחא בריה דרבא אף אני אומר מימות רבי ועד רב אשי לא מצינו תורה וגדולה במקום אחד",
+      "matches_claim": true,
+      "note": "Gittin 59a:9. Against Sanhedrin 36a:13 ('אמר רב אדא בר אהבה אף אני אומר'), this confirms the difference between the parallels. It also carries its own patronymic (Rava), kept apart from 36a:6."
+    },
+    {
+      "source_id": "S1",
+      "exact_quote": "הונא בר נתן מיכף הוה כייף ליה לרב אשי",
+      "matches_claim": true,
+      "note": "The quote matches, but the voice is the anonymous Gemara answering 'ולא והא הוה הונא בר נתן', not Rav Adda bar Ahava. Record it that way."
+    },
+    {
+      "source_id": "S3",
+      "exact_quote": "<b>Rabba, son of Rava, says, and some say</b> that it was <b>Rabbi Hillel, son of Rabbi Valles,</b> who says:",
+      "matches_claim": true,
+      "note": "This string occurs twice, in 36a:6 and 36a:7. F1 needs the first occurrence, but the dossier gives no occurrence or segment."
+    },
+    {
+      "source_id": "S25",
+      "exact_quote": "(Ms. M. <span dir=\"rtl\">ולס</span>, Ar. ed. Koh. <span dir=\"rtl\">וילס</span>)",
+      "matches_claim": true,
+      "note": "It comes right after 'Snh. 36a', so it is about this passage. It is Jastrow's report of a manuscript reading, not a checked one."
+    },
+    {
+      "source_id": "S19",
+      "exact_quote": "ציין רש\"י וולס ולא פי' כלום ובסנהדרין כתב כך שמו",
+      "matches_claim": true,
+      "note": "Exact. The 'כך שמו' it credits to Rashi on Sanhedrin is not in the saved Vilna Rashi on 36a:7, which reads 'בריה דרבי וולס:', a heading with no comment."
+    },
+    {
+      "source_id": "S28",
+      "exact_quote": "רִבִּי הִלֵּל בֵּירִבִּי וַולֶס הָיָה לוֹ בֶגֶד בִּשְׁלֹשִׁים רִיבּוֹא דֵינָר (וִיהֲבֵיהּ לְרִבִּי)",
+      "matches_claim": true,
+      "note": "It matches the saved text after Unicode NFC normalization; the only difference is the order of the vowel and dagesh marks on one letter. Only an identity lead, not evidence for this passage."
+    },
+    {
+      "source_id": "S30",
+      "exact_quote": "דִּינֵי הַטֻּמְאוֹת וְהַטָּהֳרוֹת מַתְחִילִין מִן הַגָּדוֹל, דִּינֵי נְפָשׁוֹת מַתְחִילִין מִן הַצָּד",
+      "matches_claim": true,
+      "note": "It matches after Unicode NFC normalization; the byte-level difference is only in the order of the vowel marks. Supports F9's point that the objection cites the Mishnah."
+    }
+  ],
+  "extra_sources": []
+}

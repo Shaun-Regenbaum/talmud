@@ -1,0 +1,41 @@
+{
+ "job_id": "random-yerushalmi-03",
+ "authority": "automated_review",
+ "status": "qualified_proposals",
+ "dossier_sha256": "d0e33ff0fed7a6fdff3e580cc3ae46f16cb573f45d970e3fc35aed2be6e0a478",
+ "historical_graph_eligible": false,
+ "scope": "Separate review of selected graph implications and quoted evidence. Source hashes and quotation matches checked separately. Not human adjudication or exhaustive historical verification.",
+ "findings": [
+  {
+   "target": "F7 answer constructed for Rav",
+   "decision": "support_proposed_addition",
+   "reason": "Record an anonymous explanation of Rav’s position. Do not invent a speech event by Rav or resolve the unnamed parties beyond the wording."
+  },
+  {
+   "target": "F7 wording variants",
+   "decision": "requires_precise_scope",
+   "reason": "A difference involving whether someone stood with another can change the condition, even when described as minor wording. Retain the complete clauses and the edition-specific pairing of here and there before comparing the legal result."
+  },
+  {
+   "target": "F8/F11 provisional disagreement and final answer",
+   "decision": "support_proposed_addition",
+   "reason": "Keep each step of the argument. The final distinction between law and personal piety may narrow a proposed disagreement. It does not delete the earlier textual claim."
+  },
+  {
+   "target": "F13–F15 parallel chains and speakers",
+   "decision": "retain_version_scoped_roles",
+   "reason": "A named speaker in one parallel cannot silently fill an anonymous speaker in another. Save competing local readings and compare them in a separate pack."
+  },
+  {
+   "target": "F18 reversal of positions",
+   "decision": "qualify_comparison",
+   "reason": "Compare like with like: law, personal practice and the stage of the argument may differ. Save the commentator’s reported reversal and each full source claim; do not treat the short reversal label as a settled historical contradiction."
+  }
+ ],
+ "dossier_revisions": [
+  {
+   "previous_dossier_sha256": "c89bc8a911eef3b4badb496d6df1dbf3a6e0e51b6c45b95dac154048531c3a13",
+   "change": "Mechanical source-path correction only; see mechanical-corrections.json. The review decisions were made on the previous bytes and still apply because no claim, quotation or source changed."
+  }
+ ]
+}

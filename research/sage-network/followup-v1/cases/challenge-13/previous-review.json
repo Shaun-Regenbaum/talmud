@@ -1,0 +1,78 @@
+{
+  "job_id": "challenge-13",
+  "input_sha256": "1fbea0ab0311f7c3e9773172c25c3485bf720b5447e7c18eff647136a2fc8107",
+  "output_sha256": "8b473f67ed8806dd3b169a90f837d50eb8906224d48550ff06d31f139a1e9883",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "Hiyya is ill and Yohanan visits him, with directions preserved.",
+      "claim_ids": [
+        "c2",
+        "c3"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "Yohanan asks about suffering, Hiyya answers, and Yohanan requests his hand.",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "Hiyya gives his hand and Yohanan raises him through separate action claims.",
+      "claim_ids": [
+        "c7",
+        "c8"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "The alternating turns are not flattened to one speaker and patient/visitor are not reversed.",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "The extraction reports raising him and explicitly avoids asserting an independently established medical mechanism.",
+      "claim_ids": [
+        "c7",
+        "c8"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "minor",
+      "type": "omission",
+      "claim_ids": [
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c8"
+      ],
+      "reason": "The standalone pronoun mentions m4–m10 are not attached to either participant’s mention_ids or resolved through a mention map. Claim roles correctly reconstruct the exchange, but a consumer of the mention inventory cannot directly recover those referents.",
+      "source_refs": [
+        "Berakhot 5b:10"
+      ]
+    }
+  ],
+  "summary": "All substantive roles in the short exchange are correct. The pronoun inventory lacks explicit entity links."
+}

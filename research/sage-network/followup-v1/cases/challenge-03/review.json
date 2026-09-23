@@ -1,0 +1,77 @@
+{
+  "job_id": "challenge-03",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "52c4408530f1684a3274d5f5f6a0abb7e8081496f1a60687c7460bd2807e709a",
+  "historical_graph_eligible": false,
+  "scope": "I checked every dossier quote against its saved file in sources/ (all are present), and reread the graph-relevant findings and corrections against Bava Batra 152a-153a, Rashbam, Tosafot, Tosafot Rid, Ri Migash, Yad Ramah, Rif, Shita Mekubetzet, Rabbeinu Gershom and the Soncino HTML, plus the pilot output. I fetched nothing new, checked no manuscripts, and did not look at the Gittin, Shevuot or Sanhedrin pages beyond what the dossier saved.",
+  "findings": [
+    {
+      "target": "pilot entities giver, first, second, sick, others (not addressed in dossier or reading.md)",
+      "decision": "add_missing_claim",
+      "reason": "The pilot lists the donor and recipients of 'כתב לזה וכתב לזה', 'ראשון' / 'שני', and the 'שכיב מרע שכתב כל נכסיו לאחרים' of the question sent to Shmuel as kind 'person' or 'group'. These are roles in hypothetical legal cases: the anonymous Gemara's 'פשיטא' case, Rav and Shmuel's ruling, and a question framed as 'ילמדנו רבינו ... מהו'. They are not historical people. The dossier, and the previous review, left them as person nodes. They should be requalified as legal roles attached to their statements, with no person node and no edge to any sage."
+    },
+    {
+      "target": "F13 / A3 (wording of the Pumbedita question)",
+      "decision": "add_missing_claim",
+      "reason": "The dossier misses the largest witness group, which has the short question 'קנו מידו מהו' with no 'שכיב מרע שכתב כל נכסיו לאחרים'. That group is Tosafot Rid's own text ('ילמדנו רבי' קנו מידו מהו'), Ri Migash, Yad Ramah and the Rosh as quoted in Shita Mekubetzet. Yad Ramah reads it as continuing the 'wrote and conferred' case ('כלומר קנו מידו לראשון, שכתב וזיכה לו'). The dossier also does not say that Tosafot Rid rejects his 'יש ספרים' reading. He rejects it because Sura and Pumbedita must disagree ('משמע דפליגי סוריא ופומבדיתא ואלו כן לא פליגי'). So A2 cannot count that remark as independent support for disagreement; a text choice made to keep the disagreement cannot then prove it. The pilot's 'sick' and 'others' roles belong only to the printed wording."
+    },
+    {
+      "target": "F10 and the correction adding a בי רב -> Rav affiliation",
+      "decision": "qualify",
+      "reason": "Keeping the name-embedded link is right under project rules, and so is refusing any 'after Rav's death' scope, date or student_of edge. I found no traditional commentary in the saved files that mentions Rav's death here. But the dossier does not mark that 'בי רב' may be a fixed word for 'the academy' rather than the house of the person Rav. Soncino's main text renders it '[The following enquiry] was sent from the academy' and gives 'from the school of Rab' only as a bracketed alternative. The affiliation claim should carry a 'possibly generic term, not literal kinship or membership' flag."
+    },
+    {
+      "target": "F8 and the correction adding a speech claim for Rav Yirmeya bar Abba",
+      "decision": "qualify",
+      "reason": "Support adding his own 'אמר' speech/transmission claim. It should be nested: the anonymous Gemara says 'בפומבדיתא מתנו הכי', and inside that teaching Rav Yirmeya bar Abba reports the exchange. Keep c8 child_of Abba, scoped to readings that carry 'בר אבא', and mark that the patronymic may be a fixed name. The Rosh as quoted in the Shita has only 'רב ירמיה', and the Rabbeinu Chananel version in Rashbam ('בפומבדיתא מתנו שלחו מבי רב לשמואל') has no reporter at all; both should be recorded as name-form evidence, not as a reading that deletes him. Drop the dossier's remark that 153a:8 'fits someone tied to Rav's rulings'. There the speaker of 'אמר הכא אתרא דשמואל' is unnamed in the Hebrew (Davidson supplies Rav Nahman), and the line says nothing about what the man in Shum Tamya holds or who he is tied to."
+    },
+    {
+      "target": "F3 / A6 and the correction adding the 152a transmission chain",
+      "decision": "qualify",
+      "reason": "The Wikisource text at 152a:1 does read 'בי רב משמיה דרב אמרי ארכביה אתרי ריכשי ושמואל אמר לא ידענא מאי אדון בה'. Recording Shmuel's earlier position as doubt, not 'second acquires', is correct, and so is keeping Rif's and the Shita's 'רב אמר' as citation witnesses. But Rashbam's lemma 'בי רב אמרי ארכביה כו'' is abbreviated with כו'. Its lack of 'משמיה דרב' is weak evidence and should not become a branch that drops Rav as the source. This chain belongs to the 152a claim; it is referenced from 152b, not added to it."
+    },
+    {
+      "target": "F15 and the correction extending pumb_report to 153a:1",
+      "decision": "qualify",
+      "reason": "Explicit: Rav Hisda speaks ('אמר להו רב חסדא'). His addressee is marked by 'להו' and is the unnamed subject of 'סבור מיניה'. Also explicit: Rav Huna came from Kufri and explained 'it'. Interpretation: that 'it' ('פירשה') is Shmuel's Pumbedita answer. That rests on Rashbam's gloss 'סבור מיניה הני מילי - דאין לאחר קנין כלום', so the dossier's 'explicit report' label should apply to the speech, not to the object. Store the Rav Huna -> Rav Hisda report once. Note that Ri Migash's quotation lacks 'מכופרי', and that 153a:2 ('ההוא דקנו מיניה אתא לקמיה דרב הונא') is a separate precedent story with an unnamed litigant."
+    },
+    {
+      "target": "F1 / F2 and the corrections to c6, c7",
+      "decision": "support_proposed_correction",
+      "reason": "The words 'אימא מודה ליה לשמואל' and 'אימא מודה ליה לרב', framed by 'צריכא', are the anonymous Gemara's rejected suppositions. Keeping them hypothetical and rejected, with no agreement edge, is right. The voice change is mostly a relabel of the pilot's 'narrator'. Rashbam's lemma 'אבל בהך - בתרייתא דלא קנו מיניה ... ואימא מודה לשמואל' does belong to the first half, so the dossier's lemma-variant note points at the right occurrence. Tosafot's own quotation reads 'אי איתמר בההיא בההיא קאמר רב'. That is a citation witness that differs from Rabbeinu Gershom's 'נראה דצ\"ל' emendation, and the two should be stored as different evidence types."
+    },
+    {
+      "target": "correction to c5 (and pilot c11)",
+      "decision": "support_proposed_correction",
+      "reason": "c5 ('Rav opposes secondwins') restates the one dispute 'רב אמר ראשון קנה ושמואל אמר שני קנה' and is not a second observation. The same logic applies to pilot c11 ('Shmuel holds_view answer'). It rests on the same words 'שלח להו אין אחר קנין כלום' as c10, so it should be marked as derived from c10 rather than counted separately."
+    },
+    {
+      "target": "F11 (Tosafot: אמרי בי רב = Rav Huna)",
+      "decision": "keep_evidence_types_separate",
+      "reason": "Tosafot's 'ועוד דאמרי בי רב הכא ואמרי בי רב היינו רב הונא' belongs to their argument about whether Rav Huna followed his teacher Rav. So 'הכא' points at the 152a:1 'בי רב משמיה דרב אמרי', not the 152b:8 senders. The dossier scopes it correctly as a commentary-sourced candidate. The same Tosafot passage quotes 'והא רב הונא תלמידיה דרב הוה' from Shabbat. That is a quotation of another passage and must not enter this passage's graph as a student_of edge."
+    },
+    {
+      "target": "F7 (Rav Dimi)",
+      "decision": "support_proposed_correction",
+      "reason": "The text says only 'כי אתא רב דימי אמר דייתיקי מבטלת דייתיקי'. 'From Eretz Yisrael to Babylonia' is Davidson's addition. At 135b the line answers 'מאי תיבדק' after 'ור' יוחנן אמר תיבדק' without saying Rav Dimi got it from Rabbi Yohanan. The Jerusalem Talmud's 'תני רבן שמעון בן גמליאל אומר דייתיקי מבטלת דייתיקי' is a parallel attribution in another corpus. No origin, destination or transmission edge follows from any of these."
+    }
+  ],
+  "quote_checks": [
+    {"source_id": "S1", "exact_quote": "בפומבדיתא מתנו הכי אמר רב ירמיה בר אבא שלחו ליה מבי רב לשמואל", "matches_claim": true, "note": "152b:8, Wikisource (the same line also appears in the Davidson Aramaic). The reporter is explicit; supports the new speech claim."},
+    {"source_id": "S1", "exact_quote": "אבל בהא דלא קנו מיניה אימא מודה ליה לשמואל", "matches_claim": true, "note": "152b:7 first half. 'אימא' marks a supposition, which the closing 'צריכא' rejects."},
+    {"source_id": "S2", "exact_quote": "איתמר מתנת שכיב מרע שכתוב בה קנין בי רב משמיה דרב אמרי ארכביה אתרי ריכשי ושמואל אמר לא ידענא מאי אדון בה", "matches_claim": true, "note": "152a:1, the right occurrence (152a:2-3 repeat parts of it as the Gemara's explanation). Shmuel's stance is doubt."},
+    {"source_id": "S7", "exact_quote": "אבל בהך - בתרייתא דלא קנו מיניה", "matches_claim": true, "note": "Rashbam's gloss goes on with 'ואימא מודה לשמואל', so the lemma belongs to the first half of the צריכא, as the dossier says."},
+    {"source_id": "S14", "exact_quote": "יש ספרים שכתב בהן וזיכה לראשון וקנו מידו", "matches_claim": false, "note": "The quote is exact, but the dossier leaves out context that changes the claim. Tosafot Rid's own text reads 'קנו מידו מהו', and he then rejects the 'some books' reading: 'ואני נראה לי משום דבסוריא מתני הכי משמע דפליגי סוריא ופומבדיתא ואלו כן לא פליגי'."},
+    {"source_id": "S12", "exact_quote": "שלחו ליה מבי רב לשמואל ילמדנו רבינו קנו מידו מהו. ו[א]כתב וזכה לזה וכתב וזכה לזה קאי", "matches_claim": true, "note": "My own check. Yad Ramah has the short question and ties it to the 'wrote and conferred' case. This wording group is missing from F13/A3."},
+    {"source_id": "S13", "exact_quote": "שלחו ליה מבי רב לשמואל ילמדנו רבינו קנו מידו מהו חוזר או אינו חוזר", "matches_claim": true, "note": "My own check. Ri Migash also has the short question."},
+    {"source_id": "S29", "exact_quote": "מדאמר רב ירמיה בסמוך שלחו מבי רב לשמואל ילמדנו רבינו קנו מידו מהו", "matches_claim": true, "note": "This passage is introduced as 'וזה לשון הרא\"ש', so it is the Rosh as quoted in Shita Mekubetzet: no patronymic and the short question."},
+    {"source_id": "S7", "exact_quote": "בפומבדיתא מתנו שלחו מבי רב לשמואל ילמדנו רבינו כתב וזיכה לראשון וקנו מידו מאי", "matches_claim": true, "note": "Given by Rashbam under 'וכן פר\"ח', a rendering of Rabbeinu Chananel's version. It has no reporter. Record this as name-form evidence only."},
+    {"source_id": "S3", "exact_quote": "אמר הכא אתרא דשמואל היכי נעביד כוותיה דרב", "matches_claim": false, "note": "The quote is exact, but it does not support 'fits someone tied to Rav's rulings'. The speaker of 'אמר' is unnamed in the Hebrew, and the line says nothing about R. Yirmeya bar Abba's own views or ties."},
+    {"source_id": "S34", "exact_quote": "[Or, 'from the school of Rab', after Rab's death in 247.]", "matches_claim": true, "note": "It is a bracketed alternative in a note. Soncino's main text reads '[The following enquiry] was sent from the academy', which is evidence that בי רב may be a generic term."},
+    {"source_id": "S8", "exact_quote": "מתנת שכיב מרע שכתוב בה קנין בי רב אמרי ארכביה כו'", "matches_claim": false, "note": "The quote is exact, but the lemma is abbreviated with כו'. Its lack of 'משמיה דרב' is too weak to support a separate variant branch."},
+    {"source_id": "S9", "exact_quote": "ועוד דאמרי בי רב הכא ואמרי בי רב היינו רב הונא כמו שמפרש ר\"ת", "matches_claim": true, "note": "In context this concerns the 152a:1 'בי רב' reporting Rav's view, not the 152b:8 senders."},
+    {"source_id": "S3", "exact_quote": "סבור מיניה הני מילי לאחר אבל לעצמו לא אמר להו רב חסדא כי אתא רב הונא מכופרי פירשה בין לעצמו בין לאחרים", "matches_claim": true, "note": "153a:1. The addressee 'להו' is marked. The object of 'פירשה' is not named; linking it to Shmuel's answer is Rashbam's interpretation."}
+  ],
+  "extra_sources": []
+}

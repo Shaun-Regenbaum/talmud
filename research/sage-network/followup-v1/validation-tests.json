@@ -1,0 +1,76 @@
+{
+  "input": "cases/challenge-09/dossier.json",
+  "input_sha256": "4271ed5b381b49d5b757378a50f641c0e46505eca128b4cf8211928a6caf5a44",
+  "passed_checks": 17,
+  "checks": [
+    {
+      "damage": "changed source hash",
+      "rejected_by": "Source hash differs"
+    },
+    {
+      "damage": "unknown quoted source",
+      "rejected_by": "Missing source or quote"
+    },
+    {
+      "damage": "changed quotation",
+      "rejected_by": "Quotation not found"
+    },
+    {
+      "damage": "missing quoted evidence",
+      "rejected_by": "no quoted evidence"
+    },
+    {
+      "damage": "duplicate source",
+      "rejected_by": "duplicate source ID"
+    },
+    {
+      "damage": "duplicate finding",
+      "rejected_by": "duplicate finding ID"
+    },
+    {
+      "damage": "missing explanation",
+      "rejected_by": "no reasoning"
+    },
+    {
+      "damage": "invented confidence label",
+      "rejected_by": "unknown confidence"
+    },
+    {
+      "damage": "missing source edition",
+      "rejected_by": "no edition"
+    },
+    {
+      "damage": "claim encoded as a list",
+      "rejected_by": "no claim"
+    },
+    {
+      "damage": "evidence encoded as an object",
+      "rejected_by": "no quoted evidence"
+    },
+    {
+      "damage": "count declared without offsets",
+      "rejected_by": "Declared quotation count differs"
+    },
+    {
+      "damage": "occurrence declared without offsets",
+      "rejected_by": "Declared quote occurrence differs"
+    },
+    {
+      "damage": "boolean occurrence",
+      "rejected_by": "Declared quote occurrence differs"
+    },
+    {
+      "damage": "visual-reading label on a text source",
+      "rejected_by": "Quotation not found"
+    },
+    {
+      "damage": "wrong source field",
+      "rejected_by": "Declared source field differs"
+    },
+    {
+      "damage": "occurrence across several source fields",
+      "rejected_by": "needs one source field"
+    }
+  ],
+  "note": "Temporary copies of actual research were deliberately damaged in memory. They are tests, not research evidence."
+}

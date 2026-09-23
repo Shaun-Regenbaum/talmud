@@ -1,0 +1,2318 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-12",
+    "episode": {
+      "genre": "aggadic",
+      "genre_reason": "A story about a town committed to truth explains deaths after a false answer.",
+      "form": "Reported first-person story, alternate narrator names, and dialogue",
+      "coverage": "complete_for_supplied_text",
+      "needed_context": [],
+      "notes": [
+        "Rava quotes the sage; the story then shifts from first-person to third-person wording. Shared claims use unknown for the teller whose name depends on the report. The two sons are separated only for their family paths. A request to leave is not a reported departure."
+      ]
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רבא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב טבות",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב טביומי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "איתתא מינהון",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "תרתין בנין",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "תרתין בנין",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "תרתין בנין",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "שיבבתה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "אינשי דאתרא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m10",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "וקושטא שמיה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m11",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "יהבי ליה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m12",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "דביתהו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m13",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "לה",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "rava",
+        "kind": "person",
+        "label": "Rava",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "tavut",
+        "kind": "person",
+        "label": "Rav Tavut, teller in one report",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב טבות",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavut_report"
+        ]
+      },
+      {
+        "id": "tavyumi",
+        "kind": "person",
+        "label": "Rav Tavyumi, teller in the other report",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב טביומי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavyumi_report"
+        ]
+      },
+      {
+        "id": "wife",
+        "kind": "person",
+        "label": "The storyteller’s wife, from the town",
+        "mention_ids": [
+          "m4",
+          "m12"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "איתתא מינהון",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "sons",
+        "kind": "group",
+        "label": "Their two sons",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "תרתין בנין",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "son1",
+        "kind": "person",
+        "label": "One son, individually unnamed",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "תרתין בנין",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "son2",
+        "kind": "person",
+        "label": "The other son, individually unnamed",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "תרתין בנין",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "neighbor",
+        "kind": "person",
+        "label": "The female neighbor",
+        "mention_ids": [
+          "m8",
+          "m13"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "שיבבתה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "residents",
+        "kind": "group",
+        "label": "Residents of the town",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אינשי דאתרא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "town",
+        "kind": "place",
+        "label": "The town called Kushta",
+        "mention_ids": [
+          "m10"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "וקושטא שמיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "offerers",
+        "kind": "group",
+        "label": "Hypothetical people offering all the world’s wealth",
+        "mention_ids": [
+          "m11"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "יהבי ליה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "belief",
+        "kind": "statement",
+        "label": "Rava formerly thought there was no truth in the world",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "מריש הוה אמינא ליכא קושטא בעלמא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "denial",
+        "kind": "statement",
+        "label": "She is not here",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "ליתא הכא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "question",
+        "kind": "statement",
+        "label": "What happened?",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "מאי האי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "explanation",
+        "kind": "statement",
+        "label": "This is what happened",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "הכי הוה מעשה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "leave_request",
+        "kind": "statement",
+        "label": "Please leave our town and do not bring death upon these people",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "במטותא מינך פוק מאתרין ולא תגרי בהו מותנא בהנך אינשי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "arrival",
+        "kind": "event",
+        "label": "The storyteller arrives at Kushta",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "זימנא חדא איקלעי לההוא אתרא וקושטא שמיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "marriage",
+        "kind": "event",
+        "label": "He marries a woman from the town and has two sons",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "נסיבי איתתא מינהון והוו לי תרתין בנין מינה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "washing",
+        "kind": "event",
+        "label": "The wife sits washing her head",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "הוה יתבא דביתהו וקא חייפא רישה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "knock",
+        "kind": "event",
+        "label": "The neighbor comes and knocks",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אתאי שיבבתה טרפא אדשא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "deaths",
+        "kind": "event",
+        "label": "His two sons die",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "שכיבו ליה תרתין בנין",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "visit",
+        "kind": "event",
+        "label": "Residents come before the storyteller",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אתו אינשי דאתרא לקמיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "truthfulness",
+        "kind": "event",
+        "label": "Changing one’s words in return for all the world’s wealth",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "דאי הוו יהבי ליה כל חללי דעלמא לא הוה משני בדבוריה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "town_truth",
+        "kind": "event",
+        "label": "Town residents changing their words",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ולא הוו משני בדיבורייהו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "untimely_death",
+        "kind": "event",
+        "label": "An inhabitant dies before his time",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ולא הוה מיית איניש מהתם בלא זימניה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "rava",
+        "object": "belief",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר רבא מריש הוה אמינא ליכא קושטא בעלמא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "rava",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": "Rava’s earlier view",
+        "notes": [
+          "מריש הוה אמינא limits this to an earlier view; it is not treated as his settled conclusion."
+        ]
+      },
+      {
+        "id": "c2",
+        "family": "transmission",
+        "predicate": "heard_from",
+        "subject": "rava",
+        "object": "tavut",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר לי ההוא מרבנן ורב טבות שמיה ואמרי לה רב טביומי שמיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavut_report"
+        ],
+        "voice": "rava",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "אמר לי explicitly reports personal speech to Rava, unlike a bare quotation chain."
+        ]
+      },
+      {
+        "id": "c3",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "tavut",
+        "object": "truthfulness",
+        "roles": [
+          {
+            "role": "hypothetical_offerers",
+            "entity": "offerers"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "דאי הוו יהבי ליה כל חללי דעלמא לא הוה משני בדבוריה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavut_report"
+        ],
+        "voice": "rava",
+        "polarity": "negative",
+        "modality": "conditional",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "would_change_words",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c4",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "tavut",
+        "object": "arrival",
+        "roles": [
+          {
+            "role": "location",
+            "entity": "town"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "זימנא חדא איקלעי לההוא אתרא וקושטא שמיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavut_report"
+        ],
+        "voice": "tavut",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "arrived",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "family",
+        "predicate": "spouse_of",
+        "subject": "tavut",
+        "object": "wife",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "נסיבי איתתא מינהון",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavut_report"
+        ],
+        "voice": "tavut",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "tavut",
+        "object": "marriage",
+        "roles": [
+          {
+            "role": "spouse",
+            "entity": "wife"
+          },
+          {
+            "role": "children",
+            "entity": "sons"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "נסיבי איתתא מינהון והוו לי תרתין בנין מינה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavut_report"
+        ],
+        "voice": "tavut",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "married_and_had_children",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c7",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "tavut",
+        "object": "neighbor",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "denial"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר לה ליתא הכא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavut_report"
+        ],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The utterance is reported; its denial of the wife’s presence is knowingly false in the story."
+        ]
+      },
+      {
+        "id": "c8",
+        "family": "scenes",
+        "predicate": "visits",
+        "subject": "residents",
+        "object": "tavut",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אתו אינשי דאתרא לקמיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavut_report"
+        ],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c9",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "residents",
+        "object": "tavut",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "question"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמרו ליה מאי האי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavut_report"
+        ],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c10",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "tavut",
+        "object": "question",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "residents"
+          },
+          {
+            "role": "content",
+            "entity": "explanation"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר להו הכי הוה מעשה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavut_report"
+        ],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c11",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "residents",
+        "object": "tavut",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "leave_request"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "א\"ל במטותא מינך פוק מאתרין ולא תגרי בהו מותנא בהנך אינשי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavut_report"
+        ],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c12",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "son1",
+        "object": "tavut",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "והוו לי תרתין בנין מינה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavut_report"
+        ],
+        "voice": "tavut",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c13",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "son2",
+        "object": "tavut",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "והוו לי תרתין בנין מינה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavut_report"
+        ],
+        "voice": "tavut",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c14",
+        "family": "transmission",
+        "predicate": "heard_from",
+        "subject": "rava",
+        "object": "tavyumi",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר לי ההוא מרבנן ורב טבות שמיה ואמרי לה רב טביומי שמיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavyumi_report"
+        ],
+        "voice": "rava",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "אמר לי explicitly reports personal speech to Rava, unlike a bare quotation chain."
+        ]
+      },
+      {
+        "id": "c15",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "tavyumi",
+        "object": "truthfulness",
+        "roles": [
+          {
+            "role": "hypothetical_offerers",
+            "entity": "offerers"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "דאי הוו יהבי ליה כל חללי דעלמא לא הוה משני בדבוריה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavyumi_report"
+        ],
+        "voice": "rava",
+        "polarity": "negative",
+        "modality": "conditional",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "would_change_words",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c16",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "tavyumi",
+        "object": "arrival",
+        "roles": [
+          {
+            "role": "location",
+            "entity": "town"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "זימנא חדא איקלעי לההוא אתרא וקושטא שמיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavyumi_report"
+        ],
+        "voice": "tavyumi",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "arrived",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c17",
+        "family": "family",
+        "predicate": "spouse_of",
+        "subject": "tavyumi",
+        "object": "wife",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "נסיבי איתתא מינהון",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavyumi_report"
+        ],
+        "voice": "tavyumi",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c18",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "tavyumi",
+        "object": "marriage",
+        "roles": [
+          {
+            "role": "spouse",
+            "entity": "wife"
+          },
+          {
+            "role": "children",
+            "entity": "sons"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "נסיבי איתתא מינהון והוו לי תרתין בנין מינה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavyumi_report"
+        ],
+        "voice": "tavyumi",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "married_and_had_children",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c19",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "tavyumi",
+        "object": "neighbor",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "denial"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר לה ליתא הכא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavyumi_report"
+        ],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The utterance is reported; its denial of the wife’s presence is knowingly false in the story."
+        ]
+      },
+      {
+        "id": "c20",
+        "family": "scenes",
+        "predicate": "visits",
+        "subject": "residents",
+        "object": "tavyumi",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אתו אינשי דאתרא לקמיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavyumi_report"
+        ],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c21",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "residents",
+        "object": "tavyumi",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "question"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמרו ליה מאי האי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavyumi_report"
+        ],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c22",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "tavyumi",
+        "object": "question",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "residents"
+          },
+          {
+            "role": "content",
+            "entity": "explanation"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר להו הכי הוה מעשה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavyumi_report"
+        ],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c23",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "residents",
+        "object": "tavyumi",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "leave_request"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "א\"ל במטותא מינך פוק מאתרין ולא תגרי בהו מותנא בהנך אינשי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavyumi_report"
+        ],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c24",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "son1",
+        "object": "tavyumi",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "והוו לי תרתין בנין מינה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavyumi_report"
+        ],
+        "voice": "tavyumi",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c25",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "son2",
+        "object": "tavyumi",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "והוו לי תרתין בנין מינה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "tavyumi_report"
+        ],
+        "voice": "tavyumi",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c26",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "son1",
+        "object": "wife",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "והוו לי תרתין בנין מינה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c27",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "son2",
+        "object": "wife",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "והוו לי תרתין בנין מינה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c28",
+        "family": "family",
+        "predicate": "sibling_of",
+        "subject": "son1",
+        "object": "son2",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "והוו לי תרתין בנין מינה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c29",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "wife",
+        "object": "washing",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "הוה יתבא דביתהו וקא חייפא רישה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "washing_head",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c30",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "neighbor",
+        "object": "knock",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אתאי שיבבתה טרפא אדשא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "came_and_knocked",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c31",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "sons",
+        "object": "deaths",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "שכיבו ליה תרתין בנין",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "unknown",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "died",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c32",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "residents",
+        "object": "town_truth",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ולא הוו משני בדיבורייהו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "unknown",
+        "polarity": "negative",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "changed_words",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c33",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "residents",
+        "object": "untimely_death",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ולא הוה מיית איניש מהתם בלא זימניה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "unknown",
+        "polarity": "negative",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "died_before_time",
+        "time_scope": null,
+        "notes": [
+          "A claim within the teller’s account, not an external demographic finding."
+        ]
+      }
+    ],
+    "reading_groups": [
+      {
+        "id": "name",
+        "kind": "reported_alternatives",
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ורב טבות שמיה ואמרי לה רב טביומי שמיה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          {
+            "id": "tavut_report",
+            "label": "The sage is called Rav Tavut"
+          },
+          {
+            "id": "tavyumi_report",
+            "label": "The sage is called Rav Tavyumi"
+          }
+        ],
+        "historical_compatibility": "unknown",
+        "scope": "Name of the sage who tells Rava the story and is its central husband and father.",
+        "rejoin": "All other story roles and actions are shared.",
+        "notes": [
+          "The source gives alternate names. This pass does not decide whether they are historically the same person."
+        ]
+      }
+    ],
+    "coreference_candidates": [],
+    "open_questions": []
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "רבא",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 4,
+      "end": 7,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "רב טבות",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 59,
+      "end": 66,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "רב טביומי",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 81,
+      "end": 90,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s1",
+      "quote": "איתתא מינהון",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 252,
+      "end": 264,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s1",
+      "quote": "תרתין בנין",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 273,
+      "end": 283,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s1",
+      "quote": "תרתין בנין",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 273,
+      "end": 283,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s1",
+      "quote": "תרתין בנין",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 273,
+      "end": 283,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s2",
+      "quote": "שיבבתה",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 44,
+      "end": 50,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s2",
+      "quote": "אינשי דאתרא",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 120,
+      "end": 131,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m10/anchor",
+      "source_id": "s1",
+      "quote": "וקושטא שמיה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 175,
+      "end": 186,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m11/anchor",
+      "source_id": "s1",
+      "quote": "יהבי ליה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 104,
+      "end": 112,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m12/anchor",
+      "source_id": "s2",
+      "quote": "דביתהו",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 17,
+      "end": 23,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m13/anchor",
+      "source_id": "s2",
+      "quote": "לה",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 83,
+      "end": 85,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/rava/evidence/0",
+      "source_id": "s1",
+      "quote": "רבא",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 4,
+      "end": 7,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/tavut/evidence/0",
+      "source_id": "s1",
+      "quote": "רב טבות",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 59,
+      "end": 66,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/tavyumi/evidence/0",
+      "source_id": "s1",
+      "quote": "רב טביומי",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 81,
+      "end": 90,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/wife/evidence/0",
+      "source_id": "s1",
+      "quote": "איתתא מינהון",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 252,
+      "end": 264,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sons/evidence/0",
+      "source_id": "s1",
+      "quote": "תרתין בנין",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 273,
+      "end": 283,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/son1/evidence/0",
+      "source_id": "s1",
+      "quote": "תרתין בנין",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 273,
+      "end": 283,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/son2/evidence/0",
+      "source_id": "s1",
+      "quote": "תרתין בנין",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 273,
+      "end": 283,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/neighbor/evidence/0",
+      "source_id": "s2",
+      "quote": "שיבבתה",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 44,
+      "end": 50,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/residents/evidence/0",
+      "source_id": "s2",
+      "quote": "אינשי דאתרא",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 120,
+      "end": 131,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/town/evidence/0",
+      "source_id": "s1",
+      "quote": "וקושטא שמיה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 175,
+      "end": 186,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/offerers/evidence/0",
+      "source_id": "s1",
+      "quote": "יהבי ליה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 104,
+      "end": 112,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/belief/evidence/0",
+      "source_id": "s1",
+      "quote": "מריש הוה אמינא ליכא קושטא בעלמא",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 8,
+      "end": 39,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/denial/evidence/0",
+      "source_id": "s2",
+      "quote": "ליתא הכא",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 86,
+      "end": 94,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/question/evidence/0",
+      "source_id": "s2",
+      "quote": "מאי האי",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 147,
+      "end": 154,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/explanation/evidence/0",
+      "source_id": "s2",
+      "quote": "הכי הוה מעשה",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 163,
+      "end": 175,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/leave_request/evidence/0",
+      "source_id": "s2",
+      "quote": "במטותא מינך פוק מאתרין ולא תגרי בהו מותנא בהנך אינשי",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 180,
+      "end": 232,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/arrival/evidence/0",
+      "source_id": "s1",
+      "quote": "זימנא חדא איקלעי לההוא אתרא וקושטא שמיה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 147,
+      "end": 186,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/marriage/evidence/0",
+      "source_id": "s1",
+      "quote": "נסיבי איתתא מינהון והוו לי תרתין בנין מינה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 246,
+      "end": 288,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/washing/evidence/0",
+      "source_id": "s2",
+      "quote": "הוה יתבא דביתהו וקא חייפא רישה",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 8,
+      "end": 38,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/knock/evidence/0",
+      "source_id": "s2",
+      "quote": "אתאי שיבבתה טרפא אדשא",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 39,
+      "end": 60,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/deaths/evidence/0",
+      "source_id": "s2",
+      "quote": "שכיבו ליה תרתין בנין",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 95,
+      "end": 115,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/visit/evidence/0",
+      "source_id": "s2",
+      "quote": "אתו אינשי דאתרא לקמיה",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 116,
+      "end": 137,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/truthfulness/evidence/0",
+      "source_id": "s1",
+      "quote": "דאי הוו יהבי ליה כל חללי דעלמא לא הוה משני בדבוריה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 96,
+      "end": 146,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/town_truth/evidence/0",
+      "source_id": "s1",
+      "quote": "ולא הוו משני בדיבורייהו",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 187,
+      "end": 210,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/untimely_death/evidence/0",
+      "source_id": "s1",
+      "quote": "ולא הוה מיית איניש מהתם בלא זימניה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 211,
+      "end": 245,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר רבא מריש הוה אמינא ליכא קושטא בעלמא",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 0,
+      "end": 39,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר לי ההוא מרבנן ורב טבות שמיה ואמרי לה רב טביומי שמיה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 40,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "דאי הוו יהבי ליה כל חללי דעלמא לא הוה משני בדבוריה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 96,
+      "end": 146,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s1",
+      "quote": "זימנא חדא איקלעי לההוא אתרא וקושטא שמיה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 147,
+      "end": 186,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s1",
+      "quote": "נסיבי איתתא מינהון",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 246,
+      "end": 264,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s1",
+      "quote": "נסיבי איתתא מינהון והוו לי תרתין בנין מינה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 246,
+      "end": 288,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר לה ליתא הכא",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 79,
+      "end": 94,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s2",
+      "quote": "אתו אינשי דאתרא לקמיה",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 116,
+      "end": 137,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s2",
+      "quote": "אמרו ליה מאי האי",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 138,
+      "end": 154,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר להו הכי הוה מעשה",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 155,
+      "end": 175,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c11/evidence/0",
+      "source_id": "s2",
+      "quote": "א\"ל במטותא מינך פוק מאתרין ולא תגרי בהו מותנא בהנך אינשי",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 176,
+      "end": 232,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c12/evidence/0",
+      "source_id": "s1",
+      "quote": "והוו לי תרתין בנין מינה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 265,
+      "end": 288,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c13/evidence/0",
+      "source_id": "s1",
+      "quote": "והוו לי תרתין בנין מינה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 265,
+      "end": 288,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c14/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר לי ההוא מרבנן ורב טבות שמיה ואמרי לה רב טביומי שמיה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 40,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c15/evidence/0",
+      "source_id": "s1",
+      "quote": "דאי הוו יהבי ליה כל חללי דעלמא לא הוה משני בדבוריה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 96,
+      "end": 146,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c16/evidence/0",
+      "source_id": "s1",
+      "quote": "זימנא חדא איקלעי לההוא אתרא וקושטא שמיה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 147,
+      "end": 186,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c17/evidence/0",
+      "source_id": "s1",
+      "quote": "נסיבי איתתא מינהון",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 246,
+      "end": 264,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c18/evidence/0",
+      "source_id": "s1",
+      "quote": "נסיבי איתתא מינהון והוו לי תרתין בנין מינה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 246,
+      "end": 288,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c19/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר לה ליתא הכא",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 79,
+      "end": 94,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c20/evidence/0",
+      "source_id": "s2",
+      "quote": "אתו אינשי דאתרא לקמיה",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 116,
+      "end": 137,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c21/evidence/0",
+      "source_id": "s2",
+      "quote": "אמרו ליה מאי האי",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 138,
+      "end": 154,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c22/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר להו הכי הוה מעשה",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 155,
+      "end": 175,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c23/evidence/0",
+      "source_id": "s2",
+      "quote": "א\"ל במטותא מינך פוק מאתרין ולא תגרי בהו מותנא בהנך אינשי",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 176,
+      "end": 232,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c24/evidence/0",
+      "source_id": "s1",
+      "quote": "והוו לי תרתין בנין מינה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 265,
+      "end": 288,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c25/evidence/0",
+      "source_id": "s1",
+      "quote": "והוו לי תרתין בנין מינה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 265,
+      "end": 288,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c26/evidence/0",
+      "source_id": "s1",
+      "quote": "והוו לי תרתין בנין מינה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 265,
+      "end": 288,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c27/evidence/0",
+      "source_id": "s1",
+      "quote": "והוו לי תרתין בנין מינה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 265,
+      "end": 288,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c28/evidence/0",
+      "source_id": "s1",
+      "quote": "והוו לי תרתין בנין מינה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 265,
+      "end": 288,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c29/evidence/0",
+      "source_id": "s2",
+      "quote": "הוה יתבא דביתהו וקא חייפא רישה",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 8,
+      "end": 38,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c30/evidence/0",
+      "source_id": "s2",
+      "quote": "אתאי שיבבתה טרפא אדשא",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 39,
+      "end": 60,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c31/evidence/0",
+      "source_id": "s2",
+      "quote": "שכיבו ליה תרתין בנין",
+      "occurrence": 1,
+      "source_sha256": "0e14643a5d48f7aedbfe7377a2669ae653205f40a79bfd4578bd91ac23414f41",
+      "start": 95,
+      "end": 115,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c32/evidence/0",
+      "source_id": "s1",
+      "quote": "ולא הוו משני בדיבורייהו",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 187,
+      "end": 210,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c33/evidence/0",
+      "source_id": "s1",
+      "quote": "ולא הוה מיית איניש מהתם בלא זימניה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 211,
+      "end": 245,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "reading_groups/name/evidence/0",
+      "source_id": "s1",
+      "quote": "ורב טבות שמיה ואמרי לה רב טביומי שמיה",
+      "occurrence": 1,
+      "source_sha256": "f800e953ece0393977a154b52746a330130c6ee0cf6570489cd000a9652f0c20",
+      "start": 58,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "2d3320ec2dcbb2c53aeefbc906366f506c05c5515374cbeb2a258ae78edaebda",
+  "output_sha256": "ef06f7318caacc370b0a8568b6a55be662395a715f24d7df4310fb8045641d36",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.330077+00:00"
+}

@@ -1,0 +1,124 @@
+{
+  "job_id": "original-06",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "b8602e586c22022a3236ceb89fe1d7b1ec8143ef74f109b3dbfd0cf954e32a2d",
+  "historical_graph_eligible": false,
+  "scope": "I checked every graph-relevant finding, edge and proposed correction against the saved text files, and read the three saved page images myself (Munich 95 line at about y 1848-1898 px, x 460-1110 px; Bomberg 1523; the Vilna main text, Shitah Mekubetzet column and Hagahot HaBach column); I did not fetch new sources, collate other manuscripts, or see Yuchasin or the Shitah Mekubetzet book itself.",
+  "findings": [
+    {
+      "target": "F04 / branch C / may_infer 'two different people are offered as the speaker'",
+      "decision": "qualify",
+      "reason": "The Vilna margin note, which I read myself, gives two NAMES for the speaker: 'רב הונא בר זבדי' and, after 'ואמרי לה', 'אמר רב זבדי'. The note does not say these are two different men; a name is not a person, and 'X, and some say Y' does not prove only one of them said it. Keep P4 and P6 as two alternative speaker names under branch C, with 'distinct persons: plausible, not stated', and add an open P4-P6 relation next to the open P5-P6 one."
+    },
+    {
+      "target": "proposed_edges 'P4 child_of P5'",
+      "decision": "qualify",
+      "reason": "The parent placeholder must stay: 'רב הונא בר זבדי' embeds a father Zavdi, and that holds even though the father never acts. But this edge, unlike the two other branch C edges, carries no evidence_type, and it is marked 'literal per patronymic בר' with no caveat. Tag it evidence_type = proposed_emendation (S21 margin only, not main text, not a manuscript seen), and mark that 'bar Zavdi' may be a fixed name rather than literal kinship."
+    },
+    {
+      "target": "F09 claim 'Other Bavli hits for זבדי are patronymics of other named men'",
+      "decision": "correct_claim",
+      "reason": "Zevachim 28b:5 (S33, and the same hit in S28) reads 'תָּנֵי זַבְדִּי בַּר לֵוִי'. There Zavdi is the man's own name, not his father's. The other hits (Kiddushin 33b 'רַבִּי יַעֲקֹב בַּר זַבְדִּי', Kiddushin 73b and Yevamot 83b 'רַבִּי יְהוּדָה בַּר זַבְדִּי') are patronymics. The conclusion 'no cross-passage merge' still holds, but the claim should say 'patronymics, plus one man named Zavdi (Zavdi bar Levi)'. That man is another bearer of the name to keep apart from Rav Zavdi here and from the father in branch C."
+    },
+    {
+      "target": "F05 (Munich 95) and alternative_readings A/B text_basis",
+      "decision": "support_with_same_limits",
+      "reason": "I read the Munich line myself and agree with the first reader. After 'ועד כמ׳ א׳ ר[ב] הונא' the next dark main-hand word is 'ואמרי לה'. There is a gap with faint brown strokes, which I read as ink showing through from the other side of the page, and I cannot rule out an erasure. No 'בר זבדי' is written. After 'זבדי' a second 'רב הונא' stands before 'עד מאה ועשרים', though I cannot read the small mark before it. So Munich, as read, does not show either change that branch C proposes (adding 'bar Zavdi' and deleting the second 'Rav Huna'). Keep confidence low until a published collation is checked; do not use it to reject branch C."
+    },
+    {
+      "target": "proposed_corrections[0] (pair …|40|61, kind 'alternative')",
+      "decision": "support_proposed_correction_with_scope",
+      "reason": "In the printed line 'אמר רב הונא ואמרי לה אמר רב זבדי אמר רב הונא', Rav Zavdi is a transmitter inside branch B, never another author. A Huna/Zavdi 'alternative' person pair is wrong for branches A and B. Replace it with two branch records on teaching T, exclusive only as report forms. Do not move the 'alternative' label onto P4/P6 except inside branch C with its evidence type, and then only as alternative names (see the first finding)."
+    },
+    {
+      "target": "proposed_corrections[1] (pair …|61|73, 'cites' AB)",
+      "decision": "support_proposed_correction",
+      "reason": "Offsets 61 and 73 are 'רב זבדי' and the second 'רב הונא', and the words between them are 'אמר רב זבדי אמר רב הונא'. So this is Zavdi reporting in Huna's name, inside branch B only. Store the direction once, as reports_in_name_of Zavdi -> Huna, with direct_hearing = not_stated. Add no teacher, meeting, before/after or generation edge."
+    },
+    {
+      "target": "F08 (Seder HaDorot)",
+      "decision": "qualify",
+      "reason": "The saved text reads 'רב זבדי בעירכין בזמן רב עיי\"ש (י\"ג ב') אמר רב זבדי אמר רב הונא, ואולי ביוחסין ט\"ס וצ\"ל בזמן רב הונא'. The bracket '[Yuchasin says]' in the dossier's translation is an inference, reasonable because the next clause blames Yuchasin, not words in the text. Besides being non-independent (the dossier already says so), the proposed 'in the time of Rav Huna' does not follow from branch B: 'in the name of' does not make the two men contemporaries. Keep Yuchasin's unseen reading 'in the time of Rav' and Seder HaDorot's proposed correction as two separate items. Neither becomes a time edge."
+    },
+    {
+      "target": "F04 evidence 0 and 1, F01 evidence 3 (page-image readings)",
+      "decision": "confirm_visual_readings",
+      "reason": "I confirmed the Bomberg reading letter for letter: 'כמה אמר רב הונא ואמרי לה אמר רב זבדי / אמר רב הונא עד מאה ועשרי׳ שנאמ׳ ועמהם'. I also confirmed the Vilna main text with its marker right after the first 'הונא', and the note in the column headed 'שיטה מקובצת': 'ב] רב הונא בר זבדי ואמרי לה אמר רב זבדי עד ותיבות אמר רב הונא נמחק:'. The note's lemma ends 'אמר רב זבדי עד', so the deleted 'אמר רב הונא' is the second one, as the dossier says. The Hagahot HaBach column on the same page has no note on this line, which settles one item the dossier left open."
+    },
+    {
+      "target": "F01 / F03 voice and addressee",
+      "decision": "add_missing_claim",
+      "reason": "The question 'וְעַד כַּמָּה?' belongs to the anonymous voice of the Gemara, asked about the Mishnah's 'וּמוֹסִיפִין עַד לְעוֹלָם'. It is not addressed to Rav Huna or Rav Zavdi. Record speaker = anonymous discussion for the question, and addressee = not marked for both routes. The 120 priests of the verse are biblical figures inside a proof text, not people in the passage."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "S19",
+      "exact_quote": "ועד כמ׳ א׳ ר[ב] הונא [gap, faint strokes] ואמרי לה א׳ רב זבדי [?] רב הונא עד מאה ועשרים",
+      "matches_claim": true,
+      "note": "My own reading of munich95_pg0945.jpg, zoomed 5-8x. It agrees with the dossier's reading. I confirm that no 'בר זבדי' is written in the main hand after the first 'הונא'. The gap before 'ואמרי' has faint strokes that look like ink showing through from the other side; I cannot rule out an erasure. The first title looks compressed ('רהונא'). The small mark between 'זבדי' and the second 'רב הונא' is not legible; I cannot confirm an aleph there. The second 'רב הונא' before 'עד' is present. Confidence low."
+    },
+    {
+      "source_id": "S20",
+      "exact_quote": "כמה אמר רב הונא ואמרי לה אמר רב זבדי אמר רב הונא עד מאה ועשרי׳ שנאמ׳ ועמהם",
+      "matches_claim": true,
+      "note": "Confirmed on bomberg_arakhin_13b.jpg (main text, just above the 'הכהנים מאה ועשרים' line), with a line break after 'זבדי'. It is clearly printed."
+    },
+    {
+      "source_id": "S21",
+      "exact_quote": "הונא ב] ואמרי לה אמר רב זבדי אמר רב הונא עד מאה ועשרים",
+      "matches_claim": true,
+      "note": "Confirmed on vilna_arakhin_13b.jpg, main text. The small note marker ב] follows the first 'הונא', with a line break before 'עד'."
+    },
+    {
+      "source_id": "S21",
+      "exact_quote": "ב] רב הונא בר זבדי ואמרי לה אמר רב זבדי עד ותיבות אמר רב הונא נמחק:",
+      "matches_claim": true,
+      "note": "Confirmed in the right-hand column headed 'שיטה מקובצת'. Note ג] ('ועשרים מחצצרים') follows. The note gives no source for its reading."
+    },
+    {
+      "source_id": "S01",
+      "exact_quote": "אָמַר רַב הוּנָא, וְאָמְרִי לַהּ אָמַר רַב זַבְדִּי אָמַר רַב הוּנָא: עַד מֵאָה וְעֶשְׂרִים",
+      "matches_claim": true,
+      "note": "It is in versions[0].text[3] (Arakhin 13b:4). It matches only after Unicode NFC normalisation, because the order of the vowel marks differs in the stored bytes. The words are identical."
+    },
+    {
+      "source_id": "S02",
+      "exact_quote": "ועד כמה אמר רב הונא ואמרי לה אמר רב זבדי אמר רב הונא עד מאה ועשרים",
+      "matches_claim": true,
+      "note": "An exact match. It is the same Koren editorial work as S01, so it is not a second witness."
+    },
+    {
+      "source_id": "S03",
+      "exact_quote": "ועד כמה אמר רב הונא ואמרי לה אמר רב זבדי אמר רב הונא עד מאה ועשרים",
+      "matches_claim": true,
+      "note": "An exact match (Wikisource). It belongs to the printed tradition."
+    },
+    {
+      "source_id": "S05",
+      "exact_quote": "ומוסיפין עד עולם עד כמה אמר רב הונא ואמרי לה כו'",
+      "matches_claim": true,
+      "note": "An exact match. Tosafot abbreviate with כו', so this is not a vote for either route."
+    },
+    {
+      "source_id": "S18",
+      "exact_quote": "רב זבדי בעירכין בזמן רב עיי\"ש (י\"ג ב') אמר רב זבדי אמר רב הונא, ואולי ביוחסין ט\"ס וצ\"ל בזמן רב הונא:",
+      "matches_claim": true,
+      "note": "An exact match. 'Yuchasin says' in the dossier's translation is inferred, not written."
+    },
+    {
+      "source_id": "S33",
+      "exact_quote": "תָּנֵי זַבְדִּי בַּר לֵוִי",
+      "matches_claim": false,
+      "note": "The quote exists, but it contradicts F09's wording that all other hits are patronymics. Here Zavdi is the man's own name."
+    },
+    {
+      "source_id": "S29",
+      "exact_quote": "\"total\": {\"value\": 0",
+      "matches_claim": true,
+      "note": "The search for 'הונא בר זבדי' returned 0 hits. This covers one index and one query form only."
+    }
+  ],
+  "extra_sources": []
+}
