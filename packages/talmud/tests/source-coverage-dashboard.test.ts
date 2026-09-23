@@ -100,6 +100,7 @@ const CLASSIFICATION: Record<string, Classification> = {
   keyForCtxMatch: { role: 'not-source', note: 'derived AI context placement' },
   keyForTranslate: { role: 'not-source', note: 'derived per-word translation' },
   keyForHebraize: { role: 'not-source', note: 'derived hebraised string' },
+  keyForBilingual: { role: 'not-source', note: 'derived Hebrew-once paragraph' },
 
   // --- daf → pieces reverse index (the inspector read side) -----------------
   keyForDafIndex: { role: 'not-source', note: 'daf → pieces reverse index entry' },
