@@ -16,8 +16,11 @@
  * state changes (e.g. dafContext loads async after the sidebar mounts).
  */
 import { type Accessor, createContext, createMemo, For, type JSX, useContext } from 'solid-js';
+import { rabbiHebrewOnce } from '../lib/bilingual';
+import { useBilingual } from './bilingual';
 import { ConceptAwareText, firstMentionGloss, useConceptLinks } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
+import { lang } from './i18n';
 
 export interface RabbiLinkContextValue {
   rabbis: Accessor<IdentifiedRabbi[]>;
@@ -45,12 +48,15 @@ export function useRabbiLinks(): RabbiLinkContextValue | null {
  *  context is present (e.g. outside the sidebar), behaves like Hebraized. */
 export function HebraizedWithRabbis(props: { text: string | undefined | null }): JSX.Element {
   const ctx = useRabbiLinks();
+  // The house rule's Jev pass (Hebrew once, on first mention) runs on the
+  // WHOLE paragraph here, before anything splits it into fragments.
+  const text = useBilingual(() => props.text ?? '');
   // No rabbi pool here — still layer in concept tooltips (ConceptAwareText
   // itself falls back to plain Hebraized when there's no concept context).
-  if (!ctx) return <ConceptAwareText text={props.text} />;
+  if (!ctx) return <ConceptAwareText text={text()} />;
   return (
     <RabbiText
-      text={props.text}
+      text={text()}
       rabbis={ctx.rabbis()}
       extraNames={ctx.extraNames()}
       onPushRabbi={ctx.onPushRabbi}
@@ -152,7 +158,11 @@ export function RabbiText(props: {
   // dafContext loading after mount, a new sidebar entry pushing) trigger
   // re-tokenization.
   const parts = createMemo(() => {
-    const cleaned = firstMentionGloss(props.text ?? '', concept?.matcher() ?? null);
+    // Names half of the house rule: each daf rabbi's Hebrew on its first
+    // mention only (added when the model left it out).
+    const named =
+      lang() === 'en' ? rabbiHebrewOnce(props.text ?? '', props.rabbis) : (props.text ?? '');
+    const cleaned = firstMentionGloss(named, concept?.matcher() ?? null);
     return tokenizeRabbiMentions(cleaned, [
       ...props.rabbis.map((r) => r.name),
       ...(props.extraNames ?? []),

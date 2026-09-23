@@ -134,6 +134,7 @@ import { resolveAiDown } from './ai-credits';
 import { clearAiDown, isHardAiPause, noteAiDown, readAiDown, transportProvesAiUp } from './ai-down';
 import { fetchGatewayCost } from './aigw-analytics';
 import { runBacklogBackfill } from './backfill-backlog';
+import { registerBilingualRoutes } from './bilingual-route';
 import { gcStaleCache } from './cache-gc';
 import {
   instanceIdOf,
@@ -11423,6 +11424,7 @@ app.get('/api/pesukim/:tractate/:page', async (c) => {
 });
 
 registerHebraizeRoutes(app);
+registerBilingualRoutes(app);
 
 app.get('/api/admin/rabbi-enriched/:slug', async (c) => {
   if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);

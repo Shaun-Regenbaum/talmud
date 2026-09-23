@@ -71,7 +71,8 @@ describe('RabbiText — double-Hebrew collapses in reader prose with rabbi links
         />
       </ConceptLinkProvider>
     ));
-    expect(container.textContent).toBe('Rav Acha declares the animal a טרפה.');
+    // The house rule also gives the rabbi's first mention its Hebrew name.
+    expect(container.textContent).toBe('Rav Acha (רב אחא) declares the animal a טרפה.');
     expect(container.textContent).not.toContain('(טריפה)');
     // The rabbi name still renders as a clickable link.
     expect((container.querySelector('[role="link"]') as HTMLElement)?.textContent).toBe('Rav Acha');

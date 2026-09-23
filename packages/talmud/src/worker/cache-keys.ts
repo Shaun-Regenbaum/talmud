@@ -228,6 +228,13 @@ export function keyForHebraize(hash: string): string {
   return `hebraize:v2:${hash}`;
 }
 
+/** An English paragraph after the bilingual house rule (Hebrew once, on first
+ *  mention), keyed by a content hash of the paragraph as generated. Bump the
+ *  version when the Jev questions or applyBilingual change what comes out. */
+export function keyForBilingual(hash: string): string {
+  return `bilingual:v1:${hash}`;
+}
+
 /** A rabbi's global bio enrichment, keyed by slug alone. */
 export function keyForRabbiBioBySlug(slug: string): string {
   return `rabbi-bio:v1:${slug}`;
