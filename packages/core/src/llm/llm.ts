@@ -34,6 +34,7 @@ import { reservationPrices } from './spend-reservations';
 export type LLMModelId = `@cf/${string}` | `openrouter/${string}`;
 
 export interface LLMEnv extends BillingEnv {
+  GENERATION_DISABLED?: string;
   CACHE?: KVNamespace;
   AI?: Ai;
   AI_GATEWAY_ID?: string;

@@ -28,7 +28,7 @@ Run all four checks before opening a pull request. They need no credentials.
 
 ## Rules that are not negotiable
 
-1. **Work in a worktree.** Several agents change this repo at once and the main checkout is often dirty with someone else's work. `scripts/worktree-new.sh <branch>` creates one from `origin/master`. Never edit or commit in the main checkout. When the pull request is merged, `scripts/worktree-done.sh <branch>` cleans up.
+1. **Work in a worktree.** Several agents change this repo at once and the main checkout is often dirty with someone else's work. `scripts/worktree-new.sh <branch>` creates one from `origin/staging`. Never edit or commit in the main checkout. When the pull request is merged, `scripts/worktree-done.sh <branch>` cleans up.
 2. **Cache keys and producer recipes are frozen.** A change to `packages/core/src/cache/keys.ts`, a `cache_version`, a prompt, or an output schema cold-misses every cached page in Shas (about $1000 and weeks to re-warm). If you must, say so in the pull request and why.
 3. **Human corrections outrank generated output** and are never overwritten. The store enforces it; do not work around it.
 4. **Precision over recall for placement.** A note on the wrong words is worse than a note on the whole daf.
@@ -41,7 +41,7 @@ Run all four checks before opening a pull request. They need no credentials.
 
 ## Workflow
 
-Branch in a worktree, commit with an imperative subject that says what a reader will notice, push, open a pull request with `gh pr create`. Merging to `master` deploys both apps after CI passes. Prefer one purpose per pull request. Ask a second model to review the diff read-only before you open it.
+Branch in a worktree, commit with an imperative subject that says what a reader will notice, push, open a pull request with `gh pr create`. Merge into `staging` to preview both apps. Shaun approves the Production job before the tested commit reaches `master` and production. See `docs/deployment.md`. Prefer one purpose per pull request. Ask a second model to review the diff read-only before you open it.
 
 ## Where to read next
 

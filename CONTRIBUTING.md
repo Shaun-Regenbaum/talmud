@@ -26,7 +26,7 @@ That is enough for documentation, UI, engine, and test changes. Running the read
 
 ## Work in a worktree
 
-Several people and agents change this repository at once, and the main checkout is often dirty with someone else's work. Start every change in its own worktree from the latest `origin/master`:
+Several people and agents change this repository at once, and the main checkout is often dirty with someone else's work. Start every change in its own worktree from the latest `origin/staging`:
 
 ```bash
 scripts/worktree-new.sh your-branch-name
@@ -69,7 +69,7 @@ What a reviewer looks for:
 
 Commit messages have an imperative subject that says what a reader or caller will notice. They carry no reference to an AI assistant or its vendor and no `Co-Authored-By` trailer; the pull request template's disclosure line is the place for that.
 
-CI runs lint, typecheck, tests, and build. A maintainer merges; merging to `master` deploys both readers. Once merged, clean up from the main checkout:
+Open the pull request against `staging`, the default branch. CI runs lint, typecheck, tests, and build. A maintainer merges it into `staging`, which deploys both readers to staging.talmud.dev and staging.tanach.dev for review. Production follows after the maintainer approves that version ([docs/deployment.md](docs/deployment.md)). Once merged, clean up from the main checkout:
 
 ```bash
 scripts/worktree-done.sh your-branch-name

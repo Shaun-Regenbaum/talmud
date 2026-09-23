@@ -211,3 +211,49 @@ binding = "BILLING_DB"
 database_name = "corpus-billing"
 database_id = "50ab90fa-cfdd-4b8c-8576-68f3eba6371d"
 migrations_dir = "migrations"
+
+# Review new releases here before approving production.
+[env.staging]
+name = "talmud-staging"
+workers_dev = false
+preview_urls = false
+routes = [{ pattern = "staging.talmud.dev", custom_domain = true }]
+worker_loaders = [{ binding = "LOADER" }]
+workflows = []
+analytics_engine_datasets = []
+send_email = []
+
+[env.staging.vars]
+APP_ENV = "staging"
+BILLING_APP = "talmud"
+GENERATION_DISABLED = "1"
+WORKER_ROLE = "reader"
+PUBLIC_ORIGIN = "https://staging.talmud.dev"
+LEARNED_ADJACENCY = "1"
+
+[env.staging.triggers]
+crons = []
+
+[env.staging.queues]
+producers = []
+consumers = []
+
+[[env.staging.kv_namespaces]]
+binding = "CACHE"
+id = "74de4dafe9e94071bcce4ac2873ba043"
+
+[[env.staging.d1_databases]]
+binding = "BILLING_DB"
+database_name = "corpus-billing-staging"
+database_id = "49930fc7-f92a-446b-886d-0ec8ae882dc6"
+migrations_dir = "migrations"
+
+[[env.staging.services]]
+binding = "STAGING_SOURCE"
+service = "corpus-staging-source"
+
+[env.staging.assets]
+directory = "./dist/client"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/", "/api/*", "/mcp", "/gallery-api/*"]

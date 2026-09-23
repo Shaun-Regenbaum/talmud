@@ -22,6 +22,7 @@ export interface EmailBinding {
 
 /** Env surface budget functions need. Bindings / LLMEnv both satisfy this. */
 export interface BudgetEnv extends ReservationEnv {
+  GENERATION_DISABLED?: string;
   CACHE?: KVNamespace;
   /** Per-deploy override for the daily hard cap (USD). Defaults to 300. */
   DAILY_BUDGET_USD?: string;
@@ -282,6 +283,8 @@ export async function checkBudget(
   args: { custom: boolean },
   now: number = Date.now(),
 ): Promise<BudgetDecision> {
+  if (env.GENERATION_DISABLED === '1')
+    return { ok: false, scope: 'all', reason: 'staging-read-only' };
   if (env.BILLING_DB) {
     const s = await reservationStatus(env, now);
     const scope: BudgetScope | undefined =

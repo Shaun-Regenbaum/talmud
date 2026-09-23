@@ -1,3 +1,4 @@
+import { releaseResponse, type StagingEnv, withStaging } from '@corpus/core/cache/staging';
 import { apiRequestBridge, serveCodeModeMcp } from '@corpus/core/mcp/code-mode';
 import { billingSummary, reconcileBilling } from '@corpus/core/telemetry/billing';
 import { recordMcpEvent, surfaceMiddleware } from '@corpus/core/telemetry/surface';
@@ -54,7 +55,7 @@ import { computeSourcesIndex } from './sources-index.ts';
 import { readUsage, recordUsage } from './usage.ts';
 import { runTanachWarm } from './warm-cron.ts';
 
-interface Env extends TanachEnv {
+interface Env extends TanachEnv, Omit<StagingEnv, 'CACHE'> {
   ASSETS: Fetcher;
   // Dynamic Worker Loader binding (wrangler.toml `worker_loaders`). Spins up the
   // isolated sandbox the code-mode MCP `execute` tool runs in. Optional: when
@@ -958,7 +959,8 @@ export { app };
 // fetch (the Hono app) + scheduled (the warm-cron that keeps this week's
 // parsha's chapter enrichments hot — see warm-cron.ts).
 export default {
-  fetch: (req: Request, env: Env, ctx: ExecutionContext) => app.fetch(req, env, ctx),
+  fetch: (req: Request, env: Env, ctx: ExecutionContext) =>
+    releaseResponse(req, env) ?? app.fetch(req, withStaging(env), ctx),
   scheduled: (_controller: ScheduledController, env: Env, ctx: ExecutionContext) => {
     ctx.waitUntil(
       reconcileBilling(env).catch(() => console.warn('[billing] reconciliation unavailable')),
