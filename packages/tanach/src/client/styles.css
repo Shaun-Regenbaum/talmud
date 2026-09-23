@@ -176,13 +176,8 @@ body {
   font-weight: 500;
   unicode-bidi: isolate;
 }
-.mg-seg {
-  border-radius: 2px;
-  transition: background-color 0.08s ease;
-}
-.mg-seg.hl {
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
+.mg-host {
+  position: relative;
 }
 
 /* event anchors: short section labels from the events producer, set as small
@@ -493,14 +488,32 @@ body {
   opacity: 0.6;
 }
 
-/* highlight the verses of a clicked section anchor */
-.vtext.hl {
+/* Highlighted verses (.vtext.hl in the scroll, .mg-seg.hl in Mikraot
+   Gedolot) are painted as continuous blocks over the text, one band per line,
+   by the shared overlay geometry (@corpus/ui/highlightOverlay, the same one the
+   Talmud reader uses). No gaps between lines, and the verse number sits inside
+   the block. */
+.verse-hl-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.verse-hl {
+  position: absolute;
+  pointer-events: none;
   background: color-mix(in srgb, var(--accent) 13%, transparent);
-  border-radius: 3px;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  padding: 1px 2px;
-  transition: background-color 0.15s ease;
+  mix-blend-mode: multiply;
+}
+.verse-hl-first {
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}
+.verse-hl-last {
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
+.mg-host .verse-hl {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 /* verse numbers are clickable -> commentary */
