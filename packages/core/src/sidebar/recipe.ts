@@ -203,6 +203,14 @@ export const ARGUMENT_OVERVIEW_RECIPE: SidebarRecipe = {
   ],
 };
 
+/** The same overview opened from a section's Argument icon in the margin: the
+ *  map comes first, with the focused section's summary right under it. The
+ *  whole-daf summary stays behind the Overview button. */
+export const ARGUMENT_OVERVIEW_MAP_FIRST_RECIPE: SidebarRecipe = {
+  ...ARGUMENT_OVERVIEW_RECIPE,
+  sections: ARGUMENT_OVERVIEW_RECIPE.sections.filter((s) => s.type !== 'synthesis'),
+};
+
 // Whole-daf essay cards (the chip-in-header pieces). Each is just a header +
 // the synthesis — the essay body renders through the per-mark renderer seam
 // (registerMarkRenderer), not deps — so the recipe is a single synthesis

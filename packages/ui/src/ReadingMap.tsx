@@ -15,7 +15,8 @@
  * the titles are nudged apart (`layoutParshaColumn`), because a short unit
  * cannot hold a line of text.
  */
-import { For, type JSX, Show } from 'solid-js';
+import { For, type JSX, onCleanup, Show } from 'solid-js';
+import { createHoverIntent } from './hoverIntent';
 export type ReadingKind = 'narrative' | 'law' | 'discourse' | 'poetry' | 'records';
 export interface ReadingMapStudy {
   book: string;
@@ -55,6 +56,9 @@ export interface ReadingMapProps {
   lang: 'en' | 'he';
   selected: number | null;
   onSelect: (index: number) => void;
+  /** The move under the pointer or keyboard focus, or null when it leaves.
+   *  Touch never hovers: a tap selects instead. */
+  onHover?: (index: number | null) => void;
   onOpenVerse: (chapter: number, verse: number) => void;
 }
 
@@ -71,6 +75,19 @@ export function ReadingMap(props: ReadingMapProps): JSX.Element {
   const y = (offset: number) => (offset / total()) * props.height;
 
   const column = () => props.column;
+  const hover = createHoverIntent<number>((index) => props.onHover?.(index));
+  onCleanup(() => hover.dispose());
+  /** Pointer and focus handlers that report `index` as hovered. */
+  const hoverHandlers = (index: number) => ({
+    onPointerEnter: (e: PointerEvent) => {
+      if (e.pointerType !== 'touch') hover.enter(index, String(index));
+    },
+    onPointerLeave: (e: PointerEvent) => {
+      if (e.pointerType !== 'touch') hover.leave();
+    },
+    onFocus: () => hover.enter(index, String(index)),
+    onBlur: () => hover.leave(),
+  });
 
   return (
     <Show when={map()}>
@@ -116,6 +133,7 @@ export function ReadingMap(props: ReadingMapProps): JSX.Element {
                       title={`${title()} · ${shortRef(unit.ref)}`}
                       aria-label={title()}
                       onClick={() => props.onSelect(row.index)}
+                      {...hoverHandlers(row.index)}
                     />
                   );
                 }}
@@ -151,6 +169,7 @@ export function ReadingMap(props: ReadingMapProps): JSX.Element {
                       classList={{ active: props.selected === row.index }}
                       style={{ top: `${row.labelTop}px` }}
                       onClick={() => props.onSelect(row.index)}
+                      {...hoverHandlers(row.index)}
                     >
                       <span class="t">{pick(unit.titleEn, unit.titleHe)}</span>
                       {/* A verse RANGE is Latin digits joined by a dash: without

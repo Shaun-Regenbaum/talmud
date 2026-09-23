@@ -37,6 +37,7 @@ interface MobileShelfProps {
   generationByName: Map<string, GenerationId>;
   dafSections?: Section[];
   onOpenArgument?: (index: number) => void;
+  onFocusSection?: (index: number) => void;
   onHighlightRange?: (
     range: {
       start: number;
@@ -151,6 +152,7 @@ function ExpansionView(props: MobileShelfProps): JSX.Element {
           generationByName={props.generationByName}
           dafSections={props.dafSections}
           onOpenArgument={props.onOpenArgument}
+          onFocusSection={props.onFocusSection}
           geography={props.geography}
         />
       </div>

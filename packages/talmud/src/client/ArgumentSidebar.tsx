@@ -4,6 +4,7 @@
 
 import {
   AGGADATA_RECIPE,
+  ARGUMENT_OVERVIEW_MAP_FIRST_RECIPE,
   ARGUMENT_OVERVIEW_RECIPE,
   ARGUMENT_RECIPE,
   BIYUN_RECIPE,
@@ -25,6 +26,7 @@ import {
   type GeoPoint,
   type GeoTrajectoryStop,
 } from '@corpus/ui/GeoMap';
+import { revealInPanel, scrollParent } from '@corpus/ui/reveal';
 import {
   createEffect,
   createMemo,
@@ -47,6 +49,7 @@ import type { Term } from '../lib/terms/registry';
 import { mergeFlows } from '../lib/typing/flowMerge';
 import {
   buildStatementSpine,
+  type StatementNode,
   type StatementSpine as StatementSpineData,
 } from '../lib/typing/statementSpine';
 import type { ArgumentVoicesData } from '../lib/typing/voices';
@@ -87,6 +90,7 @@ import {
   ACCENTS,
   HE_FONT,
   HebrewProse,
+  type HighlightRange,
   kindLabelKey,
   Panel,
   QASection,
@@ -236,7 +240,10 @@ export type SidebarContent =
   | { kind: 'place'; place: PlaceInstance }
   | { kind: 'voice-group'; group: { name: string; nameHe: string; bio: string } }
   | { kind: 'rishonim'; instance: RishonimInstance; index: number }
-  | { kind: 'argument-overview'; focus?: number }
+  /** `mapFirst`: opened from a section's Argument icon in the margin. The map
+   *  leads, with the focused section's summary under it, and the whole-daf
+   *  summary is left to the Overview button. */
+  | { kind: 'argument-overview'; focus?: number; mapFirst?: boolean }
   | { kind: 'daf-background' }
   | { kind: 'tidbit' }
   | { kind: 'biyun' }
@@ -290,6 +297,8 @@ export interface ArgumentSidebarProps {
   /** Open the in-depth `argument` card for a section (by index). Lets the
    *  whole-daf overview hand off into the full per-section argument. */
   onOpenArgument?: (index: number) => void;
+  /** The overview map moved its focus to another section (a map click). */
+  onFocusSection?: (index: number) => void;
   /** The whole-daf geography card's model + interaction callbacks. The model
    *  comes from the computed `geography` mark run; the callbacks drive in-text
    *  highlighting. Forwarded to the geography-map special block via extras. */
@@ -1036,6 +1045,41 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
     void props.page;
     setFocused(incomingFocus() ?? 0);
   });
+  // Opened from a section's Argument icon: the map leads the panel. The reader
+  // keeps the icon's active ring on whichever section the map is focused on,
+  // so a map click reports its section back up.
+  const mapFirst = (): boolean => !!props.extras?.mapFirst;
+  const reportFocus = (index: number): void =>
+    (props.extras?.onFocusSection as ((index: number) => void) | undefined)?.(index);
+  // The text that describes the focused section, below the map. Revealed
+  // (centered in the panel, one soft pulse) whenever the reader picks
+  // something, so they see where to read.
+  let summaryEl: HTMLElement | undefined;
+  const afterPaint = (fn: () => void): void => {
+    if (typeof requestAnimationFrame !== 'function') return fn();
+    requestAnimationFrame(() => requestAnimationFrame(fn));
+  };
+  // A margin-icon open (a new incoming focus that is not the echo of a map
+  // click) shows the panel from the top: the map, then the summary. The
+  // summary pulses, and scrolls into view only if the map pushed it off.
+  let echoedFocus: number | null = null;
+  createEffect(() => {
+    const f = incomingFocus();
+    if (!mapFirst() || f == null) return;
+    if (f === echoedFocus) {
+      echoedFocus = null;
+      return;
+    }
+    afterPaint(() => {
+      const el = summaryEl;
+      if (!el?.isConnected) return;
+      const panel = scrollParent(el);
+      panel?.scrollTo?.({ top: 0 });
+      const hidden =
+        !!panel && el.getBoundingClientRect().top > panel.getBoundingClientRect().bottom - 40;
+      revealInPanel(el, { scroll: hidden });
+    });
+  });
 
   // The flow, fetched directly so the map doesn't wait on the synthesis prose
   // (see fetchOverviewFlow). On warm dapim this is a cache hit; its result is a
@@ -1205,13 +1249,61 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
     setFocused(selection.focusedSectionIndex);
     setSelectedStmt(selection.selectedStatementId);
     setHighlightedMove(selection.highlightedMoveId);
+    if (mapFirst() && incomingFocus() !== selection.focusedSectionIndex) {
+      echoedFocus = selection.focusedSectionIndex;
+      reportFocus(selection.focusedSectionIndex);
+    }
+    afterPaint(() => {
+      if (summaryEl?.isConnected) revealInPanel(summaryEl);
+    });
   };
-  // Bring the detail into view when it (re)mounts on a new selection — matters on
-  // mobile, where the detail sits well below the map; block:'nearest' is a no-op
-  // when it's already visible (desktop).
-  const scrollDetailIntoView = (el?: HTMLElement): void => {
-    if (!el || typeof requestAnimationFrame !== 'function') return;
-    requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+  // A selected statement's detail mounts below the map: center it in the
+  // panel and pulse it once (desktop aside and phone sheet alike).
+  const revealDetail = (el?: HTMLElement): void => {
+    if (el) afterPaint(() => el.isConnected && revealInPanel(el));
+  };
+
+  // Hovering a map node previews its text on the daf; leaving restores the
+  // selection's highlight. Touch never hovers (GraphView skips it): a tap
+  // selects, which highlights the same way.
+  const sectionRange = (index: number): HighlightRange | null => {
+    const sec = sections()[index];
+    return sec && typeof sec.startSegIdx === 'number' && typeof sec.endSegIdx === 'number'
+      ? { start: sec.startSegIdx, end: sec.endSegIdx, key: `section-${index}` }
+      : null;
+  };
+  const selectionRange = (): HighlightRange | null => {
+    const m = selectedMove();
+    return m
+      ? {
+          start: m.startSegIdx,
+          end: m.endSegIdx,
+          key: m.fields.id,
+          tokenStart: m.fields.tokenStart,
+          tokenEnd: m.fields.tokenEnd,
+        }
+      : sectionRange(focused());
+  };
+  // Only a live preview is restored on leave, so a map that unmounts under the
+  // pointer (the panel closing) never repaints a highlight the reader cleared.
+  let previewing = false;
+  const hoverMap = (target: { section: number; statement?: StatementNode } | null): void => {
+    if (!target && !previewing) return;
+    previewing = !!target;
+    const s = target?.statement;
+    props.onHighlightRange?.(
+      !target
+        ? selectionRange()
+        : s
+          ? {
+              start: s.startSegIdx,
+              end: s.endSegIdx,
+              key: s.id,
+              tokenStart: s.tokenStart,
+              tokenEnd: s.tokenEnd,
+            }
+          : sectionRange(target.section),
+    );
   };
 
   // Split the daf's sections into discussion maps. With no flow yet (cold), each
@@ -1371,6 +1463,7 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
                   onSelect={selectSection}
                   selectedStatementId={selectedStmt()}
                   onSelectStatement={selectStatement}
+                  onHover={hoverMap}
                 />
                 <Show when={hasLast && bridge()?.toNext}>
                   {crossLabel(t('overview.continuesOnto', { page: pageRef(bridge()!.next) }))}
@@ -1391,6 +1484,9 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
           {(section) => (
             <div
               data-overview-detail="section"
+              ref={(el) => {
+                summaryEl = el;
+              }}
               style={{
                 'margin-top': '0.5rem',
                 'padding-top': '0.7rem',
@@ -1413,7 +1509,7 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
           {(m) => (
             <div
               data-overview-detail="move"
-              ref={(el) => scrollDetailIntoView(el)}
+              ref={(el) => revealDetail(el)}
               style={{
                 'margin-top': '0.5rem',
                 'padding-top': '0.7rem',
@@ -3939,6 +4035,7 @@ interface CardExtrasCtx {
   onPushRabbi: (name: string) => void;
   dafSections: Section[];
   onOpenArgument?: (index: number) => void;
+  onFocusSection?: (index: number) => void;
   /** The whole-daf geography card's model + interaction callbacks (the
    *  geography-map block's `extras`). */
   geography?: GeographyExtras;
@@ -3946,6 +4043,8 @@ interface CardExtrasCtx {
 
 interface CardDef {
   recipe: SidebarRecipe;
+  /** A different recipe for some contents of the same kind. */
+  recipeFor?: (c: SidebarContent) => SidebarRecipe;
   blocks: Record<string, (p: SpecialBlockProps) => JSX.Element>;
   /** Display instance ({fields}) feeding the heading + non-synthesis sections. */
   instance: (c: SidebarContent) => { fields: Record<string, unknown> };
@@ -3976,10 +4075,21 @@ export const CARD_DEFS: Partial<Record<SidebarContent['kind'], CardDef>> = {
   },
   'argument-overview': {
     recipe: ARGUMENT_OVERVIEW_RECIPE,
+    recipeFor: (c) =>
+      (c as Extract<SidebarContent, { kind: 'argument-overview' }>).mapFirst
+        ? ARGUMENT_OVERVIEW_MAP_FIRST_RECIPE
+        : ARGUMENT_OVERVIEW_RECIPE,
     blocks: ARGUMENT_OVERVIEW_BLOCKS,
     // Whole-daf: the only display field is the localized "Overview" heading;
-    // the daf's sections travel via extras (they aren't on the content).
-    instance: () => ({ fields: { title: t('overview.title') } }),
+    // the daf's sections travel via extras (they aren't on the content). The
+    // map-first view has no heading: the map is the first thing in the panel.
+    instance: (c) => ({
+      fields: {
+        title: (c as Extract<SidebarContent, { kind: 'argument-overview' }>).mapFirst
+          ? ''
+          : t('overview.title'),
+      },
+    }),
     // The synthesis mark_input stays the old empty `{fields:{}}` byte-for-byte —
     // the localized heading is display-only and must not leak into the warmed
     // overview cache key (which would cold-miss all of Shas).
@@ -3988,6 +4098,8 @@ export const CARD_DEFS: Partial<Record<SidebarContent['kind'], CardDef>> = {
     extras: (ctx) => ({
       sections: ctx.dafSections,
       focus: (ctx.content as Extract<SidebarContent, { kind: 'argument-overview' }>).focus,
+      mapFirst: (ctx.content as Extract<SidebarContent, { kind: 'argument-overview' }>).mapFirst,
+      onFocusSection: ctx.onFocusSection,
     }),
   },
   // Whole-daf essay cards: header + synthesis only (the essay renders through
@@ -4113,7 +4225,8 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
       setActiveCard(null);
       return;
     }
-    const recipe = CARD_DEFS[content.kind]?.recipe;
+    const def = CARD_DEFS[content.kind];
+    const recipe = def?.recipeFor?.(content) ?? def?.recipe;
     const instanceKey = instanceKeyForContent(content, props.tractate, props.page);
     setActiveCard(recipe && instanceKey ? { recipe, instanceKey } : null);
   });
@@ -4197,7 +4310,12 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                     'letter-spacing': '0.08em',
                   }}
                 >
-                  {t(kindLabelKey(c().kind))}
+                  {t(
+                    c().kind === 'argument-overview' &&
+                      (c() as Extract<SidebarContent, { kind: 'argument-overview' }>).mapFirst
+                      ? 'sidebar.kind.argument'
+                      : kindLabelKey(c().kind),
+                  )}
                   {' · '}
                   {lang() === 'he'
                     ? dafRefHe(props.tractate, props.page)
@@ -4227,7 +4345,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
               <Show when={CARD_DEFS[c().kind]}>
                 {(def) => (
                   <SidebarCardFromHint
-                    recipe={def().recipe}
+                    recipe={def().recipeFor?.(c()) ?? def().recipe}
                     instance={def().instance(c())}
                     synthInstance={def().synthInstance?.(c())}
                     instanceKey={instanceKeyForContent(c(), props.tractate, props.page)!}
@@ -4244,6 +4362,7 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                       onPushRabbi: props.onPushRabbi,
                       dafSections: props.dafSections ?? [],
                       onOpenArgument: props.onOpenArgument,
+                      onFocusSection: props.onFocusSection,
                       geography: props.geography,
                     })}
                   />

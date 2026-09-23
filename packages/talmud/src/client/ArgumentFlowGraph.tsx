@@ -72,6 +72,9 @@ interface Props {
   selectedStatementId?: string | null;
   onSelectStatement?: (id: string) => void;
   isStatementDimmed?: (statement: StatementNode) => boolean;
+  /** The section (and statement, when a statement node) under the pointer or
+   *  keyboard focus; null when it leaves. Exit markers do not report. */
+  onHover?: (target: { section: number; statement?: StatementNode } | null) => void;
 }
 
 export const KIND_COLOR: Record<FlowConnection['kind'], string> = {
@@ -390,6 +393,17 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
     setClosed(index === props.activeIndex && closed() !== index ? index : null);
     props.onSelect(index);
   };
+  const hover = (item: GraphNode | null) => {
+    if (!item) return props.onHover?.(null);
+    const match = item.id.match(/^section:(\d+)(?::(statement|exit):(.+))?$/);
+    if (!match || match[2] === 'exit') return props.onHover?.(null);
+    const section = Number(match[1]);
+    const statement =
+      match[2] === 'statement'
+        ? props.nodes.find((n) => n.index === section)?.statements?.find((s) => s.id === match[3])
+        : undefined;
+    props.onHover?.({ section, statement });
+  };
   const toggleActions = (g: GraphGroup) => {
     const index = Number(g.id.split(':')[1]);
     setOpenExits((prev) => {
@@ -425,6 +439,7 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
       hideLegend={props.hideLegend}
       direction={lang() === 'he' ? 'rtl' : 'ltr'}
       onSelect={select}
+      onHover={hover}
       onToggleActions={toggleActions}
     />
   );
