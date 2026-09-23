@@ -288,6 +288,22 @@ function spellingPattern(name: string): string {
   return out;
 }
 
+/** A leading English article, folded away when comparing or counting words. */
+const ARTICLE = /^(?:the|a|an)\s+/i;
+
+/** Whether the name found at [at, end) is only part of a longer name: the
+ *  next word is capitalized or a patronymic ("Rav" inside "Rav Papa", "Rabbi
+ *  Elazar" inside "Rabbi Elazar ben Pedat"), or the word before is a title
+ *  or patronymic ("Yochanan" inside "Rabbi Yochanan"). Adding the short
+ *  name's Hebrew there would split the longer name. A capitalized word before
+ *  is fine ("Later Rabbi Yochanan"). */
+function partOfLongerName(text: string, at: number, end: number): boolean {
+  if (/^[ \t]+(?:\p{Lu}|ben\b|bar\b|b\.)/u.test(text.slice(end))) return true;
+  return /\b(?:Rabbi|Rabban|Rav|Rabbeinu|Mar|R\.|ben|bar|b\.)[ \t]+$/.test(
+    text.slice(Math.max(0, at - 40), at),
+  );
+}
+
 /** A daf rabbi as the reader knows it: the English display name and its Hebrew. */
 export interface NamedRabbi {
   name: string;
@@ -320,6 +336,7 @@ export function rabbiHebrewOnce(text: string, rabbis: readonly NamedRabbi[]): st
     if (open > text.lastIndexOf(')', at)) continue; // inside a parenthesis
     const r = byName.get(nameFold(m[1]));
     if (!r) continue;
+    if (partOfLongerName(text, at, at + m[1].length)) continue;
     // A possessive stays on the name: "Rabbi Yoḥanan's (רבי יוחנן) objection",
     // never "Rabbi Yoḥanan (רבי יוחנן)'s objection".
     const poss = text.slice(at + m[1].length).match(/^['’]s(?![\p{L}])/u);
@@ -339,4 +356,131 @@ export function rabbiHebrewOnce(text: string, rabbis: readonly NamedRabbi[]): st
     }
   }
   return edits.length ? applyEdits(text, edits) : text;
+}
+
+// ── Page glossary ────────────────────────────────────────────────────────────
+// One paragraph often gives a name or term its Hebrew while another paragraph
+// on the same page mentions it bare ("Kontrokos (קונטרוקוס)" in the section
+// summary, plain "Kontrokos" in the page overview). The glossary collects the
+// pairs Jev pinned down across the page's saved prose, so every paragraph on
+// the page can give that name or term its Hebrew on first mention.
+
+/** One English name or term and its Hebrew, learned from a page's own prose. */
+export interface GlossaryEntry {
+  en: string;
+  he: string;
+  kind: 'name' | 'term';
+}
+
+/** The pairs one paragraph's decisions pin down. A name must start with a
+ *  capital letter. A term must be two words or more: a single common word
+ *  ("court", "lamb") spread across a page would gloss unrelated uses. */
+export function pairsFromDecisions(
+  parens: readonly HebrewParen[],
+  decisions: readonly ParenDecision[],
+): GlossaryEntry[] {
+  const out: GlossaryEntry[] = [];
+  parens.forEach((p, i) => {
+    const d = decisions[i];
+    if (!d || d.kind === 'other' || d.kindP < DECIDE_MIN) return;
+    if (!d.span || d.spanP < DECIDE_MIN) return;
+    const en = d.span.replace(/^["'‘“]+|["'’”]+$/g, '').trim();
+    if (!en) return;
+    if (d.kind === 'name' && !/^\p{Lu}/u.test(en)) return;
+    if (d.kind === 'term' && en.replace(ARTICLE, '').split(/\s+/).length < 2) return;
+    out.push({ en, he: p.inner.replace(NIKUD, '').trim(), kind: d.kind });
+  });
+  return out;
+}
+
+/** A term must be pinned down by at least this many paragraphs on the page to
+ *  spread to the others. On Bekhorot 5a the one-paragraph terms included "they
+ *  were sanctified = קדשו" and "a reason = טעם"; the two-paragraph ones were
+ *  "sacred maneh", "faithful treasurer", "detailed counting". A name spreads
+ *  from a single paragraph. */
+export const TERM_MIN_PARAGRAPHS = 2;
+
+/** Merge per-paragraph pairs into one list for the page. For each English
+ *  name or term (spelling and a leading article folded), keep the Hebrew the
+ *  most paragraphs used; when two different Hebrew forms tie, keep neither. */
+export function buildGlossary(
+  perParagraph: readonly (readonly GlossaryEntry[])[],
+): GlossaryEntry[] {
+  const byEn = new Map<string, Map<string, { e: GlossaryEntry; n: number }>>();
+  for (const pairs of perParagraph) {
+    const seenHere = new Set<string>();
+    for (const e of pairs) {
+      const enK = `${e.kind}:${nameFold(e.en.replace(ARTICLE, ''))}`;
+      const heK = heKey(e.he);
+      if (seenHere.has(`${enK}\u0000${heK}`)) continue;
+      seenHere.add(`${enK}\u0000${heK}`);
+      const forms = byEn.get(enK) ?? new Map();
+      const f = forms.get(heK) ?? { e, n: 0 };
+      f.n++;
+      forms.set(heK, f);
+      byEn.set(enK, forms);
+    }
+  }
+  const out: GlossaryEntry[] = [];
+  for (const forms of byEn.values()) {
+    const ranked = [...forms.values()].sort((a, b) => b.n - a.n);
+    if (ranked.length > 1 && ranked[0].n === ranked[1].n) continue;
+    if (ranked[0].e.kind === 'term' && ranked[0].n < TERM_MIN_PARAGRAPHS) continue;
+    out.push(ranked[0].e);
+  }
+  return out;
+}
+
+/** Give each glossary name or term its Hebrew on its first mention in `text`,
+ *  unless the paragraph already carries that Hebrew somewhere or the first
+ *  mention already has a parenthesis. Longest entries first, and a mention
+ *  inside a longer one already handled is skipped. Idempotent. */
+export function applyGlossary(text: string, entries: readonly GlossaryEntry[]): string {
+  if (!text || entries.length === 0) return text;
+  const present = heKey(text);
+  const claimed: [number, number][] = [];
+  const edits: Edit[] = [];
+  for (const e of [...entries].sort((a, b) => b.en.length - a.en.length)) {
+    if (present.includes(heKey(e.he))) continue;
+    const re = new RegExp(`(?<![\\p{L}\\p{M}])${spellingPattern(e.en)}(?![\\p{L}\\p{M}])`, 'giu');
+    for (const m of text.matchAll(re)) {
+      const at = m.index;
+      const end = at + m[0].length;
+      if (text.lastIndexOf('(', at) > text.lastIndexOf(')', at)) continue; // inside a paren
+      if (e.kind === 'name' && (!/^\p{Lu}/u.test(m[0]) || partOfLongerName(text, at, end))) {
+        continue;
+      }
+      if (claimed.some(([s, t]) => at < t && end > s)) continue;
+      claimed.push([at, end]);
+      const poss = e.kind === 'name' ? text.slice(end).match(/^['’]s?(?![\p{L}])/u) : null;
+      const after = end + (poss ? poss[0].length : 0);
+      if (!/^\s*\(/.test(text.slice(after))) {
+        edits.push({ at: after, del: 0, ins: ` (${e.he})` });
+      }
+      break;
+    }
+  }
+  return edits.length ? applyEdits(text, edits) : text;
+}
+
+/** The English prose paragraphs in a page's saved pieces (the /api/daf-view
+ *  `pieces` object) that carry Hebrew parentheses — the paragraphs a page
+ *  glossary is learned from. Deduplicated; raw JSON strings are skipped. */
+export function proseWithHebrew(pieces: unknown, maxChars = 4000): string[] {
+  const out = new Set<string>();
+  const walk = (x: unknown): void => {
+    if (typeof x === 'string') {
+      const s = x.trim();
+      if (s.length < 40 || s.length > maxChars || s.startsWith('{') || s.startsWith('[')) return;
+      const latin = (s.match(/[A-Za-z]/g) ?? []).length;
+      if (latin < s.length * 0.4) return;
+      if (findHebrewParens(x).length > 0) out.add(x);
+    } else if (Array.isArray(x)) {
+      for (const v of x) walk(v);
+    } else if (x && typeof x === 'object') {
+      for (const v of Object.values(x)) walk(v);
+    }
+  };
+  walk(pieces);
+  return [...out];
 }

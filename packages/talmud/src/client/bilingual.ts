@@ -6,6 +6,7 @@
  * page load. English mode only: Hebrew-mode prose has no English to gloss.
  */
 import { createEffect, createSignal, onCleanup } from 'solid-js';
+import type { GlossaryEntry } from '../lib/bilingual';
 import { lang } from './i18n';
 
 /** A Hebrew-only parenthesis somewhere in the text — the only thing the
@@ -74,5 +75,55 @@ export function useBilingual(text: () => string): () => string {
     const t = text();
     const d = done();
     return d && d.src === t && lang() === 'en' ? d.out : t;
+  };
+}
+
+/** One fetch per page per load: the names and terms whose Hebrew some
+ *  paragraph on the page gives (GET /api/bilingual/glossary). Empty on error. */
+const glossaries = new Map<string, Promise<GlossaryEntry[]>>();
+
+function fetchGlossary(tractate: string, page: string): Promise<GlossaryEntry[]> {
+  const k = `${tractate}:${page}`;
+  let p = glossaries.get(k);
+  if (!p) {
+    p = fetch(`/api/bilingual/glossary/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}`)
+      .then(async (r) => {
+        const body = r.ok ? ((await r.json()) as { entries?: unknown; complete?: boolean }) : null;
+        const entries = Array.isArray(body?.entries) ? (body.entries as GlossaryEntry[]) : [];
+        // A partial list (page still generating, or Jev unavailable) is used
+        // now but asked for again on the next open.
+        if (body?.complete === false) glossaries.delete(k);
+        return entries;
+      })
+      .catch(() => {
+        glossaries.delete(k);
+        return [];
+      });
+    glossaries.set(k, p);
+  }
+  return p;
+}
+
+/** Reactive page glossary for the given page; empty until it arrives. */
+export function usePageGlossary(
+  page: () => { tractate: string; page: string } | null | undefined,
+): () => GlossaryEntry[] {
+  const [entries, setEntries] = createSignal<{ k: string; e: GlossaryEntry[] } | null>(null);
+  createEffect(() => {
+    const p = page();
+    if (!p || lang() !== 'en') return;
+    const k = `${p.tractate}:${p.page}`;
+    let live = true;
+    void fetchGlossary(p.tractate, p.page).then((e) => {
+      if (live) setEntries({ k, e });
+    });
+    onCleanup(() => {
+      live = false;
+    });
+  });
+  return () => {
+    const p = page();
+    const got = entries();
+    return p && got && got.k === `${p.tractate}:${p.page}` ? got.e : [];
   };
 }

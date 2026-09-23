@@ -6,6 +6,12 @@
  * the cleaned text is cached forever by content hash, so a page is cleaned
  * the first time anyone opens it and served from KV after that.
  *
+ * GET /api/bilingual/glossary/:tractate/:page builds the page glossary: the
+ * names and terms whose Hebrew some paragraph on the page gives, so the
+ * reader can give every paragraph on the page the same Hebrew on first
+ * mention. It reads the page's saved prose through /api/daf-view and shares
+ * the per-paragraph judgments (and their cache entries) with the POST.
+ *
  * Never fails a paragraph: a Jev error (no key, budget pause, staging's
  * read-only guard, timeout) returns the text unchanged and caches nothing, so
  * the next open tries again.
@@ -16,10 +22,15 @@ import type { Hono } from 'hono';
 import {
   applyBilingual,
   buildBilingualQuestions,
+  buildGlossary,
   findHebrewParens,
+  type GlossaryEntry,
+  pairsFromDecisions,
+  proseWithHebrew,
   readDecisions,
 } from '../lib/bilingual';
-import { keyForBilingual } from './cache-keys';
+import { isValidAmud } from '../lib/sefref/amudim';
+import { keyForBilingual, keyForBilingualGlossary } from './cache-keys';
 import { readJsonBody } from './http-helpers';
 import type { Bindings } from './types';
 
@@ -36,17 +47,25 @@ async function sha256Hex(s: string): Promise<string> {
     .join('');
 }
 
-/** Clean one paragraph: KV hit, else one Jev request, else the text as-is. */
-async function cleanOne(
+/** What one paragraph comes to under the house rule: the cleaned text, and
+ *  the name/term pairs Jev pinned down in it (the page glossary's input). */
+interface Judged {
+  text: string;
+  pairs: GlossaryEntry[];
+}
+
+/** Judge one paragraph: KV hit, else one Jev request. Null on a Jev failure
+ *  (nothing is cached, so the next open tries again). */
+async function judge(
   env: Bindings,
   text: string,
   waitUntil: (p: Promise<unknown>) => void,
-): Promise<string> {
+): Promise<Judged | null> {
   const parens = findHebrewParens(text);
-  if (parens.length === 0) return text;
+  if (parens.length === 0) return { text, pairs: [] };
   const key = keyForBilingual(await sha256Hex(text));
-  const hit = env.CACHE ? await env.CACHE.get(key) : null;
-  if (hit !== null) return hit;
+  const hit = env.CACHE ? await env.CACHE.get<Judged>(key, 'json') : null;
+  if (hit && typeof hit.text === 'string' && Array.isArray(hit.pairs)) return hit;
   try {
     const res = await runJev(env, {
       state: { paragraph: text },
@@ -54,14 +73,38 @@ async function cleanOne(
       tag: 'bilingual',
       attribution: { kind: 'hebraize' },
     });
-    const out = applyBilingual(text, parens, readDecisions(text, parens, res.answers));
-    if (env.CACHE) waitUntil(env.CACHE.put(key, out, { expirationTtl: 60 * 60 * 24 * 365 }));
+    const decisions = readDecisions(text, parens, res.answers);
+    const out: Judged = {
+      text: applyBilingual(text, parens, decisions),
+      pairs: pairsFromDecisions(parens, decisions),
+    };
+    if (env.CACHE) {
+      waitUntil(env.CACHE.put(key, JSON.stringify(out), { expirationTtl: 60 * 60 * 24 * 365 }));
+    }
     return out;
   } catch (err) {
     console.warn(`[bilingual] jev failed: ${String((err as Error)?.message ?? err).slice(0, 200)}`);
-    return text;
+    return null;
   }
 }
+
+/** Run `fn` over `items` with CONCURRENCY in flight, results in input order. */
+async function pool<T, R>(items: readonly T[], fn: (t: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: CONCURRENCY }, async () => {
+      while (next < items.length) {
+        const i = next++;
+        out[i] = await fn(items[i]);
+      }
+    }),
+  );
+  return out;
+}
+
+/** Paragraphs judged per page glossary; a page rarely has more. */
+export const GLOSSARY_MAX_PARAGRAPHS = 200;
 
 export function registerBilingualRoutes(app: Hono<{ Bindings: Bindings }>): void {
   app.post('/api/bilingual', async (c) => {
@@ -74,18 +117,47 @@ export function registerBilingualRoutes(app: Hono<{ Bindings: Bindings }>): void
     if (texts.length > BILINGUAL_MAX_TEXTS) {
       return c.json({ error: `at most ${BILINGUAL_MAX_TEXTS} texts` }, 413);
     }
-    const out: string[] = [...(texts as string[])];
-    const todo = out.map((_t, i) => i).filter((i) => out[i].length <= BILINGUAL_MAX_CHARS);
     const waitUntil = (p: Promise<unknown>) => c.executionCtx.waitUntil(p);
-    let next = 0;
-    await Promise.all(
-      Array.from({ length: CONCURRENCY }, async () => {
-        while (next < todo.length) {
-          const i = todo[next++];
-          out[i] = await cleanOne(c.env, out[i], waitUntil);
-        }
-      }),
+    const out = await pool(texts as string[], async (t) =>
+      t.length > BILINGUAL_MAX_CHARS ? t : ((await judge(c.env, t, waitUntil))?.text ?? t),
     );
     return c.json({ texts: out });
+  });
+
+  // GET /api/bilingual/glossary/:tractate/:page — the page glossary: every
+  // name/term whose Hebrew some paragraph on the page gives, learned from the
+  // page's saved prose (the same pieces /api/daf-view serves). Built on the
+  // first request and cached; the per-paragraph judgments are shared with
+  // POST /api/bilingual through the same cache entries.
+  app.get('/api/bilingual/glossary/:tractate/:page', async (c) => {
+    const tractate = c.req.param('tractate');
+    const page = c.req.param('page');
+    if (!isValidAmud(tractate, page)) return c.json({ error: 'no such page' }, 404);
+    const key = keyForBilingualGlossary(tractate, page);
+    const hit = c.env.CACHE ? await c.env.CACHE.get<GlossaryEntry[]>(key, 'json') : null;
+    if (Array.isArray(hit)) return c.json({ entries: hit, cached: true });
+
+    const viewRes = await app.request(
+      `/api/daf-view/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}`,
+      {},
+      c.env,
+      c.executionCtx,
+    );
+    if (!viewRes.ok) return c.json({ entries: [], error: `daf-view ${viewRes.status}` });
+    const view = (await viewRes.json()) as { pieces?: unknown; complete?: boolean };
+    const paragraphs = proseWithHebrew(view.pieces).slice(0, GLOSSARY_MAX_PARAGRAPHS);
+    const waitUntil = (p: Promise<unknown>) => c.executionCtx.waitUntil(p);
+    const judged = await pool(paragraphs, (t) => judge(c.env, t, waitUntil));
+    const entries = buildGlossary(judged.map((j) => j?.pairs ?? []));
+    // Cache only a full answer: every paragraph judged, on a finished page.
+    // Otherwise the next request builds it again (the per-paragraph work is
+    // cached, so a retry only pays for what failed or is new).
+    const full = view.complete === true && judged.every((j) => j !== null);
+    if (full && c.env.CACHE) {
+      waitUntil(
+        c.env.CACHE.put(key, JSON.stringify(entries), { expirationTtl: 60 * 60 * 24 * 30 }),
+      );
+    }
+    return c.json({ entries, cached: false, complete: full });
   });
 }

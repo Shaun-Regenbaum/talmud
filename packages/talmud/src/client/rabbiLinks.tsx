@@ -16,8 +16,8 @@
  * state changes (e.g. dafContext loads async after the sidebar mounts).
  */
 import { type Accessor, createContext, createMemo, For, type JSX, useContext } from 'solid-js';
-import { rabbiHebrewOnce } from '../lib/bilingual';
-import { useBilingual } from './bilingual';
+import { applyGlossary, rabbiHebrewOnce } from '../lib/bilingual';
+import { useBilingual, usePageGlossary } from './bilingual';
 import { ConceptAwareText, firstMentionGloss, useConceptLinks } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
 import { lang } from './i18n';
@@ -26,6 +26,9 @@ export interface RabbiLinkContextValue {
   rabbis: Accessor<IdentifiedRabbi[]>;
   extraNames: Accessor<string[]>;
   onPushRabbi: (name: string) => void;
+  /** The page on screen, so prose can use that page's glossary (names and
+   *  terms whose Hebrew another paragraph on the page gives). */
+  page?: Accessor<{ tractate: string; page: string }>;
 }
 
 const RabbiLinkContext = createContext<RabbiLinkContextValue | null>(null);
@@ -50,7 +53,11 @@ export function HebraizedWithRabbis(props: { text: string | undefined | null }):
   const ctx = useRabbiLinks();
   // The house rule's Jev pass (Hebrew once, on first mention) runs on the
   // WHOLE paragraph here, before anything splits it into fragments.
-  const text = useBilingual(() => props.text ?? '');
+  const cleaned = useBilingual(() => props.text ?? '');
+  // Then borrow Hebrew from the rest of the page: a name or term another
+  // paragraph glosses gets the same Hebrew here, on its first mention.
+  const glossary = usePageGlossary(() => ctx?.page?.());
+  const text = () => (lang() === 'en' ? applyGlossary(cleaned(), glossary()) : cleaned());
   // No rabbi pool here — still layer in concept tooltips (ConceptAwareText
   // itself falls back to plain Hebraized when there's no concept context).
   if (!ctx) return <ConceptAwareText text={text()} />;
