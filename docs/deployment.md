@@ -10,7 +10,7 @@ The workflow then waits for Shaun to approve its **Production** job in GitHub Ac
 
 ## Which run to approve
 
-Approve the newest run. If another merge reaches staging before a run starts deploying, the older run stops and skips its Production job. If staging moves while a run is already waiting for approval, that run still asks, but it refuses to promote when approved. Reject it, or let it fail, and approve the newer one. Production deployments run one at a time. A failed deployment can be retried from the same run.
+Approve the newest run. If another merge reaches staging before a run starts deploying, the older run stops and skips its Production job. If staging moves while a run is already waiting for approval, the newer run cancels it once its own staging deploy passes. Until then the older run still asks, but it refuses to promote when approved. Production deployments run one at a time. A failed deployment can be retried from the same run.
 
 ## Staging uses real saved content
 
