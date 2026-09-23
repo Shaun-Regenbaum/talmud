@@ -90,6 +90,14 @@ In both readers, check desktop and phone widths, English and Hebrew, long book n
 
 Tanach adoption and deliberate exceptions are listed in [the component inventory](../../docs/tanach-component-inventory.md).
 
+### Daily comparisons and compact summaries
+
+`@corpus/ui/DailyComparison` shows grouped bars by date, with exact values below each day. All series must use the same unit and share one scale. Missing, invalid, and negative values display as a dash; zero remains zero. Callers supply translated labels and number/date formatting. Dates follow the supplied row order. Narrow screens scroll horizontally by touch or keyboard.
+
+`@corpus/ui/MetricSummary` gives a total, supporting counts, and short notes a consistent layout. `DetailSection` adds a native expandable section with separate title and description. It accepts `open` and `onToggle` for saved state. Callers that load content only when opened should wrap the children in a conditional.
+
+Both examples appear under “Daily comparisons & summaries” in the gallery. They read live usage and billing data through the gallery’s read-only proxy.
+
 ## Build maps with GraphView
 
 `@corpus/ui/GraphView` takes `groups`, `edges`, translated `labels`, and selection callbacks. It imports its own CSS and uses the app's theme tokens. It fetches no data and creates no claims or connections.

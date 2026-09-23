@@ -1,11 +1,13 @@
 import { Button } from '@corpus/ui/Button';
+import { DailyComparison } from '@corpus/ui/DailyComparison';
+import { DetailSection } from '@corpus/ui/MetricSummary';
 import { FilterChip, StatCard as SharedStatCard, StatusMessage } from '@corpus/ui/Study';
 import './debug-controls.css';
 import { ChartCard, type LinePoint, LineChart as SharedLineChart } from '@corpus/ui/Charts';
 import { WorldBubbleMap } from '@corpus/ui/WorldBubbleMap';
 import { createMemo, createResource, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 import { estimateShasCost, type ProducerCost } from '../lib/shasCost';
-import type { AppSurfaceUsage, SurfaceDayRow, SurfaceUsage } from '../worker/surface-analytics';
+import type { AppSurfaceUsage, SurfaceUsage } from '../worker/surface-analytics';
 import { BillingLedger } from './BillingLedger';
 import { type Column, DataTable, HitChip, Meter, RankedBars, type RankedItem } from './DataTable';
 import { lang, t } from './i18n';
@@ -555,28 +557,18 @@ function Collapsible(props: {
     return props.defaultOpen ?? false;
   })();
   const [open, setOpen] = createSignal(initial);
-  const toggle = () => {
-    const next = !open();
+  const toggle = (next: boolean) => {
     setOpen(next);
     try {
       window.localStorage.setItem(storageKey, next ? '1' : '0');
     } catch {
-      /* quota / disabled */
+      /* storage disabled */
     }
   };
   return (
-    <div style={{ 'margin-top': '0.7rem' }}>
-      <h3 class="usage-disclosure-heading">
-        <Button class="usage-disclosure" onClick={toggle} aria-expanded={open()}>
-          <span aria-hidden="true">{open() ? '▾' : '▸'}</span>
-          <span>{props.title}</span>
-          <Show when={props.sub}>
-            <span class="usage-disclosure-detail">{props.sub}</span>
-          </Show>
-        </Button>
-      </h3>
+    <DetailSection title={props.title} description={props.sub} open={open()} onToggle={toggle}>
       <Show when={open()}>{props.children}</Show>
-    </div>
+    </DetailSection>
   );
 }
 
@@ -3094,65 +3086,10 @@ const TABS: Array<{ id: string; labelKey: string }> = [
 
 const SURFACE_KEYS = ['app', 'mcp', 'api'] as const;
 const SURFACE_COLORS: Record<(typeof SURFACE_KEYS)[number], string> = {
-  app: '#cfc9bc',
+  app: '#6c8d64',
   mcp: 'var(--accent)',
   api: '#7a9cc0',
 };
-
-function SurfaceStackBars(props: { rows: SurfaceDayRow[] }): JSX.Element {
-  const max = () => Math.max(1, ...props.rows.map((d) => d.app + d.mcp + d.api));
-  return (
-    <div style={{ display: 'flex', 'align-items': 'flex-end', gap: '2px', height: '70px' }}>
-      <For each={props.rows}>
-        {(d) => (
-          <div
-            title={`${d.date}: app ${fmtInt(d.app)} · mcp ${fmtInt(d.mcp)} · api ${fmtInt(d.api)}`}
-            style={{
-              flex: '1 1 0',
-              display: 'flex',
-              'flex-direction': 'column-reverse',
-              height: '100%',
-            }}
-          >
-            <For each={SURFACE_KEYS}>
-              {(s) => (
-                <div
-                  style={{
-                    background: SURFACE_COLORS[s],
-                    height: `${(d[s] / max()) * 100}%`,
-                    'min-height': d[s] > 0 ? '1px' : '0',
-                  }}
-                />
-              )}
-            </For>
-          </div>
-        )}
-      </For>
-    </div>
-  );
-}
-
-function SurfaceLegend(): JSX.Element {
-  return (
-    <div style={{ display: 'flex', gap: '0.9rem', 'font-size': '0.72rem', color: 'var(--muted)' }}>
-      <For each={SURFACE_KEYS}>
-        {(s) => (
-          <span style={{ display: 'inline-flex', 'align-items': 'center', gap: '0.3rem' }}>
-            <span
-              style={{
-                width: '10px',
-                height: '10px',
-                background: SURFACE_COLORS[s],
-                'border-radius': '2px',
-              }}
-            />
-            {s}
-          </span>
-        )}
-      </For>
-    </div>
-  );
-}
 
 function AppSurfaceBlock(props: { name: string; a: AppSurfaceUsage }): JSX.Element {
   const a = () => props.a;
@@ -3282,29 +3219,28 @@ function AppSurfaceBlock(props: { name: string; a: AppSurfaceUsage }): JSX.Eleme
         </div>
 
         <Show when={a().byDay.length > 0}>
-          <div style={{ 'margin-bottom': '0.9rem' }}>
-            <div
-              style={{
-                display: 'flex',
-                'justify-content': 'space-between',
-                'align-items': 'baseline',
-                'margin-bottom': '0.3rem',
-              }}
-            >
-              <div
-                style={{
-                  'font-size': '0.75rem',
-                  color: 'var(--muted)',
-                  'text-transform': 'uppercase',
-                  'letter-spacing': '0.04em',
-                }}
-              >
-                {t('usage.surfaces.trend')}
-              </div>
-              <SurfaceLegend />
-            </div>
-            <SurfaceStackBars rows={a().byDay} />
-          </div>
+          <DailyComparison
+            title={t('usage.surfaces.trend')}
+            description={t('usage.daily.scale')}
+            series={SURFACE_KEYS.map((id) => ({
+              id,
+              label: t(`usage.daily.${id}`),
+              color: SURFACE_COLORS[id],
+            }))}
+            rows={a().byDay.map((row) => ({
+              date: row.date,
+              values: { app: row.app, mcp: row.mcp, api: row.api },
+            }))}
+            formatValue={fmtInt}
+            formatDate={(date) =>
+              new Date(`${date}T00:00:00Z`).toLocaleDateString(lang(), {
+                day: '2-digit',
+                month: '2-digit',
+                timeZone: 'UTC',
+              })
+            }
+            emptyLabel={t('usage.surfaces.none')}
+          />
         </Show>
 
         <SectionHeading title={t('usage.surfaces.tools')} />

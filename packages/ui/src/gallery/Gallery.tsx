@@ -21,6 +21,7 @@ const sections = [
   'theme',
   'argumentMaps',
   'icons',
+  'usageSummaries',
   'charts',
   'maps',
   'graphs',

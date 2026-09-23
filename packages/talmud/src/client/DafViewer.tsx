@@ -2309,7 +2309,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (!newSystemRabbi) {
       const rabbis = generations();
       if (rabbis) {
-        main = injectRabbiUnderlines(main, rabbis);
+        main = injectRabbiUnderlines(main, rabbis, mainSegs);
         if (inner) inner = injectRabbiUnderlines(inner, rabbis);
         if (outer) outer = injectRabbiUnderlines(outer, rabbis);
       }
@@ -2323,7 +2323,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       const defs = enabledMarkDefs();
       const runs = markRunsByMarkId();
       if (defs.length > 0) {
-        main = applyMarkRenderers(main, defs, runs);
+        main = applyMarkRenderers(main, defs, runs, mainSegs);
         if (inner) inner = applyMarkRenderers(inner, defs, runs);
         if (outer) outer = applyMarkRenderers(outer, defs, runs);
       }

@@ -58,7 +58,9 @@
     "./graph/geometry": "./src/graph/geometry.ts",
     "./graph/model": "./src/graph/model.ts",
     "./graph.css": "./src/graph.css",
-    "./graph/orthogonalEdge": "./src/graph/orthogonalEdge.ts"
+    "./graph/orthogonalEdge": "./src/graph/orthogonalEdge.ts",
+    "./DailyComparison": "./src/DailyComparison.tsx",
+    "./MetricSummary": "./src/MetricSummary.tsx"
   },
   "peerDependencies": {
     "solid-js": "^1.9.15"

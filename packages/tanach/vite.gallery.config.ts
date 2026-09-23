@@ -13,7 +13,12 @@ export default defineConfig({
     port: 5210,
     strictPort: true,
     proxy: Object.fromEntries(
-      ['/api/usage/activity', '/api/run-tree/Berakhot/2a/tidbit.essay'].map((path) => [
+      [
+        '/api/usage/activity',
+        '/api/usage/surfaces',
+        '/api/billing',
+        '/api/run-tree/Berakhot/2a/tidbit.essay',
+      ].map((path) => [
         `^/gallery-api${path.replaceAll('.', '\\.')}($|[?])`,
         {
           target: 'https://talmud.dev',
