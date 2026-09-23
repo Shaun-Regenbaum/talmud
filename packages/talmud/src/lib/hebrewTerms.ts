@@ -366,16 +366,18 @@ export function canonicalDictEntries(): Record<string, string> {
 }
 
 /** Build the prompt's "ALWAYS hebraize" bullet block — one indented line per
- *  term, rendered in the term's own display orientation so the canonical list
- *  doesn't contradict the per-term `display` policy:
- *    - hebrew-first (Form A): `translit → hebrew (gloss)`
- *    - english-first (Form B): `en (hebrew)`
- *  Column alignment is cosmetic and intentionally dropped; the LLM reads
- *  content, not whitespace. */
+ *  term, always Hebrew first to match the prompt's single house rule:
+ *    - display 'english' with an `en` label: `hebrew (en)`
+ *    - every other term: `hebrew (gloss)`
+ *  The per-term `display` data is untouched (other code reads it); only the
+ *  prompt rendering is uniform. */
 export function alwaysHebraizeBlock(): string {
-  return CANONICAL_HEBREW_TERMS.map((t) =>
-    t.display === 'english' && t.en
-      ? `    ${t.en} (${t.hebrew})`
-      : `    ${t.translit} → ${t.hebrew} (${t.gloss})`,
+  // One house order for every term: Hebrew script first, English in parens.
+  // An english-display term shows its English label (`en`); every other term
+  // its gloss. The romanization is named only as what NOT to write, so the
+  // model can recognize the word it was about to spell out.
+  return CANONICAL_HEBREW_TERMS.map(
+    (t) =>
+      `    ${t.hebrew} (${t.display === 'english' && t.en ? t.en : t.gloss}) — never "${t.translit}"`,
   ).join('\n');
 }

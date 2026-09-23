@@ -79,22 +79,14 @@ describe('canonical terms resolve through hebraize() (dict side)', () => {
   }
 });
 
-describe('alwaysHebraizeBlock — renders every canonical term in its display orientation', () => {
+describe('alwaysHebraizeBlock — every canonical term Hebrew first', () => {
   const block = alwaysHebraizeBlock();
   for (const t of CANONICAL_HEBREW_TERMS) {
-    // The list now encodes the per-term display policy so it can't contradict
-    // the prompt's Form A/B rule: english-first terms read "en (hebrew)",
-    // hebrew-first terms read "translit → hebrew (gloss)".
-    if (t.display === 'english' && t.en) {
-      it(`block lists ${t.en} (${t.hebrew}) English-first`, () => {
-        expect(block).toContain(`${t.en} (${t.hebrew})`);
-        expect(block).not.toContain(`${t.translit} → ${t.hebrew}`);
-      });
-    } else {
-      it(`block lists ${t.translit} → ${t.hebrew} (Form A)`, () => {
-        expect(block).toContain(`${t.translit} → ${t.hebrew} (${t.gloss})`);
-      });
-    }
+    const english = t.display === 'english' && t.en ? t.en : t.gloss;
+    it(`block lists ${t.hebrew} (${english}), never "${t.translit}"`, () => {
+      expect(block).toContain(`${t.hebrew} (${english}) — never "${t.translit}"`);
+      if (t.en) expect(block).not.toContain(`${t.en} (${t.hebrew})`);
+    });
   }
   it('block carries no raw display-enum metadata', () => {
     expect(block).not.toMatch(/hebrew-first-gloss|display/);
@@ -144,13 +136,13 @@ describe('halacha.practical prompt — always-list wiring', () => {
   });
 });
 
-// The HEBREW_GLOSS_STYLE block was shrunk (PR4) — collapsed the Form A/B example
-// walls and removed the model's freedom to pick a form. These guard that the
-// shrink kept every load-bearing rule, so a future trim can't silently drop one.
+// HEBREW_GLOSS_STYLE states ONE order (Hebrew first, English in parentheses)
+// for names, terms and quotes. These guard that every load-bearing rule stays,
+// so a future trim can't silently drop one.
 describe('HEBREW_GLOSS_STYLE — hard rules survive the shrink', () => {
   const required = [
-    'FORM A (DEFAULT)', // Form A is the default
-    'FORM B', // Form B reserved for english-first
+    'HEBREW FIRST, ENGLISH IN PARENTHESES', // the one order
+    'WRONG (English first)', // the old order, named as wrong
     'GLOSS ONCE', // first-use-only gloss (pairs with the PR3 dedup pass)
     'calque', // no-calque rule
     'SCRIPT HYGIENE', // english + hebrew script only

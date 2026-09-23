@@ -16,7 +16,7 @@
  * state changes (e.g. dafContext loads async after the sidebar mounts).
  */
 import { type Accessor, createContext, createMemo, For, type JSX, useContext } from 'solid-js';
-import { applyGlossary, rabbiHebrewOnce } from '../lib/bilingual';
+import { hebrewFirst, heKey, rabbiItems } from '../lib/bilingual';
 import { useBilingual, usePageGlossary } from './bilingual';
 import { ConceptAwareText, firstMentionGloss, useConceptLinks } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
@@ -51,13 +51,17 @@ export function useRabbiLinks(): RabbiLinkContextValue | null {
  *  context is present (e.g. outside the sidebar), behaves like Hebraized. */
 export function HebraizedWithRabbis(props: { text: string | undefined | null }): JSX.Element {
   const ctx = useRabbiLinks();
-  // The house rule's Jev pass (Hebrew once, on first mention) runs on the
-  // WHOLE paragraph here, before anything splits it into fragments.
-  const cleaned = useBilingual(() => props.text ?? '');
-  // Then borrow Hebrew from the rest of the page: a name or term another
-  // paragraph glosses gets the same Hebrew here, on its first mention.
+  // The house rule runs on the WHOLE paragraph here, before anything splits
+  // it into fragments.
+  const judged = useBilingual(() => props.text ?? '');
   const glossary = usePageGlossary(() => ctx?.page?.());
-  const text = () => (lang() === 'en' ? applyGlossary(cleaned(), glossary()) : cleaned());
+  // Hebrew first, English in parentheses once: the paragraph's own pairs
+  // (Jev), then the page's glossary, then the daf's rabbis.
+  const text = () => {
+    const j = judged();
+    if (lang() !== 'en') return j.text;
+    return hebrewFirst(j.text, [...j.pairs, ...glossary(), ...rabbiItems(ctx?.rabbis() ?? [])]);
+  };
   // No rabbi pool here — still layer in concept tooltips (ConceptAwareText
   // itself falls back to plain Hebraized when there's no concept context).
   if (!ctx) return <ConceptAwareText text={text()} />;
@@ -88,6 +92,11 @@ export function resolveRabbi(query: string, rabbis: IdentifiedRabbi[]): Identifi
   if (!query || rabbis.length === 0) return null;
   const direct = rabbis.find((r) => r.name === query);
   if (direct) return direct;
+  // Names now appear in Hebrew (the house rule puts Hebrew first).
+  if (/[\u05D0-\u05EA]/.test(query)) {
+    const k = heKey(query);
+    return rabbis.find((r) => r.nameHe && heKey(r.nameHe) === k) ?? null;
+  }
   const norm = normalizeRabbiName(query);
   if (!norm) return null;
   return rabbis.find((r) => normalizeRabbiName(r.name) === norm) ?? null;
@@ -102,7 +111,9 @@ function buildNameRegex(names: string[]): RegExp | null {
     .sort((a, b) => b.length - a.length)
     .map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   if (cleaned.length === 0) return null;
-  return new RegExp(`\\b(${cleaned.join('|')})\\b`, 'g');
+  // Letter lookarounds, not \\b: \\b never fires next to Hebrew letters, and
+  // names now appear in Hebrew too.
+  return new RegExp(`(?<![\\p{L}\\p{M}])(${cleaned.join('|')})(?![\\p{L}\\p{M}])`, 'gu');
 }
 
 export interface RabbiTextPart {
@@ -165,13 +176,10 @@ export function RabbiText(props: {
   // dafContext loading after mount, a new sidebar entry pushing) trigger
   // re-tokenization.
   const parts = createMemo(() => {
-    // Names half of the house rule: each daf rabbi's Hebrew on its first
-    // mention only (added when the model left it out).
-    const named =
-      lang() === 'en' ? rabbiHebrewOnce(props.text ?? '', props.rabbis) : (props.text ?? '');
-    const cleaned = firstMentionGloss(named, concept?.matcher() ?? null);
+    const cleaned = firstMentionGloss(props.text ?? '', concept?.matcher() ?? null);
     return tokenizeRabbiMentions(cleaned, [
       ...props.rabbis.map((r) => r.name),
+      ...props.rabbis.map((r) => (r.nameHe ?? '').replace(/[\u0591-\u05C7]/g, '')),
       ...(props.extraNames ?? []),
     ]);
   });

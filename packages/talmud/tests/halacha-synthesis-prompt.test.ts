@@ -66,7 +66,6 @@ describe('HALACHA_SYNTHESIS_SYSTEM_PROMPT', () => {
 
   it('still inherits the base HEBREW_GLOSS_STYLE block', () => {
     expect(p).toMatch(/STYLE — Hebrew \+ English mixing/);
-    expect(p).toMatch(/FORM A/);
-    expect(p).toMatch(/FORM B/);
+    expect(p).toMatch(/HEBREW FIRST, ENGLISH IN PARENTHESES/);
   });
 });
