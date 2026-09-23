@@ -100,6 +100,7 @@ the ones that change the most:
 | Keep negations, unsaid words and "only" rules in the content | The text notes that Yirmiya did not ask "Has the Master separated?" That unsaid wording is evidence about the two men, not a speech link (Berakhot 27b) |
 | Say how a teacher link is known | "In the name of" never becomes "student of" |
 | Label each wording by kind of evidence | Printed, manuscript, later quotation, correction, translation, commentary, our own inference |
+| Tie each link to the text version (girsa) it comes from, where the versions differ at that spot | Sanhedrin 97a: some versions have "he said to me", others "he said to him", which decides whether the sage told Rava in person. Ketubot 65a: the Rif names the judge plain "Rav Yosef", so "son of Rav Yosef" belongs to the printed version only. Menachot 29b: only the 1523 Venice print has "they reached" |
 | List who holds a reading, and do not count shared-editor sources twice | Davidson English plus Steinsaltz Hebrew count once |
 | A reading must not prove its own assumption | A correction made because of dates cannot then support those dates |
 | Separate legal roles from people | The orphans' father in a lending rule is not Mar Zutra's father (Gittin 50a) |
