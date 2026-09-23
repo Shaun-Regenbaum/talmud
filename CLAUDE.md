@@ -46,7 +46,7 @@ Cross-cutting always: typed piece bodies, resilient anchors, provenance/confiden
 
 - `pnpm test` — Vitest unit suite. `pnpm test:int` — integration (hits a running worker).
 - `pnpm typecheck` — `tsc --noEmit`. Run it plus `pnpm test` before any PR.
-- `pnpm ship` — `vite build && wrangler deploy`, behind `scripts/ship-guard.sh`: it refuses to deploy unless the tracked tree is clean and HEAD's content matches `origin/master` (so prod can't silently diverge from master; a later deploy from another agent once clobbered shipped-but-unmerged work). Merge first, then ship. `SHIP_FORCE=1 pnpm ship` overrides when a divergent deploy is deliberate. Production is the custom domain **talmud.dev**. wrangler is authenticated in this environment.
+- `pnpm ship` — `vite build && wrangler deploy`, behind `scripts/ship-guard.sh`: it refuses to deploy unless the tracked tree is clean and HEAD's content matches `origin/master` (so prod can't silently diverge from master; a later deploy from another agent once clobbered shipped-but-unmerged work). It is only a fallback for when the Release workflow is broken: master moves only after Shaun approves a staging run, so shipping master never skips review. `SHIP_FORCE=1 pnpm ship` overrides when a divergent deploy is deliberate. Production is the custom domain **talmud.dev**; the review copy is **staging.talmud.dev**. wrangler is authenticated in this environment.
 
 ## Multiple agents work this repo at once — isolate in a worktree
 
@@ -54,13 +54,13 @@ This repo is routinely worked by several agents in parallel (it is normal to see
 
 Instead, for any code change:
 
-1. **Branch in a worktree first.** Run `scripts/worktree-new.sh <branch>` — it creates the worktree under `.claude/worktrees/<branch>` branched from `origin/master` (excluding others' uncommitted work — that is the point) and runs `pnpm install` there (fast — hardlinks from the shared store — and, unlike symlinking `node_modules` from the main tree, it creates the workspace links for `@corpus/core` that vite/vitest need).
+1. **Branch in a worktree first.** Run `scripts/worktree-new.sh <branch>` — it creates the worktree under `.claude/worktrees/<branch>` branched from `origin/staging` (excluding others' uncommitted work — that is the point) and runs `pnpm install` there (fast — hardlinks from the shared store — and, unlike symlinking `node_modules` from the main tree, it creates the workspace links for `@corpus/core` that vite/vitest need).
 2. **Run from the worktree.** `pnpm typecheck` and `pnpm test` before any PR; `pnpm lint` too — CI gates on Biome (`biome ci .`).
-3. **PR → merge.** Commit on the branch, push, open a PR (`gh pr create`), and merge it (`gh pr merge <n> --squash --admin`). GitHub blocks self-approval, so the repo owner authorizes admin-merge.
-4. **Expect master to move.** Other agents push often. If a PR won't merge, `git merge origin/master` in the worktree, resolve, push (GitHub recomputes mergeability a few seconds later).
-5. **Deploys are automatic.** Merging to master triggers the CI `deploy` job, which deploys both workers after checks pass (so prod always equals master). Manual `pnpm ship` from the worktree still works as a fallback when CI deploy is broken or you can't wait — ship-guard enforces the same content==master invariant.
-6. **Clean up.** Run `scripts/worktree-done.sh <branch>` from the main checkout — it verifies the PR merged, then deletes the remote branch, removes the worktree, and deletes the local branch (the work lives on master via the squash).
+3. **PR → staging.** Commit on the branch, push, open a PR against `staging` (the default branch, so `gh pr create` picks it), and merge it once the `check` job is green: `if gh pr checks <n> --watch; then gh pr merge <n> --squash; fi`. Admins cannot skip a red check. Never target `master`: it only moves through the Release workflow.
+4. **Expect staging to move.** Other agents push often. If a PR won't merge, `git merge origin/staging` in the worktree, resolve, push (GitHub recomputes mergeability a few seconds later).
+5. **Staging deploys automatically; production waits for Shaun.** Each merge into `staging` runs the Release workflow: tests, then deploys both apps to staging.talmud.dev and staging.tanach.dev. Its Production job then waits for Shaun's approval in GitHub Actions. Approval moves `master` to that exact commit and deploys production. Tell Shaun the staging link when your change is there; do not approve for him. See `docs/deployment.md`.
+6. **Clean up.** Run `scripts/worktree-done.sh <branch>` from the main checkout — it verifies the PR merged, then deletes the remote branch, removes the worktree, and deletes the local branch (the work lives on staging via the squash).
 
 ## Commit / PR text
 
-No self-reference and no `Co-Authored-By` trailer in commit messages. Omit any "Generated with …" footer from PR bodies too, since a squash-merge folds the PR body into the master commit message.
+No self-reference and no `Co-Authored-By` trailer in commit messages. Omit any "Generated with …" footer from PR bodies too, since a squash-merge folds the PR body into the staging commit message, which later becomes master.

@@ -5,7 +5,7 @@ Most of this reader was written with AI coding assistants, and the repository is
 ## What the repo gives an assistant
 
 - **A briefing.** `AGENTS.md` at the root is the file any agent should read first: what the repo is, the commands, the rules. `CLAUDE.md` is the Claude-specific copy with the project log.
-- **A worktree per change.** Several agents work this repo at the same time, so the main checkout is often dirty with someone else's work. `scripts/worktree-new.sh <branch>` gives your change its own checkout from `origin/master`. Never edit the main checkout.
+- **A worktree per change.** Several agents work this repo at the same time, so the main checkout is often dirty with someone else's work. `scripts/worktree-new.sh <branch>` gives your change its own checkout from `origin/staging`. Never edit the main checkout.
 - **Checks that need no secrets.** `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` all run offline. An assistant can iterate until they pass without touching production or spending money.
 - **A model it can read.** `docs/framework.md` is the engine in the vocabulary of the code. The live page [talmud.dev/#howitworks](https://talmud.dev/#howitworks) shows the same four ideas on a real daf, with the build graph drawn from the running registry.
 - **The corpus itself.** The MCP server lets an assistant read any daf and its notes while it works:

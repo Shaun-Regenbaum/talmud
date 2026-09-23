@@ -50,41 +50,67 @@ jobs:
     concurrency:
       group: deploy-staging
       cancel-in-progress: false
+    outputs:
+      latest: ${{ steps.latest.outputs.latest }}
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ddf8edfc3dfd489567fe3c5b28b51aca
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
+      # A newer merge into staging has its own run. This one stops here, and
+      # its Production job is skipped, so only the newest version asks for
+      # approval.
+      - name: Check this is still the newest staging commit
+        id: latest
+        run: |
+          if [ "$(gh api repos/$GITHUB_REPOSITORY/git/ref/heads/staging --jq .object.sha)" = "$GITHUB_SHA" ]; then
+            echo latest=true >> "$GITHUB_OUTPUT"
+          else
+            echo latest=false >> "$GITHUB_OUTPUT"
+            echo 'A newer commit reached staging. Review and approve that run instead.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - if: steps.latest.outputs.latest == 'true'
+        uses: actions/checkout@v7
+      - if: steps.latest.outputs.latest == 'true'
+        uses: pnpm/action-setup@v6
         with:
           version: 9.12.1
-      - uses: actions/setup-node@v7
+      - if: steps.latest.outputs.latest == 'true'
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Confirm this is the latest staging commit
-        run: test "$(gh api repos/$GITHUB_REPOSITORY/git/ref/heads/staging --jq .object.sha)" = "$GITHUB_SHA"
-      - run: pnpm --filter talmud exec wrangler deploy -c wrangler.staging-source.toml
-      - run: pnpm --filter talmud exec wrangler d1 migrations apply corpus-billing-staging --env staging --remote
-      - run: CLOUDFLARE_ENV=staging pnpm --filter talmud exec vite build
-      - run: pnpm --filter tanach exec vite build --config vite.gallery.config.ts --base=/components/
-      - run: cp -R packages/ui/dist/gallery packages/talmud/dist/client/components
-      - run: node scripts/check-staging-config.mjs talmud
-      - run: pnpm --filter talmud exec wrangler deploy --env staging --var BUILD_SHA:$GITHUB_SHA
-      - run: CLOUDFLARE_ENV=staging pnpm --filter tanach exec vite build
-      - run: node scripts/check-staging-config.mjs tanach
-      - run: pnpm --filter tanach exec wrangler deploy --env staging --var BUILD_SHA:$GITHUB_SHA
+      - name: Deploy staging
+        if: steps.latest.outputs.latest == 'true'
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter talmud exec wrangler deploy -c wrangler.staging-source.toml
+          pnpm --filter talmud exec wrangler d1 migrations apply corpus-billing-staging --env staging --remote
+          CLOUDFLARE_ENV=staging pnpm --filter talmud exec vite build
+          pnpm --filter tanach exec vite build --config vite.gallery.config.ts --base=/components/
+          cp -R packages/ui/dist/gallery packages/talmud/dist/client/components
+          CLOUDFLARE_ENV=staging pnpm --filter tanach exec vite build
+          # Keep staging out of search results so it never competes with talmud.dev.
+          for app in talmud tanach; do
+            printf 'User-agent: *\nDisallow: /\n' > "packages/$app/dist/client/robots.txt"
+            printf '/*\n  X-Robots-Tag: noindex\n' >> "packages/$app/dist/client/_headers"
+          done
+          node scripts/check-staging-config.mjs talmud
+          node scripts/check-staging-config.mjs tanach
+          pnpm --filter talmud exec wrangler deploy --env staging --var BUILD_SHA:$GITHUB_SHA
+          pnpm --filter tanach exec wrangler deploy --env staging --var BUILD_SHA:$GITHUB_SHA
       - name: Verify both staged releases and saved content
+        if: steps.latest.outputs.latest == 'true'
         run: node scripts/check-staging.mjs "$GITHUB_SHA"
       - name: Link the preview
+        if: steps.latest.outputs.latest == 'true'
         run: |
           echo 'Review [Talmud](https://staging.talmud.dev/?lang=en&tractate=Berakhot&page=2a#argument), [Tanach](https://staging.tanach.dev), and the [component library](https://staging.talmud.dev/components/).' >> "$GITHUB_STEP_SUMMARY"
           echo 'Approve the Production job only after reviewing this version.' >> "$GITHUB_STEP_SUMMARY"
 
   production:
     needs: staging
+    if: needs.staging.outputs.latest == 'true'
     runs-on: ubuntu-latest
     environment:
       name: Production

@@ -70,7 +70,7 @@ Then open `http://127.0.0.1:5199/#about`. Pages that read from the API (`#howitw
 
 ## Production
 
-Production is talmud.dev and tanach.dev. Merging to `master` deploys both after CI passes. `pnpm ship` from a worktree is the manual fallback and refuses to run unless the tree is clean and matches `origin/master` (`scripts/ship-guard.sh`). Deploys need the project's Cloudflare token; contributors do not need it.
+Production is talmud.dev and tanach.dev. Merging into `staging` deploys both to staging.talmud.dev and staging.tanach.dev; production follows after approval ([deployment.md](deployment.md)). `pnpm ship` from a worktree is the manual fallback and refuses to run unless the tree is clean and matches `origin/master` (`scripts/ship-guard.sh`). Deploys need the project's Cloudflare token; contributors do not need it.
 
 ## Integration tests
 

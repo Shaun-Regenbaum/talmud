@@ -4,7 +4,7 @@
 
 [Open the reader](https://talmud.dev) · [Take the guided tour](https://talmud.dev/#tutorial) · [See how it works](https://talmud.dev/#howitworks) · [About the project](https://talmud.dev/#about)
 
-[![CI](https://github.com/Shaun-Regenbaum/talmud/actions/workflows/ci.yml/badge.svg)](https://github.com/Shaun-Regenbaum/talmud/actions/workflows/ci.yml)
+[![Release](https://github.com/Shaun-Regenbaum/talmud/actions/workflows/release.yml/badge.svg?branch=staging)](https://github.com/Shaun-Regenbaum/talmud/actions/workflows/release.yml)
 
 [![Talmud.dev showing Berakhot 2a with an anchored daf overview and argument map](docs/assets/talmud-reader.jpg)](https://talmud.dev)
 
@@ -78,7 +78,7 @@ pnpm test
 pnpm build
 ```
 
-Production deploys automatically after a change is merged to `master` and passes CI.
+Changes merge into `staging` first and deploy to staging.talmud.dev for review. Production updates after the maintainer approves that version. See [docs/deployment.md](docs/deployment.md).
 
 ## Sources and license
 

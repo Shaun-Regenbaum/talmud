@@ -84,4 +84,4 @@ Running out of credit is a normal state for this project, not an incident. The b
 
 ## Deploys
 
-CI (`.github/workflows/ci.yml`) runs Biome, typecheck, tests, and build on every pull request. A merge to `master` deploys the generator worker first (the reader's binding depends on it), then the reader, then Tanach. Production always equals `master`. `scripts/ship-guard.sh` enforces the same rule for a manual `pnpm ship`.
+The Release workflow (`.github/workflows/release.yml`) runs Biome, typecheck, tests, and build on every pull request. A merge into `staging` deploys both apps to staging. After Shaun approves that run, it moves `master` to the same commit and deploys production: the generator worker first (the reader's binding depends on it), then the reader, then Tanach. Production always equals `master`. `scripts/ship-guard.sh` enforces the same rule for a manual `pnpm ship`. See [deployment.md](deployment.md).

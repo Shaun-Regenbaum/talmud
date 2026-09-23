@@ -106,12 +106,12 @@ export function stagingCache(local: KVNamespace, source: Fetcher, corpus: string
         if (override === null) keys.push(key);
         else await override.cancel();
       }
+      if (page.list_complete) return { keys, list_complete: true, cacheStatus: null };
       return {
-        ...page,
         keys,
-        cursor: page.list_complete
-          ? undefined
-          : encodeURIComponent(JSON.stringify({ ...state, cursor: page.cursor })),
+        list_complete: false,
+        cursor: encodeURIComponent(JSON.stringify({ ...state, cursor: page.cursor })),
+        cacheStatus: null,
       };
     },
   } as KVNamespace;

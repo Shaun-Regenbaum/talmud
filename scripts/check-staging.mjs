@@ -2,11 +2,30 @@ import assert from 'node:assert/strict';
 
 const sha = process.argv[2];
 assert.match(sha ?? '', /^[a-f0-9]{40}$/);
+
+/** A new custom domain can take a minute or two to get its certificate, so the
+ *  first check after a deploy retries until the new commit answers. */
+async function waitForRelease(origin) {
+  let last = 'no response';
+  for (let attempt = 0; attempt < 24; attempt++) {
+    try {
+      const response = await fetch(`${origin}/api/release`, { signal: AbortSignal.timeout(15000) });
+      if (response.ok) {
+        const body = await response.json();
+        if (body.environment === 'staging' && body.sha === sha) return;
+        last = JSON.stringify(body);
+      } else last = `HTTP ${response.status}`;
+    } catch (error) {
+      last = String(error);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+  }
+  assert.fail(`${origin} never served ${sha}: ${last}`);
+}
+
 for (const app of ['talmud', 'tanach']) {
   const origin = `https://staging.${app}.dev`;
-  const response = await fetch(`${origin}/api/release`, { signal: AbortSignal.timeout(30000) });
-  assert.equal(response.status, 200, `${app} release endpoint`);
-  assert.deepEqual(await response.json(), { environment: 'staging', sha });
+  await waitForRelease(origin);
   const html = await (await fetch(origin)).text();
   const asset = html.match(/src="([^"]+\.js)"/)?.[1];
   assert.ok(asset, `${app} entry script`);
