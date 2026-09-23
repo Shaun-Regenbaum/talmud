@@ -7,6 +7,10 @@
  */
 
 const PULSE_MS = 1200;
+/** How long a reveal keeps the target centered while its text is still
+ *  loading and growing. The reader's own scroll ends it sooner. */
+const FOLLOW_MS = 2000;
+const USER_SCROLL = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const;
 const timers = new WeakMap<HTMLElement, ReturnType<typeof setTimeout>>();
 
 /** The nearest ancestor set to scroll vertically (a side panel, a drawer, a
@@ -73,10 +77,38 @@ function scrollToMiddle(target: HTMLElement, behavior: ScrollBehavior): void {
   else container.scrollTop = top;
 }
 
+/** Panel text often arrives after the reveal (a summary still loading), and
+ *  the panel may relayout (a map expanding a section above the target). Keep
+ *  the target centered meanwhile, until the reader scrolls or time is up. */
+function followGrowth(target: HTMLElement, behavior: ScrollBehavior): void {
+  const container = scrollParent(target);
+  if (!container || typeof ResizeObserver === 'undefined') return;
+  let done = false;
+  const observer = new ResizeObserver(() => {
+    if (!done) scrollToMiddle(target, behavior);
+  });
+  const stop = () => {
+    if (done) return;
+    done = true;
+    observer.disconnect();
+    clearTimeout(timer);
+    for (const type of USER_SCROLL) container.removeEventListener(type, stop);
+  };
+  const timer = setTimeout(stop, FOLLOW_MS);
+  for (const type of USER_SCROLL) container.addEventListener(type, stop, { passive: true });
+  // The target grows as its text loads; content above it (a map expanding a
+  // section) pushes it down. Watch both.
+  observer.observe(target);
+  for (const child of Array.from(container.children)) observer.observe(child);
+}
+
 export function revealInPanel(target: HTMLElement, options: RevealOptions = {}): void {
   const reduced = options.reducedMotion ?? prefersReducedMotion();
   const behavior: ScrollBehavior = reduced ? 'auto' : 'smooth';
-  if (options.scroll !== false) scrollToMiddle(target, behavior);
+  if (options.scroll !== false) {
+    scrollToMiddle(target, behavior);
+    followGrowth(target, behavior);
+  }
   if (options.pulse === false) return;
   // Motion-sensitive readers get a brief still tint instead of a pulse.
   const cls = reduced ? 'ui-reveal-tint' : 'ui-reveal-pulse';

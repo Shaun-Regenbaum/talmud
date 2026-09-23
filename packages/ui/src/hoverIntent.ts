@@ -11,7 +11,9 @@ export const HOVER_LEAVE_MS = 120;
 export interface HoverIntent<T> {
   enter: (value: T, key: string) => void;
   leave: () => void;
-  /** Report "nothing hovered" now if something still is. */
+  /** Report "nothing hovered" if something still is. Deferred to a microtask:
+   *  this runs while the map is being torn down, and a host that writes state
+   *  in response must not do it in the middle of that teardown. */
   dispose: () => void;
 }
 
@@ -40,7 +42,7 @@ export function createHoverIntent<T>(
       clearTimeout(timer);
       if (current !== null) {
         current = null;
-        emit(null);
+        queueMicrotask(() => emit(null));
       }
     },
   };

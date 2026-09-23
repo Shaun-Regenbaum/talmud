@@ -1056,8 +1056,9 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   // something, so they see where to read.
   let summaryEl: HTMLElement | undefined;
   const afterPaint = (fn: () => void): void => {
-    if (typeof requestAnimationFrame !== 'function') return fn();
-    requestAnimationFrame(() => requestAnimationFrame(fn));
+    if (typeof requestAnimationFrame === 'function')
+      requestAnimationFrame(() => requestAnimationFrame(fn));
+    else fn();
   };
   // A margin-icon open (a new incoming focus that is not the echo of a map
   // click) shows the panel from the top: the map, then the summary. The
@@ -1284,11 +1285,16 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
         }
       : sectionRange(focused());
   };
-  // Only a live preview is restored on leave, so a map that unmounts under the
-  // pointer (the panel closing) never repaints a highlight the reader cleared.
+  // Only a live preview is restored on leave, and never after the panel has
+  // closed: a map that unmounts under the pointer reports its last "leave"
+  // afterwards, and must not repaint a highlight the reader just cleared.
   let previewing = false;
+  let open = true;
+  onCleanup(() => {
+    open = false;
+  });
   const hoverMap = (target: { section: number; statement?: StatementNode } | null): void => {
-    if (!target && !previewing) return;
+    if (!open || (!target && !previewing)) return;
     previewing = !!target;
     const s = target?.statement;
     props.onHighlightRange?.(

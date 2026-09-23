@@ -393,10 +393,12 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
     setClosed(index === props.activeIndex && closed() !== index ? index : null);
     props.onSelect(index);
   };
-  const hover = (item: GraphNode | null) => {
-    if (!item) return props.onHover?.(null);
-    const match = item.id.match(/^section:(\d+)(?::(statement|exit):(.+))?$/);
-    if (!match || match[2] === 'exit') return props.onHover?.(null);
+  const hover = (item: GraphNode | null): void => {
+    const match = item?.id.match(/^section:(\d+)(?::(statement|exit):(.+))?$/);
+    if (!match || match[2] === 'exit') {
+      props.onHover?.(null);
+      return;
+    }
     const section = Number(match[1]);
     const statement =
       match[2] === 'statement'

@@ -106,12 +106,14 @@ describe('hover that does not flicker', () => {
     expect(seen).toEqual(['a', 'b', null]);
   });
 
-  it('clears on dispose only when something is still hovered', () => {
+  it('clears on dispose only when something is still hovered, after the teardown', async () => {
     const seen: (string | null)[] = [];
     const hover = createHoverIntent<string>((v) => seen.push(v));
     hover.dispose();
     hover.enter('a', 'a');
     hover.dispose();
+    expect(seen).toEqual(['a']);
+    await Promise.resolve();
     expect(seen).toEqual(['a', null]);
   });
 });
