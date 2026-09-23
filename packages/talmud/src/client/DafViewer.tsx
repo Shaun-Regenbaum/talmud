@@ -1,4 +1,5 @@
 import { Button } from '@corpus/ui/Button';
+import { paintRangeOverlay as paintSharedRangeOverlay } from '@corpus/ui/highlightOverlay';
 import { LangToggle } from '@corpus/ui/LangToggle';
 import { PageNavigation } from '@corpus/ui/PageNavigation';
 import { ReaderHeader } from '@corpus/ui/ReaderHeader';
@@ -162,86 +163,36 @@ interface ActiveWord {
   segIdx?: number;
 }
 
-// Merges a Range's per-word client rects into one band per line and paints
-// them as absolute-positioned divs into `overlay`. Coordinates are resolved
-// against `origin` (which must be a positioned ancestor of `overlay`).
+type RangeHighlightKind =
+  | 'section'
+  | 'halacha'
+  | 'chart'
+  | 'aggadata'
+  | 'yerushalmi'
+  | 'pesuk'
+  | 'rishonim'
+  | 'move'
+  | 'commentary'
+  | 'commentary-active'
+  | 'comm-anchor'
+  | 'user';
+
+// One continuous band per line of each range, painted into `overlay` against
+// `origin` (a positioned ancestor). Geometry is shared with the Tanach reader.
 function paintRangeOverlay(
   overlay: HTMLElement,
   origin: HTMLElement,
   ranges: Range[],
-  kind:
-    | 'section'
-    | 'halacha'
-    | 'chart'
-    | 'aggadata'
-    | 'yerushalmi'
-    | 'pesuk'
-    | 'rishonim'
-    | 'move'
-    | 'commentary'
-    | 'commentary-active'
-    | 'comm-anchor'
-    | 'user',
+  kind: RangeHighlightKind,
   /** Optional per-range inline background color. */
   bgFor?: (rangeIdx: number) => string | undefined,
 ): void {
-  if (ranges.length === 0) return;
-  const originRect = origin.getBoundingClientRect();
-  // getClientRects() returns visually-scaled coordinates when an ancestor is
-  // CSS-transformed (mobile fit-to-width). The band divs are appended inside
-  // that same transformed frame, so writing scaled px would scale a second
-  // time. Divide deltas/dimensions by the effective scale (visual width /
-  // layout width) to cancel it. scale === 1 on desktop → no-op.
-  const scale = origin.offsetWidth > 0 ? originRect.width / origin.offsetWidth : 1;
-  // Rects on the same visual line share a `top` within a few px (hebrew
-  // diacritics, anchors, etc. can nudge it). Half a line-height is a safe
-  // bucketing tolerance.
-  const TOL = 6;
-  for (let ri = 0; ri < ranges.length; ri++) {
-    const range = ranges[ri];
-    const rects = Array.from(range.getClientRects()).filter((r) => r.width > 0 && r.height > 0);
-    if (rects.length === 0) continue;
-    const lines: DOMRect[][] = [];
-    for (const r of rects) {
-      const line = lines.find((l) => Math.abs(l[0].top - r.top) <= TOL);
-      if (line) line.push(r);
-      else lines.push([r]);
-    }
-    const bands = lines.map((line) => {
-      let left = Infinity;
-      let right = -Infinity;
-      let top = Infinity;
-      let bottom = -Infinity;
-      for (const r of line) {
-        if (r.left < left) left = r.left;
-        if (r.right > right) right = r.right;
-        if (r.top < top) top = r.top;
-        if (r.bottom > bottom) bottom = r.bottom;
-      }
-      return { left, right, top, bottom };
-    });
-    // Extend each band's bottom to the next band's top so multi-line ranges
-    // read as one continuous block (fills the inter-line line-height gap).
-    // Leaves a small diagonal notch when first/last line is partial-width.
-    bands.sort((a, b) => a.top - b.top);
-    for (let i = 0; i < bands.length - 1; i++) {
-      bands[i].bottom = bands[i + 1].top;
-    }
-    const bg = bgFor?.(ri);
-    for (let i = 0; i < bands.length; i++) {
-      const b = bands[i];
-      const el = document.createElement('div');
-      el.className = `daf-range-highlight daf-range-highlight-${kind}`;
-      if (i === 0) el.classList.add('daf-range-highlight-first');
-      if (i === bands.length - 1) el.classList.add('daf-range-highlight-last');
-      el.style.left = `${(b.left - originRect.left) / scale}px`;
-      el.style.top = `${(b.top - originRect.top) / scale}px`;
-      el.style.width = `${(b.right - b.left) / scale}px`;
-      el.style.height = `${(b.bottom - b.top) / scale}px`;
-      if (bg) el.style.backgroundColor = bg;
-      overlay.appendChild(el);
-    }
-  }
+  paintSharedRangeOverlay(overlay, origin, ranges, {
+    className: `daf-range-highlight daf-range-highlight-${kind}`,
+    firstClass: 'daf-range-highlight-first',
+    lastClass: 'daf-range-highlight-last',
+    bgFor,
+  });
 }
 
 const MAX_PHRASE_WORDS = 20;

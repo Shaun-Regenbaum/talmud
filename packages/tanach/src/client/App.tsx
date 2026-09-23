@@ -3,6 +3,7 @@ import { aiStatus, noteAiResponse, noteAiSuccess } from '@corpus/ui/aiStatus';
 import { Button } from '@corpus/ui/Button';
 import { Drawer } from '@corpus/ui/Drawer';
 import { fitBbox, GeoMap } from '@corpus/ui/GeoMap';
+import { paintRangeOverlay, resetOverlay } from '@corpus/ui/highlightOverlay';
 import { LangToggle } from '@corpus/ui/LangToggle';
 import { PageNavigation } from '@corpus/ui/PageNavigation';
 import { Pill, PillRow } from '@corpus/ui/Pill';
@@ -504,15 +505,62 @@ export function App(): JSX.Element {
     setWordSel(null);
   });
 
+  // Marked verses are painted as one continuous block per run of consecutive
+  // verses in a paragraph (the geometry the Talmud reader uses), not as a
+  // background on each line: no stripes of page between lines, and the verse
+  // number sits inside the block.
+  const paintVerseHighlights = () => {
+    if (!scrollMain || !scrollBand) return;
+    const overlay = resetOverlay(scrollMain, 'verse-hl-overlay');
+    const ranges: Range[] = [];
+    for (const para of scrollBand.querySelectorAll<HTMLElement>('.scroll-para')) {
+      let run: HTMLElement[] = [];
+      const flush = () => {
+        if (run.length === 0) return;
+        const range = document.createRange();
+        range.setStartBefore(run[0]);
+        range.setEndAfter(run[run.length - 1]);
+        ranges.push(range);
+        run = [];
+      };
+      for (const verse of para.querySelectorAll<HTMLElement>('.vtext')) {
+        if (verse.classList.contains('hl')) run.push(verse);
+        else flush();
+      }
+      flush();
+    }
+    if (ranges.length === 0) return;
+    const band = scrollBand.getBoundingClientRect();
+    const style = getComputedStyle(scrollBand);
+    const columns = Math.max(1, Number.parseInt(style.columnCount, 10) || 1);
+    const lineHeight = Number.parseFloat(style.lineHeight) || 26;
+    paintRangeOverlay(overlay, scrollMain, ranges, {
+      className: 'verse-hl',
+      firstClass: 'verse-hl-first',
+      lastClass: 'verse-hl-last',
+      tolerance: 8,
+      // Lines of one paragraph sit a leading apart; a wider gap is a new block.
+      maxGap: lineHeight / 2,
+      // The scroll is set in CSS columns: a run that crosses the column break
+      // is two blocks, never one band stretched across the gap.
+      column: (r) =>
+        Math.min(
+          columns - 1,
+          Math.max(0, Math.floor(((r.left + r.right) / 2 - band.left) / (band.width / columns))),
+        ),
+    });
+  };
   // Highlight the relevant verses: a section's range (note popover), the single
-  // verse whose source drawer is open (rishonim / gemara / midrash), or the
-  // verse(s) a clicked Geography place is named in.
+  // verse whose source drawer is open (rishonim / gemara / midrash), the
+  // verse(s) a clicked Geography place is named in, or the parsha drawer's
+  // selected move.
   createEffect(() => {
     const sel = selected();
     const src = source();
     const pv = new Set(placeVerses());
     const focus = parshaFocus();
     paragraphs();
+    reflow();
     requestAnimationFrame(() => {
       if (!scrollBand) return;
       scrollBand.querySelectorAll('.vtext.hl').forEach((e) => {
@@ -532,6 +580,7 @@ export function App(): JSX.Element {
           (chapterNow === focus.endChapter ? vn <= focus.endVerse : true);
         if (inNote || inSource || inParshaFocus || pv.has(vn)) e.classList.add('hl');
       });
+      paintVerseHighlights();
     });
   });
 

@@ -1,3 +1,4 @@
+import { paintRangeOverlay, resetOverlay } from '@corpus/ui/highlightOverlay';
 import {
   createEffect,
   createMemo,
@@ -127,6 +128,24 @@ export function MikraotGedolot(props: {
       host.querySelectorAll(`.mg-seg[data-v="${v}"]`).forEach((el) => {
         el.classList.add('hl');
       });
+    paintSegments();
+  };
+  // The verse is marked in all three columns (text, Rashi, Onkelos), each as a
+  // continuous block — the same overlay geometry as the scroll view.
+  const paintSegments = () => {
+    if (!host) return;
+    const overlay = resetOverlay(host, 'verse-hl-overlay');
+    const ranges = Array.from(host.querySelectorAll<HTMLElement>('.mg-seg.hl')).map((el) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      return range;
+    });
+    paintRangeOverlay(overlay, host, ranges, {
+      className: 'verse-hl',
+      firstClass: 'verse-hl-first',
+      lastClass: 'verse-hl-last',
+      tolerance: 8,
+    });
   };
   // Shared by mouse-over and focus so keyboard focus mirrors the hover highlight.
   const onOver = (e: Event) => {
@@ -210,7 +229,14 @@ export function MikraotGedolot(props: {
     props.sections;
     props.sources;
     props.lang;
-    requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(measure)));
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          measure();
+          paintSegments();
+        }),
+      ),
+    );
   });
   // Persist-highlight the verse whose drawer is open.
   createEffect(() => {
