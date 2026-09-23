@@ -582,68 +582,6 @@ body {
   font-size: 16px;
 }
 
-/* source icons in the band-edge gutter (positioned by App, like the anchors) */
-/* Collapsed vertical "deck" of source icons: they overlap so a sliver of each
-   shows (signalling how many), and fan out on hover / focus / tap so each is
-   clickable — the Talmud gutter-cluster behaviour. */
-.vgutter-stack {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: -0.2em;
-  z-index: 5;
-}
-.vgutter-stack:hover,
-.vgutter-stack:focus-within {
-  z-index: 20;
-}
-.vgutter {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 1px solid #fbf8f1;
-  border-radius: 50%;
-  color: #fff;
-  font-family: var(--font-hebrew);
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-  position: relative;
-  box-sizing: border-box;
-  margin-top: -10px;
-  transition:
-    margin-top 140ms ease,
-    transform 80ms ease;
-}
-.vgutter-stack .vgutter:first-child {
-  margin-top: 0;
-}
-.vgutter-stack:hover .vgutter,
-.vgutter-stack:focus-within .vgutter {
-  margin-top: 4px;
-}
-.vgutter-stack:hover .vgutter:first-child,
-.vgutter-stack:focus-within .vgutter:first-child {
-  margin-top: 0;
-}
-.vgutter-rishonim {
-  background: var(--accent);
-}
-.vgutter-gemara {
-  background: #5d6b7d;
-}
-.vgutter-midrash {
-  background: #9a7b3e;
-}
-.vgutter:hover,
-.vgutter.active {
-  transform: scale(1.16);
-  z-index: 1;
-}
-
 /* "In the Talmud" section (reverse Gemara lookup) in the verse drawer */
 .comm-gemara {
   padding: 14px 0 4px;
@@ -675,10 +613,6 @@ body {
 .mg-anchor {
   left: 6px;
   width: clamp(74px, 8vw, 120px);
-}
-.mg-icons {
-  right: 6px;
-  left: auto;
 }
 @media (max-width: 820px) {
   .mg-anchor {

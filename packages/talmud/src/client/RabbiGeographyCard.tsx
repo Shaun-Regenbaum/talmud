@@ -295,7 +295,7 @@ export default function RabbiGeographyCard(props: Props): JSX.Element {
         style={{
           border: '1px solid #eae8e0',
           'border-radius': '6px',
-          background: '#fafaf7',
+          background: 'var(--bg)',
           padding: '0.7rem 0.85rem',
           'margin-top': '0.7rem',
         }}

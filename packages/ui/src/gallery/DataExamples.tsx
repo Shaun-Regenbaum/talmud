@@ -6,6 +6,7 @@ import { Button } from '../Button';
 import { ChartCard, LineChart } from '../Charts';
 import { DataTable, Meter, RankedBars } from '../DataTable';
 import { fitBbox, GEO_BBOX, GeoMap } from '../GeoMap';
+import { MarginPod } from '../MarginPod';
 import { Prose } from '../Prose';
 import { colorForKind, ReaderIcon, type ReaderIconKind } from '../ReaderIcon';
 import type { RunTree } from '../RunTree';
@@ -58,6 +59,7 @@ export function DataExamples(props: { lang: GalleryLang }): JSX.Element {
   const pickedMove = () => (move() !== null ? parsha()?.flow[move()!] : undefined);
   const textFor = (en: string, he: string) => (props.lang === 'he' ? he || en : en || he);
   const [selected, setSelected] = createSignal<string | null>(null);
+  const [picked, setPicked] = createSignal<string | null>(null);
   const [expanded, setExpanded] = createSignal(new Set<string>(['tidbit.essay']));
   const days = () => (activity.error ? [] : (activity()?.byDay ?? []));
   const countries = () => (activity.error ? [] : (activity()?.byCountry ?? []));
@@ -87,6 +89,39 @@ export function DataExamples(props: { lang: GalleryLang }): JSX.Element {
           </For>
         </div>
         <code class="gallery-source">@corpus/ui/ReaderIcon</code>
+      </section>
+      <section id="pods">
+        <h2>{label('pods')}</h2>
+        <p>{label('podsHint')}</p>
+        {/* The opening line of Berakhot 2a and the icons it carries on talmud.dev. */}
+        <div class="gallery-pod-demo" dir="rtl" lang="he">
+          <p>מאימתי קורין את שמע בערבין. משעה שהכהנים נכנסים לאכול בתרומתן</p>
+          <MarginPod
+            items={[
+              { id: 'argument:0', kind: 'argument', label: label('argument') },
+              { id: 'halacha:0', kind: 'halacha', label: label('halacha') },
+            ]}
+            textSide="left"
+            x="calc(100% + 18px)"
+            y={20}
+            activeId={picked()}
+            onActivate={(item) => setPicked(item.id)}
+          />
+          <MarginPod
+            items={[{ id: 'rishonim:0', kind: 'rishonim', label: label('rishonim') }]}
+            textSide="right"
+            x={-18}
+            y={20}
+            activeId={picked()}
+            onActivate={(item) => setPicked(item.id)}
+          />
+        </div>
+        <p class="gallery-caption">
+          {picked()
+            ? `${label('podsPicked')}: ${label(picked()?.split(':')[0] as 'argument')}`
+            : ''}
+        </p>
+        <code class="gallery-source">@corpus/ui/MarginPod</code>
       </section>
       <SummaryExamples lang={props.lang} />
       <section id="charts">

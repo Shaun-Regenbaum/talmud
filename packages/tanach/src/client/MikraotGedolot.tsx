@@ -1,17 +1,20 @@
 import { paintRangeOverlay, resetOverlay } from '@corpus/ui/highlightOverlay';
+import { clusterByLine, MarginPod } from '@corpus/ui/MarginPod';
 import {
   createEffect,
   createMemo,
   createResource,
   createSignal,
   For,
+  Index,
   type JSX,
   onCleanup,
   Show,
 } from 'solid-js';
 import { DafRenderer } from '../lib/daf-render/index.ts';
 import { hebrewNumeral } from '../lib/hebrew.ts';
-import { KIND_GLYPH, type SourceKind, type SourceVerse, verseKinds } from '../lib/sources.ts';
+import { type SourceKind, type SourceVerse, verseKinds } from '../lib/sources.ts';
+import { t } from './i18n.ts';
 
 interface MGVerse {
   n: number;
@@ -72,6 +75,8 @@ export function MikraotGedolot(props: {
   sections: Section[];
   sources: SourceVerse[];
   activeVerse: number | null;
+  /** The kind of source open for `activeVerse`, to ring its icon. */
+  activeKind?: SourceKind | null;
   onAnchor: (verse: number) => void;
   onSource: (verse: number, kind: SourceKind) => void;
 }): JSX.Element {
@@ -156,7 +161,10 @@ export function MikraotGedolot(props: {
   // Map each verse to the top of its PASUK segment (the centered main column),
   // relative to .mg-main; used to pin gutter anchors + icons.
   const [anchors, setAnchors] = createSignal<{ verse: number; label: string; top: number }[]>([]);
-  const [icons, setIcons] = createSignal<{ verse: number; top: number; kinds: SourceKind[] }[]>([]);
+  // One shared pod per line of source icons, like the scroll and the Talmud.
+  const [icons, setIcons] = createSignal<
+    { y: number; items: { verse: number; kind: SourceKind }[] }[]
+  >([]);
   const measure = () => {
     if (!mainEl || !host) {
       setAnchors([]);
@@ -209,15 +217,18 @@ export function MikraotGedolot(props: {
     }
     setAnchors(an);
 
-    const ic: { verse: number; top: number; kinds: SourceKind[] }[] = [];
+    const ic: { verse: number; kind: SourceKind; y: number }[] = [];
     for (const sv of props.sources) {
-      const kinds = verseKinds(sv);
-      if (!kinds.length) continue;
       const t = segTop.get(sv.verse);
       if (t == null) continue;
-      ic.push({ verse: sv.verse, top: t, kinds });
+      for (const kind of verseKinds(sv)) ic.push({ verse: sv.verse, kind, y: t + ICON_SIZE / 2 });
     }
-    setIcons(ic);
+    setIcons(
+      clusterByLine(ic).map((line) => ({
+        y: line.reduce((sum, i) => sum + i.y, 0) / line.length,
+        items: line.map(({ verse, kind }) => ({ verse, kind })),
+      })),
+    );
   };
 
   // Re-measure after the daf lays out / inputs change. The daf renders async, so
@@ -290,26 +301,38 @@ export function MikraotGedolot(props: {
                 </button>
               )}
             </For>
-            <For each={icons()}>
-              {(ic) => (
-                <div class="vgutter-stack mg-icons" style={{ top: `${ic.top}px` }}>
-                  <For each={ic.kinds}>
-                    {(k) => (
-                      <button
-                        type="button"
-                        class={`vgutter vgutter-${k}`}
-                        classList={{ active: props.activeVerse === ic.verse }}
-                        style={{ width: `${ICON_SIZE}px`, height: `${ICON_SIZE}px` }}
-                        title={`${k} · verse ${ic.verse}`}
-                        onClick={() => props.onSource(ic.verse, k)}
-                      >
-                        {KIND_GLYPH[k]}
-                      </button>
-                    )}
-                  </For>
-                </div>
+            <Index each={icons()}>
+              {(pod) => (
+                <MarginPod
+                  items={pod().items.map(({ verse, kind }) => ({
+                    id: `${verse}:${kind}`,
+                    kind,
+                    label: `${t(kind, props.lang)} \u00b7 ${t('verse', props.lang)} ${verse}`,
+                  }))}
+                  textSide="left"
+                  x={`calc(100% - ${6 + ICON_SIZE / 2}px)`}
+                  y={pod().y}
+                  onActivate={(item) => {
+                    const [verse, kind] = item.id.split(':');
+                    props.onSource(Number(verse), kind as SourceKind);
+                  }}
+                  activeId={
+                    props.activeVerse != null && props.activeKind
+                      ? `${props.activeVerse}:${props.activeKind}`
+                      : null
+                  }
+                  onPreview={(item) =>
+                    highlight(
+                      item
+                        ? item.id.split(':')[0]
+                        : props.activeVerse != null
+                          ? String(props.activeVerse)
+                          : null,
+                    )
+                  }
+                />
               )}
-            </For>
+            </Index>
             <p class="mg-caption">
               <span class="he">{d().heRef}</span>
               <span class="apparatus">פנים · רש״י · אונקלוס</span>

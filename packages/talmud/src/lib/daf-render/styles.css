@@ -262,6 +262,16 @@
   position: absolute;
   pointer-events: none;
 }
+/* The words of the gutter icon under the pointer, in a layer of their own so
+   they never disturb the highlight of an open note (GutterOverlay.tsx). */
+.daf-root .daf-preview-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.daf-root .daf-range-highlight-preview {
+  background-color: rgba(234, 179, 8, 0.3);
+}
 /* Round only the outer corners of a multi-line stack so adjacent bands
    (which share an edge) don't show notches at the seams. A single-band
    highlight gets all four corners rounded via both classes. */
