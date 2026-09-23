@@ -225,7 +225,13 @@ export async function runJev<Q extends Record<string, JevQuestion>>(
 ): Promise<JevResult<Q>> {
   const custom = opts.cost_class === 'custom-question';
   const gate = await checkBudget(env, { custom });
-  if (!gate.ok) throw new BudgetPausedError(gate.scope ?? 'all', gate.until, gate.reason);
+  // Staging's GENERATION_DISABLED stops page generation, not Jev: a Jev call
+  // costs a fraction of a cent, and staging has to make them to show the
+  // features built on Jev (e.g. the bilingual pass). Real spend limits
+  // (daily / custom pauses) still apply.
+  if (!gate.ok && gate.reason !== 'staging-read-only') {
+    throw new BudgetPausedError(gate.scope ?? 'all', gate.until, gate.reason);
+  }
   if (!env.TYPESAFE_API_KEY) throw new LLMError(503, 'TYPESAFE_API_KEY not set', { cls: NEITHER });
   const questionIds = Object.keys(opts.questions);
   if (questionIds.length === 0) throw new LLMError(400, 'runJev: no questions', { cls: NEITHER });

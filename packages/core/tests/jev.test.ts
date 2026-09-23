@@ -166,6 +166,17 @@ describe('runJev', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('still runs on staging, where page generation is switched off', async () => {
+    fetchMock.mockResolvedValueOnce(okResponse(GOOD_ANSWERS));
+    const { kv } = fakeKV();
+    const res = await runJev(
+      { CACHE: kv, TYPESAFE_API_KEY: 'k', GENERATION_DISABLED: '1' },
+      { state: 's', questions: QUESTIONS },
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(res.answers.which.choice).toBe('a');
+  });
+
   it('retries a 429 and succeeds on the next attempt', async () => {
     fetchMock
       .mockResolvedValueOnce(okResponse({ error: 'slow down' }, 429))

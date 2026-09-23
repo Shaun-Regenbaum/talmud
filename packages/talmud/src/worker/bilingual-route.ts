@@ -37,8 +37,9 @@ import type { Bindings } from './types';
 /** Paragraphs per request, and the longest paragraph judged. */
 export const BILINGUAL_MAX_TEXTS = 40;
 export const BILINGUAL_MAX_CHARS = 4000;
-/** Jev requests in flight per call. */
-const CONCURRENCY = 6;
+/** Jev requests in flight per call. At 20, Bekhorot 5a's 200 paragraphs take
+ *  about 11 seconds (at 6 they took 20). */
+const CONCURRENCY = 20;
 
 async function sha256Hex(s: string): Promise<string> {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
