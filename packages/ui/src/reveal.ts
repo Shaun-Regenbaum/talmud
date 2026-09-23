@@ -6,6 +6,8 @@
  * Styles live in components.css (`.ui-reveal-pulse`, `.ui-reveal-tint`).
  */
 
+import { holdHoverUntilPointerMoves } from './hoverIntent';
+
 const PULSE_MS = 1200;
 /** How long a reveal keeps the target centered while its text is still
  *  loading and growing. The reader's own scroll ends it sooner. */
@@ -106,6 +108,9 @@ export function revealInPanel(target: HTMLElement, options: RevealOptions = {}):
   const reduced = options.reducedMotion ?? prefersReducedMotion();
   const behavior: ScrollBehavior = reduced ? 'auto' : 'smooth';
   if (options.scroll !== false) {
+    // Items will slide under a resting pointer; that is not the reader
+    // pointing at them.
+    holdHoverUntilPointerMoves();
     scrollToMiddle(target, behavior);
     followGrowth(target, behavior);
   }

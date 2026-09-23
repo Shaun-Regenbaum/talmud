@@ -1,5 +1,5 @@
 import { GraphView } from '@corpus/ui/GraphView';
-import { HOVER_LEAVE_MS } from '@corpus/ui/hoverIntent';
+import { HOVER_LEAVE_MS, holdHoverUntilPointerMoves, hoverHeld } from '@corpus/ui/hoverIntent';
 import { cleanup, fireEvent, render } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ArgumentFlowGraph from '../../src/client/ArgumentFlowGraph';
@@ -33,6 +33,27 @@ describe('hovering the argument map', () => {
     fireEvent.pointerLeave(node(container, groups[1].id), { pointerType: 'mouse' });
     vi.advanceTimersByTime(HOVER_LEAVE_MS + 10);
     expect(hover).toHaveBeenLastCalledWith(null);
+  });
+
+  it('ignores rows that slide under a resting mouse when the panel scrolls itself', () => {
+    const hover = vi.fn();
+    const { container } = render(() => (
+      <GraphView groups={groups} edges={edges} labels={graphLabels()} onHover={hover} />
+    ));
+    const mouse = (x: number, y: number) =>
+      fireEvent.pointerMove(document, { pointerType: 'mouse', clientX: x, clientY: y });
+    mouse(50, 50);
+    holdHoverUntilPointerMoves();
+    fireEvent.pointerEnter(node(container, groups[1].id), { pointerType: 'mouse' });
+    // The browser re-checks the spot under the pointer after scrolling; same place.
+    mouse(50, 50);
+    fireEvent.pointerEnter(node(container, groups[1].id), { pointerType: 'mouse' });
+    expect(hover).not.toHaveBeenCalled();
+    expect(hoverHeld()).toBe(true);
+    mouse(60, 58);
+    expect(hoverHeld()).toBe(false);
+    fireEvent.pointerEnter(node(container, groups[1].id), { pointerType: 'mouse' });
+    expect(hover).toHaveBeenLastCalledWith(expect.objectContaining({ id: groups[1].id }));
   });
 
   it('never hovers on touch, where a tap selects instead', () => {
