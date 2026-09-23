@@ -1,0 +1,518 @@
+{
+ "status": "researched",
+ "question": "In Sanhedrin 101a:6, what does the text say about Rav Huna's ruling on Rabbi Yosi, the danger explanation and the story of Rav Yitzhak bar Yosef and the cedar? Which graph claims are explicit, which rest on interpretation, and which alternatives must stay open?",
+ "scope_note": "Checked: the Sefaria texts of Sanhedrin 101a (Wikisource and William Davidson Aramaic, William Davidson English), Rashi, Steinsaltz, Rashash, Yad Ramah, Meiri, Rif with Hagahot HaBach, Rosh, Radbaz, Beit Yosef, Bach, Sefer Mitzvot Gadol, Be'er Sheva, Tosefta Shabbat (Vienna and printed), Tosefta Kifshutah, Seder HaDorot, Yevamot 49b, and the Soncino translation on halakhah.com. Not checked: manuscripts (the Hachi Garsinan images, Dikdukei Soferim) and the Gra's own glosses. The Gra's deletion is known here only through a Soncino footnote. Conclusions are limited to these sources.",
+ "findings": [
+  {
+   "finding_id": "F1",
+   "claim": "Both readings of Rav Huna's line are attested, with and without the negation אין. The sources are of different kinds and should not be pooled. (a) Texts that quote the line without אין: Rif, Yad Ramah, the Vilna Rosh, and a Ramban responsum quoted in Beit Yosef. (b) Texts that quote it with אין: Bach's Gemara, and the Gemara in front of Be'er Sheva. Radbaz prints it in parentheses, as the Wikisource/Koren text does; whether that means 'read' or 'delete' is not stated. (c) Reports about other books: Sefer Mitzvot Gadol and its gloss, Bach and Be'er Sheva. (d) A later emendation: the Gra deletes the word, as reported in a Soncino footnote. (e) Modern translations: the William Davidson English and Steinsaltz omit it; Soncino keeps it.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "אמר רב הונא (אין) הלכה כר' יוסי ואף רבי יוסי לא אמרה אלא משום סכנה",
+     "translation_by_this_dossier": "Rav Huna said: (not) the halakha is like R. Yosi; and even R. Yosi said it only because of danger."
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "אמר רב הונא הלכה כרבי יוסי ואף רבי יוסי",
+     "translation_by_this_dossier": "Rav Huna said: the halakha is like R. Yosi, and even R. Yosi..."
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "אמר רב הונא הלכה כר\"י ואף ר\"י לא אמרה אלא משום סכנה",
+     "translation_by_this_dossier": "Rav Huna said: the halakha is like R. Yosi, and even R. Yosi said it only because of danger."
+    },
+    {
+     "source_id": "S9",
+     "exact_quote": "אמר עולא הלכה כרבי יוסי. ואף רבי יוסי לא אמר אלא מפני הסכנה.",
+     "translation_by_this_dossier": "Ulla said: the halakha is like R. Yosi. And even R. Yosi said it only because of the danger."
+    },
+    {
+     "source_id": "S12",
+     "exact_quote": "אמר רב הונא אין הלכה כר' יוסי ואף רבי יוסי לא אמרה אלא מפני הסכנה",
+     "translation_by_this_dossier": "Rav Huna said: the halakha is not like R. Yosi, and even R. Yosi said it only because of the danger."
+    },
+    {
+     "source_id": "S12",
+     "exact_quote": "ואף לספרים ישנים דגרסי אמר רב הונא הלכה כרבי יוסי שאוסר לשאול בשדים אף בחול כדכתב סמ\"ג",
+     "translation_by_this_dossier": "And even by the old books that read 'Rav Huna said: the halakha is like R. Yosi', who forbids asking demons even on weekdays, as the Semag wrote..."
+    },
+    {
+     "source_id": "S12",
+     "exact_quote": "ותו דבמקצת סמ\"ג כתב בספרים ישנים גרסינן אין הלכה כרבי יוסי",
+     "translation_by_this_dossier": "Moreover, some copies of the Semag write: 'in old books we read: the halakha is not like R. Yosi'."
+    },
+    {
+     "source_id": "S13",
+     "exact_quote": "אמנם בפרק חלק [דק\"א] בספרים ישנים גרסינן אמר רב הונא הלכה כרבי יוסי",
+     "translation_by_this_dossier": "However, in Perek Chelek (101) in old books we read: Rav Huna said, the halakha is like R. Yosi."
+    },
+    {
+     "source_id": "S13",
+     "exact_quote": "[הגה\"ה כך מצאתי שנמחוק מן הספרים",
+     "translation_by_this_dossier": "[Gloss: So I found: that it was erased from the books —"
+    },
+    {
+     "source_id": "S13",
+     "exact_quote": "שכן באלפסי ובאשרי פ' ד' מיתות ופ' חלק וכן בהג\"ה מיימונית בפ' י\"א דע\"ז משמע דגרסי הלכה אבל ברוב ספרים ישנים מצאתי שיטת הס' כך. ובפרק חלק בספרים ישנים גרסינן א\"ר הונא אין הלכה כר' יוסי",
+     "translation_by_this_dossier": "— for in Alfasi and Asheri ... and in Hagahot Maimoniyot ... it implies they read 'the halakha'. But in most old books I found the book's approach thus. And in Perek Chelek in old books we read: Rav Huna said, the halakha is not like R. Yosi. (In the saved text, the word אין stands in main-text type between these two gloss pieces. The gloss's direction is hard to fix.)"
+    },
+    {
+     "source_id": "S14",
+     "exact_quote": "ואע\"ג דבגמרא שבידינו כתוב אמר רב הונא אין הלכה כרבי יוסי מכל מקום הרי\"ף והרא\"ש והרמב\"ן ורוב הפוסקים גורסין אמר רב הונא הלכה כרבי יוסי וצריך עיון",
+     "translation_by_this_dossier": "Although in the Gemara we have it is written 'Rav Huna said: the halakha is not like R. Yosi', still Rif, Rosh, Ramban and most decisors read 'Rav Huna said: the halakha is like R. Yosi'; this needs study."
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "א\"ר הונא (אין) הלכה כר' יוסי ואף ר' יוסי לא אמרה אלא מפני הסכנה",
+     "translation_by_this_dossier": "Rav Huna said: (not) the halakha is like R. Yosi..."
+    },
+    {
+     "source_id": "S8",
+     "exact_quote": "נ\"ב בכאן נמצא בספרים גירסות מתחלפות ועיין בסמ\"ג לאוין סי' נ\"ה",
+     "translation_by_this_dossier": "Gloss: here the books have differing readings; see Semag negative commandments 55."
+    },
+    {
+     "source_id": "S18",
+     "exact_quote": "The Wilna Gaon <font style= >deletes 'not'</font>."
+    },
+    {
+     "source_id": "S18",
+     "exact_quote": "R. Huna said: The <i>halachah</i> is <a href=\"#101a_13\">not"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "is <b>in accordance with</b> the opinion of <b>Rabbi Yosei.</b>"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "אמר רב הונא: הלכה כר' יוסי."
+    }
+   ],
+   "reasoning": "The Ramban reading comes from Beit Yosef's quotation (S11, F1b), so it is second-hand. The William Davidson English and the Steinsaltz Hebrew come from one editorial project and count as one witness. So does the Koren Hebrew, which keeps the parentheses but whose English drops the word. Be'er Sheva's claim that 'most decisors' read without אין is his own report, not a count made here. The Semag gloss seems to say that 'not' was deleted to match Alfasi and Asheri while most old books had it, but the sentence is compressed. Bach reads it both ways across Semag copies. The parentheses in the Wikisource/Koren text match the word the Gra deletes. That they record his deletion specifically is an inference; the page does not say so.",
+   "confidence": "high",
+   "graph_effect": "Keep c6 and c7 as a two-branch group; do not choose either. Record each branch's support by evidence type: medieval quoting texts, reports about books, a later emendation, modern translations. Do not count two William Davidson outputs as two witnesses."
+  },
+  {
+   "finding_id": "F1b",
+   "claim": "Beit Yosef quotes a Ramban responsum that gives Rav Huna's ruling without אין.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S11",
+     "exact_quote": "ובתשובות הרמב\"ן כתוב סימן רפ\"ב",
+     "translation_by_this_dossier": "And in the Ramban's responsa it is written, no. 282:"
+    },
+    {
+     "source_id": "S11",
+     "exact_quote": "א\"ר הונא הלכה כרבי יוסי ואף ר' יוסי לא אמר אלא בשביל סכנה",
+     "translation_by_this_dossier": "Rav Huna said: the halakha is like R. Yosi, and even R. Yosi said it only on account of danger."
+    }
+   ],
+   "reasoning": "This is inside Beit Yosef's quotation of the Ramban's responsum. It is therefore a quotation within a quotation, not a direct witness to the Ramban's text.",
+   "confidence": "medium",
+   "graph_effect": "Adds one more quoted witness for the branch without the negation, marked as second-hand."
+  },
+  {
+   "finding_id": "F2",
+   "claim": "The Vilna Rosh attributes the ruling to Ulla (עולא), not Rav Huna. Radbaz, quoting the Rosh on the same point, has Rav Huna. Every other text checked has Rav Huna.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S9",
+     "exact_quote": "אמר עולא הלכה כרבי יוסי.",
+     "translation_by_this_dossier": "Ulla said: the halakha is like R. Yosi."
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "הביא הרא\"ש ז\"ל ראיה",
+     "translation_by_this_dossier": "(the) Rosh brought a proof"
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "א\"ר הונא (אין) הלכה כר' יוסי",
+     "translation_by_this_dossier": "Rav Huna said: (not) the halakha is like R. Yosi."
+    }
+   ],
+   "reasoning": "There is one printed witness for Ulla, and another quotation of the same Rosh passage reads Rav Huna. That suggests a transmission variant inside the Rosh rather than a separate Talmudic tradition. This dossier cannot tell which way it ran.",
+   "confidence": "high",
+   "graph_effect": "Add a source-variant branch for the speaker of c6/c7: Rav Huna (the Talmud text and most quoting witnesses) or Ulla (the Vilna Rosh only). Record it as a variant in a quoting work. Do not replace Rav Huna, and do not create an Ulla-Rabbi Yosi edge outside the branch."
+  },
+  {
+   "finding_id": "F3",
+   "claim": "The Vilna Rosh gives the story's subject as 'רבי יצחק ברבי יוסף', with the title Rabbi for both son and father. The Talmud texts, Radbaz, Yad Ramah and Seder HaDorot have 'רב יצחק בר יוסף'.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S9",
+     "exact_quote": "כי הא דרבי יצחק ברבי יוסף אבלע בארזא.",
+     "translation_by_this_dossier": "as in the case of Rabbi Yitzhak son of Rabbi Yosef, who was swallowed in a cedar."
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "כי הא דרב יצחק בר יוסף דאיבלע בארזא",
+     "translation_by_this_dossier": "as in the case of Rav Yitzhak bar Yosef, who was swallowed in a cedar."
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "כי הא דרב יצחק בר יוסף שבא לשאול בשדים",
+     "translation_by_this_dossier": "as in the case of Rav Yitzhak bar Yosef, who came to ask of demons."
+    }
+   ],
+   "reasoning": "In every version the patronymic names a father Yosef. Only the titles differ. A title variant is not identity evidence.",
+   "confidence": "high",
+   "graph_effect": "Keep c8 (child_of Yosef) and the local placeholder for Yosef. Add the Rosh's form as a name variant on the local person, with 'Rabbi' as a variant title for the father. Do not merge with any other Yitzhak or Yosef on this basis."
+  },
+  {
+   "finding_id": "F4",
+   "claim": "The text does not say who speaks 'ואף רבי יוסי לא אמרה אלא משום סכנה'. The William Davidson English and Steinsaltz give it to the anonymous Gemara voice ('The Gemara notes', 'ומעירים'). Rif, Yad Ramah, the Rosh and Soncino run it straight on from the ruling with no new speaker, which leaves open that it continues Rav Huna's statement.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "The Gemara notes:"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "ומעירים:"
+    },
+    {
+     "source_id": "S18",
+     "exact_quote": "as R. Jose</font>, and even <font style= >he said it only on account of its danger</font>"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "אמר רב הונא הלכה כרבי יוסי ואף רבי יוסי",
+     "translation_by_this_dossier": "Rav Huna said: the halakha is like R. Yosi, and even R. Yosi..."
+    }
+   ],
+   "reasoning": "The Aramaic has no speech marker between the ruling and 'ואף'. Assigning it to the anonymous voice is an editorial choice in one translation project. The continuous layout in the medieval quotations shows that the text can be read either way; it does not prove Rav Huna said it.",
+   "confidence": "medium",
+   "graph_effect": "c5 should carry a speaker branch: anonymous Talmudic voice, or Rav Huna continuing. Do not create a Rav Huna explains Rabbi Yosi edge except inside that branch."
+  },
+  {
+   "finding_id": "F5",
+   "claim": "The Talmud text does not say that Rav Yitzhak bar Yosef consulted demons, and it names no demon. Rashi, Yad Ramah, the William Davidson English, Steinsaltz, the Soncino notes and Seder HaDorot all supply both.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S3",
+     "exact_quote": "היה שואל במעשה שדים ובקש השד להזיקו",
+     "translation_by_this_dossier": "He used to ask by means of demon-craft, and the demon sought to harm him."
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "שבא לשאול בשדים ורצה השד להרגו",
+     "translation_by_this_dossier": "who came to ask of demons, and the demon wanted to kill him."
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "consulted a demon and as a result"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "שנשאל בשד וגרם לו",
+     "translation_by_this_dossier": "who inquired of a demon, and it caused him..."
+    },
+    {
+     "source_id": "S12",
+     "exact_quote": "אלמא להדיא דשרי מעשה שדים מדרב יצחק דהיה שואל במעשה שדים",
+     "translation_by_this_dossier": "So clearly demon-craft is permitted, from Rav Yitzhak who used to ask by demon-craft."
+    }
+   ],
+   "reasoning": "The link comes from 'כי הא' ('as in this case'), which offers the story as an example of the danger. Commentators agree broadly, but it is still an interpretation. Bach even builds a legal inference on Rav Yitzhak's conduct, which shows how much weight the supplied detail can carry.",
+   "confidence": "high",
+   "graph_effect": "Any 'Rav Yitzhak inquired of demons' action, and any demon participant, belongs in a commentary layer with basis interpretation, attributed to the commentators who say it. Keep it out of the explicit text layer. The demon is an unnamed non-human agent, not a person."
+  },
+  {
+   "finding_id": "F6",
+   "claim": "Commentators disagree about what swallowed him and what the miracle was. Rashi: the demon sought to harm him, and the miracle was that the cedar swallowed him. Rashash, Steinsaltz and the William Davidson English: the swallowing was the harm, and the miracle was that the cedar split and spat him out. Rashash calls this the plain sense. Seder HaDorot sets Rashi against the Gemara's wording. The Soncino note: the demon turned itself into a tree and swallowed him. Yad Ramah: the demon wanted to kill him, a miracle was done, and he was swallowed 'בארץ' (in the earth).",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S3",
+     "exact_quote": "ונעשה לו נס ובלעו הארז",
+     "translation_by_this_dossier": "and a miracle was done for him and the cedar swallowed him."
+    },
+    {
+     "source_id": "S5",
+     "exact_quote": "פשוטו משמע דהבלעת הארז היתה ע\"י השד והנס הוא שפלטי'. ורש\"י אולי רצה להשוות בליעת ארז זו להא דישעיה דבס\"פ החולץ דהוה לאצולא",
+     "translation_by_this_dossier": "The plain sense is that the swallowing by the cedar was done by the demon, and the miracle is that it spat him out. Rashi perhaps wanted to compare this cedar-swallowing to that of Isaiah at the end of Perek HaCholetz, which was to rescue him."
+    },
+    {
+     "source_id": "S17",
+     "exact_quote": "מלשון רש\"י נראה דנס היה שבלעו הארז ומלשון הגמ' משמע דהנס היה שפקע הארז.",
+     "translation_by_this_dossier": "From Rashi's wording the miracle was that the cedar swallowed him; from the Gemara's wording the miracle was that the cedar split."
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "and a miracle was performed for him and the cedar split and expelled him."
+    },
+    {
+     "source_id": "S18",
+     "exact_quote": "He consulted a demon, which turned itself into a tree and swallowed him</font>; it was only through a miracle that he escaped."
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "ונעשה לו נס ונבלע בארץ וכי תימא וליעקריה לשדא מיניה קב\"ה הוא דבעא לאחיזי ליה ניסא רבא",
+     "translation_by_this_dossier": "and a miracle was done for him and he was swallowed in the earth. And if you ask, let Him uproot the demon from him: the Holy One wanted to show him a great miracle."
+    },
+    {
+     "source_id": "S19",
+     "exact_quote": "אמר שם איבלע בארזא אתיוה לארזא ונסרוה",
+     "translation_by_this_dossier": "He uttered a Name and was swallowed in a cedar; they brought the cedar and sawed it."
+    }
+   ],
+   "reasoning": "The text's sequence is: swallowed, miracle, cedar split, released. It leaves open whether 'ניסא' names the swallowing or the splitting, and who did the swallowing. Yad Ramah's 'בארץ' may be a different wording or a print error; this dossier cannot decide. Yevamot 49b is the story Rashash points to: Isaiah flees into a cedar by uttering a Name. It is a literary parallel, not evidence about Rav Yitzhak.",
+   "confidence": "high",
+   "graph_effect": "The first reading's 'rescue' event ('The cedar split and released him in a miracle') follows the Rashash / plain-sense grouping. Split it into three nodes: swallowing (agent not stated), miracle (referent open) and split-and-release. Mark the miracle referent as an interpretation branch: Rashi, swallowing; Rashash / Steinsaltz / William Davidson / Seder HaDorot on the Gemara's wording, splitting. Keep 'cedar is the demon' (Soncino note) and 'earth' (Yad Ramah) as recorded alternatives, not defaults."
+  },
+  {
+   "finding_id": "F7",
+   "claim": "In the Tosefta parallel, Rabbi Yosi's prohibition concerns whispering (לוחשין) about demons, not asking (שואלין). In the Vienna codex he is ר' יוסה. Tosefta Kifshutah sets the Tosefta wording against the Bavli's.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S15",
+     "exact_quote": "אומ' אף בחול אין לוחשין בדבר שדים.",
+     "translation_by_this_dossier": "[R. Yosah] says: even on a weekday one does not whisper in a matter of demons. (Just before it the saved text has 'ואין לוחשין בדבר ... שדים, ר' ... יוסה', broken up by apparatus markers.)"
+    },
+    {
+     "source_id": "S24",
+     "exact_quote": "<b>יוסה </b>| <big>ד</big> <big>א</big> <big>ל</big> יוסי.",
+     "translation_by_this_dossier": "Variant apparatus: 'Yosah' — three other witnesses (sigla ד, א, ל) read 'Yosi'."
+    },
+    {
+     "source_id": "S16",
+     "exact_quote": "ואין לוחשין בדבר שדים ר' יוסי אומר אף בחול אין לוחשין בדבר שדים",
+     "translation_by_this_dossier": "same, with the spelling R. Yosi."
+    },
+    {
+     "source_id": "S21",
+     "exact_quote": "בבבלי סנהדרין הנ\"ל: ואין שואלין בדבר שדים וכו'.",
+     "translation_by_this_dossier": "In the Bavli, Sanhedrin (cited above): 'and one does not ask in a matter of demons', etc."
+    }
+   ],
+   "reasoning": "This is a parallel source with different wording. The attribution to Rabbi Yosi is the same. It is not an independent second observation of the Bavli's teaching, and it has no Rav Huna and no story (chapter 7 in the Vienna text checked). Lieberman's apparatus shows only a spelling difference in the name (יוסה/יוסי).",
+   "confidence": "high",
+   "graph_effect": "Link c4 to a parallel-source note: same attribution, action wording differs (whisper or ask). Do not count the Tosefta as a second independent holds_view observation for the same content."
+  },
+  {
+   "finding_id": "F8",
+   "claim": "The rule against asking demons on Sabbath is anonymous. It is not a continuation of Rabban Shimon ben Gamliel's clause. Rif quotes it as a baraita on its own without him. Yad Ramah calls its author the first tanna against Rabbi Yosi.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S7",
+     "exact_quote": "ת\"ר אין שואלין דבר מן השד בשבת רבי יוסי אומר אף בחול אסור",
+     "translation_by_this_dossier": "The rabbis taught: one does not ask a thing of a demon on Sabbath. R. Yosi says: even on a weekday it is forbidden."
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "ולת\"ק דר' יוסי הוא דאצטריך",
+     "translation_by_this_dossier": "It was needed for R. Yosi's first tanna."
+    }
+   ],
+   "reasoning": "This supports c3 (the sages hold the Sabbath rule). The Talmud text alone does not rule out reading the clause as Rabban Shimon ben Gamliel's continuation, but these two sources treat it as anonymous.",
+   "confidence": "medium",
+   "graph_effect": "Keep c3 with subject 'sages'. Cite Rif and Yad Ramah in its notes. No Rabban Shimon ben Gamliel edge to the demon rule."
+  },
+  {
+   "finding_id": "F9",
+   "claim": "The William Davidson Aramaic and English, and the Tosefta, write 'רשב\"ג' out as Rabban Shimon ben Gamliel. That name contains a father named Gamliel, and the first reading gave that father no placeholder.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "אמר רבן שמעון בן גמליאל במה דברים אמורים בכלי הניטל",
+     "translation_by_this_dossier": "Rabban Shimon ben Gamliel said: in what case are these words said? With a movable vessel."
+    },
+    {
+     "source_id": "S15",
+     "exact_quote": "מעין בשבת. רבן שמעון בן ",
+     "translation_by_this_dossier": "...[over the] eye on Sabbath. Rabban Shimon ben — (the saved text continues 'גמליאל' after an apparatus marker)."
+    }
+   ],
+   "reasoning": "Under project rules, a relationship embedded in a name is evidence. The abbreviation רשב\"ג itself encodes 'ben Gamliel', and the other editions spell it out. Whether 'ben Gamliel' is literal kinship is the usual reading of a patronymic. Which Rabban Shimon ben Gamliel is meant is a separate historical decision, and the text gives no clue.",
+   "confidence": "high",
+   "graph_effect": "Add a local placeholder 'Gamliel, father in the name of Rabban Shimon ben Gamliel' and a child_of claim with basis 'name', evidenced by the expanded spellings in S1 and S15 and by the abbreviation in S0. Relabel 'rsbg' as Rabban Shimon ben Gamliel (expansion attested in other editions). No historical identity."
+  },
+  {
+   "finding_id": "F10",
+   "claim": "Seder HaDorot files this story under a 'רב יצחק בר יוסף' entry that also holds unrelated passages, such as the traveller who reports what happened before Rabbi Yohanan. It also quotes Yuchasin's guess that Rav Dimi bar Yosef was his brother. Both are identity hypotheses built on a shared name.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "S17",
+     "exact_quote": "כי אתא אמר עובדא הוה קמי' דר' יוחנן",
+     "translation_by_this_dossier": "(under the bold heading רב יצחק בר יוסף:) when he came he said: a case came before R. Yohanan..."
+    },
+    {
+     "source_id": "S17",
+     "exact_quote": "וכתב ואולי רב דימי בר יוסף אחיו",
+     "translation_by_this_dossier": "and he wrote: perhaps Rav Dimi bar Yosef was his brother."
+    }
+   ],
+   "reasoning": "A shared name does not establish identity. Seder HaDorot's compiler marks the brother idea as 'perhaps'. Nothing in Sanhedrin 101a ties this Rav Yitzhak to Rabbi Yohanan or to a brother.",
+   "confidence": "high",
+   "graph_effect": "No edges to Rabbi Yohanan, Abaye or Rav Dimi bar Yosef from this passage. At most, record Seder HaDorot's grouping as a historical-identity candidate in a separate layer, unaccepted."
+  },
+  {
+   "finding_id": "F11",
+   "claim": "Rashi on the baraita explains the practice (people who lose something ask by demon-craft) and says Rabbi Yosi's weekday ban is 'because of danger, as is explained below'. He does not say who gives that explanation.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S2",
+     "exact_quote": "שכן עושין כשאובדין שום דבר שואלין במעשה שדים והם מגידים להם",
+     "translation_by_this_dossier": "for this is what they do: when they lose something they ask by demon-craft, and the demons tell them."
+    },
+    {
+     "source_id": "S2",
+     "exact_quote": "אף בחול אסור - לשאול בשדים כדמפרש לקמן משום סכנה",
+     "translation_by_this_dossier": "'Even on a weekday it is forbidden': to ask of demons, as is explained below, because of danger."
+    }
+   ],
+   "reasoning": "This settles what 'asking' means, as Rashi reads it, but not who speaks the danger clause (F4).",
+   "confidence": "medium",
+   "graph_effect": "Can serve as the gloss on the 'sabbath' and 'weekday' statement nodes (commentary layer). No person edges."
+  }
+ ],
+ "alternative_readings": [
+  {
+   "id": "A1",
+   "scope": "Rav Huna's ruling",
+   "readings": [
+    "with אין: the halakha is not like Rabbi Yosi (Bach's Gemara, the Gemara Be'er Sheva had, Soncino; Radbaz and the Wikisource/Koren Hebrew print it in parentheses)",
+    "without אין: the halakha is like Rabbi Yosi (Rif, Yad Ramah, Vilna Rosh, Ramban via Beit Yosef, William Davidson English / Steinsaltz; the Gra deletes the word per a Soncino note)"
+   ],
+   "status": "open",
+   "evidence_findings": [
+    "F1",
+    "F1b"
+   ]
+  },
+  {
+   "id": "A2",
+   "scope": "Speaker of the ruling",
+   "readings": [
+    "Rav Huna (Talmud texts and most quoting witnesses)",
+    "Ulla (Vilna Rosh only; Radbaz's quotation of the Rosh has Rav Huna)"
+   ],
+   "status": "open, weak variant",
+   "evidence_findings": [
+    "F2"
+   ]
+  },
+  {
+   "id": "A3",
+   "scope": "Speaker of 'ואף רבי יוסי לא אמרה אלא משום סכנה'",
+   "readings": [
+    "anonymous Talmudic voice (William Davidson English, Steinsaltz)",
+    "continuation of Rav Huna (possible from the continuous layout in Rif, Yad Ramah, Rosh, Soncino; none says so)"
+   ],
+   "status": "open",
+   "evidence_findings": [
+    "F4"
+   ]
+  },
+  {
+   "id": "A4",
+   "scope": "What the miracle was and what swallowed him",
+   "readings": [
+    "Rashi: the cedar's swallowing was the miracle, protecting him from the demon",
+    "Rashash (plain sense), Steinsaltz, William Davidson English, Seder HaDorot on the Gemara's wording: the demon caused the swallowing; the miracle was the splitting and release",
+    "Soncino note: the demon became the tree",
+    "Yad Ramah: swallowed 'in the earth' as a miracle against the demon"
+   ],
+   "status": "open",
+   "evidence_findings": [
+    "F6"
+   ]
+  },
+  {
+   "id": "A5",
+   "scope": "Wording of Rabbi Yosi's prohibition",
+   "readings": [
+    "Bavli: asking (שואלין) about demons",
+    "Tosefta: whispering (לוחשין) about demons"
+   ],
+   "status": "parallel-source difference; both attribute to Rabbi Yosi",
+   "evidence_findings": [
+    "F7"
+   ]
+  }
+ ],
+ "unresolved": [
+  "Manuscript readings of Sanhedrin 101a for (אין) were not checked; this dossier relies on medieval quotations and later reports.",
+  "The Gra's own gloss was not seen; his deletion is known here only from a Soncino footnote.",
+  "Whether Yad Ramah's 'בארץ' is a real variant or a print error.",
+  "Whether the Vilna Rosh's 'עולא' reflects a Rosh manuscript tradition or a print error.",
+  "Who speaks the danger clause (F4).",
+  "The Semag gloss's exact claim about which old books had אין is hard to read (F1).",
+  "Which Rabbi Yosi, which Rav Huna and which Rabban Shimon ben Gamliel are meant: historical decisions not taken here."
+ ],
+ "proposed_corrections": [
+  {
+   "existing_claim_id": "c6, c7 / reading group g1",
+   "change": "Keep both branches. Record each branch's support separately by evidence type: medieval quoting texts, reports about books, the Gra's emendation (via Soncino), modern translations (William Davidson counted once). Update episode.needed_context: witnesses were found and conflict; the question is documented but not resolved.",
+   "why": "F1, F1b."
+  },
+  {
+   "existing_claim_id": "c6, c7",
+   "change": "Add a second reading group for the ruling's speaker: Rav Huna (default) or Ulla (Vilna Rosh variant). Mark it as a variant in a quoting work.",
+   "why": "F2."
+  },
+  {
+   "existing_claim_id": "c5",
+   "change": "Add a speaker branch: anonymous Talmudic voice, or Rav Huna continuing. c5 currently has voice 'narrator' and subject 'danger', which leaves this unrecorded.",
+   "why": "F4."
+  },
+  {
+   "existing_claim_id": "entity 'rescue', c10, c11",
+   "change": "Split 'rescue' into 'miracle' (referent open) and 'split_release' ('פקע ארזא ופלטיה'). Keep c11 as 'trapped before split_release', which is explicit. Add an interpretation branch for what the miracle was (Rashi, swallowing; Rashash / plain sense, splitting). Note the Soncino and Yad Ramah alternatives.",
+   "why": "F6. The current label builds the Rashash reading in silently. The earlier review's 'avoid' check passed it, but the label does choose a side."
+  },
+  {
+   "existing_claim_id": "new",
+   "change": "Add a commentary-layer claim that Rav Yitzhak bar Yosef inquired of demons, and a demon as an unnamed non-human agent seeking to harm him. Basis: interpretation, attributed to Rashi, Yad Ramah, William Davidson / Steinsaltz, Soncino note, Seder HaDorot. Not explicit.",
+   "why": "F5."
+  },
+  {
+   "existing_claim_id": "entity 'rsbg'",
+   "change": "Relabel as Rabban Shimon ben Gamliel (expansion attested in the William Davidson text and the Tosefta). Add a local placeholder for Gamliel and a child_of claim with basis 'name'.",
+   "why": "F9. Project rule: a relationship embedded in a name is evidence."
+  },
+  {
+   "existing_claim_id": "entity 'itzhak'",
+   "change": "Add the name variant 'רבי יצחק ברבי יוסף' (Vilna Rosh). Keep c8 and the Yosef placeholder.",
+   "why": "F3."
+  },
+  {
+   "existing_claim_id": "c3",
+   "change": "No change of subject. Add notes citing Rif and Yad Ramah for treating the clause as anonymous.",
+   "why": "F8."
+  },
+  {
+   "existing_claim_id": "c4",
+   "change": "Add a note about the Tosefta parallel (whispering, not asking). Do not add a second holds_view claim.",
+   "why": "F7."
+  },
+  {
+   "existing_claim_id": "previous review preserve[3]",
+   "change": "'not_applicable: no commentary source was supplied' is out of date. Commentary exists and bears on the story's reading (F6) and on the negation (F1).",
+   "why": "Commentaries were fetched in this follow-up."
+  }
+ ],
+ "ontology_lessons": [
+  "Textual evidence needs separate types: direct witness, medieval quotation, quotation within a quotation, a report about other books, a later emendation, and a modern translation. They should not be pooled into one count.",
+  "One work can carry internal variants: the Vilna Rosh has Ulla, while Radbaz's quotation of the Rosh has Rav Huna. A witness is a particular copy, not the work.",
+  "A trailing unmarked clause after a named ruling needs a speaker branch rather than a silent 'narrator' default.",
+  "Event labels like 'miracle' should not fix their referent when commentators disagree. Keep a referent-open node and put the readings in branches.",
+  "Agents that only commentary supplies (here a demon) belong in a commentary layer, attributed to the commentator, and are not persons.",
+  "An abbreviated name (רשב\"ג) can still encode a patronymic. Expand it only when another edition spells it out, and keep the parent as a local placeholder.",
+  "Parallel sources with the same attribution and different wording are parallel evidence, not independent repeat observations."
+ ],
+ "graph_status": "All proposals are provisional. No historical identity is accepted."
+}

@@ -1,0 +1,30 @@
+{
+  "job_id": "original-08",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "f95e1ad27c4b9cd8dbb14bc5fb1abe235643bfc80d092a67db39bc553d5bd896",
+  "historical_graph_eligible": false,
+  "scope": "Separate review of selected graph implications and quoted evidence. Source hashes and quotation matches checked separately. Not human adjudication or exhaustive historical verification.",
+  "findings": [
+    {
+      "target": "F2 and reading.md statement that Yose never met or heard the men",
+      "decision": "reject_overstatement",
+      "reason": "The saved quotation asks whether he had heard this teaching. Penei Moshe treats it as a surprised rhetorical question; Ohr LaYesharim reads lack of knowledge of the prayer wording. Neither says he never met these people or never heard anything from them. Do not add either a contact edge or a negative lifetime contact edge. Keep the narrator question and each interpretation."
+    },
+    {
+      "target": "F4/F5 chain and identity branches",
+      "decision": "support_with_qualification",
+      "reason": "Keep the printed joins and the attributed reconstruction as separate readings. A generation number alone does not prove a citation impossible: generations may overlap and a senior may cite a junior. The identity and typography assumptions need their own evidence and cannot validate each other."
+    },
+    {
+      "target": "F6 manuscript and emendation evidence",
+      "decision": "retain_evidence_types",
+      "reason": "These are reports of manuscript readings and later changes in a commentary. No manuscript was directly inspected. Keep the reported witness, corrector and proposed emendation distinct."
+    },
+    {
+      "target": "F8 alternative reporter and F13 patronymics",
+      "decision": "support_proposed_addition",
+      "reason": "Keep the alternate group reporter and parent placeholders. Neither alternative attribution nor a repeated name establishes global identity."
+    }
+  ]
+}

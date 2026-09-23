@@ -1,0 +1,91 @@
+{
+ "question": "In Bava Batra 170b:4, who challenges Rav Huna's report of Rav's ruling, who answers, and whose teaching is the baraita? Which graph claims are explicit, which rest on interpretation, and which alternatives must stay open? The first reading is checked against 170a-171a, the Yerushalmi parallel, translations, commentaries and codes.",
+ "scope_checked": "Bava Batra 170a (last segments), 170b, 171a:1-6 (Sefaria: Wikisource, William Davidson Aramaic and English); Soncino English 170b; Rashbam 170b:3-5 and 171a:1; Tosafot 170b:3 and 171a:1; Shita Mekubetzet (Tosfot HaRosh) 170b:2; Chiddushei HaRamban 170b:2 and 171a:1; Rashba 171a:1; Rabbeinu Gershom 170b:10-11; Meiri 170b:4-5; Chokhmat Shlomo 170b:1; Steinsaltz 170b:4-5; Jerusalem Talmud Bava Batra 10:6 (Guggenheimer Hebrew and English, Mechon-Mamre, Venice) with Penei Moshe, Mareh HaPanim, Ridbaz, Noam Yerushalmi and Sha'arei Torat Eretz Yisrael; Mishneh Torah Creditor and Debtor 23:15; Shulchan Arukh Choshen Mishpat 54:1; Introduction to Tosefta 101. No manuscript images or variant apparatus were consulted.",
+ "failed_requests": [
+  {"url": "https://www.sefaria.org/api/search-wrapper?q=... (GET)", "result": "Returned {\"error\": \"Unsupported HTTP method.\"}; saved as sources/search_ishmia.json. No search result was used."}
+ ],
+ "sources_checked_without_relevant_content": [
+  {"saved_file": "sources/rosh_10_30.json", "note": "Rosh on Bava Batra 10:30 is about scribes; not this passage."},
+  {"saved_file": "sources/rosh_10_33.json", "note": "Rosh on Bava Batra 10:33 mentions the Mishnah only in passing. I did not locate the Rosh's ruling on Rav's statement, so no claim is made about the Rosh."},
+  {"saved_file": "sources/meiri_170b4.json", "note": "The Meiri discusses the halakha (first versus second date, court versus witnesses). It names no Amoraic speakers of 170b:4. It quotes the baraita with Rabbi Yehuda and Rabbi Yosi, which matches F03."},
+  {"saved_file": "sources/ridbaz_jt_10_6_2.json", "note": "The Ridbaz explains Rav's Yerushalmi ruling with Rashbam's reason (court, not witnesses). It does not name the challenger."}
+ ],
+ "alternative_readings": [
+  {
+   "topic": "Who challenges Rav Huna (170b:4)",
+   "readings": [
+    {"reading": "Rav Nahman", "held_by": ["Bavli main formulation", "Tosafot and Tosfot HaRosh, who refer only to this name in their discussion"]},
+    {"reading": "Rav Yirmiyah bar Abba", "held_by": ["Bavli 'and some say' formulation"]}
+   ],
+   "related_parallel": "The Yerushalmi (Bava Batra 10:6:2) gives a comparable remark to 'Rabbi Yirmiyah' only. Commentators identify him with Rav or Rabbi Yirmiyah bar Abba (F07, F08). This is a parallel tradition, not a Bavli variant.",
+   "status": "open; both branches must stay"
+  },
+  {
+   "topic": "Who gives the reply 'he heard it and did not retract' (170b:5)",
+   "readings": [
+    {"reading": "Rav Huna (the addressee of the challenge)", "held_by": ["William Davidson English and Steinsaltz Hebrew, as editors' explanation (one editorial project)", "Local structure of the exchange"]},
+    {"reading": "Unnamed speaker", "held_by": ["The Aramaic text", "Soncino ('He said unto him')", "Rashbam and Rabbeinu Gershom, who do not name the replier"]}
+   ],
+   "status": "Rav Huna is a strong interpretation (high confidence). It is still an interpretation."
+  },
+  {
+   "topic": "What Rav rejects in Rabbi Yehuda's view",
+   "readings": [
+    {"reading": "Rabbi Yehuda lets witnesses re-issue the note from the first date. Rav requires a court, disputing the baraita as a Tanna.", "held_by": ["Rashbam 170b:3-5"]},
+    {"reading": "Rav (as Rav Nahman understood him) took Rabbi Yehuda to mean a new note from the second date. The baraita shows Rabbi Yehuda meant the first date.", "held_by": ["Tosafot (Ri) 170b:3", "Tosfot HaRosh in Shita Mekubetzet 170b:2 (same line of reasoning)"]}
+   ],
+   "status": "open at the commentary level; it does not change who speaks"
+  },
+  {
+   "topic": "How close the Yerushalmi parallel is",
+   "readings": [
+    {"reading": "Close parallel to the Bavli baraita challenge", "held_by": ["Mareh HaPanim", "Penei Moshe (the teaching is Rabbi Hiyya's)", "Sha'arei Torat Eretz Yisrael"]},
+    {"reading": "Rav's Yerushalmi statement tied partly to the blotted or lost-note case", "held_by": ["Noam Yerushalmi", "Guggenheimer note 83 ('This refers to Mishnah 9')"]}
+   ],
+   "status": "open"
+  },
+  {
+   "topic": "Speaker of the reason at 171a:1",
+   "readings": [
+    {"reading": "Continuation of the replier's answer", "held_by": ["Possible from the William Davidson framing ('Why is this?', plain text)"]},
+    {"reading": "Anonymous Gemara", "held_by": ["No named speaker in the Aramaic"]}
+   ],
+   "status": "open"
+  }
+ ],
+ "unresolved": [
+  "No manuscript witnesses or variant apparatus were checked for the names רב נחמן / רב ירמיה בר אבא at 170b:4. Whether some witnesses have only one name, or a different order, is unknown to me.",
+  "Whether the Yerushalmi's רבי ירמיה is the Bavli's רב ירמיה בר אבא. Two commentators say so (F08). That remains a separate identity decision.",
+  "Whether 171a:1 continues the replier's speech or is anonymous (F10).",
+  "The Rosh's treatment of this passage was not located (see sources_checked_without_relevant_content)."
+ ],
+ "proposed_corrections": [
+  {"claim_id": "episode.coverage / episode.needed_context", "change": "Resolve needed_context with the Mishnah at 170b:2. Coverage can become 'complete for 170b:2-5', with 171a:1-5 recommended as the continuation.", "why": "F04"},
+  {"claim_id": "y_rule, yosi_rule", "change": "Relabel from 'absent here' to Rabbi Yehuda: 'the debtor exchanges the note' (יחליף) and Rabbi Yosi: 'write a receipt' (יכתוב שובר), with evidence 170b:2.", "why": "F04"},
+  {"claim_id": "new (Mishnah speech)", "change": "Add a Mishnah speech pair: Rabbi Yehuda objects (אמר רבי יהודה נמצא זה צריך ...), and Rabbi Yosi answers him (אמר לו רבי יוסי). Label it a literary dispute, not evidence of a meeting.", "why": "F04"},
+  {"claim_id": "baraita (entity)", "change": "Add attributed_to(baraita -> Rabbi Yehuda), evidence 171a:5 'דברי רבי יהודה'. Add Rabbi Yosi's opposing baraita statement (שטר זה יהא מונח במקומו ויכתבו שובר). Link the 170b:4 excerpt to the 171a:5 full baraita (the Gemara's own 'מאי ברייתא').", "why": "F03"},
+  {"claim_id": "c7, c10", "change": "Keep. Add a note that the replier is unnamed in the Aramaic, and that 'Rav Huna' comes from editorial plain text or local reading.", "why": "F02"},
+  {"claim_id": "retract (statement), c6, c9", "change": "Give the content statement a structured counterfactual modality, as the earlier review suggested.", "why": "F13"},
+  {"claim_id": "reading_groups.challenger", "change": "Add a cross-text note: the Yerushalmi parallel (JT Bava Batra 10:6:2) names only 'Rabbi Yirmiyah'. It is a parallel tradition, not corroboration of either Bavli branch. Keep historical_compatibility 'unknown'.", "why": "F07, F08"},
+  {"claim_id": "open_questions", "change": "Add: (1) who speaks the reason at 171a:1; (2) whether the Yerushalmi's Rabbi Yirmiyah is Rav Yirmiyah bar Abba. Keep the existing question about whom Rav heard the baraita from.", "why": "F08, F10, F13"},
+  {"claim_id": "c3", "change": "Keep negative rules_like. Point its content role to the Mishnah's words (יחליף), not to a commentator's gloss. The Rashbam and Tosafot readings of what that means stay at the commentary level.", "why": "F05"}
+ ],
+ "review_assessment": [
+  "The earlier review's passes on c1, c2, c5-c10 and c11-c12 hold up against the wider text.",
+  "The earlier review did not notice that the baraita is attributed to Rabbi Yehuda at 171a:5 (F03). It also missed that the Mishnah, with its Rabbi Yehuda-Rabbi Yosi exchange, is on the same amud (F04).",
+  "The earlier review said Rav Huna answers the selected challenger. It did not note that the speaker is unnamed in the Aramaic (F02).",
+  "The earlier review did not check the Yerushalmi parallel. That parallel names only Rabbi Yirmiyah (F07)."
+ ],
+ "ontology_lessons": [
+  "A baraita excerpt quoted without attribution may be given in full, with its Tannaitic attribution, a few lines later ('מאי ברייתא'). The statement node should be linked to that fuller quotation, and the attribution recorded from there. It should not be left unattributed or taken from a translator's plain-text addition.",
+  "A parallel in the other Talmud is a separate literary witness. It should be stored as parallel_tradition linked to a branch. It should not be stored as a variant or as corroboration. It does not decide a Bavli ואמרי לה.",
+  "When a reply is introduced only by אמר ליה, the replier should be stored as an inferred speaker. Where the evidence for the name is an editor's plain text, the record should say so.",
+  "A Mishnah's 'X said ... Y said to him' is a literary speech pair. It should be recorded as a speech claim with a literary-dispute label, not as a scene or meeting.",
+  "A commentator who names only the first alternative (for example, Tosafot's 'רב נחמן') is using a label. That should not count as preferring one branch."
+ ],
+ "notes": [
+  "All translations marked translation_mine are my own and brief.",
+  "William Davidson English is saved with its HTML. Bold words translate the Aramaic; plain words are the editors' explanation.",
+  "No numerical probabilities are assigned. Confidence labels describe the reading, not historical truth."
+ ]
+}

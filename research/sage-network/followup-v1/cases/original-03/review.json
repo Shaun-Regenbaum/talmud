@@ -1,0 +1,119 @@
+{
+  "job_id": "original-03",
+  "authority": "automated_review",
+  "status": "qualified_proposals",
+  "dossier_sha256": "e9523f78dfd21cb8df0e218906c029eeb4f9c936804ca1091bf2a769078d386c",
+  "historical_graph_eligible": false,
+  "scope": "Checked every graph-relevant finding, episode step and proposed correction against the saved sources (Davidson vocalized and unvocalized Aramaic, Wikisource, Davidson English, Steinsaltz, Rashi, Tosafot, Rabbeinu Gershom, Ritva, Rif, Ben Yehoyada, Petach Einayim, Haggahot Ya'avetz, Seder HaDorot, Prisha, Shulchan Arukh); fetched nothing new and did not check Bavli manuscripts, Reshit Chokhmah or any historical identification.",
+  "findings": [
+    {
+      "target": "F3 / episode step 4 (Mar Zutra's mistaken belief)",
+      "decision": "qualify",
+      "reason": "The printed Aramaic does narrate a belief: 'הוא סבר לאפיה הוא דקאתו'. But the Rif's quotation leaves that clause out, and the dossier quotes only part of Rabbeinu Gershom's gloss. In full it reads 'שהוא יודע דלא נפקינן לקדמותיה ואף על פי כן קאמר אמאי איצטער רבנן' ('he knows we did not go out to meet him, and even so he says why did the Rabbis trouble'). That reads as real knowledge, which fits a text without 'he thought'. So any belief attached to Mar Zutra should be tied to the printed reading, with Gershom and the Rif kept as a separate branch. It should not be stored as high-confidence across all witnesses. The 'no honour edge' decision holds on every branch."
+    },
+    {
+      "target": "F6 / episode step 7 (addressee of Rava's rebuke)",
+      "decision": "qualify",
+      "reason": "F6 says 'The first speaker and addressee are explicit: Rava to Rav Safra.' Only the speaker is named: 'אמר ליה רבא' names no one after 'to him'. The addressee comes from the content. 'מאי טעמא אמרת ליה הכי' ('why did you say this to him') can only be aimed at Rav Safra, who had just spoken to Mar Zutra. The Davidson English adds 'Rav Safra' in plain, unbolded type, which F15 itself counts as an editorial addition. Keep Rava → Rav Safra at high confidence, but record the basis as 'resolved from context', not 'named in the text'."
+    },
+    {
+      "target": "F7 / F9 / reading.md 'Where the sources differ' (status of the Rif)",
+      "decision": "keep_evidence_types_separate",
+      "reason": "The dossier calls the Rif both 'the Rif's text' and 'a text variant'. The saved Rif prints the whole story inside parentheses, after a footnote marker whose note reads 'ד\"ת מ\"ז'. That is a later quotation, and in this edition it may even have been added by an editor. It is not a reading of the Bavli. Its second 'אמר ליה איהו דקא מטעי אנפשיה', its 'לבי חוזאי ... מבי חוזאי' and its missing 'הוא סבר' should be stored as the Rif's quotation, uncertain in status. They should not be stored as a Bavli text variant, or as settling the speaker change."
+    },
+    {
+      "target": "F6 / episode step 8 (unnamed objector)",
+      "decision": "add_missing_support",
+      "reason": "The dossier assigns 'והא קא מטעינן ליה' to Rav Safra from the flow of the dialogue alone, and says Rashi does not name speakers. Rashi's gloss is in the first person singular: 'אם לא הייתי מגלהו היה מחזיק לנו טובה חנם' ('if I had not revealed it to him'). That fits only the man who told Mar Zutra, Rav Safra. Ben Yehoyada names him outright: 'מאי סלקא דעתיה דרב ספרא שאמר קא מטעינן ליה'. These are commentary, a separate evidence type. They back up the inference but do not replace it, and the Aramaic still leaves the speaker unnamed."
+    },
+    {
+      "target": "F5 / episode step 6 (Rav Safra's 'we')",
+      "decision": "qualify",
+      "reason": "Rav Safra speaks in the plural: 'אנן לא הוה ידעינן דקאתי מר ... טפי הוה טרחינן'. So he makes a claim about what Rava also did and did not know. The graph should keep Rav Safra as the only speaker and Mar Zutra as the only addressee. Rava is covered by the content, but he is not a speaker, and no Rava → Mar Zutra speech edge follows. The dossier's 'No Rava to Mar Zutra speech edge' is right. It just should not say Rava is absent from the reply's content."
+    },
+    {
+      "target": "proposed_corrections 1-3 (together → encounter / co-travel; add Mar Zutra – Rav Safra)",
+      "decision": "support_proposed_correction",
+      "reason": "'ורבא ורב ספרא הוו קא אתו לסיכרא' uses one plural verb for the two men, so they travel together. Mar Zutra goes 'מסיכרא' ('from Sikhra'), so the ו joins two clauses about opposite journeys, not one party. 'פגעו אהדדי' states the meeting. 'אמר להו' is one plural speech to both men, and 'אמר ליה רב ספרא' is the only reply to Mar Zutra. So the three proposed pair changes follow. The shared plural address should be counted once, not as two separate observations."
+    },
+    {
+      "target": "proposed_correction 4 / F8 (child_of Rav Nachman)",
+      "decision": "support_proposed_correction",
+      "reason": "'מר זוטרא בריה דרב נחמן' in the printed text, the same name in the Rif, and 'בריה דר\"נ' in the Prisha all give a patronymic. It is ordinary 'son of' wording, with nothing suggesting a fixed name. Keep a local placeholder 'Rav Nachman (father of Mar Zutra, this passage)' and a child_of claim limited to readings that carry this name. The Seder HaDorot entry lists other passages and names another 'רב הונא בריה דרב נחמן' in it. Nothing from that entry may be merged or imported here."
+    },
+    {
+      "target": "proposed_correction 5 / F10 / F11 / F12 (no honour, accompaniment or retelling edges)",
+      "decision": "support_proposed_correction",
+      "reason": "Honour appears only in a belief ('סבר') and in a counterfactual ('אי הוה ידעינן טפי הוה טרחינן'). Rav Safra's 'לא הוה ידעינן' already shows in the text itself that the meeting was not planned. Rashi, Ritva and Tosafot confirm it ('אבל הכא לא באו כלל בעבורו'). But 'commentators agree' should read 'the commentators checked agree'. Ben Yehoyada's 'חזרו עמו למחוזא והביאוהו לביתם' is his own inference. It gives no accompaniment, hosting or residence edge. The Reshit Chokhmah story, with 'חסיד' and 'תלמידיו', is a separate episode and imports no participants."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "S1",
+      "exact_quote": "הוה קאזיל מסיכרא לבי מחוזא ורבא ורב ספרא הוו קא אתו לסיכרא פגעו אהדדי",
+      "matches_claim": true,
+      "note": "Found in the Davidson unvocalized Aramaic and Wikisource at 94b:13. One plural verb for Rava and Rav Safra, the opposite direction for Mar Zutra, and 'פגעו אהדדי' support co-travel plus an encounter."
+    },
+    {
+      "source_id": "S1",
+      "exact_quote": "אמר ליה רב ספרא אנן לא הוה ידעינן דקאתי מר אי הוה ידעינן טפי הוה טרחינן",
+      "matches_claim": true,
+      "note": "Davidson Aramaic 94b:13 (Wikisource has א\"ל). Rav Safra is named as speaker and 'ליה' is singular. The second clause is contrary to fact. The plural 'אנן' covers Rava in the content only."
+    },
+    {
+      "source_id": "S1",
+      "exact_quote": "אמר ליה רבא מאי טעמא אמרת ליה הכי דאחלישתיה לדעתיה",
+      "matches_claim": true,
+      "note": "Davidson Aramaic 94b:14, the right occurrence (the first line of 94b:14). The speaker is named. The addressee is unnamed 'ליה' and is resolved as Rav Safra from 'אמרת ליה הכי', not stated as the dossier says."
+    },
+    {
+      "source_id": "S1",
+      "exact_quote": "אמר ליה והא קא מטעינן ליה איהו הוא דקא מטעי נפשיה",
+      "matches_claim": true,
+      "note": "Davidson Aramaic 94b:14. There is one 'אמר ליה' with no named speaker, covering both sentences. That supports the dossier's two-branch treatment in F7."
+    },
+    {
+      "source_id": "S6",
+      "exact_quote": "איהו הוא דקא מטעי נפשיה כלומר שהוא יודע דלא נפקינן לקדמותיה",
+      "matches_claim": false,
+      "note": "The words are present, but the quote is cut short. The saved gloss goes on 'ואף על פי כן קאמר אמאי איצטער רבנן', which makes Gershom read Mar Zutra as knowing. That bears on F3/F11 and is not reflected in the dossier's 'may mean he should know'."
+    },
+    {
+      "source_id": "S8",
+      "exact_quote": "אמר ליה והא קא מטעינן ליה אמר ליה איהו דקא מטעי אנפשיה",
+      "matches_claim": true,
+      "note": "Present in the saved Rif, inside a parenthesis that follows a footnote marker ('ד\"ת מ\"ז'). It supports a second turn, but only as a later quotation of uncertain status in this edition."
+    },
+    {
+      "source_id": "S8",
+      "exact_quote": "הוה אזיל מסיכרא לבי חוזאי ורבא ורב ספרא הוו אתו מבי חוזאי לסיכרא פגעו אהדדי אמר להן",
+      "matches_claim": true,
+      "note": "Confirms the Rif's place variant and that it moves straight from 'פגעו אהדדי' to 'אמר להן' with no 'הוא סבר' clause."
+    },
+    {
+      "source_id": "S4",
+      "exact_quote": "אם לא הייתי מגלהו היה מחזיק לנו טובה חנם",
+      "matches_claim": true,
+      "note": "Rashi on 94b:14. It is not quoted in the dossier, but its first person singular points the objection at Rav Safra, the one who had told Mar Zutra. This is commentary support for step 8."
+    },
+    {
+      "source_id": "S11",
+      "exact_quote": "ועל כן מוכרח לומר דחזרו עמו למחוזא והביאוהו לביתם",
+      "matches_claim": true,
+      "note": "Ben Yehoyada's own inference, introduced by 'ונראה לי'. The same gloss names Rav Safra as the objector ('דרב ספרא שאמר קא מטעינן ליה'). It supports no accompaniment or hosting edge."
+    },
+    {
+      "source_id": "S10",
+      "exact_quote": "אמר לו רבא לרב ספרא: אין זה נחשב שאנו מטעים אותו, שכן",
+      "matches_claim": true,
+      "note": "Steinsaltz adds 'Rava' as the speaker of the last line in plain (non-bold) type. It belongs to the same editorial project as the Davidson English, so it is one voice."
+    },
+    {
+      "source_id": "S5",
+      "exact_quote": "אבל הכא לא באו כלל בעבורו",
+      "matches_claim": true,
+      "note": "Tosafot on 94b:14 (heading 'והא קא מטעינן ליה'). It supports the meeting being unplanned."
+    }
+  ],
+  "extra_sources": []
+}

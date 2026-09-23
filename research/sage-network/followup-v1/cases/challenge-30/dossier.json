@@ -1,0 +1,681 @@
+{
+  "job_id": "challenge-30",
+  "focal_ref": "Moed Katan 17a:13",
+  "status": "researched",
+  "question": "A sanction target was encoded as a speech recipient although the addressee is unknown. Identify the target, speaker, addressee, and narrated/legal force separately using wider context.",
+  "scope_note": "Checked: Sefaria texts of Moed Katan 16b-17a (William Davidson and Wikisource editions); Rashi, Tosafot, Ritva, Rif, Rosh, Steinsaltz, Petach Einayim; Ein Yaakov (Daat); Yerushalmi Moed Katan 3:1 (Venice, Mechon-Mamre, Guggenheimer); Mishneh Torah with Kessef Mishneh; Beit Yosef; Shulchan Arukh; later citations (Ran, Teshuvot Rashi, Tosafot Yom Tov, Tashbetz, Seder HaDorot, Mishpetei Uziel); Sefaria exact-phrase searches. No manuscripts. Translations marked 'translation_by_this_dossier' are this dossier's own brief renderings.",
+  "answer": {
+    "speaker": "The maidservant of Rabbi's household (אמתא דבי רבי), unnamed.",
+    "target": "'That man' (ההוא גברא), the unnamed father who was striking his grown son.",
+    "addressee": "Unstated in the base text. The variant 'אמרה ליה' (Ein Yaakov, the Ran's citation) makes it 'him', most plausibly the father.",
+    "narrated_force": "17a:13 narrates only the declaration and its reason. The reason may be her words or the Gemara's (unresolved).",
+    "legal_force": "At 17a:9, R. Shmuel bar Nachmani reports that the Sages did not treat her ban lightly for three years. Later codifiers make striking a grown son a ground for a ban. Commentators (Raavad via the Rosh, Ritva) explain the three years. How the ban ended is not in the Talmud."
+  },
+  "sources": [
+    {
+      "source_id": "S0",
+      "url_or_path": "research/sage-network/pilot/inputs/challenge-30.json",
+      "edition": "Pilot input: Moed Katan 17a:13, William Davidson Edition - Vocalized Aramaic via Sefaria (read-only)",
+      "fetched_at": null,
+      "saved_file": "../../../pilot/inputs/challenge-30.json",
+      "sha256": "888b55cb670fb2155be3131e91ab9b86a2c9533a918cee05a40224bf54e27239",
+      "note": "Input captured 2026-09-22T10:13:07Z per its provenance; file read, not modified. Its Hebrew hash matches the unvocalized form of S1 segment 13."
+    },
+    {
+      "source_id": "S0b",
+      "url_or_path": "research/sage-network/pilot/outputs/challenge-30.json",
+      "edition": "Pilot first reading under review (read-only)",
+      "fetched_at": null,
+      "saved_file": "../../../pilot/outputs/challenge-30.json",
+      "sha256": "5d4925189478432a19ca92700a693171ccb42fb3183e1622cf2f3ce295a47b57"
+    },
+    {
+      "source_id": "S0c",
+      "url_or_path": "research/sage-network/followup-v1/cases/challenge-30/previous-review.json",
+      "edition": "Earlier independent review of the pilot reading (read-only)",
+      "fetched_at": null,
+      "saved_file": "previous-review.json",
+      "sha256": "d1b580e6c3a000df45c4063010e2616c325634163ac904da2ec0fca8f739305a"
+    },
+    {
+      "source_id": "S1",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Moed_Katan.17a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria v3 Moed Katan 17a: William Davidson Edition (Vocalized Aramaic, Aramaic, English), Wikisource Talmud Bavli",
+      "fetched_at": "2026-09-22T19:40:27Z",
+      "saved_file": "sources/sefaria_v3_moed_katan_17a_all.json",
+      "sha256": "5dc5187174e2cb117980a29f107f275dabdc2684d9f118cb85bc9addc83ea108"
+    },
+    {
+      "source_id": "S2",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Moed_Katan.16b?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria v3 Moed Katan 16b: same versions",
+      "fetched_at": "2026-09-22T19:40:28Z",
+      "saved_file": "sources/sefaria_v3_moed_katan_16b_all.json",
+      "sha256": "08f266cd75d71918bbaee7f686ac7c44d958eaedea3828bce255e3e70dc02f4e"
+    },
+    {
+      "source_id": "S3",
+      "url_or_path": "https://www.sefaria.org/api/links/Moed_Katan.17a.13?with_text=0",
+      "edition": "Sefaria links API for Moed Katan 17a:13",
+      "fetched_at": "2026-09-22T19:40:31Z",
+      "saved_file": "sources/sefaria_links_mk_17a_13.json",
+      "sha256": "8e1a8b47cefbd0cb12fc2fd7784b2fa3f737cbdd51bd03d21eb568d94320f7f7"
+    },
+    {
+      "source_id": "S3b",
+      "url_or_path": "https://www.sefaria.org/api/links/Moed_Katan.17a.9?with_text=0",
+      "edition": "Sefaria links API for Moed Katan 17a:9",
+      "fetched_at": "2026-09-22T19:41:05Z",
+      "saved_file": "sources/sefaria_links_mk_17a_9.json",
+      "sha256": "39907be9e46287074feb6befa7d5f97673282a22a2ca39b9266e4712f8b2efda"
+    },
+    {
+      "source_id": "S3c",
+      "url_or_path": "https://www.sefaria.org/api/links/Moed_Katan.17a.12?with_text=0",
+      "edition": "Sefaria links API for Moed Katan 17a:12",
+      "fetched_at": "2026-09-22T19:40:32Z",
+      "saved_file": "sources/sefaria_links_mk_17a_12.json",
+      "sha256": "a6339dba12e3c2113e28d2b44d2dab8d8a977481d5ebeacc48b1cb1ffdc6cf47"
+    },
+    {
+      "source_id": "S4",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashi_on_Moed_Katan.17a?version=hebrew%7Call",
+      "edition": "Rashi on Moed Katan 17a, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:05Z",
+      "saved_file": "sources/rashi_mk_17a.json",
+      "sha256": "e039961e1cec8c05ac9f3f16a770316addae09595d4a09d426eb783b63e451e4"
+    },
+    {
+      "source_id": "S5",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Steinsaltz_on_Moed_Katan.17a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Steinsaltz on Moed Katan 17a, William Davidson Edition - Hebrew (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:06Z",
+      "saved_file": "sources/steinsaltz_mk_17a.json",
+      "sha256": "4f3ac7af00a7bc1aa1e79d50f5475487d25fbe9e8305d7fe643918a48190aca4"
+    },
+    {
+      "source_id": "S6",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Ritva_on_Moed_Katan.17a?version=hebrew%7Call",
+      "edition": "Chidushei HaRitva on Moed Katan 17a, Amsterdam 1729 (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:06Z",
+      "saved_file": "sources/ritva_mk_17a.json",
+      "sha256": "8efeef9d1c6a7f94f3906a0d252549e43159844d7c7a1ea2d47ffd65eb1b8e43"
+    },
+    {
+      "source_id": "S7",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Tosafot_on_Moed_Katan.17a?version=hebrew%7Call",
+      "edition": "Tosafot on Moed Katan 17a, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:06Z",
+      "saved_file": "sources/tosafot_mk_17a.json",
+      "sha256": "ef7503054488693abb85e69bb2c308a0c882df97b82f4d186c177e1f729e8683"
+    },
+    {
+      "source_id": "S8",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Rif_Moed_Katan.9a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Rif Moed Katan 9a, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:07Z",
+      "saved_file": "sources/rif_mk_9a.json",
+      "sha256": "499f122b8017e3e6193695dcc98006c9120bff0448db21ca8cd7cf6105f45ec8"
+    },
+    {
+      "source_id": "S9",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Rosh_on_Moed_Katan.3.11?version=hebrew%7Call",
+      "edition": "Rosh on Moed Katan 3:11, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-22T19:42:35Z",
+      "saved_file": "sources/rosh_mk_3_11.json",
+      "sha256": "74f6d4240060bf258bb20d5129c709672318f5bf13bedb51ce27e68b30400eb5"
+    },
+    {
+      "source_id": "S10",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Ein_Yaakov,_Moed_Katan.3.10?version=hebrew%7Call",
+      "edition": "Ein Yaakov, Moed Katan 3:10, Daat edition (Sefaria)",
+      "fetched_at": "2026-09-22T19:42:36Z",
+      "saved_file": "sources/ein_yaakov_mk_3_10.json",
+      "sha256": "6201de644d2dfca9cec112b451efc2289e77ea14fbe776f3c5a9386fb351d889"
+    },
+    {
+      "source_id": "S11",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Ran_on_Nedarim.7b.5?version=hebrew%7Call",
+      "edition": "Ran on Nedarim 7b:5, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-22T19:42:36Z",
+      "saved_file": "sources/ran_nedarim_7b_5.json",
+      "sha256": "d67ca0f0b7ce25b704b98c803eab7f9c9a7f1a8ad48c3739c96568f856c151c6"
+    },
+    {
+      "source_id": "S12",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Teshuvot_Rashi.70?version=hebrew%7Call",
+      "edition": "Teshuvot Rashi 70, vol. I, New York 1943 (Sefaria)",
+      "fetched_at": "2026-09-22T19:43:24Z",
+      "saved_file": "sources/teshuvot_rashi_70.json",
+      "sha256": "7cb5851dc8cb73d1e3dd869f198576ad962a69fbae4d9564ce2a7bb191879d47"
+    },
+    {
+      "source_id": "S13",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Moed_Katan.3.1?version=hebrew%7Call&version=english%7Call",
+      "edition": "Jerusalem Talmud Moed Katan 3:1: Venice Edition, Mechon-Mamre, Guggenheimer edition and translation (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:55Z",
+      "saved_file": "sources/yerushalmi_mk_3_1.json",
+      "sha256": "9cbc6428f58cbe736a2e9014754efb6134d0757b0122a55b2f42f6d8fa6dc976"
+    },
+    {
+      "source_id": "S14",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Mishneh_Torah,_Rebels.6?version=hebrew%7Call&version=english%7Call",
+      "edition": "Mishneh Torah, Rebels 6: Torat Emet 363, Wikisource; Touger and Birnbaum translations (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:07Z",
+      "saved_file": "sources/mt_rebels_6.json",
+      "sha256": "cc54bc7214aca04b91f9e74a7af4d782c6ff49e2a5c8610f6935cde3beb34992"
+    },
+    {
+      "source_id": "S15",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Mishneh_Torah,_Torah_Study.6?version=hebrew%7Call&version=english%7Call",
+      "edition": "Mishneh Torah, Torah Study 6: Torat Emet 363, Wikisource; Touger, Glazer, Hyamson translations (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:09Z",
+      "saved_file": "sources/mt_torah_study_6.json",
+      "sha256": "bc018ed56575a9fcc86c9df50cf84f523fd7edf5f39ad66b2c63f60e5dea4b12"
+    },
+    {
+      "source_id": "S16",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Kessef_Mishneh_on_Mishneh_Torah,_Torah_Study.6.14?version=hebrew%7Call",
+      "edition": "Kessef Mishneh on Mishneh Torah, Torah Study 6:14, Torat Emet 363 (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:51Z",
+      "saved_file": "sources/kessef_mishneh_torah_study_6_14.json",
+      "sha256": "6df600c937d592748918a78c838cfbd6037c9dee6be61556f68ac1f44fff793b"
+    },
+    {
+      "source_id": "S17",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Kessef_Mishneh_on_Mishneh_Torah,_Rebels.6.9?version=hebrew%7Call",
+      "edition": "Kessef Mishneh on Mishneh Torah, Rebels 6:9, Torat Emet 363 (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:09Z",
+      "saved_file": "sources/kessef_mishneh_rebels_6_9.json",
+      "sha256": "cfcf125bc37dd2d7d5dd018825dd3558169e84b081dce0d99bd5251f1ddbc0c5"
+    },
+    {
+      "source_id": "S18",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Beit_Yosef,_Yoreh_De'ah.334.96?version=hebrew%7Call",
+      "edition": "Beit Yosef, Yoreh De'ah 334:96, Vilna 1923 (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:17Z",
+      "saved_file": "sources/beit_yosef_yd_334_96.json",
+      "sha256": "1fb5d3c2ec8f80d3ff19fc4357a153708db6a910a7361b3737fd59da95126b11"
+    },
+    {
+      "source_id": "S19",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Beit_Yosef,_Yoreh_De'ah.240.34?version=hebrew%7Call",
+      "edition": "Beit Yosef, Yoreh De'ah 240:34, Vilna 1923 (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:19Z",
+      "saved_file": "sources/beit_yosef_yd_240_34.json",
+      "sha256": "7aa5e78d562d835397f1d1386116449ff652cb09c40b3fb054f146be7fdbe54d"
+    },
+    {
+      "source_id": "S20",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Shulchan_Arukh,_Yoreh_De'ah.240.20?version=hebrew%7Call",
+      "edition": "Shulchan Arukh, Yoreh De'ah 240:20 (Sefaria, several editions)",
+      "fetched_at": "2026-09-22T19:41:54Z",
+      "saved_file": "sources/sa_yd_240_20.json",
+      "sha256": "09d17e80f14a24dded1bebcdaf70116c58ee553b5410d18eb96bd1af544059b3"
+    },
+    {
+      "source_id": "S21",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Shulchan_Arukh,_Yoreh_De'ah.334.43?version=hebrew%7Call",
+      "edition": "Shulchan Arukh, Yoreh De'ah 334:43 (Sefaria, several editions)",
+      "fetched_at": "2026-09-22T19:41:54Z",
+      "saved_file": "sources/sa_yd_334_43.json",
+      "sha256": "f4ab66a6504bfd0a347db75bca004fc943fc220c64047bfbe111c5d83eee770f"
+    },
+    {
+      "source_id": "S22",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Tosafot_Yom_Tov_on_Mishnah_Eduyot.1.5.5?version=hebrew%7Call",
+      "edition": "Tosafot Yom Tov on Mishnah Eduyot 1:5:5, Romm Vilna 1913 (Sefaria)",
+      "fetched_at": "2026-09-22T19:42:36Z",
+      "saved_file": "sources/tyt_eduyot_1_5_5.json",
+      "sha256": "b142678cb6ee1f6e058782f9ec777fad485a3d142ccd21b3b55c5c33ff447026"
+    },
+    {
+      "source_id": "S23",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Petach_Einayim_on_Moed_Katan.17a?version=hebrew%7Call",
+      "edition": "Petach Einayim on Moed Katan 17a, Jerusalem 1959 (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:21Z",
+      "saved_file": "sources/petach_einayim_mk_17a.json",
+      "sha256": "bb19c54646154407b0538345fd0d9553b71cb71998be82fa4ecc09516fefd5c1"
+    },
+    {
+      "source_id": "S24",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Lechem_Mishneh_on_Mishneh_Torah,_Torah_Study.7.2?version=hebrew%7Call",
+      "edition": "Lechem Mishneh on Mishneh Torah, Torah Study 7:2 (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:52Z",
+      "saved_file": "sources/lechem_mishneh_torah_study_7_2.json",
+      "sha256": "b6a79f246e90d1c6ad8cc8f7722a943528127b271a2964fe8586ac5bf2efdd88"
+    },
+    {
+      "source_id": "S25",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Seder_HaDorot,_Tanaim_and_Amoraim.1652?version=hebrew%7Call",
+      "edition": "Seder HaDorot, Tanaim and Amoraim 1652, Warsaw 1878-1882 (Sefaria)",
+      "fetched_at": "2026-09-22T19:41:20Z",
+      "saved_file": "sources/seder_hadorot_1652.json",
+      "sha256": "9481bfe588e8bc920811208fb4ea20a134174cb55d94eaca8e7d8abd697901b8"
+    },
+    {
+      "source_id": "S26",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Sefer_HaTashbetz,_Part_I.33?version=hebrew%7Call",
+      "edition": "Sefer HaTashbetz, Part I 33, Lemberg 1891 (Sefaria)",
+      "fetched_at": "2026-09-22T19:43:25Z",
+      "saved_file": "sources/tashbetz_1_33.json",
+      "sha256": "9cb17cbfe6811932d37bd6ec2ab18eb1913293af9dff5067aa133ed972693455"
+    },
+    {
+      "source_id": "S27",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Mishpetei_Uziel,_Volume_IX,_Orach_Chayim.3?version=hebrew%7Call",
+      "edition": "Mishpetei Uziel, Vol. IX, Orach Chayim 3, Jerusalem 1995-2005 (Sefaria)",
+      "fetched_at": "2026-09-22T19:43:26Z",
+      "saved_file": "sources/mishpetei_uziel_9_oc_3.json",
+      "sha256": "cc01225a44e7b1890cbeaa8499b13af32f70911399b61d650aeef2539bf5603b"
+    },
+    {
+      "source_id": "S28",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Ohr_LaYesharim_on_Jerusalem_Talmud_Moed_Katan.3.1.11?version=hebrew%7Call",
+      "edition": "Ohr LaYesharim on Jerusalem Talmud Moed Katan 3:1:11, Machon HaYerushalmi 2005 (Sefaria)",
+      "fetched_at": "2026-09-22T19:42:37Z",
+      "saved_file": "sources/ohr_layesharim_ymk_3_1_11.json",
+      "sha256": "b8fec89ce8927eca860ab2140d8edfb9d1d0f832a83cdd1baf17ad15b3622788"
+    },
+    {
+      "source_id": "S29",
+      "url_or_path": "https://www.sefaria.org/api/search-wrapper POST exact שפחה של בית רבי",
+      "edition": "Sefaria search-wrapper, exact phrase 'שפחה של בית רבי'",
+      "fetched_at": "2026-09-22T19:41:58Z",
+      "saved_file": "sources/sefaria_search_59edc7d2.json",
+      "sha256": "41e00332f4e46bae332266f5391ff6ee873ecc8f4be9b48d1a4e0ed5dc0ba749"
+    },
+    {
+      "source_id": "S30",
+      "url_or_path": "https://www.sefaria.org/api/search-wrapper POST exact במכה לבנו גדול",
+      "edition": "Sefaria search-wrapper, exact phrase 'במכה לבנו גדול'",
+      "fetched_at": "2026-09-22T19:41:59Z",
+      "saved_file": "sources/sefaria_search_6a2398bd.json",
+      "sha256": "4814f51deb0edf39d5c11844aa0e41614cbc8ba714f6e2ee91cde0efe362a36d"
+    },
+    {
+      "source_id": "S31",
+      "url_or_path": "https://www.sefaria.org/api/search-wrapper POST exact אמתא דבי רבי",
+      "edition": "Sefaria search-wrapper, exact phrase 'אמתא דבי רבי'",
+      "fetched_at": "2026-09-22T19:41:57Z",
+      "saved_file": "sources/sefaria_search_a1266f01.json",
+      "sha256": "593f81ce21de2bdf6b39a1eec4a13c433d39a33547abf33a4463283e5624b49e"
+    },
+    {
+      "source_id": "S32",
+      "url_or_path": "https://www.sefaria.org/api/search-wrapper POST exact לבנו גדול",
+      "edition": "Sefaria search-wrapper, exact phrase 'לבנו גדול'",
+      "fetched_at": "2026-09-22T19:42:01Z",
+      "saved_file": "sources/sefaria_search_8a0aae61.json",
+      "sha256": "a9274c85c737dde4eb17e17da17aa1b9ea52b2338df25d36d44322c777537396"
+    },
+    {
+      "source_id": "S33",
+      "url_or_path": "https://www.sefaria.org/api/v3/texts/Haamek_Sheilah_on_Sheiltot_d'Rav_Achai_Gaon.60.14?version=hebrew%7Call",
+      "edition": "Haamek Sheilah on Sheiltot 60:14, Vilna 1861 (Sefaria)",
+      "fetched_at": "2026-09-22T19:43:24Z",
+      "saved_file": "sources/haamek_sheilah_60_14.json",
+      "sha256": "57176adb8aed0fd2d77ca0e6d864a2a8571dd17185662ba7c6dbf006afc4a9d9"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "F1",
+      "claim": "In the base text, the servant is the speaker and 'that man' (the father) is the target of her ban formula. The base text names no addressee: it has 'אמרה' ('she said'), with no 'ליה' ('to him'), and it refers to the man in the third person.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S1",
+          "exact_quote": "שפחה של בית רבי מאי היא דאמתא דבי רבי חזיתיה לההוא גברא דהוה מחי לבנו גדול אמרה ליהוי ההוא גברא בשמתא"
+        },
+        {
+          "source_id": "S1",
+          "exact_quote": "שפחה של בית רבי מאי היא דאמתא דבי רבי חזיתיה לההוא גברא דהוה מחי לבנו גדול אמרה ליהוי ההוא גברא בשמתא דקעבר משום (ויקרא יט, יד) ולפני עור לא תתן מכשול"
+        },
+        {
+          "source_id": "S8",
+          "exact_quote": "אמתיה דבי רבי חזיתיה לההוא גברא דמחי לבנו גדול אמרה ליהוי ההוא גברא בשמתא"
+        },
+        {
+          "source_id": "S9",
+          "exact_quote": "אמתא דבי רבי חזיתיה לההוא גברא דהוה קמחי לבנו הגדול אמרה להוי ההוא גברא בשמתא"
+        }
+      ],
+      "translation_by_this_dossier": "'The maidservant of Rabbi's house saw a certain man who was striking his grown son. She said: Let that man be under a ban.'",
+      "reasoning": "Speaker: the feminine verb אמרה goes back to אמתא דבי רבי. Target: ההוא גברא in the ban formula is the same phrase used for the man she saw striking his son. Addressee: none is stated in the William Davidson or Wikisource text on Sefaria, the Rif, or the Rosh. Using the third person for the target does not rule out that he heard it; see F3.",
+      "confidence": "high",
+      "graph_effect": "Record a ban-declaration event: speaker = servant, target = father, addressee = unknown in the base text. Do not record addresses(servant, father) as asserted."
+    },
+    {
+      "finding_id": "F2",
+      "claim": "Some later witnesses read 'אמרה ליה' ('she said to him'). This gives an explicit masculine-singular addressee, most naturally the man himself. These are citation or anthology witnesses, not the base text.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S10",
+          "exact_quote": "אָמְרָה לֵיהּ: לֶיהֱוֵי הַהוּא גַּבְרָא בְּשַׁמְתָּא"
+        },
+        {
+          "source_id": "S11",
+          "exact_quote": "ואמרה ליה ליהוי ההוא גברא בשמתא"
+        },
+        {
+          "source_id": "S12",
+          "exact_quote": "דקאמרה [ליה] ליהוי האי גברא בשמתא"
+        }
+      ],
+      "translation_by_this_dossier": "Ein Yaakov: 'she said to him: let that man be under a ban'. Ran: 'and she said to him ...'. Teshuvot Rashi (1943 edition): 'that she said [to him]', where the brackets are that edition's.",
+      "reasoning": "Three witnesses of different kinds. Ein Yaakov is an anthology of the Talmud's stories with its own wording: it also has 'לבריה רבה' and a baraita attribution. The Ran cites the story inside another discussion. In the Teshuvot Rashi edition, 'ליה' is in square brackets. That marks it as an editor's supplement, so it is weaker evidence than an unbracketed reading. No manuscript of Bavli Moed Katan was checked. So this dossier cannot say which reading is older. With 'ליה', the addressee is grammatically 'him'. The father is the only male participant present who could be meant (the son is the other male in the scene). That reading is still an interpretation of the pronoun.",
+      "confidence": "medium",
+      "graph_effect": "Add a variant branch. In the Ein Yaakov / Ran reading, addressee = 'him' (most plausibly the father). Keep this as a source-variant branch, separate from the base-text claim. The Teshuvot Rashi bracket is an editorial supplement, not an independent reading."
+    },
+    {
+      "finding_id": "F3",
+      "claim": "The third-person ban formula 'ליהוי ההוא גברא בשמתא' is used in the next story about someone present who replies, and 'ההוא גברא' can refer to the addressee or the speaker. So in this sugya the formula does not tell you whether the target was present or addressed.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S1",
+          "exact_quote": "אמר ליהוי ההוא גברא בשמתא אמר ליה אדרבה ליהוי ההוא גברא בשמתא אם ממון נתחייבתי לך נידוי מי נתחייבתי לך"
+        },
+        {
+          "source_id": "S1",
+          "exact_quote": "אמר ליה לא מסתייך דשמתיה לההוא גברא אלא אחוכי נמי חייך בי"
+        }
+      ],
+      "translation_by_this_dossier": "17a:14: 'He [Reish Lakish] said: Let that man be under a ban. He said to him: On the contrary, let that man be under a ban ...' 17a:7: 'Was it not enough for you that you banned that man [= me] ...'",
+      "reasoning": "In 17a:14 the fig-eater answers at once, so he heard a formula that referred to him as 'that man'. His reply turns the same words back on Reish Lakish, who is its target and its addressee. In 17a:7 the banned scholar calls himself 'that man'. So the formula is idiomatic and fits a declaration made to the target's face, but it does not require one.",
+      "confidence": "high",
+      "graph_effect": "Do not treat the third person as evidence against presence, or as evidence for an addressee. Keep the addressee unknown in the base text."
+    },
+    {
+      "finding_id": "F4",
+      "claim": "The narrated legal force comes from the wider sugya, not from 17a:13. At 17a:9, R. Shmuel bar Nachmani cites the servant's ban as a precedent: the Sages did not treat her ban lightly for three years. 17a:13 then tells the story as the answer to 'what is it?'.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S1",
+          "exact_quote": "עמד רבי שמואל בר נחמני על רגליו ואמר ומה שפחה של בית רבי לא נהגו חכמים קלות ראש בנידויה שלש שנים יהודה חבירינו על אחת כמה וכמה"
+        },
+        {
+          "source_id": "S1",
+          "exact_quote": "עיין רבי אמי בדיניה סבר למישרא ליה"
+        },
+        {
+          "source_id": "S8",
+          "exact_quote": "ולא נהגו חכמים קלות ראש בנדויה שלש שנים"
+        }
+      ],
+      "translation_by_this_dossier": "'R. Shmuel bar Nachmani stood up and said: If the Sages did not treat lightly the ban of the maidservant of Rabbi's house for three years, how much more so [the ban of] Yehuda our colleague.'",
+      "reasoning": "This settles the 'needed_context' that the pilot flagged: 'מאי היא' ('what is it?') points back to 17a:9. The three-year respect for the ban is R. Shmuel bar Nachmani's statement, given as an argument in the case of the scholar banned by Rav Yehuda (17a:4-10). The narrator of 17a:13 does not state it. The Rif (and the Rosh, S9) place the three-year line straight after the story. That is a codifier's arrangement, not a separate event.",
+      "confidence": "high",
+      "graph_effect": "Add: R. Shmuel bar Nachmani cites the precedent (voice = R. Shmuel bar Nachmani, reported, in the setting of R. Ami's review). Add: the Sages treated her ban as binding for three years (discourse_status = reported by R. Shmuel bar Nachmani). This does not make Rabbi a participant or show that he approved."
+    },
+    {
+      "finding_id": "F5",
+      "claim": "It is unclear where the servant's words end. The reason 'דקעבר משום ולפני עור' may be part of her speech or a gloss by the Gemara. The following 'דתניא' baraita is the Gemara's supporting source, not the servant's words.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "S1",
+          "exact_quote": "אֲמַרָה: לֶיהֱוֵי הָהוּא גַּבְרָא בְּשַׁמְתָּא, דְּקָעָבֵר מִשּׁוּם ״וְלִפְנֵי עִוֵּר לֹא תִתֵּן מִכְשׁוֹל״. דְּתַנְיָא"
+        },
+        {
+          "source_id": "S1",
+          "exact_quote": "She said: Let that man be excommunicated, due to the fact that he has transgressed the injunction"
+        },
+        {
+          "source_id": "S5",
+          "exact_quote": "אמרה: ליהוי ההוא גברא בשמתא [שיהא אדם זה המכה בנידוי], דקעבר [שהרי הוא עובר] משום"
+        }
+      ],
+      "translation_by_this_dossier": "'... because he transgresses “Do not put a stumbling block before the blind”. As it is taught: ... the verse speaks of one who strikes his grown son.'",
+      "reasoning": "Unpunctuated Aramaic does not mark where a quotation ends. The William Davidson English reads the reason as her words. The vocalized edition's punctuation and Steinsaltz both leave it inside the same sentence. Neither settles who is speaking. The pilot's c5 (holds_view servant → reason, basis explicit) takes one reading as explicit.",
+      "confidence": "medium",
+      "graph_effect": "Lower c5 to basis = interpretation. Give it two readings: (a) the servant's stated reason, (b) the Gemara's explanation. Attach the baraita to the narrator or Gemara voice."
+    },
+    {
+      "finding_id": "F6",
+      "claim": "The baraita is anonymous in the Vilna-based text. The Rosh attributes it to R. Yishmael. Ein Yaakov (Daat edition) prints 'דתנא דברי רבי ישמעאל' in parentheses and replaces it with '[דְּתַנְיָא]'.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S9",
+          "exact_quote": "דתניא ר' ישמעאל אומר לפני עור לא תתן מכשול במכה לבנו גדול הכתוב מדבר"
+        },
+        {
+          "source_id": "S10",
+          "exact_quote": "(דתנא דברי רבי ישמעאל) [דְּתַנְיָא]"
+        },
+        {
+          "source_id": "S1",
+          "exact_quote": "דתניא ולפני עור לא תתן מכשול במכה לבנו גדול הכתוב מדבר"
+        }
+      ],
+      "translation_by_this_dossier": "Rosh: 'As it is taught: R. Yishmael says: “Do not put a stumbling block before the blind” — the verse speaks of one who strikes his grown son.'",
+      "reasoning": "This is a variant attribution in secondary witnesses. It shows that some text tradition named a tanna for the baraita. It does not show that R. Yishmael historically taught it, and it does not identify which R. Yishmael. The parenthesis-and-bracket markup in the Daat edition reflects that edition's corrections. This dossier did not check the edition's apparatus to confirm what the markup means.",
+      "confidence": "medium",
+      "graph_effect": "Optional variant branch: baraita attributed to 'R. Yishmael' in the Rosh (and in the uncorrected Ein Yaakov wording). Keep it separate from the base text. No identity resolution."
+    },
+    {
+      "finding_id": "F7",
+      "claim": "The kinship is explicit: the man is striking 'his son' (לבנו). 'גדול' describes the son's stage of life. Commentators disagree on what 'גדול' means.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "S4",
+          "exact_quote": "דכיון דגדול הוא שמא מבעט באביו והוה ליה איהו מכשילו"
+        },
+        {
+          "source_id": "S6",
+          "exact_quote": "ונראי' דברים דלא גדול גדול ממש אלא הכל לפי טבעו שיש לחוש שיתריס כנגדו בדבור או במעשיו"
+        },
+        {
+          "source_id": "S23",
+          "exact_quote": "פירש רבינו פרץ עד כ\"ב שנה"
+        },
+        {
+          "source_id": "S20",
+          "exact_quote": "וְלא מִקְרֵי גָּדוֹל לְדָבָר זֶה, רַק אַחַר כ\"ב שָׁנָה אוֹ כ\"ד שָׁנָה"
+        }
+      ],
+      "translation_by_this_dossier": "Rashi: 'since he is grown, he may kick back at his father, and so [the father] makes him stumble.' Ritva: 'not literally grown, but according to his nature, if there is reason to fear he will rebel against him in word or deed.' Shulchan Arukh: 'for this matter he is called grown only after 22 or 24 years.'",
+      "reasoning": "The father–son relation stands on the possessive suffix in the text. Its age scope is commentary: Rashi gives the mechanism, Ritva reads it by the son's nature, and Rabbeinu Peretz and the Shulchan Arukh give age limits. These interpretations do not affect who the people are.",
+      "confidence": "high",
+      "graph_effect": "Keep c1 child_of(son, father), basis explicit. Put 'גדול' in a note or subtype, with the interpretations attributed to their authors."
+    },
+    {
+      "finding_id": "F8",
+      "claim": "Later authorities explain why the ban lasted three years. The Raavad (cited by the Rosh) says no one would weigh himself against a known and worthy declarer. The Ritva says something similar. These are commentary inferences. The Talmud does not say how the ban ended.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "S9",
+          "exact_quote": "תמה הראב\"ד ז\"ל למה שהה זה בנידויה ג' שנים אם היתה היא קיימת למה לא התירה לו ואם מתה למה לא התיר לו רבי"
+        },
+        {
+          "source_id": "S9",
+          "exact_quote": "והשפחה היה בה חכמה יתירה ויראת חטא ולא רצו לשקול עצמם כנגדה עד שנזקקו לו גדולי הדור והתירו לו"
+        },
+        {
+          "source_id": "S6",
+          "exact_quote": "שפחה של בית ר' לא נהגו קלות בנדוייה ג' שנים שלא היה א' שירצה לשקול עצמו כמותה"
+        }
+      ],
+      "translation_by_this_dossier": "Rosh citing Raavad: 'Why did this man remain in her ban three years? If she was alive, why did she not release him; if she died, why did Rabbi not release him? ... The maidservant had great wisdom and fear of sin, and they did not want to weigh themselves against her, until the great ones of the generation took it up and released him.' Ritva: '... for there was no one who wished to weigh himself as her equal.'",
+      "reasoning": "The statement that the man stayed banned and that 'the great ones of the generation' eventually released him is the Raavad's reconstruction, reported by the Rosh. Tosafot Yom Tov (S22) repeats it. The rest of the Ritva's sentence (about Rabbi not being alive and the Nasi) is hard to construe; this dossier does not translate it with confidence.",
+      "confidence": "medium",
+      "graph_effect": "Do not add a release event, or 'the great ones of the generation' as participants. At most, attach these as commentary-voice notes to the ban event."
+    },
+    {
+      "finding_id": "F9",
+      "claim": "The codifiers turn the story into law. Rambam and the Shulchan Arukh rule that one who strikes a grown son is banned. Rambam's list of 24 offences includes 'one who trips the blind'. The Raavad's gloss, as reported by the Kessef Mishneh, gives this case as its example. Rashi's responsum uses the story to show that a spoken declaration was enough, with no shofar.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "S14",
+          "exact_quote": "וְהַמַּכֶּה בְּנוֹ גָּדוֹל מְנַדִּין אוֹתוֹ שֶׁהֲרֵי הוּא עוֹבֵר עַל וְלִפְנֵי עִוֵּר לֹא תִתֵּן מִכְשׁל"
+        },
+        {
+          "source_id": "S16",
+          "exact_quote": "המכשיל את העור. כתב הראב\"ד כגון המכה את בנו הגדול"
+        },
+        {
+          "source_id": "S15",
+          "exact_quote": "אֲפִלּוּ נִדָּהוּ קָטָן שֶׁבְּיִשְׂרָאֵל חַיָּב הַנָּשִׂיא וְכָל יִשְׂרָאֵל לִנְהֹג בּוֹ נִדּוּי"
+        },
+        {
+          "source_id": "S12",
+          "exact_quote": "שפחה של בית רבי לא התריעה, דקאמרה [ליה] ליהוי האי גברא בשמתא. ולא נהגו קלות ראש בנידויו ג' שנים"
+        }
+      ],
+      "translation_by_this_dossier": "Rambam Rebels 6:9: 'One who strikes his grown son is banned, for he transgresses “Do not put a stumbling block before the blind”.' Torah Study 6:14: 'even if the least in Israel banned him, the Nasi and all Israel must observe the ban.' Teshuvot Rashi: 'the maidservant of Rabbi's house did not sound [shofars]; she [only] said ...'",
+      "reasoning": "These sources describe the legal force the tradition gave the declaration. They do not add people to the episode. The Touger translation note on Torah Study 6:14 says 'the entire Jewish people observed that ban for three years'. That is a translator's gloss, and it overstates the Talmud's 'חכמים' ('Sages').",
+      "confidence": "high",
+      "graph_effect": "None for people. Legal-force metadata on the ban event: declarative ban by a non-sage household servant, later treated as binding by the Sages (per R. Shmuel bar Nachmani), and codified as a ground for a ban."
+    },
+    {
+      "finding_id": "F10",
+      "claim": "The Yerushalmi has a structurally similar story with different people. In it the addressee is explicit ('אמרה ליה'), and the target is shown to have heard, because he goes to consult R. Acha. This is a parallel, not the same event.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S13",
+          "exact_quote": "חדא אמהא מן דבר פטא הוות עברה קומי חדא כנישא חמת חד ספר מחי לחד מיינוק יתיר מן צורכיה אמרה ליה יהוי ההוא גוברא מחרם אתא שאל לרבי אחא אמר ליה צריך את חשש על נפשך"
+        }
+      ],
+      "translation_by_this_dossier": "'A maidservant of Bar Pata's household was passing in front of a synagogue. She saw a Scripture teacher striking a child more than necessary. She said to him: Let that man be banned. He came and asked R. Acha, who told him: You must be concerned for yourself.' (The Guggenheimer English on Sefaria has 'He said to him'. The Aramaic verb is feminine.)",
+      "reasoning": "The household (Bar Pata's, not Rabbi's), the target (a teacher, not a father), the victim (a child, not a grown son) and the legal outcome all differ. So the Yerushalmi does not identify the Bavli's servant or man. It shows that the same formula can be spoken directly to its target. That supports F3, not a merge.",
+      "confidence": "high",
+      "graph_effect": "No coreference between the Bavli and Yerushalmi servants or targets. At most, link the two episodes as a thematic or literary parallel."
+    },
+    {
+      "finding_id": "F11",
+      "claim": "'רבי' appears only as the head of the household. The William Davidson English names him Rabbi Yehuda HaNasi. The Aramaic does not, and no source checked puts him at the scene.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "S1",
+          "exact_quote": "the maidservant in Rabbi Yehuda HaNasi’s house saw a certain man"
+        },
+        {
+          "source_id": "S1",
+          "exact_quote": "דאמתא דבי רבי חזיתיה"
+        }
+      ],
+      "translation_by_this_dossier": null,
+      "reasoning": "Reading the bare 'רבי' as Rabbi Yehuda HaNasi is the usual convention, and the translation makes it. That is an identification step, kept separate from the text. The Raavad's question (S9) about why 'Rabbi' did not release the man assumes Rabbi was a possible releaser. It does not place Rabbi in the event.",
+      "confidence": "medium",
+      "graph_effect": "Keep the household-affiliation link servant → Rabbi's household (the contract has no predicate for it). Identifying Rabbi as Yehuda HaNasi is a separate, provisional step. No participation claim for Rabbi."
+    }
+  ],
+  "alternative_readings": [
+    {
+      "reading_id": "AR1",
+      "about": "addressee of the servant's declaration",
+      "readings": [
+        {
+          "label": "base text",
+          "text": "Addressee unstated (אמרה with no ליה). Target = father.",
+          "sources": [
+            "S1",
+            "S8",
+            "S9"
+          ]
+        },
+        {
+          "label": "variant 'אמרה ליה'",
+          "text": "She said it to 'him', most naturally the father, who would then be target and addressee.",
+          "sources": [
+            "S10",
+            "S11"
+          ],
+          "note": "S12 (Teshuvot Rashi) has [ליה] in editorial brackets."
+        }
+      ]
+    },
+    {
+      "reading_id": "AR2",
+      "about": "who voices 'דקעבר משום ולפני עור'",
+      "readings": [
+        {
+          "label": "servant",
+          "text": "Part of her declaration, as the William Davidson English renders it.",
+          "sources": [
+            "S1"
+          ]
+        },
+        {
+          "label": "Gemara",
+          "text": "The Gemara's explanation, with the baraita as its source.",
+          "sources": [
+            "S1",
+            "S5"
+          ]
+        }
+      ]
+    },
+    {
+      "reading_id": "AR3",
+      "about": "attribution of the baraita",
+      "readings": [
+        {
+          "label": "anonymous",
+          "text": "דתניא",
+          "sources": [
+            "S1",
+            "S8"
+          ]
+        },
+        {
+          "label": "R. Yishmael",
+          "text": "דתניא ר' ישמעאל אומר",
+          "sources": [
+            "S9",
+            "S10"
+          ]
+        }
+      ]
+    }
+  ],
+  "unresolved": [
+    "No manuscript of Bavli Moed Katan 17a was checked (no manuscript database was accessed), so this dossier cannot say whether 'אמרה ליה' is an old reading or an addition made during citation.",
+    "The meaning of the Daat edition's parenthesis-and-bracket markup in Ein Yaakov was not checked against that edition's introduction.",
+    "The second half of the Ritva's comment (S6, item 10) about Rabbi and the Nasi is not construed with confidence.",
+    "Neither the Talmud nor the commentaries checked say whether the father was present, repented, or was released. The release is the Raavad's reconstruction only.",
+    "Whether the servant here is the same person as 'Rabbi's maidservant' elsewhere (e.g. Ketubot 104a, Yerushalmi Sheviit 9:1) was not decided. A shared description does not establish identity."
+  ],
+  "proposed_corrections": [
+    {
+      "existing_claim_id": "c4",
+      "change": "Replace addresses(servant, father) with a ban-declaration claim or event: speaker = servant, target = father, addressee = unknown, basis = explicit for speaker and target. Add a variant branch (Ein Yaakov, Ran) with addressee = 'him', plausibly the father.",
+      "why": "The base text has no 'ליה' and refers to the target in the third person (F1). The explicit addressee appears only in secondary witnesses (F2)."
+    },
+    {
+      "existing_claim_id": "c5",
+      "change": "Change basis from explicit to interpretation. Add a reading group: servant's stated reason vs the Gemara's explanation.",
+      "why": "The text does not mark where her quotation ends (F5)."
+    },
+    {
+      "existing_claim_id": "c6",
+      "change": "Keep, with voice = narrator/Gemara. Optionally add a variant attribution of the baraita to R. Yishmael (the Rosh; Ein Yaakov's uncorrected wording) as a source-variant branch.",
+      "why": "F6."
+    },
+    {
+      "existing_claim_id": null,
+      "change": "Add a reported claim: the Sages did not treat her ban lightly for three years (voice = R. Shmuel bar Nachmani, 17a:9). Also add R. Shmuel bar Nachmani citing the precedent during R. Ami's review. Change episode coverage from needs_context to resolved, because 17a:9 is what prompts מאי היא.",
+      "why": "F4. The legal force is stated in the wider sugya, not in 17a:13."
+    },
+    {
+      "existing_claim_id": null,
+      "change": "Relabel mentions m6-m10 from kind 'name' to event or statement anchors.",
+      "why": "They anchor actions and statements, not names."
+    }
+  ],
+  "ontology_lessons": [
+    "The target of a sanction and the addressee of speech are separate roles. A ban formula in the third person ('let that man be banned') gives a target. It gives an addressee only if the text says 'to him' or the target responds.",
+    "Legal force belongs to a different voice and segment from the act: the act is narrated (17a:13), its binding force is asserted by a named sage (17a:9), and later codifiers generalise it. Model these as separate claims with their own voices.",
+    "A reading such as 'אמרה ליה' that is found only in anthologies or citations (Ein Yaakov, Ran) is a source variant. It is not a correction of the base text, and a bracketed editorial supplement (Teshuvot Rashi) is weaker still.",
+    "Structurally similar stories in the Yerushalmi (Bar Pata's maidservant) are literary parallels. Different households and targets mean no coreference."
+  ]
+}

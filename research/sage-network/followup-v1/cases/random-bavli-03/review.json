@@ -1,0 +1,30 @@
+{
+  "job_id": "random-bavli-03",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "0d24c6a9a4ec46a5091b7133fc95c5c9fe4eec0a4aef9e950d62e89e840787e3",
+  "historical_graph_eligible": false,
+  "scope": "Separate review of selected graph implications and quoted evidence. Source hashes and quotation matches checked separately. Not human adjudication or exhaustive historical verification.",
+  "findings": [
+    {
+      "target": "F01 and F04 repeated names",
+      "decision": "support_with_qualification",
+      "reason": "Separate every mention and connect repeated citations to the same teaching occurrence where context supports it. Repetition inside an argument must not automatically multiply the strength of an independent witness."
+    },
+    {
+      "target": "F02 pronoun count",
+      "decision": "correct_count_in_following_revision",
+      "reason": "The claim says five pronouns refer to Yehuda, while its graph_effect lists four: one in 45a:13, one in 45a:14, and two in 45a:15. The supplied quotations support these four. Keep the source and anchors; do not present five as a checked total."
+    },
+    {
+      "target": "F03/F08/F09 argument links",
+      "decision": "support_proposed_addition",
+      "reason": "A view can use another teaching, or share a ruling while deriving it differently. These are connections between claims. They do not establish a personal encounter."
+    },
+    {
+      "target": "F14 literary difference",
+      "decision": "reject_categorical_exclusion",
+      "reason": "The differing Rav and Abaye attributions are evidence about the two textual accounts. They do not establish historical identity, but retain them for later narrative and identity comparison rather than declaring them no evidence about either person."
+    }
+  ]
+}

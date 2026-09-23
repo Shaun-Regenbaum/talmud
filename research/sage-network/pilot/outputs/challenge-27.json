@@ -1,0 +1,1202 @@
+{
+  "schema_version": "passage-pilot-v1",
+  "job_id": "challenge-27",
+  "episode": {
+    "genre": "aggadic",
+    "genre_reason": "Dawn is explained and used as an analogy for Israel’s gradual redemption.",
+    "form": "natural observation, walking story and scriptural comparison",
+    "coverage": "complete_for_supplied_text",
+    "needed_context": [],
+    "notes": []
+  },
+  "mentions": [
+    {
+      "id": "m1",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי יוסי בי רבי בון",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m2",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי בון",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m3",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי חייא רבא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m4",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי שמעון בן חלפתא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m5",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "חלפתא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m6",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "בקעת ארבל",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m7",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ישראל",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m8",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "מרדכי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m9",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "המן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m10",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "המלך",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m11",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ליהודים",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m12",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "יי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m13",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "מאן דאמר כוכבתא היא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m14",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "מאן דאמר כוכבתא היא טעיא זימנין דהיא מקדמא וזימנין דהיא מאחרה.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m15",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "כמין תרין דקורנין דנהור דסלקין מן מדינחא ומנהרין.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m16",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "הוו מהלכין בהדא בקעת ארבל בקריצתה וראו איילת השחר שבקע אורה.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m17",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "כך היא גאולתן של ישראל בתחילה קימאה קימאה כל מה שהיא הולכת היא רבה והולכת.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m18",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "כי אשב בחושך יי אור לי.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m19",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "כך בתחילה ומרדכי יושב בשער המלך. ואחר כך ויקח המן את הלבוש ואת הסוס. ואחר כך וישב מרדכי אל שער המלך. ואחר כך ומרדכי יצא מלפני המלך בלבוש מלכות. ואחר כך ליהודים היתה אורה ושמחה.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m20",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ומרדכי יושב בשער המלך.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m21",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ויקח המן את הלבוש ואת הסוס.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m22",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "וישב מרדכי אל שער המלך.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m23",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ומרדכי יצא מלפני המלך בלבוש מלכות.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m24",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ליהודים היתה אורה ושמחה.",
+        "occurrence": 1
+      }
+    }
+  ],
+  "entities": [
+    {
+      "id": "yosei",
+      "kind": "person",
+      "label": "Rabbi Yosei son of Rabbi Bun",
+      "mention_ids": [
+        "m1"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי יוסי בי רבי בון",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "bun",
+      "kind": "person",
+      "label": "Rabbi Bun",
+      "mention_ids": [
+        "m2"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי בון",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "hiyya",
+      "kind": "person",
+      "label": "Rabbi Hiyya the Great",
+      "mention_ids": [
+        "m3"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי חייא רבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "shimon",
+      "kind": "person",
+      "label": "Rabbi Shimon son of Halafta",
+      "mention_ids": [
+        "m4"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי שמעון בן חלפתא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "halafta",
+      "kind": "person",
+      "label": "Halafta",
+      "mention_ids": [
+        "m5"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "חלפתא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "arbel",
+      "kind": "place",
+      "label": "Arbel valley",
+      "mention_ids": [
+        "m6"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "בקעת ארבל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "israel",
+      "kind": "group",
+      "label": "Israel",
+      "mention_ids": [
+        "m7"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ישראל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "mordechai",
+      "kind": "person",
+      "label": "Mordechai in the quoted verses",
+      "mention_ids": [
+        "m8"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "מרדכי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "haman",
+      "kind": "person",
+      "label": "Haman in the quoted verse",
+      "mention_ids": [
+        "m9"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "המן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "king",
+      "kind": "person",
+      "label": "Unnamed king in the quoted verses",
+      "mention_ids": [
+        "m10"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "המלך",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "jews",
+      "kind": "group",
+      "label": "The Jews in the quoted verse",
+      "mention_ids": [
+        "m11"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ליהודים",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "god",
+      "kind": "unknown",
+      "label": "God in the cited verse",
+      "mention_ids": [
+        "m12"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "יי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "mistaken",
+      "kind": "person",
+      "label": "Unspecified person calling dawn a star",
+      "mention_ids": [
+        "m13"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "מאן דאמר כוכבתא היא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "star",
+      "kind": "statement",
+      "label": "The claim that dawn is a star is mistaken",
+      "mention_ids": [
+        "m14"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "מאן דאמר כוכבתא היא טעיא זימנין דהיא מקדמא וזימנין דהיא מאחרה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "explanation",
+      "kind": "statement",
+      "label": "Dawn is like two rays rising in the east",
+      "mention_ids": [
+        "m15"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "כמין תרין דקורנין דנהור דסלקין מן מדינחא ומנהרין.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "walk",
+      "kind": "event",
+      "label": "Hiyya and Shimon walk at dawn and see its light",
+      "mention_ids": [
+        "m16"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הוו מהלכין בהדא בקעת ארבל בקריצתה וראו איילת השחר שבקע אורה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "redemption",
+      "kind": "statement",
+      "label": "Israel’s redemption begins little by little and grows",
+      "mention_ids": [
+        "m17"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "כך היא גאולתן של ישראל בתחילה קימאה קימאה כל מה שהיא הולכת היא רבה והולכת.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "lightverse",
+      "kind": "statement",
+      "label": "When I sit in darkness God is light for me",
+      "mention_ids": [
+        "m18"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "כי אשב בחושך יי אור לי.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "progression",
+      "kind": "statement",
+      "label": "Sequence of verses from Mordechai at the gate to joy for the Jews",
+      "mention_ids": [
+        "m19"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "כך בתחילה ומרדכי יושב בשער המלך. ואחר כך ויקח המן את הלבוש ואת הסוס. ואחר כך וישב מרדכי אל שער המלך. ואחר כך ומרדכי יצא מלפני המלך בלבוש מלכות. ואחר כך ליהודים היתה אורה ושמחה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "gate",
+      "kind": "event",
+      "label": "Mordechai sitting at the king’s gate",
+      "mention_ids": [
+        "m20"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ומרדכי יושב בשער המלך.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "taking",
+      "kind": "event",
+      "label": "Haman takes the clothing and horse",
+      "mention_ids": [
+        "m21"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ויקח המן את הלבוש ואת הסוס.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "return",
+      "kind": "event",
+      "label": "Mordechai returns to the gate",
+      "mention_ids": [
+        "m22"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "וישב מרדכי אל שער המלך.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "royal",
+      "kind": "event",
+      "label": "Mordechai leaves in royal clothing",
+      "mention_ids": [
+        "m23"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ומרדכי יצא מלפני המלך בלבוש מלכות.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "joy",
+      "kind": "event",
+      "label": "Light and joy for the Jews",
+      "mention_ids": [
+        "m24"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ליהודים היתה אורה ושמחה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "yosei",
+      "object": "bun",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי יוסי בי רבי בון",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c2",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "shimon",
+      "object": "halafta",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי שמעון בן חלפתא",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c3",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "yosei",
+      "object": "star",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר רבי יוסי בי רבי בון הדא איילתא דשחרא מאן דאמר כוכבתא היא טעיא זימנין דהיא מקדמא וזימנין דהיא מאחרה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c4",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "yosei",
+      "object": "explanation",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "מאי כדון כמין תרין דקורנין דנהור דסלקין מן מדינחא ומנהרין.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "medium",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The continuation may be the narrator’s explanation of the attributed teaching."
+      ]
+    },
+    {
+      "id": "c5",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "hiyya",
+      "object": "walk",
+      "roles": [
+        {
+          "role": "location",
+          "entity": "arbel"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי חייא רבא ורבי שמעון בן חלפתא הוו מהלכין בהדא בקעת ארבל בקריצתה וראו איילת השחר שבקע אורה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "מהלכין / וראו",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c6",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "shimon",
+      "object": "walk",
+      "roles": [
+        {
+          "role": "location",
+          "entity": "arbel"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי חייא רבא ורבי שמעון בן חלפתא הוו מהלכין בהדא בקעת ארבל בקריצתה וראו איילת השחר שבקע אורה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "מהלכין / וראו",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c7",
+      "family": "scenes",
+      "predicate": "travels_with",
+      "subject": "hiyya",
+      "object": "shimon",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי חייא רבא ורבי שמעון בן חלפתא הוו מהלכין בהדא בקעת ארבל",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c8",
+      "family": "speech",
+      "predicate": "addresses",
+      "subject": "hiyya",
+      "object": "shimon",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "redemption"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר רבי חייא רבה לרבי שמעון בן חלפתא בירבי כך היא גאולתן של ישראל",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "רבא and רבה are treated as local spelling variants within this uninterrupted scene."
+      ]
+    },
+    {
+      "id": "c9",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "hiyya",
+      "object": "redemption",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "כך היא גאולתן של ישראל בתחילה קימאה קימאה כל מה שהיא הולכת היא רבה והולכת.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "hiyya",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c10",
+      "family": "views",
+      "predicate": "supports",
+      "subject": "lightverse",
+      "object": "redemption",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "מאי טעמא כי אשב בחושך יי אור לי.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "unknown",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The speaker of the explanatory continuation is not separately named."
+      ]
+    },
+    {
+      "id": "c11",
+      "family": "views",
+      "predicate": "supports",
+      "subject": "progression",
+      "object": "redemption",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "כך בתחילה ומרדכי יושב בשער המלך. ואחר כך ויקח המן את הלבוש ואת הסוס.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "unknown",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c12",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "mordechai",
+      "object": "gate",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ומרדכי יושב בשער המלך.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "unknown",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "יושב",
+      "time_scope": null,
+      "notes": [
+        "Embedded scriptural citation used in the analogy, not a claim of co-presence with the walking sages."
+      ]
+    },
+    {
+      "id": "c13",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "haman",
+      "object": "taking",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ויקח המן את הלבוש ואת הסוס.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "unknown",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "ויקח",
+      "time_scope": null,
+      "notes": [
+        "Embedded scriptural citation used in the analogy, not a claim of co-presence with the walking sages."
+      ]
+    },
+    {
+      "id": "c14",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "mordechai",
+      "object": "return",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "וישב מרדכי אל שער המלך.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "unknown",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "וישב",
+      "time_scope": null,
+      "notes": [
+        "Embedded scriptural citation used in the analogy, not a claim of co-presence with the walking sages."
+      ]
+    },
+    {
+      "id": "c15",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "mordechai",
+      "object": "royal",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ומרדכי יצא מלפני המלך בלבוש מלכות.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "unknown",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "יצא",
+      "time_scope": null,
+      "notes": [
+        "Embedded scriptural citation used in the analogy, not a claim of co-presence with the walking sages."
+      ]
+    },
+    {
+      "id": "c16",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "jews",
+      "object": "joy",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ליהודים היתה אורה ושמחה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "unknown",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "היתה אורה ושמחה",
+      "time_scope": null,
+      "notes": [
+        "Embedded scriptural citation used in the analogy, not a claim of co-presence with the walking sages."
+      ]
+    },
+    {
+      "id": "c17",
+      "family": "time",
+      "predicate": "before",
+      "subject": "gate",
+      "object": "taking",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ואחר כך ויקח המן",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "unknown",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Order explicitly given in the scriptural comparison."
+      ]
+    },
+    {
+      "id": "c18",
+      "family": "time",
+      "predicate": "before",
+      "subject": "taking",
+      "object": "return",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ואחר כך וישב מרדכי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "unknown",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Order explicitly given in the scriptural comparison."
+      ]
+    },
+    {
+      "id": "c19",
+      "family": "time",
+      "predicate": "before",
+      "subject": "return",
+      "object": "royal",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ואחר כך ומרדכי יצא",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "unknown",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Order explicitly given in the scriptural comparison."
+      ]
+    },
+    {
+      "id": "c20",
+      "family": "time",
+      "predicate": "before",
+      "subject": "royal",
+      "object": "joy",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ואחר כך ליהודים",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "unknown",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Order explicitly given in the scriptural comparison."
+      ]
+    }
+  ],
+  "reading_groups": [],
+  "coreference_candidates": [],
+  "open_questions": [
+    "Is the explanatory continuation after the named speeches still their speech or the narrator’s?"
+  ]
+}

@@ -1,0 +1,353 @@
+{
+  "version": "pilot-inputs-v1",
+  "seed": "sage-passage-pilot-2026-09-22-v1",
+  "lake_snapshot": 1,
+  "review_sha256": "27f38f98818077f681409a5973d397f0f72bd61be1bfdb8efe4daec5a01132cd",
+  "selection": "Six lowest seeded SHA256 values per corpus, excluding reviewed references; no name-pair filter.",
+  "context": "Random cases include two saved segments either side, within work and edition; needs_context may request more.",
+  "limits": "Twelve random passage versions test unfamiliar material. They cannot estimate corpus-wide accuracy. Validation partition is frozen before reading.",
+  "jobs": [
+    {
+      "job_id": "challenge-01",
+      "case_id": "editorial-negation",
+      "group": "challenge",
+      "ref": "Sanhedrin 101a:6",
+      "input_sha256": "f9d2d1fea3b10364f161e32ab433ad2d266556ee6f143817a11ee4edfb6acffd"
+    },
+    {
+      "job_id": "challenge-02",
+      "case_id": "question-withdrawn",
+      "group": "challenge",
+      "ref": "Bava Batra 24a:14",
+      "input_sha256": "26b50051096fe3d44e15e75beab193ea9894e1e032862664d88cfa32f189b95d"
+    },
+    {
+      "job_id": "challenge-03",
+      "case_id": "hypothetical-concession",
+      "group": "challenge",
+      "ref": "Bava Batra 152b:7",
+      "input_sha256": "adbf4ce60e9269201edd91bdf9d67b36bb258d3585c71fa1add8d69a1e183528"
+    },
+    {
+      "job_id": "challenge-04",
+      "case_id": "counterfactual-retraction",
+      "group": "challenge",
+      "ref": "Bava Batra 170b:4",
+      "input_sha256": "2eff8370f04fc1914ffff06aa173014ae001270cffa491d903660833b85a230f"
+    },
+    {
+      "job_id": "challenge-05",
+      "case_id": "reversed-conversation",
+      "group": "challenge",
+      "ref": "Menachot 62a:12",
+      "input_sha256": "73d7499ca8d5dd03640946a631913103fa15c92b67d231162753abaefb9f4826"
+    },
+    {
+      "job_id": "challenge-06",
+      "case_id": "alternate-explanations",
+      "group": "challenge",
+      "ref": "Menachot 73b:16",
+      "input_sha256": "862635b3928c6de516623f649ce652f68664468db6a5a88a4c8a1a525059ccac"
+    },
+    {
+      "job_id": "challenge-07",
+      "case_id": "nested-name-split",
+      "group": "challenge",
+      "ref": "Sanhedrin 36a:6",
+      "input_sha256": "f5a4153ec09b7b36276181b47c7084e99033b34b4aafeee1a03f677b946c33a0"
+    },
+    {
+      "job_id": "challenge-08",
+      "case_id": "kinship-alternatives",
+      "group": "challenge",
+      "ref": "Chagigah 3a:4",
+      "input_sha256": "13a11cfa4e437a0a0881af3e0bdaeb053dc6afa01105e9f877d0fcc9599a4fb5"
+    },
+    {
+      "job_id": "challenge-09",
+      "case_id": "quotation-inside-objection",
+      "group": "challenge",
+      "ref": "Sanhedrin 59b:12",
+      "input_sha256": "a3749175995f26bc85eb8506b20438eb421b43ba5736604573e5eea044f88af3"
+    },
+    {
+      "job_id": "challenge-10",
+      "case_id": "vision-and-transmission",
+      "group": "challenge",
+      "ref": "Menachot 29b:3",
+      "input_sha256": "d8977c7edcdd35ce2c1fc19f497441f7f78b6f437d4a1446bce30b4c2beb9674"
+    },
+    {
+      "job_id": "challenge-11",
+      "case_id": "disciple-colleague",
+      "group": "challenge",
+      "ref": "Berakhot 27b:3",
+      "input_sha256": "e79e3f1fc50417efdb22705e19f68191e0a373ab573647b58e7ee7514b96a825"
+    },
+    {
+      "job_id": "challenge-12",
+      "case_id": "alternate-participant-name",
+      "group": "challenge",
+      "ref": "Sanhedrin 97a:6",
+      "input_sha256": "2d3320ec2dcbb2c53aeefbc906366f506c05c5515374cbeb2a258ae78edaebda"
+    },
+    {
+      "job_id": "challenge-13",
+      "case_id": "sick-visitor",
+      "group": "challenge",
+      "ref": "Berakhot 5b:10",
+      "input_sha256": "1fbea0ab0311f7c3e9773172c25c3485bf720b5447e7c18eff647136a2fc8107"
+    },
+    {
+      "job_id": "challenge-14",
+      "case_id": "wine-visitors",
+      "group": "challenge",
+      "ref": "Berakhot 5b:17",
+      "input_sha256": "2426f3aad5255a054b8d01945eb9f5003689fb3c7465c41324bdd5f7f96d368c"
+    },
+    {
+      "job_id": "challenge-15",
+      "case_id": "berurya",
+      "group": "challenge",
+      "ref": "Berakhot 10a:2",
+      "input_sha256": "ab70106843d28911ae705aceae1d4841ae9098f330927a7425d345178a87fbd2"
+    },
+    {
+      "job_id": "challenge-16",
+      "case_id": "interrupted-aggada",
+      "group": "challenge",
+      "ref": "Berakhot 10a:21",
+      "input_sha256": "35d47e756c715d72d43ad85d307e2974522b6816efae079f69b1afd3de90d998"
+    },
+    {
+      "job_id": "challenge-17",
+      "case_id": "choma-court",
+      "group": "challenge",
+      "ref": "Ketubot 65a:9",
+      "input_sha256": "2955ea8468db5bba259cee336670b21c43758ac2fb57032047cdcb6c518329ec"
+    },
+    {
+      "job_id": "challenge-18",
+      "case_id": "nested-widow-one",
+      "group": "challenge",
+      "ref": "Ketubot 65a:11",
+      "input_sha256": "c1b30ba276aeabcf7badf06f6d1b44fa1192d20da4709b38d8ddaae97edd5323"
+    },
+    {
+      "job_id": "challenge-19",
+      "case_id": "nested-widow-two",
+      "group": "challenge",
+      "ref": "Ketubot 65a:12",
+      "input_sha256": "0aeea4eeea05f2e553e52193d97a56c6760386a44950f60a21188e4e725cb08d"
+    },
+    {
+      "job_id": "challenge-20",
+      "case_id": "imma-shalom",
+      "group": "challenge",
+      "ref": "Bava Metzia 59b:10",
+      "input_sha256": "b60e6f19760f79d76f5330fcf980444313babb1d2c4bc79f75358f8d5130b424"
+    },
+    {
+      "job_id": "challenge-21",
+      "case_id": "yohanan-lakish",
+      "group": "challenge",
+      "ref": "Bava Metzia 84a:12",
+      "input_sha256": "ebaa47c74404cfcc304986f8d365ad5bfa0fea3b5e13743ed9a2ae9234d120d5"
+    },
+    {
+      "job_id": "challenge-22",
+      "case_id": "shmuel-avlet",
+      "group": "challenge",
+      "ref": "Shabbat 156b:2",
+      "input_sha256": "6d651255f217ad8505d29cba4b9b9532445e2a5e6aae09b9269812245c2f63c6"
+    },
+    {
+      "job_id": "challenge-23",
+      "case_id": "akiva-daughter",
+      "group": "challenge",
+      "ref": "Shabbat 156b:4",
+      "input_sha256": "ba97da0fac783ebdb9ca19dcd74c79cfac5cd1fdf3e23c7e8cc6daf17203f6a5"
+    },
+    {
+      "job_id": "challenge-24",
+      "case_id": "hanan-grandson",
+      "group": "challenge",
+      "ref": "Taanit 23b:8",
+      "input_sha256": "efaad896356793147dade715f6af1c91c809b54b6f544b4e33f89186f305c318"
+    },
+    {
+      "job_id": "challenge-25",
+      "case_id": "changing-teachers",
+      "group": "challenge",
+      "ref": "Taanit 23b:15",
+      "input_sha256": "654f9eb03245af164b6d37a450ae00aac34cb8395ae8554d62de49a15605232d"
+    },
+    {
+      "job_id": "challenge-26",
+      "case_id": "abaye-elder",
+      "group": "challenge",
+      "ref": "Sanhedrin 7a:5",
+      "input_sha256": "b7d188e074fd627d4229be949386a9c2f1db6294570db6695d61afb7dac1c055"
+    },
+    {
+      "job_id": "challenge-27",
+      "case_id": "hiyya-rabba",
+      "group": "challenge",
+      "ref": "Jerusalem Talmud Berakhot 1:1:21",
+      "input_sha256": "ab41d2610d6d3ff351096f9f7569cb76c6274dbbc5277937b1924394d06d52a0"
+    },
+    {
+      "job_id": "challenge-28",
+      "case_id": "woman-or-tractate",
+      "group": "challenge",
+      "ref": "Eruvin 53b:14",
+      "input_sha256": "2d2af192a945b9a02b3e60d2e2803e13d40638429d42ba2df0039cc46cda9c0b"
+    },
+    {
+      "job_id": "challenge-29",
+      "case_id": "ravin-my-brother",
+      "group": "challenge",
+      "ref": "Bava Metzia 107a:7",
+      "input_sha256": "029211f10c1c1d54d11523b402d347f7bdde713a0866605a1b8c8e335b1d67b0"
+    },
+    {
+      "job_id": "challenge-30",
+      "case_id": "household-servant",
+      "group": "challenge",
+      "ref": "Moed Katan 17a:13",
+      "input_sha256": "888b55cb670fb2155be3131e91ab9b86a2c9533a918cee05a40224bf54e27239"
+    },
+    {
+      "job_id": "random-bavli-01",
+      "group": "random",
+      "ref": "Bava Metzia 61a:7",
+      "corpus": "bavli",
+      "sample_unit": "saved passage version",
+      "eligible_count": 163499,
+      "partition": "development",
+      "selection_sha256": "000057c1f9c80f49c0e1620e3889a7d9ccf87d3d5ac257c1f0bb7898171cd994",
+      "input_sha256": "d75182bed4fa15c1166b280fa22ab251ec6fd4a3756991459382416fd26ca001"
+    },
+    {
+      "job_id": "random-bavli-02",
+      "group": "random",
+      "ref": "Nazir 43a:9",
+      "corpus": "bavli",
+      "sample_unit": "saved passage version",
+      "eligible_count": 163499,
+      "partition": "development",
+      "selection_sha256": "0000dfdd19224c32732fc75dc87fa8f5879799a469e28f72342571bb4b47fd0b",
+      "input_sha256": "b8a2727c59e6dfc21074a3b4c91638ba690e0cdb738be175b0679b8ff260a305"
+    },
+    {
+      "job_id": "random-bavli-03",
+      "group": "random",
+      "ref": "Sotah 45a:13",
+      "corpus": "bavli",
+      "sample_unit": "saved passage version",
+      "eligible_count": 163499,
+      "partition": "development",
+      "selection_sha256": "00011c54fc4abbea4ed55de178da1d0737017f96bfe4c6b3c42acaf407908295",
+      "input_sha256": "bc9d0af585ea4d0895ea0b3591b1a6c21f7c25c7c2aa7e21efa7d8b950198692"
+    },
+    {
+      "job_id": "random-bavli-04",
+      "group": "random",
+      "ref": "Pesachim 45a:2",
+      "corpus": "bavli",
+      "sample_unit": "saved passage version",
+      "eligible_count": 163499,
+      "partition": "validation",
+      "selection_sha256": "00012e635b5f2289cae1662a7a0d03b3c536dd004030f09d61e89895fd3b62b7",
+      "input_sha256": "158e859affbc5aba214bb1f55de2456b42892152b8f0f409da8c96c8ea07b030"
+    },
+    {
+      "job_id": "random-bavli-05",
+      "group": "random",
+      "ref": "Sanhedrin 108a:1",
+      "corpus": "bavli",
+      "sample_unit": "saved passage version",
+      "eligible_count": 163499,
+      "partition": "validation",
+      "selection_sha256": "00013638bc5edfae9b02c1990124ad2b27d82fd49842c894d61e6520008baecb",
+      "input_sha256": "00c3f1cce6fec2a2e21b7907da63397b09dd56fd5d775f4d6c3171c4111cc7a2"
+    },
+    {
+      "job_id": "random-bavli-06",
+      "group": "random",
+      "ref": "Bava Kamma 19b:5",
+      "corpus": "bavli",
+      "sample_unit": "saved passage version",
+      "eligible_count": 163499,
+      "partition": "validation",
+      "selection_sha256": "0001cdf0212f9e6fc63c6b636d934e9a9c063a23d13a9cbd9a19651f4284ede5",
+      "input_sha256": "ee9c15b4e0111a2d792a2c5e08fba79ac31c4a47997a92966e3dd5ab0b323f53"
+    },
+    {
+      "job_id": "random-yerushalmi-01",
+      "group": "random",
+      "ref": "Jerusalem Talmud Taanit 1:2:4",
+      "corpus": "yerushalmi",
+      "sample_unit": "saved passage version",
+      "eligible_count": 36974,
+      "partition": "development",
+      "selection_sha256": "0000b0df047acff8600f3d808ce44353232f46704030f2d6a1edb98c473193d3",
+      "input_sha256": "05e422e85f2659b189807d54a84083c8712345513c89fe7caf98bec14df0cd40"
+    },
+    {
+      "job_id": "random-yerushalmi-02",
+      "group": "random",
+      "ref": "Jerusalem Talmud Megillah 1:10:4",
+      "corpus": "yerushalmi",
+      "sample_unit": "saved passage version",
+      "eligible_count": 36974,
+      "partition": "development",
+      "selection_sha256": "000102358dc6172ed43e248f6a115bad76cabd9e97046806b00e79077044b7bd",
+      "input_sha256": "c9755267780ea9f802c9be212ac10cfcf45c98ff8acb5b4a8aee6cb6bbb7fd78"
+    },
+    {
+      "job_id": "random-yerushalmi-03",
+      "group": "random",
+      "ref": "Jerusalem Talmud Sheviit 10:4:6",
+      "corpus": "yerushalmi",
+      "sample_unit": "saved passage version",
+      "eligible_count": 36974,
+      "partition": "development",
+      "selection_sha256": "0003901ee697d2311b9cffac9562d0de19738e8ec20e1ff5d6492a4d5a9c310b",
+      "input_sha256": "b0b2214368a27a0f3254786ece85e0e70eeee08207a1beaf96bbead73c072c5e"
+    },
+    {
+      "job_id": "random-yerushalmi-04",
+      "group": "random",
+      "ref": "Jerusalem Talmud Peah 3:3:3",
+      "corpus": "yerushalmi",
+      "sample_unit": "saved passage version",
+      "eligible_count": 36974,
+      "partition": "validation",
+      "selection_sha256": "000c138e87a59093e166160b8ebbe6a10daba8c87b7b0ee791f427a87032e80f",
+      "input_sha256": "93990b4398756c2636e701b0213874a5ece8b88cfe5e0223c5f10eb6aea541bd"
+    },
+    {
+      "job_id": "random-yerushalmi-05",
+      "group": "random",
+      "ref": "Jerusalem Talmud Ketubot 11:7:4",
+      "corpus": "yerushalmi",
+      "sample_unit": "saved passage version",
+      "eligible_count": 36974,
+      "partition": "validation",
+      "selection_sha256": "000f03005baeb3a07f82fc10eeaba52902f93a6af9c8febbfcd907b9ddca47ea",
+      "input_sha256": "390e07a1bf06bd52469d1ec54c79f23250372265dce58bb913e06aef7f8ec9ae"
+    },
+    {
+      "job_id": "random-yerushalmi-06",
+      "group": "random",
+      "ref": "Jerusalem Talmud Bava Kamma 9:7:2",
+      "corpus": "yerushalmi",
+      "sample_unit": "saved passage version",
+      "eligible_count": 36974,
+      "partition": "validation",
+      "selection_sha256": "000fe07f56a56e255b04d4409fd7239544d3fd3f80b905496d9ca0f99af63aa6",
+      "input_sha256": "d0678aa78c8cd4dd79c89c9fbd9310a8e30d25ee1b63c73c29f07fcb51dcf60b"
+    }
+  ]
+}

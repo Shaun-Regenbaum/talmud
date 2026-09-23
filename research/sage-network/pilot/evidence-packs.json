@@ -1,0 +1,474 @@
+{
+  "version": "evidence-pack-pilot-v1",
+  "packs": [
+    {
+      "id": "imma-family",
+      "question": "How does this passage connect Imma Shalom to Eliezer and Gamliel?",
+      "job_id": "challenge-20",
+      "scope": "local passage reading",
+      "compiled_sha256": "f88cc5e206f9bceeb71036849bee700ae2c20f44885c4ff203d2ad27bcd060d8",
+      "claim_refs": [
+        "challenge-20/c1",
+        "challenge-20/c2"
+      ],
+      "source_snapshots": [
+        {
+          "source_id": "s1",
+          "ref": "Bava Metzia 59b:10",
+          "text": "אימא שלום, דביתהו דרבי אליעזר, אחתיה דרבן גמליאל הואי. מההוא מעשה ואילך, לא הוה שבקה ליה לרבי אליעזר למיפל על אפיה. ההוא יומא ריש ירחא הוה, ואיחלף לה בין מלא לחסר. איכא דאמרי: אתא עניא וקאי אבבא, אפיקא ליה ריפתא.",
+          "sha256": "0d58c23ebc108d4fb1a0efb6ee75ac62f2c299611eb10bc1c6864fb44a680b3e",
+          "edition": "William Davidson Edition - Vocalized Aramaic",
+          "provenance": {
+            "ref": "Bava Metzia 59b:10",
+            "url": "https://www.sefaria.org/Bava_Metzia.59b.10",
+            "api_page_ref": "Bava Metzia 59b",
+            "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+            "hebrew_version_source": "http://sefaria.org",
+            "hebrew_license": "CC-BY-NC",
+            "english_edition_consulted": "William Davidson Edition - English",
+            "hebrew_raw": "אִימָּא שָׁלוֹם, דְּבֵיתְהוּ דְּרַבִּי אֱלִיעֶזֶר, אֲחָתֵיהּ דְּרַבָּן גַּמְלִיאֵל הֲוַאי. מֵהָהוּא מַעֲשֶׂה וְאֵילָךְ, לָא הֲוָה שָׁבְקָה לֵיהּ לְרַבִּי אֱלִיעֶזֶר לְמִיפַּל עַל אַפֵּיהּ. הָהוּא יוֹמָא רֵישׁ יַרְחָא הֲוָה, וְאִיחַלַּף לַהּ בֵּין מָלֵא לְחָסֵר. אִיכָּא דְּאָמְרִי: אֲתָא עַנְיָא וְקָאֵי אַבָּבָא, אַפִּיקָא לֵיהּ רִיפְתָּא.",
+            "hebrew": "אימא שלום, דביתהו דרבי אליעזר, אחתיה דרבן גמליאל הואי. מההוא מעשה ואילך, לא הוה שבקה ליה לרבי אליעזר למיפל על אפיה. ההוא יומא ריש ירחא הוה, ואיחלף לה בין מלא לחסר. איכא דאמרי: אתא עניא וקאי אבבא, אפיקא ליה ריפתא.",
+            "hebrew_sha256": "0d58c23ebc108d4fb1a0efb6ee75ac62f2c299611eb10bc1c6864fb44a680b3e",
+            "retrieved_at_utc": "2026-09-22T10:13:07+00:00"
+          }
+        },
+        {
+          "source_id": "s2",
+          "ref": "Bava Metzia 59b:11",
+          "text": "אשכחתיה דנפל על אנפיה. אמרה ליה: קום, (קטלית לאחי) [קטליתה לאח]. אדהכי נפק שיפורא מבית רבן גמליאל דשכיב. אמר לה: מנא ידעת? אמרה ליה: כך מקובלני מבית אבי אבא: כל השערים ננעלים חוץ משערי אונאה.",
+          "sha256": "5d3048df329fe8f371196e6c8a343151373049a1e51e1415e86257363a280a53",
+          "edition": "William Davidson Edition - Vocalized Aramaic",
+          "provenance": {
+            "ref": "Bava Metzia 59b:11",
+            "url": "https://www.sefaria.org/Bava_Metzia.59b.11",
+            "api_page_ref": "Bava Metzia 59b",
+            "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+            "hebrew_version_source": "http://sefaria.org",
+            "hebrew_license": "CC-BY-NC",
+            "english_edition_consulted": "William Davidson Edition - English",
+            "hebrew_raw": "אַשְׁכַּחְתֵּיהּ דְּנָפֵל עַל אַנְפֵּיהּ. אֲמַרָה לֵיהּ: קוּם, (קטלית לאחי) [קְטַלְיתֵּהּ לְאָח]. אַדְּהָכִי נְפַק שִׁיפּוּרָא מִבֵּית רַבָּן גַּמְלִיאֵל דִּשְׁכֵיב. אֲמַר לַהּ: מְנָא יְדַעְתְּ? אֲמַרָה לֵיהּ: כָּךְ מְקוּבְּלַנִי מִבֵּית אֲבִי אַבָּא: כׇּל הַשְּׁעָרִים נִנְעָלִים חוּץ מִשַּׁעֲרֵי אוֹנָאָה.",
+            "hebrew": "אשכחתיה דנפל על אנפיה. אמרה ליה: קום, (קטלית לאחי) [קטליתה לאח]. אדהכי נפק שיפורא מבית רבן גמליאל דשכיב. אמר לה: מנא ידעת? אמרה ליה: כך מקובלני מבית אבי אבא: כל השערים ננעלים חוץ משערי אונאה.",
+            "hebrew_sha256": "5d3048df329fe8f371196e6c8a343151373049a1e51e1415e86257363a280a53",
+            "retrieved_at_utc": "2026-09-22T10:13:07+00:00"
+          }
+        }
+      ],
+      "candidates": [
+        {
+          "id": "family",
+          "description": "Imma Shalom is described as Eliezer’s wife and Gamliel’s sister.",
+          "supporting_claims": [
+            "challenge-20/c1",
+            "challenge-20/c2"
+          ],
+          "opposing_claims": [],
+          "probability": null,
+          "probability_note": "Not estimated; these are saved readings, not calibrated historical probabilities."
+        }
+      ],
+      "shared_dependencies": [
+        "All candidates use the same saved edition and episode."
+      ],
+      "search_coverage": "Only supplied primary text was read for this extraction. No biography or manuscript search.",
+      "limits": [
+        "This does not identify every Eliezer or Gamliel elsewhere.",
+        "The story’s prayer and death report do not independently prove historical causation."
+      ]
+    },
+    {
+      "id": "reversed-speakers",
+      "question": "Who explains Rabbi’s ruling to whom?",
+      "job_id": "challenge-05",
+      "scope": "local passage reading",
+      "compiled_sha256": "03f7a2f6db8edbf69b82970bf4810d01f66d3858014c33b45f31a9c4fc77d00f",
+      "claim_refs": [
+        "challenge-05/c8",
+        "challenge-05/c9",
+        "challenge-05/c10",
+        "challenge-05/c11"
+      ],
+      "source_snapshots": [
+        {
+          "source_id": "s1",
+          "ref": "Menachot 62a:11",
+          "text": "חנינא בן חכינאי אומר מניח שתי הלחם בין ירכותיהן של כבשים ומניף ונמצא מקיים שני מקראות הללו לחם על גבי כבשים וכבשים על גבי הלחם אמר רבי לפני מלך בשר ודם אין עושין כן לפני מלך מלכי המלכים הקב\"ה עושין כן אלא מניח זה בצד זה ומניף",
+          "sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "ref": "Menachot 62a:11",
+            "local_path": "/Users/shaunie/Documents/Code/talmud/research/sage-network/data/raw/bavli/menachot/wikisource-talmud-bavli/62a.json",
+            "json_pointer": "/segments/10",
+            "address_pointer": "/addresses/10",
+            "edition": "Wikisource Talmud Bavli",
+            "hebrew": "חנינא בן חכינאי אומר מניח שתי הלחם בין ירכותיהן של כבשים ומניף ונמצא מקיים שני מקראות הללו לחם על גבי כבשים וכבשים על גבי הלחם אמר רבי לפני מלך בשר ודם אין עושין כן לפני מלך מלכי המלכים הקב\"ה עושין כן אלא מניח זה בצד זה ומניף",
+            "hebrew_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+            "unit_sha256": "eb4b5cc0662d79767cbb56a1c12056188e03ab41cc6de15b3b4e7b492f7c7eef",
+            "unit_sha256_scope": "UTF-8 JSON segment array, compact separators, literal Unicode",
+            "captured_at": "2026-09-20T08:24:03Z",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "source_url": "https://www.sefaria.org/Menachot%2062a"
+          }
+        },
+        {
+          "source_id": "s2",
+          "ref": "Menachot 62a:12",
+          "text": "והא בעינן על א\"ל רב חסדא לרב המנונא ואמרי לה רב המנונא לרב חסדא רבי לטעמיה דאמר על בסמוך",
+          "sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "ref": "Menachot 62a:12",
+            "local_path": "/Users/shaunie/Documents/Code/talmud/research/sage-network/data/raw/bavli/menachot/wikisource-talmud-bavli/62a.json",
+            "json_pointer": "/segments/11",
+            "address_pointer": "/addresses/11",
+            "edition": "Wikisource Talmud Bavli",
+            "hebrew": "והא בעינן על א\"ל רב חסדא לרב המנונא ואמרי לה רב המנונא לרב חסדא רבי לטעמיה דאמר על בסמוך",
+            "hebrew_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+            "unit_sha256": "eb4b5cc0662d79767cbb56a1c12056188e03ab41cc6de15b3b4e7b492f7c7eef",
+            "unit_sha256_scope": "UTF-8 JSON segment array, compact separators, literal Unicode",
+            "captured_at": "2026-09-20T08:24:03Z",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "source_url": "https://www.sefaria.org/Menachot%2062a"
+          }
+        },
+        {
+          "source_id": "s3",
+          "ref": "Menachot 62a:13",
+          "text": "דתניא (ויקרא כד, ז) ונתת על המערכת לבונה זכה רבי אומר על בסמוך אתה אומר על בסמוך או אינו אלא על ממש כשהוא אומר (שמות מ, ג) וסכות על הארון את הפרוכת הוי אומר על בסמוך:",
+          "sha256": "562e138ca2c28962e5d439d028efdd7e4f4780daac0d81ccbd2fc3fa1cc65724",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "ref": "Menachot 62a:13",
+            "local_path": "/Users/shaunie/Documents/Code/talmud/research/sage-network/data/raw/bavli/menachot/wikisource-talmud-bavli/62a.json",
+            "json_pointer": "/segments/12",
+            "address_pointer": "/addresses/12",
+            "edition": "Wikisource Talmud Bavli",
+            "hebrew": "דתניא (ויקרא כד, ז) ונתת על המערכת לבונה זכה רבי אומר על בסמוך אתה אומר על בסמוך או אינו אלא על ממש כשהוא אומר (שמות מ, ג) וסכות על הארון את הפרוכת הוי אומר על בסמוך:",
+            "hebrew_sha256": "562e138ca2c28962e5d439d028efdd7e4f4780daac0d81ccbd2fc3fa1cc65724",
+            "unit_sha256": "eb4b5cc0662d79767cbb56a1c12056188e03ab41cc6de15b3b4e7b492f7c7eef",
+            "unit_sha256_scope": "UTF-8 JSON segment array, compact separators, literal Unicode",
+            "captured_at": "2026-09-20T08:24:03Z",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "source_url": "https://www.sefaria.org/Menachot%2062a"
+          }
+        }
+      ],
+      "candidates": [
+        {
+          "id": "hisda",
+          "description": "Hisda explains to Hamnuna.",
+          "supporting_claims": [
+            "challenge-05/c8",
+            "challenge-05/c9"
+          ],
+          "opposing_claims": [],
+          "probability": null,
+          "probability_note": "Not estimated; these are saved readings, not calibrated historical probabilities."
+        },
+        {
+          "id": "hamnuna",
+          "description": "Hamnuna explains to Hisda.",
+          "supporting_claims": [
+            "challenge-05/c10",
+            "challenge-05/c11"
+          ],
+          "opposing_claims": [],
+          "probability": null,
+          "probability_note": "Not estimated; these are saved readings, not calibrated historical probabilities."
+        }
+      ],
+      "shared_dependencies": [
+        "All candidates use the same saved edition and episode."
+      ],
+      "search_coverage": "Only supplied primary text was read for this extraction. No biography or manuscript search.",
+      "limits": [
+        "Two transmitted versions do not prove two separate conversations.",
+        "The scope of the later baraita quotation needs its own reading."
+      ]
+    },
+    {
+      "id": "parenthesized-negation",
+      "question": "Does Rav Huna rule like Rabbi Yosi?",
+      "job_id": "challenge-01",
+      "scope": "local passage reading",
+      "compiled_sha256": "72cb705126c95e50f0e821a6eef981a0febf58be1b5733da742974538be59bce",
+      "claim_refs": [
+        "challenge-01/c6",
+        "challenge-01/c7"
+      ],
+      "source_snapshots": [
+        {
+          "source_id": "s1",
+          "ref": "Sanhedrin 101a:5",
+          "text": "תנו רבנן סכין וממשמשין בבני מעיים בשבת ולוחשין לחישת נחשים ועקרבים בשבת ומעבירין כלי על גב העין בשבת אמר רשב\"ג במה דברים אמורים בכלי הניטל אבל בכלי שאינו ניטל אסור ואין שואלין בדבר שדים בשבת רבי יוסי אומר אף בחול אסור",
+          "sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "ref": "Sanhedrin 101a:5",
+            "local_path": "/Users/shaunie/Documents/Code/talmud/research/sage-network/data/raw/bavli/sanhedrin/wikisource-talmud-bavli/101a.json",
+            "json_pointer": "/segments/4",
+            "address_pointer": "/addresses/4",
+            "edition": "Wikisource Talmud Bavli",
+            "hebrew": "תנו רבנן סכין וממשמשין בבני מעיים בשבת ולוחשין לחישת נחשים ועקרבים בשבת ומעבירין כלי על גב העין בשבת אמר רשב\"ג במה דברים אמורים בכלי הניטל אבל בכלי שאינו ניטל אסור ואין שואלין בדבר שדים בשבת רבי יוסי אומר אף בחול אסור",
+            "hebrew_sha256": "7ee41398a241ad22345e1e6ec12a4cd91a26cffd58841bd50aa7b086274f1b1a",
+            "unit_sha256": "e8648e0cfc5a4726ad77761c8d406402ee123f59d6aea9213aac32e66d3e7567",
+            "unit_sha256_scope": "UTF-8 JSON segment array, compact separators, literal Unicode",
+            "captured_at": "2026-09-20T08:23:09Z",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "source_url": "https://www.sefaria.org/Sanhedrin%20101a"
+          }
+        },
+        {
+          "source_id": "s2",
+          "ref": "Sanhedrin 101a:6",
+          "text": "אמר רב הונא (אין) הלכה כר' יוסי ואף רבי יוסי לא אמרה אלא משום סכנה כי הא דרב יצחק בר יוסף דאיבלע בארזא ואתעביד ליה ניסא פקע ארזא ופלטיה",
+          "sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "ref": "Sanhedrin 101a:6",
+            "local_path": "/Users/shaunie/Documents/Code/talmud/research/sage-network/data/raw/bavli/sanhedrin/wikisource-talmud-bavli/101a.json",
+            "json_pointer": "/segments/5",
+            "address_pointer": "/addresses/5",
+            "edition": "Wikisource Talmud Bavli",
+            "hebrew": "אמר רב הונא (אין) הלכה כר' יוסי ואף רבי יוסי לא אמרה אלא משום סכנה כי הא דרב יצחק בר יוסף דאיבלע בארזא ואתעביד ליה ניסא פקע ארזא ופלטיה",
+            "hebrew_sha256": "80e84c68365ee2e532b1e0e96ade3524b90791ba6868b484829e7afca582769b",
+            "unit_sha256": "e8648e0cfc5a4726ad77761c8d406402ee123f59d6aea9213aac32e66d3e7567",
+            "unit_sha256_scope": "UTF-8 JSON segment array, compact separators, literal Unicode",
+            "captured_at": "2026-09-20T08:23:09Z",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "source_url": "https://www.sefaria.org/Sanhedrin%20101a"
+          }
+        }
+      ],
+      "candidates": [
+        {
+          "id": "negative",
+          "description": "Retain the parenthesized negation: he does not rule like Yosi.",
+          "supporting_claims": [
+            "challenge-01/c6"
+          ],
+          "opposing_claims": [],
+          "probability": null,
+          "probability_note": "Not estimated; these are saved readings, not calibrated historical probabilities."
+        },
+        {
+          "id": "positive",
+          "description": "Omit the parenthesized negation: he rules like Yosi.",
+          "supporting_claims": [
+            "challenge-01/c7"
+          ],
+          "opposing_claims": [],
+          "probability": null,
+          "probability_note": "Not estimated; these are saved readings, not calibrated historical probabilities."
+        }
+      ],
+      "shared_dependencies": [
+        "All candidates use the same saved edition and episode."
+      ],
+      "search_coverage": "Only supplied primary text was read for this extraction. No biography or manuscript search.",
+      "limits": [
+        "Earlier research found commentary support for the positive reading. That evidence must be added to this pack before weighing the readings.",
+        "Two saved candidates do not mean equal probabilities."
+      ]
+    },
+    {
+      "id": "woman-or-tractate",
+      "question": "Does the cryptic phrase describe a woman or a tractate?",
+      "job_id": "challenge-28",
+      "scope": "local passage reading",
+      "compiled_sha256": "c8e85f12e9b50db75bcac689ebb8e26a2fcd8b75670d4cc1eb838c2613eccca6",
+      "claim_refs": [
+        "challenge-28/c1",
+        "challenge-28/c2",
+        "challenge-28/c3",
+        "challenge-28/c4"
+      ],
+      "source_snapshots": [
+        {
+          "source_id": "s1",
+          "ref": "Eruvin 53b:14",
+          "text": "אמרו ליה רבנן לרבי אבהו: הצפיננו היכן רבי אלעאי צפון. אמר להן: עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+          "sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+          "edition": "William Davidson Edition - Vocalized Aramaic",
+          "provenance": {
+            "ref": "Eruvin 53b:14",
+            "url": "https://www.sefaria.org/Eruvin.53b.14",
+            "api_page_ref": "Eruvin 53b",
+            "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+            "hebrew_version_source": "http://sefaria.org",
+            "hebrew_license": "CC-BY-NC",
+            "english_edition_consulted": "William Davidson Edition - English",
+            "hebrew_raw": "אֲמַרוּ לֵיהּ רַבָּנַן לְרַבִּי אֲבָהוּ: הַצְפִּינֵנוּ הֵיכָן רַבִּי אִלְעַאי צָפוּן. אָמַר לָהֶן: עָלַץ בְּנַעֲרָה אַהֲרוֹנִית אַחֲרוֹנִית עֵירָנִית וְהִנְעִירַתּוּ.",
+            "hebrew": "אמרו ליה רבנן לרבי אבהו: הצפיננו היכן רבי אלעאי צפון. אמר להן: עלץ בנערה אהרונית אחרונית עירנית והנעירתו.",
+            "hebrew_sha256": "a7b05fed91dd5dda8d5cd9d17c4452edb3e5c0c8004c1cbf7513d99910ace39f",
+            "retrieved_at_utc": "2026-09-22T10:13:07+00:00"
+          }
+        },
+        {
+          "source_id": "s2",
+          "ref": "Eruvin 53b:15",
+          "text": "אמרי לה אשה.",
+          "sha256": "508c0cc31aa888518f6b1a470da3e8fad3d70f92eaa3c4e9052218600393f6b7",
+          "edition": "William Davidson Edition - Vocalized Aramaic",
+          "provenance": {
+            "ref": "Eruvin 53b:15",
+            "url": "https://www.sefaria.org/Eruvin.53b.15",
+            "api_page_ref": "Eruvin 53b",
+            "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+            "hebrew_version_source": "http://sefaria.org",
+            "hebrew_license": "CC-BY-NC",
+            "english_edition_consulted": "William Davidson Edition - English",
+            "hebrew_raw": "אָמְרִי לַהּ אִשָּׁה.",
+            "hebrew": "אמרי לה אשה.",
+            "hebrew_sha256": "508c0cc31aa888518f6b1a470da3e8fad3d70f92eaa3c4e9052218600393f6b7",
+            "retrieved_at_utc": "2026-09-22T10:13:07+00:00"
+          }
+        },
+        {
+          "source_id": "s3",
+          "ref": "Eruvin 53b:16",
+          "text": "ואמרי לה מסכתא.",
+          "sha256": "c080f3a2d89dbef7a88e357d47123b813623a1460c75b01b8f36dcba91f7b662",
+          "edition": "William Davidson Edition - Vocalized Aramaic",
+          "provenance": {
+            "ref": "Eruvin 53b:16",
+            "url": "https://www.sefaria.org/Eruvin.53b.16",
+            "api_page_ref": "Eruvin 53b",
+            "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+            "hebrew_version_source": "http://sefaria.org",
+            "hebrew_license": "CC-BY-NC",
+            "english_edition_consulted": "William Davidson Edition - English",
+            "hebrew_raw": "וְאָמְרִי לַהּ מַסֶּכְתָּא.",
+            "hebrew": "ואמרי לה מסכתא.",
+            "hebrew_sha256": "c080f3a2d89dbef7a88e357d47123b813623a1460c75b01b8f36dcba91f7b662",
+            "retrieved_at_utc": "2026-09-22T10:13:07+00:00"
+          }
+        }
+      ],
+      "candidates": [
+        {
+          "id": "woman",
+          "description": "The phrase refers to a woman.",
+          "supporting_claims": [
+            "challenge-28/c3"
+          ],
+          "opposing_claims": [],
+          "probability": null,
+          "probability_note": "Not estimated; these are saved readings, not calibrated historical probabilities."
+        },
+        {
+          "id": "tractate",
+          "description": "The phrase refers to a tractate.",
+          "supporting_claims": [
+            "challenge-28/c4"
+          ],
+          "opposing_claims": [],
+          "probability": null,
+          "probability_note": "Not estimated; these are saved readings, not calibrated historical probabilities."
+        }
+      ],
+      "shared_dependencies": [
+        "All candidates use the same saved edition and episode."
+      ],
+      "search_coverage": "Only supplied primary text was read for this extraction. No biography or manuscript search.",
+      "limits": [
+        "The woman reading does not by itself establish marriage.",
+        "The supplied wording does not name a particular tractate."
+      ]
+    }
+  ],
+  "decisions": [
+    {
+      "id": "imma-family-v1",
+      "pack_id": "imma-family",
+      "supersedes": null,
+      "authority": "automated_review",
+      "status": "supported_as_text",
+      "conclusion": "Keep Imma Shalom as a person with both family links.",
+      "reason": "The opening sentence names her and states both relations directly. These links share one passage; they are not independent witnesses.",
+      "supporting_claims": [
+        "challenge-20/c1",
+        "challenge-20/c2"
+      ],
+      "opposing_claims": [],
+      "open_questions": [
+        "This does not identify every Eliezer or Gamliel elsewhere.",
+        "The story’s prayer and death report do not independently prove historical causation."
+      ],
+      "historical_graph_eligible": false,
+      "identity_confidence": null,
+      "historical_confidence": null
+    },
+    {
+      "id": "reversed-speakers-v1",
+      "pack_id": "reversed-speakers",
+      "supersedes": null,
+      "authority": "automated_review",
+      "status": "keep_alternatives",
+      "conclusion": "Keep both reported directions under one alternative group.",
+      "reason": "The text explicitly reverses the names after ‘some say’. Each speaker keeps the explanation that follows within that reading.",
+      "supporting_claims": [
+        "challenge-05/c8",
+        "challenge-05/c9",
+        "challenge-05/c10",
+        "challenge-05/c11"
+      ],
+      "opposing_claims": [],
+      "open_questions": [
+        "Two transmitted versions do not prove two separate conversations.",
+        "The scope of the later baraita quotation needs its own reading."
+      ],
+      "historical_graph_eligible": false,
+      "identity_confidence": null,
+      "historical_confidence": null
+    },
+    {
+      "id": "parenthesized-negation-v1",
+      "pack_id": "parenthesized-negation",
+      "supersedes": null,
+      "authority": "automated_review",
+      "status": "needs_source_research",
+      "conclusion": "Keep both local readings while checking what the edition’s parentheses mean.",
+      "reason": "The saved Hebrew contains (אין). This source-only pack has no independent witness or commentary snapshot that resolves the editorial convention.",
+      "supporting_claims": [
+        "challenge-01/c6",
+        "challenge-01/c7"
+      ],
+      "opposing_claims": [],
+      "open_questions": [
+        "Earlier research found commentary support for the positive reading. That evidence must be added to this pack before weighing the readings.",
+        "Two saved candidates do not mean equal probabilities."
+      ],
+      "historical_graph_eligible": false,
+      "identity_confidence": null,
+      "historical_confidence": null
+    },
+    {
+      "id": "woman-or-tractate-v1",
+      "pack_id": "woman-or-tractate",
+      "supersedes": null,
+      "authority": "automated_review",
+      "status": "keep_alternatives",
+      "conclusion": "Keep separate person and work readings of the same phrase.",
+      "reason": "The following passages explicitly report ‘a woman’ and ‘a tractate’. A single fixed person node would erase the second reading.",
+      "supporting_claims": [
+        "challenge-28/c1",
+        "challenge-28/c2",
+        "challenge-28/c3",
+        "challenge-28/c4"
+      ],
+      "opposing_claims": [],
+      "open_questions": [
+        "The woman reading does not by itself establish marriage.",
+        "The supplied wording does not name a particular tractate."
+      ],
+      "historical_graph_eligible": false,
+      "identity_confidence": null,
+      "historical_confidence": null
+    }
+  ]
+}

@@ -1,0 +1,901 @@
+{
+ "job_id": "challenge-04",
+ "focal_ref": "Bava Batra 170b:4",
+ "status": "researched",
+ "question": "In Bava Batra 170b:4, who challenges Rav Huna's report of Rav's ruling, who answers, and whose teaching is the baraita? Which graph claims are explicit, which rest on interpretation, and which alternatives must stay open? The first reading is checked against 170a-171a, the Yerushalmi parallel, translations, commentaries and codes.",
+ "scope_checked": "Bava Batra 170a (last segments), 170b, 171a:1-6 (Sefaria: Wikisource, William Davidson Aramaic and English); Soncino English 170b; Rashbam 170b:3-5 and 171a:1; Tosafot 170b:3 and 171a:1; Shita Mekubetzet (Tosfot HaRosh) 170b:2; Chiddushei HaRamban 170b:2 and 171a:1; Rashba 171a:1; Rabbeinu Gershom 170b:10-11; Meiri 170b:4-5; Chokhmat Shlomo 170b:1; Steinsaltz 170b:4-5; Jerusalem Talmud Bava Batra 10:6 (Guggenheimer Hebrew and English, Mechon-Mamre, Venice) with Penei Moshe, Mareh HaPanim, Ridbaz, Noam Yerushalmi and Sha'arei Torat Eretz Yisrael; Mishneh Torah Creditor and Debtor 23:15; Shulchan Arukh Choshen Mishpat 54:1; Introduction to Tosefta 101. No manuscript images or variant apparatus were consulted.",
+ "sources": [
+  {
+   "source_id": "pilot_input",
+   "input_path": "research/sage-network/pilot/inputs/challenge-04.json",
+   "edition": "Pilot source job (Wikisource Talmud Bavli, Bava Batra 170b:3-5)",
+   "fetched_at": null,
+   "saved_file": "../../../pilot/inputs/challenge-04.json",
+   "sha256": "2eff8370f04fc1914ffff06aa173014ae001270cffa491d903660833b85a230f"
+  },
+  {
+   "source_id": "pilot_output",
+   "input_path": "research/sage-network/pilot/outputs/challenge-04.json",
+   "edition": "First saved reading (passage-pilot-v1)",
+   "fetched_at": null,
+   "saved_file": "../../../pilot/outputs/challenge-04.json",
+   "sha256": "b5b13025203ff94212616294a35c92451e6e7ea38369791b715c537a03eddeaa"
+  },
+  {
+   "source_id": "previous_review",
+   "input_path": "research/sage-network/followup-v1/cases/challenge-04/previous-review.json",
+   "edition": "Earlier independent review of the first reading",
+   "fetched_at": null,
+   "saved_file": "previous-review.json",
+   "sha256": "53bdcb2a198bdd40b2fdf658cd7089bb15fe04c90753c6609f2b7e4bca1a4d90"
+  },
+  {
+   "source_id": "bb170b",
+   "url": "https://www.sefaria.org/api/v3/texts/Bava_Batra.170b?version=hebrew%7CWikisource_Talmud_Bavli&version=hebrew%7CWilliam_Davidson_Edition_-_Vocalized_Aramaic&version=english%7CWilliam_Davidson_Edition_-_English",
+   "edition": "Sefaria v3: Wikisource Talmud Bavli; William Davidson vocalized Aramaic; William Davidson English (HTML kept)",
+   "fetched_at": "2026-09-23T08:13:41Z",
+   "saved_file": "sources/bb170b_v3.json",
+   "sha256": "0471990875e29fb7d8e7799d963d2595d507b76fd17305d97419ab45c6fb0978"
+  },
+  {
+   "source_id": "bb170a",
+   "url": "https://www.sefaria.org/api/v3/texts/Bava_Batra.170a?version=hebrew%7CWikisource_Talmud_Bavli&version=english%7CWilliam_Davidson_Edition_-_English",
+   "edition": "Sefaria v3: Wikisource Talmud Bavli; William Davidson English",
+   "fetched_at": "2026-09-23T08:13:41Z",
+   "saved_file": "sources/bb170a_v3.json",
+   "sha256": "0d09519154bc326b999928d30eaf8176632dbd28a2f37a4197ba7950f8feee84"
+  },
+  {
+   "source_id": "bb171a",
+   "url": "https://www.sefaria.org/api/v3/texts/Bava_Batra.171a?version=hebrew%7CWikisource_Talmud_Bavli&version=english%7CWilliam_Davidson_Edition_-_English",
+   "edition": "Sefaria v3: Wikisource Talmud Bavli; William Davidson English",
+   "fetched_at": "2026-09-23T08:13:41Z",
+   "saved_file": "sources/bb171a_v3.json",
+   "sha256": "68f598f2463e95d5d7db83ffeaf1c85f38c27c50254cc300e659468de3f8fddc"
+  },
+  {
+   "source_id": "links_170b3",
+   "url": "https://www.sefaria.org/api/related/Bava_Batra.170b.3",
+   "edition": "Sefaria related-links API",
+   "fetched_at": "2026-09-23T08:14:05Z",
+   "saved_file": "sources/bb170b3_related.json",
+   "sha256": "99be69cb66017042d03def64d6799bd4ac1fd718f43723588810ad1c1c01a604"
+  },
+  {
+   "source_id": "links_170b4",
+   "url": "https://www.sefaria.org/api/related/Bava_Batra.170b.4",
+   "edition": "Sefaria related-links API",
+   "fetched_at": "2026-09-23T08:13:42Z",
+   "saved_file": "sources/bb170b4_related.json",
+   "sha256": "1107aaee2907d12beaea8b4d486cca9e5bfa10227ae47157f380242660cf1e00"
+  },
+  {
+   "source_id": "links_170b5",
+   "url": "https://www.sefaria.org/api/related/Bava_Batra.170b.5",
+   "edition": "Sefaria related-links API",
+   "fetched_at": "2026-09-23T08:13:42Z",
+   "saved_file": "sources/bb170b5_related.json",
+   "sha256": "9f686823482f4ff99b246412d17bf6d96f234b12a5cf81e08fc62f93c1160cd0"
+  },
+  {
+   "source_id": "links_171a1",
+   "url": "https://www.sefaria.org/api/related/Bava_Batra.171a.1",
+   "edition": "Sefaria related-links API",
+   "fetched_at": "2026-09-23T08:14:05Z",
+   "saved_file": "sources/bb171a1_related.json",
+   "sha256": "5a1ded3575811d156616aa55441fb032115d095e6ff0efe261549d6801a70cc8"
+  },
+  {
+   "source_id": "links_171a5",
+   "url": "https://www.sefaria.org/api/related/Bava_Batra.171a.5",
+   "edition": "Sefaria related-links API",
+   "fetched_at": "2026-09-23T08:14:06Z",
+   "saved_file": "sources/bb171a5_related.json",
+   "sha256": "5d00d474e5ee27343cea8fb1d11106e362ee2ebe57f0c8fdd3f60ff6b7d5a975"
+  },
+  {
+   "source_id": "rashbam_170b3",
+   "url": "https://www.sefaria.org/api/v3/texts/Rashbam_on_Bava_Batra.170b.3",
+   "edition": "Rashbam, Vilna edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:17Z",
+   "saved_file": "sources/rashbam_170b3.json",
+   "sha256": "05152fc102009f9d74d23f52d0c3e34673b8024a6a14dc47b1b63df34d0f5b59"
+  },
+  {
+   "source_id": "rashbam_170b4",
+   "url": "https://www.sefaria.org/api/v3/texts/Rashbam_on_Bava_Batra.170b.4",
+   "edition": "Rashbam, Vilna edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:17Z",
+   "saved_file": "sources/rashbam_170b4.json",
+   "sha256": "8e5f937078a8dbeae59ae272858408fd430f566d21703cc6d9bbcd558434646f"
+  },
+  {
+   "source_id": "rashbam_170b5",
+   "url": "https://www.sefaria.org/api/v3/texts/Rashbam_on_Bava_Batra.170b.5",
+   "edition": "Rashbam, Vilna edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:17Z",
+   "saved_file": "sources/rashbam_170b5.json",
+   "sha256": "7b6f8c9a089a7092c4625e866be6528270b21112d6edd1381d6e616d01e5a7e3"
+  },
+  {
+   "source_id": "rashbam_171a1",
+   "url": "https://www.sefaria.org/api/v3/texts/Rashbam_on_Bava_Batra.171a.1",
+   "edition": "Rashbam, Vilna edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:18Z",
+   "saved_file": "sources/rashbam_171a1.json",
+   "sha256": "11902f81e2501483bfff68aa745ec799c237002223346bd4dad3386961a10af2"
+  },
+  {
+   "source_id": "tosafot_170b3",
+   "url": "https://www.sefaria.org/api/v3/texts/Tosafot_on_Bava_Batra.170b.3",
+   "edition": "Tosafot, Vilna edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:20Z",
+   "saved_file": "sources/tosafot_170b3.json",
+   "sha256": "119686e281e00aa4eec79a910c4e8f17e72c3f20a2d96c5bc644e89310438611"
+  },
+  {
+   "source_id": "tosafot_171a1",
+   "url": "https://www.sefaria.org/api/v3/texts/Tosafot_on_Bava_Batra.171a.1",
+   "edition": "Tosafot, Vilna edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:21Z",
+   "saved_file": "sources/tosafot_171a1.json",
+   "sha256": "f066c514119d2f424ce5217a7802c5677af633c822825c97802fda4b4bdb1420"
+  },
+  {
+   "source_id": "shitah_170b2",
+   "url": "https://www.sefaria.org/api/v3/texts/Shita_Mekubetzet_on_Bava_Batra.170b.2",
+   "edition": "Shita Mekubetzet, Vilna edition (Sefaria), quoting Tosfot HaRosh",
+   "fetched_at": "2026-09-23T08:14:22Z",
+   "saved_file": "sources/shitah_170b2.json",
+   "sha256": "9c8aaef609d8c9f9e5fbdc0a4a65190c32c4fb90a31830476779ad71b3eaab2a"
+  },
+  {
+   "source_id": "ramban_170b2",
+   "url": "https://www.sefaria.org/api/v3/texts/Chiddushei_Ramban_on_Bava_Batra.170b.2",
+   "edition": "Chiddushei HaRamban, Jerusalem 1928-29 (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:18Z",
+   "saved_file": "sources/ramban_170b2.json",
+   "sha256": "e6d51828de8e1bc8e189127de4b6991c91d2098de994e8a7b0b51899371735f7"
+  },
+  {
+   "source_id": "ramban_171a1",
+   "url": "https://www.sefaria.org/api/v3/texts/Chiddushei_Ramban_on_Bava_Batra.171a.1",
+   "edition": "Chiddushei HaRamban, Jerusalem 1928-29 (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:21Z",
+   "saved_file": "sources/ramban_171a1.json",
+   "sha256": "202a248de6c5f8e76895e891b329577d162d2a516887ba41eb31b43f29e8ba66"
+  },
+  {
+   "source_id": "rashba_171a1",
+   "url": "https://www.sefaria.org/api/v3/texts/Rashba_on_Bava_Batra.171a.1",
+   "edition": "Rashba, Gerlitz edition, Oraita (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:21Z",
+   "saved_file": "sources/rashba_171a1.json",
+   "sha256": "81b15a136926f3693e849cd7a2edc58f57dfbde0742b0c14f3688af00b446fab"
+  },
+  {
+   "source_id": "gershom_170b10",
+   "url": "https://www.sefaria.org/api/v3/texts/Rabbeinu_Gershom_on_Bava_Batra.170b.10",
+   "edition": "Rabbeinu Gershom, Vilna edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:19Z",
+   "saved_file": "sources/gershom_170b10.json",
+   "sha256": "78b9833ed3f910821420a766c415dd3972181628f92561e095d6c5fac008b9e9"
+  },
+  {
+   "source_id": "gershom_170b11",
+   "url": "https://www.sefaria.org/api/v3/texts/Rabbeinu_Gershom_on_Bava_Batra.170b.11",
+   "edition": "Rabbeinu Gershom, Vilna edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:19Z",
+   "saved_file": "sources/gershom_170b11.json",
+   "sha256": "90656480b82b7e0324562e1153b78f4ffdbaab39eb61644d397d47cf7308b235"
+  },
+  {
+   "source_id": "meiri_170b4",
+   "url": "https://www.sefaria.org/api/v3/texts/Meiri_on_Bava_Batra.170b.4",
+   "edition": "Meiri on Shas (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:20Z",
+   "saved_file": "sources/meiri_170b4.json",
+   "sha256": "795b549d4f79bb470b4cae63dfc32d4079e43f86d508c57ff6db97b789dac7a9"
+  },
+  {
+   "source_id": "meiri_170b5",
+   "url": "https://www.sefaria.org/api/v3/texts/Meiri_on_Bava_Batra.170b.5",
+   "edition": "Meiri on Shas (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:20Z",
+   "saved_file": "sources/meiri_170b5.json",
+   "sha256": "1b3f992c6b1b18397ddab9e38a3e85f72a88abdbe13dcf694c721ee8180a9205"
+  },
+  {
+   "source_id": "chokhmat_shlomo",
+   "url": "https://www.sefaria.org/api/v3/texts/Chokhmat_Shlomo_on_Bava_Batra.170b.1",
+   "edition": "Chokhmat Shlomo, Vilna edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:18Z",
+   "saved_file": "sources/chokhmat_shlomo_170b1.json",
+   "sha256": "965ab3cd71d577ed650deadac8c8240c8e7f497c7bdfb167f3362005fde15be2"
+  },
+  {
+   "source_id": "steinsaltz_170b4",
+   "url": "https://www.sefaria.org/api/v3/texts/Steinsaltz_on_Bava_Batra.170b.4",
+   "edition": "Steinsaltz Hebrew, William Davidson Edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:18Z",
+   "saved_file": "sources/steinsaltz_170b4.json",
+   "sha256": "259dddab8b3a4c6574c9e4d659d3dc98c77ac5bad47ddb19989aa4e28c55e18a"
+  },
+  {
+   "source_id": "steinsaltz_170b5",
+   "url": "https://www.sefaria.org/api/v3/texts/Steinsaltz_on_Bava_Batra.170b.5",
+   "edition": "Steinsaltz Hebrew, William Davidson Edition (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:19Z",
+   "saved_file": "sources/steinsaltz_170b5.json",
+   "sha256": "9e022df47608d92d61956767db046f8aa1794e424bc744da2098f2565adb1533"
+  },
+  {
+   "source_id": "soncino",
+   "url": "https://halakhah.com/bababathra/bababathra_170.html",
+   "edition": "Soncino English translation, Baba Bathra 170b (halakhah.com HTML)",
+   "fetched_at": "2026-09-23T08:15:37Z",
+   "saved_file": "sources/soncino_bb170_halakhah_com.html",
+   "sha256": "bdbbc92a32c4db075f1dd2b19dbe47aec18b0912dac17936a14d13e62bdfe5ba"
+  },
+  {
+   "source_id": "jt_bb_10_6",
+   "url": "https://www.sefaria.org/api/v3/texts/Jerusalem_Talmud_Bava_Batra.10.6?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sefaria v3: Jerusalem Talmud Bava Batra 10:6 - Guggenheimer Hebrew and English, Mechon-Mamre, Venice edition",
+   "fetched_at": "2026-09-23T08:14:35Z",
+   "saved_file": "sources/jt_bb_10_6.json",
+   "sha256": "392f555f6890da2a9cccc66acab73e730bf77496678a3bc7d4254f932ccbac3d"
+  },
+  {
+   "source_id": "links_jt",
+   "url": "https://www.sefaria.org/api/related/Jerusalem_Talmud_Bava_Batra.10.6.2",
+   "edition": "Sefaria related-links API",
+   "fetched_at": "2026-09-23T08:14:36Z",
+   "saved_file": "sources/jt_bb_10_6_2_related.json",
+   "sha256": "db7541dafff7e70040c6b362b938a5d48471f3b49e6453fd5d66c4b6d0d3b1a3"
+  },
+  {
+   "source_id": "penei_moshe",
+   "url": "https://www.sefaria.org/api/v3/texts/Penei_Moshe_on_Jerusalem_Talmud_Bava_Batra.10.6.2",
+   "edition": "Penei Moshe, Piotrkow 1898-1900 (Sefaria)",
+   "fetched_at": "2026-09-23T08:15:07Z",
+   "saved_file": "sources/penei_moshe_jt_10_6_2.json",
+   "sha256": "015b0c8fadf52830ff207f8b9d74382a0e99f143c489975054e50a7fbf5692dc"
+  },
+  {
+   "source_id": "mareh_hapanim",
+   "url": "https://www.sefaria.org/api/v3/texts/Mareh_HaPanim_on_Jerusalem_Talmud_Bava_Batra.10.6.2",
+   "edition": "Mareh HaPanim, Piotrkow 1898-1900 (Sefaria)",
+   "fetched_at": "2026-09-23T08:15:07Z",
+   "saved_file": "sources/mareh_hapanim_jt_10_6_2.json",
+   "sha256": "a92b234ec3192e44ebd8e29302101ffdc8d76c748e1a741e28174ad5011742a7"
+  },
+  {
+   "source_id": "ridbaz",
+   "url": "https://www.sefaria.org/api/v3/texts/Chiddushei_Ridbaz_on_Jerusalem_Talmud_Bava_Batra.10.6.2",
+   "edition": "Chiddushei Ridbaz, Piotrkow 1898-1900 (Sefaria)",
+   "fetched_at": "2026-09-23T08:15:08Z",
+   "saved_file": "sources/ridbaz_jt_10_6_2.json",
+   "sha256": "fbe26f95ee005261d05c4e5b4855a489f2eb04571faa860c5ab929d7eb621503"
+  },
+  {
+   "source_id": "noam_yerushalmi",
+   "url": "https://www.sefaria.org/api/v3/texts/Noam_Yerushalmi_on_Bava_Batra.10.6.2",
+   "edition": "Noam Yerushalmi, Vilna 1869 (Sefaria)",
+   "fetched_at": "2026-09-23T08:15:07Z",
+   "saved_file": "sources/noam_yerushalmi_10_6_2.json",
+   "sha256": "fde9d7f649443574b0be1051302572a57dc5ba895d96ed008dc5871ecb9154b4"
+  },
+  {
+   "source_id": "shaarei_tey_1",
+   "url": "https://www.sefaria.org/api/v3/texts/Sha'arei_Torat_Eretz_Yisrael_on_Jerusalem_Talmud_Bava_Batra.10.6.2.1",
+   "edition": "Sha'arei Torat Eretz Yisrael, Jerusalem 1940 (Sefaria)",
+   "fetched_at": "2026-09-23T08:15:07Z",
+   "saved_file": "sources/shaarei_tey_10_6_2_1.json",
+   "sha256": "40f14a1a5a04b73791c31e8e4e38ddb3d1a9eed5711a69b276ff90de3c902117"
+  },
+  {
+   "source_id": "shaarei_tey_2",
+   "url": "https://www.sefaria.org/api/v3/texts/Sha'arei_Torat_Eretz_Yisrael_on_Jerusalem_Talmud_Bava_Batra.10.6.2.2",
+   "edition": "Sha'arei Torat Eretz Yisrael, Jerusalem 1940 (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:20Z",
+   "saved_file": "sources/shaarei_tey_10_6_2_2.json",
+   "sha256": "cebb74b161c6a6fd5f3e327e5de786aa63cf9adcfb4cc1c6ad1e1f86e9f8a471"
+  },
+  {
+   "source_id": "mt_23_15",
+   "url": "https://www.sefaria.org/api/v3/texts/Mishneh_Torah,_Creditor_and_Debtor.23.15",
+   "edition": "Mishneh Torah, Creditor and Debtor 23:15, Torat Emet (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:22Z",
+   "saved_file": "sources/mt_malveh_23_15.json",
+   "sha256": "6db79a4142f1cb2c1119e0769682c717d90885b1f6fc9c556f1c0354cc55db83"
+  },
+  {
+   "source_id": "sa_54_1",
+   "url": "https://www.sefaria.org/api/v3/texts/Shulchan_Arukh,_Choshen_Mishpat.54.1?version=hebrew%7Call",
+   "edition": "Shulchan Arukh, Choshen Mishpat 54:1 (Sefaria)",
+   "fetched_at": "2026-09-23T08:16:50Z",
+   "saved_file": "sources/sa_cm_54_1.json",
+   "sha256": "1fb741b0ebe8caf15897704371a03e8d8f387928610fe7987fdcb748a3046411"
+  },
+  {
+   "source_id": "intro_tosefta",
+   "url": "https://www.sefaria.org/api/v3/texts/Introductions_to_Tanaitic_Literature,_Introduction_to_Mishnah_and_Tosefta,_Introduction_to_Tosefta.101",
+   "edition": "Introductions to Tannaitic Literature, Introduction to Tosefta 101, Jerusalem 1957 (Sefaria)",
+   "fetched_at": "2026-09-23T08:14:22Z",
+   "saved_file": "sources/intro_tosefta_101.json",
+   "sha256": "944af7ae84791c582cf1550c7e7f3016016ae7f590389d5b12b65f1af7aae1da"
+  }
+ ],
+ "failed_requests": [
+  {
+   "url": "https://www.sefaria.org/api/search-wrapper?q=... (GET)",
+   "result": "Returned {\"error\": \"Unsupported HTTP method.\"}; saved as sources/search_ishmia.json. No search result was used."
+  }
+ ],
+ "sources_checked_without_relevant_content": [
+  {
+   "saved_file": "sources/rosh_10_30.json",
+   "note": "Rosh on Bava Batra 10:30 is about scribes; not this passage."
+  },
+  {
+   "saved_file": "sources/rosh_10_33.json",
+   "note": "Rosh on Bava Batra 10:33 mentions the Mishnah only in passing. I did not locate the Rosh's ruling on Rav's statement, so no claim is made about the Rosh."
+  },
+  {
+   "saved_file": "sources/meiri_170b4.json",
+   "note": "The Meiri discusses the halakha (first versus second date, court versus witnesses). It names no Amoraic speakers of 170b:4. It quotes the baraita with Rabbi Yehuda and Rabbi Yosi, which matches F03."
+  },
+  {
+   "saved_file": "sources/ridbaz_jt_10_6_2.json",
+   "note": "The Ridbaz explains Rav's Yerushalmi ruling with Rashbam's reason (court, not witnesses). It does not name the challenger."
+  }
+ ],
+ "findings": [
+  {
+   "finding_id": "F01",
+   "claim": "The Bavli gives the challenger as two reported alternatives: Rav Nahman, or (\"and some say\") Rav Yirmiyah bar Abba. Both speak to Rav Huna. The first reading keeps these as two branches of one reading group. That is correct.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "bb170b",
+     "exact_quote": "אמר ליה רב נחמן לרב הונא ואמרי לה רב ירמיה בר אבא לרב הונא",
+     "location": "Bava Batra 170b:4, Wikisource",
+     "translation_mine": "My translation: Rav Nahman said to Rav Huna, and some say [it was] Rav Yirmiyah bar Abba to Rav Huna."
+    },
+    {
+     "source_id": "soncino",
+     "exact_quote": "Said R. Nahman to R. Huna, and others say [that] R. Jeremiah b. Abba said to R. Huna",
+     "location": "Soncino, Baba Bathra 170b"
+    }
+   ],
+   "reasoning": "ואמרי לה is the editors' formula for a second transmission of the same exchange. The text does not choose between them. It does not say both men spoke, or that only one did historically.",
+   "confidence": "high",
+   "graph_effect": "Keep reading group 'challenger' with branches nachman_version and yirmiya_version. Do not merge Rav Nahman and Rav Yirmiyah bar Abba. Do not treat the two branches as two historical challenges."
+  },
+  {
+   "finding_id": "F02",
+   "claim": "The Aramaic does not name the person who replies 'he heard it and did not retract' (170b:5). It says only 'he said to him'. Rav Huna as the speaker comes from the local exchange. The William Davidson English and Steinsaltz Hebrew add 'Rav Huna' as the editors' explanation, in plain text. Soncino leaves the speaker unnamed.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "bb170b",
+     "exact_quote": "אמר ליה שמיע ליה ולא הדר ביה",
+     "location": "Bava Batra 170b:5, Wikisource",
+     "translation_mine": "My translation: He said to him: He [Rav] heard it and did not retract."
+    },
+    {
+     "source_id": "bb170b",
+     "exact_quote": "Rav Huna <b>said to him:</b> Rav <b>heard</b> the <i>baraita</i>, <b>and</b> nevertheless <b>he did not retract</b> his statement.",
+     "location": "Bava Batra 170b:5, William Davidson English; 'Rav Huna' is plain (editor's) text"
+    },
+    {
+     "source_id": "steinsaltz_170b5",
+     "exact_quote": "<b>אמר ליה</b> <small>[לו]</small> רב הונא:",
+     "location": "Steinsaltz on Bava Batra 170b:5; רב הונא is outside the bold text"
+    },
+    {
+     "source_id": "soncino",
+     "exact_quote": "He said unto him: He heard it and he did not withdraw.",
+     "location": "Soncino, Baba Bathra 170b"
+    }
+   ],
+   "reasoning": "The challenge is addressed to Rav Huna. He transmits Rav's ruling, and the reply defends Rav. So Rav Huna is the natural speaker. That rests on reading the conversation, not on a name. The William Davidson English and the Steinsaltz Hebrew belong to one editorial project. They are not two independent witnesses. Rashbam (170b:5) and Rabbeinu Gershom (170b:11) explain the reply without naming who gives it.",
+   "confidence": "high",
+   "graph_effect": "Keep c7/c10 with basis local_coreference. Add a note that the speaker's name is not in the Aramaic. Its addressee is whichever challenger the branch selects."
+  },
+  {
+   "finding_id": "F03",
+   "claim": "The baraita quoted at 170b:4 is identified by the Gemara itself at 171a:5 ('What is the baraita?'). There it is attributed to Rabbi Yehuda, and Rabbi Yosi gives the opposing view. The first reading stored the baraita with no attribution.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "bb171a",
+     "exact_quote": "מאי ברייתא דתניא הרי שהיו נושין בו אלף זוז ופרע מהן חמש מאות זוז עדים מקרעין את השטר וכותבין לו שטר אחר מזמן ראשון דברי רבי יהודה רבי יוסי אומר שטר זה יהא מונח במקומו ויכתבו שובר",
+     "location": "Bava Batra 171a:5, Wikisource",
+     "translation_mine": "My translation: What is the baraita? As it is taught: If a thousand zuz were owed by him and he repaid five hundred of them, witnesses tear up the document and write him another document from the first date - the words of Rabbi Yehuda. Rabbi Yosi says: this document shall stay in its place and they write a receipt."
+    },
+    {
+     "source_id": "rashbam_170b4",
+     "exact_quote": "לקמן בשמעתין במילתיה דר' יהודה בפורע חצי חובו שמקרעין עדים",
+     "location": "Rashbam on 170b:4:1",
+     "translation_mine": "My translation: below in our discussion, in the statement of Rabbi Yehuda about one who repays half his debt, that witnesses tear up..."
+    }
+   ],
+   "reasoning": "The focal segment quotes only the first line, without an attribution. The fuller text on the next amud names the Tannaitic speaker. The William Davidson English at 170b:4 adds 'according to Rabbi Yehuda' in plain text. That is supported by 171a:5 but is not in the 170b:4 Aramaic.",
+   "confidence": "high",
+   "graph_effect": "Add attributed_to(baraita statement -> Rabbi Yehuda, within the baraita, evidence 171a:5). Add Rabbi Yosi's baraita view (receipt) as a separate statement. Link the 170b:4 excerpt to the 171a:5 baraita as the same quoted source (explicit cross-reference). This makes the hearing event in c11 an event about a teaching attributed to Rabbi Yehuda. It does not make Rav meet Rabbi Yehuda."
+  },
+  {
+   "finding_id": "F04",
+   "claim": "The context the first reading said was missing is on the same amud. The Mishnah at 170b:2 gives Rabbi Yehuda's rule ('he should exchange') and Rabbi Yosi's rule ('he should write a receipt'). It also contains a speech exchange: Rabbi Yehuda objects, and Rabbi Yosi answers him.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "bb170b",
+     "exact_quote": "מי שפרע מקצת חובו ר' יהודה אומר יחליף רבי יוסי אומר יכתוב שובר אמר רבי יהודה נמצא זה צריך להיות שומר שוברו מן העכברים אמר לו רבי יוסי כך יפה לו ולא ירע כחו של זה",
+     "location": "Bava Batra 170b:2 (Mishnah), Wikisource",
+     "translation_mine": "My translation: One who repaid part of his debt - Rabbi Yehuda says: he should exchange [the note]; Rabbi Yosi says: he should write a receipt. Rabbi Yehuda said: then this one must guard his receipt from mice! Rabbi Yosi said to him: this is good for him, and the other's power will not be weakened."
+    }
+   ],
+   "reasoning": "The pilot job began at the Gemara (170b:3), so the Mishnah was not supplied. The pronoun in אמר לו ('said to him') has Rabbi Yehuda as its antecedent. This is a Mishnaic literary dispute. It records a reply in the text. It does not show that the two met in person.",
+   "confidence": "high",
+   "graph_effect": "Fill y_rule with 'the debtor exchanges the note' and yosi_rule with 'write a receipt' (evidence 170b:2). Add a Mishnah-level speech pair: Rabbi Yehuda objects to Rabbi Yosi's view, and Rabbi Yosi answers Rabbi Yehuda. Label it as a literary dispute, not a meeting. Close episode.needed_context."
+  },
+  {
+   "finding_id": "F05",
+   "claim": "Commentators disagree on what Rav rejects in Rabbi Yehuda's view, and so on why the challenge had force. Rashbam: Rabbi Yehuda lets witnesses re-issue the note from the first date, and Rav requires a court. Rashbam calls Rav a Tanna who may dispute a baraita. Tosafot (the Ri) and Tosfot HaRosh (quoted in Shita Mekubetzet) object. They say Rav understood Rabbi Yehuda to mean the second date.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "rashbam_170b3",
+     "exact_quote": "שאמר יחליף ואפילו לכתוב לו מזמן ראשון על ידי עדים בלא בית דין",
+     "location": "Rashbam on 170b:3:1",
+     "translation_mine": "My translation: who said 'he should exchange', even to write it for him from the first date by witnesses without a court."
+    },
+    {
+     "source_id": "rashbam_170b3",
+     "exact_quote": "ורב תנא הוא ופליג",
+     "location": "Rashbam on 170b:3:3",
+     "translation_mine": "My translation: and Rav is a Tanna and disputes."
+    },
+    {
+     "source_id": "rashbam_170b5",
+     "exact_quote": "דברייתא תני עדים מקרעין ואיהו אמר ב\"ד דוקא ולא עדים",
+     "location": "Rashbam on 170b:5:1",
+     "translation_mine": "My translation: for the baraita teaches 'witnesses tear up', and he said specifically a court, not witnesses."
+    },
+    {
+     "source_id": "tosafot_170b3",
+     "exact_quote": "ונראה לר\"י דרב נחמן סבר לה למילתיה דרב הכי אין הלכה כרבי יהודה דאמר יחליף וכותבין ליה מזמן שני",
+     "location": "Tosafot on 170b:3:1",
+     "translation_mine": "My translation: The Ri thinks that Rav Nahman understood Rav's statement thus: the halakha is not like Rabbi Yehuda, who said he exchanges and they write it from the second date."
+    },
+    {
+     "source_id": "shitah_170b2",
+     "exact_quote": "ונראה לפרש אין הלכה כרבי יהודה דאמר יחליף מזמן שני",
+     "location": "Shita Mekubetzet on 170b:2 (ending 'תוספי הרא\"ש ז\"ל')",
+     "translation_mine": "My translation: It seems right to explain: the halakha is not like Rabbi Yehuda, who said he exchanges from the second date."
+    }
+   ],
+   "reasoning": "Both readings accept the Gemara's words. They differ on the content of Rabbi Yehuda's view as Rav or the challenger understood it. Tosfot HaRosh is quoted inside Shita Mekubetzet and argues like Tosafot. Tosafot and Tosfot HaRosh are one line of reasoning, not two independent witnesses.",
+   "confidence": "high",
+   "graph_effect": "c3 ('Rav does not rule like Rabbi Yehuda') stays explicit. Its content role (y_rule) should be the Mishnah's words 'he should exchange'. Neither commentator's gloss should be stored as the rule. Store the Rashbam and Tosafot readings as commentary-level interpretations of Rav's objection. Do not store either as part of the Talmud's own claim."
+  },
+  {
+   "finding_id": "F06",
+   "claim": "The only later commentators found here to name the challenger (Tosafot, Tosfot HaRosh) name Rav Nahman. They do not mention the alternative. Rashbam, Rabbeinu Gershom and the Ramban name no challenger.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "tosafot_170b3",
+     "exact_quote": "אבל רב נחמן לא היה סובר מילתיה דרב הכי דא\"כ מאי הא דקאמר לרב הונא אי שמיע ליה כו'",
+     "location": "Tosafot on 170b:3:1",
+     "translation_mine": "My translation: but Rav Nahman did not understand Rav's statement so, for if so, what is this that he said to Rav Huna, 'if he had heard...'."
+    },
+    {
+     "source_id": "shitah_170b2",
+     "exact_quote": "מאי קאמר ליה רב נחמן אי שמיע ליה לרב הא דתניא",
+     "location": "Shita Mekubetzet on 170b:2"
+    },
+    {
+     "source_id": "gershom_170b10",
+     "exact_quote": "אי שמיעא ליה לרב הא דתניא. דבקריעת עדים סגי",
+     "location": "Rabbeinu Gershom on 170b:10"
+    },
+    {
+     "source_id": "ramban_170b2",
+     "exact_quote": "אי שמיט ליה הא דתניא עדים מקרעין הוה הדר ביה",
+     "location": "Chiddushei HaRamban on 170b:2"
+    }
+   ],
+   "reasoning": "Commentators often use the first-named alternative as a label. That is not a ruling that the 'some say' version is wrong. The Ramban's lemma prints שמיט where the Talmud reads שמיע. That looks like a typographical or transmission error in this edition. I record it and draw nothing from it.",
+   "confidence": "medium",
+   "graph_effect": "Do not use Tosafot or Tosfot HaRosh to prefer nachman_version. Keep historical_compatibility 'unknown'."
+  },
+  {
+   "finding_id": "F07",
+   "claim": "The Yerushalmi has a parallel remark with only one challenger: 'Rabbi Yirmiyah said: had Rav heard the teaching, he would not have said this.' Rav's ruling there is 'they make him a court confirmation', and the opposing teaching is taught by Rabbi Hiyya. The parallel has no Rav Nahman, no Rav Huna as addressee, and no reply that Rav heard and held firm.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "jt_bb_10_6",
+     "exact_quote": "רב אמר עושין לו קיום בית דין תני ר' חייה אין עושין לו קיום ב\"ד. א\"ר ירמיה אילו שמע רב מתנייה לא הוה מימר הדא מילתא.",
+     "location": "Jerusalem Talmud Bava Batra 10:6:2, Mechon-Mamre text",
+     "translation_mine": "My translation: Rav said: they make a court confirmation for him. Rabbi Hiyya taught: they do not make a court confirmation for him. Rabbi Yirmiyah said: had Rav heard the teaching, he would not have said this thing."
+    },
+    {
+     "source_id": "jt_bb_10_6",
+     "exact_quote": "אמר רבי ירמיה אילו שמע רב מתנייה לא הוה מימר הדא מילתא",
+     "location": "Jerusalem Talmud Bava Batra 10:6:2, Venice edition text"
+    }
+   ],
+   "reasoning": "This is a separate literary witness, not a manuscript variant of the Bavli. The name there is plain 'רבי ירמיה', with no patronymic. The rulings are close but worded differently. So the parallel shows that one tradition put a Yirmiyah in this role. It does not settle the Bavli's ואמרי לה. It does not show that Rav Nahman did not speak, or that the two Talmuds report the same event.",
+   "confidence": "high",
+   "graph_effect": "Add a cross-text parallel link from the Bavli yirmiya_version branch to JT Bava Batra 10:6:2. Mark it parallel_tradition, not identity or corroboration. Keep 'רבי ירמיה' (JT) as a separate local person until the identity decision is made. Do not add Rabbi Hiyya to the Bavli focal graph. In the Bavli the baraita is anonymous (דתניא) and attributed within to Rabbi Yehuda."
+  },
+  {
+   "finding_id": "F08",
+   "claim": "Two Yerushalmi commentaries identify the Yerushalmi's Rabbi Yirmiyah with a Babylonian Rav Yirmiyah. Sha'arei Torat Eretz Yisrael says he is Rabbi Yirmiyah bar Abba and points to Bavli 170b. The Guggenheimer English note says he is 'Rav Jeremiah, Babylonian of the first generation'. These are identifications made by commentators.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "shaarei_tey_2",
+     "exact_quote": "ור' ירמיה זה הוא ר' ירמיה בר אבא וכ\"ה בבבלי ק\"ע ב'",
+     "location": "Sha'arei Torat Eretz Yisrael on JT Bava Batra 10:6:2:2",
+     "translation_mine": "My translation: and this Rabbi Yirmiyah is Rabbi Yirmiyah bar Abba, and so it is in the Bavli 170b."
+    },
+    {
+     "source_id": "jt_bb_10_6",
+     "exact_quote": "He is Rav Jeremiah, Babylonian of the first generation.",
+     "location": "Guggenheimer English, JT Bava Batra 10:6:2, footnote 84"
+    }
+   ],
+   "reasoning": "The identification rests on the shared name, the shared role (commenting on Rav's ruling) and the Bavli's ואמרי לה. Those are real reasons. But a shared name does not establish identity, and the commentators do not report a manuscript with the patronymic in the Yerushalmi. The same Sha'arei Torat Eretz Yisrael comment also proposes an emendation: צ\"ל ... מתניתא. That is a later proposed correction, not a source variant.",
+   "confidence": "medium",
+   "graph_effect": "Record a provisional identity candidate (JT רבי ירמיה = Bavli רב ירמיה בר אבא), sourced to these two commentators, in the identity layer only. Do not merge the nodes in the passage graph."
+  },
+  {
+   "finding_id": "F09",
+   "claim": "Yerushalmi commentators disagree about which teaching Rabbi Yirmiyah means, and so about how close the parallel is. Penei Moshe: the teaching Rabbi Hiyya taught, that a court is not needed. Mareh HaPanim: the same as the Bavli's baraita at 170b. Noam Yerushalmi ties Rav's statement to a different case (a blotted note, citing the Bei Levi Ketubot baraita). The Guggenheimer notes say the Halakhah refers to 'Mishnah 9'.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "penei_moshe",
+     "exact_quote": "אלו שמע רב להא מתנייה דתני ר' חייא דאין צריך ב\"ד לא הוה מימר הדא מילתא דדוקא בב\"ד והוי חזר ביה",
+     "location": "Penei Moshe on JT Bava Batra 10:6:2:3",
+     "translation_mine": "My translation: had Rav heard this teaching that Rabbi Hiyya taught, that a court is not needed, he would not have said this - that it is specifically by a court - and he would have retracted."
+    },
+    {
+     "source_id": "mareh_hapanim",
+     "exact_quote": "והכי אמר התם בדף ק\"ע ע\"ב אי שמיעא ליה לרב הא ברייתא דתניא עדים מקרעין את השטר",
+     "location": "Mareh HaPanim on JT Bava Batra 10:6:2:1",
+     "translation_mine": "My translation: and so it says there, on 170b: 'if Rav had heard this baraita, as taught: witnesses tear up the document'."
+    },
+    {
+     "source_id": "noam_yerushalmi",
+     "exact_quote": "אלו הוה שמע רב הברייתא דלעיל הא הני בכתובות דבי לוי שמי שנמחק שט\"ח מעמיד עליו עדים ובא לב\"ד",
+     "location": "Noam Yerushalmi on Bava Batra 10:6:2",
+     "translation_mine": "My translation (tentative; the sentence is compressed): had Rav heard the baraita above, taught in the Ketubot of Bei Levi, that one whose note was blotted brings witnesses and comes to court..."
+    },
+    {
+     "source_id": "jt_bb_10_6",
+     "exact_quote": "This refers to <a class=\"refLink\" data-ref=\"Jerusalem Talmud Bava Batra 10:5:1\" href=\"/Jerusalem_Talmud_Bava_Batra.10.5.1\">Mishnah 9</a>.",
+     "location": "Guggenheimer English, JT Bava Batra 10:6:2, footnote 83"
+    }
+   ],
+   "reasoning": "Penei Moshe and Mareh HaPanim make the Yerushalmi remark close in content to the Bavli challenge. Noam Yerushalmi and the Guggenheimer note tie Rav's Yerushalmi statement partly to the preceding Mishnah (a blotted or lost note). That makes the parallel looser. I did not resolve this.",
+   "confidence": "medium",
+   "graph_effect": "The parallel link in F07 should carry scope 'related ruling; closeness disputed by commentators'. It is not a verbatim parallel."
+  },
+  {
+   "finding_id": "F10",
+   "claim": "The reason for Rav's requirement follows at 171a:1: a court can reassign property, but witnesses who have done their task cannot do it again. The Aramaic does not say who speaks. The first reading's range ends at 170b:5, so it is unclear whether this is Rav Huna's continued answer or the anonymous Gemara.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "bb171a",
+     "exact_quote": "בשלמא בי דינא אלימי לאפקועי ממונא אלא עדים שעשו שליחותן חוזרין ועושין שליחותן",
+     "location": "Bava Batra 171a:1, Wikisource",
+     "translation_mine": "My translation: Granted, a court is empowered to expropriate money; but witnesses who performed their agency - can they go back and perform their agency again?"
+    },
+    {
+     "source_id": "bb170b",
+     "exact_quote": "While Rabbi Yehuda says in the <i>baraita</i> that the witnesses write a new promissory note, Rav maintains that this must be done specifically by a court. Why is this?",
+     "location": "Bava Batra 170b:5, William Davidson English (all plain, i.e. editor's words)"
+    },
+    {
+     "source_id": "rashbam_171a1",
+     "exact_quote": "אלא עדים שעשו שליחותן - לכתוב ולהעיד בשטר הראשון היאך חוזרין ועושין שליחות אחרת",
+     "location": "Rashbam on 171a:1:2"
+    }
+   ],
+   "reasoning": "The William Davidson editors add 'Why is this?' in plain text. That frames 171a:1 as the reason, without naming a speaker. Rashbam explains its content, also without naming one. The next line, 171a:2 (ולא והא), is a new anonymous challenge. Assigning 171a:1 to Rav Huna would add a speech claim the text does not make.",
+   "confidence": "medium",
+   "graph_effect": "Store 171a:1 as an anonymous (stam) explanation of Rav's view. Do not store it as Rav Huna's speech, and not as Rav's own words. Leave the question open."
+  },
+  {
+   "finding_id": "F11",
+   "claim": "The wider discussion right after this passage has more people, outside the focal segment. Rav Yehuda cites Rav that witnesses may write even ten deeds for one field. Rav Yosef and Rabba give competing answers limiting that statement.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "bb171a",
+     "exact_quote": "ולא והא אמר רב יהודה אמר רב עדים כותבין אפילו עשרה שטרות על שדה אחת",
+     "location": "Bava Batra 171a:2"
+    },
+    {
+     "source_id": "bb171a",
+     "exact_quote": "רב יוסף אמר בשטר מתנה",
+     "location": "Bava Batra 171a:3"
+    },
+    {
+     "source_id": "bb171a",
+     "exact_quote": "ורבה אמר בשטר שאין בו אחריות",
+     "location": "Bava Batra 171a:4"
+    }
+   ],
+   "reasoning": "This is a second transmission from Rav, by Rav Yehuda. It is quoted by the anonymous Gemara as a difficulty. Rav Yosef and Rabba answer the anonymous Gemara's question. They do not address Rav Huna or the challengers.",
+   "confidence": "high",
+   "graph_effect": "Out of focal scope. If the graph is extended to 171a, add reports_in_name_of(Rav Yehuda -> Rav) and two alternative answers (Rav Yosef, Rabba). Do not link them to Rav Huna or the challengers."
+  },
+  {
+   "finding_id": "F12",
+   "claim": "The word ברייתא in 170b:4 is in square brackets in the Wikisource text. Rashbam's and Rabbeinu Gershom's lemmas read הא דתניא without it. Chokhmat Shlomo says it should read הא ברייתא דתניא. This concerns only how the quoted source is named, not who speaks.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "bb170b",
+     "exact_quote": "אי שמיעא ליה לרב הא [ברייתא] דתניא",
+     "location": "Bava Batra 170b:4, Wikisource"
+    },
+    {
+     "source_id": "rashbam_170b4",
+     "exact_quote": "אי שמיע ליה לרב הא דתניא",
+     "location": "Rashbam lemma, 170b:4:1"
+    },
+    {
+     "source_id": "chokhmat_shlomo",
+     "exact_quote": "הא ברייתא דתניא עדים כו' כצ\"ל",
+     "location": "Chokhmat Shlomo on 170b:1",
+     "translation_mine": "My translation: [it should read] 'this baraita that is taught: witnesses...' - so it must read."
+    }
+   ],
+   "reasoning": "The commentary lemmas are a source variant: an older wording of the passage. Chokhmat Shlomo's כצ\"ל is a later proposed emendation. They are different kinds of evidence. In both versions the quoted teaching is a Tannaitic teaching (דתניא).",
+   "confidence": "medium",
+   "graph_effect": "No person-level change. Store the variant and the emendation separately if the textual layer records them."
+  },
+  {
+   "finding_id": "F13",
+   "claim": "Rav Huna's answer claims that Rav knew the baraita and kept his view. That is Rav Huna's report about Rav's knowledge. The text does not say from whom or when Rav heard it.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "bb170b",
+     "exact_quote": "שמיע ליה ולא הדר ביה",
+     "location": "Bava Batra 170b:5, Wikisource"
+    },
+    {
+     "source_id": "gershom_170b11",
+     "exact_quote": "אמר ליה ודאי שמיעא ליה ולא הדר",
+     "location": "Rabbeinu Gershom on 170b:11",
+     "translation_mine": "My translation: he said to him: certainly he heard it, and did not retract."
+    },
+    {
+     "source_id": "intro_tosefta",
+     "exact_quote": "\"שמיע ליה ולא הדר ביה\"",
+     "location": "Introductions to Tannaitic Literature, Introduction to Tosefta 101, citing ב\"ב קע ע\"ב"
+    }
+   ],
+   "reasoning": "The pilot's c11 (Rav heard the baraita) and c12 (Rav did not retract, negative polarity) both use the replier as the voice. That is right. The challenger's conditional ('if Rav had heard') is a counterfactual premise. It is not evidence that Rav had not heard. The reply denies that premise. The Introduction to Tosefta cites this line in a discussion of whether amoraim knew particular baraitot. That is later scholarly use and adds no new person.",
+   "confidence": "high",
+   "graph_effect": "Keep c11/c12 with the replier as the voice. Do not add a transmitter for the hearing. Make the content of the 'retract' statement counterfactual in a structured field (agrees with the earlier review)."
+  },
+  {
+   "finding_id": "F14",
+   "claim": "The patronymic 'bar Abba' supports a child-of relation between Rav Yirmiyah and a father named Abba. That relation exists only in the yirmiya_version branch. The first reading keeps an Abba placeholder there. That is right.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "bb170b",
+     "exact_quote": "רב ירמיה בר אבא",
+     "location": "Bava Batra 170b:4, Wikisource"
+    }
+   ],
+   "reasoning": "Under project rules a patronymic is kinship evidence. Nothing here suggests a title or a non-literal use. The father plays no role and is not identified.",
+   "confidence": "high",
+   "graph_effect": "Keep c13 (branch yirmiya_version) and local placeholder 'abba'. Do not identify Abba with any other Abba."
+  },
+  {
+   "finding_id": "F15",
+   "claim": "The later codes follow Rav's ruling as the Bavli gives it. The Mishneh Torah: the court, not the document's witnesses, writes the new note from the first date, and optionally a receipt. The Shulchan Arukh says the same and cites Rashbam in a gloss. This supports reading Rav's ruling as 'court, not witnesses'. It adds no people to the passage.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "mt_23_15",
+     "exact_quote": "וְכוֹתְבִין לוֹ בֵּית דִּין שְׁטָר אַחֵר בִּשְׁאָר הַחוֹב מִזְּמַן רִאשׁוֹן אֲבָל לֹא עֵדֵי הַשְּׁטָר",
+     "location": "Mishneh Torah, Creditor and Debtor 23:15"
+    },
+    {
+     "source_id": "sa_54_1",
+     "exact_quote": "ויכתבוהו מזמן ראשון",
+     "location": "Shulchan Arukh, Choshen Mishpat 54:1"
+    }
+   ],
+   "reasoning": "The codes come centuries after the passage. They show how the ruling was received. They are not evidence about the speakers.",
+   "confidence": "high",
+   "graph_effect": "None for people. At most a reception note on the ravrule statement."
+  }
+ ],
+ "alternative_readings": [
+  {
+   "topic": "Who challenges Rav Huna (170b:4)",
+   "readings": [
+    {
+     "reading": "Rav Nahman",
+     "held_by": [
+      "Bavli main formulation",
+      "Tosafot and Tosfot HaRosh, who refer only to this name in their discussion"
+     ]
+    },
+    {
+     "reading": "Rav Yirmiyah bar Abba",
+     "held_by": [
+      "Bavli 'and some say' formulation"
+     ]
+    }
+   ],
+   "related_parallel": "The Yerushalmi (Bava Batra 10:6:2) gives a comparable remark to 'Rabbi Yirmiyah' only. Commentators identify him with Rav or Rabbi Yirmiyah bar Abba (F07, F08). This is a parallel tradition, not a Bavli variant.",
+   "status": "open; both branches must stay"
+  },
+  {
+   "topic": "Who gives the reply 'he heard it and did not retract' (170b:5)",
+   "readings": [
+    {
+     "reading": "Rav Huna (the addressee of the challenge)",
+     "held_by": [
+      "William Davidson English and Steinsaltz Hebrew, as editors' explanation (one editorial project)",
+      "Local structure of the exchange"
+     ]
+    },
+    {
+     "reading": "Unnamed speaker",
+     "held_by": [
+      "The Aramaic text",
+      "Soncino ('He said unto him')",
+      "Rashbam and Rabbeinu Gershom, who do not name the replier"
+     ]
+    }
+   ],
+   "status": "Rav Huna is a strong interpretation (high confidence). It is still an interpretation."
+  },
+  {
+   "topic": "What Rav rejects in Rabbi Yehuda's view",
+   "readings": [
+    {
+     "reading": "Rabbi Yehuda lets witnesses re-issue the note from the first date. Rav requires a court, disputing the baraita as a Tanna.",
+     "held_by": [
+      "Rashbam 170b:3-5"
+     ]
+    },
+    {
+     "reading": "Rav (as Rav Nahman understood him) took Rabbi Yehuda to mean a new note from the second date. The baraita shows Rabbi Yehuda meant the first date.",
+     "held_by": [
+      "Tosafot (Ri) 170b:3",
+      "Tosfot HaRosh in Shita Mekubetzet 170b:2 (same line of reasoning)"
+     ]
+    }
+   ],
+   "status": "open at the commentary level; it does not change who speaks"
+  },
+  {
+   "topic": "How close the Yerushalmi parallel is",
+   "readings": [
+    {
+     "reading": "Close parallel to the Bavli baraita challenge",
+     "held_by": [
+      "Mareh HaPanim",
+      "Penei Moshe (the teaching is Rabbi Hiyya's)",
+      "Sha'arei Torat Eretz Yisrael"
+     ]
+    },
+    {
+     "reading": "Rav's Yerushalmi statement tied partly to the blotted or lost-note case",
+     "held_by": [
+      "Noam Yerushalmi",
+      "Guggenheimer note 83 ('This refers to Mishnah 9')"
+     ]
+    }
+   ],
+   "status": "open"
+  },
+  {
+   "topic": "Speaker of the reason at 171a:1",
+   "readings": [
+    {
+     "reading": "Continuation of the replier's answer",
+     "held_by": [
+      "Possible from the William Davidson framing ('Why is this?', plain text)"
+     ]
+    },
+    {
+     "reading": "Anonymous Gemara",
+     "held_by": [
+      "No named speaker in the Aramaic"
+     ]
+    }
+   ],
+   "status": "open"
+  }
+ ],
+ "unresolved": [
+  "No manuscript witnesses or variant apparatus were checked for the names רב נחמן / רב ירמיה בר אבא at 170b:4. Whether some witnesses have only one name, or a different order, is unknown to me.",
+  "Whether the Yerushalmi's רבי ירמיה is the Bavli's רב ירמיה בר אבא. Two commentators say so (F08). That remains a separate identity decision.",
+  "Whether 171a:1 continues the replier's speech or is anonymous (F10).",
+  "The Rosh's treatment of this passage was not located (see sources_checked_without_relevant_content)."
+ ],
+ "proposed_corrections": [
+  {
+   "claim_id": "episode.coverage / episode.needed_context",
+   "change": "Resolve needed_context with the Mishnah at 170b:2. Coverage can become 'complete for 170b:2-5', with 171a:1-5 recommended as the continuation.",
+   "why": "F04"
+  },
+  {
+   "claim_id": "y_rule, yosi_rule",
+   "change": "Relabel from 'absent here' to Rabbi Yehuda: 'the debtor exchanges the note' (יחליף) and Rabbi Yosi: 'write a receipt' (יכתוב שובר), with evidence 170b:2.",
+   "why": "F04"
+  },
+  {
+   "claim_id": "new (Mishnah speech)",
+   "change": "Add a Mishnah speech pair: Rabbi Yehuda objects (אמר רבי יהודה נמצא זה צריך ...), and Rabbi Yosi answers him (אמר לו רבי יוסי). Label it a literary dispute, not evidence of a meeting.",
+   "why": "F04"
+  },
+  {
+   "claim_id": "baraita (entity)",
+   "change": "Add attributed_to(baraita -> Rabbi Yehuda), evidence 171a:5 'דברי רבי יהודה'. Add Rabbi Yosi's opposing baraita statement (שטר זה יהא מונח במקומו ויכתבו שובר). Link the 170b:4 excerpt to the 171a:5 full baraita (the Gemara's own 'מאי ברייתא').",
+   "why": "F03"
+  },
+  {
+   "claim_id": "c7, c10",
+   "change": "Keep. Add a note that the replier is unnamed in the Aramaic, and that 'Rav Huna' comes from editorial plain text or local reading.",
+   "why": "F02"
+  },
+  {
+   "claim_id": "retract (statement), c6, c9",
+   "change": "Give the content statement a structured counterfactual modality, as the earlier review suggested.",
+   "why": "F13"
+  },
+  {
+   "claim_id": "reading_groups.challenger",
+   "change": "Add a cross-text note: the Yerushalmi parallel (JT Bava Batra 10:6:2) names only 'Rabbi Yirmiyah'. It is a parallel tradition, not corroboration of either Bavli branch. Keep historical_compatibility 'unknown'.",
+   "why": "F07, F08"
+  },
+  {
+   "claim_id": "open_questions",
+   "change": "Add: (1) who speaks the reason at 171a:1; (2) whether the Yerushalmi's Rabbi Yirmiyah is Rav Yirmiyah bar Abba. Keep the existing question about whom Rav heard the baraita from.",
+   "why": "F08, F10, F13"
+  },
+  {
+   "claim_id": "c3",
+   "change": "Keep negative rules_like. Point its content role to the Mishnah's words (יחליף), not to a commentator's gloss. The Rashbam and Tosafot readings of what that means stay at the commentary level.",
+   "why": "F05"
+  }
+ ],
+ "review_assessment": [
+  "The earlier review's passes on c1, c2, c5-c10 and c11-c12 hold up against the wider text.",
+  "The earlier review did not notice that the baraita is attributed to Rabbi Yehuda at 171a:5 (F03). It also missed that the Mishnah, with its Rabbi Yehuda-Rabbi Yosi exchange, is on the same amud (F04).",
+  "The earlier review said Rav Huna answers the selected challenger. It did not note that the speaker is unnamed in the Aramaic (F02).",
+  "The earlier review did not check the Yerushalmi parallel. That parallel names only Rabbi Yirmiyah (F07)."
+ ],
+ "ontology_lessons": [
+  "A baraita excerpt quoted without attribution may be given in full, with its Tannaitic attribution, a few lines later ('מאי ברייתא'). The statement node should be linked to that fuller quotation, and the attribution recorded from there. It should not be left unattributed or taken from a translator's plain-text addition.",
+  "A parallel in the other Talmud is a separate literary witness. It should be stored as parallel_tradition linked to a branch. It should not be stored as a variant or as corroboration. It does not decide a Bavli ואמרי לה.",
+  "When a reply is introduced only by אמר ליה, the replier should be stored as an inferred speaker. Where the evidence for the name is an editor's plain text, the record should say so.",
+  "A Mishnah's 'X said ... Y said to him' is a literary speech pair. It should be recorded as a speech claim with a literary-dispute label, not as a scene or meeting.",
+  "A commentator who names only the first alternative (for example, Tosafot's 'רב נחמן') is using a label. That should not count as preferring one branch."
+ ],
+ "notes": [
+  "All translations marked translation_mine are my own and brief.",
+  "William Davidson English is saved with its HTML. Bold words translate the Aramaic; plain words are the editors' explanation.",
+  "No numerical probabilities are assigned. Confidence labels describe the reading, not historical truth."
+ ]
+}

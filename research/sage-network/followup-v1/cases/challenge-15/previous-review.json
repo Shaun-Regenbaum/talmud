@@ -1,0 +1,61 @@
+{
+  "job_id": "challenge-15",
+  "input_sha256": "ab70106843d28911ae705aceae1d4841ae9098f330927a7425d345178a87fbd2",
+  "output_sha256": "8ab7d81c30feb6c896a2fd6f4cbb066be1fec1a0850578a0a66c1b54c3cad04f",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "Berurya is a named person with a spouse claim to Meir.",
+      "claim_ids": [
+        "c1"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "Her objection and request for a prayer of repentance are distinct from the family claim.",
+      "claim_ids": [
+        "c4",
+        "c7"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "The troublesome neighbors, Meir’s revised prayer, and their narrated repentance span all supplied segments.",
+      "claim_ids": [
+        "c2",
+        "c8",
+        "c9",
+        "c10"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "Both Berurya and the unnamed neighbor group remain present.",
+      "claim_ids": [
+        "c1",
+        "c2",
+        "c4",
+        "c7"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "The first event is a prayer seeking death, not an actual death; the note expressly separates the two.",
+      "claim_ids": [
+        "c3"
+      ]
+    }
+  ],
+  "additional_findings": [],
+  "summary": "The woman, neighbors, changed prayer and repentance are preserved with the requested death kept unrealized."
+}

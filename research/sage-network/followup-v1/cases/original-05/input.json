@@ -1,0 +1,235 @@
+{
+  "job_id": "original-05",
+  "focal_ref": "Arakhin 20b:9",
+  "input_lake_snapshot": 2,
+  "original_document": "relation-cases-sources.json",
+  "source": {
+    "ref": "Arakhin 20b:9",
+    "url": "https://www.sefaria.org/Arakhin.20b.9",
+    "api_url": "https://www.sefaria.org/api/texts/Arakhin%2020b%3A9?context=0&pad=0&commentary=0",
+    "hebrew": "איכא דאמרי, אמר ליה רב פפא לאביי, ואמרי לה רמי בר חמא לרב חסדא: כמאן? כרבי מאיר, דאמר: אדם מקדיש דבר שלא בא לעולם? אמר ליה: ואלא כמאן?",
+    "hebrew_sha256": "bd466cc66ba279228333066413a2593e4b407bc2cb4a8090b10ab0c1c220c666",
+    "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+    "hebrew_license": "CC-BY-NC",
+    "english_edition": "William Davidson Edition - English",
+    "pairs": [
+      {
+        "key": "bavli|Arakhin|20b|9|19|27",
+        "ref": "Arakhin 20b:9",
+        "a": "רב פפא",
+        "b": "אביי",
+        "pattern": "ליה [A]  ל[B]",
+        "kind": "asks",
+        "source": "reader",
+        "direction": "AB",
+        "sure": true,
+        "first_pass": {
+          "kind": "addresses",
+          "confidence": 0.74,
+          "p": {
+            "same-man": 0.0,
+            "juxtaposed": 0.01,
+            "teacher": 0.0,
+            "together": 0.01,
+            "follows": 0.01,
+            "explains": 0.01,
+            "addresses": 0.76,
+            "before": 0.0,
+            "alternative": 0.17,
+            "none": 0.02,
+            "cites": 0.0,
+            "one-name": 0.0,
+            "asks": 0.0,
+            "disputes": 0.01,
+            "kin": 0.0
+          }
+        }
+      },
+      {
+        "key": "bavli|Arakhin|20b|9|27|53",
+        "ref": "Arakhin 20b:9",
+        "a": "אביי",
+        "b": "רב חסדא",
+        "pattern": "ל[A] אמרי לה רמי בר חמא ל[B]",
+        "kind": "none",
+        "source": "reader",
+        "direction": "",
+        "sure": true,
+        "first_pass": {
+          "kind": "addresses",
+          "confidence": 0.87,
+          "p": {
+            "same-man": 0.0,
+            "together": 0.0,
+            "teacher": 0.0,
+            "juxtaposed": 0.0,
+            "explains": 0.01,
+            "follows": 0.0,
+            "addresses": 0.89,
+            "before": 0.0,
+            "alternative": 0.06999999999999999,
+            "none": 0.01,
+            "cites": 0.01,
+            "one-name": 0.0,
+            "asks": 0.0,
+            "disputes": 0.01,
+            "kin": 0.0
+          }
+        }
+      },
+      {
+        "key": "bavli|Arakhin|20b|9|53|67",
+        "ref": "Arakhin 20b:9",
+        "a": "רב חסדא",
+        "b": "רבי מאיר",
+        "pattern": "ל[A] כמאן כ[B]",
+        "kind": "follows",
+        "source": "reader",
+        "direction": "AB",
+        "sure": true,
+        "first_pass": {
+          "kind": "addresses",
+          "confidence": 0.47,
+          "p": {
+            "same-man": 0.02,
+            "together": 0.01,
+            "teacher": 0.01,
+            "juxtaposed": 0.01,
+            "explains": 0.05,
+            "follows": 0.07,
+            "addresses": 0.51,
+            "before": 0.01,
+            "alternative": 0.22,
+            "none": 0.05,
+            "cites": 0.01,
+            "one-name": 0.01,
+            "asks": 0.01,
+            "disputes": 0.01,
+            "kin": 0.0
+          }
+        }
+      }
+    ]
+  },
+  "earlier_crosscheck": {
+    "ref": "Arakhin 20b:9",
+    "existing_case_id": "arakhin_question",
+    "review_result": "agree_but_expand_context_and_correct_relation",
+    "sources": [
+      {
+        "ref": "Arakhin 20b:8",
+        "url": "https://www.sefaria.org/Arakhin_20b.8",
+        "api_url": "https://www.sefaria.org/api/texts/Arakhin%2020b?context=0&pad=0&commentary=0",
+        "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+        "translation_edition": "William Davidson Edition - English",
+        "hebrew": "וְהָא אֵין אָדָם מַקְדִּישׁ דָּבָר שֶׁלֹּא בָּא לָעוֹלָם? אָמַר רַב יְהוּדָה אָמַר רַב: הָא מַנִּי? רַבִּי מֵאִיר הִיא, דְּאָמַר: אָדָם מַקְדִּישׁ דָּבָר שֶׁלֹּא בָּא לָעוֹלָם.",
+        "api_hebrew_html_sha256": "a58af8d88b9ea0a88d6fe872c704eeb083e6bfc9705bc796a9aed2ea0a7b6182"
+      },
+      {
+        "ref": "Arakhin 20b:9",
+        "url": "https://www.sefaria.org/Arakhin_20b.9",
+        "api_url": "https://www.sefaria.org/api/texts/Arakhin%2020b?context=0&pad=0&commentary=0",
+        "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+        "translation_edition": "William Davidson Edition - English",
+        "hebrew": "אִיכָּא דְּאָמְרִי, אֲמַר לֵיהּ רַב פָּפָּא לְאַבָּיֵי, וְאָמְרִי לַהּ רָמֵי בַּר חָמָא לְרַב חִסְדָּא: כְּמַאן? כְּרַבִּי מֵאִיר, דְּאָמַר: אָדָם מַקְדִּישׁ דָּבָר שֶׁלֹּא בָּא לָעוֹלָם? אֲמַר לֵיהּ: וְאֶלָּא כְּמַאן?",
+        "api_hebrew_html_sha256": "704584d41cdc560d17f49e611350e92a1d4c00d7a67daf22793547be7b71d792"
+      },
+      {
+        "ref": "Arakhin 20b:10",
+        "url": "https://www.sefaria.org/Arakhin_20b.10",
+        "api_url": "https://www.sefaria.org/api/texts/Arakhin%2020b?context=0&pad=0&commentary=0",
+        "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+        "translation_edition": "William Davidson Edition - English",
+        "hebrew": "וְאִיכָּא דְּמַתְנֵי לַהּ אַהָא, הַמַּשְׂכִּיר בַּיִת לַחֲבֵרוֹ וְנִתְנַגֵּעַ, אַף עַל פִּי שֶׁחֲלָטוֹ כֹּהֵן, אוֹמֵר לוֹ: ״הֲרֵי שֶׁלְּךָ לְפָנֶיךָ״, נְתָצוֹ — חַיָּיב לְהַעֲמִיד לוֹ בַּיִת.",
+        "api_hebrew_html_sha256": "bb0a6059b01e92f46e57be9e1f2e00b647b90ae467c4d708161f65751d9688d5"
+      },
+      {
+        "ref": "Arakhin 21a:4",
+        "url": "https://www.sefaria.org/Arakhin_21a.4",
+        "api_url": "https://www.sefaria.org/api/texts/Arakhin%2021a?context=0&pad=0&commentary=0",
+        "hebrew_edition": "William Davidson Edition - Vocalized Aramaic",
+        "translation_edition": "William Davidson Edition - English",
+        "hebrew": "אָמַר רַב יְהוּדָה אָמַר רַב: הָא מַנִּי? רַבִּי מֵאִיר הִיא, דְּאָמַר: אָדָם מַקְדִּישׁ דָּבָר שֶׁלֹּא בָּא לָעוֹלָם. אִיכָּא דְּאָמְרִי: אֲמַר לֵיהּ רַב פָּפָּא לְאַבָּיֵי, וְאָמְרִי לַהּ רַב מָרִי בַּר חָמָא לְרַב חִסְדָּא: כְּמַאן? כְּרַבִּי מֵאִיר, דְּאָמַר: אָדָם מַקְדִּישׁ דָּבָר שֶׁלֹּא בָּא לָעוֹלָם? אֲמַר לֵיהּ: וְאֶלָּא כְּמַאן?!",
+        "api_hebrew_html_sha256": "c77b8ab065a2d0b97001ccfc624dfdac05e9abac6b1d026ecbbd2de6e0f76aef"
+      }
+    ],
+    "context_read": [
+      "Arakhin 20b:2-10",
+      "Arakhin 21a:1-5",
+      "Rashi on Arakhin 20b:8-10"
+    ],
+    "finding": "The discussion identifies the opinion behind a baraita about consecrating future sale proceeds. It does not say that Rav Hisda generally follows Rabbi Meir. The alternatives have more than one scope.",
+    "claims_to_keep": [
+      {
+        "subject": "Rav Yehuda",
+        "relation": "reports_in_name_of",
+        "object": "Rav",
+        "scope": "20b:8 attribution version"
+      },
+      {
+        "subject": "Rav’s reported statement",
+        "relation": "attributes_legal_position_to",
+        "object": "Rabbi Meir",
+        "scope": "20b:8",
+        "content": "The baraita permits consecration of something that does not yet exist."
+      },
+      {
+        "subject": "Rav Pappa",
+        "relation": "asks",
+        "object": "Abaye",
+        "scope": "20b:9 conversation version A"
+      },
+      {
+        "subject": "Rami bar Hama",
+        "relation": "asks",
+        "object": "Rav Hisda",
+        "scope": "20b:9 conversation version B"
+      },
+      {
+        "subject": "The question in either conversation version",
+        "relation": "proposes_attribution_to",
+        "object": "Rabbi Meir’s legal position"
+      },
+      {
+        "subject": "The respondent’s reply",
+        "relation": "confirms_attribution",
+        "object": "The baraita’s association with Rabbi Meir",
+        "status": "grammatical_reading",
+        "role_binding": "Abaye in version A; Rav Hisda in version B is the natural parallel reading."
+      }
+    ],
+    "alternative_scopes": [
+      {
+        "marker": "איכא דאמרי",
+        "scope": "20b:9 presents the discussion as an exchange, following the attributed statement in 20b:8."
+      },
+      {
+        "marker": "ואמרי לה",
+        "scope": "Within the exchange, the names of the questioner and respondent change."
+      },
+      {
+        "marker": "ואיכא דמתני לה אהא",
+        "scope": "20b:10 places the discussion against a different baraita; it is repeated at 21a:4."
+      }
+    ],
+    "agreement": "The existing report is right to preserve both speaker pairs and reject the old unqualified Hisda-follows-Meir edge.",
+    "correction": "The problem is the kind and scope of the claim, not only the speaker. In the natural version-B reading, Hisda’s reply does confirm the attribution to Meir. That is still not a ruling like Meir or a personal allegiance. Record reply roles within each version, and retain the translation’s choice of Abaye as a separate rendering.",
+    "translation_note": "The Davidson translation names Abaye in the reply. The Hebrew has only אמר ליה. It does not repeat a proper name there.",
+    "text_variation_note": "The fetched Hebrew at 21a:4 prints רב מרי בר חמא where 20b:9 has רמי בר חמא. Preserve the exact forms and check the identity before merging them.",
+    "uncertainty": {
+      "speaker_pairs": "clear",
+      "reply_role": "strong_grammatical_reading_with_translation_difference",
+      "outer_variant_scope": "visible_in_context",
+      "parallel_name_identity": "unresolved",
+      "actual_meetings": "not_established"
+    },
+    "episode": {
+      "kind": "halachic",
+      "form": "alternate_reports_of_legal_discussion"
+    },
+    "unresolved_scope": [
+      "No manuscript collation was done.",
+      "The repeated discussion at 21a:4 is not counted as an independent historical witness."
+    ]
+  }
+}

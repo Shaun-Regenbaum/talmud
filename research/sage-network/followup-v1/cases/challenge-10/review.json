@@ -1,0 +1,72 @@
+{
+  "job_id": "challenge-10",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "7ffebfa762f819f91dd902a20911136fded80cd6172e31bb1a5446d23b7f3f5b",
+  "historical_graph_eligible": false,
+  "scope": "I checked every dossier quotation against its saved file in sources/ (all text quotes were found), re-read the Munich 95 and Bomberg images myself for the five visual readings, and read the context around Menachot 29a:15-29b:8, Maharsha, Ben Yehoyada, both Ein Yaakov texts and the Community Translation; I did not consult other manuscripts, variant apparatus or academic studies, and I fetched nothing new.",
+  "findings": [
+    {
+      "target": "A2 / F6 / proposed correction c13 (who 'reached one matter')",
+      "decision": "correct_evidence_for_branch",
+      "reason": "Maharsha should not be listed as support for the 'class reached' branch. In his gloss the plural 'כיון שהגיעו לדבר אחד דהיינו מסופן לראשן עד הא'' has the letters of his alphabet allegory as its subject: the reading runs backwards until it reaches alef. It is not the students or the class. He also does not quote this as a heading, which the dossier itself notes. So the plural branch rests on Bomberg alone among the witnesses checked. Keep the branch, but drop Maharsha from its supporters, or list him only as commentary wording."
+    },
+    {
+      "target": "A2 / F6 (singular witnesses omitted)",
+      "decision": "add_missing_witnesses",
+      "reason": "The singular 'שהגיע' has more support than the dossier lists. The Glick Ein Yaakov Hebrew has it ('תשש כחו כיון שהגיע לדבר אחד'). By my own reading of the image, Munich 95 line 5 also has 'שהגיע', ending in ayin with no final vav, before 'לדבר'. The Glick English has 'until they reached', but that is the translator's choice and not a text variant. The singular branch should list men29b, Daat Ein Yaakov, Glick Hebrew and Munich 95 (visual). The plural branch should list Bomberg (visual) only."
+    },
+    {
+      "target": "c11 (Moses's strength waned) / F14 / unresolved item 1",
+      "decision": "add_manuscript_evidence_item",
+      "reason": "The dossier left 'of Moses' after 'תשש כחו' in Munich 95 as unreadable and proposed no change to c11. In the zoomed image I read line 5 as 'תשש כחו של משה כיון שהגיע'. The words 'של משה' are fairly clear, though the join of 'כחו' and 'של' is cramped. So c11 should get the same treatment the dossier gives c16: printed text basis = coreference (the pronoun in 'כחו'), plus a separate evidence item typed as a visual manuscript reading that names Moses. Confidence is medium, since this is one visual reading and not a transcription."
+    },
+    {
+      "target": "c23 (weighers) / F9 / A6",
+      "decision": "qualify",
+      "reason": "'ראה ששוקלין בשרו במקולין' uses a plural participle with no subject. In Hebrew this can be an impersonal 'his flesh was being weighed', and Glick in fact renders it as a passive: 'his flesh is being marketed'. The dossier is right to forbid a Roman agent, but it keeps c23 as a group taking part in the scene with basis 'explicit'. The text states the weighing, not a group of people. Keep 'weighers' only as an unnamed grammatical subject that may be impersonal. It should not become a group entity with identity or membership."
+    },
+    {
+      "target": "F3 (where the title 'Rabbi Akiva' appears)",
+      "decision": "correct_scope_of_statement",
+      "reason": "F3 says 'Rabbi Akiva' appears only in the William Davidson English and Steinsaltz. The saved files show two more editorial insertions. The Community Translation adds '[of students in Rabbi Akiva's Beit Midrash]' in 29b:4, and Glick adds '(R. Akiba and his associates)' and 'replied R. Akiba'. The conclusion still holds, since the Hebrew of 29b:3-5 never gives the title and the teacher of 29b:4 is unnamed. But the list should name all four translation layers, typed as translation, not text."
+    },
+    {
+      "target": "A1 / F5 (eight or eighteen rows)",
+      "decision": "keep_evidence_types_separate",
+      "reason": "The 'eighteen' column should not be read as three votes. Ben Yehoyada's words are 'כן הגירסא בעין יעקב', a report of the Ein Yaakov, and the Daat Ein Yaakov's '(עֶשְׂרֵה)' comes from the same Ein Yaakov line. Seder HaDorot is a later paraphrase whose source is not stated. Munich 95 is the only manuscript, and I confirm its reading 'שמונה עשר שורות'. Ben Yehoyada then builds a letter count on this reading (ayin is the nineteenth letter, with eighteen before it). His report counts as a reported edition reading, not as support for his own interpretation. No person or edge changes."
+    },
+    {
+      "target": "F12 (what kind of scene the classroom is)",
+      "decision": "qualify",
+      "reason": "The graph effect is right: no co-presence, and no Moses–Akiva teaching edge. But the wording 'God says turn back' is not what marks the scene as a showing. The marking words are Moses's request 'הראהו לי' and his later 'הראיתני תורתו הראני שכרו'. 'חזור לאחורך' is only a spatial instruction. The only time statement in the passage is God's 'בסוף כמה דורות'. It should stay a relative time claim inside a prediction voiced by God in Rav's report, never a date. 'All three readings agree they do not share a historical time' describes the commentators. It is not something the passage states."
+    },
+    {
+      "target": "F14 / proposed correction on added mentions",
+      "decision": "support_with_additions",
+      "reason": "The twelve-turn speech count is correct: c5, c8, c18, c20 and c24 are Moses to God; c6, c9, c19, c21 and c25 are God to Moses; c13 and c14 are the classroom exchange. The added mentions are right. The list should also include 'ע\"י' (Moses), which F14's reasoning names but the correction leaves out, and 'שמו' (Akiva). It should include the vocative 'רבי' as the students' address to the unnamed teacher, a title of address and not part of a name. It should also include 'לי' and 'הראיתני/הראני' for Moses, and 'ידך' and 'לפני' for God."
+    },
+    {
+      "target": "F1, F2, F4, F7, F8, F9, F10, F11, F13, F15 and proposed corrections c2, c10, c12, c14, c15, c16, c21, c22",
+      "decision": "support_proposed_correction",
+      "reason": "These hold on the sources. The chain 'אמר רב יהודה אמר רב' governs 29b:3-5. The 29a:17 quote points at the first of the three chain uses in that segment, the thorn-of-yod ruling, although 29a:18-29b:2 comes in between, so 'just before' is loose. Yosef stays as a local parent in 'ועקיבא בן יוסף שמו'. 'הלכה למשה מסיני' is a source attribution, and Rashi's 'ומשמו אומר' is citation, not hearing. The Romans are editorial. Shabbat 89a (Rabbi Yehoshua ben Levi) and Berakhot 61b (the angels) are separate tellings whose speakers are not imported. The soul-root claims are not kinship."
+    }
+  ],
+  "quote_checks": [
+    {"source_id": "men29b", "exact_quote": "אמר רב יהודה אמר רב בשעה שעלה משה למרום", "matches_claim": true, "note": "Wikisource 29b:3 opens the story with this chain; 29b:6 moves on to Rava, so the chain governs 29b:3-5."},
+    {"source_id": "men29b", "exact_quote": "אדם אחד יש שעתיד להיות בסוף כמה דורות ועקיבא בן יוסף שמו", "matches_claim": true, "note": "Patronymic present inside God's answer; no title 'Rabbi'. Supports c2 as literal kinship scoped to this prediction, with Yosef as local placeholder."},
+    {"source_id": "men29b", "exact_quote": "כיון שהגיע לדבר אחד אמרו לו תלמידיו רבי מנין לך אמר להן הלכה למשה מסיני נתיישבה דעתו", "matches_claim": true, "note": "Wikisource 29b:4: the teacher is unnamed; 'דעתו' has no stated owner. Supports F4 and F7 as coreference-based."},
+    {"source_id": "rashi", "exact_quote": "נתיישבה דעתו - של משה הואיל ומשמו אומר אע\"פ שעדיין לא קיבלה:", "matches_claim": true, "note": "Rashi 29b:4:2 resolves 'his mind' to Moses and frames the answer as citation in his name; commentary evidence type only."},
+    {"source_id": "maharsha", "exact_quote": "כיון שהגיעו לדבר אחד דהיינו מסופן לראשן עד הא' שהוא מורה על אחד", "matches_claim": false, "note": "The quote is exact, but in context the plural subject is the backward reading of the letters in Maharsha's allegory ('ח' שורות א\"ב ... למפרע'). It is not the class. It does not support the 'class reached' branch in A2."},
+    {"source_id": "ein_yaakov_glick", "exact_quote": "תשש כחו כיון שהגיע לדבר אחד אמרו לו תלמידיו רבי מניין לך", "matches_claim": true, "note": "Found by the reviewer in the saved Glick Hebrew. It is a singular witness that the dossier's A2 omits."},
+    {"source_id": "ben_yehoyada", "exact_quote": "הָלַךְ וְיָשַׁב לְסוֹף שְׁמוֹנֶה עֶשְׂרֵה שׁוּרוֹת.</b> כן הגירסא בעין יעקב.", "matches_claim": true, "note": "A report of an Ein Yaakov reading, followed at once by his own count of letters. It is not an independent witness from the Daat Ein Yaakov line."},
+    {"source_id": "munich95_834", "exact_quote": "[א'] רב יהודה א' רב בשעה שע[לה]", "matches_claim": true, "note": "researcher_visual_reading_of_page_image. CONFIRMED by my own reading of the crop: 'רב יהודה' is written with רב, and 'א' רב בשעה שעל' follows."},
+    {"source_id": "munich95_834", "exact_quote": "שמונה עשר שורות ולא היה יודע מה הם או'", "matches_claim": true, "note": "researcher_visual_reading_of_page_image. CONFIRMED: line 5 clearly begins 'שמונה עשר שורות ולא היה יודע'."},
+    {"source_id": "munich95_834", "exact_quote": "כיון ששמע משה כך נתישבה דעתו", "matches_claim": true, "note": "researcher_visual_reading_of_page_image. PARTLY CONFIRMED: 'כיון' ends line 5, and line 6 reads '...שמע משה כך נתישבה דעתו'. The first letters of 'ששמע' are cramped. Moses is named."},
+    {"source_id": "munich95_834", "exact_quote": "א\"ל חזור לאחוריך חזר לאחוריו וראה שהין שוקלין בשרו במקולין", "matches_claim": true, "note": "researcher_visual_reading_of_page_image. CONFIRMED for 'חזור לאחוריך חזר לאחוריו וראה'. I cannot tell 'שהין' from 'שהיו'; the reader's own notes.md has 'שהיו'. No person effect."},
+    {"source_id": "munich95_834", "exact_quote": "תשש כחו של משה כיון שהגיע", "matches_claim": false, "note": "My own visual reading, which the dossier lacks. The dossier said 'of Moses' could not be read confidently. I read 'של משה' after 'כחו' and a singular 'שהגיע'. Medium confidence; see the c11 and A2 findings."},
+    {"source_id": "bomberg", "exact_quote": "תשש כחו כיון שהגיעו לדבר אחד אמרו לו תלמידיו רבי מנין לך", "matches_claim": true, "note": "researcher_visual_reading_of_page_image. CONFIRMED on bomberg_men29b_crop_story.jpg: plural 'שהגיעו', and line 1 of the crop reads 'בסוף שמונה שורות ולא היה יודע מה הן או''."},
+    {"source_id": "men29b", "exact_quote": "and saw that they were flaying his flesh with [iron] combs.", "matches_claim": true, "note": "Community Translation 29b:5; the same version also inserts '[of students in Rabbi Akiva's Beit Midrash]' in 29b:4, which F3's 'only' statement misses."}
+  ],
+  "extra_sources": []
+}

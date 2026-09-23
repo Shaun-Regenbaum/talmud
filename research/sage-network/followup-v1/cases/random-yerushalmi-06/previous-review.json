@@ -1,0 +1,128 @@
+{
+  "job_id": "random-yerushalmi-06",
+  "input_sha256": "d0678aa78c8cd4dd79c89c9fbd9310a8e30d25ee1b63c73c29f07fcb51dcf60b",
+  "output_sha256": "085cda926f8d40b2c8bd36e3e1e30e9d47829bcfbec0bd5196f8b15a5dc3da18",
+  "checks": [
+    {
+      "kind": "source",
+      "index": 0,
+      "status": "pass",
+      "reason": "Bava Kamma 9:7:2 retains the dying wife, her husband and her daughter. Her ownership statement is her claim, and the daughter is not automatically made the husband’s child.",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c9",
+        "c10",
+        "c11",
+        "c12"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 1,
+      "status": "pass",
+      "reason": "The case coming before Rav is not converted into a personal visit by the wife or husband. Rav’s principle is linked as support without inventing an explicit transfer judgment.",
+      "claim_ids": [
+        "c13",
+        "c14",
+        "c15"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 2,
+      "status": "pass",
+      "reason": "Generic family examples remain hypothetical. Yirmeya and Yose ben Hanina share the house ruling, while the later unqualified Yose remains a separate possible identity.",
+      "claim_ids": [
+        "c17",
+        "c18",
+        "c19",
+        "c20",
+        "c21",
+        "c22",
+        "c23"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 3,
+      "status": "miss",
+      "reason": "In 9:7:1 the lost-deposit and stolen-deposit cases have different testimony and repayment outcomes. Only the first demand, lost answer and oath are extracted; the second case and repayment differences are absent.",
+      "claim_ids": [
+        "c24",
+        "c25",
+        "c26",
+        "c27"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 4,
+      "status": "miss",
+      "reason": "In 9:7:2 the no-deposit rule and the different returns to a woman, husband, slave, master, minor and father are not recorded as obligations, although those people have entities.",
+      "claim_ids": [
+        "c21",
+        "c22"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 5,
+      "status": "miss",
+      "reason": "The father-and-son vow in 9:8:1 has different inheritance outcomes depending on its wording. Only their hypothetical kinship is extracted from that segment.",
+      "claim_ids": [
+        "c23"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "major",
+      "type": "omission",
+      "claim_ids": [
+        "c24",
+        "c25",
+        "c26",
+        "c27"
+      ],
+      "reason": "The stolen-deposit answer, testimony, double payment and contrasting voluntary-confession payments in 9:7:1 are missing. The extracted lost-deposit exchange does not represent the second legal case.",
+      "source_refs": [
+        "Jerusalem Talmud Bava Kamma 9:7:1"
+      ]
+    },
+    {
+      "severity": "major",
+      "type": "omission",
+      "claim_ids": [
+        "c21",
+        "c22"
+      ],
+      "reason": "The deposit rules in 9:7:2 are mostly an entity list without the stated obligations: refusal to accept, returns during life or after death, and the instruction to preserve value for the minor.",
+      "source_refs": [
+        "Jerusalem Talmud Bava Kamma 9:7:2"
+      ]
+    },
+    {
+      "severity": "major",
+      "type": "omission",
+      "claim_ids": [
+        "c23"
+      ],
+      "reason": "The different inheritance outcomes and redistribution instructions in 9:8:1 are absent as claims. The later house and asset rules do not replace this father-and-son case.",
+      "source_refs": [
+        "Jerusalem Talmud Bava Kamma 9:8:1"
+      ]
+    },
+    {
+      "severity": "minor",
+      "type": "omission",
+      "claim_ids": [],
+      "reason": "Repeated names are not fully anchored: Yirmeya’s second named occurrence in 9:8:2 lacks a mention. The second deposit case also has no separate depositor/keeper occurrence records.",
+      "source_refs": [
+        "Jerusalem Talmud Bava Kamma 9:8:2",
+        "Jerusalem Talmud Bava Kamma 9:7:1"
+      ]
+    }
+  ],
+  "summary": "The named household story is careful and preserves uncertainty. Large parts of the supplied legal cases are absent despite the complete-for-supplied-text label."
+}

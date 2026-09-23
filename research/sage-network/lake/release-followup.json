@@ -1,0 +1,22 @@
+{
+  "lake": "sage_network",
+  "snapshot": 3,
+  "catalogue_slug": "talmud/sage-network-lake",
+  "catalogue_version": 4,
+  "run_id": "baa36a16d6e114427aef56cf69f1a258584487ba161e8ec88586019636c641ac",
+  "contract": "source-investigation-v1",
+  "data_path": "s3://prophex-lake/sage_network/",
+  "index_copy": "s3://prophex-lake/index/sage_network/snapshot-000003.duckdb",
+  "index_sha256": "38ea633219cd12f5e2eaba376794247ae19cf5997bb01d5d207f5ce50f8b1a2e",
+  "source_sha256": "9fa83132cf42f8c04ce46f55d56e20255c8bbec9fb976523981688fa98d2d904",
+  "verified_tables": 29,
+  "unchanged_earlier_tables": 23,
+  "new_tables": 6,
+  "cases": 38,
+  "reviewed_cases": 37,
+  "findings": 572,
+  "checked_quotations": 2231,
+  "stored_files": 1786,
+  "provisional": true,
+  "historical_graph_eligible": false
+}

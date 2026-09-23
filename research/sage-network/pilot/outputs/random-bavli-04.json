@@ -1,0 +1,336 @@
+{
+  "schema_version": "passage-pilot-v1",
+  "job_id": "random-bavli-04",
+  "episode": {
+    "genre": "halachic",
+    "genre_reason": "The passage argues about legal rules.",
+    "form": "Legal argument and attributed teachings",
+    "coverage": "needs_context",
+    "needed_context": [
+      "The preceding exchange on Pesachim 44b is needed to identify the speaker and addressee of אמר ליה and the Nazirite rule recalled in s3.",
+      "The continuation is needed for the answer to the question about the rabbis."
+    ],
+    "notes": [
+      "Pronouns in s3–s4 refer to sacrificial flesh, not sages. The Nazirite and sin-offering are legal topics, not two teachers."
+    ]
+  },
+  "mentions": [
+    {
+      "id": "m1",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "אמר",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m2",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ליה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m3",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "רבנן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m4",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "מאי היא",
+        "occurrence": 1
+      }
+    }
+  ],
+  "entities": [
+    {
+      "id": "speaker",
+      "kind": "person",
+      "label": "Unnamed speaker",
+      "mention_ids": [
+        "m1"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "recipient",
+      "kind": "person",
+      "label": "Unnamed addressee",
+      "mention_ids": [
+        "m2"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ליה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "rabbis",
+      "kind": "group",
+      "label": "The rabbis",
+      "mention_ids": [
+        "m3"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "רבנן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "anon",
+      "kind": "group",
+      "label": "Unnamed voice posing the follow-up questions",
+      "mention_ids": [
+        "m4"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "מאי היא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "two_texts",
+      "kind": "statement",
+      "label": "The Nazirite and sin-offering are two texts stating the same rule and do not teach a general rule",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "משום דהוה נזיר וחטאת שני כתובין הבאין כאחד ואין מלמדין",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "absorption",
+      "kind": "statement",
+      "label": "Sanctification through contact with sin-offering flesh requires absorption",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "עד שיבלע בבשר",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "consequence",
+      "kind": "statement",
+      "label": "Absorbed flesh follows the invalidity or stricter eating rules of the sin-offering",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "יקדש להיות כמוה שאם פסולה היא תיפסל ואם כשירה היא תאכל כחמור שבה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "rabbis_question",
+      "kind": "statement",
+      "label": "Why the rabbis do not also apply the two-text rule",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "ורבנן נמי ניהוי נזיר וחטאת שני כתובין הבאין כאחד ואין מלמדין",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "family": "speech",
+      "predicate": "addresses",
+      "subject": "speaker",
+      "object": "recipient",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "two_texts"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר ליה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c2",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "speaker",
+      "object": "two_texts",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "משום דהוה נזיר וחטאת שני כתובין הבאין כאחד ואין מלמדין",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c3",
+      "family": "views",
+      "predicate": "explains",
+      "subject": "anon",
+      "object": "absorption",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "נזיר הא דאמרן חטאת מאי היא דתניא כל אשר יגע בבשרה יקדש וגו׳ יכול אפילו לא בלעה תלמוד לומר בבשרה (יקדש) עד שיבלע בבשר",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The cited teaching is anonymous."
+      ]
+    },
+    {
+      "id": "c4",
+      "family": "views",
+      "predicate": "explains",
+      "subject": "anon",
+      "object": "absorption",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "consequence"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "יקדש להיות כמוה שאם פסולה היא תיפסל ואם כשירה היא תאכל כחמור שבה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c5",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "anon",
+      "object": "rabbis_question",
+      "roles": [
+        {
+          "role": "target",
+          "entity": "rabbis"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "ורבנן נמי ניהוי נזיר וחטאת שני כתובין הבאין כאחד ואין מלמדין",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "A challenge about the rabbis’ view, not a report of addressing them in person."
+      ]
+    }
+  ],
+  "reading_groups": [],
+  "coreference_candidates": [],
+  "open_questions": []
+}

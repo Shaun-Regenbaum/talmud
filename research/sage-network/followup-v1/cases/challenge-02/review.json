@@ -1,0 +1,136 @@
+{
+  "job_id": "challenge-02",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "bf6bd5c0fa410e23956363e6dd61a9213dcd8da9e831744fd0df45c1cb11c28c",
+  "historical_graph_eligible": false,
+  "scope": "I checked every dossier quotation against the saved sources in sources/ (all text quotes are present), read the surrounding words for the findings and corrections that touch people, speakers, stances or groups (23b:2, 24a:2-14, 24b:1, Rashi, Tosafot, Rashba, Rabbeinu Gershom, Rosh, Kessef Mishneh, Arukh, Jastrow, Soncino, Meiri, Shulchan Arukh), and re-read the relevant lines of the Munich 95 image myself; I fetched nothing new and did not consult Ritva, the Avodah Zarah parallel, Obermeyer or a published variant apparatus.",
+  "findings": [
+    {
+      "target": "F05 (and alternative_readings 'force of the לימא question', reading.md 'Force of the question')",
+      "decision": "qualify",
+      "reason": "Tosafot does turn the question into a challenge ('פי' והא רבא אית ליה לעיל דר' חנינא'). Rashba says something different: his words 'ולאו דחויי קא מדחי ליה, דודאי רבא כרבי חנינא סבירא ליה' are about the answer (it is not a mere deflection) and assert that Rava holds Rabbi Hanina's rule. They do not describe the question as a contradiction. Rabbeinu Gershom belongs in the same camp ('שאני התם. לעולם רבא סבר לה כר' חנינא') and is missing. Record the Rashba and Gershom positions as commentary interpretation that Rava holds the rule, kept apart from Tosafot's reading of the question's force."
+    },
+    {
+      "target": "F05 claim wording 'He then withdrew an earlier objection' and proposed context claim",
+      "decision": "qualify",
+      "reason": "At 24a:8 the retraction comes from the anonymous discussion answering its own difficulty: 'והא רבא הוא דקאמר ... הדר ביה רבא מההיא'. Rashba also reports it as the Talmud's answer ('ואקשינן ... ואמרינן הדר ביה רבא מההיא'). The text does not narrate an act of retraction by Rava, and it gives no order of events. If graphed, 'Rava retracted his 24a:3 view' takes the anonymous_discussion voice and is marked as a harmonising answer. The claim 'Rava holds majority over proximity' (24a:5, Rava's own quoted voice) stays as proposed."
+    },
+    {
+      "target": "F06 and ontology_lessons ('Rejected לימא claims ... with no residual stance')",
+      "decision": "qualify",
+      "reason": "The two rejected questions do not mirror each other in what they leave behind. Ravina's answer at 24a:13 ('דאי מיגניב מינה אצנועי בגויה לא מצנעי') has nothing to do with majority, so his stance stays open. Rava's answer re-grounds his ruling in a majority ('שאני התם דרובא | דשפוכאי ישראל נינהו'), which fits Rabbi Hanina's rule rather than being neutral about it. Also, at 24a:11 a rejected לימא ends with an asserted stance in the anonymous voice: 'לא דכולי עלמא אית להו דר' חנינא' (Rav and Shmuel both hold it). So c3 stays question/rejected and no 'Rava agrees with Hanina' edge comes from 24a:14's text. But the general lesson 'no residual stance' is too broad and should be dropped or limited to cases like Ravina's."
+    },
+    {
+      "target": "F13 (Munich 95 visual reading) and entity winepourers (m4)",
+      "decision": "keep_evidence_types_separate",
+      "reason": "I re-read the image. I confirm the case and the question, roughly '…זיקי דחמר׳ דאשתכחו בי קופ[אי] שרינהו רב[א] לימ׳ דלא סבר לה לר׳ חנינ׳ שאני הת׳'. The name looks more like רבא than רבה, but I cannot settle it. Where the dossier wrote 'דרוב[א] … ישר׳ נינהו' with an ellipsis, I read 'דרוב ישר׳ נינהו והנ\"מ … אבל', and there is no visible room for 'דשפוכאי' before the next line's 'זוטרי אימור מעוברי דרכ׳ נפול'. My reading is low confidence and proves nothing. Still, it means the 'wine pourers' group should be scoped to the printed text and to the commentaries quoting it (Rashi, Rashba, Rosh, Kessef Mishneh lemma), with a flag that one manuscript may read only 'the majority are Jews'. That flag stays until a proper transcription is checked. Do not delete the group."
+    },
+    {
+      "target": "F05 proposed context claims from 24a:3-5 (missing addressee and citations)",
+      "decision": "add_missing_claim",
+      "reason": "If the 24a:3-8 exchange enters the graph as context, 24a:3 opens 'א\"ל רבא', so the addressee is marked. 'Him' points back to Abaye, who spoke just before in 24a:2 ('אמר אביי'). The dossier mentions Abaye only as a wider-context name. At 24a:4-5 Rava also cites two earlier teachings: Rabbi Hiyya's baraita ('דתני ר' חייא') and Rabbi Zeira ('וש\"מ איתא לדר' זירא'). The dossier's added claim names only Rabbi Hiyya. These are citation claims only, never student_of or a meeting, and they stay scoped to 24a:3-5, not to the focal case."
+    },
+    {
+      "target": "F02, F03 and proposed corrections c4 / c1",
+      "decision": "support_proposed_correction",
+      "reason": "The answer does cross the page break: 24a:14 ends 'שאני התם דרובא' and 24b:1 begins 'דשפוכאי ישראל נינהו'. The question and answer carry no speaker. 'שרנהו רבא' is a narrated ruling that gives no words or reason. The Rosh's 'שרא ליה רבא אע\"ג דרובא דעלמא עובדי כוכבים נינהו רובא דשפוכאי ישראל נינהו' is a later retelling that folds the reason into the ruling, and it should stay a separate evidence type. The William Davidson English also supplies words the Aramaic lacks: 'Rava' as the subject of לימא, 'of a Jew', and 'unconcerned ... gentile'. Treat those as translation, not text."
+    },
+    {
+      "target": "F07 and entity site (m6)",
+      "decision": "qualify",
+      "reason": "I support turning the locator into a two-branch entity with no place node. Two points are narrower than the dossier puts them. Rambam's own words ('מקום שהיו רוב מוכרי היין בו ישראלים') never name Bei Kofa'ei, and Kessef Mishneh hedges ('ונראה שרבינו מפרש בי קופאי שם מקום'), so Rambam belongs in the toponym branch only as Kessef Mishneh's guess. Tosafot reports the Arukh's view and fits it to the argument ('ובכהאי גוונא היה דהוה קורבא דמוכח') without adopting it. The Arukh's extra variant 'ס\"א עד בי כיפי פי' גשר' belongs to the cited escort story, not to this passage."
+    },
+    {
+      "target": "F12 (variant quotations)",
+      "decision": "correct_occurrence",
+      "reason": "The quotes 'Ms. F.' and 'Ms. M.' do appear in Jastrow, but on their own they carry none of the reported readings. The evidence should quote 'B. Bath. 24ᵃ בי ק׳ (Ms. F. קַפָּאֵי)' and 'B. Bath. 24ᵇ אימור באברוו׳ הוו מנחי Ms. M. (ed. באברו׳)'. Rashba's heading adds a further commentary wording, 'לא שאני התם'. None of this changes people or speakers, and all of it stays reported-reading or commentary-citation evidence, not manuscript text."
+    },
+    {
+      "target": "F04, F10, F14, F15, F16",
+      "decision": "support_with_note",
+      "reason": "Checked and supported. Rabbi Hanina's rule sits at 23b:2 ('אמר רבי חנינא רוב וקרוב הולכין אחר הרוב'). The label should rest on those words only, because the next clause ('ואע\"ג דרובא דאורייתא ... רובא עדיף') may be the anonymous discussion. Gershom's first explanation forbids the small skins ('אסירי') and his alternative permits them ('ל\"מ ... אפי' דזוטרי מותרין ... והכי עיקר'). Kessef Mishneh does weigh a vessels-only reading and then reject it. The Sotah 46b people stay out of this graph. There are still no patronymic names in the focal segments."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "bb24a",
+      "exact_quote": "הנהו זיקי דחמרא דאשתכחן בי קופאי שרנהו רבא",
+      "matches_claim": true,
+      "note": "24a:14 Wikisource. A narrated ruling with no quoted words or reason; it supports F01 and c1 as a case ruling."
+    },
+    {
+      "source_id": "bb24a",
+      "exact_quote": "שאני התם דרובא",
+      "matches_claim": true,
+      "note": "End of 24a:14. With 24b:1 'דשפוכאי ישראל נינהו' it makes the whole majority answer (F03). This is the right occurrence; the earlier 'שאני התם' at 24a:13 belongs to Ravina's case."
+    },
+    {
+      "source_id": "bb23b",
+      "exact_quote": "אמר רבי חנינא רוב וקרוב הולכין אחר הרוב",
+      "matches_claim": true,
+      "note": "23b:2, the first statement of the Gemara section. The following clause 'ואע\"ג דרובא דאורייתא וקורבא דאורייתא אפילו הכי רובא עדיף' may not be Hanina's own words."
+    },
+    {
+      "source_id": "bb24a",
+      "exact_quote": "והא רבא הוא דקאמר רוב ומצוי ליכא למ\"ד הדר ביה רבא מההיא",
+      "matches_claim": true,
+      "note": "24a:8. The quote is accurate, but the retraction is asserted by the anonymous discussion answering its own objection, not narrated as Rava's act. F05's wording needs that voice."
+    },
+    {
+      "source_id": "rashba",
+      "exact_quote": "ולאו דחויי קא מדחי ליה, דודאי רבא כרבי חנינא סבירא ליה",
+      "matches_claim": false,
+      "note": "Present in the saved Rashba text on this case. It says the answer is not a mere deflection and that Rava holds Hanina's rule. It does not say the question is a contradiction, which is Tosafot's point."
+    },
+    {
+      "source_id": "tosafot",
+      "exact_quote": "לימא רבא לית ליה דר' חנינא. פי' והא רבא אית ליה לעיל דר' חנינא",
+      "matches_claim": true,
+      "note": "Supports reading the question as a challenge (Tosafot's interpretation). The heading is also a commentary citation that names Rava."
+    },
+    {
+      "source_id": "gershom_24a",
+      "exact_quote": "שאני התם. לעולם רבא סבר לה כר' חנינא",
+      "matches_claim": true,
+      "note": "Not used by the dossier for this point. It shows Gershom also reads the answer as saying that Rava holds Hanina's rule. This is an omission from F05 and from the alternative readings."
+    },
+    {
+      "source_id": "bb24a",
+      "exact_quote": "א\"ל רבא רוב ומצוי קא אמרת רוב ומצוי ליכא למאן דאמר",
+      "matches_claim": true,
+      "note": "24a:3. The addressee is marked by 'ליה', pointing back to Abaye at 24a:2 ('אמר אביי'). The dossier leaves it out of its 24a:3 reference."
+    },
+    {
+      "source_id": "bb24a",
+      "exact_quote": "לא דכולי עלמא אית להו דר' חנינא",
+      "matches_claim": false,
+      "note": "24a:11. A rejected לימא that ends with an asserted stance in the anonymous voice. It contradicts the ontology lesson that rejected לימא questions leave 'no residual stance'."
+    },
+    {
+      "source_id": "munich95",
+      "exact_quote": "…זיקי דחמרא דאשתכחו בי קופאי שרינהו רבא לימא דלא סבר לה לר' חנינא שאני התם דרוב[א] … ישר' נינהו והנ\"מ …",
+      "matches_claim": true,
+      "note": "Researcher visual reading, which I checked in the image (right column, about y 1500-1540 px). Confirmed at low confidence: the case, 'שרינהו', a name that looks like רבא (I cannot rule out רבה), and 'לימ׳ דלא סבר לה לר׳ חנינ׳ שאני הת׳'. Where the dossier has an ellipsis I read 'דרוב ישר׳ נינהו והנ\"מ … אבל' with no visible 'דשפוכאי'; the next line begins 'זוטרי אימור מעוברי דרכ׳ נפול'. I read something slightly different there, also at low confidence."
+    },
+    {
+      "source_id": "gershom_24b",
+      "exact_quote": "ל\"מ. ואי איכא רברבי בינייהו. אפי' דזוטרי מותרין",
+      "matches_claim": true,
+      "note": "The alternative explanation. It follows the first explanation 'ואי איכא רברבי ואשכח זוטרי בהדייהו אסירי', and the section ends 'והכי עיקר', so F10 is right."
+    },
+    {
+      "source_id": "kesef",
+      "exact_quote": "ונראה שרבינו מפרש בי קופאי שם מקום וכ\"כ התוס' בשם הערוך",
+      "matches_claim": true,
+      "note": "Accurate, but hedged ('ונראה'). The toponym reading is Kessef Mishneh's inference about Rambam, not Rambam's own words."
+    },
+    {
+      "source_id": "jastrow_kofa",
+      "exact_quote": "B. Bath. 24ᵃ בי ק׳ (Ms. F. קַפָּאֵי) between the trunks of vines",
+      "matches_claim": true,
+      "note": "The fuller quote needed for F12. The dossier's 'Ms. F.' alone does not carry the reported reading."
+    }
+  ],
+  "extra_sources": []
+}

@@ -1,0 +1,1286 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-04",
+    "episode": {
+      "genre": "halachic",
+      "genre_reason": "The passage reports a document ruling and a challenge to its support.",
+      "form": "Teaching chain and exchange with alternative challenger",
+      "coverage": "needs_context",
+      "needed_context": [
+        "The earlier Mishnah is needed for the actual rules of Rabbi Yehuda and Rabbi Yosi."
+      ],
+      "notes": []
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב הונא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "אמר רב אין",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רבי יהודה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רבי יוסי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "רב נחמן",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "רב ירמיה בר אבא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "אבא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ב\"ד",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "עדים",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m10",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "לו",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "huna",
+        "kind": "person",
+        "label": "Rav Huna",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב הונא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "rav",
+        "kind": "person",
+        "label": "Rav",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר רב אין",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "yehuda",
+        "kind": "person",
+        "label": "Rabbi Yehuda",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבי יהודה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "yosi",
+        "kind": "person",
+        "label": "Rabbi Yosi",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבי יוסי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "nachman",
+        "kind": "person",
+        "label": "Rav Nahman",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רב נחמן",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "yirmiya",
+        "kind": "person",
+        "label": "Rav Yirmiya son of Abba",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רב ירמיה בר אבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "abba",
+        "kind": "person",
+        "label": "Abba in the patronymic",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "court",
+        "kind": "group",
+        "label": "The court",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ב\"ד",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "witnesses",
+        "kind": "group",
+        "label": "Witnesses in the baraita",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "עדים",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "recipient",
+        "kind": "person",
+        "label": "Recipient of the replacement document",
+        "mention_ids": [
+          "m10"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "לו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "ravrule",
+        "kind": "statement",
+        "label": "The court tears the document and writes a replacement with the original date",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אלא ב\"ד מקרעין השטר וכותבין לו שטר אחר מזמן ראשון",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "y_rule",
+        "kind": "statement",
+        "label": "Rabbi Yehuda’s rule, absent here",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "כרבי יהודה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "yosi_rule",
+        "kind": "statement",
+        "label": "Rabbi Yosi’s rule, absent here",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "כרבי יוסי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "baraita",
+        "kind": "statement",
+        "label": "Witnesses tear the document and write a replacement with the original date",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "עדים מקרעין את השטר וכותבין לו שטר אחר מזמן ראשון",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "retract",
+        "kind": "statement",
+        "label": "If Rav had heard this baraita he would have retracted",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אי שמיעא ליה לרב הא [ברייתא] דתניא עדים מקרעין את השטר וכותבין לו שטר אחר מזמן ראשון הוה הדר ביה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "reply",
+        "kind": "statement",
+        "label": "Rav heard it and did not retract",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "שמיע ליה ולא הדר ביה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "hearing",
+        "kind": "event",
+        "label": "Rav hearing the baraita",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "שמיע ליה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "retraction",
+        "kind": "event",
+        "label": "Rav retracting his ruling",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "הדר ביה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "transmission",
+        "predicate": "reports_in_name_of",
+        "subject": "huna",
+        "object": "rav",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר רב הונא אמר רב",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "rav",
+        "object": "ravrule",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר רב אין הלכה לא כרבי יהודה ולא כרבי יוסי אלא ב\"ד מקרעין השטר וכותבין לו שטר אחר מזמן ראשון",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "huna",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "views",
+        "predicate": "rules_like",
+        "subject": "rav",
+        "object": "yehuda",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "y_rule"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אין הלכה לא כרבי יהודה ולא כרבי יוסי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "huna",
+        "polarity": "negative",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c4",
+        "family": "views",
+        "predicate": "rules_like",
+        "subject": "rav",
+        "object": "yosi",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "yosi_rule"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אין הלכה לא כרבי יהודה ולא כרבי יוסי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "huna",
+        "polarity": "negative",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "nachman",
+        "object": "huna",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "retract"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר ליה רב נחמן לרב הונא ואמרי לה רב ירמיה בר אבא לרב הונא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "nachman_version"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "speech",
+        "predicate": "objects_to",
+        "subject": "nachman",
+        "object": "ravrule",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "huna"
+          },
+          {
+            "role": "support",
+            "entity": "baraita"
+          },
+          {
+            "role": "content",
+            "entity": "retract"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אי שמיעא ליה לרב הא [ברייתא] דתניא עדים מקרעין את השטר וכותבין לו שטר אחר מזמן ראשון הוה הדר ביה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "nachman_version"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The speech occurs, but the claim about retraction is conditional."
+        ]
+      },
+      {
+        "id": "c7",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "huna",
+        "object": "retract",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "nachman"
+          },
+          {
+            "role": "content",
+            "entity": "reply"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמר ליה שמיע ליה ולא הדר ביה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "nachman_version"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c8",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "yirmiya",
+        "object": "huna",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "retract"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר ליה רב נחמן לרב הונא ואמרי לה רב ירמיה בר אבא לרב הונא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "yirmiya_version"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c9",
+        "family": "speech",
+        "predicate": "objects_to",
+        "subject": "yirmiya",
+        "object": "ravrule",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "huna"
+          },
+          {
+            "role": "support",
+            "entity": "baraita"
+          },
+          {
+            "role": "content",
+            "entity": "retract"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אי שמיעא ליה לרב הא [ברייתא] דתניא עדים מקרעין את השטר וכותבין לו שטר אחר מזמן ראשון הוה הדר ביה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "yirmiya_version"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The speech occurs, but the claim about retraction is conditional."
+        ]
+      },
+      {
+        "id": "c10",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "huna",
+        "object": "retract",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "yirmiya"
+          },
+          {
+            "role": "content",
+            "entity": "reply"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אמר ליה שמיע ליה ולא הדר ביה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "yirmiya_version"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c11",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "rav",
+        "object": "hearing",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "baraita"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "שמיע ליה ולא הדר ביה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "huna",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "heard_baraita",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c12",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "rav",
+        "object": "retraction",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "שמיע ליה ולא הדר ביה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "huna",
+        "polarity": "negative",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "retracted",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c13",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "yirmiya",
+        "object": "abba",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רב ירמיה בר אבא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "yirmiya_version"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      }
+    ],
+    "reading_groups": [
+      {
+        "id": "challenger",
+        "kind": "reported_alternatives",
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "אמר ליה רב נחמן לרב הונא ואמרי לה רב ירמיה בר אבא לרב הונא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          {
+            "id": "nachman_version",
+            "label": "Nahman challenges Huna"
+          },
+          {
+            "id": "yirmiya_version",
+            "label": "Yirmiya son of Abba challenges Huna"
+          }
+        ],
+        "historical_compatibility": "unknown",
+        "scope": "Identity of the challenger and the reply’s recipient.",
+        "rejoin": "The claim about Rav having heard without retracting is shared.",
+        "notes": []
+      }
+    ],
+    "coreference_candidates": [],
+    "open_questions": [
+      "The text says Rav heard the baraita, but does not name whom he heard it from."
+    ]
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "רב הונא",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 8,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "אמר רב אין",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 16,
+      "end": 26,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "רבי יהודה",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 36,
+      "end": 45,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s1",
+      "quote": "רבי יוסי",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 51,
+      "end": 59,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s2",
+      "quote": "רב נחמן",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 8,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s2",
+      "quote": "רב ירמיה בר אבא",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 34,
+      "end": 49,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s2",
+      "quote": "אבא",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 46,
+      "end": 49,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s1",
+      "quote": "ב\"ד",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 64,
+      "end": 67,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s2",
+      "quote": "עדים",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 94,
+      "end": 98,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m10/anchor",
+      "source_id": "s1",
+      "quote": "לו",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 88,
+      "end": 90,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/huna/evidence/0",
+      "source_id": "s1",
+      "quote": "רב הונא",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 8,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/rav/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר רב אין",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 16,
+      "end": 26,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yehuda/evidence/0",
+      "source_id": "s1",
+      "quote": "רבי יהודה",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 36,
+      "end": 45,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yosi/evidence/0",
+      "source_id": "s1",
+      "quote": "רבי יוסי",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 51,
+      "end": 59,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/nachman/evidence/0",
+      "source_id": "s2",
+      "quote": "רב נחמן",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 8,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yirmiya/evidence/0",
+      "source_id": "s2",
+      "quote": "רב ירמיה בר אבא",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 34,
+      "end": 49,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/abba/evidence/0",
+      "source_id": "s2",
+      "quote": "אבא",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 46,
+      "end": 49,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/court/evidence/0",
+      "source_id": "s1",
+      "quote": "ב\"ד",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 64,
+      "end": 67,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/witnesses/evidence/0",
+      "source_id": "s2",
+      "quote": "עדים",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 94,
+      "end": 98,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/recipient/evidence/0",
+      "source_id": "s1",
+      "quote": "לו",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 88,
+      "end": 90,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/ravrule/evidence/0",
+      "source_id": "s1",
+      "quote": "אלא ב\"ד מקרעין השטר וכותבין לו שטר אחר מזמן ראשון",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 60,
+      "end": 109,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/y_rule/evidence/0",
+      "source_id": "s1",
+      "quote": "כרבי יהודה",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 35,
+      "end": 45,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yosi_rule/evidence/0",
+      "source_id": "s1",
+      "quote": "כרבי יוסי",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 50,
+      "end": 59,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/baraita/evidence/0",
+      "source_id": "s2",
+      "quote": "עדים מקרעין את השטר וכותבין לו שטר אחר מזמן ראשון",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 94,
+      "end": 143,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/retract/evidence/0",
+      "source_id": "s2",
+      "quote": "אי שמיעא ליה לרב הא [ברייתא] דתניא עדים מקרעין את השטר וכותבין לו שטר אחר מזמן ראשון הוה הדר ביה",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 59,
+      "end": 155,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/reply/evidence/0",
+      "source_id": "s3",
+      "quote": "שמיע ליה ולא הדר ביה",
+      "occurrence": 1,
+      "source_sha256": "8a38640a7591867986ff8132ee9c0ba7a621a348c2d9109368e8cff1309638e3",
+      "start": 8,
+      "end": 28,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/hearing/evidence/0",
+      "source_id": "s3",
+      "quote": "שמיע ליה",
+      "occurrence": 1,
+      "source_sha256": "8a38640a7591867986ff8132ee9c0ba7a621a348c2d9109368e8cff1309638e3",
+      "start": 8,
+      "end": 16,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/retraction/evidence/0",
+      "source_id": "s3",
+      "quote": "הדר ביה",
+      "occurrence": 1,
+      "source_sha256": "8a38640a7591867986ff8132ee9c0ba7a621a348c2d9109368e8cff1309638e3",
+      "start": 21,
+      "end": 28,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר רב הונא אמר רב",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 4,
+      "end": 22,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר רב אין הלכה לא כרבי יהודה ולא כרבי יוסי אלא ב\"ד מקרעין השטר וכותבין לו שטר אחר מזמן ראשון",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 16,
+      "end": 109,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "אין הלכה לא כרבי יהודה ולא כרבי יוסי",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 23,
+      "end": 59,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s1",
+      "quote": "אין הלכה לא כרבי יהודה ולא כרבי יוסי",
+      "occurrence": 1,
+      "source_sha256": "4984ebed93521529660b44d328554dabb4eb7d1744979e23ccc57ba835620e47",
+      "start": 23,
+      "end": 59,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר ליה רב נחמן לרב הונא ואמרי לה רב ירמיה בר אבא לרב הונא",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 0,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s2",
+      "quote": "אי שמיעא ליה לרב הא [ברייתא] דתניא עדים מקרעין את השטר וכותבין לו שטר אחר מזמן ראשון הוה הדר ביה",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 59,
+      "end": 155,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s3",
+      "quote": "אמר ליה שמיע ליה ולא הדר ביה",
+      "occurrence": 1,
+      "source_sha256": "8a38640a7591867986ff8132ee9c0ba7a621a348c2d9109368e8cff1309638e3",
+      "start": 0,
+      "end": 28,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר ליה רב נחמן לרב הונא ואמרי לה רב ירמיה בר אבא לרב הונא",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 0,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s2",
+      "quote": "אי שמיעא ליה לרב הא [ברייתא] דתניא עדים מקרעין את השטר וכותבין לו שטר אחר מזמן ראשון הוה הדר ביה",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 59,
+      "end": 155,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s3",
+      "quote": "אמר ליה שמיע ליה ולא הדר ביה",
+      "occurrence": 1,
+      "source_sha256": "8a38640a7591867986ff8132ee9c0ba7a621a348c2d9109368e8cff1309638e3",
+      "start": 0,
+      "end": 28,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c11/evidence/0",
+      "source_id": "s3",
+      "quote": "שמיע ליה ולא הדר ביה",
+      "occurrence": 1,
+      "source_sha256": "8a38640a7591867986ff8132ee9c0ba7a621a348c2d9109368e8cff1309638e3",
+      "start": 8,
+      "end": 28,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c12/evidence/0",
+      "source_id": "s3",
+      "quote": "שמיע ליה ולא הדר ביה",
+      "occurrence": 1,
+      "source_sha256": "8a38640a7591867986ff8132ee9c0ba7a621a348c2d9109368e8cff1309638e3",
+      "start": 8,
+      "end": 28,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c13/evidence/0",
+      "source_id": "s2",
+      "quote": "רב ירמיה בר אבא",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 34,
+      "end": 49,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "reading_groups/challenger/evidence/0",
+      "source_id": "s2",
+      "quote": "אמר ליה רב נחמן לרב הונא ואמרי לה רב ירמיה בר אבא לרב הונא",
+      "occurrence": 1,
+      "source_sha256": "1dfd9fe6e2187fa2317ce2c74c19ad5ef6b30eb13e14c487614a543ed648ab90",
+      "start": 0,
+      "end": 58,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "2eff8370f04fc1914ffff06aa173014ae001270cffa491d903660833b85a230f",
+  "output_sha256": "b5b13025203ff94212616294a35c92451e6e7ea38369791b715c537a03eddeaa",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.298980+00:00"
+}

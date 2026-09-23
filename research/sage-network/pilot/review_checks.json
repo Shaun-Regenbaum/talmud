@@ -1,0 +1,688 @@
+{
+  "schema_version": 1,
+  "status": "provisional_automated_review_rubric",
+  "notice": "This is a provisional automated review rubric, not human gold. It summarizes earlier proposed readings and three independent peer checks. It has not been validated as a complete or error-free account of the passages.",
+  "purpose": "Check whether an independently produced extraction preserves the difficult features in thirty selected cases. These cases are a challenge set, not a random accuracy sample.",
+  "review_input": {
+    "path": "research/sage-network/data/checkpoint/ontology-review-data.json",
+    "sha256": "27f38f98818077f681409a5973d397f0f72bd61be1bfdb8efe4daec5a01132cd",
+    "created_at_utc": "2026-09-22T10:36:03+00:00",
+    "peer_check_created_at_utc": "2026-09-22T10:17:21+00:00"
+  },
+  "ontology_input": {
+    "path": "research/sage-network/plan/relationship-ontology.md",
+    "sha256": "1a35f4b0a7745c7a38759f31fffcd1b7acb0b42695706ce76b34c192a92505b2"
+  },
+  "use_rules": [
+    "Judge meaning, supported roles and uncertainty. Do not require these exact English words, transliterations, relation names or record layout.",
+    "Must-preserve entries describe textual reports. They do not require accepting the reports as historical facts.",
+    "A stated relationship, a character’s claim, a question, a prediction and a completed narrated event must remain distinguishable.",
+    "Unresolved-not-scored entries are open questions or limits. Do not mark a preferred resolution correct or its alternatives wrong. Mark false certainty as a mistake where it erases these limits.",
+    "Additional supported claims are allowed. An omission from this checklist is not evidence that a claim is false.",
+    "An automated pass is provisional and needs source review before becoming a graph decision. Keep missed checks, uncertain judgments and incomplete extractions visible.",
+    "Do not send this rubric or the earlier proposed claims to the independent passage extractor. Use source text as its evidence; use this file afterwards for review.",
+    "No future extraction output was read to prepare this rubric. Source references and quotes come from the saved review and its recorded peer fixes."
+  ],
+  "case_count": 30,
+  "cases": [
+    {
+      "id": "editorial-negation",
+      "ref": "Sanhedrin 101a:6",
+      "source_refs": [
+        "Sanhedrin 101a:5",
+        "Sanhedrin 101a:6"
+      ],
+      "must_preserve": [
+        "Keep the parentheses in אמר רב הונא (אין) הלכה כר' יוסי and bind positive and negative rulings to separate readings of that one span.",
+        "Keep לא אמרה אלא משום סכנה as a restriction of Rabbi Yose’s stated reason to danger, not a denial of his prohibition.",
+        "Separate the legal ruling from the story of Rav Yitzhak bar Yosef being swallowed into a cedar and released when it splits.",
+        "If recording the reviewed commentary evidence, retain Yad Ramah’s affirmative reading as support for omitting the negation. Identify it as a commentary reading, not a manuscript finding."
+      ],
+      "must_avoid": [
+        "Do not settle the ruling by deleting punctuation or copying the translation’s positive wording as the only Hebrew reading.",
+        "Do not call the cedar the original danger. The explanation that it protected him belongs to the attributed commentary reading."
+      ],
+      "unresolved_not_scored": [
+        "What editorial instruction does the parenthesized אין carry in the underlying print source?",
+        "Which textual witnesses omit or retain אין without editorial parentheses?",
+        "Yad Ramah and the English interpretation support the positive ruling. This is support for a reading, not a manuscript collation or proof of what the local parentheses mean.",
+        "The two polarity readings do not have equal recorded support, but the local edition’s parenthesis convention remains unestablished."
+      ]
+    },
+    {
+      "id": "question-withdrawn",
+      "ref": "Bava Batra 24a:14",
+      "source_refs": [
+        "Bava Batra 24a:14",
+        "Bava Batra 24b:1"
+      ],
+      "must_preserve": [
+        "Keep Rava’s permission for the found wine separate from the discussion’s question לימא לא סבר לה לדרבי חנינא.",
+        "Link the proposed disagreement to its answer beginning שאני התם דרובא. Include Bava Batra 24b:1, where the answer continues across the page break.",
+        "Mark the proposed disagreement as answered by distinguishing the case, rather than an accepted disagreement between Rava and Rabbi Hanina."
+      ],
+      "must_avoid": [
+        "Do not create a settled person-to-person disputes claim from the question.",
+        "Do not treat the end of 24a as the end of the answer."
+      ],
+      "unresolved_not_scored": [
+        "Does a downstream graph need an issue-specific compatibility claim, or is saving the question and answer sufficient? No person-to-person disagreement follows here."
+      ]
+    },
+    {
+      "id": "hypothetical-concession",
+      "ref": "Bava Batra 152b:7",
+      "source_refs": [
+        "Bava Batra 152b:4",
+        "Bava Batra 152b:5",
+        "Bava Batra 152b:6",
+        "Bava Batra 152b:7",
+        "Bava Batra 152b:8"
+      ],
+      "must_preserve": [
+        "Keep Rav’s ruling that the first recipient acquires and Shmuel’s ruling that the second acquires as views about the described gifts.",
+        "Mark both אימא מודה ליה concessions as imagined possibilities in the discussion, with the conditions that motivate them.",
+        "Record בסורא מתנו הכי בפומבדיתא מתנו הכי as a regional difference in how the teaching is reported, with its extent left open beyond the saved introduction."
+      ],
+      "must_avoid": [
+        "Do not turn either imagined concession into actual agreement or a retraction.",
+        "Do not combine the Sura and Pumbedita reports into one settled sequence before their extent is checked."
+      ],
+      "unresolved_not_scored": [
+        "How far does each regional version extend? The five saved segments only introduce the Pumbedita version."
+      ]
+    },
+    {
+      "id": "counterfactual-retraction",
+      "ref": "Bava Batra 170b:4",
+      "source_refs": [
+        "Bava Batra 170b:3",
+        "Bava Batra 170b:4",
+        "Bava Batra 170b:5"
+      ],
+      "must_preserve": [
+        "Keep Rav Huna’s report of Rav’s ruling separate from the later conversation with Rav Huna.",
+        "Give the challenger role to Rav Nachman in one report and Rav Yirmeya bar Abba in the other. Rav Huna remains the addressee.",
+        "Keep אי שמיעא ליה ... הוה הדר ביה conditional: the challenger says Rav would retract if he heard the baraita.",
+        "Record the reply שמיע ליה ולא הדר ביה as Rav Huna’s assertion that Rav heard it and did not retract, with the reply linked to the selected challenger."
+      ],
+      "must_avoid": [
+        "Do not report Rav’s retraction as an event.",
+        "Do not put Rav in the conversation or treat the two challenger versions as two independent replies."
+      ],
+      "unresolved_not_scored": [
+        "The reply is naturally shared by the two speaker versions, supported by Davidson’s reading. Preserve that scope as an interpretation rather than two independently attested replies."
+      ]
+    },
+    {
+      "id": "reversed-conversation",
+      "ref": "Menachot 62a:12",
+      "source_refs": [
+        "Menachot 62a:11",
+        "Menachot 62a:12",
+        "Menachot 62a:13"
+      ],
+      "must_preserve": [
+        "Keep two role assignments: Rav Hisda speaks to Rav Hamnuna in the first report; Rav Hamnuna speaks to Rav Hisda in the other.",
+        "Bind the explanation רבי לטעמיה דאמר על בסמוך to the speaker selected by each branch. A stored explanation must not have an unbound speaker.",
+        "Keep Rabbi’s ruling as the teaching being explained, separate from the Hisda/Hamnuna conversation.",
+        "Keep the supporting baraita introduced by דתניא, without settling whether it continues the quoted explanation or belongs to the surrounding discussion."
+      ],
+      "must_avoid": [
+        "Do not turn the alternate directions into one ordinary two-way exchange.",
+        "Do not place Rabbi in the conversation or assign the same unqualified explanation to both speakers."
+      ],
+      "unresolved_not_scored": [
+        "The title רבי is expanded to Rabbi Yehuda HaNasi in Davidson. That identification should remain attached to this interpretation and the nearby baraita, not become a global rule for the token.",
+        "The boundary of the quoted explanation before the supporting baraita is not fixed by דתניא alone."
+      ]
+    },
+    {
+      "id": "alternate-explanations",
+      "ref": "Menachot 73b:16",
+      "source_refs": [
+        "Menachot 73b:12",
+        "Menachot 73b:13",
+        "Menachot 73b:14",
+        "Menachot 73b:15",
+        "Menachot 73b:16"
+      ],
+      "must_preserve": [
+        "Keep the proposed alignment with Rabbi Yose HaGelili separate from the proposed alignment with Rabbi Akiva.",
+        "Keep סמי מההיא יין as the reading change required by the Rabbi Yose HaGelili solution.",
+        "Keep עולה וכל חבירתה as the explanation required by the Rabbi Akiva solution. These are offered solutions within one argument."
+      ],
+      "must_avoid": [
+        "Do not treat the alternatives as two independent witnesses proving the baraita’s author.",
+        "Do not turn the two solutions into a conversation or unconditional agreement between the named people."
+      ],
+      "unresolved_not_scored": [
+        "The instruction סמי directs a reading change. Which manuscript or earlier baraita text independently supports it remains unchecked."
+      ]
+    },
+    {
+      "id": "nested-name-split",
+      "ref": "Sanhedrin 36a:6",
+      "source_refs": [
+        "Sanhedrin 36a:5",
+        "Sanhedrin 36a:6",
+        "Sanhedrin 36a:7"
+      ],
+      "must_preserve": [
+        "Preserve the complete names רבה בריה דרבא and רבי הלל בריה דרבי וולס, their embedded father mentions, and their child-to-parent claims.",
+        "Give the explanation of voting order to Rabba son of Rava in one report and Rabbi Hillel son of Rabbi Valles in the other.",
+        "Keep Rav’s report אנא הואי במניינא דבי רבי separate from the later attributed explanation of that court’s practice."
+      ],
+      "must_avoid": [
+        "Do not cut either complete name into unrelated speakers or assign the son’s explanation to his father.",
+        "Do not infer that the alternate explainers were contemporaries or both attended Rav’s reported court scene."
+      ],
+      "unresolved_not_scored": [
+        "Whether the two named explainers belong near each other in time cannot be learned from their alternate attribution here.",
+        "Identifying each occurrence of רבי needs local mention resolution."
+      ]
+    },
+    {
+      "id": "kinship-alternatives",
+      "ref": "Chagigah 3a:4",
+      "source_refs": [
+        "Chagigah 3a:3",
+        "Chagigah 3a:4",
+        "Chagigah 3a:5"
+      ],
+      "must_preserve": [
+        "Represent the two unnamed learners as two local members of an unnamed pair. Each learner, not the group itself, is a son in the stated family path.",
+        "In בני ברתיה, retain the unnamed daughter and the path from each learner through her to Rabbi Yohanan ben Gudgeda.",
+        "In בני אחתיה, retain the unnamed sister and the path from each learner through her to Rabbi Yohanan. Keep that family path within its own branch.",
+        "Keep attendance at the study hall and Rabbi’s prayer shared across both family readings. Preserve the plural קמייהו without replacing it with a certain singular addressee."
+      ],
+      "must_avoid": [
+        "Do not make the unnamed pair one biological child or invent personal names for its members.",
+        "Do not combine daughter and sister into one unconditional family tree.",
+        "Do not attach attendance and prayer only to one family reading or merge every Rabbi Yohanan mention globally."
+      ],
+      "unresolved_not_scored": [
+        "Davidson expands the short Rabbi Yohanan to ben Gudgeda in the second branch. Preserve this supported local reading as a candidate, not a merge of every Rabbi Yohanan mention.",
+        "The text refers to a pair; individual unnamed person records need only local identifiers and must not invent distinguishing names.",
+        "The plural קמייהו does not by itself establish one named person as the sole object of sitting before."
+      ]
+    },
+    {
+      "id": "quotation-inside-objection",
+      "ref": "Sanhedrin 59b:12",
+      "source_refs": [
+        "Sanhedrin 59b:10",
+        "Sanhedrin 59b:11",
+        "Sanhedrin 59b:12"
+      ],
+      "must_preserve": [
+        "Keep Rav Oshaya’s objection directed at the implication that Keturah’s descendants would be exempt.",
+        "Preserve the alternative attribution of the cited interpretation to Rabbi Yose bar Avin or Rabbi Yose bar Hanina.",
+        "Keep the interpretation לרבות בני קטורה attached to the verse and its selected author, while leaving the ownership of the surrounding האמר citation open."
+      ],
+      "must_avoid": [
+        "Do not turn the objection and citation into a meeting between Rav Oshaya and either attributed author.",
+        "Do not silently decide whether the citation is Rav Oshaya’s own support or an anonymous answer."
+      ],
+      "unresolved_not_scored": [
+        "Does האמר introduce Rav Oshaya’s own supporting citation or an anonymous answer? Davidson presents it as an answer; the unpunctuated local Hebrew should keep that speaker boundary visible."
+      ]
+    },
+    {
+      "id": "vision-and-transmission",
+      "ref": "Menachot 29b:3",
+      "source_refs": [
+        "Menachot 29b:3",
+        "Menachot 29b:4",
+        "Menachot 29b:5"
+      ],
+      "must_preserve": [
+        "Keep Rav Yehuda’s report in Rav’s name outside the story’s speech and events.",
+        "Keep Moses’ observation of Akiva’s future class within the story’s extraordinary showing of later generations.",
+        "Keep the unnamed students’ question addressed to Akiva and Akiva’s answer הלכה למשה מסיני as an attribution of tradition.",
+        "Track Moses, the divine speaker, Akiva and the students in their own story roles, without confusing them with the reporting sages."
+      ],
+      "must_avoid": [
+        "Do not infer a historical meeting, ordinary student relationship, or overlapping lifetimes for Moses and Akiva.",
+        "Do not turn אמר רב יהודה אמר רב into proof of direct hearing or an automatic birth/death order."
+      ],
+      "unresolved_not_scored": [
+        "The local source depicts future generations and an extraordinary showing. Its narrative form cannot establish historical co-presence.",
+        "Does the project want biblical figures and divine speakers as full graph nodes or typed local participants? Either design must prevent them from being misclassified as ordinary sage meetings."
+      ]
+    },
+    {
+      "id": "disciple-colleague",
+      "ref": "Berakhot 27b:3",
+      "source_refs": [
+        "Berakhot 27a:15",
+        "Berakhot 27a:16",
+        "Berakhot 27a:17",
+        "Berakhot 27b:1",
+        "Berakhot 27b:2",
+        "Berakhot 27b:3"
+      ],
+      "must_preserve": [
+        "Keep Rabbi Yirmeya bar Abba’s תלמיד חבר relationship to Rav as the specific disciple-colleague role, supported by the surrounding question.",
+        "Keep Rabbi Yirmeya bar Abba asking Rav מי בדלת and Rav answering אין בדילנא as separate directed speech turns.",
+        "Keep ולא אמר מי בדיל מר as a denial that the formal wording was used, not a denial that the exchange happened."
+      ],
+      "must_avoid": [
+        "Do not reduce disciple-colleague to an ordinary student link that loses the colleague role.",
+        "Do not count the explicitly unsaid formal question as an actual utterance or invent dates for the relationship."
+      ],
+      "unresolved_not_scored": [
+        "How long did this disciple-colleague relation hold? No start or end date is supplied.",
+        "The colloquial question and the formal wording explicitly not said must be represented differently."
+      ]
+    },
+    {
+      "id": "alternate-participant-name",
+      "ref": "Sanhedrin 97a:6",
+      "source_refs": [
+        "Sanhedrin 97a:6",
+        "Sanhedrin 97a:7"
+      ],
+      "must_preserve": [
+        "Keep Rava as the person reporting a certain sage’s story, with that sage named Rav Tavut in one version and Rav Tavyomei in the other.",
+        "Resolve the first-person marriage and parenthood statements inside that sage’s quotation, not to Rava.",
+        "Retain the unnamed wife and two sons, and distinguish the reported family events from the later reported deaths.",
+        "Apply the story’s family and event claims to the participant selected by each naming branch."
+      ],
+      "must_avoid": [
+        "Do not assign the quoted speaker’s wife and sons to Rava.",
+        "Do not merge all Rav Tavut and Rav Tavyomei mentions globally or count the two names as two people sharing this scene."
+      ],
+      "unresolved_not_scored": [
+        "Do the name variants represent spellings, alternate identifications, or different transmitters’ reports? This passage alone does not decide.",
+        "The story’s causal claim about falsehood and death is part of the story, not independent historical evidence."
+      ]
+    },
+    {
+      "id": "sick-visitor",
+      "ref": "Berakhot 5b:10",
+      "source_refs": [
+        "Berakhot 5b:10"
+      ],
+      "must_preserve": [
+        "Keep Rabbi Hiyya bar Abba as the ill person and Rabbi Yohanan as his visitor.",
+        "Resolve the changing אמר ליה turns: Yohanan asks about suffering; Hiyya answers לא הן ולא שכרן; Yohanan asks for his hand.",
+        "Keep the giving of the hand and Yohanan’s raising of Hiyya as actions in the visit, distinct from the dialogue."
+      ],
+      "must_avoid": [
+        "Do not assign every repeated אמר ליה to one speaker or reverse patient and visitor.",
+        "Do not turn the depicted recovery into independent proof of how recovery occurred."
+      ],
+      "unresolved_not_scored": [
+        "The repeated אמר ליה changes speaker. These turns need explicit mention links. The passage depicts recovery; it does not independently establish how recovery occurred."
+      ]
+    },
+    {
+      "id": "wine-visitors",
+      "ref": "Berakhot 5b:17",
+      "source_refs": [
+        "Berakhot 5b:17",
+        "Berakhot 5b:18",
+        "Berakhot 5b:19",
+        "Berakhot 5b:20"
+      ],
+      "must_preserve": [
+        "Keep the visiting group as Rav Yehuda and sages in one report, and Rav Adda bar Ahava and sages in the other.",
+        "Within the first visitor report, preserve Rav Yehuda’s sibling relationship to Rav Sala the Pious. The brother is part of his description.",
+        "Track the visiting group addressing Rav Huna and Rav Huna’s undertaking to give the sharecropper his share.",
+        "Keep a separate outcome choice: vinegar becomes wine, or vinegar rises to wine’s price. Do not bind either outcome to one visitor report without evidence."
+      ],
+      "must_avoid": [
+        "Do not make Rav Sala a visitor simply because his name identifies his brother.",
+        "Do not combine both named visitors into one certain delegation.",
+        "Do not count combinations of visitor and outcome alternatives as independent textual witnesses."
+      ],
+      "unresolved_not_scored": [
+        "The sages have no individual names here. The outcome alternatives are reports from this one story, not independent evidence."
+      ]
+    },
+    {
+      "id": "berurya",
+      "ref": "Berakhot 10a:2",
+      "source_refs": [
+        "Berakhot 10a:2",
+        "Berakhot 10a:3",
+        "Berakhot 10a:4"
+      ],
+      "must_preserve": [
+        "Keep Berurya as a named person and Rabbi Meir’s wife, anchored by ברוריא דביתהו.",
+        "Keep Berurya’s objection to praying for the neighbors’ death and her request to pray for their repentance as distinct from the family claim.",
+        "Track the troublesome neighbors as a group, Rabbi Meir’s later prayer, and the narrator’s reported repentance across all three segments."
+      ],
+      "must_avoid": [
+        "Do not omit Berurya or the neighbors because the passage lacks a saved sage-name pair.",
+        "Do not turn the death requested in the first prayer into an event that occurred."
+      ],
+      "unresolved_not_scored": [
+        "The narrator reports that the neighbors repent. The earlier desired death must be marked as the goal of a prayer, not an event that occurred."
+      ]
+    },
+    {
+      "id": "interrupted-aggada",
+      "ref": "Berakhot 10a:21",
+      "source_refs": [
+        "Berakhot 10a:21",
+        "Berakhot 10a:22",
+        "Berakhot 10a:23",
+        "Berakhot 10a:24",
+        "Berakhot 10a:25"
+      ],
+      "must_preserve": [
+        "Preserve Rav Shimi bar Ukva and Mar Ukva as alternative names for the first named participant before Rabbi Shimon ben Pazi.",
+        "Keep the passage’s arranging of aggada before Rabbi Yehoshua ben Levi with its own roles and source wording.",
+        "Keep Rabbi Yehuda bar Menasya’s inserted teaching at :23 distinct from the dialogue resumed at :24.",
+        "Leave the implicit speakers of the questions, answer and clarification open where the saved translation and Hebrew do not settle the turns consistently."
+      ],
+      "must_avoid": [
+        "Do not attach the resumed אמר ליה to Rabbi Yehuda bar Menasya merely because his name appears most recently.",
+        "Do not copy one translation gloss as explicit Hebrew speaker attribution or infer a formal student relationship from attendance alone."
+      ],
+      "unresolved_not_scored": [
+        "The English translation at :21 makes Rabbi Shimon the first questioner and Rav Shimi the respondent; at :24 it presents Rav Shimi as the person clarifying his original question. The Hebrew leaves the speakers implicit. Keep the turn assignment unresolved rather than copying either gloss as explicit wording.",
+        "The before claim does not by itself prove a formal teacher/student relationship."
+      ]
+    },
+    {
+      "id": "choma-court",
+      "ref": "Ketubot 65a:9",
+      "source_refs": [
+        "Ketubot 65a:9",
+        "Ketubot 65a:10"
+      ],
+      "must_preserve": [
+        "Keep Choma as Abaye’s wife and the petitioner who appears before Rava and requests support.",
+        "Keep Rav Hisda’s daughter as a separate woman, with her child-of claim to Rav Hisda and her question to Rava.",
+        "Track the daughter’s pursuit and striking of Choma as actions with the correct agent and target.",
+        "Keep קטלת ליך תלתא as the daughter’s accusation, not a narrator’s finding that Choma killed three people."
+      ],
+      "must_avoid": [
+        "Do not replace the women’s encounters with a generic Abaye/Rava relation or place Abaye at the hearing.",
+        "Do not skip the daughter when explaining a proposed Rava/Rav Hisda in-law relation or treat that marriage as explicit in these short spans."
+      ],
+      "unresolved_not_scored": [
+        "The accusation קטלת ליך תלתא is spoken by the daughter; do not extract that Choma killed three people as a narrator fact.",
+        "The Rava/Rav Hisda kin row skips the daughter. Their in-law relation is an inference through her, with marriage supported from broader context."
+      ]
+    },
+    {
+      "id": "nested-widow-one",
+      "ref": "Ketubot 65a:11",
+      "source_refs": [
+        "Ketubot 65a:11"
+      ],
+      "must_preserve": [
+        "Keep the unnamed wife inside דביתהו דרב יוסף בריה דרבא as the petitioner, her husband Rav Yosef as a separate person, and Rava as the husband’s father.",
+        "Keep Rav Nehemya son of Rav Yosef as the judge, with a separate mention for the Rav Yosef named as his father.",
+        "Direct the appearance and allowance requests from the wife to Rav Nehemya, and the granting of wine from Rav Nehemya to her."
+      ],
+      "must_avoid": [
+        "Do not replace the petitioner with her husband or place the husband at the hearing.",
+        "Do not merge the husband Rav Yosef with the judge’s father Rav Yosef solely because their names match."
+      ],
+      "unresolved_not_scored": [
+        "Do not merge the husband named Rav Yosef with the judge’s father named Rav Yosef. That possible identity requires evidence beyond shared wording.",
+        "The table has one none row between husband and judge. It never represents the petitioner."
+      ]
+    },
+    {
+      "id": "nested-widow-two",
+      "ref": "Ketubot 65a:12",
+      "source_refs": [
+        "Ketubot 65a:12"
+      ],
+      "must_preserve": [
+        "Keep the unnamed wife as the petitioner and Rav Yosef son of Rav Menashya as her husband, with his child-of claim to Rav Menashya.",
+        "Keep Rav Yosef the judge as a separate local mention and direct the wife’s requests to him.",
+        "Preserve the place wording מדויל in the family description, without deciding whether it identifies the husband or his father.",
+        "Keep the request פסוק לי שיראי and the judge’s question שיראי למה as dialogue about a clothing allowance."
+      ],
+      "must_avoid": [
+        "Do not identify husband and judge from the repeated Rav Yosef name alone.",
+        "Do not assign the place modifier to one relative as settled evidence or invent an allowance grant for the requested silk clothing."
+      ],
+      "unresolved_not_scored": [
+        "מדויל attaches within the relational description; whether it identifies the husband or his father needs checking.",
+        "The local wording does not state that the husband and judge are the same person."
+      ]
+    },
+    {
+      "id": "imma-shalom",
+      "ref": "Bava Metzia 59b:10",
+      "source_refs": [
+        "Bava Metzia 59b:10",
+        "Bava Metzia 59b:11"
+      ],
+      "must_preserve": [
+        "Keep Imma Shalom as Rabbi Eliezer’s wife and Rabban Gamliel’s sister, with her as the subject of both family claims.",
+        "Keep her attempts to prevent Rabbi Eliezer falling on his face in prayer, and the alternatives explaining the lapse: a calendar mistake or giving food to a poor visitor.",
+        "Separate her speech attributing her brother’s death to the prayer from the narrator’s report of the death announcement.",
+        "Keep כך מקובלני מבית אבי אבא as her report of a tradition from her paternal ancestral household."
+      ],
+      "must_avoid": [
+        "Do not make Rabbi Eliezer and Rabban Gamliel biological siblings by skipping Imma Shalom.",
+        "Do not turn the speaker’s causal accusation into an independently established cause of death."
+      ],
+      "unresolved_not_scored": [
+        "Her statement that the prayer killed her brother is character speech. The narrator separately reports a death announcement. Preserve that difference."
+      ]
+    },
+    {
+      "id": "yohanan-lakish",
+      "ref": "Bava Metzia 84a:12",
+      "source_refs": [
+        "Bava Metzia 84a:12",
+        "Bava Metzia 84a:13",
+        "Bava Metzia 84a:14",
+        "Bava Metzia 84a:15",
+        "Bava Metzia 84a:16",
+        "Bava Metzia 84a:17",
+        "Bava Metzia 84a:18"
+      ],
+      "must_preserve": [
+        "Keep the Jordan encounter and the conditional marriage offer אי הדרת בך יהיבנא לך אחותי separate from completed later actions. Retain the unnamed sister.",
+        "Keep Rabbi Yohanan’s teaching of Reish Lakish and the later disagreement about when tools are finished as separate claims, with each completion rule attached to its speaker.",
+        "Track the sister’s later plea, Reish Lakish’s reported death, and the subsequent visit of Rabbi Elazar ben Pedat as different parts of the story.",
+        "Keep Reish Lakish, Rabbi Shimon ben Lakish and bar Lakisha as supported local identity candidates, and distinguish remembered questioning habits from present speech."
+      ],
+      "must_avoid": [
+        "Do not treat the marriage offer at :12 alone as a completed wedding.",
+        "Do not place Rabbi Elazar ben Pedat in the earlier Jordan encounter or merge every scene into one meeting.",
+        "Do not turn disagreement about tool completion into a timeless opposition between the people."
+      ],
+      "unresolved_not_scored": [
+        "The initial offer is conditional; do not extract a completed wedding from :12 alone. Her reference to widowhood in :15 supplies additional marital evidence.",
+        "The story’s Reish Lakish, Rabbi Shimon ben Lakish and bar Lakisha are strong within-episode identity candidates. Wider historical matching is a separate step."
+      ]
+    },
+    {
+      "id": "shmuel-avlet",
+      "ref": "Shabbat 156b:2",
+      "source_refs": [
+        "Shabbat 156b:2",
+        "Shabbat 156b:3"
+      ],
+      "must_preserve": [
+        "Keep Shmuel and Avlet as participants in the watching scene, and Avlet’s fatal-snakebite statement as a prediction about an unnamed worker.",
+        "Direct Shmuel’s מאי עבדת question to the returning worker, whose return is narrated, rather than to Avlet.",
+        "Keep the worker’s account of sparing a companion embarrassment separate from Shmuel’s later teaching that charity saves from death."
+      ],
+      "must_avoid": [
+        "Do not report the predicted worker’s death as an event or assign the worker’s account to Avlet.",
+        "Do not infer Avlet’s biography or status as a sage from his name and presence alone."
+      ],
+      "unresolved_not_scored": [
+        "The role of Avlet is not supplied by his name alone. Do not infer a sage classification or biography from this passage."
+      ]
+    },
+    {
+      "id": "akiva-daughter",
+      "ref": "Shabbat 156b:4",
+      "source_refs": [
+        "Shabbat 156b:4",
+        "Shabbat 156b:5"
+      ],
+      "must_preserve": [
+        "Keep Rabbi Akiva’s unnamed daughter as a person and preserve her child-of claim from דרבי עקיבא הויא ליה ברתא.",
+        "Keep the astrologers’ fatal wedding-day snakebite as a prediction, distinct from the narrated encounter with the snake.",
+        "Resolve אבוה in the next segment to Rabbi Akiva asking his daughter what she did, and retain her account of giving food to an unnamed poor man.",
+        "Keep Rabbi Akiva’s subsequent teaching that charity saves from death separate from his daughter’s reported action."
+      ],
+      "must_avoid": [
+        "Do not omit the daughter because she lacks a dictionary name or invent a named groom.",
+        "Do not record the predicted death as fulfilled.",
+        "Do not settle who was worried by copying the translation over the masculine Hebrew הוה דאיג."
+      ],
+      "unresolved_not_scored": [
+        "The groom is not named. Do not attach a named spouse from memory. The English translation’s worried subject differs from the masculine Hebrew הוה דאיג; no worried-person claim is accepted here."
+      ]
+    },
+    {
+      "id": "hanan-grandson",
+      "ref": "Taanit 23b:8",
+      "source_refs": [
+        "Taanit 23b:8"
+      ],
+      "must_preserve": [
+        "Keep חנן הנחבא בר ברתיה דחוני המעגל as a two-step family path: Hanan is the child of an unnamed daughter of Honi HaMeaggel.",
+        "Keep the sages as senders and the schoolchildren as the visitors and speakers sent to Hanan.",
+        "Keep the children’s אבא, אבא as their form of address to Hanan and retain the request for rain."
+      ],
+      "must_avoid": [
+        "Do not make Hanan Honi’s direct child or omit the unnamed mother.",
+        "Do not turn the children’s form of address into biological parenthood or place all the sending sages at the visit."
+      ],
+      "unresolved_not_scored": [
+        "The mother’s personal name is not given. The children’s wording does not make them Hanan’s children."
+      ]
+    },
+    {
+      "id": "changing-teachers",
+      "ref": "Taanit 23b:15",
+      "source_refs": [
+        "Taanit 23b:15",
+        "Taanit 24a:1",
+        "Taanit 24a:2"
+      ],
+      "must_preserve": [
+        "Keep Rabbi Yosei bar Avin’s regular attendance before Rabbi Yosei of Yokrat, departure, and arrival before Rav Ashi in that order.",
+        "Read the conversation across the page break to resolve Rav Ashi’s recitation of a teaching attributed to Shmuel.",
+        "Keep אנא ניהו as the interlocutor’s local self-identification with Rabbi Yosei ben Rabbi Avin, while preserving the printed bar/ben name forms.",
+        "Link the later questions about leaving Rabbi Yosei of Yokrat to the earlier attendance story."
+      ],
+      "must_avoid": [
+        "Do not put the former teacher, Rav Ashi and the quoted Shmuel into one meeting.",
+        "Do not treat regular attendance as a formal student appointment or lose the end of the earlier attendance relationship."
+      ],
+      "unresolved_not_scored": [
+        "הוה שכיח קמיה states regular attendance, not a formal appointment as student. The printed bar Avin/ben Rabbi Avin difference remains visible even when this episode identifies the speaker."
+      ]
+    },
+    {
+      "id": "abaye-elder",
+      "ref": "Sanhedrin 7a:5",
+      "source_refs": [
+        "Sanhedrin 7a:5",
+        "Sanhedrin 7a:6"
+      ],
+      "must_preserve": [
+        "Keep אביי קשישא as one complete name with its epithet, rather than two people.",
+        "Attribute the bridge-plank comparison in Sanhedrin 7a:6 to Abaye the Elder, separately from Rav Huna’s preceding comparison."
+      ],
+      "must_avoid": [
+        "Do not merge this speaker into the familiar Abaye from the base name alone.",
+        "Do not create speech or a meeting between Abaye the Elder and Rav Huna merely from adjacent teachings."
+      ],
+      "unresolved_not_scored": [
+        "Do not merge this speaker into the familiar Abaye solely because the base name matches. The passage does not settle that historical identity.",
+        "The preceding Rav Huna analogy is relevant context, but adjacency alone does not prove that either speaker addresses the other."
+      ]
+    },
+    {
+      "id": "hiyya-rabba",
+      "ref": "Jerusalem Talmud Berakhot 1:1:21",
+      "source_refs": [
+        "Jerusalem Talmud Berakhot 1:1:21"
+      ],
+      "must_preserve": [
+        "Keep רבי חייא רבא and רבי חייא רבה as the complete Hiyya name forms, with a supported spelling link within this passage.",
+        "Keep Rabbi Hiyya and Rabbi Shimon ben Halafta as participants in the dawn walk in the Arbel valley.",
+        "Direct Rabbi Hiyya’s speech to Rabbi Shimon ben Halafta and keep its biblical examples inside the spoken analogy."
+      ],
+      "must_avoid": [
+        "Do not split רבא or רבה from Hiyya into the Babylonian Rava or Rabba.",
+        "Do not place Mordecai and Haman in the dawn walk or put the introductory reporter there without evidence."
+      ],
+      "unresolved_not_scored": [
+        "The same paragraph has רבא then רבה. This supports a within-passage spelling link, not a link to the Babylonian Rava or Rabba.",
+        "The biblical narrative about Mordecai and Haman is quoted analogy, outside the walking scene."
+      ]
+    },
+    {
+      "id": "woman-or-tractate",
+      "ref": "Eruvin 53b:14",
+      "source_refs": [
+        "Eruvin 53b:14",
+        "Eruvin 53b:15",
+        "Eruvin 53b:16"
+      ],
+      "must_preserve": [
+        "Keep the sages asking Rabbi Abbahu about Rabbi Elai, and Rabbi Abbahu answering the sages.",
+        "Give the indirect phrase a person reading under אמרי לה אשה and a tractate reading under ואמרי לה מסכתא.",
+        "Keep the question-and-answer exchange shared while the type and meaning of the phrase change by reading."
+      ],
+      "must_avoid": [
+        "Do not create an unconditional wife or marriage relation from wording also read as a tractate.",
+        "Do not put Rabbi Elai in the conversation or treat the translation’s second-marriage and Kodashim details as all explicit in the short Hebrew."
+      ],
+      "unresolved_not_scored": [
+        "The translation explains a second marriage in the woman branch and a tractate of Kodashim in the study branch. Those details are explanations, not all explicit in the short Hebrew.",
+        "Rabbi Elai is being asked about; the passage does not put him in the conversation."
+      ]
+    },
+    {
+      "id": "ravin-my-brother",
+      "ref": "Bava Metzia 107a:7",
+      "source_refs": [
+        "Bava Metzia 107a:7"
+      ],
+      "must_preserve": [
+        "Keep רבין בר רב נחמן as a complete person name with an embedded Rav Nahman mention and a child-of claim.",
+        "Direct Rav Yehuda’s speech to Ravin bar Rav Nahman, preserving רבין אחי as the form of address.",
+        "Keep the stated custom for neighbors’ leaning trees as the content of Rav Yehuda’s speech."
+      ],
+      "must_avoid": [
+        "Do not infer biological brotherhood between Rav Yehuda and Ravin from אחי alone.",
+        "Do not split Ravin’s name into unrelated speakers or transfer character offsets between differently abbreviated editions."
+      ],
+      "unresolved_not_scored": [
+        "רבין אחי alone does not establish that Rav Yehuda and Ravin are biological brothers.",
+        "The saved abbreviated Rav Nahman mention and the expanded source edition should be linked by version-aware offsets, not assumed identical character positions."
+      ]
+    },
+    {
+      "id": "household-servant",
+      "ref": "Moed Katan 17a:13",
+      "source_refs": [
+        "Moed Katan 17a:13"
+      ],
+      "must_preserve": [
+        "Keep the unnamed female servant and her affiliation with Rabbi’s household, without requiring a personal name.",
+        "Keep the unnamed father and adult son, their family relationship, and the father’s striking of the son.",
+        "Record the servant’s declaration of a ban against the father and her stated reason using the stumbling-block prohibition."
+      ],
+      "must_avoid": [
+        "Do not put Rabbi in the scene merely because his household is named or convert the household affiliation into kinship.",
+        "Do not replace the servant’s declaration with a settled claim about its institutional force without the surrounding evidence."
+      ],
+      "unresolved_not_scored": [
+        "בית רבי is a household label. The passage does not name this woman or place Rabbi in the scene.",
+        "The text states that the servant declares a ban; its institutional force is discussed in the surrounding passage and should have its own evidence."
+      ]
+    }
+  ]
+}

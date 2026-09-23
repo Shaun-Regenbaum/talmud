@@ -1,0 +1,712 @@
+{
+ "job_id": "original-03",
+ "focal_ref": "Chullin 94b:13",
+ "status": "researched",
+ "question": "Reconstruct the travel story as a sequence of actions, speakers, addressees, misunderstandings and replies. Which participants actually meet? Which speech is imagined, conditional or remembered? Keep story evidence separate from a generic together edge.",
+ "scope_note": "Checked: Sefaria texts of Chullin 94a-94b (Davidson vocalized and unvocalized Aramaic, Wikisource, Davidson English), the commentaries Sefaria links to 94b:13-14 that are listed in sources, the Rif, Tur, Shulchan Arukh, Prisha and Mishneh Torah De'ot 2:6. Not checked: Bavli manuscripts, Reshit Chokhmah itself, Sheiltot, Meiri, Rosh. The story continues in 94b:14, which was read as part of the same episode.",
+ "episode_sequence": [
+  {
+   "step": 1,
+   "type": "action",
+   "actors": [
+    "Mar Zutra"
+   ],
+   "text": "travels Sikhra -> Bei Mechoza (Rif: Bei Chozai)",
+   "ref": "94b:13",
+   "modality": "narrated"
+  },
+  {
+   "step": 2,
+   "type": "action",
+   "actors": [
+    "Rava",
+    "Rav Safra"
+   ],
+   "text": "travel together towards Sikhra (Rif: from Bei Chozai)",
+   "ref": "94b:13",
+   "modality": "narrated"
+  },
+  {
+   "step": 3,
+   "type": "encounter",
+   "actors": [
+    "Mar Zutra",
+    "Rava",
+    "Rav Safra"
+   ],
+   "text": "they meet each other (פגעו אהדדי)",
+   "ref": "94b:13",
+   "modality": "narrated"
+  },
+  {
+   "step": 4,
+   "type": "belief",
+   "actors": [
+    "Mar Zutra"
+   ],
+   "text": "thinks they came towards him; mistaken (absent in Rif)",
+   "ref": "94b:13",
+   "modality": "narrated thought"
+  },
+  {
+   "step": 5,
+   "type": "speech",
+   "speaker": "Mar Zutra",
+   "addressees": [
+    "Rava",
+    "Rav Safra"
+   ],
+   "text": "Why did the Rabbis trouble themselves so much?",
+   "ref": "94b:13",
+   "modality": "reported speech, based on a misunderstanding"
+  },
+  {
+   "step": 6,
+   "type": "speech",
+   "speaker": "Rav Safra",
+   "addressees": [
+    "Mar Zutra"
+   ],
+   "text": "We did not know; had we known we would have troubled more",
+   "ref": "94b:13",
+   "modality": "reported speech; second clause counterfactual"
+  },
+  {
+   "step": 7,
+   "type": "speech",
+   "speaker": "Rava",
+   "addressees": [
+    "Rav Safra"
+   ],
+   "topic": [
+    "Mar Zutra"
+   ],
+   "text": "Why did you say that? You upset him",
+   "ref": "94b:14",
+   "modality": "reported speech, rebuke"
+  },
+  {
+   "step": 8,
+   "type": "speech",
+   "speaker": "Rav Safra (implicit)",
+   "addressees": [
+    "Rava"
+   ],
+   "text": "But [otherwise] we would mislead him",
+   "ref": "94b:14",
+   "modality": "reported speech; conditional (if silent)"
+  },
+  {
+   "step": 9,
+   "type": "speech",
+   "speaker": "Rava (reading branch; explicit 'אמר ליה' in Rif)",
+   "addressees": [
+    "Rav Safra"
+   ],
+   "text": "He is misleading himself",
+   "ref": "94b:14",
+   "modality": "reported speech; conclusion adopted by the codes"
+  }
+ ],
+ "sources": [
+  {
+   "source_id": "S0",
+   "url_or_path": "research/sage-network/followup-v1/cases/original-03/input.json",
+   "edition": "Assigned input (lake snapshot 2): William Davidson Vocalized Aramaic of Chullin 94b:13 plus two first-pass pair judgements",
+   "fetched_at": null,
+   "saved_file": "input.json",
+   "sha256": "7dfcd89b8ca36935945c51acd696043d5f11acdb2612645fb8a0c1816d9dd181",
+   "note": "Read only, not modified."
+  },
+  {
+   "source_id": "S1",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Chullin%2094b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sefaria v3 Chullin 94b, all versions: William Davidson Vocalized Aramaic, William Davidson Aramaic, Wikisource Talmud Bavli, William Davidson English (and any others returned)",
+   "fetched_at": "2026-09-23T07:42:45Z",
+   "saved_file": "sources/sefaria_v3_chullin_94b_all.json",
+   "sha256": "9edcdbd07272a5419ae40504bca1f982a7b02becaf0939c3503dba520bdff918"
+  },
+  {
+   "source_id": "S2",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Chullin%2094a?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sefaria v3 Chullin 94a, all versions (context: Ulla and Rav Yehuda barrels case)",
+   "fetched_at": "2026-09-23T07:42:46Z",
+   "saved_file": "sources/sefaria_v3_chullin_94a_all.json",
+   "sha256": "0b772dae3efe4d867b17329761b27ec7fff32addeab44d6137e0864a997c0e41"
+  },
+  {
+   "source_id": "S3",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashi%20on%20Chullin%2094b%3A13?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rashi on Chullin 94b:13, Vilna Edition (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:15Z",
+   "saved_file": "sources/rashi_chullin_94b_13.json",
+   "sha256": "14d0972286be1515417a96ed3815d4b5db1c33ac55c51767d9bdec3c96bc4c28"
+  },
+  {
+   "source_id": "S4",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rashi%20on%20Chullin%2094b%3A14?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rashi on Chullin 94b:14, Vilna Edition (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:15Z",
+   "saved_file": "sources/rashi_chullin_94b_14.json",
+   "sha256": "15d214c8d2a78ff71fda216a729beee7a14a9a874c8ab953925fff0fac9a1073"
+  },
+  {
+   "source_id": "S5",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Tosafot%20on%20Chullin%2094b%3A14?version=hebrew%7Call&version=english%7Call",
+   "edition": "Tosafot on Chullin 94b:14, Vilna Edition (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:16Z",
+   "saved_file": "sources/tosafot_chullin_94b_14.json",
+   "sha256": "20685195f2a55dfe164822dd2ee7c262aeb55916eb98d1ec63891622a7fcae04"
+  },
+  {
+   "source_id": "S6",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rabbeinu%20Gershom%20on%20Chullin%2094b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rabbeinu Gershom on Chullin 94b, Vilna Edition (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:16Z",
+   "saved_file": "sources/gershom_chullin_94b.json",
+   "sha256": "1724e6d4b987f671355740a72d566487280e806680239066da18868a28e93b76"
+  },
+  {
+   "source_id": "S7",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Ritva%20on%20Chullin%2094b?version=hebrew%7Call&version=english%7Call",
+   "edition": "Chiddushei haRitva on Chullin 94b, Lemberg 1861 (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:17Z",
+   "saved_file": "sources/ritva_chullin_94b.json",
+   "sha256": "e91ad5ff525be7a1237c56d3abc847c4daa679b4510bd13a73fe4bb1b71acb87"
+  },
+  {
+   "source_id": "S8",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Rif%20Chullin%2033b%3A2?version=hebrew%7Call&version=english%7Call",
+   "edition": "Rif Chullin 33b:2, Vilna Edition (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:17Z",
+   "saved_file": "sources/rif_chullin_33b_2.json",
+   "sha256": "124c5aff29fc14a34ad4362983b416576cdbca7cb2712fae3256626b388df5cb",
+   "note": "The story is printed inside parentheses preceded by a footnote marker whose footnote reads ד\"ת מ\"ז; this dossier does not know what the note means."
+  },
+  {
+   "source_id": "S9",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Steinsaltz%20on%20Chullin%2094b%3A13?version=hebrew%7Call&version=english%7Call",
+   "edition": "Steinsaltz on Chullin 94b:13, William Davidson Edition - Hebrew (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:18Z",
+   "saved_file": "sources/steinsaltz_chullin_94b_13.json",
+   "sha256": "7ea2a9e90c29d7da2009ee023b0100d31813f580f7455a532ed31694f17cbd9b"
+  },
+  {
+   "source_id": "S10",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Steinsaltz%20on%20Chullin%2094b%3A14?version=hebrew%7Call&version=english%7Call",
+   "edition": "Steinsaltz on Chullin 94b:14, William Davidson Edition - Hebrew (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:18Z",
+   "saved_file": "sources/steinsaltz_chullin_94b_14.json",
+   "sha256": "5a0f6d6f6f0bfec6c9403540e05c04943e712bbb9233297d526ca5e9841db554"
+  },
+  {
+   "source_id": "S11",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Ben%20Yehoyada%20on%20Chullin%2094b%3A1?version=hebrew%7Call&version=english%7Call",
+   "edition": "Ben Yehoyada on Chullin 94b:1, Senlake edition 2019 based on Jerusalem 1897 (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:41Z",
+   "saved_file": "sources/ben_yehoyada_chullin_94b_1.json",
+   "sha256": "fc0f8e126c8fab19e98bfa534480858b27517845377bedf03d1c90e343835691"
+  },
+  {
+   "source_id": "S12",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Petach%20Einayim%20on%20Chullin%2094b%3A1?version=hebrew%7Call&version=english%7Call",
+   "edition": "Petach Einayim on Chullin 94b:1, Jerusalem 1959 (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:42Z",
+   "saved_file": "sources/petach_einayim_chullin_94b_1.json",
+   "sha256": "5f5d5a063fff4d1477f21d6c697364e5a2343ed8a0004d4639a5358e9659926e"
+  },
+  {
+   "source_id": "S13",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Haggahot%20Ya%27avetz%20on%20Chullin%2094b%3A1?version=hebrew%7Call&version=english%7Call",
+   "edition": "Haggahot Ya'avetz on Chullin 94b:1, Vilna Edition (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:42Z",
+   "saved_file": "sources/haggahot_yaavetz_chullin_94b_1.json",
+   "sha256": "9143fbfe88fc6c3f17b279c5f8e755a3b01edaabd209f37c576e56557b3c5a69"
+  },
+  {
+   "source_id": "S14",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Seder%20HaDorot%2C%20Tanaim%20and%20Amoraim%201097?version=hebrew%7Call&version=english%7Call",
+   "edition": "Seder HaDorot, Tanaim and Amoraim 1097, Warsaw 1878-1882 (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:42Z",
+   "saved_file": "sources/seder_hadorot_1097.json",
+   "sha256": "526e9d4afc15d88f60cd1244131755a5692dd6f412622d134f56c4ba6cda708f"
+  },
+  {
+   "source_id": "S15",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Seder%20HaDorot%2C%20Tanaim%20and%20Amoraim%202822?version=hebrew%7Call&version=english%7Call",
+   "edition": "Seder HaDorot, Tanaim and Amoraim 2822 (Rav Safra), Warsaw 1878-1882 (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:43Z",
+   "saved_file": "sources/seder_hadorot_2822.json",
+   "sha256": "c5d3a850a2f38969b9256cf03f280919d2a95bb755e3a9b1ce4cd6affddcfebe"
+  },
+  {
+   "source_id": "S16",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Sha%27arei%20Torat%20Bavel%20on%20Ketubot%2017a%3A1?version=hebrew%7Call&version=english%7Call",
+   "edition": "Sha'arei Torat Bavel on Ketubot 17a:1, Jerusalem 1961 (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:43Z",
+   "saved_file": "sources/shaarei_torat_bavel_ketubot_17a_1.json",
+   "sha256": "3079a0c41a71b317d8959c80233b09162e4b6e8314c368dfe67ce8beb49777cf"
+  },
+  {
+   "source_id": "S17",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Prisha%2C%20Choshen%20Mishpat%20228%3A7?version=hebrew%7Call&version=english%7Call",
+   "edition": "Prisha, Choshen Mishpat 228:7, Tur Vilna 1923 (Sefaria)",
+   "fetched_at": "2026-09-23T07:43:43Z",
+   "saved_file": "sources/prisha_cm_228_7.json",
+   "sha256": "3cee651584507abed45a6086f88d46d1d8bb610f7c61476bb1547a3e3621c1f1"
+  },
+  {
+   "source_id": "S18",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Shulchan%20Arukh%2C%20Choshen%20Mishpat%20228%3A6?version=hebrew%7Call&version=english%7Call",
+   "edition": "Shulchan Arukh, Choshen Mishpat 228:6, all versions (Sefaria)",
+   "fetched_at": "2026-09-23T07:44:05Z",
+   "saved_file": "sources/shulchan_arukh_cm_228_6.json",
+   "sha256": "8bcaafbd1a0332b80217b8d290629c74c8f3fb50f561492aaa1660024e0ef3eb"
+  },
+  {
+   "source_id": "S19",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Tur%2C%20Choshen%20Mishpat%20228?version=hebrew%7Call&version=english%7Call",
+   "edition": "Tur, Choshen Mishpat 228, all versions (Sefaria)",
+   "fetched_at": "2026-09-23T07:44:05Z",
+   "saved_file": "sources/tur_cm_228.json",
+   "sha256": "adbc5ca166a8f38f57f7c4674a61e9ebaf1e943e08a2e02dfb42e8a16e6d1c36"
+  },
+  {
+   "source_id": "S20",
+   "url_or_path": "https://www.sefaria.org/api/v3/texts/Mishneh%20Torah%2C%20Human%20Dispositions%202%3A6?version=hebrew%7Call&version=english%7Call",
+   "edition": "Mishneh Torah, Human Dispositions (De'ot) 2:6, all versions (Sefaria)",
+   "fetched_at": "2026-09-23T07:44:04Z",
+   "saved_file": "sources/mishneh_torah_deot_2_6.json",
+   "sha256": "bc1f4d15d40447f5ed941374ef98dfe0b0fd6265b2700649e2513742f815b89f"
+  },
+  {
+   "source_id": "S21",
+   "url_or_path": "https://www.sefaria.org/api/links/Chullin.94b.13?with_text=0",
+   "edition": "Sefaria links API for Chullin 94b:13 (list of connected texts)",
+   "fetched_at": "2026-09-23T07:43:05Z",
+   "saved_file": "sources/sefaria_links_chullin_94b_13.json",
+   "sha256": "1c3ce95a22d21e55a0a11aec5f1cc9d04f0fa472d5092bfb63a414c96c8d63af"
+  },
+  {
+   "source_id": "S22",
+   "url_or_path": "https://www.sefaria.org/api/links/Chullin.94b.14?with_text=0",
+   "edition": "Sefaria links API for Chullin 94b:14 (list of connected texts)",
+   "fetched_at": "2026-09-23T07:43:06Z",
+   "saved_file": "sources/sefaria_links_chullin_94b_14.json",
+   "sha256": "545f2aa69ab05f1483f4f87ebd82de583192aeed37c75b5b61a76bb66332b165"
+  }
+ ],
+ "findings": [
+  {
+   "finding_id": "F1",
+   "kind": "textual",
+   "confidence": "high",
+   "claim": "The story is told by the anonymous Gemara as a precedent ('like this case') for the rule just stated: people who mislead themselves are not being misled. It is a narrated incident, not a sage's own report or memory.",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "והא קמטעי להו אינהו הוא דקמטעו נפשייהו",
+     "translation_by_this_dossier": "But doesn't this mislead them? It is they who mislead themselves."
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "כי הא דמר זוטרא בריה דרב נחמן הוה קאזיל מסיכרא לבי מחוזא",
+     "translation_by_this_dossier": "Like this: Mar Zutra son of Rav Nachman was going from Sikhra to Bei Mechoza"
+    }
+   ],
+   "reasoning": "The segment opens with כי הא ד, the usual formula for citing an incident as support. No participant introduces it with 'I saw' or 'he told'. So the whole story sits in the narrator's voice; speech inside it is reported speech.",
+   "graph_effect": "Record one episode (a road encounter) with narrator = anonymous Gemara. Speech edges are reported speech inside a narrated story, not attributed teachings."
+  },
+  {
+   "finding_id": "F2",
+   "kind": "textual",
+   "confidence": "high",
+   "claim": "Sequence of movement: Mar Zutra was travelling from Sikhra towards Bei Mechoza. Rava and Rav Safra were travelling (as one party) towards Sikhra. The two parties met each other on the way. All three named men are physically present at the meeting.",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "הוה קאזיל מסיכרא לבי מחוזא ורבא ורב ספרא הוו קא אתו לסיכרא פגעו אהדדי",
+     "translation_by_this_dossier": "[Mar Zutra] was going from Sikhra to Bei Mechoza, and Rava and Rav Safra were coming to Sikhra; they met each other."
+    }
+   ],
+   "reasoning": "The verb for Rava and Rav Safra is a single plural (הוו קא אתו), so the text itself states that they travel together. The two parties go in opposite directions, and פגעו אהדדי ('they met each other') states the encounter. The ו between the Mar Zutra clause and the Rava clause joins two travel clauses; it does not make Mar Zutra and Rava companions.",
+   "graph_effect": "Rava + Rav Safra: co-travel (explicit, story evidence). Mar Zutra with Rava and with Rav Safra: road encounter (explicit meeting). These are story-specific relations, not a generic 'together' edge; in particular Mar Zutra and Rava were NOT travelling together."
+  },
+  {
+   "finding_id": "F3",
+   "kind": "textual",
+   "confidence": "high",
+   "claim": "The misunderstanding is narrated as Mar Zutra's own thought: he supposed they had come out towards him (to greet him). It is not speech and nobody said it to him.",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "הוא סבר לאפיה הוא דקאתו",
+     "translation_by_this_dossier": "He thought: it is towards him that they were coming."
+    }
+   ],
+   "reasoning": "סבר ('he thought, supposed') marks a belief. The text never says Rava or Rav Safra told him they came for him. Rashi, Tosafot and the codes all build on this: he misled himself.",
+   "graph_effect": "Do not create an 'honours / goes out to greet' edge from Rava or Rav Safra to Mar Zutra. At most store Mar Zutra's mistaken belief as a belief attached to the episode."
+  },
+  {
+   "finding_id": "F4",
+   "kind": "textual",
+   "confidence": "high",
+   "claim": "Speech 1: Mar Zutra speaks to both men together (plural addressee), in polite third person: why did the Rabbis trouble themselves to come so far?",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "אמר להו למה להו לרבנן דטרוח ואתו כולי האי",
+     "translation_by_this_dossier": "He said to them: Why did the Rabbis need to trouble themselves and come all this way?"
+    }
+   ],
+   "reasoning": "אמר להו is plural 'to them'. לרבנן refers to his addressees respectfully in third person.",
+   "graph_effect": "Mar Zutra addresses Rava and Rav Safra jointly (one speech act, group addressee). If the graph stores pairwise address, both pairs derive from this single act and must not be counted as two independent observations."
+  },
+  {
+   "finding_id": "F5",
+   "kind": "textual",
+   "confidence": "high",
+   "claim": "Speech 2: Rav Safra alone answers Mar Zutra. He states a fact (we did not know you were coming) and a counterfactual (had we known, we would have troubled ourselves more). The extra effort is hypothetical: it never happened. Rava says nothing to Mar Zutra in the text.",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "אמר ליה רב ספרא אנן לא הוה ידעינן דקאתי מר אי הוה ידעינן טפי הוה טרחינן",
+     "translation_by_this_dossier": "Rav Safra said to him: We did not know that the Master was coming; if we had known, we would have troubled ourselves more."
+    }
+   ],
+   "reasoning": "אמר ליה is singular 'to him', naming Rav Safra as speaker. אי הוה ... הוה is a contrary-to-fact conditional. Rashi explains the unstated purpose: they had gone out on their own business to go elsewhere.",
+   "graph_effect": "Rav Safra addresses Mar Zutra (reply, corrects a misunderstanding). The conditional 'would have honoured more' is imagined behaviour and supports no honour or deference edge. No Rava to Mar Zutra speech edge."
+  },
+  {
+   "finding_id": "F6",
+   "kind": "textual",
+   "confidence": "high",
+   "claim": "Speeches 3-5 (Chullin 94b:14, the next segment of the same story): Rava rebukes Rav Safra for upsetting Mar Zutra. Rav Safra objects that otherwise they would be misleading him. The closing line, 'he is misleading himself', rebuts that objection. The text does not say whether Mar Zutra heard this exchange.",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "אמר ליה רבא מאי טעמא אמרת ליה הכי דאחלישתיה לדעתיה",
+     "translation_by_this_dossier": "Rava said to him: Why did you say that to him? You upset him."
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "אמר ליה והא קא מטעינן ליה איהו הוא דקא מטעי נפשיה",
+     "translation_by_this_dossier": "He said to him: But [otherwise] we would be misleading him! He is misleading himself."
+    }
+   ],
+   "reasoning": "The first speaker and addressee are explicit: Rava to Rav Safra. The reply's speaker is unnamed ('he said to him'), but it answers Rava, so it is Rav Safra. Where the speaker changes inside the reply is discussed in F7. Nothing in the text places Mar Zutra inside or outside this conversation.",
+   "graph_effect": "Rava addresses (rebukes) Rav Safra; Rav Safra replies to Rava; they disagree on conduct. Store as a conduct exchange inside the episode. Keep it separate from the co-travel edge. Mar Zutra is the topic (spoken about), not an addressee."
+  },
+  {
+   "finding_id": "F7",
+   "kind": "interpretation",
+   "confidence": "medium",
+   "claim": "Who says the last line, 'he is misleading himself'? The William Davidson Aramaic and Wikisource texts have a single 'he said to him' covering both sentences. The Davidson English and Steinsaltz Hebrew (one editorial project) give the last line to Rava. The Rif's text of the story has a second explicit 'he said to him' before it. Petach Einayim also says Rava concludes and Rav Safra accepted.",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "Rav Safra <b>said to</b> Rava: <b>But</b> if I would not have said so <b>we</b> would have <b>misled him.</b> Rava responded: Mar Zutra <b>misled himself,</b>"
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "אמר לו רבא לרב ספרא: אין זה נחשב שאנו מטעים אותו, שכן",
+     "translation_by_this_dossier": "Rava said to Rav Safra: this does not count as our misleading him, since... [Steinsaltz Hebrew gloss]"
+    },
+    {
+     "source_id": "S8",
+     "exact_quote": "אמר ליה והא קא מטעינן ליה אמר ליה איהו דקא מטעי אנפשיה",
+     "translation_by_this_dossier": "He said to him: But we would be misleading him! He said to him: He is misleading himself. [Rif]"
+    },
+    {
+     "source_id": "S12",
+     "exact_quote": "ובסוגיין מסיק רבא שלא לומר ואיהו קמטעי נפשיה",
+     "translation_by_this_dossier": "In our passage Rava concludes that one should not say it, and 'he is misleading himself'."
+    },
+    {
+     "source_id": "S12",
+     "exact_quote": "ובסוגיין רב ספרא לא השיב לרבא ונראה שקבל דבריו",
+     "translation_by_this_dossier": "In our passage Rav Safra did not answer Rava; it seems he accepted his words."
+    }
+   ],
+   "reasoning": "The objection-then-answer shape (והא ... ! איהו הוא ...) and the codes that adopt 'he misled himself' as the rule support giving the answer to Rava. The Rif's added אמר ליה makes the change of speaker explicit, but it is one witness to the text and its parenthetical printing is unexplained (see S8 note). The Davidson English and Steinsaltz Hebrew come from the same editorial work and count as one voice, not two. Rashi (S4) and Rabbeinu Gershom (S6) gloss the phrases without naming speakers.",
+   "graph_effect": "Default: Rava has the last word (Rava to Rav Safra: 'he misleads himself'), as a reading branch, not settled text. Alternative branch: one reply by Rav Safra containing both sentences. No commentator I checked reads it that way, and the logic argues against it. The Rif witness supports the default and should be stored as a text variant, not as commentary."
+  },
+  {
+   "finding_id": "F8",
+   "kind": "textual",
+   "confidence": "high",
+   "claim": "Patronymic: Mar Zutra is called son of Rav Nachman. That is a father-child relationship shown in the name. Rav Nachman does not appear or speak in the story.",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "מר זוטרא בריה דרב נחמן",
+     "translation_by_this_dossier": "Mar Zutra, son of Rav Nachman"
+    },
+    {
+     "source_id": "S8",
+     "exact_quote": "מר זוטרא בריה דרב נחמן הוה אזיל",
+     "translation_by_this_dossier": "Mar Zutra son of Rav Nachman was going [Rif]"
+    }
+   ],
+   "reasoning": "בריה ד is a plain 'son of'. The project rule keeps the kin relation and a local parent placeholder even though the parent never acts. Seder HaDorot (S14) files this story under 'מר זוטרא בר רב נחמן' with other passages. That is a later index, and it does not establish which Rav Nachman is meant or that every listed passage is the same man.",
+   "graph_effect": "Add local placeholder 'Rav Nachman (father of Mar Zutra, this passage)' and edge child-of: Mar Zutra -> Rav Nachman (literal kinship, from the name). Do not merge the placeholder with any historical Rav Nachman here. Identification is a separate decision."
+  },
+  {
+   "finding_id": "F9",
+   "kind": "textual",
+   "confidence": "medium",
+   "claim": "Place-name variant: the Rif has Mar Zutra going to 'Bei Chozai' (לבי חוזאי), not 'Bei Mechoza'. It also has Rava and Rav Safra coming FROM Bei Chozai to Sikhra, and it lacks the narrated clause 'he thought they were coming towards him'.",
+   "evidence": [
+    {
+     "source_id": "S8",
+     "exact_quote": "הוה אזיל מסיכרא לבי חוזאי ורבא ורב ספרא הוו אתו מבי חוזאי לסיכרא פגעו אהדדי אמר להן",
+     "translation_by_this_dossier": "was going from Sikhra to Bei Chozai, and Rava and Rav Safra were coming from Bei Chozai to Sikhra; they met each other. He said to them... [Rif]"
+    }
+   ],
+   "reasoning": "This is a variant in a secondary witness quoting the Gemara, not an emendation. It changes the geography but not who meets whom. I did not check manuscripts of the Bavli, so I cannot say which reading the manuscripts support.",
+   "graph_effect": "Store the destination as a text variant (Bei Mechoza / Bei Chozai). Do not derive a residence edge (for example 'Rava of Mechoza') from this story. Participants and encounter are unchanged across both versions."
+  },
+  {
+   "finding_id": "F10",
+   "kind": "interpretation",
+   "confidence": "high",
+   "claim": "Commentators agree that Rava and Rav Safra had not set out for Mar Zutra at all. Rashi: they had gone out on their own business. Ritva: they were going their own way, not towards him. Tosafot: here they did not come for him at all. That is how Tosafot tell this case apart from Ulla and Rav Yehuda's barrels on 94a.",
+   "evidence": [
+    {
+     "source_id": "S3",
+     "exact_quote": "ולעשות עסקינו ולילך למקום אחר יצאנו",
+     "translation_by_this_dossier": "We went out to do our business and to go elsewhere. [Rashi, explaining Rav Safra's words]"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "דרבא ורב ספרא לדרכן הוי הולכין ולא לקראתו",
+     "translation_by_this_dossier": "Rava and Rav Safra were going on their way, and not towards him. [Ritva]"
+    },
+    {
+     "source_id": "S5",
+     "exact_quote": "אבל הכא לא באו כלל בעבורו",
+     "translation_by_this_dossier": "But here they did not come on his account at all. [Tosafot]"
+    },
+    {
+     "source_id": "S2",
+     "exact_quote": "שאני עולא דחביב ליה לרב יהודה דבלאו הכי נמי פתוחי מפתח ליה",
+     "translation_by_this_dossier": "Ulla is different, since he was dear to Rav Yehuda, who would have opened them for him anyway."
+    }
+   ],
+   "reasoning": "The Tosafot question: Rav Safra said they would have made more effort had they known, so perhaps there was no real deception, as with Ulla. Tosafot answer that there the act was done for the guest; here nothing was. That answer depends on the meeting being accidental.",
+   "graph_effect": "Supports tagging the encounter as accidental or incidental. No planned visit or greeting. The Ulla / Rav Yehuda case belongs to a different episode (94a) and must not be merged into this one."
+  },
+  {
+   "finding_id": "F11",
+   "kind": "interpretation",
+   "confidence": "medium",
+   "claim": "Commentators differ on why Rav Safra thought silence would mislead, and on what Mar Zutra knew. Ben Yehoyada infers that Rava and Rav Safra turned back and went with Mar Zutra to Mechoza; otherwise silence could not mislead. Rabbeinu Gershom glosses 'he misleads himself' as 'he knows we did not go out to meet him'. Rashi glosses it as 'since we did not tell him we came out to meet you'.",
+   "evidence": [
+    {
+     "source_id": "S11",
+     "exact_quote": "ועל כן מוכרח לומר דחזרו עמו למחוזא והביאוהו לביתם",
+     "translation_by_this_dossier": "Therefore one must say they returned with him to Mechoza and brought him to their home. [Ben Yehoyada]"
+    },
+    {
+     "source_id": "S6",
+     "exact_quote": "איהו הוא דקא מטעי נפשיה כלומר שהוא יודע דלא נפקינן לקדמותיה",
+     "translation_by_this_dossier": "He misleads himself: that is, he knows that we did not go out to meet him. [Rabbeinu Gershom]"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "אחרי שאנו לא אמרנו לו לקראתך יצאנו",
+     "translation_by_this_dossier": "Since we did not tell him 'we came out towards you'. [Rashi]"
+    }
+   ],
+   "reasoning": "Ben Yehoyada's accompaniment and hosting is an inference he makes to answer a difficulty. The text does not say it. Gershom's 'he knows' may mean 'he should know'; I cannot settle that from the gloss alone.",
+   "graph_effect": "Do NOT add 'accompanies' or 'hosts' edges from Ben Yehoyada's inference. Keep it as a commentary alternative attached to the episode."
+  },
+  {
+   "finding_id": "F12",
+   "kind": "interpretation",
+   "confidence": "medium",
+   "claim": "A different, later-reported story about Rav Safra is related to this one but is not the same event. In it, Rav Safra goes out to stroll, a pious man thinks he has come to greet him, Rav Safra says he came out only to stroll, and his students question him. Petach Einayim cites it from Reshit Chokhmah and Seder HaDorot also reports it. Seder HaDorot thinks it is aimed at this Gemara but in a different form.",
+   "evidence": [
+    {
+     "source_id": "S12",
+     "exact_quote": "דרב ספרא יצא יום אחד לטייל ובא חסיד א\"ל לרב ספרא למה טרח מר א\"ל רב ספרא לא יצאתי אלא לטייל נתבייש אותו חסיד",
+     "translation_by_this_dossier": "Rav Safra went out one day to stroll; a pious man came and said to Rav Safra: Why did the Master trouble himself? Rav Safra said: I only came out to stroll. That pious man was ashamed. [Petach Einayim, reporting Reshit Chokhmah]"
+    },
+    {
+     "source_id": "S12",
+     "exact_quote": "וראה השינוי שיש",
+     "translation_by_this_dossier": "And see the difference there is."
+    },
+    {
+     "source_id": "S15",
+     "exact_quote": "ולדעתי כוונתו על גמרא זו אבל הוא בענין אחר",
+     "translation_by_this_dossier": "In my opinion he means this Gemara, but it is in a different form. [Seder HaDorot]"
+    }
+   ],
+   "reasoning": "The cast differs (an unnamed pious man and students instead of Mar Zutra and Rava). So does the moral (Rav Safra defends his honesty with a verse rather than being corrected). I saw it only through these two later works, not in Reshit Chokhmah itself.",
+   "graph_effect": "No edges for Mar Zutra or Rava from this retelling. Do not identify the pious man with Mar Zutra or the students with Rava. If stored at all, it is a separate later-tradition episode about Rav Safra with unnamed participants."
+  },
+  {
+   "finding_id": "F13",
+   "kind": "interpretation",
+   "confidence": "high",
+   "claim": "The codes adopt the conclusion as an anonymous rule: if someone meets another on the road and the other thinks he came out to honour him, there is no need to tell him. The Prisha names this story as the source.",
+   "evidence": [
+    {
+     "source_id": "S18",
+     "exact_quote": "כגון שפגע בחבירו בדרך וסבור זה שיצא לקראתו לכבדו אין צריך להודיעו",
+     "translation_by_this_dossier": "For example, he met his fellow on the road and the other thought he had come out towards him to honour him: he need not inform him. [Shulchan Arukh]"
+    },
+    {
+     "source_id": "S17",
+     "exact_quote": "כגון שפגע בחבירו בדרך כו' שם ע\"ב מביא מעשה דמר זוטרא בריה דר\"נ הוה קאזיל באורחא וזה נלמד ממנו",
+     "translation_by_this_dossier": "'For example he met his fellow on the road...': there (94b) it brings the incident of Mar Zutra son of Rav Nachman going on the road, and this is learned from it. [Prisha]"
+    }
+   ],
+   "reasoning": "The codified rule matches the closing line of F6/F7. That supports reading it as the Gemara's accepted conclusion, whoever says it. The Mishneh Torah text I fetched (S20) lists other examples of misleading people but not this road case. That is only a finding about that paragraph.",
+   "graph_effect": "Reception evidence only; creates no person-to-person edges. It may support the branch in F7 in which Rava's line is the conclusion."
+  },
+  {
+   "finding_id": "F14",
+   "kind": "uncertainty",
+   "confidence": "low",
+   "claim": "Haggahot Ya'avetz proposes a later emendation of Rav Safra's words: 'לא הוה ידעי דקאתי מרב' should be read. I cannot tell from the gloss alone what exact change from the printed text he intends.",
+   "evidence": [
+    {
+     "source_id": "S13",
+     "exact_quote": "לא הוה ידעי דקאתי מרב",
+     "translation_by_this_dossier": "We did not know that ... was coming [his proposed wording; meaning of מרב unclear to this dossier]"
+    }
+   ],
+   "reasoning": "This is a later proposed emendation, a different kind of evidence from a text variant. It concerns the wording of Rav Safra's reply, not who speaks or who meets.",
+   "graph_effect": "None on persons. Store as a proposed emendation on the wording, unresolved."
+  },
+  {
+   "finding_id": "F15",
+   "kind": "interpretation",
+   "confidence": "high",
+   "claim": "Parts of the English translation are editorial additions, not text. 'out to greet', 'Rava responded' and the unbolded 'Rava ... Rav Safra' addressee names do not appear in the Aramaic. The Davidson English and Steinsaltz Hebrew belong to one editorial project and are not independent witnesses.",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "Mar Zutra <b>thought they were coming</b> out to greet <b>him.</b>"
+    },
+    {
+     "source_id": "S9",
+     "exact_quote": "הוא,</b> מר זוטרא, <b>סבר</b>",
+     "translation_by_this_dossier": "He, Mar Zutra, thought [Steinsaltz supplies the name]"
+    }
+   ],
+   "reasoning": "In this edition, bold marks the translated text and plain type marks explanation. Graph extraction from English must not treat the plain additions as source text.",
+   "graph_effect": "Anchor speaker and addressee decisions on the Aramaic. Where the Aramaic is implicit ('he said to him'), mark the name as resolved by context or by commentary."
+  }
+ ],
+ "alternative_readings": [
+  {
+   "id": "A1",
+   "about": "F7: who speaks 'איהו הוא דקא מטעי נפשיה'",
+   "readings": [
+    {
+     "reading": "Rava answers Rav Safra's objection; Rava has the last word.",
+     "held_by": "William Davidson English and Steinsaltz Hebrew (one editorial project); Petach Einayim; the Rif's text supports it with an explicit second 'אמר ליה'"
+    },
+    {
+     "reading": "Rav Safra's single reply contains both sentences.",
+     "held_by": "No commentator checked; the single 'אמר ליה' in the Davidson/Wikisource Aramaic merely allows it"
+    }
+   ]
+  },
+  {
+   "id": "A2",
+   "about": "F9: destination of Mar Zutra",
+   "readings": [
+    {
+     "reading": "Sikhra to Bei Mechoza",
+     "held_by": "William Davidson Aramaic; Wikisource Talmud Bavli (S1)"
+    },
+    {
+     "reading": "Sikhra to Bei Chozai; Rava and Rav Safra from Bei Chozai",
+     "held_by": "Rif (S8)"
+    }
+   ]
+  },
+  {
+   "id": "A3",
+   "about": "F11: what happened after the meeting",
+   "readings": [
+    {
+     "reading": "They parted, each party going its own way",
+     "held_by": "Implied by Ritva 'לדרכן הוי הולכין'; nothing explicit"
+    },
+    {
+     "reading": "Rava and Rav Safra turned back with Mar Zutra to Mechoza and hosted him",
+     "held_by": "Ben Yehoyada (inference)"
+    }
+   ]
+  },
+  {
+   "id": "A4",
+   "about": "F11: Mar Zutra's knowledge",
+   "readings": [
+    {
+     "reading": "He misled himself because nobody told him they came for him",
+     "held_by": "Rashi"
+    },
+    {
+     "reading": "He knows (or should know) they did not go out to meet him",
+     "held_by": "Rabbeinu Gershom"
+    },
+    {
+     "reading": "He ought to have realised it (איבעי ליה לאסוקי אדעתיה)",
+     "held_by": "Tur / Shulchan Arukh formulation; Petach Einayim attributes this to Tosafot"
+    }
+   ]
+  }
+ ],
+ "unresolved": [
+  "Bavli manuscript readings for the place name (Bei Mechoza / Bei Chozai) and for the speaker break in 94b:14 were not checked. No manuscript witness was fetched.",
+  "The meaning of the Rif footnote 'ד\"ת מ\"ז' and why the story is printed in parentheses there.",
+  "Exactly what emendation Haggahot Ya'avetz intends ('מרב').",
+  "Whether Mar Zutra heard Rava's exchange with Rav Safra; the text is silent.",
+  "The Reshit Chokhmah version (F12) was seen only as quoted by Petach Einayim and Seder HaDorot, not in the original work.",
+  "Which Rav Nachman is Mar Zutra's father: a historical identification, not attempted here."
+ ],
+ "proposed_corrections": [
+  {
+   "existing_claim_id": "bavli|Chullin|94b|13|10|58",
+   "change": "Kind 'together' -> road encounter (met) plus Mar Zutra addresses Rava as part of a two-person group addressee. The name span should include the title מר ('מר זוטרא בריה דרב נחמן').",
+   "why": "The ו in the pattern joins two opposite-direction travel clauses; Mar Zutra and Rava were not travelling together. Their contact is the explicit meeting (פגעו אהדדי) and the one plural speech (אמר להו). Rava never speaks to Mar Zutra in the story."
+  },
+  {
+   "existing_claim_id": "bavli|Chullin|94b|13|58|63",
+   "change": "Kind 'together' -> co-travel (explicit, single plural verb), stored as story evidence. Add a separate conduct exchange from 94b:14: Rava rebukes Rav Safra, Rav Safra objects, and Rava answers on the default reading (F7).",
+   "why": "'Together' is correct here but loses what the story says. The rebuke and reply are a separate relation from travelling together, and the 94b:14 exchange lies just outside the focal segment."
+  },
+  {
+   "existing_claim_id": null,
+   "change": "Add missing pair Mar Zutra - Rav Safra: road encounter; Mar Zutra addresses both (shared act with the Rava pair); Rav Safra replies to Mar Zutra, correcting his mistaken belief.",
+   "why": "Rav Safra is the only person who speaks to Mar Zutra, and the first-pass pairs miss this."
+  },
+  {
+   "existing_claim_id": null,
+   "change": "Add kin: Mar Zutra child-of local placeholder 'Rav Nachman (this passage)'. Direction: Mar Zutra -> father.",
+   "why": "Patronymic בריה דרב נחמן is relationship evidence even though the father is absent from the story (project rule)."
+  },
+  {
+   "existing_claim_id": null,
+   "change": "Do not add any honour, deference or greeting edge from Rava or Rav Safra to Mar Zutra.",
+   "why": "The honour exists only in Mar Zutra's mistaken belief (סבר) and in Rav Safra's counterfactual ('if we had known ...'). Commentators agree they did not come for him."
+  }
+ ],
+ "ontology_lessons": [
+  "Separate 'co-travel' (one party moving together) from 'encounter' (two parties meet). A generic 'together' blurs a story in which people moving in opposite directions meet.",
+  "Speech modality: store narrated belief (סבר), actual speech (אמר), counterfactual content (אי הוה ... הוה) and inferred-speaker lines as different modalities. A counterfactual about honouring someone is not an honouring event.",
+  "A plural address (אמר להו) is one speech act with a group addressee. Pairwise projections of it are not independent observations.",
+  "A person spoken ABOUT (Mar Zutra in 94b:14) is a topic, not an addressee.",
+  "Implicit speaker changes ('he said to him' covering two turns) should be saved as a reading branch with who-says-what, plus any textual witness (here the Rif) that makes the change explicit.",
+  "Commentary inferences about off-text actions (Ben Yehoyada's return to Mechoza) must not become edges.",
+  "Later retellings with a different cast (Reshit Chokhmah's pious man) are separate episodes; do not merge participants by role similarity.",
+  "Place variants in a story should not feed residence edges without separate evidence."
+ ],
+ "graph_status": "All edges provisional. No historical identity decided."
+}

@@ -1,0 +1,17 @@
+# Changes required: the family and neighbour findings hold, but "who is telling the story" needs fixing
+
+This review checks the second reading of Sanhedrin 97a:6–7, the story Rava tells about a sage called Rav Tavut or Rav Tavyomi and the town called Truth. Every Hebrew and English quote in the dossier appears word for word in the saved sources. I also looked at the three page photographs myself.
+
+**What holds.** The dossier's main additions are right and should go into the graph. The woman who knocks is "her neighbour", meaning the wife's neighbour. The husband thinks "it is not proper" before he speaks. His words "she is not here" are spoken to the neighbour and are about the wife. The line about refusing all the world's wealth describes the sage's character; nothing in it happens, so the imagined people making the offer should not be in the graph. The text never says the lie caused the sons' deaths. Those words come from translators. The townspeople ask him to leave, but the text never says he left or was expelled.
+
+**What is wrong: the second voice.** In the printed text the second half of the story switches to "he thought, he said". The dossier treats this as an unnamed narrator of the Talmud taking over. But the whole story sits inside "Rava said", and nothing marks a new speaker. The printed wording is most naturally Rava retelling what the sage told him. So in both versions the voice should be "Rava, reporting the sage".
+
+**The first-person evidence is thinner than claimed.** The dossier's case that the sage keeps speaking as "I" is thinner than it says. The Vilna margin note ("some read: I thought, I said") covers only two words. I confirmed it on the photograph. The Koren edition's Aramaic uses "I" for those two words and then goes back to "he". The English translation from the same edition says "he" throughout. Koren, its English and the Steinsaltz commentary all come from one editorial team, so they count as one voice, not three.
+
+**Claims the dossier left out of its fix.** Its voice fix skips several claims: the townspeople coming, their question, and their plea. It also misses the clearest case of all. The sentence saying the townspeople never lied and never died early sits in the part where the sage speaks as "I" in every version. It is plainly his statement.
+
+**A caution on the mother.** The printed text says "I had two sons from her", so both parents are stated. On the Munich manuscript photograph, though, I read "I had two sons" without "from her". There the mother follows only from the marriage mentioned just before. My reading of that hand is uncertain. The mother link should be marked as stated in the printed text, not in every copy.
+
+**The other Rav Tavut stays separate.** A similar "truthful sage" called Rav Tavut appears in another tractate, Bava Metzia. The dossier rightly keeps him as a possible match, not a merge. Two notes on that. A later scholar's proposed correction of the Bava Metzia name rests on this very passage, so it cannot count as proof that the two are the same man. And the printed Bava Metzia alternative, "Rav Shmuel son of Zutra", keeps its father's name if that branch is ever recorded.
+
+**What stays open.** Whether the sage was Rav Tavut or Rav Tavyomi. Whether the story is in his own words or retold by Rava. Whether the Bava Metzia sage is the same person. Whether the town was real. None of this review approves an identity, a merge, a date or a historical link.

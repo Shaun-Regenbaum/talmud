@@ -1,0 +1,133 @@
+{
+  "job_id": "challenge-08",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "99a9bcccb0033206bd449363a3cbdc18b875fabb8d9eb0cb159fed2d92adbf3c",
+  "historical_graph_eligible": false,
+  "scope": "I checked every dossier finding and proposed correction that touches a person, relation, speaker or branch against the saved pilot input, the first reading, the previous review and the saved files in sources/ (Wikisource and William Davidson 3a, 3a:6, Steinsaltz 3a:4-5, Rashi, Sherira, both Ein Yaakov editions, Yalkut 356:3, Tosefta, Lieberman, Yerushalmi with Guggenheimer, Tosefta Kifshutah, Mishnat Eretz Yisrael, Seder HaDorot, Jastrow, Ben Yehoyada), and fetched Yevamot 113a once to check a citation; I did not check Bavli manuscripts, Dikdukei Soferim or the printed Yuchasin, and no page images were involved.",
+  "findings": [
+    {
+      "target": "first reading entities hearing_no_speech / speech_no_hearing (m12, m13), not addressed by the dossier",
+      "decision": "add_missing_claim",
+      "reason": "The first reading types 'לשומע ואינו מדבר' and 'למדבר ואינו שומע' (3a:3) as kind 'person'. They are legal categories inside the baraita's exclusion ('פרט ל...'), not people. The dossier gives the exclusion a baraita voice (F09) but leaves these two as person entities, so they could become graph nodes. Retype them as legal roles or categories, attached to the baraita statement, and keep them out of the person graph."
+    },
+    {
+      "target": "proposed_corrections c3 (new mention for the short 'רבי יוחנן')",
+      "decision": "correct_occurrence",
+      "reason": "I support a separate mention with a coreference candidate, but the correction gives no anchor. In s2, 'רבי יוחנן' occurs twice: occurrence 1 is inside 'דרבי יוחנן בן גודגדא' (already m2), and occurrence 2 is the sister-clause name. The new mention must anchor on occurrence 2, or on 'בני אחתיה דרבי יוחנן' occurrence 1. If it is anchored on occurrence 1, it silently re-merges it with m2. The candidate's support should list the interpretation holders (WD/Steinsaltz as one, Glick, Yuchasin/Seder HaDorot as one) and Sherira's quotation form as separate evidence types."
+    },
+    {
+      "target": "proposed_corrections c1 (make Yohanan child_of Gudgada shared)",
+      "decision": "qualify",
+      "reason": "Making c1 shared is reasonable. The name 'רבי יוחנן בן גודגדא' stands in the passage whichever kinship report is right, and 'ואמרי לה' disputes only the mother's relation to Yohanan. But c1's evidence must stay the one printed occurrence in the daughter clause. Sherira's full name in both reports is a later quotation witness and must be recorded separately, not as print evidence for the sister clause. Do not derive 'sister child_of gudgada' from c1 plus c3: the text does not say whether she is a full or half sister, and her Yohanan is only a candidate."
+    },
+    {
+      "target": "entity rabbi mentions (first reading m1 only), not addressed by the dossier",
+      "decision": "add_missing_mentions",
+      "reason": "Rabbi is named three times: 'בשבבותיה דרבי' (s2; m1, occurrence 1 of 'דרבי', which is correct), 'דהוה עייל רבי לבי מדרשא' (s2), and 'ובעי רבי רחמי עלייהו' (s3). Only the first is a mention, although c9 and c12 rest on the other two. Add mentions for 'עייל רבי' (occurrence 1) and 'ובעי רבי' (s3, occurrence 1). All three stay one local entity 'Rabbi'. Yehuda HaNasi stays an attributed identification (F11)."
+    },
+    {
+      "target": "F09 / proposed correction on exclusion (Mar Zutra and Rav Ashi as respondents)",
+      "decision": "qualify",
+      "reason": "In 3a:6, 'אמר מר זוטרא קרי ביה למען ילמדו' answers the objection. Rav Ashi's 'ודאי למען ילמדו הוא דאי סלקא דעתך...' argues from the verse's own redundancy. The dossier's own Rashi quote says this holds 'בלאו קושיא דהנך תרי אילמי', even without the mutes' difficulty. So record Mar Zutra as answering the anonymous objection, and Rav Ashi as ruling on how the verse is read, supported by his own argument. Neither statement marks an addressee, and there is no relation between the two men or to the story's people."
+    },
+    {
+      "target": "F07 / A4 (learning from Rabbi)",
+      "decision": "qualify",
+      "reason": "I agree that no teacher edge is explicit. But the list of who holds the interpretation is incomplete and partly overstated. Sherira says the Tosefta 'איתרצן ... ומתניין ... במדרשיה דר'' and uses the story as proof. He implies, but does not state, that the pair learned it from Rabbi, and his proof needs the Tosefta variant. Yuchasin (quoted in Tosefta Kifshutah: 'היו בישיבת רבי') and Seder HaDorot ('והיו בישיבת רבי') also hold a study-house reading. Treat them as one line, and attribute any such edge to them as interpretation."
+    },
+    {
+      "target": "F02 (holders of the ben Gudgada coreference)",
+      "decision": "keep_evidence_types_separate",
+      "reason": "Seder HaDorot's entry opens 'וכתב היוחסין' and repeats Yuchasin's 'בני בתו ... או בני אחותו' wording, which Tosefta Kifshutah quotes as 'ובני בתו של ר' יוחנן בן גודגדה או בני אחותו'. They are one line, not two. Glick's 'sons of his sister' is a translation choice. None of these is a textual witness for the patronymic in the printed sister clause. The dossier already treats WD and Steinsaltz as one; apply the same rule here."
+    },
+    {
+      "target": "F05 / m9 coreference and claim c11",
+      "decision": "qualify",
+      "reason": "Ein Yaakov (Glick 'ויתבי קמיה', Daat 'וְיַתְבֵי קַמֵּיהּ') and Sherira ('ויתבין קמיה') do read singular 'sit before him'. Yalkut reads 'הֲווּ עָיְילֵי קַמֵּיהּ' with no 'sit' verb, so it supports 'entered before him', not 'sat before him'. Glick's English drops the sitting clause altogether. Also, c11 hard-codes object 'listeners', while m9 carries candidates [rabbi, listeners]. c11's object should follow the m9 candidates, not fix one of them."
+    },
+    {
+      "target": "F06 / proposed shared claim pair neighbour_of rabbi",
+      "decision": "support_proposed_correction",
+      "reason": "'הנהו תרי אילמי דהוו בשבבותיה דרבי' states it, in the narrator's voice, before the kinship alternative, so it is shared by both branches. Sherira ('בשיבבותיה'), Ein Yaakov ('בשביבותיה') and Yalkut ('בְּשִׁיבְבוּתֵיהּ') keep it. Choose one predicate and store it once, in one direction (pair near Rabbi). It is residence only: not household, patronage or teaching."
+    },
+    {
+      "target": "F12 / F13 (Tosefta and Yerushalmi sons; Mishnat Eretz Yisrael's 'two sons')",
+      "decision": "support_with_added_check",
+      "reason": "The Tosefta reads 'מעשה בבניו של ר' יוחנן בן גודגדה שהיו חרשים' and the Yerushalmi 'שֶׁהָיוּ כּוּלָּן חֱרֵשִׁים', reported by R. Yehuda, with no count. Mishnat Eretz Yisrael's 'שני בניו' cites 'תוס', פ\"א ה\"א; בבלי, יבמות קיג ע\"א'. I checked Yevamot 113a: it has only Yohanan ben Gudgada's testimony about a deaf woman, not his sons. So neither of its citations supplies 'two'. Its footnote 17 separately calls the Bavli pair his 'נכדיו' in Rabbi's days, citing Yalkut, the one witness that lacks the sister report. Keep them unmerged, as the dossier says."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "pilot_input",
+      "exact_quote": "בני ברתיה דרבי יוחנן בן גודגדא ואמרי לה בני אחתיה דרבי יוחנן דכל אימת",
+      "matches_claim": true,
+      "note": "Exact in s2 (Chagigah 3a:4). The sister clause has no patronymic. 'רבי יוחנן' occurs twice here, and the new short-name mention must take occurrence 2."
+    },
+    {
+      "source_id": "pilot_input",
+      "exact_quote": "הנהו תרי אילמי דהוו בשבבותיה דרבי",
+      "matches_claim": true,
+      "note": "Exact in s2. It comes before the kinship alternative, so the neighbour relation is shared. m1 'דרבי' occurrence 1 is this Rabbi."
+    },
+    {
+      "source_id": "sherira",
+      "exact_quote": "בני אחתיה דר' יוחנן בן גודגדא ואמרי ליה בני ברתיה דר' יוחנן בן גודגדא",
+      "matches_claim": true,
+      "note": "Exact. Order reversed, full name in both. Sherira also reads 'מהנהו אילמי' with no 'תרי', so this witness does not carry the count of two. The Community translation's 'said that' is a mistranslation of 'ואמרי ליה', as the dossier says."
+    },
+    {
+      "source_id": "yalkut_356_3",
+      "exact_quote": "הֲווּ עָיְילֵי קַמֵּיהּ",
+      "matches_claim": false,
+      "note": "The words are present, but there is no 'ויתבי'. Yalkut says they 'entered before him', so it is not a witness for 'sat before him'. It also has no sister clause ('בְּנֵי בְּרַתֵּיהּ ... בֶּן גּוּדְגְּדָא, דְּכָל אֵימַת'), which confirms F04."
+    },
+    {
+      "source_id": "ein_yaakov_glick",
+      "exact_quote": "הוו עיילי ויתבי קמיה",
+      "matches_claim": true,
+      "note": "Singular, with the sitting verb. The same file's English omits the sitting clause, so the Glick English is no evidence on the pronoun."
+    },
+    {
+      "source_id": "wikisource_3a6",
+      "exact_quote": "אמר מר זוטרא קרי ביה למען ילמדו רב אשי אמר ודאי למען ילמדו הוא דאי סלקא דעתך",
+      "matches_claim": true,
+      "note": "Present. Rav Ashi's statement goes on with its own reasoning, and Rashi ('בלאו קושיא דהנך תרי אילמי') confirms that it does not depend on the objection. No addressee is marked."
+    },
+    {
+      "source_id": "steinsaltz_3a4",
+      "exact_quote": "<b>בני אחתיה</b> <small>[אחותו]</small> של <b>ר' יוחנן</b> בן גודגדא",
+      "matches_claim": true,
+      "note": "'בן גודגדא' is unbolded editor's text, the same editorial work as the WD English '<b>sons of the sister of Rabbi Yoḥanan</b> ben Gudgeda'. One interpretation, not a witness."
+    },
+    {
+      "source_id": "tk_terumot",
+      "exact_quote": "ובני בתו של ר' יוחנן בן גודגדה או בני אחותו היו בישיבת רבי",
+      "matches_claim": true,
+      "note": "Tosefta Kifshutah quoting Yuchasin. It expands the short name and reads the scene as Rabbi's academy. Seder HaDorot repeats this ('והיו בישיבת רבי'), so it is one line with Yuchasin."
+    },
+    {
+      "source_id": "tosefta_terumot",
+      "exact_quote": "אמר ר' יהודה מעשה בבניו של ר' יוחנן בן גודגדה שהיו חרשים",
+      "matches_claim": true,
+      "note": "No count of sons. Speaker R. Yehuda. 'חרשים', which Tosefta Kifshutah reads as truly deaf, unlike the Bavli's mutes."
+    },
+    {
+      "source_id": "pilot_input",
+      "exact_quote": "ותניא למען ישמעו פרט למדבר ואינו שומע ולמען ילמדו פרט לשומע ואינו מדבר",
+      "matches_claim": true,
+      "note": "The baraita source voice is right. The two 'פרט ל...' phrases are legal categories, not persons."
+    }
+  ],
+  "extra_sources": [
+    {
+      "source_id": "yevamot_113a_wikisource",
+      "saved_file": "review-sources/yevamot_113a_wikisource.json",
+      "url": "https://www.sefaria.org/api/v3/texts/Yevamot.113a?version=hebrew%7CWikisource%20Talmud%20Bavli",
+      "sha256": "716e59946440423f3b733d49cd6ec94b8c2dbdaee861c38545005b8fe4ef9de3",
+      "evidence_type": "base_text",
+      "exact_quote": "דתנן העיד רבי יוחנן בן גודגדא על החרשת שהשיאה אביה שיוצאה בגט",
+      "use": "Checks Mishnat Eretz Yisrael's second citation for 'שני בניו'. The only Gudgada passage on 113a is this testimony, with no sons and no count."
+    }
+  ]
+}

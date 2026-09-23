@@ -1,0 +1,52 @@
+{
+  "job_id": "random-bavli-02",
+  "input_sha256": "b8a2727c59e6dfc21074a3b4c91638ba690e0cdb738be175b0679b8ff260a305",
+  "output_sha256": "eee1ac10d2d56ebb89030a97a85227f8ce8a77ffdcff50ad67f1883a3c20634d",
+  "checks": [
+    {
+      "kind": "source",
+      "index": 0,
+      "status": "pass",
+      "reason": "The two proponents are identified by their proof words rather than assigned names from outside Nazir 43a:7–11. Rebbi’s rule about death, lesions and discharges remains a cited teaching.",
+      "claim_ids": [
+        "c1",
+        "c2",
+        "c3",
+        "c4"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 1,
+      "status": "pass",
+      "reason": "The objection in 43a:11 targets the earlier להחלו position. The answer distinguishes transmitting impurity from the prohibition already applying, rather than turning the objection into a settled contradiction.",
+      "claim_ids": [
+        "c5",
+        "c6"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 2,
+      "status": "miss",
+      "reason": "Mention records are not complete: 43a:7 first refers to Rebbi in לכדרבי and then names him in רבי אומר, but only the latter occurrence has a mention.",
+      "claim_ids": [
+        "c1"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "minor",
+      "type": "omission",
+      "claim_ids": [
+        "c1"
+      ],
+      "reason": "The earlier Rebbi reference in לכדרבי has no mention record. The attribution itself is preserved; the loss concerns source-occurrence coverage.",
+      "source_refs": [
+        "Nazir 43a:7"
+      ]
+    }
+  ],
+  "summary": "The legal roles and objection target are preserved, with one visible repeated-reference omission."
+}

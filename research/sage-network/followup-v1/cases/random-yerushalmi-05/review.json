@@ -1,0 +1,30 @@
+{
+  "job_id": "random-yerushalmi-05",
+  "authority": "automated_review",
+  "status": "qualified_proposals",
+  "dossier_sha256": "98dbd8ece1055ef3c793d22df8e8dcddbba61b71db98cc7261d8ed6153c3a7b0",
+  "historical_graph_eligible": false,
+  "scope": "Separate review of selected graph implications and quoted evidence. Source hashes and quotation matches checked separately. Not human adjudication or exhaustive historical verification.",
+  "findings": [
+    {
+      "target": "F6/F7 my teacher and said to me",
+      "decision": "support_version_scoped_edges",
+      "reason": "The second רבי supports the teacher reading in the cited Ketubot editions. Other versions retain direct address without that title. Omission does not assert that the two were not teacher and student."
+    },
+    {
+      "target": "F6 heard_from/addressed_by notation",
+      "decision": "correct_direction",
+      "reason": "If Hila tells Yose, the normalized heard_from edge runs Yose to Hila. The addressed edge runs Hila to Yose. Inverse displays must derive from the same observation and must not count twice."
+    },
+    {
+      "target": "F8 parallel formula",
+      "decision": "retain_linguistic_support_only",
+      "reason": "The parallel helps interpret the title. It does not prove the word original or that the Yose in two passages is one historical person."
+    },
+    {
+      "target": "F13 name and epithet proposals",
+      "decision": "retain_identity_uncertainty",
+      "reason": "Keep spellings, epithet meanings and biographical suggestions as attributed hypotheses. Neither a shared name nor a geographical interpretation establishes identity or presence at that place."
+    }
+  ]
+}

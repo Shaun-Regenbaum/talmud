@@ -1,0 +1,118 @@
+{
+  "job_id": "random-yerushalmi-01",
+  "input_sha256": "05e422e85f2659b189807d54a84083c8712345513c89fe7caf98bec14df0cd40",
+  "output_sha256": "3614563007a6ab15c7868126336f2d3e99da86c9466b651a5a7bcc05c1e26bd7",
+  "checks": [
+    {
+      "kind": "source",
+      "index": 0,
+      "status": "pass",
+      "reason": "Taanit 1:2:2–3 distinguishes Yehuda’s own earlier ruling from the later ruling in Betera’s name. The rejected attribution remains marked rejected, and Yohanan’s ruling and Avun’s transmission are retained.",
+      "claim_ids": [
+        "c5",
+        "c6",
+        "c7",
+        "c8",
+        "c9",
+        "c10"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 1,
+      "status": "pass",
+      "reason": "In 1:2:4, Yose recalls standing with Hananya and questioning Zeura and Isa as each passes. The claims preserve the reporting voice and do not make the shop owner a participant merely from his name.",
+      "claim_ids": [
+        "c13",
+        "c14",
+        "c15",
+        "c18",
+        "c19",
+        "c20",
+        "c21",
+        "c22",
+        "c23",
+        "c24",
+        "c25"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 2,
+      "status": "pass",
+      "reason": "Hiyya’s arrival from Tyre, his transmission in Yohanan’s name, and the separate public expositions by Aha and Yirmeya are retained. Future crop predictions remain attributed views.",
+      "claim_ids": [
+        "c27",
+        "c28",
+        "c29",
+        "c30",
+        "c32",
+        "c33"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 3,
+      "status": "miss",
+      "reason": "The third-of-Marheshvan ruling in 1:3:1 has only the unlinked statement entity third. The seventh-day ruling has c35, so the two competing dates are not both represented as claims.",
+      "claim_ids": [
+        "c35"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 4,
+      "status": "miss",
+      "reason": "The account supporting Yose’s prediction in 1:2:5, that grain grew in fifteen days in Joel’s days and supplied the omer, has a Joel mention but no event or attributed claim.",
+      "claim_ids": [
+        "c33"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "major",
+      "type": "omission",
+      "claim_ids": [
+        "c35"
+      ],
+      "reason": "The anonymous third-of-Marheshvan rain-request ruling is omitted as a claim, although its statement entity exists. A claims-only reader sees the seventh-day view without its stated alternative.",
+      "source_refs": [
+        "Jerusalem Talmud Taanit 1:3:1"
+      ]
+    },
+    {
+      "severity": "minor",
+      "type": "omission",
+      "claim_ids": [
+        "c33"
+      ],
+      "reason": "The reported precedent in Joel’s days and the offering made from that grain are absent as claims. They should remain reported support for the prediction, not independent agricultural facts.",
+      "source_refs": [
+        "Jerusalem Talmud Taanit 1:2:5"
+      ]
+    },
+    {
+      "severity": "minor",
+      "type": "omission",
+      "claim_ids": [],
+      "reason": "Repeated named mentions are not complete: the names in the long attribution argument of 1:2:3 have no mentions in that source, and Rabbi Yehuda’s new occurrence introducing the crop teaching in 1:2:5 is not separately anchored.",
+      "source_refs": [
+        "Jerusalem Talmud Taanit 1:2:3",
+        "Jerusalem Talmud Taanit 1:2:5"
+      ]
+    },
+    {
+      "severity": "minor",
+      "type": "contract_limit",
+      "claim_ids": [
+        "c5"
+      ],
+      "reason": "The rules_like object is the person yehuda, while the particular rule is only in the content role. The full record is issue-specific, but a projection of subject/predicate/object alone would turn it into general agreement.",
+      "source_refs": [
+        "Jerusalem Talmud Taanit 1:2:2"
+      ]
+    }
+  ],
+  "summary": "The long remembered encounter and its uncertain pronouns are handled carefully. The anonymous competing date and a narrated precedent are missing, and mention coverage is incomplete."
+}

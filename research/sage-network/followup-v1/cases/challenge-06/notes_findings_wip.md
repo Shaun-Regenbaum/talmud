@@ -1,0 +1,11 @@
+# Working notes (challenge-06, Menachot 73b:16) — saved as found
+
+1. Deletion target: Rashi 73b:16:1 lemma reads "סמי מכאן נסכי יין" and says "ואמר מנין לרבות העופות והלבונה ולא תיתני היין"; Rabbeinu Gershom [12] "סמי מההיא יין. אלא מנין לרבות העופות והלבונה". Both: delete "wine" from the Yosi baraita at 73b:8 (the "מנין לרבות העופות והיין..." list), which 73b:9 closes "דברי רבי יוסי הגלילי".
+2. "וזה אחד מהן" in Shekalim 7:6 points back to 7:5 (found animal's libations from public funds): Ktav Yad Rashi 73b:12:1, Tosafot Yom Tov Shekalim 7:6 [1] citing Rashi Menachot 51b. Pilot c1 content role = gentile rule is imprecise.
+3. Sifra Emor 7:2 (Venice 1545, Wikisource) REVERSES the names: inclusive list "דברי ר' עקיבא [גירס' הגמרא ריה"ג]. אמר לו ר' יוסי הגלילי [גירס' הגמרא ר"ע] ... אין כאן אלא עולה בלבד". Sifra list has "והמנחות והיין".
+4. Tosefta Shekalim 1:7 (Vienna, Lieberman): inclusive list is Yosi's (like Bavli) but lists "עולות, ושלמים, עופות, ומנחות, עצים, ולבונה, ומלח" — no wine; Akiva: "אין מקבלין מהן אלא עולה ושלמים בלבד". Addressed speech "אמ' לו ר' עקיבא".
+5. Tosafot 73b:15:1 rejects reading Yosi's "wine" as wine with the offering (which would avoid emendation), and reports a Temurah 3a reading variant "עליהם" (Rabbeinu Gershom's book has it; most books do not).
+6. Reading variant: חבירתה (Wikisource; Rashi Vilna 13:3) vs [אבזרהא] (Vilna bracket as shown in Koren Hebrew), "וכל אביזרא" (Ktav Yad Rashi 13:2), "וכל אביזריהו" (Rabbeinu Gershom [8]).
+7. Wider-context people outside pilot window (73b:3-5): Rav Chama bar Gurya (patronymic -> father Gurya placeholder), Rava, Rav Sheizevi, Rabbi Yochanan (who first pairs Yosi/Akiva in 73b:5); Rav Huna appears only in Koren plain text at 73b:4 (check 73a).
+8. Temurah 2b:9 (Rava cites baraita): "ואין מביאין עליהם נסכים, אבל קרבנו טעון נסכים, דברי רבי שמעון"; Temurah 3a:10 gives the same "אזרח" baraita as its source (Koren prints "(עֲלֵיהֶן)" in parentheses there). Same rule attributed to a named R. Shimon in another Bavli passage; Menachot 73b:16 names only Yosi/Akiva.
+9. Tosefta apparatus: London (ל) lacks "אמ'" and "לו" and reads "יוסי הגלילי [או']" -> no addressed speech in London; Erfurt (א) "א'"; Kifshutah: Erfurt+London swap the names like Sifra; Bavli follows ed. princeps + Vienna.

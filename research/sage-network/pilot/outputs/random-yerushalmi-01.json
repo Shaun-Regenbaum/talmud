@@ -1,0 +1,2294 @@
+{
+  "schema_version": "passage-pilot-v1",
+  "job_id": "random-yerushalmi-01",
+  "episode": {
+    "genre": "mixed",
+    "genre_reason": "Rain-prayer rulings are followed by predictions about crops in the future age.",
+    "form": "Legal argument and attributed teachings",
+    "coverage": "needs_context",
+    "needed_context": [
+      "The preceding Mishnah is needed for the full second ruling attributed to Yehuda in Betera’s name.",
+      "The identity of the initial questioners and the person before whom they ask in s3 is not restated."
+    ],
+    "notes": [
+      "All five supplied passages were read. The text first raises uncertain attribution of Yehuda’s two rulings and then resolves it. Future crop yields remain attributed predictions, not observed agricultural data."
+    ]
+  },
+  "mentions": [
+    {
+      "id": "m1",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי יוחנן",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m2",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי יודה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m3",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי יודה בן בתירה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m4",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "בתירה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m5",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי אבון",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m6",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "בעון",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m7",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "קומוי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m8",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "יוסה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m9",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רבי חנניה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m10",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "דרב הושעיה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m11",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "דרב הושעיה חביבך",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m12",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רבי זעורה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m13",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רבי יסא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m14",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רבי חייה בר בא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m15",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "בא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m16",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רבי אחא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m17",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רבי ירמיה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m18",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "רבי תנחום בר חייה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m19",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "חייה",
+        "occurrence": 2
+      }
+    },
+    {
+      "id": "m20",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "רבי יוסי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m21",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s4",
+        "quote": "יואל",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m22",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "ר\"ג",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m23",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s5",
+        "quote": "האחרון שבישר'",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m24",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "הראשון",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m25",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "האחרון מזכיר",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m26",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "קומוי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m27",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "חביבך",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m28",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "דרב הושעיה",
+        "occurrence": 2
+      }
+    },
+    {
+      "id": "m29",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "מציית ליה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m30",
+      "kind": "pronoun",
+      "anchor": {
+        "source_id": "s3",
+        "quote": "ליה",
+        "occurrence": 3
+      }
+    }
+  ],
+  "entities": [
+    {
+      "id": "yohanan",
+      "kind": "person",
+      "label": "Rabbi Yohanan",
+      "mention_ids": [
+        "m1"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי יוחנן",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yehuda",
+      "kind": "person",
+      "label": "Rabbi Yehuda",
+      "mention_ids": [
+        "m2"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי יודה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "betera",
+      "kind": "person",
+      "label": "Rabbi Yehuda ben Betera",
+      "mention_ids": [
+        "m3"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי יודה בן בתירה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "betera_parent",
+      "kind": "person",
+      "label": "Betera in the patronymic",
+      "mention_ids": [
+        "m4"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "בתירה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "avun",
+      "kind": "person",
+      "label": "Rabbi Avun",
+      "mention_ids": [
+        "m5"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי אבון",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "askers",
+      "kind": "group",
+      "label": "Unnamed questioners before the opening teacher",
+      "mention_ids": [
+        "m6"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "בעון",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "opening_teacher",
+      "kind": "person",
+      "label": "Unnamed teacher addressed at the opening of s3",
+      "mention_ids": [
+        "m7"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "קומוי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yose",
+      "kind": "person",
+      "label": "Rabbi Yose who recalls the encounter",
+      "mention_ids": [
+        "m8"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "יוסה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "hananya",
+      "kind": "person",
+      "label": "Rabbi Hananya",
+      "mention_ids": [
+        "m9"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי חנניה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "hoshaya_brother",
+      "kind": "person",
+      "label": "Rav Hoshaya named as Hananya’s brother",
+      "mention_ids": [
+        "m10"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "דרב הושעיה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "hoshaya_shop",
+      "kind": "person",
+      "label": "Rav Hoshaya whose shop is recalled",
+      "mention_ids": [
+        "m11"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "דרב הושעיה חביבך",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "zeura",
+      "kind": "person",
+      "label": "Rabbi Zeura",
+      "mention_ids": [
+        "m12"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי זעורה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "isa",
+      "kind": "person",
+      "label": "Rabbi Isa",
+      "mention_ids": [
+        "m13"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי יסא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "hiyya",
+      "kind": "person",
+      "label": "Rabbi Hiyya bar Ba",
+      "mention_ids": [
+        "m14"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי חייה בר בא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "ba",
+      "kind": "person",
+      "label": "Ba in Hiyya’s patronymic",
+      "mention_ids": [
+        "m15"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "בא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "aha",
+      "kind": "person",
+      "label": "Rabbi Aha",
+      "mention_ids": [
+        "m16"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי אחא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yirmeya",
+      "kind": "person",
+      "label": "Rabbi Yirmeya",
+      "mention_ids": [
+        "m17"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי ירמיה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "tanhum",
+      "kind": "person",
+      "label": "Rabbi Tanhum bar Hiyya",
+      "mention_ids": [
+        "m18"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי תנחום בר חייה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "hiyya_parent",
+      "kind": "person",
+      "label": "Hiyya in Tanhum’s patronymic",
+      "mention_ids": [
+        "m19"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "חייה",
+          "occurrence": 2
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yose_future",
+      "kind": "person",
+      "label": "Rabbi Yose in the future-crops teaching",
+      "mention_ids": [
+        "m20"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "רבי יוסי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yoel",
+      "kind": "person",
+      "label": "Joel whose days are mentioned",
+      "mention_ids": [
+        "m21"
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "יואל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "rg",
+      "kind": "person",
+      "label": "R. G. as abbreviated in the Mishnah",
+      "mention_ids": [
+        "m22"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "ר\"ג",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "last_traveler",
+      "kind": "person",
+      "label": "The last Israelite traveler after the festival",
+      "mention_ids": [
+        "m23"
+      ],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "האחרון שבישר'",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "later_rule",
+      "kind": "statement",
+      "label": "The Yehuda ruling transmitted from Betera, keeping festivals in dew",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "הלכה כרבי יודה שאמר משם רבי יודה בן בתירה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "dew_reason",
+      "kind": "statement",
+      "label": "The festivals should pass with dew because dew is a good sign for the world",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "כדי שיצאו המועדות בטל מפני שהטל סימן יפה לעולם",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "earlier_rule",
+      "kind": "statement",
+      "label": "On the final festival day the later prayer leader mentions rain and the earlier one does not",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "העובר לפני התיבה ביום טוב האחרון של חג האחרון מזכיר והראשון אינו מזכיר",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "first_leader",
+      "kind": "person",
+      "label": "Generic earlier prayer leader",
+      "mention_ids": [
+        "m24"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "הראשון",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "last_leader",
+      "kind": "person",
+      "label": "Generic later prayer leader",
+      "mention_ids": [
+        "m25"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "האחרון מזכיר",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "distinguish_question",
+      "kind": "statement",
+      "label": "Could one ruling concern mentioning rain and the other requesting it?",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "או נימר כאן להזכיר כאן לשאלה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "same_rule",
+      "kind": "statement",
+      "label": "Where rain is mentioned it is also requested",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "הלכה מקום שמזכירין שואלין",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "shop",
+      "kind": "place",
+      "label": "Shop of the second Rav Hoshaya mention",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "חנותיה דרב הושעיה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "standing",
+      "kind": "event",
+      "label": "Yose and Hananya stand before the shop",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "כד הוינן קיימין קומי חנותיה דרב הושעיה חביבך",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "recollection",
+      "kind": "statement",
+      "label": "Yose asks Hananya whether he remembers their standing at the shop",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "נהיר את כד הוינן קיימין קומי חנותיה דרב הושעיה חביבך",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "hananya_parent",
+      "kind": "person",
+      "label": "Unnamed parent linking Hananya to an uncle",
+      "mention_ids": [
+        "m27"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "חביבך",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "uncle"
+      ]
+    },
+    {
+      "id": "beloved_description",
+      "kind": "statement",
+      "label": "Shop owner described affectionately as your beloved",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "חביבך",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "beloved"
+      ]
+    },
+    {
+      "id": "uncertainty",
+      "kind": "statement",
+      "label": "This still requires examination for me",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "עוד אנא היא צריכה לי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "zeura_passing",
+      "kind": "event",
+      "label": "The named sage passes the group at the shop",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "עבר רבי זעורה ושאלנן ליה ואמר עוד אנא היא צריכה לי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "isa_passing",
+      "kind": "event",
+      "label": "The named sage passes the group at the shop",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "עבר רבי יסא ושאלנן ליה ואמר עוד אנא היא צריכה לי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "later_speaker",
+      "kind": "person",
+      "label": "Unresolved referent of the later heard ruling",
+      "mention_ids": [
+        "m29"
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "מציית ליה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "tyre",
+      "kind": "place",
+      "label": "Tyre",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "צור",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "arrival",
+      "kind": "event",
+      "label": "Hiyya arrives from Tyre",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי חייה בר בא אתא מן צור",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "aha_place",
+      "kind": "place",
+      "label": "Study house",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "בבית מדרשא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "aha_preaching",
+      "kind": "event",
+      "label": "Public exposition of the rain-prayer rule",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי אחא דרש בבית מדרשא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yirmeya_place",
+      "kind": "place",
+      "label": "Synagogue of Boule",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "בכנישתא דבולי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yirmeya_preaching",
+      "kind": "event",
+      "label": "Public exposition of the rain-prayer rule",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי ירמיה דרש בכנישתא דבולי",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "temple_answer",
+      "kind": "statement",
+      "label": "The time when the Temple stood is different",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "בשעת המקדש שאני",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yehuda_future",
+      "kind": "statement",
+      "label": "In the future grain ripens in one month and trees in two",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "אבל לעתיד לבוא התבואה עושה לחדש אחד והאילן עושה לשני חדשים",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "yose_future_rule",
+      "kind": "statement",
+      "label": "In the future grain ripens in fifteen days and trees in a month",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "אבל לעתיד לבוא התבואה עושה לחמשה עשר יום והאילן עושה לחדש אחד",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "monthly",
+      "kind": "statement",
+      "label": "The verse means fruit ripens each month",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "בכל חדש וחדש יהא מבכר",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "seventh",
+      "kind": "statement",
+      "label": "Request rain on the seventh of Marheshvan so the last traveler reaches the Euphrates",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "בשבעה בו חמשה עשר יום אחר החג כדי שיגיע האחרון שבישר' לנהר פרת",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "euphrates",
+      "kind": "place",
+      "label": "Euphrates River",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "נהר פרת",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "third",
+      "kind": "statement",
+      "label": "Request rain on the third of Marheshvan",
+      "mention_ids": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "בשלשה במרחשון שואלין את הגשמים",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "betera",
+      "object": "betera_parent",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי יודה בן בתירה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c2",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "hiyya",
+      "object": "ba",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי חייה בר בא",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c3",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "tanhum",
+      "object": "hiyya_parent",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי תנחום בר חייה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c4",
+      "family": "family",
+      "predicate": "sibling_of",
+      "subject": "hananya",
+      "object": "hoshaya_brother",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי חנניה אחוי דרב הושעיה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c5",
+      "family": "views",
+      "predicate": "rules_like",
+      "subject": "yohanan",
+      "object": "yehuda",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "later_rule"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אמר רבי יוחנן הלכה כרבי יודה שאמר משם רבי יודה בן בתירה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The specific ruling is identified by its transmission from Betera. Its full wording is not supplied."
+      ]
+    },
+    {
+      "id": "c6",
+      "family": "transmission",
+      "predicate": "reports_in_name_of",
+      "subject": "yehuda",
+      "object": "betera",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "later_rule"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי יודה שאמר משם רבי יודה בן בתירה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c7",
+      "family": "transmission",
+      "predicate": "reports_in_name_of",
+      "subject": "avun",
+      "object": "yohanan",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "dew_reason"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי אבון בשם רבי יוחנן",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c8",
+      "family": "views",
+      "predicate": "explains",
+      "subject": "yohanan",
+      "object": "later_rule",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "dew_reason"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "טעמא דרבי יודה כדי שיצאו המועדות בטל מפני שהטל סימן יפה לעולם",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c9",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "yehuda",
+      "object": "earlier_rule",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "הא הדא אמרה קדמייתא בשם גרמיה ותינייתא בשם רבי יודה בן בתירה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "earlier_own"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c10",
+      "family": "transmission",
+      "predicate": "reports_in_name_of",
+      "subject": "yehuda",
+      "object": "betera",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "earlier_rule"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "חדא בשם גרמיה וחדא בשם רבי יודה בן בתירה ולא ידעין היידא בשם גרמיה והיידא בשם רבי יודה בן בתירה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "earlier_betera"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "uncertain",
+      "discourse_status": "rejected",
+      "basis": "interpretation",
+      "reading_confidence": "medium",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c11",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "askers",
+      "object": "distinguish_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "opening_teacher"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "בעון קומוי או נימר כאן להזכיר כאן לשאלה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c12",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "opening_teacher",
+      "object": "distinguish_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "askers"
+        },
+        {
+          "role": "content",
+          "entity": "same_rule"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "אמר לון הלכה מקום שמזכירין שואלין",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c13",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "yose",
+      "object": "recollection",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "hananya"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "א\"ר יוסה לרבי חנניה אחוי דרב הושעיה נהיר את",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c14",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "yose",
+      "object": "standing",
+      "roles": [
+        {
+          "role": "location",
+          "entity": "shop"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "כד הוינן קיימין קומי חנותיה דרב הושעיה חביבך",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "קיימין קומי חנותיה",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c15",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "hananya",
+      "object": "standing",
+      "roles": [
+        {
+          "role": "location",
+          "entity": "shop"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "כד הוינן קיימין קומי חנותיה דרב הושעיה חביבך",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "קיימין קומי חנותיה",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c16",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "hananya",
+      "object": "hananya_parent",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "דרב הושעיה חביבך",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "uncle"
+      ],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "medium",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c17",
+      "family": "family",
+      "predicate": "sibling_of",
+      "subject": "hananya_parent",
+      "object": "hoshaya_shop",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "דרב הושעיה חביבך",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "uncle"
+      ],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "medium",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The sex and identity of the intervening parent are not supplied."
+      ]
+    },
+    {
+      "id": "c18",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "zeura",
+      "object": "zeura_passing",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "עבר רבי זעורה ושאלנן ליה ואמר עוד אנא היא צריכה לי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "עבר",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c19",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "yose",
+      "object": "distinguish_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "zeura"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "עבר רבי זעורה ושאלנן ליה ואמר עוד אנא היא צריכה לי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The plural we asked includes Yose and his addressed companion. The question’s exact words are not repeated."
+      ]
+    },
+    {
+      "id": "c20",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "hananya",
+      "object": "distinguish_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "zeura"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "עבר רבי זעורה ושאלנן ליה ואמר עוד אנא היא צריכה לי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The plural we asked includes Yose and his addressed companion. The question’s exact words are not repeated."
+      ]
+    },
+    {
+      "id": "c21",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "zeura",
+      "object": "distinguish_question",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "uncertainty"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "עבר רבי זעורה ושאלנן ליה ואמר עוד אנא היא צריכה לי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Yose reports the sage’s admission of uncertainty."
+      ]
+    },
+    {
+      "id": "c22",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "isa",
+      "object": "isa_passing",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "עבר רבי יסא ושאלנן ליה ואמר עוד אנא היא צריכה לי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "עבר",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c23",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "yose",
+      "object": "distinguish_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "isa"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "עבר רבי יסא ושאלנן ליה ואמר עוד אנא היא צריכה לי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The plural we asked includes Yose and his addressed companion. The question’s exact words are not repeated."
+      ]
+    },
+    {
+      "id": "c24",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "hananya",
+      "object": "distinguish_question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "isa"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "עבר רבי יסא ושאלנן ליה ואמר עוד אנא היא צריכה לי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The plural we asked includes Yose and his addressed companion. The question’s exact words are not repeated."
+      ]
+    },
+    {
+      "id": "c25",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "isa",
+      "object": "distinguish_question",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "uncertainty"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "עבר רבי יסא ושאלנן ליה ואמר עוד אנא היא צריכה לי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Yose reports the sage’s admission of uncertainty."
+      ]
+    },
+    {
+      "id": "c26",
+      "family": "transmission",
+      "predicate": "heard_from",
+      "subject": "hananya",
+      "object": "later_speaker",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "same_rule"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "ובסופה את מציית ליה ואמר לא שנייא הלכה מקום שמזכירין שואלין",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "yose",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c27",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "hiyya",
+      "object": "arrival",
+      "roles": [
+        {
+          "role": "origin",
+          "entity": "tyre"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי חייה בר בא אתא מן צור",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "אתא מן צור",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c28",
+      "family": "transmission",
+      "predicate": "reports_in_name_of",
+      "subject": "hiyya",
+      "object": "yohanan",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "same_rule"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "ואמר מן שמיה דרבי יוחנן הלכה מקום שמזכירין שואלין",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c29",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "aha",
+      "object": "aha_preaching",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "same_rule"
+        },
+        {
+          "role": "location",
+          "entity": "aha_place"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי אחא דרש בבית מדרשא",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "דרש",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c30",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "yirmeya",
+      "object": "yirmeya_preaching",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "same_rule"
+        },
+        {
+          "role": "location",
+          "entity": "yirmeya_place"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "רבי ירמיה דרש בכנישתא דבולי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "דרש",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c31",
+      "family": "views",
+      "predicate": "explains",
+      "subject": "tanhum",
+      "object": "same_rule",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "temple_answer"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "אמר רבי תנחום בר חייה בשעת המקדש שאני",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "This answers the challenge from requesting rain only on the third of Marheshvan."
+      ]
+    },
+    {
+      "id": "c32",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "yehuda",
+      "object": "yehuda_future",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "תני אמר רבי יודה לפי שבעולם הזה התבואה עושה לששה חדשים והאילן עושה לשנים עשר חדש אבל לעתיד לבוא התבואה עושה לחדש אחד והאילן עושה לשני חדשים",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The holding of a view is asserted; its content is explicitly a future prediction."
+      ]
+    },
+    {
+      "id": "c33",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "yose_future",
+      "object": "yose_future_rule",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "רבי יוסי אומר לפי שבעולם הזה התבואה עושה לששה חדשים והאילן עושה לשנים עשר חדש אבל לעתיד לבוא התבואה עושה לחמשה עשר יום והאילן עושה לחדש אחד",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "An attributed prediction, not an observed future event."
+      ]
+    },
+    {
+      "id": "c34",
+      "family": "views",
+      "predicate": "explains",
+      "subject": "yose_future",
+      "object": "yehuda_future",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "monthly"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s4",
+          "quote": "מה מקיים ר' יוסה טעמא דרבי יודה לחדשיו יבכר בכל חדש וחדש יהא מבכר",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The narrator supplies Yose’s reading of the proof verse used by Yehuda."
+      ]
+    },
+    {
+      "id": "c35",
+      "family": "views",
+      "predicate": "holds_view",
+      "subject": "rg",
+      "object": "seventh",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s5",
+          "quote": "בשלשה במרחשון שואלין את הגשמים ר\"ג אומ' בשבעה בו חמשה עשר יום אחר החג כדי שיגיע האחרון שבישר' לנהר פרת",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    }
+  ],
+  "reading_groups": [
+    {
+      "id": "attribution",
+      "kind": "editorial_readings",
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "חדא בשם גרמיה וחדא בשם רבי יודה בן בתירה ולא ידעין היידא בשם גרמיה והיידא בשם רבי יודה בן בתירה",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        {
+          "id": "earlier_own",
+          "label": "Earlier rule is Yehuda’s own; later rule from Betera"
+        },
+        {
+          "id": "earlier_betera",
+          "label": "Earlier rule from Betera; later rule Yehuda’s own"
+        }
+      ],
+      "historical_compatibility": "unknown",
+      "scope": "The temporary uncertainty over the two attributed rulings.",
+      "rejoin": "הא הדא אמרה resolves the earlier rule as his own and the later as from Betera.",
+      "notes": [
+        "The second assignment is entertained and rejected by the local inference, not preserved as an equally accepted conclusion."
+      ]
+    },
+    {
+      "id": "havivakh",
+      "kind": "interpretation_alternatives",
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "דרב הושעיה חביבך",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        {
+          "id": "uncle",
+          "label": "חביבך is a kinship expression: your uncle"
+        },
+        {
+          "id": "beloved",
+          "label": "חביבך is an affectionate description"
+        }
+      ],
+      "historical_compatibility": "unknown",
+      "scope": "The meaning of חביבך and the identity of the shop owner.",
+      "rejoin": "The remembered visits by Zeura and Isa do not depend on this relation.",
+      "notes": [
+        "No unqualified identification is made between the brother and shop-owner mentions."
+      ]
+    }
+  ],
+  "coreference_candidates": [
+    {
+      "mention_id": "m26",
+      "entity_ids": [
+        "opening_teacher",
+        "yohanan"
+      ],
+      "branches": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "בעון קומוי",
+          "occurrence": 1
+        }
+      ],
+      "reason": "Yohanan is prominent in the preceding segment, but the referent of before-him is not explicitly renewed."
+    },
+    {
+      "mention_id": "m28",
+      "entity_ids": [
+        "hoshaya_brother",
+        "hoshaya_shop"
+      ],
+      "branches": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "דרב הושעיה חביבך",
+          "occurrence": 1
+        }
+      ],
+      "reason": "Identical short names occur with different relational descriptions; same-person identity is not silently assumed."
+    },
+    {
+      "mention_id": "m30",
+      "entity_ids": [
+        "isa",
+        "zeura"
+      ],
+      "branches": [],
+      "evidence": [
+        {
+          "source_id": "s3",
+          "quote": "ובסופה את מציית ליה",
+          "occurrence": 1
+        }
+      ],
+      "reason": "The nearest named sage is Isa, but the clause does not repeat the speaker’s name."
+    }
+  ],
+  "open_questions": [
+    "Is the shop owner the same Hoshaya who is called Hananya’s brother, and how should חביבך be read?",
+    "Who gives the later ruling heard by Hananya: Isa or Zeura?",
+    "Does the unqualified future-teaching Yose identify with the earlier conversational Yose? No global identity is asserted."
+  ]
+}

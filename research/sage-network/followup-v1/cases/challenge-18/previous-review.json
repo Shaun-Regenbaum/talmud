@@ -1,0 +1,64 @@
+{
+  "job_id": "challenge-18",
+  "input_sha256": "c1b30ba276aeabcf7badf06f6d1b44fa1192d20da4709b38d8ddaae97edd5323",
+  "output_sha256": "3a811d413a445b5064e9da7685ec5a412da34a7cb9901179c79ca4dc5d740a58",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "The unnamed woman, her husband Yosef and his father Rava remain separate; she is the petitioner.",
+      "claim_ids": [
+        "c1",
+        "c2",
+        "c4",
+        "c5"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "Nehemya is the judge and has a separate father-Yosef record.",
+      "claim_ids": [
+        "c3"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "Requests run from the woman to Nehemya; food and wine awards run from him to her.",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c8"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "Neither the husband nor his father replaces the petitioner or becomes a hearing participant.",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c7"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "The two Yosefs are separate local entities with a recorded unresolved identity question.",
+      "claim_ids": [
+        "c2",
+        "c3"
+      ]
+    }
+  ],
+  "additional_findings": [],
+  "summary": "The unnamed petitioner and both nested names are preserved without merging the two Yosefs."
+}

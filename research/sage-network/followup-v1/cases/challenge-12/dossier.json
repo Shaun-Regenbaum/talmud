@@ -1,0 +1,894 @@
+{
+  "job_id": "challenge-12",
+  "focal_ref": "Sanhedrin 97a:6",
+  "status": "researched",
+  "question": "Check the first reading of Sanhedrin 97a:6 (with 97a:7) against wider context, published translations and relevant commentaries. Focus on the unresolved questions in the saved reading and independent review. Identify which graph claims are explicit, which depend on interpretation, and which alternatives must stay open. Recover any missed person, family relation, speech turn or source attribution.",
+  "scope_checked": "Checked: Wikisource (Vilna) and Koren vocalized text of 97a:4-9; William Davidson English, Soncino English, Glick Ein Yaakov (Hebrew and English); Rashi, Chokhmat Shlomo, Maharsha, Ben Yehoyada, Petach Einayim, Steinsaltz; later quotations in Maharal, Reshit Chokhmah and Sha'arei Kedusha; the Bava Metzia 49a parallel with Be'er Sheva, Gilyon HaShas and Seder HaDorot; Jastrow; and page images of the Vilna print, the Bomberg 1523 print and Munich 95. Not checked: other manuscripts (for example Florence, Karlsruhe, Yad HaRav Herzog), Dikdukei Soferim, and other Ein Yaakov printings.",
+  "sources": [
+    {
+      "source_id": "pilot_input",
+      "edition": "Frozen pilot input (Wikisource Talmud Bavli segments 97a:6-7)",
+      "saved_file": "../../../pilot/inputs/challenge-12.json",
+      "sha256": "2d3320ec2dcbb2c53aeefbc906366f506c05c5515374cbeb2a258ae78edaebda",
+      "input_path": "research/sage-network/pilot/inputs/challenge-12.json"
+    },
+    {
+      "source_id": "pilot_output",
+      "edition": "Frozen first reading",
+      "saved_file": "../../../pilot/outputs/challenge-12.json",
+      "sha256": "ef06f7318caacc370b0a8568b6a55be662395a715f24d7df4310fb8045641d36",
+      "input_path": "research/sage-network/pilot/outputs/challenge-12.json"
+    },
+    {
+      "source_id": "previous_review",
+      "edition": "Earlier independent review, copied unchanged",
+      "saved_file": "previous-review.json",
+      "sha256": "6d2e2c7916c14bf6b1a9edacd6fd54ee6731a7c4a4a73b6b1561a65d4a0591e6",
+      "input_path": "research/sage-network/followup-v1/cases/challenge-12/previous-review.json"
+    },
+    {
+      "source_id": "wikisource_he",
+      "edition": "Wikisource Talmud Bavli (Vilna text) via Sefaria",
+      "saved_file": "sources/sefaria_v3_sanhedrin_97a_wikisource_he.json",
+      "sha256": "653353409c44f37600864ada7a16ec3e303a9e6f74a7e1687621531208b994cf",
+      "url": "https://www.sefaria.org/api/v3/texts/Sanhedrin%2097a?version=hebrew%7CWikisource%20Talmud%20Bavli",
+      "fetched_at": "2026-09-23T08:33:13Z"
+    },
+    {
+      "source_id": "koren_he",
+      "edition": "William Davidson Edition - Vocalized Aramaic (Koren), via Sefaria",
+      "saved_file": "sources/sefaria_v3_sanhedrin_97a_davidson_he.json",
+      "sha256": "9e311982555e5a36425c404f68f47ec7d39b0fa5aec2352bf14797e07d133a94",
+      "url": "https://www.sefaria.org/api/v3/texts/Sanhedrin%2097a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic",
+      "fetched_at": "2026-09-23T08:33:12Z"
+    },
+    {
+      "source_id": "davidson_en",
+      "edition": "William Davidson Edition - English (Koren-Steinsaltz), via Sefaria",
+      "saved_file": "sources/sefaria_v3_sanhedrin_97a_davidson_en.json",
+      "sha256": "a9cff8bec92ac5e714f5c29c97facba6e887f41df8611ad63edf419b3f5c3682",
+      "url": "https://www.sefaria.org/api/v3/texts/Sanhedrin%2097a?version=english%7CWilliam%20Davidson%20Edition%20-%20English",
+      "fetched_at": "2026-09-23T08:33:12Z"
+    },
+    {
+      "source_id": "steinsaltz_he",
+      "edition": "Steinsaltz on Sanhedrin (William Davidson Edition - Hebrew), via Sefaria",
+      "saved_file": "sources/steinsaltz_sanhedrin_97a_6-7.json",
+      "sha256": "3896c40244ce644bc9662d60769436100e4dabd5a28f61af9db7c9ca04f5c30f",
+      "url": "https://www.sefaria.org/api/v3/texts/Steinsaltz%20on%20Sanhedrin%2097a%3A6-7?version=source",
+      "fetched_at": "2026-09-23T08:33:55Z"
+    },
+    {
+      "source_id": "soncino_en",
+      "edition": "Soncino English translation as posted on halakhah.com",
+      "saved_file": "sources/soncino_halakhah_sanhedrin_97.html",
+      "sha256": "d147b0a6926d153051aab57c08e4ed50150afe4e5efd801ed4c48b3515596ae9",
+      "url": "https://www.halakhah.com/sanhedrin/sanhedrin_97.html",
+      "fetched_at": "2026-09-23T08:37:51Z"
+    },
+    {
+      "source_id": "glick_he",
+      "edition": "Ein Yaakov, Hebrew/Aramaic text of the Glick edition (1916), via Sefaria",
+      "saved_file": "sources/ein_yaakov_sanhedrin_11.json",
+      "sha256": "db5636a5733584a5f5e199457ba5c159bf79036f2a8eaaaadc44d8331f2fcf86",
+      "url": "https://www.sefaria.org/api/v3/texts/Ein%20Yaakov%20%28Glick%20Edition%29%2C%20Sanhedrin%2011?version=source",
+      "fetched_at": "2026-09-23T08:34:00Z"
+    },
+    {
+      "source_id": "glick_en",
+      "edition": "En Jacob, translated by S. H. Glick, 1916, via Sefaria",
+      "saved_file": "sources/ein_yaakov_sanhedrin_11_42_glick_en.json",
+      "sha256": "c4f2976df890411817490940fadc6652960e81ef693186782b1247e0d6a72a09",
+      "url": "https://www.sefaria.org/api/v3/texts/Ein%20Yaakov%20(Glick%20Edition)%2C%20Sanhedrin%2011%3A42?version=english",
+      "fetched_at": "2026-09-23T08:34:53Z"
+    },
+    {
+      "source_id": "rashi",
+      "edition": "Rashi on Sanhedrin, Vilna edition, via Sefaria",
+      "saved_file": "sources/rashi_sanhedrin_97a.json",
+      "sha256": "957103c3d5d7707bee094c63c692bb4da7b06419b1113ae97f18f056481b6683",
+      "url": "https://www.sefaria.org/api/v3/texts/Rashi%20on%20Sanhedrin%2097a?version=source",
+      "fetched_at": "2026-09-23T08:33:54Z"
+    },
+    {
+      "source_id": "chokhmat_shlomo",
+      "edition": "Chokhmat Shlomo on Sanhedrin, Vilna edition, via Sefaria",
+      "saved_file": "sources/chokhmat_shlomo_sanhedrin_97a.json",
+      "sha256": "8e8cb3c56d38cd587734af5dd6ec513dace4afcfd43368b0e208b2dea7de308c",
+      "url": "https://www.sefaria.org/api/v3/texts/Chokhmat%20Shlomo%20on%20Sanhedrin%2097a?version=source",
+      "fetched_at": "2026-09-23T08:33:55Z"
+    },
+    {
+      "source_id": "chidushei_agadot",
+      "edition": "Maharsha, Chidushei Agadot, Vilna edition, via Sefaria",
+      "saved_file": "sources/chidushei_agadot_sanhedrin_97a.json",
+      "sha256": "bbb4d5076c8e2f1da188c167368deee3992d2576fcd627f717a8f1e0a1637be2",
+      "url": "https://www.sefaria.org/api/v3/texts/Chidushei%20Agadot%20on%20Sanhedrin%2097a?version=source",
+      "fetched_at": "2026-09-23T08:33:55Z"
+    },
+    {
+      "source_id": "ben_yehoyada",
+      "edition": "Ben Yehoyada, Senlake 2019 edition based on Jerusalem 1897, via Sefaria",
+      "saved_file": "sources/ben_yehoyada_sanhedrin_97a.json",
+      "sha256": "4a4a2d39a13dad85bd9087d9d05bbc173f9efac76853244bd47d06dac5795dc4",
+      "url": "https://www.sefaria.org/api/v3/texts/Ben%20Yehoyada%20on%20Sanhedrin%2097a?version=source",
+      "fetched_at": "2026-09-23T08:33:56Z"
+    },
+    {
+      "source_id": "petach_einayim",
+      "edition": "Petach Einayim, Jerusalem 1959, via Sefaria",
+      "saved_file": "sources/petach_einayim_sanhedrin_97a.json",
+      "sha256": "dbd36e17d8027c48cd6eeb411c08cc176c919952c26cbf2f93f81268a16b1e0a",
+      "url": "https://www.sefaria.org/api/v3/texts/Petach%20Einayim%20on%20Sanhedrin%2097a?version=source",
+      "fetched_at": "2026-09-23T08:33:56Z"
+    },
+    {
+      "source_id": "maharal",
+      "edition": "Maharal, Netivot Olam, Netiv HaEmet ch. 1 (OYW), via Sefaria",
+      "saved_file": "sources/netivot_olam_netiv_haemet_1.json",
+      "sha256": "552325c58ba3d7b4359224577c4a800a96f28e13f42ceda82b988b050bd57d30",
+      "url": "https://www.sefaria.org/api/v3/texts/Netivot%20Olam%2C%20Netiv%20Haemet%201?version=source",
+      "fetched_at": "2026-09-23T08:33:59Z"
+    },
+    {
+      "source_id": "reshit_chokhmah",
+      "edition": "Reshit Chokhmah, Gate of Holiness 12:76, Hamesorah 2005, via Sefaria",
+      "saved_file": "sources/reshit_chokhmah_kedusha_12.json",
+      "sha256": "8bafe75578a391d2600882d04cb0d199d37c66c17daf5a29b60fdf1e35a1edb9",
+      "url": "https://www.sefaria.org/api/v3/texts/Reshit%20Chokhmah%2C%20Gate%20of%20Holiness%2012%3A76?version=source",
+      "fetched_at": "2026-09-23T08:33:59Z"
+    },
+    {
+      "source_id": "shaarei_kedusha",
+      "edition": "Sha'arei Kedusha, Part 2 5:20, via Sefaria",
+      "saved_file": "sources/shaarei_kedusha_2_5.json",
+      "sha256": "32bba6f48874a62205f31391de42ca13aeb64c267e0a8a95b24925e8f83bb713",
+      "url": "https://www.sefaria.org/api/v3/texts/Sha%27arei%20Kedusha%2C%20Part%202%205%3A20?version=source",
+      "fetched_at": "2026-09-23T08:34:00Z"
+    },
+    {
+      "source_id": "bm49a_wikisource",
+      "edition": "Bava Metzia 49a, Wikisource Talmud Bavli, via Sefaria",
+      "saved_file": "sources/bava_metzia_49a_wikisource_he.json",
+      "sha256": "6cb29b7551bc30ef338ffdbcabf6337683eb0c8747db446452746f933f90effa",
+      "url": "https://www.sefaria.org/api/v3/texts/Bava%20Metzia%2049a?version=hebrew%7CWikisource%20Talmud%20Bavli",
+      "fetched_at": "2026-09-23T08:33:57Z"
+    },
+    {
+      "source_id": "bm49a_koren_he",
+      "edition": "Bava Metzia 49a, William Davidson Vocalized Aramaic, via Sefaria",
+      "saved_file": "sources/bava_metzia_49a_davidson_he.json",
+      "sha256": "c9f699c19b1570a4f7b4bdd6b2e2550249b33fee27ae202f4397cd7ab8b10b97",
+      "url": "https://www.sefaria.org/api/v3/texts/Bava%20Metzia%2049a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic",
+      "fetched_at": "2026-09-23T08:33:57Z"
+    },
+    {
+      "source_id": "bm49a_en",
+      "edition": "Bava Metzia 49a, William Davidson English, via Sefaria",
+      "saved_file": "sources/bava_metzia_49a_davidson_en.json",
+      "sha256": "36508d4e6bb68b94158353fd940f6d5adb320acc4f9c58f63db4eb0982863f31",
+      "url": "https://www.sefaria.org/api/v3/texts/Bava%20Metzia%2049a?version=english%7CWilliam%20Davidson%20Edition%20-%20English",
+      "fetched_at": "2026-09-23T08:33:58Z"
+    },
+    {
+      "source_id": "beer_sheva",
+      "edition": "Be'er Sheva 13, Warsaw 1890, via Sefaria",
+      "saved_file": "sources/beer_sheva_13.json",
+      "sha256": "9e177a29e2687b604f53cb8259834a7910c8dba2a43d826f5438835320d668c5",
+      "url": "https://www.sefaria.org/api/v3/texts/Be%27er%20Sheva%2013?version=source",
+      "fetched_at": "2026-09-23T08:33:58Z"
+    },
+    {
+      "source_id": "gilyon_hashas",
+      "edition": "Gilyon HaShas on Bava Metzia, Vilna edition, via Sefaria",
+      "saved_file": "sources/gilyon_hashas_bava_metzia_49a.json",
+      "sha256": "502ce4903c526a2b016f00cc8e7c8cf6c4c83cb842aaa3a2c1c9502d3a981504",
+      "url": "https://www.sefaria.org/api/v3/texts/Gilyon%20HaShas%20on%20Bava%20Metzia%2049a?version=source",
+      "fetched_at": "2026-09-23T08:33:58Z"
+    },
+    {
+      "source_id": "seder_hadorot",
+      "edition": "Seder HaDorot, Tanaim and Amoraim, Warsaw 1878-1882, via Sefaria",
+      "saved_file": "sources/seder_hadorot_1577.json",
+      "sha256": "d7192788e935337249018707273934cfd872c09e539fb097f3756e946090c602",
+      "url": "https://www.sefaria.org/api/v3/texts/Seder%20HaDorot%2C%20Tanaim%20and%20Amoraim%201577?version=source",
+      "fetched_at": "2026-09-23T08:33:59Z"
+    },
+    {
+      "source_id": "jastrow_tavut",
+      "edition": "Jastrow Dictionary, London 1903, via Sefaria",
+      "saved_file": "sources/jastrow_tavut.json",
+      "sha256": "87564e121879c356a313a5c9450cd1ef0a7f165dfe5ff79091695e825f253e92",
+      "url": "https://www.sefaria.org/api/v3/texts/Jastrow%2C%20%D7%98%D6%B8%D7%91%D7%95%D6%BC%D7%AA%20II%201",
+      "fetched_at": "2026-09-23T08:34:41Z"
+    },
+    {
+      "source_id": "jastrow_tavyomi",
+      "edition": "Jastrow Dictionary, London 1903, via Sefaria",
+      "saved_file": "sources/jastrow_tavyomi.json",
+      "sha256": "4562496da6d2fa9290d538666308f490ed5b61e5e23915db1b9ba160784d0fc1",
+      "url": "https://www.sefaria.org/api/v3/texts/Jastrow%2C%20%D7%98%D6%B7%D7%91%D6%B0%D7%99%D7%95%D6%B9%D7%9E%D6%B4%D7%99%201",
+      "fetched_at": "2026-09-23T08:34:41Z"
+    },
+    {
+      "source_id": "jastrow_shivava",
+      "edition": "Jastrow Dictionary, London 1903, via Sefaria",
+      "saved_file": "sources/jastrow_shivava.json",
+      "sha256": "07dc6fdd2bba3b8fe6c6f6383f5df52a61b40d0a8943b4a711cc1f8005fc7f2b",
+      "url": "https://www.sefaria.org/api/v3/texts/Jastrow%2C%20%D7%A9%D7%B5%D6%BC%D7%99%D7%91%D6%B8%D7%91%D6%B8%D7%90%201",
+      "fetched_at": "2026-09-23T08:34:42Z"
+    },
+    {
+      "source_id": "links",
+      "edition": "Sefaria links API with text, used to find commentaries",
+      "saved_file": "sources/sefaria_links_sanhedrin_97a_6-7.json",
+      "sha256": "89a488f3fe17070c32633a052951ecc1560f248e392a103de19cd011dfc63e29",
+      "url": "https://www.sefaria.org/api/links/Sanhedrin%2097a:6-7?with_text=1",
+      "fetched_at": "2026-09-23T08:33:00Z"
+    },
+    {
+      "source_id": "manuscript_list",
+      "edition": "Sefaria manuscripts API listing",
+      "saved_file": "sources/sefaria_manuscripts_sanhedrin_97a.json",
+      "sha256": "cd926b0010966a1cc0917bc2ffb06a85c1d3892449eb337105127eb9535112d1",
+      "url": "https://www.sefaria.org/api/manuscripts/Sanhedrin%2097a",
+      "fetched_at": "2026-09-23T08:34:42Z"
+    },
+    {
+      "source_id": "vilna_image",
+      "edition": "Romm Vilna print, Sanhedrin 97a, page image (via Sefaria, from NLI)",
+      "saved_file": "sources/vilna_sanhedrin_97a.jpg",
+      "sha256": "b5b2dab953689204b9ff643a5743b15482529f2c90c763e720dbd7e5c805b943",
+      "url": "https://manuscripts.sefaria.org/vilna-romm/Sanhedrin_97a.jpg",
+      "fetched_at": "2026-09-23T08:34:57Z"
+    },
+    {
+      "source_id": "bomberg_image",
+      "edition": "Bomberg Venice print (1523), Sanhedrin 97a, page image (via Sefaria, from NLI)",
+      "saved_file": "sources/bomberg_1523_sanhedrin_97a.jpg",
+      "sha256": "264f4306742c35e7beb84c006d628e8611f955549786bec73b6f2b2545214fbd",
+      "url": "https://manuscripts.sefaria.org/bomberg/masekhet_09_0196.jpg",
+      "fetched_at": "2026-09-23T08:34:54Z"
+    },
+    {
+      "source_id": "munich95_image",
+      "edition": "Munich, Cod. hebr. 95 (1342), page 0709 covering Sanhedrin 96b-98b, image (via Sefaria, from digitale-sammlungen.de)",
+      "saved_file": "sources/munich95_pg0709.jpg",
+      "sha256": "0625627d388866c750338fad41d96980549699b387ccebeabcdd0a68928ad9e9",
+      "url": "https://manuscripts.sefaria.org/munich-manuscript/munich-manuscript-95Cod.hebr.95pg.0709.jpg",
+      "fetched_at": "2026-09-23T08:34:56Z"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "f01",
+      "claim": "Rava is the outer speaker. In the Vilna-based text a sage speaks to Rava in person ('said to me'), and the story is the sage's own first-person report to Rava. Rashi says so directly: 'and he told me this: one time I happened to...'.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "wikisource_he",
+          "exact_quote": "אמר רבא מריש הוה אמינא ליכא קושטא בעלמא אמר לי ההוא מרבנן"
+        },
+        {
+          "source_id": "wikisource_he",
+          "exact_quote": "זימנא חדא איקלעי לההוא אתרא וקושטא שמיה"
+        },
+        {
+          "source_id": "rashi",
+          "exact_quote": "לשקר ואישתעי לי הכי זימנא חדא אקלעי לההוא אתרא וקושטא שמיה"
+        },
+        {
+          "source_id": "steinsaltz_he",
+          "exact_quote": "וסיפר לי: <b>זימנא חדא איקלעי לההוא אתרא ו\"קושטא\" שמיה</b>"
+        }
+      ],
+      "reasoning": "אמר לי plus the first-person verbs איקלעי, נסיבי, הוו לי make the sage the narrator of the story and Rava its hearer. Rashi (researcher translation: 'and he told me this') and Steinsaltz ('and he told me') confirm it. Only Rava's report records this meeting.",
+      "confidence": "high",
+      "graph_effect": "Keep c2/c14: Rava heard this from the sage whose name depends on the branch. This is a speech turn Rava reports. Treat story claims in the sage's first person as spoken by that sage and passed on by Rava, not as statements by an unknown narrator."
+    },
+    {
+      "finding_id": "f02",
+      "claim": "Witnesses differ on whether the verb is 'said to me' or 'said to him'. Chokhmat Shlomo saw 'אמר ליה' and corrected it to 'אמר לי'. The Bomberg 1523 page looks to me like it reads 'אמר ליה'. Maharal quotes the line both ways and builds his allegory on 'אמר ליה'. Munich 95 appears to use the abbreviation א\"ל, which can be expanded either way.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "chokhmat_shlomo",
+          "exact_quote": "אמר ליה ההוא כו' צ\"ל אמר לי"
+        },
+        {
+          "source_id": "maharal",
+          "exact_quote": "אמר רבא מריש הו\"א ליכא קושטא בעלמא אמר לי ההוא מרבנן"
+        },
+        {
+          "source_id": "maharal",
+          "exact_quote": "ומה שאמר דאמר ליה ההוא מדרבנן דבר זה נקרא שאמר ליה"
+        },
+        {
+          "source_id": "bomberg_image",
+          "exact_quote": "ליכא קושטא בעלמא אמר ליה ההוא מרבנן ורב",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "note": "Researcher's visual reading of the Bomberg page image; not machine-checked."
+        },
+        {
+          "source_id": "munich95_image",
+          "exact_quote": "מריש הו\"א ליכא קושטא בעלמ' א\"ל ההו' מרבנן ורב",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "note": "Researcher's visual reading of a cursive hand; the abbreviation and the letters are uncertain."
+        }
+      ],
+      "reasoning": "Chokhmat Shlomo's note (researcher translation: 'said to him ... should read said to me') shows that an earlier printed text read 'said to him'. This is a correction, not a manuscript. An abbreviated א\"ל would explain how both readings arose. That is my guess and is not attested. Under 'said to him' the hearer is most naturally still Rava, but the words no longer mark the report as first person.",
+      "confidence": "medium",
+      "graph_effect": "Keep c2/c14 as explicit in the Vilna/Wikisource text. Add a textual-variant note that 'אמר לי' against 'אמר ליה' changes how explicitly the speech is marked as addressed to Rava. Do not raise the confidence of a Rava–sage meeting beyond this one reported telling."
+    },
+    {
+      "finding_id": "f03",
+      "claim": "The sentence about refusing all the world's wealth is Rava's description of the sage. It is a hypothetical, not an event, and not the sage speaking. Translations put 'He said to me' / 'and he told me' after it.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "davidson_en",
+          "exact_quote": "who was so honest <b>that if they were</b> to <b>give him the entire world, he would not deviate</b> from the truth <b>in his statement. He said to me:"
+        },
+        {
+          "source_id": "soncino_en",
+          "exact_quote": "who, even if he were given all the treasures of the world, would not lie, told me that he once came to a place called Kushta"
+        },
+        {
+          "source_id": "petach_einayim",
+          "exact_quote": "אם אמר למכור דבר זה בסך מה ואח\"ך בא אחר ונותן לו יותר"
+        }
+      ],
+      "reasoning": "The third-person ליה / בדבוריה inside Rava's sentence marks it as Rava's words. דאי הוו יהבי is counterfactual ('if they were to give'). Commentators such as Iyun Yaakov (quoted by Petach Einayim) read it as a trait: he kept his word in sales even when offered more. The imagined givers are not real participants.",
+      "confidence": "high",
+      "graph_effect": "c3/c15 should not be 'scenes/participates_in' with an 'offerers' group. Recode them as a character claim in Rava's voice, marked counterfactual. Drop 'offerers' as a participant group, or mark it hypothetical and non-referring."
+    },
+    {
+      "finding_id": "f04",
+      "claim": "Witnesses disagree on the person of 97a:7. Vilna/Wikisource has third person (סבר, אמר לה). A Vilna margin note records 'סברי . אמרי' (I thought, I said). The Koren vocalized text prints סְבַרִי / אֲמַרִי לַהּ. Bomberg (as I read it) mixes סבר with אמרי לה and אמרי להו. Munich 95 appears to keep first person throughout. Ein Yaakov (Glick Hebrew) mixes the persons, and Maharal quotes it all in third person.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "wikisource_he",
+          "exact_quote": "סבר לאו אורח ארעא אמר לה ליתא הכא שכיבו ליה תרתין בנין אתו אינשי דאתרא לקמיה"
+        },
+        {
+          "source_id": "koren_he",
+          "exact_quote": "סְבַרִי: לָאו אוֹרַח אַרְעָא. אֲמַרִי לַהּ: לֵיתַהּ הָכָא. שְׁכִיבוּ לֵיהּ תְּרֵין בְּנֵיה"
+        },
+        {
+          "source_id": "vilna_image",
+          "exact_quote": "י\"ג סברי . אמרי",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "note": "Researcher's visual reading of the Vilna outer-margin note beside the asterisked words *סבר and *אמר לה."
+        },
+        {
+          "source_id": "bomberg_image",
+          "exact_quote": "אדשא סבר לאו אורח ארעא אמרי לה ליתה הכא שכיבו ליה תרתי' בניה",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "note": "Researcher's visual reading of the Bomberg page image."
+        },
+        {
+          "source_id": "bomberg_image",
+          "exact_quote": "מאי האי אמרי להו הכי הוה מעשה",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "note": "Researcher's visual reading of the Bomberg page image."
+        },
+        {
+          "source_id": "munich95_image",
+          "exact_quote": "לאו אורח ארעא אמרי לה ליתה הכא",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "note": "Researcher's visual reading of Munich 95; the words before לאו look like a first-person 'I thought' (אמינא), but that is uncertain."
+        },
+        {
+          "source_id": "munich95_image",
+          "exact_quote": "אמינא להו הכי הוה מעשה אמרו לי במטות' מינך פוק מאתרין",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "note": "Researcher's visual reading of Munich 95; low legibility."
+        },
+        {
+          "source_id": "glick_he",
+          "exact_quote": "סבר לאו אורח ארעא אמר לה לימא הכא שכיבי ליה תרתין בנין"
+        },
+        {
+          "source_id": "maharal",
+          "exact_quote": "נסיב אתתא מנהון והוי ליה תרתין בנין יומא חד יתבה דביתהו"
+        }
+      ],
+      "reasoning": "Every witness keeps דביתהו ('his wife') and several keep ליה / לקמיה, so no witness is purely first person in the forms I could check. Even so, the first-person forms in 97a:7 in Koren, Bomberg, Munich and the variant the Vilna margin records show that the story was often passed on as the sage's own continuing report. The third person in Vilna therefore need not be a new narrator. Mixed person inside a quoted story is common in Talmudic Aramaic. The page-image readings are mine and unchecked.",
+      "confidence": "medium",
+      "graph_effect": "For c7, c10, c19, c22 and the shared claims c26-c31, replace voice 'unknown' with 'the branch-selected teller, as reported by Rava'. Keep an alternative in which the anonymous Talmudic narrator retells the story in the third person. The actors do not change under either reading: the husband is the sage."
+    },
+    {
+      "finding_id": "f05",
+      "claim": "The woman who knocks is 'her neighbour' (שיבבתה): a female neighbour of the wife. The first reading kept the neighbour as a person but lost the relation to the wife.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "wikisource_he",
+          "exact_quote": "אתאי שיבבתה טרפא אדשא"
+        },
+        {
+          "source_id": "davidson_en",
+          "exact_quote": "Her neighbor came</b> and <b>knocked on the door."
+        },
+        {
+          "source_id": "steinsaltz_he",
+          "exact_quote": "[באה שכנתה</small> ו<small>דפקה בדלת]</small> להכנס"
+        },
+        {
+          "source_id": "jastrow_shivava",
+          "exact_quote": "<i>neighbor</i>"
+        }
+      ],
+      "reasoning": "The suffix ־ה on שיבבתה ('her neighbour') refers back to דביתהו. אתאי and טרפא are feminine, and the husband answers her with לה. Davidson ('Her neighbor') and Steinsaltz (שכנתה) agree.",
+      "confidence": "high",
+      "graph_effect": "Add neighbor_of(neighbor, wife), explicit. Add a speech claim: the husband speaks to the neighbour, and his words concern the wife. The neighbour is the addressee and the wife is who the words are about."
+    },
+    {
+      "finding_id": "f06",
+      "claim": "Commentators give different reasons for the knock. Rashi says the neighbour was asking for the wife. Steinsaltz says she knocked to come in. Rashi's lemma reads אבבא ('at the gate') where the printed text has אדשא ('at the door').",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "rashi",
+          "exact_quote": "טרפא אבבא - שהיתה שואלת אותה"
+        },
+        {
+          "source_id": "steinsaltz_he",
+          "exact_quote": "טרפא אדשא</b> <small>[באה שכנתה</small> ו<small>דפקה בדלת]</small> להכנס"
+        },
+        {
+          "source_id": "glick_en",
+          "exact_quote": "a female neighbor came to ask for her"
+        }
+      ],
+      "reasoning": "Researcher translation of Rashi: 'she was asking for her'. Glick's English follows Rashi. The Aramaic says only that she came and knocked. The purpose comes from the commentators.",
+      "confidence": "medium",
+      "graph_effect": "Record the neighbour's purpose as commentary (Rashi: seeking the wife; Steinsaltz: wanting to enter), not as text. Do not add a 'neighbour asks for the wife' speech turn as explicit."
+    },
+    {
+      "finding_id": "f07",
+      "claim": "A missed turn: the husband thinks before he speaks ('he thought / I thought: it is not proper'). This private reason explains the false answer 'she is not here'. Commentators differ on what exactly was improper.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "wikisource_he",
+          "exact_quote": "סבר לאו אורח ארעא אמר לה ליתא הכא"
+        },
+        {
+          "source_id": "rashi",
+          "exact_quote": "לאו אורח ארעא - לומר היכן היא הואיל וחייפ' רישה"
+        },
+        {
+          "source_id": "steinsaltz_he",
+          "exact_quote": "זה לספר לה שאשתו רוחצת עצמה"
+        },
+        {
+          "source_id": "davidson_en",
+          "exact_quote": "He thought:</b> It is <b>not proper conduct</b> to tell the neighbor that his wife is bathing."
+        }
+      ],
+      "reasoning": "סבר is explicit. What the impropriety consists of is commentary. Rashi (researcher translation): 'to say where she is, since she was washing her head'. Steinsaltz: 'to tell her that his wife is washing herself'. Davidson's plain words 'to tell the neighbor that his wife is bathing' are editorial.",
+      "confidence": "high",
+      "graph_effect": "Add a views/thought claim for the teller: 'not proper conduct', stated, with the content left open. c7/c19: the denial ליתא הכא is spoken to the neighbour and is false within the story. It is not a statement that the wife was absent."
+    },
+    {
+      "finding_id": "f08",
+      "claim": "The Aramaic does not state that the lie caused the sons' deaths. It places the deaths right after the lie, and the residents' plea 'do not provoke death upon these people' implies the link. The words 'Since he deviated from the truth' (Davidson plain text), 'וכיון ששינה בדיבורו' (Steinsaltz) and '[As a punishment for this]' (Soncino, bracketed) are all editorial.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "davidson_en",
+          "exact_quote": "<b>He said to her: She is not here.</b> Since he deviated from the truth <b>his two sons died."
+        },
+        {
+          "source_id": "steinsaltz_he",
+          "exact_quote": "וכיון ששינה בדיבורו <b>שכיבו ליה תרתין בנין</b>"
+        },
+        {
+          "source_id": "soncino_en",
+          "exact_quote": "[As a punishment for this] his two sons died."
+        },
+        {
+          "source_id": "wikisource_he",
+          "exact_quote": "ולא תגרי בהו מותנא בהנך אינשי"
+        },
+        {
+          "source_id": "chidushei_agadot",
+          "exact_quote": "שהשקר מביא מיתה בלא זמן"
+        }
+      ],
+      "reasoning": "In Davidson only the bold words translate the Aramaic. The causal clause is plain text. The link is strongly implied inside the story: the town where no one dies early, the residents' question and plea, and Maharsha's explanation (researcher translation: 'falsehood brings untimely death'). The Aramaic still does not state it.",
+      "confidence": "high",
+      "graph_effect": "Any 'deaths caused by the lie' edge must be basis=interpretation with the editorial source named. It must not be basis=explicit."
+    },
+    {
+      "finding_id": "f09",
+      "claim": "The sons' parents are both stated. 'I had two sons from her' makes the teller their father and the wife their mother. The two sons who die in 97a:7 are naturally the same two, and the Koren text says 'his two sons'.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "wikisource_he",
+          "exact_quote": "נסיבי איתתא מינהון והוו לי תרתין בנין מינה"
+        },
+        {
+          "source_id": "koren_he",
+          "exact_quote": "שְׁכִיבוּ לֵיהּ תְּרֵין בְּנֵיה"
+        },
+        {
+          "source_id": "wikisource_he",
+          "exact_quote": "שכיבו ליה תרתין בנין"
+        }
+      ],
+      "reasoning": "מינה ('from her') states the mother, and לי ('to me') the father. The first reading marked c12/c13/c24/c25 (father) and c26/c27 (mother) as basis 'interpretation' and gave c26/c27 voice 'unknown'. Both are explicit in the teller's words. The sibling claim c28 is derived from the shared parents and is not a separate observation.",
+      "confidence": "high",
+      "graph_effect": "Change the basis of c12, c13, c24, c25, c26 and c27 to explicit and their voice to the teller. Mark c28 as derived. Link the dying sons (c31) to the same 'sons' group, basis local coreference, supported by Koren's בְּנֵיהּ."
+    },
+    {
+      "finding_id": "f10",
+      "claim": "The wife is 'a woman from among them', one of the townspeople. That puts her in the residents' group, which the first reading did not record. The plea 'leave our place' also shows the teller was living there.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "wikisource_he",
+          "exact_quote": "נסיבי איתתא מינהון"
+        },
+        {
+          "source_id": "wikisource_he",
+          "exact_quote": "במטותא מינך פוק מאתרין"
+        },
+        {
+          "source_id": "davidson_en",
+          "exact_quote": "I married a woman from</b> among <b>them,"
+        }
+      ],
+      "reasoning": "מינהון refers back to the people of the place who do not change their words. 'Leave our place' (researcher translation) assumes he lived there. That is a reasonable inference; the text does not say where he lived.",
+      "confidence": "medium",
+      "graph_effect": "Add member_of(wife, residents), explicit. Add resided_in(teller, town), interpretation. The residents' request to leave stays a request. No departure or expulsion is reported."
+    },
+    {
+      "finding_id": "f11",
+      "claim": "The residents speak three times. They come to him and ask 'What is this?'. He answers only 'this is how it happened'; no further words are quoted. Then they plead with him to leave. Witnesses differ between the singular abbreviation א\"ל and plural אמרו ליה, and Munich appears to read 'they said to me'.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "wikisource_he",
+          "exact_quote": "אמרו ליה מאי האי אמר להו הכי הוה מעשה א\"ל במטותא מינך"
+        },
+        {
+          "source_id": "koren_he",
+          "exact_quote": "אֲמַרוּ לֵיהּ: בְּמָטוּתָא מִינָּך"
+        },
+        {
+          "source_id": "steinsaltz_he",
+          "exact_quote": "<b>מעשה</b> ששיניתי בדיבורי מפני הנימוס"
+        },
+        {
+          "source_id": "soncino_en",
+          "exact_quote": "So he related to them what had happened."
+        }
+      ],
+      "reasoning": "The content of the answer is not given. Steinsaltz supplies it in the first person (researcher translation: 'that I changed my words for the sake of manners'). That is his explanation, not the text. The speaker of the plea is the group. א\"ל is an abbreviation that the Koren text prints as a plural.",
+      "confidence": "high",
+      "graph_effect": "Keep c9/c21, c10/c22 and c11/c23. The content of c10/c22 is 'this is how it happened' with no further words; do not add a confession as quoted speech. The speaker of c11/c23 is the residents' group, whether the verb is singular or plural."
+    },
+    {
+      "finding_id": "f12",
+      "claim": "Some later authors retell the story beyond the text. Reshit Chokhmah names the teller as Rav Tavyomi and says the townspeople expelled him (וגירשוהו). The Talmud reports only a plea to leave.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "reshit_chokhmah",
+          "exact_quote": "רב טביומי שמו, ומפני ששינה בדיבורו בדבר קל כמו שנתבאר שם בגמרא, קבר ב' בניו, וגירשוהו מביניהם"
+        },
+        {
+          "source_id": "shaarei_kedusha",
+          "exact_quote": "על רב טביומי דאילו הוו יהבי ליה כל חללי דעלמא"
+        },
+        {
+          "source_id": "ben_yehoyada",
+          "exact_quote": "ולכן אמר כאן על רב טביומי"
+        }
+      ],
+      "reasoning": "Researcher translation of Reshit Chokhmah: 'Rav Tavyomi by name ... buried two sons, and they expelled him from among them'. These later works each pick one of the two names and simplify the story. They are secondary retellings, not independent witnesses to the story or to the name.",
+      "confidence": "high",
+      "graph_effect": "Do not add an expulsion or departure event. Do not resolve the name branch from later quotations that give only one name."
+    },
+    {
+      "finding_id": "f13",
+      "claim": "The two names are given as alternatives ('Rav Tavut is his name, and some say Rav Tavyomi is his name'). The Vilna, Koren, Munich (as I read it) and Ein Yaakov texts all carry both. Maharal treats them as a disagreement between tradents and reads both names symbolically, and also as a possible allegory of Moses. That is homiletic, not an identification.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "wikisource_he",
+          "exact_quote": "ורב טבות שמיה ואמרי לה רב טביומי שמיה"
+        },
+        {
+          "source_id": "glick_he",
+          "exact_quote": "ורב טבות שמו ואמרי לה רב טביומי שמיה"
+        },
+        {
+          "source_id": "munich95_image",
+          "exact_quote": "טבות שמי' ואמרי לה רב טביומי שמי'",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "note": "Researcher's visual reading of Munich 95."
+        },
+        {
+          "source_id": "maharal",
+          "exact_quote": "ואם יש לך להבין מחלוקת זה מר אמר רב טבות שמיה ומר אמר רב טביומי שמיה"
+        },
+        {
+          "source_id": "maharal",
+          "exact_quote": "אמנם נ\"ל כי המאמר הזה נאמר על משרע\"ה"
+        },
+        {
+          "source_id": "jastrow_tavyomi",
+          "exact_quote": "his name was R. Tabuth, some say, R. Tabyomi"
+        }
+      ],
+      "reasoning": "ואמרי לה is the standard formula for a reported alternative. Maharal (researcher translation: 'one master says his name is Rav Tavut and another says Rav Tavyomi') confirms the tradition-dispute reading. His symbolic and Moses readings are later interpretation. The Bomberg spelling of the first name was hard for me to read (it could look like טבורת) and I do not count it as a variant.",
+      "confidence": "high",
+      "graph_effect": "Keep the reading group: two branches, one teller. Neither branch establishes whether Rav Tavut and Rav Tavyomi are the same or different people historically."
+    },
+    {
+      "finding_id": "f14",
+      "claim": "Bava Metzia 49a has a close parallel with a different chain and a different alternative name. Rav Pappi says that Ravina told him that 'one of the Sages, Rav Tavut, and some say Rav Shmuel bar Zutra', who would not change his word for all the world, told him a different story (about sesame). Vilna Sanhedrin cross-references it in the margin.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "bm49a_wikisource",
+          "exact_quote": "אמר רב פפי אמר לי רבינא לדידי אמר לי ההוא מרבנן ורב טבות שמיה ואמרי לה רב שמואל בר זוטרא שמיה דאי הוו יהבי ליה כל חללא דעלמא"
+        },
+        {
+          "source_id": "bm49a_en",
+          "exact_quote": "<b>Rav Pappi said</b> that <b>Ravina said to me: One of the Sages, and Rav Tavot is his name, and some say Rav Shmuel bar Zutra is his name,</b>"
+        },
+        {
+          "source_id": "vilna_image",
+          "exact_quote": "[ב\"מ מט. ע\"ש]",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "note": "Researcher's visual reading of the Vilna margin reference beside אמר לי *ההוא מרבנן."
+        }
+      ],
+      "reasoning": "The same description and the same first name appear with a different hearer (Ravina, not Rava) and a different alternative name. This may be a shared literary pattern for 'the truthful sage'. A shared name does not show that the two passages are about one person.",
+      "confidence": "high",
+      "graph_effect": "Record a coreference candidate between the Sanhedrin Rav Tavut branch and the Bava Metzia Rav Tavut. Leave it unmerged. Do not add Ravina or Rav Shmuel bar Zutra to this passage's graph."
+    },
+    {
+      "finding_id": "f15",
+      "claim": "Be'er Sheva proposes that 'Rav Shmuel bar Zutra' in Bava Metzia is a scribal error and should read 'Rav Tavyomi' as in Sanhedrin. Gilyon HaShas repeats this. Seder HaDorot adds a chronological argument about which Ravina is meant. These are later emendations and inferences, not variants.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "beer_sheva",
+          "exact_quote": "נראה לי שיש טעות סופר וצריך להגיה ואמרי לה רב טביומי שמיה דאי כו' דהכי גרסינן בפרק חלק דף צ\"ז ע\"א ושם עיקר מקומו"
+        },
+        {
+          "source_id": "gilyon_hashas",
+          "exact_quote": "כ' הבאר שבע סי' יג דצ\"ל רב טביומי שמיה דהכי אית' בסנהדרין"
+        },
+        {
+          "source_id": "seder_hadorot",
+          "exact_quote": "וצ\"ל דרבינא הנ\"ל הוא הקדמון כי בין שמואל לרבינא האחרון זמן רב ביניהם, או שהאריך רב טבות כ\"כ ימים"
+        }
+      ],
+      "reasoning": "Be'er Sheva (researcher translation): 'it seems to me there is a scribal error and one should emend ... for so we read in Perek Helek 97a, and that is its main place'. The emendation assumes the two passages are one tradition. Seder HaDorot's dating is historical inference from biographies. Jastrow also notes a manuscript spelling טאבות for Bava Metzia, which I did not verify.",
+      "confidence": "high",
+      "graph_effect": "Store Be'er Sheva/Gilyon HaShas as 'proposed emendation' evidence, separate from source variants. They do not change the Sanhedrin branches. Any historical merge needs its own decision."
+    },
+    {
+      "finding_id": "f16",
+      "claim": "The story is placed as an illustration of 'truth will be lacking' (Isaiah 59:15) in the baraita about the generation of the Messiah. The segment's opening 'Concerning the lack of truth' is Davidson's plain text. Rava states his former view. The implied change of mind is never stated.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "davidson_en",
+          "exact_quote": "§ Concerning the lack of truth, <b>Rava says: Initially I would say</b>"
+        },
+        {
+          "source_id": "steinsaltz_he",
+          "exact_quote": "כיון שדובר בהעדר האמת, מביאים דברים ש<b>אמר רבא"
+        },
+        {
+          "source_id": "rashi",
+          "exact_quote": "ליכא קושטא בעלמא - אין אדם בעולם שידבר אמת תמיד"
+        },
+        {
+          "source_id": "wikisource_he",
+          "exact_quote": "והאמת נעדרת שנאמר (ישעיהו נט, טו) ותהי האמת נעדרת"
+        }
+      ],
+      "reasoning": "The placement is editorial. It links no people in the story to the baraita's speakers (R. Yehuda, the house of Rav, the house of R. Sheila). Rashi (researcher translation): 'there is no one in the world who always speaks truth'.",
+      "confidence": "high",
+      "graph_effect": "Keep c1 limited to the former view. Add no claim that Rava now holds a revised view, and no edges from Rava to the baraita's speakers."
+    },
+    {
+      "finding_id": "f17",
+      "claim": "Translations differ in ways that matter for the graph. Glick has Raba 'met' the rabbi and turns the story into third person. Soncino renders it as indirect speech ('told me that he once came'). Davidson keeps it as direct first person.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "glick_en",
+          "exact_quote": "However, I consequently met a certain Rabbi named Tabuth, according to others, R. Tibumi"
+        },
+        {
+          "source_id": "glick_en",
+          "exact_quote": "It happened once, that he came to a city named Kushta"
+        },
+        {
+          "source_id": "soncino_en",
+          "exact_quote": "told me that he once came to a place called Kushta,"
+        },
+        {
+          "source_id": "davidson_en",
+          "exact_quote": "He said to me: One time I happened</b> to come"
+        }
+      ],
+      "reasoning": "'Met' is Glick's word. The Aramaic has אמר לי. These are free translations, and none is an independent witness to the Aramaic.",
+      "confidence": "high",
+      "graph_effect": "Do not use translation wording such as 'met' to create a scene or meeting edge beyond the reported speech."
+    },
+    {
+      "finding_id": "f18",
+      "claim": "The place is called Kushta ('Truth'). Maharal notes that no such place is known and reads it symbolically. Where it was, or whether it was real, is not established.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "wikisource_he",
+          "exact_quote": "לההוא אתרא וקושטא שמיה"
+        },
+        {
+          "source_id": "maharal",
+          "exact_quote": "גם לא מצאנו המקום הזה"
+        },
+        {
+          "source_id": "soncino_en",
+          "exact_quote": "Lit., 'truth'."
+        }
+      ],
+      "reasoning": "Researcher translation of Maharal: 'also we have not found this place'. The name is also the theme of the story.",
+      "confidence": "medium",
+      "graph_effect": "Keep the town as a local place node labelled Kushta, with no geographic identification and a note that it may be literary."
+    }
+  ],
+  "alternative_readings": [
+    {
+      "id": "alt_name",
+      "about": "Name of the teller",
+      "readings": [
+        "Rav Tavut",
+        "Rav Tavyomi"
+      ],
+      "who_says_what": "Talmud gives both (ואמרי לה). Maharal: a dispute between tradents, both names meaningful. Reshit Chokhmah, Sha'arei Kedusha and Ben Yehoyada name only Rav Tavyomi (later retellings).",
+      "status": "keep both branches"
+    },
+    {
+      "id": "alt_addressee_marker",
+      "about": "אמר לי against אמר ליה",
+      "readings": [
+        "said to me (Vilna/Wikisource, Koren, Rashi's lemma, Chokhmat Shlomo's correction)",
+        "said to him (earlier print seen by Chokhmat Shlomo; Bomberg as read visually; one Maharal quotation)"
+      ],
+      "status": "keep as a textual-variant note on c2/c14; the hearer is most plausibly Rava in both"
+    },
+    {
+      "id": "alt_narrator_person",
+      "about": "Who narrates 97a:7",
+      "readings": [
+        "The teller continues his first-person report (Koren סְבַרִי/אֲמַרִי; Vilna margin variant; Bomberg and Munich as read visually)",
+        "The anonymous Talmudic narrator retells in the third person (Vilna/Wikisource text; Maharal's quotation)"
+      ],
+      "status": "keep both; the actors are the same under either"
+    },
+    {
+      "id": "alt_knock_purpose",
+      "about": "Why the neighbour knocked",
+      "readings": [
+        "Rashi: she was asking for the wife",
+        "Steinsaltz: to come in"
+      ],
+      "status": "commentary only"
+    },
+    {
+      "id": "alt_impropriety",
+      "about": "What was 'not proper'",
+      "readings": [
+        "Rashi: to say where the wife is while she washes her head",
+        "Steinsaltz / Davidson plain text: to tell the neighbour the wife is bathing"
+      ],
+      "status": "commentary only"
+    },
+    {
+      "id": "alt_bm_parallel",
+      "about": "Relation to Bava Metzia 49a Rav Tavut",
+      "readings": [
+        "Separate traditions using the same 'truthful sage' formula",
+        "One tradition. Be'er Sheva emends BM's alternate name to Rav Tavyomi"
+      ],
+      "status": "unmerged coreference candidate"
+    }
+  ],
+  "unresolved": [
+    "Other manuscripts of Sanhedrin 97a (e.g., Florence, Karlsruhe, Yad HaRav Herzog) and Dikdukei Soferim were not checked. The person of the 97a:7 verbs and אמר לי/ליה need a proper collation.",
+    "My readings of Munich 95 and Bomberg are visual and unchecked. The Munich words before לאו אורח ארעא and the number word before בני were especially hard to read.",
+    "Whether Rav Tavut of Sanhedrin 97a and Rav Tavut of Bava Metzia 49a are the same figure. Chronology (Rava vs Ravina) is historical inference and was not settled here.",
+    "Jastrow reports a manuscript spelling טאבות in Bava Metzia. I did not verify it.",
+    "Whether the town is meant as a real place."
+  ],
+  "proposed_corrections": [
+    {
+      "claim_id": "c3, c15",
+      "change": "Recode from scenes/participates_in (with an 'offerers' role) to a character claim in Rava's voice, marked counterfactual. Drop or mark as non-referring the 'offerers' entity.",
+      "why": "f03"
+    },
+    {
+      "claim_id": "c7, c10, c19, c22, c26-c31 (voice)",
+      "change": "Voice becomes the branch-selected teller, as reported by Rava. Keep an alternative for an anonymous narrator retelling.",
+      "why": "f04"
+    },
+    {
+      "claim_id": "c12, c13, c24, c25, c26, c27",
+      "change": "Change basis from interpretation to explicit ('הוו לי תרתין בנין מינה'). c26/c27 voice is the teller.",
+      "why": "f09"
+    },
+    {
+      "claim_id": "c28",
+      "change": "Mark as derived from the shared parents; not a separate observation.",
+      "why": "f09"
+    },
+    {
+      "claim_id": "new",
+      "change": "Add neighbor_of(neighbor, wife), explicit (שיבבתה).",
+      "why": "f05"
+    },
+    {
+      "claim_id": "new",
+      "change": "Add a thought claim: the teller thought it was not proper conduct (סבר/סברי לאו אורח ארעא). Its content comes from commentary.",
+      "why": "f07"
+    },
+    {
+      "claim_id": "c7, c19",
+      "change": "Add the wife as the person the words are about (ליתא הכא = 'she is not here'); addressee = neighbour.",
+      "why": "f05, f07"
+    },
+    {
+      "claim_id": "new",
+      "change": "Add member_of(wife, residents), explicit (איתתא מינהון). Add resided_in(teller, town), interpretation.",
+      "why": "f10"
+    },
+    {
+      "claim_id": "new (optional)",
+      "change": "If a causal link is recorded between the lie and the deaths, basis=interpretation, citing that the explicit causal words are editorial (Davidson plain text, Steinsaltz, Soncino brackets).",
+      "why": "f08"
+    },
+    {
+      "claim_id": "c2, c14",
+      "change": "Keep. Add a variant note: אמר לי / אמר ליה (Chokhmat Shlomo; Bomberg).",
+      "why": "f02"
+    },
+    {
+      "claim_id": "reading_groups",
+      "change": "Add a reading group for the person of 97a:7 (first person against third person).",
+      "why": "f04"
+    },
+    {
+      "claim_id": "coreference_candidates",
+      "change": "Add a candidate linking the tavut branch to Rav Tavut in Bava Metzia 49a:16. Leave it unmerged, with Be'er Sheva's emendation stored as emendation evidence.",
+      "why": "f14, f15"
+    },
+    {
+      "claim_id": "previous_review additional_findings",
+      "change": "The review calls 'unknown' voice acceptable. The witnesses show that the teller is the more likely voice, so this is a correctable gap, not just a limit of the contract.",
+      "why": "f04"
+    }
+  ],
+  "ontology_lessons": [
+    "A nested first-person report needs a voice value such as 'teller of branch X, reported by Y'. 'unknown' loses evidence the witnesses provide.",
+    "When grammatical person shifts inside a story, check the variants before concluding that the narrator changed. Abbreviations such as א\"ל can be expanded as 'said to me' or 'said to him'.",
+    "A possessive on a relational noun (שיבבתה, 'her neighbour') is an explicit social relation, just as a patronymic is a family relation.",
+    "A counterfactual used as praise ('if they gave him the whole world') is a character claim, not an event with participants.",
+    "In the Davidson English, causal glue ('Since he deviated from the truth') is often in plain text. Check bold against plain before setting basis=explicit.",
+    "Later retellings (expulsion, choosing one name) and emendations (Be'er Sheva) are separate evidence types from source variants. They do not resolve branches.",
+    "A stock description attached to the same name in another tractate is a coreference candidate, not a merge."
+  ]
+}

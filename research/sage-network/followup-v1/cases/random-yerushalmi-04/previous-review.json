@@ -1,0 +1,102 @@
+{
+  "job_id": "random-yerushalmi-04",
+  "input_sha256": "93990b4398756c2636e701b0213874a5ece8b88cfe5e0223c5f10eb6aea541bd",
+  "output_sha256": "dfc6a3b73b12107f9bbbd5897f62db7fc15f24153bec0c29c7327b2db52e4edc",
+  "checks": [
+    {
+      "kind": "source",
+      "index": 0,
+      "status": "pass",
+      "reason": "Peah 3:3:1 keeps Yose’s separate-allocation ruling apart from the sages’ one-allocation ruling. האמהות is correctly kept as onion terminology, not human mothers.",
+      "claim_ids": [
+        "c3",
+        "c4",
+        "c5",
+        "c8"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 1,
+      "status": "pass",
+      "reason": "Yaakov bar Bun’s transmission from Hanina and Bun bar Hiyya’s question to Mana are preserved without identifying the two Bun mentions. The plural reply addressees are kept visible.",
+      "claim_ids": [
+        "c1",
+        "c2",
+        "c9",
+        "c11",
+        "c12",
+        "c13"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 2,
+      "status": "pass",
+      "reason": "The later explanation about storage is retained after the ownerlessness explanation. The brothers and partners of 3:4 are treated as hypothetical participants.",
+      "claim_ids": [
+        "c10",
+        "c14",
+        "c15",
+        "c16"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 3,
+      "status": "miss",
+      "reason": "The brothers’ two allocations after division and one after reunion, and the two buyers’ joint versus separate tree allocations in 3:4:1, are not recorded as rules. c15 only records a generic division event.",
+      "claim_ids": [
+        "c15"
+      ]
+    },
+    {
+      "kind": "source",
+      "index": 4,
+      "status": "miss",
+      "reason": "The opening anonymous ruling that onion mother plants are liable in 3:3:1 is omitted. Yose’s exemption is recorded without the positive ruling it contests.",
+      "claim_ids": [
+        "c3"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "major",
+      "type": "omission",
+      "claim_ids": [
+        "c15",
+        "c16"
+      ],
+      "reason": "The legal outcomes in 3:4:1–2 are missing. Generic division and harvest events do not preserve one versus two allocations or the stated restrictions on allocating between earlier and later portions. These are supplied text, not missing context.",
+      "source_refs": [
+        "Jerusalem Talmud Peah 3:4:1",
+        "Jerusalem Talmud Peah 3:4:2"
+      ]
+    },
+    {
+      "severity": "major",
+      "type": "omission",
+      "claim_ids": [
+        "c3"
+      ],
+      "reason": "האמהות של בצלים חייבות בפיאה is an explicit anonymous positive ruling. Keeping only Yose’s exemption loses the opposing position.",
+      "source_refs": [
+        "Jerusalem Talmud Peah 3:3:1"
+      ]
+    },
+    {
+      "severity": "minor",
+      "type": "contract_limit",
+      "claim_ids": [
+        "c12",
+        "c13"
+      ],
+      "reason": "m14 and m15 duplicate the same להן occurrence to store both a plural audience and a candidate link. Coverage counts need one source occurrence with several possible referents.",
+      "source_refs": [
+        "Jerusalem Talmud Peah 3:3:3"
+      ]
+    }
+  ],
+  "summary": "People, speech direction and hypothetical status survive, but several explicit legal positions are missing despite the complete-for-supplied-text label."
+}

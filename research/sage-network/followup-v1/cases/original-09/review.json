@@ -1,0 +1,123 @@
+{
+  "job_id": "original-09",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "cabad98316245ccf2c7779169b48b8d0bb6b41ef561b6246771aa8f9fa888ee7",
+  "historical_graph_eligible": false,
+  "scope": "Checked every dossier quote against the saved sources (all 60 quoted strings found, hashes match) and reread the surroundings of the focal segment and of each cross-passage quote (Yevamot 34b, Ketubot 65a/39b/85a, Shabbat 129a/140b, Berakhot 47b/56a/62a, Chagigah 5a, Chullin 44b, Eruvin 65a, Beitzah 29b) plus the linked commentaries; I fetched nothing new and did not check manuscripts or the Jerusalem Talmud.",
+  "findings": [
+    {
+      "target": "F8 graph_effect / proposed_corrections[3] (Ketubot 85a, Chagigah 5a, Ketubot 39b)",
+      "decision": "reject_proposed_change",
+      "reason": "The dossier makes every cross-passage 'daughter of Rav Hisda' married_to Rava locally, calling all but Ketubot 65a 'strong context'. The Aramaic of Ketubot 85a only has her speaking in Rava's court ('הָהִיא אִיתְּתָא דְּאִיחַיַּיבָא שְׁבוּעָה בֵּי דִינָא דְּרָבָא. אֲמַרָה לֵיהּ בַּת רַב חִסְדָּא'), and Rava later says he trusts her, with no household or marriage word; 'her husband' is added by the Davidson English. Chagigah 5a ('וְהָא רָבָא מְשַׁגַּר! שָׁאנֵי בַּת רַב חִסְדָּא') names neither what is sent nor to whom, and Ketubot 39b sets her beside Abaye's informant 'אֵם' (his foster mother), so 'told me' is not a marriage marker by itself. Grade each passage separately: Ketubot 85a gets speaks_to and trusted_by Rava only, with no married_to; Chagigah 5a and Ketubot 39b get married_to as low-to-medium context; Berakhot 56a and 62a stay medium-to-strong context."
+    },
+    {
+      "target": "F8 / later_evidence_not_merged[0] ('explicit in Ketubot 65a')",
+      "decision": "qualify",
+      "reason": "Ketubot 65a has 'קָם רָבָא, עָל לְבֵיתֵיהּ תַּבְעַהּ לְבַת רַב חִסְדָּא', followed by her asking who was in court and chasing Homa out. That is the strongest household and intimacy context in the set, but there is no word for wife or marriage. Label it 'strongest context', not 'explicit'. No passage checked states the marriage in so many words."
+    },
+    {
+      "target": "F8 (Shabbat 129a) and reading.md 'Not checked' (same death as Berakhot 56a?)",
+      "decision": "qualify",
+      "reason": "The Aramaic is 'וְאַמְטְיוּהָא לְעַרְסַהּ בָּתְרֵיהּ דְּרָבָא לְפוּמְבְּדִיתָא'. ערסה is literally 'her bed' or 'couch'. 'Funeral bier' and 'Rava's wife' come from the Davidson English, and saved Rashi has no gloss on the line. So the text shows illness and being carried after Rava. It shows her death only on the translation's reading, and the open question about 'the same death' in Berakhot 56a rests on that assumption. Also, the husband in 'שֶׁלֹּא בִּפְנֵי בַּעְלָהּ' is not named. The 'כִּי הָא' story may be the anonymous discussion illustrating Rava's rule rather than 'Rava's own statement', so keep the voice open."
+    },
+    {
+      "target": "proposed_local_edges: P2 wishes_or_foretells_marrying [P3,P4]; P3 forecasts_order_as_later_spouse_after P4",
+      "decision": "qualify",
+      "reason": "The question is 'מַאן מִינַּיְיהוּ בָּעֵית' and the answer is 'תַּרְוַיְיהוּ'. The verb is 'want', and no marriage word appears. F3 itself says the marriage sense is contextual, so the edge label should not build marriage in: use 'chooses/wants both' with marriage_sense = contextual. Rava's 'וַאֲנָא בָּתְרָא' names nobody else. 'After Rami bar Hama' is inferred from there being two men, so the object P4 should be flagged as implicit. No addressee for Rava's line is marked, and none should be filled."
+    },
+    {
+      "target": "proposed_corrections[0] / F14 (lake pair Rava–Hama)",
+      "decision": "support_proposed_correction",
+      "reason": "The pattern 'קמיה [A] ורמי בר [B]' filled B with the last word of the patronymic. The text reads 'הֲווֹ יָתְבִי קַמֵּיהּ רָבָא וְרָמֵי בַּר חָמָא', right after 'בְּכַנְפֵיהּ דַּאֲבוּהָ'. So 'before him' points back to her father, Rav Hisda, and both men sit before him side by side. Replace B with Rami bar Hama, keep a symmetric co-presence stored once, reject the first-pass 'before' between Rava and Hama, and add both sits_before Rav Hisda."
+    },
+    {
+      "target": "F1 / proposed_corrections[1] (P2 child_of P1; P5 Hama placeholder)",
+      "decision": "support_proposed_correction",
+      "reason": "'דְּבַת רַב חִסְדָּא' plus 'דַּאֲבוּהָ' makes the daughter's kinship literal, and she sits, is addressed and answers, so she needs her own local person. The P4 child_of P5 edge from 'רָמֵי בַּר חָמָא' is correctly kept even though Hama never acts. It should carry a note that 'bar Hama' may work as a fixed name rather than proof of a literal father named Hama, and it applies only to this reading."
+    },
+    {
+      "target": "F6, F7, F9 (Rami bar Hama as first husband; P2 = Rava's wife)",
+      "decision": "keep_evidence_types_separate",
+      "reason": "The checks hold. The Yevamot 34b Talmud text names no first husband; Rashi supplies 'ורמי בר חמא הוה' and 'אשתו דרבא'. Rabbeinu Tam in Tosafot ('משום ההיא עובדא דפ\"ק דב\"ב ... דאמרה בת רב חסדא תרווייהו קבעינא') is the only explicit link from the child to Rava's wife. Korban Netanel, Seder HaDorot and Chakham Tzvi cite these and are not independent. Keep the Rami marriage as a commentary identification and P2 = Rava's wife as a provisional commentary link, and derive neither from the Bava Batra forecast."
+    },
+    {
+      "target": "F10 / alternative_readings A2 (Benayahu placed only in the 'death' branch)",
+      "decision": "qualify",
+      "reason": "Benayahu does report that Rami married her first and died ('וכן הוה להו שנשאה רמי בר חמא תחלה ונפטר'). But he ends by allowing that 'אנא בתרא אינו מוכרח שימות רמי בר חמא, אלא יהיה לו סיבה שיגרשנה'. He should be listed as giving both readings of Rava's words, not only the death reading. That sharpens the point that the forecast's mechanism is open."
+    },
+    {
+      "target": "F12 ('the two commentaries do not even agree that they were children')",
+      "decision": "qualify",
+      "reason": "Seder HaDorot says 'הרי רבא ורמי ב\"ח הוו בני גילי' and supports it by comparing Abaye and Rava as small children before Rabbah ('הרי אביי ורבא היו קטנים ובני גילי'). So it does not contradict Benayahu's 'בעודם ילדים קטנים'; it simply puts the point differently. The main conclusion stands: the Talmud text gives no age or peer status, so no age or peer edge is added."
+    },
+    {
+      "target": "F3 quote 'אמר לה רב חסדא בצחוק לבתו' (S4, Steinsaltz)",
+      "decision": "correct_occurrence",
+      "reason": "The saved Steinsaltz reads 'אמר לה</b> רב חסדא בצחוק לבתו'. The bold run (the Talmud's own words) closes after 'אמר לה', and 'רב חסדא בצחוק לבתו' is Steinsaltz's addition. The dossier's quote matches only after the markup is stripped, so it blends text and gloss. Quote only 'רב חסדא בצחוק לבתו' as the commentary naming the asker, so that the Talmud's bare pronoun stays visible."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "S1",
+      "exact_quote": "הֲווֹ יָתְבִי קַמֵּיהּ רָבָא וְרָמֵי בַּר חָמָא",
+      "matches_claim": true,
+      "note": "Bava Batra 12b:6. It follows 'בְּכַנְפֵיהּ דַּאֲבוּהָ', so 'before him' points back to the father, Rav Hisda. Supports both sits_before edges and the pair repair."
+    },
+    {
+      "source_id": "S1",
+      "exact_quote": "אָמַר רָבָא: וַאֲנָא בָּתְרָא.",
+      "matches_claim": true,
+      "note": "The Aramaic segment ends here. The fulfilment sentence appears only in the English of the same file and in Steinsaltz."
+    },
+    {
+      "source_id": "S13",
+      "exact_quote": "כִּי הָא דִּבְרַתֵּיה דְּרַב חִסְדָּא טְבַלָה בְּגוֹ תְּלָתִין יוֹמִין שֶׁלֹּא בִּפְנֵי בַּעְלָהּ וְאִצְטְנִיאַת, וְאַמְטְיוּהָא לְעַרְסַהּ בָּתְרֵיהּ דְּרָבָא לְפוּמְבְּדִיתָא",
+      "matches_claim": false,
+      "note": "The quote is exact, but the dossier renders it 'bier' and calls it Rava's statement. ערסה is 'her bed'; 'funeral bier' and 'Rava's wife' are Davidson additions, and the husband is not named."
+    },
+    {
+      "source_id": "S15",
+      "exact_quote": "אֲמַרָה לֵיהּ בַּת רַב חִסְדָּא: יָדְעָנָא בָּהּ דַּחֲשׁוּדָה אַשְּׁבוּעָה",
+      "matches_claim": false,
+      "note": "The setting is Rava's court (בֵּי דִינָא דְּרָבָא), with no household or marriage word. It does not support a local married_to; 'her husband' is Davidson English."
+    },
+    {
+      "source_id": "S18",
+      "exact_quote": "קָם רָבָא, עָל לְבֵיתֵיהּ תַּבְעַהּ לְבַת רַב חִסְדָּא",
+      "matches_claim": true,
+      "note": "The strongest household and intimacy context, but not an explicit statement of marriage."
+    },
+    {
+      "source_id": "S8",
+      "exact_quote": "ששהית עשר שנים אחר בעליך הראשון ורמי בר חמא הוה",
+      "matches_claim": true,
+      "note": "Rashi on Yevamot 34b, lemma אבתריך. This is the source of the Rami bar Hama first-husband identification; it is commentary, not Talmud text."
+    },
+    {
+      "source_id": "S9",
+      "exact_quote": "דאמרה בת רב חסדא תרווייהו קבעינא והיתה מצפה שתתקיים נבואתה",
+      "matches_claim": true,
+      "note": "Tosafot on Yevamot 34b, lemma דעתאי עלך הואי, citing Rabbeinu Tam. This is the commentary link from the child to Rava's wife, and a quotation form rather than a variant."
+    },
+    {
+      "source_id": "S10",
+      "exact_quote": "כִּי נָח נַפְשֵׁיהּ דְּרָמֵי בַּר חָמָא, אָמַר רָבָא: לָא נָח נַפְשֵׁיהּ דְּרָמֵי בַּר חָמָא אֶלָּא דְּלָא אַזְמֵין אַרַב מְנַשְּׁיָא בַּר תַּחְלִיפָא",
+      "matches_claim": true,
+      "note": "Berakhot 47b. Shows Rava speaking after Rami's death. It says nothing about any marriage."
+    },
+    {
+      "source_id": "S4",
+      "exact_quote": "אנא בתרא אינו מוכרח שימות רמי בר חמא, אלא יהיה לו סיבה שיגרשנה",
+      "matches_claim": false,
+      "note": "Benayahu on Berakhot 47b. He also allows the divorce reading, so he should not sit only in the death branch as F10/A2 place him."
+    },
+    {
+      "source_id": "S20",
+      "exact_quote": "כִּי הָא דְּרַבָּה שְׁרָא טְרֵפְתָּא וּזְבַן מִינַּהּ בִּישְׂרָא, אֲמַרָה לֵיהּ בַּת רַב חִסְדָּא: אַבָּא שָׁרֵי בּוּכְרָא",
+      "matches_claim": true,
+      "note": "Chullin 44b reads רבה, and 'אַבָּא' confirms she is literally Rav Hisda's daughter. Correctly kept outside Rava's wife cluster."
+    }
+  ],
+  "extra_sources": []
+}

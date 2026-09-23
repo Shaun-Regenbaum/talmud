@@ -1,0 +1,583 @@
+[
+ {
+  "id": "ban",
+  "job_id": "challenge-30",
+  "title": "The target is clear. The addressee depends on the version.",
+  "explanation": "The maidservant declares a ban on the father. The base text does not say whom she addresses. Other versions add “to him”.",
+  "finding_ids": [
+   "F1",
+   "F2"
+  ],
+  "variants": [
+   {
+    "label": "Base text: “she said”",
+    "note": "The father is the target. The addressee stays unknown.",
+    "edges": [
+     [
+      "Maidservant",
+      "declares a ban on",
+      "Father"
+     ],
+     [
+      "Maidservant",
+      "speaks to?",
+      "Unknown addressee"
+     ]
+    ],
+    "finding_ids": [
+     "F1"
+    ]
+   },
+   {
+    "label": "Other version: “she said to him”",
+    "note": "The added pronoun supports the father as addressee in this version.",
+    "edges": [
+     [
+      "Maidservant",
+      "declares a ban on",
+      "Father"
+     ],
+     [
+      "Maidservant",
+      "speaks to (in this version)",
+      "Father"
+     ]
+    ],
+    "finding_ids": [
+     "F2"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "kinship",
+  "job_id": "random-yerushalmi-01",
+  "title": "Brother in the printed text. Nephew in a proposed correction.",
+  "explanation": "The printed phrase calls Hananya a brother of Hoshaya. Commentaries and parallel passages support reading “son of his brother”. Both sources remain saved.",
+  "finding_ids": [
+   "F3",
+   "F5",
+   "F6"
+  ],
+  "variants": [
+   {
+    "label": "Printed wording",
+    "note": "A textual branch, preserved even when a correction is preferred.",
+    "edges": [
+     [
+      "Hananya",
+      "brother of",
+      "Rav Hoshaya"
+     ]
+    ],
+    "finding_ids": [
+     "F3"
+    ]
+   },
+   {
+    "label": "Commentary and parallel reading",
+    "note": "The parent has no personal name here, but still has a local person entry.",
+    "edges": [
+     [
+      "Hananya",
+      "son of",
+      "Unnamed father"
+     ],
+     [
+      "Unnamed father",
+      "brother of",
+      "Rav Hoshaya"
+     ]
+    ],
+    "finding_ids": [
+     "F5",
+     "F6"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "voice",
+  "job_id": "challenge-09",
+  "title": "An objection and its answer need different speakers.",
+  "explanation": "The earlier reading gave the quotation to Rav Oshaya. Published explanations read it as the discussion’s reply. The printed Hebrew leaves room to preserve the alternative.",
+  "finding_ids": [
+   "F2",
+   "F3"
+  ],
+  "variants": [
+   {
+    "label": "Reply reading",
+    "note": "The anonymous discussion cites the teacher. This supplies no personal meeting with Oshaya.",
+    "edges": [
+     [
+      "Rav Oshaya",
+      "raises",
+      "Objection"
+     ],
+     [
+      "Anonymous discussion",
+      "answers with",
+      "Quoted teaching"
+     ]
+    ],
+    "finding_ids": [
+     "F2",
+     "F3"
+    ]
+   },
+   {
+    "label": "Continuation reading",
+    "note": "The citation continues the objection. The internal speaker boundary remains interpretive.",
+    "edges": [
+     [
+      "Rav Oshaya’s objection",
+      "includes",
+      "Quoted teaching"
+     ]
+    ],
+    "finding_ids": [
+     "F2"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "unsaid",
+  "job_id": "challenge-11",
+  "title": "Words that were not said can still be evidence.",
+  "explanation": "The passage uses the missing formal address “Master” to support calling Yirmiya a student-colleague of Rav. A later quotation gives the formal wording instead.",
+  "variants": [
+   {
+    "label": "Focal passage",
+    "note": "Save the negative speech claim. Do not invent an event in which these words were spoken.",
+    "edges": [
+     [
+      "Yirmiya bar Abba",
+      "did not use",
+      "“Master”"
+     ],
+     [
+      "Yirmiya bar Abba",
+      "student-colleague of",
+      "Rav"
+     ]
+    ],
+    "finding_ids": [
+     "f1",
+     "f2"
+    ]
+   },
+   {
+    "label": "Later quotation",
+    "note": "This witness includes the formal address. It does not supply the same argument for the relationship.",
+    "edges": [
+     [
+      "Yirmiya bar Abba",
+      "asks with",
+      "“Master”"
+     ]
+    ],
+    "finding_ids": [
+     "f6"
+    ]
+   }
+  ],
+  "finding_ids": [
+   "f1",
+   "f2",
+   "f6"
+  ]
+ },
+ {
+  "id": "priest",
+  "job_id": "random-yerushalmi-02",
+  "title": "The same words can name a role or refer to a person.",
+  "explanation": "The first “high priest” is a category in a legal rule. A later occurrence refers to the unnamed incumbent in the story. Attaching the person to the first occurrence was wrong.",
+  "finding_ids": [
+   "f01",
+   "f02",
+   "f06"
+  ],
+  "variants": [
+   {
+    "label": "Legal rule",
+    "note": "A generic role in a legal scenario. No historical person is identified.",
+    "edges": [
+     [
+      "Second priest (legal role)",
+      "not eligible as",
+      "High priest (category)"
+     ]
+    ],
+    "finding_ids": [
+     "f01"
+    ]
+   },
+   {
+    "label": "Story",
+    "note": "A separate local person, even though his personal name is not given.",
+    "edges": [
+     [
+      "Ben Illem",
+      "serves in place of",
+      "Unnamed incumbent"
+     ]
+    ],
+    "finding_ids": [
+     "f01",
+     "f02",
+     "f06"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "chains",
+  "job_id": "original-08",
+  "title": "Two commentaries divide the same names differently.",
+  "explanation": "One reading has Yohanan quote Yirmeya. Another starts a new chain at Yirmeya. The proposed identities of Yirmeya and Meisha differ too, so chronology cannot choose a reading before identity is checked.",
+  "finding_ids": [
+   "F1",
+   "F3",
+   "F4",
+   "F5",
+   "F6"
+  ],
+  "variants": [
+   {
+    "label": "Printed links, retained by Guggenheimer",
+    "note": "Helbo’s connection to Shimon remains unspecified. These arrows show only the four explicit “in the name of” joins.",
+    "finding_ids": [
+     "F1",
+     "F3",
+     "F4"
+    ],
+    "edges": [
+     [
+      "Shimon",
+      "quotes",
+      "Yohanan"
+     ],
+     [
+      "Yohanan",
+      "quotes",
+      "Yirmeya"
+     ],
+     [
+      "Hanina",
+      "quotes",
+      "Meisha"
+     ],
+     [
+      "Hiyya",
+      "quotes",
+      "Simai"
+     ]
+    ]
+   },
+   {
+    "label": "Ohr LaYesharim’s reconstruction",
+    "note": "This reconstruction changes some joins and supplies others. Keep each change attached to its commentary or reported textual witness.",
+    "finding_ids": [
+     "F5",
+     "F6"
+    ],
+    "edges": [
+     [
+      "Helbo",
+      "quotes (supplied link)",
+      "Shimon"
+     ],
+     [
+      "Shimon",
+      "quotes",
+      "Yohanan"
+     ],
+     [
+      "Yirmeya",
+      "quotes (emended link)",
+      "Hanina"
+     ],
+     [
+      "Meisha",
+      "quotes (supplied link)",
+      "Hiyya"
+     ],
+     [
+      "Hiyya",
+      "quotes",
+      "Simai"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "teacher",
+  "job_id": "random-yerushalmi-05",
+  "title": "One extra word supplies an explicit teacher relationship.",
+  "explanation": "Some versions have Yose call Hila “my teacher”. Others report Hila speaking to him but omit that title.",
+  "finding_ids": [
+   "F6",
+   "F7",
+   "F8"
+  ],
+  "variants": [
+   {
+    "label": "Ketubot wording with “my teacher”",
+    "note": "The teacher link is explicit in this reading. Yose’s wider historical identity remains open.",
+    "finding_ids": [
+     "F6",
+     "F8"
+    ],
+    "edges": [
+     [
+      "Hila",
+      "repeatedly tells",
+      "Yose"
+     ],
+     [
+      "Yose",
+      "student of (“my teacher”)",
+      "Hila"
+     ]
+    ]
+   },
+   {
+    "label": "Parallel wording without that title",
+    "note": "The missing title does not prove that Hila was not his teacher. This version simply supplies less explicit evidence.",
+    "finding_ids": [
+     "F7"
+    ],
+    "edges": [
+     [
+      "Hila",
+      "repeatedly tells",
+      "Yose"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "father",
+  "job_id": "original-01",
+  "title": "One sentence gives two links to a Rav Nachman.",
+  "explanation": "“Mar Zutra son of Rav Nachman said in the name of Rav Nachman.” The name gives a father. The report gives a source for the ruling. The text never says the two are the same man.",
+  "finding_ids": [
+   "F01",
+   "F05",
+   "F11"
+  ],
+  "variants": [
+   {
+    "label": "Same man (one commentator)",
+    "note": "Yam shel Shelomoh reads the quoted Rav Nachman as the father. That is his reading, not the text.",
+    "edges": [
+     [
+      "Mar Zutra",
+      "son of (in his name)",
+      "Rav Nachman"
+     ],
+     [
+      "Mar Zutra",
+      "reports a ruling in the name of",
+      "Rav Nachman"
+     ]
+    ],
+    "finding_ids": [
+     "F01",
+     "F07"
+    ]
+   },
+   {
+    "label": "Two men named Rav Nachman",
+    "note": "No source says this. It stays open only because the text never says “his father”.",
+    "edges": [
+     [
+      "Mar Zutra",
+      "son of (in his name)",
+      "Rav Nachman (father)"
+     ],
+     [
+      "Mar Zutra",
+      "reports a ruling in the name of",
+      "Rav Nachman (quoted)"
+     ]
+    ],
+    "finding_ids": [
+     "F01",
+     "F05"
+    ]
+   },
+   {
+    "label": "Old pair table",
+    "note": "One “cites” label hid the family link.",
+    "edges": [
+     [
+      "Mar Zutra",
+      "cites",
+      "Rav Nachman"
+     ]
+    ],
+    "finding_ids": [
+     "F01"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "daughter",
+  "job_id": "original-09",
+  "title": "The Talmud stops at a forecast. The English adds the marriages.",
+  "explanation": "Rav Hisda's young daughter says she wants both men. Rava says he will be last. The Aramaic ends there. The marriages come from the translation's plain-text explanation and from later commentary.",
+  "finding_ids": [
+   "F2",
+   "F3",
+   "F4",
+   "F14"
+  ],
+  "variants": [
+   {
+    "label": "Aramaic text",
+    "note": "Both men sit before Rav Hisda. She wants both. Nobody marries in this passage.",
+    "edges": [
+     [
+      "Rava",
+      "sits before",
+      "Rav Hisda"
+     ],
+     [
+      "Rami bar Hama",
+      "sits before",
+      "Rav Hisda"
+     ],
+     [
+      "Daughter of Rav Hisda",
+      "says she wants",
+      "Rava and Rami bar Hama"
+     ]
+    ],
+    "finding_ids": [
+     "F2",
+     "F3"
+    ]
+   },
+   {
+    "label": "English plain text and commentary",
+    "note": "In the Davidson English these words are not bold, so they are the editor's explanation. Save them as that reading, not as the Talmud's words.",
+    "edges": [
+     [
+      "Daughter of Rav Hisda",
+      "married first (editor's note)",
+      "Rami bar Hama"
+     ],
+     [
+      "Daughter of Rav Hisda",
+      "married later (editor's note)",
+      "Rava"
+     ]
+    ],
+    "finding_ids": [
+     "F4",
+     "F9"
+    ]
+   },
+   {
+    "label": "Old pair table",
+    "note": "The name finder cut “Rami bar Hama” down to “Hama”.",
+    "edges": [
+     [
+      "Rava",
+      "sits before",
+      "Hama"
+     ]
+    ],
+    "finding_ids": [
+     "F14"
+    ]
+   }
+  ]
+ },
+ {
+  "id": "road",
+  "job_id": "original-03",
+  "title": "All three really met. The honour was only in one man's head.",
+  "explanation": "Mar Zutra meets Rava and Rav Safra on the road. In the printed text he thinks they came out to greet him; they had not. Who says the last line depends on the version.",
+  "finding_ids": [
+   "F2",
+   "F3",
+   "F6",
+   "F7"
+  ],
+  "variants": [
+   {
+    "label": "Printed text: the meeting",
+    "note": "Mar Zutra's belief is a thought, not a link. Rava's rebuke names no listener; his words show it is Rav Safra.",
+    "edges": [
+     [
+      "Rava",
+      "travels with",
+      "Rav Safra"
+     ],
+     [
+      "Mar Zutra",
+      "meets on the road",
+      "Rava and Rav Safra"
+     ],
+     [
+      "Rav Safra",
+      "answers",
+      "Mar Zutra"
+     ],
+     [
+      "Rava",
+      "rebukes (listener from context)",
+      "Rav Safra"
+     ]
+    ],
+    "finding_ids": [
+     "F2",
+     "F3",
+     "F5",
+     "F6"
+    ]
+   },
+   {
+    "label": "Last line: Rava",
+    "note": "The Davidson English and Steinsaltz Hebrew say so, but they are one project, so they count once. The Rif's wording is a bracketed later quotation of uncertain standing.",
+    "edges": [
+     [
+      "Rav Safra",
+      "objects",
+      "Rava"
+     ],
+     [
+      "Rava",
+      "says “he misleads himself”",
+      "Rav Safra"
+     ]
+    ],
+    "finding_ids": [
+     "F6",
+     "F7"
+    ]
+   },
+   {
+    "label": "Last line: Rav Safra",
+    "note": "The printed Aramaic has one “he said to him” that may cover both sentences. No commentator reads it this way.",
+    "edges": [
+     [
+      "Rav Safra",
+      "objects, then says “he misleads himself”",
+      "Rava"
+     ]
+    ],
+    "finding_ids": [
+     "F7"
+    ]
+   }
+  ]
+ }
+]

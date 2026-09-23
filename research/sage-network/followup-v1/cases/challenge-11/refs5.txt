@@ -1,0 +1,7 @@
+Halakhot Gedolot 1:25|halakhot_gedolot_1_25.json
+Midrash Sekhel Tov, Shemot 16:29:272|sekhel_tov_shemot_16_29_272.json
+Marit HaAyin on Bava Batra 158b:1|marit_haayin_bava_batra_158b_1.json
+Maadaney Yom Tov on Berakhot 587|maadaney_yom_tov_berakhot_587.json
+Seder HaDorot, Almanac 4569:1|seder_hadorot_almanac_4569_1.json
+Halakhot Ketanot, Part II 13:2|halakhot_ketanot_2_13_2.json
+Teshuvot HaRivash 271:4|rivash_271_4.json

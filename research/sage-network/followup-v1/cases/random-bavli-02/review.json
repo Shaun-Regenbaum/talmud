@@ -1,0 +1,30 @@
+{
+  "job_id": "random-bavli-02",
+  "authority": "automated_review",
+  "status": "qualified_proposals",
+  "dossier_sha256": "0cce690dc62d903eace6802cf3bede156b8f20c4185da7ee268e8d31c67a21ef",
+  "historical_graph_eligible": false,
+  "scope": "Separate review of selected graph implications and quoted evidence. Source hashes and quotation matches checked separately. Not human adjudication or exhaustive historical verification.",
+  "findings": [
+    {
+      "target": "F1/F2 position labels and unnamed discussion",
+      "decision": "support_proposed_addition",
+      "reason": "The wider passage ties the position label to Rebbi. Keep the view being discussed and the anonymous question or answer separate from an utterance by Rebbi."
+    },
+    {
+      "target": "F1 first-tanna group voice",
+      "decision": "retain_uncertain_cardinality",
+      "reason": "An unnamed first opinion should not become a historical group merely because the introduction says the Rabbis taught. A later authority calls the side the Rabbis. Save that attribution separately and leave its actual membership unknown."
+    },
+    {
+      "target": "F3 commentary target and variant names",
+      "decision": "retain_as_attributed_interpretations",
+      "reason": "A commentator identifies the target as an account of the dispute. This is not evidence that the named people were in a conversation. Competing named attributions remain source branches."
+    },
+    {
+      "target": "F12 verse reference",
+      "decision": "retain_source_discrepancy",
+      "reason": "Keep the printed cross-reference as data about that edition and the different identification supported by the commentaries. Do not silently rewrite the saved source."
+    }
+  ]
+}

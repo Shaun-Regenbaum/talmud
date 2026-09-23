@@ -1,5 +1,11 @@
 # How many sages are in the Talmud?
 
+The [whole-passage pilot](pilot/report.html) is saved in DuckLake snapshot 2.
+It covers 42 episodes and 602 proposed claims, with independent review findings
+and four evidence packs. Twelve episodes need corrections or fuller extraction.
+See [the pilot instructions](pilot/README.md) and [the updated plan](plan/relationship-ontology.md).
+
+
 A name in the Talmud is not a person. One name can cover several men, and one
 man appears under several names. Every era in a modern sage index comes from a
 biography that someone attached to a name, and nothing in that process checks
@@ -8,20 +14,33 @@ that the man in the passage is the man in the biography.
 This directory asks what the text can establish on its own, before any
 biography is consulted.
 
+## Current plan
+
+The [revised visual plan](plan/relationship-ontology.html) and [written contract](plan/relationship-ontology.md) replace the earlier rules for building person links and dates. The review read 30 additional cases across 82 primary text segments and checked six earlier cases again. These selected examples identify failures to preserve, not an overall accuracy estimate.
+
+The saved pair reader remains an earlier discovery step. Its one-label output and chronological shortcuts are not the contract for the next extraction run. The next step is a checked passage pilot with multiple claims, alternatives, evidence packs and versioned decisions.
+
 ## What it does
 
 1. Reads the Hebrew and Aramaic of the Bavli, the Yerushalmi and the aggadic
-   and halakhic midrashim. No translation is used anywhere, because a
-   translator has already resolved the ambiguities being measured.
-2. Takes **every** Hebrew witness Sefaria holds for each work, not one. The
-   same passage in two editions is the strongest evidence that two spellings
-   are one name, because the variation sits at a single location.
+   and halakhic midrashim. Hebrew and Aramaic remain the primary text. Named
+   translations and commentaries can supply competing readings in an evidence pack;
+   their interpretive choices must stay visible.
+2. Discovers available Hebrew editions and keeps each fetched witness separate.
+   The saved collection below currently has one edition per work. A variant at
+   the same location may be a spelling, correction or different identity. It
+   is evidence to inspect, not an automatic same-person match.
 3. Finds name mentions, then discovers the relation vocabulary by counting what
    actually joins two names, rather than by listing the phrases an author
    happens to remember.
-4. Builds a relation graph whose nodes are **names, not people**, and derives a
-   relative order from the relations strong enough to carry one.
+4. Collects nearby-name links for an initial view. The next graph will keep
+   mentions, source claims and proposed people separate. Dates need their own
+   evidence and cannot be read directly from the pair labels.
 5. Reports where names can be told apart, where they cannot, and why.
+
+## Shared storage
+
+The study now has a [DuckLake storage path](lake/README.md) using Prophex’s R2 setup. It preserves source passages, earlier pair readings and the detailed reviews as separate tables. Pull a fixed version before building on it. The existing JSON-based scripts still work on local files; publishing a new lake version is a separate checked step. The [saved migration checks](https://dss.402.network/analyses/talmud/sage-network-lake-migration?revision=1) record the source counts, hashes and full read-back.
 
 ## Running it
 
@@ -59,8 +78,9 @@ cannot be cut short by a wrong guess about how it is divided.
 `pipeline/corpora.py` lists what is read and, as importantly, what is left out
 and why: anthologies that quote the Talmud would count every passage twice.
 
-`ANCHORS.md` fixes the handful of names the dating hangs from, and the rule
-that chose them. `plan/plan.html` is the review and the plan.
+`ANCHORS.md` records the handful of names used in the early dating work.
+`plan/relationship-ontology.html` is the current review and plan. The earlier
+`plan/plan.html` is retained as a historical design document.
 
 ## Sources and licence
 
@@ -75,7 +95,10 @@ unit's segment array, so a re-fetch can be verified against this snapshot. The
 hash covers the UTF-8 encoding of the segment array serialised as JSON without
 spaces and with literal Unicode, matching `research/pilot-v1`.
 
-## Where it stands (20 September 2026)
+## Earlier snapshot (20 September 2026)
+
+This table records the earlier snapshot. For current pair-table counts and
+the latest review, use the revised plan above.
 
 One edition per work, 281 works, 273,208 segments.
 

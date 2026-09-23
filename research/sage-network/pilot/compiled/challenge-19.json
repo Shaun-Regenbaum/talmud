@@ -1,0 +1,1080 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-19",
+    "episode": {
+      "genre": "mixed",
+      "genre_reason": "A court story discusses food, wine and silk support.",
+      "form": "court dialogue",
+      "coverage": "needs_context",
+      "needed_context": [
+        "The supplied passage does not say whether silk was awarded or identify the judge’s companions."
+      ],
+      "notes": []
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "דביתהו דרב יוסף בריה דרב מנשיא מדויל",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב יוסף בריה דרב מנשיא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב מנשיא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב יוסף",
+          "occurrence": 2
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "מדויל",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "לחברך",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "לחברורך",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "פסוק לי מזוני!",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "פסק לה.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m10",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "פסוק לי חמרא!",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m11",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "פסק לה.",
+          "occurrence": 2
+        }
+      },
+      {
+        "id": "m12",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "פסוק לי שיראי!",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m13",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "שיראי למה?",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m14",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "לך ולחברך ולחברורך.",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "woman",
+        "kind": "person",
+        "label": "Unnamed wife of Rav Yosef son of Rav Menashya",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "דביתהו דרב יוסף בריה דרב מנשיא מדויל",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "husband",
+        "kind": "person",
+        "label": "Rav Yosef son of Rav Menashya",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב יוסף בריה דרב מנשיא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "father",
+        "kind": "person",
+        "label": "Rav Menashya",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב מנשיא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "judge",
+        "kind": "person",
+        "label": "Rav Yosef receiving the visitor",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב יוסף",
+            "occurrence": 2
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "dvil",
+        "kind": "place",
+        "label": "Dvil",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "מדויל",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "friend",
+        "kind": "person",
+        "label": "Judge’s companion addressed in the reply",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "לחברך",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "companions",
+        "kind": "group",
+        "label": "Further companions in the reply",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "לחברורך",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "food",
+        "kind": "statement",
+        "label": "Request for food",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסוק לי מזוני!",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "foodaward",
+        "kind": "event",
+        "label": "Award of food",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסק לה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "wine",
+        "kind": "statement",
+        "label": "Request for wine",
+        "mention_ids": [
+          "m10"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסוק לי חמרא!",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "wineaward",
+        "kind": "event",
+        "label": "Award of wine",
+        "mention_ids": [
+          "m11"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסק לה.",
+            "occurrence": 2
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "silk",
+        "kind": "statement",
+        "label": "Request for silk",
+        "mention_ids": [
+          "m12"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסוק לי שיראי!",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "why",
+        "kind": "statement",
+        "label": "Why silk is needed",
+        "mention_ids": [
+          "m13"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "שיראי למה?",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "reply",
+        "kind": "statement",
+        "label": "For you and your companions",
+        "mention_ids": [
+          "m14"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "לך ולחברך ולחברורך.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "family",
+        "predicate": "spouse_of",
+        "subject": "woman",
+        "object": "husband",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "דביתהו דרב יוסף",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "husband",
+        "object": "father",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב יוסף בריה דרב מנשיא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "scenes",
+        "predicate": "visits",
+        "subject": "woman",
+        "object": "judge",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אתאי לקמיה דרב יוסף",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c4",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "woman",
+        "object": "judge",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "food"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסוק לי מזוני!",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "judge",
+        "object": "foodaward",
+        "roles": [
+          {
+            "role": "beneficiary",
+            "entity": "woman"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסק לה.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "פסק לה",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "woman",
+        "object": "judge",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "wine"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסוק לי חמרא!",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c7",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "judge",
+        "object": "wineaward",
+        "roles": [
+          {
+            "role": "beneficiary",
+            "entity": "woman"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסק לה.",
+            "occurrence": 2
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "פסק לה",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c8",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "woman",
+        "object": "judge",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "silk"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "פסוק לי שיראי!",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c9",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "judge",
+        "object": "woman",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "why"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר לה: שיראי למה?",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c10",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "woman",
+        "object": "why",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "judge"
+          },
+          {
+            "role": "content",
+            "entity": "reply"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמרה ליה: לך ולחברך ולחברורך.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      }
+    ],
+    "reading_groups": [],
+    "coreference_candidates": [],
+    "open_questions": [
+      "Does מדויל describe Rav Menashya or his son?",
+      "The reply does not establish a marriage to the judge or his companions."
+    ]
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "דביתהו דרב יוסף בריה דרב מנשיא מדויל",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 0,
+      "end": 36,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "רב יוסף בריה דרב מנשיא",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 8,
+      "end": 30,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "רב מנשיא",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 22,
+      "end": 30,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s1",
+      "quote": "רב יוסף",
+      "occurrence": 2,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 49,
+      "end": 56,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s1",
+      "quote": "מדויל",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 31,
+      "end": 36,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s1",
+      "quote": "לחברך",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 161,
+      "end": 166,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s1",
+      "quote": "לחברורך",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 168,
+      "end": 175,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s1",
+      "quote": "פסוק לי מזוני!",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 68,
+      "end": 82,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s1",
+      "quote": "פסק לה.",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 83,
+      "end": 90,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m10/anchor",
+      "source_id": "s1",
+      "quote": "פסוק לי חמרא!",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 91,
+      "end": 104,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m11/anchor",
+      "source_id": "s1",
+      "quote": "פסק לה.",
+      "occurrence": 2,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 105,
+      "end": 112,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m12/anchor",
+      "source_id": "s1",
+      "quote": "פסוק לי שיראי!",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 113,
+      "end": 127,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m13/anchor",
+      "source_id": "s1",
+      "quote": "שיראי למה?",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 136,
+      "end": 146,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m14/anchor",
+      "source_id": "s1",
+      "quote": "לך ולחברך ולחברורך.",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 157,
+      "end": 176,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/woman/evidence/0",
+      "source_id": "s1",
+      "quote": "דביתהו דרב יוסף בריה דרב מנשיא מדויל",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 0,
+      "end": 36,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/husband/evidence/0",
+      "source_id": "s1",
+      "quote": "רב יוסף בריה דרב מנשיא",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 8,
+      "end": 30,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/father/evidence/0",
+      "source_id": "s1",
+      "quote": "רב מנשיא",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 22,
+      "end": 30,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/judge/evidence/0",
+      "source_id": "s1",
+      "quote": "רב יוסף",
+      "occurrence": 2,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 49,
+      "end": 56,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/dvil/evidence/0",
+      "source_id": "s1",
+      "quote": "מדויל",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 31,
+      "end": 36,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/friend/evidence/0",
+      "source_id": "s1",
+      "quote": "לחברך",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 161,
+      "end": 166,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/companions/evidence/0",
+      "source_id": "s1",
+      "quote": "לחברורך",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 168,
+      "end": 175,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/food/evidence/0",
+      "source_id": "s1",
+      "quote": "פסוק לי מזוני!",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 68,
+      "end": 82,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/foodaward/evidence/0",
+      "source_id": "s1",
+      "quote": "פסק לה.",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 83,
+      "end": 90,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/wine/evidence/0",
+      "source_id": "s1",
+      "quote": "פסוק לי חמרא!",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 91,
+      "end": 104,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/wineaward/evidence/0",
+      "source_id": "s1",
+      "quote": "פסק לה.",
+      "occurrence": 2,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 105,
+      "end": 112,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/silk/evidence/0",
+      "source_id": "s1",
+      "quote": "פסוק לי שיראי!",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 113,
+      "end": 127,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/why/evidence/0",
+      "source_id": "s1",
+      "quote": "שיראי למה?",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 136,
+      "end": 146,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/reply/evidence/0",
+      "source_id": "s1",
+      "quote": "לך ולחברך ולחברורך.",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 157,
+      "end": 176,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "דביתהו דרב יוסף",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 0,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s1",
+      "quote": "רב יוסף בריה דרב מנשיא",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 8,
+      "end": 30,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "אתאי לקמיה דרב יוסף",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 37,
+      "end": 56,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s1",
+      "quote": "פסוק לי מזוני!",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 68,
+      "end": 82,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s1",
+      "quote": "פסק לה.",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 83,
+      "end": 90,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s1",
+      "quote": "פסוק לי חמרא!",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 91,
+      "end": 104,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s1",
+      "quote": "פסק לה.",
+      "occurrence": 2,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 105,
+      "end": 112,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s1",
+      "quote": "פסוק לי שיראי!",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 113,
+      "end": 127,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר לה: שיראי למה?",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 128,
+      "end": 146,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s1",
+      "quote": "אמרה ליה: לך ולחברך ולחברורך.",
+      "occurrence": 1,
+      "source_sha256": "91d457fec5f7abcd94990cf6b6852860a31181202e5a5c06f735cdd993bbe842",
+      "start": 147,
+      "end": 176,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "0aeea4eeea05f2e553e52193d97a56c6760386a44950f60a21188e4e725cb08d",
+  "output_sha256": "3e9fea63a9603089e9e9e694d12643cc282b752c7944e8ccd8cbc541ac159915",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.365639+00:00"
+}

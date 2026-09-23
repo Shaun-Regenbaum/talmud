@@ -1,0 +1,507 @@
+{
+  "job_id": "original-08",
+  "focal_ref": "Jerusalem Talmud Berakhot 1:5:14",
+  "input_lake_snapshot": 2,
+  "original_document": "relation-cases-sources.json",
+  "source": {
+    "ref": "Jerusalem Talmud Berakhot 1:5:14",
+    "url": "https://www.sefaria.org/Jerusalem_Talmud_Berakhot.1.5.14",
+    "api_url": "https://www.sefaria.org/api/texts/Jerusalem%20Talmud%20Berakhot%201%3A5%3A14?context=0&pad=0&commentary=0",
+    "hebrew": "תנא רבי חלפתא בן שאול הכל שוחחין עם שליח ציבור בהודאה. רבי זעירא אמר ובלבד במודים. רבי זעירא סבר לקרובה כדי לשוח עמו תחילה וסוף. רבי יסא כד סליק להכא חמתין גחנין ומלחשין. אמר לון מהו דין לחישה ולא שמיע דמר רבי חלבו רבי שמעון בשם רבי יוחנן בשם רבי ירמיה רבי חנינא בשם רבי מיישא רבי חייא בשם רבי סימאי. ואית דאמרין ליה חבריא בשם רבי סימאי מודים אנחנו לך אדון כל הבריות אלוה התושבחות צור עולמים חי העולם יוצר בראשית מחיה המתים שהחייתנו וקיימתנו וזכיתנו וסייעתנו וקרבתנו להודות לשמך ברוך אתה יי אל ההודאות. רבי בא בר זבדא בשם רב מודים אנחנו לך שאנו חייבין להודות לשמך תרננה שפתי כי אזמרה לך ונפשי אשר פדית ברוך אתה יי אל ההודאות. רבי שמואל בר [איניא] בשם רבי אחא הודייה ושבח לשמך לך גדולה לך גבורה לך תפארת יהי רצון מלפניך יי אלהינו ואלהי אבתינו שתסמכינו מנפילתינו ותזקפנו מכפיפתינו כי אתה הוא סומך נופלים וזוקף כפופים ומלא רחמים ואין עוד מלבדך ברוך אתה יי אל ההודאות. בר קפרא אמר לך כריעה לך כפיפה לך השתחויה כי לך בריכה לך תכרע כל ברך תשבע כל לשון לך יי הגדולה והגבורה והתפארת והנצח וההוד כי כל בשמים ובארץ לך יי הממלכה והמתנשא לכל לראש והעושר והכבוד מלפניך ואתה מושל בכל ובידך כח וגבורה ובידך לגדל ולחזק לכל ועתה אלהינו מודים אנחנו לך ומהללים לשם תפארתך בכל לב ובכל נפש משתחוים כל עצמותי תאמרנה יי מי כמוך מציל עני מחזק ממנו ועני ואביון מגוזלו ברוך אתה יי אל ההודאות. אמר רבי יודן נהגין רבנין אמרין כולהון. ואית דאמרין או הדא או הדא.",
+    "hebrew_sha256": "a32fd848e9ba284a7c7fedda259414a10486688fef62432c7736a04cc09eab58",
+    "hebrew_edition": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015",
+    "hebrew_license": "CC-BY",
+    "english_edition": "The Jerusalem Talmud, translation and commentary by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015",
+    "pairs": [
+      {
+        "key": "yerushalmi|Jerusalem Talmud Berakhot|1|5:14|4|47",
+        "ref": "Jerusalem Talmud Berakhot 1:5:14",
+        "a": "רבי חלפתא בן שאול",
+        "b": "ר' זעירא",
+        "pattern": "[A] הכל שוחין עם ש\"צ בהודאה [B]",
+        "kind": "explains",
+        "source": "reader",
+        "direction": "BA",
+        "sure": false,
+        "first_pass": {
+          "kind": "disputes",
+          "confidence": 0.58,
+          "p": {
+            "cites": 0.02,
+            "disputes": 0.62,
+            "alternative": 0.01,
+            "explains": 0.07,
+            "one-name": 0.0,
+            "teacher": 0.0,
+            "juxtaposed": 0.01,
+            "addresses": 0.0,
+            "asks": 0.0,
+            "same-man": 0.19,
+            "together": 0.0,
+            "none": 0.07,
+            "kin": 0.0,
+            "follows": 0.01,
+            "before": 0.0
+          }
+        }
+      },
+      {
+        "key": "yerushalmi|Jerusalem Talmud Berakhot|1|5:14|47|74",
+        "ref": "Jerusalem Talmud Berakhot 1:5:14",
+        "a": "ר' זעירא",
+        "b": "רבי זעירא",
+        "pattern": "[A] אמר ובלבד במודים [B]",
+        "kind": "same-man",
+        "source": "rule",
+        "direction": "",
+        "first_pass": {
+          "kind": "same-man",
+          "confidence": 0.57,
+          "p": {
+            "disputes": 0.16,
+            "cites": 0.02,
+            "alternative": 0.0,
+            "explains": 0.08,
+            "one-name": 0.01,
+            "teacher": 0.0,
+            "juxtaposed": 0.01,
+            "addresses": 0.0,
+            "asks": 0.0,
+            "same-man": 0.61,
+            "together": 0.0,
+            "none": 0.09,
+            "kin": 0.0,
+            "follows": 0.02,
+            "before": 0.0
+          }
+        }
+      },
+      {
+        "key": "yerushalmi|Jerusalem Talmud Berakhot|1|5:14|195|204",
+        "ref": "Jerusalem Talmud Berakhot 1:5:14",
+        "a": "רבי חלבו",
+        "b": "ר\"ש",
+        "pattern": "[A]  [B]",
+        "kind": "juxtaposed",
+        "source": "reader",
+        "direction": "",
+        "sure": true,
+        "first_pass": {
+          "kind": "cites",
+          "confidence": 0.54,
+          "p": {
+            "cites": 0.57,
+            "disputes": 0.0,
+            "alternative": 0.0,
+            "one-name": 0.03,
+            "explains": 0.0,
+            "teacher": 0.02,
+            "juxtaposed": 0.13,
+            "addresses": 0.06,
+            "asks": 0.06,
+            "same-man": 0.05,
+            "together": 0.02,
+            "none": 0.06,
+            "kin": 0.0,
+            "follows": 0.0,
+            "before": 0.0
+          }
+        }
+      },
+      {
+        "key": "yerushalmi|Jerusalem Talmud Berakhot|1|5:14|204|212",
+        "ref": "Jerusalem Talmud Berakhot 1:5:14",
+        "a": "ר\"ש",
+        "b": "ר' יוחנן",
+        "pattern": "[A] בשם [B]",
+        "kind": "cites",
+        "source": "cheap",
+        "direction": null,
+        "confidence": 0.94,
+        "first_pass": {
+          "kind": "cites",
+          "confidence": 0.94,
+          "p": {
+            "before": 0.0,
+            "teacher": 0.0,
+            "addresses": 0.03,
+            "juxtaposed": 0.01,
+            "together": 0.0,
+            "follows": 0.0,
+            "explains": 0.0,
+            "kin": 0.0,
+            "cites": 0.95,
+            "disputes": 0.0,
+            "same-man": 0.0,
+            "one-name": 0.0,
+            "asks": 0.0,
+            "alternative": 0.0,
+            "none": 0.01
+          }
+        }
+      },
+      {
+        "key": "yerushalmi|Jerusalem Talmud Berakhot|1|5:14|212|225",
+        "ref": "Jerusalem Talmud Berakhot 1:5:14",
+        "a": "ר' יוחנן",
+        "b": "ר' ירמיה",
+        "pattern": "בשם [A] בשם [B]",
+        "kind": "cites",
+        "source": "cheap",
+        "direction": null,
+        "confidence": 0.94,
+        "first_pass": {
+          "kind": "cites",
+          "confidence": 0.94,
+          "p": {
+            "teacher": 0.0,
+            "none": 0.02,
+            "addresses": 0.01,
+            "together": 0.0,
+            "juxtaposed": 0.01,
+            "follows": 0.0,
+            "explains": 0.0,
+            "kin": 0.0,
+            "cites": 0.95,
+            "one-name": 0.01,
+            "same-man": 0.0,
+            "disputes": 0.0,
+            "asks": 0.0,
+            "alternative": 0.0,
+            "before": 0.0
+          }
+        }
+      },
+      {
+        "key": "yerushalmi|Jerusalem Talmud Berakhot|1|5:14|225|234",
+        "ref": "Jerusalem Talmud Berakhot 1:5:14",
+        "a": "ר' ירמיה",
+        "b": "רבי חנינא",
+        "pattern": "בשם [A]  [B]",
+        "kind": "juxtaposed",
+        "source": "reader",
+        "direction": "",
+        "sure": true,
+        "first_pass": {
+          "kind": "cites",
+          "confidence": 0.83,
+          "p": {
+            "before": 0.0,
+            "teacher": 0.02,
+            "addresses": 0.01,
+            "juxtaposed": 0.04,
+            "together": 0.01,
+            "follows": 0.0,
+            "explains": 0.0,
+            "kin": 0.0,
+            "cites": 0.85,
+            "one-name": 0.01,
+            "same-man": 0.01,
+            "disputes": 0.0,
+            "asks": 0.0,
+            "alternative": 0.0,
+            "none": 0.05
+          }
+        }
+      },
+      {
+        "key": "yerushalmi|Jerusalem Talmud Berakhot|1|5:14|234|248",
+        "ref": "Jerusalem Talmud Berakhot 1:5:14",
+        "a": "רבי חנינא",
+        "b": "ר' מיישא",
+        "pattern": "[A] בשם [B]",
+        "kind": "cites",
+        "source": "cheap",
+        "direction": null,
+        "confidence": 0.94,
+        "first_pass": {
+          "kind": "cites",
+          "confidence": 0.94,
+          "p": {
+            "teacher": 0.02,
+            "none": 0.01,
+            "addresses": 0.01,
+            "together": 0.0,
+            "juxtaposed": 0.01,
+            "explains": 0.0,
+            "follows": 0.0,
+            "kin": 0.0,
+            "cites": 0.95,
+            "disputes": 0.0,
+            "same-man": 0.0,
+            "one-name": 0.0,
+            "asks": 0.0,
+            "alternative": 0.0,
+            "before": 0.0
+          }
+        }
+      },
+      {
+        "key": "yerushalmi|Jerusalem Talmud Berakhot|1|5:14|248|257",
+        "ref": "Jerusalem Talmud Berakhot 1:5:14",
+        "a": "ר' מיישא",
+        "b": "ר' חייא",
+        "pattern": "בשם [A]  [B]",
+        "kind": "cites",
+        "source": "cheap",
+        "direction": null,
+        "confidence": 0.93,
+        "first_pass": {
+          "kind": "cites",
+          "confidence": 0.93,
+          "p": {
+            "none": 0.01,
+            "teacher": 0.01,
+            "addresses": 0.01,
+            "together": 0.0,
+            "juxtaposed": 0.02,
+            "follows": 0.0,
+            "explains": 0.0,
+            "kin": 0.0,
+            "cites": 0.9400000000000001,
+            "one-name": 0.0,
+            "same-man": 0.0,
+            "disputes": 0.0,
+            "asks": 0.0,
+            "alternative": 0.0,
+            "before": 0.0
+          }
+        }
+      },
+      {
+        "key": "yerushalmi|Jerusalem Talmud Berakhot|1|5:14|257|269",
+        "ref": "Jerusalem Talmud Berakhot 1:5:14",
+        "a": "ר' חייא",
+        "b": "ר' סימאי",
+        "pattern": "[A] בשם [B]",
+        "kind": "cites",
+        "source": "cheap",
+        "direction": null,
+        "confidence": 0.92,
+        "first_pass": {
+          "kind": "cites",
+          "confidence": 0.92,
+          "p": {
+            "before": 0.0,
+            "teacher": 0.02,
+            "addresses": 0.0,
+            "juxtaposed": 0.01,
+            "together": 0.0,
+            "follows": 0.0,
+            "explains": 0.0,
+            "kin": 0.0,
+            "cites": 0.9400000000000001,
+            "one-name": 0.0,
+            "same-man": 0.01,
+            "disputes": 0.0,
+            "asks": 0.0,
+            "alternative": 0.0,
+            "none": 0.01
+          }
+        }
+      },
+      {
+        "key": "yerushalmi|Jerusalem Talmud Berakhot|1|5:14|269|305",
+        "ref": "Jerusalem Talmud Berakhot 1:5:14",
+        "a": "ר' סימאי",
+        "b": "ר' סימאי",
+        "pattern": "בשם [A] ואית דאמרין ליה חברייא בשם [B]",
+        "kind": "same-man",
+        "source": "rule",
+        "direction": "",
+        "first_pass": {
+          "kind": "same-man",
+          "confidence": 0.43,
+          "p": {
+            "before": 0.0,
+            "none": 0.01,
+            "addresses": 0.0,
+            "together": 0.0,
+            "juxtaposed": 0.01,
+            "follows": 0.0,
+            "explains": 0.0,
+            "kin": 0.0,
+            "cites": 0.4,
+            "one-name": 0.0,
+            "same-man": 0.48,
+            "disputes": 0.01,
+            "asks": 0.0,
+            "alternative": 0.09,
+            "teacher": 0.0
+          }
+        }
+      },
+      {
+        "key": "yerushalmi|Jerusalem Talmud Berakhot|1|5:14|472|491",
+        "ref": "Jerusalem Talmud Berakhot 1:5:14",
+        "a": "רבי בא בר זבדא",
+        "b": "רב",
+        "pattern": "[A] בשם [B]",
+        "kind": "cites",
+        "source": "cheap",
+        "direction": null,
+        "confidence": 0.98,
+        "first_pass": {
+          "kind": "cites",
+          "confidence": 0.98,
+          "p": {
+            "before": 0.0,
+            "none": 0.0,
+            "addresses": 0.0,
+            "juxtaposed": 0.0,
+            "together": 0.01,
+            "follows": 0.0,
+            "explains": 0.0,
+            "kin": 0.0,
+            "cites": 0.99,
+            "one-name": 0.0,
+            "same-man": 0.0,
+            "disputes": 0.0,
+            "asks": 0.0,
+            "alternative": 0.0,
+            "teacher": 0.0
+          }
+        }
+      },
+      {
+        "key": "yerushalmi|Jerusalem Talmud Berakhot|1|5:14|588|610",
+        "ref": "Jerusalem Talmud Berakhot 1:5:14",
+        "a": "רבי שמואל",
+        "b": "רבי אחא",
+        "pattern": "[A] בר מינא בשם [B]",
+        "kind": "cites",
+        "source": "reader",
+        "direction": "AB",
+        "sure": true,
+        "first_pass": {
+          "kind": "cites",
+          "confidence": 0.87,
+          "p": {
+            "none": 0.02,
+            "before": 0.0,
+            "addresses": 0.0,
+            "together": 0.0,
+            "juxtaposed": 0.01,
+            "follows": 0.0,
+            "explains": 0.0,
+            "kin": 0.06,
+            "cites": 0.89,
+            "one-name": 0.01,
+            "same-man": 0.0,
+            "disputes": 0.0,
+            "asks": 0.0,
+            "alternative": 0.0,
+            "teacher": 0.01
+          }
+        }
+      }
+    ]
+  },
+  "earlier_crosscheck": {
+    "ref": "Jerusalem Talmud Berakhot 1:5:14",
+    "existing_case_id": "yerushalmi",
+    "review_result": "chain_warning_supported_but_chronology_argument_needs_correction",
+    "sources": [
+      {
+        "ref": "Jerusalem Talmud Berakhot 1:5:14",
+        "url": "https://www.sefaria.org/Jerusalem_Talmud_Berakhot_1.5.14",
+        "api_url": "https://www.sefaria.org/api/texts/Jerusalem%20Talmud%20Berakhot%201%3A5%3A14?context=0&pad=0&commentary=0",
+        "hebrew_edition": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015",
+        "translation_edition": "The Jerusalem Talmud, translation and commentary by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015",
+        "hebrew": "תָּנָא רִבִּי חֲלַפְתָּא בֶּן שָׁאוּל הַכֹּל שׁוֹחֲחִין עִם שְׁלִיחַ צִיבּוּר בְּהוֹדָאָה. רִבִּי זְעִירָא אָמַר וּבִלְבַד בְּמוֹדִים. רִבִּי זְעִירָא סָבַר לִקְרוֹבָה כְּדֵי לְשׁוּחַ עִמּוֹ תְּחִילָּה וְסוֹף. רִבִּי יֹסֵא כַּד סַלִּיק לְהָכָא חַמְתֵּין גְּחָנִין וּמְלַחֲשִׁין. אָמַר לוֹן מַהוּ דֵין לְחִישָׁה וְלֹא שְׁמִיעַ דָּמַר רִבִּי חֶלְבּוֹ רִבִּי שִׁמְעוֹן בְּשֵׁם רִבִּי יוֹחָנָן בְּשֵׁם רִבִּי יִרְמְיָה רִבִּי חֲנִינָא בְשֵׁם רִבִּי מְיָישָׁא רִבִּי חִיָּיא בְשֵׁם רִבִּי סִימַאי. וְאִית דְּאָמְרִין לֵיהּ חֲבֵרַיָּא בְשֵׁם רִבִּי סִימַאי מוֹדִים אֲנַחְנוּ לָךְ אֲדוֹן כָּל הַבִּרְיוֹת אֱלוֹהַּ הַתּוּשְׁבָּחוֹת צוּר עוֹלָמִים חַי הָעוֹלָם יוֹצֵר בְּרֵאשִׁית מְחַיֵּה הַמֵּתִים שֶׁהֶחֱיִיתָנוּ וְקִיַימְתָּנוּ וּזְכִיתָנוּ וְסִיַיעְתָּנוּ וְקֵרַבְתָּנוּ לְהוֹדוֹת לִשְׁמָךְ בָּרוּךְ אַתָּה יי אֵל הָהוֹדָאוֹת. רִבִּי בָּא בַּר זַבְדָּא בְשֵׁם רַב מוֹדִים אֲנַחְנוּ לָךְ שֶׁאָנוּ חַיָיבִין לְהוֹדוֹת לִשְׁמָךְ תְּרַנֵּנָּה שְׂפָתַי כִּי אֲזַמְּרָה לָךְ וְנַפְשִׁי אֲשֶׁר פָּדִיתָ בָּרוּךְ אַתָּה יי אֵל הָהוֹדָאוֹת. רִבִּי שְׁמוּאֵל בַּר [אִינְיָא] בְשֵׁם רִבִּי אָחָא הוֹדָיָיה וּשְׁבָח לִשְׁמָךְ לָךְ גְּדוּלָּה לָךְ גְּבוּרָה לָךְ תִּפְאֶרֶת יְהִי רָצוֹן מִלְּפָנֶיךְ יי אֱלֹהֵינוּ וֵאלֹהֵי אֲבֹתֵינוּ שֶׁתִּסְמְכֵינוּ מִנְּפִילָתֵינוּ וְתִזְקָפֵנוּ מִכְּפִיפָתֵינוּ כִּי אַתָּה הוּא סוֹמֵךְ נוֹפְלִים וְזוֹקֵף כְּפוּפִים וּמָלֵא רַחֲמִים וְאֵין עוֹד מִלְּבַדֶּךָ בָּרוּךְ אַתָּה יי אֵל הָהוֹדָאוֹת. בַּר קַפָּרָא אָמַר לָךְ כְּרִיעָה לָךְ כְּפִיפָה לָךְ הִשְׁתַּחֲוָיָה כִּי לָךְ בְּרִיכָה לְךָ תִּכְרַע כָּל בֶּרֶךְ תִּשָּׁבַע כָּל לָשׁוֹן לְךָ יי הַגְּדוּלָּה וְהַגְּבוּרָה וְהַתִּפְאֶרֶת וְהַנֶּצַח וְהַהוֹד כִּי כֹל בַּשָּׁמַיִם וּבָאָרֶץ לְךָ יי הַמַּמְלָכָה וְהַמִּתְנַשֵּׂא לְכֹל לָרֹאשׁ וְהָעוֹשֶׁר וְהַכָּבוֹד מִלְּפָנֶיךְ וְאַתָּה מוֹשֵׁל בַּכֹּל וּבְיָדְךָ כֹּחַ וּגְבוּרָה וּבְיָדְךָ לְגַדֵּל וּלְחַזֵּק לַכֹּל וְעַתָּה אֱלֹהֵינוּ מוֹדִים אֲנַחְנוּ לָךְ וּמְהַלְלִים לְשֵׁם תִּפְאַרְתֶּךָ בּכָל לֵב וּבְכָל נֶפֶשׁ מִשְׁתַּחֲוִים כָּל עַצְמוֹתָי תֹאמַרְנָה יי מִי כָמוֹךָ מַצִּיל עָנִי מֵחָזָק מִמֶּנּוּ וְעָנִי וְאֶבְיוֹן מִגּוֹזְלוֹ בָּרוּךְ אַתָּה יי אֵל הָהוֹדָאוֹת. אָמַר רִבִּי יוּדָן נְהִגִּין רַבָּנִין אָמְרִין כּוּלְּהוֹן. וְאִית דְּאָמְרִין אוֹ הֲדָא אוֹ הֲדָא.",
+        "api_hebrew_html_sha256": "37e1ed5c9aaa1a9efb5cbe7a7a7904b4d1d6e4d8563d043098f0c99cd65e7e4b"
+      },
+      {
+        "ref": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:5:14",
+        "url": "https://www.sefaria.org/Ohr_LaYesharim_on_Jerusalem_Talmud_Berakhot.1.5.14",
+        "edition": "Machon HaYerushalmi, Rabbi Yehoshua Buch, 2015",
+        "short_quotes": [
+          "רז\"פ הוסיף כאן 'בשם'",
+          "ורז\"פ מחק מילה זו"
+        ],
+        "quote_note": "These brief editorial notes occur at the Hanina and Meisha joins. Full commentary was read, but is not reproduced here."
+      },
+      {
+        "ref": "Guggenheimer translation and commentary, footnote 256",
+        "url": "https://www.sefaria.org/Jerusalem_Talmud_Berakhot.1.5.14?lang=bi",
+        "short_quote": "A Tanna of the last generation, student of R. Yehudah ben Batyra.",
+        "quote_subject": "The Jeremiah named in the chain"
+      }
+    ],
+    "context_read": [
+      "Whole Hebrew passage and Guggenheimer translation with embedded footnotes 253-262",
+      "Whole Ohr LaYesharim commentary on the passage"
+    ],
+    "finding": "Ohr LaYesharim supports the separate chains shown in the current report. Guggenheimer reads different joins and identifies some of the names differently. Neither reading should be replaced by an unmarked chain chosen from adjacent names.",
+    "readings": [
+      {
+        "name": "Ohr LaYesharim",
+        "basis": "commentary_with_editorial_changes",
+        "chains_reporter_to_named_source": [
+          [
+            "Helbo",
+            "Shimon bar Abba",
+            "Yohanan"
+          ],
+          [
+            "Yirmeya",
+            "Hanina bar Hama"
+          ],
+          [
+            "Meisha",
+            "Hiyya bar Abba",
+            "Simai"
+          ]
+        ],
+        "alternate_attribution": [
+          "The colleagues",
+          "Simai"
+        ],
+        "editorial_operations": [
+          "Supplies a reporting link between Helbo and Shimon.",
+          "Starts a new report with Yirmeya instead of making him Yohanan’s source.",
+          "Notes an added בשם before Hanina.",
+          "Notes a corrected or inserted בשם before Meisha in the transmitted text and its deletion by the cited editor.",
+          "Supplies a reporting link between Meisha and Hiyya."
+        ],
+        "identity_assertions": {
+          "Yirmeya": "A third/fourth-generation Palestinian Amora",
+          "Meisha": "A third/fourth-generation Palestinian Amora",
+          "Hiyya": "Hiyya bar Abba"
+        },
+        "status": "verified_as_this_commentary’s_reading_not_as_manuscript_fact"
+      },
+      {
+        "name": "Guggenheimer translation and notes",
+        "basis": "translation_punctuation_plus_identity_notes",
+        "chain_reading": "The English groups Helbo and Shimon before Yohanan, continues with Jeremiah, then gives Hanina in Meisha’s name and Hiyya in Simai’s name. It does not supply Ohr LaYesharim’s Meisha-to-Hiyya link.",
+        "identity_assertions": {
+          "Jeremiah": "A late Tanna and pupil of Yehudah ben Batyra, in footnote 256",
+          "Meisha": "An early figure near the end of the Second Temple period, in footnote 257"
+        },
+        "status": "verified_as_this_translation’s_reading_not_as_settled_identity"
+      }
+    ],
+    "agreement": "The warning against one settled chain is justified. The report correctly labels its three displayed chains as a commentary’s reading. Rabbi Meisha to Rabbi Hiyya is supported by that commentary, although its joining word is not explicit in the fetched base text.",
+    "correction": "Do not call Yohanan-to-Jeremiah chronologically backwards without stating which Jeremiah is meant. Guggenheimer expressly chooses an earlier Jeremiah. The current plan’s reference to the usual identities hides a disputed identity premise. Present the two identity proposals with the two readings and leave the historical decision open.",
+    "additional_scope_note": "The observer is spelled יסא in the saved normalized text and יֹסֵא in the fetched vocalized edition. Ohr LaYesharim identifies him as Rabbi Asi. Preserve these forms and the commentator’s identification rather than assuming every English Yose label names the same person.",
+    "uncertainty": {
+      "base_word_sequence": "retrieved",
+      "chain_segmentation": "interpretations_differ",
+      "editorial_words": "marked_by_commentary",
+      "person_identity": "interpretations_differ",
+      "chronology": "depends_on_identity_and_source",
+      "manuscript_readings": "reported_by_commentary_not_directly_collated"
+    },
+    "episode": {
+      "kind": "halachic",
+      "form": "liturgical_instruction_with_reported_observation_and_attribution_lists",
+      "reason": "The passage concerns bowing and prayer during the thanksgiving blessing."
+    },
+    "unresolved_scope": [
+      "No manuscript images were examined. References to the Rome manuscript and textual corrections are claims of the commentary.",
+      "No independent biography study was done to decide between the proposed Jeremiahs or Meishas.",
+      "The exact reach of the alternate attribution to the colleagues should remain tied to its source wording."
+    ]
+  }
+}

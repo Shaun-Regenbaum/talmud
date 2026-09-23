@@ -1,0 +1,173 @@
+{
+  "version": "evidence-pack-review-v1",
+  "evidence_packs_sha256": "280084a5e7fe9cc24264cd0f909637e6d35b90c2ef6d86b97819a6c8fd076c4a",
+  "review_scope": "Four narrow demonstration decisions, their selected compiled claims, and the exact saved source jobs",
+  "limits": [
+    "This is a provisional source check, not human gold, manuscript collation, historical verification, or approval of all extracted claims.",
+    "The reviewer originally produced the challenge-01 and challenge-05 extractions. For those two packs this is a source and provenance recheck, not an independent second reading of the extraction.",
+    "No external source, biography, commentary witness or probability calibration was added.",
+    "Pass means the narrow decision follows from the saved text and its stated uncertainty. It does not make any decision eligible for a historical graph."
+  ],
+  "packs": [
+    {
+      "pack_id": "imma-family",
+      "status": "pass",
+      "findings": [
+        {
+          "type": "verified",
+          "reason": "The opening sentence directly describes Imma Shalom as Eliezer’s wife and Gamliel’s sister. Both links retain her as their subject."
+        },
+        {
+          "type": "verified",
+          "reason": "Both selected claims are shared across the later story alternatives. No relation is inferred directly between Eliezer and Gamliel."
+        },
+        {
+          "type": "verified",
+          "reason": "The supported_as_text decision is limited to this passage and explicitly remains ineligible for the historical graph."
+        },
+        {
+          "type": "provenance",
+          "reason": "The compiled file hash, compiled input/output hashes, record equality, copied source snapshots, source text hashes and all selected claim offsets match the referenced saved files."
+        },
+        {
+          "type": "provenance",
+          "reason": "The pack now includes every supplied source snapshot in its exact original order, including the preceding rule and any later context. All snapshot objects and text hashes match the input job."
+        }
+      ],
+      "checked_claim_refs": [
+        "challenge-20/c1",
+        "challenge-20/c2"
+      ],
+      "checked_decision_id": "imma-family-v1",
+      "checked_compiled_sha256": "f88cc5e206f9bceeb71036849bee700ae2c20f44885c4ff203d2ad27bcd060d8",
+      "checked_input_sha256": "b60e6f19760f79d76f5330fcf980444313babb1d2c4bc79f75358f8d5130b424",
+      "checked_output_sha256": "e54149a85e0a06d2600231f34507ea09279160a75f18c58a768380baf5977994",
+      "limits": [
+        "Alternative readings, where present, remain textual alternatives. Historical compatibility is not decided.",
+        "Saved snapshots are checked against the exact input jobs. Their text hashes and compiled offsets refer to the stored text, not a fresh web copy.",
+        "The edition label names a vocalized edition, while the anchor text is the saved unvocalized form. The separate Hebrew raw field preserves the vocalized source wording; these offset systems must not be interchanged."
+      ]
+    },
+    {
+      "pack_id": "reversed-speakers",
+      "status": "pass",
+      "findings": [
+        {
+          "type": "verified",
+          "reason": "The source gives Hisda speaking to Hamnuna, then an explicit report reversing those roles. The selected claims retain the proper addressee and explanation in each branch."
+        },
+        {
+          "type": "verified",
+          "reason": "Each candidate’s two claims describe one answer and its explanation. They are not independent attestations. The two candidates belong to the same reported-alternative group."
+        },
+        {
+          "type": "verified",
+          "reason": "The decision keeps both readings without asserting that both conversations happened. It leaves the later baraita boundary outside this narrow decision."
+        },
+        {
+          "type": "provenance",
+          "reason": "The compiled file hash, compiled input/output hashes, record equality, copied source snapshots, source text hashes and all selected claim offsets match the referenced saved files."
+        },
+        {
+          "type": "provenance",
+          "reason": "The pack now includes every supplied source snapshot in its exact original order, including the preceding rule and any later context. All snapshot objects and text hashes match the input job."
+        }
+      ],
+      "checked_claim_refs": [
+        "challenge-05/c8",
+        "challenge-05/c9",
+        "challenge-05/c10",
+        "challenge-05/c11"
+      ],
+      "checked_decision_id": "reversed-speakers-v1",
+      "checked_compiled_sha256": "03f7a2f6db8edbf69b82970bf4810d01f66d3858014c33b45f31a9c4fc77d00f",
+      "checked_input_sha256": "73d7499ca8d5dd03640946a631913103fa15c92b67d231162753abaefb9f4826",
+      "checked_output_sha256": "e78ccfcfe996f2465fd50bd1f6766aa20966e17e2505db2f5155ed44131f4369",
+      "limits": [
+        "Alternative readings, where present, remain textual alternatives. Historical compatibility is not decided.",
+        "Saved snapshots are checked against the exact input jobs. Their text hashes and compiled offsets refer to the stored text, not a fresh web copy."
+      ]
+    },
+    {
+      "pack_id": "parenthesized-negation",
+      "status": "pass",
+      "findings": [
+        {
+          "type": "verified",
+          "reason": "The exact source retains (אין). c6 applies negative polarity when that word is read; c7 applies positive polarity when it is omitted. Both concern the same ruling and the same source span."
+        },
+        {
+          "type": "verified",
+          "reason": "The two polarities are alternatives for reading this sentence, not two independent witnesses or evidence of two historical rulings. The compiled group leaves historical compatibility unknown."
+        },
+        {
+          "type": "verified",
+          "reason": "The needs_source_research decision correctly leaves the editorial convention unresolved and assigns no probabilities or historical eligibility."
+        },
+        {
+          "type": "provenance",
+          "reason": "The compiled file hash, compiled input/output hashes, record equality, copied source snapshots, source text hashes and all selected claim offsets match the referenced saved files."
+        },
+        {
+          "type": "provenance",
+          "reason": "The pack now includes every supplied source snapshot in its exact original order, including the preceding rule and any later context. All snapshot objects and text hashes match the input job."
+        }
+      ],
+      "checked_claim_refs": [
+        "challenge-01/c6",
+        "challenge-01/c7"
+      ],
+      "checked_decision_id": "parenthesized-negation-v1",
+      "checked_compiled_sha256": "72cb705126c95e50f0e821a6eef981a0febf58be1b5733da742974538be59bce",
+      "checked_input_sha256": "f9d2d1fea3b10364f161e32ab433ad2d266556ee6f143817a11ee4edfb6acffd",
+      "checked_output_sha256": "652f1cb5ec7f8b0b7235d1aef30c5b6d9f5131fea5e220d40c8f1b4564522150",
+      "limits": [
+        "Alternative readings, where present, remain textual alternatives. Historical compatibility is not decided.",
+        "Saved snapshots are checked against the exact input jobs. Their text hashes and compiled offsets refer to the stored text, not a fresh web copy.",
+        "The positive-reading commentary remark is an unverified research lead in this check. No commentary evidence is in this pack, and it was not used as support for the decision.",
+        "The unresolved parenthesis convention does not imply equal support or equal probabilities for the two readings."
+      ]
+    },
+    {
+      "pack_id": "woman-or-tractate",
+      "status": "pass",
+      "findings": [
+        {
+          "type": "verified",
+          "reason": "The first source supplies the shared question and answer. The next two sources explicitly give woman and tractate readings."
+        },
+        {
+          "type": "verified",
+          "reason": "The person and work entities, and their associated events, are scoped to different branches. The sages and Abahu retain the same speech roles in both readings."
+        },
+        {
+          "type": "verified",
+          "reason": "The decision does not put Ilai in the conversation, infer a marriage, name a tractate, or promote local referents into historical identities."
+        },
+        {
+          "type": "provenance",
+          "reason": "The compiled file hash, compiled input/output hashes, record equality, copied source snapshots, source text hashes and all selected claim offsets match the referenced saved files."
+        },
+        {
+          "type": "provenance",
+          "reason": "The pack now includes every supplied source snapshot in its exact original order, including the preceding rule and any later context. All snapshot objects and text hashes match the input job."
+        }
+      ],
+      "checked_claim_refs": [
+        "challenge-28/c1",
+        "challenge-28/c2",
+        "challenge-28/c3",
+        "challenge-28/c4"
+      ],
+      "checked_decision_id": "woman-or-tractate-v1",
+      "checked_compiled_sha256": "c8e85f12e9b50db75bcac689ebb8e26a2fcd8b75670d4cc1eb838c2613eccca6",
+      "checked_input_sha256": "2d2af192a945b9a02b3e60d2e2803e13d40638429d42ba2df0039cc46cda9c0b",
+      "checked_output_sha256": "11928927e50aca38a8bd6e5b6e3fb03e3011dc81e782da845d98f1352263f35d",
+      "limits": [
+        "Alternative readings, where present, remain textual alternatives. Historical compatibility is not decided.",
+        "Saved snapshots are checked against the exact input jobs. Their text hashes and compiled offsets refer to the stored text, not a fresh web copy.",
+        "The edition label names a vocalized edition, while the anchor text is the saved unvocalized form. The separate Hebrew raw field preserves the vocalized source wording; these offset systems must not be interchanged."
+      ]
+    }
+  ]
+}

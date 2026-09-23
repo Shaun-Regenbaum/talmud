@@ -1,0 +1,789 @@
+{
+ "job_id": "original-06",
+ "focal_ref": "Arakhin 13b:4",
+ "status": "researched",
+ "question": "Preserve two reported transmission routes as separate claims under one teaching. The textual or need not mean only one event historically happened. Investigate source editions and commentators, and define what a graph may infer from each route.",
+ "scope_checked": "Arakhin 13b (full amud, Sefaria texts), Mishnah Arakhin 2:5; Tosafot, Rashi, Rabbeinu Gershom, Steinsaltz on 13b; Bartenura, Tosafot Yom Tov, Ikar Tosafot Yom Tov, Melekhet Shelomoh, Mishnat Eretz Yisrael on Mishnah 2:5; Rambam Klei HaMikdash 3:4 + Kessef Mishneh; Sefer HaChinukh 384; Seder HaDorot entry; Tzafnat Pa'neach cross-reference; page images of Munich 95, Bomberg 1523, Vilna (incl. Shitah Mekubetzet margin); Sefaria search for the names.",
+ "sources": [
+  {
+   "source_id": "S00",
+   "url_or_input_path": "research/sage-network/followup-v1/cases/original-06/input.json",
+   "edition": "Job input and earlier crosscheck, lake snapshot 2 (unchanged)",
+   "fetched_at": null,
+   "saved_file": "input.json",
+   "sha256": "716b642f07ea218178ea406d9949f2136fccf2b42510179c5a7cb744f0614f48"
+  },
+  {
+   "source_id": "S01",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Arakhin%2013b?version=hebrew&version=english&return_format=text_only",
+   "edition": "William Davidson Edition - Vocalized Aramaic + William Davidson Edition - English (Koren Noé)",
+   "fetched_at": "2026-09-23T07:50:19Z",
+   "saved_file": "sources/sefaria_v3_arakhin_13b_he.json",
+   "sha256": "0908e833d97f73927d8273a7e12e8e71e4f236916ee0a8b6bb158afaf4dc29cd"
+  },
+  {
+   "source_id": "S02",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Arakhin%2013b?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Aramaic&return_format=text_only",
+   "edition": "William Davidson Edition - Aramaic (unvocalized; same editorial work as S01)",
+   "fetched_at": "2026-09-23T07:50:43Z",
+   "saved_file": "sources/unvocalized_koren_arakhin_13b.json",
+   "sha256": "6001c9db1da2c4d3b435f1f6669a1e6e282ac4e17e9537aa9a135c910f789eb0"
+  },
+  {
+   "source_id": "S03",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Arakhin%2013b?version=hebrew%7CWikisource%20Talmud%20Bavli&return_format=text_only",
+   "edition": "Wikisource Talmud Bavli (digital text in the printed tradition)",
+   "fetched_at": "2026-09-23T07:50:43Z",
+   "saved_file": "sources/wikisource_arakhin_13b.json",
+   "sha256": "5bcdab21cc8475634763e99794db47e83273f8badc5f34df29061eaf87b99645"
+  },
+  {
+   "source_id": "S04",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Arakhin%2013b?version=german%7CTalmud%20Bavli.%20German%20trans.%20by%20Lazarus%20Goldschmidt%2C%201929%20%5Bde%5D&return_format=text_only",
+   "edition": "Talmud Bavli, German trans. Lazarus Goldschmidt, 1929",
+   "fetched_at": "2026-09-23T07:51:30Z",
+   "saved_file": "sources/goldschmidt_arakhin_13b_de.json",
+   "sha256": "ce45ec4ba07f19b2d980ec3fb30d94e1136fe8a6df089ca60e027c8838105775"
+  },
+  {
+   "source_id": "S05",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Tosafot%20on%20Arakhin%2013b%3A4%3A1?version=hebrew&return_format=text_only",
+   "edition": "Tosafot on Arakhin, Vilna Edition",
+   "fetched_at": "2026-09-23T07:50:43Z",
+   "saved_file": "sources/tosafot_arakhin_13b_4_1.json",
+   "sha256": "fba739faf7002dcb838298e028d0b7b825c5aeb6b63dc4e835a390303be886aa"
+  },
+  {
+   "source_id": "S06",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Steinsaltz%20on%20Arakhin%2013b%3A4?version=hebrew&return_format=text_only",
+   "edition": "Steinsaltz, William Davidson Edition - Hebrew (same Koren project as S01/S02)",
+   "fetched_at": "2026-09-23T07:50:43Z",
+   "saved_file": "sources/steinsaltz_arakhin_13b_4.json",
+   "sha256": "a4ed98d3eb57e0d6e8e5ea7bd6a3700dd7b3075a2000dd27a980f873aa7de883"
+  },
+  {
+   "source_id": "S07",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Rashi%20on%20Arakhin%2013b?version=hebrew&return_format=text_only",
+   "edition": "Rashi on Arakhin, Vilna Edition",
+   "fetched_at": "2026-09-23T07:50:43Z",
+   "saved_file": "sources/rashi_arakhin_13b.json",
+   "sha256": "25aec939ffa0b723122b65a9edb226ca08d0a1542b953300d26a656f369b50c9"
+  },
+  {
+   "source_id": "S08",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Rabbeinu%20Gershom%20on%20Arakhin%2013b?version=hebrew&return_format=text_only",
+   "edition": "Rabbeinu Gershom on Arakhin, Vilna Edition",
+   "fetched_at": "2026-09-23T07:52:57Z",
+   "saved_file": "sources/rabbeinu_gershom_arakhin_13b.json",
+   "sha256": "558ee9183700965ac1a50dfb0dc47621300d8b7b9fcc3c82f8981a4d04438a0e"
+  },
+  {
+   "source_id": "S09",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Mishnah%20Arakhin%202?version=hebrew&version=english&return_format=text_only",
+   "edition": "Mishnah Arakhin 2, Torat Emet 357 + William Davidson English",
+   "fetched_at": "2026-09-23T07:50:43Z",
+   "saved_file": "sources/mishnah_arakhin_2.json",
+   "sha256": "57e57fca96e89592bcfece5a5aab47bf69ca3b2146d5d7706e7ded15072f5fc3"
+  },
+  {
+   "source_id": "S10",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Mishnat%20Eretz%20Yisrael%20on%20Mishnah%20Arakhin%202%3A5?version=hebrew&return_format=text_only",
+   "edition": "Mishnat Eretz Yisrael, Kvutsat Yavne 2020-2021 (modern commentary; text per Kaufmann MS)",
+   "fetched_at": "2026-09-23T07:50:43Z",
+   "saved_file": "sources/mishnat_eretz_yisrael_arakhin_2_5.json",
+   "sha256": "6271d66a3fa2ba49f71c5fb17726109fee438592c73ddb2721af7b26a6ffd1b0"
+  },
+  {
+   "source_id": "S11",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Bartenura%20on%20Mishnah%20Arakhin%202%3A5?version=hebrew&return_format=text_only",
+   "edition": "Bartenura on Mishnah Arakhin, Torat-Emet",
+   "fetched_at": "2026-09-23T07:52:20Z",
+   "saved_file": "sources/bartenura_arakhin_2_5.json",
+   "sha256": "af5fff84bd6d8f8df3953e6d6d9bc1738a122e3f0d5396dbed815350728fc2f8"
+  },
+  {
+   "source_id": "S12",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Tosafot%20Yom%20Tov%20on%20Mishnah%20Arakhin%202%3A5?version=hebrew&return_format=text_only",
+   "edition": "Tosafot Yom Tov, Mishnah ed. Romm, Vilna 1913",
+   "fetched_at": "2026-09-23T07:52:20Z",
+   "saved_file": "sources/tosafot_yom_tov_arakhin_2_5.json",
+   "sha256": "fe9a8f9ad7c91a51af5ccaa382dc2d09194d887a2695dc97ad5dff22b15c5ce9"
+  },
+  {
+   "source_id": "S13",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Ikar%20Tosafot%20Yom%20Tov%20on%20Mishnah%20Arakhin%202%3A5?version=hebrew&return_format=text_only",
+   "edition": "Ikar Tosafot Yom Tov, Torat-Emet",
+   "fetched_at": "2026-09-23T07:52:20Z",
+   "saved_file": "sources/ikar_tosafot_yom_tov_arakhin_2_5.json",
+   "sha256": "0298064badef66fd519c0f0c6bcc59874791129a5909af39073c20c99609a675"
+  },
+  {
+   "source_id": "S14",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Melekhet%20Shelomoh%20on%20Mishnah%20Arakhin%202%3A5?version=hebrew&return_format=text_only",
+   "edition": "Melekhet Shelomoh, Mishnah ed. Romm, Vilna 1913",
+   "fetched_at": "2026-09-23T07:52:20Z",
+   "saved_file": "sources/melekhet_shelomoh_arakhin_2_5.json",
+   "sha256": "c1cc3cfaf32e9dd79c8ca7e07a7a4e7a8a3fcef1b7cc3cecba574a0cab196a29"
+  },
+  {
+   "source_id": "S15",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Mishneh%20Torah%2C%20Vessels%20of%20the%20Sanctuary%20and%20Those%20who%20Serve%20Therein%203%3A4?version=hebrew&return_format=text_only",
+   "edition": "Mishneh Torah, Klei HaMikdash 3:4, Torat Emet 363",
+   "fetched_at": "2026-09-23T07:52:20Z",
+   "saved_file": "sources/rambam_klei_hamikdash_3_4.json",
+   "sha256": "8d5922080fcaadbc2d5aa8b86c7ea9d45701311977e36a4bb97e446d10343e5e"
+  },
+  {
+   "source_id": "S16",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Kessef%20Mishneh%20on%20Mishneh%20Torah%2C%20Vessels%20of%20the%20Sanctuary%20and%20Those%20who%20Serve%20Therein%203%3A4?version=hebrew&return_format=text_only",
+   "edition": "Kessef Mishneh, Torat Emet 363",
+   "fetched_at": "2026-09-23T07:52:20Z",
+   "saved_file": "sources/kessef_mishneh_klei_hamikdash_3_4.json",
+   "sha256": "028fa716bdea88408cc485861d2244c56044b983ca83d43a3a7e718bd4d4d0df"
+  },
+  {
+   "source_id": "S17",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Sefer%20HaChinukh%20384?version=hebrew&return_format=text_only",
+   "edition": "Sefer HaChinukh 384, Vocalized Edition",
+   "fetched_at": "2026-09-23T07:52:20Z",
+   "saved_file": "sources/sefer_hachinukh_384.json",
+   "sha256": "00eb27495e5283a1f733c23b861304c71420e01d81dc0e5fab1da0e851e67e46"
+  },
+  {
+   "source_id": "S18",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Seder%20HaDorot%2C%20Tanaim%20and%20Amoraim%201067?version=hebrew&return_format=text_only",
+   "edition": "Seder HaDorot, Tanaim and Amoraim, Warsaw 1878-1882",
+   "fetched_at": "2026-09-23T07:51:49Z",
+   "saved_file": "sources/seder_hadorot_1067.json",
+   "sha256": "ff2d1c5532aeeb3ed708cfdbbfd5197e3ecbff75e6064c3ac0477fc75a32af95"
+  },
+  {
+   "source_id": "S19",
+   "url_or_input_path": "https://manuscripts.sefaria.org/munich-manuscript/munich-manuscript-95Cod.hebr.95pg.0945.jpg",
+   "edition": "Munich, BSB Cod. hebr. 95 (1342 CE), page image 0945 via Sefaria manuscripts (original: digitale-sammlungen.de)",
+   "fetched_at": "2026-09-23T07:53:06Z",
+   "saved_file": "sources/munich95_pg0945.jpg",
+   "sha256": "2506f04e96b019397f349528520a861aeeebcb8625c724600cc0c5ad46413bb6",
+   "note": "page image; readings are researcher visual readings"
+  },
+  {
+   "source_id": "S20",
+   "url_or_input_path": "https://manuscripts.sefaria.org/bomberg/masekhet_10_0171.jpg",
+   "edition": "Bomberg (Venice) printing, 1523 CE, Arakhin 13b page image via Sefaria (original: NLI)",
+   "fetched_at": "2026-09-23T07:53:06Z",
+   "saved_file": "sources/bomberg_arakhin_13b.jpg",
+   "sha256": "1f29663ee7b5f739e8376eb8fa3abc79e03962a16b2d2af82e2449224d5b8289",
+   "note": "page image; readings are researcher visual readings"
+  },
+  {
+   "source_id": "S21",
+   "url_or_input_path": "https://manuscripts.sefaria.org/vilna-romm/Arakhin_13b.jpg",
+   "edition": "Romm Vilna printing, 1880-86 CE, Arakhin 13b page image via Sefaria (original: NLI), including printed marginal columns",
+   "fetched_at": "2026-09-23T07:53:06Z",
+   "saved_file": "sources/vilna_arakhin_13b.jpg",
+   "sha256": "8bb6ae2ee6fb9d094764807bd684a6634863ddce7f919bfaeb67997755e0f0c2",
+   "note": "page image; readings are researcher visual readings"
+  },
+  {
+   "source_id": "S22",
+   "url_or_input_path": "https://www.sefaria.org/api/links/Arakhin%2013b%3A4?with_text=0",
+   "edition": "Sefaria link graph for Arakhin 13b:4",
+   "fetched_at": "2026-09-23T07:50:19Z",
+   "saved_file": "sources/sefaria_links_arakhin_13b_4.json",
+   "sha256": "a78dce3a7c3f0ddd4f6647d33191ace0c50d7b633f60bd7243c1c0d909d40e23"
+  },
+  {
+   "source_id": "S23",
+   "url_or_input_path": "https://www.sefaria.org/api/related/Arakhin%2013b",
+   "edition": "Sefaria related-content for Arakhin 13b (links + manuscript list)",
+   "fetched_at": "2026-09-23T07:52:47Z",
+   "saved_file": "sources/sefaria_related_arakhin_13b.json",
+   "sha256": "28cea58c9774d8104dbadf6854d695db8f0f4ef01bb948037a8f084be6465c54"
+  },
+  {
+   "source_id": "S24",
+   "url_or_input_path": "https://www.sefaria.org/api/texts/versions/Arakhin",
+   "edition": "Sefaria version list for Arakhin",
+   "fetched_at": "2026-09-23T07:50:19Z",
+   "saved_file": "sources/sefaria_versions_arakhin.json",
+   "sha256": "1c62704e52890f99187906931e68b94a84de9c071882dc93bb30afc88beb5468"
+  },
+  {
+   "source_id": "S25",
+   "url_or_input_path": "https://www.sefaria.org/api/search-wrapper/es8 (POST) query 'רב זבדי אמר רב הונא' naive_lemmatizer slop 0",
+   "edition": "Sefaria full-text search result",
+   "fetched_at": "2026-09-23T07:51:30Z",
+   "saved_file": "sources/search_zavdi_huna.json",
+   "sha256": "049f2ad8a9b6d38dbf9cd88fdf7496d7bef2f105c050f203513f368b34fe2e8a"
+  },
+  {
+   "source_id": "S26",
+   "url_or_input_path": "https://www.sefaria.org/api/search-wrapper/es8 (POST) query 'ואמרי לה אמר רב זבדי' naive_lemmatizer slop 0",
+   "edition": "Sefaria full-text search result",
+   "fetched_at": "2026-09-23T07:51:30Z",
+   "saved_file": "sources/search_vamri_la_zavdi.json",
+   "sha256": "899a6a20acf22a38d4368159e85e24131561200a9aafd2ce2434bf1daeff363d"
+  },
+  {
+   "source_id": "S27",
+   "url_or_input_path": "https://www.sefaria.org/api/search-wrapper/es8 (POST) query 'רב זבדי' exact, filter Talmud/Bavli",
+   "edition": "Sefaria full-text search result",
+   "fetched_at": "2026-09-23T07:51:49Z",
+   "saved_file": "sources/search_rav_zavdi.json",
+   "sha256": "6c8a3dcf81ed09064b344c59dc9f7ea3bc8d8133a997abb17f0020d85331720f"
+  },
+  {
+   "source_id": "S28",
+   "url_or_input_path": "https://www.sefaria.org/api/search-wrapper/es8 (POST) query 'זבדי' naive_lemmatizer, filter Talmud/Bavli (filter not strictly applied)",
+   "edition": "Sefaria full-text search result",
+   "fetched_at": "2026-09-23T07:52:06Z",
+   "saved_file": "sources/search_zavdi_prefixed.json",
+   "sha256": "2c957b0eca6f709d2cd54de4f6d91fec0f1188f5f92aa96f327e0910846a5b5f"
+  },
+  {
+   "source_id": "S29",
+   "url_or_input_path": "https://www.sefaria.org/api/search-wrapper/es8 (POST) query 'הונא בר זבדי' naive_lemmatizer slop 0, all texts",
+   "edition": "Sefaria full-text search result",
+   "fetched_at": "2026-09-23T07:55:40Z",
+   "saved_file": "sources/search_huna_bar_zavdi.json",
+   "sha256": "be7bc62fa0ea769aee2ec4eb350360bb8f1a28658c06d7aa89941ac165a735d1"
+  },
+  {
+   "source_id": "S30",
+   "url_or_input_path": "https://www.sefaria.org/api/search-wrapper/es8 (POST) query 'חצוצרות מאה ועשרים' naive_lemmatizer slop 10",
+   "edition": "Sefaria full-text search result",
+   "fetched_at": "2026-09-23T07:52:06Z",
+   "saved_file": "sources/search_trumpets_120_b.json",
+   "sha256": "93d96ac0640a888592af1bd0b2665a4b7eb0d25927e23a1e8268ba8cd0f68157"
+  },
+  {
+   "source_id": "S31",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Kiddushin%2033b%3A13?version=hebrew&return_format=text_only",
+   "edition": "William Davidson Edition - Vocalized Aramaic",
+   "fetched_at": "2026-09-23T07:52:20Z",
+   "saved_file": "sources/bavli_Kiddushin_33b_13.json",
+   "sha256": "f5c881f08d820b593cd741236dc0e7eb10b3f0a42a81254da02960e780b48a42"
+  },
+  {
+   "source_id": "S32",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Kiddushin%2073b%3A6?version=hebrew&return_format=text_only",
+   "edition": "William Davidson Edition - Vocalized Aramaic",
+   "fetched_at": "2026-09-23T07:52:20Z",
+   "saved_file": "sources/bavli_Kiddushin_73b_6.json",
+   "sha256": "fbe79c3ed6bad5e63ab14252e3a9d72de95a73a39c27839de3010ead5a5463d8"
+  },
+  {
+   "source_id": "S33",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Zevachim%2028b%3A5?version=hebrew&return_format=text_only",
+   "edition": "William Davidson Edition - Vocalized Aramaic",
+   "fetched_at": "2026-09-23T07:52:20Z",
+   "saved_file": "sources/bavli_Zevachim_28b_5.json",
+   "sha256": "17afe6e8191381414f7e8f41799a4fc4a9e2158acf139c54638b54ca672a90d0"
+  },
+  {
+   "source_id": "S34",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Yevamot%2083b%3A9?version=hebrew&return_format=text_only",
+   "edition": "William Davidson Edition - Vocalized Aramaic",
+   "fetched_at": "2026-09-23T07:52:20Z",
+   "saved_file": "sources/bavli_Yevamot_83b_9.json",
+   "sha256": "fc41c8006fe45ede2f39619ea5bfe209f2d7d1fe721ccc90cdb99c7a3980b3f5"
+  },
+  {
+   "source_id": "S35",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Tzafnat%20Pa'neach%20on%20Mishneh%20Torah%2C%20Heave%20Offerings%201%3A5%3A8?version=hebrew&return_format=text_only",
+   "edition": "Tzafnat Pa'neach on Mishneh Torah, Warsaw-Piotrkow 1903-1908",
+   "fetched_at": "2026-09-23T07:52:57Z",
+   "saved_file": "sources/tzafnat_paneach_terumot_1_5_8.json",
+   "sha256": "d7d6cb5369ed777115f132db491aca46dd4380f4650054b025382b6d4a7e2116"
+  },
+  {
+   "source_id": "X01",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Arakhin%2013b?version=english%7CTalmud%20Bavli.%20German%20trans....",
+   "edition": "failed request (wrong language key; warning 101)",
+   "fetched_at": "2026-09-23T07:50:43Z",
+   "saved_file": "sources/goldschmidt_arakhin_13b.json",
+   "sha256": "c2d928ad2883e92a6f939a26facec05800d600e7155ad17510755c7be4910d72",
+   "note": "no text"
+  },
+  {
+   "source_id": "X02",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Arakhin%2013b?version=english%7CSefaria%20Community%20Translation",
+   "edition": "failed request (version not available for this amud; warning 101)",
+   "fetched_at": "2026-09-23T07:51:30Z",
+   "saved_file": "sources/community_translation_arakhin_13b.json",
+   "sha256": "cb5b6af1c4c9b0dba7f2b5017fb06b39923bf0971b5fd46bbaa4503fb6701123",
+   "note": "no text"
+  },
+  {
+   "source_id": "X03",
+   "url_or_input_path": "https://www.sefaria.org/api/search-wrapper/es8 (POST) query 'חצוצרות עד מאה ועשרים' slop 3",
+   "edition": "search returned 0 hits (query form); superseded by S30",
+   "fetched_at": "2026-09-23T07:51:30Z",
+   "saved_file": "sources/search_120_trumpets.json",
+   "sha256": "9e91ce03d6c71ce36ad705dc32611794c457cd129193adcc5108c2e9b51541a4",
+   "note": "no hits"
+  },
+  {
+   "source_id": "X04",
+   "url_or_input_path": "https://www.sefaria.org/api/v2/index/Shitah_Mekubetzet_on_Arakhin",
+   "edition": "index lookup error: no such book title on Sefaria",
+   "fetched_at": "2026-09-23T07:52:47Z",
+   "saved_file": "sources/sefaria_index_shitah_arakhin.json",
+   "sha256": "9cc4a8a12c331b1c86b141d615db8eade488e090f4698ba0f378b075c61792d2",
+   "note": "no text"
+  },
+  {
+   "source_id": "X05",
+   "url_or_input_path": "https://www.sefaria.org/api/v2/index/Shita_Mekubetzet_on_Arakhin",
+   "edition": "index lookup error: no such book title on Sefaria",
+   "fetched_at": "2026-09-23T07:55:40Z",
+   "saved_file": "sources/sefaria_index_shita_mekubetzet_arakhin.json",
+   "sha256": "ab90bb538aad64cde38da14f79f1188089cb9c5777a7d7102c1257dbc6213077",
+   "note": "no text"
+  },
+  {
+   "source_id": "X06",
+   "url_or_input_path": "https://www.sefaria.org/api/name/שיטה מקובצת ערכין?limit=10",
+   "edition": "name autocomplete (limit 10); no Arakhin title among the 10 returned",
+   "fetched_at": "2026-09-23T07:55:40Z",
+   "saved_file": "sources/sefaria_name_shitah.json",
+   "sha256": "007ede5ba4ba45b8c8f9f7b62b9f385c7bf9e2e2424f2be9affd9e98aac97fd8",
+   "note": "not a text"
+  },
+  {
+   "source_id": "X07",
+   "url_or_input_path": "https://www.sefaria.org/api/v3/texts/Mishneh%20Torah%2C%20Vessels%20of%20the%20Sanctuary...%203",
+   "edition": "whole-chapter request; superseded by S15",
+   "fetched_at": "2026-09-23T07:51:49Z",
+   "saved_file": "sources/rambam_klei_hamikdash_3.json",
+   "sha256": "66a2a7364642734a14846bae6568059f933bd4a03ae5b25abd6c6a56ce1a27fd",
+   "note": "not used"
+  }
+ ],
+ "local_people": [
+  {
+   "local_id": "P1",
+   "surface": "רב הונא (first mention)",
+   "branches": [
+    "A"
+   ],
+   "note": "speaker in branch A"
+  },
+  {
+   "local_id": "P2",
+   "surface": "רב זבדי",
+   "branches": [
+    "B"
+   ],
+   "note": "transmitter in branch B"
+  },
+  {
+   "local_id": "P3",
+   "surface": "רב הונא (second mention)",
+   "branches": [
+    "B"
+   ],
+   "note": "source in branch B; same_person_candidate with P1 (plausible_not_explicit)"
+  },
+  {
+   "local_id": "P4",
+   "surface": "רב הונא בר זבדי",
+   "branches": [
+    "C"
+   ],
+   "note": "speaker under proposed wording C only"
+  },
+  {
+   "local_id": "P5",
+   "surface": "זבדי (father of P4, from patronymic)",
+   "branches": [
+    "C"
+   ],
+   "note": "local parent placeholder; never speaks; keep"
+  },
+  {
+   "local_id": "P6",
+   "surface": "רב זבדי (under C)",
+   "branches": [
+    "C"
+   ],
+   "note": "alternative speaker under C; relation to P2 (same surface, same slot) and to P5 open"
+  }
+ ],
+ "teaching": {
+  "id": "T",
+  "content": "Trumpets may be added up to 120 (II Chronicles 5:12), limiting the Mishnah's 'without limit'",
+  "explains": "Mishnah Arakhin 2:5"
+ },
+ "proposed_edges": [
+  {
+   "edge": "P1 credited_with T",
+   "branch": "A",
+   "evidence": [
+    "S01",
+    "S02",
+    "S03",
+    "S20"
+   ],
+   "status": "provisional"
+  },
+  {
+   "edge": "P2 reports_in_name_of P3",
+   "branch": "B",
+   "direct_hearing": "not_stated",
+   "evidence": [
+    "S01",
+    "S02",
+    "S03",
+    "S20"
+   ],
+   "status": "provisional"
+  },
+  {
+   "edge": "P3 credited_with T",
+   "branch": "B",
+   "evidence": [
+    "S01",
+    "S02",
+    "S03",
+    "S20"
+   ],
+   "status": "provisional"
+  },
+  {
+   "edge": "P1 same_person_candidate P3",
+   "branch": "shared",
+   "basis": "same teaching, both routes end in him",
+   "status": "plausible_not_explicit"
+  },
+  {
+   "edge": "P4 credited_with T",
+   "branch": "C",
+   "evidence": [
+    "S21"
+   ],
+   "evidence_type": "proposed_emendation",
+   "status": "provisional"
+  },
+  {
+   "edge": "P6 credited_with T",
+   "branch": "C",
+   "evidence": [
+    "S21"
+   ],
+   "evidence_type": "proposed_emendation",
+   "status": "provisional"
+  },
+  {
+   "edge": "P4 child_of P5",
+   "branch": "C",
+   "kinship": "literal per patronymic בר",
+   "evidence": [
+    "S21"
+   ],
+   "status": "provisional"
+  }
+ ],
+ "findings": [
+  {
+   "finding_id": "F01",
+   "claim": "In the printed tradition and its digital texts, one question (how many trumpets may be added) gets one answer (up to 120, from II Chronicles 5:12) under two attribution routes joined by ואמרי לה ('and some say'): Route A 'Rav Huna said'; Route B 'Rav Zavdi said Rav Huna said'. Both routes end in Rav Huna.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S01",
+     "exact_quote": "אָמַר רַב הוּנָא, וְאָמְרִי לַהּ אָמַר רַב זַבְדִּי אָמַר רַב הוּנָא: עַד מֵאָה וְעֶשְׂרִים",
+     "translation_by_researcher": "Researcher translation: 'Rav Huna said, and some say: Rav Zavdi said Rav Huna said: up to one hundred and twenty'"
+    },
+    {
+     "source_id": "S02",
+     "exact_quote": "ועד כמה אמר רב הונא ואמרי לה אמר רב זבדי אמר רב הונא עד מאה ועשרים"
+    },
+    {
+     "source_id": "S03",
+     "exact_quote": "ועד כמה אמר רב הונא ואמרי לה אמר רב זבדי אמר רב הונא עד מאה ועשרים"
+    },
+    {
+     "source_id": "S20",
+     "exact_quote": "כמה אמר רב הונא ואמרי לה אמר רב זבדי אמר רב הונא עד מאה ועשרי׳ שנאמ׳ ועמהם",
+     "evidence_type": "researcher_visual_reading_of_page_image"
+    }
+   ],
+   "reasoning": "The wording is identical in the Koren texts, the Wikisource text and the 1523 Venice print as read from the page image. These are not independent witnesses: S01 and S02 are one editorial work, and S03 and the Vilna print descend from the printed tradition that the Venice print begins. They show a stable printed text, not independent corroboration of history.",
+   "confidence": "high",
+   "graph_effect": "One teaching node T (limit of 120 trumpets) with two attribution branches: branch A {Rav Huna -> credited_with T}; branch B {Rav Zavdi -> reports_in_name_of -> Rav Huna; Rav Huna -> credited_with T}. Rav Huna's credit for T is shared by both branches."
+  },
+  {
+   "finding_id": "F02",
+   "claim": "The two routes do not disagree about who is the source of the teaching. They differ only in whether a transmitter is named. The Talmud's phrasing reports two ways the teaching was cited; it does not say which is right, and it does not say only one event happened.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S06",
+     "exact_quote": "אמר רב הונא, ואמרי לה [ויש ד'דאומרים] שאמר רב זבדי אמר רב הונא",
+     "translation_by_researcher": "Researcher translation: 'Rav Huna said, and some say [there are those who say] that Rav Zavdi said Rav Huna said'"
+    },
+    {
+     "source_id": "S01",
+     "exact_quote": "Rav Huna says, and some say Rav Zavdi says that Rav Huna says: They may play up to 120 trumpets"
+    },
+    {
+     "source_id": "S04",
+     "exact_quote": "R. Hona, manche sagen R. Zabdi im Namen R. Honas, erwiderte: Bis hundertundzwanzig",
+     "translation_by_researcher": "Researcher translation of the German: 'R. Huna, some say R. Zavdi in the name of R. Huna, answered: up to one hundred and twenty'"
+    }
+   ],
+   "reasoning": "All three renderings keep both routes and choose neither. S06 and the English of S01 come from the same Koren project, so they count as one editorial reading; the 1929 German is a separate translation. A short attribution (Huna) and a longer chain ending in the same person (Zavdi reporting Huna) can both be true: Rav Huna may have taught it and Rav Zavdi may also have passed it on. The phrase ואמרי לה marks a disagreement in how the report was transmitted, not a statement that the other report is false.",
+   "confidence": "high",
+   "graph_effect": "Mark the two branches exclusive only as report forms (a reader follows one wording at a time). Do NOT mark them historically exclusive. Do NOT create a Huna<->Zavdi 'alternative' edge: Zavdi is never offered as an alternative author."
+  },
+  {
+   "finding_id": "F03",
+   "claim": "The Mishnah the Gemara is explaining says trumpets may be added without limit; the Gemara's question 'up to how many?' is what the two routes answer.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S09",
+     "exact_quote": "אֵין פּוֹחֲתִין מִשְּׁתֵּי חֲצוֹצְרוֹת, וּמוֹסִיפִין עַד לְעוֹלָם",
+     "translation_by_researcher": "Researcher translation: 'One does not use fewer than two trumpets, and one may add without limit'"
+    },
+    {
+     "source_id": "S01",
+     "exact_quote": "מִשְּׁתֵּי חֲצוֹצְרוֹת וּמוֹסִיפִין וְכוּ׳. וְעַד כַּמָּה?"
+    }
+   ],
+   "reasoning": "This fixes the topic of the teaching. Both routes answer the same question, which supports treating them as two reports of one teaching rather than two teachings.",
+   "confidence": "high",
+   "graph_effect": "Attach T to Mishnah Arakhin 2:5 as the explained text. Teaching node is shared across both branches."
+  },
+  {
+   "finding_id": "F04",
+   "claim": "The printed Vilna page carries, in its marginal column headed שיטה מקובצת, a note keyed to this line that proposes a different wording: the first speaker is 'Rav Huna bar Zavdi', the alternative is 'Rav Zavdi' alone, and the words 'said Rav Huna' (the second occurrence) are deleted.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S21",
+     "exact_quote": "הונא ב] ואמרי לה אמר רב זבדי אמר רב הונא עד מאה ועשרים",
+     "evidence_type": "researcher_visual_reading_of_page_image",
+     "note": "Main text with note marker ב] after the first רב הונא."
+    },
+    {
+     "source_id": "S21",
+     "exact_quote": "ב] רב הונא בר זבדי ואמרי לה אמר רב זבדי עד ותיבות אמר רב הונא נמחק:",
+     "evidence_type": "researcher_visual_reading_of_page_image",
+     "translation_by_researcher": "Researcher translation: '[note b:] Rav Huna bar Zavdi, and some say Rav Zavdi said, [up to the word] \"until\"; and the words \"said Rav Huna\" are deleted.'"
+    }
+   ],
+   "reasoning": "Read as a correction note, it yields the text: אמר רב הונא בר זבדי ואמרי לה אמר רב זבדי עד מאה ועשרים ('Rav Huna bar Zavdi said, and some say Rav Zavdi said: up to 120'). The letters of the note are clear in the image; turning the note into a full sentence is the researcher's reconstruction of a standard note form. This is a later proposed reading printed beside the text. It is not the main text, and it is not a manuscript reading the case has seen. What the compiler based it on is not stated in the note.",
+   "confidence": "medium",
+   "graph_effect": "Save as a separate evidence type (proposed emendation / reported variant), branch C. Under C: two alternative SPEAKERS (Rav Huna bar Zavdi; Rav Zavdi) with no transmission edge between them, plus a patronymic child_of edge from Rav Huna bar Zavdi to a local parent placeholder 'Zavdi'. Do not let C overwrite the printed branches A and B."
+  },
+  {
+   "finding_id": "F05",
+   "claim": "The 1342 Munich manuscript (Cod. hebr. 95) appears to have the printed structure (Rav Huna; and some say Rav Zavdi ... Rav Huna; up to 120), not the Shitah Mekubetzet wording. The researcher could not read every letter between זבדי and עד at the available image resolution.",
+   "kind": "uncertainty",
+   "evidence": [
+    {
+     "source_id": "S19",
+     "exact_quote": "ועד כמ׳ א׳ רב הונא ואמרי לה א׳ רב זבדי [?] רב הונא עד מאה ועשרים",
+     "evidence_type": "researcher_visual_reading_of_page_image",
+     "note": "[?] marks one or more letters not read with confidence (probably the abbreviation א׳). No 'בר זבדי' was seen after the first רב הונא. Work crops in work/munich_crop_1830.jpg, work/m_a_big.jpg, work/m_b_big.jpg, work/mz_700_big.jpg."
+    }
+   ],
+   "reasoning": "The manuscript is an independent witness to the text (unlike the digital editions). As read, it supports the two-route printed wording and does not show the proposed 'bar Zavdi'. The reading is from a zoomed page image, not a published transcription, so it needs checking against a collation (for example a manuscript variant database) before it is relied on.",
+   "confidence": "low",
+   "graph_effect": "Tentatively attach S19 as manuscript support for branches A and B. Flag for human verification. Do not use it to reject branch C until checked."
+  },
+  {
+   "finding_id": "F06",
+   "claim": "The commentators and codes checked explain or rule on the content (up to 120 trumpets) without deciding between the attribution routes. Tosafot and Kessef Mishneh quote the attribution only as 'Rav Huna said, and some say, etc.' or 'Rav Huna said, etc.'",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S05",
+     "exact_quote": "ומוסיפין עד עולם עד כמה אמר רב הונא ואמרי לה כו'",
+     "translation_by_researcher": "Researcher translation: 'And one may add without limit; up to how many? Rav Huna said, and some say, etc.'"
+    },
+    {
+     "source_id": "S05",
+     "exact_quote": "אמר רב הונא עד ק\"כ דהא אשכחן בקרא (דברי הימים ב ה) שחפשו אחרי ק\"כ כהנים לתקוע בחצוצרות ולא יותר",
+     "translation_by_researcher": "Researcher translation: 'Rav Huna said up to 120, because we find in Scripture that they sought 120 priests to blow trumpets and no more'"
+    },
+    {
+     "source_id": "S16",
+     "exact_quote": "ובגמרא ועד כמה אמר רב הונא וכו' עד מאה ועשרים",
+     "translation_by_researcher": "Researcher translation: 'and in the Gemara: up to how many? Rav Huna said, etc.: up to 120'"
+    },
+    {
+     "source_id": "S15",
+     "exact_quote": "וְאֵין פּוֹחֲתִין מִשְּׁתֵי חֲצוֹצְרוֹת וְלֹא מוֹסִיפִין עַל עֶשְׂרִים וּמֵאָה",
+     "translation_by_researcher": "Researcher translation: 'one does not use fewer than two trumpets and does not add beyond 120'"
+    },
+    {
+     "source_id": "S11",
+     "exact_quote": "בַּגְּמָרָא מְפָרֵשׁ עַד מֵאָה וְעֶשְׂרִים"
+    },
+    {
+     "source_id": "S14",
+     "exact_quote": "ודוקא בחצוצרות פירשו בגמרא דעד לעולם ר\"ל עד מאה ועשרים"
+    }
+   ],
+   "reasoning": "When Tosafot restate the view they name only Rav Huna. This fits the fact that Rav Huna is the source in both routes. It is not a vote against Rav Zavdi's route: Tosafot abbreviate with כו' ('etc.'). The Rambam, Bartenura, Tosafot Yom Tov, Melekhet Shelomoh and Sefer HaChinukh give the rule without naming anyone. Rashi and Rabbeinu Gershom (Vilna texts on Sefaria) have no comment on this line in the segments checked.",
+   "confidence": "high",
+   "graph_effect": "No commentator evidence supports choosing one route. Short-form citations of 'Rav Huna' by later works do not create new person relations or new witnesses."
+  },
+  {
+   "finding_id": "F07",
+   "claim": "A modern commentary (Mishnat Eretz Yisrael) quotes both routes and describes the teaching as a scriptural derivation from a one-time biblical event, not a received tradition or a practical ruling.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S10",
+     "exact_quote": "ברור שזו הגדרה כללית, והבבלי מצמצמה",
+     "translation_by_researcher": "Researcher translation: 'It is clear this is a general statement, and the Bavli narrows it'"
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "אין זו מסורת, ואף לא הלכה, אלא דרשה המבוססת על אירוע מקרי בעבר",
+     "translation_by_researcher": "Researcher translation: 'This is not a tradition, nor even a halakha, but a derasha based on a chance event in the past'"
+    }
+   ],
+   "reasoning": "This is one modern scholarly reading of the content. It does not address the attribution question. It is useful for the episode type: the teaching is exegesis, not a report of Temple practice seen by the speaker.",
+   "confidence": "medium",
+   "graph_effect": "Episode kind: exegetical derivation of a halakhic limit. Do not infer that Rav Huna or Rav Zavdi witnessed Temple practice."
+  },
+  {
+   "finding_id": "F08",
+   "claim": "Seder HaDorot (19th-century chronicle) uses the printed chain 'Rav Zavdi said Rav Huna said' to date Rav Zavdi, and proposes that an earlier chronicle (Yuchasin) placing him 'in the time of Rav' has a copying error for 'in the time of Rav Huna'.",
+   "kind": "interpretation",
+   "evidence": [
+    {
+     "source_id": "S18",
+     "exact_quote": "רב זבדי בעירכין בזמן רב עיי\"ש (י\"ג ב') אמר רב זבדי אמר רב הונא, ואולי ביוחסין ט\"ס וצ\"ל בזמן רב הונא:",
+     "translation_by_researcher": "Researcher translation: 'Rav Zavdi, in Arakhin, [Yuchasin says] in the time of Rav. See there (13b): Rav Zavdi said Rav Huna said. Perhaps in Yuchasin it is a scribal error and it should read: in the time of Rav Huna.'"
+    }
+   ],
+   "reasoning": "This is a historical inference built on one branch (B) of this very passage, plus a proposed emendation of a different book (Yuchasin), not of the Talmud. It is not an independent witness to Rav Zavdi's dates. Yuchasin itself was not fetched.",
+   "confidence": "high",
+   "graph_effect": "Store as a later chronological proposal that depends on branch B. It must not be counted as extra evidence for branch B, and it gives no calendar date."
+  },
+  {
+   "finding_id": "F09",
+   "claim": "In the Sefaria search index, the name רב זבדי with the title Rav occurs in the Bavli only at Arakhin 13b:4 (three hits, the same segment in three versions). Other Bavli hits for זבדי are patronymics of other named men.",
+   "kind": "textual",
+   "evidence": [
+    {
+     "source_id": "S27",
+     "exact_quote": "Arakhin 13b:4",
+     "note": "hits.total = 3: Arakhin 13b:4 in Wikisource Talmud Bavli, William Davidson Edition - Vocalized Aramaic, William Davidson Edition - Aramaic."
+    },
+    {
+     "source_id": "S31",
+     "exact_quote": "רַבִּי יַעֲקֹב בַּר זַבְדִּי"
+    },
+    {
+     "source_id": "S32",
+     "exact_quote": "רַבִּי יְהוּדָה בַּר זַבְדִּי"
+    },
+    {
+     "source_id": "S33",
+     "exact_quote": "זַבְדִּי בַּר לֵוִי"
+    },
+    {
+     "source_id": "S34",
+     "exact_quote": "רַבִּי יְהוּדָה בַּר זַבְדִּי"
+    },
+    {
+     "source_id": "S29",
+     "exact_quote": "\"total\": {\"value\": 0",
+     "note": "No hit for הונא בר זבדי anywhere in the Sefaria index, so the Shitah Mekubetzet name is not found elsewhere there."
+    }
+   ],
+   "reasoning": "Scope: one search index, specific query forms, Bavli filter. Absence here does not prove absence from other texts, manuscripts or spellings. The other hits share only the name element Zavdi; a shared name does not make any of them the same person as this Rav Zavdi or as a father of a 'Rav Huna bar Zavdi'.",
+   "confidence": "medium",
+   "graph_effect": "Rav Zavdi here is a local person with a single Bavli attestation in this index. No cross-passage identity merge is justified from this case."
+  }
+ ],
+ "alternative_readings": [
+  {
+   "reading_id": "A",
+   "text_basis": "printed text and digital editions (S01-S03, S20, S21 main text); apparently Munich 95 (S19, low confidence)",
+   "attribution": "Rav Huna said",
+   "graph": "Rav Huna credited_with T",
+   "may_infer": [
+    "Rav Huna is named as the source of T"
+   ],
+   "may_not_infer": [
+    "that no one transmitted it",
+    "that Rav Zavdi did not transmit it"
+   ]
+  },
+  {
+   "reading_id": "B",
+   "text_basis": "same witnesses as A; the ואמרי לה branch",
+   "attribution": "Rav Zavdi said Rav Huna said",
+   "graph": "Rav Zavdi reports_in_name_of Rav Huna; Rav Huna credited_with T",
+   "may_infer": [
+    "a transmission claim: this report puts T in Rav Zavdi's mouth as Rav Huna's teaching",
+    "Rav Zavdi's knowledge of this teaching of Rav Huna, as the report states it"
+   ],
+   "may_not_infer": [
+    "teacher/student relationship",
+    "that they met or that Zavdi heard Huna directly (the formula does not say how)",
+    "relative age or generation (a senior can quote a junior)",
+    "a date for either man",
+    "that route A is false"
+   ]
+  },
+  {
+   "reading_id": "C",
+   "text_basis": "proposed wording in the printed Shitah Mekubetzet margin of the Vilna page (S21); not a main-text reading seen by this case",
+   "attribution": "Rav Huna bar Zavdi said; and some say Rav Zavdi said",
+   "graph": "two alternative speakers of T; Rav Huna bar Zavdi child_of local parent placeholder 'Zavdi' (from the name)",
+   "may_infer": [
+    "under this wording, two different people are offered as the speaker",
+    "a father named Zavdi for the first speaker (patronymic)"
+   ],
+   "may_not_infer": [
+    "that the father Zavdi is the Rav Zavdi of the second alternative (possible, not stated)",
+    "that this Rav Huna bar Zavdi is the same as the plain Rav Huna of A/B",
+    "any transmission edge",
+    "that C is the original text"
+   ]
+  }
+ ],
+ "unresolved": [
+  "Munich 95 letters between זבדי and עד were not read with confidence; need a collation (other manuscripts of Arakhin, e.g. via a manuscript variant database) to see whether any witness has 'Rav Huna bar Zavdi' or lacks the second 'Rav Huna'.",
+  "The basis of the Shitah Mekubetzet note (a manuscript, an earlier commentator, or a conjecture) is not stated in the note and was not established. Shitah Mekubetzet on Arakhin is not available as a text on Sefaria (index lookups failed); only the printed margin in the Vilna image was read.",
+  "Other witnesses not checked: Vatican and other Arakhin manuscripts, Florence, Genizah fragments, Dikdukei Soferim or other collations, Rabbeinu Gershom beyond the Sefaria text, Hagahot HaBach column on the Vilna page (not transcribed).",
+  "Yuchasin, the chronicle Seder HaDorot corrects, was not fetched.",
+  "Whether the two 'Rav Huna' mentions in the printed line are one local person is a plausible coreference (same teaching, both routes end in him), not an explicit statement. Global identity with any other Rav Huna is not decided here.",
+  "Whether 'Rav Zavdi' in branch B and the father 'Zavdi' in branch C are one person is open."
+ ],
+ "proposed_corrections": [
+  {
+   "existing_claim_id": "input pair bavli|Arakhin|13b|4|40|61 (kind 'alternative', a='רב הונא', b='רב זבדי')",
+   "change": "Remove the Huna-Zavdi 'alternative' person pair. Replace it with an attribution-branch record on teaching T: branch A (short form) vs branch B (chain form), exclusive as report forms only, historically_mutually_exclusive = not_established.",
+   "why": "In the printed text Rav Zavdi is never an alternative author; both routes credit Rav Huna. The alternative is between two attribution lengths. The first-pass model split between 'cites' and 'alternative' because the pair label forces one choice."
+  },
+  {
+   "existing_claim_id": "input pair bavli|Arakhin|13b|4|61|73 (kind 'cites', direction AB)",
+   "change": "Keep, but relabel as reports_in_name_of (Zavdi -> Huna) and scope it to branch B only. Record direct_hearing = not_stated and do not derive teacher, before/after or generation edges.",
+   "why": "The chain exists only in the ואמרי לה branch. The formula states attribution, not how or whether they met."
+  },
+  {
+   "existing_claim_id": "earlier_crosscheck arakhin_attribution",
+   "change": "Agree with its representation. Add branch C (Shitah Mekubetzet proposed wording) as a separate evidence type, and add the note that textual branches were 'clear' only for the printed text; a proposed variant exists.",
+   "why": "The earlier review said the textual branches were clear and sought no parallel. The Vilna margin shows a later proposed wording with different people (Rav Huna bar Zavdi / Rav Zavdi)."
+  }
+ ],
+ "ontology_lessons": [
+  "ואמרי לה between a short attribution and a longer chain ending in the same person is an 'attribution length' alternative. Store branches on the teaching, not as a person-person 'alternative' edge.",
+  "Each branch gets its own inference licence. A chain branch licenses reports_in_name_of only; it does not license teacher, met, heard-directly, before or generation.",
+  "Report-form exclusivity and historical exclusivity are separate fields. Default historical exclusivity to not_established when one branch is an expansion of the other.",
+  "Printed marginal emendations (Shitah Mekubetzet, Bach, Gra etc.) are a distinct evidence type from main-text readings and from manuscripts. A proposed wording can change which people exist in the passage (here: a new 'Rav Huna bar Zavdi' and a patronymic parent placeholder).",
+  "Later chronicles that date a sage from a citation chain (Seder HaDorot) depend on one branch of the same passage and are not independent evidence for it.",
+  "Digital editions from one publisher (vocalized, unvocalized, Hebrew commentary, English) count as one editorial witness. Page images of early prints and manuscripts are separate witnesses, but a researcher's visual reading must be marked as such."
+ ],
+ "historical_graph_eligible": false
+}

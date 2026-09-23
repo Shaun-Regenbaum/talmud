@@ -1,0 +1,1023 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'unsafe-inline'; img-src data:">
+<title>Sage graph plan</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet"><style>:root {
+  --font-display: "Inter Tight", "Inter", -apple-system, system-ui, sans-serif;
+  --font-body: "Inter", -apple-system, system-ui, sans-serif;
+  --font-mono: "Berkeley Mono", "IBM Plex Mono", "SF Mono", ui-monospace, monospace;
+
+  --paper: #f8f8f5;
+  --paper-grid: rgba(0, 0, 0, 0.045);
+  --paper-card: #ffffff;
+  --paper-tint: #f1f1ec;
+  --rule: rgba(0, 0, 0, 0.1);
+  --rule-strong: rgba(0, 0, 0, 0.2);
+  --ink: #0f0f10;
+  --ink-soft: #2a2a2c;
+  --ink-mid: #555558;
+  --ink-dim: #8b8b8e;
+  --ink-faint: #b8b8b3;
+  /* --accent is an alias of --green for generic-token consumers; never set it to another hue */
+  --green: #3f7340;
+  --green-mid: #6a9a6c;
+  --green-deep: #2e4730;
+  --warn: #b8830a;
+  --danger: #b03030;
+  --info: #3a5e8c;
+  --teal: #1b8073;
+  --plum: #5b4b8a;
+  --accent: var(--green);
+  --chrome: #edebe4;
+  --skel-hi: #e9e9e2;
+  /* the cell philosophy, quietly: cell gradient at small scale, whisper gradients on fills/chrome */
+  --grad-cell: linear-gradient(to bottom, #87ba87, #4c8c4c);
+  --grad-primary: linear-gradient(to bottom, #4c8147, #3f7340);
+  --grad-primary-hover: linear-gradient(to bottom, #3f7340, #346134);
+  --grad-header: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--paper-card) 55%, var(--paper-tint)),
+    var(--paper-tint)
+  );
+  --grad-card: linear-gradient(
+    to bottom,
+    var(--paper-card),
+    color-mix(in srgb, var(--paper-card) 86%, var(--paper-tint))
+  );
+  --radius: 6px;
+  --grid: 36px;
+  --pad-x: clamp(20px, 5vw, 72px);
+  --max-width: 1180px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #171814;
+    --paper-grid: rgba(255, 255, 255, 0.05);
+    --paper-card: #1f211b;
+    --paper-tint: #272921;
+    --rule: rgba(255, 255, 255, 0.12);
+    --rule-strong: rgba(255, 255, 255, 0.24);
+    --ink: #f0f0ea;
+    --ink-soft: #d7d7d0;
+    --ink-mid: #a7a7a0;
+    --ink-dim: #82827b;
+    --ink-faint: #575751;
+    --green: #5f975f;
+    --green-mid: #82b382;
+    --green-deep: #22381f;
+    --warn: #d3a338;
+    --danger: #d05c5c;
+    --info: #7c9fc8;
+    --teal: #4fa99c;
+    --plum: #9b8ac2;
+    --chrome: #1b1c17;
+    --skel-hi: #2e3029;
+    --grad-primary: linear-gradient(to bottom, #69a169, #578f57);
+    --grad-primary-hover: linear-gradient(to bottom, #79b179, #69a169);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #171814;
+  --paper-grid: rgba(255, 255, 255, 0.05);
+  --paper-card: #1f211b;
+  --paper-tint: #272921;
+  --rule: rgba(255, 255, 255, 0.12);
+  --rule-strong: rgba(255, 255, 255, 0.24);
+  --ink: #f0f0ea;
+  --ink-soft: #d7d7d0;
+  --ink-mid: #a7a7a0;
+  --ink-dim: #82827b;
+  --ink-faint: #575751;
+  --green: #5f975f;
+  --green-mid: #82b382;
+  --green-deep: #22381f;
+  --warn: #d3a338;
+  --danger: #d05c5c;
+  --info: #7c9fc8;
+  --teal: #4fa99c;
+  --plum: #9b8ac2;
+  --chrome: #1b1c17;
+  --skel-hi: #2e3029;
+  --grad-primary: linear-gradient(to bottom, #69a169, #578f57);
+  --grad-primary-hover: linear-gradient(to bottom, #79b179, #69a169);
+}
+.framed {
+  position: relative;
+  margin: 16px;
+}
+/* Registration corners — curved L-ticks floating just outside the block's
+   corners; the table/panel companion of the button hover ticks. */
+.framed > .xm {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  pointer-events: none;
+  border: 0 solid var(--rule-strong);
+}
+.framed > .xm.tl {
+  left: -15px;
+  top: -15px;
+  border-left-width: 1.5px;
+  border-top-width: 1.5px;
+  border-top-left-radius: calc(var(--radius) + 6px);
+}
+.framed > .xm.tr {
+  right: -15px;
+  top: -15px;
+  border-right-width: 1.5px;
+  border-top-width: 1.5px;
+  border-top-right-radius: calc(var(--radius) + 6px);
+}
+.framed > .xm.bl {
+  left: -15px;
+  bottom: -15px;
+  border-left-width: 1.5px;
+  border-bottom-width: 1.5px;
+  border-bottom-left-radius: calc(var(--radius) + 6px);
+}
+.framed > .xm.br {
+  right: -15px;
+  bottom: -15px;
+  border-right-width: 1.5px;
+  border-bottom-width: 1.5px;
+  border-bottom-right-radius: calc(var(--radius) + 6px);
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--paper);
+  background-image:
+    linear-gradient(to right, var(--paper-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--paper-grid) 1px, transparent 1px);
+  background-size: var(--grid) var(--grid);
+  color: var(--ink);
+  font: 14px / 1.6 var(--font-body);
+}
+.wrap {
+  max-width: 1040px;
+  margin: auto;
+  padding: 36px clamp(18px, 5vw, 64px) 75px;
+}
+a {
+  color: var(--green);
+  text-underline-offset: 3px;
+}
+a:hover {
+  color: var(--ink);
+}
+button,
+input {
+  font: inherit;
+}
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: -0.025em;
+}
+h1 {
+  font-size: clamp(34px, 5vw, 52px);
+  max-width: 830px;
+  margin: 17px 0;
+}
+h2 {
+  font-size: 29px;
+  margin: 10px 0 20px;
+}
+h3 {
+  font-size: 18px;
+  margin: 22px 0 12px;
+}
+p {
+  margin: 12px 0;
+}
+header > p {
+  font-size: 17px;
+  max-width: 760px;
+}
+.eyebrow,
+.meta,
+.ref,
+.count {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.eyebrow {
+  font-size: 11px;
+  color: var(--ink-mid);
+  letter-spacing: 0.12em;
+}
+.meta {
+  font-size: 11px;
+  color: var(--ink-mid);
+  overflow-wrap: anywhere;
+}
+.topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+.btn {
+  background: var(--paper-card);
+  color: var(--ink);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.btn:hover {
+  border-color: var(--green);
+}
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+}
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 22px;
+  padding: 18px 0;
+  margin-top: 20px;
+  border-block: 1px solid var(--rule);
+}
+section {
+  margin: 42px 0;
+  padding-top: 8px;
+}
+.panel {
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.pad {
+  padding: 20px;
+}
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.compare > div {
+  min-width: 0;
+}
+.compare .label {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+  font-weight: 600;
+}
+svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.node {
+  fill: var(--paper-card);
+  stroke: var(--rule-strong);
+}
+.edge {
+  stroke: var(--green);
+  stroke-width: 2;
+  fill: none;
+}
+.old-edge {
+  stroke: var(--ink-mid);
+  stroke-width: 2;
+}
+.diagram text {
+  fill: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+.diagram .sub {
+  fill: var(--ink-mid);
+  font-size: 12px;
+}
+.diagram .verb {
+  fill: var(--green);
+  font-size: 12px;
+}
+.source-quote {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 23px;
+  line-height: 1.7;
+  text-align: right;
+  margin: 18px 0;
+  padding: 16px;
+  background: var(--paper-card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.source-quote small {
+  display: block;
+  text-align: left;
+  font: 11px var(--font-mono);
+  color: var(--ink-mid);
+}
+.count-strip {
+  display: flex;
+  gap: 0;
+  flex-wrap: wrap;
+  margin: 25px 0;
+}
+.count-strip div {
+  padding: 10px 20px;
+  border-left: 1px solid var(--rule-strong);
+}
+.count {
+  font-size: 23px;
+  font-weight: 600;
+  display: block;
+}
+.count-strip span:last-child {
+  font-size: 12px;
+  color: var(--ink-mid);
+}
+.ruled {
+  padding: 0;
+  list-style: none;
+}
+.ruled li {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.ruled strong {
+  font-size: 16px;
+  display: block;
+}
+.ruled p {
+  margin: 5px 0 0;
+}
+.tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-mid);
+}
+.scroll {
+  overflow: auto;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper-card);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th,
+td {
+  padding: 12px 14px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--rule);
+}
+th {
+  font-weight: 600;
+  background: var(--paper-tint);
+}
+tr:last-child td {
+  border-bottom: 0;
+}
+.vocab table {
+  min-width: 670px;
+}
+.vocab td:first-child {
+  width: 125px;
+  font-weight: 600;
+}
+.vocab td:nth-child(2) {
+  width: 225px;
+}
+.stages {
+  counter-reset: stage;
+  list-style: none;
+  padding: 0;
+}
+.stages li {
+  counter-increment: stage;
+  display: grid;
+  grid-template-columns: 35px 1fr;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.stages li::before {
+  content: counter(stage);
+  font: 600 20px var(--font-mono);
+  color: var(--green);
+}
+.stages strong {
+  font-size: 16px;
+}
+.stages p {
+  margin: 4px 0;
+}
+.callout {
+  border-left: 3px solid var(--green);
+  padding: 5px 0 5px 17px;
+  margin: 20px 0;
+}
+.callout.warn {
+  border-color: var(--warn);
+}
+.branches {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.branches .panel {
+  padding: 16px;
+}
+.branches h3 {
+  margin-top: 0;
+}
+.arrow {
+  color: var(--green);
+  font-weight: 600;
+}
+.record {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 14px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.record:last-child {
+  border-bottom: 0;
+}
+.record dt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-mid);
+}
+.record dd {
+  margin: 0;
+}
+.search {
+  display: block;
+  width: 100%;
+  background: var(--paper-card);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  color: var(--ink);
+  padding: 11px 13px;
+  margin: 13px 0;
+}
+.case {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper-card);
+  margin: 9px 0;
+}
+.case summary {
+  cursor: pointer;
+  padding: 13px 16px;
+}
+.case summary .ref {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: var(--green);
+}
+.case summary strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+.case-body {
+  padding: 0 18px 18px;
+  border-top: 1px solid var(--rule);
+}
+.lesson {
+  font-size: 15px;
+}
+.saved {
+  background: var(--paper-tint);
+  padding: 12px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.claim {
+  padding: 12px 0;
+  border-top: 1px solid var(--rule);
+}
+.claim-reading span {
+  color: var(--green);
+}
+.claim-reading small {
+  display: block;
+  color: var(--ink-mid);
+  font-size: 11px;
+  margin: 3px 0;
+}
+.hebrew {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  line-height: 1.7;
+  padding: 8px 12px;
+  margin: 8px 0 0;
+  border-right: 2px solid var(--rule-strong);
+  background: var(--paper-tint);
+  text-align: right;
+}
+.uncertain {
+  padding: 13px 0;
+}
+.uncertain ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+.case-body .meta {
+  margin-top: 18px;
+}
+details.support {
+  margin: 15px 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper-card);
+  padding: 13px 16px;
+}
+details.support summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.bar-chart {
+  height: 6px;
+  width: 100%;
+  margin-top: 5px;
+}
+.num {
+  font-family: var(--font-mono);
+  text-align: right;
+  white-space: nowrap;
+}
+.status {
+  color: var(--warn);
+  font-weight: 600;
+}
+.footer {
+  margin-top: 45px;
+  padding-top: 17px;
+  border-top: 1px solid var(--rule);
+  font-size: 12px;
+  color: var(--ink-mid);
+}
+[hidden] {
+  display: none !important;
+}
+@media (max-width: 680px) {
+  .compare,
+  .branches {
+    grid-template-columns: 1fr;
+  }
+  .wrap {
+    padding-top: 22px;
+  }
+  .count-strip {
+    display: block;
+  }
+  .count-strip div {
+    margin: 7px 0;
+  }
+  .record {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+  .case-body {
+    padding: 0 12px 14px;
+  }
+  h2 {
+    font-size: 25px;
+  }
+  .topline {
+    align-items: flex-start;
+  }
+  .case summary {
+    padding: 12px;
+  }
+  .source-quote {
+    font-size: 21px;
+  }
+}
+@media print {
+  body {
+    background: var(--paper-card);
+  }
+  button,
+  .search,
+  nav {
+    display: none;
+  }
+  .case {
+    break-inside: avoid;
+  }
+  .wrap {
+    max-width: none;
+    padding: 0;
+  }
+  a {
+    color: var(--ink);
+  }
+}
+</style></head><body><main class="wrap">
+<header><div class="topline"><span class="eyebrow">Sage graph study · 22 September 2026</span><button type="button" class="btn" id="theme" aria-label="Switch theme">Light / dark</button></div>
+<h1>Keep every claim before deciding who is who.</h1>
+<p>The new examples show what the next reader needs to save: people hidden inside descriptions, the roles they play, and the readings that remain open. Evidence packs then explain each proposed graph link.</p>
+<nav aria-label="On this page"><a href="#example">One real example</a><a href="#changes">What changed</a><a href="#vocabulary">The relation types</a><a href="#packs">Evidence packs</a><a href="#cases">The new cases</a><a href="#next">The updated plan</a></nav></header>
+
+<section id="example"><span class="eyebrow">Start with the text</span><h2>Imma Shalom is the person the old pair loses.</h2>
+<blockquote class="source-quote" lang="he" dir="rtl">אימא שלום, דביתהו דרבי אליעזר, אחתיה דרבן גמליאל הואי.<small dir="ltr">Bava Metzia 59b:10 · <a href="https://www.sefaria.org/Bava_Metzia.59b.10" target="_blank" rel="noopener">Read source ↗</a></small></blockquote>
+<div class="compare">
+<div class="panel"><div class="label">The saved pair</div>
+<svg class="diagram" viewBox="0 0 420 250" role="img" aria-label="The saved pair connects Rabbi Eliezer and Rabban Gamliel with a generic family label.">
+<path class="old-edge" d="M115 102 H305"/><rect class="node" x="23" y="68" width="164" height="62" rx="6"/><rect class="node" x="233" y="68" width="164" height="62" rx="6"/>
+<text x="105" y="104" text-anchor="middle">Rabbi Eliezer</text><text x="315" y="104" text-anchor="middle">Rabban Gamliel</text><text class="sub" x="210" y="58" text-anchor="middle">family</text><text class="sub" x="210" y="181" text-anchor="middle">The woman connecting them is missing.</text></svg></div>
+<div class="panel"><div class="label">What the passage states</div>
+<svg class="diagram" viewBox="0 0 420 250" role="img" aria-label="Imma Shalom is described as the wife of Rabbi Eliezer and sister of Rabban Gamliel.">
+<path class="edge" d="M210 87 V108 H100 V133 M100 158 V170 M210 108 H320 V133 M320 158 V170"/><rect class="node" x="130" y="28" width="160" height="58" rx="6"/><rect class="node" x="16" y="170" width="170" height="57" rx="6"/><rect class="node" x="234" y="170" width="170" height="57" rx="6"/>
+<text x="210" y="62" text-anchor="middle">Imma Shalom</text><text class="verb" x="100" y="151" text-anchor="middle">wife of</text><text class="verb" x="320" y="151" text-anchor="middle">sister of</text><text x="101" y="205" text-anchor="middle">Rabbi Eliezer</text><text x="319" y="205" text-anchor="middle">Rabban Gamliel</text></svg></div></div>
+<p>Keep her as a person mention and save both family claims. A later link between the two men can cite those claims. It must not count as fresh evidence.</p>
+<div class="count-strip"><div><span class="count">30</span><span>additional cases read</span></div><div><span class="count">82</span><span>primary text segments covered</span></div><div><span class="count">6</span><span>earlier cases checked again</span></div></div>
+<p>These cases were chosen to find failures. They do not measure the error rate of the whole study. The proposed readings still need human review before becoming a reference set.</p></section>
+
+<section id="changes"><span class="eyebrow">What the examples changed</span><h2>The reader needs more than names and arrows.</h2><ol class="ruled"><li><strong>Keep the person between the names.</strong><p>Imma Shalom is Eliezer’s wife and Gamliel’s sister. The old pair keeps the two men and loses her. Save her two family claims.</p><a class="tag" href="#imma-shalom">Bava Metzia 59b:10 · see the reading</a></li><li><strong>An alternate version can reverse the roles.</strong><p>Menachot gives Hisda speaking to Hamnuna, or Hamnuna speaking to Hisda. Keep two complete versions of the exchange.</p><a class="tag" href="#reversed-conversation">Menachot 62a:12 · see the reading</a></li><li><strong>An alternate reading can change the kind of thing.</strong><p>In Eruvin, one expression is read as a woman or as a tractate. Do not create an unconditional wife or marriage edge.</p><a class="tag" href="#woman-or-tractate">Eruvin 53b:14 · see the reading</a></li><li><strong>A question is not the conclusion.</strong><p>Bava Batra asks whether Rava disagrees with Hanina, then answers the question across the page break. Keep that change in the discussion.</p><a class="tag" href="#question-withdrawn">Bava Batra 24a:14 · see the reading</a></li><li><strong>A small editorial mark can change the ruling.</strong><p>Sanhedrin prints “not” in parentheses. The English translation reads the ruling positively. Keep the marked Hebrew and the named interpretations.</p><a class="tag" href="#editorial-negation">Sanhedrin 101a:6 · see the reading</a></li><li><strong>A relationship can change over time.</strong><p>Yose bar Avin leaves one teacher’s circle and comes before Rav Ashi. The next page helps identify the speaker. Keep the order and the full episode.</p><a class="tag" href="#changing-teachers">Taanit 23b:15 · see the reading</a></li><li><strong>Family words need context.</strong><p>Hanan is described through his mother. Children call him “father.” That address does not make them his children.</p><a class="tag" href="#hanan-grandson">Taanit 23b:8 · see the reading</a></li><li><strong>One phrase can support several claims.</strong><p>Yirmeya bar Abba is described as a disciple-colleague and also speaks to Rav. Save the teaching role and the dialogue.</p><a class="tag" href="#disciple-colleague">Berakhot 27b:3 · see the reading</a></li></ol>
+<div class="callout warn"><strong>The Yerushalmi case stays open.</strong><p>Guggenheimer identifies an earlier Rabbi Yirmeya. Ohr LaYesharim identifies a later one and changes the chain breaks. Our earlier date-based objection was too strong. Both the chain and the person identity must be reviewed together.</p><p><a href="https://www.sefaria.org/Jerusalem_Talmud_Berakhot.1.5.14?lang=bi" target="_blank" rel="noopener">Translation and footnote 256 ↗</a> · <a href="https://www.sefaria.org/Ohr_LaYesharim_on_Jerusalem_Talmud_Berakhot.1.5.14" target="_blank" rel="noopener">Ohr LaYesharim ↗</a></p></div></section>
+
+<section id="vocabulary"><span class="eyebrow">The starting vocabulary</span><h2>Use a few families of relations, with precise roles.</h2>
+<div class="scroll vocab"><table><thead><tr><th>Kind</th><th>What to save</th><th>What the example teaches us</th></tr></thead><tbody>
+<tr><td>Family</td><td>Child, spouse, sibling, specific in-law or family path</td><td>Hanan is a child of Honi’s daughter. The unnamed mother matters.</td></tr>
+<tr><td>Transmission</td><td>Reports in the name of; heard from; attributes to</td><td>Reporting a teaching does not by itself prove direct hearing.</td></tr>
+<tr><td>Teaching</td><td>Student or teacher role, subtype and time</td><td>A disciple-colleague has a more specific role than “junior.”</td></tr>
+<tr><td>Speech</td><td>Speaker, addressee, question, reply, objection</td><td>A question can address one person while discussing another’s teaching.</td></tr>
+<tr><td>Views</td><td>A view held, explained, supported or opposed</td><td>A suggestion of disagreement may be answered and withdrawn.</td></tr>
+<tr><td>Scenes</td><td>Event, participants, roles and exact action</td><td>A visit can contain a question, a reply and a healing action.</td></tr>
+<tr><td>Time</td><td>What happened before, after or during what</td><td>Keep changes of teacher distinct from the date our source was fetched.</td></tr>
+</tbody></table></div>
+<p>A rare action can stay as an event with its original verb and supported roles. Add a new standard relation only when repeated examples call for it.</p>
+<details class="support"><summary>Direction, identity and story tags</summary>
+<p>Store each claim once. Show “father of” as the inverse of “child of.” A symmetric link such as spouse or sibling also needs only one record.</p>
+<p>A mention is a phrase in one source. A local participant joins that episode’s names and pronouns. A historical person is a later identity decision. These three must not collapse into one record.</p>
+<p>Give an episode a <strong>halachic, aggadic, mixed or unknown</strong> tag. Also keep whether it is a teaching chain, legal argument, ordinary story, dream or another form. Genre may help assess history after we test it; it does not prove a meeting.</p>
+</details></section>
+
+<section id="packs"><span class="eyebrow">What an evidence pack does</span><h2>Keep both routes and explain the decision.</h2>
+<p>In Arakhin 13b:4, one report names Rav Huna directly. Another names Rav Zavdi transmitting from Rav Huna. Both credit the teaching to Rav Huna.</p>
+<div class="branches"><div class="panel"><h3>Short report</h3><p>Rav Huna <span class="arrow">→ states →</span> the teaching</p></div><div class="panel"><h3>Longer report</h3><p>Rav Zavdi <span class="arrow">→ reports from →</span> Rav Huna</p></div></div>
+<p><strong>These are two reported routes from one passage.</strong> They do not establish two independent witnesses. They also do not prove that only one route could have happened.</p>
+<div class="panel pad"><dl>
+<div class="record"><dt>Question</dt><dd>Which attribution does this passage give?</dd></div>
+<div class="record"><dt>Evidence</dt><dd>The exact Hebrew, its edition, the two report forms and the teaching they share.</dd></div>
+<div class="record"><dt>Reading decision</dt><dd>Keep both source-supported report forms. Put Zavdi’s transmission claim in the longer form.</dd></div>
+<div class="record"><dt>Historical decision</dt><dd class="status">Not established by this passage alone.</dd></div>
+<div class="record"><dt>What stays saved</dt><dd>The alternatives, dependencies, reason, uncertainty and each later revision.</dd></div>
+</dl></div>
+<p class="meta">Proposed representation of a real passage. This is not a stored historical graph decision. <a href="https://www.sefaria.org/Arakhin.13b.4" target="_blank" rel="noopener">Read the source ↗</a></p>
+<details class="support"><summary>What every pack must record</summary><p>Keep supporting and opposing passages, exact source spans, edition differences, unresolved pronouns, shared source dependencies, search gaps and a short reason for the decision. Record the other identity and date decisions it assumes.</p><p>Provisional scores are allowed when clearly labelled. A score about reading the words is different from a score about person identity or historical truth. Do not make compatible edges compete for a total of 100%.</p><p>A changed source or identity decision should flag dependent conclusions for another review. Human corrections must survive reruns.</p></details></section>
+
+<section id="cases"><span class="eyebrow">Read the examples</span><h2>Thirty additional cases are ready to inspect.</h2>
+<p>Open a row to see its proposed claims and the Hebrew behind each one. The exact source snapshots, editions and hashes are saved in the <a href="../data/checkpoint/ontology-review-data.json">review data</a>.</p>
+<label for="search">Find a passage, name or issue</label><input class="search" id="search" type="search" placeholder="Try: kinship, woman, question, Menachot">
+<p class="meta" id="visible-count">30 cases shown</p>
+<details class="case" id="editorial-negation" data-search="sanhedrin 101a:6 parentheses change whether rav huna accepts the ruling. retain editorial marks and record polarity as unresolved when their meaning has not been checked. separate a legal episode from an embedded miracle narrative. אמר רב הונא (אין) הלכה כר&#x27; יוסי ואף רבי יוסי לא אמרה אלא משום סכנה דרב יצחק בר יוסף דאיבלע בארזא ואתעביד ליה ניסא פקע ארזא ופלטיה">
+<summary><span class="ref">Sanhedrin 101a:6</span><strong>Parentheses change whether Rav Huna accepts the ruling.</strong></summary>
+<div class="case-body"><p class="lesson">Retain editorial marks and record polarity as unresolved when their meaning has not been checked. Separate a legal episode from an embedded miracle narrative.</p>
+<div class="meta">Proposed episode tag: mixed · 2 source segment(s) · 2 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> ר&#x27; יוסי / רבי יוסי: same-man, רב הונא / ר&#x27; יוסי: follows</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rav Huna mention</strong> <span>rules like →</span> <strong>Rabbi Yose’s weekday prohibition</strong><small>requires editorial interpretation</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר רב הונא (אין) הלכה כר&#x27; יוסי</blockquote></div><div class="claim"><div class="claim-reading"><strong>anonymous discussion</strong> <span>explains reason →</span> <strong>Rabbi Yose’s prohibition</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">ואף רבי יוסי לא אמרה אלא משום סכנה</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Yitzhak bar Yosef</strong> <span>depicts event →</span> <strong>being swallowed into a cedar and released when it splits</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">דרב יצחק בר יוסף דאיבלע בארזא ואתעביד ליה ניסא פקע ארזא ופלטיה</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>What editorial instruction does the parenthesized אין carry in the underlying print source?</li><li>Which textual witnesses omit or retain אין without editorial parentheses?</li><li>Yad Ramah and the English interpretation support the positive ruling. This is support for a reading, not a manuscript collation or proof of what the local parentheses mean.</li></ul></div>
+<div class="uncertain"><strong>What the second reading corrected</strong><ul><li>Add Yad Ramah’s affirmative citation as support. Keep “editorial convention not yet established” for the local parenthesis, but do not present the two readings as equally unsupported.</li><li>Use the neutral event label “swallowed into a cedar and released when it splits.” Keep the claimed danger and purpose of the tree episode in attributed interpretations.</li><li>Give each branch an explicit polarity binding or a separate derived claim identifier, with both pointing back to c1’s one source span.</li></ul><p><a href="https://he.wikisource.org/wiki/סנהדרין_קא_א" target="_blank" rel="noopener">Yad Ramah on Sanhedrin 101a, passage beginning אמר רב הונא ↗</a> · <a href="https://www.sefaria.org/Rashi_on_Sanhedrin.101a.6" target="_blank" rel="noopener">Rashi on Sanhedrin 101a:6 ↗</a> · <a href="https://www.sefaria.org/Sanhedrin.101a.6" target="_blank" rel="noopener">Sanhedrin 101a:6, William Davidson English interpretation ↗</a></p></div>
+<p class="meta">Read: Sanhedrin 101a:5 · Sanhedrin 101a:6. Edition(s): Wikisource Talmud Bavli.</p>
+<a href="https://www.sefaria.org/Sanhedrin.101a.6" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="question-withdrawn" data-search="bava batra 24a:14 a proposed disagreement is answered across a page break. save question/answer links and whether a proposed reading survives. allow evidence spans and episodes across segment and page boundaries. שרנהו רבא לימא לא סבר לה לדרבי חנינא שאני התם דרובא">
+<summary><span class="ref">Bava Batra 24a:14</span><strong>A proposed disagreement is answered across a page break.</strong></summary>
+<div class="case-body"><p class="lesson">Save question/answer links and whether a proposed reading survives. Allow evidence spans and episodes across segment and page boundaries.</p>
+<div class="meta">Proposed episode tag: halachic · 2 source segment(s) · 1 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רבא / רבי חנינא: disputes</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rava</strong> <span>depicts ruling →</span> <strong>the found wine is permitted</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">שרנהו רבא</blockquote></div><div class="claim"><div class="claim-reading"><strong>anonymous discussion</strong> <span>questions compatibility →</span> <strong>Rava’s ruling and Rabbi Hanina’s rule</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">לימא לא סבר לה לדרבי חנינא</blockquote></div><div class="claim"><div class="claim-reading"><strong>anonymous discussion</strong> <span>distinguishes case →</span> <strong>the apparent disagreement</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">שאני התם דרובא</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>Does a downstream graph need an issue-specific compatibility claim, or is saving the question and answer sufficient? No person-to-person disagreement follows here.</li></ul></div>
+
+<p class="meta">Read: Bava Batra 24a:14 · Bava Batra 24b:1. Edition(s): Wikisource Talmud Bavli.</p>
+<a href="https://www.sefaria.org/Bava_Batra.24a.14" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="hypothetical-concession" data-search="bava batra 152b:7 an imagined concession is part of explaining an actual dispute. record modality separately from positive/negative wording. point disagreements to the two incompatible propositions and their conditions. save regional variants with their full extent before combining their claims. רב אמר ראשון קנה ושמואל אמר שני קנה אבל בהא דלא קנו מיניה אימא מודה ליה לשמואל אבל בהך אימא מודה ליה לרב בסורא מתנו הכי בפומבדיתא מתנו הכי">
+<summary><span class="ref">Bava Batra 152b:7</span><strong>An imagined concession is part of explaining an actual dispute.</strong></summary>
+<div class="case-body"><p class="lesson">Record modality separately from positive/negative wording. Point disagreements to the two incompatible propositions and their conditions. Save regional variants with their full extent before combining their claims.</p>
+<div class="meta">Proposed episode tag: halachic · 5 source segment(s) · 2 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> שמואל / שמואל: same-man, שמואל / רב: disputes</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>anonymous discussion</strong> <span>attributes view →</span> <strong>Rav: first recipient acquires</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">רב אמר ראשון קנה</blockquote></div><div class="claim"><div class="claim-reading"><strong>anonymous discussion</strong> <span>attributes view →</span> <strong>Shmuel: second recipient acquires</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">ושמואל אמר שני קנה</blockquote></div><div class="claim"><div class="claim-reading"><strong>anonymous discussion</strong> <span>imagines concession →</span> <strong>Rav would concede to Shmuel</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">אבל בהא דלא קנו מיניה אימא מודה ליה לשמואל</blockquote></div><div class="claim"><div class="claim-reading"><strong>anonymous discussion</strong> <span>imagines concession →</span> <strong>Shmuel would concede to Rav</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">אבל בהך אימא מודה ליה לרב</blockquote></div><div class="claim"><div class="claim-reading"><strong>anonymous discussion</strong> <span>reports regional version →</span> <strong>Sura and Pumbedita teach the matter differently</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">בסורא מתנו הכי בפומבדיתא מתנו הכי</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>How far does each regional version extend? The five saved segments only introduce the Pumbedita version.</li></ul></div>
+
+<p class="meta">Read: Bava Batra 152b:4 · Bava Batra 152b:5 · Bava Batra 152b:6 · Bava Batra 152b:7 · Bava Batra 152b:8. Edition(s): Wikisource Talmud Bavli.</p>
+<a href="https://www.sefaria.org/Bava_Batra.152b.7" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="counterfactual-retraction" data-search="bava batra 170b:4 the speaker changes, but rav remains the subject of a disputed claim. attach alternatives to event roles, not adjacent name pairs. distinguish an assertion’s speaker from a person discussed inside it. record claimed hearing and denied retraction without turning either into a verified historical event. אמר רב הונא אמר רב אמר ליה רב נחמן לרב הונא ואמרי לה רב ירמיה בר אבא לרב הונא אי שמיעא ליה לרב הא [ברייתא] דתניא עדים מקרעין את השטר וכותבין לו שטר אחר מזמן ראשון הוה הדר ביה אמר ליה שמיע ליה ולא הדר ביה">
+<summary><span class="ref">Bava Batra 170b:4</span><strong>The speaker changes, but Rav remains the subject of a disputed claim.</strong></summary>
+<div class="case-body"><p class="lesson">Attach alternatives to event roles, not adjacent name pairs. Distinguish an assertion’s speaker from a person discussed inside it. Record claimed hearing and denied retraction without turning either into a verified historical event.</p>
+<div class="meta">Proposed episode tag: halachic · 3 source segment(s) · 4 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רב הונא / רב: none, רב נחמן / רב הונא: addresses, רב הונא / רב ירמיה בר אבא: alternative, רב ירמיה בר אבא / רב הונא: addresses</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rav Huna</strong> <span>quotes →</span> <strong>Rav’s ruling</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר רב הונא אמר רב</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Nachman</strong> <span>addresses →</span> <strong>Rav Huna</strong><small>speaker-a</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר ליה רב נחמן לרב הונא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Yirmeya bar Abba</strong> <span>addresses →</span> <strong>Rav Huna</strong><small>speaker-b</small></div><blockquote class="hebrew" lang="he" dir="rtl">ואמרי לה רב ירמיה בר אבא לרב הונא</blockquote></div><div class="claim"><div class="claim-reading"><strong>speaker in selected branch</strong> <span>predicts retraction →</span> <strong>Rav would retract after hearing the baraita</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">אי שמיעא ליה לרב הא [ברייתא] דתניא עדים מקרעין את השטר וכותבין לו שטר אחר מזמן ראשון הוה הדר ביה</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Huna, resolved from conversation</strong> <span>answers →</span> <strong>speaker in selected branch</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר ליה שמיע ליה ולא הדר ביה</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The reply is naturally shared by the two speaker versions, supported by Davidson’s reading. Preserve that scope as an interpretation rather than two independently attested replies.</li></ul></div>
+
+<p class="meta">Read: Bava Batra 170b:3 · Bava Batra 170b:4 · Bava Batra 170b:5. Edition(s): Wikisource Talmud Bavli.</p>
+<a href="https://www.sefaria.org/Bava_Batra.170b.4" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="reversed-conversation" data-search="menachot 62a:12 two versions reverse who explained the word “upon.” allow one alternative branch to assign several roles together. keep identity candidates for titles apart from the roles they play in each branch. א&quot;ל רב חסדא לרב המנונא ואמרי לה רב המנונא לרב חסדא רבי לטעמיה דאמר על בסמוך רבי אומר על בסמוך">
+<summary><span class="ref">Menachot 62a:12</span><strong>Two versions reverse who explained the word “upon.”</strong></summary>
+<div class="case-body"><p class="lesson">Allow one alternative branch to assign several roles together. Keep identity candidates for titles apart from the roles they play in each branch.</p>
+<div class="meta">Proposed episode tag: halachic · 3 source segment(s) · 4 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רב חסדא / רב המנונא: alternative, רב המנונא / רב המנונא: same-man, רב המנונא / רב חסדא: addresses, רב חסדא / רבי: none</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rav Hisda</strong> <span>addresses →</span> <strong>Rav Hamnuna</strong><small>hisda-speaks</small></div><blockquote class="hebrew" lang="he" dir="rtl">א&quot;ל רב חסדא לרב המנונא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Hamnuna</strong> <span>addresses →</span> <strong>Rav Hisda</strong><small>hamnuna-speaks</small></div><blockquote class="hebrew" lang="he" dir="rtl">ואמרי לה רב המנונא לרב חסדא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Hisda in one report; Rav Hamnuna in the other</strong> <span>explains →</span> <strong>Rabbi’s ruling</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">רבי לטעמיה דאמר על בסמוך</blockquote></div><div class="claim"><div class="claim-reading"><strong>supporting baraita (quotation boundary unresolved)</strong> <span>quotes baraita →</span> <strong>Rabbi’s explanation of על</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">רבי אומר על בסמוך</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The title רבי is expanded to Rabbi Yehuda HaNasi in Davidson. That identification should remain attached to this interpretation and the nearby baraita, not become a global rule for the token.</li></ul></div>
+<div class="uncertain"><strong>What the second reading corrected</strong><ul><li>Give each branch an explicit binding for the explainer. A shared c3 with subject “speaker in selected branch” is acceptable as a template, but a stored claim must resolve that subject within its branch.</li><li>Replace the categorical “not an utterance in the Hisda/Hamnuna scene” with “a supporting baraita introduced by דתניא; whether it belongs to the quoted explanation or the surrounding discussion is not fixed by this wording.”</li></ul><p></p></div>
+<p class="meta">Read: Menachot 62a:11 · Menachot 62a:12 · Menachot 62a:13. Edition(s): Wikisource Talmud Bavli.</p>
+<a href="https://www.sefaria.org/Menachot.62a.12" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="alternate-explanations" data-search="menachot 73b:16 “if you wish” offers two ways to read a baraita. type alternatives as attribution, participant, interpretation, kinship, identity wording, or edition difference. save the condition that makes each proposed alignment work. איבעית אימא ר&#x27; יוסי הגלילי סמי מההיא יין ואיבעית אימא רבי עקיבא עולה וכל חבירתה">
+<summary><span class="ref">Menachot 73b:16</span><strong>“If you wish” offers two ways to read a baraita.</strong></summary>
+<div class="case-body"><p class="lesson">Type alternatives as attribution, participant, interpretation, kinship, identity wording, or edition difference. Save the condition that makes each proposed alignment work.</p>
+<div class="meta">Proposed episode tag: halachic · 5 source segment(s) · 3 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> ר&#x27; יוסי הגלילי / רבי עקיבא: alternative, רבי עקיבא / ר&#x27; יוסי הגלילי: alternative, ר&#x27; יוסי הגלילי / רבי עקיבא: alternative</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>anonymous discussion</strong> <span>proposes view alignment →</span> <strong>baraita with Rabbi Yose HaGelili</strong><small>yose-reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">איבעית אימא ר&#x27; יוסי הגלילי סמי מההיא יין</blockquote></div><div class="claim"><div class="claim-reading"><strong>anonymous discussion</strong> <span>proposes view alignment →</span> <strong>baraita with Rabbi Akiva</strong><small>akiva-reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">ואיבעית אימא רבי עקיבא עולה וכל חבירתה</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The instruction סמי directs a reading change. Which manuscript or earlier baraita text independently supports it remains unchecked.</li></ul></div>
+
+<p class="meta">Read: Menachot 73b:12 · Menachot 73b:13 · Menachot 73b:14 · Menachot 73b:15 · Menachot 73b:16. Edition(s): Wikisource Talmud Bavli.</p>
+<a href="https://www.sefaria.org/Menachot.73b.16" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="nested-name-split" data-search="sanhedrin 36a:6 “rabbi hillel son of rabbi valles” must stay one person mention. resolve mention spans before graph construction; retain nested father mentions. an alternate attribution supplies no age or generation constraint. אמר רב אנא הואי במניינא דבי רבי אמר רבה בריה דרבא ואיתימא רבי הלל בריה דרבי וולס רבה בריה דרבא רבי הלל בריה דרבי וולס שאני מניינא דבי רבי דכולהו מנינייהו מן הצד הוו מתחלי">
+<summary><span class="ref">Sanhedrin 36a:6</span><strong>“Rabbi Hillel son of Rabbi Valles” must stay one person mention.</strong></summary>
+<div class="case-body"><p class="lesson">Resolve mention spans before graph construction; retain nested father mentions. An alternate attribution supplies no age or generation constraint.</p>
+<div class="meta">Proposed episode tag: halachic · 3 source segment(s) · 4 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רבה בריה דרבא / רבי: alternative, רבי / הלל: one-name, הלל / רבי וולס: kin, רבי וולס / רבי: none</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rav</strong> <span>reports participation →</span> <strong>quorum at the school of Rabbi</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר רב אנא הואי במניינא דבי רבי</blockquote></div><div class="claim"><div class="claim-reading"><strong>anonymous discussion</strong> <span>attributes explanation →</span> <strong>Rabba son of Rava</strong><small>rabba-speaker</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר רבה בריה דרבא</blockquote></div><div class="claim"><div class="claim-reading"><strong>anonymous discussion</strong> <span>attributes explanation →</span> <strong>Rabbi Hillel son of Rabbi Valles</strong><small>hillel-speaker</small></div><blockquote class="hebrew" lang="he" dir="rtl">ואיתימא רבי הלל בריה דרבי וולס</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabba</strong> <span>child of →</span> <strong>Rava</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">רבה בריה דרבא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Hillel</strong> <span>child of →</span> <strong>Rabbi Valles</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">רבי הלל בריה דרבי וולס</blockquote></div><div class="claim"><div class="claim-reading"><strong>speaker in selected branch</strong> <span>explains practice →</span> <strong>voting order in Rabbi’s court</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">שאני מניינא דבי רבי דכולהו מנינייהו מן הצד הוו מתחלי</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>Whether the two named explainers belong near each other in time cannot be learned from their alternate attribution here.</li><li>Identifying each occurrence of רבי needs local mention resolution.</li></ul></div>
+
+<p class="meta">Read: Sanhedrin 36a:5 · Sanhedrin 36a:6 · Sanhedrin 36a:7. Edition(s): Wikisource Talmud Bavli.</p>
+<a href="https://www.sefaria.org/Sanhedrin.36a.6" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="kinship-alternatives" data-search="chagigah 3a:4 the two unnamed learners are nephews in one version and grandsons in another. represent an unnamed pair with two local members without inventing personal names. distinguish child-of, sibling-of, maternal-grandchild-of, and sister’s-child-of. derived kinship should point to the same underlying claim chain, not add independent votes. do not use nephew/uncle or in-law roles to infer birth order. בני ברתיה דרבי יוחנן בן גודגדא ברתיה דרבי יוחנן בן גודגדא בני אחתיה דרבי יוחנן אחתיה דרבי יוחנן דכל אימת דהוה עייל רבי לבי מדרשא הוו עיילי ויתבי קמייהו ובעי רבי רחמי עלייהו">
+<summary><span class="ref">Chagigah 3a:4</span><strong>The two unnamed learners are nephews in one version and grandsons in another.</strong></summary>
+<div class="case-body"><p class="lesson">Represent an unnamed pair with two local members without inventing personal names. Distinguish child-of, sibling-of, maternal-grandchild-of, and sister’s-child-of. Derived kinship should point to the same underlying claim chain, not add independent votes. Do not use nephew/uncle or in-law roles to infer birth order.</p>
+<div class="meta">Proposed episode tag: mixed · 3 source segment(s) · 3 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רבי / רבי יוחנן בן גודגדא: none, רבי יוחנן בן גודגדא / רבי יוחנן: same-man, רבי יוחנן / רבי: none</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>each of the two unnamed learners</strong> <span>child of →</span> <strong>unnamed daughter of Rabbi Yohanan ben Gudgeda</strong><small>daughter-sons</small></div><blockquote class="hebrew" lang="he" dir="rtl">בני ברתיה דרבי יוחנן בן גודגדא</blockquote></div><div class="claim"><div class="claim-reading"><strong>unnamed daughter</strong> <span>child of →</span> <strong>Rabbi Yohanan ben Gudgeda</strong><small>daughter-sons</small></div><blockquote class="hebrew" lang="he" dir="rtl">ברתיה דרבי יוחנן בן גודגדא</blockquote></div><div class="claim"><div class="claim-reading"><strong>each of the two unnamed learners</strong> <span>child of →</span> <strong>unnamed sister of Rabbi Yohanan</strong><small>sister-sons</small></div><blockquote class="hebrew" lang="he" dir="rtl">בני אחתיה דרבי יוחנן</blockquote></div><div class="claim"><div class="claim-reading"><strong>unnamed sister</strong> <span>sibling of →</span> <strong>Rabbi Yohanan</strong><small>sister-sons</small></div><blockquote class="hebrew" lang="he" dir="rtl">אחתיה דרבי יוחנן</blockquote></div><div class="claim"><div class="claim-reading"><strong>two unnamed learners</strong> <span>depicts attendance →</span> <strong>study hall entered by Rabbi</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">דכל אימת דהוה עייל רבי לבי מדרשא הוו עיילי ויתבי קמייהו</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi</strong> <span>depicts prayer →</span> <strong>two unnamed learners</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">ובעי רבי רחמי עלייהו</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>Davidson expands the short Rabbi Yohanan to ben Gudgeda in the second branch. Preserve this supported local reading as a candidate, not a merge of every Rabbi Yohanan mention.</li><li>The text refers to a pair; individual unnamed person records need only local identifiers and must not invent distinguishing names.</li></ul></div>
+<div class="uncertain"><strong>What the second reading corrected</strong><ul><li>Represent the two learners as two local unnamed members of a pair. Apply child_of to each member, or explicitly mark the pair-level shorthand as distributive.</li><li>Replace “a named group of two” with “an unnamed pair with two local members.”</li><li>Record c5 attendance and c6 prayer as shared across both branches, while c1–c4 are branch-specific. Keep any daughter/sister identity claim inside its branch.</li></ul><p></p></div>
+<p class="meta">Read: Chagigah 3a:3 · Chagigah 3a:4 · Chagigah 3a:5. Edition(s): Wikisource Talmud Bavli.</p>
+<a href="https://www.sefaria.org/Chagigah.3a.4" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="quotation-inside-objection" data-search="sanhedrin 59b:12 two possible authors of a cited teaching are saved as followers. allow uncertainty about quotation ownership while retaining certain internal attribution alternatives. an objection is not a meeting, even when it invokes a named source. מתקיף לה רב אושעיא אלא מעתה בני קטורה לא לחייבו האמר ר&#x27; יוסי בר אבין ואיתימא ר&#x27; יוסי בר חנינא את בריתי הפר לרבות בני קטורה">
+<summary><span class="ref">Sanhedrin 59b:12</span><strong>Two possible authors of a cited teaching are saved as followers.</strong></summary>
+<div class="case-body"><p class="lesson">Allow uncertainty about quotation ownership while retaining certain internal attribution alternatives. An objection is not a meeting, even when it invokes a named source.</p>
+<div class="meta">Proposed episode tag: halachic · 3 source segment(s) · 1 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> ר&#x27; יוסי בר אבין / ר&#x27; יוסי בר חנינא: follows</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rav Oshaya</strong> <span>objects to →</span> <strong>the implication that Keturah’s descendants would be exempt</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">מתקיף לה רב אושעיא אלא מעתה בני קטורה לא לחייבו</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Yose bar Avin</strong> <span>attributed author →</span> <strong>the interpretation including Keturah’s descendants</strong><small>avin</small></div><blockquote class="hebrew" lang="he" dir="rtl">האמר ר&#x27; יוסי בר אבין</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Yose bar Hanina</strong> <span>attributed author →</span> <strong>the same interpretation</strong><small>hanina</small></div><blockquote class="hebrew" lang="he" dir="rtl">ואיתימא ר&#x27; יוסי בר חנינא</blockquote></div><div class="claim"><div class="claim-reading"><strong>author in selected branch</strong> <span>interprets verse →</span> <strong>Genesis 17:14</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">את בריתי הפר לרבות בני קטורה</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>Does האמר introduce Rav Oshaya’s own supporting citation or an anonymous answer? Davidson presents it as an answer; the unpunctuated local Hebrew should keep that speaker boundary visible.</li></ul></div>
+
+<p class="meta">Read: Sanhedrin 59b:10 · Sanhedrin 59b:11 · Sanhedrin 59b:12. Edition(s): Wikisource Talmud Bavli.</p>
+<a href="https://www.sefaria.org/Sanhedrin.59b.12" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="vision-and-transmission" data-search="menachot 29b:3 moses hears a future teacher inside a story quoted by rav. nest speech and scenes; keep speaker, narrator, quoted source and event participant separate. attach narrative mode to the episode as well as halachic/aggadic purpose. transmission orders attributed statements, not necessarily births or deaths. אמר רב יהודה אמר רב אדם אחד יש שעתיד להיות בסוף כמה דורות ועקיבא בן יוסף שמו הלך וישב בסוף שמונה שורות ולא היה יודע מה הן אומרים אמרו לו תלמידיו רבי מנין לך אמר להן הלכה למשה מסיני">
+<summary><span class="ref">Menachot 29b:3</span><strong>Moses hears a future teacher inside a story quoted by Rav.</strong></summary>
+<div class="case-body"><p class="lesson">Nest speech and scenes; keep speaker, narrator, quoted source and event participant separate. Attach narrative mode to the episode as well as halachic/aggadic purpose. Transmission orders attributed statements, not necessarily births or deaths.</p>
+<div class="meta">Proposed episode tag: aggadic · 3 source segment(s) · 0 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> No saved pair row in the selected passage or passages.</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rav Yehuda</strong> <span>quotes →</span> <strong>Rav’s story</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר רב יהודה אמר רב</blockquote></div><div class="claim"><div class="claim-reading"><strong>God as speaker within story</strong> <span>depicts future person →</span> <strong>Akiva ben Yosef</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">אדם אחד יש שעתיד להיות בסוף כמה דורות ועקיבא בן יוסף שמו</blockquote></div><div class="claim"><div class="claim-reading"><strong>Moses, resolved from preceding speech</strong> <span>depicts observation →</span> <strong>a future class</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">הלך וישב בסוף שמונה שורות ולא היה יודע מה הן אומרים</blockquote></div><div class="claim"><div class="claim-reading"><strong>unnamed students</strong> <span>asks →</span> <strong>Akiva, resolved from the scene</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמרו לו תלמידיו רבי מנין לך</blockquote></div><div class="claim"><div class="claim-reading"><strong>Akiva, resolved from the scene</strong> <span>attributes tradition →</span> <strong>Moses at Sinai</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר להן הלכה למשה מסיני</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The local source depicts future generations and an extraordinary showing. Its narrative form cannot establish historical co-presence.</li><li>Does the project want biblical figures and divine speakers as full graph nodes or typed local participants? Either design must prevent them from being misclassified as ordinary sage meetings.</li></ul></div>
+
+<p class="meta">Read: Menachot 29b:3 · Menachot 29b:4 · Menachot 29b:5. Edition(s): Wikisource Talmud Bavli.</p>
+<a href="https://www.sefaria.org/Menachot.29b.3" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="disciple-colleague" data-search="berakhot 27b:3 a disciple-colleague can also ask and receive an answer. keep several claims from one passage instead of letting kin/teacher suppress speech. treat teacher/student roles as potentially time-dependent and compatible with peer status. negation may apply to the form of speech rather than the underlying event. שאני רבי ירמיה בר אבא דתלמיד חבר הוה דקאמר ליה רבי ירמיה בר אבא לרב מי בדלת אמר ליה אין בדילנא ולא אמר מי בדיל מר">
+<summary><span class="ref">Berakhot 27b:3</span><strong>A disciple-colleague can also ask and receive an answer.</strong></summary>
+<div class="case-body"><p class="lesson">Keep several claims from one passage instead of letting kin/teacher suppress speech. Treat teacher/student roles as potentially time-dependent and compatible with peer status. Negation may apply to the form of speech rather than the underlying event.</p>
+<div class="meta">Proposed episode tag: halachic · 6 source segment(s) · 1 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רבי ירמיה בר אבא / רב: teacher</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rabbi Yirmeya bar Abba</strong> <span>disciple colleague of →</span> <strong>Rav, resolved from surrounding question</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">שאני רבי ירמיה בר אבא דתלמיד חבר הוה</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Yirmeya bar Abba</strong> <span>asks →</span> <strong>Rav</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">דקאמר ליה רבי ירמיה בר אבא לרב מי בדלת</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav, pronoun resolved from question</strong> <span>answers →</span> <strong>Rabbi Yirmeya bar Abba</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר ליה אין בדילנא</blockquote></div><div class="claim"><div class="claim-reading"><strong>anonymous discussion</strong> <span>denies wording →</span> <strong>formal address using Master</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">ולא אמר מי בדיל מר</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>How long did this disciple-colleague relation hold? No start or end date is supplied.</li><li>The colloquial question and the formal wording explicitly not said must be represented differently.</li></ul></div>
+
+<p class="meta">Read: Berakhot 27a:15 · Berakhot 27a:16 · Berakhot 27a:17 · Berakhot 27b:1 · Berakhot 27b:2 · Berakhot 27b:3. Edition(s): Wikisource Talmud Bavli.</p>
+<a href="https://www.sefaria.org/Berakhot.27b.3" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="alternate-participant-name" data-search="sanhedrin 97a:6 a storyteller has two reported names; his “i” is not rava. distinguish same participant slot in alternative reports from same historical person. resolve first-person pronouns within their quotation frame. time-dependent family facts must not be treated as dated historical facts without further evidence. אמר לי ההוא מרבנן ורב טבות שמיה ואמרי לה רב טביומי שמיה נסיבי איתתא מינהון והוו לי תרתין בנין מינה שכיבו ליה תרתין בנין">
+<summary><span class="ref">Sanhedrin 97a:6</span><strong>A storyteller has two reported names; his “I” is not Rava.</strong></summary>
+<div class="case-body"><p class="lesson">Distinguish same participant slot in alternative reports from same historical person. Resolve first-person pronouns within their quotation frame. Time-dependent family facts must not be treated as dated historical facts without further evidence.</p>
+<div class="meta">Proposed episode tag: aggadic · 2 source segment(s) · 1 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רב / רב טביומי: same-man</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rava</strong> <span>reports speech →</span> <strong>a certain sage’s story</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר לי ההוא מרבנן</blockquote></div><div class="claim"><div class="claim-reading"><strong>first naming branch</strong> <span>names participant →</span> <strong>Rav Tavut</strong><small>tavut</small></div><blockquote class="hebrew" lang="he" dir="rtl">ורב טבות שמיה</blockquote></div><div class="claim"><div class="claim-reading"><strong>second naming branch</strong> <span>names participant →</span> <strong>Rav Tavyomei</strong><small>tavyomei</small></div><blockquote class="hebrew" lang="he" dir="rtl">ואמרי לה רב טביומי שמיה</blockquote></div><div class="claim"><div class="claim-reading"><strong>sage speaking inside Rava’s quotation</strong> <span>depicts marriage →</span> <strong>unnamed woman from the town</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">נסיבי איתתא מינהון</blockquote></div><div class="claim"><div class="claim-reading"><strong>sage and wife</strong> <span>depicts parenthood →</span> <strong>two unnamed sons</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">והוו לי תרתין בנין מינה</blockquote></div><div class="claim"><div class="claim-reading"><strong>two sons</strong> <span>depicts death →</span> <strong>death in the story</strong><small>textually supported</small></div><blockquote class="hebrew" lang="he" dir="rtl">שכיבו ליה תרתין בנין</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>Do the name variants represent spellings, alternate identifications, or different transmitters’ reports? This passage alone does not decide.</li><li>The story’s causal claim about falsehood and death is part of the story, not independent historical evidence.</li></ul></div>
+
+<p class="meta">Read: Sanhedrin 97a:6 · Sanhedrin 97a:7. Edition(s): Wikisource Talmud Bavli.</p>
+<a href="https://www.sefaria.org/Sanhedrin.97a.6" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="sick-visitor" data-search="berakhot 5b:10 a visitor asks, receives a hand, and raises the patient. keep a visit and each speech/action separately. the old addresses row loses patient and visitor roles. a generic action record can keep raises without adding a permanent graph edge type. pronouns long-tail-actions על לגביה רבי יוחנן רבי חייא בר אבא חלש חביבין עליך יסורין? לא הן ולא שכרן יהב ליה ידיה, ואוקמיה">
+<summary><span class="ref">Berakhot 5b:10</span><strong>A visitor asks, receives a hand, and raises the patient.</strong></summary>
+<div class="case-body"><p class="lesson">Keep a visit and each speech/action separately. The old addresses row loses patient and visitor roles. A generic action record can keep raises without adding a permanent graph edge type.</p>
+<div class="meta">Proposed episode tag: aggadic · 1 source segment(s) · 1 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רבי חייא בר אבא / ר&#x27; יוחנן: addresses</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rabbi Yohanan</strong> <span>visits →</span> <strong>sickbed visit</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">על לגביה רבי יוחנן</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Hiyya bar Abba</strong> <span>participates in →</span> <strong>sickbed visit</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">רבי חייא בר אבא חלש</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Yohanan</strong> <span>asks →</span> <strong>Rabbi Hiyya bar Abba</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">חביבין עליך יסורין?</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Hiyya bar Abba</strong> <span>answers →</span> <strong>Rabbi Yohanan</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">לא הן ולא שכרן</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Yohanan</strong> <span>raises →</span> <strong>Rabbi Hiyya bar Abba</strong><small>pronoun reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">יהב ליה ידיה, ואוקמיה</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The repeated אמר ליה changes speaker. These turns need explicit mention links. The passage depicts recovery; it does not independently establish how recovery occurred.</li></ul></div>
+
+<p class="meta">Read: Berakhot 5b:10. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Berakhot.5b.10" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="wine-visitors" data-search="berakhot 5b:17 a group visits rav huna, with two versions of its named member. branch the whole visiting group, including its internal family mention. keep a second, independent alternative group for the outcome. do not turn the brother who identifies rav yehuda into a visitor. groups alternatives family רב יהודה אחוה דרב סלא חסידא על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן ואמרי לה רב אדא בר אהבה ורבנן לעיין מר במיליה קבילנא עלי דיהיבנא ליה">
+<summary><span class="ref">Berakhot 5b:17</span><strong>A group visits Rav Huna, with two versions of its named member.</strong></summary>
+<div class="case-body"><p class="lesson">Branch the whole visiting group, including its internal family mention. Keep a second, independent alternative group for the outcome. Do not turn the brother who identifies Rav Yehuda into a visitor.</p>
+<div class="meta">Proposed episode tag: aggadic · 4 source segment(s) · 2 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רב יהודה / רב סלא: kin, רב סלא / רב אדא בר אהבה: alternative</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rav Yehuda</strong> <span>sibling of →</span> <strong>Rav Sala the Pious</strong><small>visitors-A</small></div><blockquote class="hebrew" lang="he" dir="rtl">רב יהודה אחוה דרב סלא חסידא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Yehuda and the sages</strong> <span>participates in →</span> <strong>visit to Rav Huna</strong><small>visitors-A</small></div><blockquote class="hebrew" lang="he" dir="rtl">על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Adda bar Ahava and the sages</strong> <span>participates in →</span> <strong>visit to Rav Huna</strong><small>visitors-B</small></div><blockquote class="hebrew" lang="he" dir="rtl">ואמרי לה רב אדא בר אהבה ורבנן</blockquote></div><div class="claim"><div class="claim-reading"><strong>visiting group</strong> <span>addresses →</span> <strong>Rav Huna</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">לעיין מר במיליה</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Huna</strong> <span>undertakes →</span> <strong>give the sharecropper his share</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">קבילנא עלי דיהיבנא ליה</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The sages have no individual names here. The outcome alternatives are reports from this one story, not independent evidence.</li></ul></div>
+
+<p class="meta">Read: Berakhot 5b:17 · Berakhot 5b:18 · Berakhot 5b:19 · Berakhot 5b:20. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Berakhot.5b.17" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="berurya" data-search="berakhot 10a:2 berurya corrects her husband and changes what he prays for. read people outside the sage-name dictionary. record the target of an objection as an action or teaching and its addressee separately. save reported outcomes separately from requests. named-women groups speech-target אמרה ליה ברוריא דביתהו והוו קא מצערו ליה טובא מי כתיב ״חוטאים״? ״חטאים״ כתיב בעי רחמי עלויהו דלהדרו בתשובה בעא רחמי עלויהו">
+<summary><span class="ref">Berakhot 10a:2</span><strong>Berurya corrects her husband and changes what he prays for.</strong></summary>
+<div class="case-body"><p class="lesson">Read people outside the sage-name dictionary. Record the target of an objection as an action or teaching and its addressee separately. Save reported outcomes separately from requests.</p>
+<div class="meta">Proposed episode tag: aggadic · 3 source segment(s) · 0 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> No saved pair row in the selected passage or passages.</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Berurya</strong> <span>spouse of →</span> <strong>Rabbi Meir</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמרה ליה ברוריא דביתהו</blockquote></div><div class="claim"><div class="claim-reading"><strong>troublesome neighbors</strong> <span>distresses →</span> <strong>Rabbi Meir</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">והוו קא מצערו ליה טובא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Berurya</strong> <span>objects to →</span> <strong>pray for the neighbors to die</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">מי כתיב ״חוטאים״? ״חטאים״ כתיב</blockquote></div><div class="claim"><div class="claim-reading"><strong>Berurya</strong> <span>urges →</span> <strong>prayer for the neighbors to repent</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">בעי רחמי עלויהו דלהדרו בתשובה</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Meir</strong> <span>performs →</span> <strong>prayer for the neighbors to repent</strong><small>continuing pronoun reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">בעא רחמי עלויהו</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The narrator reports that the neighbors repent. The earlier desired death must be marked as the goal of a prayer, not an event that occurred.</li></ul></div>
+
+<p class="meta">Read: Berakhot 10a:2 · Berakhot 10a:3 · Berakhot 10a:4. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Berakhot.10a.2" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="interrupted-aggada" data-search="berakhot 10a:21 a three-person introduction leads into a dialogue with uncertain speakers. keep dialogue state across an inserted teaching. do not join the inserted teacher to the resumed anonymous אמר ליה. pronoun links need their own candidate set and evidence source. pronouns nonadjacent-dialogue alternatives רב שימי בר עוקבא ואמרי לה מר עוקבא, הוה שכיח קמיה דרבי שמעון בן פזי ואמרי לה מר עוקבא, הוה שכיח קמיה דרבי שמעון בן פזי והוה מסדר אגדתא קמיה דרבי יהושע בן לוי אמר רבי יהודה בר מנסיא: אל תקרי ״כי אין בלתך״, אלא ״אין לבלותך״">
+<summary><span class="ref">Berakhot 10a:21</span><strong>A three-person introduction leads into a dialogue with uncertain speakers.</strong></summary>
+<div class="case-body"><p class="lesson">Keep dialogue state across an inserted teaching. Do not join the inserted teacher to the resumed anonymous אמר ליה. Pronoun links need their own candidate set and evidence source.</p>
+<div class="meta">Proposed episode tag: aggadic · 5 source segment(s) · 3 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רב שימי בר עוקבא / מר עוקבא: alternative, מר עוקבא / ר&#x27; שמעון בן פזי: before, ר&#x27; שמעון בן פזי / ר&#x27; יהושע בן לוי: none</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rav Shimi bar Ukva</strong> <span>sits before →</span> <strong>Rabbi Shimon ben Pazi</strong><small>speaker-A</small></div><blockquote class="hebrew" lang="he" dir="rtl">רב שימי בר עוקבא ואמרי לה מר עוקבא, הוה שכיח קמיה דרבי שמעון בן פזי</blockquote></div><div class="claim"><div class="claim-reading"><strong>Mar Ukva</strong> <span>sits before →</span> <strong>Rabbi Shimon ben Pazi</strong><small>speaker-B</small></div><blockquote class="hebrew" lang="he" dir="rtl">ואמרי לה מר עוקבא, הוה שכיח קמיה דרבי שמעון בן פזי</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Shimon ben Pazi</strong> <span>teaches before →</span> <strong>Rabbi Yehoshua ben Levi</strong><small>candidate</small></div><blockquote class="hebrew" lang="he" dir="rtl">והוה מסדר אגדתא קמיה דרבי יהושע בן לוי</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Yehuda bar Menasya</strong> <span>states →</span> <strong>reading אין לבלותך</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר רבי יהודה בר מנסיא: אל תקרי ״כי אין בלתך״, אלא ״אין לבלותך״</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The English translation at :21 makes Rabbi Shimon the first questioner and Rav Shimi the respondent; at :24 it presents Rav Shimi as the person clarifying his original question. The Hebrew leaves the speakers implicit. Keep the turn assignment unresolved rather than copying either gloss as explicit wording.</li><li>The before claim does not by itself prove a formal teacher/student relationship.</li></ul></div>
+
+<p class="meta">Read: Berakhot 10a:21 · Berakhot 10a:22 · Berakhot 10a:23 · Berakhot 10a:24 · Berakhot 10a:25. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Berakhot.10a.21" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="choma-court" data-search="ketubot 65a:9 choma and rav hisda’s daughter act in two connected scenes. create the women before relating the men. the old abaye/rava none row can be correct while missing the actual court encounter. keep accusation content apart from narrator claims. named-women unnamed-women scene-boundaries חומא דביתהו דאביי אתאי לקמיה דרבא פסוק לי מזוני! בת רב חסדא אמרה ליה בת רב חסדא: מאן הוי האידנא בבי דינא? נפקא אבתרה, מחתא לה בקולפי דשידא">
+<summary><span class="ref">Ketubot 65a:9</span><strong>Choma and Rav Hisda’s daughter act in two connected scenes.</strong></summary>
+<div class="case-body"><p class="lesson">Create the women before relating the men. The old Abaye/Rava none row can be correct while missing the actual court encounter. Keep accusation content apart from narrator claims.</p>
+<div class="meta">Proposed episode tag: mixed · 2 source segment(s) · 3 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> אביי / רבא: none, רבא / רב חסדא: kin, רב חסדא / רב חסדא: same-man</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Choma</strong> <span>spouse of →</span> <strong>Abaye</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">חומא דביתהו דאביי</blockquote></div><div class="claim"><div class="claim-reading"><strong>Choma</strong> <span>appears before →</span> <strong>Rava</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אתאי לקמיה דרבא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Choma</strong> <span>requests →</span> <strong>maintenance allowance</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">פסוק לי מזוני!</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Hisda’s daughter</strong> <span>child of →</span> <strong>Rav Hisda</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">בת רב חסדא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Hisda’s daughter</strong> <span>asks →</span> <strong>Rava</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמרה ליה בת רב חסדא: מאן הוי האידנא בבי דינא?</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Hisda’s daughter</strong> <span>strikes →</span> <strong>Choma</strong><small>cross-sentence pronoun reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">נפקא אבתרה, מחתא לה בקולפי דשידא</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The accusation קטלת ליך תלתא is spoken by the daughter; do not extract that Choma killed three people as a narrator fact.</li><li>The Rava/Rav Hisda kin row skips the daughter. Their in-law relation is an inference through her, with marriage supported from broader context.</li></ul></div>
+
+<p class="meta">Read: Ketubot 65a:9 · Ketubot 65a:10. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Ketubot.65a.9" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="nested-widow-one" data-search="ketubot 65a:11 an unnamed wife approaches a judge, and both men have fathers inside their names. allow a relational person mention to contain a complete person name, which itself contains a parent mention. these are nested spans, not competing token labels. unnamed-women nested-family דביתהו דרב יוסף בריה דרבא רב יוסף בריה דרבא רב נחמיה בריה דרב יוסף אתאי לקמיה דרב נחמיה בריה דרב יוסף פסוק לי חמרא! פסק לה">
+<summary><span class="ref">Ketubot 65a:11</span><strong>An unnamed wife approaches a judge, and both men have fathers inside their names.</strong></summary>
+<div class="case-body"><p class="lesson">Allow a relational person mention to contain a complete person name, which itself contains a parent mention. These are nested spans, not competing token labels.</p>
+<div class="meta">Proposed episode tag: halachic · 1 source segment(s) · 1 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רב יוסף בריה דרבא / רב נחמיה בריה דרב יוסף: none</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>wife of Rav Yosef son of Rava</strong> <span>spouse of →</span> <strong>Rav Yosef son of Rava</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">דביתהו דרב יוסף בריה דרבא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Yosef son of Rava</strong> <span>child of →</span> <strong>Rava</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">רב יוסף בריה דרבא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Nehemya son of Rav Yosef</strong> <span>child of →</span> <strong>Rav Yosef named as father</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">רב נחמיה בריה דרב יוסף</blockquote></div><div class="claim"><div class="claim-reading"><strong>wife of Rav Yosef son of Rava</strong> <span>appears before →</span> <strong>Rav Nehemya son of Rav Yosef</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אתאי לקמיה דרב נחמיה בריה דרב יוסף</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Nehemya son of Rav Yosef</strong> <span>grants →</span> <strong>wine allowance</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">פסוק לי חמרא! פסק לה</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>Do not merge the husband named Rav Yosef with the judge’s father named Rav Yosef. That possible identity requires evidence beyond shared wording.</li><li>The table has one none row between husband and judge. It never represents the petitioner.</li></ul></div>
+
+<p class="meta">Read: Ketubot 65a:11. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Ketubot.65a.11" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="nested-widow-two" data-search="ketubot 65a:12 a woman asks rav yosef for support; her husband is another rav yosef. keep identical name strings as separate mentions with roles. store the place modifier and its unresolved attachment instead of using it to force a historical identity. unnamed-women identity place דביתהו דרב יוסף בריה דרב מנשיא מדויל רב יוסף בריה דרב מנשיא אתאי לקמיה דרב יוסף פסוק לי שיראי!">
+<summary><span class="ref">Ketubot 65a:12</span><strong>A woman asks Rav Yosef for support; her husband is another Rav Yosef.</strong></summary>
+<div class="case-body"><p class="lesson">Keep identical name strings as separate mentions with roles. Store the place modifier and its unresolved attachment instead of using it to force a historical identity.</p>
+<div class="meta">Proposed episode tag: halachic · 1 source segment(s) · 1 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רב יוסף בריה דרב מנשיא / רב יוסף: none</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>wife of Rav Yosef son of Rav Menashya of Dvil</strong> <span>spouse of →</span> <strong>Rav Yosef son of Rav Menashya</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">דביתהו דרב יוסף בריה דרב מנשיא מדויל</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Yosef son of Rav Menashya</strong> <span>child of →</span> <strong>Rav Menashya</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">רב יוסף בריה דרב מנשיא</blockquote></div><div class="claim"><div class="claim-reading"><strong>wife of Rav Yosef son of Rav Menashya of Dvil</strong> <span>appears before →</span> <strong>Rav Yosef the judge</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אתאי לקמיה דרב יוסף</blockquote></div><div class="claim"><div class="claim-reading"><strong>wife of Rav Yosef son of Rav Menashya of Dvil</strong> <span>requests →</span> <strong>silk clothing allowance</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">פסוק לי שיראי!</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>מדויל attaches within the relational description; whether it identifies the husband or his father needs checking.</li><li>The local wording does not state that the husband and judge are the same person.</li></ul></div>
+
+<p class="meta">Read: Ketubot 65a:12. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Ketubot.65a.12" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="imma-shalom" data-search="bava metzia 59b:10 imma shalom links a husband and a brother. the sibling claim’s subject is imma shalom, not rabbi eliezer. family links inferred through a third person must cite the two original claims. keep alternative explanations of an action inside the episode. named-women family alternatives אימא שלום, דביתהו דרבי אליעזר אחתיה דרבן גמליאל הואי לא הוה שבקה ליה לרבי אליעזר למיפל על אפיה אתא עניא וקאי אבבא, אפיקא ליה ריפתא כך מקובלני מבית אבי אבא">
+<summary><span class="ref">Bava Metzia 59b:10</span><strong>Imma Shalom links a husband and a brother.</strong></summary>
+<div class="case-body"><p class="lesson">The sibling claim’s subject is Imma Shalom, not Rabbi Eliezer. Family links inferred through a third person must cite the two original claims. Keep alternative explanations of an action inside the episode.</p>
+<div class="meta">Proposed episode tag: aggadic · 2 source segment(s) · 1 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> ר&quot;א / ר&quot;ג: kin</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Imma Shalom</strong> <span>spouse of →</span> <strong>Rabbi Eliezer</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אימא שלום, דביתהו דרבי אליעזר</blockquote></div><div class="claim"><div class="claim-reading"><strong>Imma Shalom</strong> <span>sibling of →</span> <strong>Rabban Gamliel</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אחתיה דרבן גמליאל הואי</blockquote></div><div class="claim"><div class="claim-reading"><strong>Imma Shalom</strong> <span>prevents →</span> <strong>Rabbi Eliezer falling on his face in prayer</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">לא הוה שבקה ליה לרבי אליעזר למיפל על אפיה</blockquote></div><div class="claim"><div class="claim-reading"><strong>Imma Shalom</strong> <span>gives food to →</span> <strong>unnamed poor man</strong><small>distraction-B</small></div><blockquote class="hebrew" lang="he" dir="rtl">אתא עניא וקאי אבבא, אפיקא ליה ריפתא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Imma Shalom</strong> <span>receives tradition from →</span> <strong>her paternal ancestral household</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">כך מקובלני מבית אבי אבא</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>Her statement that the prayer killed her brother is character speech. The narrator separately reports a death announcement. Preserve that difference.</li></ul></div>
+
+<p class="meta">Read: Bava Metzia 59b:10 · Bava Metzia 59b:11. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Bava_Metzia.59b.10" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="yohanan-lakish" data-search="bava metzia 84a:12 one story moves from an offer to marriage, study, a dispute and grief. give offers, completed actions and remembered habits different status. keep scene and speech links across segments. agreement/disagreement targets should be the stated positions, with their speakers attached. unnamed-women pronouns three-person-story modality הוה קא סחי רבי יוחנן בירדנא חזייה ריש לקיש ושוור לירדנא אבתריה יהיבנא לך אחותי אי הדרת בך יהיבנא לך אחותי אקרייה ואתנייה ושוייה גברא רבא רבי יוחנן אומר: משיצרפם בכבשן. ריש לקיש אמר: משיצחצחן במים אתאי אחתיה קא בכיא. אמרה ליה: עשה בשביל בני! אזל יתיב קמיה">
+<summary><span class="ref">Bava Metzia 84a:12</span><strong>One story moves from an offer to marriage, study, a dispute and grief.</strong></summary>
+<div class="case-body"><p class="lesson">Give offers, completed actions and remembered habits different status. Keep scene and speech links across segments. Agreement/disagreement targets should be the stated positions, with their speakers attached.</p>
+<div class="meta">Proposed episode tag: mixed · 7 source segment(s) · 4 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> ר&#x27; יוחנן / ריש לקיש: addresses, רבי יוחנן / ריש לקיש: disputes, רבי יוחנן / ריש לקיש: none, ר&#x27; שמעון בן לקיש / ר&#x27; יוחנן: none</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rabbi Yohanan</strong> <span>participates in →</span> <strong>Jordan encounter</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">הוה קא סחי רבי יוחנן בירדנא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Reish Lakish</strong> <span>participates in →</span> <strong>Jordan encounter</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">חזייה ריש לקיש ושוור לירדנא אבתריה</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Yohanan’s sister</strong> <span>sibling of →</span> <strong>Rabbi Yohanan</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">יהיבנא לך אחותי</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Yohanan</strong> <span>offers →</span> <strong>marriage of his sister to Reish Lakish</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אי הדרת בך יהיבנא לך אחותי</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Yohanan</strong> <span>teaches →</span> <strong>Reish Lakish</strong><small>pronoun reading across segment boundary</small></div><blockquote class="hebrew" lang="he" dir="rtl">אקרייה ואתנייה ושוייה גברא רבא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Yohanan’s completion criterion</strong> <span>disagrees with →</span> <strong>Reish Lakish’s completion criterion</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">רבי יוחנן אומר: משיצרפם בכבשן. ריש לקיש אמר: משיצחצחן במים</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Yohanan’s sister</strong> <span>pleads with →</span> <strong>Rabbi Yohanan</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אתאי אחתיה קא בכיא. אמרה ליה: עשה בשביל בני!</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Elazar ben Pedat</strong> <span>sits before →</span> <strong>Rabbi Yohanan</strong><small>pronoun reading from previous segment</small></div><blockquote class="hebrew" lang="he" dir="rtl">אזל יתיב קמיה</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The initial offer is conditional; do not extract a completed wedding from :12 alone. Her reference to widowhood in :15 supplies additional marital evidence.</li><li>The story’s Reish Lakish, Rabbi Shimon ben Lakish and bar Lakisha are strong within-episode identity candidates. Wider historical matching is a separate step.</li></ul></div>
+
+<p class="meta">Read: Bava Metzia 84a:12 · Bava Metzia 84a:13 · Bava Metzia 84a:14 · Bava Metzia 84a:15 · Bava Metzia 84a:16 · Bava Metzia 84a:17 · Bava Metzia 84a:18. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Bava_Metzia.84a.12" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="shmuel-avlet" data-search="shabbat 156b:2 shmuel changes addressee from avlet to an unnamed worker. every speech turn needs an addressee, even when the nearest name is someone else. mark the predicted event as a prediction and the surviving worker as an unnamed person. three-person-story pronouns prediction דשמואל ואבלט הוו יתבי דשמואל ואבלט הוו יתבי האי גברא אזיל ולא אתי, טריק ליה חיויא ומיית אמר ליה שמואל: מאי עבדת? כי היכי דלא ליכסיף נפק שמואל ודרש: ״וצדקה תציל ממות״">
+<summary><span class="ref">Shabbat 156b:2</span><strong>Shmuel changes addressee from Avlet to an unnamed worker.</strong></summary>
+<div class="case-body"><p class="lesson">Every speech turn needs an addressee, even when the nearest name is someone else. Mark the predicted event as a prediction and the surviving worker as an unnamed person.</p>
+<div class="meta">Proposed episode tag: aggadic · 2 source segment(s) · 1 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> שמואל / שמואל: same-man</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Shmuel</strong> <span>participates in →</span> <strong>watching workers pass</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">דשמואל ואבלט הוו יתבי</blockquote></div><div class="claim"><div class="claim-reading"><strong>Avlet</strong> <span>participates in →</span> <strong>watching workers pass</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">דשמואל ואבלט הוו יתבי</blockquote></div><div class="claim"><div class="claim-reading"><strong>Avlet</strong> <span>predicts →</span> <strong>a worker’s fatal snakebite</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">האי גברא אזיל ולא אתי, טריק ליה חיויא ומיית</blockquote></div><div class="claim"><div class="claim-reading"><strong>Shmuel</strong> <span>asks →</span> <strong>returning worker</strong><small>addressee recovered from the return and reply</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר ליה שמואל: מאי עבדת?</blockquote></div><div class="claim"><div class="claim-reading"><strong>returning worker</strong> <span>protects from embarrassment →</span> <strong>companion without bread</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">כי היכי דלא ליכסיף</blockquote></div><div class="claim"><div class="claim-reading"><strong>Shmuel</strong> <span>states →</span> <strong>charity saves from death</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">נפק שמואל ודרש: ״וצדקה תציל ממות״</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The role of Avlet is not supplied by his name alone. Do not infer a sage classification or biography from this passage.</li></ul></div>
+
+<p class="meta">Read: Shabbat 156b:2 · Shabbat 156b:3. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Shabbat.156b.2" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="akiva-daughter" data-search="shabbat 156b:4 a daughter survives a predicted death and reports feeding a poor man. include passages with no saved name pair. a father/daughter claim and several conversations can exist even when only one dictionary name is found. unnamed-women groups prediction דרבי עקיבא הויא ליה ברתא אמרי ליה כלדאי: ההוא יומא דעיילה לבי גננא, טריק לה חיויא, ומיתא אמר לה אבוה: מאי עבדת? שקלתיה לריסתנאי דיהבת לי, יהבתיה ניהליה נפק רבי עקיבא ודרש: ״וצדקה תציל ממות״">
+<summary><span class="ref">Shabbat 156b:4</span><strong>A daughter survives a predicted death and reports feeding a poor man.</strong></summary>
+<div class="case-body"><p class="lesson">Include passages with no saved name pair. A father/daughter claim and several conversations can exist even when only one dictionary name is found.</p>
+<div class="meta">Proposed episode tag: aggadic · 2 source segment(s) · 0 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> No saved pair row in the selected passage or passages.</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rabbi Akiva’s daughter</strong> <span>child of →</span> <strong>Rabbi Akiva</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">דרבי עקיבא הויא ליה ברתא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Chaldean astrologers</strong> <span>predicts →</span> <strong>daughter’s fatal wedding-day snakebite</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמרי ליה כלדאי: ההוא יומא דעיילה לבי גננא, טריק לה חיויא, ומיתא</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Akiva</strong> <span>asks →</span> <strong>his daughter</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר לה אבוה: מאי עבדת?</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Akiva’s daughter</strong> <span>gives food to →</span> <strong>unnamed poor man</strong><small>her reported action</small></div><blockquote class="hebrew" lang="he" dir="rtl">שקלתיה לריסתנאי דיהבת לי, יהבתיה ניהליה</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Akiva</strong> <span>states →</span> <strong>charity saves from death</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">נפק רבי עקיבא ודרש: ״וצדקה תציל ממות״</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The groom is not named. Do not attach a named spouse from memory. The English translation’s worried subject differs from the masculine Hebrew הוה דאיג; no worried-person claim is accepted here.</li></ul></div>
+
+<p class="meta">Read: Shabbat 156b:4 · Shabbat 156b:5. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Shabbat.156b.4" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="hanan-grandson" data-search="taanit 23b:8 a maternal grandson is called “father” by visiting children. decompose maternal-grandchild wording into two family claims through an unnamed mother. treat “father” in an address as an address, not automatic biological kinship. keep sender and delegation roles separate. nested-family groups figurative-kinship חנן הנחבא בר ברתיה דחוני המעגל הוה בר ברתיה דחוני המעגל הוו משדרי רבנן ינוקי דבי רב לגביה ינוקי דבי רב לגביה אבא, אבא, הב לן מיטרא!">
+<summary><span class="ref">Taanit 23b:8</span><strong>A maternal grandson is called “father” by visiting children.</strong></summary>
+<div class="case-body"><p class="lesson">Decompose maternal-grandchild wording into two family claims through an unnamed mother. Treat “father” in an address as an address, not automatic biological kinship. Keep sender and delegation roles separate.</p>
+<div class="meta">Proposed episode tag: aggadic · 1 source segment(s) · 0 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> No saved pair row in the selected passage or passages.</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Hanan HaNehba</strong> <span>child of →</span> <strong>Honi’s unnamed daughter</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">חנן הנחבא בר ברתיה דחוני המעגל הוה</blockquote></div><div class="claim"><div class="claim-reading"><strong>Honi’s unnamed daughter</strong> <span>child of →</span> <strong>Honi HaMeaggel</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">בר ברתיה דחוני המעגל</blockquote></div><div class="claim"><div class="claim-reading"><strong>sages</strong> <span>sends →</span> <strong>children’s visit to Hanan</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">הוו משדרי רבנן ינוקי דבי רב לגביה</blockquote></div><div class="claim"><div class="claim-reading"><strong>schoolchildren</strong> <span>participates in →</span> <strong>children’s visit to Hanan</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">ינוקי דבי רב לגביה</blockquote></div><div class="claim"><div class="claim-reading"><strong>schoolchildren</strong> <span>addresses →</span> <strong>Hanan HaNehba</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אבא, אבא, הב לן מיטרא!</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The mother’s personal name is not given. The children’s wording does not make them Hanan’s children.</li></ul></div>
+
+<p class="meta">Read: Taanit 23b:8. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Taanit.23b.8" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="changing-teachers" data-search="taanit 23b:15 a student leaves one teacher and identifies himself to another. build episodes across daf boundaries. a later speaker can explicitly identify an earlier pronoun. store starts/stops for study relationships; do not project all named teachers into one meeting. cross-page-dialogue identity nested-quotes רבי יוסי בר אבין הוה שכיח קמיה דרבי יוסי דמן יוקרת שבקיה ואתא לקמיה דרב אשי יומא חד שמעיה דקא גריס, אמר שמואל אמר ליה: אנא ניהו">
+<summary><span class="ref">Taanit 23b:15</span><strong>A student leaves one teacher and identifies himself to another.</strong></summary>
+<div class="case-body"><p class="lesson">Build episodes across daf boundaries. A later speaker can explicitly identify an earlier pronoun. Store starts/stops for study relationships; do not project all named teachers into one meeting.</p>
+<div class="meta">Proposed episode tag: mixed · 3 source segment(s) · 2 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רבי יוסי בר אבין / ר&#x27; יוסי: before, ר&#x27; יוסי / רב אשי: none</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rabbi Yosei bar Avin</strong> <span>sits before →</span> <strong>Rabbi Yosei of Yokrat</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">רבי יוסי בר אבין הוה שכיח קמיה דרבי יוסי דמן יוקרת</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Yosei bar Avin</strong> <span>leaves →</span> <strong>study before Rabbi Yosei of Yokrat</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">שבקיה</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Yosei bar Avin</strong> <span>comes before →</span> <strong>Rav Ashi</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">ואתא לקמיה דרב אשי</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Ashi</strong> <span>quotes →</span> <strong>Shmuel</strong><small>speaker carried from the preceding page</small></div><blockquote class="hebrew" lang="he" dir="rtl">יומא חד שמעיה דקא גריס, אמר שמואל</blockquote></div><div class="claim"><div class="claim-reading"><strong>current interlocutor</strong> <span>self identifies as →</span> <strong>Rabbi Yosei ben Rabbi Avin</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר ליה: אנא ניהו</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>הוה שכיח קמיה states regular attendance, not a formal appointment as student. The printed bar Avin/ben Rabbi Avin difference remains visible even when this episode identifies the speaker.</li></ul></div>
+
+<p class="meta">Read: Taanit 23b:15 · Taanit 24a:1 · Taanit 24a:2. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Taanit.23b.15" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="abaye-elder" data-search="sanhedrin 7a:5 an epithet was read as a second name. repair the mention span אביי קשישא before creating claims. an epithet is a name component, not a second person or a same-person edge. one-name negative-control אביי קשישא אמר: דמי לגודא דגמלא, כיון דקם – קם.">
+<summary><span class="ref">Sanhedrin 7a:5</span><strong>An epithet was read as a second name.</strong></summary>
+<div class="case-body"><p class="lesson">Repair the mention span אביי קשישא before creating claims. An epithet is a name component, not a second person or a same-person edge.</p>
+<div class="meta">Proposed episode tag: aggadic · 2 source segment(s) · 2 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רב המנונא / רב המנונא: same-man, אביי / קשישא: one-name</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Abaye the Elder</strong> <span>states →</span> <strong>quarrel compared to a plank in a bridge</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אביי קשישא אמר: דמי לגודא דגמלא, כיון דקם – קם.</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>Do not merge this speaker into the familiar Abaye solely because the base name matches. The passage does not settle that historical identity.</li><li>The preceding Rav Huna analogy is relevant context, but adjacency alone does not prove that either speaker addresses the other.</li></ul></div>
+
+<p class="meta">Read: Sanhedrin 7a:5 · Sanhedrin 7a:6. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Sanhedrin.7a.5" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="hiyya-rabba" data-search="jerusalem talmud berakhot 1:1:21 “the great” belongs to rabbi hiyya’s name in a walking scene. keep epithets and their spelling variants inside one person mention. record a shared travel event with its place, and a separate directed speech claim. embedded biblical characters are not participants in that walk. one-name place nonadjacent-dialogue רבי חייא רבא ורבי שמעון בן חלפתא הוו מהלכין רבי חייא רבא ורבי שמעון בן חלפתא הוו מהלכין בהדא בקעת ארבל בקריצתה אמר רבי חייא רבה לרבי שמעון בן חלפתא">
+<summary><span class="ref">Jerusalem Talmud Berakhot 1:1:21</span><strong>“The Great” belongs to Rabbi Hiyya’s name in a walking scene.</strong></summary>
+<div class="case-body"><p class="lesson">Keep epithets and their spelling variants inside one person mention. Record a shared travel event with its place, and a separate directed speech claim. Embedded biblical characters are not participants in that walk.</p>
+<div class="meta">Proposed episode tag: aggadic · 1 source segment(s) · 4 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רבי חייא / רבא: one-name, רבא / רבי שמעון בן חלפתא: together, רבי חייא / רבה: one-name, רבה / ר&#x27; שמעון בן חלפתא: addresses</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Rabbi Hiyya the Great</strong> <span>participates in →</span> <strong>dawn walk</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">רבי חייא רבא ורבי שמעון בן חלפתא הוו מהלכין</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Shimon ben Halafta</strong> <span>participates in →</span> <strong>dawn walk</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">רבי חייא רבא ורבי שמעון בן חלפתא הוו מהלכין</blockquote></div><div class="claim"><div class="claim-reading"><strong>dawn walk</strong> <span>occurs at →</span> <strong>Arbel valley</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">בהדא בקעת ארבל בקריצתה</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Hiyya the Great</strong> <span>addresses →</span> <strong>Rabbi Shimon ben Halafta</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר רבי חייא רבה לרבי שמעון בן חלפתא</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The same paragraph has רבא then רבה. This supports a within-passage spelling link, not a link to the Babylonian Rava or Rabba.</li><li>The biblical narrative about Mordecai and Haman is quoted analogy, outside the walking scene.</li></ul></div>
+
+<p class="meta">Read: Jerusalem Talmud Berakhot 1:1:21. Edition(s): The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015.</p>
+<a href="https://www.sefaria.org/Jerusalem_Talmud_Berakhot.1.1.21" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="woman-or-tractate" data-search="eruvin 53b:14 an indirect answer may describe a woman or a tractate. an alternative may change the type of an argument and the possible claims, not just a name. do not make a wife or a marriage link unconditional when another reading is about study. argument-type-alternatives groups speech-about-absent-person אמרו ליה רבנן לרבי אבהו: הצפיננו היכן רבי אלעאי צפון אמר להן: עלץ בנערה אהרונית אחרונית עירנית והנעירתו היכן רבי אלעאי צפון אמרי לה אשה ואמרי לה מסכתא">
+<summary><span class="ref">Eruvin 53b:14</span><strong>An indirect answer may describe a woman or a tractate.</strong></summary>
+<div class="case-body"><p class="lesson">An alternative may change the type of an argument and the possible claims, not just a name. Do not make a wife or a marriage link unconditional when another reading is about study.</p>
+<div class="meta">Proposed episode tag: aggadic · 3 source segment(s) · 1 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רבי אבהו / רבי אלעאי: none</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>sages</strong> <span>asks →</span> <strong>Rabbi Abbahu</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמרו ליה רבנן לרבי אבהו: הצפיננו היכן רבי אלעאי צפון</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Abbahu</strong> <span>answers →</span> <strong>sages</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר להן: עלץ בנערה אהרונית אחרונית עירנית והנעירתו</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rabbi Abbahu’s answer</strong> <span>speaks about →</span> <strong>Rabbi Elai</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">היכן רבי אלעאי צפון</blockquote></div><div class="claim"><div class="claim-reading"><strong>נערה אהרונית אחרונית עירנית</strong> <span>refers to →</span> <strong>a woman</strong><small>meaning-A</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמרי לה אשה</blockquote></div><div class="claim"><div class="claim-reading"><strong>נערה אהרונית אחרונית עירנית</strong> <span>refers to →</span> <strong>a tractate</strong><small>meaning-B</small></div><blockquote class="hebrew" lang="he" dir="rtl">ואמרי לה מסכתא</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>The translation explains a second marriage in the woman branch and a tractate of Kodashim in the study branch. Those details are explanations, not all explicit in the short Hebrew.</li><li>Rabbi Elai is being asked about; the passage does not put him in the conversation.</li></ul></div>
+
+<p class="meta">Read: Eruvin 53b:14 · Eruvin 53b:15 · Eruvin 53b:16. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Eruvin.53b.14" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="ravin-my-brother" data-search="bava metzia 107a:7 a full patronymic and a friendly “my brother” do different jobs. one-name repair and nested father extraction must both survive. add a kinship-use field distinguishing literal family statements from forms of address such as אחי. one-name nested-family figurative-kinship רבין בר רב נחמן אמר ליה רב יהודה לרבין בר רב נחמן נהוג בני מצרא: אילן הנוטה לכאן – לכאן, והנוטה לכאן – לכאן.">
+<summary><span class="ref">Bava Metzia 107a:7</span><strong>A full patronymic and a friendly “my brother” do different jobs.</strong></summary>
+<div class="case-body"><p class="lesson">One-name repair and nested father extraction must both survive. Add a kinship-use field distinguishing literal family statements from forms of address such as אחי.</p>
+<div class="meta">Proposed episode tag: halachic · 1 source segment(s) · 3 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רב יהודה / רבין: addresses, רבין / ר&quot;נ: one-name, ר&quot;נ / רבין: kin</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>Ravin bar Rav Nahman</strong> <span>child of →</span> <strong>Rav Nahman</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">רבין בר רב נחמן</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Yehuda</strong> <span>addresses →</span> <strong>Ravin bar Rav Nahman</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמר ליה רב יהודה לרבין בר רב נחמן</blockquote></div><div class="claim"><div class="claim-reading"><strong>Rav Yehuda</strong> <span>states →</span> <strong>neighbors’ custom for leaning trees</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">נהוג בני מצרא: אילן הנוטה לכאן – לכאן, והנוטה לכאן – לכאן.</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>רבין אחי alone does not establish that Rav Yehuda and Ravin are biological brothers.</li><li>The saved abbreviated Rav Nahman mention and the expanded source edition should be linked by version-aware offsets, not assumed identical character positions.</li></ul></div>
+
+<p class="meta">Read: Bava Metzia 107a:7. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Bava_Metzia.107a.7" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details><details class="case" id="household-servant" data-search="moed katan 17a:13 an unnamed servant imposes a ban on an unnamed father. store the servant and the unnamed father/son even without a sage pair. a household affiliation is neither kinship nor proof that the household’s named head is present. preserve bans as actions with agent and target. unnamed-women unnamed-men long-tail-actions household שפחה של בית רבי לההוא גברא דהוה מחי לבנו גדול דהוה מחי לבנו גדול אמרה: ליהוי ההוא גברא בשמתא דקעבר משום ״ולפני עור לא תתן מכשול״">
+<summary><span class="ref">Moed Katan 17a:13</span><strong>An unnamed servant imposes a ban on an unnamed father.</strong></summary>
+<div class="case-body"><p class="lesson">Store the servant and the unnamed father/son even without a sage pair. A household affiliation is neither kinship nor proof that the household’s named head is present. Preserve bans as actions with agent and target.</p>
+<div class="meta">Proposed episode tag: mixed · 1 source segment(s) · 1 saved pair row(s)</div>
+<p class="saved"><strong>Saved labels:</strong> רבי / רבי: same-man</p>
+<h3>Claims this reading would keep</h3><div class="claim"><div class="claim-reading"><strong>unnamed female servant</strong> <span>affiliated with →</span> <strong>Rabbi’s household</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">שפחה של בית רבי</blockquote></div><div class="claim"><div class="claim-reading"><strong>unnamed adult son</strong> <span>child of →</span> <strong>unnamed father</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">לההוא גברא דהוה מחי לבנו גדול</blockquote></div><div class="claim"><div class="claim-reading"><strong>unnamed father</strong> <span>strikes →</span> <strong>unnamed adult son</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">דהוה מחי לבנו גדול</blockquote></div><div class="claim"><div class="claim-reading"><strong>unnamed female servant</strong> <span>imposes ban on →</span> <strong>unnamed father</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">אמרה: ליהוי ההוא גברא בשמתא</blockquote></div><div class="claim"><div class="claim-reading"><strong>servant’s stated reason</strong> <span>invokes →</span> <strong>the prohibition on placing a stumbling block</strong><small>proposed reading</small></div><blockquote class="hebrew" lang="he" dir="rtl">דקעבר משום ״ולפני עור לא תתן מכשול״</blockquote></div>
+<div class="uncertain"><strong>What stays open</strong><ul><li>בית רבי is a household label. The passage does not name this woman or place Rabbi in the scene.</li><li>The text states that the servant declares a ban; its institutional force is discussed in the surrounding passage and should have its own evidence.</li></ul></div>
+
+<p class="meta">Read: Moed Katan 17a:13. Edition(s): William Davidson Edition - Vocalized Aramaic.</p>
+<a href="https://www.sefaria.org/Moed_Katan.17a.13" target="_blank" rel="noopener">Read source on Sefaria ↗</a>
+</div></details></section>
+
+<section id="next"><span class="eyebrow">The updated plan</span><h2>Check a small passage reader before the full reread.</h2>
+<div class="callout"><strong>Where the study is saved.</strong><p>DuckLake snapshot 3 on R2 holds 273,208 source passages, 57,857 earlier pair readings, these 30 detailed cases, the 42-passage pilot and the close reading of 38 difficult passages. All 29 tables matched when read back. The seven relation families are our accepted starting categories.</p><p>Every snapshot keeps the earlier ones unchanged. Evidence packs and accepted graph decisions come next. <a href="../lake/README.md">How to read and save the shared study</a> · <a href="../followup-v1/report.html">Open the close-reading report</a></p></div>
+<ol class="stages">
+<li><div><strong>Define the records.</strong><p>Mentions, local participants, claims, branches, packs and decisions need clear meanings. This gives the next reader a place to save each finding.</p></div></li>
+<li><div><strong>Make a checked sample.</strong><p>Use these difficult examples and a separate random sample. Include passages with no old pair row so missing people can be found.</p></div></li>
+<li><div><strong>Read whole episodes.</strong><p>Keep enough context to resolve pronouns and replies, including across a daf boundary. Save failures and unfinished passages visibly.</p></div></li>
+<li><div><strong>Build packs and review decisions.</strong><p>Collect supporting and opposing evidence. Preserve choices that depend on each other. Measure mistakes before accepting links automatically.</p></div></li>
+<li><div><strong>Reread the sources at scale.</strong><p>Resume safely, check every saved output, and keep the new run beside the old one.</p></div></li>
+<li><div><strong>Resolve people, then add dates and biographies.</strong><p>Keep several candidates where needed. Outside sources become evidence in the pack. Every graph edge should open its sources and decision history.</p></div></li>
+</ol>
+<p><strong>Next implementation task:</strong> the record contract and a reviewed pilot set. This review updated the plan and reports; it has not rerun the full source collection or populated a new graph.</p>
+<p><a href="relationship-ontology.md">Read the complete written plan</a> · <a href="../data/checkpoint/relation-cases-report.html">Open the earlier ten-case report</a></p>
+<details class="support"><summary>How this fits the existing systems</summary><p>Talmud and Tanach already share text addresses, anchors, typed artifacts and protection for human corrections. Use those. Add claim, branch, pack and decision records, with a revision history.</p><p>Reuse Prophex’s evidence-pack pattern: sources first, reasons attached, missing evidence visible. Map the meanings to <a href="https://snapdrgn.net/cookbook.html">SNAP:DRGN</a> for ancient person records, <a href="https://www.w3.org/TR/prov-o/">PROV-O</a> for provenance, and <a href="https://cidoc-crm.org/crminf">CRMinf</a> for premises and conclusions. These are proposed mappings, not a claim that conformance is already built.</p></details>
+</section>
+
+<section id="checks"><span class="eyebrow">What was checked</span><h2>The review changed the plan, not the accuracy score.</h2>
+<div class="scroll"><table><thead><tr><th>Review</th><th>What it found</th><th>What stays open</th></tr></thead><tbody>
+<tr><td>12 new argument and attribution cases</td><td>Nested speech, alternatives, unresolved negation and questions later answered</td><td>Editorial signs and the scope of some later replies</td></tr>
+<tr><td>18 new story and family cases</td><td>Missing women, compound family paths, changing roles and figurative kinship</td><td>Some pronouns and whether distant passages name the same person</td></tr>
+<tr><td>Independent rereading of 3 new cases</td><td>Supported the main fixes; added Yad Ramah evidence and narrower claims</td><td>The marked Hebrew is still preserved; the extra reading does not erase it</td></tr>
+<tr><td>6 earlier cases checked again</td><td>Found nested alternatives, missing teacher claims and the two Yirmeya identities</td><td>No new historical identity or event probability was established</td></tr>
+</tbody></table></div>
+<details class="support"><summary>Corrections to the six earlier examples</summary><div class="scroll"><table><thead><tr><th>Passage</th><th>Correction or qualification</th></tr></thead><tbody><tr><td>Gittin 50a:5</td><td>Keep separate mention IDs, with a plausible same-person candidate for the two Rav Nachman mentions. Do not convert that caution into a claim that there were two different men. Reporting in someone’s name does not itself establish direct hearing, a meeting, or a teacher relationship.</td></tr><tr><td>Arakhin 20b:9</td><td>The problem is the kind and scope of the claim, not only the speaker. In the natural version-B reading, Hisda’s reply does confirm the attribution to Meir. That is still not a ruling like Meir or a personal allegiance. Record reply roles within each version, and retain the translation’s choice of Abaye as a separate rendering.</td></tr><tr><td>Arakhin 13b:4</td><td>A shorter attribution and a longer transmission chain can both describe the same history. The source presents alternatives in how the teaching is reported. It does not assert that Rav Huna never taught it directly if Rav Zavdi also transmitted it. Store textual alternatives without automatically making their historical claims mutually exclusive.</td></tr><tr><td>Pesachim 37a:4</td><td>Add the teacher claims. They have explicit support beyond the ordinary asks relation. Keep רבי and its resolving name inside their own version; do not join them globally just because the word is spelled the same. The identification of רבינו הקדוש with Judah HaNasi is an identity assertion with provenance, not the literal name printed here.</td></tr><tr><td>Jerusalem Talmud Berakhot 1:5:14</td><td>Do not call Yohanan-to-Jeremiah chronologically backwards without stating which Jeremiah is meant. Guggenheimer expressly chooses an earlier Jeremiah. The current plan’s reference to the usual identities hides a disputed identity premise. Present the two identity proposals with the two readings and leave the historical decision open.</td></tr><tr><td>Bava Batra 12b:6</td><td>Create a local referent for the daughter, then allow a separate sourced decision about which historical person she is. The episode illustrates prophecy given to children, introduced in 12b:3. It should therefore be tagged aggadic despite appearing on a page that also discusses law. Preserve the reported scene without treating the genre as proof or disproof of the meeting.</td></tr></tbody></table></div></details>
+<details class="support"><summary>The current labels and their counts</summary><p>57,857 nearby-pair rows use 18,455 wording patterns. The top 100 patterns cover 28,276 rows (49%). The top 500 cover 34,792 rows (60%). These are saved labels, not verified relationships.</p><div class="scroll"><table><thead><tr><th>Saved label</th><th class="num">Rows</th></tr></thead><tbody><tr><td>cites<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="300.000" height="6" fill="var(--green)"/></svg></td><td class="num">15,389</td></tr><tr><td>disputes<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="208.961" height="6" fill="var(--green)"/></svg></td><td class="num">10,719</td></tr><tr><td>same-man<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="109.130" height="6" fill="var(--green)"/></svg></td><td class="num">5,598</td></tr><tr><td>none<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="104.217" height="6" fill="var(--green)"/></svg></td><td class="num">5,346</td></tr><tr><td>explains<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="87.062" height="6" fill="var(--green)"/></svg></td><td class="num">4,466</td></tr><tr><td>together<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="75.405" height="6" fill="var(--green)"/></svg></td><td class="num">3,868</td></tr><tr><td>addresses<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="61.271" height="6" fill="var(--green)"/></svg></td><td class="num">3,143</td></tr><tr><td>follows<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="51.621" height="6" fill="var(--green)"/></svg></td><td class="num">2,648</td></tr><tr><td>asks<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="29.729" height="6" fill="var(--green)"/></svg></td><td class="num">1,525</td></tr><tr><td>kin<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="24.602" height="6" fill="var(--green)"/></svg></td><td class="num">1,262</td></tr><tr><td>juxtaposed<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="23.140" height="6" fill="var(--green)"/></svg></td><td class="num">1,187</td></tr><tr><td>before<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="19.027" height="6" fill="var(--green)"/></svg></td><td class="num">976</td></tr><tr><td>alternative<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="16.336" height="6" fill="var(--green)"/></svg></td><td class="num">838</td></tr><tr><td>one-name<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="8.051" height="6" fill="var(--green)"/></svg></td><td class="num">413</td></tr><tr><td>teacher<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="5.458" height="6" fill="var(--green)"/></svg></td><td class="num">280</td></tr><tr><td>open<svg class="bar-chart" viewBox="0 0 300 6" aria-hidden="true"><rect width="3.879" height="6" fill="var(--green)"/></svg></td><td class="num">199</td></tr></tbody></table></div></details>
+<div class="callout"><strong>Source checks passed.</strong><p>The quoted claims were checked against the saved Hebrew, with offsets checked where supplied. The source text hashes match. The new focal cases do not repeat the earlier ten. This verifies the saved evidence, not every proposed interpretation.</p></div>
+</section>
+<footer class="footer"><p>Sources: local Hebrew snapshots used by the study; Sefaria Hebrew and named translations; the commentaries linked in the case review files. The examples were selected to expose different failures. No prevalence estimate or calibrated historical probability is claimed. The saved review data includes editions, licences, source links and remaining questions.</p></footer>
+</main><script>
+const root=document.documentElement;
+document.getElementById('theme').addEventListener('click',function(){const dark=root.dataset.theme==='dark'||(!root.dataset.theme&&matchMedia('(prefers-color-scheme: dark)').matches);root.dataset.theme=dark?'light':'dark';});
+const cases=Array.from(document.querySelectorAll('details.case'));
+cases.forEach(function(el){el.addEventListener('toggle',function(){if(el.open&&!root.dataset.printing)cases.forEach(function(other){if(other!==el)other.open=false;});});});
+document.getElementById('search').addEventListener('input',function(){const q=this.value.trim().toLowerCase();let n=0;cases.forEach(function(el){const show=!q||el.dataset.search.includes(q);el.hidden=!show;if(show)n++;});document.getElementById('visible-count').textContent=n+' cases shown';});
+function revealHash(){const el=document.getElementById(location.hash.slice(1));if(el&&el.matches('details.case')){document.getElementById('search').value='';cases.forEach(function(c){c.hidden=false;});document.getElementById('visible-count').textContent=cases.length+' cases shown';el.open=true;}}
+window.addEventListener('hashchange',revealHash);revealHash();
+let printState=[];window.addEventListener('beforeprint',function(){root.dataset.printing='true';printState=Array.from(document.querySelectorAll('details')).map(function(el){const state=[el,el.open];el.open=true;return state;});});window.addEventListener('afterprint',function(){printState.forEach(function(pair){pair[0].open=pair[1];});setTimeout(function(){delete root.dataset.printing;},0);});
+</script></body></html>

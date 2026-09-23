@@ -1,0 +1,1138 @@
+{
+  "job_id": "challenge-15",
+  "focal_ref": "Berakhot 10a:2",
+  "status": "researched",
+  "question": "In Berakhot 10a:2-4 (Rabbi Meir, his wife Berurya and the troublemakers in his neighbourhood), which graph claims are explicit in the Aramaic, which rest on interpretation (who speaks 10a:3, who prays in 10a:4, whether the first prayer was completed), and what do parallels, manuscripts, translations and commentaries add or leave open?",
+  "scope_checked": "Checked: Berakhot 9b:26-31 and 10a:1-10 (William Davidson Vocalized Aramaic and English; Wikisource; the William Davidson Aramaic and A. Cohen's 1921 English for 10a:2-7); Rashi, Steinsaltz, Tosafot HaRosh, Chokhmat Shlomo, Haggahot Ya'avetz, Ben Yehoyada, Tzelach, Maharsha, Meiri and Cohen's footnotes on 10a; Psalms 104:35 (Masoretic text, JPS) with Rashi; the Midrash Tehillim 104:22 parallel; two Ein Yaakov texts (Daat and Glick); Avodah Zarah 18a:14; Munich Cod. hebr. 95 page 0282 (visual reading only). Not checked: other manuscripts (Florence, Paris, Oxford and the Genizah fragments), the Goldschmidt German (the request returned no text), the Goodblatt 1975 article (not accessible), and other Berurya passages (Pesachim 62b, Eruvin 53b-54a, the Tosefta). Conclusions are limited to these sources.",
+  "sources": [
+    {
+      "source_id": "pilot_input",
+      "input_path": "research/sage-network/pilot/inputs/challenge-15.json",
+      "edition": "Pilot source job: William Davidson Edition - Vocalized Aramaic (unvocalized form), Berakhot 10a:2-4",
+      "fetched_at": null,
+      "saved_file": "../../../pilot/inputs/challenge-15.json",
+      "sha256": "ab70106843d28911ae705aceae1d4841ae9098f330927a7425d345178a87fbd2",
+      "kind": "text"
+    },
+    {
+      "source_id": "pilot_output",
+      "input_path": "research/sage-network/pilot/outputs/challenge-15.json",
+      "edition": "First saved reading (passage-pilot-v1)",
+      "fetched_at": null,
+      "saved_file": "../../../pilot/outputs/challenge-15.json",
+      "sha256": "8ab7d81c30feb6c896a2fd6f4cbb066be1fec1a0850578a0a66c1b54c3cad04f",
+      "kind": "text"
+    },
+    {
+      "source_id": "prev_review",
+      "input_path": "research/sage-network/followup-v1/cases/challenge-15/previous-review.json",
+      "edition": "Earlier independent review",
+      "fetched_at": null,
+      "saved_file": "previous-review.json",
+      "sha256": "37d315983483dba3a6fc145bea80e407cf0c0bdbf578b2be590c75c18b506281",
+      "kind": "text"
+    },
+    {
+      "source_id": "ber10a",
+      "url": "https://www.sefaria.org/api/v3/texts/Berakhot.10a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&version=hebrew%7CWikisource%20Talmud%20Bavli",
+      "edition": "Sefaria v3 Berakhot 10a: William Davidson Edition - Vocalized Aramaic; William Davidson Edition - English (Koren Noé); Wikisource Talmud Bavli",
+      "fetched_at": "2026-09-23T08:40:01Z",
+      "saved_file": "sources/ber10a_v3.json",
+      "sha256": "c7d9bacff0267c42b02d55513c5cf579cbbb88d7b77efd0ff5e39717151c76d4",
+      "kind": "text"
+    },
+    {
+      "source_id": "ber10a_cohen",
+      "url": "https://www.sefaria.org/api/v3/texts/Berakhot.10a.2-7?version=english%7CTractate%20Berakot%20by%20A.%20Cohen,%20Cambridge%20University%20Press,%201921&version=english%7CTalmud%20Bavli.%20German%20trans.%20by%20Lazarus%20Goldschmidt,%201929%20%5Bde%5D&version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Aramaic",
+      "edition": "Sefaria v3 Berakhot 10a:2-7: Tractate Berakot by A. Cohen (Cambridge 1921) English; William Davidson Edition - Aramaic. (The German Goldschmidt version requested in the same call was not returned.)",
+      "fetched_at": "2026-09-23T08:41:07Z",
+      "saved_file": "sources/ber10a2-7_cohen_goldschmidt.json",
+      "sha256": "ffb1805a1fa026fe95c79edb63b7f4e2dcda982e0d3fefa0792a217621f24641",
+      "kind": "text"
+    },
+    {
+      "source_id": "goldschmidt_fail",
+      "url": "https://www.sefaria.org/api/v3/texts/Berakhot.10a.2-4?version=english%7CTalmud%20Bavli.%20German%20trans.%20by%20Lazarus%20Goldschmidt%2C%201929%20%5Bde%5D",
+      "edition": "Sefaria v3 request for the Goldschmidt German translation of Berakhot 10a:2-4; the response is a 'version not found' warning, so this translation was NOT checked",
+      "fetched_at": "2026-09-23T08:41:24Z",
+      "saved_file": "sources/ber10a2-4_goldschmidt.json",
+      "sha256": "fd772e6e45bd999cfe02fb0f18fc378125a1c6ba90e2e94e956d9cb604992110",
+      "kind": "text"
+    },
+    {
+      "source_id": "ber9b",
+      "url": "https://www.sefaria.org/api/v3/texts/Berakhot.9b?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English",
+      "edition": "Sefaria v3 Berakhot 9b: William Davidson Vocalized Aramaic and English (context before the story)",
+      "fetched_at": "2026-09-23T08:40:46Z",
+      "saved_file": "sources/ber9b_v3.json",
+      "sha256": "b4bb329829e7e3cf4a9f5d007961803cfbc42977ed41ce92e81e0c852cb4d07f",
+      "kind": "text"
+    },
+    {
+      "source_id": "links",
+      "url": "https://www.sefaria.org/api/links/Berakhot.10a.2-4?with_text=0",
+      "edition": "Sefaria links index for Berakhot 10a:2-4",
+      "fetched_at": "2026-09-23T08:40:02Z",
+      "saved_file": "sources/ber10a2-4_links.json",
+      "sha256": "4841c597cda429b1143379bb2da1a4fc02ac80f0c6221a1027e60fe32910b74b",
+      "kind": "text"
+    },
+    {
+      "source_id": "related",
+      "url": "https://www.sefaria.org/api/related/Berakhot.10a.2",
+      "edition": "Sefaria related-content index for Berakhot 10a:2 (not quoted)",
+      "fetched_at": "2026-09-23T08:40:02Z",
+      "saved_file": "sources/ber10a2_related.json",
+      "sha256": "b7d56e968d18353fbe7beb953b9ddfe24507ab3e96a6b6dac1e02416f6b93bd5",
+      "kind": "text"
+    },
+    {
+      "source_id": "versions",
+      "url": "https://www.sefaria.org/api/texts/versions/Berakhot",
+      "edition": "Sefaria list of Berakhot text versions (not quoted)",
+      "fetched_at": "2026-09-23T08:40:49Z",
+      "saved_file": "sources/ber_versions.json",
+      "sha256": "0723c9011a1f2d6e4c10a70c920174132a8d4d59b665b79f56584d42bb4a166b",
+      "kind": "text"
+    },
+    {
+      "source_id": "rashi",
+      "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Berakhot.10a.2-3",
+      "edition": "Rashi on Berakhot 10a:2-3, Vilna edition",
+      "fetched_at": "2026-09-23T08:40:43Z",
+      "saved_file": "sources/rashi_ber10a2-3.json",
+      "sha256": "a370e9d97747b02ef7026d08763ba8ec78f06acb50ad921b16e62f569ccb4312",
+      "kind": "text"
+    },
+    {
+      "source_id": "steinsaltz",
+      "url": "https://www.sefaria.org/api/v3/texts/Steinsaltz_on_Berakhot.10a.2-4",
+      "edition": "Steinsaltz Hebrew commentary on Berakhot 10a:2-4 (William Davidson Edition - Hebrew; same editorial project as the William Davidson English, so not an independent witness)",
+      "fetched_at": "2026-09-23T08:40:44Z",
+      "saved_file": "sources/steinsaltz_ber10a2-4.json",
+      "sha256": "e1f45de38f3e5cb01ffb3356a9b24cbd30f08a216fd8bc373c5e42d8e01ad9ce",
+      "kind": "text"
+    },
+    {
+      "source_id": "tosafot_harosh",
+      "url": "https://www.sefaria.org/api/v3/texts/Tosafot_HaRosh_on_Berakhot.10a.2-4",
+      "edition": "Tosafot HaRosh on Berakhot 10a:2-4, Warsaw 1863",
+      "fetched_at": "2026-09-23T08:40:44Z",
+      "saved_file": "sources/tosafot_harosh_ber10a2-4.json",
+      "sha256": "2a583b512abe43bc75531d9ac5e30f92823d6ca87d0167bad2bcdb505733878b",
+      "kind": "text"
+    },
+    {
+      "source_id": "chokhmat_shlomo",
+      "url": "https://www.sefaria.org/api/v3/texts/Chokhmat_Shlomo_on_Berakhot.10a.3",
+      "edition": "Chokhmat Shlomo on Berakhot 10a (on Rashi), Vilna edition",
+      "fetched_at": "2026-09-23T08:40:44Z",
+      "saved_file": "sources/chokhmat_shlomo_ber10a3.json",
+      "sha256": "0537d80cc28278635aba2a1253a6968d811366ce1b35971f9b7744d61efdc912",
+      "kind": "text"
+    },
+    {
+      "source_id": "yaavetz",
+      "url": "https://www.sefaria.org/api/v3/texts/Haggahot_Ya'avetz_on_Berakhot.10a.1",
+      "edition": "Haggahot Ya'avetz on Berakhot 10a, Sefaria text",
+      "fetched_at": "2026-09-23T08:40:45Z",
+      "saved_file": "sources/yaavetz_ber10a1.json",
+      "sha256": "b63f3fae98c7375a3831a43dac6d7b3b33a9e368674106fd6cdf641d407b7d0c",
+      "kind": "text"
+    },
+    {
+      "source_id": "ben_yehoyada",
+      "url": "https://www.sefaria.org/api/v3/texts/Ben_Yehoyada_on_Berakhot.10a.2",
+      "edition": "Ben Yehoyada on Berakhot 10a:2 (Senlake edition 2019 based on Jerusalem 1897)",
+      "fetched_at": "2026-09-23T08:40:44Z",
+      "saved_file": "sources/ben_yehoyada_ber10a2.json",
+      "sha256": "f71395b2993c591b792f9f96ea9218222d5ae281f3b4e4e7e1dafd07db600cc9",
+      "kind": "text"
+    },
+    {
+      "source_id": "tzelach",
+      "url": "https://www.sefaria.org/api/v3/texts/Tziyyun_LeNefesh_Chayyah_on_Berakhot.10a.2",
+      "edition": "Tziyyun LeNefesh Chayyah (Tzelach) on Berakhot 10a:2, Prague 1791",
+      "fetched_at": "2026-09-23T08:40:45Z",
+      "saved_file": "sources/tzelach_ber10a2.json",
+      "sha256": "870232410616669ad7f3d109bca0185d947fe3ce0f83331d287970847f8295f8",
+      "kind": "text"
+    },
+    {
+      "source_id": "maharsha",
+      "url": "https://www.sefaria.org/api/v3/texts/Chidushei_Agadot_on_Berakhot.10a",
+      "edition": "Maharsha, Chidushei Agadot on Berakhot 10a, Vilna edition",
+      "fetched_at": "2026-09-23T08:41:24Z",
+      "saved_file": "sources/maharsha_agadot_ber10a.json",
+      "sha256": "622d700bb15a2c645183dc6d8afe0dce1d52959c664350baf84a17f615531fe2",
+      "kind": "text"
+    },
+    {
+      "source_id": "cohen_fn",
+      "url": "https://www.sefaria.org/api/v3/texts/Abraham_Cohen_Footnotes_to_the_English_Translation_of_Masechet_Berakhot.10a.1-3",
+      "edition": "A. Cohen, footnotes to his English translation of Berakhot (Cambridge 1921), 10a notes 1-3",
+      "fetched_at": "2026-09-23T08:40:45Z",
+      "saved_file": "sources/cohen_footnotes_ber10a1-3.json",
+      "sha256": "2cdb1ea6682e37627c290671e2501d2fbe073938a0a88ec3375ba0a3b2f01c54",
+      "kind": "text"
+    },
+    {
+      "source_id": "meiri",
+      "url": "https://www.sefaria.org/api/v3/texts/Meiri_on_Berakhot.10a.1",
+      "edition": "Meiri on Berakhot 10a, Wikisource text",
+      "fetched_at": "2026-09-23T08:40:46Z",
+      "saved_file": "sources/meiri_ber10a1.json",
+      "sha256": "ecf2725fb92ee87d4488bbb359e855602f922af21dd6f9dfba14fb84df156b4b",
+      "kind": "text"
+    },
+    {
+      "source_id": "gilyon",
+      "url": "https://www.sefaria.org/api/v3/texts/Gilyon_HaShas_on_Berakhot.10a.1",
+      "edition": "Gilyon HaShas on Berakhot 10a, Vilna edition (not quoted)",
+      "fetched_at": "2026-09-23T08:40:46Z",
+      "saved_file": "sources/gilyon_hashas_ber10a1.json",
+      "sha256": "923d178b1774c543dab1fb102f26b367d369f44cfa3a9874fb4e562a5ed0a674",
+      "kind": "text"
+    },
+    {
+      "source_id": "chullin59b",
+      "url": "https://www.sefaria.org/api/v3/texts/Chullin.59b.10?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English",
+      "edition": "Sefaria v3 Chullin 59b:10 (a Mesorat HaShas link for the phrase pattern; not quoted)",
+      "fetched_at": "2026-09-23T08:40:47Z",
+      "saved_file": "sources/chullin59b10.json",
+      "sha256": "5d55bb25bf3ba9ca1a0e510f68229290d9f5725feb739d68fec86f9d944717ef",
+      "kind": "text"
+    },
+    {
+      "source_id": "psalms",
+      "url": "https://www.sefaria.org/api/v3/texts/Psalms.104.35?version=hebrew&version=english",
+      "edition": "Sefaria v3 Psalms 104:35: Miqra according to the Masorah; JPS Tanakh Gender-Sensitive Edition",
+      "fetched_at": "2026-09-23T08:43:50Z",
+      "saved_file": "sources/psalms104_35.json",
+      "sha256": "818d747fb70994f50c63f48eb9c26e33388cab9227e276c6eb43edd63c6b9d49",
+      "kind": "text"
+    },
+    {
+      "source_id": "rashi_ps",
+      "url": "https://www.sefaria.org/api/v3/texts/Rashi_on_Psalms.104.35",
+      "edition": "Rashi on Psalms 104:35, Sefaria vocalized edition",
+      "fetched_at": "2026-09-23T08:40:47Z",
+      "saved_file": "sources/rashi_psalms104_35.json",
+      "sha256": "8340c4738f6732d3d949c3206bca6a3d94ee8ab87f1e2064b215739b7e38de0a",
+      "kind": "text"
+    },
+    {
+      "source_id": "torah_temimah",
+      "url": "https://www.sefaria.org/api/v3/texts/Torah_Temimah_on_Psalms.104.35",
+      "edition": "Torah Temimah on Psalms 104:35 (quotes Berakhot 9b and 10a; not quoted here)",
+      "fetched_at": "2026-09-23T08:40:47Z",
+      "saved_file": "sources/torah_temimah_ps104_35.json",
+      "sha256": "a3e7b0bed89644ea37b353f8e707df68ed35b469f13d859a43d0383a5b6d0e01",
+      "kind": "text"
+    },
+    {
+      "source_id": "midrash_tehillim",
+      "url": "https://www.sefaria.org/api/v3/texts/Midrash_Tehillim.104.22?version=hebrew&version=english",
+      "edition": "Midrash Tehillim 104:22: Hebrew version titled OYW (source mobile.tora.ws, public domain) and Sefaria Community Translation (CC0)",
+      "fetched_at": "2026-09-23T08:45:08Z",
+      "saved_file": "sources/midrash_tehillim_104_22.json",
+      "sha256": "ca78f792eac492ca031fa395f94821d1c9dab9769e52a3e907924b6e2d66046b",
+      "kind": "text"
+    },
+    {
+      "source_id": "mt_links",
+      "url": "https://www.sefaria.org/api/links/Midrash_Tehillim.104.22?with_text=0",
+      "edition": "Sefaria links index for Midrash Tehillim 104:22 (not quoted)",
+      "fetched_at": "2026-09-23T08:45:10Z",
+      "saved_file": "sources/midrash_tehillim_104_22_links.json",
+      "sha256": "2a8b5683c1ec1ee7be8a574f073b12aec89a67cac7b97c7344779b7604fc0db1",
+      "kind": "text"
+    },
+    {
+      "source_id": "ey_daat",
+      "url": "https://www.sefaria.org/api/v3/texts/Ein_Yaakov%2C_Berakhot.1.63",
+      "edition": "Ein Yaakov, Berakhot 1:63, Sefaria version titled Daat (NLI 001911837)",
+      "fetched_at": "2026-09-23T08:45:09Z",
+      "saved_file": "sources/ein_yaakov_daat_ber_1_63.json",
+      "sha256": "995c0192084448511158dfe070e656a51db65c01fa3a81103c801fcc27fc30d9",
+      "kind": "text"
+    },
+    {
+      "source_id": "ey_glick",
+      "url": "https://www.sefaria.org/api/v3/texts/Ein_Yaakov_(Glick_Edition)%2C_Berakhot.1.45-1.50",
+      "edition": "Ein Yaakov (Glick Edition), Berakhot 1:45-50, Hebrew text of En Jacob, S. H. Glick 1916",
+      "fetched_at": "2026-09-23T08:41:41Z",
+      "saved_file": "sources/ey_glick_ber_1_45-50.json",
+      "sha256": "32bf1beb6fcdd3e7f1515c8a3340e6e1c41b8c25db68902d4ca9d1e5aebf7ddc",
+      "kind": "text"
+    },
+    {
+      "source_id": "ey_glick_probe",
+      "url": "https://www.sefaria.org/api/v3/texts/Ein_Yaakov_(Glick_Edition)%2C_Berakhot.1.52",
+      "edition": "Ein Yaakov (Glick Edition), Berakhot 1:52, fetched while locating the story (not quoted)",
+      "fetched_at": "2026-09-23T08:41:25Z",
+      "saved_file": "sources/ey_glick_probe.json",
+      "sha256": "c237f32b69962525bfdbf2c8dcceea5b48630759f276a7af99339f4eee890858",
+      "kind": "text"
+    },
+    {
+      "source_id": "az18a",
+      "url": "https://www.sefaria.org/api/v3/texts/Avodah_Zarah.18a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English&version=hebrew%7CWikisource%20Talmud%20Bavli",
+      "edition": "Sefaria v3 Avodah Zarah 18a: William Davidson Vocalized Aramaic and English; Wikisource Talmud Bavli",
+      "fetched_at": "2026-09-23T08:41:41Z",
+      "saved_file": "sources/az18a_v3.json",
+      "sha256": "5e0a621736cdf8fc3a0a5f0d270825e2d83e4eb1b7f8f2e87ce1e876a457e123",
+      "kind": "text"
+    },
+    {
+      "source_id": "sefer_chasidim_76",
+      "url": "https://www.sefaria.org/api/v3/texts/Sefer_Chasidim.76",
+      "edition": "Sefer Chasidim 76, Zhitomir 1857 (not quoted)",
+      "fetched_at": "2026-09-23T08:41:25Z",
+      "saved_file": "sources/sefer_chasidim_76.json",
+      "sha256": "34583fe49f26cd0eaed9ce3689b4712c8c13df876940a9a8b6a21b21ef6cb79b",
+      "kind": "text"
+    },
+    {
+      "source_id": "perush_kadmon",
+      "url": "https://www.sefaria.org/api/v3/texts/Perush_Kadmon_on_Sefer_Chasidim.76.1",
+      "edition": "Perush Kadmon on Sefer Chasidim 76:1, Jozefow 1870",
+      "fetched_at": "2026-09-23T08:41:25Z",
+      "saved_file": "sources/perush_kadmon_sch76.json",
+      "sha256": "13746ce4c1b67f32b14b4d3aa438b5737142c8402b65bae39c524b73b2d016ec",
+      "kind": "text"
+    },
+    {
+      "source_id": "sefer_chasidim_225",
+      "url": "https://www.sefaria.org/api/v3/texts/Sefer_Chasidim.225",
+      "edition": "Sefer Chasidim 225, Zhitomir 1857 (not quoted)",
+      "fetched_at": "2026-09-23T08:41:25Z",
+      "saved_file": "sources/sefer_chasidim_225.json",
+      "sha256": "2e60bdc407c4b296e9c466e937aa3a1c524cda0fa733e52449121d22bd5a6bb1",
+      "kind": "text"
+    },
+    {
+      "source_id": "mss_index",
+      "url": "https://www.sefaria.org/api/manuscripts/Berakhot.10a",
+      "edition": "Sefaria manuscripts index for Berakhot 10a",
+      "fetched_at": "2026-09-23T08:40:48Z",
+      "saved_file": "sources/ber10a_manuscripts.json",
+      "sha256": "44dcda1428c5985bb746b9ee17b1ac7d3ee91b8b614de5173711bd64a8412a4e",
+      "kind": "text"
+    },
+    {
+      "source_id": "munich95_282",
+      "url": "https://manuscripts.sefaria.org/munich-manuscript/munich-manuscript-95Cod.hebr.95pg.0282.jpg",
+      "edition": "Munich Cod. hebr. 95 (1342), page image 0282 (Berakhot 8b-10a), via Sefaria manuscripts",
+      "fetched_at": "2026-09-23T08:42:00Z",
+      "saved_file": "sources/munich95_pg0282.jpg",
+      "sha256": "45a3eb6318b6aa80e06f6d21b45bda09816be9a29ed6394002d6d3cb8cd2d0d8",
+      "kind": "image"
+    },
+    {
+      "source_id": "munich95_282_story",
+      "url": "https://manuscripts.sefaria.org/munich-manuscript/munich-manuscript-95Cod.hebr.95pg.0282.jpg",
+      "edition": "Crop of Munich 95 page 0282 showing the story lines (made locally, no resampling)",
+      "fetched_at": null,
+      "derived_from": "sources/munich95_pg0282.jpg",
+      "saved_file": "sources/munich95_pg0282_crop_story.jpg",
+      "sha256": "5c95697aece62807d2262aced18607d01c87dc58fbb60c202bebe11ba63b9679",
+      "kind": "image"
+    },
+    {
+      "source_id": "munich95_282_right",
+      "url": "https://manuscripts.sefaria.org/munich-manuscript/munich-manuscript-95Cod.hebr.95pg.0282.jpg",
+      "edition": "Enlarged crop, right half of the story lines, Munich 95 page 0282 (made locally)",
+      "fetched_at": null,
+      "derived_from": "sources/munich95_pg0282.jpg",
+      "saved_file": "sources/munich95_pg0282_crop_story_right_x2.jpg",
+      "sha256": "afdd97ec99929d13e428fd08676beca330cbb79065b86bbb0489912907f6af39",
+      "kind": "image"
+    },
+    {
+      "source_id": "munich95_282_left",
+      "url": "https://manuscripts.sefaria.org/munich-manuscript/munich-manuscript-95Cod.hebr.95pg.0282.jpg",
+      "edition": "Enlarged crop, left half of the story lines, Munich 95 page 0282 (made locally)",
+      "fetched_at": null,
+      "derived_from": "sources/munich95_pg0282.jpg",
+      "saved_file": "sources/munich95_pg0282_crop_story_left_x2.jpg",
+      "sha256": "9c30abdba9fa27fa54650d97a4203a3c54839be8193d43b5f4cb5414d04ae59d",
+      "kind": "image"
+    },
+    {
+      "source_id": "munich95_282_margin",
+      "url": "https://manuscripts.sefaria.org/munich-manuscript/munich-manuscript-95Cod.hebr.95pg.0282.jpg",
+      "edition": "Enlarged crop of the outer-margin note beside the story, Munich 95 page 0282 (made locally)",
+      "fetched_at": null,
+      "derived_from": "sources/munich95_pg0282.jpg",
+      "saved_file": "sources/munich95_pg0282_crop_margin.jpg",
+      "sha256": "ec24b3eceb69f4ffdd88efd7d5ad2c2fbc0df67c9be437d704ae31ea33fffa62",
+      "kind": "image"
+    },
+    {
+      "source_id": "munich95_282_interlinear",
+      "url": "https://manuscripts.sefaria.org/munich-manuscript/munich-manuscript-95Cod.hebr.95pg.0282.jpg",
+      "edition": "Enlarged crop of the interlinear writing above the prayer clause, Munich 95 page 0282 (made locally)",
+      "fetched_at": null,
+      "derived_from": "sources/munich95_pg0282.jpg",
+      "saved_file": "sources/munich95_pg0282_crop_interlinear.jpg",
+      "sha256": "fb143a7167da53a43a0ced7f84d7e2ff35e4c9d9841e04b76a84a0d287fd5bb5",
+      "kind": "image"
+    },
+    {
+      "source_id": "munich95_283",
+      "url": "https://manuscripts.sefaria.org/munich-manuscript/munich-manuscript-95Cod.hebr.95pg.0283.jpg",
+      "edition": "Munich Cod. hebr. 95, page image 0283 (Berakhot 10a-12a); used only to confirm the story is on 0282",
+      "fetched_at": "2026-09-23T08:42:01Z",
+      "saved_file": "sources/munich95_pg0283.jpg",
+      "sha256": "73779388819fe938effb517450b2f9266d5c51e4336c415b7ac0561f66ff83e2",
+      "kind": "image"
+    },
+    {
+      "source_id": "vilna_img",
+      "url": "https://manuscripts.sefaria.org/vilna-romm/Berakhot_10a.jpg",
+      "edition": "Romm Vilna print, Berakhot 10a page image (saved, not read)",
+      "fetched_at": "2026-09-23T08:42:02Z",
+      "saved_file": "sources/vilna_ber10a.jpg",
+      "sha256": "4314b9e796d3ad8922fba2ce90772706e7143de267fdfc809300906d54323a76",
+      "kind": "image"
+    },
+    {
+      "source_id": "bomberg_img",
+      "url": "https://manuscripts.sefaria.org/bomberg/masekhet_22_0024.jpg",
+      "edition": "Bomberg Venice print 1523, Berakhot 9b-10a page image (saved, not read)",
+      "fetched_at": "2026-09-23T08:42:03Z",
+      "saved_file": "sources/bomberg_ber9b-10a.jpg",
+      "sha256": "b719e9e03cf45dc310dac8ad0a989cad573f49545c7d1f7eadddca8206306ef1",
+      "kind": "image"
+    },
+    {
+      "source_id": "sefaria_search",
+      "url": "https://www.sefaria.org/api/search-wrapper (POST: query ברוריה, field naive_lemmatizer, filter path Midrash, size 60)",
+      "edition": "Sefaria search response (10 hits); used only to locate the Midrash Tehillim parallel and the Ein Yaakov copies",
+      "fetched_at": "2026-09-23T08:44:41Z",
+      "saved_file": "sources/search_bruriah_midrash.json",
+      "sha256": "b25e301352e468c99e5f773ec4b7fabd228839c20450038f7cb65cfc56cf74f5",
+      "kind": "text"
+    },
+    {
+      "source_id": "wikipedia",
+      "url": "https://en.wikipedia.org/w/index.php?title=Bruriah&action=raw",
+      "edition": "English Wikipedia 'Bruriah', raw wikitext (tertiary; used only as a pointer, not as evidence for the text)",
+      "fetched_at": "2026-09-23T08:44:17Z",
+      "saved_file": "sources/wikipedia_bruriah_raw.txt",
+      "sha256": "4ac1b2e7806caebeadc682348f011753f34ecce6ddbcd12b809607a5ac306488",
+      "kind": "text"
+    },
+    {
+      "source_id": "goodblatt_landing",
+      "url": "https://www.liverpooluniversitypress.co.uk/doi/10.18647/739/JJS-1975",
+      "edition": "Publisher landing page for D. Goodblatt, 'The Beruriah Traditions', Journal of Jewish Studies 26 (1975). The article text was NOT read; the saved page gave no readable abstract",
+      "fetched_at": "2026-09-23T08:44:11Z",
+      "saved_file": "sources/goodblatt_jjs1975_landing.html",
+      "sha256": "96c3f8122cfbb11c421599c691ba5ecb9e4338e476ed4d43dcc58df6c26223b1",
+      "kind": "text"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "F1",
+      "claim": "The Aramaic itself says Berurya is Rabbi Meir's wife. The word דביתהו ('his wife', literally 'his household') is part of the Talmud's text, and the Davidson English prints it in bold. No translator added it.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "pilot_input",
+          "exact_quote": "אמרה ליה ברוריא דביתהו",
+          "location": "Berakhot 10a:2, Davidson Aramaic (unvocalized form)",
+          "translation_by_researcher": "Berurya, his wife, said to him"
+        },
+        {
+          "source_id": "ber10a",
+          "exact_quote": "אמרה לי' ברוריא דביתהו",
+          "location": "Berakhot 10a:2, Wikisource Talmud Bavli"
+        },
+        {
+          "source_id": "ber10a",
+          "exact_quote": "<b>mercy on them, that they should die. Rabbi Meir’s wife, Berurya, said to him: What is your thinking?</b>",
+          "location": "Berakhot 10a:2, Davidson English (all bold, so it translates the Aramaic)"
+        },
+        {
+          "source_id": "ber10a_cohen",
+          "exact_quote": "His wife, Beruriah, exclaimed,",
+          "location": "Berakhot 10a:2, Cohen 1921 English"
+        },
+        {
+          "source_id": "steinsaltz",
+          "exact_quote": "<b>ברוריא דביתהו</b> <small>[אשתו]:</small>",
+          "location": "Steinsaltz on 10a:2",
+          "translation_by_researcher": "Berurya dvit-hu [his wife]"
+        }
+      ],
+      "reasoning": "The relation noun with a possessive suffix is explicit. 'His' refers to Rabbi Meir, the only man named before it and the person she addresses (ליה). The Wikisource text, the Davidson text and Cohen's translation agree. Cohen is a translation of the printed text. It shows how that text is understood; it is not a separate manuscript witness. Steinsaltz and the Davidson English come from the same editorial project.",
+      "confidence": "high",
+      "graph_effect": "Keep c1 (Berurya spouse_of Meir), saved once as a symmetric relation. The relation word is explicit and the possessor comes from local coreference. The pilot's basis 'local_coreference' is acceptable. A better form would record both parts: explicit relation noun plus a possessor resolved from context."
+    },
+    {
+      "finding_id": "F2",
+      "claim": "The story has no named teller. The citation just before it, 'Rabbi Shmuel bar Naḥmani said that Rabbi Yoḥanan said' (9b:31), introduces only the teaching in 10a:1 about psalms that begin and end with 'happy'. The story opens a new unit with הנהו ('these certain...'), and the Davidson English gives it to 'the Gemara'.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "ber9b",
+          "exact_quote": "דְּאָמַר רַבִּי שְׁמוּאֵל בַּר נַחְמָנִי אָמַר רַבִּי יוֹחָנָן:",
+          "location": "Berakhot 9b:31, Davidson Vocalized Aramaic",
+          "translation_by_researcher": "As Rabbi Shmuel bar Nahmani said that Rabbi Yochanan said:"
+        },
+        {
+          "source_id": "ber10a",
+          "exact_quote": "כָּל פָּרָשָׁה שֶׁהָיְתָה חֲבִיבָה עַל דָּוִד",
+          "location": "Berakhot 10a:1, Davidson Vocalized Aramaic",
+          "translation_by_researcher": "Every chapter that was dear to David"
+        },
+        {
+          "source_id": "pilot_input",
+          "exact_quote": "הנהו בריוני דהוו בשבבותיה דרבי מאיר",
+          "location": "Berakhot 10a:2",
+          "translation_by_researcher": "Those troublemakers who were in Rabbi Meir's neighbourhood"
+        },
+        {
+          "source_id": "ber10a",
+          "exact_quote": "the Gemara relates: <b>There were these hooligans in Rabbi Meir’s neighborhood",
+          "location": "Berakhot 10a:2, Davidson English ('the Gemara relates' is plain text, the editor's framing)"
+        }
+      ],
+      "reasoning": "10a:1 is a complete statement with its two verse proofs. Nothing in 10a:2 continues it or names a transmitter. The judgment that the chain stops at 10a:1 is structural. The text simply does not give the story a teller. This matters because an extractor that carries the last chain forward would wrongly make Rabbi Yoḥanan, or Rabbi Shmuel bar Naḥmani, the source of a story about Rabbi Meir.",
+      "confidence": "high",
+      "graph_effect": "Keep voice = narrator for c1-c10. Add no reports_in_name_of edge from the story to Rabbi Yoḥanan or Rabbi Shmuel bar Naḥmani, and no link between them and Meir or Berurya."
+    },
+    {
+      "finding_id": "F3",
+      "claim": "The story comes right after Rabbi Yehuda son of Rabbi Shimon ben Pazi quotes the same verse, Psalms 104:35, as David's praise at 'the downfall of the wicked' (9b:29). The Davidson English (in plain text), Steinsaltz and the Tzelach connect the story to that teaching. The Tzelach adds that the verse's plain sense still concerns the downfall of the wicked. The Talmud does not say that Berurya answers him.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "ber9b",
+          "exact_quote": "דְּאָמַר רַבִּי יְהוּדָה בְּרֵיהּ דְּרַבִּי שִׁמְעוֹן בֶּן פַּזִּי: מֵאָה וְשָׁלֹשׁ פָּרָשִׁיּוֹת אָמַר דָּוִד",
+          "location": "Berakhot 9b:29, Davidson Vocalized Aramaic",
+          "translation_by_researcher": "As Rabbi Yehuda son of Rabbi Shimon ben Pazi said: David said one hundred and three chapters"
+        },
+        {
+          "source_id": "ber9b",
+          "exact_quote": "וְלֹא אָמַר ״הַלְלוּיָהּ״ עַד שֶׁרָאָה בְּמַפַּלְתָּן שֶׁל רְשָׁעִים, שֶׁנֶּאֱמַר: ״יִתַּמּוּ חַטָּאִים מִן הָאָרֶץ",
+          "location": "Berakhot 9b:29, Davidson Vocalized Aramaic",
+          "translation_by_researcher": "and he did not say Halleluya until he saw the downfall of the wicked, as it says: 'Let chata'im cease from the earth'"
+        },
+        {
+          "source_id": "ber10a",
+          "exact_quote": "With regard to the statement of Rabbi Yehuda, son of Rabbi Shimon ben Pazi, that David did not say <i>Halleluya</i> until he saw the downfall of the wicked, the Gemara relates:",
+          "location": "Berakhot 10a:2, Davidson English (plain text = editor's framing, not the Talmud's words)"
+        },
+        {
+          "source_id": "steinsaltz",
+          "exact_quote": "בקשר לדרשה כי לא אמר דוד \"הללויה\" עד שראה במפלתם של רשעים, מסופר:",
+          "location": "Steinsaltz on 10a:2",
+          "translation_by_researcher": "In connection with the teaching that David did not say Halleluya until he saw the downfall of the wicked, it is told:"
+        },
+        {
+          "source_id": "tzelach",
+          "exact_quote": "אנו רואים שאין מקרא יוצא מידי פשוטו שהרי ר\"י ברי' דר\"ש ב\"פ לעיל ור' יוחנן לקמן משום רשב\"י בהני חמשה ברכי נפשי מקומי להאי קרא במפלתן של רשעים",
+          "location": "Tzelach on 10a:2",
+          "translation_by_researcher": "we see that a verse does not depart from its plain sense, for R. Yehuda son of R. Shimon b. Pazi above, and R. Yochanan below in the name of R. Shimon b. Yochai [on] these five 'Bless my soul', set this verse on the downfall of the wicked"
+        }
+      ],
+      "reasoning": "The textual fact is that the two readings of one verse sit next to each other. The link between them comes from how the sugya is arranged and from later editors. Nothing in the text says the two speakers met, answered each other or lived at the same time. The Tzelach's point is a commentator's harmonisation: Berurya's reading and the downfall reading can both stand. The patronymic 'son of Rabbi Shimon ben Pazi' belongs to the 9b passage. It supports a father link, and a 'son of Pazi' link for the father, in that passage's graph.",
+      "confidence": "medium",
+      "graph_effect": "Optional statement-to-statement link: Berurya's reading ('reading' in the pilot) is set beside Rabbi Yehuda b. R. Shimon b. Pazi's reading of Psalms 104:35. Record it as an editorial juxtaposition in the editor's or commentary's voice. Do not add a person-to-person edge between Berurya and Rabbi Yehuda. Out of scope here: the 9b graph keeps Rabbi Yehuda's father (Rabbi Shimon ben Pazi) and a placeholder for Pazi."
+    },
+    {
+      "finding_id": "F4",
+      "claim": "Berurya very probably speaks all of 10a:3 (the second argument, 'go down to the end of the verse', and the call to pray for repentance). No new speaker is named there, but the imperatives are said to Meir. Rashi explains שפיל as 'lower yourself', second person. Davidson, Cohen (who keeps it inside her quotation) and Steinsaltz all give it to her. This rests on interpretation, not on a speaker marker.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "pilot_input",
+          "exact_quote": "ועוד, שפיל לסיפיה דקרא ״ורשעים עוד אינם״",
+          "location": "Berakhot 10a:3",
+          "translation_by_researcher": "And moreover, go down to the end of the verse, 'and the wicked will be no more'"
+        },
+        {
+          "source_id": "ber10a",
+          "exact_quote": "אֶלָּא בְּעִי רַחֲמֵי עִלָּוַיְהוּ דְּלַהְדְּרוּ בִּתְשׁוּבָה",
+          "location": "Berakhot 10a:3, Davidson Vocalized Aramaic (בְּעִי vocalized as an imperative)",
+          "translation_by_researcher": "Rather, pray [you] for mercy on them that they return in repentance"
+        },
+        {
+          "source_id": "rashi",
+          "exact_quote": "שפיל – השפיל עצמך לסוף המקרא",
+          "location": "Rashi on 10a:3",
+          "translation_by_researcher": "Shefil: lower yourself to the end of the verse"
+        },
+        {
+          "source_id": "ber10a_cohen",
+          "exact_quote": "Rather shouldest thou pray that they repent and they be no more wicked.\"",
+          "location": "Berakhot 10a:3, Cohen 1921 English (closing quotation mark ends Beruriah's speech here)"
+        },
+        {
+          "source_id": "steinsaltz",
+          "exact_quote": "ראה ר' מאיר צדקת דברי ברוריה",
+          "location": "Steinsaltz on 10a:4",
+          "translation_by_researcher": "Rabbi Meir saw the rightness of Berurya's words"
+        }
+      ],
+      "reasoning": "ועוד ('and moreover') continues an argument already under way. Berurya is the only speaker then talking, and the second-person commands have to be addressed to Meir. The reading is strong but structural. Some witnesses show this part of the text was unstable. The Midrash Tehillim parallel lacks the second argument altogether (F9). One Ein Yaakov text lacks one clause, and Munich 95 appears to have it only in the margin (F10). That does not move the speech to someone else, but the attribution comes from continuity, not from an explicit speaker.",
+      "confidence": "high",
+      "graph_effect": "Keep c6 and c7 with subject Berurya. Label the basis as speech continuation without a new speaker marker (an interpretive basis), not bare 'local_coreference'. The earlier review passed these claims without noting this."
+    },
+    {
+      "finding_id": "F5",
+      "claim": "10a:4 names no one: 'He prayed for mercy on them, and they repented.' That the one who prays is Meir comes from context (a masculine singular verb in a story about him). That Meir accepted Berurya's argument appears only in editors' words: Davidson's plain text 'Rabbi Meir saw that Berurya was correct' and Steinsaltz. The text does not say his prayer caused their repentance. It only tells the two events in order.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "pilot_input",
+          "exact_quote": "בעא רחמי עלויהו, והדרו בתשובה.",
+          "location": "Berakhot 10a:4",
+          "translation_by_researcher": "He prayed for mercy on them, and they returned in repentance."
+        },
+        {
+          "source_id": "ber10a",
+          "exact_quote": "Rabbi Meir saw that Berurya was correct <b>and he prayed for</b>",
+          "location": "Berakhot 10a:4, Davidson English (only 'and he prayed for' is bold)"
+        },
+        {
+          "source_id": "ber10a_cohen",
+          "exact_quote": "R. Meir offered prayer on their behalf and they repented.",
+          "location": "Berakhot 10a:4, Cohen 1921 English (supplies the name)"
+        },
+        {
+          "source_id": "steinsaltz",
+          "exact_quote": "ראה ר' מאיר צדקת דברי ברוריה ו<b>בעא רחמי עלויהו, והדרו</b>",
+          "location": "Steinsaltz on 10a:4",
+          "translation_by_researcher": "Rabbi Meir saw the rightness of Berurya's words and [bold:] prayed for mercy on them, and they returned"
+        }
+      ],
+      "reasoning": "In the Davidson English, bold marks the Talmud's own words and plain text marks editorial explanation. 'Rabbi Meir saw that Berurya was correct' is plain. Cohen puts the name in without marking it. The action (he prays as she urged) shows he took her advice in practice, but 'agrees' is a reader's inference. The narrative puts the prayer before the repentance, and a causal reading is natural but not stated.",
+      "confidence": "high",
+      "graph_effect": "Keep c8 (subject Meir, basis local_coreference) and c10 (time order only). If an 'accepts view of' or 'persuaded by' edge from Meir to Berurya is added, give it an interpretation basis in the editor's voice, never text-stated. Do not add a 'caused' edge from the prayer to the repentance as explicit."
+    },
+    {
+      "finding_id": "F6",
+      "claim": "The first prayer is told with a continuous form, הוה קא בעי ('was praying / was seeking'). The Davidson English and Cohen translate it as a finished prayer ('prayed'; 'Once R. Meir prayed'). Steinsaltz glosses 'was requesting'. Ben Yehoyada reports a question from 'Sefer Chasidim': if Meir had already prayed and was not answered, why record it; if he had not yet prayed, why not say 'was about to pray'. Ben Yehoyada answers that Meir did pray, but only indirectly: that the men would not get what they craved, which would in time cause their deaths.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "ber10a",
+          "exact_quote": "הֲוָה קָא בָּעֵי רַבִּי מֵאִיר רַחֲמֵי עִלָּוַיְהוּ כִּי הֵיכִי דְּלֵימוּתוּ",
+          "location": "Berakhot 10a:2, Davidson Vocalized Aramaic",
+          "translation_by_researcher": "Rabbi Meir was praying [lit. was requesting mercy] concerning them so that they would die"
+        },
+        {
+          "source_id": "ber10a",
+          "exact_quote": "<b>There were these hooligans in Rabbi Meir’s neighborhood who caused him a great deal of anguish. Rabbi Meir prayed for</b>",
+          "location": "Berakhot 10a:2, Davidson English"
+        },
+        {
+          "source_id": "ber10a_cohen",
+          "exact_quote": "Once R. Meir prayed that they should die.",
+          "location": "Berakhot 10a:2, Cohen 1921 English"
+        },
+        {
+          "source_id": "steinsaltz",
+          "exact_quote": "<b>הוה קא בעי</b> <small>[היה מבקש]</small>",
+          "location": "Steinsaltz on 10a:2",
+          "translation_by_researcher": "was requesting"
+        },
+        {
+          "source_id": "ben_yehoyada",
+          "exact_quote": "קושית הגאון ספר חסידים ז\"ל שהקשה אם כבר ר\"מ בקש כאשר רצה ולא נענה הוה ליה למימר להש\"ס לזכור זה, ואם לא בקש עדיין רק היה רוצה לבקש ולא הניחתו ברוריה, הוה ליה למימר הכי הוה קא בעי למבעי רחמי וכו'?",
+          "location": "Ben Yehoyada on 10a:2 (reporting another work)",
+          "translation_by_researcher": "the question of the Gaon Sefer Chasidim: if R. Meir had already asked as he wished and was not answered, the Talmud should have said so; and if he had not yet asked but only wanted to, and Berurya did not let him, it should have said 'he was about to pray'"
+        },
+        {
+          "source_id": "ben_yehoyada",
+          "exact_quote": "רצונו לומר לא בקש שימותו אלא בקש דבר שממנו יהיה סיבה שימותו",
+          "location": "Ben Yehoyada on 10a:2 (his own answer)",
+          "translation_by_researcher": "meaning: he did not ask that they die, but asked for something that would become a cause of their death"
+        },
+        {
+          "source_id": "midrash_tehillim",
+          "exact_quote": "הוה בעי עליה דלימות",
+          "location": "Midrash Tehillim 104:22 (OYW)",
+          "translation_by_researcher": "he was praying concerning him that he die"
+        }
+      ],
+      "reasoning": "The form describes an ongoing action. Translations turn it into a completed prayer, and commentators ask which it was. The text does not report the prayer being answered, nor the men dying. Ben Yehoyada's indirect-prayer reading is a commentator's harmonisation. It is not evidence of what Meir literally asked. The source he calls 'Sefer Chasidim' was not found in the two Sefer Chasidim sections fetched (76, 225). It is known here only through his report.",
+      "confidence": "medium",
+      "graph_effect": "Keep c3, with its note that the deaths are only wished for. Add to its modality that the aspect is progressive (was praying / was seeking), and add an alternative branch 'begun or intended, not completed'. The content 'that they die' stays as the text states it. Ben Yehoyada's indirect-content reading goes in as a commentary alternative, not a correction."
+    },
+    {
+      "finding_id": "F7",
+      "claim": "Meir never states a reason of his own. The scriptural reason, that he relied on 'let chata'im cease', is Berurya's guess, put as a question: 'What is your thinking? Because it is written...?' Commentators reconstruct Meir's view differently. Maharsha: he read the word as 'sinners', whose death benefits them and the world. Ben Yehoyada, citing Maharsha: Meir held that one should not pray for another person's repentance.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "pilot_input",
+          "exact_quote": "מאי דעתך — משום דכתיב ״יתמו חטאים״",
+          "location": "Berakhot 10a:2",
+          "translation_by_researcher": "What is your thinking — because it is written 'let chata'im cease'?"
+        },
+        {
+          "source_id": "ber10a",
+          "exact_quote": "On what basis do you pray for the death of these hooligans? Do you base yourself on the verse, <b>as it is written:",
+          "location": "Berakhot 10a:2, Davidson English (the two questions are plain text, the editor's expansion)"
+        },
+        {
+          "source_id": "maharsha",
+          "exact_quote": "ואמרה ליה ברוריה מי כתיב חוטאים דלא משמע אלא שם התואר",
+          "location": "Maharsha, Chidushei Agadot on 10a",
+          "translation_by_researcher": "and Berurya said to him: is 'chotim' written, which means only the adjective [sinners]?"
+        },
+        {
+          "source_id": "ben_yehoyada",
+          "exact_quote": "ונראה כמו שכתב מהרש\"א דאיהו סובר כיון דהכל בידי שמים חוץ מיראת שמים, אין נכון להתפלל על אחרים שיחזרו בתשובה",
+          "location": "Ben Yehoyada on 10a:2",
+          "translation_by_researcher": "it seems, as Maharsha wrote, that he [Meir] held: since everything is in the hands of Heaven except the fear of Heaven, it is not right to pray for others that they repent"
+        }
+      ],
+      "reasoning": "'מאי דעתך' asks about the addressee's reasoning, and 'משום דכתיב' offers a guess. Meir does not answer. Giving Meir an asserted view of the verse would turn Berurya's guess into his statement.",
+      "confidence": "high",
+      "graph_effect": "Do not add 'Meir holds_view: verse means sinners should die' as asserted. If it is recorded, make it a view Berurya attributes to Meir as a question (hypothetical, reported by another). The Maharsha and Ben Yehoyada reconstructions are commentary alternatives."
+    },
+    {
+      "finding_id": "F8",
+      "claim": "The point about the word is contested, and a label for it should say so. The Masoretic pointing is חַטָּאִים, and the JPS renders it 'sinners'. Cohen says Berurya read the word as חֲטָאִים 'sins'. Tosafot HaRosh grants that the word as pointed means sinners, but says it may be expounded as sins because the verse did not write חוטאים. Rashi: 'read in it chata'im: that the evil inclination will end'. Chokhmat Shlomo reports a Rashi text reading חוטאים and calls it a mistake. Rashi on Psalms glosses the word חוֹטְאִים ('sinners') and cites Berakhot 10a.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "psalms",
+          "exact_quote": "יִתַּ֤מּוּ חַטָּאִ֨ים",
+          "location": "Psalms 104:35, Miqra according to the Masorah"
+        },
+        {
+          "source_id": "psalms",
+          "exact_quote": "May sinners disappear from the earth,",
+          "location": "Psalms 104:35, JPS Gender-Sensitive Edition"
+        },
+        {
+          "source_id": "cohen_fn",
+          "exact_quote": "she pointed חֲטָאִים \"sins.\"",
+          "location": "Cohen footnote 3 on 10a"
+        },
+        {
+          "source_id": "tosafot_harosh",
+          "exact_quote": "ואע\"ג דהיינו נמי חוטאים בוי\"ו דהא לא קרינן חטאים בחט\"ף פתח מ\"מ מדשני קרא בדיבוריה ולא כתב חוטאים בוא\"ו יש לדורשו לשון עונות",
+          "location": "Tosafot HaRosh on 10a:2",
+          "translation_by_researcher": "although this too means chotim with a vav, since we do not read chata'im with a chataf-patach; still, since the verse changed its wording and did not write chotim with a vav, it may be expounded as 'sins'"
+        },
+        {
+          "source_id": "rashi",
+          "exact_quote": "חטאים כתיב – קרי ביה חטאים שיכלה יצר הרע:",
+          "location": "Rashi on 10a:2 (Vilna)",
+          "translation_by_researcher": "'Chata'im is written': read in it chata'im [sins], that the evil inclination will end"
+        },
+        {
+          "source_id": "chokhmat_shlomo",
+          "exact_quote": "קרי ביה חוטאים כו' נ\"ב נ\"ל טעות אלא קרי ביה חטאים וכן מצאתי בס\"א",
+          "location": "Chokhmat Shlomo on Rashi 10a",
+          "translation_by_researcher": "'read in it chotim' etc.: it seems to me a mistake; rather 'read in it chata'im', and so I found in another book"
+        },
+        {
+          "source_id": "yaavetz",
+          "exact_quote": "חטאים קרינן בפת\"ח וטי\"ת דגושה. והוא תואר ענינו כמו חוטאים.",
+          "location": "Haggahot Ya'avetz on 10a",
+          "translation_by_researcher": "we read chata'im with a patach and a doubled tet; it is an adjective meaning like chotim"
+        },
+        {
+          "source_id": "rashi_ps",
+          "exact_quote": "<b>יִתַּמּוּ חַטָּאִים.</b> חוֹטְאִים (ברכות י.):",
+          "location": "Rashi on Psalms 104:35",
+          "translation_by_researcher": "'Let chata'im cease': chotim [sinners] (Berakhot 10a)"
+        },
+        {
+          "source_id": "maharsha",
+          "exact_quote": "ומשמע נמי שם דבר של חטאים רבים",
+          "location": "Maharsha, Chidushei Agadot on 10a",
+          "translation_by_researcher": "and it also means the noun, many sins"
+        }
+      ],
+      "reasoning": "These are lexical and interpretive claims about the verse. They affect the label for Berurya's statement, not who is in the graph. Cohen, Tosafot HaRosh and Ya'avetz agree that the pointed word means 'sinners' and that Berurya reads it another way. Maharsha says the written form can carry both senses. Rashi's gloss on Psalms follows the 'sinners' sense while citing this passage. Why he did so was not investigated. The saved Wikipedia text also mentions an agent-noun reading (see A3). That is tertiary and unattributed.",
+      "confidence": "high",
+      "graph_effect": "Relabel the pilot statement 'reading' as: Berurya reads חטאים as 'sins' rather than 'sinners' (a reading against the vowels, according to Cohen, Tosafot HaRosh and Ya'avetz). No person or edge changes."
+    },
+    {
+      "finding_id": "F9",
+      "claim": "A parallel in Midrash Tehillim 104:22 tells a shorter version. A single sectarian (מינא) in Meir's neighbourhood distresses him, and Meir prays for his death. Berurya, called אתתיה ('his wife'), objects that the verse says 'sins', not 'sinners'. There is no second argument, no changed prayer and no repentance. On Sefaria this Hebrew comes with a Community Translation that reverses her argument.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "midrash_tehillim",
+          "exact_quote": "רבי מאיר הוה ההוא מינא בשיבבותיה דהוה מצער ליה טובא הוה בעי עליה דלימות. אמרה ליה ברוריה אתתיה מאי דעתך משום יתמו חטאים. מי כתיב חוטאים יסופון. חטאים כתיב יתמו חובייא ורשעים עוד אינם.",
+          "location": "Midrash Tehillim 104:22, OYW Hebrew",
+          "translation_by_researcher": "Rabbi Meir: there was a certain min in his neighbourhood who distressed him greatly; he was praying about him that he die. Berurya his wife said to him: What is your thinking, because of 'let chata'im cease'? Is it written 'let chotim [sinners] come to an end'? Chata'im is written: let sins [chovaya] cease, and the wicked will be no more."
+        },
+        {
+          "source_id": "midrash_tehillim",
+          "exact_quote": "But it is also written, 'Let sinners cease.' Sinners are mentioned, but not sins.",
+          "location": "Midrash Tehillim 104:22, Sefaria Community Translation (contradicts the Hebrew it translates)"
+        },
+        {
+          "source_id": "midrash_tehillim",
+          "exact_quote": "Rabbi Meir had a certain heretic in his neighborhood who caused him much anguish.",
+          "location": "Midrash Tehillim 104:22, Sefaria Community Translation"
+        },
+        {
+          "source_id": "midrash_tehillim",
+          "exact_quote": "רבי יהודה אומר יתמו יעשו תמימים. ורשעים עוד אינם. אינם עוד רשעים.",
+          "location": "Midrash Tehillim 104:22, OYW Hebrew (context)",
+          "translation_by_researcher": "Rabbi Yehuda says: 'yitammu' — they will become perfect; 'and the wicked are no more' — they are no longer wicked"
+        },
+        {
+          "source_id": "midrash_tehillim",
+          "exact_quote": "אמר רבי שמואל בר אבא מראש הספר ועד כאן מאה ושלשה מזמורין ואין כתיב בהן הללויה",
+          "location": "Midrash Tehillim 104:22, OYW Hebrew (context)",
+          "translation_by_researcher": "Rabbi Shmuel bar Abba said: from the start of the book to here are one hundred and three psalms, and Halleluya is not written in them"
+        }
+      ],
+      "reasoning": "This is a separate work with its own passage record. It shares the named pair, the neighbourhood and the verse, which makes it a parallel telling. But the antagonist differs: one min against the Bavli's plural troublemakers. So does the relation word (אתתיה against דביתהו), and so does the ending. Neither text says the two antagonists are the same people. In Midrash Tehillim the '103 psalms without Halleluya' teaching is given to Rabbi Shmuel bar Abba. Berakhot 9b gives a similar teaching to Rabbi Yehuda son of Rabbi Shimon ben Pazi. That is a difference in attribution between works. It does not show that only one of them said it. The Community Translation's 'But it is also written, Let sinners cease' reverses the Hebrew. It must not be used as evidence for what Berurya argues.",
+      "confidence": "high",
+      "graph_effect": "Do not import the midrash's min into the Bavli episode, and do not relabel the Bavli's בריוני as minim. If the parallel is ingested, it gets its own local Meir, Berurya (spouse via אתתיה) and a single min. Joining them to the Bavli persons is a separate identity decision; the shared names and the shared husband-wife pair are the evidence for it. Flag the Community Translation of Midrash Tehillim 104:22 as unreliable here."
+    },
+    {
+      "finding_id": "F10",
+      "claim": "Witnesses differ in wording. The Daat Ein Yaakov lacks the clause 'since chata'im will cease, [how] will the wicked be no more?'. The Glick Ein Yaakov has it. In my visual reading of Munich 95 the same clause is written in the outer margin beside the line. The Glick Ein Yaakov also lacks כי היכי in the first prayer clause. Both Ein Yaakov texts spell the name ברוריה.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "pilot_input",
+          "exact_quote": "כיון ד״יתמו חטאים״ ״ורשעים עוד אינם״?",
+          "location": "Berakhot 10a:3, Davidson Aramaic",
+          "translation_by_researcher": "Since 'let sins cease', 'and the wicked will be no more'?"
+        },
+        {
+          "source_id": "ey_daat",
+          "exact_quote": "ועוד שפיל לסיפיה דקרא ורשעים עוד אינם אלא בעי רחמי עלייהו דלהדרי בתשובה",
+          "location": "Ein Yaakov (Daat), Berakhot 1:63",
+          "translation_by_researcher": "And moreover go down to the end of the verse, 'and the wicked will be no more'; rather pray for mercy on them that they return in repentance"
+        },
+        {
+          "source_id": "ey_glick",
+          "exact_quote": "ועוד שפיל לסיפיה דקרא ורשעים עוד אינם כיון דיתמו חטאים ורשעים עוד אינם אלא",
+          "location": "Ein Yaakov (Glick 1916), Berakhot 1:50"
+        },
+        {
+          "source_id": "ey_glick",
+          "exact_quote": "הוה קא בעי ר״מ רחמי עלייהו דלימותו. אמרה ליה ברוריה דביתהו",
+          "location": "Ein Yaakov (Glick 1916), Berakhot 1:50",
+          "translation_by_researcher": "R. Meir was praying for them that they die. Berurya his wife said to him"
+        },
+        {
+          "source_id": "ey_daat",
+          "exact_quote": "הוה קא בעי ר\"מ רחמי עלייהו כי היכי דלימותו אמרה ליה ברוריה דביתהו",
+          "location": "Ein Yaakov (Daat), Berakhot 1:63"
+        },
+        {
+          "source_id": "munich95_282_margin",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "exact_quote": "כיון דיתמו ח[...] / ורשעים עוד [...]",
+          "note": "Visual reading of a page image; not machine-checked; letters may be misread. Only the start of each of two short lines is legible to me; I read it as the missing clause supplied in the margin.",
+          "location": "Munich 95 page 0282, outer margin beside the story's third line",
+          "translation_by_researcher": "Since 'let [sins] cease' ... / and the wicked [will be no] more"
+        },
+        {
+          "source_id": "munich95_282_right",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "exact_quote": "ועוד שפיל לסיפיה דקרא ורשעים עוד אינ[ם]",
+          "note": "Visual reading of a page image; not machine-checked; letters may be misread.",
+          "location": "Munich 95 page 0282, story line 3, right side of the main text column",
+          "translation_by_researcher": "And moreover go down to the end of the verse, 'and the wicked will be no more'"
+        }
+      ],
+      "reasoning": "These are witness variants, not proposed emendations. They touch the second argument (F4) but change no person, speaker or relation. The Munich margin note is my reading of a page image, unchecked. I cannot say whether it is by the scribe or a later hand.",
+      "confidence": "medium",
+      "graph_effect": "No person or edge changes. Attach the variant to c6 as a witness variant: the 'since ... no more' clause is absent in Daat Ein Yaakov and marginal in Munich 95 (visual). Keep it separate from any emendation."
+    },
+    {
+      "finding_id": "F11",
+      "claim": "In my visual reading, Munich 95 has the name and the relation word, ברוריא דביתהו. The words of the first prayer clause are hard to read. A line of small writing above it seems to contain 'on them, mercy, so that they die'. The main-line wording there may differ from the printed text, and I could not read it securely.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "munich95_282_left",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "exact_quote": "אמרה ליה ברוריא דביתהו",
+          "note": "Visual reading of a page image; not machine-checked; letters may be misread.",
+          "location": "Munich 95 page 0282, story line 2, left part of the main text",
+          "translation_by_researcher": "Berurya his wife said to him"
+        },
+        {
+          "source_id": "munich95_282_interlinear",
+          "evidence_type": "researcher_visual_reading_of_page_image",
+          "exact_quote": "ע[ל]ייהו רחמ[י] כי היכי דלי[מותו]",
+          "note": "Visual reading of a page image; not machine-checked; letters may be misread. Very small writing; letters in brackets are guesses. Whether this is a correction or an addition is not determined.",
+          "location": "Munich 95 page 0282, interlinear writing above story line 2",
+          "translation_by_researcher": "on them mercy so that they [would die]"
+        }
+      ],
+      "reasoning": "The relation word matters for c1 and appears to be present. The prayer clause matters for c3 (F6). A reliable reading needs a transcription service or a specialist, and Hachi Garsinan was not accessed.",
+      "confidence": "low",
+      "graph_effect": "None now. Record it as a place to check before treating the wording of c3 as stable across witnesses."
+    },
+    {
+      "finding_id": "F12",
+      "claim": "The troublemakers are an unnamed, uncounted plural group, and the text places them in Meir's neighbourhood. What kind of people they were is commentary. Rashi: 'lawless people'. Tosafot HaRosh: 'Jewish bandits' who stood outside (in the wilderness) robbing people, deriving בריוני from ברא 'outside'. Cohen: 'lawless men', and he doubts Krauss's Greek etymology.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "pilot_input",
+          "exact_quote": "הנהו בריוני דהוו בשבבותיה דרבי מאיר והוו קא מצערו ליה טובא.",
+          "location": "Berakhot 10a:2",
+          "translation_by_researcher": "Those troublemakers who were in Rabbi Meir's neighbourhood were distressing him greatly."
+        },
+        {
+          "source_id": "rashi",
+          "exact_quote": "בריוני – פריצים:",
+          "location": "Rashi on 10a:2",
+          "translation_by_researcher": "baryonei: lawless / unruly people"
+        },
+        {
+          "source_id": "tosafot_harosh",
+          "exact_quote": "לסטים ישראל על שהיו עומדין במדבר ללסטם את הבריות קרי להו בריוני לשון ברא תרגום של חוץ",
+          "location": "Tosafot HaRosh on 10a:2",
+          "translation_by_researcher": "Jewish robbers; because they stood in the wilderness to rob people they are called baryonei, from bara, the Aramaic for 'outside'"
+        },
+        {
+          "source_id": "ber10a_cohen",
+          "exact_quote": "There were some lawless men living in the neighbourhood of R. Meir",
+          "location": "Berakhot 10a:2, Cohen 1921 English"
+        },
+        {
+          "source_id": "cohen_fn",
+          "exact_quote": "Barjoni which Krauss, p. 165, identifies with",
+          "location": "Cohen footnote 1 on 10a"
+        },
+        {
+          "source_id": "cohen_fn",
+          "exact_quote": "But this is doubtful.",
+          "location": "Cohen footnote 1 on 10a"
+        }
+      ],
+      "reasoning": "The pilot put 'who live near Meir' in the group's label but saved no relation for it. Being near Meir is stated outright and is the story's premise. 'Jewish' and 'bandits' come from one medieval commentator's etymology. The text does not say it.",
+      "confidence": "high",
+      "graph_effect": "Add an explicit claim: troublemakers located_in / neighbours_of Meir's neighbourhood. Evidence 'הנהו בריוני דהוו בשבבותיה דרבי מאיר'; voice narrator; basis explicit. Keep the group unnamed and uncounted. Keep Tosafot HaRosh's 'Jewish bandits' as a commentary gloss, not an attribute."
+    },
+    {
+      "finding_id": "F13",
+      "claim": "In the wider Bavli, Avodah Zarah 18a:14 says 'Berurya, wife of Rabbi Meir, was a daughter of Rabbi Ḥanina ben Teradyon'. Her words there also mention a sister. Berakhot 10a gives her no father. The next segment, 10a:5, brings in a different unnamed man who challenges Berurya: a min in the Davidson text, a tzeduki (Sadducee) in Wikisource and in the Daat Ein Yaakov.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "az18a",
+          "exact_quote": "בְּרוּרְיָא דְּבֵיתְהוּ דְּרַבִּי מֵאִיר, בְּרַתֵּיה דְּרַבִּי חֲנִינָא בֶּן תְּרַדְיוֹן הֲוַאי",
+          "location": "Avodah Zarah 18a:14, Davidson Vocalized Aramaic",
+          "translation_by_researcher": "Berurya, the wife of Rabbi Meir, was a daughter of Rabbi Hanina ben Teradyon"
+        },
+        {
+          "source_id": "az18a",
+          "exact_quote": "זִילָא בִּי מִלְּתָא דְּיָתְבָא אֲחָתַאי בְּקוּבָּה שֶׁל זוֹנוֹת",
+          "location": "Avodah Zarah 18a:14, Davidson Vocalized Aramaic",
+          "translation_by_researcher": "It is a disgrace to me that my sister sits in a brothel"
+        },
+        {
+          "source_id": "ber10a",
+          "exact_quote": "אֲמַר לַהּ הַהוּא מִינָא לִבְרוּרְיָא",
+          "location": "Berakhot 10a:5, Davidson Vocalized Aramaic",
+          "translation_by_researcher": "A certain min said to Berurya"
+        },
+        {
+          "source_id": "ber10a",
+          "exact_quote": "אמר לה ההוא צדוקי לברוריא",
+          "location": "Berakhot 10a:5, Wikisource Talmud Bavli",
+          "translation_by_researcher": "A certain tzeduki said to Berurya"
+        },
+        {
+          "source_id": "cohen_fn",
+          "exact_quote": "Equivalent of the Latin name, Veluria; Krauss, p. 165.",
+          "location": "Cohen footnote 2 on 10a"
+        }
+      ],
+      "reasoning": "The Avodah Zarah passage has its own graph: Berurya's father, the patronymic 'ben Teradyon' with a placeholder for Teradyon, and an unnamed sister. Joining that Berurya to this one rests on the same name and the same husband label. That is strong within the Bavli, but it is still a cross-passage join. The 10a:5 challenger is a new, unnamed individual. He is not the troublemaker group, and the min/tzeduki difference is a witness variant (often discussed as censorship; that was not checked here). Cohen's note on the name is an etymology. It establishes no identity.",
+      "confidence": "high",
+      "graph_effect": "No change to the challenge-15 passage graph. For the global graph: propose a join between Berurya (Berakhot 10a) and Berurya (Avodah Zarah 18a), justified by shared name plus shared husband and kept provisional. Berurya's father link is evidenced only by Avodah Zarah 18a. The next passage (10a:5-7) needs its own challenger node with a min/tzeduki variant."
+    },
+    {
+      "finding_id": "F14",
+      "claim": "Later works treat Berurya's advice as the accepted rule. Meiri turns it into general guidance for a scholar who is harassed, without naming Meir. Perush Kadmon on Sefer Chasidim cites the passage for praying that a wrongdoer return to the good.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "meiri",
+          "exact_quote": "תלמיד חכם</b> שהיו אי זו מבני אדם מצערים לו אין ראוי לו לקללם אלא יתפלל עליהם שיחזרו בתשובה",
+          "location": "Meiri on Berakhot 10a",
+          "translation_by_researcher": "A Torah scholar whom some people were distressing should not curse them but pray for them that they repent"
+        },
+        {
+          "source_id": "perush_kadmon",
+          "exact_quote": "כדאי' בברכות מי כתיב חוטאים חטאים כתיב כו' אלא בעי רחמי עלייהו דליהדרי בתשובה",
+          "location": "Perush Kadmon on Sefer Chasidim 76:1",
+          "translation_by_researcher": "as it is in Berakhot: is 'chotim' written? 'chata'im' is written ... rather pray for them that they repent"
+        }
+      ],
+      "reasoning": "This is later reception. It shows how the story came to be read, as an endorsement of her view. It adds nothing to who said what in the passage.",
+      "confidence": "high",
+      "graph_effect": "None for persons. It can support a note on c7 that later tradition takes her advice as normative. That note is reception, not the text."
+    },
+    {
+      "finding_id": "F15",
+      "claim": "The pilot's mention list leaves out several references to the people that carry no pronoun token: the second-person suffix in דעתך ('your thinking', Meir); the addressee of the imperatives שפיל and בעי in 10a:3 (Meir); the unnamed subject of בעא in 10a:4 (Meir); and the subjects of דלימותו, דלהדרו and והדרו (the troublemakers). The saved entity links are correct. Only the mentions are missing.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "pilot_input",
+          "exact_quote": "מאי דעתך",
+          "location": "Berakhot 10a:2",
+          "translation_by_researcher": "What is your thinking"
+        },
+        {
+          "source_id": "pilot_input",
+          "exact_quote": "אלא בעי רחמי עלויהו דלהדרו בתשובה",
+          "location": "Berakhot 10a:3",
+          "translation_by_researcher": "Rather pray for mercy on them that they return in repentance"
+        },
+        {
+          "source_id": "pilot_input",
+          "exact_quote": "בעא רחמי עלויהו, והדרו בתשובה.",
+          "location": "Berakhot 10a:4",
+          "translation_by_researcher": "He prayed for mercy on them, and they returned in repentance."
+        },
+        {
+          "source_id": "pilot_output",
+          "exact_quote": "Troublemakers who live near Meir",
+          "location": "Pilot output, entity 'troublemakers' label (the only place the neighbourhood relation is saved)"
+        }
+      ],
+      "reasoning": "I checked the pilot's anchors. m5 (ליה, occurrence 1) is in 'מצערו ליה' and m6 (ליה, occurrence 2) is in 'אמרה ליה'; both refer to Meir. m7-m9 (עלויהו in s1, s2, s3) all refer to the troublemakers. These are right. The missing items are verb subjects and suffixes that a token-level mention list skips. They are the evidence that Meir is the one who prays in 10a:4 and the one Berurya addresses in 10a:3.",
+      "confidence": "high",
+      "graph_effect": "Add mentions: דעתך → Meir (s1). Implicit addressee of שפיל/בעי → Meir (s2). Implicit subject of בעא → Meir (s3). Implicit subjects of דלימותו (s1), דלהדרו (s2) and והדרו (s3) → troublemakers. These add no new people or edges. They give c7 and c8 their basis."
+    }
+  ],
+  "alternative_readings": [
+    {
+      "id": "A1",
+      "about": "c6, c7 (speaker of 10a:3)",
+      "reading": "10a:3 could be the Talmud's own added argument rather than Berurya's words. The Midrash Tehillim version lacks it, and witnesses vary in one of its clauses.",
+      "status": "weak; the second-person imperatives to Meir favour Berurya, and every translation checked gives it to her",
+      "evidence": [
+        "F4",
+        "F9",
+        "F10"
+      ]
+    },
+    {
+      "id": "A2",
+      "about": "c3 (first prayer)",
+      "reading": "Meir had begun or intended the prayer, not completed it: the question Ben Yehoyada reports from Sefer Chasidim. Or Meir prayed only indirectly that they not obtain their desires (Ben Yehoyada).",
+      "status": "open; commentary alternatives on the progressive form",
+      "evidence": [
+        "F6"
+      ]
+    },
+    {
+      "id": "A3",
+      "about": "statement 'reading'",
+      "reading": "חטאים = 'sins', against the vowels (Cohen, Tosafot HaRosh, Ya'avetz). Or the written form carries both senses (Maharsha). The saved Wikipedia text also mentions, without a named source, a reading that keeps the vowels and contrasts habitual 'sinners' (an agent noun) with 'those who sin'. That is tertiary and unverified.",
+      "status": "open lexical question; no person effect",
+      "evidence": [
+        "F8"
+      ]
+    },
+    {
+      "id": "A4",
+      "about": "episode (parallel tradition)",
+      "reading": "Midrash Tehillim 104:22: one min, not a group; no repentance; the wife called אתתיה.",
+      "status": "a separate passage and a separate record; not a variant of the Bavli text",
+      "evidence": [
+        "F9"
+      ]
+    },
+    {
+      "id": "A5",
+      "about": "Meir's own rationale",
+      "reading": "Maharsha: Meir read 'sinners', whose death benefits them. Ben Yehoyada citing Maharsha: Meir held one should not pray for another's repentance.",
+      "status": "commentary reconstructions; the text gives Meir no stated view",
+      "evidence": [
+        "F7"
+      ]
+    }
+  ],
+  "unresolved": [
+    "The Munich 95 wording of the first prayer clause (main line and interlinear) was not securely read. Other manuscripts were not checked: Florence, Paris, Oxford and the Genizah fragments. Hachi Garsinan was not accessed.",
+    "The Goldschmidt German translation was requested but the API returned no text, so it was not checked.",
+    "Goodblatt, 'The Beruriah Traditions' (JJS 26, 1975) was not read; the saved landing page gave no text. Whether a historical Berurya existed, and whether the Tosefta's unnamed daughter of R. Hanina ben Teradyon is the same figure, was not assessed.",
+    "The 'Sefer Chasidim' question that Ben Yehoyada reports was not found in the Sefer Chasidim sections fetched (76, 225); its source is known here only through Ben Yehoyada. The 'הרי\"ף' whose questions Ben Yehoyada also cites was not identified or checked.",
+    "Wikipedia points to 'the Midrash on Psalms 118' for this story. The parallel found here is Midrash Tehillim 104:22. Chapter 118 was not checked.",
+    "The cross-passage join of Berurya here with Berurya in Avodah Zarah 18a, Pesachim 62b, Eruvin 53b-54a and the Tosefta is proposed, not decided. Only Avodah Zarah 18a was fetched.",
+    "Whether the min/tzeduki difference in 10a:5 comes from censorship was not checked."
+  ],
+  "proposed_corrections": [
+    {
+      "claim_id": "c6",
+      "change": "Keep subject Berurya. Set basis to speech continuation without a speaker marker (interpretive), not bare local_coreference. Attach the witness variant: the 'since ... no more' clause is absent in Daat Ein Yaakov and marginal in Munich 95 (visual).",
+      "why": "F4, F10"
+    },
+    {
+      "claim_id": "c7",
+      "change": "Keep subject Berurya and addressee Meir. Basis as for c6. Optional reception note (Meiri, Perush Kadmon) marked as reception.",
+      "why": "F4, F14"
+    },
+    {
+      "claim_id": "c3",
+      "change": "Keep. Add progressive aspect (הוה קא בעי: was praying / was seeking) to the modality, and an alternative branch 'begun or intended, not completed'. Keep the note that no deaths occur.",
+      "why": "F6"
+    },
+    {
+      "claim_id": "c8",
+      "change": "Keep. Add the implicit-subject mention of בעא → Meir as its basis. Do not add an explicit 'Meir accepts Berurya's view' edge; 'saw that Berurya was correct' is Davidson's plain text.",
+      "why": "F5, F15"
+    },
+    {
+      "claim_id": "c10",
+      "change": "Keep as time order only. Do not upgrade it to an explicit cause.",
+      "why": "F5"
+    },
+    {
+      "claim_id": null,
+      "change": "Add an explicit claim: troublemakers located in Meir's neighbourhood (בשבבותיה דרבי מאיר), voice narrator, basis explicit.",
+      "why": "F12"
+    },
+    {
+      "claim_id": null,
+      "change": "Add mentions: דעתך → Meir; the addressee of שפיל/בעי → Meir; the subject of בעא → Meir; the subjects of דלימותו/דלהדרו/והדרו → troublemakers.",
+      "why": "F15"
+    },
+    {
+      "claim_id": null,
+      "change": "Relabel the entity 'reading': Berurya reads חטאים as 'sins' rather than 'sinners' (against the vowels, according to Cohen, Tosafot HaRosh and Ya'avetz).",
+      "why": "F8"
+    },
+    {
+      "claim_id": null,
+      "change": "Episode note: the story has no named teller. It is not part of Rabbi Yoḥanan's statement in 10a:1. It is set editorially beside R. Yehuda b. R. Shimon b. Pazi's reading of Psalms 104:35 (9b:29); treat that as a link between statements, not between persons.",
+      "why": "F2, F3"
+    },
+    {
+      "claim_id": null,
+      "change": "Earlier review: its passes stand. It should add these findings: speaker attribution in 10a:3 by continuity; progressive aspect in c3; the missing neighbourhood relation and mentions; the Midrash Tehillim parallel with a different antagonist.",
+      "why": "F4, F6, F9, F12, F15"
+    }
+  ],
+  "ontology_lessons": [
+    "Speech that continues across segments without a new speaker marker needs its own basis value, such as speech_continuation. It is neither explicit nor ordinary coreference.",
+    "Aramaic progressive forms (הוה קא + participle) need a modality or aspect value (ongoing / attempted) separate from completed action. Translations routinely flatten it.",
+    "A possessive relation noun (דביתהו, אתתיה) is an explicit kinship term with a possessor resolved from context. Store both parts.",
+    "Editorial juxtaposition of two readings of one verse is a link between statements in the editor's voice. It is not an interaction between the people.",
+    "A parallel in another work is its own passage record. When the antagonist differs (a group of troublemakers against one min), cross-work story identity is a separate decision.",
+    "Community translations can reverse the source (Midrash Tehillim 104:22). Check a translation against the Hebrew before using it as evidence.",
+    "A reason one speaker attributes to another as a question ('What is your thinking? Because...?') is not that person's asserted view.",
+    "Plain-text additions in the Davidson English ('Rabbi Meir saw that Berurya was correct', 'the Gemara relates', the link to R. Yehuda b. R. Shimon b. Pazi) are editorial commentary, not text."
+  ]
+}

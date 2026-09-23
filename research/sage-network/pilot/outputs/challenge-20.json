@@ -1,0 +1,1067 @@
+{
+  "schema_version": "passage-pilot-v1",
+  "job_id": "challenge-20",
+  "episode": {
+    "genre": "aggadic",
+    "genre_reason": "Family relations and a death are narrated around prayer and mistreatment.",
+    "form": "story with alternate reports and inherited teaching",
+    "coverage": "needs_context",
+    "needed_context": [
+      "The earlier incident referred to by מההוא מעשה is not supplied."
+    ],
+    "notes": []
+  },
+  "mentions": [
+    {
+      "id": "m1",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "אימא שלום",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m2",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבי אליעזר",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m3",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "רבן גמליאל",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m4",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "אבי אבא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m5",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "אבי אבא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m6",
+      "kind": "group",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "בית אבי אבא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m7",
+      "kind": "description",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "עניא",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m8",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ההוא מעשה",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m9",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "לא הוה שבקה ליה לרבי אליעזר למיפל על אפיה.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m10",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "ההוא יומא ריש ירחא הוה, ואיחלף לה בין מלא לחסר.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m11",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s1",
+        "quote": "אתא עניא וקאי אבבא, אפיקא ליה ריפתא.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m12",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "דנפל על אנפיה.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m13",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "אשכחתיה דנפל על אנפיה.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m14",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "נפק שיפורא מבית רבן גמליאל דשכיב.",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m15",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "קטלית לאחי",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m16",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "קטליתה לאח",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m17",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "מנא ידעת?",
+        "occurrence": 1
+      }
+    },
+    {
+      "id": "m18",
+      "kind": "name",
+      "anchor": {
+        "source_id": "s2",
+        "quote": "כל השערים ננעלים חוץ משערי אונאה.",
+        "occurrence": 1
+      }
+    }
+  ],
+  "entities": [
+    {
+      "id": "ima",
+      "kind": "person",
+      "label": "Imma Shalom",
+      "mention_ids": [
+        "m1"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אימא שלום",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "eliezer",
+      "kind": "person",
+      "label": "Rabbi Eliezer",
+      "mention_ids": [
+        "m2"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבי אליעזר",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "gamliel",
+      "kind": "person",
+      "label": "Rabban Gamliel",
+      "mention_ids": [
+        "m3"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "רבן גמליאל",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "father",
+      "kind": "person",
+      "label": "Imma Shalom’s unnamed father",
+      "mention_ids": [
+        "m4"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אבי אבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "grandfather",
+      "kind": "person",
+      "label": "Imma Shalom’s unnamed paternal grandfather",
+      "mention_ids": [
+        "m5"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אבי אבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "ancestral",
+      "kind": "group",
+      "label": "Household of her paternal grandfather",
+      "mention_ids": [
+        "m6"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "בית אבי אבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "poor",
+      "kind": "person",
+      "label": "Poor visitor at the door",
+      "mention_ids": [
+        "m7"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "עניא",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "branch_bread"
+      ]
+    },
+    {
+      "id": "prior",
+      "kind": "event",
+      "label": "Earlier incident not supplied",
+      "mention_ids": [
+        "m8"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ההוא מעשה",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "prevent",
+      "kind": "event",
+      "label": "Imma Shalom prevents Eliezer from falling on his face",
+      "mention_ids": [
+        "m9"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "לא הוה שבקה ליה לרבי אליעזר למיפל על אפיה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "calendar",
+      "kind": "event",
+      "label": "Confusion between a full and short month",
+      "mention_ids": [
+        "m10"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ההוא יומא ריש ירחא הוה, ואיחלף לה בין מלא לחסר.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "branch_calendar"
+      ]
+    },
+    {
+      "id": "bread",
+      "kind": "event",
+      "label": "Bringing bread to the poor visitor",
+      "mention_ids": [
+        "m11"
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אתא עניא וקאי אבבא, אפיקא ליה ריפתא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "branch_bread"
+      ]
+    },
+    {
+      "id": "fall",
+      "kind": "event",
+      "label": "Eliezer falls on his face",
+      "mention_ids": [
+        "m12"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "דנפל על אנפיה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "find",
+      "kind": "event",
+      "label": "Imma Shalom finds Eliezer prostrate",
+      "mention_ids": [
+        "m13"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אשכחתיה דנפל על אנפיה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "death",
+      "kind": "event",
+      "label": "Gamliel’s death announced by a shofar",
+      "mention_ids": [
+        "m14"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "נפק שיפורא מבית רבן גמליאל דשכיב.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "accusation_old",
+      "kind": "statement",
+      "label": "You have killed my brother, parenthesized wording",
+      "mention_ids": [
+        "m15"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "קטלית לאחי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "branch_paren"
+      ]
+    },
+    {
+      "id": "accusation_new",
+      "kind": "statement",
+      "label": "You have killed the brother, bracketed wording",
+      "mention_ids": [
+        "m16"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "קטליתה לאח",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "branch_bracket"
+      ]
+    },
+    {
+      "id": "question",
+      "kind": "statement",
+      "label": "How did you know?",
+      "mention_ids": [
+        "m17"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "מנא ידעת?",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    },
+    {
+      "id": "teaching",
+      "kind": "statement",
+      "label": "All gates are closed except those of mistreatment",
+      "mention_ids": [
+        "m18"
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "כל השערים ננעלים חוץ משערי אונאה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": []
+    }
+  ],
+  "claims": [
+    {
+      "id": "c1",
+      "family": "family",
+      "predicate": "spouse_of",
+      "subject": "ima",
+      "object": "eliezer",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אימא שלום, דביתהו דרבי אליעזר",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c2",
+      "family": "family",
+      "predicate": "sibling_of",
+      "subject": "ima",
+      "object": "gamliel",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אחתיה דרבן גמליאל הואי.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c3",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "ima",
+      "object": "father",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אבי אבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "ima",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "The father is the unnamed intermediate in paternal grandfather."
+      ]
+    },
+    {
+      "id": "c4",
+      "family": "family",
+      "predicate": "child_of",
+      "subject": "father",
+      "object": "grandfather",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אבי אבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "ima",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "interpretation",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c5",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "ima",
+      "object": "prevent",
+      "roles": [
+        {
+          "role": "prevented",
+          "entity": "eliezer"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "לא הוה שבקה ליה לרבי אליעזר למיפל על אפיה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "לא הוה שבקה",
+      "time_scope": null,
+      "notes": [
+        "Positive participation in preventing prayer; not an assertion that the prayer occurred then."
+      ]
+    },
+    {
+      "id": "c6",
+      "family": "time",
+      "predicate": "after",
+      "subject": "prevent",
+      "object": "prior",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "מההוא מעשה ואילך",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c7",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "ima",
+      "object": "calendar",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ואיחלף לה בין מלא לחסר.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "branch_calendar"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "איחלף לה",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c8",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "ima",
+      "object": "bread",
+      "roles": [
+        {
+          "role": "recipient",
+          "entity": "poor"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אפיקא ליה ריפתא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "branch_bread"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "אפיקא",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c9",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "poor",
+      "object": "bread",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "אתא עניא וקאי אבבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "branch_bread"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "אתא / קאי",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c10",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "eliezer",
+      "object": "fall",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "דנפל על אנפיה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "נפל",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c11",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "ima",
+      "object": "find",
+      "roles": [
+        {
+          "role": "found",
+          "entity": "eliezer"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אשכחתיה דנפל על אנפיה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "אשכחתיה",
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c12",
+      "family": "speech",
+      "predicate": "addresses",
+      "subject": "ima",
+      "object": "eliezer",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "accusation_old"
+        },
+        {
+          "role": "target",
+          "entity": "gamliel"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "קטלית לאחי",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "branch_paren"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Her accusation is recorded as speech. It is not an independent finding that Eliezer killed Gamliel."
+      ]
+    },
+    {
+      "id": "c13",
+      "family": "speech",
+      "predicate": "addresses",
+      "subject": "ima",
+      "object": "eliezer",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "accusation_new"
+        },
+        {
+          "role": "target",
+          "entity": "gamliel"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "קטליתה לאח",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        "branch_bracket"
+      ],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Her accusation is recorded as speech. It is not an independent finding that Eliezer killed Gamliel."
+      ]
+    },
+    {
+      "id": "c14",
+      "family": "scenes",
+      "predicate": "participates_in",
+      "subject": "gamliel",
+      "object": "death",
+      "roles": [],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "נפק שיפורא מבית רבן גמליאל דשכיב.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": "שכיב",
+      "time_scope": null,
+      "notes": [
+        "The narrator reports a death announcement."
+      ]
+    },
+    {
+      "id": "c15",
+      "family": "speech",
+      "predicate": "asks",
+      "subject": "eliezer",
+      "object": "ima",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "question"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אמר לה: מנא ידעת?",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c16",
+      "family": "speech",
+      "predicate": "answers",
+      "subject": "ima",
+      "object": "question",
+      "roles": [
+        {
+          "role": "addressee",
+          "entity": "eliezer"
+        },
+        {
+          "role": "content",
+          "entity": "teaching"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "אמרה ליה: כך מקובלני מבית אבי אבא: כל השערים ננעלים חוץ משערי אונאה.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "narrator",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "local_coreference",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": []
+    },
+    {
+      "id": "c17",
+      "family": "transmission",
+      "predicate": "reports_in_name_of",
+      "subject": "ima",
+      "object": "ancestral",
+      "roles": [
+        {
+          "role": "content",
+          "entity": "teaching"
+        }
+      ],
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "כך מקובלני מבית אבי אבא",
+          "occurrence": 1
+        }
+      ],
+      "branches": [],
+      "voice": "ima",
+      "polarity": "positive",
+      "modality": "asserted",
+      "discourse_status": "stated",
+      "basis": "explicit",
+      "reading_confidence": "high",
+      "identity_confidence": null,
+      "historical_confidence": null,
+      "subtype": null,
+      "time_scope": null,
+      "notes": [
+        "Reception from a household is explicit; direct hearing from a named grandfather is not."
+      ]
+    }
+  ],
+  "reading_groups": [
+    {
+      "id": "distraction",
+      "kind": "reported_alternatives",
+      "evidence": [
+        {
+          "source_id": "s1",
+          "quote": "ההוא יומא ריש ירחא הוה, ואיחלף לה בין מלא לחסר. איכא דאמרי: אתא עניא וקאי אבבא, אפיקא ליה ריפתא.",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        {
+          "id": "branch_calendar",
+          "label": "Mistaken month calculation"
+        },
+        {
+          "id": "branch_bread",
+          "label": "Feeding a poor visitor"
+        }
+      ],
+      "historical_compatibility": "unknown",
+      "scope": "Why Imma Shalom did not stop the prayer.",
+      "rejoin": "s2: אשכחתיה דנפל על אנפיה.",
+      "notes": []
+    },
+    {
+      "id": "wording",
+      "kind": "editorial_readings",
+      "evidence": [
+        {
+          "source_id": "s2",
+          "quote": "(קטלית לאחי) [קטליתה לאח]",
+          "occurrence": 1
+        }
+      ],
+      "branches": [
+        {
+          "id": "branch_paren",
+          "label": "Parenthesized wording"
+        },
+        {
+          "id": "branch_bracket",
+          "label": "Bracketed wording"
+        }
+      ],
+      "historical_compatibility": "unknown",
+      "scope": "Wording of Imma Shalom’s accusation, independent of the earlier distraction alternatives.",
+      "rejoin": "אדהכי נפק שיפורא",
+      "notes": []
+    }
+  ],
+  "coreference_candidates": [],
+  "open_questions": []
+}

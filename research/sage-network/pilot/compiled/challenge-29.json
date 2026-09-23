@@ -1,0 +1,500 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-29",
+    "episode": {
+      "genre": "halachic",
+      "genre_reason": "Advice governs fruit from trees at a property boundary.",
+      "form": "direct address",
+      "coverage": "needs_context",
+      "needed_context": [
+        "Whether אחי is an affectionate address or a literal kinship claim is not settled here."
+      ],
+      "notes": []
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב יהודה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רבין בר רב נחמן",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רב נחמן",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "נהוג בני מצרא: אילן הנוטה לכאן – לכאן, והנוטה לכאן – לכאן.",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "הני דילי – דילך, ודילך – דילי.",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "yehuda",
+        "kind": "person",
+        "label": "Rav Yehuda",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב יהודה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "ravin",
+        "kind": "person",
+        "label": "Ravin son of Rav Nahman",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבין בר רב נחמן",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "nahman",
+        "kind": "person",
+        "label": "Rav Nahman",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רב נחמן",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "instruction",
+        "kind": "statement",
+        "label": "Follow boundary practice: fruit belongs on the side where the tree leans",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "נהוג בני מצרא: אילן הנוטה לכאן – לכאן, והנוטה לכאן – לכאן.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "exchange",
+        "kind": "statement",
+        "label": "What is mine is yours and yours mine",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "הני דילי – דילך, ודילך – דילי.",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "ravin",
+        "object": "nahman",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבין בר רב נחמן",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "yehuda",
+        "object": "ravin",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "exchange"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר ליה רב יהודה לרבין בר רב נחמן: רבין אחי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "yehuda",
+        "object": "ravin",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "instruction"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "נהוג בני מצרא: אילן הנוטה לכאן – לכאן, והנוטה לכאן – לכאן.",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c4",
+        "family": "family",
+        "predicate": "sibling_of",
+        "subject": "yehuda",
+        "object": "ravin",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבין אחי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "branch_literal"
+        ],
+        "voice": "yehuda",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "low",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "speech",
+        "predicate": "addresses",
+        "subject": "yehuda",
+        "object": "ravin",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבין אחי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "branch_address"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "medium",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "friendly address",
+        "time_scope": null,
+        "notes": [
+          "This reading supplies no family relation."
+        ]
+      }
+    ],
+    "reading_groups": [
+      {
+        "id": "brother",
+        "kind": "interpretation_alternatives",
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבין אחי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          {
+            "id": "branch_literal",
+            "label": "Literal brother"
+          },
+          {
+            "id": "branch_address",
+            "label": "Friendly form of address"
+          }
+        ],
+        "historical_compatibility": "unknown",
+        "scope": "Meaning of אחי.",
+        "rejoin": null,
+        "notes": []
+      }
+    ],
+    "coreference_candidates": [],
+    "open_questions": []
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "רב יהודה",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 8,
+      "end": 16,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "רבין בר רב נחמן",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 18,
+      "end": 33,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "רב נחמן",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 26,
+      "end": 33,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s1",
+      "quote": "נהוג בני מצרא: אילן הנוטה לכאן – לכאן, והנוטה לכאן – לכאן.",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 76,
+      "end": 134,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s1",
+      "quote": "הני דילי – דילך, ודילך – דילי.",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 45,
+      "end": 75,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yehuda/evidence/0",
+      "source_id": "s1",
+      "quote": "רב יהודה",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 8,
+      "end": 16,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/ravin/evidence/0",
+      "source_id": "s1",
+      "quote": "רבין בר רב נחמן",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 18,
+      "end": 33,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/nahman/evidence/0",
+      "source_id": "s1",
+      "quote": "רב נחמן",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 26,
+      "end": 33,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/instruction/evidence/0",
+      "source_id": "s1",
+      "quote": "נהוג בני מצרא: אילן הנוטה לכאן – לכאן, והנוטה לכאן – לכאן.",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 76,
+      "end": 134,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/exchange/evidence/0",
+      "source_id": "s1",
+      "quote": "הני דילי – דילך, ודילך – דילי.",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 45,
+      "end": 75,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "רבין בר רב נחמן",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 18,
+      "end": 33,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר ליה רב יהודה לרבין בר רב נחמן: רבין אחי",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 0,
+      "end": 43,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "נהוג בני מצרא: אילן הנוטה לכאן – לכאן, והנוטה לכאן – לכאן.",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 76,
+      "end": 134,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s1",
+      "quote": "רבין אחי",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 35,
+      "end": 43,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s1",
+      "quote": "רבין אחי",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 35,
+      "end": 43,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "reading_groups/brother/evidence/0",
+      "source_id": "s1",
+      "quote": "רבין אחי",
+      "occurrence": 1,
+      "source_sha256": "62f630259f0061475c128af677049ef54d38dc55282eeb977aafb15f5281fb31",
+      "start": 35,
+      "end": 43,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "029211f10c1c1d54d11523b402d347f7bdde713a0866605a1b8c8e335b1d67b0",
+  "output_sha256": "67ea8ef0f64b1d8613333928621f0d51904ce162a82dce475d73bf528fdc0af6",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.406046+00:00"
+}

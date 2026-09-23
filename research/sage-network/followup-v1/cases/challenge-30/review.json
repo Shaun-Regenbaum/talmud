@@ -1,0 +1,30 @@
+{
+  "job_id": "challenge-30",
+  "authority": "automated_review",
+  "status": "qualified_proposals",
+  "dossier_sha256": "74d699625fecda497f1d3123a0e7be6a7a4d9e83d2290ddafd9cf50993f7bbd5",
+  "historical_graph_eligible": false,
+  "scope": "Separate review of selected graph implications. Source hashes and quotation matches checked separately. Not human adjudication or exhaustive historical verification.",
+  "findings": [
+    {
+      "target": "c4; speaker/target/addressee distinction",
+      "decision": "support_proposed_correction",
+      "reason": "The saved base wording אמרה leaves the addressee unstated. The separate אמרה ליה witnesses support a branch with an addressee. The same father can remain the target across both readings."
+    },
+    {
+      "target": "reported three-year duration",
+      "decision": "keep_reported_context",
+      "reason": "The duration comes from a precedent cited in the wider discussion. Preserve its attributed voice and relation to the later retelling. It is not an independent observation just because the same story is quoted twice."
+    },
+    {
+      "target": "parallel Yerushalmi story",
+      "decision": "qualify_identity_language",
+      "reason": "Do not accept a merge of the differently described people. Also do not turn that into a claim that the stories cannot be related. Preserve a possible relationship between the tellings for a later evidence pack."
+    },
+    {
+      "target": "commentarial release of the ban",
+      "decision": "keep_as_commentary_reconstruction",
+      "reason": "The claimed later release must stay attributed to the commentator or quoted commentator. Do not add it as a directly narrated Talmud event."
+    }
+  ]
+}

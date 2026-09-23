@@ -1,0 +1,129 @@
+{
+  "job_id": "original-10",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "e3fc6cb6d472e8c64ae192ed8ceb02852011c02b6f43140d885273a1608b914c",
+  "historical_graph_eligible": false,
+  "scope": "I checked every person-, speaker- and relation-bearing finding (F01-F12), the four proposed corrections and the reading.md relations list against the saved sources (Pesachim 103a Aramaic, English and Wikisource; Berakhot 52b; Rashbam, Rashi, Tosafot and Steinsaltz; Tosefta; the three Yerushalmi texts; Mishnah Berakhot 8:5; Rif Pesachim 21a); I fetched nothing new and did not check manuscripts, the codes, or anyone's historical identity.",
+  "findings": [
+    {
+      "target": "F07 / alternative_readings A1-A2 / unresolved item 1",
+      "decision": "add_missing_claim",
+      "reason": "The dossier saved Rif Pesachim 21a (S28) but used it only to count votes for Rabbi Yehuda's order (A5). The Rif has no 'ומאי היא' step: it reads 'א\"ל והא בין ב\"ש ובין ב\"ה מאור ואח\"כ בשמים דתנן ב\"ש אומרים...', so the Mishnah quotation runs straight on inside Rav Huna bar Yehuda's challenge, as in Berakhot 52b. The Rif also reads 'עני רבא בתריה זו דברי ר' מאיר' with no 'ואמר'. Record the Rif as a later-quotation witness for reading A2 (the challenger quotes the Mishnah) and for the shorter reply formula. Keep it separate from the printed Pesachim text. It does not settle who speaks 'ומאי היא' in the printed Pesachim, so the speaker there stays open."
+    },
+    {
+      "target": "F01 (co-presence claim) / reading.md 'Meeting'",
+      "decision": "add_missing_claim",
+      "reason": "The words 'אַיְיתוֹ לְקַמַּיְיהוּ מָאוֹר וּבְשָׂמִים' ('they brought before them light and spices', 103a:5) name unnamed people who carry the light and spices into the room where Rava and Rav Huna bar Yehuda sit. So F01's statement that the visit is 'the only narrated co-presence' should not read as if only two people were there. Add an unnamed plural local participant (people of the household or servers, bringing items) with low graph weight and no identity. They play no speaking or legal role. The Berakhot 52b telling and the Rif ('אייתו לקמיה') word this differently, so the participant belongs to the Pesachim wording branch."
+    },
+    {
+      "target": "F09 graph_effect (practice report, 103a:8)",
+      "decision": "qualify",
+      "reason": "'נָהֲגוּ הָעָם כְּבֵית הִילֵּל וְאַלִּיבָּא דְּרַבִּי יְהוּדָה' says the people follow Beit Hillel, as Rabbi Yehuda's version reports Beit Hillel's view. The dossier stores only 'the people follows_version_of Rabbi Yehuda'. That leaves out the main object of the practice, Beit Hillel. Store it as one observation: reporter Rabbi Yochanan; the people (a collective, not a person) follow Beit Hillel, qualified by 'according to Rabbi Yehuda'. The dossier rightly keeps 'Rava cites Rabbi Yochanan' provisional. Its refusal to add 'Rava follows the custom' also stands: that comes only from the English 'Rava acted as dictated by this custom' and Steinsaltz's 'וכך נהג רבא', and the Rif, a later quotation, also lacks it."
+    },
+    {
+      "target": "F11 / proposed correction 4 (child_of Rav Huna bar Yehuda -> Yehuda)",
+      "decision": "qualify",
+      "reason": "Keep the child_of claim and the local parent placeholder from 'רַב הוּנָא בַּר יְהוּדָה', as the project rule requires. But the dossier marks it 'literal kinship' and calls it a 'literal patronymic'. The rule asks us to flag that such a form may work as a fixed name rather than tell us about a real parent. Mark it as name-embedded kinship, literal by default, possibly a fixed name. Also note that Rashbam calls the same local man simply 'רב הונא' ('א\"ל - רב הונא לרבא'). That short form refers back to this visitor. It must not be used to link him to any other Rav Huna."
+    },
+    {
+      "target": "F01 / proposed correction 4 (responds_to Rava -> Rav Huna bar Yehuda)",
+      "decision": "qualify",
+      "reason": "The challenge direction holds: 'אֲמַר לֵיהּ' in 103a:5 has no new subject, and Rashbam states 'רב הונא לרבא'. The reply in 103a:7 is marked only by 'עָנֵי רָבָא בָּתְרֵיהּ' ('Rava answered after him'). There is no 'ליה' marking an addressee. Steinsaltz glosses it 'כמשלים את דבריו' (as completing his words). Store it as Rava responding to Rav Huna bar Yehuda's challenge, with the target being the challenge. Mark the addressee as inferred from the sequence ('after him'), not as a marked 'said to him'."
+    },
+    {
+      "target": "F04 / proposed correction 2 (Rabbi Meir <-> Rabbi Yehuda disputes)",
+      "decision": "support_with_provenance",
+      "reason": "The opposition exists only in Rava's words 'זוֹ דִּבְרֵי רַבִּי מֵאִיר, אֲבָל רַבִּי יְהוּדָה אוֹמֵר'. The Mishnah (S19) is anonymous, and the Tosefta (S20, S21) gives Rabbi Yehuda's sentence without naming Rabbi Meir. Rashbam's 'דסתם מתני' ר\"מ' is a later explanation of Rava's attribution, not separate proof of it. The dossier's subtype and provenance note are right. The edge should carry the evidence type 'amoraic attribution, explained by commentary' and must never count as a tannaitic record of two men arguing. Medium confidence is appropriate."
+    },
+    {
+      "target": "F03 / proposed correction 1 (Rava -> Rabbi Meir attributes_text_to; Rava -> Rabbi Yehuda cites_teaching)",
+      "decision": "support_proposed_correction",
+      "reason": "'זו' points back to the Mishnah just quoted in 103a:6 ('דִּתְנַן, בֵּית שַׁמַּאי אוֹמְרִים: נֵר וּמָזוֹן...'). So Rava is naming who taught that text, not arguing with or explaining Rabbi Meir. The Wikisource text, the Berakhot 52b parallel and the Rif all have 'זו דברי ר' מאיר' at this point. No meeting, teacher or same-time edge follows from either tanna being named, and the dossier adds none."
+    },
+    {
+      "target": "F05 / proposed correction 3 (Rabbi Yehuda reports_position_of both schools)",
+      "decision": "support_proposed_correction",
+      "reason": "103a:8 continues Rabbi Yehuda's sentence: 'בֵּית שַׁמַּאי אוֹמְרִים: מָאוֹר וְאַחַר כָּךְ בְּשָׂמִים, וּבֵית הִילֵּל אוֹמְרִים: בְּשָׂמִים וְאַחַר כָּךְ מָאוֹר'. So he reports both schools, and the input pair caught only the first one. The Yerushalmi branch reversal (F08) checks out in all three saved texts ('שבית שמאי אומרים בשמים ומאור'). The dossier rightly keeps it as a separate branch rather than a correction. One small addition: in 103a:5 Rav Huna bar Yehuda also states both schools' shared position ('בֵּין בֵּית שַׁמַּאי וּבֵין בֵּית הִילֵּל — מָאוֹר בְּרֵישָׁא'), following the Mishnah's version. That can be stored as content of his challenge, not as a new relation to either school."
+    },
+    {
+      "target": "F12 (adjacent episode 103a:9-10)",
+      "decision": "qualify",
+      "reason": "The student_of claims stand, because the text says 'רַב בְּרוֹנָא וְרַב חֲנַנְאֵל תַּלְמִידֵי דְרַב'. But 'אֲנָא עֲבַדִי כְּתַלְמִידֵי דְרַב' tells a story as precedent inside Rava's argument. It is not an event of this visit, and it gives no student_of or meeting link between Rava and Rav or his students. The remembered practice 'כִּי הֲוֵינַן בֵּי רֵישׁ גָּלוּתָא הָכִי עָבְדִינַן' is in the first person plural: a group practice Rava says he shared, at an unnamed Exilarch's house. Rashbam's lemma reads 'רבי יעקב בר אבא' where the printed text has 'רַב יַעֲקֹב'. Keep that as a commentary name variant, not a correction."
+    },
+    {
+      "target": "F10 (Tosafot and Rashi on Rabbi Yochanan)",
+      "decision": "keep_evidence_types_separate",
+      "reason": "The Tosafot on Pesachim (S12) does say 'והאי נהגו לא הוי כהאי נהגו דבפרק בתרא דתענית'. The Tosafot on Berakhot (S18), cited next to it, answers differently: 'אבל הכא יכול להיות דאין כאן אלא נהגו גרידא'. These are two commentary positions and should not be merged into one 'Tosafot says'. Rashi's 'וא\"ר יוחנן – גרסי'' shows a textual choice but does not identify the rejected reading, as the dossier says. Neither note adds or removes a person relation."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "S01",
+      "exact_quote": "עָנֵי רָבָא בָּתְרֵיהּ וְאָמַר: זוֹ דִּבְרֵי רַבִּי מֵאִיר",
+      "matches_claim": true,
+      "note": "Found at 103a:7, the only occurrence on the page. It follows the Mishnah quotation in 103a:6, so 'זו' points at that Mishnah as F03 claims. The addressee is not marked beyond 'בתריה'."
+    },
+    {
+      "source_id": "S01",
+      "exact_quote": "אֲמַר לֵיהּ: וְהָא בֵּין בֵּית שַׁמַּאי וּבֵין בֵּית הִילֵּל — מָאוֹר בְּרֵישָׁא וַהֲדַר אַבְּשָׂמִים.",
+      "matches_claim": true,
+      "note": "103a:5. It follows directly on Rava's blessing, with no new subject, so the challenger is Rav Huna bar Yehuda. This is the right occurrence; the 'אמר ליה' lines in 103a:9-10 belong to the Rav Yaakov bar Abba episode."
+    },
+    {
+      "source_id": "S09",
+      "exact_quote": "א\"ל - רב הונא לרבא לאחר שגמר הבדלה והא בין ב\"ש כו' ולא פליגי לא גרסינן:",
+      "matches_claim": true,
+      "note": "Rashbam names the speaker and addressee and rejects the reading 'ולא פליגי'. Calling him the short 'רב הונא' here is commentary shorthand for the local visitor."
+    },
+    {
+      "source_id": "S09",
+      "exact_quote": "זו דברי ר\"מ - דהכי הוו תני לפלוגתייהו דב\"ש וב\"ה דסתם מתני' ר\"מ:",
+      "matches_claim": true,
+      "note": "This supports F04's statement that Rashbam explains Rava's attribution by the anonymous-Mishnah rule. It is commentary, not independent evidence of the attribution."
+    },
+    {
+      "source_id": "S01",
+      "exact_quote": "וְאָמַר רַבִּי יוֹחָנָן: נָהֲגוּ הָעָם כְּבֵית הִילֵּל וְאַלִּיבָּא דְּרַבִּי יְהוּדָה.",
+      "matches_claim": true,
+      "note": "103a:8. The Aramaic has no 'Rava acted' clause. The English S02 'Rava acted as dictated by this custom.' and Steinsaltz S11 '...וכך נהג רבא.' are both confirmed as additions from one editorial project. The object of the custom is Beit Hillel, qualified by Rabbi Yehuda's version."
+    },
+    {
+      "source_id": "S28",
+      "exact_quote": "א\"ל והא בין ב\"ש ובין ב\"ה מאור ואח\"כ בשמים דתנן ב\"ש אומרים נר ומזון ובשמים והבדלה",
+      "matches_claim": false,
+      "note": "The dossier does not use this, but it bears on A1/A2. In the Rif the Mishnah citation is inside the challenger's speech and there is no 'ומאי היא'. The Rif also reads 'עני רבא בתריה זו דברי ר' מאיר' without 'ואמר'. Treat it as a later-quotation witness, separate from the printed Pesachim."
+    },
+    {
+      "source_id": "S13",
+      "exact_quote": "עָנֵי רָבָא בָּתְרֵיהּ: זוֹ דִּבְרֵי רַבִּי מֵאִיר",
+      "matches_claim": true,
+      "note": "Berakhot 52b:27 indeed lacks 'ואמר'. The preceding line has 'חַזְיֵיהּ לְרָבָא' and 'דְּתַנְיָא' inside Rav Huna bar Yehuda's speech, as F07 says. It is a parallel telling of the same encounter, not a second meeting."
+    },
+    {
+      "source_id": "S20",
+      "exact_quote": "אמ' ר' יהודה לא נחלקו בית שמיי ובית הלל על ברכת המזון שהיא בתחלה ועל הבדלה שהיא בסוף",
+      "matches_claim": true,
+      "note": "Lieberman Tosefta 5:30. No Rabbi Meir appears in the sentence or in the rest of the saved segment. The school order (Beit Hillel: spices first) matches the Bavli, as F06 says."
+    },
+    {
+      "source_id": "S26",
+      "exact_quote": "שבית שמאי אומרי' בשמי' ומאור ובית הלל אומרי' מאור ובשמים רבי בא ורב יהודה בשם רב",
+      "matches_claim": true,
+      "note": "The reversal is confirmed in Venice (S26), Guggenheimer Hebrew (S24) and Mechon-Mamre (S27). Guggenheimer's English (S25) has 'Rebbi Abba and Rav Yehudah: Practice follows...' and leaves out 'in the name of Rav', as F08 notes. These are Yerushalmi-only names and are not imported into Pesachim."
+    },
+    {
+      "source_id": "S01",
+      "exact_quote": "אַיְיתוֹ לְקַמַּיְיהוּ מָאוֹר וּבְשָׂמִים",
+      "matches_claim": false,
+      "note": "The plural 'they brought' refers to unnamed people present at the visit. It is quoted in F01, but the dossier does not add these people, and F01's graph effect presents the scene as just the two named men."
+    },
+    {
+      "source_id": "S01",
+      "exact_quote": "רַב בְּרוֹנָא וְרַב חֲנַנְאֵל תַּלְמִידֵי דְרַב",
+      "matches_claim": true,
+      "note": "103a:10. The text itself states the student relation. The whole clause is a precedent Rava cites ('אנא עבדי כתלמידי דרב'), not part of the visit."
+    }
+  ],
+  "extra_sources": []
+}

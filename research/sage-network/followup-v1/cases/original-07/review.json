@@ -1,0 +1,129 @@
+{
+  "job_id": "original-07",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "f23db4b76da6162b4274304a249396b69f0824ddb412433293b9fa2b9460ade4",
+  "historical_graph_eligible": false,
+  "scope": "I checked every finding, proposed correction and edge in the dossier's branch-scoped proposal against the saved sources (Pesachim 36b:16 and 37a:1-7 in Davidson Aramaic/English, Wikisource and Goldschmidt; the Beitzah 22b:6-8 parallel in the same three; Rashi, Steinsaltz and linked commentary on both; Seder HaDorot 2232; Tosafot Kiddushin 46a); I fetched nothing new and did not check manuscripts, Dikdukei Soferim or the identity of any person across the Talmud.",
+  "findings": [
+    {
+      "target": "F1, F3 and the calls_my_teacher edges (branch A and branch B)",
+      "decision": "qualify",
+      "reason": "The student's own first-person words are only שְׁאֵילִית אֶת רַבִּי בְּיִחוּד ('I asked my teacher'). The identification that follows, וּמַנּוּ: רַב / וּמַנּוּ: רַבֵּינוּ הַקָּדוֹשׁ ('and who is he?'), is third person and is not marked as the student's speech; Rashi on Beitzah glosses it as רבו דרב, speaking about Rav, and Steinsaltz on Beitzah 22b:6 resumes the first person only after it (ושאלתי היתה). So F1's 'explicit student-teacher statement by the student' overstates the basis: keep both edges, but record them as 'speaker calls the one he asked my teacher' plus 'an unmarked narrating voice (transmitter or anonymous Talmud) names that teacher'. In B this also means the epithet רבינו הקדוש is the narrator's label, not a word Rav is quoted as using; confidence in the printed identification stays high."
+    },
+    {
+      "target": "F6 and F5 graph_effect; explains_to edges (Rav -> Yirmeya in A, רבינו הקדוש -> Rav in B)",
+      "decision": "reject_proposed_change",
+      "reason": "The Aramaic has no verb of answering and no addressee: מַאי פַּת עָבָה? פַּת מְרוּבָּה. The dossier itself shows the answer verb is supplied (Steinsaltz אמר לו, Goldschmidt '[dieser habe erwidert]', Davidson 'He explained' outside the bold), yet F5 states flatly 'In A the answerer is Rav; in B it is רבינו הקדוש'. A separate person-to-person explains_to edge fills an addressee the text does not mark and restates, in reverse, the direction already stored by the asks edge. Attach 'pat ava = pat merubah' to each branch's teacher slot as an interpretive content attribution (medium, basis: question-answer sequence), with no addressee and no extra edge."
+    },
+    {
+      "target": "branch_scoped_graph_proposal.local_persons (missing mention)",
+      "decision": "add_missing_claim",
+      "reason": "The focal segment also names an unnamed person: בְּאַתְרֵיהּ דְּהַאי תַּנָּא ('in the place of this tanna'). In context he is the tanna of the baraita at Pesachim 36b:16 (אֵין אוֹפִין פַּת עָבָה ... דִּבְרֵי בֵּית שַׁמַּאי), picked up again at 37a:6 (וְהַאי תַּנָּא בְּיוֹם טוֹב שֶׁל פֶּסַח קָאֵי). Add one local role mention 'this tanna' with a place-usage attribute only, spoken by the anonymous discussion; do not identify him with a named person or with the school of Beit Shammai, and do not link him to Yirmeya, Rav or רבינו הקדוש."
+    },
+    {
+      "target": "proposed_corrections: bavli|Pesachim|37a|4|45|59",
+      "decision": "support_proposed_correction",
+      "reason": "The pair joins the last word of branch A (וּמַנּוּ: רַב) with the first name of branch B (רַב יִרְמְיָה בַּר אַבָּא) across אִיכָּא דְּאָמְרִי. No relation is stated between those two tokens; the real B-branch transmission is the next pair (…|59|79, 'רב ירמיה בר אבא אמר רב'). Deleting this pair does not lose any observation, and keeping it would store the Yirmeya-Rav direction twice."
+    },
+    {
+      "target": "proposed_corrections: bavli|Pesachim|37a|4|30|45 and |4|30 and |79|92",
+      "decision": "support_proposed_correction",
+      "reason": "Rashi on Pesachim 37a:4 assigns one teacher per speaker: 'רביה דר' ירמיה רב רביה דרב רבינו הקדוש'. So the two רבי tokens are two role slots, one per branch, and a global same-man between the title 'Rabbi' and Rav would be false here. Scoping |4|30 to A (object = A's slot, resolved to Rav) and |79|92 to B (object = B's slot, resolved to רבינו הקדוש) follows the grammar of שְׁאֵילִית after אָמַר רַב. Subject to the voice qualification in the first finding."
+    },
+    {
+      "target": "F2 and proposed_corrections: bavli|Pesachim|37a|4|59|79",
+      "decision": "support_proposed_correction",
+      "reason": "'רַב יִרְמְיָה בַּר אַבָּא אָמַר רַב: שְׁאֵילִית' makes Rav the first-person asker in B and Yirmeya only the transmitter; Rashi on Beitzah says 'רב גופיה אמר שאלית את רבי ביחוד'. Keep transmits_in_name_of (Yirmeya -> Rav, B only) as one stored direction, with no student_of or meeting implied. F2 calls Goldschmidt 'an independent translation' supporting this; that is fine as a separate translation witness, but it translates the same printed text and should not be counted as an extra vote beyond the grammar and Rashi."
+    },
+    {
+      "target": "F4 (Judah HaNasi identification)",
+      "decision": "keep_evidence_types_separate",
+      "reason": "Confirmed: the Davidson English prints 'Our holy Rabbi,</b> Rabbi Yehuda HaNasi' with the name outside the bold, and Steinsaltz has '(ר' יהודה הנשיא)' in brackets; the Aramaic and Wikisource have only רבינו הקדוש. These are one editorial family and count once. Store רבינו הקדוש as the literal printed label (given by the narrating voice, see the first finding) and any Judah HaNasi link only as a separate provisional identity assertion."
+    },
+    {
+      "target": "F7 and ALT2 (who speaks the pat ava etymologies)",
+      "decision": "qualify",
+      "reason": "The conclusion holds: do not attach 'מִשּׁוּם דִּנְפִישָׁא בְּלִישָׁה' or the local-usage explanation to Rav or רבינו הקדוש. Two narrowings: the formula argument (וְאִי בָּעֵית אֵימָא) fits Pesachim only, because Beitzah 22b:7 has אִי נָמֵי instead; and the second explanation speaks of 'this tanna' in the third person, which fits the anonymous discussion of the baraita. In Beitzah the A-branch copy stops at פַּת מְרוּבָּה, so the etymologies are never in A's report; keep ALT2 as an alternative attribution for B only, from one editorial family."
+    },
+    {
+      "target": "F11 and reading.md 'Name and identity'",
+      "decision": "qualify",
+      "reason": "Seder HaDorot's 'ר' ירמי' בר אבא תלמיד חבר לרב היה' rests on Berakhot 27b's form of address ('לכך אמר לרב מי בדלת ולא אמר מי בדל מר'); it lists 'שאלית את רבי ומנו רב פ' כל שעה' only later, among his occurrences. reading.md's 'calls him a student-colleague ... and cites this passage' can be read as this passage being the basis, which it is not. Tosafot Kiddushin 46a's 'ונראה דתרי רב ירמיה הוו' is itself an inference from that address form; both stay on the identity layer and must not strengthen or weaken the branch-A teacher edge."
+    },
+    {
+      "target": "F9, F10 and F12 (one transmitter, patronymic parent, undecided branches)",
+      "decision": "support_proposed_correction",
+      "reason": "Wikisource reads 'אמר ר' ירמיה בר אבא ... איכא דאמרי רב ירמיה בר אבא' and Davidson reads רב in both; a title variant inside one איכא דאמרי is not grounds for two local people. 'בַּר אַבָּא' keeps a local placeholder Abba with a name-derived child_of edge, shared by both branches, even though Abba never acts; Seder HaDorot's remark on the father ('אבא אביו היה') is rightly left out. The passage never chooses between A and B, so each teacher edge stays inside its branch and neither confirms the other."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "pes37a_v3",
+      "exact_quote": "אָמַר רַב יִרְמְיָה בַּר אַבָּא: שְׁאֵילִית אֶת רַבִּי בְּיִחוּד, וּמַנּוּ: רַב.",
+      "matches_claim": true,
+      "note": "Pesachim 37a:4, the first sentence of the segment (branch A). Present exactly. Supports Yirmeya as asker; the ומנו clause is third person and not marked as his speech."
+    },
+    {
+      "source_id": "pes37a_v3",
+      "exact_quote": "אִיכָּא דְּאָמְרִי, רַב יִרְמְיָה בַּר אַבָּא אָמַר רַב: שְׁאֵילִית אֶת רַבִּי בְּיִחוּד, וּמַנּוּ: רַבֵּינוּ הַקָּדוֹשׁ.",
+      "matches_claim": true,
+      "note": "Pesachim 37a:4, second sentence (branch B). The right occurrence: this רבי is B's, distinct from A's רבי earlier in the same segment."
+    },
+    {
+      "source_id": "rashi_37a",
+      "exact_quote": "רביה דר' ירמיה רב רביה דרב רבינו הקדוש",
+      "matches_claim": true,
+      "note": "Rashi on Pesachim 37a:4:1, inside the lemma ביחוד. Supports one teacher slot per branch."
+    },
+    {
+      "source_id": "rashi_beitzah22b7",
+      "exact_quote": "ואיכא דאמרי - רב גופיה אמר שאלית את רבי ביחוד",
+      "matches_claim": true,
+      "note": "Rashi on Beitzah 22b:7:1. Supports Rav as first-person asker in B. It is on the parallel, so it supports the reading of the wording, not extra participants here."
+    },
+    {
+      "source_id": "rashi_beitzah22b7",
+      "exact_quote": "ומנו - רבו דרב רבינו הקדוש",
+      "matches_claim": true,
+      "note": "Rashi on Beitzah 22b:7:2. Matches F2; also shows the ומנו identification is phrased about Rav in the third person, which bears on the voice qualification."
+    },
+    {
+      "source_id": "pes37a_v3",
+      "exact_quote": "<b>Rav said: I asked my special Rabbi, and who is this? Our holy Rabbi,</b> Rabbi Yehuda HaNasi:",
+      "matches_claim": true,
+      "note": "Davidson English, Pesachim 37a:4. The name Yehuda HaNasi sits outside the bold, confirming F4 that it is an editorial addition."
+    },
+    {
+      "source_id": "steinsaltz_37a4",
+      "exact_quote": "מאי [מה היא] פת עבה? אמר לו: פת מרובה",
+      "matches_claim": true,
+      "note": "Present in the HTML-stripped text; אמר לו is unbolded commentary. Confirms the answer verb is supplied, which is why the explains_to edges should not be separate edges."
+    },
+    {
+      "source_id": "beitzah22b_wikisource",
+      "exact_quote": "אמר רב ירמיה בר אבא שאלית את רבי ביחוד ומנו רב מאי פת עבה פת מרובה",
+      "matches_claim": true,
+      "note": "Beitzah 22b:6, the whole segment. Supports F5 that A has its own question-answer in the parallel, and shows A's copy ends at פת מרובה, without the etymologies."
+    },
+    {
+      "source_id": "pes37a_wikisource",
+      "exact_quote": "אמר ר' ירמיה בר אבא שאילית את רבי ביחוד ומנו רב איכא דאמרי רב ירמיה בר אבא אמר רב",
+      "matches_claim": true,
+      "note": "Pesachim 37a:4 Wikisource. Confirms the ר'/רב title variant between the two branches inside one segment (F9)."
+    },
+    {
+      "source_id": "seder_hadorot_2232",
+      "exact_quote": "ר' ירמי' בר אבא תלמיד חבר לרב היה",
+      "matches_claim": true,
+      "note": "Present, but the continuation 'לכך אמר לרב מי בדלת ולא אמר מי בדל מר פ' תפלת השחר' shows the basis is Berakhot 27b; this passage is listed later only as an occurrence."
+    },
+    {
+      "source_id": "links_beitzah22b7",
+      "exact_quote": "ומנו [ומי הוא] רבו של רב — רבינו הקדוש, והסביר לי",
+      "matches_claim": true,
+      "note": "Matches after HTML stripping (Steinsaltz on Beitzah 22b:7). The words רבו של רב and והסביר לי are unbolded commentary, so ALT2 is an editorial attribution."
+    }
+  ],
+  "extra_sources": []
+}

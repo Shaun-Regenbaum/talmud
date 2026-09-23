@@ -1,0 +1,86 @@
+{
+  "job_id": "challenge-11",
+  "input_sha256": "e79e3f1fc50417efdb22705e19f68191e0a373ab573647b58e7ee7514b96a825",
+  "output_sha256": "fc0b2ea7838fb2c101ac8bc2ec3f7f9d9135aab881d4ad1efc181e502a8cfa13",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "The relationship is student_of with subtype student_colleague and a note expressly distinguishing it from an ordinary subordinate student.",
+      "claim_ids": [
+        "c14"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "Yirmiya’s question and Rav’s reply have separate directions and content roles.",
+      "claim_ids": [
+        "c15",
+        "c16"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "miss",
+      "reason": "The explicit denial ולא אמר מי בדיל מר has no statement, negative speech claim, or quoted note. The episode only alludes generally to a wording comparison.",
+      "claim_ids": [
+        "c14",
+        "c15",
+        "c16"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "The colleague qualification is retained in both subtype and explanation.",
+      "claim_ids": [
+        "c14"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "The formal wording is not falsely counted as an utterance, and no dates are invented. Its omission is separately marked as a preservation failure.",
+      "claim_ids": [
+        "c15",
+        "c16"
+      ]
+    }
+  ],
+  "additional_findings": [
+    {
+      "severity": "major",
+      "type": "omission",
+      "claim_ids": [
+        "c14",
+        "c15",
+        "c16"
+      ],
+      "reason": "The passage explicitly says that the formal מי בדיל מר wording was not used. The saved reading ends with the actual question and reply and drops this negative speech evidence, although it explains why the relationship is described as student-colleague.",
+      "source_refs": [
+        "Berakhot 27b:3"
+      ]
+    },
+    {
+      "severity": "minor",
+      "type": "omission",
+      "claim_ids": [
+        "c4",
+        "c5",
+        "c6",
+        "c8"
+      ],
+      "reason": "The three legal inferences from Rav’s conduct appear as statement nodes, but only the crossing prohibition receives an explicit supporting claim. The permitted early Sabbath prayer and praying behind a teacher are not structurally tied to the inference, before its later qualification.",
+      "source_refs": [
+        "Berakhot 27a:15"
+      ]
+    }
+  ],
+  "summary": "The relationship and actual exchange are correct. The explicitly unsaid formal wording is omitted."
+}

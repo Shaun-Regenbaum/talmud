@@ -1,0 +1,135 @@
+{
+  "job_id": "challenge-04",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "ee412954d733fb03a96df99ff3b34510203a6e48bccc6c85e42a006a3c3a063e",
+  "historical_graph_eligible": false,
+  "scope": "I checked every person, speaker, addressee, attribution, parallel and identity claim in dossier.json and reading.md (F01-F15 and the nine proposed corrections) against the saved sources in sources/ (Bavli 170b-171a in Wikisource, William Davidson and Soncino, Rashbam, Tosafot, Shita Mekubetzet, Ramban, Rabbeinu Gershom, Steinsaltz, the Yerushalmi and its commentators, the codes) and against the first reading's entities; I fetched nothing new and did not check manuscripts or variant apparatus.",
+  "findings": [
+    {
+      "target": "pilot entity 'recipient' (m10, the pronoun לו) and the Mishnah's זה / של זה in F04",
+      "decision": "add_missing_claim",
+      "reason": "The first reading typed 'Recipient of the replacement document' (from וכותבין לו in Rav's ruling) as kind person, and the dossier's review_assessment passes over it. It is a legal role in a legal rule, not a person. The same applies to the Mishnah's נמצא זה צריך and ולא ירע כחו של זה that F04 brings in, and to the witnesses and the court in the baraita. These should be stored as legal roles (debtor, creditor, witnesses, court) with no person node and no place in the people graph."
+    },
+    {
+      "target": "F08 (identity candidate) and proposed correction 'reading_groups.challenger'",
+      "decision": "qualify",
+      "reason": "The graph_effect sources the candidate 'JT רבי ירמיה = Bavli רב ירמיה בר אבא' to 'these two commentators', but only Sha'arei Torat Eretz Yisrael says 'ר' ירמיה בר אבא'. Guggenheimer's note 84 says only 'He is Rav Jeremiah, Babylonian of the first generation', with no patronymic. Sha'arei's own basis is the Bavli ('וכ\"ה בבבלי ק\"ע ב''), in a comment that also emends the line (צ\"ל ... מתניתא) and declares the intervening text superfluous ('ומה שבינתיים מיותר'). So the identification cannot later be counted as support for the Bavli yirmiya_version branch, because that would be circular. The child_of(Abba) claim (c13) stays with the Bavli branch and must not be copied onto the Yerushalmi's רבי ירמיה, who has no patronymic in any of the three saved texts."
+    },
+    {
+      "target": "F03 / proposed correction 'baraita (entity)' / reading.md 'The baraita is Rabbi Yehuda's'",
+      "decision": "qualify",
+      "reason": "The occurrence is right. The words at 170b:4 (עדים מקרעין את השטר וכותבין לו שטר אחר מזמן ראשון) are the first view of the baraita the Gemara quotes in full at 171a:5, and not the Mishnah at 170b:2. But 171a:5 attributes that view ('דברי רבי יהודה') and gives a second view to Rabbi Yosi inside the same baraita. So attributed_to should hang on the quoted excerpt (the 'baraita' statement node), not on the whole baraita, and reading.md's 'The baraita is Rabbi Yehuda's' should be narrowed to match. The 'according to Rabbi Yehuda' in the William Davidson English and 'בשיטתו של ר' יהודה' in Steinsaltz at 170b:4 are unbolded editorial words from one project. They are not a second witness."
+    },
+    {
+      "target": "F04 / proposed correction 'new (Mishnah speech)'",
+      "decision": "qualify",
+      "reason": "Only the second speech marks an addressee: 'אמר לו רבי יוסי' ('Rabbi Yosi said to him'), whose לו points back to Rabbi Yehuda. Rabbi Yehuda's 'אמר רבי יהודה נמצא זה צריך להיות שומר שוברו מן העכברים' has no addressee in the text. Store it with Rabbi Yosi's rule as its target and leave the addressee empty. The literary-dispute label, and the rule that this is not a meeting, stay as the dossier has them."
+    },
+    {
+      "target": "F04 / proposed correction 'y_rule, yosi_rule'",
+      "decision": "qualify",
+      "reason": "The dossier proposes the label 'the debtor exchanges the note', but the Mishnah says only 'יחליף' ('he should exchange') and does not name who does it. The saved translations disagree: the William Davidson English has 'The creditor should exchange', and Soncino has 'HE SHALL EXCHANGE [HIS BOND FOR ANOTHER]'. The dossier's own F05 says to store the Mishnah's word rather than a gloss. Label y_rule 'יחליף: he should exchange [the note], subject unstated' and yosi_rule 'יכתוב שובר: he should write a receipt', both with evidence 170b:2."
+    },
+    {
+      "target": "F05 and alternative_readings 'What Rav rejects'",
+      "decision": "keep_evidence_types_separate",
+      "reason": "Tosafot does not simply oppose Rashbam. It says Rashbam's reading fits the Gemara's conclusion ('וכן הוא לפי המסקנא דשמיע ליה ברייתא ולא הדר'). The Ri's second-date reading is offered as how the challenger, under the label 'רב נחמן', understood Rav ('ונראה לר\"י דרב נחמן סבר לה למילתיה דרב הכי'). The Ramban 170b:2 takes the same line ('משום שהיה סבור מזמן שני קאמר'), and Tosfot HaRosh openly depends on Tosafot ('ככתוב בתוספות'). So this is one line of reasoning, not three votes. If it is stored, it is a commentary-level claim about what the challenger and the replier each took Rav to mean. It is not a Talmud claim, and it is not a view held by Rav."
+    },
+    {
+      "target": "F03 (omitted 171a:6)",
+      "decision": "add_missing_claim",
+      "reason": "The baraita continues at 171a:6: 'ומפני שני דברים אמרו כותבין שובר' ('for two reasons they said one writes a receipt'). The dossier stops at Rabbi Yosi's receipt line. The William Davidson English opens this line with 'Rabbi Yosei continues', but in plain (editorial) type. The Aramaic has only an unnamed 'אמרו' ('they said'). Add it as a statement inside the baraita. Its voice is open, either Rabbi Yosi continuing or the unnamed Sages he cites, with low confidence, and it is not attributed to Rabbi Yosi on the editors' word alone."
+    },
+    {
+      "target": "F02 / proposed correction 'c7, c10'",
+      "decision": "support_proposed_correction",
+      "reason": "The Wikisource and vocalized Aramaic read only 'אמר ליה שמיע ליה ולא הדר ביה', and Soncino has 'He said unto him'. 'Rav Huna' appears only unbolded in the William Davidson English and after the bold 'אמר ליה' in Steinsaltz, which is one editorial project. Keeping c7/c10 with basis local_coreference, and adding a note that the name is not in the Aramaic, is correct. The addressee (ליה) is marked, and it is whichever challenger the branch selects."
+    },
+    {
+      "target": "F10 (speaker of 171a:1)",
+      "decision": "support_proposed_correction",
+      "reason": "'בשלמא בי דינא אלימי לאפקועי ממונא אלא עדים שעשו שליחותן חוזרין ועושין שליחותן' names no speaker. The William Davidson 'Why is this?' is editorial plain text. Mareh HaPanim runs the reply and the reason together ('דשמיע ליה ולא הדר ביה דעדים שעשו שליחותן אין חוזרין'), but that is a paraphrase explaining Rav's view, not evidence that Rav Huna spoke it. Storing it as the anonymous Gemara, and leaving the question open, is the narrow choice."
+    },
+    {
+      "target": "F01, F06, F07 (challenger branches and the Yerushalmi parallel)",
+      "decision": "support_proposed_correction",
+      "reason": "170b:4 reads 'אמר ליה רב נחמן לרב הונא ואמרי לה רב ירמיה בר אבא לרב הונא', so two reported alternatives both addressed to Rav Huna. Tosafot's and Shita's use of 'רב נחמן' is a label, not a choice between the branches. The Yerushalmi line 'א\"ר ירמיה אילו שמע רב מתנייה לא הוה מימר הדא מילתא' has no Rav Nahman, no Rav Huna and no reply. Storing it as a parallel tradition with disputed closeness, and keeping Rabbi Hiyya ('תני ר' חייה') out of the Bavli graph, is correct."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "bb170b",
+      "exact_quote": "אמר ליה רב נחמן לרב הונא ואמרי לה רב ירמיה בר אבא לרב הונא אי שמיעא ליה לרב הא [ברייתא] דתניא עדים מקרעין את השטר וכותבין לו שטר אחר מזמן ראשון הוה הדר ביה",
+      "matches_claim": true,
+      "note": "170b:4, Wikisource segment 4. Supports the two challenger branches (F01), Rav Huna as marked addressee in both, and the patronymic in the second branch only (F14)."
+    },
+    {
+      "source_id": "bb170b",
+      "exact_quote": "אמר ליה שמיע ליה ולא הדר ביה",
+      "matches_claim": true,
+      "note": "170b:5, the whole segment. No speaker is named; the vocalized Aramaic agrees. Supports F02's claim that the replier is inferred."
+    },
+    {
+      "source_id": "steinsaltz_170b5",
+      "exact_quote": "<b>אמר ליה</b> <small>[לו]</small> רב הונא:",
+      "matches_claim": true,
+      "note": "רב הונא sits outside the bold Talmud text, so it is editorial. Same project as the William Davidson English, so not an independent witness."
+    },
+    {
+      "source_id": "bb171a",
+      "exact_quote": "מאי ברייתא דתניא הרי שהיו נושין בו אלף זוז ופרע מהן חמש מאות זוז עדים מקרעין את השטר וכותבין לו שטר אחר מזמן ראשון דברי רבי יהודה רבי יוסי אומר שטר זה יהא מונח במקומו ויכתבו שובר",
+      "matches_claim": true,
+      "note": "171a:5. The correct occurrence for the 170b:4 excerpt. The attribution covers the witnesses view; Rabbi Yosi holds a second view in the same baraita."
+    },
+    {
+      "source_id": "bb171a",
+      "exact_quote": "ומפני שני דברים אמרו כותבין שובר אחת כדי שיכוף לפורעו ואחת כדי שיגבה מזמן ראשון",
+      "matches_claim": false,
+      "note": "171a:6. Not covered by the dossier. The speaker is an unnamed 'אמרו'; 'Rabbi Yosei continues' appears only as William Davidson editorial text."
+    },
+    {
+      "source_id": "bb170b",
+      "exact_quote": "מי שפרע מקצת חובו ר' יהודה אומר יחליף רבי יוסי אומר יכתוב שובר אמר רבי יהודה נמצא זה צריך להיות שומר שוברו מן העכברים אמר לו רבי יוסי כך יפה לו ולא ירע כחו של זה",
+      "matches_claim": true,
+      "note": "170b:2 Mishnah. Supports the filled rules and the speech pair. Only Rabbi Yosi's reply marks an addressee (לו). The subject of יחליף is unstated, so the dossier's 'the debtor exchanges' label is not in the words."
+    },
+    {
+      "source_id": "bb170b",
+      "exact_quote": "Rabbi Yehuda says:</b> The creditor <b>should exchange</b> the promissory note",
+      "matches_claim": false,
+      "note": "The William Davidson English makes the creditor the subject, which contradicts the dossier's proposed y_rule label 'the debtor exchanges the note'. Soncino has 'HE SHALL EXCHANGE [HIS BOND FOR ANOTHER]'."
+    },
+    {
+      "source_id": "jt_bb_10_6",
+      "exact_quote": "רב אמר עושין לו קיום בית דין תני ר' חייה אין עושין לו קיום ב\"ד. א\"ר ירמיה אילו שמע רב מתנייה לא הוה מימר הדא מילתא.",
+      "matches_claim": true,
+      "note": "Mechon-Mamre text. The Venice and Guggenheimer texts agree on 'רבי ירמיה' with no patronymic. No Rav Nahman, no Rav Huna, no reply."
+    },
+    {
+      "source_id": "jt_bb_10_6",
+      "exact_quote": "He is Rav Jeremiah, Babylonian of the first generation.",
+      "matches_claim": false,
+      "note": "Guggenheimer note 84. It supports F08's claim text ('a Babylonian Rav Yirmiyah') but not the graph_effect, which cites both commentators for identity with Rav Yirmiyah bar Abba. No patronymic is given here."
+    },
+    {
+      "source_id": "shaarei_tey_2",
+      "exact_quote": "ור' ירמיה זה הוא ר' ירמיה בר אבא וכ\"ה בבבלי ק\"ע ב'",
+      "matches_claim": true,
+      "note": "This is the only source for the bar Abba identification, and its stated basis is the Bavli itself. The same comment emends (צ\"ל ... מתניתא) and cuts intervening text ('ומה שבינתיים מיותר')."
+    },
+    {
+      "source_id": "tosafot_170b3",
+      "exact_quote": "וכן הוא לפי המסקנא דשמיע ליה ברייתא ולא הדר דאיהו מכשר בעדים ואיהו מצריך ב\"ד",
+      "matches_claim": false,
+      "note": "The dossier leaves this out. Tosafot accepts Rashbam's reading for the conclusion and gives the Ri's second-date reading as the challenger's ('רב נחמן') understanding. F05's 'Tosafot objects' is too broad."
+    },
+    {
+      "source_id": "mt_23_15",
+      "exact_quote": "וְכוֹתְבִין לוֹ בֵּית דִּין שְׁטָר אַחֵר בִּשְׁאָר הַחוֹב מִזְּמַן רִאשׁוֹן אֲבָל לֹא עֵדֵי הַשְּׁטָר",
+      "matches_claim": true,
+      "note": "Present in the saved text: it matches after Unicode NFC normalization (the vowel marks are stored in a different order). This is a reception note only, with no people."
+    }
+  ],
+  "extra_sources": []
+}

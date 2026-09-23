@@ -1,0 +1,66 @@
+{
+  "job_id": "challenge-03",
+  "input_sha256": "adbf4ce60e9269201edd91bdf9d67b36bb258d3585c71fa1add8d69a1e183528",
+  "output_sha256": "68f51efd5cc8c191dbdd842a010b9d4539cbc014c7664a13dfa766c806eee98d",
+  "checks": [
+    {
+      "kind": "preserve",
+      "index": 0,
+      "status": "pass",
+      "reason": "Rav and Shmuel receive their different recipient rulings within the Sura report.",
+      "claim_ids": [
+        "c3",
+        "c4",
+        "c5"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 1,
+      "status": "pass",
+      "reason": "Both proposed concessions remain hypothetical and rejected; evidence and notes retain the acquisition conditions and the missing earlier rule.",
+      "claim_ids": [
+        "c6",
+        "c7"
+      ]
+    },
+    {
+      "kind": "preserve",
+      "index": 2,
+      "status": "pass",
+      "reason": "A reading group separates Sura from Pumbedita and explicitly leaves the backward extent uncertain.",
+      "claim_ids": [
+        "c3",
+        "c4",
+        "c6",
+        "c7",
+        "c9",
+        "c10"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 0,
+      "status": "pass",
+      "reason": "Neither imagined concession is an actual agreement or retraction.",
+      "claim_ids": [
+        "c6",
+        "c7"
+      ]
+    },
+    {
+      "kind": "avoid",
+      "index": 1,
+      "status": "pass",
+      "reason": "The reports are scoped separately, with uncertainty about their extent stated rather than erased.",
+      "claim_ids": [
+        "c3",
+        "c4",
+        "c9",
+        "c10"
+      ]
+    }
+  ],
+  "additional_findings": [],
+  "summary": "The two hypothetical concessions and regional reports are distinguished. The additional supplied correspondence from Rav’s school to Shmuel is also preserved."
+}

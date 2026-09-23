@@ -1,0 +1,118 @@
+{
+  "job_id": "original-04",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "0c5f59bb6110e5c389ccac827344d193a9de22099a9810260fe1fdae0d5efc61",
+  "historical_graph_eligible": false,
+  "scope": "I checked every person, speaker, addressee, citation, name-variant and parallel claim in dossier.json and reading.md against the saved files in sources/ (Pesachim 103a WD, Wikisource and Goldschmidt; Rashbam; Tosafot; Rif and Rosh on Pesachim; Halakhot Gedolot; Berakhot 52b and its link bundle; Rosh on Berakhot 8:2; Seder HaDorot 995), fetched nothing new, did not check manuscripts, and did not judge historical identity or dates.",
+  "findings": [
+    {
+      "target": "F7 / A3 / fetched_but_not_quoted (rosh-berakhot-8-2.json)",
+      "decision": "add_missing_claim",
+      "reason": "The dossier's own saved Rosh on Berakhot 8:2 (also inside S11) tells this same visit with a different visitor: \"רב הונא בריה דרב יהושע איקלע לבי רבא חזייה דהוה בריך אבשמים\". The dossier files that source as \"discusses the one-cup case of the mishnah, not the visit\" and F7 counts \"the Rosh\" among the witnesses for \"בר יהודה\", which is true only of the Rosh on Pesachim. Add this as a third name form for the visitor, typed as a later quotation (not printed Talmud text), with its own name-embedded parent Rav Yehoshua scoped to that reading. Do not pick one form, do not merge, and do not count the Rosh as a vote for either form, since he quotes the story two different ways."
+    },
+    {
+      "target": "F3 (who cites the mishnah in Pesachim)",
+      "decision": "keep_evidence_types_separate",
+      "reason": "F3 says that in Pesachim the anonymous Gemara, not Rav Huna, supplies the mishnah, based on \"ומאי היא? דתנן\" in the WD and Wikisource text. But the three saved quotations of the Pesachim passage have no \"ומאי היא\": the Rif reads \"א\"ל והא בין ב\"ש ובין ב\"ה מאור ואח\"כ בשמים דתנן\", the Rosh \"אמר ליה רב הונא והא בין ב\"ש וב\"ה מאור ואחר כך בשמים דתנן\", and Halakhot Gedolot likewise runs straight into \"דתנן\". In those the citation reads as part of Rav Huna's own sentence. Keep the editor attribution for the printed text and record the later-quotation wording as a separate reading. Do not say the citer differs only between Pesachim and Berakhot."
+    },
+    {
+      "target": "F2 / proposed_local_edges P2 responds_to P1 / reading.md step 6",
+      "decision": "qualify",
+      "reason": "Rava's reply is \"עָנֵי רָבָא בָּתְרֵיהּ וְאָמַר\" with no \"ליה\". Its addressee is not marked, and Goldschmidt renders it \"Da fuhr Raba fort\" (\"Rava continued\"), not \"replied to him\". Keep a link from Rava's statement to Rav Huna's objection as the target, but leave the addressee empty and give the reply link medium confidence, not high. The challenger's identity is well inferred (the only other man present, with Rava named as the one who answers), but Rashbam's \"רב הונא לרבא\" and the Rosh's inserted \"רב הונא\" are commentary and later quotation, not printed text. The unbolded WD English \"Rav Huna bar Yehuda said to him\" is a translator's gloss and must not be counted."
+    },
+    {
+      "target": "proposed_local_edges (visits + together) and F8",
+      "decision": "qualify",
+      "reason": "\"רַב הוּנָא בַּר יְהוּדָה אִיקְּלַע לְבֵי רָבָא\" is one observation. The dossier stores it as a directed 'visits' edge and also as a separate symmetric 'together' edge, both citing F1. Store the visit once, with co-presence implied by it, so it does not count twice. F8 is right that the co-presence should rest on the visit and on 'אמר ליה', not on the version-dependent \"לקמייהו\"."
+    },
+    {
+      "target": "F10 (merge Pesachim 103a and Berakhot 52b as one event)",
+      "decision": "qualify",
+      "reason": "Counting the two tellings once for edge weight is correct. But the review cannot approve an event merge. Record them as parallel tellings (parallel_of), with the claim that they are the same historical occasion left open. The Berakhot detail \"חַזְיֵיהּ לְרָבָא\" supports that telling's wording. It must not be imported into Pesachim as \"stronger co-presence\" for this passage. The parallel's own name variant (Rosh Berakhot's \"בריה דרב יהושע\") shows why participants should not be carried across tellings automatically."
+    },
+    {
+      "target": "F1 / P3 / proposed edge P3 father_of P1",
+      "decision": "qualify",
+      "reason": "Keep the name-embedded father Yehuda. \"בר יהודה\" is kinship evidence even though the father never acts. Scope it to the readings with that name: under the Rif Pesachim reading \"רב הונא ברבי יהודה\" the father may be a titled Rav or Rabbi Yehuda, or 'berabbi' may be a title or an expanded abbreviation. Under the Rosh Berakhot reading the name-embedded father is Rav Yehoshua. Mark that a patronymic can work as a fixed name. Keep R. Yehuda the tanna separate from P3, as the dossier does."
+    },
+    {
+      "target": "reading.md 'Name variant' and F7 note on Seder HaDorot",
+      "decision": "correct_occurrence",
+      "reason": "reading.md says \"Seder HaDorot lists both visits under Rav Huna bar Yehuda\", right after discussing the Rav Ya'akov bar Abba visit. The saved entry reads \"איקלע לבי רבא ברכות (נ\"ב ב') פסחים (ק\"ג א')\": one visit cited at two places, not the Ya'akov bar Abba visit. The same entry also mixes \"ר\"ה בריה דר\"י\" and \"ר\"ה ברב יהודה\" forms before asking \"אם לא שנים היו\". Its doubt about one man or two stays an open identity question. The Rosh 10:8 line \"רב הונא ב\"ר יהודה\" is a different passage (a Rav Sheshet tradition) and should be used only as a spelling illustration, never as a link to this visitor."
+    },
+    {
+      "target": "F6 (Rashbam 'כמנהג שלנו')",
+      "decision": "qualify",
+      "reason": "Rashbam's \"בריך אבשמים ברישא - כמנהג שלנו\" means 'as our custom is', which is Rashbam's own community's practice. The dossier's wording \"Rava's order matches his own community's custom\" could be read as a claim about Rava's community. Attach nothing to Rava from this gloss. The Saturday-night and after-havdala settings (\"במוצאי שבת של חול\", \"לאחר שגמר הבדלה\") are rightly tagged as commentary."
+    },
+    {
+      "target": "F4 / A1 (R. Yohanan) and proposed correction for pair 0-27",
+      "decision": "support_proposed_correction",
+      "reason": "The first-pass 'before' label for Rav Huna / Rava is wrong: \"איקלע לבי\" is a visit, not sitting before a master. 'Same-man' for the two Rava mentions in 103a:5 is right. Rava cites R. Meir (\"זוֹ דִּבְרֵי רַבִּי מֵאִיר\") and R. Yehuda as authorities, not as people present. \"וְאָמַר רַבִּי יוֹחָנָן\" rightly stays unresolved between Rava and the editor, with no contact edge; Tosafot's \"חולק רבי יוחנן אסתם משנה\" does not settle who quotes him."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "S1",
+      "exact_quote": "רַב הוּנָא בַּר יְהוּדָה אִיקְּלַע לְבֵי רָבָא, אַיְיתוֹ לְקַמַּיְיהוּ מָאוֹר וּבְשָׂמִים.",
+      "matches_claim": true,
+      "note": "103a:5, the focal occurrence. Supports the visit, both named men and the unnamed plural bringers."
+    },
+    {
+      "source_id": "S1",
+      "exact_quote": "אֲמַר לֵיהּ: וְהָא בֵּין בֵּית שַׁמַּאי וּבֵין בֵּית הִילֵּל — מָאוֹר בְּרֵישָׁא וַהֲדַר אַבְּשָׂמִים.",
+      "matches_claim": true,
+      "note": "103a:5. Speaker unnamed at the verb, so the speaker claim is inferred; addressee marked by ליה."
+    },
+    {
+      "source_id": "S1",
+      "exact_quote": "עָנֵי רָבָא בָּתְרֵיהּ וְאָמַר: זוֹ דִּבְרֵי רַבִּי מֵאִיר",
+      "matches_claim": true,
+      "note": "103a:7. Names Rava as the next speaker. No ליה, so the reply's addressee is not marked (see finding 3)."
+    },
+    {
+      "source_id": "S4",
+      "exact_quote": "א\"ל - רב הונא לרבא לאחר שגמר הבדלה",
+      "matches_claim": true,
+      "note": "Rashbam, correct lemma. Commentary, a separate evidence type."
+    },
+    {
+      "source_id": "S7",
+      "exact_quote": "אמר ליה רב הונא והא בין ב\"ש וב\"ה מאור ואחר כך בשמים",
+      "matches_claim": true,
+      "note": "Rosh on Pesachim, a later quotation. The same line continues 'דתנן', with no 'ומאי היא' (see finding 2)."
+    },
+    {
+      "source_id": "S6",
+      "exact_quote": "א\"ל והא בין ב\"ש ובין ב\"ה מאור ואח\"כ בשמים דתנן",
+      "matches_claim": false,
+      "note": "Rif Pesachim, second segment of the saved file. Contradicts F3's claim that in Pesachim the citation is the editor's; in this quotation it runs on from Rav Huna's words."
+    },
+    {
+      "source_id": "S6",
+      "exact_quote": "רב הונא ברבי יהודה ",
+      "matches_claim": true,
+      "note": "Rif Pesachim name form. A Hagahot Chavot Yair marker follows, as the dossier notes."
+    },
+    {
+      "source_id": "S11",
+      "exact_quote": "רב הונא בריה דרב יהושע איקלע לבי רבא חזייה דהוה בריך אבשמים והדר בריך אמאור",
+      "matches_claim": false,
+      "note": "Rosh on Berakhot 8:2:1 inside the saved link bundle, also in rosh-berakhot-8-2.json. Contradicts the dossier's note that this Rosh does not discuss the visit, and its claim that 'the Rosh' reads בר יהודה."
+    },
+    {
+      "source_id": "S13",
+      "exact_quote": "איקלע לבי רבא ברכות (נ\"ב ב') פסחים (ק\"ג א')",
+      "matches_claim": false,
+      "note": "One visit cited at two places, not 'both visits' as reading.md words it next to the Ya'akov bar Abba episode."
+    },
+    {
+      "source_id": "S3",
+      "exact_quote": "Da fuhr Raba fort:",
+      "matches_claim": true,
+      "note": "Goldschmidt 103a:7. Supports A2: the reply relation is an interpretation, and Rava is the speaker."
+    }
+  ],
+  "extra_sources": []
+}

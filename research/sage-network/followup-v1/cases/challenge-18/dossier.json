@@ -1,0 +1,691 @@
+{
+ "job_id": "challenge-18",
+ "focal_ref": "Ketubot 65a:11",
+ "status": "researched",
+ "question": "In Ketubot 65a:11, who are the people and relations, who speaks to whom, and which graph claims are explicit, interpretive or open? In particular: is the judge's father Rav Yosef the same as the husband Rav Yosef son of Rava, and was the woman a widow?",
+ "scope_note": "Checked: the Sefaria texts of Ketubot 65a (William Davidson Aramaic, Wikisource, William Davidson English, Daf Shevui), Steinsaltz, Rif (Vilna), Rosh, Tosafot Rid, Tashbetz II 193, Seder HaDorot (three entries), Epstein's Introductions (Nedarim 164-166), Haggahot Ya'avetz, Hafla'ah, Shita Mekubetzet, Ritva, Rashi on 65a:12, Mishneh Torah Marriage 12:10-11, Shulchan Arukh EH 70:3, the Soncino translation (halakhah.com PDF), and the Talmud passages naming Rav Nehemya son of Rav Yosef and Rav Yosef son of Rava found by Sefaria search. Not checked: manuscripts and Hachi Garsinan, other Rif printings, Meiri, Tosafot, Hyman's Toldot. Conclusions are limited to these sources.",
+ "sources": [
+  {
+   "source_id": "S0",
+   "url": "research/sage-network/pilot/inputs/challenge-18.json",
+   "edition": "Pilot input: William Davidson Edition - Vocalized Aramaic, Ketubot 65a:11 (read-only)",
+   "saved_file": "../../../pilot/inputs/challenge-18.json",
+   "sha256": "c1b30ba276aeabcf7badf06f6d1b44fa1192d20da4709b38d8ddaae97edd5323",
+   "input_path": "research/sage-network/pilot/inputs/challenge-18.json"
+  },
+  {
+   "source_id": "S0b",
+   "url": "research/sage-network/pilot/outputs/challenge-18.json",
+   "edition": "Earlier saved reading (pilot output, read-only)",
+   "saved_file": "../../../pilot/outputs/challenge-18.json",
+   "sha256": "3a811d413a445b5064e9da7685ec5a412da34a7cb9901179c79ca4dc5d740a58",
+   "input_path": "research/sage-network/pilot/outputs/challenge-18.json"
+  },
+  {
+   "source_id": "S0c",
+   "url": "research/sage-network/followup-v1/cases/challenge-18/previous-review.json",
+   "edition": "Earlier independent review (read-only)",
+   "saved_file": "previous-review.json",
+   "sha256": "c78a2c821e177a8c54ab9f0a7e4792aae7702239164e99ef73df29261acd6922",
+   "input_path": "research/sage-network/followup-v1/cases/challenge-18/previous-review.json"
+  },
+  {
+   "source_id": "S1",
+   "url": "https://www.sefaria.org/api/v3/texts/Ketubot.65a?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Vocalized%20Aramaic",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Koren Noe text, Dicta vocalization), whole amud 65a",
+   "saved_file": "sources/ketubot65a_wd_vocalized.json",
+   "sha256": "ba329e82d603437e2919c4e5cf473db1c47c876413bc7ab3467f3acef9ec2461",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S2",
+   "url": "https://www.sefaria.org/api/v3/texts/Ketubot.65a?version=english%7CWilliam%20Davidson%20Edition%20-%20English",
+   "edition": "William Davidson Edition - English (Koren Noe / Steinsaltz), HTML kept",
+   "saved_file": "sources/ketubot65a_wd_english.json",
+   "sha256": "d48ff232f8cf55d86c992ba4dea13abe6986e02e0e2571bc9e2b36999aab9c4f",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S3",
+   "url": "https://www.sefaria.org/api/v3/texts/Ketubot.65a?version=hebrew%7CWikisource%20Talmud%20Bavli",
+   "edition": "Wikisource Talmud Bavli (Vilna-based, unvocalized)",
+   "saved_file": "sources/ketubot65a_wikisource.json",
+   "sha256": "f97f874d0a02bc91261772704041b6e26056b7b202914bf52ee7530903ffbb52",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S4",
+   "url": "https://www.sefaria.org/api/v3/texts/Ketubot.65a?version=english%7CDaf%20Shevui",
+   "edition": "Daf Shevui English translation (Conservative Yeshiva)",
+   "saved_file": "sources/ketubot65a_daf_shevui.json",
+   "sha256": "680367a768782154b83ad5e221678290183f20a1201baa8f2d2669d54f776e5a",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S5",
+   "url": "https://www.sefaria.org/api/texts/Steinsaltz_on_Ketubot_65a:11",
+   "edition": "Steinsaltz on Ketubot, William Davidson Edition - Hebrew",
+   "saved_file": "sources/steinsaltz_ketubot65a11.json",
+   "sha256": "c4fcbc238dfe84ae176a3cda82fb207e0317d6e1ecc23e1936b5d1a06375a6a2",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S6",
+   "url": "https://www.sefaria.org/api/texts/Rif_Ketubot_28a:3",
+   "edition": "Rif, Vilna Edition (Sefaria)",
+   "saved_file": "sources/rif_ketubot28a3.json",
+   "sha256": "223050ea734f8551f115b7bd85c2745554685568a7f92df7ccbfd209cfccab45",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S7",
+   "url": "https://www.sefaria.org/api/texts/Tosafot_Rid_on_Ketubot_65a:3",
+   "edition": "Tosafot Rid on Ketubot, Vilna Edition (Sefaria)",
+   "saved_file": "sources/tosafot_rid_ketubot65a3.json",
+   "sha256": "68a8dabf5691a2fed1922119571ea589b9fc8ab0e04ad8f264136bdaf694279a",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S8",
+   "url": "https://www.sefaria.org/api/texts/Rosh_on_Ketubot_5:38:2",
+   "edition": "Rosh on Ketubot, Vilna Edition (Sefaria)",
+   "saved_file": "sources/rosh_ketubot5_38_2.json",
+   "sha256": "5df166c14f649b5fdac53b0b941ecbe9070be4f4cbe43733b5389a0b72859215",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S9",
+   "url": "https://www.sefaria.org/api/texts/Sefer_HaTashbetz,_Part_II_193:1",
+   "edition": "Sefer ha-Tashbetz, Lemberg 1891 (Sefaria)",
+   "saved_file": "sources/tashbetz_2_193_1.json",
+   "sha256": "851b2088499e57764198fa3f07b3eae893186a5c191eeb8971cc6cfdb5429aa0",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S10",
+   "url": "https://www.sefaria.org/api/texts/Seder_HaDorot,_Tanaim_and_Amoraim_2658:1",
+   "edition": "Seder HaDorot, Warsaw 1878-1882, entry Rav Nehemya bar (Rav) Yosef",
+   "saved_file": "sources/seder_hadorot_2658.json",
+   "sha256": "cc330941a7b29df6bdbd9eb902ec999677738bb61c43658e5130356210ad9659",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S11",
+   "url": "https://www.sefaria.org/api/texts/Seder_HaDorot,_Tanaim_and_Amoraim_2029:1",
+   "edition": "Seder HaDorot, Warsaw 1878-1882, entry Rav Yosef son of Rava",
+   "saved_file": "sources/seder_hadorot_2029.json",
+   "sha256": "10f04d8db4233d1d2e5b4dc962314c47ba032bdee6cc03f10032967e9ea159f2",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S12",
+   "url": "https://www.sefaria.org/api/texts/Seder_HaDorot,_Tanaim_and_Amoraim_919:1",
+   "edition": "Seder HaDorot, Warsaw 1878-1882, entry Rav Dimi bar Nehemya son of Rav Yosef",
+   "saved_file": "sources/seder_hadorot_919.json",
+   "sha256": "e7768675d7216d9c2fa054a94d2bde06f3c4a150b856f7445213141b9a88fddb",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S13",
+   "url": "https://www.sefaria.org/api/texts/Introductions_to_Amoraic_Literature,_Part_I_(Introductions_to_Tractates_of_the_Babli),_Nedarim_164",
+   "edition": "J. N. Epstein, Introductions to Amoraic Literature, Jerusalem 1962 (Sefaria), Nedarim para. 164",
+   "saved_file": "sources/epstein_intro_nedarim164.json",
+   "sha256": "d38d5d630059fcaad7e3fa70a49933b0b341037d3b847ea523f14f6950b9a2d0",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S14",
+   "url": "https://www.sefaria.org/api/texts/Introductions_to_Amoraic_Literature,_Part_I_(Introductions_to_Tractates_of_the_Babli),_Nedarim_165",
+   "edition": "J. N. Epstein, Introductions to Amoraic Literature, Jerusalem 1962 (Sefaria), Nedarim para. 165",
+   "saved_file": "sources/epstein_intro_nedarim165.json",
+   "sha256": "5561953cfd624942e6028989910bed83d97ec0f033f9696a8678ca7f1f310a08",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S15",
+   "url": "https://www.sefaria.org/api/texts/Introductions_to_Amoraic_Literature,_Part_I_(Introductions_to_Tractates_of_the_Babli),_Nedarim_166",
+   "edition": "J. N. Epstein, Introductions to Amoraic Literature, Jerusalem 1962 (Sefaria), Nedarim para. 166",
+   "saved_file": "sources/epstein_intro_nedarim166.json",
+   "sha256": "06ab3e09010c2d90d75b7ed52a873b814c789b0ecae16b0bbfb06f397714a768",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S16",
+   "url": "https://www.sefaria.org/api/texts/Beitzah_28a:20",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Sefaria default Hebrew)",
+   "saved_file": "sources/beitzah28a20.json",
+   "sha256": "c51f14e4682417d33e80f6734dbb6d23533c43a566b1e2aa6508214699d87980",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S17",
+   "url": "https://www.sefaria.org/api/texts/Ketubot_69a:14",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Sefaria default Hebrew)",
+   "saved_file": "sources/ketubot69a14.json",
+   "sha256": "1ec9bc9080cbe47f19ffb90329047a00d652498932797c2ccdced097fe945519",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S18",
+   "url": "https://www.sefaria.org/api/texts/Bava_Batra_66b:6",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Sefaria default Hebrew)",
+   "saved_file": "sources/bava_batra66b6.json",
+   "sha256": "4ad0fd3b430e28022d543cc7ee94159f1fb94ef0f3ef2fa35c060b25584d4e3d",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S19",
+   "url": "https://www.sefaria.org/api/texts/Chullin_48a:4",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Sefaria default Hebrew)",
+   "saved_file": "sources/chullin48a4.json",
+   "sha256": "c7d137391b0f2bbba09014837af1c40c179fc1709cefdf6cf039c526adfe3a61",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S20",
+   "url": "https://www.sefaria.org/api/texts/Moed_Katan_19b:11",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Sefaria default Hebrew)",
+   "saved_file": "sources/moed_katan19b11.json",
+   "sha256": "83052b0533da8d5a84f938f305a57e81491a90e22e37a31cb51e612d54dfdf1d",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S21",
+   "url": "https://www.sefaria.org/api/texts/Bekhorot_9b:6",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Sefaria default Hebrew)",
+   "saved_file": "sources/bekhorot9b6.json",
+   "sha256": "648eb2791dc9df9ecf25288580910e9e30e050de5d85ddd2e3fcd41eb5e9c292",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S22",
+   "url": "https://www.sefaria.org/api/texts/Ketubot_63a:3",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Sefaria default Hebrew)",
+   "saved_file": "sources/ketubot63a3.json",
+   "sha256": "09984398d6b91b4ef7d7e6658f66ec144ba0f7364637710b2459aa069ade5ab1",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S23",
+   "url": "https://www.sefaria.org/api/texts/Yevamot_64b:21",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Sefaria default Hebrew)",
+   "saved_file": "sources/yevamot64b21.json",
+   "sha256": "116eb9f649ced2e03fdeb47639f50641fe8d669b4610213dff538da196eb7312",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S24",
+   "url": "https://www.sefaria.org/api/texts/Mishneh_Torah,_Marriage_12:10-11",
+   "edition": "Mishneh Torah, Torat Emet 363 Hebrew with Touger English (Sefaria)",
+   "saved_file": "sources/mishneh_torah_marriage12_10-11.json",
+   "sha256": "2d3edc0ccf18845052b27bb946a86fa0a04e14ce56c15c02a3710eb9fae638f6",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S25",
+   "url": "https://www.sefaria.org/api/texts/Shulchan_Arukh,_Even_HaEzer_70:3",
+   "edition": "Shulchan Arukh Even HaEzer, Lemberg 1886 (Sefaria)",
+   "saved_file": "sources/sa_eh70_3.json",
+   "sha256": "73df5a0130d7391a296d360c8905f79d521f16576da6977e9f5c82f8f4ee7bb6",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S26",
+   "url": "https://www.sefaria.org/api/texts/Haggahot_Ya'avetz_on_Ketubot_65a:2",
+   "edition": "Haggahot Ya'avetz, Vilna Edition (Sefaria)",
+   "saved_file": "sources/yaavetz_ketubot65a2.json",
+   "sha256": "850b84d3625672841f72a192dfa735194cc07b461bf4eeb3a4e1366ef6a69f76",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S27",
+   "url": "https://www.sefaria.org/api/texts/Haflaah_on_Ketubot_65a:6",
+   "edition": "Sefer Hafla'ah, Lemberg 1860 (Sefaria)",
+   "saved_file": "sources/haflaah_ketubot65a6.json",
+   "sha256": "e6a517798331db6ee89d38a671ee7d07ce471a8a693c81e6ff3efcb51e0cb888",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S28",
+   "url": "https://www.sefaria.org/api/texts/Shita_Mekubetzet_on_Ketubot_65a:11",
+   "edition": "Shita Mekubetzet on Ketubot (Sefaria)",
+   "saved_file": "sources/shita_mekubetzet_ketubot65a11.json",
+   "sha256": "c165d5b66b2001f481d7a2fc8e0bd67d7e421f22b1a059512f7912078675be1e",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S29",
+   "url": "https://www.sefaria.org/api/texts/Ritva_on_Ketubot_65a:2",
+   "edition": "Chiddushei haRitva, Munkatch 1908 (Sefaria)",
+   "saved_file": "sources/ritva_ketubot65a2.json",
+   "sha256": "720c0d3041e4ab07d2a32dbf1b4e6ff8846c01c63d983bc401c3e0cd2ce127ba",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S30",
+   "url": "https://www.sefaria.org/api/links/Ketubot.65a.11?with_text=0",
+   "edition": "Sefaria links index for Ketubot 65a:11",
+   "saved_file": "sources/links_ketubot65a11.json",
+   "sha256": "fb57c032d3e046d12f7e853cbfef6216318979a9978a3ad60c6de27a25c29241",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S31",
+   "url": "https://www.sefaria.org/api/links/Ketubot.65a?with_text=0",
+   "edition": "Sefaria links index for Ketubot 65a (whole amud)",
+   "saved_file": "sources/links_ketubot65a_page.json",
+   "sha256": "a7bcda264b6b51f187449bc1a7592cfa9152a9c674db44f9a54864d6e4599dfe",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S32",
+   "url": "https://www.sefaria.org/api/search/text/_search (POST match_phrase naive_lemmatizer 'נחמיה בריה דרב יוסף', size 50)",
+   "edition": "Sefaria full-text search results",
+   "saved_file": "sources/search_nechemya_bereih_derav_yosef.json",
+   "sha256": "a98908be8e38170073e04b1cc9a8a137b2c6460b82b82d81abffbc8cadf3bdc4",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S33",
+   "url": "https://www.sefaria.org/api/search/text/_search (POST match_phrase naive_lemmatizer 'בני מחוזא דשתו חמרא', slop 2)",
+   "edition": "Sefaria full-text search results",
+   "saved_file": "sources/search_bnei_mechoza_shatu_chamra.json",
+   "sha256": "bbfc3c7bd84c2c1acc854a08ad62e09c42053daa036498b21d2bb058ae011801",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S34",
+   "url": "https://www.sefaria.org/api/search/text/_search (POST match_phrase naive_lemmatizer 'רב יוסף בריה דרבא', size 100)",
+   "edition": "Sefaria full-text search results",
+   "saved_file": "sources/search_rav_yosef_bereih_derava.json",
+   "sha256": "c8eb90f4b0bfb1b60f8d25ea04094eed42de8c853cb9ea9b852024f87a1e48a0",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S35",
+   "url": "https://halakhah.com/pdf/nashim/Kethuboth.pdf",
+   "edition": "Soncino English translation of Kethuboth (I. W. Slotki), as posted on halakhah.com, PDF",
+   "saved_file": "sources/soncino_kethuboth.pdf",
+   "sha256": "a45beed62fcef20e17a0250959c3f521cd8dfb4c5b7df9e436572d071ec185c0",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S36",
+   "url": "https://halakhah.com/pdf/nashim/Kethuboth.pdf",
+   "edition": "Text extracted from S35 with pdftotext -layout",
+   "saved_file": "sources/soncino_kethuboth.txt",
+   "sha256": "32ceecb4ebb820a60e5839572f466c6f98ab3ccd8857bdfb602c361b820b5164",
+   "fetched_at": "2026-09-23",
+   "derived_from": "S35",
+   "input_path": "sources/soncino_kethuboth.pdf"
+  },
+  {
+   "source_id": "S37",
+   "url": "https://www.sefaria.org/api/texts/Rashi_on_Ketubot_65a:12:1",
+   "edition": "Rashi on Ketubot, Vilna Edition (Sefaria)",
+   "saved_file": "sources/rashi_ketubot65a12_1.json",
+   "sha256": "12b29b4bac6a8f0d74a706d3a943d0df9c3a9c69a39878de7eececd3b6ea9b16",
+   "fetched_at": "2026-09-23"
+  },
+  {
+   "source_id": "S38",
+   "url": "https://www.sefaria.org/api/texts/Beitzah_28a:20-21",
+   "edition": "William Davidson Edition - Vocalized Aramaic (Sefaria default Hebrew), range request",
+   "saved_file": "sources/beitzah28a20-21.json",
+   "sha256": "18c936f2af40427ec5f29c757d749833058a07a5022e98f58241daeb3f4d57d0",
+   "fetched_at": "2026-09-23"
+  }
+ ],
+ "findings": [
+  {
+   "finding_id": "F1",
+   "kind": "textual",
+   "confidence": "high",
+   "claim": "The segment explicitly names three men and one unnamed woman: the wife of Rav Yosef son of Rava (unnamed), Rav Yosef son of Rava, Rava (present only inside the patronymic), and the judge Rav Nehemya son of Rav Yosef. A fourth man, the judge's father 'Rav Yosef', is present only inside the judge's patronymic. The narrator states that she came before Rav Nehemya. Both witnesses of the Talmud text checked (William Davidson Aramaic and Wikisource) have the same wording here.",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "דְּבֵיתְהוּ דְּרַב יוֹסֵף בְּרֵיהּ דְּרָבָא אֲתַאי לְקַמֵּיהּ דְּרַב נְחֶמְיָה בְּרֵיהּ דְּרַב יוֹסֵף",
+     "translation_by_this_dossier": "Translation by this dossier: The wife of Rav Yosef son of Rava came before Rav Nehemya son of Rav Yosef."
+    },
+    {
+     "source_id": "S3",
+     "exact_quote": "דביתהו דרב יוסף בריה דרבא אתאי לקמיה דרב נחמיה בריה דרב יוסף"
+    }
+   ],
+   "reasoning": "Both family relations (Rav Yosef is Rava's son; Nehemya is a Rav Yosef's son) are carried by patronymics. Under project rules, each keeps a parent placeholder. The wife-of relation is carried by דביתהו ('his wife'). These are narrator statements, not speech.",
+   "graph_effect": "Confirm the earlier claims c1 (spouse_of), c2 (Rav Yosef child_of Rava), c3 (Nehemya child_of a Rav Yosef) and c4 (she comes before Nehemya). Keep 'father' (Nehemya's father Rav Yosef) as a separate local placeholder."
+  },
+  {
+   "finding_id": "F2",
+   "kind": "textual",
+   "confidence": "high",
+   "claim": "There are five turns. She: 'Apportion sustenance for me!' Narrator: he apportioned it for her. Then 'Apportion wine for me!', with no speech verb. Narrator: he apportioned it. He (masculine אמר, feminine addressee לה) said: 'I know of the people of Mehoza that they drink wine.' The second request has no אמרה ליה of its own. Its speaker is inferred from the alternating pattern and from the feminine לי/לה pairing. This inference is secure, but it is not an explicit attribution. The explanation comes after the wine award and justifies it. It is not a separate ruling.",
+   "evidence": [
+    {
+     "source_id": "S1",
+     "exact_quote": "אֲמַרָה לֵיהּ: פְּסוֹק לִי מְזוֹנֵי! פְּסַק לַהּ. פְּסוֹק לִי חַמְרָא! פְּסַק לַהּ. אֲמַר לַהּ: יָדַעְנָא בְּהוּ בִּבְנֵי מָחוֹזָא דְּשָׁתוּ חַמְרָא.",
+     "translation_by_this_dossier": "Translation by this dossier: She said to him: Apportion sustenance for me! He apportioned for her. Apportion wine for me! He apportioned for her. He said to her: I know of them, the people of Mehoza, that they drink wine."
+    },
+    {
+     "source_id": "S2",
+     "exact_quote": "<b>for her. She said to him: Apportion wine for me</b>"
+    }
+   ],
+   "reasoning": "In the Aramaic, אמרה ליה appears only once, before the first request. The William Davidson English bolds 'She said to him' before the wine request too, although the Aramaic has no second speech verb there. So the bold is not a strict word-for-word marker at this point. The speaker attribution for the second request is the translator's supply.",
+   "graph_effect": "Keep c7 (woman asks for wine), but change its basis from 'explicit' to 'implicit speaker (continuation)'. c9 (judge addresses woman with the Mehoza statement) is explicit by grammar. c10 (holds_view) is the same utterance as c9 and must not count as a second independent observation."
+  },
+  {
+   "finding_id": "F3",
+   "kind": "textual",
+   "confidence": "medium",
+   "claim": "Source variant for the judge. The Rif (Vilna printing on Sefaria) quotes the story with the judge as plain 'Rav Yosef': 'came before Rav Yosef'. It has no Rav Nehemya. The Rosh and the Tashbetz quote the judge as Rav Nehemya son of Rav Yosef. The Rosh adds 'לדינא' (for judgment). Tosafot Rid writes the judge in abbreviation as ר\"נ בריה דר\"י.",
+   "evidence": [
+    {
+     "source_id": "S6",
+     "exact_quote": "דביתהו דרב יוסף בריה דרבא אתיא לקמיה דרב יוסף אמרה ליה פסוק לי מזוני",
+     "translation_by_this_dossier": "Translation by this dossier: The wife of Rav Yosef son of Rava came before Rav Yosef; she said to him: Apportion sustenance for me."
+    },
+    {
+     "source_id": "S8",
+     "exact_quote": "דביתהו דרב יוסף בריה דרבא אתאי לדינא קמיה דרב נחמיה בריה דרב יוסף",
+     "translation_by_this_dossier": "Translation by this dossier: The wife of Rav Yosef son of Rava came for judgment before Rav Nehemya son of Rav Yosef."
+    },
+    {
+     "source_id": "S9",
+     "exact_quote": "דביתהו דרב יוסף בריה דרבא אתאי לקמיה דרב נחמיה בריה דרב יוסף"
+    },
+    {
+     "source_id": "S7",
+     "exact_quote": "דביתהו דר\"י בריה דרבא אתיא לקמיה דר\"נ בריה דר\"י"
+    }
+   ],
+   "reasoning": "The Rif's wording could come from an eye-skip between the two occurrences of דרב ... יוסף, so that 'נחמיה בריה דרב' drops out. It could also reflect a different text. It is the only witness checked with this reading, and it is a printed halakhic compendium, not a Talmud manuscript. The next story in the Rif (65a:12) has 'Rav Yosef' as judge, which may also have influenced it. The eye-skip explanation is this dossier's inference, not a documented emendation. The Rosh and Tashbetz agree with the Talmud print. They are later halakhic quotations and are not independent manuscript witnesses.",
+   "graph_effect": "Keep Rav Nehemya son of Rav Yosef as the judge in the base reading. Add a reading-group branch, 'judge = Rav Yosef (unqualified)', sourced to the Rif Vilna printing and typed as source_variant. Do not merge that Rav Yosef with anyone."
+  },
+  {
+   "finding_id": "F4",
+   "kind": "uncertainty",
+   "confidence": "medium",
+   "claim": "The Tosafot Rid abbreviation ר\"נ בריה דר\"י is ambiguous. ר\"נ is most commonly expanded as Rav Nahman, and ר\"י as Rav Yosef or other names. In this context it most plausibly stands for Rav Nehemya son of Rav Yosef, matching the other witnesses. Tosafot Rid also has a wording variant in the statement: 'דרגילו דשתו חמרא' (who are accustomed, who drink wine).",
+   "evidence": [
+    {
+     "source_id": "S7",
+     "exact_quote": "א\"ל ידענא בהו בבני מחוזא דרגילו דשתו חמרא",
+     "translation_by_this_dossier": "Translation by this dossier: He said to her: I know of the people of Mehoza that they are accustomed to drink wine."
+    }
+   ],
+   "reasoning": "An abbreviation is not an independent reading of a different name unless someone expands it. This dossier did not expand it into a new person. The added word רגילו ties the statement to the sugya's 'accustomed' (רגילה) category.",
+   "graph_effect": "No new person. Record the Tosafot Rid form as an abbreviated witness that is compatible with the base reading."
+  },
+  {
+   "finding_id": "F5",
+   "kind": "interpretation",
+   "confidence": "medium",
+   "claim": "The segment does not say that Rav Yosef son of Rava had died. It also does not say from whom (husband, estate or heirs) the maintenance is claimed. Seder HaDorot states outright that she came 'after his death'. That is a commentator's interpretation. The William Davidson English, Steinsaltz, Soncino and Daf Shevui say nothing about widowhood for this segment. Soncino does call the husband 'deceased' in its note to the next story (65a:12). The surrounding sugya discusses wine for a woman 'not in the presence of her husband'. The previous story (Homa) is glossed by the William Davidson English as after Abaye died, but that gloss is plain (editorial) text.",
+   "evidence": [
+    {
+     "source_id": "S11",
+     "exact_quote": "אשתו אחר מיתתו אתי' קמיה דרב נחמי' ברב יוסף",
+     "translation_by_this_dossier": "Translation by this dossier: His wife, after his death, came before Rav Nehemya b. Rav Yosef."
+    },
+    {
+     "source_id": "S2",
+     "exact_quote": "<b>Abaye’s wife, Ḥoma, came before Rava</b> after Abaye died"
+    },
+    {
+     "source_id": "S1",
+     "exact_quote": "רְגִילָה, בִּפְנֵי בַּעְלָהּ — שְׁנֵי כּוֹסוֹת, שֶׁלֹּא בִּפְנֵי בַעְלָהּ — נוֹתְנִין לָהּ כּוֹס אֶחָד",
+     "translation_by_this_dossier": "Translation by this dossier: If she is accustomed: in her husband's presence, two cups; not in her husband's presence, she is given one cup."
+    },
+    {
+     "source_id": "S36",
+     "exact_quote": "social standing in the company of her deceased husband's friends and associates"
+    }
+   ],
+   "reasoning": "The legal context makes a widow's claim, or a claim while the husband is absent, likely. Neither is stated. Epstein cites this very line for Rav Yosef son of Rava remaining 'head in Mehoza in place of his father' (see F7). That does not decide whether he was alive at the time of the case. Widowhood is a commentary interpretation (Seder HaDorot), not a Talmud statement.",
+   "graph_effect": "Do not add a 'husband deceased' or 'widow_of' claim as explicit. If recorded, add it as an interpretation attributed to Seder HaDorot, with the time scope open. Leave the respondent of the claim (husband, estate, heirs) unstated."
+  },
+  {
+   "finding_id": "F6",
+   "kind": "uncertainty",
+   "confidence": "medium",
+   "claim": "The texts checked do not identify the judge's father 'Rav Yosef'. Seder HaDorot keeps Rav Nehemya bar (Rav) Yosef in his own entry and cites this story there. Its list of Rav Yosef son of Rava's children (R. Abba, Rav Havivi, R. Hanina with a query, R. Yannai, Nanai) does not include a Nehemya. Elsewhere in the Talmud, a Rav Nehemya son of Rav Yosef says he 'was standing before Rava' (Beitzah 28a). That is compatible with his being of the generation of Rava's sons rather than a grandson. This is historical inference only.",
+   "evidence": [
+    {
+     "source_id": "S10",
+     "exact_quote": "<b>רב נחמיה בר</b> <small>(רב)</small> יוסף"
+    },
+    {
+     "source_id": "S10",
+     "exact_quote": "אשת רב יוסף ברי' דרבא אתאי לקמיה כתובות (ס\"ה א')"
+    },
+    {
+     "source_id": "S11",
+     "exact_quote": "ר' אבא בנו. ורב חביבי. ור' חנינא צ\"ע. ור' ינאי וננאי",
+     "translation_by_this_dossier": "Translation by this dossier: R. Abba his son, and Rav Havivi, and R. Hanina (needs checking), and R. Yannai and Nanai."
+    },
+    {
+     "source_id": "S16",
+     "exact_quote": "אָמַר רַב נְחֶמְיָה בְּרֵיהּ דְּרַב יוֹסֵף: הֲוָה קָאֵימְנָא קַמֵּיהּ דְּרָבָא",
+     "translation_by_this_dossier": "Translation by this dossier: Rav Nehemya son of Rav Yosef said: I was standing before Rava."
+    }
+   ],
+   "reasoning": "The repeated name 'Rav Yosef' does not show that the judge is the husband's son. Seder HaDorot's lists treat them as different people but give no argument. Linking the Beitzah speaker with this judge is itself only a same-name identification. Nothing in the segment rules the identification in or out. It would be legally strange for a son to rule on his own mother's claim, but that is an inference about practice, not evidence.",
+   "graph_effect": "Keep 'husband' (Rav Yosef son of Rava) and 'father' (Nehemya's father Rav Yosef) as separate local entities, as the earlier reading does. Record Seder HaDorot as a commentator who keeps them apart. Do not add an identity edge or a grandchild_of edge (Nehemya to Rava)."
+  },
+  {
+   "finding_id": "F7",
+   "kind": "interpretation",
+   "confidence": "medium",
+   "claim": "Epstein (1962) cites the judge's Mehoza line as evidence that Rav Yosef son of Rava remained head in Mehoza after his father. Epstein also names Rava's grandsons through Rav Yosef as Rav Havi(va) and Nanai. That is a modern historical inference drawn from this segment. The segment itself says only that the judge knows the people of Mehoza drink wine.",
+   "evidence": [
+    {
+     "source_id": "S14",
+     "exact_quote": "ורב יוסף בריה דרבא נשאר ראש <b>במחוזא</b> במקום אביו (כתובות סה א: ידענא בהו בבני מחוזא דשתו חמרא)",
+     "translation_by_this_dossier": "Translation by this dossier: And Rav Yosef son of Rava remained head in Mehoza in place of his father (Ketubot 65a: 'I know of the people of Mehoza that they drink wine')."
+    },
+    {
+     "source_id": "S13",
+     "exact_quote": "רב <b>חבי</b> (בא) בריה דרב יוסף בריה דרבא (ב\"ב קמג ב)"
+    },
+    {
+     "source_id": "S15",
+     "exact_quote": "רב יוסף בנו בימי ר\"פ",
+     "translation_by_this_dossier": "Translation by this dossier: Rav Yosef his son, in the days of Rav Pappa."
+    }
+   ],
+   "reasoning": "The segment places a statement about Mehoza's residents in the judge's mouth. That the woman or the case belonged to Mehoza is an inference. The William Davidson English plain text ('therefore you, too, are entitled') draws it, and so does Epstein. The step from there to Rav Yosef son of Rava's leadership role is Epstein's historical argument. The children Epstein names come from other passages and are not local to this segment.",
+   "graph_effect": "Keep the Mehoza group only as the topic of the judge's statement. Add 'woman associated with Mehoza' only as an interpretation. Epstein's 'head in Mehoza' is a historical inference; do not add it as a relation."
+  },
+  {
+   "finding_id": "F8",
+   "kind": "interpretation",
+   "confidence": "medium",
+   "claim": "Different sources give different grounds for the wine award. The Rif and Rosh use the story for the rule that wine is given to a woman who is 'accustomed' (רגילה). Rambam and the Shulchan Arukh give wine 'if the custom of the place is that women drink wine'. The judge's own words speak of the people of Mehoza (a local custom).",
+   "evidence": [
+    {
+     "source_id": "S8",
+     "exact_quote": "והני מילי בדלא רגילה אבל רגילה פוסקין לה דאמרינן",
+     "translation_by_this_dossier": "Translation by this dossier: This applies to one not accustomed; but one accustomed, we apportion for her, as we say [the story follows]."
+    },
+    {
+     "source_id": "S24",
+     "exact_quote": "וּמְעַט יַיִן לִשְׁתּוֹת אִם הָיָה מִנְהַג הַמָּקוֹם שֶׁיִּשְׁתּוּ הַנָּשִׁים יַיִן"
+    },
+    {
+     "source_id": "S25",
+     "exact_quote": "ומעט יין לשתות <i data-commentator=\"Be'er HaGolah\" data-label=\"ז\" data-order=\"7\"></i>אם היה מנהג המקום שישתו הנשים יין"
+    }
+   ],
+   "reasoning": "This affects how the statement is labelled (a local-custom reason versus the woman's personal habit), not who the persons are. Rambam's link to this segment comes from Sefaria's link index. Rambam does not name the story.",
+   "graph_effect": "Label the c9 content as 'reason: Mehoza residents drink wine (local custom)'. Record the 'accustomed' reading as how the Rif and Rosh use it, not as the judge's words."
+  },
+  {
+   "finding_id": "F9",
+   "kind": "textual",
+   "confidence": "high",
+   "claim": "Translations of the segment differ in what they add. The William Davidson English adds in plain (editorial) text 'for judgment', the name 'Rav Neḥemya' as subject of the first award, and the custom reasoning. Steinsaltz adds 'לדין' and 'ומגיע גם לך לקבל יין' as explanation. Daf Shevui leaves out the judge entirely ('came and said to him'). Soncino renders the full line and adds no note here.",
+   "evidence": [
+    {
+     "source_id": "S2",
+     "exact_quote": "<b>came before Rav Neḥemya, son of Rav Yosef,</b> for judgment"
+    },
+    {
+     "source_id": "S2",
+     "exact_quote": "Rav Neḥemya <b>apportioned</b>"
+    },
+    {
+     "source_id": "S4",
+     "exact_quote": "The wife of R. Joseph the son of Rava cam  and said to him"
+    },
+    {
+     "source_id": "S5",
+     "exact_quote": "ומגיע גם לך לקבל יין"
+    },
+    {
+     "source_id": "S36",
+     "exact_quote": "The wife of R. Joseph the son of Raba came before R."
+    }
+   ],
+   "reasoning": "The William Davidson English and Steinsaltz Hebrew come from the same editorial project. They are not independent corroboration. The Daf Shevui omission is a translation gap, not a textual variant: no Aramaic witness checked lacks the judge, and the Rif has a judge, only a different name.",
+   "graph_effect": "Do not use the Daf Shevui rendering as evidence that the judge is absent. Do not treat the William Davidson plain-text subject 'Rav Neḥemya' as Talmud text. It is editorial, although it agrees with the grammar."
+  },
+  {
+   "finding_id": "F10",
+   "kind": "uncertainty",
+   "confidence": "low",
+   "claim": "In the wider Talmud, other Rav Yosef figures are closely tied to Rav Yosef son of Rava. His father sent him to study 'before Rav Yosef' (Ketubot 63a), and he reports questioning a Rav Yosef (Yevamot 64b). So the bare name 'Rav Yosef' in the judge's patronymic can plausibly point to more than one person known in this circle. This does not identify the judge's father.",
+   "evidence": [
+    {
+     "source_id": "S22",
+     "exact_quote": "רַב יוֹסֵף בְּרֵיהּ דְּרָבָא שַׁדְּרֵיהּ אֲבוּהִי לְבֵי רַב לְקַמֵּיהּ דְּרַב יוֹסֵף",
+     "translation_by_this_dossier": "Translation by this dossier: Rav Yosef son of Rava, his father sent him to the study house, before Rav Yosef."
+    },
+    {
+     "source_id": "S23",
+     "exact_quote": "אֲמַר לֵיהּ רַב יוֹסֵף בְּרֵיהּ דְּרָבָא לְרָבָא, בְּעַי מִינֵּיהּ מֵרַב יוֹסֵף"
+    }
+   ],
+   "reasoning": "This is context against resolving 'Rav Yosef' by name alone. It is not evidence for any particular identification.",
+   "graph_effect": "Keep the judge's father unidentified (local placeholder only). Do not link it to any cross-passage Rav Yosef node."
+  },
+  {
+   "finding_id": "F11",
+   "kind": "textual",
+   "confidence": "high",
+   "claim": "The earlier reading has mention-level errors that the earlier review did not catch. m7-m11 (the requests, the awards and the explanation) are labelled kind 'name' although they are speech or event spans. m12 is a second mention, kind 'pronoun', anchored on the same span as m5 (רב יוסף, occurrence 2). It duplicates the judge's father mention and is not a pronoun. The segment's pronominal references (ליה, לה, לי) were not mentioned at all.",
+   "evidence": [
+    {
+     "source_id": "S0b",
+     "exact_quote": "\"id\": \"m12\",\n      \"kind\": \"pronoun\""
+    },
+    {
+     "source_id": "S0b",
+     "exact_quote": "\"id\": \"m7\",\n      \"kind\": \"name\""
+    }
+   ],
+   "reasoning": "A coreference candidate that points a duplicated 'pronoun' mention at both 'father' and 'husband' is really the name-identity question (F6) in the wrong place. The earlier review passed every check and made no additional findings.",
+   "graph_effect": "Reclassify m7-m11 as speech or event spans. Drop m12, or convert it into an identity question on m5. Optionally add pronoun mentions for ליה (him = judge) and לה (her = woman)."
+  }
+ ],
+ "alternative_readings": [
+  {
+   "reading_id": "A1",
+   "summary": "Base reading: the judge is Rav Nehemya son of Rav Yosef, and his father is an unidentified Rav Yosef, kept separate from the husband.",
+   "support": [
+    "S1",
+    "S3",
+    "S8",
+    "S9",
+    "S10"
+   ],
+   "status": "preferred on the texts checked"
+  },
+  {
+   "reading_id": "A2",
+   "summary": "Source variant: the judge is plain 'Rav Yosef' (Rif, Vilna printing). This may be an eye-skip; that is this dossier's inference.",
+   "support": [
+    "S6"
+   ],
+   "status": "keep open as a source_variant branch"
+  },
+  {
+   "reading_id": "A3",
+   "summary": "Identity alternative: the judge's father is the same Rav Yosef son of Rava, which would make the judge the husband's son. Nothing in the segment supports or rules this out. Seder HaDorot keeps them apart, and a Rav Nehemya son of Rav Yosef elsewhere stands before Rava.",
+   "support": [
+    "S10",
+    "S11",
+    "S16"
+   ],
+   "status": "possible but unsupported; do not merge"
+  },
+  {
+   "reading_id": "A4",
+   "summary": "Status of the claimant: a widow claiming from the estate (Seder HaDorot), or a wife claiming while her husband is absent. The text does not say.",
+   "support": [
+    "S11",
+    "S1"
+   ],
+   "status": "open"
+  }
+ ],
+ "unresolved": [
+  "No Talmud manuscript (Munich 95, Vatican and others) or Hachi Garsinan image was checked. The Rif variant 'לקמיה דרב יוסף' cannot yet be set against manuscript readings.",
+  "Other printings or manuscripts of the Rif were not checked. The Vilna reading may be a printing error.",
+  "Whether Rav Yosef son of Rava was alive at the time of the case is not stated in the segment and is not settled by the sources checked.",
+  "Who the claim is against (husband, estate, heirs) is not stated.",
+  "Rashi has no comment on 65a:11 in the Sefaria link index (Rashi comments exist on 65a:9, 10 and 12). Meiri and Tosafot were not found linked to this segment. This dossier does not claim they are silent.",
+  "Whether the Rav Nehemya son of Rav Yosef of Beitzah 28a, Ketubot 69a and Bava Batra 66b is the same person as this judge is a same-name identification that is not settled here."
+ ],
+ "proposed_corrections": [
+  {
+   "claim_id": "c7",
+   "change": "Change basis from 'explicit' to implicit speaker (continuation). The Aramaic has no speech verb before פסוק לי חמרא.",
+   "why": "F2"
+  },
+  {
+   "claim_id": "c10",
+   "change": "Mark as derived from the same utterance as c9 (not an independent observation). Optionally subtype it as a stated reason: local custom of Mehoza.",
+   "why": "F2, F8"
+  },
+  {
+   "claim_id": "m7-m11",
+   "change": "Change mention kind from 'name' to speech or event spans.",
+   "why": "F11"
+  },
+  {
+   "claim_id": "m12",
+   "change": "Remove the duplicate 'pronoun' mention on רב יוסף occurrence 2, or turn it into an identity question attached to m5. Add real pronoun mentions (ליה, לה) if pronouns are tracked.",
+   "why": "F11"
+  },
+  {
+   "claim_id": "c4 / judge",
+   "change": "Add a reading group with branch A2: judge = 'Rav Yosef' per the Rif (Vilna), evidence type source_variant.",
+   "why": "F3"
+  },
+  {
+   "claim_id": "new",
+   "change": "Optionally add an interpretation claim that the woman came as a widow, attributed to Seder HaDorot (commentary). It must not be marked explicit.",
+   "why": "F5"
+  },
+  {
+   "claim_id": "episode.needed_context",
+   "change": "Record that the sources checked do not identify the judge's father. Seder HaDorot keeps the two Rav Yosefs apart. The question remains open.",
+   "why": "F6"
+  },
+  {
+   "claim_id": "coreference_candidates",
+   "change": "Keep the no-merge decision. Record that the earlier review's 'pass' did not test the kind errors or the implicit speaker.",
+   "why": "F11"
+  }
+ ],
+ "ontology_lessons": [
+  "A speech turn without its own speech verb (here the second request) needs a basis between explicit and inferred: 'implicit speaker by continuation'.",
+  "William Davidson bold can cover a speech introduction that the Aramaic does not repeat. Check bold against the Aramaic before treating bold as literal.",
+  "An abbreviation in a medieval witness (ר\"נ, ר\"י) is not a different name until it is expanded. Store it as an abbreviated witness.",
+  "A legal-context inference (widowhood) that a later commentator states outright is still commentary. Attribute it and do not promote it to text.",
+  "A place in a judge's reason (Mehoza) is the topic of a statement, not a residence relation for the litigant. Residence is an inference.",
+  "Use a separate mention kind for speech and event spans, so these spans do not pollute name counts."
+ ]
+}

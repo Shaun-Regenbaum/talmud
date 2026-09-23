@@ -1,0 +1,135 @@
+{
+  "job_id": "challenge-14",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "2deb22b2d3e2919ac7fba6bbff5388b32c4d7170c6b9113f578422c5439f7c9d",
+  "historical_graph_eligible": false,
+  "scope": "I checked every finding and proposed correction that touches persons, branches, speakers, addressees, kinship or attributions against the saved sources and the frozen input and compiled record, both filled-in quotations, and the Ein Yaakov text of Berakhot 5a (fetched). I did not read manuscripts, Dikdukei Soferim, the unread responsa and Musar works, or anything bearing on historical identity or dates.",
+  "findings": [
+    {
+      "target": "F14 (graph_effect) and ALT5",
+      "decision": "correct_evidence_attribution",
+      "reason": "The dossier says the chain 'Rava from Rav Sechora from Rav Huna' is reported 'for manuscripts and Ein Yaakov'. Petach Einayim only reports the Yashresh Yaakov reading 'א\"ר הונא' as the Ein Yaakov reading, and the Daat Ein Yaakov at 5a (fetched by this review) prints 'אָמַר רָבָא (אמר רב הונא) [וְאִיתֵימָא רַב חִסְדָּא]', i.e. a base text 'Rava said Rav Huna said' with no Rav Sechora, while the Glick Ein Yaakov reads the printed 'אמר רבא ואיתימא רב חסדא'. For the 5a job keep four separate evidence items: print (Rava, or Rav Hisda), Wikisource's report of manuscripts (Rava from Rav Sechora from Rav Huna), the Daat Ein Yaakov base wording (Rava from Rav Huna, removed by its editors), and the Glick Ein Yaakov (same as print). ALT5's 'relying on the Ein Yaakov attribution' is the reader's inference: Ben Yehoyada's words 'אתמר משמיה דרב הונא עצמו' name no source."
+    },
+    {
+      "target": "F15 and unresolved item 3 (Daat bracket convention)",
+      "decision": "qualify",
+      "reason": "The filled quotation '[וְאַמְרֵי לָהּ: רַב אַדָא בַּר אַהֲבָה וְרַבָּנָן]' is in the saved Daat text and supports the bracket claim. The same edition at 5a puts a replaced base wording in round brackets and the Bavli wording in square brackets ('(אמר רב הונא) [וְאִיתֵימָא רַב חִסְדָּא]'), and at 1:28 it does the same to the opening ('(הוו ליה ארבע מאות דני דחמרא, איתקוף) [תְּקִיפוּ לֵיהּ...]'). So the square-bracketed Rav Adda line was most likely added from the Bavli, meaning the Daat base text lacked it (medium confidence: inferred from the edition's own pattern; the version notes do not state the convention). This is one later anthology witness and not a vote against the Bavli's two-branch reading; the Glick Ein Yaakov keeps the alternative, so ALT1 stays as it is."
+    },
+    {
+      "target": "F17 (Seder HaDorot paraphrase) and F03",
+      "decision": "qualify",
+      "reason": "The dossier says Seder HaDorot's paraphrase drops the Rav Adda branch. That holds only for the Rav Huna entry 958:7. The Rav Yehuda entry 1695:1, which the dossier already quotes for F03, keeps it in small print: 'ואמרי לה רב אדא בר אהבה ברכות (ה' ב')'. The same entry recasts the Talmud's 'על לגביה' (went in to him) as 'נכנס לפני רב הונא' (entered before Rav Huna). That is a compiler's wording and must not produce any rank or teacher/student edge. Whether the small-print 'צ\"ל אחוה' correction is by the author or by the Warsaw editors is not shown in the saved text, so say 'a small-print correction in the same entry'. The conclusion 'no father-in-law edge' stands."
+    },
+    {
+      "target": "C01 / C02 (membership of the sages)",
+      "decision": "qualify",
+      "reason": "F01 rightly says the two 'ורבנן' are stated separately in each branch and are 'not shown to be the same set of people'. C02 then allows 'one group entity with two anchors', and C01 puts member_of(sages, visitors) 'in both branches'. A single shared sages entity would quietly assert the sameness F01 denies. Prefer one sages mention and group per branch (occurrence 1 at chars 75-80 for yehuda_visits, occurrence 2 at chars 106-111 for ada_visits), each with its own branch-scoped membership. Keep the named visitor tied to the plural 'ואמרו ליה' only as a group member (F05)."
+    },
+    {
+      "target": "F19 / C03 / C04 (anchor occurrences)",
+      "decision": "support_proposed_correction",
+      "reason": "Checked against the frozen s1, s2 and s4 texts and the compiled spans. 'מר' in s1 occurs at 33 (inside דחמרא), 84, 115, 130 ('לעיין מר'), 142 and 172, so m14 needs occurrence 4. In s2 it occurs at 1 (inside אמר), 45 and 76 ('יהיב מר'), so m15 needs occurrence 3. 'ליה' in s4 occurs at 5 ('אמרו ליה', addressed to Huna) and 86 ('דיהיבנא ליה'), so m16 needs occurrence 2. As saved, m16 wrongly ties the sharecropper to a pronoun for Huna. The second 'ורבנן' at 106 is unanchored. The longer-quote suggestion is right."
+    },
+    {
+      "target": "F14 evidence 3 and F15 evidence 1 (filled quotations, mechanical-corrections.json)",
+      "decision": "support_with_byte_fix",
+      "reason": "Both filled quotations say what their findings claim. Ben Yehoyada's words say the 'יְפַשְׁפֵּשׁ בְּמַעֲשָׂיו' teaching 'was said in Rav Huna's own name', so out of courtesy the visitors said 'לִיעַיֵּין מַר בְּמִילֵיהּ'. The Daat line shows the Rav Adda alternative in square brackets. But neither string is byte-identical to its saved file: they match only after Unicode NFC normalization, because the vowel and dagesh marks are stored in a different order. The exact_quote fields should be recopied from the source bytes so that a byte-level quote check passes."
+    },
+    {
+      "target": "F14 claim wording ('two folios earlier') and the interpretive link",
+      "decision": "qualify",
+      "reason": "The teaching 'אם רואה אדם שיסורין באין עליו יפשפש במעשיו' is at Berakhot 5a:8, the facing side of the same folio, not 'two folios earlier'. Also, Ben Yehoyada is not the first to link the visitors' words to it. Petach Einayim reports the Yashresh Yaakov (answering the Zahav Sheva) reading 'ותירץ הרב דלעיל א\"ר הונא אם רואה אדם שיסורין באים עליו יפשפש', and Petach Einayim argues against that reading. That makes it a disputed commentary interpretation, not a settled one. No 'visitors quote Huna' edge is added, as the dossier already says."
+    },
+    {
+      "target": "F06 (variant Huna turn)",
+      "decision": "qualify",
+      "reason": "The reported manuscript line 'שמעו רבנן מילתא דעבדי בלא דינא?' uses 'רבנן' as a polite third-person address to the visitors. If this variant turn is stored, its addressee is the visiting group, marked by that word. It is not a new or different group of rabbis, and it is not a second mention of the accompanying sages as actors. It stays a secondary report of a manuscript variant, separate from printed turn c10, as the dossier says."
+    },
+    {
+      "target": "F02 / F18 / C09 (kinship in names)",
+      "decision": "support",
+      "reason": "'רב יהודה אחוה דרב סלא חסידא' keeps sibling_of(yehuda, sala) in the Yehuda branch, and 'רב אדא בר אהבה' keeps child_of(ada, ahava) with Ahava as a local placeholder in the Adda branch. This follows the rule that name-embedded kinship is evidence even when the relative never acts. The note that the recurring epithet also works as a fixed distinguishing label is right, and so is keeping the relation anyway. Seder HaDorot 2801:1 restates the epithet and is not an independent witness."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "BEN_Y",
+      "exact_quote": "ונראה לי בס\"ד כי מאמר יְפַשְׁפֵּשׁ בְּמַעֲשָׂיו דלעיל אתמר משמיה דרב הונא עצמו, ולכן משום שורת דרך ארץ לא אמרו לו יְפַשְׁפֵּשׁ בְּמַעֲשָׂיו, אלא אמרו לו לִיעַיֵּין מַר בְּמִילֵיהּ",
+      "matches_claim": true,
+      "note": "Filled-in F14 evidence 3 (mechanical-corrections.json). Says the 5a teaching was said in Rav Huna's own name, so the visitors worded their advice politely. It supports only the interpretive link, which is how F14 uses it. The dossier's string equals this only after NFC normalization, so the bytes need recopying. Ben Yehoyada cites no source for the attribution."
+    },
+    {
+      "source_id": "EY_DAAT",
+      "exact_quote": "[וְאַמְרֵי לָהּ: רַב אַדָא בַּר אַהֲבָה וְרַבָּנָן]",
+      "matches_claim": true,
+      "note": "Filled-in F15 evidence 1 (mechanical-corrections.json). Correct occurrence: the only Rav Adda line in 1:28, in square brackets. It supports the bracket claim. The dossier's bytes match only after NFC normalization."
+    },
+    {
+      "source_id": "review:EY_DAAT_1_23",
+      "exact_quote": "אָמַר רָבָא (אמר רב הונא) [וְאִיתֵימָא רַב חִסְדָּא]",
+      "matches_claim": false,
+      "note": "Fetched by this review. It contradicts F14's graph_effect, which gives the chain with Rav Sechora for Ein Yaakov: the Daat base text has 'Rava said Rav Huna said' (in round brackets, replaced) and no Rav Sechora. It also shows the edition's round/square bracket pattern used in F15."
+    },
+    {
+      "source_id": "review:EY_GLICK_1_16",
+      "exact_quote": "אמר רבא ואיתימא רב חסדא אם רואה אדם שיסורין באין עליו יפשפש במעשיו.",
+      "matches_claim": false,
+      "note": "Fetched by this review. The Glick Ein Yaakov reads as the printed Bavli, so 'Ein Yaakov' is not one reading. Ein Yaakov witnesses differ, and this is the same kind of caution the dossier applies to the names in F15."
+    },
+    {
+      "source_id": "SHD_1695_1",
+      "exact_quote": "ואמרי לה רב אדא בר אהבה ברכות (ה' ב')",
+      "matches_claim": false,
+      "note": "Same entry the dossier quotes for F03. It contradicts the general claim that Seder HaDorot drops the Rav Adda branch; only entry 958:7 does. The same entry says 'נכנס לפני רב הונא', a compiler's paraphrase."
+    },
+    {
+      "source_id": "PETACH",
+      "exact_quote": "ותירץ הרב דלעיל א\"ר הונא אם רואה אדם שיסורין באים עליו יפשפש",
+      "matches_claim": true,
+      "note": "Supports F14's report that an earlier commentator (Yashresh Yaakov) attributes the 5a teaching to Rav Huna and links it to 'ליעיין מר'. It is 'א\"ר הונא', a bare attribution, not the Rav Sechora chain."
+    },
+    {
+      "source_id": "P_IN",
+      "exact_quote": "על לגביה רב יהודה אחוה דרב סלא חסידא ורבנן, ואמרי לה רב אדא בר אהבה ורבנן",
+      "matches_claim": true,
+      "note": "s1 of the frozen input. The two branches each have their own 'ורבנן' (chars 75 and 106). It supports F01, F02, F18 and C02."
+    },
+    {
+      "source_id": "P_COMP",
+      "exact_quote": "\"path\": \"mentions/m16/anchor\",\n      \"source_id\": \"s4\",\n      \"quote\": \"ליה\",\n      \"occurrence\": 1,\n      \"source_sha256\": \"c3897cf6de2eae8c4112e57b07dfda1ce5223c8417937461a0620e7badc55b90\",\n      \"start\": 5,\n      \"end\": 8",
+      "matches_claim": true,
+      "note": "Confirms F19: span 5-8 of s4 is the 'ליה' in 'אמרו ליה' (to Huna). The sharecropper's 'דיהיבנא ליה' is at 86-89."
+    },
+    {
+      "source_id": "WS_BIUR",
+      "exact_quote": "אמר רבא ואיתימא רב חסדא{{דקס|בכתה\"י|אמר רבא אמר רב סחורה אמר רב הונא}}",
+      "matches_claim": true,
+      "note": "Correct occurrence: the 5a:8 teaching, not the separate chain at 5a:11 ('אמר{{דקס|בכת\"י פ'|ואמר}} רבא אמר רב סחורה אמר רב הונא: כל שהקב\"ה חפץ בו'). It is a secondary report of manuscripts, as the dossier types it."
+    },
+    {
+      "source_id": "SHD_958_7",
+      "exact_quote": "פ\"ק דברכות <small>(ה' ב')</small> ר\"ה ה\"ל ת' דני דחמרא איתקוף עאל לגביה רב יהודה אחוה דרב סלא חסידא ורבנן",
+      "matches_claim": true,
+      "note": "This entry's paraphrase goes straight on to 'אמרו ליה' with no Rav Adda alternative. F17's claim holds for this entry only."
+    }
+  ],
+  "extra_sources": [
+    {
+      "source_id": "review:EY_DAAT_1_23",
+      "url": "https://www.sefaria.org/api/texts/Ein_Yaakov,_Berakhot.1.23?context=0&commentary=0",
+      "saved_file": "review-sources/sefaria-Ein_Yaakov__Berakhot.1.23.json",
+      "sha256": "cf45db3b4c38fb60f39ee5ede14def07a7a758d15f3b22d7555c03615e97d2d8",
+      "edition": "Ein Yaakov, Daat edition (Sefaria), Berakhot 1:23 = Bavli Berakhot 5a",
+      "fetched_at": "2026-09-23"
+    },
+    {
+      "source_id": "review:EY_GLICK_1_16",
+      "url": "https://www.sefaria.org/api/texts/Ein_Yaakov_(Glick_Edition),_Berakhot.1.16?context=0&commentary=0",
+      "saved_file": "review-sources/sefaria-Ein_Yaakov__Glick_Edition___Berakhot.1.16.json",
+      "sha256": "9b4b1612724d967fbf9dcd94af2fe77013dbe96c62c3224d7468e1031e458f2d",
+      "edition": "Ein Yaakov (Glick Edition), Berakhot 1:16 = Bavli Berakhot 5a",
+      "fetched_at": "2026-09-23"
+    }
+  ]
+}

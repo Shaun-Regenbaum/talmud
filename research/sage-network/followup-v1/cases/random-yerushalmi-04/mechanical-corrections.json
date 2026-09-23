@@ -1,0 +1,44 @@
+{
+  "job_id": "random-yerushalmi-04",
+  "original_sha256": "2fd07c6018adb1a09c8ddef9be1331ed8bad2211b4e637889ce9e6aad265bfd2",
+  "corrected_sha256": "ab0e84d435a3b2a98ff15e417f1efe4a3bbd484779ad2c90f0bfd4f4859c15cf",
+  "changes": [
+    {
+      "source_id": "IN",
+      "field": "saved_file",
+      "old": "research/sage-network/pilot/inputs/random-yerushalmi-04.json",
+      "new": "../../../pilot/inputs/random-yerushalmi-04.json",
+      "reason": "Make the path relative to this dossier directory; saved bytes unchanged."
+    },
+    {
+      "source_id": "PREV_OUT",
+      "field": "saved_file",
+      "old": "research/sage-network/pilot/outputs/random-yerushalmi-04.json",
+      "new": "../../../pilot/outputs/random-yerushalmi-04.json",
+      "reason": "Make the path relative to this dossier directory; saved bytes unchanged."
+    },
+    {
+      "source_id": "PREV_REV",
+      "field": "saved_file",
+      "old": "research/sage-network/followup-v1/cases/random-yerushalmi-04/previous-review.json",
+      "new": "previous-review.json",
+      "reason": "Make the path relative to this dossier directory; saved bytes unchanged."
+    },
+    {
+      "finding_id": "F1",
+      "evidence_index": 2,
+      "field": "exact_quote",
+      "old": "Mother onions are subject to peah, Rebbi Yose frees.",
+      "new": "are subject to peah, Rebbi Yose frees.",
+      "reason": "Use a contiguous quotation. The earlier quote silently omitted an intervening footnote. Hebrew evidence and claim unchanged."
+    },
+    {
+      "finding_id": "F5",
+      "evidence_index": 1,
+      "field": "exact_quote",
+      "old": "Rebbi Jacob bar Abun in the name of Rebbi Ḥanina: Rebbi Yose said only because of ownerless property",
+      "new": "in the name of Rebbi Ḥanina: Rebbi Yose said only because of ownerless property",
+      "reason": "Use a contiguous quotation. The earlier quote silently omitted an intervening footnote. Hebrew evidence and claim unchanged."
+    }
+  ]
+}

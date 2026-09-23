@@ -1,0 +1,617 @@
+{
+  "job_id": "original-05",
+  "focal_ref": "Arakhin 20b:9",
+  "status": "researched",
+  "question": "Preserve the two versions of the question and their attribution, nested alternatives, and the related repeated passage. Do not attach a quoted opinion to the wrong speaker or count parallel editorial repetitions as independent evidence.",
+  "scope_note": "Checked: Sefaria texts of Arakhin 20b and 21a (William Davidson vocalized/unvocalized Aramaic and English; Wikisource), Rashi, Tosafot, Steinsaltz on 20b and 21a, Rashash on 21a, Tosefta Bava Metzia 8:30/8:13, Sefaria links for 20b:9 and 21a:4, and Sefaria exact-phrase searches. No manuscripts. Translations marked translation_by_this_dossier are this dossier's own brief renderings.",
+  "structure": {
+    "PLACEMENT": {
+      "PLACE-BULL": "Arakhin 20b:6-9",
+      "PLACE-RENTAL": "Arakhin 20b:10, 21a:1-4 (repeats 20b:8-9)"
+    },
+    "FORM (inside each placement)": {
+      "FORM-REPORT": "Rav Yehuda said Rav said: it is Rabbi Meir",
+      "FORM-EXCHANGE": "some say: a question and reply"
+    },
+    "PAIR (inside FORM-EXCHANGE)": {
+      "PAIR-A": "Rav Pappa asks Abaye; Abaye replies",
+      "PAIR-B": "Rami bar Hama (21a:4 printed: Rav Mari bar Hama) asks Rav Hisda; Rav Hisda replies"
+    },
+    "count_check": "Distinct traditions: 1. Placements: 2 (20b:8-9; 21a:4). Speaker pairs in the exchange: 2. Named persons in the tradition: Rav Yehuda, Rav, Rabbi Meir (cited position), Rav Pappa, Abaye, Rami bar Hama, Rav Hisda = 7, plus the name-embedded father Hama. The 21a:4 block adds mentions, not persons, unless Rav Mari bar Hama is kept distinct (AR3)."
+  },
+  "sources": [
+    {
+      "source_id": "S0",
+      "input_path": "research/sage-network/followup-v1/cases/original-05/input.json",
+      "edition": "Job input with earlier cross-check (read-only, not modified)",
+      "fetched_at": null,
+      "saved_file": "input.json",
+      "sha256": "216ea5ba8b24fbc9d1549a2d4c824db8045dd1e9fbddc8973885244433abcbef"
+    },
+    {
+      "source_id": "S1",
+      "url": "https://www.sefaria.org/api/v3/texts/Arakhin%2020b?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria v3 Arakhin 20b: William Davidson Edition (Vocalized Aramaic, Aramaic, English; CC-BY-NC) and Wikisource Talmud Bavli (CC-BY-SA)",
+      "fetched_at": "2026-09-23T07:50:05Z",
+      "saved_file": "sources/sefaria_v3_arakhin_20b_all.json",
+      "sha256": "26901f4070d7f96a848e7752d6618f321dedfe5cfccd6f6304d3189f998b6e68"
+    },
+    {
+      "source_id": "S2",
+      "url": "https://www.sefaria.org/api/v3/texts/Arakhin%2021a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Sefaria v3 Arakhin 21a: same four versions as S1",
+      "fetched_at": "2026-09-23T07:50:06Z",
+      "saved_file": "sources/sefaria_v3_arakhin_21a_all.json",
+      "sha256": "14584742d7ed9fa4163324e25069bae40eb7a16882987adfe8794d59bd3565cc"
+    },
+    {
+      "source_id": "S3",
+      "url": "https://www.sefaria.org/api/links/Arakhin%2020b:9?with_text=0",
+      "edition": "Sefaria links API for Arakhin 20b:9",
+      "fetched_at": "2026-09-23T07:50:06Z",
+      "saved_file": "sources/sefaria_links_arakhin_20b_9.json",
+      "sha256": "d532c42d4a72e437e822864510185c8766c0520e5e09527919877a31aed7f1b0"
+    },
+    {
+      "source_id": "S4",
+      "url": "https://www.sefaria.org/api/links/Arakhin%2021a:4?with_text=0",
+      "edition": "Sefaria links API for Arakhin 21a:4",
+      "fetched_at": "2026-09-23T07:50:06Z",
+      "saved_file": "sources/sefaria_links_arakhin_21a_4.json",
+      "sha256": "755a6ac9960b891d45a4e2c056cbe0a0766a55f13827786dcf4954350ff09fec"
+    },
+    {
+      "source_id": "S5",
+      "url": "https://www.sefaria.org/api/v3/texts/Rashi%20on%20Arakhin%2020b?version=hebrew%7Call&version=english%7Call",
+      "edition": "Rashi on Arakhin 20b, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-23T07:50:38Z",
+      "saved_file": "sources/rashi_arakhin_20b.json",
+      "sha256": "017086830d7c588c13fe0627eb3384e7b8d8a9b065832421d115da37384dabd1"
+    },
+    {
+      "source_id": "S6",
+      "url": "https://www.sefaria.org/api/v3/texts/Rashi%20on%20Arakhin%2021a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Rashi on Arakhin 21a, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-23T07:50:39Z",
+      "saved_file": "sources/rashi_arakhin_21a.json",
+      "sha256": "f096cb15a4588e5dcfd1fd583acc6922af7be780a7e8301a7a58cf5909db8bb4"
+    },
+    {
+      "source_id": "S7",
+      "url": "https://www.sefaria.org/api/v3/texts/Tosafot%20on%20Arakhin%2020b?version=hebrew%7Call&version=english%7Call",
+      "edition": "Tosafot on Arakhin 20b, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-23T07:50:39Z",
+      "saved_file": "sources/tosafot_arakhin_20b.json",
+      "sha256": "4cf42ec5b1561528e4cf6ae7791fa31fb1b264982de1bc3f32116b778f1a7e05"
+    },
+    {
+      "source_id": "S8",
+      "url": "https://www.sefaria.org/api/v3/texts/Tosafot%20on%20Arakhin%2021a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Tosafot on Arakhin 21a, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-23T07:50:39Z",
+      "saved_file": "sources/tosafot_arakhin_21a.json",
+      "sha256": "e9200755ab7300e6c23de702b24f4f9d1487d922eefead0709819c4dd0b78b9a"
+    },
+    {
+      "source_id": "S9",
+      "url": "https://www.sefaria.org/api/v3/texts/Steinsaltz%20on%20Arakhin%2020b?version=hebrew%7Call&version=english%7Call",
+      "edition": "Steinsaltz on Arakhin 20b, William Davidson Edition - Hebrew (Sefaria)",
+      "fetched_at": "2026-09-23T07:50:39Z",
+      "saved_file": "sources/steinsaltz_arakhin_20b.json",
+      "sha256": "2fbf3e6ae6cd41ba3b1b08270041e9121e5dde27af569b29e4e398a0091502f2"
+    },
+    {
+      "source_id": "S10",
+      "url": "https://www.sefaria.org/api/v3/texts/Steinsaltz%20on%20Arakhin%2021a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Steinsaltz on Arakhin 21a, William Davidson Edition - Hebrew (Sefaria)",
+      "fetched_at": "2026-09-23T07:50:40Z",
+      "saved_file": "sources/steinsaltz_arakhin_21a.json",
+      "sha256": "b11298a61b6a59d663c34d241651dd4da98aa401d0604a481a5e855126e91ece"
+    },
+    {
+      "source_id": "S11",
+      "url": "https://www.sefaria.org/api/v3/texts/Rashash%20on%20Arakhin%2021a?version=hebrew%7Call&version=english%7Call",
+      "edition": "Rashash on Arakhin 21a, Vilna Edition (Sefaria)",
+      "fetched_at": "2026-09-23T07:50:40Z",
+      "saved_file": "sources/rashash_arakhin_21a.json",
+      "sha256": "11771dc099598904f25c4cf726a439d5b6c60a59351266f04c960f0264165b56"
+    },
+    {
+      "source_id": "S12",
+      "url": "https://www.sefaria.org/api/v3/texts/Tosefta%20Bava%20Metzia%20(Lieberman)%208:30?version=hebrew%7Call&version=english%7Call",
+      "edition": "Tosefta Bava Metzia (Lieberman) 8:30, codex Vienna, JTS 2001 (Sefaria)",
+      "fetched_at": "2026-09-23T07:50:40Z",
+      "saved_file": "sources/tosefta_bm_lieberman_8_30.json",
+      "sha256": "8f4987bee1a3cc269fefc9703b69f78dc2a8be16957067edfac6793f2a70c0ef"
+    },
+    {
+      "source_id": "S13",
+      "url": "https://www.sefaria.org/api/v3/texts/Tosefta%20Bava%20Metzia%208:13?version=hebrew%7Call&version=english%7Call",
+      "edition": "Tosefta Bava Metzia 8:13, Machon Mamre (Sefaria)",
+      "fetched_at": "2026-09-23T07:50:41Z",
+      "saved_file": "sources/tosefta_bm_8_13.json",
+      "sha256": "7a8bc37f168acf1a9df143a58b04676cfdec914544418bde0c2eca63df9d08b5"
+    },
+    {
+      "source_id": "S14",
+      "url": "https://www.sefaria.org/api/index/Arakhin",
+      "edition": "Sefaria index record for Arakhin (fetched; not quoted)",
+      "fetched_at": "2026-09-23T07:50:41Z",
+      "saved_file": "sources/index_arakhin.json",
+      "sha256": "c966aa8b124e10dc7e41835dff4fbfa5e8ee82a8f36a0d50d31738ded2932c5f"
+    },
+    {
+      "source_id": "S15",
+      "url": "https://www.sefaria.org/api/search-wrapper",
+      "edition": "Sefaria search-wrapper, exact phrase 'ואמרי לה רמי בר חמא לרב חסדא' (size 100)",
+      "fetched_at": "2026-09-23T07:51:44Z",
+      "saved_file": "sources/search_amri_la_rami_bar_hama_lerav_hisda.json",
+      "sha256": "912ca2a14333a6a7fa1970d4f4313ad88249776aef3ad5700252b09a531ff07e",
+      "post_body": "{\"query\": \"\\u05d5\\u05d0\\u05de\\u05e8\\u05d9 \\u05dc\\u05d4 \\u05e8\\u05de\\u05d9 \\u05d1\\u05e8 \\u05d7\\u05de\\u05d0 \\u05dc\\u05e8\\u05d1 \\u05d7\\u05e1\\u05d3\\u05d0\", \"type\": \"text\", \"field\": \"exact\", \"slop\": 0, \"size\": 100, \"source_proj\": [\"ref\", \"heRef\", \"version\", \"lang\"], \"filters\": [], \"filter_fields\": []}"
+    },
+    {
+      "source_id": "S16",
+      "url": "https://www.sefaria.org/api/search-wrapper",
+      "edition": "Sefaria search-wrapper, exact phrase 'רב מרי בר חמא'",
+      "fetched_at": "2026-09-23T07:51:44Z",
+      "saved_file": "sources/search_rav_mari_bar_hama.json",
+      "sha256": "a316fd48c1c0d0cb888c6ef9508876818b5326660adf657d491a159f4a4b1843",
+      "post_body": "{\"query\": \"\\u05e8\\u05d1 \\u05de\\u05e8\\u05d9 \\u05d1\\u05e8 \\u05d7\\u05de\\u05d0\", \"type\": \"text\", \"field\": \"exact\", \"slop\": 0, \"size\": 100, \"source_proj\": [\"ref\", \"heRef\", \"version\", \"lang\"], \"filters\": [], \"filter_fields\": []}"
+    },
+    {
+      "source_id": "S17",
+      "url": "https://www.sefaria.org/api/search-wrapper",
+      "edition": "Sefaria search-wrapper, exact phrase 'אמר ליה רב פפא לאביי ואמרי לה'",
+      "fetched_at": "2026-09-23T07:51:45Z",
+      "saved_file": "sources/search_rav_pappa_leabaye_veamri_la.json",
+      "sha256": "07864e66396d3065e10703b1956807f3e0ccd5a9e83520e13edd4f04db95f5bb",
+      "post_body": "{\"query\": \"\\u05d0\\u05de\\u05e8 \\u05dc\\u05d9\\u05d4 \\u05e8\\u05d1 \\u05e4\\u05e4\\u05d0 \\u05dc\\u05d0\\u05d1\\u05d9\\u05d9 \\u05d5\\u05d0\\u05de\\u05e8\\u05d9 \\u05dc\\u05d4\", \"type\": \"text\", \"field\": \"exact\", \"slop\": 0, \"size\": 100, \"source_proj\": [\"ref\", \"heRef\", \"version\", \"lang\"], \"filters\": [], \"filter_fields\": []}"
+    },
+    {
+      "source_id": "S18",
+      "url": "https://www.sefaria.org/api/search-wrapper",
+      "edition": "Sefaria search-wrapper, exact phrase 'כרבי מאיר דאמר אדם מקדיש דבר שלא בא לעולם'",
+      "fetched_at": "2026-09-23T07:51:46Z",
+      "saved_file": "sources/search_krm_adam_makdish.json",
+      "sha256": "163d76dbf9f6b55850d3c1598bea20f33d0b34d362e871a459b4f4fd5aee2646",
+      "post_body": "{\"query\": \"\\u05db\\u05e8\\u05d1\\u05d9 \\u05de\\u05d0\\u05d9\\u05e8 \\u05d3\\u05d0\\u05de\\u05e8 \\u05d0\\u05d3\\u05dd \\u05de\\u05e7\\u05d3\\u05d9\\u05e9 \\u05d3\\u05d1\\u05e8 \\u05e9\\u05dc\\u05d0 \\u05d1\\u05d0 \\u05dc\\u05e2\\u05d5\\u05dc\\u05dd\", \"type\": \"text\", \"field\": \"exact\", \"slop\": 0, \"size\": 100, \"source_proj\": [\"ref\", \"heRef\", \"version\", \"lang\"], \"filters\": [], \"filter_fields\": []}"
+    },
+    {
+      "source_id": "S19",
+      "url": "https://www.sefaria.org/api/v3/texts/Temurah%2033b:6?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English",
+      "edition": "Sefaria v3 Temurah 33b:6, William Davidson Aramaic and English",
+      "fetched_at": "2026-09-23T07:51:58Z",
+      "saved_file": "sources/sefaria_v3_temurah_33b_6.json",
+      "sha256": "0cdbf7caeacf04b387d35778adadaa1717cb8258b313a3158c5263541cc1e9b6"
+    },
+    {
+      "source_id": "S20",
+      "url": "https://www.sefaria.org/api/v3/texts/Sotah%203a:15?version=hebrew%7CWilliam%20Davidson%20Edition%20-%20Aramaic&version=english%7CWilliam%20Davidson%20Edition%20-%20English",
+      "edition": "Sefaria v3 Sotah 3a:15, William Davidson Aramaic and English",
+      "fetched_at": "2026-09-23T07:51:59Z",
+      "saved_file": "sources/sefaria_v3_sotah_3a_15.json",
+      "sha256": "a8719c67002450463b5a1a9ae8cd15a7e0976e0e08aca3597b3470fbe197ca5a"
+    },
+    {
+      "source_id": "S21",
+      "url": "https://www.sefaria.org/api/search-wrapper",
+      "edition": "Sefaria search-wrapper, exact phrase 'רמי בר חמא לרב חסדא'",
+      "fetched_at": "2026-09-23T07:51:59Z",
+      "saved_file": "sources/search_rami_bar_hama_lerav_hisda.json",
+      "sha256": "54f57a282d34f29cf0c3d4af8f30515fa2c59234341f22dc82e37724573c1142",
+      "post_body": "{\"query\": \"\\u05e8\\u05de\\u05d9 \\u05d1\\u05e8 \\u05d7\\u05de\\u05d0 \\u05dc\\u05e8\\u05d1 \\u05d7\\u05e1\\u05d3\\u05d0\", \"type\": \"text\", \"field\": \"exact\", \"slop\": 0, \"size\": 100, \"source_proj\": [\"ref\", \"heRef\", \"version\", \"lang\"], \"filters\": [], \"filter_fields\": []}"
+    },
+    {
+      "source_id": "S22",
+      "url": "https://www.sefaria.org/api/search-wrapper",
+      "edition": "Sefaria search-wrapper, exact phrase 'מרי בר חמא'",
+      "fetched_at": "2026-09-23T07:52:01Z",
+      "saved_file": "sources/search_mari_bar_hama.json",
+      "sha256": "0266c80f6d267dda6e3c2f6d4d00c7a0c4d0cc5a3e9d616aed2daa4781e557b2",
+      "post_body": "{\"query\": \"\\u05de\\u05e8\\u05d9 \\u05d1\\u05e8 \\u05d7\\u05de\\u05d0\", \"type\": \"text\", \"field\": \"exact\", \"slop\": 0, \"size\": 100, \"source_proj\": [\"ref\", \"heRef\", \"version\", \"lang\"], \"filters\": [], \"filter_fields\": []}"
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "F1",
+      "claim": "In 20b:9 the exchange is given with two alternative speaker pairs: Rav Pappa asks Abaye, or ('and some say') Rami bar Hama asks Rav Hisda. Both askers put the same question.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 9",
+          "exact_quote": "אֲמַר לֵיהּ רַב פָּפָּא לְאַבָּיֵי, וְאָמְרִי לַהּ רָמֵי בַּר חָמָא לְרַב חִסְדָּא: כְּמַאן?"
+        },
+        {
+          "source_id": "S1",
+          "locator": "Wikisource Talmud Bavli, segment 9",
+          "exact_quote": "אמר ליה רב פפא לאביי ואמרי לה רמי בר חמא לרב חסדא כמאן"
+        },
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - English, segment 9",
+          "exact_quote": "<b>Rav Pappa said to Abaye, and some say Rami bar Ḥama</b> said <b>to Rav Ḥisda: In accordance with whose</b> opinion is this <i>baraita</i>?"
+        }
+      ],
+      "translation_by_this_dossier": "'Rav Pappa said to Abaye, and some say it: Rami bar Hama to Rav Hisda: Like whom?'",
+      "reasoning": "ואמרי לה swaps the whole pair of names, not one name. The question is one question with two transmitted speaker pairs. It is a textual alternative about who asked whom; it does not show that only one of the two exchanges happened, nor that both did.",
+      "confidence": "high",
+      "graph_effect": "Record two branch-scoped 'asks' edges: Rav Pappa -> Abaye (branch PAIR-A) and Rami bar Hama -> Rav Hisda (branch PAIR-B). Mark Rav Pappa|Rami bar Hama as alternative askers and Abaye|Rav Hisda as alternative addressees of the same question. These alternative links are role alternatives, not social relations between those people. No Abaye-Rav Hisda or Rav Pappa-Rami bar Hama personal edge."
+    },
+    {
+      "finding_id": "F2",
+      "claim": "The whole exchange in 20b:9 is itself an alternative ('some say') to the version in 20b:8, where Rav Yehuda reports in Rav's name that the baraita follows Rabbi Meir. So there are nested alternatives: the form of the tradition (report vs exchange), and inside the exchange, which pair spoke.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 8",
+          "exact_quote": "אָמַר רַב יְהוּדָה אָמַר רַב: הָא מַנִּי? רַבִּי מֵאִיר הִיא, דְּאָמַר: אָדָם מַקְדִּישׁ דָּבָר שֶׁלֹּא בָּא לָעוֹלָם."
+        },
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 9",
+          "exact_quote": "אִיכָּא דְּאָמְרִי, אֲמַר לֵיהּ רַב פָּפָּא לְאַבָּיֵי"
+        },
+        {
+          "source_id": "S9",
+          "locator": "William Davidson Edition - Hebrew, segment 9",
+          "exact_quote": "<b>איכא דאמרי</b> <small>[יש שאומרים]</small> דבר זה בלשון אחרת"
+        },
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - English, segment 9",
+          "exact_quote": "<b>Some say</b> a slightly different version of this discussion"
+        }
+      ],
+      "translation_by_this_dossier": "20b:8: 'Rav Yehuda said Rav said: Whose is this? It is Rabbi Meir, who said: a person can consecrate something that has not come into the world.' 20b:9 opens: 'There are those who say: Rav Pappa said to Abaye ...'. Steinsaltz: 'some say this matter in a different formulation'.",
+      "reasoning": "The text marker is איכא דאמרי. Steinsaltz and the Davidson English (same editorial family, not independent) both render it as another version of the same discussion. Whether the second version fully replaces the Rav Yehuda-Rav report, or only its form, is not stated in the text; that is interpretation (see alternative_readings AR1).",
+      "confidence": "high",
+      "graph_effect": "Create branch group FORM with FORM-REPORT (Rav Yehuda citing Rav, 20b:8) and FORM-EXCHANGE (20b:9). Branch group PAIR (PAIR-A, PAIR-B) is nested under FORM-EXCHANGE. The Rav Yehuda -> Rav 'reports in name of' edge belongs to FORM-REPORT; the asks edges belong to FORM-EXCHANGE."
+    },
+    {
+      "finding_id": "F3",
+      "claim": "The reply 'Rather, like whom?' has no named speaker in the Aramaic. By structure the addressee answers: Abaye in pair A, Rav Hisda in pair B. The Davidson English at 20b:9 inserts 'Abaye' only; the same translation at the repeated passage 21a:4 says 'He said to him', and Steinsaltz at 21a:4 calls the speaker 'the one asked'.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 9",
+          "exact_quote": "אֲמַר לֵיהּ: וְאֶלָּא כְּמַאן?"
+        },
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - English, segment 9",
+          "exact_quote": "Abaye <b>said to him: Rather, in accordance with who</b> else’s opinion could this <i>baraita</i> be?"
+        },
+        {
+          "source_id": "S2",
+          "locator": "William Davidson Edition - English, segment 4",
+          "exact_quote": "He said to him: Rather, in accordance with who</b> else’s opinion could this <i>baraita</i> be?"
+        },
+        {
+          "source_id": "S10",
+          "locator": "William Davidson Edition - Hebrew, segment 4",
+          "exact_quote": "אמר ליה</b> <small>[לו]</small> הנשאל: <b>ואלא כמאן</b>"
+        },
+        {
+          "source_id": "S9",
+          "locator": "William Davidson Edition - Hebrew, segment 9",
+          "exact_quote": "אמר ליה</b> <small>[לו]:</small> <b>ואלא כמאן</b>"
+        }
+      ],
+      "translation_by_this_dossier": "'He said to him: But [if not], like whom?' Steinsaltz 21a:4: 'the one asked said to him'.",
+      "reasoning": "The pronoun ליה plus the question-answer frame binds the reply to the addressee of whichever pair is read. The Davidson English choice of 'Abaye' at 20b:9 silently follows pair A only; its own rendering of the identical Aramaic at 21a:4 does not name anyone. Steinsaltz Hebrew and Davidson English come from the same editorial project and are not independent witnesses.",
+      "confidence": "high",
+      "graph_effect": "Bind the reply role per branch: respondent = Abaye in PAIR-A, Rav Hisda in PAIR-B. Do not attach the reply to Abaye unconditionally. Keep the English 'Abaye' as a translation rendering, not as Hebrew source evidence."
+    },
+    {
+      "finding_id": "F4",
+      "claim": "The question and reply identify which tannaitic position the anonymous baraita follows: Rabbi Meir's view that one can consecrate what does not yet exist. They do not say that Rav Hisda (or Abaye) personally follows or rules like Rabbi Meir.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 9",
+          "exact_quote": "כְּמַאן? כְּרַבִּי מֵאִיר, דְּאָמַר: אָדָם מַקְדִּישׁ דָּבָר שֶׁלֹּא בָּא לָעוֹלָם? אֲמַר לֵיהּ: וְאֶלָּא כְּמַאן?"
+        },
+        {
+          "source_id": "S9",
+          "locator": "William Davidson Edition - Hebrew, segment 9",
+          "exact_quote": "כמאן</b> <small>[כ</small>דעת <small>מי]</small> ברייתא זו"
+        },
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 8",
+          "exact_quote": "וְהָא אֵין אָדָם מַקְדִּישׁ דָּבָר שֶׁלֹּא בָּא לָעוֹלָם?"
+        }
+      ],
+      "translation_by_this_dossier": "'Like whom [is this baraita]? Like Rabbi Meir, who said: a person can consecrate something that has not come into the world? He said to him: Rather, like whom [else]?' Steinsaltz glosses כמאן as 'according to whose opinion is this baraita'.",
+      "reasoning": "The subject of כמאן is the baraita under discussion (the problem raised in 20b:8). The reply is a rhetorical confirmation of the attribution. This is a claim about the source of an anonymous teaching, not a statement of personal allegiance, teacher-student link, or ruling.",
+      "confidence": "high",
+      "graph_effect": "Replace the input pair 'רב חסדא follows רבי מאיר' with a passage-level claim: (question/reply in PAIR-B, and equally in PAIR-A) attributes the baraita to Rabbi Meir's legal position. Rabbi Meir is the cited authority of a position, not an interlocutor. No Rav Hisda-Rabbi Meir or Abaye-Rabbi Meir person edge."
+    },
+    {
+      "finding_id": "F5",
+      "claim": "20b:10 says some teach this discussion on a different baraita (renting a house that became afflicted). The repeated block at 21a:4 (Rav Yehuda citing Rav, then the 'some say' exchange) is that same discussion under the other placement. It is an editorial repetition, not independent evidence of a second conversation.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 10",
+          "exact_quote": "וְאִיכָּא דְּמַתְנֵי לַהּ אַהָא, הַמַּשְׂכִּיר בַּיִת לַחֲבֵרוֹ וְנִתְנַגֵּעַ"
+        },
+        {
+          "source_id": "S5",
+          "locator": "Vilna Edition, segment 10:1",
+          "exact_quote": "ואיכא דמתני לה - להא דרב יהודה ואביי ורמי בר חמא:"
+        },
+        {
+          "source_id": "S2",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 3",
+          "exact_quote": "דְּאָמַר: ״לִכְשֶׁיָּבֹא שְׂכָרוֹ יִקְדַּשׁ״, וְהָא אֵין אָדָם מַקְדִּישׁ דָּבָר שֶׁלֹּא בָּא לָעוֹלָם!"
+        },
+        {
+          "source_id": "S2",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 4",
+          "exact_quote": "אָמַר רַב יְהוּדָה אָמַר רַב: הָא מַנִּי? רַבִּי מֵאִיר הִיא, דְּאָמַר: אָדָם מַקְדִּישׁ דָּבָר שֶׁלֹּא בָּא לָעוֹלָם. אִיכָּא דְּאָמְרִי: אֲמַר לֵיהּ רַב פָּפָּא לְאַבָּיֵי"
+        },
+        {
+          "source_id": "S10",
+          "locator": "William Davidson Edition - Hebrew, segment 4",
+          "exact_quote": "כמאן</b> <small>[כמי]</small> אתה מפרש דבר זה?"
+        }
+      ],
+      "translation_by_this_dossier": "20b:10: 'And some teach it on this: one who rents a house to his fellow and it became afflicted ...'. Rashi: 'And some teach it: [this refers] to that of Rav Yehuda and Abaye and Rami bar Hama.'",
+      "reasoning": "Rashi's gloss names the unit being moved: Rav Yehuda's report and the Abaye / Rami bar Hama exchange (Rashi uses shorthand names from both pairs). 21a:1-3 then works through the rental baraita until the same 'cannot consecrate what does not exist' problem, and 21a:4 repeats the same two-level tradition. The placement is a third, outer alternative. The repeated names at 21a:4 duplicate the 20b:8-9 mentions.",
+      "confidence": "high",
+      "graph_effect": "Create outer branch group PLACEMENT: PLACE-BULL (20b:7-9) and PLACE-RENTAL (20b:10, 21a:1-4). Link the 21a:4 mentions to the same tradition object as 20b:8-9. Do not add weight or a second observation for Rav Yehuda-Rav, Rav Pappa-Abaye or Rav Hisda edges from 21a:4."
+    },
+    {
+      "finding_id": "F6",
+      "claim": "The printed Hebrew at the repetition 21a:4 has 'Rav Mari bar Hama' where 20b:9 has 'Rami bar Hama'. All three fetched Hebrew texts agree within each location. Rashash proposes correcting 21a to 'Rami bar Hama' as above. The printed form and the emendation are different kinds of evidence.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S2",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 4",
+          "exact_quote": "וְאָמְרִי לַהּ רַב מָרִי בַּר חָמָא לְרַב חִסְדָּא"
+        },
+        {
+          "source_id": "S2",
+          "locator": "Wikisource Talmud Bavli, segment 4",
+          "exact_quote": "ואמרי לה רב מרי בר חמא לרב חסדא"
+        },
+        {
+          "source_id": "S2",
+          "locator": "William Davidson Edition - Aramaic, segment 4",
+          "exact_quote": "ואמרי לה רב מרי בר חמא לרב חסדא"
+        },
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - Aramaic, segment 9",
+          "exact_quote": "ואמרי לה רמי בר חמא לרב חסדא"
+        },
+        {
+          "source_id": "S2",
+          "locator": "William Davidson Edition - English, segment 4",
+          "exact_quote": "<b>Rav Mari bar Ḥama</b> said <b>to Rav Ḥisda"
+        },
+        {
+          "source_id": "S11",
+          "locator": "Vilna Edition, segment 1",
+          "exact_quote": "<b>גמרא ואמרי לה רמי בר חמא לר\"ח. </b>כצ\"ל כדלעיל:"
+        }
+      ],
+      "translation_by_this_dossier": "Rashash: 'Gemara: And some say it: Rami bar Hama to R[av] H[isda]. So it should read, as above.'",
+      "reasoning": "The two strings differ by the title רב and by the order of ר/מ in רמי vs מרי. That is an observation about letters, not a claim about how the variant arose. Rashash's note is a later proposed correction, not a manuscript reading. In Sefaria's search index the exact phrase 'מרי בר חמא' returned 4 hits (hits count text versions, not passages), located only at Arakhin 21a:4 and Steinsaltz on Arakhin 21a:4; 'רמי בר חמא לרב חסדא' returned 33 version-hits, including Eruvin 34b:6, Menachot 84a:5, Keritot 4a:30 and Bava Batra 160b:13. That is consistent with Rashash but only covers Sefaria's indexed texts. The printed editions fetched are not manuscripts and their agreement is not independent manuscript support. No manuscript was checked.",
+      "confidence": "high",
+      "graph_effect": "Keep the 21a:4 mention string 'רב מרי בר חמא' as printed. Add a provisional 'same-name-form-as' proposal to the 20b:9 Rami bar Hama mention, typed as a later emendation (Rashash). Do not silently rewrite or merge. Because 21a:4 is a repetition (F5), no new person or edge is needed in either case; the identity question only decides which string the repeated mention carries."
+    },
+    {
+      "finding_id": "F7",
+      "claim": "The name Rami bar Hama carries a patronymic: son of a man named Hama. Under the printed 21a:4 reading, Rav Mari bar Hama likewise names a father Hama.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 9",
+          "exact_quote": "רָמֵי בַּר חָמָא"
+        },
+        {
+          "source_id": "S2",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 4",
+          "exact_quote": "רַב מָרִי בַּר חָמָא"
+        }
+      ],
+      "translation_by_this_dossier": "'Rami son of Hama'; 'Rav Mari son of Hama'.",
+      "reasoning": "בר + name is the ordinary patronymic form. The father never appears in the passage, but the relation is embedded in the name and stays as evidence. Whether 'Hama' is a literal father or part of a fixed name is not decidable from this passage; literal kinship is the default reading.",
+      "confidence": "medium",
+      "graph_effect": "Keep a local placeholder person 'Hama (father of Rami bar Hama)' with a name-embedded parent-of edge, branch PAIR-B. If the 21a:4 string is kept distinct, keep a separate local placeholder 'Hama (father of Rav Mari bar Hama)'; if the emendation is adopted, the two placeholders collapse. Neither placeholder is identified with any other Hama."
+    },
+    {
+      "finding_id": "F8",
+      "claim": "In the first form (20b:8, repeated 21a:4) Rav Yehuda transmits the attribution in Rav's name.",
+      "kind": "textual",
+      "evidence": [
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 8",
+          "exact_quote": "אָמַר רַב יְהוּדָה אָמַר רַב"
+        },
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - English, segment 8",
+          "exact_quote": "<b>Rav Yehuda says</b> that <b>Rav says:</b>"
+        }
+      ],
+      "translation_by_this_dossier": "'Rav Yehuda said Rav said'.",
+      "reasoning": "Standard chain-of-transmission formula. It is one observation in the FORM-REPORT branch. The 21a:4 repetition is the same tradition (F5).",
+      "confidence": "high",
+      "graph_effect": "One 'reports in name of' edge Rav Yehuda -> Rav, scoped to FORM-REPORT; 21a:4 linked as a repetition, not a second observation. It does not by itself establish a meeting."
+    },
+    {
+      "finding_id": "F9",
+      "claim": "Rashi grounds Rabbi Meir's position in a separate baraita about betrothal conditioned on a future conversion.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "S5",
+          "locator": "Vilna Edition, segment 8:1",
+          "exact_quote": "ר\"מ היא - דתניא הרי את מקודשת לי לאחר שאתגייר לאחר שתתגיירי כו' ר\"מ אומר מקודשת:"
+        }
+      ],
+      "translation_by_this_dossier": "'It is R. Meir: as it was taught: You are betrothed to me after I convert, after you convert, etc.; R. Meir says she is betrothed.'",
+      "reasoning": "Commentary interpretation: Rashi supplies the source for the attribution. It concerns Rabbi Meir's legal position, not any contact between him and the amoraim.",
+      "confidence": "high",
+      "graph_effect": "Optional: attach to the Rabbi Meir position node as a commentary pointer. No person-person edge."
+    },
+    {
+      "finding_id": "F10",
+      "claim": "The opening 'Rav Pappa said to Abaye, and some say X to Y' recurs elsewhere with other alternates (Temurah 33b:6: Rava; Sotah 3a:15: Rav Mesharshiyya to Rava). Here it is a transmission formula. Appearing together in it does not relate the alternate askers to each other.",
+      "kind": "interpretation",
+      "evidence": [
+        {
+          "source_id": "S19",
+          "locator": "William Davidson Edition - Aramaic, segment 1",
+          "exact_quote": "אמר ליה רב פפא לאביי ואמרי לה רבא"
+        },
+        {
+          "source_id": "S20",
+          "locator": "William Davidson Edition - Aramaic, segment 1",
+          "exact_quote": "אמר ליה רב פפא לאביי ואמרי לה רב משרשיא לרבא"
+        }
+      ],
+      "translation_by_this_dossier": "'Rav Pappa said to Abaye, and some say: Rava ...'; '... and some say: Rav Mesharshiyya to Rava'.",
+      "reasoning": "Checked only these two other hits of the exact phrase in Sefaria's index (S17 lists Arakhin 20b:9, Arakhin 21a:4, Temurah 33b:6, Sotah 3a:15). The pattern shows the formula records rival transmissions of who spoke. It is not evidence that Rav Pappa and Rami bar Hama knew each other, or that Abaye and Rav Hisda were linked.",
+      "confidence": "medium",
+      "graph_effect": "Do not create juxtaposed/together edges from the ואמרי לה formula. Keep only branch-scoped role alternatives (F1)."
+    },
+    {
+      "finding_id": "F11",
+      "claim": "Nothing in this passage establishes a meeting, teacher-student bond, relative age, or date for any of the people named. The Rav Yehuda-Rav chain and the ask/answer exchanges are reported speech inside alternative versions.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 9",
+          "exact_quote": "אִיכָּא דְּאָמְרִי"
+        },
+        {
+          "source_id": "S1",
+          "locator": "William Davidson Edition - Vocalized Aramaic, segment 9",
+          "exact_quote": "וְאָמְרִי לַהּ"
+        }
+      ],
+      "translation_by_this_dossier": "'There are those who say'; 'and some say it'.",
+      "reasoning": "Both markers present the report as one of several transmitted versions. An 'asks' edge inside a branch records what the text says, not a verified historical encounter. Citation direction and question direction do not settle seniority.",
+      "confidence": "high",
+      "graph_effect": "Mark all edges from this passage historical_graph_eligible=false until identity and relative-time evidence are reviewed separately."
+    },
+    {
+      "finding_id": "F12",
+      "claim": "The Tosefta parallel of the rental baraita (linked by Sefaria to 20b:7-10) contains no named sage. The fetched Tosafot on 20b and 21a discuss the legal questions, not the speaker names.",
+      "kind": "uncertainty",
+      "evidence": [
+        {
+          "source_id": "S12",
+          "locator": "The Tosefta according to to codex Vienna. Third Augmented Edition, JTS 2001, Tosefta Bava Metzia 8:30",
+          "exact_quote": "או' לו הרי שלך לפניך. הקדישו, הדר בו מעלה שכר להקדש."
+        },
+        {
+          "source_id": "S8",
+          "locator": "Vilna Edition, segment 2:2",
+          "exact_quote": "הכי גרסינן כיון דמעל נפיק ליה שכר לחולין"
+        }
+      ],
+      "translation_by_this_dossier": "Tosefta: 'he says to him: yours is before you. If he consecrated it, the one living in it pays rent to the Temple.' Tosafot: 'thus we read: since he misused it, the rent goes out to non-sacred status'.",
+      "reasoning": "Scope statement: only the fetched Rashi, Tosafot, Steinsaltz and Rashash were read. Other commentaries on Arakhin (e.g. Shita Mekubetzet, manuscript collations) were not checked, so absence of a note on the names there is not claimed.",
+      "confidence": "high",
+      "graph_effect": "None; confirms that the baraita supplies no person nodes."
+    }
+  ],
+  "alternative_readings": [
+    {
+      "id": "AR1",
+      "about": "F2 scope of the 'some say' (איכא דאמרי)",
+      "readings": [
+        "Reading 1: the second version replaces the first. The attribution to Rabbi Meir was not a statement of Rav Yehuda in Rav's name but arose as a question in a later exchange.",
+        "Reading 2: the second version only reports the discussion in a different form, and says nothing about whether Rav's statement also existed."
+      ],
+      "who_says": "Steinsaltz: 'דבר זה בלשון אחרת' (this matter in another formulation); Davidson English: 'a slightly different version of this discussion'. Neither decides between readings 1 and 2 explicitly; this split is this dossier's framing.",
+      "status": "open"
+    },
+    {
+      "id": "AR2",
+      "about": "F3 who answers",
+      "readings": [
+        "Addressee answers (Abaye in PAIR-A; Rav Hisda in PAIR-B) — natural grammatical reading.",
+        "Davidson English 20b:9 names Abaye, which is correct only for PAIR-A."
+      ],
+      "who_says": "Aramaic: unnamed; Davidson English 20b:9: 'Abaye'; Davidson English 21a:4: 'He'; Steinsaltz 21a:4: 'הנשאל'.",
+      "status": "branch-bound; not a real disagreement about the Aramaic"
+    },
+    {
+      "id": "AR3",
+      "about": "F6 name at 21a:4",
+      "readings": [
+        "Printed 'רב מרי בר חמא' kept as a distinct transmitted name form.",
+        "Rashash's correction to 'רמי בר חמא' as in 20b:9."
+      ],
+      "who_says": "Printed Hebrew (Davidson, Wikisource) vs Rashash (later emendation). No manuscript checked.",
+      "status": "open; does not change the person count because 21a:4 is a repetition"
+    },
+    {
+      "id": "AR4",
+      "about": "F5 which baraita the discussion belongs to",
+      "readings": [
+        "PLACE-BULL: the bull's proceeds baraita (20b:6-9).",
+        "PLACE-RENTAL: the house-rental baraita (20b:10-21a:4)."
+      ],
+      "who_says": "The Gemara itself (ואיכא דמתני לה אהא); Rashi specifies the moved unit.",
+      "status": "both preserved as editorial placements"
+    }
+  ],
+  "unresolved": [
+    "No manuscript or early print was collated for 20b:9 or 21a:4; the Rami / Rav Mari bar Hama variation is known here only from printed texts and Rashash.",
+    "Whether 'Rav Mari bar Hama' at 21a:4 is a copying variant or a separate transmitted name is not settled by the sources read.",
+    "Historical identity of Rami bar Hama, Rav Hisda, Rav Pappa, Abaye, Rav Yehuda and Rav with persons elsewhere is not decided here; a shared name is not identity.",
+    "Whether FORM-EXCHANGE implies the Rav Yehuda-Rav report did not exist (AR1) is open.",
+    "Commentaries not fetched (e.g. Shita Mekubetzet, Birkat HaZevach or other Arakhin commentaries if available) were not checked."
+  ],
+  "proposed_corrections": [
+    {
+      "existing_claim": "input pair bavli|Arakhin|20b|9|19|27 (רב פפא asks אביי, sure)",
+      "change": "Keep kind 'asks' but scope it: PLACEMENT any > FORM-EXCHANGE > PAIR-A. Add the reply role for Abaye within PAIR-A. The first-pass 'addresses' was less precise but not wrong.",
+      "why": "F1, F2, F3"
+    },
+    {
+      "existing_claim": "input pair bavli|Arakhin|20b|9|27|53 (אביי - רב חסדא, none)",
+      "change": "Keep 'none' as a person relation. Optionally record a non-social role-alternative link: Abaye and Rav Hisda are alternative addressees of the same question. The first-pass 'addresses' (0.87) was wrong: Abaye does not address Rav Hisda.",
+      "why": "F1, F10"
+    },
+    {
+      "existing_claim": "input pair bavli|Arakhin|20b|9|53|67 (רב חסדא follows רבי מאיר, AB, sure)",
+      "change": "Remove the 'follows' person edge. Replace with a passage-level claim: the question/reply attributes the baraita to Rabbi Meir's position; in PAIR-B Rav Hisda is the addressee who confirms this attribution. First-pass 'addresses' was also wrong.",
+      "why": "F4"
+    },
+    {
+      "existing_claim": "missing",
+      "change": "Add Rami bar Hama asks Rav Hisda (PAIR-B); Rav Yehuda reports in name of Rav (FORM-REPORT, 20b:8); Rami bar Hama child-of local placeholder Hama (name-embedded).",
+      "why": "F1, F7, F8"
+    },
+    {
+      "existing_claim": "earlier_crosscheck arakhin_question",
+      "change": "Agree. Add: the Davidson English is inconsistent between 20b:9 ('Abaye') and 21a:4 ('He said to him'); Rashash emends 21a:4 to Rami bar Hama (a later proposed correction, separate from the printed text); Rashi states the moved unit includes Rav Yehuda's report and the exchange, so 21a:4 is a repetition. Its text_variation_note should cite Rashash.",
+      "why": "F3, F5, F6"
+    }
+  ],
+  "ontology_lessons": [
+    "Alternatives nest: placement (which baraita) > form (report vs exchange) > speaker pair. A flat 'alternative' kind loses which branch an edge lives in; branch groups need a parent pointer.",
+    "An 'and some teach it on this' (ואיכא דמתני לה אהא) repetition is one tradition with two placements. Mentions in the repeated block link to the same tradition id and add no evidence weight.",
+    "An unnamed reply (אמר ליה) binds to the addressee per branch. Translation insertions of a name are renderings, and may pick one branch only.",
+    "כמאן (like whom?) asks which authority an anonymous teaching follows. It should map to 'attributes position to', never to 'follows' between the discussants and the cited tanna.",
+    "A name-form difference between a passage and its repetition needs three fields: printed reading, later emendation (with who proposes it), and manuscript evidence (here: not checked).",
+    "Recurring transmission formulas (אמר ליה רב פפא לאביי ואמרי לה ...) do not create juxtaposition or togetherness edges between the alternate names."
+  ]
+}

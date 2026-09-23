@@ -1,0 +1,1065 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-09",
+    "episode": {
+      "genre": "halachic",
+      "genre_reason": "The discussion tests which descendants are included in a covenant obligation.",
+      "form": "Objections, scriptural distinctions, and alternative attribution",
+      "coverage": "needs_context",
+      "needed_context": [
+        "The preceding discussion is needed to name the precise covenant obligation and the premise being challenged."
+      ],
+      "notes": [
+        "Descendant groups are retained as groups. The wording does not justify treating every member as a direct child."
+      ]
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "רב אושעיא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "ר' יוסי בר אבין",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "אבין",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "ר' יוסי בר חנינא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "חנינא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "ישמעאל",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "עשו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "קטורה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "יצחק",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m10",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "בני ישמעאל",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m11",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "בני עשו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m12",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "בני קטורה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m13",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "אלא מעתה",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "oshaya",
+        "kind": "person",
+        "label": "Rav Oshaya",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "רב אושעיא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "yosi_avin",
+        "kind": "person",
+        "label": "Rabbi Yosi son of Avin",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ר' יוסי בר אבין",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "avin",
+        "kind": "person",
+        "label": "Avin in the patronymic",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אבין",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "yosi_hanina",
+        "kind": "person",
+        "label": "Rabbi Yosi son of Hanina",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ר' יוסי בר חנינא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "hanina",
+        "kind": "person",
+        "label": "Hanina in the patronymic",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "חנינא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "ishmael",
+        "kind": "person",
+        "label": "Ishmael in the descendant label",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "ישמעאל",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "esau",
+        "kind": "person",
+        "label": "Esau in the descendant label",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "עשו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "keturah",
+        "kind": "person",
+        "label": "Keturah in the descendant label",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "קטורה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "isaac",
+        "kind": "person",
+        "label": "Isaac in the verse",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "יצחק",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "i_desc",
+        "kind": "group",
+        "label": "Descendants of Ishmael",
+        "mention_ids": [
+          "m10"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "בני ישמעאל",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "e_desc",
+        "kind": "group",
+        "label": "Descendants of Esau",
+        "mention_ids": [
+          "m11"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בני עשו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "k_desc",
+        "kind": "group",
+        "label": "Descendants of Keturah",
+        "mention_ids": [
+          "m12"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "בני קטורה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "discussion",
+        "kind": "group",
+        "label": "Unnamed discussion voice",
+        "mention_ids": [
+          "m13"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אלא מעתה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "i_question",
+        "kind": "statement",
+        "label": "Should descendants of Ishmael be obligated?",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "בני ישמעאל לחייבו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "e_question",
+        "kind": "statement",
+        "label": "Should descendants of Esau be obligated?",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בני עשו לחייבו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "restriction",
+        "kind": "statement",
+        "label": "The promised line is in Isaac, but not all Isaac’s descendants",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "ביצחק ולא כל יצחק",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "k_question",
+        "kind": "statement",
+        "label": "Would descendants of Keturah then not be obligated?",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "אלא מעתה בני קטורה לא לחייבו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "include",
+        "kind": "statement",
+        "label": "The covenant verse includes descendants of Keturah",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "את בריתי הפר לרבות בני קטורה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "discussion",
+        "object": "i_question",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אלא מעתה בני ישמעאל לחייבו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "An obligation is proposed in a question, not asserted."
+        ]
+      },
+      {
+        "id": "c2",
+        "family": "speech",
+        "predicate": "asks",
+        "subject": "discussion",
+        "object": "e_question",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בני עשו לחייבו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "speech",
+        "predicate": "objects_to",
+        "subject": "oshaya",
+        "object": "restriction",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "k_question"
+          },
+          {
+            "role": "counterevidence",
+            "entity": "include"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "מתקיף לה רב אושעיא אלא מעתה בני קטורה לא לחייבו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "Oshaya’s act of objecting is asserted; the exemption is the consequence he challenges."
+        ]
+      },
+      {
+        "id": "c4",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "yosi_avin",
+        "object": "avin",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ר' יוסי בר אבין",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "avin_report"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "yosi_avin",
+        "object": "include",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "את בריתי הפר לרבות בני קטורה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "avin_report"
+        ],
+        "voice": "oshaya",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "Quoted inside the reported objection."
+        ]
+      },
+      {
+        "id": "c6",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "yosi_hanina",
+        "object": "hanina",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ר' יוסי בר חנינא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "hanina_report"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c7",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "yosi_hanina",
+        "object": "include",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "את בריתי הפר לרבות בני קטורה",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "hanina_report"
+        ],
+        "voice": "oshaya",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "Quoted inside the reported objection."
+        ]
+      }
+    ],
+    "reading_groups": [
+      {
+        "id": "attribution",
+        "kind": "reported_alternatives",
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "האמר ר' יוסי בר אבין ואיתימא ר' יוסי בר חנינא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          {
+            "id": "avin_report",
+            "label": "Yosi son of Avin gives the inclusion"
+          },
+          {
+            "id": "hanina_report",
+            "label": "Yosi son of Hanina gives the inclusion"
+          }
+        ],
+        "historical_compatibility": "unknown",
+        "scope": "Attribution of the teaching quoted in Oshaya’s objection.",
+        "rejoin": "The inclusion of Keturah’s descendants is shared.",
+        "notes": []
+      }
+    ],
+    "coreference_candidates": [],
+    "open_questions": []
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s3",
+      "quote": "רב אושעיא",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 9,
+      "end": 18,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s3",
+      "quote": "ר' יוסי בר אבין",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 53,
+      "end": 68,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s3",
+      "quote": "אבין",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 64,
+      "end": 68,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s3",
+      "quote": "ר' יוסי בר חנינא",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 77,
+      "end": 93,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s3",
+      "quote": "חנינא",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 88,
+      "end": 93,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s1",
+      "quote": "ישמעאל",
+      "occurrence": 1,
+      "source_sha256": "926aa193ae20adccb9de746b70c726146c15fb28f37d996714cf0d6904d45709",
+      "start": 13,
+      "end": 19,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s2",
+      "quote": "עשו",
+      "occurrence": 1,
+      "source_sha256": "87624f38132964ee5972d0c7e5cd26379e0717799d0bdc2468fd2c04bb6a77b2",
+      "start": 4,
+      "end": 7,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s3",
+      "quote": "קטורה",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 32,
+      "end": 37,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s1",
+      "quote": "יצחק",
+      "occurrence": 1,
+      "source_sha256": "926aa193ae20adccb9de746b70c726146c15fb28f37d996714cf0d6904d45709",
+      "start": 47,
+      "end": 51,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m10/anchor",
+      "source_id": "s1",
+      "quote": "בני ישמעאל",
+      "occurrence": 1,
+      "source_sha256": "926aa193ae20adccb9de746b70c726146c15fb28f37d996714cf0d6904d45709",
+      "start": 9,
+      "end": 19,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m11/anchor",
+      "source_id": "s2",
+      "quote": "בני עשו",
+      "occurrence": 1,
+      "source_sha256": "87624f38132964ee5972d0c7e5cd26379e0717799d0bdc2468fd2c04bb6a77b2",
+      "start": 0,
+      "end": 7,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m12/anchor",
+      "source_id": "s3",
+      "quote": "בני קטורה",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 28,
+      "end": 37,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m13/anchor",
+      "source_id": "s1",
+      "quote": "אלא מעתה",
+      "occurrence": 1,
+      "source_sha256": "926aa193ae20adccb9de746b70c726146c15fb28f37d996714cf0d6904d45709",
+      "start": 0,
+      "end": 8,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/oshaya/evidence/0",
+      "source_id": "s3",
+      "quote": "רב אושעיא",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 9,
+      "end": 18,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yosi_avin/evidence/0",
+      "source_id": "s3",
+      "quote": "ר' יוסי בר אבין",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 53,
+      "end": 68,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/avin/evidence/0",
+      "source_id": "s3",
+      "quote": "אבין",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 64,
+      "end": 68,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yosi_hanina/evidence/0",
+      "source_id": "s3",
+      "quote": "ר' יוסי בר חנינא",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 77,
+      "end": 93,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/hanina/evidence/0",
+      "source_id": "s3",
+      "quote": "חנינא",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 88,
+      "end": 93,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/ishmael/evidence/0",
+      "source_id": "s1",
+      "quote": "ישמעאל",
+      "occurrence": 1,
+      "source_sha256": "926aa193ae20adccb9de746b70c726146c15fb28f37d996714cf0d6904d45709",
+      "start": 13,
+      "end": 19,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/esau/evidence/0",
+      "source_id": "s2",
+      "quote": "עשו",
+      "occurrence": 1,
+      "source_sha256": "87624f38132964ee5972d0c7e5cd26379e0717799d0bdc2468fd2c04bb6a77b2",
+      "start": 4,
+      "end": 7,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/keturah/evidence/0",
+      "source_id": "s3",
+      "quote": "קטורה",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 32,
+      "end": 37,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/isaac/evidence/0",
+      "source_id": "s1",
+      "quote": "יצחק",
+      "occurrence": 1,
+      "source_sha256": "926aa193ae20adccb9de746b70c726146c15fb28f37d996714cf0d6904d45709",
+      "start": 47,
+      "end": 51,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/i_desc/evidence/0",
+      "source_id": "s1",
+      "quote": "בני ישמעאל",
+      "occurrence": 1,
+      "source_sha256": "926aa193ae20adccb9de746b70c726146c15fb28f37d996714cf0d6904d45709",
+      "start": 9,
+      "end": 19,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/e_desc/evidence/0",
+      "source_id": "s2",
+      "quote": "בני עשו",
+      "occurrence": 1,
+      "source_sha256": "87624f38132964ee5972d0c7e5cd26379e0717799d0bdc2468fd2c04bb6a77b2",
+      "start": 0,
+      "end": 7,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/k_desc/evidence/0",
+      "source_id": "s3",
+      "quote": "בני קטורה",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 28,
+      "end": 37,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/discussion/evidence/0",
+      "source_id": "s1",
+      "quote": "אלא מעתה",
+      "occurrence": 1,
+      "source_sha256": "926aa193ae20adccb9de746b70c726146c15fb28f37d996714cf0d6904d45709",
+      "start": 0,
+      "end": 8,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/i_question/evidence/0",
+      "source_id": "s1",
+      "quote": "בני ישמעאל לחייבו",
+      "occurrence": 1,
+      "source_sha256": "926aa193ae20adccb9de746b70c726146c15fb28f37d996714cf0d6904d45709",
+      "start": 9,
+      "end": 26,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/e_question/evidence/0",
+      "source_id": "s2",
+      "quote": "בני עשו לחייבו",
+      "occurrence": 1,
+      "source_sha256": "87624f38132964ee5972d0c7e5cd26379e0717799d0bdc2468fd2c04bb6a77b2",
+      "start": 0,
+      "end": 14,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/restriction/evidence/0",
+      "source_id": "s2",
+      "quote": "ביצחק ולא כל יצחק",
+      "occurrence": 1,
+      "source_sha256": "87624f38132964ee5972d0c7e5cd26379e0717799d0bdc2468fd2c04bb6a77b2",
+      "start": 15,
+      "end": 32,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/k_question/evidence/0",
+      "source_id": "s3",
+      "quote": "אלא מעתה בני קטורה לא לחייבו",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 19,
+      "end": 47,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/include/evidence/0",
+      "source_id": "s3",
+      "quote": "את בריתי הפר לרבות בני קטורה",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 110,
+      "end": 138,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "אלא מעתה בני ישמעאל לחייבו",
+      "occurrence": 1,
+      "source_sha256": "926aa193ae20adccb9de746b70c726146c15fb28f37d996714cf0d6904d45709",
+      "start": 0,
+      "end": 26,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s2",
+      "quote": "בני עשו לחייבו",
+      "occurrence": 1,
+      "source_sha256": "87624f38132964ee5972d0c7e5cd26379e0717799d0bdc2468fd2c04bb6a77b2",
+      "start": 0,
+      "end": 14,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s3",
+      "quote": "מתקיף לה רב אושעיא אלא מעתה בני קטורה לא לחייבו",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 0,
+      "end": 47,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s3",
+      "quote": "ר' יוסי בר אבין",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 53,
+      "end": 68,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s3",
+      "quote": "את בריתי הפר לרבות בני קטורה",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 110,
+      "end": 138,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s3",
+      "quote": "ר' יוסי בר חנינא",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 77,
+      "end": 93,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s3",
+      "quote": "את בריתי הפר לרבות בני קטורה",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 110,
+      "end": 138,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "reading_groups/attribution/evidence/0",
+      "source_id": "s3",
+      "quote": "האמר ר' יוסי בר אבין ואיתימא ר' יוסי בר חנינא",
+      "occurrence": 1,
+      "source_sha256": "c2db3edd9abbc39004dfd1935ca430e94432fbbe34d7ba243d2a4f54ef796be3",
+      "start": 48,
+      "end": 93,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "a3749175995f26bc85eb8506b20438eb421b43ba5736604573e5eea044f88af3",
+  "output_sha256": "ca3de04aa9865c9684708c7b6cb5b2b98a88a1d9e413e5aaab2d830a8e161324",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.320548+00:00"
+}

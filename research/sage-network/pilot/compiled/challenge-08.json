@@ -1,0 +1,1728 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-08",
+    "episode": {
+      "genre": "mixed",
+      "genre_reason": "A story about two men who could not speak challenges an inference about ability to learn.",
+      "form": "Legal interpretation, counterexample story, and alternative maternal kinship",
+      "coverage": "needs_context",
+      "needed_context": [
+        "The preceding legal discussion is needed to identify the obligation from which these people were excluded."
+      ],
+      "notes": []
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "דרבי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "רבי יוחנן בן גודגדא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "גודגדא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "group",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "תרי אילמי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "תרי אילמי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "תרי אילמי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "בני ברתיה דרבי יוחנן בן גודגדא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "בני אחתיה דרבי יוחנן",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "קמייהו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m10",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "לבי מדרשא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m11",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "למימרא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m12",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "לשומע ואינו מדבר",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m13",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "למדבר ואינו שומע",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m14",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "הלכתא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m15",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "וספרא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m16",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "וספרי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m17",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "הש\"ס",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m18",
+        "kind": "pronoun",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "עלייהו",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m19",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s3",
+          "quote": "ואיתסו",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "rabbi",
+        "kind": "person",
+        "label": "Rabbi",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "דרבי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "yohanan",
+        "kind": "person",
+        "label": "Rabbi Yohanan son of Gudgada",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רבי יוחנן בן גודגדא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "gudgada",
+        "kind": "person",
+        "label": "Gudgada in the patronymic",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "גודגדא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "pair",
+        "kind": "group",
+        "label": "Two men unable to speak",
+        "mention_ids": [
+          "m4",
+          "m18",
+          "m19"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "תרי אילמי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "son1",
+        "kind": "person",
+        "label": "One of the two men, individually unnamed",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "תרי אילמי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "son2",
+        "kind": "person",
+        "label": "The other of the two men, individually unnamed",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "תרי אילמי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "daughter",
+        "kind": "person",
+        "label": "Unnamed daughter of Yohanan, mother in the first report",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בני ברתיה דרבי יוחנן בן גודגדא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "daughter_report"
+        ]
+      },
+      {
+        "id": "sister",
+        "kind": "person",
+        "label": "Unnamed sister of Yohanan, mother in the second report",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בני אחתיה דרבי יוחנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "sister_report"
+        ]
+      },
+      {
+        "id": "listeners",
+        "kind": "group",
+        "label": "Unnamed people before whom the two sat",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "קמייהו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "school",
+        "kind": "place",
+        "label": "The study house",
+        "mention_ids": [
+          "m10"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "לבי מדרשא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "questioner",
+        "kind": "group",
+        "label": "Unnamed discussion voice",
+        "mention_ids": [
+          "m11"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "למימרא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "hearing_no_speech",
+        "kind": "person",
+        "label": "Generic person who hears but cannot speak",
+        "mention_ids": [
+          "m12"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "לשומע ואינו מדבר",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "speech_no_hearing",
+        "kind": "person",
+        "label": "Generic person who speaks but cannot hear",
+        "mention_ids": [
+          "m13"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "למדבר ואינו שומע",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "exclusion",
+        "kind": "statement",
+        "label": "The verse excludes someone who cannot hear and someone who cannot speak",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "למען ישמעו פרט למדבר ואינו שומע ולמען ילמדו פרט לשומע ואינו מדבר",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "inference",
+        "kind": "statement",
+        "label": "Does inability to speak imply inability to learn?",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "למימרא דכי לא משתעי לא גמר",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "knowledge",
+        "kind": "statement",
+        "label": "They knew halakha, Sifra, Sifrei, and all the Talmud",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ואשתכח דהוו גמירי הלכתא וספרא וספרי וכולה הש\"ס",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "attendance",
+        "kind": "event",
+        "label": "Regular attendance, sitting, nodding, and moving lips",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "דכל אימת דהוה עייל רבי לבי מדרשא הוו עיילי ויתבי קמייהו ומניידי ברישייהו ומרחשין שפוותייהו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "prayer",
+        "kind": "event",
+        "label": "Rabbi prayed for mercy for them",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ובעי רבי רחמי עלייהו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "healing",
+        "kind": "event",
+        "label": "The two were healed",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ואיתסו",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "learning",
+        "kind": "event",
+        "label": "Their extensive learning became known",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ואשתכח דהוו גמירי הלכתא וספרא וספרי וכולה הש\"ס",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "halakha",
+        "kind": "work",
+        "label": "Halakha among the learned material",
+        "mention_ids": [
+          "m14"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "הלכתא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "sifra",
+        "kind": "work",
+        "label": "Sifra",
+        "mention_ids": [
+          "m15"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "וספרא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "sifrei",
+        "kind": "work",
+        "label": "Sifrei",
+        "mention_ids": [
+          "m16"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "וספרי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "talmud",
+        "kind": "work",
+        "label": "All the Talmud as named in the report",
+        "mention_ids": [
+          "m17"
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "הש\"ס",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "yohanan",
+        "object": "gudgada",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רבי יוחנן בן גודגדא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "daughter_report"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "daughter",
+        "object": "yohanan",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בני ברתיה דרבי יוחנן בן גודגדא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "daughter_report"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "family",
+        "predicate": "sibling_of",
+        "subject": "sister",
+        "object": "yohanan",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בני אחתיה דרבי יוחנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "sister_report"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "medium",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The short Yohanan in the alternative is treated as the local Yohanan referent, not resolved against outside biographies."
+        ]
+      },
+      {
+        "id": "c4",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "son1",
+        "object": "daughter",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בני ברתיה דרבי יוחנן בן גודגדא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "daughter_report"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The two unnamed sons are separated only to preserve the family path. Their individual identities cannot be distinguished."
+        ]
+      },
+      {
+        "id": "c5",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "son1",
+        "object": "sister",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בני אחתיה דרבי יוחנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "sister_report"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "son2",
+        "object": "daughter",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בני ברתיה דרבי יוחנן בן גודגדא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "daughter_report"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The two unnamed sons are separated only to preserve the family path. Their individual identities cannot be distinguished."
+        ]
+      },
+      {
+        "id": "c7",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "son2",
+        "object": "sister",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בני אחתיה דרבי יוחנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "sister_report"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c8",
+        "family": "family",
+        "predicate": "sibling_of",
+        "subject": "son1",
+        "object": "son2",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בני ברתיה דרבי יוחנן בן גודגדא ואמרי לה בני אחתיה דרבי יוחנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "They share the stated mother in either report."
+        ]
+      },
+      {
+        "id": "c9",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "rabbi",
+        "object": "attendance",
+        "roles": [
+          {
+            "role": "location",
+            "entity": "school"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "דכל אימת דהוה עייל רבי לבי מדרשא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "entered_study_house",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c10",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "pair",
+        "object": "attendance",
+        "roles": [
+          {
+            "role": "location",
+            "entity": "school"
+          },
+          {
+            "role": "sat_before",
+            "entity": "listeners"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "הוו עיילי ויתבי קמייהו ומניידי ברישייהו ומרחשין שפוותייהו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "entered_sat_nodded_moved_lips",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c11",
+        "family": "scenes",
+        "predicate": "sits_before",
+        "subject": "pair",
+        "object": "listeners",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "ויתבי קמייהו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The plural suffix is retained; the text does not name all those before whom they sat."
+        ]
+      },
+      {
+        "id": "c12",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "rabbi",
+        "object": "prayer",
+        "roles": [
+          {
+            "role": "beneficiaries",
+            "entity": "pair"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ובעי רבי רחמי עלייהו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "prayed_for_mercy",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c13",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "pair",
+        "object": "healing",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ואיתסו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "were_healed",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c14",
+        "family": "scenes",
+        "predicate": "participates_in",
+        "subject": "pair",
+        "object": "learning",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "knowledge"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ואשתכח דהוו גמירי הלכתא וספרא וספרי וכולה הש\"ס",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": "found_to_have_learned",
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c15",
+        "family": "time",
+        "predicate": "before",
+        "subject": "prayer",
+        "object": "healing",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "ובעי רבי רחמי עלייהו ואיתסו",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c16",
+        "family": "speech",
+        "predicate": "objects_to",
+        "subject": "questioner",
+        "object": "inference",
+        "roles": [
+          {
+            "role": "counterexample",
+            "entity": "attendance"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "למימרא דכי לא משתעי לא גמר והא הנהו תרי אילמי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The inference is questioned, not asserted as a fact about people unable to speak."
+        ]
+      }
+    ],
+    "reading_groups": [
+      {
+        "id": "kinship",
+        "kind": "reported_alternatives",
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "בני ברתיה דרבי יוחנן בן גודגדא ואמרי לה בני אחתיה דרבי יוחנן",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          {
+            "id": "daughter_report",
+            "label": "Sons of Yohanan’s daughter"
+          },
+          {
+            "id": "sister_report",
+            "label": "Sons of Yohanan’s sister"
+          }
+        ],
+        "historical_compatibility": "unknown",
+        "scope": "Only the maternal family path changes.",
+        "rejoin": "Attendance, prayer, recovery, and knowledge are shared.",
+        "notes": []
+      }
+    ],
+    "coreference_candidates": [
+      {
+        "mention_id": "m9",
+        "entity_ids": [
+          "rabbi",
+          "listeners"
+        ],
+        "branches": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "דכל אימת דהוה עייל רבי לבי מדרשא הוו עיילי ויתבי קמייהו",
+            "occurrence": 1
+          }
+        ],
+        "reason": "The plural before them may include Rabbi and other people in the study house. It is not silently reduced to Rabbi alone."
+      }
+    ],
+    "open_questions": [
+      "Who exactly is included in the plural קמייהו?",
+      "Are the two maternal reports intended to identify precisely the same named Yohanan? The local continuity suggests this, but no outside identity has been supplied."
+    ]
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s2",
+      "quote": "דרבי",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 60,
+      "end": 64,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s2",
+      "quote": "רבי יוחנן בן גודגדא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 76,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s2",
+      "quote": "גודגדא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 89,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s2",
+      "quote": "תרי אילמי",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 36,
+      "end": 45,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s2",
+      "quote": "תרי אילמי",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 36,
+      "end": 45,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s2",
+      "quote": "תרי אילמי",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 36,
+      "end": 45,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s2",
+      "quote": "בני ברתיה דרבי יוחנן בן גודגדא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 65,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s2",
+      "quote": "בני אחתיה דרבי יוחנן",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 105,
+      "end": 125,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s2",
+      "quote": "קמייהו",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 175,
+      "end": 181,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m10/anchor",
+      "source_id": "s2",
+      "quote": "לבי מדרשא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 149,
+      "end": 158,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m11/anchor",
+      "source_id": "s2",
+      "quote": "למימרא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 0,
+      "end": 6,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m12/anchor",
+      "source_id": "s1",
+      "quote": "לשומע ואינו מדבר",
+      "occurrence": 1,
+      "source_sha256": "0afe601c5010cf85f22c5f95cafe13c9315cadeafc2227101a03687274eb6b3e",
+      "start": 108,
+      "end": 124,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m13/anchor",
+      "source_id": "s1",
+      "quote": "למדבר ואינו שומע",
+      "occurrence": 1,
+      "source_sha256": "0afe601c5010cf85f22c5f95cafe13c9315cadeafc2227101a03687274eb6b3e",
+      "start": 75,
+      "end": 91,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m14/anchor",
+      "source_id": "s3",
+      "quote": "הלכתא",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 46,
+      "end": 51,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m15/anchor",
+      "source_id": "s3",
+      "quote": "וספרא",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 52,
+      "end": 57,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m16/anchor",
+      "source_id": "s3",
+      "quote": "וספרי",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 58,
+      "end": 63,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m17/anchor",
+      "source_id": "s3",
+      "quote": "הש\"ס",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 70,
+      "end": 74,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m18/anchor",
+      "source_id": "s3",
+      "quote": "עלייהו",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 14,
+      "end": 20,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m19/anchor",
+      "source_id": "s3",
+      "quote": "ואיתסו",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 21,
+      "end": 27,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/rabbi/evidence/0",
+      "source_id": "s2",
+      "quote": "דרבי",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 60,
+      "end": 64,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/yohanan/evidence/0",
+      "source_id": "s2",
+      "quote": "רבי יוחנן בן גודגדא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 76,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/gudgada/evidence/0",
+      "source_id": "s2",
+      "quote": "גודגדא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 89,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/pair/evidence/0",
+      "source_id": "s2",
+      "quote": "תרי אילמי",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 36,
+      "end": 45,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/son1/evidence/0",
+      "source_id": "s2",
+      "quote": "תרי אילמי",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 36,
+      "end": 45,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/son2/evidence/0",
+      "source_id": "s2",
+      "quote": "תרי אילמי",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 36,
+      "end": 45,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/daughter/evidence/0",
+      "source_id": "s2",
+      "quote": "בני ברתיה דרבי יוחנן בן גודגדא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 65,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sister/evidence/0",
+      "source_id": "s2",
+      "quote": "בני אחתיה דרבי יוחנן",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 105,
+      "end": 125,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/listeners/evidence/0",
+      "source_id": "s2",
+      "quote": "קמייהו",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 175,
+      "end": 181,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/school/evidence/0",
+      "source_id": "s2",
+      "quote": "לבי מדרשא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 149,
+      "end": 158,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/questioner/evidence/0",
+      "source_id": "s2",
+      "quote": "למימרא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 0,
+      "end": 6,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/hearing_no_speech/evidence/0",
+      "source_id": "s1",
+      "quote": "לשומע ואינו מדבר",
+      "occurrence": 1,
+      "source_sha256": "0afe601c5010cf85f22c5f95cafe13c9315cadeafc2227101a03687274eb6b3e",
+      "start": 108,
+      "end": 124,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/speech_no_hearing/evidence/0",
+      "source_id": "s1",
+      "quote": "למדבר ואינו שומע",
+      "occurrence": 1,
+      "source_sha256": "0afe601c5010cf85f22c5f95cafe13c9315cadeafc2227101a03687274eb6b3e",
+      "start": 75,
+      "end": 91,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/exclusion/evidence/0",
+      "source_id": "s1",
+      "quote": "למען ישמעו פרט למדבר ואינו שומע ולמען ילמדו פרט לשומע ואינו מדבר",
+      "occurrence": 1,
+      "source_sha256": "0afe601c5010cf85f22c5f95cafe13c9315cadeafc2227101a03687274eb6b3e",
+      "start": 60,
+      "end": 124,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/inference/evidence/0",
+      "source_id": "s2",
+      "quote": "למימרא דכי לא משתעי לא גמר",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 0,
+      "end": 26,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/knowledge/evidence/0",
+      "source_id": "s3",
+      "quote": "ואשתכח דהוו גמירי הלכתא וספרא וספרי וכולה הש\"ס",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 28,
+      "end": 74,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/attendance/evidence/0",
+      "source_id": "s2",
+      "quote": "דכל אימת דהוה עייל רבי לבי מדרשא הוו עיילי ויתבי קמייהו ומניידי ברישייהו ומרחשין שפוותייהו",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 126,
+      "end": 216,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/prayer/evidence/0",
+      "source_id": "s3",
+      "quote": "ובעי רבי רחמי עלייהו",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 0,
+      "end": 20,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/healing/evidence/0",
+      "source_id": "s3",
+      "quote": "ואיתסו",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 21,
+      "end": 27,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/learning/evidence/0",
+      "source_id": "s3",
+      "quote": "ואשתכח דהוו גמירי הלכתא וספרא וספרי וכולה הש\"ס",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 28,
+      "end": 74,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/halakha/evidence/0",
+      "source_id": "s3",
+      "quote": "הלכתא",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 46,
+      "end": 51,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sifra/evidence/0",
+      "source_id": "s3",
+      "quote": "וספרא",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 52,
+      "end": 57,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/sifrei/evidence/0",
+      "source_id": "s3",
+      "quote": "וספרי",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 58,
+      "end": 63,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/talmud/evidence/0",
+      "source_id": "s3",
+      "quote": "הש\"ס",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 70,
+      "end": 74,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s2",
+      "quote": "רבי יוחנן בן גודגדא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 76,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s2",
+      "quote": "בני ברתיה דרבי יוחנן בן גודגדא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 65,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s2",
+      "quote": "בני אחתיה דרבי יוחנן",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 105,
+      "end": 125,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s2",
+      "quote": "בני ברתיה דרבי יוחנן בן גודגדא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 65,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s2",
+      "quote": "בני אחתיה דרבי יוחנן",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 105,
+      "end": 125,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s2",
+      "quote": "בני ברתיה דרבי יוחנן בן גודגדא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 65,
+      "end": 95,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s2",
+      "quote": "בני אחתיה דרבי יוחנן",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 105,
+      "end": 125,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s2",
+      "quote": "בני ברתיה דרבי יוחנן בן גודגדא ואמרי לה בני אחתיה דרבי יוחנן",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 65,
+      "end": 125,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s2",
+      "quote": "דכל אימת דהוה עייל רבי לבי מדרשא",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 126,
+      "end": 158,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s2",
+      "quote": "הוו עיילי ויתבי קמייהו ומניידי ברישייהו ומרחשין שפוותייהו",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 159,
+      "end": 216,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c11/evidence/0",
+      "source_id": "s2",
+      "quote": "ויתבי קמייהו",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 169,
+      "end": 181,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c12/evidence/0",
+      "source_id": "s3",
+      "quote": "ובעי רבי רחמי עלייהו",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 0,
+      "end": 20,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c13/evidence/0",
+      "source_id": "s3",
+      "quote": "ואיתסו",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 21,
+      "end": 27,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c14/evidence/0",
+      "source_id": "s3",
+      "quote": "ואשתכח דהוו גמירי הלכתא וספרא וספרי וכולה הש\"ס",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 28,
+      "end": 74,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c15/evidence/0",
+      "source_id": "s3",
+      "quote": "ובעי רבי רחמי עלייהו ואיתסו",
+      "occurrence": 1,
+      "source_sha256": "65c2b0fd5e3c53f42add2ca5fa66e0a90c2161efec7f846dc30fcf17ffb08ffd",
+      "start": 0,
+      "end": 27,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c16/evidence/0",
+      "source_id": "s2",
+      "quote": "למימרא דכי לא משתעי לא גמר והא הנהו תרי אילמי",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 0,
+      "end": 45,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "reading_groups/kinship/evidence/0",
+      "source_id": "s2",
+      "quote": "בני ברתיה דרבי יוחנן בן גודגדא ואמרי לה בני אחתיה דרבי יוחנן",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 65,
+      "end": 125,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "coreference_candidates/0/evidence/0",
+      "source_id": "s2",
+      "quote": "דכל אימת דהוה עייל רבי לבי מדרשא הוו עיילי ויתבי קמייהו",
+      "occurrence": 1,
+      "source_sha256": "d32752324b011a540d5d4bc5b9c50fe445c47238d96c3ac471a75569d541ea48",
+      "start": 126,
+      "end": 181,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "13a11cfa4e437a0a0881af3e0bdaeb053dc6afa01105e9f877d0fcc9599a4fb5",
+  "output_sha256": "3276943965c122b20972d12505a70fbc666412408de68ffcfb35d5d0783b72dc",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.313372+00:00"
+}

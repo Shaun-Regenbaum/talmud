@@ -1,0 +1,1102 @@
+{
+  "record": {
+    "schema_version": "passage-pilot-v1",
+    "job_id": "challenge-05",
+    "episode": {
+      "genre": "halachic",
+      "genre_reason": "The discussion concerns how to wave bread and lambs and interpret the word על.",
+      "form": "Legal dispute and explanation with reversed speaker reports",
+      "coverage": "complete_for_supplied_text",
+      "needed_context": [],
+      "notes": [
+        "The rejected literal reading belongs to the quoted legal argument. It is not a competing historical report. The divine referent is typed unknown because the contract has no divine kind."
+      ]
+    },
+    "mentions": [
+      {
+        "id": "m1",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "חנינא בן חכינאי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m2",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "חכינאי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m3",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "רבי",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m4",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "רב חסדא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m5",
+        "kind": "name",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "רב המנונא",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m6",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "מלך בשר ודם",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m7",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "הקב\"ה",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m8",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s1",
+          "quote": "מניח שתי הלחם",
+          "occurrence": 1
+        }
+      },
+      {
+        "id": "m9",
+        "kind": "description",
+        "anchor": {
+          "source_id": "s2",
+          "quote": "והא בעינן על",
+          "occurrence": 1
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "hanina",
+        "kind": "person",
+        "label": "Hanina son of Hakhinai",
+        "mention_ids": [
+          "m1"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "חנינא בן חכינאי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "hakhinai",
+        "kind": "person",
+        "label": "Hakhinai in the patronymic",
+        "mention_ids": [
+          "m2"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "חכינאי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "rabbi",
+        "kind": "person",
+        "label": "Rabbi, no expanded identity supplied",
+        "mention_ids": [
+          "m3"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "רבי",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "hisda",
+        "kind": "person",
+        "label": "Rav Hisda",
+        "mention_ids": [
+          "m4"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רב חסדא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "hamnuna",
+        "kind": "person",
+        "label": "Rav Hamnuna",
+        "mention_ids": [
+          "m5"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רב המנונא",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "king",
+        "kind": "person",
+        "label": "A human king in the comparison",
+        "mention_ids": [
+          "m6"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "מלך בשר ודם",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "god",
+        "kind": "unknown",
+        "label": "The Holy One in the comparison",
+        "mention_ids": [
+          "m7"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "הקב\"ה",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "officiant",
+        "kind": "person",
+        "label": "Unnamed person waving the offerings",
+        "mention_ids": [
+          "m8"
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "מניח שתי הלחם",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "questioner",
+        "kind": "group",
+        "label": "Unnamed discussion voice",
+        "mention_ids": [
+          "m9"
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "והא בעינן על",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "between",
+        "kind": "statement",
+        "label": "Place the two loaves between the lambs’ thighs and wave",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "מניח שתי הלחם בין ירכותיהן של כבשים ומניף",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "beside",
+        "kind": "statement",
+        "label": "Place them side by side and wave",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אלא מניח זה בצד זה ומניף",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "objection",
+        "kind": "statement",
+        "label": "But the text requires על",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "והא בעינן על",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "near",
+        "kind": "statement",
+        "label": "Rabbi reads על as nearby",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רבי לטעמיה דאמר על בסמוך",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "literal",
+        "kind": "statement",
+        "label": "The proposed literal reading of על",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "או אינו אלא על ממש",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "proof",
+        "kind": "statement",
+        "label": "The curtain is described with על in relation to the ark",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "וסכות על הארון את הפרוכת",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      },
+      {
+        "id": "comparison",
+        "kind": "statement",
+        "label": "A human king would not be served this way; the question challenges doing so before God",
+        "mention_ids": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "לפני מלך בשר ודם אין עושין כן לפני מלך מלכי המלכים הקב\"ה עושין כן",
+            "occurrence": 1
+          }
+        ],
+        "branches": []
+      }
+    ],
+    "claims": [
+      {
+        "id": "c1",
+        "family": "family",
+        "predicate": "child_of",
+        "subject": "hanina",
+        "object": "hakhinai",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "חנינא בן חכינאי",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c2",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "hanina",
+        "object": "between",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "חנינא בן חכינאי אומר מניח שתי הלחם בין ירכותיהן של כבשים ומניף",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c3",
+        "family": "speech",
+        "predicate": "objects_to",
+        "subject": "rabbi",
+        "object": "between",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "comparison"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אמר רבי לפני מלך בשר ודם אין עושין כן לפני מלך מלכי המלכים הקב\"ה עושין כן",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": [
+          "The second עושין כן is a rhetorical question, not an assertion that this is appropriate."
+        ]
+      },
+      {
+        "id": "c4",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "rabbi",
+        "object": "beside",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s1",
+            "quote": "אלא מניח זה בצד זה ומניף",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "local_coreference",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c5",
+        "family": "speech",
+        "predicate": "objects_to",
+        "subject": "questioner",
+        "object": "beside",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "objection"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "והא בעינן על",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c6",
+        "family": "views",
+        "predicate": "holds_view",
+        "subject": "rabbi",
+        "object": "near",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "רבי אומר על בסמוך",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c7",
+        "family": "views",
+        "predicate": "supports",
+        "subject": "proof",
+        "object": "near",
+        "roles": [],
+        "evidence": [
+          {
+            "source_id": "s3",
+            "quote": "כשהוא אומר (שמות מ, ג) וסכות על הארון את הפרוכת הוי אומר על בסמוך:",
+            "occurrence": 1
+          }
+        ],
+        "branches": [],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "interpretation",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c8",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "hisda",
+        "object": "objection",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "hamnuna"
+          },
+          {
+            "role": "content",
+            "entity": "near"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "א\"ל רב חסדא לרב המנונא ואמרי לה רב המנונא לרב חסדא רבי לטעמיה דאמר על בסמוך",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "hisda_speaks"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c9",
+        "family": "views",
+        "predicate": "explains",
+        "subject": "hisda",
+        "object": "beside",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "near"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רבי לטעמיה דאמר על בסמוך",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "hisda_speaks"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c10",
+        "family": "speech",
+        "predicate": "answers",
+        "subject": "hamnuna",
+        "object": "objection",
+        "roles": [
+          {
+            "role": "addressee",
+            "entity": "hisda"
+          },
+          {
+            "role": "content",
+            "entity": "near"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "א\"ל רב חסדא לרב המנונא ואמרי לה רב המנונא לרב חסדא רבי לטעמיה דאמר על בסמוך",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "hamnuna_speaks"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      },
+      {
+        "id": "c11",
+        "family": "views",
+        "predicate": "explains",
+        "subject": "hamnuna",
+        "object": "beside",
+        "roles": [
+          {
+            "role": "content",
+            "entity": "near"
+          }
+        ],
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "רבי לטעמיה דאמר על בסמוך",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          "hamnuna_speaks"
+        ],
+        "voice": "narrator",
+        "polarity": "positive",
+        "modality": "asserted",
+        "discourse_status": "stated",
+        "basis": "explicit",
+        "reading_confidence": "high",
+        "identity_confidence": null,
+        "historical_confidence": null,
+        "subtype": null,
+        "time_scope": null,
+        "notes": []
+      }
+    ],
+    "reading_groups": [
+      {
+        "id": "direction",
+        "kind": "reported_alternatives",
+        "evidence": [
+          {
+            "source_id": "s2",
+            "quote": "א\"ל רב חסדא לרב המנונא ואמרי לה רב המנונא לרב חסדא",
+            "occurrence": 1
+          }
+        ],
+        "branches": [
+          {
+            "id": "hisda_speaks",
+            "label": "Hisda speaks to Hamnuna"
+          },
+          {
+            "id": "hamnuna_speaks",
+            "label": "Hamnuna speaks to Hisda"
+          }
+        ],
+        "historical_compatibility": "unknown",
+        "scope": "Direction of the explanation.",
+        "rejoin": "Rabbi’s interpretation and its scriptural evidence are shared.",
+        "notes": []
+      }
+    ],
+    "coreference_candidates": [],
+    "open_questions": []
+  },
+  "resolved_anchors": [
+    {
+      "path": "mentions/m1/anchor",
+      "source_id": "s1",
+      "quote": "חנינא בן חכינאי",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 0,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m2/anchor",
+      "source_id": "s1",
+      "quote": "חכינאי",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 9,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m3/anchor",
+      "source_id": "s1",
+      "quote": "רבי",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 131,
+      "end": 134,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m4/anchor",
+      "source_id": "s2",
+      "quote": "רב חסדא",
+      "occurrence": 1,
+      "source_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+      "start": 17,
+      "end": 24,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m5/anchor",
+      "source_id": "s2",
+      "quote": "רב המנונא",
+      "occurrence": 1,
+      "source_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+      "start": 26,
+      "end": 35,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m6/anchor",
+      "source_id": "s1",
+      "quote": "מלך בשר ודם",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 140,
+      "end": 151,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m7/anchor",
+      "source_id": "s1",
+      "quote": "הקב\"ה",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 186,
+      "end": 191,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m8/anchor",
+      "source_id": "s1",
+      "quote": "מניח שתי הלחם",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 21,
+      "end": 34,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "mentions/m9/anchor",
+      "source_id": "s2",
+      "quote": "והא בעינן על",
+      "occurrence": 1,
+      "source_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+      "start": 0,
+      "end": 12,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/hanina/evidence/0",
+      "source_id": "s1",
+      "quote": "חנינא בן חכינאי",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 0,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/hakhinai/evidence/0",
+      "source_id": "s1",
+      "quote": "חכינאי",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 9,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/rabbi/evidence/0",
+      "source_id": "s1",
+      "quote": "רבי",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 131,
+      "end": 134,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/hisda/evidence/0",
+      "source_id": "s2",
+      "quote": "רב חסדא",
+      "occurrence": 1,
+      "source_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+      "start": 17,
+      "end": 24,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/hamnuna/evidence/0",
+      "source_id": "s2",
+      "quote": "רב המנונא",
+      "occurrence": 1,
+      "source_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+      "start": 26,
+      "end": 35,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/king/evidence/0",
+      "source_id": "s1",
+      "quote": "מלך בשר ודם",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 140,
+      "end": 151,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/god/evidence/0",
+      "source_id": "s1",
+      "quote": "הקב\"ה",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 186,
+      "end": 191,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/officiant/evidence/0",
+      "source_id": "s1",
+      "quote": "מניח שתי הלחם",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 21,
+      "end": 34,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/questioner/evidence/0",
+      "source_id": "s2",
+      "quote": "והא בעינן על",
+      "occurrence": 1,
+      "source_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+      "start": 0,
+      "end": 12,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/between/evidence/0",
+      "source_id": "s1",
+      "quote": "מניח שתי הלחם בין ירכותיהן של כבשים ומניף",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 21,
+      "end": 62,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/beside/evidence/0",
+      "source_id": "s1",
+      "quote": "אלא מניח זה בצד זה ומניף",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 201,
+      "end": 225,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/objection/evidence/0",
+      "source_id": "s2",
+      "quote": "והא בעינן על",
+      "occurrence": 1,
+      "source_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+      "start": 0,
+      "end": 12,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/near/evidence/0",
+      "source_id": "s2",
+      "quote": "רבי לטעמיה דאמר על בסמוך",
+      "occurrence": 1,
+      "source_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+      "start": 64,
+      "end": 88,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/literal/evidence/0",
+      "source_id": "s3",
+      "quote": "או אינו אלא על ממש",
+      "occurrence": 1,
+      "source_sha256": "562e138ca2c28962e5d439d028efdd7e4f4780daac0d81ccbd2fc3fa1cc65724",
+      "start": 81,
+      "end": 99,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/proof/evidence/0",
+      "source_id": "s3",
+      "quote": "וסכות על הארון את הפרוכת",
+      "occurrence": 1,
+      "source_sha256": "562e138ca2c28962e5d439d028efdd7e4f4780daac0d81ccbd2fc3fa1cc65724",
+      "start": 123,
+      "end": 147,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "entities/comparison/evidence/0",
+      "source_id": "s1",
+      "quote": "לפני מלך בשר ודם אין עושין כן לפני מלך מלכי המלכים הקב\"ה עושין כן",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 135,
+      "end": 200,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c1/evidence/0",
+      "source_id": "s1",
+      "quote": "חנינא בן חכינאי",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 0,
+      "end": 15,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c2/evidence/0",
+      "source_id": "s1",
+      "quote": "חנינא בן חכינאי אומר מניח שתי הלחם בין ירכותיהן של כבשים ומניף",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 0,
+      "end": 62,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c3/evidence/0",
+      "source_id": "s1",
+      "quote": "אמר רבי לפני מלך בשר ודם אין עושין כן לפני מלך מלכי המלכים הקב\"ה עושין כן",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 127,
+      "end": 200,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c4/evidence/0",
+      "source_id": "s1",
+      "quote": "אלא מניח זה בצד זה ומניף",
+      "occurrence": 1,
+      "source_sha256": "44be25acf11c3037cbfcab18a3a1c592fd453c65d77bb03ed2c56906ba0f8ad4",
+      "start": 201,
+      "end": 225,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c5/evidence/0",
+      "source_id": "s2",
+      "quote": "והא בעינן על",
+      "occurrence": 1,
+      "source_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+      "start": 0,
+      "end": 12,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c6/evidence/0",
+      "source_id": "s3",
+      "quote": "רבי אומר על בסמוך",
+      "occurrence": 1,
+      "source_sha256": "562e138ca2c28962e5d439d028efdd7e4f4780daac0d81ccbd2fc3fa1cc65724",
+      "start": 45,
+      "end": 62,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c7/evidence/0",
+      "source_id": "s3",
+      "quote": "כשהוא אומר (שמות מ, ג) וסכות על הארון את הפרוכת הוי אומר על בסמוך:",
+      "occurrence": 1,
+      "source_sha256": "562e138ca2c28962e5d439d028efdd7e4f4780daac0d81ccbd2fc3fa1cc65724",
+      "start": 100,
+      "end": 166,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c8/evidence/0",
+      "source_id": "s2",
+      "quote": "א\"ל רב חסדא לרב המנונא ואמרי לה רב המנונא לרב חסדא רבי לטעמיה דאמר על בסמוך",
+      "occurrence": 1,
+      "source_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+      "start": 13,
+      "end": 88,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c9/evidence/0",
+      "source_id": "s2",
+      "quote": "רבי לטעמיה דאמר על בסמוך",
+      "occurrence": 1,
+      "source_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+      "start": 64,
+      "end": 88,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c10/evidence/0",
+      "source_id": "s2",
+      "quote": "א\"ל רב חסדא לרב המנונא ואמרי לה רב המנונא לרב חסדא רבי לטעמיה דאמר על בסמוך",
+      "occurrence": 1,
+      "source_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+      "start": 13,
+      "end": 88,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "claims/c11/evidence/0",
+      "source_id": "s2",
+      "quote": "רבי לטעמיה דאמר על בסמוך",
+      "occurrence": 1,
+      "source_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+      "start": 64,
+      "end": 88,
+      "offset_unit": "Unicode code points"
+    },
+    {
+      "path": "reading_groups/direction/evidence/0",
+      "source_id": "s2",
+      "quote": "א\"ל רב חסדא לרב המנונא ואמרי לה רב המנונא לרב חסדא",
+      "occurrence": 1,
+      "source_sha256": "280c98ff754aa8222307e823eacfe535e2ecdb6ec872830bc58d8e98b36c2657",
+      "start": 13,
+      "end": 63,
+      "offset_unit": "Unicode code points"
+    }
+  ],
+  "input_sha256": "73d7499ca8d5dd03640946a631913103fa15c92b67d231162753abaefb9f4826",
+  "output_sha256": "e78ccfcfe996f2465fd50bd1f6766aa20966e17e2505db2f5155ed44131f4369",
+  "recipe_hashes": {
+    "reader.md": "1caef0d847e5c297b09f83b6e63e6ec2b42b8ca8e8930d4d7a1fb3a1fa1600a5",
+    "contract.py": "4f1e092b2da46f8427252f48b76b9c7b3a054ac10858d76914cf5467171ef81f",
+    "schema.json": "d9661a1ba501745845204a3129363e2ee733648417cf012d853cbc303db9d871",
+    "validate.py": "018aebf02aac4fee5f2779d5a795b692417246833b239d2ea17dab5bc927bc5d"
+  },
+  "execution": "parallel independent passage reading",
+  "validation": "structural_only",
+  "compiled_at": "2026-09-22T13:04:32.305283+00:00"
+}

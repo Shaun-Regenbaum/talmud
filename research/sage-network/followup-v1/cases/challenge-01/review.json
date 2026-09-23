@@ -1,0 +1,135 @@
+{
+  "job_id": "challenge-01",
+  "authority": "automated_review",
+  "status": "changes_required",
+  "dossier_sha256": "b1f71359358c73bac4bb5b93a35b707f2a08929ed0fc4a95a34aaa4d16c40626",
+  "historical_graph_eligible": false,
+  "scope": "Checked every dossier quotation against the saved files in sources/ (all 60 quotes found verbatim) and read the surroundings for F1-F11, the alternative readings and the proposed corrections; no manuscripts, no Gra gloss and no new network sources were consulted, and no page images were involved.",
+  "findings": [
+    {
+      "target": "F8",
+      "decision": "correct_occurrence",
+      "reason": "The Yad Ramah quote 'ולת\"ק דר' יוסי הוא דאצטריך' comes from his comment on the NEXT baraita (שידי שמן ושדים הבאים על ידי ביצים ... מותרים לשאול בהם בשבת), not from the Sabbath rule in 101a:5. It says only that there is a first tanna against Rabbi Yosi, which is true whether that first tanna is the anonymous baraita or Rabban Shimon ben Gamliel. So Yad Ramah is neutral on this point and should be removed as support."
+    },
+    {
+      "target": "F8 / proposed correction c3",
+      "decision": "qualify",
+      "reason": "The claim 'It is not a continuation of Rabban Shimon ben Gamliel's clause' overreaches. The Talmud text runs 'אבל בכלי שאינו ניטל אסור ואין שואלין בדבר שדים בשבת' with only a 'ו' between them, and Soncino punctuates it as part of his sentence ('are forbidden; nor may demons be consulted on the Sabbath'). The Tosefta also puts the demon clause right after his words with no new speaker. Only the Rif's layout supports a separate teaching: it inserts 'תניא אידך' and then opens a new 'ת\"ר אין שואלין דבר מן השד בשבת'. That is the Rif's editorial arrangement. Keep c3 with subject 'sages' and basis interpretation, add a low-confidence note that the clause can be read as Rabban Shimon ben Gamliel continuing, and approve no Rabban Shimon ben Gamliel edge in either direction."
+    },
+    {
+      "target": "F2 / ontology_lessons[1]",
+      "decision": "qualify",
+      "reason": "Radbaz is not a second copy of the Rosh's wording. After 'הביא הרא\"ש ז\"ל ראיה' he quotes the Gemara in his own form: 'א\"ר הונא (אין) ... ואיתעביד ליה ניסא ופקע ארזא ופלטי''. That is fuller than the Rosh, which stops at 'אבלע בארזא' and reads 'רבי יצחק ברבי יוסף'. Beit Yosef's quotation of the same Rosh passage leaves out the ruling line altogether ('אף בחול אסור ואף ר\"י לא אמר אלא מפני סכנה'), and Be'er Sheva only reports loosely that 'הרא\"ש' reads 'אמר רב הונא'. The Ulla reading therefore rests on the one Vilna print. It is still a weak speaker branch, but the saved sources do not show 'an internal variant inside the Rosh', so the ontology lesson should not cite Radbaz as that example."
+    },
+    {
+      "target": "F1 / F4 (Rif evidence) and c5",
+      "decision": "add_missing_claim",
+      "reason": "The dossier cuts the Rif quotation off at 'ואף רבי יוסי'. The printed Rif continues 'לא אמר' אלא בשעת הסכנה' ('only at a time of danger'). Hagahot HaBach corrects this to 'אלא מפני הסכנה כצ\"ל'. 'At a time of danger' turns Rabbi Yosi's weekday ban into a conditional one, which is a legal condition. Record it as a printed-Rif wording variant on c5, with Bach's correction stored as a separate emendation layer that does not erase the printed Rif reading."
+    },
+    {
+      "target": "F6 / A4",
+      "decision": "keep_evidence_types_separate",
+      "reason": "Support splitting 'rescue' into swallowing, a miracle whose referent is left open, and 'פקע ארזא ופלטיה'. But the Steinsaltz Hebrew cites Rashash for this very gloss ('דאיבלע בארזא [שנבלע בתוך הארז] (רש\"ש)'), and the William Davidson English belongs to the same project. So 'Rashash, Steinsaltz and the William Davidson English' is one line of reading, not three. Also, Rashash's last note, 'רש\"י ד\"ה כי הא דרי\"צ. ובלעו הארז. כצ\"ל', emends Rashi's own words. The saved 'ובלעו הארז' may already be corrected text, so Rashi's branch should note that its key word carries an emendation. Do not use this to settle Yad Ramah's 'בארץ'."
+    },
+    {
+      "target": "c9, c10, c11 (story nodes) and proposed correction 'rescue'",
+      "decision": "add_missing_claim",
+      "reason": "The story comes in as 'כי הא' ('as in this case') inside a legal argument. It is an illustration of the danger, not a free-standing narrated event. The scene claims should carry that role, and their voice should follow the F4 speaker branch (anonymous voice or Rav Huna continuing) instead of a default 'narrator'. Citing Rav Yitzhak bar Yosef's case establishes no meeting, no teaching link and no chronology between him and Rav Huna."
+    },
+    {
+      "target": "A1 (alternative_readings)",
+      "decision": "qualify",
+      "reason": "A1 files 'Radbaz and the Wikisource/Koren Hebrew print it in parentheses' under the with-אין reading. That contradicts F1, which rightly says the parentheses leave 'read or delete' unstated. Parenthesized witnesses should support neither branch. A1 also lists Be'er Sheva's reported 'הרי\"ף והרא\"ש והרמב\"ן ורוב הפוסקים' beside the Rif, Rosh and Ramban themselves, so the report must not be counted on top of them."
+    },
+    {
+      "target": "F4 / proposed correction c5",
+      "decision": "support_proposed_correction",
+      "reason": "The Aramaic has no speech marker before 'ואף רבי יוסי לא אמרה אלא משום סכנה'. 'The Gemara notes' / 'ומעירים' is one editorial project's choice. Beit Yosef's quotation of the Rosh even attaches the danger clause straight to Rabbi Yosi's baraita with no Rav Huna line, which shows the clause travels on its own. Keep the two-way speaker branch, and note that no saved source asserts the 'Rav Huna continuing' reading; it is only left open by run-on quotation."
+    },
+    {
+      "target": "F9 / proposed correction 'rsbg'",
+      "decision": "qualify",
+      "reason": "Support adding a local Gamliel placeholder and a child_of claim with basis 'name', scoped to readings that carry the name. Mark it as a name that may be a fixed dynastic form rather than a proof of literal kinship. Note that the expansion in the William Davidson text is editorial, while the Tosefta Vienna spelling ('רבן שמעון בן גמליאל') is a parallel that supports only the wording. Add the Rif's title variant 'אמר רבי שמעון בן גמליאל' ('Rabbi', not 'Rabban') as a name variant, not an identity signal."
+    },
+    {
+      "target": "F3, F5, F7, F10",
+      "decision": "support_proposed_correction",
+      "reason": "Each checks out against the saved text. The Rosh has 'כי הא דרבי יצחק ברבי יוסף אבלע בארזא', so keep Yosef and c8. The demon and the asking are supplied only by commentary ('היה שואל במעשה שדים ובקש השד להזיקו', 'שבא לשאול בשדים'). The Tosefta reads 'אף בחול אין לוחשין בדבר שדים', a parallel and not a second observation. Seder HaDorot's 'ואולי רב דימי בר יוסף אחיו' is marked 'perhaps' and yields no edge. Lieberman calls the Chelek commentary 'המיוחס לרש\"י' (attributed to Rashi), a small caution on how the Rashi branch is labelled."
+    }
+  ],
+  "quote_checks": [
+    {
+      "source_id": "S1",
+      "exact_quote": "אמר רב הונא (אין) הלכה כר' יוסי ואף רבי יוסי לא אמרה אלא משום סכנה",
+      "matches_claim": true,
+      "note": "Wikisource 101a:6 (one occurrence). The William Davidson Aramaic has the same parentheses with 'כרבי יוסי'. It supports F1's open negation and F4's missing speaker marker."
+    },
+    {
+      "source_id": "S7",
+      "exact_quote": "אמר רב הונא הלכה כרבי יוסי ואף רבי יוסי <i data-commentator=\"Sefer Mitzvot Gadol\" data-label=\"⚬\"></i><i data-commentator=\"Mishneh Torah, Foreign Worship and Customs of the Nations\" data-label=\"⚬\"></i>לא אמר' אלא <i data-commentator=\"Hagahot HaBach\" data-label=\"ג\" data-order=\"3\"></i><i data-commentator=\"Hagahot Chavot Yair\" data-label=\"ד\" data-order=\"4\"></i>בשעת הסכנה",
+      "matches_claim": true,
+      "note": "It matches 'without אין'. But the dossier's truncated quote hides the Rif's 'בשעת הסכנה', which Hagahot HaBach (S8) emends: 'אלא מפני הסכנה כצ\"ל'."
+    },
+    {
+      "source_id": "S7",
+      "exact_quote": "ת\"ר אין שואלין דבר מן השד בשבת רבי יוסי אומר אף בחול אסור",
+      "matches_claim": true,
+      "note": "A real separate 'ת\"ר' in the Rif, placed after 'תניא אידך'. It supports the anonymous reading only as the Rif's arrangement."
+    },
+    {
+      "source_id": "S6",
+      "exact_quote": "ולת\"ק דר' יוסי הוא דאצטריך",
+      "matches_claim": false,
+      "note": "Wrong occurrence for F8. It sits in Yad Ramah's comment on the שידי שמן / ביצים baraita and says nothing about whether the Sabbath rule is anonymous or Rabban Shimon ben Gamliel's."
+    },
+    {
+      "source_id": "S18",
+      "exact_quote": "but those which may not be handled<a href=\"#101a_12\"><sup>12</sup></a>&nbsp; are forbidden; <font style= >nor may demons be consulted on the Sabbath</font>.",
+      "matches_claim": false,
+      "note": "Soncino runs the demon rule into Rabban Shimon ben Gamliel's sentence. This goes against F8's flat 'not a continuation'."
+    },
+    {
+      "source_id": "S9",
+      "exact_quote": "אמר עולא הלכה כרבי יוסי. ואף רבי יוסי לא אמר אלא מפני הסכנה. כי הא דרבי יצחק ברבי יוסף אבלע בארזא.",
+      "matches_claim": true,
+      "note": "Confirms the Vilna Rosh's Ulla and 'רבי יצחק ברבי יוסף' (F2, F3). The Rosh stops at 'אבלע בארזא'."
+    },
+    {
+      "source_id": "S10",
+      "exact_quote": "א\"ר הונא (אין) הלכה כר' יוסי ואף ר' יוסי לא אמרה אלא מפני הסכנה כי הא דרב יצחק בר יוסף דאיבלע בארזא ואיתעביד ליה ניסא ופקע ארזא ופלטי'",
+      "matches_claim": false,
+      "note": "The quote is exact, but it is Radbaz's own citation of the Gemara (full story, 'רב יצחק בר יוסף', parentheses), not a copy of the Rosh's wording. So it cannot show that the Rosh itself varies (F2)."
+    },
+    {
+      "source_id": "S11",
+      "exact_quote": "ותניא בפרק חלק (סנהדרין דף קא.) אין שואלין לשדים בשבת רבי יוסי אומר אף בחול אסור ואף ר\"י לא אמר אלא מפני סכנה",
+      "matches_claim": true,
+      "note": "Beit Yosef's quotation of the Rosh has no ruling line and no speaker. The dossier did not use it. It bears on F2 and F4."
+    },
+    {
+      "source_id": "S4",
+      "exact_quote": "<b>דאיבלע בארזא</b> <small>[שנבלע ב</small>תוך <small>הארז]</small> (רש\"ש)",
+      "matches_claim": true,
+      "note": "Steinsaltz cites Rashash for the gloss, so it is not an independent supporter of the Rashash reading in F6."
+    },
+    {
+      "source_id": "S5",
+      "exact_quote": "<b>רש\"י ד\"ה כי הא דרי\"צ. ובלעו הארז. </b>כצ\"ל",
+      "matches_claim": true,
+      "note": "The dossier did not use this. Rashash emends Rashi's wording, so Rashi's 'ובלעו הארז' (S3) may be corrected text."
+    },
+    {
+      "source_id": "S3",
+      "exact_quote": "כי הא דרב יצחק - היה שואל במעשה שדים ובקש השד להזיקו ונעשה לו נס ובלעו הארז:",
+      "matches_claim": true,
+      "note": "Supports F5 (demon and asking come from commentary) and Rashi's branch in F6."
+    },
+    {
+      "source_id": "S14",
+      "exact_quote": "ואע\"ג דבגמרא שבידינו כתוב אמר רב הונא אין הלכה כרבי יוסי מכל מקום הרי\"ף והרא\"ש והרמב\"ן ורוב הפוסקים גורסין אמר רב הונא הלכה כרבי יוסי",
+      "matches_claim": true,
+      "note": "Supports F1 as a report. Its 'הרא\"ש ... אמר רב הונא' is also Be'er Sheva's loose report against the Vilna Rosh's Ulla."
+    }
+  ],
+  "extra_sources": []
+}

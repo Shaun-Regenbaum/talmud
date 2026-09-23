@@ -1,0 +1,1255 @@
+{
+  "reviewer_role": "Independent source and extraction reviewer",
+  "limits": [
+    "Provisional review of fifteen selected challenge passages; this is not human gold or an estimate of performance across the corpus.",
+    "Only the supplied source text establishes the reading. The checklist is a prompt for review and may omit important content.",
+    "File hashes identify the exact saved inputs and outputs reviewed. Outputs were not edited during review.",
+    "The review checks the meaning of roles and notes as well as predicates. A correct statement label can preserve a distinction even when the contract cannot type the statement’s own modality.",
+    "Mention lists are not exhaustive occurrence inventories. Some standalone pronoun mentions have no explicit entity link even where claims correctly resolve the speech turns.",
+    "The contract lacks a divine-speaker kind and a group-membership predicate. These limits are distinguished from wrong historical assertions."
+  ],
+  "cases": [
+    {
+      "job_id": "challenge-01",
+      "input_sha256": "f9d2d1fea3b10364f161e32ab433ad2d266556ee6f143817a11ee4edfb6acffd",
+      "output_sha256": "652f1cb5ec7f8b0b7235d1aef30c5b6d9f5131fea5e220d40c8f1b4564522150",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Both readings of the exact parenthesized span have opposite rules_like polarity and separate branches.",
+          "claim_ids": [
+            "c6",
+            "c7"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The danger statement explains Yosi’s weekday prohibition without negating it.",
+          "claim_ids": [
+            "c4",
+            "c5"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The legal ruling and cedar entry/release use separate statement and event nodes.",
+          "claim_ids": [
+            "c6",
+            "c7",
+            "c9",
+            "c10",
+            "c11"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 3,
+          "status": "not_applicable",
+          "reason": "No commentary source was supplied and no commentary finding was claimed.",
+          "claim_ids": []
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "The parentheses remain in the evidence and neither polarity is silently selected.",
+          "claim_ids": [
+            "c6",
+            "c7"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "The extraction reports enclosure and rescue without declaring the cedar the original danger or importing a protective explanation.",
+          "claim_ids": [
+            "c9",
+            "c10"
+          ]
+        }
+      ],
+      "additional_findings": [],
+      "summary": "The textual negation and the story are preserved without importing commentary."
+    },
+    {
+      "job_id": "challenge-02",
+      "input_sha256": "26b50051096fe3d44e15e75beab193ea9894e1e032862664d88cfa32f189b95d",
+      "output_sha256": "0ac07b0ad6e1cb7d70df048a3071f2be4b30dc50f22b1ba44a4eb6d96a1d6d00",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Rava’s permission is asserted separately from a question-mode, rejected proposed opposition.",
+          "claim_ids": [
+            "c1",
+            "c3"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The answer and container qualifications use 24b:1; c4 explicitly notes that its sentence continues שאני התם דרובא.",
+          "claim_ids": [
+            "c3",
+            "c4",
+            "c5"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The proposed opposition is marked question/rejected and its note points to the majority explanation.",
+          "claim_ids": [
+            "c3",
+            "c4"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "No asserted person-to-person dispute appears. The only opposition is a rejected question about a specific rule.",
+          "claim_ids": [
+            "c3"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "Both the majority answer and the qualifications after the page break are read.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6"
+          ]
+        }
+      ],
+      "additional_findings": [],
+      "summary": "The provisional disagreement stays provisional, and the answer crosses the page boundary."
+    },
+    {
+      "job_id": "challenge-03",
+      "input_sha256": "adbf4ce60e9269201edd91bdf9d67b36bb258d3585c71fa1add8d69a1e183528",
+      "output_sha256": "68f51efd5cc8c191dbdd842a010b9d4539cbc014c7664a13dfa766c806eee98d",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Rav and Shmuel receive their different recipient rulings within the Sura report.",
+          "claim_ids": [
+            "c3",
+            "c4",
+            "c5"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "Both proposed concessions remain hypothetical and rejected; evidence and notes retain the acquisition conditions and the missing earlier rule.",
+          "claim_ids": [
+            "c6",
+            "c7"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "A reading group separates Sura from Pumbedita and explicitly leaves the backward extent uncertain.",
+          "claim_ids": [
+            "c3",
+            "c4",
+            "c6",
+            "c7",
+            "c9",
+            "c10"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "Neither imagined concession is an actual agreement or retraction.",
+          "claim_ids": [
+            "c6",
+            "c7"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "The reports are scoped separately, with uncertainty about their extent stated rather than erased.",
+          "claim_ids": [
+            "c3",
+            "c4",
+            "c9",
+            "c10"
+          ]
+        }
+      ],
+      "additional_findings": [],
+      "summary": "The two hypothetical concessions and regional reports are distinguished. The additional supplied correspondence from Rav’s school to Shmuel is also preserved."
+    },
+    {
+      "job_id": "challenge-04",
+      "input_sha256": "2eff8370f04fc1914ffff06aa173014ae001270cffa491d903660833b85a230f",
+      "output_sha256": "b5b13025203ff94212616294a35c92451e6e7ea38369791b715c537a03eddeaa",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Huna’s transmission of Rav’s ruling is distinct from the later challenge.",
+          "claim_ids": [
+            "c1",
+            "c2",
+            "c5",
+            "c8"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The two challenger branches point to Huna and keep their names separate.",
+          "claim_ids": [
+            "c5",
+            "c6",
+            "c8",
+            "c9"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The actual objection is asserted, while its content node and notes explicitly make Rav’s possible retraction conditional.",
+          "claim_ids": [
+            "c6",
+            "c9"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 3,
+          "status": "pass",
+          "reason": "Huna answers the selected challenger in each branch; the shared hearing and non-retraction claims have Huna as voice.",
+          "claim_ids": [
+            "c7",
+            "c10",
+            "c11",
+            "c12"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "Rav’s retraction event is used only with negative polarity.",
+          "claim_ids": [
+            "c12"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "Rav is not made a participant in the conversation; the replies are scoped alternatives, with shared content identified in the reading group.",
+          "claim_ids": [
+            "c7",
+            "c10"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "contract_limit",
+          "claim_ids": [
+            "c6",
+            "c9"
+          ],
+          "reason": "The conditional force of the objection’s content is in the statement label and notes. Statement nodes have no modality field, while the speech-act claims correctly say that the objection occurs. A consumer reading claim modality alone would lose the counterfactual.",
+          "source_refs": [
+            "Bava Batra 170b:4"
+          ]
+        }
+      ],
+      "summary": "The conditional challenge and Huna’s denial of retraction are semantically correct. Content modality remains partly prose."
+    },
+    {
+      "job_id": "challenge-05",
+      "input_sha256": "73d7499ca8d5dd03640946a631913103fa15c92b67d231162753abaefb9f4826",
+      "output_sha256": "e78ccfcfe996f2465fd50bd1f6766aa20966e17e2505db2f5155ed44131f4369",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "The two branches reverse the speaker and addressee.",
+          "claim_ids": [
+            "c8",
+            "c10"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "Each explanatory act belongs to the speaker chosen in its branch.",
+          "claim_ids": [
+            "c9",
+            "c11"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "Rabbi’s side-by-side ruling and interpretation are separate from Hisda/Hamnuna’s speech.",
+          "claim_ids": [
+            "c4",
+            "c6",
+            "c8",
+            "c10"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 3,
+          "status": "uncertain",
+          "reason": "The supporting baraita and proof are retained, but no note or open question preserves whether דתניא continues the speaker’s quotation. c7 simply uses narrator voice.",
+          "claim_ids": [
+            "c6",
+            "c7"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "The reversed directions are alternatives, not two successive turns.",
+          "claim_ids": [
+            "c8",
+            "c10"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "Rabbi is not made an addressee or present participant; the explanations are branch-scoped.",
+          "claim_ids": [
+            "c8",
+            "c9",
+            "c10",
+            "c11"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "uncertainty",
+          "claim_ids": [
+            "c6",
+            "c7"
+          ],
+          "reason": "The source does not clearly fix the quotation boundary at דתניא. The extraction retains the legal content but does not explicitly keep that boundary open. This is less severe than assigning the proof to one named speaker.",
+          "source_refs": [
+            "Menachot 62a:12",
+            "Menachot 62a:13"
+          ]
+        }
+      ],
+      "summary": "Speaker reversal is handled correctly. The ownership of the supporting baraita remains unrecorded rather than expressly unresolved."
+    },
+    {
+      "job_id": "challenge-06",
+      "input_sha256": "862635b3928c6de516623f649ce652f68664468db6a5a88a4c8a1a525059ccac",
+      "output_sha256": "13bfc3fe629908283a0c135bc988bb88b303090a780acc77ce6c2cd03df10c01",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "The proposed alignments with Yosi and Akiva have separate branches and remain hypothetical.",
+          "claim_ids": [
+            "c7",
+            "c9"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The Yosi solution requires the anchored deletion of wine and does not call it a personal retraction.",
+          "claim_ids": [
+            "c7",
+            "c8"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The Akiva solution points to the burnt offering and its accompanying requirements.",
+          "claim_ids": [
+            "c9"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "The alternatives are proposed reconciliations, not independent testimony establishing authorship.",
+          "claim_ids": [
+            "c7",
+            "c9"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "No meeting or unconditional agreement between the named people is asserted.",
+          "claim_ids": [
+            "c5",
+            "c6",
+            "c7",
+            "c9"
+          ]
+        }
+      ],
+      "additional_findings": [],
+      "summary": "The proposed text change and the two offered reconciliations remain distinct from settled attribution."
+    },
+    {
+      "job_id": "challenge-07",
+      "input_sha256": "f5a4153ec09b7b36276181b47c7084e99033b34b4aafeee1a03f677b946c33a0",
+      "output_sha256": "09a58df7bdf9db1cffae43da45a1f8fb6866cf49012bdaf9125a90ae93957dc8",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Both full son-and-father names are retained, with the correct directed family claims.",
+          "claim_ids": [
+            "c7",
+            "c8"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The voting explanation has a Rabba branch and a Hillel branch.",
+          "claim_ids": [
+            "c3",
+            "c4"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "Rav’s first-person participation is distinct from the later named explanations.",
+          "claim_ids": [
+            "c1",
+            "c3",
+            "c4"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "Neither father is substituted for the son as the speaker.",
+          "claim_ids": [
+            "c3",
+            "c4",
+            "c7",
+            "c8"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "No attendance, contemporaneity, or shared meeting is inferred for the alternative explainers.",
+          "claim_ids": [
+            "c1",
+            "c3",
+            "c4"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "uncertainty",
+          "claim_ids": [
+            "c3",
+            "c4",
+            "c5",
+            "c6"
+          ],
+          "reason": "The extraction creates independent alternative groups for the repeated attributions in :6 and :7, and explicitly notes that transmission may connect them. Downstream enumeration must not treat all four combinations as independently reported witnesses.",
+          "source_refs": [
+            "Sanhedrin 36a:6",
+            "Sanhedrin 36a:7"
+          ]
+        }
+      ],
+      "summary": "The complete names and separate speaking roles are preserved. The link between repeated attribution choices remains an explicit limit."
+    },
+    {
+      "job_id": "challenge-08",
+      "input_sha256": "13a11cfa4e437a0a0881af3e0bdaeb053dc6afa01105e9f877d0fcc9599a4fb5",
+      "output_sha256": "3276943965c122b20972d12505a70fbc666412408de68ffcfb35d5d0783b72dc",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "The unnamed pair has two person nodes and separate family claims for each, without invented names.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6",
+            "c7"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The first branch gives each son a mother who is Yohanan’s daughter.",
+          "claim_ids": [
+            "c2",
+            "c4",
+            "c6"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The second branch gives each son a mother who is Yohanan’s sister.",
+          "claim_ids": [
+            "c3",
+            "c5",
+            "c7"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 3,
+          "status": "pass",
+          "reason": "Attendance, prayer and healing are shared. The plural קמייהו remains an unnamed group with an open referent question.",
+          "claim_ids": [
+            "c9",
+            "c10",
+            "c11",
+            "c12",
+            "c13"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "The pair is not collapsed into one child, and no personal names are invented.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6",
+            "c7"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "The daughter and sister family paths remain separate branches.",
+          "claim_ids": [
+            "c2",
+            "c3",
+            "c4",
+            "c5",
+            "c6",
+            "c7"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 2,
+          "status": "pass",
+          "reason": "The shared story is not restricted to one family branch, and the possible Yohanan identity is discussed locally rather than generalized.",
+          "claim_ids": [
+            "c9",
+            "c10",
+            "c11",
+            "c12"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "uncertainty",
+          "claim_ids": [
+            "c3"
+          ],
+          "reason": "The second branch’s short Rabbi Yohanan is structurally merged with the full Yohanan son of Gudgada entity, despite a medium-confidence note and open question. The ambiguity would be clearer with a separate local mention and candidate identity rather than a full-patronymic entity shared across both readings.",
+          "source_refs": [
+            "Chagigah 3a:4"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "contract_limit",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6",
+            "c7",
+            "c10",
+            "c13"
+          ],
+          "reason": "The two individual sons and the pair are present, but the contract has no group-membership predicate. Their membership is recoverable from labels and matching source spans rather than an explicit membership edge.",
+          "source_refs": [
+            "Chagigah 3a:4",
+            "Chagigah 3a:5"
+          ]
+        }
+      ],
+      "summary": "Both maternal family paths and the plural audience are retained. The local Yohanan merger remains somewhat stronger in structure than in the cautionary prose."
+    },
+    {
+      "job_id": "challenge-09",
+      "input_sha256": "a3749175995f26bc85eb8506b20438eb421b43ba5736604573e5eea044f88af3",
+      "output_sha256": "ca3de04aa9865c9684708c7b6cb5b2b98a88a1d9e413e5aaab2d830a8e161324",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Oshaya challenges the restriction through its implication for Keturah’s descendants, rather than addressing the cited authors.",
+          "claim_ids": [
+            "c3"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The two author names and their fathers have separate attribution branches.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6",
+            "c7"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "miss",
+          "reason": "The interpretation and its authors are preserved, but c5/c7 explicitly choose Oshaya as the voice of the surrounding citation. The ownership of האמר is not left open.",
+          "claim_ids": [
+            "c3",
+            "c5",
+            "c7"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "No meeting or direct speech to either attributed author is invented.",
+          "claim_ids": [
+            "c3",
+            "c5",
+            "c7"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "miss",
+          "reason": "Both claims and their notes settle the citation as part of Oshaya’s objection; the reading group repeats that interpretation without an alternative.",
+          "claim_ids": [
+            "c5",
+            "c7"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "major",
+          "type": "unsupported",
+          "claim_ids": [
+            "c3",
+            "c5",
+            "c7"
+          ],
+          "reason": "The Hebrew האמר can continue Oshaya’s support or introduce an answer by the discussion. Setting voice=oshaya, adding counterevidence to his objection, and calling the teaching quoted inside that objection silently selects one unresolved speaker boundary. The source alone does not justify that certainty.",
+          "source_refs": [
+            "Sanhedrin 59b:12"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [
+            "c1",
+            "c2"
+          ],
+          "reason": "The questions about Ishmael’s and Esau’s descendants are encoded, but the first supplied answer כי ביצחק יקרא לך זרע has no dedicated explanatory claim. The later restriction is only a target of Oshaya’s objection. The extraction retains the main Keturah issue but thins the preceding argument.",
+          "source_refs": [
+            "Sanhedrin 59b:10",
+            "Sanhedrin 59b:11"
+          ]
+        }
+      ],
+      "summary": "The alternate attributed authors are correct, but the surrounding citation is assigned to Oshaya with unwarranted certainty."
+    },
+    {
+      "job_id": "challenge-10",
+      "input_sha256": "d8977c7edcdd35ce2c1fc19f497441f7f78b6f437d4a1446bce30b4c2beb9674",
+      "output_sha256": "f65a6e1210ad8cddd58625ae034f4f9962f5b5234bbb4b1d07ab4b58e6b90b44",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Yehuda’s transmission from Rav is separate from the story’s inner speakers and actions.",
+          "claim_ids": [
+            "c1",
+            "c3",
+            "c5",
+            "c13"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "Moses’s classroom scene is explicitly a future showing within the story, not an ordinary historical visit.",
+          "claim_ids": [
+            "c10"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The students address Akiva, who replies with the Sinai tradition; that tradition is attributed to Moses without direct hearing.",
+          "claim_ids": [
+            "c13",
+            "c14",
+            "c15"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 3,
+          "status": "pass",
+          "reason": "Moses, the divine speaker, Akiva and the students retain their story roles apart from Yehuda and Rav.",
+          "claim_ids": [
+            "c3",
+            "c5",
+            "c6",
+            "c12",
+            "c13",
+            "c14"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "No ordinary student relation or historical co-presence of Moses and Akiva is asserted. The note explicitly rejects that inference.",
+          "claim_ids": [
+            "c10",
+            "c15"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "The report uses reports_in_name_of without adding direct hearing or lifetime ordering.",
+          "claim_ids": [
+            "c1"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "contract_limit",
+          "claim_ids": [
+            "c4",
+            "c6",
+            "c9",
+            "c19",
+            "c21",
+            "c25"
+          ],
+          "reason": "The divine interlocutor is typed person so that the contract permits speech and participation claims. The episode explicitly denies an assertion of humanity. This is a type-system limit, not a claim that God is a historical sage.",
+          "source_refs": [
+            "Menachot 29b:3",
+            "Menachot 29b:4",
+            "Menachot 29b:5"
+          ]
+        }
+      ],
+      "summary": "The transmission, extraordinary future scenes and inner dialogue remain distinct. Divine speaker typing is an acknowledged contract limit."
+    },
+    {
+      "job_id": "challenge-11",
+      "input_sha256": "e79e3f1fc50417efdb22705e19f68191e0a373ab573647b58e7ee7514b96a825",
+      "output_sha256": "fc0b2ea7838fb2c101ac8bc2ec3f7f9d9135aab881d4ad1efc181e502a8cfa13",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "The relationship is student_of with subtype student_colleague and a note expressly distinguishing it from an ordinary subordinate student.",
+          "claim_ids": [
+            "c14"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "Yirmiya’s question and Rav’s reply have separate directions and content roles.",
+          "claim_ids": [
+            "c15",
+            "c16"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "miss",
+          "reason": "The explicit denial ולא אמר מי בדיל מר has no statement, negative speech claim, or quoted note. The episode only alludes generally to a wording comparison.",
+          "claim_ids": [
+            "c14",
+            "c15",
+            "c16"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "The colleague qualification is retained in both subtype and explanation.",
+          "claim_ids": [
+            "c14"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "The formal wording is not falsely counted as an utterance, and no dates are invented. Its omission is separately marked as a preservation failure.",
+          "claim_ids": [
+            "c15",
+            "c16"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "major",
+          "type": "omission",
+          "claim_ids": [
+            "c14",
+            "c15",
+            "c16"
+          ],
+          "reason": "The passage explicitly says that the formal מי בדיל מר wording was not used. The saved reading ends with the actual question and reply and drops this negative speech evidence, although it explains why the relationship is described as student-colleague.",
+          "source_refs": [
+            "Berakhot 27b:3"
+          ]
+        },
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6",
+            "c8"
+          ],
+          "reason": "The three legal inferences from Rav’s conduct appear as statement nodes, but only the crossing prohibition receives an explicit supporting claim. The permitted early Sabbath prayer and praying behind a teacher are not structurally tied to the inference, before its later qualification.",
+          "source_refs": [
+            "Berakhot 27a:15"
+          ]
+        }
+      ],
+      "summary": "The relationship and actual exchange are correct. The explicitly unsaid formal wording is omitted."
+    },
+    {
+      "job_id": "challenge-12",
+      "input_sha256": "2d3320ec2dcbb2c53aeefbc906366f506c05c5515374cbeb2a258ae78edaebda",
+      "output_sha256": "ef06f7318caacc370b0a8568b6a55be662395a715f24d7df4310fb8045641d36",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Rava reports hearing a sage whose identity is selected by the Tavut/Tavyumi branch.",
+          "claim_ids": [
+            "c2",
+            "c14"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "The marriage and fatherhood claims belong to the branch-selected storyteller, never to Rava.",
+          "claim_ids": [
+            "c5",
+            "c12",
+            "c13",
+            "c17",
+            "c24",
+            "c25"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The wife, two individual sons and their plural group are retained. Family formation and later deaths are separate.",
+          "claim_ids": [
+            "c6",
+            "c18",
+            "c26",
+            "c27",
+            "c31"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 3,
+          "status": "pass",
+          "reason": "The identity-dependent story claims are correctly scoped, while actions of the wife and sons can remain shared.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6",
+            "c16",
+            "c17",
+            "c18",
+            "c29",
+            "c31"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "Rava is not assigned the storyteller’s wife or sons.",
+          "claim_ids": [
+            "c5",
+            "c12",
+            "c13",
+            "c17",
+            "c24",
+            "c25"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "The two names are alternatives, not simultaneous people or a global identity merger.",
+          "claim_ids": [
+            "c2",
+            "c14"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "contract_limit",
+          "claim_ids": [
+            "c26",
+            "c27",
+            "c29",
+            "c30",
+            "c31",
+            "c32",
+            "c33"
+          ],
+          "reason": "Shared claims use unknown voice because the teller’s entity ID changes by branch. The episode explains the nested report, so the reading is not false, but the single-string voice field cannot directly express a shared role whose name is branch-dependent.",
+          "source_refs": [
+            "Sanhedrin 97a:6",
+            "Sanhedrin 97a:7"
+          ]
+        }
+      ],
+      "summary": "The quotation stays with the selected storyteller and the two sons remain distinct from Rava’s family."
+    },
+    {
+      "job_id": "challenge-13",
+      "input_sha256": "1fbea0ab0311f7c3e9773172c25c3485bf720b5447e7c18eff647136a2fc8107",
+      "output_sha256": "8b473f67ed8806dd3b169a90f837d50eb8906224d48550ff06d31f139a1e9883",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Hiyya is ill and Yohanan visits him, with directions preserved.",
+          "claim_ids": [
+            "c2",
+            "c3"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "Yohanan asks about suffering, Hiyya answers, and Yohanan requests his hand.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "Hiyya gives his hand and Yohanan raises him through separate action claims.",
+          "claim_ids": [
+            "c7",
+            "c8"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "The alternating turns are not flattened to one speaker and patient/visitor are not reversed.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "The extraction reports raising him and explicitly avoids asserting an independently established medical mechanism.",
+          "claim_ids": [
+            "c7",
+            "c8"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "omission",
+          "claim_ids": [
+            "c3",
+            "c4",
+            "c5",
+            "c6",
+            "c7",
+            "c8"
+          ],
+          "reason": "The standalone pronoun mentions m4–m10 are not attached to either participant’s mention_ids or resolved through a mention map. Claim roles correctly reconstruct the exchange, but a consumer of the mention inventory cannot directly recover those referents.",
+          "source_refs": [
+            "Berakhot 5b:10"
+          ]
+        }
+      ],
+      "summary": "All substantive roles in the short exchange are correct. The pronoun inventory lacks explicit entity links."
+    },
+    {
+      "job_id": "challenge-14",
+      "input_sha256": "2426f3aad5255a054b8d01945eb9f5003689fb3c7465c41324bdd5f7f96d368c",
+      "output_sha256": "4e2bc23360669312d5af06115072823a93e3393402c99d46f7a387d032463216",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "The named visitor is Yehuda or Adda in separate branches, with the sages shared.",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "Yehuda’s relation to Sala is a sibling claim within the Yehuda branch.",
+          "claim_ids": [
+            "c1"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The speaking delegation addresses Huna, who undertakes to give the sharecropper his share without inventing payment.",
+          "claim_ids": [
+            "c7",
+            "c11",
+            "c16"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 3,
+          "status": "pass",
+          "reason": "A second independent group preserves restoration versus price-rise outcomes without matching them to visitor branches.",
+          "claim_ids": [
+            "c17",
+            "c18"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "Sala is retained only as Yehuda’s brother and is not made a visitor.",
+          "claim_ids": [
+            "c1",
+            "c4"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "The named visitors are alternatives, not a single definite delegation.",
+          "claim_ids": [
+            "c4",
+            "c5"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 2,
+          "status": "pass",
+          "reason": "The reading groups explicitly say the choices are independent and do not count combinations as new evidence.",
+          "claim_ids": [
+            "c17",
+            "c18"
+          ]
+        }
+      ],
+      "additional_findings": [
+        {
+          "severity": "minor",
+          "type": "contract_limit",
+          "claim_ids": [
+            "c4",
+            "c5",
+            "c6",
+            "c7",
+            "c11",
+            "c16"
+          ],
+          "reason": "The entity visitors stands for the branch-dependent delegation, but there is no explicit membership relation joining it to the named visitor and sages. Labels, companion roles and group scope preserve the meaning for a reader; a bare graph needs a membership mechanism.",
+          "source_refs": [
+            "Berakhot 5b:17",
+            "Berakhot 5b:18",
+            "Berakhot 5b:20"
+          ]
+        }
+      ],
+      "summary": "Both independent alternatives and the accusation/promise distinction are preserved."
+    },
+    {
+      "job_id": "challenge-15",
+      "input_sha256": "ab70106843d28911ae705aceae1d4841ae9098f330927a7425d345178a87fbd2",
+      "output_sha256": "8ab7d81c30feb6c896a2fd6f4cbb066be1fec1a0850578a0a66c1b54c3cad04f",
+      "checks": [
+        {
+          "kind": "preserve",
+          "index": 0,
+          "status": "pass",
+          "reason": "Berurya is a named person with a spouse claim to Meir.",
+          "claim_ids": [
+            "c1"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 1,
+          "status": "pass",
+          "reason": "Her objection and request for a prayer of repentance are distinct from the family claim.",
+          "claim_ids": [
+            "c4",
+            "c7"
+          ]
+        },
+        {
+          "kind": "preserve",
+          "index": 2,
+          "status": "pass",
+          "reason": "The troublesome neighbors, Meir’s revised prayer, and their narrated repentance span all supplied segments.",
+          "claim_ids": [
+            "c2",
+            "c8",
+            "c9",
+            "c10"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 0,
+          "status": "pass",
+          "reason": "Both Berurya and the unnamed neighbor group remain present.",
+          "claim_ids": [
+            "c1",
+            "c2",
+            "c4",
+            "c7"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "index": 1,
+          "status": "pass",
+          "reason": "The first event is a prayer seeking death, not an actual death; the note expressly separates the two.",
+          "claim_ids": [
+            "c3"
+          ]
+        }
+      ],
+      "additional_findings": [],
+      "summary": "The woman, neighbors, changed prayer and repentance are preserved with the requested death kept unrealized."
+    }
+  ]
+}
