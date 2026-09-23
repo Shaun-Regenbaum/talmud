@@ -67,8 +67,10 @@ export const POD_TOUCH_SIZE = 28;
 const SLIVER = 3;
 const BG_PAD = 6;
 const GAP = { mouse: 6, touch: 10 } as const;
-/** The forgiving edge around an open pod. */
-const EDGE = { mouse: 14, touch: 22 } as const;
+/** The forgiving edge around an open pod: generous sideways, where the pointer
+ *  drifts off into the margin, and short above and below, where it would cover
+ *  the next line's icons. Touch uses it only to judge a far tap. */
+const EDGE = { mouse: { x: 14, y: 6 }, touch: { x: 22, y: 22 } } as const;
 
 type Mode = 'mouse' | 'touch' | 'keys';
 
@@ -90,6 +92,9 @@ export function clusterByLine<T extends { y: number }>(items: readonly T[], tole
 
 // ── Page-wide state: one open pod, and the input that caused the last event ──
 const [openPod, setOpenPod] = createSignal<string | null>(null);
+/** The pod whose icon the reader is highlighting. Only it may clear the
+ *  highlight, so a pod closing late never wipes the next pod's. */
+let previewOwner: string | null = null;
 let lastInput: 'mouse' | 'touch' | 'keys' = 'mouse';
 let tapStart: { x: number; y: number } | null = null;
 const pods = new Map<
@@ -169,11 +174,20 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
     setMode(m);
     setOpenPod(id);
   };
+  const preview = (item: MarginPodItem | null) => {
+    if (item) {
+      previewOwner = id;
+      props.onPreview?.(item);
+    } else if (previewOwner === id) {
+      previewOwner = null;
+      props.onPreview?.(null);
+    }
+  };
   const close = () => {
     clearTimeout(openTimer);
     clearTimeout(closeTimer);
     if (openPod() === id) setOpenPod(null);
-    props.onPreview?.(null);
+    preview(null);
   };
 
   onMount(() => {
@@ -185,6 +199,13 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
     clearTimeout(closeTimer);
     pods.delete(id);
     if (openPod() === id) setOpenPod(null);
+    // A pod removed while pointed at leaves no highlight behind. Deferred: the
+    // reader must not write state in the middle of this teardown.
+    if (previewOwner === id) {
+      previewOwner = null;
+      const clear = props.onPreview;
+      queueMicrotask(() => clear?.(null));
+    }
   });
 
   const layout = createMemo(() => {
@@ -210,15 +231,17 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
     const shift = spread ? Math.max(0, podH / 2 - props.y + 2) : 0;
     ys = ys.map((y) => y + shift);
     const podW = size + pad * 2;
-    const edge = (touch ? EDGE.touch : EDGE.mouse) * k;
+    const edge = touch ? EDGE.touch : EDGE.mouse;
+    const ex = edge.x * k;
+    const ey = edge.y * k;
     const restTop = ys[0] - size / 2;
     const restBottom = ys[ys.length - 1] + size / 2;
     const hitBox = spread
       ? {
-          left: -podW / 2 - edge,
-          top: shift - podH / 2 - edge,
-          width: podW + edge * 2,
-          height: podH + edge * 2,
+          left: -podW / 2 - ex,
+          top: shift - podH / 2 - ey,
+          width: podW + ex * 2,
+          height: podH + ey * 2,
         }
       : {
           left: -size / 2 - 3,
@@ -247,7 +270,6 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
       classList={{ 'is-open': layout().spread, 'is-touch': mode() === 'touch', 'is-dim': dim() }}
       data-count={count()}
       data-text-side={props.textSide}
-      data-tour={props.tour}
       style={{ left: typeof props.x === 'number' ? px(props.x) : props.x, top: px(props.y) }}
       onPointerEnter={(e) => {
         if (e.pointerType !== 'mouse') return;
@@ -266,7 +288,7 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
       onPointerOver={(e) => {
         if (e.pointerType !== 'mouse') return;
         const item = itemAt(e.target);
-        if (item && (isOpen() || count() === 1)) props.onPreview?.(item);
+        if (item && (isOpen() || count() === 1)) preview(item);
       }}
       onClick={(e) => {
         const item = itemAt(e.target);
@@ -289,7 +311,7 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
         const item = itemAt(e.target);
         if (lastInput !== 'keys') return;
         if (!isOpen()) open('keys');
-        if (item) props.onPreview?.(item);
+        if (item) preview(item);
       }}
       onFocusOut={(e) => {
         if (root?.contains(e.relatedTarget as Node | null)) return;
@@ -311,6 +333,7 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
       <div
         ref={hit}
         class="margin-pod-hit"
+        data-tour={props.tour}
         style={{
           left: px(layout().hitBox.left),
           top: px(layout().hitBox.top),
@@ -347,7 +370,7 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
               '--pod-y': px(layout().ys[i] ?? 0),
               '--pod-size': px(layout().size),
               '--pod-ink': colorForKind(item().kind),
-              'z-index': 10 + i,
+              '--pod-z': 10 + i,
             }}
           >
             <ReaderIcon kind={item().kind} size={Math.round(layout().size * GLYPH_SCALE)} />

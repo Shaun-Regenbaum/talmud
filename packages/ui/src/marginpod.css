@@ -17,10 +17,14 @@
   opacity: 0.35;
 }
 
-/* The forgiving edge: part of the pod for the pointer, never drawn. */
+/* The forgiving edge: part of the pod for the mouse, never drawn. On touch
+   it catches nothing, so taps on nearby words still reach the words. */
 .margin-pod-hit {
   position: absolute;
   border-radius: 16px;
+}
+.margin-pod.is-touch .margin-pod-hit {
+  pointer-events: none;
 }
 
 .margin-pod-bg {
@@ -74,6 +78,7 @@
   place-items: center;
   line-height: 0;
   cursor: pointer;
+  z-index: var(--pod-z, 10);
   transform: translate(-50%, calc(-50% + var(--pod-y, 0px)));
   transition:
     transform 190ms cubic-bezier(0.2, 0.9, 0.3, 1.15),
@@ -88,7 +93,7 @@
 .margin-pod.is-open .margin-pod-icon:hover,
 .margin-pod-icon:focus-visible {
   transform: translate(-50%, calc(-50% + var(--pod-y, 0px))) scale(1.12);
-  z-index: 30 !important;
+  z-index: 30;
 }
 .margin-pod-icon:focus-visible {
   outline: 2px solid var(--accent, #8a2a2b);

@@ -61,12 +61,14 @@ describe('gutterPreviewRange', () => {
     expect(gutterPreviewRange(root, 'halacha', 0)?.toString()).toBe('w2 w3 w4');
   });
 
-  it('runs to the end marker when the kind has one', () => {
+  it('stops at the end marker, which the reader places after the last word', () => {
+    // As anchorMarkers.ts injects it: start marker, the story, then the end
+    // marker right after its last word.
     const root = daf(
-      `<span class="daf-aggadata-anchor" data-idx="1" data-excerpt-len="1"></span>${words(4)} ` +
-        `<span class="daf-aggadata-end-anchor" data-idx="1" data-excerpt-len="2"></span>${words(4, 4)}`,
+      `${words(1, 90)} <span class="daf-aggadata-anchor" data-idx="1" data-excerpt-len="1"></span>${words(4)}` +
+        `<span class="daf-aggadata-end-anchor" data-idx="1" data-excerpt-len="2"></span> ${words(3, 4)}`,
     );
-    expect(gutterPreviewRange(root, 'aggadata', 1)?.toString()).toBe('w0 w1 w2 w3 w4 w5');
+    expect(gutterPreviewRange(root, 'aggadata', 1)?.toString()).toBe('w0 w1 w2 w3');
   });
 
   it('returns nothing for an icon without a marker', () => {

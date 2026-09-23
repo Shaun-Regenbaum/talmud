@@ -75,6 +75,8 @@ export function MikraotGedolot(props: {
   sections: Section[];
   sources: SourceVerse[];
   activeVerse: number | null;
+  /** The kind of source open for `activeVerse`, to ring its icon. */
+  activeKind?: SourceKind | null;
   onAnchor: (verse: number) => void;
   onSource: (verse: number, kind: SourceKind) => void;
 }): JSX.Element {
@@ -314,7 +316,20 @@ export function MikraotGedolot(props: {
                     const [verse, kind] = item.id.split(':');
                     props.onSource(Number(verse), kind as SourceKind);
                   }}
-                  onPreview={(item) => highlight(item ? item.id.split(':')[0] : null)}
+                  activeId={
+                    props.activeVerse != null && props.activeKind
+                      ? `${props.activeVerse}:${props.activeKind}`
+                      : null
+                  }
+                  onPreview={(item) =>
+                    highlight(
+                      item
+                        ? item.id.split(':')[0]
+                        : props.activeVerse != null
+                          ? String(props.activeVerse)
+                          : null,
+                    )
+                  }
                 />
               )}
             </Index>

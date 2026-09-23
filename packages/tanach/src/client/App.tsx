@@ -995,6 +995,7 @@ export function App(): JSX.Element {
           sections={events() ?? []}
           sources={sourcesIndex()?.verses ?? []}
           activeVerse={source()?.verse ?? null}
+          activeKind={source()?.kind ?? null}
           onAnchor={(verse) => openSource(verse, 'rishonim')}
           onSource={openSource}
         />

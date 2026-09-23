@@ -173,6 +173,42 @@ describe('MarginPod', () => {
     expect(pod.classList.contains('is-open')).toBe(false);
   });
 
+  it('never clears the highlight another pod has just set', () => {
+    // Both pods share the reader's callback, as in the Talmud gutter.
+    const onPreview = vi.fn();
+    const a = mount({ onPreview });
+    const b = mount({
+      items: [{ id: 'rishonim:9', kind: 'rishonim', label: 'Rishonim' }],
+      onPreview,
+    });
+    pointer(a.pod, 'pointerenter', 'mouse');
+    vi.advanceTimersByTime(POD_OPEN_DELAY_MS);
+    pointer(a.icons[0], 'pointerover', 'mouse');
+    pointer(a.pod, 'pointerleave', 'mouse');
+    pointer(b.pod, 'pointerenter', 'mouse');
+    pointer(b.icons[0], 'pointerover', 'mouse');
+    expect(onPreview).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'rishonim:9' }));
+    // A's grace period ends while the pointer is on B.
+    vi.advanceTimersByTime(POD_CLOSE_GRACE_MS);
+    expect(onPreview).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'rishonim:9' }));
+  });
+
+  it('clears its highlight when removed while pointed at', async () => {
+    const { pod, icons, onPreview, unmount } = mount();
+    pointer(pod, 'pointerenter', 'mouse');
+    vi.advanceTimersByTime(POD_OPEN_DELAY_MS);
+    pointer(icons[0], 'pointerover', 'mouse');
+    unmount();
+    await Promise.resolve();
+    expect(onPreview).toHaveBeenLastCalledWith(null);
+  });
+
+  it('puts the tour marker on the icons, not on the zero-size pod', () => {
+    const { pod } = mount({ tour: 'gutter' });
+    expect(pod.getAttribute('data-tour')).toBeNull();
+    expect(pod.querySelector('.margin-pod-hit')?.getAttribute('data-tour')).toBe('gutter');
+  });
+
   it('rings the icon whose note is open', () => {
     const { icons } = mount({ activeId: 'halacha:0' });
     expect(icons.map((b) => b.classList.contains('is-active'))).toEqual([false, true, false]);

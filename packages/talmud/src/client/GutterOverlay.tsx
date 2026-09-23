@@ -86,8 +86,9 @@ export function clustersFromEntries(
 
 const itemKey = (kind: GutterKind, index: number) => `${kind}:${index}`;
 
-/** The words an icon is attached to: from its marker to the matching end
- *  marker when the kind has one, otherwise the marker's excerpt. */
+/** The words an icon is attached to: from its marker up to the matching end
+ *  marker (placed after the range's last word) when the kind has one,
+ *  otherwise the marker's excerpt. */
 export function gutterPreviewRange(root: Element, kind: GutterKind, index: number): Range | null {
   const start = root.querySelector<HTMLElement>(`.daf-${kind}-anchor[data-idx="${index}"]`);
   const mainText = root.querySelector<HTMLElement>('.daf-main .daf-text');
@@ -98,9 +99,12 @@ export function gutterPreviewRange(root: Element, kind: GutterKind, index: numbe
   const first = after(start)[0];
   if (!first) return null;
   const end = root.querySelector<HTMLElement>(`.daf-${kind}-end-anchor[data-idx="${index}"]`);
-  const lengthOf = (el: Element) => Math.max(1, Number(el.getAttribute('data-excerpt-len')) || 1);
-  const tail = end ? after(end).slice(0, lengthOf(end)) : after(start).slice(0, lengthOf(start));
-  const last = tail[tail.length - 1] ?? first;
+  const excerpt = Math.max(1, Number(start.getAttribute('data-excerpt-len')) || 1);
+  const upToEnd = end
+    ? words.filter((w) => !!(end.compareDocumentPosition(w) & Node.DOCUMENT_POSITION_PRECEDING))
+    : [];
+  const last = end ? (upToEnd[upToEnd.length - 1] ?? first) : after(start).slice(0, excerpt).pop();
+  if (!last || first.compareDocumentPosition(last) & Node.DOCUMENT_POSITION_PRECEDING) return null;
   const range = document.createRange();
   range.setStartBefore(first);
   range.setEndAfter(last);
