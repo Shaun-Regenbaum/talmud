@@ -42,7 +42,7 @@
     "@cloudflare/workers-types": "^5.20260914.1",
     "@solidjs/testing-library": "^0.8.10",
     "jsdom": "^29.1.1",
-    "typescript": "^5.7.0",
+    "typescript": "^7.0.2",
     "vite": "^6.0.0",
     "vite-plugin-solid": "^2.11.14",
     "vitest": "^5.0.0",
