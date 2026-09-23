@@ -1,12 +1,4 @@
 @font-face {
-  font-family: "Frank Ruhl Libre";
-  src: url("/fonts/FrankRuhlLibre.woff2") format("woff2");
-  font-weight: 300 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
   font-family: "Mekorot Vilna";
   src: url("/fonts/Mekorot-Vilna.ttf") format("truetype");
   font-weight: 400;

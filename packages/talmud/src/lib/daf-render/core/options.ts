@@ -14,7 +14,7 @@ export const defaultOptions: DafOptions = {
   mainWidth: 0.48,
   padding: { vertical: 10, horizontal: 16 },
   halfway: 0.5,
-  fontFamily: { main: 'Frank Ruhl Libre', inner: 'Mekorot Rashi', outer: 'Mekorot Rashi' },
+  fontFamily: { main: 'Mekorot Vilna', inner: 'Mekorot Rashi', outer: 'Mekorot Rashi' },
   direction: 'rtl',
   fontSize: { main: 15, side: 10.5 },
   lineHeight: { main: 17, side: 14 },
