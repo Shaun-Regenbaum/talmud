@@ -13,7 +13,7 @@ import { Portal } from 'solid-js/web';
 import { GraphConnectionDetails } from './GraphConnectionDetails';
 import { GraphEdge } from './GraphEdge';
 import { type GraphConnection, type GraphGroup, type GraphNode, layoutGraph } from './graph/model';
-import { createHoverIntent } from './hoverIntent';
+import { createHoverIntent, hoverHeld } from './hoverIntent';
 import './graph.css';
 
 export type { GraphConnection, GraphGroup, GraphNode } from './graph/model';
@@ -249,6 +249,7 @@ function Canvas(
                     }
                     onClick={() => select(p().node)}
                     onPointerEnter={(e) => {
+                      if (e.pointerType === 'mouse' && hoverHeld()) return;
                       setFocus(p().node.id);
                       if (e.pointerType !== 'touch') hover.enter(p().node, p().node.id);
                     }}

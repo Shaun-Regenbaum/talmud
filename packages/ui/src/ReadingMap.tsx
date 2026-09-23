@@ -16,7 +16,7 @@
  * cannot hold a line of text.
  */
 import { For, type JSX, onCleanup, Show } from 'solid-js';
-import { createHoverIntent } from './hoverIntent';
+import { createHoverIntent, hoverHeld } from './hoverIntent';
 export type ReadingKind = 'narrative' | 'law' | 'discourse' | 'poetry' | 'records';
 export interface ReadingMapStudy {
   book: string;
@@ -80,7 +80,8 @@ export function ReadingMap(props: ReadingMapProps): JSX.Element {
   /** Pointer and focus handlers that report `index` as hovered. */
   const hoverHandlers = (index: number) => ({
     onPointerEnter: (e: PointerEvent) => {
-      if (e.pointerType !== 'touch') hover.enter(index, String(index));
+      if (e.pointerType !== 'touch' && !(e.pointerType === 'mouse' && hoverHeld()))
+        hover.enter(index, String(index));
     },
     onPointerLeave: (e: PointerEvent) => {
       if (e.pointerType !== 'touch') hover.leave();
