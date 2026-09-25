@@ -50,10 +50,6 @@ interface BugReport {
  *  refetched, which is what the 5-minute TTL does anyway. */
 const analyticsResultShape = z.looseObject({ configured: z.boolean(), ok: z.boolean() });
 
-/** A bug report. `ts` is its id - the dismissed set is a list of them - so it
- *  is the one field that has to be there. */
-const bugReportsShape = z.array(z.looseObject({ ts: z.number() }));
-
 /** The checked-off set: report ids. */
 const dismissedShape = z.array(z.number());
 
@@ -261,7 +257,7 @@ async function buildBacklogSection(cache?: KVNamespace) {
   // Bug reports, split into active vs. checked-off ("done"). The dismissed set
   // is a list of report timestamps (a report's `ts` is its id).
   const allReports = [
-    ...(parseJSONAs<BugReport[]>(repRaw, bugReportsShape, 'reports:v1:recent') ?? []),
+    ...(parseJSONAs<BugReport[]>(repRaw, recordListShape, 'reports:v1:recent') ?? []),
   ].reverse();
   const dismissed = parseJSONAs<number[]>(disRaw, dismissedShape, REPORTS_DISMISSED_KEY) ?? [];
   const dset = new Set(dismissed);
@@ -364,7 +360,9 @@ export function registerUsageRoutes(app: Hono<{ Bindings: Bindings }>): void {
     if (cache) {
       try {
         const key = 'reports:v1:recent';
-        const arr = parseJSONAs<BugReport[]>(await cache.get(key), bugReportsShape, key) ?? [];
+        // recordListShape, not a per-report shape: these are reader-submitted and
+        // irreplaceable, so one odd entry must not cost the whole buffer.
+        const arr = parseJSONAs<BugReport[]>(await cache.get(key), recordListShape, key) ?? [];
         arr.push(rec);
         while (arr.length > 200) arr.shift();
         await cache.put(key, JSON.stringify(arr), { expirationTtl: 60 * 60 * 24 * 365 });
