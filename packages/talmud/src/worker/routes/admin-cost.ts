@@ -26,12 +26,6 @@ import type { Bindings } from '../types';
  *   ?since=<unix-ms>  only count calls at/after this timestamp
  *   ?clear=1          delete the ledger (reset before a measurement window)
  */
-/** One recorded model call. Only the timestamp is required: the scan below
- *  compares it without a default (a record without one would sort into the
- *  window at random), and every other field is already read behind a typeof
- *  check, so an older record missing one still counts. */
-const llmCostRecShape = z.looseObject({ ts: z.number() });
-
 interface LlmCostRec {
   ts: number;
   model: string;
@@ -58,6 +52,12 @@ interface LlmCostRec {
   cache_version?: string | null;
   cost_class?: string | null;
 }
+
+/** One recorded model call. Only the timestamp is required: the scan below
+ *  compares it without a default (a record without one would sort into the
+ *  window at random), and every other field is already read behind a typeof
+ *  check, so an older record missing one still counts. */
+const llmCostRecShape = z.looseObject({ ts: z.number() });
 
 export function registerAdminCostRoutes(app: Hono<{ Bindings: Bindings }>): void {
   app.get('/api/admin/llm-cost', async (c) => {
