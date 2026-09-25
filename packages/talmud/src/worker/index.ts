@@ -67,11 +67,10 @@ import {
 import { dedupeBy, dedupeByRange, type MoveLike, selectSectionMoves } from '../lib/argumentMoves';
 import { runPasses } from '../lib/check/passes';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
-import { type DafLink, dafLinks } from '../lib/context/dafLinks';
+import { dafLinks } from '../lib/context/dafLinks';
 import { talmudParallelsToLinks, yerushalmiToLinks } from '../lib/context/parallels';
 import { type SectionExit, sectionExits } from '../lib/context/sectionExits';
 import { dafSpine } from '../lib/context/spine';
-import { spineLinks } from '../lib/context/spineLinks';
 import heAliasData from '../lib/data/rabbi-he-aliases.json';
 import { buildGeoModel, type GeoEnrichment, type RabbiGeoSource } from '../lib/geographyModel';
 import { buildCodificationChain, buildDerivation } from '../lib/halacha/codifiers';
@@ -110,7 +109,6 @@ import {
   type CrossFlow,
   type CrossFlowEdge,
   type CrossFlowSection,
-  crossFlowToLinks,
   parseCrossFlowEdges,
 } from '../lib/typing/crossFlow';
 import { findHadranSegments, findMarkers } from '../lib/typing/markers';
@@ -150,7 +148,6 @@ import {
   keyForMesorah,
   keyForRabbiAcademyRoster,
   keyForRabbiBioBySlug,
-  keyForRabbiBioOnDaf,
   keyForRabbiCohort,
   keyForRabbiEnriched,
   keyForRabbiGraph,
@@ -163,7 +160,6 @@ import {
   keyForReferences,
   keyForRegion,
   keyForSefariaSegments,
-  keyForSpineLinks,
   keyForSpineView,
   keyForSpineViewAcc,
   keyForTranslate,
@@ -1554,38 +1550,6 @@ async function readSectionRabbis(
   return rows.sort((a, b) => a.start - b.start);
 }
 
-// One daf's READ-ONLY parts for the spine sweep: the within-daf links (flow +
-// continuity bridge), its section startSegs (so cross-flow edges from the
-// PREVIOUS daf can resolve into it), and its cached cross-daf edges into the
-// next daf. No compute — same dafLinks() the per-daf /api/links uses, minus the
-// live context pool + commentary (not cached per daf; deferred).
-interface DafParts {
-  withinLinks: DafLink[];
-  startSegs: number[];
-  crossEdges: CrossFlowEdge[];
-}
-async function readDafParts(env: Bindings, tractate: string, page: string): Promise<DafParts> {
-  const { startSegs } = await readSortedSections(env, tractate, page);
-  const flowEdges = await readFlowConnections(env, tractate, page);
-  const bridge = await readCachedBridge(env, tractate, page);
-  const cross = await readCachedCrossFlow(env, tractate, page);
-  const talmudParallels = (await readCachedTalmudParallels(env.CACHE, tractate, page)) ?? [];
-  const yerushalmi = await readCachedYerushalmi(env.CACHE, tractate, page);
-  const withinLinks = dafLinks(
-    { tractate, page },
-    {
-      continuesTo: bridge?.continues ? bridge.to : null,
-      items: [],
-      flowEdges,
-      sectionStartSegs: startSegs,
-      commentaryWorks: [],
-      talmudParallels,
-      yerushalmi,
-    },
-  );
-  return { withinLinks, startSegs, crossEdges: cross?.edges ?? [] };
-}
-
 // Cross-daf argument flow producer: the section-level, relation-typed successor
 // to the boolean bridge (Stage 1 of the global spine). Bespoke (two-daf input
 // doesn't fit the single-daf dependency model — same reason computeDafBridge is
@@ -1739,8 +1703,8 @@ async function runConnectSweep(env: Bindings): Promise<void> {
     const next = adjacentAmud(tractate, page, 1);
     if (!next) continue; // last daf of the tractate — no boundary
     // Fully connected? Skip only when BOTH the cross-flow AND the bridge are
-    // cached — `/api/cross-flow` can write the cross key without the bridge, so
-    // a cross-only check would skip a boundary whose continuity is still cold.
+    // cached — connectBoundary computes the two independently, so the cross key
+    // can already be pinned while the continuity verdict is still cold.
     const [haveCross, haveBridge] = await Promise.all([
       cache.get(keyForCrossFlow(tractate, page)),
       cache.get(keyForBridge(tractate, page)),
@@ -2147,20 +2111,6 @@ async function runSpineViewSnapshot(env: Bindings): Promise<void> {
   }
 }
 
-// On-demand compute (or cache hit) of one daf's cross-daf flow, returned both as
-// the raw verdict and projected to coordinate-resolved links. Mirrors /api/bridge.
-app.get('/api/cross-flow/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const cf = await computeCrossFlow(c.env, tractate, page);
-  const a = await readSortedSections(c.env, tractate, page);
-  const b = cf.to
-    ? await readSortedSections(c.env, cf.to.tractate, cf.to.page)
-    : { startSegs: [], sections: [] };
-  const links = cf.to ? crossFlowToLinks(cf.from, cf.to, cf.edges, a.startSegs, b.startSegs) : [];
-  return c.json({ ...cf, links });
-});
-
 // Bounded-concurrency map: run `fn` over `items` with at most `limit` in flight.
 async function mapPool<T, R>(
   items: readonly T[],
@@ -2178,54 +2128,6 @@ async function mapPool<T, R>(
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
   return out;
 }
-
-// The whole-tractate link graph — every daf's links (continuity + argument flow)
-// lifted onto one global spine via spineLinks(). Read-only over cached pieces:
-// it reflects exactly what has been computed so far and grows as more dapim warm
-// (rebuilt idempotently, never read-modify-write). Materialized on the tractate
-// shelf (spine-links:v1:{tractate}) as a snapshot; the response is the source of
-// truth. `?cached=1` returns the last materialized snapshot if any.
-app.get('/api/spine-links/:tractate', async (c) => {
-  const tractate = c.req.param('tractate');
-  if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
-  if (!c.env.CACHE) return c.json({ error: 'no CACHE binding in this environment' }, 503);
-
-  const shelfKey = keyForSpineLinks(tractate);
-  if (c.req.query('cached') === '1') {
-    const snap = await c.env.CACHE.get(shelfKey);
-    if (snap) return c.json({ ...JSON.parse(snap), fromShelf: true });
-  }
-
-  const pages = [...iterAmudim(tractate)];
-  const partsList = await mapPool(pages, 24, (page) => readDafParts(c.env, tractate, page));
-  // Assemble: within-daf links + cross-daf edges (resolved into the NEXT daf's
-  // sections, which is the adjacent page in iterAmudim order).
-  const perDaf: DafLink[][] = partsList.map((parts, i) => {
-    const links = [...parts.withinLinks];
-    const next = partsList[i + 1];
-    if (next && parts.crossEdges.length) {
-      links.push(
-        ...crossFlowToLinks(
-          { tractate, page: pages[i] },
-          { tractate, page: pages[i + 1] },
-          parts.crossEdges,
-          parts.startSegs,
-          next.startSegs,
-        ),
-      );
-    }
-    return links;
-  });
-  const dapimWithLinks = perDaf.filter((l) => l.length > 0).length;
-  const graph = spineLinks(tractate, perDaf);
-  const result = { ...graph, coverage: { dapimWithLinks, dapimTotal: pages.length } };
-  try {
-    await c.env.CACHE.put(shelfKey, JSON.stringify(result));
-  } catch {
-    /* best-effort materialize */
-  }
-  return c.json(result);
-});
 
 // Source-input dependency keys (resolved in resolveDep, not producers) — used to
 // classify a dependency id as a SOURCE leaf (fetched/assembled, no LLM) vs a
@@ -2547,26 +2449,6 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
   });
 });
 
-// GET /api/daf-runs/:tractate/:page — the WATERFALL feed: every top-level piece
-// run on this daf (all marks + the whole-daf enrichments) with its cached
-// telemetry, read-only. The dev pipeline dock shows these as a network-style
-// waterfall; clicking one drills into its dependency DAG via /api/run-tree.
-// Whole-daf enrichments only (scope=local, not the per-section `argument`
-// enrichments and not the global rabbi/place facets) so each row is one run.
-// GET /api/daf-index/:tractate/:page — read the daf-index (the `dafidx:v1`
-// reverse index written at each fresh mark/enrichment write). ONE cache.list()
-// over the daf PREFIX returns every cached piece for the daf with its telemetry
-// in KV metadata — no per-entry reads, no key re-derivation. Read-only. The
-// inspector + load bar move onto this in a follow-up (with a fallback to the
-// enumerate-and-probe /api/daf-runs for dapim warmed before the index existed);
-// surfaced now to verify the index populates.
-app.get('/api/daf-index/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const entries = await listDafIndexRaw(c.env, tractate, page);
-  return c.json({ tractate, page, count: entries.length, entries });
-});
-
 /** Backfill the daf-index for pieces warmed BEFORE the index existed (PR1 only
  *  indexes fresh writes; the warm cron doesn't re-write already-cached content).
  *  Mirrors /api/daf-runs' enumeration exactly — marks + local enrichments
@@ -2643,8 +2525,8 @@ async function backfillDafIndex(
   return n;
 }
 
-/** List the raw daf-index entries (every lang) for a daf — paginated. Shared by
- *  GET /api/daf-index and the index-backed daf-runs fast path. */
+/** List the raw daf-index entries (every lang) for a daf — paginated. Backs both
+ *  index-backed readers: the daf-runs fast path and the by-anchor groups. */
 async function listDafIndexRaw(
   env: Bindings,
   tractate: string,
@@ -3074,6 +2956,12 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
   return c.body(payload);
 });
 
+// GET /api/daf-runs/:tractate/:page — the WATERFALL feed: every top-level piece
+// run on this daf (all marks + the whole-daf enrichments) with its cached
+// telemetry, read-only. The dev pipeline dock shows these as a network-style
+// waterfall; clicking one drills into its dependency DAG via /api/run-tree.
+// Whole-daf enrichments only (scope=local, not the per-section `argument`
+// enrichments and not the global rabbi/place facets) so each row is one run.
 app.get('/api/daf-runs/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
@@ -11432,283 +11320,6 @@ app.get('/api/admin/rabbi-enriched/:slug', async (c) => {
   const hit = await c.env.CACHE.get(keyForRabbiEnriched(slug));
   if (!hit) return c.json({ error: 'not enriched', slug }, 404);
   return c.json({ slug, record: JSON.parse(hit) });
-});
-
-// --- Per-daf rabbi bio synthesize -------------------------------------
-// Rewrites a sage's bio paragraph specifically for the daf they appear on.
-// Reads ALL available rabbi enrichments (unified bio, wikidata, wiki-bio,
-// graph edges) plus this sage's role on this daf (skeleton.rabbiNames + the
-// rich-rabbi enrichment if cached) and produces a contextual bio. The
-// "displayed bio" on the daf is the synthesized paragraph; the underlying
-// enrichments are shown as raw content below. Auto-fired by the client when
-// any rabbi-* enrichment changes.
-
-const RABBI_BIO_DAF_PROMPT = `You write the GIST of one sage's biography AS IT BEARS ON THE SPECIFIC DAF THE READER IS ON. Rewrite the standard bio using whatever rabbi enrichments are provided (standard bio, Wikidata facts, Wikipedia bio, graph edges showing teachers/students/family/opposed, regional/migration signal, mesorah chain) plus the sage's role on THIS daf as authoritative context.
-
-The reader has just opened this sugya and wants to know: who is this sage, and what should I notice about them as I read THIS section?
-
-**HARD CAPS:**
-- 2-4 sentences. Maximum 600 characters total.
-- First sentence: who they are (era, region, signature). Cite their generation/region/academy if clear.
-- Second sentence: how they connect to the named voices on THIS daf (teacher / student / disputant of <other voice on the daf>) — only when the graph or mesorah supports it.
-- Third sentence (optional): a notable biographical fact relevant to the type of sugya this is (halachic, aggadic, etc.) — pulled from the standard bio, Wikipedia, or migration signal.
-- Do NOT recap their full life. The full bio + Wikipedia extract are shown raw below the synthesis.
-
-Output STRICT JSON only:
-
-{ "explanation": "the per-daf bio paragraph", "groundedIn": ["unified","wikidata","wiki-bio","rabbi-graph","daf-role","region","mesorah"] }
-
-groundedIn lists ONLY slices actually supplied. Do not include slices that were not in the input.`;
-
-app.post('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
-  if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
-  const cache = c.env.CACHE;
-  if (!cache) return c.json({ error: 'CACHE unavailable' }, 503);
-
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  const slug = c.req.param('slug');
-  const refresh = c.req.query('refresh') === '1';
-  const includeRawBio = c.req.query('include') ?? '';
-  const includeNormBio = includeRawBio
-    ? includeRawBio
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .sort()
-        .join(',')
-    : '';
-  const cacheKey = keyForRabbiBioOnDaf(tractate, page, slug, includeNormBio);
-  const includeSetBio = new Set(includeNormBio ? includeNormBio.split(',') : []);
-  const wantBio = (s: string) => includeSetBio.size === 0 || includeSetBio.has(s);
-
-  if (!refresh) {
-    const hit = await cache.get(cacheKey);
-    if (hit) return c.json({ ...JSON.parse(hit), _cached: true });
-  }
-
-  // Inputs. region needs unified (for places) and the daf's region first-pass.
-  // mesorah needs the rabbi-graph (for primaryTeacher walk) and the daf's
-  // mesorah first-pass (for chain context).
-  const needsUnifiedForRegion = wantBio('region');
-  const needsGraphForMesorah = wantBio('mesorah');
-  const [unifiedRaw, wikidataRaw, wikiBioRaw, graphRaw, skelRaw, regionDafRaw, mesorahDafRaw] =
-    await Promise.all([
-      wantBio('unified') || needsUnifiedForRegion
-        ? cache.get(keyForRabbiEnriched(slug))
-        : Promise.resolve(null),
-      wantBio('wikidata') ? cache.get(keyForRabbiWikidata(slug)) : Promise.resolve(null),
-      wantBio('wiki-bio') ? cache.get(keyForRabbiWikiBio(slug)) : Promise.resolve(null),
-      wantBio('rabbi-graph') || needsGraphForMesorah
-        ? cache.get(keyForRabbiGraph())
-        : Promise.resolve(null),
-      wantBio('daf-role')
-        ? cache.get(keyForAnalyzeSkeleton(tractate, page))
-        : Promise.resolve(null),
-      wantBio('region') ? cache.get(keyForRegion(tractate, page)) : Promise.resolve(null),
-      wantBio('mesorah') ? cache.get(keyForMesorah(tractate, page)) : Promise.resolve(null),
-    ]);
-
-  const tryParse = <T>(raw: string | null): T | null => {
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw) as T;
-    } catch {
-      return null;
-    }
-  };
-  const unified = tryParse<EnrichedRabbiRecord>(unifiedRaw);
-  const wikidata = tryParse<Record<string, unknown>>(wikidataRaw);
-  const wikiBio = tryParse<Record<string, unknown>>(wikiBioRaw);
-  const graph = tryParse<{
-    nodes: Record<string, { primaryTeacher?: string | null; canonical?: string }>;
-  }>(graphRaw);
-  const skel = tryParse<DafSkeleton>(skelRaw);
-  const regionDaf = tryParse<{
-    sections?: Array<{
-      title: string;
-      sages?: Array<{
-        slug: string | null;
-        region?: string | null;
-        places?: string[];
-        migrated?: boolean;
-      }>;
-    }>;
-    migrated?: Array<{ slug: string }>;
-  }>(regionDafRaw);
-  const mesorahDaf = tryParse<{
-    chains?: Record<string, Array<{ canonical: string; generation: string | null }>>;
-  }>(mesorahDafRaw);
-
-  // Find this sage's role on the daf — which sections name them, and the
-  // names of the OTHER voices in those sections (so the LLM can mention
-  // dispute partners specific to this daf).
-  let dafRole: { sectionsNamingSage: string[]; coNames: string[] } | null = null;
-  if (skel && unified) {
-    const aliasSet = new Set<string>();
-    aliasSet.add(unified.canonical.en.toLowerCase());
-    aliasSet.add(unified.canonical.he);
-    for (const a of unified.aliases ?? []) aliasSet.add(a.toLowerCase());
-    const sectionsNaming: string[] = [];
-    const coNames = new Set<string>();
-    for (const sec of skel.sections) {
-      const matchesHere = sec.rabbiNames.some((n) => aliasSet.has(n.toLowerCase()));
-      if (!matchesHere) continue;
-      sectionsNaming.push(sec.title);
-      for (const n of sec.rabbiNames) {
-        if (!aliasSet.has(n.toLowerCase())) coNames.add(n);
-      }
-    }
-    dafRole = { sectionsNamingSage: sectionsNaming, coNames: [...coNames] };
-  }
-
-  const myGraphNode = graph?.nodes?.[slug] ?? null;
-
-  // Region slice — pull this sage's region/places + migration status from
-  // unified + the daf's region first-pass (which has co-sage context).
-  let regionSlice: Record<string, unknown> | null = null;
-  if (wantBio('region')) {
-    const regionEntries: Record<string, unknown> = {};
-    if (unified?.region) regionEntries.region = unified.region;
-    if (unified?.places) regionEntries.places = unified.places;
-    if (regionDaf) {
-      // Sections that name this sage + their regional dynamic.
-      const sections = regionDaf.sections ?? [];
-      const dafSections = sections
-        .filter((sec) => (sec.sages ?? []).some((s) => s.slug === slug))
-        .map((sec) => ({
-          title: sec.title,
-          coRegions: (sec.sages ?? [])
-            .filter((s) => s.slug !== slug)
-            .map((s) => s.region)
-            .filter(Boolean),
-        }));
-      if (dafSections.length > 0) regionEntries.dafSectionsRegions = dafSections;
-      const migrated = (regionDaf.migrated ?? []).find((m) => m.slug === slug);
-      if (migrated) regionEntries.migrated = true;
-    }
-    if (Object.keys(regionEntries).length > 0) regionSlice = regionEntries;
-  }
-
-  // Mesorah slice — walk primaryTeacher up from rabbi-graph to construct
-  // this sage's chain. Append the daf's mesorah first-pass chain when present
-  // (might already include this sage with extra metadata like generation).
-  let mesorahSlice: Record<string, unknown> | null = null;
-  if (wantBio('mesorah')) {
-    const entries: Record<string, unknown> = {};
-    if (graph?.nodes?.[slug]) {
-      const chain: Array<{ slug: string; canonical?: string }> = [];
-      const seen = new Set<string>([slug]);
-      let cursor: string | null | undefined = graph.nodes[slug].primaryTeacher;
-      let depth = 0;
-      while (cursor && !seen.has(cursor) && depth < 6) {
-        seen.add(cursor);
-        const node = graph.nodes[cursor];
-        if (!node) break;
-        chain.push({ slug: cursor, canonical: node.canonical });
-        cursor = node.primaryTeacher;
-        depth++;
-      }
-      if (chain.length > 0) entries.chain = chain;
-    }
-    if (mesorahDaf?.chains?.[slug]) {
-      entries.dafChain = mesorahDaf.chains[slug];
-    }
-    if (Object.keys(entries).length > 0) mesorahSlice = entries;
-  }
-
-  const inputBlocks: string[] = [];
-  if (unified && wantBio('unified'))
-    inputBlocks.push(
-      `<unified>\n${JSON.stringify(
-        {
-          canonical: unified.canonical,
-          aliases: unified.aliases,
-          generation: unified.generation,
-          region: unified.region,
-          academy: unified.academy,
-          places: unified.places,
-          bio: unified.bio.en,
-          orientation: unified.orientation,
-          characteristics: unified.characteristics,
-          primaryTeacher: unified.primaryTeacher,
-          primaryStudent: unified.primaryStudent,
-        },
-        null,
-        2,
-      )}\n</unified>`,
-    );
-  if (wikidata) inputBlocks.push(`<wikidata>\n${JSON.stringify(wikidata, null, 2)}\n</wikidata>`);
-  if (wikiBio) inputBlocks.push(`<wiki_bio>\n${JSON.stringify(wikiBio, null, 2)}\n</wiki_bio>`);
-  if (myGraphNode && wantBio('rabbi-graph'))
-    inputBlocks.push(`<rabbi_graph>\n${JSON.stringify(myGraphNode, null, 2)}\n</rabbi_graph>`);
-  if (dafRole) inputBlocks.push(`<daf_role>\n${JSON.stringify(dafRole, null, 2)}\n</daf_role>`);
-  if (regionSlice) inputBlocks.push(`<region>\n${JSON.stringify(regionSlice, null, 2)}\n</region>`);
-  if (mesorahSlice)
-    inputBlocks.push(`<mesorah>\n${JSON.stringify(mesorahSlice, null, 2)}\n</mesorah>`);
-
-  if (inputBlocks.length === 0) {
-    return c.json(
-      { error: 'no rabbi enrichments cached for this slug yet — run unified first' },
-      412,
-    );
-  }
-
-  const userContent = [
-    `Tractate: ${tractate}`,
-    `Page: ${page}`,
-    `Sage slug: ${slug}`,
-    `Sage canonical: ${unified?.canonical.en ?? '(unknown)'}`,
-    '',
-    inputBlocks.join('\n\n'),
-    '',
-    'Synthesize the per-daf bio.',
-  ].join('\n');
-
-  const t0 = Date.now();
-  let parsed: { explanation?: string; groundedIn?: string[] } = {};
-  try {
-    const s = await runKimiStreaming(
-      c.env,
-      '@cf/moonshotai/kimi-k2.5',
-      [
-        { role: 'system', content: RABBI_BIO_DAF_PROMPT },
-        { role: 'user', content: userContent },
-      ],
-      4000,
-      {
-        chatTemplateKwargs: { enable_thinking: false },
-        tag: 'rabbi-bio-daf',
-        attribution: { kind: 'rabbi', producerId: 'rabbi-bio-daf', tractate, page },
-      },
-    );
-    let payload = s.content.trim();
-    const fenced = payload.match(/```(?:json)?\s*([\s\S]*?)```/);
-    if (fenced) payload = fenced[1].trim();
-    parsed = JSON.parse(payload);
-  } catch (err) {
-    return c.json({ error: `bio synthesize: ${String(err).slice(0, 200)}` }, 502);
-  }
-
-  const out = {
-    tractate,
-    page,
-    slug,
-    explanation: parsed.explanation ?? '',
-    groundedIn: parsed.groundedIn ?? [],
-    generatedAt: new Date().toISOString(),
-    _ms: Date.now() - t0,
-  };
-  await cache.put(cacheKey, JSON.stringify(out), { expirationTtl: 60 * 60 * 24 * 365 });
-  return c.json(out);
-});
-
-app.get('/api/enrich-rabbi-bio/:tractate/:page/:slug', async (c) => {
-  if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
-  const { tractate, page, slug } = c.req.param();
-  const hit = await c.env.CACHE.get(keyForRabbiBioOnDaf(tractate, page, slug));
-  if (!hit) return c.json({ error: 'not synthesized' }, 404);
-  return c.json(JSON.parse(hit));
 });
 
 // ============================================================================
