@@ -10,6 +10,7 @@
  */
 
 import type { Hono } from 'hono';
+import { z } from 'zod';
 import type { MatchInput } from '../../lib/context/anchor/ai-prompt';
 import type { TalmudPageData } from '../../lib/sefref';
 import { getDafyomiMasechet } from '../../lib/sefref/dafyomi/masechtos';
@@ -17,6 +18,7 @@ import { keyForCtxMatch, keyForReferences } from '../cache-keys';
 import { aiMatchToSegments } from '../context-match';
 import { collectContext, type SourceTiming } from '../context-providers';
 import { readJsonBody } from '../http-helpers';
+import { kvGetJSONAs } from '../kv-json';
 import {
   type CacheTrack,
   getDafyomiContentCached,
@@ -25,6 +27,16 @@ import {
   getSefariaSegmentsCached,
 } from '../source-cache';
 import type { Bindings } from '../types';
+
+/** The cached reverse-reference projection, served straight back to the caller
+ *  with a `_cached` flag added, so the only thing that has to hold is that it
+ *  is an object to spread. Before this gate a half-written value threw inside
+ *  the handler and the caller got a 500. */
+const referencesShape = z.looseObject({});
+
+/** The cached AI placement for one (daf, item-set): a list of matches, handed
+ *  back as-is. */
+const ctxMatchesShape = z.array(z.looseObject({}));
 
 export function registerDafSourcesRoutes(app: Hono<{ Bindings: Bindings }>): void {
   /**
@@ -40,8 +52,8 @@ export function registerDafSourcesRoutes(app: Hono<{ Bindings: Bindings }>): voi
     const cacheKey = keyForReferences(tractate, page);
 
     if (cache && c.req.query('refresh') !== '1') {
-      const hit = await cache.get(cacheKey);
-      if (hit !== null) return c.json({ ...(JSON.parse(hit) as object), _cached: true });
+      const hit = await kvGetJSONAs<object>(cache, cacheKey, referencesShape);
+      if (hit) return c.json({ ...hit, _cached: true });
     }
 
     const ref = `${tractate} ${page}`;
@@ -174,14 +186,8 @@ export function registerDafSourcesRoutes(app: Hono<{ Bindings: Bindings }>): voi
     // were matched in one oversized batch that silently left everything unplaced.
     const cacheKey = keyForCtxMatch(t, p, hashMatchKeys(items.map((i) => i.key)));
     if (cache) {
-      const hit = await cache.get(cacheKey);
-      if (hit !== null) {
-        try {
-          return c.json({ matches: JSON.parse(hit), cached: true });
-        } catch {
-          /* fall through */
-        }
-      }
+      const hit = await kvGetJSONAs<unknown[]>(cache, cacheKey, ctxMatchesShape);
+      if (hit) return c.json({ matches: hit, cached: true });
     }
     try {
       const segments = await getSefariaSegmentsCached(cache, t, p);
