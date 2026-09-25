@@ -10,6 +10,10 @@ import { app } from '../src/worker/index';
 // cannot silently reorder, drop, or duplicate one. Moving a handler to another
 // file must leave this list byte-identical.
 //
+// It pins the TABLE, not the handlers: it would not notice two handler bodies
+// swapping places on the same two paths, or a middleware being replaced by a
+// different function on the same path. Those need their own tests.
+//
 // If you ADD or REMOVE a route on purpose, update this list in the same commit
 // and say so in the pull request. If a diff shows up here that you did not mean
 // to make, the move changed behaviour — fix the move, not the list.
@@ -135,9 +139,14 @@ describe('worker route table', () => {
     expect(actual).toEqual([...EXPECTED_ROUTES]);
   });
 
+  // Registering the same method+path twice is almost always a mistake: the
+  // second one is unreachable. Middleware is the exception — `app.use` and
+  // `app.all` are stored as method 'ALL', and stacking two of them on one
+  // pattern is a normal thing to do, so they are not counted here.
   it('has no accidental duplicate method+path pair', () => {
     const seen = new Map<string, number>();
     for (const r of app.routes) {
+      if (r.method === 'ALL') continue;
       const key = `${r.method} ${r.path}`;
       seen.set(key, (seen.get(key) ?? 0) + 1);
     }
