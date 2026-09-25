@@ -25,6 +25,16 @@ export const dafRefShape = z.looseObject({ tractate: z.string(), page: z.string(
  */
 export const artifactEnvelopeShape = z.looseObject({ parsed: z.unknown().optional() });
 
+/**
+ * A ring buffer of records - the telemetry log, the recent-error buffer, the
+ * lint-failure buffer, the bug reports. Every one of them is appended to and
+ * trimmed by its writer, and read back by a dashboard that picks fields off
+ * each entry. So the gate is "a list, of objects": that is all an append needs,
+ * and all a reader needs to not throw. The record bodies vary by writer and
+ * grow fields over time, so they are left open on purpose.
+ */
+export const recordListShape = z.array(z.looseObject({}));
+
 /** The cross-daf sugya bridge (lib/typing/bridge.ts). */
 export const dafBridgeShape = z.looseObject({
   from: dafRefShape,

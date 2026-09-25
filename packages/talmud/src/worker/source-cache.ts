@@ -47,7 +47,7 @@ import {
   keyForYerushalmi,
 } from './cache-keys';
 import { scrapeDafyomiLive } from './dafyomi-live';
-import { kvGetJSON, parseJSON } from './kv-json';
+import { kvGetJSONAs, parseJSONAs } from './kv-json';
 
 const TTL_30_DAYS = 60 * 60 * 24 * 30;
 const TTL_NEGATIVE = 60 * 60;
@@ -183,18 +183,14 @@ const dafyomiDaf = z.looseObject({ amudim: z.looseObject({}) });
 
 const sefariaSegments = z.looseObject({ he: z.array(z.string()), en: z.array(z.string()) });
 
-/**
- * Read a cached bundle. `T` stays the compile-time contract (the hand-written
- * interface in lib/sefref, which the whole worker is written against); `schema`
- * is the runtime gate, deliberately allowed to be looser than `T` so an entry
- * missing a field that every reader already guards is not thrown away.
- */
+/** Read a cached bundle: `T` is the hand-written interface in lib/sefref,
+ *  `schema` the runtime gate. See kvGetJSONAs on why the two are separate. */
 async function readCache<T>(
   cache: KVNamespace | undefined,
   key: string,
   schema: z.ZodType,
 ): Promise<T | undefined> {
-  return (await kvGetJSON(cache, key, schema)) as T | undefined;
+  return kvGetJSONAs<T>(cache, key, schema);
 }
 
 async function writeCache(
@@ -636,9 +632,13 @@ export async function getSefariaSegmentsCached(
 ): Promise<SefariaSegments | null> {
   const cacheKey = keyForSefariaSegments(tractate, page);
   if (cache) {
-    const cached = parseJSON(await cache.get(cacheKey), sefariaSegments, cacheKey);
+    const cached = parseJSONAs<SefariaSegments>(
+      await cache.get(cacheKey),
+      sefariaSegments,
+      cacheKey,
+    );
     track?.onCache?.(cached !== undefined ? 'hit' : 'miss');
-    if (cached !== undefined) return cached as SefariaSegments;
+    if (cached !== undefined) return cached;
   } else {
     track?.onCache?.('miss');
   }

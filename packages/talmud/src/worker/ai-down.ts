@@ -23,6 +23,8 @@
  */
 
 import type { AiUnavailableReason } from '@corpus/core/llm/ai-status';
+import { z } from 'zod';
+import { kvGetJSONAs } from './kv-json';
 
 const AI_DOWN_KEY = 'ai-down:v1';
 const HARD_TTL_S = 300;
@@ -96,14 +98,16 @@ export async function clearAiDown(
   }
 }
 
+/** The stored sentinel. The two fields were already checked by hand before
+ *  this read went through a schema; the schema says the same thing in one
+ *  place and logs the key when it throws a value away. */
+const aiDownShape = z.looseObject({ reason: z.string(), at: z.number() });
+
 /** Read the sentinel; expired/missing/corrupt all read as "not down". */
 export async function readAiDown(cache: KVNamespace | undefined): Promise<AiDownState | null> {
   if (!cache) return null;
   try {
-    const raw = await cache.get(AI_DOWN_KEY);
-    if (!raw) return null;
-    const v = JSON.parse(raw) as AiDownState | null;
-    return v && typeof v.reason === 'string' && typeof v.at === 'number' ? v : null;
+    return (await kvGetJSONAs<AiDownState>(cache, AI_DOWN_KEY, aiDownShape)) ?? null;
   } catch {
     return null;
   }

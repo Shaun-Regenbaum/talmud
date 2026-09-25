@@ -91,3 +91,32 @@ export async function kvGetJSON<S extends z.ZodType>(
   if (!kv) return undefined;
   return parseJSON(await kv.get(key), schema, key);
 }
+
+/**
+ * The same two functions for a call site that already has a hand-written
+ * TypeScript type for the value - which is most of them, since the worker was
+ * written against those types long before any of this was checked.
+ *
+ * `T` stays the compile-time contract and `schema` is the runtime gate, and the
+ * two are deliberately not tied together: that is what lets a schema be LOOSER
+ * than `T` (accepting an entry that is missing a field every reader already
+ * guards) without widening the type the rest of the worker is written against.
+ * The cast is the same one the call site was making before - except that now
+ * something has actually looked at the value first.
+ */
+export function parseJSONAs<T>(
+  raw: string | null | undefined,
+  schema: z.ZodType,
+  key: string,
+): T | undefined {
+  return parseJSON(raw, schema, key) as T | undefined;
+}
+
+export async function kvGetJSONAs<T>(
+  kv: KVNamespace | undefined,
+  key: string,
+  schema: z.ZodType,
+): Promise<T | undefined> {
+  if (!kv) return undefined;
+  return parseJSONAs<T>(await kv.get(key), schema, key);
+}
