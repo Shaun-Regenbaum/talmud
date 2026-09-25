@@ -3,7 +3,7 @@ import { slugTractate } from '@corpus/core/cache/keys';
 import { releaseResponse, stagingGalleryRequest, withStaging } from '@corpus/core/cache/staging';
 import { continuationLink, type FlowEdge } from '@corpus/core/context/link';
 import { coordLabel } from '@corpus/core/context/types';
-import { gatewayActive, gatewayStatus, wrapEnv } from '@corpus/core/llm/ai-gateway';
+import { wrapEnv } from '@corpus/core/llm/ai-gateway';
 import { aiUnavailableMessage, classifyAiUnavailable } from '@corpus/core/llm/ai-status';
 import { type BudgetScope, checkBudget, isBudgetPaused } from '@corpus/core/llm/budget';
 import { runJev } from '@corpus/core/llm/jev';
@@ -15,12 +15,7 @@ import {
   runLLM,
 } from '@corpus/core/llm/llm';
 import { costSplitUsd, normalizeUsage, costUsd as priceCostUsd } from '@corpus/core/llm/pricing';
-import {
-  DEFAULT_FALLBACK_CHAIN,
-  DEFAULT_MODEL,
-  isLLMModelId,
-  MODEL_PRESETS,
-} from '@corpus/core/llm/settings';
+import { isLLMModelId } from '@corpus/core/llm/settings';
 import { apiRequestBridge, serveCodeModeMcp } from '@corpus/core/mcp/code-mode';
 import { rawDependenciesOf } from '@corpus/core/model/compat';
 import type { Authority } from '@corpus/core/model/provenance';
@@ -236,6 +231,7 @@ import {
 } from './request-guards';
 import { placeRevachWithAi } from './revach-ai-place';
 import { registerAdminCostRoutes } from './routes/admin-cost';
+import { registerAdminLlmRoutes } from './routes/admin-llm';
 import { registerAdminOpsRoutes } from './routes/admin-ops';
 import { registerAdminTranslateBioRoutes } from './routes/admin-translate-bio';
 import { registerDafSourcesRoutes } from './routes/daf-sources';
@@ -424,74 +420,10 @@ app.all('/mcp', async (c) => {
   });
 });
 
-// AI Gateway smoke test. Reports gateway config + routes a tiny Kimi prompt
-// through whichever path is active (gateway when configured, else binding).
-// Append ?run=1 to actually invoke; bare GET just shows status. env.AI here
-// is already the proxied version when the gateway is active, so this hits
-// the same code path as every other AI call in the worker.
-app.get('/api/admin/ai-gateway-test', async (c) => {
-  const status = gatewayStatus(c.env);
-  if (c.req.query('run') !== '1') return c.json({ status, hint: 'append ?run=1 to invoke' });
-  const explicitModel = c.req.query('model');
-  const nonce = c.req.query('nonce') || '';
-  try {
-    const result = await runLLM(c.env, {
-      // omit model when no override → runLLM resolves from settings KV.
-      ...(explicitModel ? { model: explicitModel as LLMModelId } : {}),
-      messages: [
-        { role: 'system', content: 'Reply with the single word OK and nothing else.' },
-        { role: 'user', content: `Ping${nonce ? ` ${nonce}` : ''}.` },
-      ],
-      max_tokens: 16,
-      temperature: 0,
-      tag: 'gateway-test',
-      attribution: { kind: 'other', producerId: 'gateway-test' },
-    });
-    return c.json({
-      status,
-      route: gatewayActive(c.env) ? 'gateway' : 'binding',
-      transport: result.transport,
-      model: result.model,
-      attempts: result.attempts,
-      ms: result.elapsed_ms,
-      usage: result.usage,
-      reply: result.content,
-    });
-  } catch (err) {
-    return c.json(
-      {
-        status,
-        route: gatewayActive(c.env) ? 'gateway' : 'binding',
-        explicitModel: explicitModel ?? null,
-        error: String((err as Error)?.message ?? err),
-      },
-      500,
-    );
-  }
-});
-
-/**
- * LLM model config — READ-ONLY. There is no runtime settings store anymore;
- * the default model + fallback are code constants (settings.ts) optionally
- * overridden per-deploy by the DEFAULT_LLM_MODEL env var, and each
- * mark/enrichment pins its own model. This endpoint just surfaces the
- * effective config (for display) + the preset catalog (for the probe tool).
- */
-app.get('/api/admin/llm-settings', (c) => {
-  const fromEnv = c.env.DEFAULT_LLM_MODEL;
-  const defaultModel = isLLMModelId(fromEnv) ? fromEnv : DEFAULT_MODEL;
-  return c.json({
-    settings: {
-      defaultModel,
-      fallbackChain: DEFAULT_FALLBACK_CHAIN,
-      source: isLLMModelId(fromEnv)
-        ? 'env (wrangler.toml DEFAULT_LLM_MODEL)'
-        : 'code (settings.ts)',
-      editable: false,
-    },
-    presets: MODEL_PRESETS,
-  });
-});
+// --- Admin: LLM diagnostics ----------------------------------------------
+// The AI Gateway smoke test and the read-only model config now live in
+// ./routes/admin-llm.
+registerAdminLlmRoutes(app);
 
 /**
  * Studio: KV-backed mark + enrichment registries. Definitions live under
