@@ -8,8 +8,15 @@ import {
   fromRishonim,
   fromTopics,
 } from '../src/lib/context/fromSefaria';
-import { SOURCE_META, SOURCES, sourceLabel } from '../src/lib/context/sources';
+import { type ContextSource, SOURCE_META, SOURCES, sourceLabel } from '../src/lib/context/sources';
 import type { DafyomiDaf } from '../src/lib/sefref/dafyomi/schema';
+
+/** Fails the test when a mapper emits a source the registry doesn't declare, and
+ *  narrows the corpus-agnostic `ContextItem.source` string to a `ContextSource`
+ *  so the registry lookups below type-check. */
+function assertRegistered(source: string): asserts source is ContextSource {
+  expect(SOURCES, source).toContain(source);
+}
 
 /**
  * The registry is the single source of truth for what sources exist. Exhaustive
@@ -64,7 +71,7 @@ describe('mappers stay inside the registry', () => {
 
   it('fromDafyomi: every item is a registered source with the registry label', () => {
     for (const it of fromDafyomi(corpus())) {
-      expect(SOURCES, it.source).toContain(it.source);
+      assertRegistered(it.source);
       expect(it.sourceLabel, it.source).toBe(sourceLabel(it.source));
     }
   });
@@ -99,6 +106,7 @@ describe('mappers stay inside the registry', () => {
       ...fromMishna([
         {
           ref: 'Mishnah Berakhot 1:1',
+          anchorRef: 'Berakhot 2a',
           hebrew: 'h',
           english: 'e',
           anchorStartSeg: 0,
@@ -109,7 +117,7 @@ describe('mappers stay inside the registry', () => {
         { slug: 'shema', titleEn: 'Shema', titleHe: 'שמע', description: 'd', sources: [] },
       ]),
     ];
-    for (const it of items) expect(SOURCES, it.source).toContain(it.source);
+    for (const it of items) assertRegistered(it.source);
     // constant-label sources draw their label from the registry…
     expect(items.find((i) => i.source === 'sefaria-mishnah')?.sourceLabel).toBe(
       sourceLabel('sefaria-mishnah'),

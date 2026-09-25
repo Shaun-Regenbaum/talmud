@@ -71,9 +71,9 @@ describe('round-trip beyond the current registry (future/KV-authored shapes)', (
     expect(back.description).toBeUndefined();
     expect(back).toStrictEqual(withOwnUndefined);
 
-    const withoutKey = { ...baseMark } as Record<string, unknown>;
+    const withoutKey = { ...baseMark };
     delete withoutKey.description;
-    const back2 = markFromProducer(producerFromMark(withoutKey as typeof baseMark));
+    const back2 = markFromProducer(producerFromMark(withoutKey));
     expect('description' in back2).toBe(false);
   });
 });
