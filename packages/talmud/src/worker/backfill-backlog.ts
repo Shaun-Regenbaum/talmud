@@ -22,10 +22,13 @@
  * sample stays correct. Enable once, let it converge, leave it deleted.
  */
 
+import { z } from 'zod';
 import { iterAmudim } from '../lib/sefref/amudim';
 import { TRACTATE_IDS } from '../lib/sefref/hebrewbooks/client';
 import { slugDaf } from './cache-keys';
 import { CODE_ENRICHMENTS, CODE_MARKS } from './code-marks';
+import { parseJSON } from './kv-json';
+import { artifactEnvelopeShape } from './kv-shapes';
 import {
   putObservedConceptsBatch,
   putObservedPlacesBatch,
@@ -70,6 +73,11 @@ export interface BackfillState {
   cursor?: string;
 }
 
+/** `source` is checked as a plain string here; the caller already tests it
+ *  against BACKFILL_SOURCES and deletes the state key when it does not match,
+ *  so keeping the list out of the schema leaves that one decision in one place. */
+const backfillStateShape = z.looseObject({ source: z.string(), cursor: z.string().optional() });
+
 interface BackfillEnv {
   CACHE?: KVNamespace;
 }
@@ -102,12 +110,8 @@ export function dafFromCacheKey(key: string): { tractate: string; page: string }
   return slugToDaf().get(slug) ?? null;
 }
 
-function parsedOf(raw: string): unknown {
-  try {
-    return (JSON.parse(raw) as { parsed?: unknown }).parsed ?? null;
-  } catch {
-    return null;
-  }
+function parsedOf(raw: string, key: string): unknown {
+  return parseJSON(raw, artifactEnvelopeShape, key)?.parsed ?? null;
 }
 
 interface PageItems {
@@ -238,10 +242,8 @@ export async function runBacklogBackfill(
   const raw = await cache.get(BACKFILL_STATE_KEY);
   if (!raw) return null;
 
-  let state: BackfillState;
-  try {
-    state = JSON.parse(raw) as BackfillState;
-  } catch {
+  const state = parseJSON(raw, backfillStateShape, BACKFILL_STATE_KEY) as BackfillState | undefined;
+  if (!state) {
     await cache.delete(BACKFILL_STATE_KEY);
     return null;
   }
@@ -262,7 +264,7 @@ export async function runBacklogBackfill(
     if (!daf) continue;
     const rawVal = await cache.get(k.name);
     if (!rawVal) continue;
-    const parsed = parsedOf(rawVal);
+    const parsed = parsedOf(rawVal, k.name);
     if (!parsed) continue;
     processed++;
     if (state.source === 'concepts') collectConcepts(items, parsed, daf);
