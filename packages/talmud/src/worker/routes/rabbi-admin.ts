@@ -14,6 +14,7 @@
 
 import { runLLM } from '@corpus/core/llm/llm';
 import type { Hono } from 'hono';
+import { z } from 'zod';
 import { GENERATION_ID_SET, GENERATIONS_PROMPT_REFERENCE } from '../../client/generations';
 import { isNonSageTopic } from '../../lib/nonSageTopics';
 import {
@@ -40,6 +41,8 @@ import {
   keyForRabbiWikidata,
 } from '../cache-keys';
 import { getRabbiEntryOr404 } from '../http-helpers';
+import { kvGetJSONAs, parseJSONAs } from '../kv-json';
+import { rabbiGraphBlobShape, voiceGraphBlobShape } from '../kv-shapes';
 import { extractJsonPayload, runKimiStreaming, type StreamedResult } from '../llm-helpers';
 import { ENRICH_JSON_SCHEMA } from '../output-schemas';
 import { isRabbinicHebrewName } from '../rabbi-graph';
@@ -703,17 +706,24 @@ interface WikiBioStageRecord {
   fetchedAt: string;
 }
 
+/**
+ * An enriched rabbi record. These cost a model call each and there are ~1,300 of
+ * them, so this gate is as loose as it can be while still being worth having:
+ * the slug it is filed under, and the `refs` object two routes read into
+ * without a guard. Every other field is read with a default, including the ones
+ * added after the first records were written.
+ */
+const enrichedRabbiShape = z.looseObject({ slug: z.string(), refs: z.looseObject({}) });
+
+/** A compiled blob served straight back to the caller. */
+const compiledBlobShape = z.looseObject({});
+
 export async function readEnriched(
   cache: KVNamespace,
   slug: string,
 ): Promise<EnrichedRabbiRecord | null> {
-  const hit = await cache.get(keyForRabbiEnriched(slug));
-  if (!hit) return null;
-  try {
-    return JSON.parse(hit) as EnrichedRabbiRecord;
-  } catch {
-    return null;
-  }
+  const key = keyForRabbiEnriched(slug);
+  return (await kvGetJSONAs<EnrichedRabbiRecord>(cache, key, enrichedRabbiShape)) ?? null;
 }
 
 function parseWikidataYear(time: string | undefined): number | null {
@@ -933,14 +943,8 @@ export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): voi
     const cacheKey = keyForRabbiBioBySlug(slug);
     const bypass = c.req.query('refresh') === '1';
     if (cache && !bypass) {
-      const hit = await cache.get(cacheKey);
-      if (hit) {
-        try {
-          return c.json({ ...JSON.parse(hit), _cached: true });
-        } catch {
-          /* fall through */
-        }
-      }
+      const hit = await kvGetJSONAs<object>(cache, cacheKey, compiledBlobShape);
+      if (hit) return c.json({ ...hit, _cached: true });
     }
 
     if (!c.env.AI) return c.json({ error: 'AI binding not available' }, 503);
@@ -1229,10 +1233,8 @@ export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): voi
     const cache = c.env.CACHE;
     const cacheKey = keyForRabbiEnriched(slug);
     if (cache && !refresh) {
-      const hit = await cache.get(cacheKey);
-      if (hit) {
-        return c.json({ slug, record: JSON.parse(hit), _cached: true });
-      }
+      const hit = await kvGetJSONAs<EnrichedRabbiRecord>(cache, cacheKey, enrichedRabbiShape);
+      if (hit) return c.json({ slug, record: hit, _cached: true });
     }
 
     const result = await enrichRabbiUnified(slug, entry, c.env, cache);
@@ -1261,8 +1263,8 @@ export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): voi
     const refresh = c.req.query('refresh') === '1';
     const cacheKey = keyForRabbiWikidata(slug);
     if (!refresh) {
-      const hit = await cache.get(cacheKey);
-      if (hit) return c.json({ slug, record: JSON.parse(hit), _cached: true });
+      const hit = await kvGetJSONAs<object>(cache, cacheKey, compiledBlobShape);
+      if (hit) return c.json({ slug, record: hit, _cached: true });
     }
 
     const enriched = await readEnriched(cache, slug);
@@ -1295,8 +1297,8 @@ export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): voi
     const refresh = c.req.query('refresh') === '1';
     const cacheKey = keyForRabbiWikiBio(slug);
     if (!refresh) {
-      const hit = await cache.get(cacheKey);
-      if (hit) return c.json({ slug, record: JSON.parse(hit), _cached: true });
+      const hit = await kvGetJSONAs<object>(cache, cacheKey, compiledBlobShape);
+      if (hit) return c.json({ slug, record: hit, _cached: true });
     }
 
     const enriched = await readEnriched(cache, slug);
@@ -1523,29 +1525,31 @@ export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): voi
   // later by daf views).
   app.get('/api/admin/rabbi-graph', async (c) => {
     if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
-    const hit = await c.env.CACHE.get(keyForRabbiGraph());
+    const key = keyForRabbiGraph();
+    const hit = await kvGetJSONAs<object>(c.env.CACHE, key, rabbiGraphBlobShape);
     if (!hit) return c.json({ error: 'not compiled' }, 404);
-    return c.json(JSON.parse(hit));
+    return c.json(hit);
   });
   app.get('/api/admin/rabbi-cohort', async (c) => {
     if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
-    const hit = await c.env.CACHE.get(keyForRabbiCohort());
+    const key = keyForRabbiCohort();
+    const hit = await kvGetJSONAs<object>(c.env.CACHE, key, compiledBlobShape);
     if (!hit) return c.json({ error: 'not compiled' }, 404);
-    return c.json(JSON.parse(hit));
+    return c.json(hit);
   });
   app.get('/api/rabbi-network', async (c) => {
     if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
-    const hit = await c.env.CACHE.get(keyForRabbiVoiceGraph());
-    if (!hit) return c.json({ error: 'not compiled' }, 404);
-    const blob = JSON.parse(hit) as VoiceGraphBlob;
+    const key = keyForRabbiVoiceGraph();
+    const blob = await kvGetJSONAs<VoiceGraphBlob>(c.env.CACHE, key, voiceGraphBlobShape);
+    if (!blob) return c.json({ error: 'not compiled' }, 404);
     const { nodes, edges, ...meta } = blob;
     return c.json({ ...meta, nodes: Object.keys(nodes).length, edges: Object.keys(edges).length });
   });
   app.get('/api/rabbi-network/:slug', async (c) => {
     if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
-    const hit = await c.env.CACHE.get(keyForRabbiVoiceGraph());
-    if (!hit) return c.json({ error: 'not compiled' }, 404);
-    const blob = JSON.parse(hit) as VoiceGraphBlob;
+    const key = keyForRabbiVoiceGraph();
+    const blob = await kvGetJSONAs<VoiceGraphBlob>(c.env.CACHE, key, voiceGraphBlobShape);
+    if (!blob) return c.json({ error: 'not compiled' }, 404);
     const slug = c.req.param('slug');
     const ego = egoSlice(blob, slug);
     if (!ego) return c.json({ error: 'not in the voice graph yet', dapim: blob.dapim }, 404);
@@ -1558,34 +1562,35 @@ export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): voi
       c.env.CACHE.get(keyForRabbiVoiceGraph()),
     ]);
     // Collapse the heavy graph payloads to counts — status is a meta view.
-    const meta = (raw: string | null) => {
-      if (!raw) return null;
-      try {
-        const b = JSON.parse(raw) as Record<string, unknown> & {
+    const meta = (raw: string | null, key: string) => {
+      const b = parseJSONAs<
+        Record<string, unknown> & {
           nodes?: object;
           edges?: object;
           dafsSeen?: object;
           staging?: { nodes?: object; edges?: object; dafsSeen?: object } & Record<string, unknown>;
+        }
+      >(raw, compiledBlobShape, key);
+      if (!b) return null;
+      const shrink = (o: Record<string, unknown>) => {
+        const { nodes, edges, dafsSeen, ...rest } = o as {
+          nodes?: object;
+          edges?: object;
+          dafsSeen?: object;
+        } & Record<string, unknown>;
+        return {
+          ...rest,
+          ...(nodes ? { nodes: Object.keys(nodes).length } : {}),
+          ...(edges ? { edges: Object.keys(edges).length } : {}),
+          ...(dafsSeen ? { dapimSeen: Object.keys(dafsSeen).length } : {}),
         };
-        const shrink = (o: Record<string, unknown>) => {
-          const { nodes, edges, dafsSeen, ...rest } = o as {
-            nodes?: object;
-            edges?: object;
-            dafsSeen?: object;
-          } & Record<string, unknown>;
-          return {
-            ...rest,
-            ...(nodes ? { nodes: Object.keys(nodes).length } : {}),
-            ...(edges ? { edges: Object.keys(edges).length } : {}),
-            ...(dafsSeen ? { dapimSeen: Object.keys(dafsSeen).length } : {}),
-          };
-        };
-        return b.staging ? { ...shrink(b), staging: shrink(b.staging) } : shrink(b);
-      } catch {
-        return null;
-      }
+      };
+      return b.staging ? { ...shrink(b), staging: shrink(b.staging) } : shrink(b);
     };
-    return c.json({ state: meta(state), blob: meta(blob) });
+    return c.json({
+      state: meta(state, VOICE_GRAPH_STATE_KEY),
+      blob: meta(blob, keyForRabbiVoiceGraph()),
+    });
   });
   app.post('/api/admin/voice-graph/step', async (c) => {
     if (!isTrustedRequest(c)) return c.json({ error: 'studio auth required' }, 403);
@@ -1603,15 +1608,17 @@ export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): voi
   });
   app.get('/api/admin/rabbi-places-index', async (c) => {
     if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
-    const hit = await c.env.CACHE.get(keyForRabbiPlacesIndex());
+    const key = keyForRabbiPlacesIndex();
+    const hit = await kvGetJSONAs<object>(c.env.CACHE, key, compiledBlobShape);
     if (!hit) return c.json({ error: 'not compiled' }, 404);
-    return c.json(JSON.parse(hit));
+    return c.json(hit);
   });
   app.get('/api/admin/rabbi-academy-roster', async (c) => {
     if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
-    const hit = await c.env.CACHE.get(keyForRabbiAcademyRoster());
+    const key = keyForRabbiAcademyRoster();
+    const hit = await kvGetJSONAs<object>(c.env.CACHE, key, compiledBlobShape);
     if (!hit) return c.json({ error: 'not compiled' }, 404);
-    return c.json(JSON.parse(hit));
+    return c.json(hit);
   });
   // Coverage report — counts each rabbi-* prefix and surfaces compile timestamps.
   // Drives the Rabbis tab coverage strip in EnrichmentPage. Cheap KV listings.
@@ -1631,14 +1638,8 @@ export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): voi
     };
 
     const readGeneratedAt = async (key: string): Promise<string | null> => {
-      const hit = await cache.get(key);
-      if (!hit) return null;
-      try {
-        const obj = JSON.parse(hit) as { generatedAt?: unknown };
-        return typeof obj.generatedAt === 'string' ? obj.generatedAt : null;
-      } catch {
-        return null;
-      }
+      const obj = await kvGetJSONAs<{ generatedAt?: unknown }>(cache, key, compiledBlobShape);
+      return typeof obj?.generatedAt === 'string' ? obj.generatedAt : null;
     };
 
     const totalSlugs = Object.entries(RABBI_PLACES.rabbis).filter(([, r]) =>
