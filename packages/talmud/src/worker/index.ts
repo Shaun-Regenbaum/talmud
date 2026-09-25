@@ -57,7 +57,6 @@ import { type SectionExit, sectionExits } from '../lib/context/sectionExits';
 import { dafSpine } from '../lib/context/spine';
 import heAliasData from '../lib/data/rabbi-he-aliases.json';
 import { buildGeoModel, type GeoEnrichment, type RabbiGeoSource } from '../lib/geographyModel';
-import { buildCodificationChain, buildDerivation } from '../lib/halacha/codifiers';
 import { filterRabbiBoundaries, nameCrossesBoundary } from '../lib/rabbi/nameBoundaries';
 import type { EntityPiece } from '../lib/registry/entity';
 import { adjacentAmud, sefariaAPI, TRACTATE_OPTIONS } from '../lib/sefref';
@@ -229,6 +228,7 @@ import { registerAdminOpsRoutes } from './routes/admin-ops';
 import { registerAdminTranslateBioRoutes } from './routes/admin-translate-bio';
 import { registerDafSourcesRoutes } from './routes/daf-sources';
 import { registerEnrichmentDefRoutes, registerMarkDefRoutes } from './routes/definitions';
+import { registerHalachaRoutes } from './routes/halacha';
 import { registerObservationRoutes } from './routes/observations';
 import { registerQaRoutes } from './routes/qa';
 import { registerRabbiAdminRoutes } from './routes/rabbi-admin';
@@ -239,7 +239,6 @@ import { enqueueTsFromRunId, makeRunId } from './run-id';
 import { buildSourceResolvers, type CommentariesSlice, type GemaraSlice } from './run-sources';
 import { indexVerdict, sageIndexForPage } from './sage-index';
 import {
-  getCodeSourcesCached,
   getDafyomiContentCached,
   getHalachaRefsCached,
   getHebrewBooksDafCached,
@@ -861,57 +860,15 @@ async function readFlowConnections(
   }
 }
 
+// --- Halacha: derivation + source texts -----------------------------------
+// Both now live in ./routes/halacha.
+registerHalachaRoutes(app);
+
 // The unified link layer for a daf: tractate-continuity (bridge), citations
 // (context refs), and the argument flow graph, all in one Link vocabulary. The
 // first real CONSUMER of src/lib/context/link.ts — assembled by the pure
 // `dafLinks`. Best-effort per source: a cold/failed source contributes nothing
 // rather than failing the whole response.
-// Halacha "where it comes from": the gemara sources a codified ruling derives
-// from. Deterministic — reverse Sefaria /api/related on the code ref, classified
-// + deduped by buildDerivation, with the current daf marked. Read-only, no LLM.
-// Accepts one or more `ref` query params (the codifier refs the card already
-// holds), merges their sources.
-app.get('/api/derivation/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  // Cap the ref count: `ref` is an unbounded query param, and a cache MISS turns
-  // each into a Sefaria subrequest — an unbounded `Promise.all` over them is a
-  // subrequest-exhaustion / DoS vector on this public GET. A daf's halacha card
-  // sends only its handful of codifier refs, so 50 is far above real use.
-  const refs = (c.req.queries('ref') ?? []).slice(0, 50);
-  if (refs.length === 0) return c.json({ sources: [] });
-  const linkLists = await Promise.all(refs.map((r) => getCodeSourcesCached(c.env.CACHE, r)));
-  const sources = buildDerivation(linkLists.flat(), { tractate, page });
-  return c.json({ sources });
-});
-
-// Halacha SOURCE TEXTS: the actual codifier text behind the codification card,
-// grouped into the deterministic codifier lineage (Rambam → Tur → Shulchan Aruch
-// + secondary glosses). The full Hebrew/English is ALREADY cached in the
-// halacha-refs bundle (it grounds the codification enrichment) — this only
-// surfaces it for the reader. Read-only, no LLM. HTML stripped for display; the
-// cached bundle (and the grounding prompt) keep the raw markup.
-app.get('/api/halacha-text/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
-  const bundle = await getHalachaRefsCached(c.env.CACHE, tractate, page).catch(() => undefined);
-  const nodes = buildCodificationChain(bundle, { includeSecondary: true }).map((n) => ({
-    id: n.id,
-    label: n.label,
-    short: n.short,
-    tier: n.tier,
-    einMishpat: n.einMishpat,
-    refs: n.refs.map((r) => ({
-      ref: r.ref,
-      hebrew: stripHtmlServer(r.hebrew ?? ''),
-      english: stripHtmlServer(r.english ?? ''),
-      einMishpat: !!r.einMishpat,
-    })),
-  }));
-  return c.json({ tractate, page, nodes });
-});
-
 app.get('/api/links/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');
