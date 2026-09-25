@@ -9,8 +9,10 @@
 
 import { checkBudget } from '@corpus/core/llm/budget';
 import type { Hono } from 'hono';
+import { z } from 'zod';
 import { qualifierHash } from '../cache-keys';
 import { readJsonBody } from '../http-helpers';
+import { kvGetJSONAs } from '../kv-json';
 import { pausedAiFields, pauseErrorMessage, pauseRetryAfterSec } from '../request-guards';
 import { makeRunId } from '../run-id';
 import type { Bindings, JobMessage } from '../types';
@@ -66,6 +68,15 @@ interface QaRegistry {
   community: QaRegistryEntry[];
 }
 
+/** The stored registry. The list is what the route walks; an entry's own fields
+ *  are rendered with defaults, so they are left open. This says exactly what
+ *  the hand-written check below it used to say. */
+const qaRegistryShape = z.looseObject({ community: z.array(z.looseObject({})) });
+
+/** One rate-limit counter. Both fields are compared against numbers, so a
+ *  value missing either is unusable and the window simply starts over. */
+const rateLimitShape = z.looseObject({ count: z.number(), windowStart: z.number() });
+
 function qaRegistryKey(mark: string, tractate: string, page: string, instanceId: string): string {
   // Mirror the cache-keys.ts sanitization so registry keys can't carry
   // colons or slashes that would collide across instances.
@@ -86,11 +97,8 @@ async function readQaRegistry(
 ): Promise<QaRegistry> {
   if (!env.CACHE) return { community: [] };
   try {
-    const raw = await env.CACHE.get(qaRegistryKey(mark, tractate, page, instanceId));
-    if (!raw) return { community: [] };
-    const parsed = JSON.parse(raw) as QaRegistry;
-    if (!parsed || !Array.isArray(parsed.community)) return { community: [] };
-    return parsed;
+    const key = qaRegistryKey(mark, tractate, page, instanceId);
+    return (await kvGetJSONAs<QaRegistry>(env.CACHE, key, qaRegistryShape)) ?? { community: [] };
   } catch {
     return { community: [] };
   }
@@ -142,20 +150,17 @@ async function tickRateLimit(
 ): Promise<{ ok: boolean; remaining: number }> {
   if (!env.CACHE) return { ok: true, remaining: QA_ASK_RATE_LIMIT_MAX };
   const key = `ratelimit:${scope}:${who}`;
-  const raw = await env.CACHE.get(key);
+  const parsed = await kvGetJSONAs<{ count: number; windowStart: number }>(
+    env.CACHE,
+    key,
+    rateLimitShape,
+  );
   const now = Math.floor(Date.now() / 1000);
   let count = 0;
   let windowStart = now;
-  if (raw) {
-    try {
-      const parsed = JSON.parse(raw) as { count: number; windowStart: number };
-      if (now - parsed.windowStart < QA_ASK_RATE_LIMIT_WINDOW_SEC) {
-        count = parsed.count;
-        windowStart = parsed.windowStart;
-      }
-    } catch {
-      /* ignore corrupt */
-    }
+  if (parsed && now - parsed.windowStart < QA_ASK_RATE_LIMIT_WINDOW_SEC) {
+    count = parsed.count;
+    windowStart = parsed.windowStart;
   }
   count += 1;
   await env.CACHE.put(key, JSON.stringify({ count, windowStart }), {

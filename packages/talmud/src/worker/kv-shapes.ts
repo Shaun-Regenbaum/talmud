@@ -62,6 +62,10 @@ export const crossFlowShape = z.looseObject({
   via: z.string(),
 });
 
+/** The rabbi hierarchy graph blob (routes/rabbi-admin.ts). The node bodies are
+ *  read field by field with defaults, so only the map itself is required. */
+export const rabbiGraphBlobShape = z.looseObject({ nodes: z.record(z.string(), z.unknown()) });
+
 /** The built voice graph (voice-graph.ts). Node and edge bodies are left open:
  *  the readers project the fields they want and tolerate the rest. */
 export const voiceGraphBlobShape = z.looseObject({
