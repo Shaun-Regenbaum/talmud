@@ -281,8 +281,15 @@ import {
   type RecentJobError,
   recordRecentJobError,
 } from './recent-errors';
+import {
+  isTrustedRequest,
+  pausedAiFields,
+  pauseErrorMessage,
+  pauseRetryAfterSec,
+} from './request-guards';
 import { placeRevachWithAi } from './revach-ai-place';
 import { registerUsageRoutes } from './routes/usage';
+import { enqueueTsFromRunId, makeRunId } from './run-id';
 import { buildSourceResolvers, type CommentariesSlice, type GemaraSlice } from './run-sources';
 import { indexVerdict, sageIndexForPage } from './sage-index';
 import {
@@ -357,64 +364,6 @@ import { runYomiWarmCron } from './yomi-cron';
 // `Bindings` and `JobMessage` now live in ./types (a neutral module so route
 // slices / telemetry / crons can import them without cycling through this entry
 // file). Both are imported at the top of this file.
-
-// ---------------------------------------------------------------------------
-// Request trust + spend-pause helpers (see ./budget for the budget guard).
-// ---------------------------------------------------------------------------
-
-/** Constant-time-ish string compare (avoids early-exit timing leaks beyond
- *  length). */
-function timingSafeEqualStr(a: string, b: string): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  return diff === 0;
-}
-
-/**
- * True iff the request carries the STUDIO_SECRET (header `x-studio-secret`, or
- * `Authorization: Bearer <secret>`). Returns FALSE whenever the secret is unset
- * — fail-safe, so the privileged /api/run knobs (ad_hoc, model_override,
- * bypass_cache) and the admin mutation endpoints stay locked until the owner
- * provisions the secret. The public daf app never needs these, so locking them
- * by default doesn't degrade it.
- */
-function isTrustedRequest(c: {
-  req: { header: (k: string) => string | undefined };
-  env: Bindings;
-}): boolean {
-  const secret = c.env.STUDIO_SECRET;
-  if (!secret) return false;
-  const presented =
-    c.req.header('x-studio-secret') ??
-    c.req.header('authorization')?.replace(/^Bearer\s+/i, '') ??
-    '';
-  return presented.length > 0 && timingSafeEqualStr(presented, secret);
-}
-
-/** Seconds until a pause lifts, for a Retry-After-style hint. */
-function pauseRetryAfterSec(until?: number): number {
-  if (!until) return 3600;
-  return Math.max(1, Math.ceil((until - Date.now()) / 1000));
-}
-
-/** Human fallback message for a paused response. The client maps the `paused`
- *  flag to its own localized copy; this is for non-UI / API consumers. */
-function pauseErrorMessage(scope?: BudgetScope): string {
-  return scope === 'custom'
-    ? 'Custom-question generation is paused for now (hourly budget reached). Please try again later.'
-    : 'AI generation is paused for now (daily budget reached). Please try again tomorrow.';
-}
-
-/** Cross-app AI-unavailable fields for a budget pause, derived from scope. Spread
- *  alongside the existing `paused`/`scope`/`retryAfter` so the shared client
- *  banner (@corpus/ui, keyed off `aiUnavailable` + `reason`) lights up too. */
-function pausedAiFields(scope?: BudgetScope) {
-  return {
-    aiUnavailable: true as const,
-    reason: scope === 'custom' ? ('hourly-cap' as const) : ('daily-cap' as const),
-  };
-}
 
 function stripHtmlServer(html: string): string {
   return html
@@ -5497,34 +5446,6 @@ export async function cacheKeyForRunBody(
   }
   // ad_hoc has no canonical key
   return { key: null, defKind: null };
-}
-
-/**
- * Deterministic short id for a run request. Combines mark/enrichment id +
- * tractate/page + instance hash + timestamp to make polling-friendly ids.
- * Same params + same minute → same id (within reason), so retries don't
- * stampede the queue.
- */
-async function makeRunId(body: JobMessage): Promise<string> {
-  const parts = [
-    body.mark_id ?? body.enrichment_id ?? 'adhoc',
-    body.tractate,
-    body.page,
-    await instanceIdOf(body.mark_input),
-    body.user_question ? `q_${await qualifierHash(body.user_question)}` : 'noq',
-    body.lang === 'he' ? 'he' : 'en',
-    body.bypass_cache ? 'fresh' : 'cached',
-    String(Math.floor(Date.now() / 1000)),
-  ];
-  return parts
-    .join(':')
-    .replace(/[^a-zA-Z0-9._:-]+/g, '_')
-    .slice(0, 200);
-}
-
-function enqueueTsFromRunId(runId: string): number | undefined {
-  const m = runId.match(/:(\d{8,})$/);
-  return m ? parseInt(m[1], 10) * 1000 : undefined;
 }
 
 /**
