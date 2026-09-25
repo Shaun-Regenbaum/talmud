@@ -33,13 +33,18 @@ interface DafSkeleton {
   }>;
 }
 
-/** Both routes below walk `sections` and, inside each, `rabbiNames`. A skeleton
- *  without them cannot be joined to anything, and until now it took the handler
- *  down with a 500; it is now answered the same way as a skeleton that was
- *  never computed. Section prose is only echoed, so it is left open. */
-const dafSkeletonShape = z.looseObject({
-  sections: z.array(z.looseObject({ rabbiNames: z.array(z.string()) })),
-});
+/**
+ * Both routes below walk `sections`, so a value without one cannot be joined to
+ * anything and is answered the way a skeleton that was never computed is
+ * answered - where until now it took the handler down with a 500.
+ *
+ * A section's own fields are NOT checked, deliberately. Nothing writes
+ * `analyze-skel:v2:` any more: the /api/analyze pass that produced these is
+ * gone, so every stored skeleton is a model-made artifact that cannot be
+ * remade. Discarding a whole daf over one section missing `rabbiNames` would
+ * be permanent, so the two loops below default it instead.
+ */
+const dafSkeletonShape = z.looseObject({ sections: z.array(z.looseObject({})) });
 
 /** The two computed views, served back with a `_cached` flag added. */
 const cachedViewShape = z.looseObject({});
@@ -171,7 +176,7 @@ export function registerRegionMesorahRoutes(app: Hono<{ Bindings: Bindings }>): 
 
     for (const sec of skeleton.sections) {
       const sages: RegionSagePerSection[] = [];
-      for (const name of sec.rabbiNames) {
+      for (const name of sec.rabbiNames ?? []) {
         totalNamed++;
         const res = resolveRabbiByName(name);
         if (!res) {
@@ -254,7 +259,7 @@ export function registerRegionMesorahRoutes(app: Hono<{ Bindings: Bindings }>): 
     let totalNamed = 0;
     let resolved = 0;
     for (const sec of skeleton.sections) {
-      for (const name of sec.rabbiNames) {
+      for (const name of sec.rabbiNames ?? []) {
         totalNamed++;
         const res = resolveRabbiByName(name);
         if (!res) continue;

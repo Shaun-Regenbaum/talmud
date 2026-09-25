@@ -170,7 +170,12 @@ import {
   WHOLE_DAF_ANCHOR,
 } from './inspect-anchors';
 import { kvGetJSONAs, parseJSONAs } from './kv-json';
-import { crossFlowShape, dafBridgeShape, voiceGraphBlobShape } from './kv-shapes';
+import {
+  crossFlowShape,
+  dafBridgeShape,
+  sefariaSegmentsShape,
+  voiceGraphBlobShape,
+} from './kv-shapes';
 import { noteLintAttempt } from './lint-failures';
 import { ALIGN_MARKS } from './mark-categories';
 import { MCP_EXECUTE_TIMEOUT_MS } from './mcp-limits';
@@ -3020,8 +3025,6 @@ const gemaraSliceShape = z.looseObject({
 const commentariesSliceShape = z.looseObject({
   by_commentator: z.record(z.string(), z.looseObject({})),
 });
-
-const sefariaSegmentsShape = z.looseObject({ he: z.array(z.string()) });
 
 // Coalesced across concurrent same-daf callers: a cold daf-open fires many
 // runs at once and each would otherwise parse its own copy of the daf text

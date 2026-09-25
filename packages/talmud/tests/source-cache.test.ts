@@ -17,7 +17,11 @@ vi.mock('../src/lib/sefref', () => ({
   },
 }));
 
-import { getHebrewBooksDafCached, getSefariaPageCached } from '../src/worker/source-cache';
+import {
+  getHebrewBooksDafCached,
+  getSefariaPageCached,
+  getSefariaSegmentsCached,
+} from '../src/worker/source-cache';
 
 function makeFakeKV(initial: Record<string, string> = {}): KVNamespace {
   const store = new Map(Object.entries(initial));
@@ -137,6 +141,7 @@ describe('source-cache CacheTrack', () => {
 describe('source-cache rejects unusable KV values', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   function silenceWarnings(): void {
@@ -183,6 +188,23 @@ describe('source-cache rejects unusable KV values', () => {
     });
     expect(states).toEqual(['miss']);
     expect(data?.mainText.hebrew).toBe('fetched-hebrew');
+  });
+
+  it('reports a miss, not a hit, for a segments entry it cannot read', async () => {
+    // This one is a deliberate correction, not a preserved behaviour: the old
+    // code reported `hit` for a present-but-unreadable value and then refetched
+    // anyway, so the x-cache header said hit while the request went upstream.
+    // Every other wrapper in this file already reported miss for the same case.
+    silenceWarnings();
+    // The miss path goes on to Sefaria; the suite is offline, so stub it out.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('{}', { status: 500 })),
+    );
+    const states: Array<'hit' | 'miss'> = [];
+    const kv = makeFakeKV({ 'sefaria-seg:v1:Berakhot:2a': '{"he":[' });
+    await getSefariaSegmentsCached(kv, 'Berakhot', '2a', { onCache: (s) => states.push(s) });
+    expect(states).toEqual(['miss']);
   });
 
   it('still serves a value that is merely missing optional fields', async () => {

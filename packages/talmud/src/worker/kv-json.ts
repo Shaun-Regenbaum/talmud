@@ -11,8 +11,9 @@
  * straight back to a caller as a garbage response.
  *
  * `parseJSON` / `kvGetJSON` close that gap. A value that isn't JSON, or that
- * fails its schema, is reported once (with the key, so it can be found and
- * deleted) and then treated as a CACHE MISS - exactly what the surrounding code
+ * fails its schema, is reported once per read (with the key, so it can be found
+ * and deleted - a scan over a bad key family will say so once per key it
+ * touches) and then treated as a CACHE MISS - exactly what the surrounding code
  * already does when the key is absent. No new error reaches a caller, so
  * converting a read is behaviour-preserving for every value that was already
  * good, and turns a crash into a recompute for every value that wasn't.

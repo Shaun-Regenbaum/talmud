@@ -48,6 +48,7 @@ import {
 } from './cache-keys';
 import { scrapeDafyomiLive } from './dafyomi-live';
 import { kvGetJSONAs, parseJSONAs } from './kv-json';
+import { sefariaSegmentsShape } from './kv-shapes';
 
 const TTL_30_DAYS = 60 * 60 * 24 * 30;
 const TTL_NEGATIVE = 60 * 60;
@@ -180,8 +181,6 @@ const saCommentaryBundle = z.record(
  *  walks it, and the per-type bodies are a wide union the readers already
  *  discriminate for themselves. */
 const dafyomiDaf = z.looseObject({ amudim: z.looseObject({}) });
-
-const sefariaSegments = z.looseObject({ he: z.array(z.string()), en: z.array(z.string()) });
 
 /** Read a cached bundle: `T` is the hand-written interface in lib/sefref,
  *  `schema` the runtime gate. See kvGetJSONAs on why the two are separate. */
@@ -634,7 +633,7 @@ export async function getSefariaSegmentsCached(
   if (cache) {
     const cached = parseJSONAs<SefariaSegments>(
       await cache.get(cacheKey),
-      sefariaSegments,
+      sefariaSegmentsShape,
       cacheKey,
     );
     track?.onCache?.(cached !== undefined ? 'hit' : 'miss');

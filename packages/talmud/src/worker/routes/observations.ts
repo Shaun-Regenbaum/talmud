@@ -43,9 +43,10 @@ export function registerObservationRoutes(app: Hono<{ Bindings: Bindings }>): vo
     // A buffer that cannot be read still answers 'corrupt buffer', as it always
     // has: this is the admin view whose whole job is to show what went wrong, so
     // silently serving an empty list here would hide the thing being looked for.
+    // `!raw` rather than `raw === null`: an empty value has always read as an
+    // empty buffer here, not as a corrupt one.
     const raw = await cache.get(RECENT_ERRORS_KEY);
-    const arr =
-      raw === null ? [] : parseJSONAs<RecentJobError[]>(raw, recordListShape, RECENT_ERRORS_KEY);
+    const arr = !raw ? [] : parseJSONAs<RecentJobError[]>(raw, recordListShape, RECENT_ERRORS_KEY);
     if (!arr) return c.json({ error: 'corrupt buffer' }, 500);
     const idFilter = c.req.query('id');
     const tractateFilter = c.req.query('tractate');
