@@ -3,8 +3,9 @@
  * boolean bridge. Where `bridge.ts` answers "does the sugya continue across the
  * page break?" (one bit), cross-flow answers "WHICH section of daf N relates to
  * WHICH section of daf N+1, and HOW" — typed edges (continues / resolves /
- * depends-on / parallels / contrasts / generalizes) projected onto global
- * coordinates so they join the tractate-wide link graph.
+ * depends-on / parallels / contrasts / generalizes) between the two dapim's
+ * section indices. `crossFlowToLinks` projects an edge onto global coordinates
+ * for callers that want it as a DafLink.
  *
  * Forward window of 1: each daf is responsible for its edges INTO the next daf,
  * so unioning across the tractate yields the whole forward cross-daf graph with

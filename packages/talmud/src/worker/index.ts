@@ -2449,13 +2449,6 @@ app.get('/api/run-tree/:tractate/:page/:id', async (c) => {
   });
 });
 
-// GET /api/daf-runs/:tractate/:page — the WATERFALL feed: every top-level piece
-// run on this daf (all marks + the whole-daf enrichments) with its cached
-// telemetry, read-only. The dev pipeline dock shows these as a network-style
-// waterfall; clicking one drills into its dependency DAG via /api/run-tree.
-// Whole-daf enrichments only (scope=local, not the per-section `argument`
-// enrichments and not the global rabbi/place facets) so each row is one run.
-
 /** Backfill the daf-index for pieces warmed BEFORE the index existed (PR1 only
  *  indexes fresh writes; the warm cron doesn't re-write already-cached content).
  *  Mirrors /api/daf-runs' enumeration exactly — marks + local enrichments
@@ -2532,8 +2525,8 @@ async function backfillDafIndex(
   return n;
 }
 
-/** List the raw daf-index entries (every lang) for a daf — paginated. Backs the
- *  index-backed daf-runs fast path. */
+/** List the raw daf-index entries (every lang) for a daf — paginated. Backs both
+ *  index-backed readers: the daf-runs fast path and the by-anchor groups. */
 async function listDafIndexRaw(
   env: Bindings,
   tractate: string,
@@ -2963,6 +2956,12 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
   return c.body(payload);
 });
 
+// GET /api/daf-runs/:tractate/:page — the WATERFALL feed: every top-level piece
+// run on this daf (all marks + the whole-daf enrichments) with its cached
+// telemetry, read-only. The dev pipeline dock shows these as a network-style
+// waterfall; clicking one drills into its dependency DAG via /api/run-tree.
+// Whole-daf enrichments only (scope=local, not the per-section `argument`
+// enrichments and not the global rabbi/place facets) so each row is one run.
 app.get('/api/daf-runs/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');

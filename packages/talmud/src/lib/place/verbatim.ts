@@ -6,8 +6,8 @@
  * near-variant lives in rabbi-observations.ts). Converging it here means one
  * normalize + one matcher, exercised by a golden regression suite.
  *
- * DOM-free and env-free: pure functions over the segment grid, so both the
- * worker (server post-processing) and the client can import it.
+ * DOM-free and env-free: pure functions over the segment grid, so it imports
+ * cleanly into the worker (server post-processing) and the client bundle alike.
  *
  * IMPORTANT: behavior here must stay byte-identical to the original inline
  * matchers — tests/golden-anchors.test.ts pins it against production output.
