@@ -341,6 +341,10 @@ export const GENERATION_BY_ID: Record<GenerationId, GenerationInfo> = Object.fro
 
 export const GENERATION_IDS: GenerationId[] = GENERATIONS.map((g) => g.id);
 
+/** The same ids as a set, for membership checks on untrusted strings (LLM
+ *  output, query params). */
+export const GENERATION_ID_SET = new Set<string>(GENERATION_IDS);
+
 /** Hex color for a generation id (falls back to neutral gray). Convenience
  *  wrapper over GENERATION_BY_ID for callers that only need the swatch. */
 export function colorForGeneration(id: GenerationId | string | null | undefined): string {
