@@ -33,7 +33,7 @@ Use `--bg`, `--fg`, `--muted`, `--line`, `--surface`, `--surface-sunk`, `--accen
 | `reveal` | `revealInPanel` centers a target in its side panel, drawer or bottom sheet and pulses it once. It follows text that is still loading for two seconds, and stops when the reader scrolls. Motion-sensitive readers get a still tint instead. |
 | `hoverIntent` | Hover that does not flicker between neighbouring items. Used by `GraphView` and `ReadingMap`. |
 | `AiStatusBanner`, `LoadProgress` | Shared status and loading messages. |
-| `InspectorRow`, `RunTree*`, `UsagePage` | Cache inspection, dependency diagrams and usage tables. |
+| `RunTree*`, `RunWaterfall`, `UsagePage` | Cache inspection, dependency diagrams and usage tables. |
 | `GeoMap`, `WorldBubbleMap` | Shared maps. |
 
 Import components by path, for example `@corpus/ui/ReaderHeader`. The package ships Solid source. Both apps exclude it from dependency pre-bundling so the JSX transform runs on it.

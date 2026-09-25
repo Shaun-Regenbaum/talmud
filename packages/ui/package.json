@@ -32,7 +32,6 @@
     "./geo/labels": "./src/geo/labels.ts",
     "./WorldBubbleMap": "./src/WorldBubbleMap.tsx",
     "./LoadProgress": "./src/LoadProgress.tsx",
-    "./InspectorRow": "./src/InspectorRow.tsx",
     "./RunTree": "./src/RunTree.tsx",
     "./RunTreeCanvas": "./src/RunTreeCanvas.tsx",
     "./RunTreeDag": "./src/RunTreeDag.tsx",
