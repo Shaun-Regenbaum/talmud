@@ -8,12 +8,15 @@
  */
 
 import type { Hono } from 'hono';
+import { z } from 'zod';
 import {
   keyForAnalyzeSkeleton,
   keyForMesorah,
   keyForRabbiGraph,
   keyForRegion,
 } from '../cache-keys';
+import { kvGetJSONAs } from '../kv-json';
+import { rabbiGraphBlobShape } from '../kv-shapes';
 import { resolveRabbiByName } from '../rabbi-places';
 import type { Bindings } from '../types';
 import { type RabbiGraphBlob, readEnriched } from './rabbi-admin';
@@ -29,6 +32,22 @@ interface DafSkeleton {
     rabbiNames: string[];
   }>;
 }
+
+/**
+ * Both routes below walk `sections`, so a value without one cannot be joined to
+ * anything and is answered the way a skeleton that was never computed is
+ * answered - where until now it took the handler down with a 500.
+ *
+ * A section's own fields are NOT checked, deliberately. Nothing writes
+ * `analyze-skel:v2:` any more: the /api/analyze pass that produced these is
+ * gone, so every stored skeleton is a model-made artifact that cannot be
+ * remade. Discarding a whole daf over one section missing `rabbiNames` would
+ * be permanent, so the two loops below default it instead.
+ */
+const dafSkeletonShape = z.looseObject({ sections: z.array(z.looseObject({})) });
+
+/** The two computed views, served back with a `_cached` flag added. */
+const cachedViewShape = z.looseObject({});
 
 // --- Daf-scoped: Region (Israel/Bavel) + Migration ----------------------
 // First-pass endpoint reads the cached argument skeleton's rabbiNames per
@@ -129,13 +148,14 @@ export function registerRegionMesorahRoutes(app: Hono<{ Bindings: Bindings }>): 
     const refresh = c.req.query('refresh') === '1';
     const cacheKey = keyForRegion(tractate, page);
     if (!refresh) {
-      const hit = await cache.get(cacheKey);
-      if (hit) return c.json({ ...JSON.parse(hit), _cached: true });
+      const hit = await kvGetJSONAs<object>(cache, cacheKey, cachedViewShape);
+      if (hit) return c.json({ ...hit, _cached: true });
     }
 
     // Pull skeleton (Stage A) — required input.
-    const skelRaw = await cache.get(keyForAnalyzeSkeleton(tractate, page));
-    if (!skelRaw) {
+    const skelKey = keyForAnalyzeSkeleton(tractate, page);
+    const skeleton = await kvGetJSONAs<DafSkeleton>(cache, skelKey, dafSkeletonShape);
+    if (!skeleton) {
       return c.json(
         {
           error: 'No cached skeleton; run /api/analyze/.../?skeleton_only=1 first',
@@ -143,7 +163,6 @@ export function registerRegionMesorahRoutes(app: Hono<{ Bindings: Bindings }>): 
         412,
       );
     }
-    const skeleton = JSON.parse(skelRaw) as DafSkeleton;
 
     const t0 = Date.now();
     const distribution = { israel: 0, bavel: 0, mixed: 0, unknown: 0 };
@@ -157,7 +176,7 @@ export function registerRegionMesorahRoutes(app: Hono<{ Bindings: Bindings }>): 
 
     for (const sec of skeleton.sections) {
       const sages: RegionSagePerSection[] = [];
-      for (const name of sec.rabbiNames) {
+      for (const name of sec.rabbiNames ?? []) {
         totalNamed++;
         const res = resolveRabbiByName(name);
         if (!res) {
@@ -216,12 +235,13 @@ export function registerRegionMesorahRoutes(app: Hono<{ Bindings: Bindings }>): 
 
     const cacheKey = keyForMesorah(tractate, page);
     if (!refresh) {
-      const hit = await cache.get(cacheKey);
-      if (hit) return c.json({ ...JSON.parse(hit), _cached: true });
+      const hit = await kvGetJSONAs<object>(cache, cacheKey, cachedViewShape);
+      if (hit) return c.json({ ...hit, _cached: true });
     }
 
-    const skelRaw = await cache.get(keyForAnalyzeSkeleton(tractate, page));
-    if (!skelRaw) {
+    const skelKey = keyForAnalyzeSkeleton(tractate, page);
+    const skeleton = await kvGetJSONAs<DafSkeleton>(cache, skelKey, dafSkeletonShape);
+    if (!skeleton) {
       return c.json(
         {
           error: 'No cached skeleton; run /api/analyze/.../?skeleton_only=1 first',
@@ -229,17 +249,9 @@ export function registerRegionMesorahRoutes(app: Hono<{ Bindings: Bindings }>): 
         412,
       );
     }
-    const skeleton = JSON.parse(skelRaw) as DafSkeleton;
 
-    const graphRaw = await cache.get(keyForRabbiGraph());
-    let graph: RabbiGraphBlob | null = null;
-    if (graphRaw) {
-      try {
-        graph = JSON.parse(graphRaw) as RabbiGraphBlob;
-      } catch {
-        graph = null;
-      }
-    }
+    const graph =
+      (await kvGetJSONAs<RabbiGraphBlob>(cache, keyForRabbiGraph(), rabbiGraphBlobShape)) ?? null;
 
     const t0 = Date.now();
     const namedSlugs = new Set<string>();
@@ -247,7 +259,7 @@ export function registerRegionMesorahRoutes(app: Hono<{ Bindings: Bindings }>): 
     let totalNamed = 0;
     let resolved = 0;
     for (const sec of skeleton.sections) {
-      for (const name of sec.rabbiNames) {
+      for (const name of sec.rabbiNames ?? []) {
         totalNamed++;
         const res = resolveRabbiByName(name);
         if (!res) continue;

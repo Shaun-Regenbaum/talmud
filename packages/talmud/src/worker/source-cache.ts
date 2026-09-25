@@ -17,6 +17,7 @@
  * nothing there" via an empty bundle ({}) so we don't re-hit upstream.
  */
 
+import { z } from 'zod';
 import {
   fetchHebrewBooksDaf,
   type HalachicRefBundle,
@@ -46,6 +47,8 @@ import {
   keyForYerushalmi,
 } from './cache-keys';
 import { scrapeDafyomiLive } from './dafyomi-live';
+import { kvGetJSONAs, parseJSONAs } from './kv-json';
+import { sefariaSegmentsShape } from './kv-shapes';
 
 const TTL_30_DAYS = 60 * 60 * 24 * 30;
 const TTL_NEGATIVE = 60 * 60;
@@ -66,15 +69,127 @@ export interface SefariaSegments {
   en: string[];
 }
 
-async function readCache<T>(cache: KVNamespace | undefined, key: string): Promise<T | undefined> {
-  if (!cache) return undefined;
-  const raw = await cache.get(key);
-  if (raw === null) return undefined;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return undefined;
-  }
+// ---------------------------------------------------------------------------
+// What we accept back out of KV
+// ---------------------------------------------------------------------------
+//
+// One schema per stored bundle, checked on every read (see kv-json.ts). These
+// are gates against garbage, not a tightening of the contract: a field is only
+// required here when a consumer would throw without it, everything else is
+// optional, and unknown keys pass through untouched so a value written by newer
+// code still reads. A value that fails is treated as a miss, which for these
+// wrappers means "refetch from upstream" — the same thing an expired entry does.
+//
+// The stored formats are unchanged; nothing here is written back.
+
+const failedMarker = z.looseObject({ __failed: z.literal(true) });
+
+/** Either the real bundle or the "we tried, upstream had nothing" marker, which
+ *  shares the key with it. */
+function orFailed<S extends z.ZodType>(schema: S) {
+  return z.union([failedMarker, schema]);
+}
+
+// Only `main` is required: an entry that carries the Gemara column but not a
+// commentary column is a shape the readers already handle, and tests/source-
+// cache.test.ts pins that.
+const hebrewBooksDaf = z.looseObject({
+  main: z.string(),
+  rashi: z.string().optional(),
+  tosafot: z.string().optional(),
+});
+
+const commentarySide = z.looseObject({
+  hebrew: z.string().optional(),
+  english: z.string().optional(),
+  pieces: z.array(z.string()).optional(),
+  pieceKeys: z.array(z.string()).optional(),
+});
+
+const talmudPageData = z.looseObject({
+  mainText: z.looseObject({ hebrew: z.string().optional(), english: z.string().optional() }),
+  rashi: commentarySide.optional(),
+  tosafot: commentarySide.optional(),
+});
+
+// The snippet bundles: the fields used for sorting and anchoring are required,
+// the text is not (every reader of it already copes with a missing side).
+const rishonimBundle = z.array(
+  z.looseObject({
+    label: z.string(),
+    ref: z.string(),
+    hebrew: z.string().optional(),
+    english: z.string().optional(),
+    segStart: z.number(),
+    segEnd: z.number(),
+  }),
+);
+
+const halachaRefBundle = z.record(
+  z.string(),
+  z.array(
+    z.looseObject({
+      ref: z.string(),
+      hebrew: z.string().optional(),
+      english: z.string().optional(),
+      segStart: z.number().optional(),
+      segEnd: z.number().optional(),
+      einMishpat: z.boolean().optional(),
+    }),
+  ),
+);
+
+const codeSources = z.array(
+  z.looseObject({
+    ref: z.string(),
+    category: z.string(),
+    einMishpat: z.boolean().optional(),
+  }),
+);
+
+const dafTopicBundle = z.array(
+  z.looseObject({
+    slug: z.string(),
+    sources: z.array(z.looseObject({ ref: z.string() })),
+  }),
+);
+
+const mishnaBundle = z.array(
+  z.looseObject({
+    ref: z.string(),
+    anchorStartSeg: z.number(),
+    anchorEndSeg: z.number(),
+  }),
+);
+
+const yerushalmiBundle = z.array(
+  z.looseObject({
+    ref: z.string(),
+    anchorStartSeg: z.number(),
+    anchorEndSeg: z.number(),
+  }),
+);
+
+const talmudParallels = z.array(z.looseObject({ anchorRef: z.string(), targetRef: z.string() }));
+
+const saCommentaryBundle = z.record(
+  z.string(),
+  z.looseObject({ hebrew: z.string(), english: z.string(), ref: z.string() }),
+);
+
+/** The committed dafyomi.co.il file. Only `amudim` is required — every reader
+ *  walks it, and the per-type bodies are a wide union the readers already
+ *  discriminate for themselves. */
+const dafyomiDaf = z.looseObject({ amudim: z.looseObject({}) });
+
+/** Read a cached bundle: `T` is the hand-written interface in lib/sefref,
+ *  `schema` the runtime gate. See kvGetJSONAs on why the two are separate. */
+async function readCache<T>(
+  cache: KVNamespace | undefined,
+  key: string,
+  schema: z.ZodType,
+): Promise<T | undefined> {
+  return kvGetJSONAs<T>(cache, key, schema);
 }
 
 async function writeCache(
@@ -104,7 +219,7 @@ export async function getHebrewBooksDafCached(
   // entries hold over-captured (perek-end) or empty (perek-start) Gemara, so
   // bumping forces a refetch with the corrected extraction.
   const key = keyForHebrewBooks(tractate, page);
-  const hit = await readCache<HebrewBooksDaf | FailedMarker>(cache, key);
+  const hit = await readCache<HebrewBooksDaf | FailedMarker>(cache, key, orFailed(hebrewBooksDaf));
   track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) {
     if ('__failed' in hit) return null;
@@ -134,7 +249,7 @@ export async function getSefariaPageCached(
   // v4: switched commentary fetches from Sefaria's v1 `/api/texts/` to v3
   // with nested-array flattening AND fixed the ref construction.
   const key = keyForSefariaBundle(tractate, page);
-  const hit = await readCache<TalmudPageData>(cache, key);
+  const hit = await readCache<TalmudPageData>(cache, key, talmudPageData);
   track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) return hit;
   try {
@@ -192,7 +307,7 @@ export async function getRishonimCached(
   // Gilyon HaShas, Penei Yehoshua, Ben Yehoyada, Chatam Sofer, R' Akiva Eiger).
   // Bump so cached dapim refetch with the new works.
   const key = keyForRishonim(tractate, page);
-  const hit = await readCache<RishonimBundle>(cache, key);
+  const hit = await readCache<RishonimBundle>(cache, key, rishonimBundle);
   track?.onCache?.(hit ? 'hit' : 'miss');
   // Cap on read AND write: a fresh fetch stores the bounded bundle (no version
   // bump, so no Shas-wide re-warm); an older full entry is still bounded in the
@@ -218,7 +333,7 @@ export async function getHalachaRefsCached(
   // v3: snippets carry einMishpat (Ein Mishpat / Ner Mitzvah classical
   // codification flag), and Ein Mishpat refs sort first within each book.
   const key = keyForHalachaRefs(tractate, page);
-  const hit = await readCache<HalachicRefBundle>(cache, key);
+  const hit = await readCache<HalachicRefBundle>(cache, key, halachaRefBundle);
   track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) return hit;
   try {
@@ -240,6 +355,7 @@ export async function getCodeSourcesCached(
   const hit = await readCache<Array<{ ref: string; category: string; einMishpat?: boolean }>>(
     cache,
     key,
+    codeSources,
   );
   if (hit) return hit;
   try {
@@ -268,7 +384,7 @@ export async function getDafTopicsCached(
   track?: CacheTrack,
 ): Promise<SefariaTopicBundle> {
   const key = keyForDafTopics(tractate, page);
-  const hit = await readCache<SefariaTopicBundle>(cache, key);
+  const hit = await readCache<SefariaTopicBundle>(cache, key, dafTopicBundle);
   track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) return hit;
   try {
@@ -292,7 +408,7 @@ export async function getMishnaBundleCached(
   track?: CacheTrack,
 ): Promise<MishnaBundle> {
   const key = keyForMishnaBundle(tractate, page);
-  const hit = await readCache<MishnaBundle>(cache, key);
+  const hit = await readCache<MishnaBundle>(cache, key, mishnaBundle);
   track?.onCache?.(hit ? 'hit' : 'miss');
   if (hit) return hit;
   try {
@@ -317,7 +433,7 @@ export async function getYerushalmiCached(
   page: string,
 ): Promise<YerushalmiBundle> {
   const key = keyForYerushalmi(tractate, page);
-  const hit = await readCache<YerushalmiBundle>(cache, key);
+  const hit = await readCache<YerushalmiBundle>(cache, key, yerushalmiBundle);
   if (hit) return hit;
   try {
     const data = await sefariaAPI.fetchYerushalmiForDaf(tractate, page);
@@ -338,7 +454,13 @@ export async function readCachedYerushalmi(
   tractate: string,
   page: string,
 ): Promise<YerushalmiBundle> {
-  return (await readCache<YerushalmiBundle>(cache, keyForYerushalmi(tractate, page))) ?? [];
+  return (
+    (await readCache<YerushalmiBundle>(
+      cache,
+      keyForYerushalmi(tractate, page),
+      yerushalmiBundle,
+    )) ?? []
+  );
 }
 
 /**
@@ -355,7 +477,7 @@ export async function getTalmudParallelsCached(
   page: string,
 ): Promise<TalmudParallel[]> {
   const key = keyForTalmudParallels(tractate, page);
-  const hit = await readCache<TalmudParallel[]>(cache, key);
+  const hit = await readCache<TalmudParallel[]>(cache, key, talmudParallels);
   if (hit) return hit;
   try {
     const data = await sefariaAPI.fetchTalmudParallels(tractate, page);
@@ -378,7 +500,13 @@ export async function readCachedTalmudParallels(
   tractate: string,
   page: string,
 ): Promise<TalmudParallel[] | null> {
-  return (await readCache<TalmudParallel[]>(cache, keyForTalmudParallels(tractate, page))) ?? null;
+  return (
+    (await readCache<TalmudParallel[]>(
+      cache,
+      keyForTalmudParallels(tractate, page),
+      talmudParallels,
+    )) ?? null
+  );
 }
 
 export async function getSaCommentaryCached(
@@ -388,7 +516,7 @@ export async function getSaCommentaryCached(
   // Cache key: replace slashes/spaces with canonical underscores so it's KV-safe.
   const safeKey = saRef.replace(/[^A-Za-z0-9._:,-]+/g, '_');
   const key = keyForSaCommentary(safeKey);
-  const hit = await readCache<SaCommentaryBundle>(cache, key);
+  const hit = await readCache<SaCommentaryBundle>(cache, key, saCommentaryBundle);
   if (hit) return hit;
   try {
     const data = await sefariaAPI.fetchSaCommentary(saRef);
@@ -442,7 +570,7 @@ export async function getDafyomiContentCached(
   const daf = m[1];
   const key = keyForDafyomi(tractate, daf);
   if (!refresh) {
-    const hit = await readCache<DafyomiDaf | FailedMarker>(cache, key);
+    const hit = await readCache<DafyomiDaf | FailedMarker>(cache, key, orFailed(dafyomiDaf));
     track?.onCache?.(hit ? 'hit' : 'miss');
     if (hit) return '__failed' in hit ? null : hit;
   } else {
@@ -503,15 +631,13 @@ export async function getSefariaSegmentsCached(
 ): Promise<SefariaSegments | null> {
   const cacheKey = keyForSefariaSegments(tractate, page);
   if (cache) {
-    const cached = await cache.get(cacheKey);
-    track?.onCache?.(cached !== null ? 'hit' : 'miss');
-    if (cached !== null) {
-      try {
-        return JSON.parse(cached) as SefariaSegments;
-      } catch {
-        /* fall through */
-      }
-    }
+    const cached = parseJSONAs<SefariaSegments>(
+      await cache.get(cacheKey),
+      sefariaSegmentsShape,
+      cacheKey,
+    );
+    track?.onCache?.(cached !== undefined ? 'hit' : 'miss');
+    if (cached !== undefined) return cached;
   } else {
     track?.onCache?.('miss');
   }

@@ -15,7 +15,14 @@
  * (GET /api/admin/llm-cost -> byDaf); this endpoint is the durable MARK record.
  */
 
+import { z } from 'zod';
 import { keyForMark } from './cache-keys';
+import { kvGetJSONAs } from './kv-json';
+
+/** Only the cost stamp is read out of a cached producer result here, and only
+ *  its own fields are trusted further down, so the gate stops at "an object
+ *  with an object under `cost`". */
+const costEnvelopeShape = z.looseObject({ cost: z.looseObject({}).optional() });
 
 /** The cost stamp shape written onto each cache entry (subset we read here). */
 export interface CostStampLite {
@@ -113,15 +120,8 @@ export async function dafMarkCost(
         page,
         he ? 'he' : 'en',
       );
-      const raw = await cache.get(key);
-      if (!raw) return;
-      let entry: { cost?: CostStampLite };
-      try {
-        entry = JSON.parse(raw) as { cost?: CostStampLite };
-      } catch {
-        return;
-      }
-      if (!entry.cost) return;
+      const entry = await kvGetJSONAs<{ cost?: CostStampLite }>(cache, key, costEnvelopeShape);
+      if (!entry?.cost) return;
       const vc = toVersionCost(verKey, entry.cost);
       totalUsd += bestStampUsd(entry.cost);
       if (baseVer === mark.cache_version) current.push(vc);

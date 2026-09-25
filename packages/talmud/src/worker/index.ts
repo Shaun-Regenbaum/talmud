@@ -48,6 +48,7 @@ import { producerKeyInfo, talmudLegacyKeyScheme } from '@corpus/core/store/key-s
 import { billingSummary, reconcileBilling } from '@corpus/core/telemetry/billing';
 import { recordMcpEvent, surfaceMiddleware } from '@corpus/core/telemetry/surface';
 import { Hono } from 'hono';
+import { z } from 'zod';
 import { GENERATION_ID_SET, GENERATION_IDS, type GenerationId } from '../client/generations';
 import { dedupeBy, dedupeByRange, type MoveLike, selectSectionMoves } from '../lib/argumentMoves';
 import { runPasses } from '../lib/check/passes';
@@ -108,7 +109,6 @@ import {
   keyForEnrichment,
   keyForGemara,
   keyForMark,
-  keyForRabbiEnriched,
   keyForRabbiObs,
   keyForRabbiObsDirty,
   keyForRabbiVoiceGraph,
@@ -169,6 +169,13 @@ import {
   groupByAnchor,
   WHOLE_DAF_ANCHOR,
 } from './inspect-anchors';
+import { kvGetJSONAs, parseJSONAs } from './kv-json';
+import {
+  crossFlowShape,
+  dafBridgeShape,
+  sefariaSegmentsShape,
+  voiceGraphBlobShape,
+} from './kv-shapes';
 import { noteLintAttempt } from './lint-failures';
 import { ALIGN_MARKS } from './mark-categories';
 import { MCP_EXECUTE_TIMEOUT_MS } from './mcp-limits';
@@ -231,7 +238,7 @@ import { registerEnrichmentDefRoutes, registerMarkDefRoutes } from './routes/def
 import { registerHalachaRoutes } from './routes/halacha';
 import { registerObservationRoutes } from './routes/observations';
 import { registerQaRoutes } from './routes/qa';
-import { registerRabbiAdminRoutes } from './routes/rabbi-admin';
+import { readEnriched, registerRabbiAdminRoutes } from './routes/rabbi-admin';
 import { registerRegionMesorahRoutes } from './routes/region-mesorah';
 import { registerTranslateRoutes } from './routes/translate';
 import { registerUsageRoutes } from './routes/usage';
@@ -665,14 +672,8 @@ async function computeDafBridge(env: Bindings, tractate: string, page: string): 
   const cache = env.CACHE;
   const key = keyForBridge(tractate, page);
   if (cache) {
-    const c = await cache.get(key);
-    if (c) {
-      try {
-        return JSON.parse(c) as DafBridge;
-      } catch {
-        /* recompute */
-      }
-    }
+    const hit = await kvGetJSONAs<DafBridge>(cache, key, dafBridgeShape);
+    if (hit) return hit;
   }
 
   // Deterministic: a Hadran in the daf's final segment(s) closes the perek.
@@ -1002,14 +1003,8 @@ async function readCachedBridge(
   tractate: string,
   page: string,
 ): Promise<DafBridge | null> {
-  if (!env.CACHE) return null;
-  const c = await env.CACHE.get(keyForBridge(tractate, page));
-  if (!c) return null;
-  try {
-    return JSON.parse(c) as DafBridge;
-  } catch {
-    return null;
-  }
+  const key = keyForBridge(tractate, page);
+  return (await kvGetJSONAs<DafBridge>(env.CACHE, key, dafBridgeShape)) ?? null;
 }
 
 // Read-only cross-daf flow for a daf (the section-level edges into the next
@@ -1020,14 +1015,8 @@ async function readCachedCrossFlow(
   tractate: string,
   page: string,
 ): Promise<CrossFlow | null> {
-  if (!env.CACHE) return null;
-  const c = await env.CACHE.get(keyForCrossFlow(tractate, page));
-  if (!c) return null;
-  try {
-    return JSON.parse(c) as CrossFlow;
-  } catch {
-    return null;
-  }
+  const key = keyForCrossFlow(tractate, page);
+  return (await kvGetJSONAs<CrossFlow>(env.CACHE, key, crossFlowShape)) ?? null;
 }
 
 // Argument sections of a daf in reading order, with the parallel startSegIdx
@@ -1089,13 +1078,17 @@ async function ensureLearnedAdjacency(env: Bindings): Promise<void> {
     const cache = env.CACHE;
     learnedAdjacencyLoad = (async () => {
       try {
-        const raw = await cache.get(keyForRabbiVoiceGraph());
+        const graphKey = keyForRabbiVoiceGraph();
+        const raw = await cache.get(graphKey);
         if (!raw) {
           setLearnedAdjacency(null); // blob deleted => back to curated-only
           return;
         }
-        const blob = JSON.parse(raw) as VoiceGraphBlob;
-        if (!blob || typeof blob.edges !== 'object') {
+        // A blob we cannot read is NOT treated as an absent one: keeping the
+        // last-good adjacency is better than dropping every learned edge until
+        // the next rebuild.
+        const blob = parseJSONAs<VoiceGraphBlob>(raw, voiceGraphBlobShape, graphKey);
+        if (!blob) {
           console.warn('[learned-adjacency] malformed rabbi-voice-graph blob; keeping last-good');
           return;
         }
@@ -1194,16 +1187,8 @@ async function computeCrossFlow(env: Bindings, tractate: string, page: string): 
   if (!nextPage) return { from, to: null, edges: [], via: 'edge-of-tractate' };
   const to = { tractate, page: nextPage };
   const key = keyForCrossFlow(tractate, page);
-  if (env.CACHE) {
-    const c = await env.CACHE.get(key);
-    if (c) {
-      try {
-        return JSON.parse(c) as CrossFlow;
-      } catch {
-        /* recompute */
-      }
-    }
-  }
+  const hit = await kvGetJSONAs<CrossFlow>(env.CACHE, key, crossFlowShape);
+  if (hit) return hit;
 
   const a = await readSortedSections(env, tractate, page);
   const b = await readSortedSections(env, tractate, nextPage);
@@ -1299,20 +1284,29 @@ interface ConnectCursor {
   amudIdx: number;
   connected: number;
 }
+
+/**
+ * The two Shas-wide sweeps in this file checkpoint the same pair of indices
+ * (the running totals beside them are re-defaulted by the caller, so they are
+ * not required). A cursor that fails restarts the sweep from the beginning,
+ * which is what a missing cursor already does.
+ */
+const sweepCursorShape = z.looseObject({ tractateIdx: z.number(), amudIdx: z.number() });
+
+/** A value this file stores and later hands straight back to a caller: nothing
+ *  reads into it, so all the gate can usefully say is "an object". */
+const storedObjectShape = z.looseObject({});
+
 async function runConnectSweep(env: Bindings): Promise<void> {
   const cache = env.CACHE;
   if (!cache) return;
   const tractates = Object.keys(TRACTATE_END_AMUD);
   if (tractates.length === 0) return;
-  let cur: ConnectCursor = { tractateIdx: 0, amudIdx: 0, connected: 0 };
-  const raw = await cache.get(CONNECT_CURSOR_KEY);
-  if (raw) {
-    try {
-      cur = JSON.parse(raw) as ConnectCursor;
-    } catch {
-      /* reset */
-    }
-  }
+  const cur: ConnectCursor = parseJSONAs<ConnectCursor>(
+    await cache.get(CONNECT_CURSOR_KEY),
+    sweepCursorShape,
+    CONNECT_CURSOR_KEY,
+  ) ?? { tractateIdx: 0, amudIdx: 0, connected: 0 };
   let { tractateIdx, amudIdx, connected } = cur;
   if (tractateIdx >= tractates.length) tractateIdx = 0; // tractate list shrank
   let examined = 0;
@@ -1511,8 +1505,9 @@ app.get('/api/spine-view/:tractate', async (c) => {
   // client requests ?cached=1; serve the shelf on a hit, else fall back to the
   // bounded live build (correct before the shelf is first warmed).
   if (c.req.query('cached') === '1') {
-    const snap = await c.env.CACHE.get(keyForSpineView(tractate));
-    if (snap) return c.json({ ...JSON.parse(snap), fromShelf: true });
+    const shelfKey = keyForSpineView(tractate);
+    const snap = await kvGetJSONAs<object>(c.env.CACHE, shelfKey, storedObjectShape);
+    if (snap) return c.json({ ...snap, fromShelf: true });
   }
   return c.json(await buildSpineView(c.env, tractate));
 });
@@ -1657,6 +1652,10 @@ const SPINE_VIEW_CURSOR_KEY = 'spine-view-cursor:v1';
 // keeps the build spike well within the isolate even though the phase now also
 // runs alone on its own rotated tick (see cron-schedule.ts).
 const SPINE_VIEW_WINDOW = 10;
+/** The per-tractate spine-view accumulator: page -> that daf's built view. The
+ *  page bodies are handed to the client as-is, so only the map is checked. */
+const spineViewAccShape = z.record(z.string(), z.looseObject({}));
+
 interface SpineViewCursor {
   tractateIdx: number;
   amudIdx: number; // index into the WARMED-pages list of the current tractate
@@ -1668,15 +1667,11 @@ async function runSpineViewSnapshot(env: Bindings): Promise<void> {
   const tractates = Object.keys(TRACTATE_END_AMUD);
   if (tractates.length === 0) return;
   try {
-    let cur: SpineViewCursor = { tractateIdx: 0, amudIdx: 0, wraps: 0 };
-    const raw = await cache.get(SPINE_VIEW_CURSOR_KEY);
-    if (raw) {
-      try {
-        cur = JSON.parse(raw) as SpineViewCursor;
-      } catch {
-        /* reset */
-      }
-    }
+    const cur: SpineViewCursor = parseJSONAs<SpineViewCursor>(
+      await cache.get(SPINE_VIEW_CURSOR_KEY),
+      sweepCursorShape,
+      SPINE_VIEW_CURSOR_KEY,
+    ) ?? { tractateIdx: 0, amudIdx: 0, wraps: 0 };
     let { tractateIdx, amudIdx, wraps } = cur;
     if (tractateIdx >= tractates.length) {
       tractateIdx = 0;
@@ -1694,15 +1689,12 @@ async function runSpineViewSnapshot(env: Bindings): Promise<void> {
     const warmedPages = warmed ? pages.filter((p) => warmed.has(p)) : [];
 
     const accKey = keyForSpineViewAcc(tractate);
-    let acc: Record<string, SpineViewDaf> = {};
-    const accRaw = await cache.get(accKey);
-    if (accRaw) {
-      try {
-        acc = JSON.parse(accRaw) as Record<string, SpineViewDaf>;
-      } catch {
-        acc = {};
-      }
-    }
+    const acc: Record<string, SpineViewDaf> =
+      parseJSONAs<Record<string, SpineViewDaf>>(
+        await cache.get(accKey),
+        spineViewAccShape,
+        accKey,
+      ) ?? {};
 
     const window = warmedPages.slice(amudIdx, amudIdx + SPINE_VIEW_WINDOW);
     if (window.length > 0) {
@@ -3018,6 +3010,22 @@ registerEnrichmentDefRoutes(app);
 // other run paths too).
 const SLICE_TTL_S = 30 * 24 * 3600;
 
+// The two per-daf source slices, and the Sefaria segment pair behind them. Each
+// reader indexes straight into these arrays, so a slice missing one is unusable
+// and is better rebuilt; the prose fields are read with a default and stay
+// optional. Rebuilding is cheap - these are assembled from other caches, with no
+// model call.
+const gemaraSliceShape = z.looseObject({
+  segments_he: z.array(z.string()),
+  // English is optional: the readers all guard it (daf-preamble checks it is an
+  // array before using it) and tests/fixtures carry slices without it.
+  segments_en: z.array(z.string()).optional(),
+});
+
+const commentariesSliceShape = z.looseObject({
+  by_commentator: z.record(z.string(), z.looseObject({})),
+});
+
 // Coalesced across concurrent same-daf callers: a cold daf-open fires many
 // runs at once and each would otherwise parse its own copy of the daf text
 // into the shared isolate. The result is read-only to all callers.
@@ -3031,14 +3039,8 @@ function getGemaraSlice(
     const cache = env.CACHE;
     const key = keyForGemara(tractate, page);
     if (cache && !bypass) {
-      const cached = await cache.get(key);
-      if (cached) {
-        try {
-          return JSON.parse(cached) as GemaraSlice;
-        } catch {
-          /* fall through */
-        }
-      }
+      const cached = await kvGetJSONAs<GemaraSlice>(cache, key, gemaraSliceShape);
+      if (cached) return cached;
     }
     const [hb, sef, segs] = await Promise.all([
       getHebrewBooksDafCached(cache, tractate, page),
@@ -3072,14 +3074,8 @@ function getCommentariesSlice(
     const cache = env.CACHE;
     const key = keyForCommentaries(tractate, page);
     if (cache && !bypass) {
-      const cached = await cache.get(key);
-      if (cached) {
-        try {
-          return JSON.parse(cached) as CommentariesSlice;
-        } catch {
-          /* fall through */
-        }
-      }
+      const cached = await kvGetJSONAs<CommentariesSlice>(cache, key, commentariesSliceShape);
+      if (cached) return cached;
     }
     // Rishonim now arrive as per-comment, segment-anchored entries; collapse them
     // back into the per-commentator { hebrew, english, ref } map this slice
@@ -3521,15 +3517,17 @@ export async function readCachedResult(env: Bindings, key: string): Promise<RunR
   try {
     // Stay cache-only: a source miss must not add remote fetches to a warm read.
     const tractate = canonicalTractateName(rabbiKey[1]);
-    const source = await env.CACHE.get(keyForGemara(tractate, rabbiKey[2]));
+    const gemaraKey = keyForGemara(tractate, rabbiKey[2]);
+    const source = await kvGetJSONAs<GemaraSlice>(env.CACHE, gemaraKey, gemaraSliceShape);
     let segments: string[];
     if (source) {
-      segments = (JSON.parse(source) as GemaraSlice).segments_he;
+      segments = source.segments_he;
     } else {
       // Opening a daf refreshes this source even after the generation slice expires.
-      const raw = await env.CACHE.get(keyForSefariaSegments(tractate, rabbiKey[2]));
-      if (!raw) return stored as RunResult;
-      segments = (JSON.parse(raw) as { he: string[] }).he.map(stripHtmlServer);
+      const segKey = keyForSefariaSegments(tractate, rabbiKey[2]);
+      const segs = await kvGetJSONAs<{ he: string[] }>(env.CACHE, segKey, sefariaSegmentsShape);
+      if (!segs) return stored as RunResult;
+      segments = segs.he.map(stripHtmlServer);
     }
     const parsed = filterRabbiBoundaries(stored.parsed, segments.join('\n'));
     if (parsed !== stored.parsed) {
@@ -5435,13 +5433,15 @@ app.get('/api/run-status/:runId', async (c) => {
   const runId = c.req.param('runId');
   const cache = c.env.CACHE;
   if (!cache) return c.json({ error: 'CACHE binding not available' }, 503);
-  const raw = await cache.get(`job:${runId}`);
-  if (raw) {
-    try {
-      return c.json(JSON.parse(raw));
-    } catch {
-      return c.json({ status: 'error', error: 'corrupt job record' }, 500);
-    }
+  const jobKey = `job:${runId}`;
+  const raw = await cache.get(jobKey);
+  if (raw !== null) {
+    // A job record that cannot be read still answers 'corrupt job record': the
+    // caller is polling for a specific run, and telling it the run has not
+    // started yet would leave it polling forever.
+    const job = parseJSONAs<object>(raw, storedObjectShape, jobKey);
+    if (!job) return c.json({ status: 'error', error: 'corrupt job record' }, 500);
+    return c.json(job);
   }
   const cacheKey = c.req.query('k');
   if (cacheKey) {
@@ -6632,9 +6632,9 @@ registerBilingualRoutes(app);
 app.get('/api/admin/rabbi-enriched/:slug', async (c) => {
   if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
   const slug = c.req.param('slug');
-  const hit = await c.env.CACHE.get(keyForRabbiEnriched(slug));
-  if (!hit) return c.json({ error: 'not enriched', slug }, 404);
-  return c.json({ slug, record: JSON.parse(hit) });
+  const record = await readEnriched(c.env.CACHE, slug);
+  if (!record) return c.json({ error: 'not enriched', slug }, 404);
+  return c.json({ slug, record });
 });
 
 // ============================================================================

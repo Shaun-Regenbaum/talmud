@@ -21,6 +21,7 @@
  * the scan has OOM'd reader isolates (128 MB).
  */
 
+import { z } from 'zod';
 import { BAVEL_SHAPE, GEO_CITIES, ISRAEL_SHAPE } from '../client/geoShapes';
 import curatedYerushalmiData from '../lib/data/curated-yerushalmi-parallels.json';
 import rabbiFamilyData from '../lib/data/rabbi-family.json';
@@ -29,6 +30,7 @@ import rabbiOrientationData from '../lib/data/rabbi-orientation.json';
 import rabbiPlacesData from '../lib/data/rabbi-places.json';
 import type { GcTarget } from './cache-gc';
 import { CODE_ENRICHMENTS, CODE_MARKS } from './code-marks';
+import { kvGetJSONAs } from './kv-json';
 import { listEnrichments, listMarks } from './studio-registry';
 import type { EnrichmentScope } from './studio-schema';
 import { getWarmTotal } from './warm-cron';
@@ -949,14 +951,29 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   };
 }
 
+/**
+ * What a servable stats snapshot has to carry. The dashboard walks `marks` and
+ * `enrichments` row by row and adds up `total`, and the per-daf cost report
+ * reads each row's `versions` map, so those are required. Everything else -
+ * the rabbi and hierarchy sections, the per-source buckets - is read with a
+ * default by its own panel and is allowed to be missing, which is how a
+ * snapshot written before a panel existed still serves the rest of the page.
+ */
+const cacheStatsShape = z.looseObject({
+  total: z.number(),
+  marks: z.array(
+    z.looseObject({
+      id: z.string(),
+      label: z.string(),
+      cache_version: z.string(),
+      versions: z.record(z.string(), z.number()),
+    }),
+  ),
+  enrichments: z.array(z.looseObject({ id: z.string() })),
+});
+
 export async function readCachedCacheStats(cache: KVNamespace): Promise<CacheStats | null> {
-  const raw = await cache.get(CACHE_STATS_KEY);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as CacheStats;
-  } catch {
-    return null;
-  }
+  return (await kvGetJSONAs<CacheStats>(cache, CACHE_STATS_KEY, cacheStatsShape)) ?? null;
 }
 
 export async function writeCachedCacheStats(cache: KVNamespace, stats: CacheStats): Promise<void> {

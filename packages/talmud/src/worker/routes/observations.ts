@@ -9,10 +9,26 @@
  */
 
 import type { Hono } from 'hono';
+import { z } from 'zod';
 import { prefixForRabbiObs } from '../cache-keys';
+import { parseJSONAs } from '../kv-json';
+import { recordListShape } from '../kv-shapes';
 import type { ObservationSlice } from '../rabbi-observations';
 import { RECENT_ERRORS_CAP, RECENT_ERRORS_KEY, type RecentJobError } from '../recent-errors';
 import type { Bindings } from '../types';
+
+/** One rabbi's observations for one daf. The route counts by tractate and walks
+ *  the list, so those two are required; an observation's own fields are read
+ *  with a default and left open. */
+const observationSliceShape = z.looseObject({
+  tractate: z.string(),
+  observations: z.array(z.looseObject({})),
+});
+
+/** The cached aggregate the summary view serves back verbatim. Nothing reads
+ *  into it here, so the gate only asks that it be an object and not, say, the
+ *  truncated half of one. */
+const cachedAggregateShape = z.looseObject({});
 
 export function registerObservationRoutes(app: Hono<{ Bindings: Bindings }>): void {
   /**
@@ -24,15 +40,14 @@ export function registerObservationRoutes(app: Hono<{ Bindings: Bindings }>): vo
   app.get('/api/admin/recent-errors', async (c) => {
     const cache = c.env.CACHE;
     if (!cache) return c.json({ error: 'CACHE binding not available' }, 503);
+    // A buffer that cannot be read still answers 'corrupt buffer', as it always
+    // has: this is the admin view whose whole job is to show what went wrong, so
+    // silently serving an empty list here would hide the thing being looked for.
+    // `!raw` rather than `raw === null`: an empty value has always read as an
+    // empty buffer here, not as a corrupt one.
     const raw = await cache.get(RECENT_ERRORS_KEY);
-    let arr: RecentJobError[] = [];
-    if (raw) {
-      try {
-        arr = JSON.parse(raw) as RecentJobError[];
-      } catch {
-        return c.json({ error: 'corrupt buffer' }, 500);
-      }
-    }
+    const arr = !raw ? [] : parseJSONAs<RecentJobError[]>(raw, recordListShape, RECENT_ERRORS_KEY);
+    if (!arr) return c.json({ error: 'corrupt buffer' }, 500);
     const idFilter = c.req.query('id');
     const tractateFilter = c.req.query('tractate');
     let out = arr;
@@ -73,8 +88,12 @@ export function registerObservationRoutes(app: Hono<{ Bindings: Bindings }>): vo
     // out of the summary key.
     const aggKey = `rabbi-obs-agg:v1:${slug}:${summary ? 'all' : typeFilterEarly || 'all'}:${minEarly}:${summary ? 's' : 'f'}`;
     if (summary) {
-      const cachedAgg = await cache.get(aggKey);
-      if (cachedAgg) return c.json(JSON.parse(cachedAgg));
+      const cachedAgg = parseJSONAs<Record<string, unknown>>(
+        await cache.get(aggKey),
+        cachedAggregateShape,
+        aggKey,
+      );
+      if (cachedAgg) return c.json(cachedAgg);
     }
 
     const keys: string[] = [];
@@ -111,15 +130,12 @@ export function registerObservationRoutes(app: Hono<{ Bindings: Bindings }>): vo
     let name = '';
     let nameHe = '';
     for (let i = 0; i < keys.length; i += READ_BATCH) {
-      const raws = await Promise.all(keys.slice(i, i + READ_BATCH).map((k) => cache.get(k)));
-      for (const raw of raws) {
-        if (!raw) continue;
-        let s: ObservationSlice;
-        try {
-          s = JSON.parse(raw) as ObservationSlice;
-        } catch {
-          continue; // skip corrupt slice
-        }
+      const raws = await Promise.all(
+        keys.slice(i, i + READ_BATCH).map(async (k) => ({ key: k, raw: await cache.get(k) })),
+      );
+      for (const { key, raw } of raws) {
+        const s = parseJSONAs<ObservationSlice>(raw, observationSliceShape, key);
+        if (!s) continue; // skip corrupt slice
         dafCount++;
         byTractate[s.tractate] = (byTractate[s.tractate] ?? 0) + 1;
         if (!name && s.name) name = s.name;

@@ -12,6 +12,9 @@
  * attribute cost per mark / enrichment, which the gateway can't break down.
  */
 
+import { z } from 'zod';
+import { parseJSONAs } from './kv-json';
+
 const PREFIX = 'usage:daily:v1:';
 // Keep ~2 years of daily history. These per-day rollups are the durable
 // time-series record (the per-call llmcost ledger is only 7 days), so they
@@ -74,6 +77,26 @@ export interface DailyRollup extends UsageBucket {
   byMark: Record<string, UsageBucket>;
   byEnrichment: Record<string, UsageBucket>;
 }
+
+/**
+ * A stored daily rollup. The fields listed here are the ones the reader adds up
+ * WITHOUT a default - a doc missing one of them would put NaN on the dashboard,
+ * which is the exact failure this gate exists to stop. The later, additive
+ * fields (tokensCached, costInUsd, costOutUsd, dafsWarmed) and the three split
+ * maps are read with a default on purpose, so they stay optional here and a doc
+ * written before they existed still counts.
+ */
+const dailyRollupShape = z.looseObject({
+  date: z.string(),
+  calls: z.number(),
+  tokensIn: z.number(),
+  tokensOut: z.number(),
+  costUsd: z.number(),
+  pricedCalls: z.number(),
+  unpricedCalls: z.number(),
+  errors: z.number(),
+  cacheHits: z.number(),
+});
 
 /** Sentinel key: one per (day, daf), TTL just past the day, so the FIRST fresh
  *  call for a daf on a given day increments `dafsWarmed` and the rest don't.
@@ -162,8 +185,8 @@ async function writeUsage(cache: KVNamespace, d: UsageDelta): Promise<void> {
       }
     }
     const key = PREFIX + date;
-    const existing = await cache.get(key);
-    const r: DailyRollup = existing ? (JSON.parse(existing) as DailyRollup) : emptyRollup(date);
+    const r: DailyRollup =
+      parseJSONAs<DailyRollup>(await cache.get(key), dailyRollupShape, key) ?? emptyRollup(date);
     // Top-level totals.
     applyToBucket(r, d);
     if (!d.ok) r.errors += 1;
@@ -239,21 +262,16 @@ export async function readUsageSummary(cache: KVNamespace, days = 120): Promise<
   keys.sort(); // lexical sort == chronological for YYYY-MM-DD
   const recent = keys.slice(-days);
 
-  const rollups = await Promise.all(recent.map((k) => cache.get(k)));
+  const rollups = await Promise.all(recent.map(async (k) => ({ key: k, raw: await cache.get(k) })));
   const series: DailyRollup[] = [];
   const totals = { ...emptyBucket(), errors: 0, cacheHits: 0 };
   const byModel: Record<string, UsageBucket> = {};
   const byMark: Record<string, UsageBucket> = {};
   const byEnrichment: Record<string, UsageBucket> = {};
 
-  for (const raw of rollups) {
-    if (!raw) continue;
-    let r: DailyRollup;
-    try {
-      r = JSON.parse(raw) as DailyRollup;
-    } catch {
-      continue;
-    }
+  for (const { key, raw } of rollups) {
+    const r = parseJSONAs<DailyRollup>(raw, dailyRollupShape, key);
+    if (!r) continue;
     // Normalize docs stored before additive fields existed, so `series`
     // entries actually satisfy the declared shape (consumers chart them raw).
     r.tokensCached ??= 0;

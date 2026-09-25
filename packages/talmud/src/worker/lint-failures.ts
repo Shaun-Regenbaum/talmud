@@ -16,6 +16,10 @@
  *   lintfail:counts:v1              Record<id,count> — per-enrichment totals
  */
 
+import { z } from 'zod';
+import { parseJSON, parseJSONAs } from './kv-json';
+import { recordListShape } from './kv-shapes';
+
 type Cache = { CACHE?: KVNamespace };
 type Ctx = { waitUntil(p: Promise<unknown>): void };
 
@@ -27,6 +31,9 @@ const COUNTS_KEY = 'lintfail:counts:v1';
 // the counter is never touched again — the TTL just sweeps it up.
 const ATTEMPT_TTL_S = 6 * 60 * 60;
 const RECENT_CAP = 50;
+
+/** The per-enrichment totals: a plain id -> count map. */
+const countsShape = z.record(z.string(), z.number());
 
 /** Pin the best-effort output once a card has failed lint this many times. */
 export const MAX_LINT_ATTEMPTS = 3;
@@ -110,15 +117,14 @@ export function recordLintFailure(env: Cache, ctx: Ctx, f: Omit<LintFailure, 'at
   ctx.waitUntil(
     (async () => {
       try {
-        const raw = await cache.get(RECENT_KEY);
-        const arr: LintFailure[] = raw ? (JSON.parse(raw) as LintFailure[]) : [];
+        const arr =
+          parseJSONAs<LintFailure[]>(await cache.get(RECENT_KEY), recordListShape, RECENT_KEY) ??
+          [];
         arr.unshift({ at: Date.now(), ...f });
         await cache.put(RECENT_KEY, JSON.stringify(arr.slice(0, RECENT_CAP)));
 
-        const craw = await cache.get(COUNTS_KEY);
-        const counts: Record<string, number> = craw
-          ? (JSON.parse(craw) as Record<string, number>)
-          : {};
+        const counts: Record<string, number> =
+          parseJSON(await cache.get(COUNTS_KEY), countsShape, COUNTS_KEY) ?? {};
         counts[f.enrichmentId] = (counts[f.enrichmentId] ?? 0) + 1;
         await cache.put(COUNTS_KEY, JSON.stringify(counts));
       } catch (err) {
@@ -139,8 +145,8 @@ export async function readLintFailures(cache?: KVNamespace): Promise<LintFailure
   try {
     const [r, c] = await Promise.all([cache.get(RECENT_KEY), cache.get(COUNTS_KEY)]);
     return {
-      recent: r ? (JSON.parse(r) as LintFailure[]) : [],
-      counts: c ? (JSON.parse(c) as Record<string, number>) : {},
+      recent: parseJSONAs<LintFailure[]>(r, recordListShape, RECENT_KEY) ?? [],
+      counts: parseJSON(c, countsShape, COUNTS_KEY) ?? {},
     };
   } catch {
     return { recent: [], counts: {} };

@@ -2,6 +2,8 @@
 // same KV key without importing the worker entry file, which would make a
 // cycle. Nothing about the buffer itself changed.
 
+import { parseJSONAs } from './kv-json';
+import { recordListShape } from './kv-shapes';
 import type { Bindings } from './types';
 
 /**
@@ -38,8 +40,12 @@ export async function recordRecentJobError(
   const cache = env.CACHE;
   if (!cache) return;
   try {
-    const existing = await cache.get(RECENT_ERRORS_KEY);
-    const arr = existing ? (JSON.parse(existing) as RecentJobError[]) : [];
+    const arr =
+      parseJSONAs<RecentJobError[]>(
+        await cache.get(RECENT_ERRORS_KEY),
+        recordListShape,
+        RECENT_ERRORS_KEY,
+      ) ?? [];
     arr.push({ ts: Date.now(), ...rec });
     while (arr.length > RECENT_ERRORS_CAP) arr.shift();
     await cache.put(RECENT_ERRORS_KEY, JSON.stringify(arr), { expirationTtl: RECENT_ERRORS_TTL });

@@ -1,0 +1,101 @@
+/**
+ * The shapes the worker accepts back out of KV, for values read in more than
+ * one file. Single-use shapes stay next to their read.
+ *
+ * Read kv-json.ts first: these are gates, not contracts. Every one of them is
+ * written as loosely as the readers allow - unknown keys pass through, a field
+ * is required only when a reader would throw or produce nonsense without it.
+ * The cost of being too strict is real: a generated artifact costs money to
+ * make again, so a schema that rejects a good value is worse than one that lets
+ * an odd value through.
+ */
+
+import { z } from 'zod';
+
+/** `{ tractate, page }`, the daf address used all over the worker. */
+export const dafRefShape = z.looseObject({ tractate: z.string(), page: z.string() });
+
+/**
+ * A stored producer result (the `mark:` / `enrich:` key families). The body
+ * under `parsed` is whatever that producer's own schema says, and readers all
+ * pick their way through it defensively, so this checks only the envelope: an
+ * object, with `parsed` present or not. That is enough to catch a truncated
+ * write or a value from an unrelated key, which is what the readers cannot
+ * survive today.
+ */
+export const artifactEnvelopeShape = z.looseObject({ parsed: z.unknown().optional() });
+
+/**
+ * A ring buffer of records - the telemetry log, the recent-error buffer, the
+ * lint-failure buffer, the bug reports. Every one of them is appended to and
+ * trimmed by its writer, and read back by a dashboard that picks fields off
+ * each entry. So the gate is "a list, of objects": that is all an append needs,
+ * and all a reader needs to not throw. The record bodies vary by writer and
+ * grow fields over time, so they are left open on purpose.
+ */
+export const recordListShape = z.array(z.looseObject({}));
+
+/**
+ * A list whose members are never looked at - an append that only pushes and
+ * trims, or a set of ids fed straight into a `Set`. Use this instead of
+ * recordListShape wherever the stored list is irreplaceable, because
+ * recordListShape DOES check each member: one odd entry fails the whole array,
+ * and on a read-modify-write path that means the next write replaces
+ * everything. Where nothing is dereferenced there is nothing to protect, so
+ * the gate stops at "a list".
+ */
+export const opaqueListShape = z.array(z.unknown());
+
+/**
+ * Sefaria's parallel Hebrew and English segments for a daf. Read from two files,
+ * so it lives here: source-cache serves it, and the rabbi boundary repair in
+ * index.ts falls back to it.
+ *
+ * Only `he` is required. The writer stores a pair, but every reader takes the
+ * English side with a default (`segs?.en ?? []`), a he-only value read fine
+ * before this gate existed, and tests/fixtures carry one - so requiring `en`
+ * would tighten the contract rather than catch garbage.
+ */
+export const sefariaSegmentsShape = z.looseObject({
+  he: z.array(z.string()),
+  en: z.array(z.string()).optional(),
+});
+
+/** The cross-daf sugya bridge (lib/typing/bridge.ts). */
+export const dafBridgeShape = z.looseObject({
+  from: dafRefShape,
+  to: dafRefShape.nullable(),
+  continues: z.boolean(),
+  kind: z.string(),
+  via: z.string(),
+  note: z.string().optional(),
+});
+
+/** How one daf's argument sections relate to the next daf's
+ *  (lib/typing/crossFlow.ts). Edge fields are checked because the renderer
+ *  indexes sections by number. */
+export const crossFlowShape = z.looseObject({
+  from: dafRefShape,
+  to: dafRefShape.nullable(),
+  edges: z.array(
+    z.looseObject({
+      fromSection: z.number(),
+      toSection: z.number(),
+      relation: z.string(),
+      note: z.string().optional(),
+    }),
+  ),
+  via: z.string(),
+});
+
+/** The rabbi hierarchy graph blob (routes/rabbi-admin.ts). The node bodies are
+ *  read field by field with defaults, so only the map itself is required. */
+export const rabbiGraphBlobShape = z.looseObject({ nodes: z.record(z.string(), z.unknown()) });
+
+/** The built voice graph (voice-graph.ts). Node and edge bodies are left open:
+ *  the readers project the fields they want and tolerate the rest. */
+export const voiceGraphBlobShape = z.looseObject({
+  nodes: z.record(z.string(), z.unknown()),
+  edges: z.record(z.string(), z.unknown()),
+  builtAt: z.number(),
+});
