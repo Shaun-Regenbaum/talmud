@@ -20,7 +20,7 @@ import { fetchZoneActivity } from '../cf-zone-analytics';
 import { dafCostReport } from '../daf-cost';
 import { readJsonBody } from '../http-helpers';
 import { parseJSONAs } from '../kv-json';
-import { recordListShape } from '../kv-shapes';
+import { opaqueListShape, recordListShape } from '../kv-shapes';
 import { readLintFailures } from '../lint-failures';
 import { applicationKeyHash, fetchOpenRouterCost } from '../openrouter-cost';
 import { RECENT_ERRORS_KEY, type RecentJobError } from '../recent-errors';
@@ -50,8 +50,11 @@ interface BugReport {
  *  refetched, which is what the 5-minute TTL does anyway. */
 const analyticsResultShape = z.looseObject({ configured: z.boolean(), ok: z.boolean() });
 
-/** The checked-off set: report ids. */
-const dismissedShape = z.array(z.number());
+/** The checked-off set: report ids. Nothing here is dereferenced - the ids go
+ *  straight into a Set - and this list is read-modify-written, so the gate
+ *  stops at "a list". A stricter one would hand back an empty set on one odd
+ *  member and the next write would un-dismiss every report. */
+const dismissedShape = opaqueListShape;
 
 /** A cached section body. It is served back verbatim and its age is read from
  *  `generatedAt` with a fallback, so nothing inside is required. */
@@ -256,6 +259,8 @@ async function buildBacklogSection(cache?: KVNamespace) {
   ]);
   // Bug reports, split into active vs. checked-off ("done"). The dismissed set
   // is a list of report timestamps (a report's `ts` is its id).
+  // recordListShape here, unlike the append path: the two filters below read
+  // `r.ts` off each report, so a member that is not an object would throw.
   const allReports = [
     ...(parseJSONAs<BugReport[]>(repRaw, recordListShape, 'reports:v1:recent') ?? []),
   ].reverse();
@@ -360,9 +365,12 @@ export function registerUsageRoutes(app: Hono<{ Bindings: Bindings }>): void {
     if (cache) {
       try {
         const key = 'reports:v1:recent';
-        // recordListShape, not a per-report shape: these are reader-submitted and
-        // irreplaceable, so one odd entry must not cost the whole buffer.
-        const arr = parseJSONAs<BugReport[]>(await cache.get(key), recordListShape, key) ?? [];
+        // opaqueListShape, not recordListShape: this append never looks inside
+        // a report, and the buffer holds 200 reader-submitted reports that
+        // cannot be made again - so one odd member must not fail the array and
+        // let this write replace the lot. The dashboard, which DOES read into
+        // each report, uses the stricter gate.
+        const arr = parseJSONAs<BugReport[]>(await cache.get(key), opaqueListShape, key) ?? [];
         arr.push(rec);
         while (arr.length > 200) arr.shift();
         await cache.put(key, JSON.stringify(arr), { expirationTtl: 60 * 60 * 24 * 365 });

@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readAiDown } from '../src/worker/ai-down';
-import { keyForAnalyzeSkeleton, keyForRabbiGraph } from '../src/worker/cache-keys';
+import {
+  keyForAnalyzeSkeleton,
+  keyForRabbiEnriched,
+  keyForRabbiGraph,
+} from '../src/worker/cache-keys';
 import worker from '../src/worker/index';
 import { readMark } from '../src/worker/studio-registry';
 import type { Bindings } from '../src/worker/types';
@@ -56,8 +60,8 @@ describe('the warm walk cursor', () => {
   });
 
   it('starts from the beginning when the cursor has an older shape', async () => {
-    // A cursor whose indices are strings would have walked to NaN and stalled
-    // the warm cron on whatever daf it was at.
+    // Named by tractate and amud rather than by index: the walk would have read
+    // undefined for both and stalled on whatever daf it was at.
     silenceWarnings();
     expect(await readWarmCursor(fakeKV({ [KEY]: '{"tractate":"Berakhot","amud":"2a"}' }))).toEqual({
       tractateIdx: 0,
@@ -246,5 +250,114 @@ describe('GET /api/run-status/:runId', () => {
     });
     expect(res.status).toBe(500);
     expect(await res.json()).toMatchObject({ error: 'corrupt job record' });
+  });
+});
+
+// The two gates the first review of this branch found were pointed at the wrong
+// fields. Both are cheap to get wrong again, so they are pinned here.
+
+describe('an enriched rabbi record', () => {
+  const SLUG = 'rav';
+  const KEY = keyForRabbiEnriched(SLUG);
+  // The fields validateLLMRabbiOutput guarantees on every write, and that the
+  // graph compile reads without a guard.
+  const complete = {
+    slug: SLUG,
+    canonical: { en: 'Rav', he: 'רב' },
+    teachers: [],
+    students: [],
+    family: [],
+    opposed: [],
+  };
+
+  it('is served when it has no refs at all', async () => {
+    // The model fills `refs` and the prompt tells it to omit what it has no
+    // evidence for, so a sage with no outside links has no `refs` key. Requiring
+    // one would throw the record away AND make the enrich route pay for a fresh
+    // model call that overwrites it.
+    const res = await get(`https://talmud.dev/api/admin/rabbi-enriched/${SLUG}`, {
+      CACHE: fakeKV({ [KEY]: JSON.stringify(complete) }),
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ slug: SLUG, record: complete });
+  });
+
+  it('is served when it carries fields nothing here knows about', async () => {
+    const res = await get(`https://talmud.dev/api/admin/rabbi-enriched/${SLUG}`, {
+      CACHE: fakeKV({ [KEY]: JSON.stringify({ ...complete, somethingNewer: 1 }) }),
+    });
+    expect(await res.json()).toMatchObject({ record: { somethingNewer: 1 } });
+  });
+
+  it('reads as not enriched when it has no canonical name', async () => {
+    // The graph compile reads canonical.en and canonical.he with no guard.
+    silenceWarnings();
+    const { canonical, ...noName } = complete;
+    const res = await get(`https://talmud.dev/api/admin/rabbi-enriched/${SLUG}`, {
+      CACHE: fakeKV({ [KEY]: JSON.stringify(noName) }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it('reads as not enriched when an edge list is missing', async () => {
+    silenceWarnings();
+    const { teachers, ...noTeachers } = complete;
+    const res = await get(`https://talmud.dev/api/admin/rabbi-enriched/${SLUG}`, {
+      CACHE: fakeKV({ [KEY]: JSON.stringify(noTeachers) }),
+    });
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('a legacy analyze skeleton', () => {
+  const KEY = keyForAnalyzeSkeleton('Berakhot', '2a');
+
+  it('is served when a section has no rabbiNames', async () => {
+    // Nothing writes analyze-skel:v2 any more, so these cannot be remade.
+    // Discarding a whole daf over one odd section would be permanent.
+    const skeleton = { summary: 's', sections: [{ title: 't' }, { rabbiNames: [] }] };
+    const res = await get('https://talmud.dev/api/region/Berakhot/2a', {
+      CACHE: fakeKV({ [KEY]: JSON.stringify(skeleton) }),
+    });
+    expect(res.status).toBe(200);
+  });
+});
+
+describe('POST /api/report (the bug-report buffer)', () => {
+  const KEY = 'reports:v1:recent';
+
+  it('appends without reading into the reports already there', async () => {
+    // These are reader-submitted and cannot be made again. The append gate is
+    // the loose one on purpose: one odd member must not fail the array and let
+    // this write replace 200 reports with a single new one.
+    const store = fakeKV({ [KEY]: '[{"ts":1,"description":"old"},null]' });
+    const res = await worker.fetch(
+      new Request('https://talmud.dev/api/report', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ tractate: 'Berakhot', page: '2a', description: 'new' }),
+      }),
+      { CACHE: store } as Bindings,
+      ctx,
+    );
+    expect(res.status).toBe(200);
+    const written = JSON.parse((await store.get(KEY)) ?? '[]');
+    expect(written).toHaveLength(3);
+    expect(written[0]).toMatchObject({ description: 'old' });
+  });
+
+  it('starts a new buffer when the stored value is not a list at all', async () => {
+    silenceWarnings();
+    const store = fakeKV({ [KEY]: '{"not":"a list"}' });
+    await worker.fetch(
+      new Request('https://talmud.dev/api/report', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ description: 'new' }),
+      }),
+      { CACHE: store } as Bindings,
+      ctx,
+    );
+    expect(JSON.parse((await store.get(KEY)) ?? '[]')).toHaveLength(1);
   });
 });

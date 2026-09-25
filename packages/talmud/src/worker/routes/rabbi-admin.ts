@@ -707,13 +707,30 @@ interface WikiBioStageRecord {
 }
 
 /**
- * An enriched rabbi record. These cost a model call each and there are ~1,300 of
- * them, so this gate is as loose as it can be while still being worth having:
- * the slug it is filed under, and the `refs` object two routes read into
- * without a guard. Every other field is read with a default, including the ones
- * added after the first records were written.
+ * An enriched rabbi record. These cost a model call each and there are ~1,300
+ * of them, so the gate asks for exactly the fields that are BOTH guaranteed by
+ * validateLLMRabbiOutput, which every write goes through (see
+ * enrichRabbiUnified), AND dereferenced without a guard by a reader: the graph
+ * compile below reads `canonical.en` / `canonical.he` and maps over the four
+ * edge arrays. Both halves of that landed the same day as the
+ * `rabbi-enriched:v1:` key, so no stored record can be missing them.
+ *
+ * `refs` is deliberately NOT here even though two routes read into it. The
+ * model fills it, the write-side validator never checks it, and the prompt
+ * tells the model to "omit unknown fields entirely" - so a sage with no
+ * Wikipedia, Wikidata or Encyclopedia link legitimately has no `refs` at all.
+ * Requiring it would have thrown those records away and, worse, made
+ * /api/admin/rabbi-enrich pay for a fresh model call and overwrite them. The
+ * two readers get a `?? {}` instead.
  */
-const enrichedRabbiShape = z.looseObject({ slug: z.string(), refs: z.looseObject({}) });
+const enrichedRabbiShape = z.looseObject({
+  slug: z.string(),
+  canonical: z.looseObject({ en: z.string(), he: z.string() }),
+  teachers: z.array(z.unknown()),
+  students: z.array(z.unknown()),
+  family: z.array(z.unknown()),
+  opposed: z.array(z.unknown()),
+});
 
 /** A compiled blob served straight back to the caller. */
 const compiledBlobShape = z.looseObject({});
@@ -1269,7 +1286,7 @@ export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): voi
 
     const enriched = await readEnriched(cache, slug);
     if (!enriched) return c.json({ error: 'run unified stage first', slug }, 412);
-    const wd = enriched.refs.wikidata;
+    const wd = enriched.refs?.wikidata;
     if (!wd) return c.json({ error: 'no wikidata QID on enriched record', slug }, 422);
 
     const m = wd.match(/Q\d+/);
@@ -1303,8 +1320,8 @@ export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): voi
 
     const enriched = await readEnriched(cache, slug);
     if (!enriched) return c.json({ error: 'run unified stage first', slug }, 412);
-    const enWiki = enriched.refs.enWiki ?? null;
-    const heWiki = enriched.refs.heWiki ?? null;
+    const enWiki = enriched.refs?.enWiki ?? null;
+    const heWiki = enriched.refs?.heWiki ?? null;
     if (!enWiki && !heWiki) return c.json({ error: 'no wiki refs on enriched record', slug }, 422);
 
     const t0 = Date.now();

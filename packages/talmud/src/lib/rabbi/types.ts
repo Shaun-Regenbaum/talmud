@@ -103,7 +103,11 @@ export interface EnrichedRabbi {
   influences: RabbiEdge[];
   events: string[];
 
-  refs: {
+  /** External identifiers. OPTIONAL as a whole, not just field by field: the
+   *  model fills this, the prompt tells it to omit what it has no evidence for,
+   *  and validateLLMRabbiOutput below does not require it - so a sage with no
+   *  outside links has no `refs` key at all. Every reader must guard it. */
+  refs?: {
     sefariaSlug?: string;
     enWiki?: string;
     heWiki?: string;

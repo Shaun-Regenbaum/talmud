@@ -76,7 +76,7 @@ export interface BackfillState {
 /** `source` is checked as a plain string here; the caller already tests it
  *  against BACKFILL_SOURCES and deletes the state key when it does not match,
  *  so keeping the list out of the schema leaves that one decision in one place. */
-const backfillStateShape = z.looseObject({ source: z.string(), cursor: z.string().optional() });
+const backfillStateShape = z.looseObject({ source: z.string(), cursor: z.string().nullish() });
 
 interface BackfillEnv {
   CACHE?: KVNamespace;

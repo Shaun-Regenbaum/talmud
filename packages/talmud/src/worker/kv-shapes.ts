@@ -35,6 +35,32 @@ export const artifactEnvelopeShape = z.looseObject({ parsed: z.unknown().optiona
  */
 export const recordListShape = z.array(z.looseObject({}));
 
+/**
+ * A list whose members are never looked at - an append that only pushes and
+ * trims, or a set of ids fed straight into a `Set`. Use this instead of
+ * recordListShape wherever the stored list is irreplaceable, because
+ * recordListShape DOES check each member: one odd entry fails the whole array,
+ * and on a read-modify-write path that means the next write replaces
+ * everything. Where nothing is dereferenced there is nothing to protect, so
+ * the gate stops at "a list".
+ */
+export const opaqueListShape = z.array(z.unknown());
+
+/**
+ * Sefaria's parallel Hebrew and English segments for a daf. Read from two files,
+ * so it lives here: source-cache serves it, and the rabbi boundary repair in
+ * index.ts falls back to it.
+ *
+ * Only `he` is required. The writer stores a pair, but every reader takes the
+ * English side with a default (`segs?.en ?? []`), a he-only value read fine
+ * before this gate existed, and tests/fixtures carry one - so requiring `en`
+ * would tighten the contract rather than catch garbage.
+ */
+export const sefariaSegmentsShape = z.looseObject({
+  he: z.array(z.string()),
+  en: z.array(z.string()).optional(),
+});
+
 /** The cross-daf sugya bridge (lib/typing/bridge.ts). */
 export const dafBridgeShape = z.looseObject({
   from: dafRefShape,
