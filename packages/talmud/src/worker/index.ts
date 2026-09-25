@@ -319,6 +319,7 @@ import {
 } from './studio-registry';
 import type {
   EnrichmentDependency,
+  EnrichmentScope,
   LLMExtractor,
   MarkDependency,
   EnrichmentDefinition as SchemaEnrichmentDefinition,
@@ -5331,9 +5332,12 @@ const WHOLE_DAF_MARK_IDS: ReadonlySet<string> = new Set(
  *  daf-background.concepts under its own instance key (~20 paid runs per daf
  *  of one identical whole-daf piece — the #426 leak, resurfaced through the
  *  flat shape). Exported for the regression test that pins this set. */
-export function isWholeDafEnrichment(def: EnrichmentDefinition): boolean {
-  const d = def as { target_mark?: string; mark?: string };
-  const targetMark = d.target_mark ?? d.mark;
+export function isWholeDafEnrichment(def: {
+  scope: EnrichmentScope;
+  target_mark?: string;
+  mark?: string;
+}): boolean {
+  const targetMark = def.target_mark ?? def.mark;
   return def.scope === 'local' && !!targetMark && WHOLE_DAF_MARK_IDS.has(targetMark);
 }
 

@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "ship": "bash ../../scripts/ship-guard.sh && vite build && wrangler deploy",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json --noEmit",
     "test": "vitest run",
     "gallery": "vite --config vite.gallery.config.ts",
     "gallery:build": "vite build --config vite.gallery.config.ts"
@@ -23,6 +23,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.54.9",
     "@cloudflare/workers-types": "^5.20260914.1",
+    "@types/node": "22",
     "typescript": "^5.7.0",
     "vite": "^6.0.0",
     "vite-plugin-solid": "^2.11.14",

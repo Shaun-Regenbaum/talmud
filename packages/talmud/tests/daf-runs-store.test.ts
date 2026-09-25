@@ -33,7 +33,6 @@ describe('pieceToRun — adapt an anchor piece to the RunRow shape', () => {
 // These pin the reducer the load bar grounds its completion in — the shared
 // "what's cached on this daf" fraction — so the two surfaces can't disagree.
 const row = (o: Partial<DafRun> & { id: string }): DafRun => ({
-  id: o.id,
   label: o.id,
   kind: 'llm',
   producer: 'enrichment',

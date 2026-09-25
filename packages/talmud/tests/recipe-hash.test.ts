@@ -13,7 +13,12 @@ const baseMark = () => ({
     kind: 'llm' as const,
     system_prompt: 'Identify rabbi names.',
     user_prompt_template: 'Daf: {{gemara}}',
-    output_schema: { type: 'object', properties: { names: { type: 'array' } } },
+    // Arbitrary JSON Schema: the tests below swap in a different shape, and
+    // recipeHash takes the whole extractor as opaque JSON anyway.
+    output_schema: { type: 'object', properties: { names: { type: 'array' } } } as Record<
+      string,
+      unknown
+    >,
     model: 'openrouter/x',
   },
   render: { kind: 'inline', style: 'underline' },

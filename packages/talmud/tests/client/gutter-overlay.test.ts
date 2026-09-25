@@ -48,7 +48,7 @@ describe('gutterPreviewRange', () => {
   const daf = (html: string) => {
     const root = document.createElement('div');
     root.innerHTML = `<div class="daf-main"><div class="daf-text">${html}</div></div>`;
-    document.body.append(root);
+    document.body.appendChild(root);
     return root;
   };
   const words = (n: number, from = 0) =>

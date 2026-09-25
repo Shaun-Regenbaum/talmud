@@ -13,9 +13,11 @@ const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures', 
 
 describe('output schema parity: zod-generated == frozen literal', () => {
   const files = fs.readdirSync(dir).filter((f) => f.endsWith('.json'));
+  // The module also exports a schema *builder* (proseSchema), so it isn't a
+  // uniform record of schemas; read it as unknown and narrow per lookup.
+  const all = schemas as Record<string, unknown>;
 
   it('every fixture has a matching export', () => {
-    const all = schemas as Record<string, unknown>;
     const missing = files.map((f) => f.replace('.json', '')).filter((n) => !all[n]);
     expect(missing).toEqual([]);
     expect(files.length).toBe(49);
@@ -29,9 +31,7 @@ describe('output schema parity: zod-generated == frozen literal', () => {
         strict: boolean;
         schema: unknown;
       };
-      const gen = (schemas as Record<string, { name: string; strict: boolean; schema: unknown }>)[
-        name
-      ];
+      const gen = all[name] as { name: string; strict: boolean; schema: unknown };
       expect(gen.name).toBe(golden.name);
       expect(gen.strict).toBe(true);
       expect(canonicalizeSchema(gen.schema)).toEqual(canonicalizeSchema(golden.schema));

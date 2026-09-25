@@ -1,10 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { injectRabbiUnderlines, normalizeHebrew } from '../../src/client/injectRabbiUnderlines';
+import { GENERATION_BY_ID, type GenerationId } from '../../src/client/generations';
+import {
+  type GenerationRabbi,
+  injectRabbiUnderlines,
+  normalizeHebrew,
+} from '../../src/client/injectRabbiUnderlines';
 import { injectSegmentMarkers } from '../../src/client/injectSegmentMarkers';
 import { tokenizeHebrewHtml } from '../../src/client/tokenize';
 import fixture from '../fixtures/shabbat-55b-rabbi-boundaries.json';
 
-const rabbis = fixture.cachedResult.parsed.instances.map((i) => i.fields);
+// A JSON import types every string as `string`, so the fixture's generation ids
+// have to be checked against the real taxonomy before they count as GenerationId.
+const isGenerationId = (g: string): g is GenerationId => g in GENERATION_BY_ID;
+
+const rabbis: GenerationRabbi[] = fixture.cachedResult.parsed.instances.map((i) => {
+  const { generation } = i.fields;
+  if (!isGenerationId(generation)) throw new Error(`fixture has unknown generation: ${generation}`);
+  return { ...i.fields, generation };
+});
 
 function render(segments: string[], punctuated: boolean) {
   const html = segments

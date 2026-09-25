@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest';
 import {
   flattenPieces,
   flattenTalmudCommentaryPieces,
@@ -163,7 +163,7 @@ describe('pickV3Version', () => {
 });
 
 describe('getTalmudPageWithCommentaries', () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
+  let fetchSpy: MockInstance<typeof fetch>;
 
   beforeEach(() => {
     fetchSpy = vi.spyOn(global, 'fetch');
@@ -334,7 +334,7 @@ describe('getTalmudPageWithCommentaries', () => {
 });
 
 describe('fetchHalachicRefs — Ein Mishpat flagging', () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
+  let fetchSpy: MockInstance<typeof fetch>;
   beforeEach(() => {
     fetchSpy = vi.spyOn(global, 'fetch');
   });
@@ -394,7 +394,7 @@ describe('fetchHalachicRefs — Ein Mishpat flagging', () => {
 });
 
 describe('fetchCodeSources — Ein Mishpat flagging', () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
+  let fetchSpy: MockInstance<typeof fetch>;
   beforeEach(() => {
     fetchSpy = vi.spyOn(global, 'fetch');
   });
