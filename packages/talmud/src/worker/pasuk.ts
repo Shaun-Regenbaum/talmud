@@ -5,8 +5,18 @@
  * previously three copies of the same cache-then-Sefaria dance.
  */
 
+import { z } from 'zod';
 import { sefariaAPI } from '../lib/sefref';
 import { keyForPasuk } from './cache-keys';
+import { kvGetJSONAs } from './kv-json';
+
+/** What a cached verse must carry to be servable: the ref it is for and the two
+ *  text sides. The neighbour refs are derived and may legitimately be absent. */
+const pasukDetailShape = z.looseObject({
+  ref: z.string(),
+  he: z.string(),
+  en: z.string(),
+});
 
 export interface PasukDetail {
   /** Canonical Sefaria ref, e.g. "Proverbs 3:12". */
@@ -74,14 +84,8 @@ export async function fetchPasuk(
   const cache = env.CACHE;
   const key = pasukCacheKey(ref);
   if (cache) {
-    const hit = await cache.get(key);
-    if (hit) {
-      try {
-        return { detail: JSON.parse(hit) as PasukDetail, cached: true };
-      } catch {
-        /* corrupt entry: fall through to a live fetch */
-      }
-    }
+    const hit = await kvGetJSONAs<PasukDetail>(cache, key, pasukDetailShape);
+    if (hit) return { detail: hit, cached: true };
   }
   const res = await sefariaAPI.getText(ref, { context: 0 });
   const heRaw = Array.isArray(res.he) ? res.he.join(' ') : (res.he ?? '');

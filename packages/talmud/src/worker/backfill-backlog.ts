@@ -27,7 +27,7 @@ import { iterAmudim } from '../lib/sefref/amudim';
 import { TRACTATE_IDS } from '../lib/sefref/hebrewbooks/client';
 import { slugDaf } from './cache-keys';
 import { CODE_ENRICHMENTS, CODE_MARKS } from './code-marks';
-import { parseJSON } from './kv-json';
+import { parseJSON, parseJSONAs } from './kv-json';
 import { artifactEnvelopeShape } from './kv-shapes';
 import {
   putObservedConceptsBatch,
@@ -242,7 +242,7 @@ export async function runBacklogBackfill(
   const raw = await cache.get(BACKFILL_STATE_KEY);
   if (!raw) return null;
 
-  const state = parseJSON(raw, backfillStateShape, BACKFILL_STATE_KEY) as BackfillState | undefined;
+  const state = parseJSONAs<BackfillState>(raw, backfillStateShape, BACKFILL_STATE_KEY);
   if (!state) {
     await cache.delete(BACKFILL_STATE_KEY);
     return null;
