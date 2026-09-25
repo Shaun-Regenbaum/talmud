@@ -537,7 +537,10 @@ interface DafSkeleton {
   }>;
 }
 
-const app = new Hono<{ Bindings: Bindings }>();
+// Exported so tests can walk `app.routes` and pin the registered route list
+// (method + path, in registration order). Hono matches in registration order,
+// so that list is part of the worker's behaviour.
+export const app = new Hono<{ Bindings: Bindings }>();
 
 app.get('/api/billing', async (c) => {
   if (!c.env.BILLING_DB || !c.env.BILLING_APP)
