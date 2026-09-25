@@ -228,6 +228,7 @@ import { registerAdminLlmRoutes } from './routes/admin-llm';
 import { registerAdminOpsRoutes } from './routes/admin-ops';
 import { registerAdminTranslateBioRoutes } from './routes/admin-translate-bio';
 import { registerDafSourcesRoutes } from './routes/daf-sources';
+import { registerEnrichmentDefRoutes, registerMarkDefRoutes } from './routes/definitions';
 import { registerObservationRoutes } from './routes/observations';
 import { registerQaRoutes } from './routes/qa';
 import { registerRabbiAdminRoutes } from './routes/rabbi-admin';
@@ -253,17 +254,10 @@ import {
 } from './source-cache';
 import { computeCoverage, isKnownTractate } from './spine-coverage';
 import {
-  deleteEnrichment,
-  deleteMark,
   type EnrichmentDefinition,
   listEnrichments,
   listMarks,
-  readEnrichment,
-  readMark,
   validateEnrichment,
-  validateMark,
-  writeEnrichment,
-  writeMark,
 } from './studio-registry';
 import type {
   EnrichmentDependency,
@@ -419,45 +413,10 @@ app.all('/mcp', async (c) => {
 // ./routes/admin-llm.
 registerAdminLlmRoutes(app);
 
-/**
- * Studio: KV-backed mark + enrichment registries. Definitions live under
- *   mark-defs:v1:{id}        — what to extract from a daf
- *   enrichment-defs:v1:{id}  — what to derive from a mark
- *
- * Ad-hoc runs (no save) hit /api/run with an inline definition. Saved
- * runs reference an id and get cached. The same registry powers Home (all
- * registered enrichments shown as toggles, off by default) and Studio
- * (per-enrichment editor + preview).
- */
-app.get('/api/marks', async (c) => {
-  // Merge KV-stored marks with code-defined seeds. KV wins on id collision
-  // (a saved KV definition overrides a built-in with the same id).
-  const kv = await listMarks(c.env);
-  const kvIds = new Set(kv.map((m) => m.id));
-  const merged = [...CODE_MARKS.filter((m) => !kvIds.has(m.id)), ...kv];
-  return c.json({ marks: merged });
-});
-app.get('/api/marks/:id', async (c) => {
-  const id = c.req.param('id');
-  const kv = await readMark(c.env, id);
-  if (kv) return c.json({ mark: kv });
-  const code = findCodeMark(id);
-  if (code) return c.json({ mark: code });
-  return c.json({ error: 'not found' }, 404);
-});
-app.put('/api/marks/:id', async (c) => {
-  const parsed = await readJsonBody(c);
-  if (!parsed.ok) return parsed.response;
-  const body = parsed.value;
-  const v = validateMark({ ...(body as object), id: c.req.param('id') });
-  if (!v.ok) return c.json({ error: v.error }, 400);
-  const saved = await writeMark(c.env, v.spec);
-  return c.json({ mark: saved });
-});
-app.delete('/api/marks/:id', async (c) => {
-  await deleteMark(c.env, c.req.param('id'));
-  return c.json({ ok: true });
-});
+// --- Studio: mark definitions ---------------------------------------------
+// The KV-backed mark and enrichment registries are served from
+// ./routes/definitions; the mark half registers here.
+registerMarkDefRoutes(app);
 
 // Read-only "marks anchored on this daf" for the alignment workbench. For each
 // gutter mark kind it returns the ALREADY-CACHED instances (segment anchors) +
@@ -3197,59 +3156,9 @@ app.post('/api/admin/rewarm/:id/:tractate/:page', async (c) => {
   return c.json({ status: 'pending', runId, id, tractate, page, lang, cascade });
 });
 
-app.get('/api/enrichments', async (c) => {
-  // Merge KV + code-defined. KV wins on collision. Code-defined entries are
-  // normalized to the KV-flat shape (extractor flattened, `mark` instead of
-  // `target_mark`) so the client gets one consistent shape.
-  const kv = await listEnrichments(c.env);
-  const kvIds = new Set(kv.map((e) => e.id));
-  const codeFlat: Array<EnrichmentDefinition & { mode?: string }> = CODE_ENRICHMENTS.filter(
-    (e) => !kvIds.has(e.id),
-  )
-    .filter((e) => e.extractor.kind === 'llm')
-    .map((e) => ({
-      id: e.id,
-      label: e.label,
-      description: e.description,
-      mark: e.target_mark,
-      mode: e.mode,
-      scope: e.scope,
-      dependencies: e.dependencies,
-      system_prompt: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).system_prompt,
-      user_prompt_template: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>)
-        .user_prompt_template,
-      model: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).model,
-      output_schema: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).output_schema,
-      thinking_off: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>).thinking_off,
-      reasoning_effort: (e.extractor as Extract<typeof e.extractor, { kind: 'llm' }>)
-        .reasoning_effort,
-      cache_version: e.cache_version,
-      source: 'code',
-      updated_at: e.updated_at,
-    }));
-  return c.json({ enrichments: [...codeFlat, ...kv] });
-});
-app.get('/api/enrichments/:id', async (c) => {
-  const id = c.req.param('id');
-  const kv = await readEnrichment(c.env, id);
-  if (kv) return c.json({ enrichment: kv });
-  const code = findCodeEnrichment(id);
-  if (code) return c.json({ enrichment: code });
-  return c.json({ error: 'not found' }, 404);
-});
-app.put('/api/enrichments/:id', async (c) => {
-  const parsed = await readJsonBody(c);
-  if (!parsed.ok) return parsed.response;
-  const body = parsed.value;
-  const v = validateEnrichment({ ...(body as object), id: c.req.param('id') });
-  if (!v.ok) return c.json({ error: v.error }, 400);
-  const saved = await writeEnrichment(c.env, v.spec);
-  return c.json({ enrichment: saved });
-});
-app.delete('/api/enrichments/:id', async (c) => {
-  await deleteEnrichment(c.env, c.req.param('id'));
-  return c.json({ ok: true });
-});
+// --- Studio: enrichment definitions ---------------------------------------
+// The enrichment CRUD now lives in ./routes/definitions.
+registerEnrichmentDefRoutes(app);
 
 // ===========================================================================
 // Source slices — each is a small, independently cached view of the daf.
