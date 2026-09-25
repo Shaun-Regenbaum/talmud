@@ -12,6 +12,8 @@ import type { Hono } from 'hono';
 import { gcStaleCache } from '../cache-gc';
 import { cacheGcTargets, readCachedCacheStats } from '../cache-stats';
 import { readJsonBody } from '../http-helpers';
+import { parseJSONAs } from '../kv-json';
+import { recordListShape } from '../kv-shapes';
 import { isTrustedRequest } from '../request-guards';
 import type { Bindings } from '../types';
 import {
@@ -175,8 +177,7 @@ export function registerAdminOpsRoutes(app: Hono<{ Bindings: Bindings }>): void 
     if (cache) {
       try {
         const key = 'client-logs:recent';
-        const existing = await cache.get(key);
-        const arr = existing ? (JSON.parse(existing) as unknown[]) : [];
+        const arr = parseJSONAs<unknown[]>(await cache.get(key), recordListShape, key) ?? [];
         arr.push(rec);
         while (arr.length > 500) arr.shift();
         await cache.put(key, JSON.stringify(arr), { expirationTtl: 60 * 60 * 24 * 30 });
@@ -189,7 +190,8 @@ export function registerAdminOpsRoutes(app: Hono<{ Bindings: Bindings }>): void 
   app.get('/api/log/recent', async (c) => {
     const cache = c.env.CACHE;
     if (!cache) return c.json({ error: 'no cache' }, 503);
-    const raw = await cache.get('client-logs:recent');
-    return c.json({ logs: raw ? (JSON.parse(raw) as unknown[]) : [] });
+    const key = 'client-logs:recent';
+    const logs = parseJSONAs<unknown[]>(await cache.get(key), recordListShape, key) ?? [];
+    return c.json({ logs });
   });
 }

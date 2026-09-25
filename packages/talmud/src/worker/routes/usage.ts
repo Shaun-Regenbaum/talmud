@@ -12,12 +12,15 @@
  */
 
 import type { Hono } from 'hono';
+import { z } from 'zod';
 import { estimateShasCost } from '../../lib/shasCost';
 import { fetchGatewayCost } from '../aigw-analytics';
 import { readCachedCacheStats } from '../cache-stats';
 import { fetchZoneActivity } from '../cf-zone-analytics';
 import { dafCostReport } from '../daf-cost';
 import { readJsonBody } from '../http-helpers';
+import { parseJSONAs } from '../kv-json';
+import { recordListShape } from '../kv-shapes';
 import { readLintFailures } from '../lint-failures';
 import { applicationKeyHash, fetchOpenRouterCost } from '../openrouter-cost';
 import { RECENT_ERRORS_KEY, type RecentJobError } from '../recent-errors';
@@ -36,6 +39,27 @@ interface BugReport {
   ua: string | null;
   country: string | null;
 }
+
+// ---------------------------------------------------------------------------
+// The shapes this page accepts back out of KV
+// ---------------------------------------------------------------------------
+
+/** All three external-analytics sub-caches answer the same envelope: did we
+ *  have credentials, did the query work, and then a pile of optional figures
+ *  that every panel already renders with a default. A value that fails is
+ *  refetched, which is what the 5-minute TTL does anyway. */
+const analyticsResultShape = z.looseObject({ configured: z.boolean(), ok: z.boolean() });
+
+/** A bug report. `ts` is its id - the dismissed set is a list of them - so it
+ *  is the one field that has to be there. */
+const bugReportsShape = z.array(z.looseObject({ ts: z.number() }));
+
+/** The checked-off set: report ids. */
+const dismissedShape = z.array(z.number());
+
+/** A cached section body. It is served back verbatim and its age is read from
+ *  `generatedAt` with a fallback, so nothing inside is required. */
+const usageSectionShape = z.looseObject({});
 
 function percentile(sorted: number[], p: number): number {
   if (sorted.length === 0) return 0;
@@ -63,14 +87,12 @@ async function loadAigwCached(
   cache?: KVNamespace,
 ): Promise<Awaited<ReturnType<typeof fetchGatewayCost>>> {
   if (!cache) return fetchGatewayCost(c.env);
-  const raw = await cache.get('aigw-cost:v1');
-  if (raw) {
-    try {
-      return JSON.parse(raw) as Awaited<ReturnType<typeof fetchGatewayCost>>;
-    } catch {
-      /* recompute */
-    }
-  }
+  const hit = parseJSONAs<Awaited<ReturnType<typeof fetchGatewayCost>>>(
+    await cache.get('aigw-cost:v1'),
+    analyticsResultShape,
+    'aigw-cost:v1',
+  );
+  if (hit) return hit;
   const fresh = await fetchGatewayCost(c.env);
   c.executionCtx.waitUntil(
     cache.put('aigw-cost:v1', JSON.stringify(fresh), { expirationTtl: 300 }),
@@ -86,14 +108,12 @@ async function loadOpenRouterCostCached(
 ): Promise<Awaited<ReturnType<typeof fetchOpenRouterCost>>> {
   if (!cache) return fetchOpenRouterCost(c.env);
   const billingKey = `or-cost:application-key:v2:${await applicationKeyHash(c.env.OPENROUTER_API_KEY ?? '')}`;
-  const raw = await cache.get(billingKey);
-  if (raw) {
-    try {
-      return JSON.parse(raw) as Awaited<ReturnType<typeof fetchOpenRouterCost>>;
-    } catch {
-      /* recompute */
-    }
-  }
+  const hit = parseJSONAs<Awaited<ReturnType<typeof fetchOpenRouterCost>>>(
+    await cache.get(billingKey),
+    analyticsResultShape,
+    billingKey,
+  );
+  if (hit) return hit;
   const fresh = await fetchOpenRouterCost(c.env);
   c.executionCtx.waitUntil(cache.put(billingKey, JSON.stringify(fresh), { expirationTtl: 300 }));
   return fresh;
@@ -103,14 +123,12 @@ async function loadActivityCached(
   cache?: KVNamespace,
 ): Promise<Awaited<ReturnType<typeof fetchZoneActivity>>> {
   if (!cache) return fetchZoneActivity(c.env);
-  const raw = await cache.get('zone-activity:v1');
-  if (raw) {
-    try {
-      return JSON.parse(raw) as Awaited<ReturnType<typeof fetchZoneActivity>>;
-    } catch {
-      /* recompute */
-    }
-  }
+  const hit = parseJSONAs<Awaited<ReturnType<typeof fetchZoneActivity>>>(
+    await cache.get('zone-activity:v1'),
+    analyticsResultShape,
+    'zone-activity:v1',
+  );
+  if (hit) return hit;
   const fresh = await fetchZoneActivity(c.env);
   c.executionCtx.waitUntil(
     cache.put('zone-activity:v1', JSON.stringify(fresh), { expirationTtl: 300 }),
@@ -147,7 +165,8 @@ function rollupTelemetry(rows: TelemetryRecord[]): TelemetryRollup {
 
 async function buildTelemetrySection(cache?: KVNamespace) {
   const telRaw = cache ? await cache.get('telemetry:v1:recent') : null;
-  const telemetry = telRaw ? (JSON.parse(telRaw) as TelemetryRecord[]) : [];
+  const telemetry =
+    parseJSONAs<TelemetryRecord[]>(telRaw, recordListShape, 'telemetry:v1:recent') ?? [];
   // Group dynamically over whatever endpoint/mark/enrichment values appear, so
   // the dashboard stays correct without code changes as new producers record.
   const group = (
@@ -198,7 +217,8 @@ async function buildCostSection(c: UsageCtx, cache?: KVNamespace) {
   // Cost avoided by serving cache hits, over the recent telemetry window. Each
   // hit's telemetry record recomputes what the call WOULD have cost from the
   // stamped usage, so this is "money the cache saved us" without re-charging.
-  const telemetry = telRaw ? (JSON.parse(telRaw) as TelemetryRecord[]) : [];
+  const telemetry =
+    parseJSONAs<TelemetryRecord[]>(telRaw, recordListShape, 'telemetry:v1:recent') ?? [];
   let avoidedUsd = 0;
   let avoidedCalls = 0;
   for (const r of telemetry) {
@@ -240,22 +260,10 @@ async function buildBacklogSection(cache?: KVNamespace) {
   ]);
   // Bug reports, split into active vs. checked-off ("done"). The dismissed set
   // is a list of report timestamps (a report's `ts` is its id).
-  let allReports: BugReport[] = [];
-  if (repRaw) {
-    try {
-      allReports = [...(JSON.parse(repRaw) as BugReport[])].reverse();
-    } catch {
-      allReports = [];
-    }
-  }
-  let dismissed: number[] = [];
-  if (disRaw) {
-    try {
-      dismissed = JSON.parse(disRaw) as number[];
-    } catch {
-      dismissed = [];
-    }
-  }
+  const allReports = [
+    ...(parseJSONAs<BugReport[]>(repRaw, bugReportsShape, 'reports:v1:recent') ?? []),
+  ].reverse();
+  const dismissed = parseJSONAs<number[]>(disRaw, dismissedShape, REPORTS_DISMISSED_KEY) ?? [];
   const dset = new Set(dismissed);
   const reports = {
     active: allReports.filter((r) => !dset.has(r.ts)),
@@ -269,14 +277,9 @@ async function buildHealthSection(cache?: KVNamespace) {
     cache ? cache.get(RECENT_ERRORS_KEY) : null,
     readLintFailures(cache),
   ]);
-  let jobErrors: RecentJobError[] = [];
-  if (jeRaw) {
-    try {
-      jobErrors = (JSON.parse(jeRaw) as RecentJobError[]).slice(-30).reverse();
-    } catch {
-      jobErrors = [];
-    }
-  }
+  const jobErrors = (parseJSONAs<RecentJobError[]>(jeRaw, recordListShape, RECENT_ERRORS_KEY) ?? [])
+    .slice(-30)
+    .reverse();
   return { jobErrors, lintFailures };
 }
 
@@ -296,12 +299,11 @@ async function serveUsageSection<T>(
   if (cache) {
     const cachedRaw = await cache.get(key);
     if (cachedRaw) {
-      let parsed: (Record<string, unknown> & { generatedAt?: string }) | null = null;
-      try {
-        parsed = JSON.parse(cachedRaw);
-      } catch {
-        parsed = null;
-      }
+      const parsed = parseJSONAs<Record<string, unknown> & { generatedAt?: string }>(
+        cachedRaw,
+        usageSectionShape,
+        key,
+      );
       if (parsed) {
         const age = Date.now() - Date.parse(parsed.generatedAt ?? '');
         const fresh = Number.isFinite(age) && age >= 0 && age < freshMs;
@@ -362,8 +364,7 @@ export function registerUsageRoutes(app: Hono<{ Bindings: Bindings }>): void {
     if (cache) {
       try {
         const key = 'reports:v1:recent';
-        const existing = await cache.get(key);
-        const arr = existing ? (JSON.parse(existing) as BugReport[]) : [];
+        const arr = parseJSONAs<BugReport[]>(await cache.get(key), bugReportsShape, key) ?? [];
         arr.push(rec);
         while (arr.length > 200) arr.shift();
         await cache.put(key, JSON.stringify(arr), { expirationTtl: 60 * 60 * 24 * 365 });
@@ -512,15 +513,12 @@ export function registerUsageRoutes(app: Hono<{ Bindings: Bindings }>): void {
       return c.json({ error: 'bad JSON body' }, 400);
     }
     if (typeof body.ts !== 'number') return c.json({ error: 'ts (number) required' }, 400);
-    const raw = await cache.get(REPORTS_DISMISSED_KEY);
-    let dismissed: number[] = [];
-    if (raw) {
-      try {
-        dismissed = JSON.parse(raw) as number[];
-      } catch {
-        dismissed = [];
-      }
-    }
+    const dismissed =
+      parseJSONAs<number[]>(
+        await cache.get(REPORTS_DISMISSED_KEY),
+        dismissedShape,
+        REPORTS_DISMISSED_KEY,
+      ) ?? [];
     const set = new Set(dismissed);
     if (body.done === false) set.delete(body.ts);
     else set.add(body.ts);
