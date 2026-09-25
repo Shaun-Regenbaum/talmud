@@ -62,6 +62,8 @@ Freshness: each artifact carries the recipe hash it was made with. `GET /api/sta
 
 Human edits: `ArtifactStore.put` in `packages/core/src/store/artifact-store.ts` refuses to overwrite an entry whose provenance says a person wrote it. Nothing in the app writes such entries yet; the guard is there for when it does.
 
+Reading it back: the worker reads a KV value through `parseJSON` / `kvGetJSON` in `packages/talmud/src/worker/kv-json.ts`, which checks it against a zod schema before the caller sees it. A value that is not JSON, or that has the shape an older version of the code wrote, is logged once with its key and then answered as a miss — the same answer the key gives when it is not there at all. The schemas are deliberately loose: a field is required only where a reader would throw or produce nonsense without it, unknown keys pass through, and the value handed back is the one `JSON.parse` produced, not zod's output. Being too strict here throws away entries that cost money to make.
+
 ## The machine interface
 
 `POST /mcp` on talmud.dev is an MCP server built on Cloudflare's code mode (`packages/talmud/src/worker/mcp.ts`). It exposes two tools. `search` lets a model query the OpenAPI document in `mcp-openapi.ts` to find endpoints. `execute` runs model-written TypeScript in a throwaway isolate that can call those endpoints and chain or poll them in one round trip. The isolate has no secrets and no network; its only exit is a bridge back into this same app, limited to `/api/*` paths. One call may run for 90 seconds (`mcp-limits.ts`). `tests/mcp-spec.test.ts` pins that number and the cold-daf wording to what the spec tells the model. [mcp.md](mcp.md) has the details.
