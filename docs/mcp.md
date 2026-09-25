@@ -74,7 +74,7 @@ All of these are described in `mcp-openapi.ts`; `search` finds them. A few that 
 
 ## Adding or changing an endpoint
 
-1. Add the route in `packages/talmud/src/worker/index.ts`. Keep it read-only unless it must write, and gate writes with `isTrustedRequest`.
+1. Add the route in the file under `packages/talmud/src/worker/routes/` that owns its group, or in `index.ts` if it does not belong to one. Keep it read-only unless it must write, and gate writes with `isTrustedRequest` (`request-guards.ts`). Route order is behaviour in Hono, so a new route also goes in the list in `tests/worker-route-table.test.ts`.
 2. Describe it in `mcp-openapi.ts`: path, parameters, response shape, and a plain sentence about what it is for and when it is partial. The description is the only guidance the model gets; write it for a model that has never seen the app.
 3. If the change affects how a model should behave on a cold page, update the `info.description` block at the top of the spec and the test in `tests/mcp-spec.test.ts`.
 4. Add a unit test next to the existing ones in `packages/talmud/tests`. The worker is importable in Node; the Cloudflare runtime is stubbed.
