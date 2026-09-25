@@ -16,13 +16,12 @@
  * entity on a given daf.
  */
 
-const RABBI_PREFIX = 'unknown-rabbi:v1:';
-const PLACE_PREFIX = 'observed-place:v1:';
-const CONCEPT_PREFIX = 'observed-concept:v1:';
-
 import { z } from 'zod';
 import { parseJSONAs } from './kv-json';
 
+const RABBI_PREFIX = 'unknown-rabbi:v1:';
+const PLACE_PREFIX = 'observed-place:v1:';
+const CONCEPT_PREFIX = 'observed-concept:v1:';
 const TTL_S = 60 * 60 * 24 * 365; // a year; the backlog is long-lived
 const MAX_DAFS = 25; // cap the per-entity daf list
 
