@@ -4,7 +4,7 @@
  * page break?" (one bit), cross-flow answers "WHICH section of daf N relates to
  * WHICH section of daf N+1, and HOW" — typed edges (continues / resolves /
  * depends-on / parallels / contrasts / generalizes) projected onto global
- * coordinates so they join the tractate spine graph (spineLinks.ts).
+ * coordinates so they join the tractate-wide link graph.
  *
  * Forward window of 1: each daf is responsible for its edges INTO the next daf,
  * so unioning across the tractate yields the whole forward cross-daf graph with
