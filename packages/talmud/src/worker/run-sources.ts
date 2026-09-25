@@ -23,6 +23,8 @@ import { type YerushalmiFloorGroup, yerushalmiFloorGroups } from '../lib/yerusha
 import { type CuratedYerushalmiParallel, curatedParallelsForDaf } from '../lib/yerushalmiParallels';
 import { keyForBridge } from './cache-keys';
 import { collectContext } from './context-providers';
+import { kvGetJSONAs } from './kv-json';
+import { dafBridgeShape } from './kv-shapes';
 import { placeRevachWithAi } from './revach-ai-place';
 import { getHalachaRefsCached, getMishnaBundleCached, getYerushalmiCached } from './source-cache';
 import type { Bindings } from './types';
@@ -333,16 +335,12 @@ export function buildSourceResolvers<Curated>(
         if (prevPage) {
           let bridge: DafBridge | null = null;
           if (sourcesOnly) {
-            const c = ctx.env.CACHE
-              ? await ctx.env.CACHE.get(keyForBridge(tractate, prevPage))
-              : null;
-            if (c) {
-              try {
-                bridge = JSON.parse(c) as DafBridge;
-              } catch {
-                /* ignore */
-              }
-            }
+            bridge =
+              (await kvGetJSONAs<DafBridge>(
+                ctx.env.CACHE,
+                keyForBridge(tractate, prevPage),
+                dafBridgeShape,
+              )) ?? null;
           } else {
             bridge = await h.computeDafBridge(ctx.env, tractate, prevPage);
           }

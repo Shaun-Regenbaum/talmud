@@ -19,6 +19,8 @@
  */
 
 import type { LLMModelId } from '@corpus/core/llm/llm';
+import { z } from 'zod';
+import { kvGetJSONAs } from './kv-json';
 import type { EnrichmentDependency, EnrichmentScope, MarkDependency } from './studio-schema';
 
 const MARK_PREFIX = 'mark-defs:v2:';
@@ -98,15 +100,23 @@ export interface RegistryEnv {
 // Generic CRUD over a prefixed KV namespace
 // ---------------------------------------------------------------------------
 
+/**
+ * What a stored definition has to carry to be usable. Only two fields: the id
+ * the runner looks it up by, and the cache_version that goes into its cache
+ * key (a definition without one would write results under a key with the word
+ * "undefined" in it). Everything else - prompts, dependencies, model, passes -
+ * is left open, because a definition written before a field existed must still
+ * load: rejecting it would silently fall back to the code-defined producer,
+ * which is the opposite of what an operator who edited it in the UI expects.
+ */
+const definitionShape = z.looseObject({ id: z.string(), cache_version: z.string() });
+
+/** The id list kept alongside each prefix. Non-string members are dropped by
+ *  the caller, as they always were, so the gate only asks for a list. */
+const idIndexShape = z.array(z.unknown());
+
 async function readEntry<T>(env: RegistryEnv, prefix: string, id: string): Promise<T | null> {
-  if (!env.CACHE) return null;
-  const raw = await env.CACHE.get(prefix + id);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
-  }
+  return (await kvGetJSONAs<T>(env.CACHE, prefix + id, definitionShape)) ?? null;
 }
 
 async function writeEntry<T extends { id: string }>(
@@ -140,15 +150,8 @@ async function deleteEntry(
 }
 
 async function readIndex(env: RegistryEnv, indexKey: string): Promise<string[]> {
-  if (!env.CACHE) return [];
-  const raw = await env.CACHE.get(indexKey);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : [];
-  } catch {
-    return [];
-  }
+  const parsed = await kvGetJSONAs<unknown[]>(env.CACHE, indexKey, idIndexShape);
+  return parsed ? parsed.filter((x): x is string => typeof x === 'string') : [];
 }
 
 async function listEntries<T>(env: RegistryEnv, prefix: string, indexKey: string): Promise<T[]> {
