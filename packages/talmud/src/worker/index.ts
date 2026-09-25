@@ -5320,6 +5320,16 @@ const WHOLE_DAF_MARK_IDS: ReadonlySet<string> = new Set(
   CODE_MARKS.filter((m) => (m as { anchor?: string }).anchor === 'whole-daf').map((m) => m.id),
 );
 
+/** The two def shapes isWholeDafEnrichment has to classify identically: the rich
+ *  code/KV-authored shape, which names its mark `target_mark`, and the KV-flat
+ *  shape loadEnrichmentDef returns, which names it `mark`. Requiring one or the
+ *  other means a def shape that drops both cannot quietly compile into "not a
+ *  whole-daf enrichment" — which is the leak described below. */
+type WholeDafCandidate = { scope: EnrichmentScope } & (
+  | { target_mark: string; mark?: string }
+  | { target_mark?: string; mark: string }
+);
+
 /** True for a whole-daf enrichment: a local enrichment whose target mark is a
  *  whole-daf note (daf-background.concepts, argument-overview.flow, tidbit.essay,
  *  biyun.essay). Such an enrichment has exactly one instance per daf, so
@@ -5332,11 +5342,7 @@ const WHOLE_DAF_MARK_IDS: ReadonlySet<string> = new Set(
  *  daf-background.concepts under its own instance key (~20 paid runs per daf
  *  of one identical whole-daf piece — the #426 leak, resurfaced through the
  *  flat shape). Exported for the regression test that pins this set. */
-export function isWholeDafEnrichment(def: {
-  scope: EnrichmentScope;
-  target_mark?: string;
-  mark?: string;
-}): boolean {
+export function isWholeDafEnrichment(def: WholeDafCandidate): boolean {
   const targetMark = def.target_mark ?? def.mark;
   return def.scope === 'local' && !!targetMark && WHOLE_DAF_MARK_IDS.has(targetMark);
 }
