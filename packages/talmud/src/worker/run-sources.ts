@@ -5,8 +5,8 @@
  * that invokes them lives in @corpus/core/run/producer-run.
  *
  * Helpers that remain index-private (they serve routes and other run paths
- * too, or lean on index-private utilities like stripHtmlServer) are injected
- * via `RunSourceHelpers`; everything else is imported directly.
+ * too) are injected via `RunSourceHelpers`; everything else is imported
+ * directly.
  */
 
 import {

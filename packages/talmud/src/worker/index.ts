@@ -161,6 +161,7 @@ import {
   RUN_RETRY_AFTER_S,
 } from './follow-up';
 import { registerHebraizeRoutes } from './hebraize-route';
+import { stripHtmlServer } from './html-text';
 import { getRabbiEntryOr404, readJsonBody } from './http-helpers';
 import {
   aggregateProbes,
@@ -311,13 +312,6 @@ import { runYomiWarmCron } from './yomi-cron';
 // `Bindings` and `JobMessage` now live in ./types (a neutral module so route
 // slices / telemetry / crons can import them without cycling through this entry
 // file). Both are imported at the top of this file.
-
-function stripHtmlServer(html: string): string {
-  return html
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
 
 /**
  * Fetch the Hebrew verbatim text of a single pasuk for prompt injection.
