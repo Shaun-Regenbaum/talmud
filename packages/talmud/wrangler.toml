@@ -219,24 +219,43 @@ workers_dev = false
 preview_urls = false
 routes = [{ pattern = "staging.talmud.dev", custom_domain = true }]
 worker_loaders = [{ binding = "LOADER" }]
-workflows = []
 analytics_engine_datasets = []
 send_email = []
+
+# Workers AI is not inherited by environments. Staging needs it: translate,
+# hebraize and commentary refuse to run without the binding.
+[env.staging.ai]
+binding = "AI"
+
+# Staging generates like production, on its own generator script
+# (talmud-gen-staging, wrangler.generator.toml [env.staging]) and queue.
+[[env.staging.workflows]]
+name = "daf-warm-gen-staging"
+binding = "DAF_WARM_WORKFLOW"
+class_name = "DafWarmWorkflow"
+script_name = "talmud-gen-staging"
 
 [env.staging.vars]
 APP_ENV = "staging"
 BILLING_APP = "talmud"
-GENERATION_DISABLED = "1"
 WORKER_ROLE = "reader"
+AI_GATEWAY_ID = "talmud"
+DEFAULT_LLM_MODEL = "openrouter/deepseek/deepseek-v4-pro"
+OPENROUTER_GATEWAY_PROVIDER = "openrouter"
+# Far below production's caps; the staging OpenRouter key is also capped at
+# 10 USD a week.
+DAILY_BUDGET_USD = "20"
+HOURLY_CUSTOM_BUDGET_USD = "5"
+PAUSED_PRODUCERS = "tidbit.essay,rishonim.synthesis,argument-move.suggested-questions,pesukim.suggested-questions,aggadata.suggested-questions"
 PUBLIC_ORIGIN = "https://staging.talmud.dev"
 LEARNED_ADJACENCY = "1"
 
 [env.staging.triggers]
 crons = []
 
-[env.staging.queues]
-producers = []
-consumers = []
+[[env.staging.queues.producers]]
+queue = "enrichment-jobs-staging"
+binding = "ENRICHMENT_QUEUE"
 
 [[env.staging.kv_namespaces]]
 binding = "CACHE"
