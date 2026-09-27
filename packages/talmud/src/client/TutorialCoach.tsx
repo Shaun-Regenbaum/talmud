@@ -37,13 +37,13 @@ const GAP = 14;
 const PAD = 12;
 const MIN_VERT = 200;
 const MIN_HORIZ = 320;
-const MOBILE_BAR = 72; // room left for the mobile mode bar at the very bottom
+const MOBILE_BAR = 12; // gap left below the mobile sheet
 const MOBILE_POPUP_ROOM = 150; // headroom a translation popup needs above its word
 
-// Steps dropped from the tour on a phone: the click-to-translate gestures (word
-// and phrase) and the ask-your-own-question step are awkward to drive on touch,
-// so mobile skips them. Desktop keeps the full walk.
-const MOBILE_SKIP_IDS = new Set<string>(['translate-word', 'translate-phrase', 'qa']);
+// Steps dropped from the tour on a phone: the full-screen map is laid out for a
+// wide screen, and the ask-your-own-question step is awkward to drive on touch.
+// Desktop keeps the full walk.
+const MOBILE_SKIP_IDS = new Set<string>(['full-map', 'qa']);
 
 type Pos =
   | { mode: 'center' }
@@ -523,7 +523,7 @@ export function TutorialCoach(): JSX.Element {
             {t(step().titleKey)}
           </div>
           <div style={{ 'font-size': '14px', 'line-height': 1.55, color: '#374151' }}>
-            {t(step().bodyKey)}
+            {t((isMobile() && step().bodyKeyMobile) || step().bodyKey)}
           </div>
           <Show when={step().supplement}>{(kind) => <Supplement kind={kind()} />}</Show>
           <Show when={step().id === 'finish'}>
@@ -791,6 +791,10 @@ function Supplement(props: { kind: TourSupplement }): JSX.Element {
         </div>
       </Show>
 
+      <Show when={props.kind === 'full-map'}>
+        <FullMapSketch />
+      </Show>
+
       <Show when={props.kind === 'qa'}>
         <div style={{ display: 'flex', 'flex-direction': 'column', gap: '8px' }}>
           <div style={{ display: 'flex', gap: '6px', 'flex-wrap': 'wrap' }}>
@@ -863,6 +867,70 @@ function SpectrumRow(props: { labelKey: string; ids: GenerationId[] }): JSX.Elem
               />
             );
           }}
+        </For>
+      </div>
+    </div>
+  );
+}
+
+/** A small drawing of the full-screen map: each section is a column with its
+ *  statements under it, and arrows run between the columns. */
+function FullMapSketch(): JSX.Element {
+  const cols = [3, 2, 3];
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: 'relative',
+        border: '1px solid var(--line, #e5e3dc)',
+        'border-radius': '6px',
+        background: '#f8f5ee',
+        padding: '22px 10px 10px',
+      }}
+    >
+      <svg
+        viewBox="0 0 300 20"
+        preserveAspectRatio="none"
+        style={{ position: 'absolute', top: '4px', left: '10px', right: '10px', height: '20px' }}
+        width="calc(100% - 20px)"
+        aria-hidden="true"
+      >
+        <path d="M150 18 V6 H50 V18" fill="none" stroke="#6b7a5e" stroke-width="1.5" />
+        <path d="M250 18 V10 H150 V18" fill="none" stroke="#6b7a5e" stroke-width="1.5" />
+      </svg>
+      <div dir="ltr" style={{ display: 'flex', gap: '8px' }}>
+        <For each={cols}>
+          {(n, idx) => (
+            <div style={{ flex: '1 1 0', display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
+              <div
+                style={{
+                  height: '16px',
+                  border: `1px solid ${idx() === 0 ? 'var(--accent)' : '#d1d5db'}`,
+                  'border-radius': '3px',
+                  background: '#fff',
+                  'font-size': '10px',
+                  'line-height': '14px',
+                  'padding-inline-start': '4px',
+                  color: 'var(--muted, #6b7280)',
+                }}
+              >
+                {idx() + 1}
+              </div>
+              <For each={Array.from({ length: n })}>
+                {() => (
+                  <div
+                    style={{
+                      height: '10px',
+                      'margin-inline-start': '6px',
+                      'border-inline-start': '2px solid #9aa58f',
+                      background: '#fff',
+                      'border-radius': '2px',
+                    }}
+                  />
+                )}
+              </For>
+            </div>
+          )}
         </For>
       </div>
     </div>

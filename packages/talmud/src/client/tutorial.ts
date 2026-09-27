@@ -31,7 +31,13 @@ export type TourNote = 'overview' | 'argument' | 'halacha';
  *  teaches a concept rather than spotlighting a single element (the mark
  *  glyphs, the generation colour scale, the click-to-translate gesture, the
  *  Q&A box). */
-export type TourSupplement = 'icons' | 'spectrum' | 'translate-word' | 'translate-phrase' | 'qa';
+export type TourSupplement =
+  | 'icons'
+  | 'spectrum'
+  | 'translate-word'
+  | 'translate-phrase'
+  | 'qa'
+  | 'full-map';
 
 export interface TourStep {
   id: string;
@@ -39,6 +45,8 @@ export interface TourStep {
   chapterKey: string;
   titleKey: string;
   bodyKey: string;
+  /** Phone copy, when the gesture differs from a computer's. */
+  bodyKeyMobile?: string;
   /** `data-tour` value of a real element on the embedded daf to spotlight. */
   target?: string;
   /** Raw CSS selector to spotlight instead of a `data-tour` target (used for
@@ -64,8 +72,10 @@ export interface TourStep {
 
 /**
  * The ordered walk around the daf. We spotlight real chrome (language, nav, the
- * margin icons, the chip bar), open real notes (an argument, a halacha, the
- * whole-daf overview, the Q&A), and highlight real daf content (a rabbi name).
+ * margin icons, the chip bar, the footer links), open real notes (an argument
+ * with its map, a halacha, the Q&A), and highlight real daf content (a rabbi
+ * name). The full-screen map opens as a modal dialog, which would make the
+ * coach card inert, so its step points at the button and draws a sketch.
  * A couple of concept steps (the translate gesture) centre with a small demo.
  */
 export const TOUR_STEPS: TourStep[] = [
@@ -106,6 +116,7 @@ export const TOUR_STEPS: TourStep[] = [
     translate: 'phrase',
     titleKey: 'tutorial.translatePhrase.title',
     bodyKey: 'tutorial.translatePhrase.body',
+    bodyKeyMobile: 'tutorial.translatePhrase.bodyMobile',
   },
   {
     id: 'marks',
@@ -122,6 +133,15 @@ export const TOUR_STEPS: TourStep[] = [
     note: 'argument',
     titleKey: 'tutorial.argument.title',
     bodyKey: 'tutorial.argument.body',
+  },
+  {
+    id: 'full-map',
+    chapterKey: 'tutorial.chapter.marks',
+    target: 'graph-expand',
+    note: 'argument',
+    titleKey: 'tutorial.fullMap.title',
+    bodyKey: 'tutorial.fullMap.body',
+    supplement: 'full-map',
   },
   {
     id: 'qa',
@@ -148,14 +168,6 @@ export const TOUR_STEPS: TourStep[] = [
     bodyKey: 'tutorial.chips.body',
   },
   {
-    id: 'overview',
-    chapterKey: 'tutorial.chapter.marks',
-    target: 'note-panel',
-    note: 'overview',
-    titleKey: 'tutorial.overview.title',
-    bodyKey: 'tutorial.overview.body',
-  },
-  {
     id: 'underline',
     chapterKey: 'tutorial.chapter.marks',
     selector: 'span.rabbi-underline',
@@ -170,6 +182,13 @@ export const TOUR_STEPS: TourStep[] = [
     target: 'report',
     titleKey: 'tutorial.report.title',
     bodyKey: 'tutorial.report.body',
+  },
+  {
+    id: 'explore',
+    chapterKey: 'tutorial.chapter.done',
+    target: 'explore',
+    titleKey: 'tutorial.explore.title',
+    bodyKey: 'tutorial.explore.body',
   },
   {
     id: 'finish',
