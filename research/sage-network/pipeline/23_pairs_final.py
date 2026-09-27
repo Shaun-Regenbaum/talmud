@@ -25,6 +25,13 @@ TRUST = 0.9
 DIRECTION_SETTLED_FROM = 19     # reader batches before this chose their own rule for kin and teacher
 
 
+def before_direction_rule(batch):
+    """True for a first-queue batch cut before the guide settled kin/teacher direction.
+    Later queues label their batches 'q2-001', 'q3-001' and always had the settled guide."""
+    b = str(batch or '0')
+    return b.isdigit() and int(b) < DIRECTION_SETTLED_FROM
+
+
 def same_string(a, b):
     strip = lambda s: re.sub(r"^(רבי|ר'|רב|רבן) ", 'T ', s)                 # noqa: E731
     return a == b or strip(a) == strip(b)
@@ -47,7 +54,7 @@ if __name__ == '__main__':
             elif k in read:
                 r = read[k]
                 direction = r['direction']
-                if r['kind'] in ('kin', 'teacher') and int(r.get('batch') or 0) < DIRECTION_SETTLED_FROM:
+                if r['kind'] in ('kin', 'teacher') and before_direction_rule(r.get('batch')):
                     direction = None      # the guide had not yet said what direction means for these two kinds
                 row.update(kind=r['kind'], source='reader', direction=direction, sure=r['sure'])
                 if c.get('kind') != r['kind']:
