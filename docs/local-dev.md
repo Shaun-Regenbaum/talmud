@@ -54,7 +54,7 @@ Then a cold `POST /api/run` or `POST /api/daf-generate/:tractate/:page` runs for
 
 ## What needs the shared secret
 
-Routes that spend money on someone else's behalf or change stored content check `x-studio-secret` (or `Authorization: Bearer`) against `STUDIO_SECRET`, in `isTrustedRequest` in `packages/talmud/src/worker/index.ts`. Without the secret set, they return 403. That covers the `/api/admin/*` mutations (rewarm, cache eviction, registry edits) and the privileged knobs on `POST /api/run` (`ad_hoc`, `model_override`, `bypass_cache`). Ordinary reads, `POST /api/run` for a registered producer, and `POST /api/daf-generate` are public, because the reader itself calls them.
+Routes that spend money on someone else's behalf or change stored content check `x-studio-secret` (or `Authorization: Bearer`) against `STUDIO_SECRET`, in `isTrustedRequest` in `packages/talmud/src/worker/request-guards.ts`. Without the secret set, they return 403. That covers the `/api/admin/*` mutations (rewarm, cache eviction, registry edits) and the privileged knobs on `POST /api/run` (`ad_hoc`, `model_override`, `bypass_cache`). Ordinary reads, `POST /api/run` for a registered producer, and `POST /api/daf-generate` are public, because the reader itself calls them.
 
 ## UI-only work without the dev server
 
