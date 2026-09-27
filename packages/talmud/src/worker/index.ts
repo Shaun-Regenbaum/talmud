@@ -7193,7 +7193,7 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
   override async run(event: WorkflowEvent<DafWarmParams>, step: WorkflowStep): Promise<void> {
     const { tractate, page } = event.payload;
     const lang: 'en' | 'he' = event.payload.lang === 'he' ? 'he' : 'en';
-    const wrapped = wrapEnv(this.env);
+    const wrapped = wrapEnv(withStaging(this.env));
     // Experimental (dev-only) producers are never generated in the background.
     const marksLite = CODE_MARKS.filter((m) => !isExperimentalProducer(m.id)).map((m) => ({
       id: m.id,
@@ -7470,6 +7470,9 @@ export default {
     ctx: ExecutionContext,
   ): Promise<void> => {
     console.log('[queue] batch arrived:', batch.messages.length, 'message(s)');
+    // Staging's generator reads through to production's saved values and
+    // writes short-lived staging copies, like the staging reader.
+    env = withStaging(env);
     for (const msg of batch.messages) {
       try {
         await processEnrichmentJob(env, msg.body, ctx);

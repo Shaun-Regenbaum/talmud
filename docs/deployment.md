@@ -18,7 +18,7 @@ The staging readers have their own KV namespaces and their own billing database.
 
 The private service is the only staging Worker bound to production storage. Once `master` contains it, a change to it deploys only after Production approval. Until then, staging keeps running the approved version.
 
-Paid generation is off. Staging has no generation queue, scheduled warming, email binding, or model keys. A page production has not generated yet stays empty on staging and shows the usual "AI generation is paused" banner. That banner does not mean production is out of budget. Pages production has already generated open normally.
+Staging generates like production, with lower limits. Word translation, questions, and pages production has not generated yet all work. Talmud staging has its own generator Worker (`talmud-gen-staging`, the `[env.staging]` section of `wrangler.generator.toml`) and its own queue (`enrichment-jobs-staging`). Both staging sites use their own OpenRouter key (vault `legacy/prod/talmud/openrouter-api-key-staging`), which is capped at 10 USD a week. Staging's daily limit is 20 USD and its hourly limit for typed questions is 5 USD. Staging has no scheduled warming and no email. What staging generates is saved in staging only, and expires within a day like any other staging write.
 
 Billing starts from a copy of production's billing database taken when staging was created. It does not follow later production charges.
 

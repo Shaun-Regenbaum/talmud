@@ -128,3 +128,66 @@ binding = "BILLING_DB"
 database_name = "corpus-billing"
 database_id = "50ab90fa-cfdd-4b8c-8576-68f3eba6371d"
 migrations_dir = "migrations"
+
+# Staging generator (talmud-gen-staging). Runs the same queue consumer and
+# DafWarmWorkflow as production, for staging.talmud.dev only: its own queue,
+# staging's KV (reads fall through to production's saved values via the
+# read-only corpus-staging-source service; writes expire within a day), and
+# staging's billing database. No crons, so nothing warms Shas in the
+# background: it only builds what a staging visitor opens. Budgets are far
+# below production's. Model key: OPENROUTER_API_KEY secret (vault
+# legacy/prod/talmud/openrouter-api-key-staging, weekly cap 10 USD).
+[env.staging]
+name = "talmud-gen-staging"
+workers_dev = false
+preview_urls = false
+send_email = []
+analytics_engine_datasets = []
+
+[env.staging.ai]
+binding = "AI"
+
+[env.staging.vars]
+APP_ENV = "staging"
+BILLING_APP = "talmud"
+AI_GATEWAY_ID = "talmud"
+DEFAULT_LLM_MODEL = "openrouter/deepseek/deepseek-v4-pro"
+OPENROUTER_GATEWAY_PROVIDER = "openrouter"
+LEARNED_ADJACENCY = "1"
+DAILY_BUDGET_USD = "20"
+HOURLY_CUSTOM_BUDGET_USD = "5"
+PAUSED_PRODUCERS = "tidbit.essay,rishonim.synthesis,argument-move.suggested-questions,pesukim.suggested-questions,aggadata.suggested-questions"
+WORKER_ROLE = "generator"
+
+[[env.staging.workflows]]
+name = "daf-warm-gen-staging"
+binding = "DAF_WARM_WORKFLOW"
+class_name = "DafWarmWorkflow"
+
+[[env.staging.queues.consumers]]
+queue = "enrichment-jobs-staging"
+max_batch_size = 1
+max_batch_timeout = 1
+max_concurrency = 4
+max_retries = 1
+
+[[env.staging.queues.producers]]
+queue = "enrichment-jobs-staging"
+binding = "ENRICHMENT_QUEUE"
+
+[[env.staging.kv_namespaces]]
+binding = "CACHE"
+id = "74de4dafe9e94071bcce4ac2873ba043"
+
+[[env.staging.d1_databases]]
+binding = "BILLING_DB"
+database_name = "corpus-billing-staging"
+database_id = "49930fc7-f92a-446b-886d-0ec8ae882dc6"
+migrations_dir = "migrations"
+
+[[env.staging.services]]
+binding = "STAGING_SOURCE"
+service = "corpus-staging-source"
+
+[env.staging.triggers]
+crons = []

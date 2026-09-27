@@ -120,6 +120,8 @@ jobs:
         if: steps.latest.outputs.latest == 'true'
         run: |
           pnpm --filter talmud exec wrangler d1 migrations apply corpus-billing-staging --env staging --remote
+          # The staging generator first: the reader's workflow binding names it.
+          pnpm --filter talmud exec wrangler deploy -c wrangler.generator.toml --env staging
           pnpm --filter talmud exec wrangler deploy --env staging --var BUILD_SHA:$GITHUB_SHA
           pnpm --filter tanach exec wrangler deploy --env staging --var BUILD_SHA:$GITHUB_SHA
       - name: Verify both staged releases and saved content
