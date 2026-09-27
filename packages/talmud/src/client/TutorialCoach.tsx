@@ -39,6 +39,7 @@ const MIN_VERT = 200;
 const MIN_HORIZ = 320;
 const MOBILE_BAR = 12; // gap left below the mobile sheet
 const MOBILE_POPUP_ROOM = 150; // headroom a translation popup needs above its word
+const SETTLE_MS = 300; // how long a target must hold still before the ring shows
 
 // Steps dropped from the tour on a phone: the full-screen map is laid out for a
 // wide screen, and the ask-your-own-question step is awkward to drive on touch.
@@ -84,7 +85,36 @@ export function TutorialCoach(): JSX.Element {
     if (i() > max) setI(max);
   });
 
-  const [rect, setRect] = createSignal<DOMRect | null>(null);
+  const [rect, setRectRaw] = createSignal<DOMRect | null>(null);
+  // The ring appears only once its target has held still for SETTLE_MS (the
+  // scroll has landed and a note has finished growing). Until then the page is
+  // dimmed evenly, so the ring never chases a moving or loading target. Once
+  // shown for a step it stays, and later size changes animate.
+  const [settled, setSettled] = createSignal(false);
+  let settleTimer: ReturnType<typeof setTimeout> | undefined;
+  const setRect = (r: DOMRect | null) => {
+    const prev = rect();
+    const moved =
+      !r ||
+      !prev ||
+      Math.abs(r.top - prev.top) > 1 ||
+      Math.abs(r.left - prev.left) > 1 ||
+      Math.abs(r.width - prev.width) > 1 ||
+      Math.abs(r.height - prev.height) > 1;
+    setRectRaw(r);
+    if (!r) {
+      clearTimeout(settleTimer);
+      return;
+    }
+    if (moved && !settled()) {
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => setSettled(true), SETTLE_MS);
+    }
+  };
+  // While the page scrolls, the ring follows its target frame by frame with
+  // no easing; easing would make it trail behind and drift.
+  const [scrolling, setScrolling] = createSignal(false);
+  let scrollTimer: ReturnType<typeof setTimeout> | undefined;
   const [pos, setPos] = createSignal<Pos | null>(null);
   // The visible band of the (possibly pinch-zoomed / URL-bar-shifted) viewport.
   // On mobile, `position:fixed` paints relative to the layout viewport, so when
@@ -209,6 +239,8 @@ export function TutorialCoach(): JSX.Element {
   };
   onCleanup(() => {
     clearTimeout(retryTimer);
+    clearTimeout(settleTimer);
+    clearTimeout(scrollTimer);
     ro?.disconnect();
   });
 
@@ -286,6 +318,8 @@ export function TutorialCoach(): JSX.Element {
       prevTranslate = s.translate;
     }
     setPos(null);
+    setSettled(false);
+    clearTimeout(settleTimer);
     requestAnimationFrame(() => requestAnimationFrame(() => measure()));
     // Content (notes, the translation popup) and any autoscroll settle async —
     // re-measure a few times so the ring lands on the populated, settled target
@@ -314,11 +348,17 @@ export function TutorialCoach(): JSX.Element {
   // on mobile, through pinch-zoom and the URL-bar show/hide, which fire on the
   // visualViewport (not window) and move where "fixed" actually paints.
   createEffect(() => {
-    const onMove = () =>
+    // Re-measure only. Asking the page to scroll again from inside a scroll
+    // event restarts the smooth scroll every frame, which made it crawl.
+    const onMove = () => {
+      setScrolling(true);
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => setScrolling(false), 150);
       requestAnimationFrame(() => {
         readVp();
-        measure();
+        measure(0, true);
       });
+    };
     readVp();
     window.addEventListener('resize', onMove);
     window.addEventListener('scroll', onMove, true);
@@ -356,7 +396,7 @@ export function TutorialCoach(): JSX.Element {
     onCleanup(() => window.removeEventListener('keydown', onKey));
   });
 
-  const hasRing = () => !!rect();
+  const hasRing = () => !!rect() && settled();
 
   const cardStyle = (): JSX.CSSProperties => {
     const base: JSX.CSSProperties = {
@@ -474,7 +514,9 @@ export function TutorialCoach(): JSX.Element {
               '0 0 0 9999px rgba(17,24,39,0.55), 0 0 0 2px rgba(255,255,255,0.9), 0 0 0 5px var(--accent)',
             'z-index': '6000',
             'pointer-events': 'none',
-            transition: 'top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease',
+            transition: scrolling()
+              ? 'none'
+              : 'top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease',
           }}
         />
       </Show>
