@@ -391,6 +391,41 @@ describe('fetchHalachicRefs — Ein Mishpat flagging', () => {
     // Untagged topical link leaves einMishpat unset (undefined, not false).
     expect(sa?.[0].einMishpat).toBeUndefined();
   });
+
+  it('asks for the exact halacha (context=0) and keeps every linked line', async () => {
+    const textUrls: string[] = [];
+    fetchSpy.mockImplementation(async (input: string | URL | Request) => {
+      const url = typeof input === 'string' ? input : input.toString();
+      if (url.endsWith('/api/related/Berakhot.2a')) {
+        const link = (anchorRef: string) => ({
+          index_title: 'Mishneh Torah, Reading the Shema',
+          category: 'Halakhah',
+          type: 'ein mishpat / ner mitsvah',
+          ref: 'Mishneh Torah, Reading the Shema 1:9',
+          anchorRef,
+        });
+        return jsonResponse({
+          links: [link('Berakhot 2a:3'), link('Berakhot 2a:1'), link('Berakhot 2a:2')],
+        });
+      }
+      if (url.includes('/api/texts/')) {
+        textUrls.push(url);
+        return jsonResponse({ ref: 'Mishneh Torah, Reading the Shema 1:9', he: 'he', text: 'en' });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    const bundle = await sefariaAPI.fetchHalachicRefs('Berakhot', '2a');
+    const [s] = bundle['Mishneh Torah, Reading the Shema'];
+    expect(textUrls).toHaveLength(1);
+    expect(textUrls[0]).toContain('context=0');
+    expect(s.anchors).toEqual([
+      { segStart: 0, segEnd: 0 },
+      { segStart: 1, segEnd: 1 },
+      { segStart: 2, segEnd: 2 },
+    ]);
+    expect(s.segStart).toBe(0);
+  });
 });
 
 describe('fetchCodeSources — Ein Mishpat flagging', () => {

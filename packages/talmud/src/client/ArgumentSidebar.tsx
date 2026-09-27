@@ -42,7 +42,7 @@ import {
 import { selectSectionMoves } from '../lib/argumentMoves';
 import type { SectionExit } from '../lib/context/sectionExits';
 import type { DafGeoModel } from '../lib/geographyModel';
-import { type DerivationSource, parseBavliRef } from '../lib/halacha/codifiers';
+import { lineRangeOf, type TopicCodeRef, type TopicCodifier } from '../lib/halacha/codifiers';
 import { adjacentAmud } from '../lib/sefref/amudim';
 import { dafRefHe, pageLabelHe } from '../lib/sefref/tractates';
 import type { Term } from '../lib/terms/registry';
@@ -58,15 +58,21 @@ import ArgumentFlowGraph, { type FlowConnection, stmtRelKind } from './ArgumentF
 import ArgumentNarrative from './ArgumentNarrative';
 import { type BackgroundGroup, orderBackgroundGroups } from './backgroundGroups';
 import { ChartTableView } from './ChartTableView';
-import CodificationMap from './CodificationMap';
 import { buildConceptMatcher, ConceptLinkProvider } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
-import { type CodificationData, codeMapFromCodification, SIDE_COLOR } from './flow/codeMapLayout';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
 import { GEO_CITIES } from './geoShapes';
 import { Hebraized } from './Hebraized';
+import {
+  CODIFIER_LABEL_KEY,
+  type CodificationData,
+  fetchTopicCodes,
+  remaSummaryFor,
+  SIDE_COLOR,
+  sefariaUrl,
+  summaryFor,
+} from './halachaCodes';
 import { type CatalogKey, lang, t } from './i18n';
-import { CorpusBadge } from './LinkRef';
 import { InspectDot, registerMarkRenderer, runEnrichment } from './MarkEnrichmentCards';
 import type { GeographyData, GeographyEvidence } from './RabbiGeographyCard';
 import RabbiLineageTree, {
@@ -2162,6 +2168,8 @@ interface PracticalData {
   statement: string;
   rows: PracticalRow[];
   note: string;
+  /** The linked code ref the answer rests on (v6+); absent on older entries. */
+  basis?: string;
 }
 /** Old practical shape, still served during the cache-bump stale window
  *  (stale-while-revalidate). Normalized into the new shape so the card renders
@@ -2207,189 +2215,176 @@ interface DisputeData {
   settled: string;
 }
 
-// Halacha codification: the codifier lineage as a CodificationMap — Gemara →
-// Rambam → Tur → Shulchan Aruch, with a present Rema folded in as the
-// Mechaber/Rema disagree edge. A NAMED special block reading the
-// halacha.codification leaf (the {mishnehTorah,tur,shulchanAruch,rema,prose}
-// shape) and mapping it via codeMapFromCodification.
-function HalachaCodification(props: SpecialBlockProps): JSX.Element {
+// Halacha codes: a plain list of the Rambam / Tur / Shulchan Aruch refs Sefaria
+// links to THIS topic's lines of the daf (GET /api/halacha-text?start=&end=),
+// each with its own text. The Shulchan Aruch row splits out the Rema's printed
+// glosses. The AI's one-line summary (halacha.codification) is shown only on a
+// row whose ref it names, so every row is a real, linked source.
+function HalachaCodes(props: SpecialBlockProps): JSX.Element {
   const codification = (): CodificationData | undefined => {
     const d = props.deps['halacha.codification'] as CodificationData | undefined;
-    return d && typeof d.prose === 'string' ? d : undefined;
+    return d && typeof d === 'object' ? d : undefined;
   };
-  const map = () => {
-    const cod = codification();
-    const dafRef =
-      lang() === 'he' ? dafRefHe(props.tractate, props.page) : `${props.tractate} ${props.page}`;
-    return cod ? codeMapFromCodification(cod, dafRef) : null;
-  };
+  const [codes] = createResource(() => {
+    const range = lineRangeOf(props.instance);
+    return range ? { tractate: props.tractate, page: props.page, ...range } : false;
+  }, fetchTopicCodes);
   return (
-    <Show when={map()}>
-      {(m) => (
-        <div style={{ 'margin-top': '0.9rem', position: 'relative' }}>
-          <div
-            style={{
-              'font-size': '0.7rem',
-              'text-transform': 'uppercase',
-              'letter-spacing': '0.08em',
-              color: '#888',
-              'margin-bottom': '0.5rem',
-              display: 'flex',
-              'align-items': 'center',
-              gap: '0.4rem',
-            }}
-          >
-            <span>{t('halacha.codification')}</span>
-            <InspectDot
-              instanceKey={props.instanceKey}
-              leafId="halacha.codification"
-              style={{ 'margin-left': 'auto' }}
-            />
+    <SectionCard
+      label="halacha.codification"
+      inspect={{ instanceKey: props.instanceKey, leafId: 'halacha.codification' }}
+    >
+      <Show when={!codes.loading} fallback={<div style={CODE_MUTED}>…</div>}>
+        <Show
+          when={(codes() ?? []).length > 0}
+          fallback={<div style={CODE_MUTED}>{t('halacha.codes.none')}</div>}
+        >
+          <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.75rem' }}>
+            <For each={codes()}>
+              {(c) => (
+                <For each={c.refs}>
+                  {(r) => (
+                    <HalachaCodeRow
+                      codifier={c}
+                      code={r}
+                      summary={summaryFor(codification(), c.id, r.ref)}
+                      remaSummary={
+                        c.id === 'shulchan-aruch' ? remaSummaryFor(codification(), r.ref) : ''
+                      }
+                    />
+                  )}
+                </For>
+              )}
+            </For>
           </div>
-          <CodificationMap nodes={m().nodes} edges={m().edges} />
-          <HalachaSourceTexts tractate={props.tractate} page={props.page} />
-        </div>
-      )}
-    </Show>
+        </Show>
+      </Show>
+    </SectionCard>
   );
 }
 
-// One codifier's grounded source texts (the real Sefaria text already cached in
-// the halacha-refs bundle), as returned by GET /api/halacha-text.
-interface HalachaTextRef {
-  ref: string;
-  hebrew: string;
-  english: string;
-  einMishpat: boolean;
-}
-interface HalachaTextNode {
-  id: string;
-  label: string;
-  short: string;
-  tier: string;
-  einMishpat: boolean;
-  refs: HalachaTextRef[];
+const CODE_MUTED: JSX.CSSProperties = { 'font-size': '0.8rem', color: '#8a857a' };
+const CODE_TAG: JSX.CSSProperties = {
+  'font-size': '0.62rem',
+  'text-transform': 'uppercase',
+  'letter-spacing': '0.05em',
+  color: '#8a7a4f',
+};
+const CODE_HE: JSX.CSSProperties = {
+  margin: '0.3rem 0 0',
+  'font-size': '0.9rem',
+  'line-height': 1.7,
+  'text-align': 'right',
+  color: '#2a2723',
+};
+
+// Clamp a long code text (a whole Tur siman) to a few lines until opened.
+function clampStyle(open: boolean, lines: number): JSX.CSSProperties {
+  return open
+    ? {}
+    : {
+        display: '-webkit-box',
+        '-webkit-line-clamp': String(lines),
+        '-webkit-box-orient': 'vertical',
+        overflow: 'hidden',
+      };
 }
 
-// A collapsed "source texts" disclosure under the codification map: the actual
-// Mishneh Torah / Tur / Shulchan Aruch (+ secondary) text the card is built
-// from. Lazily fetched on first open (the bundle is already warm whenever a
-// codification card shows, so this is a cache hit), so the default view stays
-// uncluttered.
-function HalachaSourceTexts(props: { tractate: string; page: string }): JSX.Element {
+function HalachaCodeRow(props: {
+  codifier: TopicCodifier;
+  code: TopicCodeRef;
+  summary: string;
+  remaSummary: string;
+}): JSX.Element {
   const [open, setOpen] = createSignal(false);
-  const [nodes] = createResource(
-    () => (open() ? `${props.tractate}|${props.page}` : false),
-    async (): Promise<HalachaTextNode[]> => {
-      try {
-        const r = await fetch(
-          `/api/halacha-text/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}`,
-        );
-        if (!r.ok) return [];
-        return ((await r.json()) as { nodes?: HalachaTextNode[] }).nodes ?? [];
-      } catch {
-        return [];
-      }
-    },
-  );
-  const muted: JSX.CSSProperties = {
-    'font-size': '0.72rem',
-    color: '#aaa',
-    'margin-top': '0.4rem',
-  };
+  const labelKey = (): CatalogKey | undefined => CODIFIER_LABEL_KEY[props.codifier.id];
+  const long = (): boolean =>
+    props.code.hebrew.length > 220 || props.code.english.length > 0 || !!props.code.rema?.length;
   return (
-    <div style={{ 'margin-top': '0.6rem' }}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        style={{
-          'font-size': '0.66rem',
-          'text-transform': 'uppercase',
-          'letter-spacing': '0.06em',
-          color: '#888',
-          background: 'none',
-          border: 'none',
-          padding: '0',
-          cursor: 'pointer',
-          display: 'flex',
-          'align-items': 'center',
-          gap: '0.35rem',
-        }}
+    <div style={{ 'border-left': '2px solid #e3ddcb', 'padding-left': '0.6rem' }}>
+      <div
+        style={{ display: 'flex', 'align-items': 'baseline', gap: '0.45rem', 'flex-wrap': 'wrap' }}
       >
-        <span>{open() ? '▾' : '▸'}</span>
-        <span>{t('halacha.sourceTexts')}</span>
-      </button>
-      <Show when={open()}>
-        <Show when={!nodes.loading} fallback={<div style={muted}>…</div>}>
-          <Show
-            when={(nodes() ?? []).length > 0}
-            fallback={<div style={muted}>{t('halacha.sourceTexts.none')}</div>}
-          >
-            <div
-              style={{
-                'margin-top': '0.45rem',
-                display: 'flex',
-                'flex-direction': 'column',
-                gap: '0.7rem',
-              }}
-            >
-              <For each={nodes()}>
-                {(node) => (
-                  <div>
-                    <div style={{ 'font-size': '0.7rem', 'font-weight': 600, color: '#555' }}>
-                      {node.label}
-                    </div>
-                    <For each={node.refs}>
-                      {(r) => (
-                        <div
-                          style={{
-                            'margin-top': '0.35rem',
-                            'border-left': '2px solid #eee',
-                            'padding-left': '0.5rem',
-                          }}
-                        >
-                          <div style={{ 'font-size': '0.64rem', color: '#3a6ea5' }}>
-                            {r.ref}
-                            <Show when={r.einMishpat}>
-                              <span style={{ color: '#b8860b', 'margin-left': '0.4rem' }}>
-                                · Ein Mishpat
-                              </span>
-                            </Show>
-                          </div>
-                          <Show when={r.hebrew}>
-                            <p
-                              dir="rtl"
-                              style={{
-                                margin: '0.2rem 0 0',
-                                'font-size': '0.86rem',
-                                'line-height': '1.7',
-                                'text-align': 'right',
-                              }}
-                            >
-                              {r.hebrew}
-                            </p>
-                          </Show>
-                          <Show when={r.english}>
-                            <p
-                              style={{
-                                margin: '0.2rem 0 0',
-                                'font-size': '0.74rem',
-                                'line-height': '1.5',
-                                color: '#666',
-                              }}
-                            >
-                              {r.english}
-                            </p>
-                          </Show>
-                        </div>
-                      )}
-                    </For>
-                  </div>
-                )}
-              </For>
+        <span style={{ 'font-size': '0.86rem', 'font-weight': 600, color: '#2a2723' }}>
+          {labelKey() ? t(labelKey() as CatalogKey) : props.codifier.short}
+        </span>
+        <a
+          href={sefariaUrl(props.code.ref)}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            'font-size': '0.74rem',
+            color: 'var(--link, #3a6ea5)',
+            'text-decoration': 'none',
+          }}
+        >
+          {props.code.ref}
+        </a>
+        <Show when={props.code.einMishpat}>
+          <span style={CODE_TAG}>{t('halacha.codes.einMishpat')}</span>
+        </Show>
+      </div>
+      <Show when={props.code.match === 'near'}>
+        <div style={{ ...CODE_MUTED, 'font-size': '0.72rem', 'margin-top': '0.1rem' }}>
+          {t('halacha.codes.near')}
+        </div>
+      </Show>
+      <Show when={props.summary}>
+        <div style={{ ...PRACTICAL_TEXT_STYLE, 'margin-top': '0.25rem' }}>
+          <HebraizedWithRabbis text={props.summary} />
+        </div>
+      </Show>
+      <Show when={props.code.hebrew}>
+        <p dir="rtl" lang="he" style={{ ...CODE_HE, ...clampStyle(open(), 3) }}>
+          {props.code.hebrew}
+        </p>
+      </Show>
+      <Show when={open() && props.code.english}>
+        <p
+          style={{
+            margin: '0.3rem 0 0',
+            'font-size': '0.78rem',
+            'line-height': 1.5,
+            color: '#666',
+          }}
+        >
+          {props.code.english}
+        </p>
+      </Show>
+      <Show when={props.code.rema?.length}>
+        <div style={{ 'margin-top': '0.45rem' }}>
+          <span style={{ 'font-size': '0.8rem', 'font-weight': 600, color: SIDE_COLOR.b }}>
+            {t('source.rema')}
+          </span>
+          <Show when={props.remaSummary}>
+            <div style={{ ...PRACTICAL_TEXT_STYLE, 'margin-top': '0.15rem' }}>
+              <HebraizedWithRabbis text={props.remaSummary} />
             </div>
           </Show>
-        </Show>
+          <For each={props.code.rema}>
+            {(g) => (
+              <p dir="rtl" lang="he" style={{ ...CODE_HE, ...clampStyle(open(), 2) }}>
+                {g}
+              </p>
+            )}
+          </For>
+        </div>
+      </Show>
+      <Show when={long()}>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          style={{
+            ...CODE_MUTED,
+            'font-size': '0.72rem',
+            background: 'none',
+            border: 'none',
+            padding: '0.2rem 0 0',
+            cursor: 'pointer',
+          }}
+        >
+          {open() ? t('halacha.codes.less') : t('halacha.codes.more')}
+        </button>
       </Show>
     </div>
   );
@@ -2515,6 +2510,32 @@ function HalachaPractical(props: SpecialBlockProps): JSX.Element {
               <span style={{ 'font-weight': 600 }}>{t('halacha.note')}: </span>
               <HebraizedWithRabbis text={pr().note} />
             </div>
+          </Show>
+          <Show when={pr().basis}>
+            {(basis) => (
+              <div style={{ ...CODE_MUTED, 'font-size': '0.74rem', 'margin-top': '0.45rem' }}>
+                {t('halacha.basis')}{' '}
+                <For
+                  each={basis()
+                    .split(/\s*;\s*/)
+                    .filter(Boolean)}
+                >
+                  {(ref, i) => (
+                    <>
+                      {i() > 0 ? '; ' : ''}
+                      <a
+                        href={sefariaUrl(ref)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: 'var(--link, #3a6ea5)', 'text-decoration': 'none' }}
+                      >
+                        {ref}
+                      </a>
+                    </>
+                  )}
+                </For>
+              </div>
+            )}
           </Show>
         </SectionCard>
       )}
@@ -2670,201 +2691,20 @@ function HalachaDispute(props: SpecialBlockProps): JSX.Element {
   );
 }
 
-/** The halacha mark-instance shape (mark_input for the leaves). */
-async function fetchDerivation(args: {
-  tractate: string;
-  page: string;
-  refs: string[];
-}): Promise<DerivationSource[]> {
-  if (args.refs.length === 0) return [];
-  const qs = args.refs.map((r) => `ref=${encodeURIComponent(r)}`).join('&');
-  const r = await fetch(
-    `/api/derivation/${encodeURIComponent(args.tractate)}/${encodeURIComponent(args.page)}?${qs}`,
-  );
-  if (!r.ok) return [];
-  const j = (await r.json()) as { sources?: DerivationSource[] };
-  return j.sources ?? [];
-}
-
-const DERIVATION_ROLE_KEY: Record<DerivationSource['role'], CatalogKey> = {
-  primary: 'halacha.role.primary',
-  related: 'halacha.role.related',
-  root: 'halacha.role.root',
-};
-
-// `parseBavliRef` (imported from lib/halacha/codifiers) turns a Bavli source
-// ref into the tractate + page this reader navigates by. Tanakh roots and
-// Yerushalmi refs return null — not dapim here — so they stay non-clickable.
-
-// Same `?tractate=&page=` URL contract the overview cross-references use. The
-// href is real (middle-click / open-in-new-tab work); onClick keeps the SPA
-// navigation in the common case.
-function dafHref(target: { tractate: string; page: string }): string {
-  const u = new URL(window.location.href);
-  u.searchParams.set('tractate', target.tractate);
-  u.searchParams.set('page', target.page);
-  u.hash = '';
-  return u.pathname + u.search;
-}
-function navigateToDaf(target: { tractate: string; page: string }): void {
-  window.location.href = dafHref(target);
-}
-
-// Halacha "where it comes from": the gemara (+ scriptural) sources the codified
-// ruling derives from. Reads the codifier refs off the halacha.codification leaf
-// and fetches the deterministic /api/derivation (reverse Sefaria). The current
-// daf is highlighted — a card belongs to its codified law and surfaces on every
-// daf that is a source for it.
-function HalachaDerivation(props: SpecialBlockProps): JSX.Element {
-  const refs = (): string[] => {
-    const d = props.deps['halacha.codification'] as CodificationData | undefined;
-    if (!d) return [];
-    return [d.mishnehTorah?.ref, d.tur?.ref, d.shulchanAruch?.ref].filter(
-      (r): r is string => typeof r === 'string' && r.trim().length > 0,
-    );
-  };
-  const [sources] = createResource(
-    () => ({ tractate: props.tractate, page: props.page, refs: refs() }),
-    fetchDerivation,
-  );
-  return (
-    <Show when={(sources() ?? []).length > 0}>
-      <div style={{ 'margin-top': '0.9rem' }}>
-        <div
-          style={{
-            'font-size': '0.7rem',
-            'text-transform': 'uppercase',
-            'letter-spacing': '0.08em',
-            color: '#888',
-            'margin-bottom': '0.5rem',
-          }}
-        >
-          {t('halacha.derivation')}
-        </div>
-        <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.4rem' }}>
-          <For each={sources()}>
-            {(s) => {
-              // Bavli sources (other than the current daf) navigate to that daf.
-              const target = s.kind === 'bavli' && !s.isCurrent ? parseBavliRef(s.ref) : null;
-              // In Hebrew mode a Bavli ref reads as the Hebrew daf form; Tanakh /
-              // Yerushalmi refs keep their own string (no Hebrew daf shape).
-              const refLabel = (): string => {
-                if (lang() === 'he' && s.kind === 'bavli') {
-                  const p = parseBavliRef(s.ref);
-                  if (p) return dafRefHe(p.tractate, p.page);
-                }
-                return s.ref;
-              };
-              const rowStyle: JSX.CSSProperties = {
-                display: 'flex',
-                'align-items': 'baseline',
-                gap: '0.5rem',
-                background: s.isCurrent ? 'var(--surface-sunk)' : 'var(--surface)',
-                border: s.isCurrent ? '1.5px solid var(--accent)' : '1px solid #e4e0d4',
-                'border-radius': '8px',
-                padding: '0.4rem 0.6rem',
-                'box-shadow': '0 1px 1.4px rgba(58,51,32,0.1)',
-                'text-decoration': 'none',
-                cursor: target ? 'pointer' : 'default',
-              };
-              const inner = (
-                <>
-                  <span
-                    style={{
-                      'font-family': 'system-ui, -apple-system, sans-serif',
-                      'font-size': '0.82rem',
-                      'font-weight': 600,
-                      color: '#2a2723',
-                    }}
-                  >
-                    {refLabel()}
-                  </span>
-                  {/* Corpus badge — shared with the overview chips. Only the
-                      Yerushalmi shows one; Bavli + Tanakh read for themselves. */}
-                  <CorpusBadge corpus={s.kind === 'tanakh' ? 'other' : s.kind} />
-                  <span
-                    style={{
-                      'font-family': 'system-ui, -apple-system, sans-serif',
-                      'font-size': '0.62rem',
-                      'text-transform': 'uppercase',
-                      'letter-spacing': '0.04em',
-                      color: '#9a958a',
-                    }}
-                  >
-                    {t(DERIVATION_ROLE_KEY[s.role])}
-                  </span>
-                  <Show when={s.isCurrent}>
-                    <span
-                      style={{
-                        'margin-left': 'auto',
-                        'font-family': 'system-ui, -apple-system, sans-serif',
-                        'font-size': '0.58rem',
-                        'font-weight': 700,
-                        color: '#fff',
-                        background: 'var(--accent)',
-                        'border-radius': '3px',
-                        padding: '0.05rem 0.3rem',
-                        'flex-shrink': 0,
-                      }}
-                    >
-                      {t('halacha.youAreHere')}
-                    </span>
-                  </Show>
-                  <Show when={target}>
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        'margin-left': 'auto',
-                        color: '#b8b2a4',
-                        'font-size': '0.95rem',
-                        'line-height': 1,
-                        'flex-shrink': 0,
-                      }}
-                    >
-                      ›
-                    </span>
-                  </Show>
-                </>
-              );
-              return (
-                <Show when={target} fallback={<div style={rowStyle}>{inner}</div>}>
-                  <a
-                    href={dafHref(target!)}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigateToDaf(target!);
-                    }}
-                    title={t('overview.goToDaf', { daf: refLabel() })}
-                    style={rowStyle}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--accent)';
-                      e.currentTarget.style.background = 'var(--surface-sunk)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#e4e0d4';
-                      e.currentTarget.style.background = '#fff';
-                    }}
-                  >
-                    {inner}
-                  </a>
-                </Show>
-              );
-            }}
-          </For>
-        </div>
-      </div>
-    </Show>
-  );
-}
-
+// The topic's real daf lines ride along: the halacha leaves use them to pick the
+// codes Sefaria links to those lines. The cache key of an English topic derives
+// from its title alone, so the range does not change it; a Hebrew title slugs to
+// nothing and falls back to a structural hash that includes the range, which now
+// matches the key the warm workflow writes (it always sent the real range).
 export function halachaInstance(topic: HalachaTopic): {
   fields: Record<string, unknown>;
   startSegIdx: number;
   endSegIdx: number;
 } {
+  const start = topic.startSegIdx ?? 0;
   return {
-    startSegIdx: 0,
-    endSegIdx: 0,
+    startSegIdx: start,
+    endSegIdx: topic.endSegIdx ?? start,
     fields: {
       topic: topic.topic,
       topicHe: topic.topicHe ?? '',
@@ -2874,9 +2714,8 @@ export function halachaInstance(topic: HalachaTopic): {
   };
 }
 export const HALACHA_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
-  'halacha-codification': HalachaCodification,
+  'halacha-codification': HalachaCodes,
   'halacha-practical': HalachaPractical,
-  'halacha-derivation': HalachaDerivation,
   'halacha-dispute': HalachaDispute,
 };
 

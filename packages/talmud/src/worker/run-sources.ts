@@ -15,7 +15,7 @@ import {
   segsFromMarkInput,
 } from '@corpus/core/context/select';
 import { recordSource, type SourceResolver } from '@corpus/core/run/producer-run';
-import { formatGroundedRefsForPrompt } from '../lib/halacha/codifiers';
+import { codesForLines, formatGroundedRefsForPrompt, lineRangeOf } from '../lib/halacha/codifiers';
 import { adjacentAmud } from '../lib/sefref';
 import type { DafBridge } from '../lib/typing/bridge';
 import type { YerushalmiOutlinePoint } from '../lib/yerushalmiAlign';
@@ -290,12 +290,17 @@ export function buildSourceResolvers<Curated>(
       out.vars.mishna = mishnaBundleToString(filtered);
       recordSource(out, 'mishna', out.vars.mishna);
     },
-    'halacha-refs': async ({ ctx, out, tractate, page }) => {
-      // Grounded codifier refs (Mishneh Torah / Tur / Shulchan Aruch) that
-      // Sefaria links to this daf, with their real text — so the codification
-      // enrichment SELECTS from real refs instead of recalling citations.
+    'halacha-refs': async ({ ctx, out, tractate, page, markInput }) => {
+      // The Mishneh Torah / Tur / Shulchan Aruch refs Sefaria links to THIS
+      // topic's lines of the daf, with their exact text — so the halacha
+      // enrichments read what the codes say and can only cite a linked ref.
+      // A topic instance without a line range falls back to the whole daf.
       const bundle = await getHalachaRefsCached(ctx.env.CACHE, tractate, page);
-      out.vars.halacha_refs = formatGroundedRefsForPrompt(bundle);
+      const range = lineRangeOf(markInput);
+      out.vars.halacha_refs = formatGroundedRefsForPrompt(bundle, range);
+      // The same list, for the halacha-ground pass that drops any cited ref not
+      // on it. Internal (double underscore): not a prompt placeholder.
+      out.vars.__halachaCodes = codesForLines(bundle, range);
       recordSource(out, 'halacha-refs', out.vars.halacha_refs);
     },
     'yerushalmi-text': async ({ ctx, out, tractate, page }) => {

@@ -125,4 +125,4 @@ Specialized maps can reuse `@corpus/ui/GraphConnectionDetails` directly. Supply 
 
 Import interactive edges from `@corpus/ui/GraphEdge`. The older `@corpus/ui/Graph` export retains its separate SVG-path `GraphEdge` API for specialized diagrams.
 
-Overview, the daf argument page, the section drill-down, speaker maps, and codification maps use `GraphView`. The tractate map keeps its page and rabbi annotations while sharing connectors and the full-screen view. Build trees share the same gutter router and arrow component. The separate rectangle router in `graph/orthogonalEdge` remains available for diagrams with nodes on both axes.
+Overview, the daf argument page, the section drill-down, and speaker maps use `GraphView`. The tractate map keeps its page and rabbi annotations while sharing connectors and the full-screen view. Build trees share the same gutter router and arrow component. The separate rectangle router in `graph/orthogonalEdge` remains available for diagrams with nodes on both axes.

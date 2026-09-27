@@ -9,8 +9,8 @@ import * as cacheKeys from '../src/worker/cache-keys';
  * source-key registry (src/worker/cache-keys.ts).
  *
  * The dashboard hand-builds its source rows and hardcodes each prefix
- * literal (e.g. `countPrefix(cache, 'halacha-refs:v3:')`). cache-keys.ts holds
- * the same prefixes independently (`keyForHalachaRefs` → `halacha-refs:v3:…`).
+ * literal (e.g. `countPrefix(cache, 'halacha-refs:v4:')`). cache-keys.ts holds
+ * the same prefixes independently (`keyForHalachaRefs` → `halacha-refs:v4:…`).
  * Nothing links the two, so a NEW per-daf source — or a version BUMP on an
  * existing one — can silently land in cache-keys.ts while the dashboard keeps
  * counting the old prefix (or nothing). That is the exact drift that once made

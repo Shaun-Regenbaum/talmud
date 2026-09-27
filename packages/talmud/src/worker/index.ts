@@ -58,6 +58,7 @@ import { type SectionExit, sectionExits } from '../lib/context/sectionExits';
 import { dafSpine } from '../lib/context/spine';
 import heAliasData from '../lib/data/rabbi-he-aliases.json';
 import { buildGeoModel, type GeoEnrichment, type RabbiGeoSource } from '../lib/geographyModel';
+import type { TopicCodifier } from '../lib/halacha/codifiers';
 import { filterRabbiBoundaries, nameCrossesBoundary } from '../lib/rabbi/nameBoundaries';
 import type { EntityPiece } from '../lib/registry/entity';
 import { adjacentAmud, sefariaAPI, TRACTATE_OPTIONS } from '../lib/sefref';
@@ -4203,6 +4204,8 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
       page: a.page,
       segmentsHe: slice.segments_he,
       commentaryHe,
+      // halacha-ground drops cited code refs Sefaria does not link to the topic.
+      halachaCodes: a.inputs.vars.__halachaCodes as TopicCodifier[] | undefined,
       defId: a.def.id,
       lang: rc.lang,
     });

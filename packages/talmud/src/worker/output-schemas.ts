@@ -432,7 +432,8 @@ export const HALACHA_DISPUTE_OUTPUT_SCHEMA = responseFormat(
 //   best-fallback → best (לכתחילה) + fallback (בדיעבד) lines (timing/measure rules)
 //   statement     → one plain line (a prohibition, action, or requirement)
 //   taxonomy      → a case→value map (e.g. food → bracha)
-// `note` is an optional single plain-language heads-up (retires the pill lists).
+// `note` is an optional single plain-language exception (retires the pill lists).
+// `basis` names the linked code ref the answer rests on.
 export const HALACHA_PRACTICAL_OUTPUT_SCHEMA = responseFormat(
   'halacha_practical',
   z.object({
@@ -442,6 +443,9 @@ export const HALACHA_PRACTICAL_OUTPUT_SCHEMA = responseFormat(
     statement: z.string(),
     rows: z.array(z.object({ when: z.string(), value: z.string() })),
     note: z.string(),
+    // The code ref (Shulchan Aruch / Rambam) the answer rests on, copied from
+    // the topic's linked codes; "" when none states it.
+    basis: z.string(),
   }),
 );
 export const HALACHA_SYNTHESIS_OUTPUT_SCHEMA = responseFormat(

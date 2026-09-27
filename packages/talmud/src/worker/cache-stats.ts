@@ -628,7 +628,7 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
     countPrefix(cache, 'rishonim:v4:'),
     countPrefix(cache, 'mishna-bundle:v1:'),
     countPrefix(cache, 'yerushalmi:v1:'),
-    countPrefix(cache, 'halacha-refs:v3:'),
+    countPrefix(cache, 'halacha-refs:v4:'),
     countPrefix(cache, 'daf-topics:v1:'),
     // Talmud↔Talmud parallels (Mesorat HaShas, Sefaria) + the broad commentary
     // -spine works list (Sefaria links-with-text). Both per-daf source fetches.
@@ -660,7 +660,7 @@ export async function computeCacheStats(cache: KVNamespace): Promise<CacheStats>
   const rishonimAligned = await sampleAligned(cache, 'rishonim:v4:', nonEmptyValue);
   const mishnaAligned = await sampleAligned(cache, 'mishna-bundle:v1:', nonEmptyValue);
   const yeruAligned = await sampleAligned(cache, 'yerushalmi:v1:', nonEmptyValue);
-  const halRefsAligned = await sampleAligned(cache, 'halacha-refs:v3:', nonEmptyValue);
+  const halRefsAligned = await sampleAligned(cache, 'halacha-refs:v4:', nonEmptyValue);
   const topicsAligned = await sampleAligned(cache, 'daf-topics:v1:', nonEmptyValue);
   const parallelsAligned = await sampleAligned(cache, 'talmud-parallels:v1:', nonEmptyValue);
   const commWorksAligned = await sampleAligned(cache, 'commentaries:v1:', alignedCommentaryWorks);

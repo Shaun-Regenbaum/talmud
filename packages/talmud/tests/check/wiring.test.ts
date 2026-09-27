@@ -29,8 +29,8 @@ describe('declarative pass wiring', () => {
   };
   const enrichmentChecks: Record<string, string[]> = {
     'pesukim.synthesis': ['hebrew-excerpt'],
-    'halacha.codification': ['hebrew-gloss'],
-    'halacha.practical': ['hebrew-gloss'],
+    'halacha.codification': ['halacha-ground', 'hebrew-gloss'],
+    'halacha.practical': ['halacha-ground', 'hebrew-gloss'],
     'halacha.dispute': ['hebrew-gloss'],
     'halacha.synthesis': ['hebrew-gloss'],
     'argument.voices': ['derive-voice-edges', 'edge-integrity'],

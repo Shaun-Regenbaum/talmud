@@ -75,7 +75,9 @@ export function keyForRishonim(tractate: string, page: string): string {
 export function keyForHalachaRefs(tractate: string, page: string): string {
   // v3: snippets now carry einMishpat (Ein Mishpat / Ner Mitzvah classical
   // codification flag) alongside segStart/segEnd.
-  return `halacha-refs:v3:${tractate}:${page}`;
+  // v4: each snippet is the exact cited halacha / seif (v3 held the whole
+  // chapter), and carries `anchors` — every daf line that links to it.
+  return `halacha-refs:v4:${tractate}:${page}`;
 }
 /** Reverse derivation: the Talmud/Tanakh sources a CODE ref (Mishneh Torah /
  *  Tur / Shulchan Aruch citation) links back to. Keyed by the raw code ref. */

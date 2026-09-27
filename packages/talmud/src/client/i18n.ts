@@ -195,10 +195,6 @@ const CATALOG = {
   'voices.legend.cites': { en: 'cites', he: 'מצטט' },
 
   // — #argument page (the daf argument graph; replaced the #voices page) —
-  'graph.relation.transmits': { en: 'passes on', he: 'מוסר' },
-  'graph.relation.agrees': { en: 'agrees', he: 'מסכים' },
-  'graph.relation.disagrees': { en: 'disagrees', he: 'חולק' },
-  'graph.relation.cites': { en: 'cites', he: 'מצטט' },
   'graph.source.voices': { en: 'From the speaker analysis', he: 'מניתוח הדוברים' },
   'graph.source.roles': { en: 'Inferred from the sequence of statements', he: 'הוסק מרצף הטענות' },
   'graph.supportsSide': { en: 'For {side}', he: 'תומך ב־{side}' },
@@ -1332,14 +1328,17 @@ const CATALOG = {
   },
 
   // — Halacha body —
-  'halacha.codification': { en: 'Codification', he: 'פסיקה' },
-  'halacha.sourceTexts': { en: 'Source texts', he: 'לשון המקור' },
-  'halacha.sourceTexts.none': {
-    en: 'No codifier text cached for this daf yet',
-    he: 'לשון המקור עדיין לא נטענה לדף זה',
-  },
-  'halacha.derivation': { en: 'Talmudic sources', he: 'מקורות בש״ס' },
+  'halacha.codification': { en: 'In the codes', he: 'בפוסקים' },
   'halacha.note': { en: 'Note', he: 'הערה' },
+  'halacha.basis': { en: 'Based on', he: 'על פי' },
+  'halacha.codes.none': {
+    en: 'No Rambam, Tur or Shulchan Aruch is linked to these lines of the daf.',
+    he: 'אין רמב״ם, טור או שולחן ערוך המקושרים לשורות אלה בדף.',
+  },
+  'halacha.codes.near': { en: 'Linked from a nearby line', he: 'מקושר משורה סמוכה' },
+  'halacha.codes.einMishpat': { en: 'Ein Mishpat', he: 'עין משפט' },
+  'halacha.codes.more': { en: 'Show full text', he: 'הצג את כל הלשון' },
+  'halacha.codes.less': { en: 'Show less', he: 'הצג פחות' },
   'halacha.dispute': { en: 'Where practice splits', he: 'היכן ההלכה נחלקת' },
   'halacha.practical': { en: 'Practical', he: 'למעשה' },
   'halacha.disputes': { en: 'Disputes', he: 'מחלוקות' },
@@ -1354,10 +1353,6 @@ const CATALOG = {
   'source.mechaber': { en: 'Mechaber', he: 'מחבר' },
   'source.badge': { en: 'source', he: 'מקור' },
   // Halacha derivation (מקורות בש״ס) source-role badges + the current-daf marker.
-  'halacha.role.primary': { en: 'primary source', he: 'מקור עיקרי' },
-  'halacha.role.related': { en: 'related', he: 'קשור' },
-  'halacha.role.root': { en: 'scriptural root', he: 'מקור מן הכתוב' },
-  'halacha.youAreHere': { en: 'You are here', he: 'אתם כאן' },
   // Dispute axis chips (מחלוקות).
   'axis.mechaber-rema': { en: 'Mechaber–Rema', he: 'מחבר–רמ״א' },
   'axis.ashkenaz-sefarad': { en: 'Ashkenaz–Sefarad', he: 'אשכנז–ספרד' },

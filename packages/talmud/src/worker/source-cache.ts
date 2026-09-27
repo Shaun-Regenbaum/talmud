@@ -134,6 +134,7 @@ const halachaRefBundle = z.record(
       english: z.string().optional(),
       segStart: z.number().optional(),
       segEnd: z.number().optional(),
+      anchors: z.array(z.object({ segStart: z.number(), segEnd: z.number() })).optional(),
       einMishpat: z.boolean().optional(),
     }),
   ),
@@ -332,6 +333,7 @@ export async function getHalachaRefsCached(
   // v2: snippets carry segStart/segEnd (the linked daf segment).
   // v3: snippets carry einMishpat (Ein Mishpat / Ner Mitzvah classical
   // codification flag), and Ein Mishpat refs sort first within each book.
+  // v4: exact halacha/seif text (was the whole chapter) + every linked line.
   const key = keyForHalachaRefs(tractate, page);
   const hit = await readCache<HalachicRefBundle>(cache, key, halachaRefBundle);
   track?.onCache?.(hit ? 'hit' : 'miss');
