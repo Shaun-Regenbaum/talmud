@@ -30,8 +30,37 @@ def spelling(name):
     return re.sub(r"(^|\s)בר'\s+", r'\1ברבי ', name)
 
 
+def bare_title_decisions():
+    """What each lone title in a pair really is, from data/bare-titles.jsonl when it exists: 'alone' (the title is the
+    name: Rav, Rebbi), 'cut' (the finder stopped early; 'name' holds the full name as the page writes it), 'master' or
+    'word' (not a person), or 'unsettled' (left as it is)."""
+    p = DATA / 'bare-titles.jsonl'
+    if not p.exists():
+        return {}
+    return {tuple(d['key']): d for d in (json.loads(line) for line in p.open() if line.strip())}
+
+
+def resolve_bare(name, key, side, decisions, applied):
+    """The name to use for one side of a pair, or None when that side is not a person."""
+    if name not in BARE or not decisions:
+        return name
+    parts = key.split('|')
+    d = decisions.get((parts[0], parts[1], parts[2], parts[3], int(parts[4 + side])))
+    if not d:
+        return name
+    applied[d['decision']] += 1
+    if d['decision'] == 'cut' and d.get('name'):
+        return d['name']
+    if d['decision'] in ('word', 'master'):
+        return None
+    if d['decision'] == 'alone' and name == "ר'":
+        return 'רבי'  # a lone ר' that stands for a person is the short way to write רבי
+    return name
+
+
 def main():
     rows = [json.loads(line) for line in (DATA / 'pairs-final.jsonl').open() if line.strip()]
+    decisions, applied, not_a_person = bare_title_decisions(), collections.Counter(), 0
     nodes = collections.defaultdict(lambda: {'pair_rows': 0, 'passages': set(), 'corpora': collections.Counter(), 'partners': set()})
     edges = collections.defaultdict(lambda: {'rows': 0, 'kinds': collections.Counter(), 'uses': collections.Counter(),
                                              'directed': collections.Counter(), 'certainty': collections.Counter(),
@@ -39,9 +68,14 @@ def main():
     spellings = collections.defaultdict(set)
     same_spelling_pairs = 0
     for r in rows:
-        spellings[spelling(r['a'])].add(r['a'])
-        spellings[spelling(r['b'])].add(r['b'])
-        a, b, kind = spelling(r['a']), spelling(r['b']), r.get('kind') or 'open'
+        ra = resolve_bare(r['a'], r['key'], 0, decisions, applied)
+        rb = resolve_bare(r['b'], r['key'], 1, decisions, applied)
+        if ra is None or rb is None:
+            not_a_person += 1  # one side is an ordinary word or "my master", so the pair links no two people
+            continue
+        spellings[spelling(ra)].add(ra)
+        spellings[spelling(rb)].add(rb)
+        a, b, kind = spelling(ra), spelling(rb), r.get('kind') or 'open'
         if a == b:
             same_spelling_pairs += 1  # one name written twice, or two spellings of one name, in one passage
             continue
@@ -84,6 +118,7 @@ def main():
     degree = sorted(nodes.items(), key=lambda kv: -len(kv[1]['partners']))
     summary = {
         'pair_rows': len(rows), 'pairs_within_one_name': same_spelling_pairs,
+        'bare_titles_resolved': dict(applied), 'pairs_dropped_not_a_person': not_a_person,
         'names': len(nodes), 'names_written_two_ways': sum(1 for v in spellings.values() if len(v) > 1),
         'bare_titles': {b: len(nodes[b]['partners']) for b in BARE if b in nodes},
         'links': len(edges),
