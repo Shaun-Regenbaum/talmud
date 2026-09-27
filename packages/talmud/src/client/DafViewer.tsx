@@ -61,7 +61,7 @@ import MarksRegistryPanel, {
   markRunsByMarkId,
   markStatuses,
 } from './MarksRegistryPanel';
-import { type MobileInteractionMode, MobileShelf } from './MobileShelf';
+import { MobileShelf } from './MobileShelf';
 import RunTreeDock from './RunTreeDock';
 import { recordStage } from './rendererActivity';
 import { applyMarkRenderers } from './renderers/dispatch';
@@ -162,6 +162,9 @@ interface ActiveWord {
   hebrewAfter: string;
   /** Sefaria segment index (from data-seg on the first clicked .daf-word). */
   segIdx?: number;
+  /** Set when the tap landed on a rabbi's name or a place (mobile). The popup
+   *  then shows the name and a link to its card instead of a translation. */
+  entity?: { kind: 'rabbi' | 'place'; name: string };
 }
 
 type RangeHighlightKind =
@@ -1115,7 +1118,6 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const [isMobile, setIsMobile] = createSignal(
     typeof window !== 'undefined' && window.matchMedia?.('(max-width: 767px)').matches,
   );
-  const [mobileMode, setMobileMode] = createSignal<MobileInteractionMode>('read');
   createEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
     const mq = window.matchMedia('(max-width: 767px)');
@@ -2706,7 +2708,6 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       );
       if (words.length < 4) words = Array.from(document.querySelectorAll<HTMLElement>('.daf-word'));
       if (words.length < 4) return;
-      if (isMobile()) setMobileMode('translate');
       // A bit past the opening so it's clear of the chrome, but solidly inside
       // the main column.
       const start = Math.floor(words.length * 0.4);
@@ -2778,7 +2779,11 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     setActive(null);
   };
 
-  const setActiveFromWordEls = (els: HTMLElement[], e?: MouseEvent) => {
+  const setActiveFromWordEls = (
+    els: HTMLElement[],
+    e?: MouseEvent,
+    entity?: ActiveWord['entity'],
+  ) => {
     const prev = active();
     if (prev)
       prev.els.forEach((el) => {
@@ -2811,6 +2816,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         hebrewBefore: before,
         hebrewAfter: after,
         segIdx: Number.isFinite(segIdx) ? segIdx : undefined,
+        entity,
       });
     }
     if (e) e.stopPropagation();
@@ -3297,11 +3303,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const target = e.target as HTMLElement | null;
     if (!target) return;
 
-    // Mobile interaction modes apply to single-tap behaviour only — native
-    // multi-word selection above already triggered or bailed.
     if (isMobile()) {
       const wordEl = target.closest('.daf-word') as HTMLElement | null;
-      // Commentary-on-tap takes precedence in both modes when a work is open.
+      // Commentary-on-tap takes precedence when a work is open.
       if (activeCommentaryWork() && wordEl) {
         const segAttr = wordEl.getAttribute('data-seg');
         if (segAttr !== null) {
@@ -3312,45 +3316,38 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           }
         }
       }
-      if (mobileMode() === 'read') {
-        // Read mode: rabbi/city taps still open their drawers; plain words
-        // are left alone so native long-press selection isn't pre-empted.
-        const rabbiEl = target.closest('.rabbi-underline') as HTMLElement | null;
-        if (rabbiEl) {
-          const rabbiName = rabbiEl.getAttribute('data-rabbi');
-          if (rabbiName) {
-            openRabbi(rabbiName);
-            return;
-          }
-        }
-        const cityEl = target.closest('.city-marker') as HTMLElement | null;
-        if (cityEl) {
-          const cityName = cityEl.getAttribute('data-city');
-          if (cityName) {
-            openPlace(cityName);
-            return;
-          }
-        }
-        // A tap on a personal highlight opens its note (long-press selection
-        // produced a non-collapsed range handled earlier, so this is a tap).
-        if (wordEl && tryOpenUserHighlight(wordEl, e)) return;
-        return;
-      }
-      // Translate mode: tap a word to translate it; tap a second word to
-      // extend the selection from the first to the second and translate the
-      // whole phrase (tap-to-extend). This replaces native long-press
-      // selection, which is unreliable on Android inside the scaled daf.
-      // Bypasses rabbi/city handlers so the drawer doesn't hijack the popup
-      // on rabbi-underlined words.
+      // One tap mode: a tap on a word translates it, and a second tap within
+      // reach extends the selection to a phrase (tap-to-extend). This replaces
+      // native long-press selection, which is unreliable on Android inside the
+      // scaled daf. A tap on a rabbi's name or a place shows a small popup with
+      // the name and a link to its card, instead of opening the card at once.
       if (!wordEl) return;
       if (tryOpenUserHighlight(wordEl, e)) return;
       const cur = active();
-      if (cur) {
-        if (cur.els.includes(wordEl)) {
-          // Tapped a word already inside the selection → dismiss.
-          clearActive();
+      if (cur?.els.includes(wordEl)) {
+        // Tapped a word already inside the selection → dismiss.
+        clearActive();
+        return;
+      }
+      // Extend only a plain word selection. With nothing selected, or a name
+      // popup open, a tap on a name opens that name's popup.
+      if (!cur || cur.entity) {
+        const rabbiEl = target.closest('.rabbi-underline') as HTMLElement | null;
+        const rabbiName = rabbiEl?.getAttribute('data-rabbi');
+        if (rabbiEl && rabbiName) {
+          const els = Array.from(rabbiEl.querySelectorAll<HTMLElement>('.daf-word'));
+          setActiveFromWordEls(els.length ? els : [wordEl], e, { kind: 'rabbi', name: rabbiName });
           return;
         }
+        const cityEl = target.closest('.city-marker') as HTMLElement | null;
+        const cityName = cityEl?.getAttribute('data-city');
+        if (cityEl && cityName) {
+          const els = Array.from(cityEl.querySelectorAll<HTMLElement>('.daf-word'));
+          setActiveFromWordEls(els.length ? els : [wordEl], e, { kind: 'place', name: cityName });
+          return;
+        }
+      }
+      if (cur && !cur.entity) {
         // Extend from the first selected word to the tapped word. The range
         // spans either direction depending on which was tapped first.
         const anchorEl = cur.els[0];
@@ -3811,6 +3808,12 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
                   mobile={isMobile()}
                   getAnchorRect={() => unionRectOf(a().els)}
                   maxWords={MAX_PHRASE_WORDS}
+                  entity={a().entity}
+                  onOpenEntity={(ent) => {
+                    clearActive();
+                    if (ent.kind === 'rabbi') openRabbi(ent.name);
+                    else openPlace(ent.name);
+                  }}
                 />
               )}
             </Show>
@@ -4068,8 +4071,6 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
       <Show when={isMobile()}>
         <MobileShelf
-          mode={mobileMode()}
-          onModeChange={setMobileMode}
           sidebar={sidebar()}
           onCloseExpansion={() => {
             setSidebar(null);

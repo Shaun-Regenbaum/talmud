@@ -28,7 +28,13 @@ export interface TranslationPopupProps {
   getAnchorRect?: () => Rect | null;
   /** Max words a tap-to-extend region can span (mobile hint copy). */
   maxWords?: number;
+  /** A rabbi's name or a place was tapped: show the name and a link to its
+   *  card instead of fetching a translation. */
+  entity?: PopupEntity;
+  onOpenEntity?: (entity: PopupEntity) => void;
 }
+
+export type PopupEntity = { kind: 'rabbi' | 'place'; name: string };
 
 // Module-level cache so reopening the popup for a word we already translated
 // skips the network call entirely.
@@ -53,6 +59,10 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
     `${lang()}:${props.tractate}:${props.page}:${props.word}:${ctxHash(`${props.hebrewBefore ?? ''}|${props.hebrewAfter ?? ''}`)}`;
 
   createEffect(() => {
+    if (props.entity) {
+      setLoading(false);
+      return;
+    }
     const key = cacheKey();
     const cached = localCache.get(key);
     if (cached !== undefined) {
@@ -230,28 +240,64 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
       >
         {props.word}
       </div>
-      <div style={{ 'font-size': '0.95rem', color: '#222', 'min-height': '1.4em' }}>
-        <Show when={loading()}>
-          <span style={{ color: '#888', 'font-style': 'italic' }}>{t('translation.loading')}</span>
-        </Show>
-        <Show when={error()}>
-          <span style={{ color: '#c33' }}>{error()}</span>
-        </Show>
-        <Show when={!loading() && !error() && translation()}>{translation()}</Show>
-      </div>
-      <Show when={props.mobile}>
-        <div
-          style={{
-            'margin-top': '0.4rem',
-            'padding-top': '0.35rem',
-            'border-top': '1px solid #eee',
-            'font-size': '0.7rem',
-            color: '#999',
-            'line-height': 1.35,
-          }}
-        >
-          {t('translation.mobileHint', { max: props.maxWords ?? 20 })}
-        </div>
+      <Show
+        when={props.entity}
+        fallback={
+          <>
+            <div style={{ 'font-size': '0.95rem', color: '#222', 'min-height': '1.4em' }}>
+              <Show when={loading()}>
+                <span style={{ color: '#888', 'font-style': 'italic' }}>
+                  {t('translation.loading')}
+                </span>
+              </Show>
+              <Show when={error()}>
+                <span style={{ color: '#c33' }}>{error()}</span>
+              </Show>
+              <Show when={!loading() && !error() && translation()}>{translation()}</Show>
+            </div>
+            <Show when={props.mobile}>
+              <div
+                style={{
+                  'margin-top': '0.4rem',
+                  'padding-top': '0.35rem',
+                  'border-top': '1px solid #eee',
+                  'font-size': '0.7rem',
+                  color: '#999',
+                  'line-height': 1.35,
+                }}
+              >
+                {t('translation.mobileHint', { max: props.maxWords ?? 20 })}
+              </div>
+            </Show>
+          </>
+        }
+      >
+        {(ent) => (
+          <>
+            <div style={{ 'font-size': '0.95rem', color: '#222' }}>{ent().name}</div>
+            <button
+              type="button"
+              class="translation-popup-link"
+              onClick={() => props.onOpenEntity?.(ent())}
+              style={{
+                'margin-top': '0.45rem',
+                padding: '0.35rem 0',
+                'min-height': '44px',
+                background: 'none',
+                border: 'none',
+                'border-top': '1px solid #eee',
+                width: '100%',
+                'text-align': 'start',
+                color: 'var(--accent, #8a2432)',
+                'font-size': '0.9rem',
+                'font-weight': 600,
+                cursor: 'pointer',
+              }}
+            >
+              {t(ent().kind === 'rabbi' ? 'translation.seeProfile' : 'translation.aboutPlace')}
+            </button>
+          </>
+        )}
       </Show>
     </div>
   );

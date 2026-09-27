@@ -1,17 +1,4 @@
 /* Layout for Talmud controls that consume the shared UI components. */
-.reader-mode-bar {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.6rem 0.8rem;
-  border-top: 1px solid var(--line);
-  background: var(--surface);
-  flex-shrink: 0;
-}
-.reader-mode-button {
-  flex: 1;
-  min-width: 0;
-  min-height: 44px;
-}
 .reader-shelf-close {
   min-width: 44px;
   min-height: 44px;
