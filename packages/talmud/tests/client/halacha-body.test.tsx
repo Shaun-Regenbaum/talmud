@@ -130,12 +130,26 @@ describe('Halacha codes list', () => {
     );
 
   it("fetches the codes for the topic's lines and shows their real text", async () => {
-    const { findByText, getByText } = renderCodes(undefined);
+    const { findByText, getByText, queryByText } = renderCodes(undefined);
     await findByText('Mishneh Torah, Reading the Shema 1:9');
     expect(urls[0]).toBe('/api/halacha-text/Berakhot/2a?start=0&end=3');
     expect(getByText('איזה הוא זמן קריאת שמע בלילה')).toBeTruthy();
-    expect(getByText('ומיהו לא יחזור ויתפלל')).toBeTruthy();
+    // A code linked only from a nearby line stays hidden until the summary cites it.
+    expect(queryByText('Shulchan Arukh, Orach Chayim 235:3')).toBeNull();
+    expect(queryByText(t('halacha.codes.near'))).toBeNull();
+  });
+
+  it('shows a nearby code once the summary cites it', async () => {
+    const { findByText, getByText } = renderCodes({
+      mishnehTorah: null,
+      tur: null,
+      shulchanAruch: { ref: 'Orach Chayim 235:3', ruling: 'Right after nightfall.' },
+      rema: null,
+      prose: '',
+    });
+    await findByText('Shulchan Arukh, Orach Chayim 235:3');
     expect(getByText(t('halacha.codes.near'))).toBeTruthy();
+    expect(getByText('ומיהו לא יחזור ויתפלל')).toBeTruthy();
   });
 
   it('attaches an AI summary only to the row whose ref it names', async () => {

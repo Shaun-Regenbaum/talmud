@@ -68,6 +68,31 @@ export function remaSummaryFor(codification: CodificationData | undefined, ref: 
   return r && sameCodeRef(r.ref, ref) ? r.ruling : '';
 }
 
+/**
+ * The codes the card shows. A code linked from the topic's own lines always
+ * shows. A code linked only from a NEARBY line shows only when the AI summary
+ * cites it (its own ruling, or the Rema on that seif): Ein Mishpat marks each
+ * law once, so a nearby link is as often a neighbouring law (the morning-Shema
+ * Tur beside Berakhot 2a's terumah topic) as this one. A codifier left with no
+ * rows is dropped.
+ */
+export function visibleCodes(
+  codes: TopicCodifier[],
+  codification: CodificationData | undefined,
+): TopicCodifier[] {
+  return codes
+    .map((c) => ({
+      ...c,
+      refs: c.refs.filter(
+        (r) =>
+          r.match === 'on-lines' ||
+          !!summaryFor(codification, c.id, r.ref) ||
+          (c.id === 'shulchan-aruch' && !!remaSummaryFor(codification, r.ref)),
+      ),
+    }))
+    .filter((c) => c.refs.length > 0);
+}
+
 /** Sefaria page for a code ref ("Shulchan Arukh, Orach Chayim 235:1"). */
 export function sefariaUrl(ref: string): string {
   return `https://www.sefaria.org/${encodeURIComponent(ref.replace(/ /g, '_'))}`;
