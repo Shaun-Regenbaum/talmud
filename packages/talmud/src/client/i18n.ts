@@ -1525,18 +1525,14 @@ const CATALOG = {
     he: 'הקישו על מילה נוספת בטווח {max} מילים לתרגום קטע · הקישו שוב לסגירה',
   },
 
+  'translation.seeProfile': { en: 'See profile →', he: 'לדף החכם ←' },
+  'translation.aboutPlace': { en: 'About this place →', he: 'על המקום ←' },
+
   // — Mobile top drawer (daf picker / nav) —
   'header.drawer.expand': { en: 'Menu ▾', he: 'תפריט ▾' },
   'header.drawer.collapse': { en: 'Hide ▴', he: 'הסתר ▴' },
 
-  // — Mobile interaction modes + layers —
-  'mobile.mode.read': { en: 'Read', he: 'קריאה' },
-  'mobile.mode.read.hint': {
-    en: 'Pan & zoom; tap icons to open',
-    he: 'גלילה וזום; הקישו על סמלים לפתיחה',
-  },
-  'mobile.mode.translate': { en: 'Translate', he: 'תרגום' },
-  'mobile.mode.translate.hint': { en: 'Tap words to translate', he: 'הקישו על מילים לתרגום' },
+  // — Mobile layers —
   'mobile.layers': { en: 'Layers', he: 'שכבות' },
   'mobile.layers.title': { en: 'Annotation layers', he: 'שכבות ביאור' },
   'mobile.layers.close': { en: 'Close', he: 'סגירה' },
@@ -1681,8 +1677,8 @@ const CATALOG = {
 
   'tutorial.translateWord.title': { en: 'Translate any word', he: 'תרגום כל מילה' },
   'tutorial.translateWord.body': {
-    en: 'On a computer, click any word in the text to see its translation. On a phone, switch the bottom bar to "Translate" and tap a word.',
-    he: 'במחשב, לחצו על כל מילה בטקסט כדי לראות את תרגומה. בטלפון, העבירו את הסרגל התחתון ל"תרגום" והקישו על מילה.',
+    en: 'Click or tap any word in the text to see its translation.',
+    he: 'לחצו או הקישו על כל מילה בטקסט כדי לראות את תרגומה.',
   },
   'tutorial.translateWord.example': { en: 'man', he: 'אִישׁ' },
 

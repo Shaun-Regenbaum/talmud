@@ -11,12 +11,7 @@ import { t } from './i18n';
 import type { Section } from './shapes';
 import { tutorialNoteInteractive } from './tutorial';
 
-export type MobileInteractionMode = 'read' | 'translate';
-
 interface MobileShelfProps {
-  mode: MobileInteractionMode;
-  onModeChange: (m: MobileInteractionMode) => void;
-
   // Gutter-icon driven expansion (argument / halacha / aggadata / pesuk /
   // rabbi / rishonim).
   sidebar: SidebarContent | null;
@@ -54,52 +49,22 @@ interface MobileShelfProps {
   geography?: GeographyExtras;
 }
 
-// Fixed-bottom sheet on mobile. The interaction-mode bar (Read / Translate)
-// is pinned at the very bottom and is ALWAYS visible so the user can switch
-// modes even while reading drawer content. When a sidebar is active its
-// content expands above the bar.
+// Fixed-bottom sheet on mobile. When a sidebar is active its content
+// expands here; otherwise only the daf-load progress shows, and only while
+// something is loading.
 export function MobileShelf(props: MobileShelfProps): JSX.Element {
   return (
     <BottomSheet tour="note-panel" zIndex={tutorialNoteInteractive() ? 6001 : 100}>
       <Show when={props.sidebar !== null}>
         <ExpansionView {...props} />
       </Show>
-      {/* Daf-load progress lives here on mobile (above Read/Translate) so it
-          never sits on top of the daf text. Self-hides when nothing's loading,
-          so it adds no height when idle. */}
+      {/* Daf-load progress lives here on mobile so it never sits on top of
+          the daf text. Self-hides when nothing's loading, so it adds no height
+          when idle. */}
       <div style={{ padding: '0 0.8rem', 'flex-shrink': 0 }}>
         <DafLoadProgress embedded />
       </div>
-      <ModeBar mode={props.mode} onModeChange={props.onModeChange} />
     </BottomSheet>
-  );
-}
-
-// Labels/hints resolve through t() per-render so they follow the EN/HE switch.
-const MODE_BUTTONS: Array<{ id: MobileInteractionMode; labelKey: string; hintKey: string }> = [
-  { id: 'read', labelKey: 'mobile.mode.read', hintKey: 'mobile.mode.read.hint' },
-  { id: 'translate', labelKey: 'mobile.mode.translate', hintKey: 'mobile.mode.translate.hint' },
-];
-
-// Pinned interaction-mode pills. Stays at the bottom of the shelf regardless
-// of whether a drawer is open, so mode is always switchable and visible.
-function ModeBar(props: {
-  mode: MobileInteractionMode;
-  onModeChange: (m: MobileInteractionMode) => void;
-}): JSX.Element {
-  return (
-    <div class="reader-mode-bar">
-      {MODE_BUTTONS.map((b) => (
-        <Button
-          class="reader-mode-button"
-          onClick={() => props.onModeChange(b.id)}
-          active={props.mode === b.id}
-          title={t(b.hintKey)}
-        >
-          {t(b.labelKey)}
-        </Button>
-      ))}
-    </div>
   );
 }
 
