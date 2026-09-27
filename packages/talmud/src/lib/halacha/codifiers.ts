@@ -181,41 +181,250 @@ export function hasCodification(bundle: HalachicRefBundle | undefined): boolean 
   return buildCodificationChain(bundle, { includeSecondary: true }).length > 0;
 }
 
-function truncate(s: string | undefined, n = 360): string {
+function truncate(s: string | undefined, n: number): string {
   const t = (s ?? '').trim();
   return t.length > n ? `${t.slice(0, n - 1)}…` : t;
 }
 
+// ---------------------------------------------------------------------------
+// Clean code text (Sefaria HTML → plain text a reader or a prompt can use)
+// ---------------------------------------------------------------------------
+
+const ENTITIES: Record<string, string> = {
+  '&nbsp;': ' ',
+  '&amp;': '&',
+  '&quot;': '"',
+  '&#39;': "'",
+  '&lt;': '<',
+  '&gt;': '>',
+};
+
+/** Remove every `<i class="footnote">…</i>` block. Footnotes nest their own
+ *  `<i>` tags (book titles), so a lazy regex would stop at the first `</i>` and
+ *  leave the rest of the footnote in the text; this walks the nesting. */
+function dropFootnotes(html: string): string {
+  let out = '';
+  let i = 0;
+  const open = /<i\b[^>]*class="footnote"[^>]*>/g;
+  for (let m = open.exec(html); m; m = open.exec(html)) {
+    out += html.slice(i, m.index);
+    let depth = 1;
+    const tag = /<(\/?)i\b[^>]*>/g;
+    tag.lastIndex = m.index + m[0].length;
+    let t = tag.exec(html);
+    while (t) {
+      depth += t[1] ? -1 : 1;
+      if (depth === 0) break;
+      t = tag.exec(html);
+    }
+    i = t ? t.index + t[0].length : html.length;
+    open.lastIndex = i;
+  }
+  return out + html.slice(i);
+}
+
+/** Sefaria code text → plain text: drops footnotes and their markers, the empty
+ *  commentator anchors (`<i data-commentator=…></i>`), the "ובו ד סעיפים" siman
+ *  header, and all remaining tags. */
+export function cleanCodeText(html: string | undefined): string {
+  let t = dropFootnotes(html ?? '');
+  t = t
+    .replace(/<sup class="footnote-marker">[\s\S]*?<\/sup>/g, '')
+    .replace(/^\s*<b>[^<]*סעיפ[^<]*<\/b>\s*(?:<br\s*\/?>)?/, '')
+    .replace(/<br\s*\/?>/g, ' ')
+    .replace(/<[^>]+>/g, '');
+  for (const [k, v] of Object.entries(ENTITIES)) t = t.split(k).join(v);
+  return t.replace(/\s+/g, ' ').trim();
+}
+
 /**
- * Format the grounded codifier refs (with their real Hebrew/English text) for
- * the codification PROMPT, so the LLM SELECTS from real Sefaria refs instead of
- * recalling citations. One block per codifier, its refs listed with capped
- * snippets. Empty-bundle dapim get an explicit marker (the prompt then knows
- * there is nothing to codify).
+ * Split a Shulchan Aruch seif into the Mechaber's words and the Rema's glosses.
+ * Sefaria prints every Rema gloss in `<small>`: a long one opens with הגה, a
+ * short one is just bracketed ("פודין בבן פקועה <small>(וי"א שאין פודין בבן
+ * פקועה)</small>"). So this is a text split, not a judgment. `rema` is empty
+ * when the seif has no gloss.
  */
-export function formatGroundedRefsForPrompt(bundle: HalachicRefBundle | undefined): string {
-  const chain = buildCodificationChain(bundle, { includeSecondary: true });
-  if (!chain.length) return '(no codifier links found for this daf)';
-  const anyEinMishpat = chain.some((n) => n.einMishpat);
-  const body = chain
-    .map((node) => {
-      const refs = node.refs
+export function splitRema(html: string | undefined): { mechaber: string; rema: string[] } {
+  const src = html ?? '';
+  const rema: string[] = [];
+  const mechaber = src.replace(/<small>([\s\S]*?)<\/small>/g, (_m, inner: string) => {
+    const text = cleanCodeText(inner)
+      .replace(/^הגה[:.\s]*/, '')
+      .replace(/^\(([^()]*)\)[\s:.]*$/, '$1')
+      .trim();
+    if (text) rema.push(text);
+    return ' ';
+  });
+  return { mechaber: cleanCodeText(mechaber).replace(/\s+([:.])/g, '$1'), rema };
+}
+
+// ---------------------------------------------------------------------------
+// Which codes belong to a topic (by the daf lines Sefaria links them from)
+// ---------------------------------------------------------------------------
+
+/** A topic's place on the daf, 0-indexed like the halacha mark's segment range. */
+export interface LineRange {
+  start: number;
+  end: number;
+}
+
+/** How a code ref was tied to a topic: linked from one of the topic's own daf
+ *  lines, or from a line just outside it (Ein Mishpat marks a law once, where
+ *  its source starts, so a topic can sit a line or two past the mark). */
+export type LineMatch = 'on-lines' | 'near';
+
+/** How far outside a topic's lines a link may sit and still count as `near`. */
+export const NEAR_LINES = 2;
+
+function anchorsOf(s: HalachicSnippet): LineRange[] {
+  if (s.anchors?.length) return s.anchors.map((a) => ({ start: a.segStart, end: a.segEnd }));
+  if (typeof s.segStart === 'number') return [{ start: s.segStart, end: s.segEnd ?? s.segStart }];
+  return [];
+}
+
+/** Lines between a link and a topic range: 0 when they overlap. */
+function lineDistance(a: LineRange, topic: LineRange): number {
+  if (a.end < topic.start) return topic.start - a.end;
+  if (a.start > topic.end) return a.start - topic.end;
+  return 0;
+}
+
+/** One code ref tied to a topic, with its clean text. */
+export interface TopicCodeRef {
+  ref: string;
+  match: LineMatch;
+  einMishpat: boolean;
+  /** Clean Hebrew. For the Shulchan Aruch this is the Mechaber's words only. */
+  hebrew: string;
+  english: string;
+  /** Shulchan Aruch only: the Rema's glosses on this seif (Hebrew), if any. */
+  rema?: string[];
+}
+
+export interface TopicCodifier {
+  id: CodifierId;
+  label: string;
+  short: string;
+  order: number;
+  refs: TopicCodeRef[];
+}
+
+/**
+ * The codes that belong to one topic, chosen by the daf lines Sefaria links them
+ * from — no model involved. For each primary codifier (Rambam, Tur, Shulchan
+ * Aruch): refs linked from the topic's own lines; if there are none, refs linked
+ * from within NEAR_LINES of it. Only Ein Mishpat links may count as `near`; a
+ * looser topical link must sit on the topic's lines. A codifier with no match is
+ * left out, so an empty result means "nothing is linked to these lines".
+ *
+ * With no range (older callers) every ref on the daf counts as on-lines.
+ */
+export function codesForLines(
+  bundle: HalachicRefBundle | undefined,
+  range?: LineRange | null,
+): TopicCodifier[] {
+  const out: TopicCodifier[] = [];
+  for (const node of buildCodificationChain(bundle)) {
+    const scored = node.refs
+      .map((r) => {
+        const dists = anchorsOf(r).map((a) => (range ? lineDistance(a, range) : 0));
+        const d = dists.length ? Math.min(...dists) : range ? Number.POSITIVE_INFINITY : 0;
+        return { r, d };
+      })
+      .filter(({ r, d }) => d === 0 || (r.einMishpat && d <= NEAR_LINES));
+    const onLines = scored.filter((x) => x.d === 0);
+    const picked = onLines.length ? onLines : scored.sort((a, b) => a.d - b.d);
+    if (!picked.length) continue;
+    out.push({
+      id: node.id,
+      label: node.label,
+      short: node.short,
+      order: node.order,
+      refs: picked.map(({ r, d }) => {
+        const isSA = node.id === 'shulchan-aruch';
+        const split = isSA ? splitRema(r.hebrew) : null;
+        return {
+          ref: r.ref,
+          match: d === 0 ? 'on-lines' : 'near',
+          einMishpat: Boolean(r.einMishpat),
+          hebrew: split ? split.mechaber : cleanCodeText(r.hebrew),
+          english: cleanCodeText(r.english),
+          ...(split?.rema.length ? { rema: split.rema } : {}),
+        };
+      }),
+    });
+  }
+  return out;
+}
+
+/** Read a topic's line range off a halacha mark instance (the shape the warm
+ *  path and the reader both send). Null when the instance carries none. */
+export function lineRangeOf(markInput: unknown): LineRange | null {
+  if (!markInput || typeof markInput !== 'object') return null;
+  const o = markInput as { startSegIdx?: unknown; endSegIdx?: unknown };
+  if (typeof o.startSegIdx !== 'number' || o.startSegIdx < 0) return null;
+  const end =
+    typeof o.endSegIdx === 'number' && o.endSegIdx >= o.startSegIdx ? o.endSegIdx : o.startSegIdx;
+  return { start: o.startSegIdx, end };
+}
+
+/** Per-ref text caps for the prompt. A Rambam halacha or a seif is short; a Tur
+ *  siman has no seifim and can run to thousands of characters. */
+const PROMPT_HE_CAP = 1800;
+const PROMPT_EN_CAP = 1800;
+
+/**
+ * Format the codes tied to a topic, with their exact text, for the codification
+ * and practical PROMPTS, so the model reads what each code actually says and can
+ * only cite a ref that Sefaria links to the topic's lines. With no range, every
+ * code linked to the daf is listed (the older, daf-wide behaviour).
+ */
+export function formatGroundedRefsForPrompt(
+  bundle: HalachicRefBundle | undefined,
+  range?: LineRange | null,
+): string {
+  const codes = codesForLines(bundle, range);
+  if (!codes.length) {
+    return range
+      ? '(no Mishneh Torah, Tur or Shulchan Aruch ref is linked to these lines of the daf)'
+      : '(no codifier links found for this daf)';
+  }
+  const body = codes
+    .map((c) => {
+      const refs = c.refs
         .map((r) => {
-          const he = truncate(r.hebrew);
-          const tag = r.einMishpat ? ' [Ein Mishpat — classical codification of this daf]' : '';
-          const en = truncate(r.english);
-          return `  - ${r.ref}${tag}${he ? `\n    HE: ${he}` : ''}${en ? `\n    EN: ${en}` : ''}`;
+          const tags = [
+            r.match === 'near' ? 'linked from a line just outside this topic' : null,
+            r.einMishpat ? 'Ein Mishpat' : null,
+          ].filter(Boolean);
+          const tag = tags.length ? ` [${tags.join('; ')}]` : '';
+          const lines = [`  - ${r.ref}${tag}`];
+          if (r.hebrew) lines.push(`    HE: ${truncate(r.hebrew, PROMPT_HE_CAP)}`);
+          for (const g of r.rema ?? []) lines.push(`    REMA (הגה): ${truncate(g, PROMPT_HE_CAP)}`);
+          if (r.english) lines.push(`    EN: ${truncate(r.english, PROMPT_EN_CAP)}`);
+          return lines.join('\n');
         })
         .join('\n');
-      return `${node.label}:\n${refs}`;
+      return `${c.label}:\n${refs}`;
     })
     .join('\n\n');
-  // When Ein Mishpat / Ner Mitzvah attests refs, tell the model these are the
-  // authoritative codifications to prefer (precision over recall).
-  const header = anyEinMishpat
-    ? 'Refs tagged [Ein Mishpat] are asserted by Ein Mishpat / Ner Mitzvah — the classical index of where this daf is codified. PREFER them as the canonical ref for their codifier over untagged (topical) links.\n\n'
-    : '';
-  return header + body;
+  return body;
+}
+
+/** Loose ref equality for tying a model's cited ref back to a Sefaria ref: the
+ *  model often drops the book name ("Orach Chayim 235" for "Tur, Orach Chayim
+ *  235") or spells Chayyim / Shulchan Aruch differently. */
+export function sameCodeRef(a: string, b: string): boolean {
+  const norm = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/^(?:mishneh torah|tur|shulchan aru[ck]h|rema)\s*,\s*/, '')
+      .replace(/chayyim/g, 'chayim')
+      .replace(/yoreh deah/g, "yoreh de'ah")
+      .replace(/[^a-z0-9:' ]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  return norm(a) !== '' && norm(a) === norm(b);
 }
 
 // ---------------------------------------------------------------------------

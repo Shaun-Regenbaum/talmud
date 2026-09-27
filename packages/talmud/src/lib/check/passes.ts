@@ -16,6 +16,7 @@
  * DOM-free / env-free so it lives in src/lib and is unit-testable.
  */
 
+import { sameCodeRef, type TopicCodifier } from '../halacha/codifiers';
 import { lintHalachaParsed } from '../halachaLint';
 import {
   reanchorAggadata,
@@ -53,6 +54,9 @@ export interface PassCtx {
   /** Deterministic verbatim-aligned Bavli<->Yerushalmi spans (the yerushalmi-floor
    *  transform's input). Present only when running the yerushalmi mark. */
   yerushalmiFloor?: YerushalmiFloorGroup[];
+  /** The codes Sefaria links to a halacha topic's lines (the halacha-refs
+   *  resolver stashes them). Present only for the halacha leaves. */
+  halachaCodes?: TopicCodifier[];
   defId: string;
   lang?: 'en' | 'he';
 }
@@ -558,6 +562,65 @@ const commentaryVerbatim: PostPass = {
   },
 };
 
+// ---- halacha-ground: keep only code refs Sefaria links to the topic ----
+
+type Ruling = { ref: string; ruling: string } | null;
+const RULING_FIELDS = [
+  ['mishnehTorah', 'mishneh-torah'],
+  ['tur', 'tur'],
+  ['shulchanAruch', 'shulchan-aruch'],
+] as const;
+
+/** The linked ref a cited one names, spelled the way Sefaria spells it. */
+function linkedRef(codes: TopicCodifier[], cited: string, codifier?: string): string | null {
+  for (const c of codes) {
+    if (codifier && c.id !== codifier) continue;
+    for (const r of c.refs) if (sameCodeRef(cited, r.ref)) return r.ref;
+  }
+  return null;
+}
+
+/**
+ * Transform for halacha.codification and halacha.practical: a cited code ref
+ * that Sefaria does not link to the topic's lines is dropped (the model may not
+ * cite from memory), and a kept one is rewritten to Sefaria's spelling. A Rema
+ * ruling survives only on a seif whose printed text has a Rema gloss. Without the
+ * linked-codes list (older runs, the inspector) the output passes unchanged.
+ */
+export function groundHalacha(parsed: unknown, codes: TopicCodifier[], defId: string): unknown {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+  const p = { ...(parsed as Record<string, unknown>) };
+  if (defId === 'halacha.codification') {
+    for (const [field, codifier] of RULING_FIELDS) {
+      const r = p[field] as Ruling;
+      if (!r?.ref) continue;
+      const ref = linkedRef(codes, r.ref, codifier);
+      p[field] = ref ? { ...r, ref } : null;
+    }
+    const rema = p.rema as Ruling;
+    if (rema?.ref) {
+      const sa = codes.find((c) => c.id === 'shulchan-aruch');
+      const seif = sa?.refs.find((r) => sameCodeRef(rema.ref, r.ref) && r.rema?.length);
+      p.rema = seif ? { ...rema, ref: seif.ref } : null;
+    }
+  } else if (defId === 'halacha.practical' && typeof p.basis === 'string') {
+    p.basis = p.basis
+      .split(/\s*;\s*/)
+      .map((b) => linkedRef(codes, b))
+      .filter((b, i, all): b is string => !!b && all.indexOf(b) === i)
+      .join('; ');
+  }
+  return p;
+}
+
+const halachaGround: PostPass = {
+  id: 'halacha-ground',
+  phase: 'transform',
+  run: (parsed, ctx) => ({
+    parsed: ctx.halachaCodes ? groundHalacha(parsed, ctx.halachaCodes, ctx.defId) : parsed,
+  }),
+};
+
 export const PASSES: Record<string, PostPass> = {
   'reanchor-argument': transform('reanchor-argument', reanchorArgument),
   'reanchor-argument-move': transform('reanchor-argument-move', reanchorArgumentMove),
@@ -578,6 +641,7 @@ export const PASSES: Record<string, PostPass> = {
   'anchor-verbatim': anchorVerbatim,
   'partition-clean': partitionClean,
   'edge-integrity': edgeIntegrity,
+  'halacha-ground': halachaGround,
 };
 
 /** Run the named passes: transforms first (in listed order), then validators.

@@ -755,11 +755,22 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
     '/api/halacha-text/{tractate}/{page}': {
       get: {
         summary: 'Full Hebrew/English codifier texts (Rambam/Tur/SA) cited from this daf.',
-        description: 'Served from the cached halacha-refs bundle. Read-only, no LLM.',
-        parameters: [tractate, page],
+        description:
+          'Served from the cached halacha-refs bundle. Read-only, no LLM. Pass start/end ' +
+          "(a halacha topic's 0-indexed daf segments) to also get `codes`: only the refs " +
+          "Sefaria links to those lines, with the Shulchan Aruch split into the Mechaber's " +
+          "words and the Rema's glosses.",
+        parameters: [
+          tractate,
+          page,
+          { name: 'start', in: 'query', required: false, schema: { type: 'integer' } },
+          { name: 'end', in: 'query', required: false, schema: { type: 'integer' } },
+        ],
         responses: {
           '200': {
-            description: '{ nodes: [{ label, tier, refs: [{ ref, hebrew, english }] }] }',
+            description:
+              '{ nodes: [{ label, tier, refs: [{ ref, hebrew, english }] }], codes?: [{ id, label, ' +
+              "refs: [{ ref, match: 'on-lines'|'near', einMishpat, hebrew, english, rema? }] }] }",
           },
         },
       },

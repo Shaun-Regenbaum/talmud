@@ -4,7 +4,7 @@
   "schema": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["shape", "best", "fallback", "statement", "rows", "note"],
+    "required": ["shape", "best", "fallback", "statement", "rows", "note", "basis"],
     "properties": {
       "shape": {
         "type": "string",
@@ -36,6 +36,9 @@
         }
       },
       "note": {
+        "type": "string"
+      },
+      "basis": {
         "type": "string"
       }
     }

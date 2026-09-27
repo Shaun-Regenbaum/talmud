@@ -6,10 +6,15 @@ import {
   CODIFIERS,
   classifyCodifier,
   classifyShasSource,
+  cleanCodeText,
+  codesForLines,
   formatGroundedRefsForPrompt,
   hasCodification,
+  lineRangeOf,
   parseBavliRef,
   type RelatedLink,
+  sameCodeRef,
+  splitRema,
 } from '../src/lib/halacha/codifiers';
 import type { HalachicRefBundle } from '../src/lib/sefref/sefaria/client';
 import { TRACTATE_OPTIONS } from '../src/lib/sefref/tractates';
@@ -153,7 +158,7 @@ describe('formatGroundedRefsForPrompt', () => {
     expect(out).toContain('EN: The time for Shema');
   });
 
-  it('tags Ein Mishpat refs and adds the prefer-these header', () => {
+  it('tags Ein Mishpat refs; untagged refs carry no marker', () => {
     const out = formatGroundedRefsForPrompt({
       'Mishneh Torah, Reading the Shema': [
         {
@@ -165,27 +170,203 @@ describe('formatGroundedRefsForPrompt', () => {
       ],
       'Tur, Orach Chayim': [{ ref: 'Tur, Orach Chayim 235', hebrew: 'he', english: 'en' }],
     });
-    expect(out).toContain('Mishneh Torah, Reading the Shema 1:9 [Ein Mishpat');
-    expect(out).toContain('PREFER them'); // header instruction present
-    // Untagged refs carry no marker.
-    expect(out).toMatch(/Tur, Orach Chayim 235(?!\s*\[Ein Mishpat)/);
+    expect(out).toContain('Mishneh Torah, Reading the Shema 1:9 [Ein Mishpat]');
+    expect(out).toMatch(/Tur, Orach Chayim 235\n/);
   });
 
-  it('omits the prefer-these header when nothing is Ein Mishpat-attested', () => {
-    const out = formatGroundedRefsForPrompt({
-      'Tur, Orach Chayim': [{ ref: 'Tur, Orach Chayim 235', hebrew: 'he', english: 'en' }],
-    });
-    expect(out).not.toContain('Ein Mishpat');
-  });
-
-  it('caps long snippets and marks an empty bundle', () => {
+  it('caps a long code text and marks an empty bundle', () => {
     expect(formatGroundedRefsForPrompt({})).toBe('(no codifier links found for this daf)');
-    const long = 'א'.repeat(800);
+    const long = 'א'.repeat(5000);
     const out = formatGroundedRefsForPrompt({
-      'Shulchan Arukh, Orach Chayim': [{ ref: 'OC 235:1', hebrew: long, english: '' }],
+      'Tur, Orach Chayim': [{ ref: 'Tur, Orach Chayim 235', hebrew: long, english: '' }],
     });
     expect(out).toContain('…');
     expect(out.length).toBeLessThan(long.length);
+  });
+
+  it('with a range, lists only the codes linked to those lines', () => {
+    const out = formatGroundedRefsForPrompt(berakhot2a, { start: 0, end: 3 });
+    expect(out).toContain('Mishneh Torah, Reading the Shema 1:9');
+    expect(out).not.toContain('Heave Offerings');
+    expect(out).not.toContain('Tur, Orach Chayim 58');
+    // The Rema's printed gloss is its own line under the seif.
+    expect(out).toContain('REMA (הגה): ומיהו לא יחזור');
+    expect(formatGroundedRefsForPrompt(berakhot2a, { start: 20, end: 22 })).toBe(
+      '(no Mishneh Torah, Tur or Shulchan Aruch ref is linked to these lines of the daf)',
+    );
+  });
+});
+
+// Berakhot 2a as Sefaria links it (anchors 0-indexed): lines 0-2 (evening
+// Shema) → Rambam 1:9, Tur 235, SA 235:1 / 235:3; line 9 (the blessings) → Tur
+// 58 and SA 236:1; line 12 (terumah) → Rambam, Heave Offerings 7:2.
+const berakhot2a: HalachicRefBundle = {
+  'Mishneh Torah, Reading the Shema': [
+    {
+      ref: 'Mishneh Torah, Reading the Shema 1:9',
+      hebrew: 'איזה הוא זמן קריאת שמע בלילה',
+      english:
+        'When is the time<sup class="footnote-marker">1</sup><i class="footnote">The Mishnah (<i>Berachot</i> 2a) states…</i> for Shema at night?',
+      segStart: 0,
+      segEnd: 0,
+      anchors: [
+        { segStart: 0, segEnd: 0 },
+        { segStart: 1, segEnd: 1 },
+        { segStart: 2, segEnd: 2 },
+      ],
+      einMishpat: true,
+    },
+  ],
+  'Mishneh Torah, Heave Offerings': [
+    {
+      ref: 'Mishneh Torah, Heave Offerings 7:2',
+      hebrew: 'כהן טמא',
+      english: '',
+      segStart: 12,
+      segEnd: 12,
+      einMishpat: true,
+    },
+  ],
+  'Tur, Orach Chayim': [
+    {
+      ref: 'Tur, Orach Chayim 235',
+      hebrew: 'הלכות תפלת ערבית',
+      english: '',
+      anchors: [{ segStart: 0, segEnd: 2 }],
+      einMishpat: true,
+    },
+    {
+      ref: 'Tur, Orach Chayim 58',
+      hebrew: 'זמן קריאת שמע של שחרית',
+      english: '',
+      segStart: 9,
+      segEnd: 9,
+      einMishpat: true,
+    },
+  ],
+  'Shulchan Arukh, Orach Chayim': [
+    {
+      ref: 'Shulchan Arukh, Orach Chayim 235:1',
+      hebrew:
+        '<b>זמן ק"ש של ערבית. ובו ד סעיפים:</b><br><i data-commentator="Be\'er HaGolah" data-label="א"></i>זמן קריאת שמע בלילה <small>הגה <i data-commentator="Mishnah Berurah" data-label="יג"></i>ומיהו לא יחזור ויתפלל</small>',
+      english: '',
+      segStart: 0,
+      segEnd: 0,
+      einMishpat: true,
+    },
+    {
+      ref: 'Shulchan Arukh, Orach Chayim 236:1',
+      hebrew: 'בערב מברך שתים לפניה',
+      english: '',
+      segStart: 9,
+      segEnd: 9,
+      einMishpat: true,
+    },
+  ],
+};
+
+describe('codesForLines', () => {
+  it("keeps only the codes linked to the topic's own lines", () => {
+    const codes = codesForLines(berakhot2a, { start: 0, end: 3 });
+    expect(codes.map((c) => c.id)).toEqual(['mishneh-torah', 'tur', 'shulchan-aruch']);
+    expect(codes.flatMap((c) => c.refs.map((r) => r.ref))).toEqual([
+      'Mishneh Torah, Reading the Shema 1:9',
+      'Tur, Orach Chayim 235',
+      'Shulchan Arukh, Orach Chayim 235:1',
+    ]);
+    expect(codes.every((c) => c.refs.every((r) => r.match === 'on-lines'))).toBe(true);
+  });
+
+  it('matches on any of the lines a ref is linked from', () => {
+    // Rambam 1:9 is linked from lines 0, 1 and 2; a topic on line 2 alone finds it.
+    const codes = codesForLines(berakhot2a, { start: 2, end: 2 });
+    expect(codes[0].refs[0].ref).toBe('Mishneh Torah, Reading the Shema 1:9');
+  });
+
+  it('falls back to Ein Mishpat links within two lines, marked near', () => {
+    // Lines 4-5: nothing linked on them; Rambam 1:9 / Tur 235 / SA 235:1 sit on
+    // lines 0-2 (2+ away), so only those within NEAR_LINES count.
+    const codes = codesForLines(berakhot2a, { start: 4, end: 5 });
+    const refs = codes.flatMap((c) => c.refs);
+    expect(refs.map((r) => r.ref)).toEqual([
+      'Mishneh Torah, Reading the Shema 1:9',
+      'Tur, Orach Chayim 235',
+    ]);
+    expect(refs.every((r) => r.match === 'near')).toBe(true);
+  });
+
+  it('never lets a loose topical link count as near', () => {
+    const bundle: HalachicRefBundle = {
+      'Tur, Orach Chayim': [
+        { ref: 'Tur, Orach Chayim 1', hebrew: 'x', english: '', segStart: 5, segEnd: 5 },
+      ],
+    };
+    expect(codesForLines(bundle, { start: 4, end: 4 })).toEqual([]);
+    expect(codesForLines(bundle, { start: 5, end: 5 })).toHaveLength(1);
+  });
+
+  it('splits the Rema out of the Shulchan Aruch and cleans the text', () => {
+    const sa = codesForLines(berakhot2a, { start: 0, end: 0 }).find(
+      (c) => c.id === 'shulchan-aruch',
+    );
+    expect(sa?.refs[0].hebrew).toBe('זמן קריאת שמע בלילה');
+    expect(sa?.refs[0].rema).toEqual(['ומיהו לא יחזור ויתפלל']);
+    const mt = codesForLines(berakhot2a, { start: 0, end: 0 })[0];
+    expect(mt.refs[0].english).toBe('When is the time for Shema at night?');
+  });
+
+  it('with no range, keeps every code on the daf', () => {
+    const refs = codesForLines(berakhot2a).flatMap((c) => c.refs);
+    expect(refs).toHaveLength(6);
+  });
+});
+
+describe('cleanCodeText + splitRema', () => {
+  it('drops nested footnotes, commentator anchors and the siman header', () => {
+    expect(
+      cleanCodeText(
+        'A<sup class="footnote-marker">1</sup><i class="footnote">see <i>Berachot</i> 2a and <i>Tosafot</i></i> B',
+      ),
+    ).toBe('A B');
+    expect(cleanCodeText('<b>הלכות ק"ש ובו ג סעיפים:</b><br>טקסט&nbsp;כאן')).toBe('טקסט כאן');
+  });
+
+  it('reads a bracketed short gloss as the Rema too', () => {
+    // Shulchan Arukh, Yoreh De'ah 321:4 as Sefaria prints it.
+    expect(
+      splitRema(
+        '<i data-commentator="x"></i>פודין בבן פקועה <i data-commentator="y"></i><small>(וי"א שאין פודין בבן פקועה) (ג"ז בשמו)</small>:',
+      ),
+    ).toEqual({
+      mechaber: 'פודין בבן פקועה:',
+      rema: ['(וי"א שאין פודין בבן פקועה) (ג"ז בשמו)'],
+    });
+    expect(splitRema('טקסט <small>(וחלב נפל אסור):</small>').rema).toEqual(['וחלב נפל אסור']);
+  });
+
+  it('leaves a seif with no gloss whole', () => {
+    expect(splitRema('טקסט <i data-commentator="x"></i>בלבד')).toEqual({
+      mechaber: 'טקסט בלבד',
+      rema: [],
+    });
+  });
+});
+
+describe('lineRangeOf + sameCodeRef', () => {
+  it('reads a topic range off a mark instance', () => {
+    expect(lineRangeOf({ startSegIdx: 3, endSegIdx: 5, fields: {} })).toEqual({ start: 3, end: 5 });
+    expect(lineRangeOf({ startSegIdx: 3, fields: {} })).toEqual({ start: 3, end: 3 });
+    expect(lineRangeOf({ fields: {} })).toBeNull();
+    expect(lineRangeOf(null)).toBeNull();
+  });
+
+  it('matches a ref the model wrote without the book name or with other spellings', () => {
+    expect(sameCodeRef('Orach Chayyim 235', 'Tur, Orach Chayim 235')).toBe(true);
+    expect(
+      sameCodeRef('Shulchan Aruch, Orach Chayim 235:1', 'Shulchan Arukh, Orach Chayim 235:1'),
+    ).toBe(true);
+    expect(sameCodeRef('Orach Chayim 235:1', 'Shulchan Arukh, Orach Chayim 235:3')).toBe(false);
+    expect(sameCodeRef('', '')).toBe(false);
   });
 });
 

@@ -15,7 +15,7 @@ const READER_FILES = [
   'packages/talmud/src/client/ArgumentNarrative.tsx',
   'packages/talmud/src/client/rabbiLinks.tsx',
   'packages/talmud/src/client/LinkRef.tsx',
-  'packages/talmud/src/client/flow/codeMapLayout.ts',
+  'packages/talmud/src/client/halachaCodes.ts',
   'packages/talmud/src/client/SpineFlowGraph.tsx',
   'packages/talmud/src/client/RabbiGeographyCard.tsx',
   'packages/talmud/src/client/CommentaryPicker.tsx',

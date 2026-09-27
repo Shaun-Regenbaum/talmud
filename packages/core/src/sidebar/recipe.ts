@@ -132,18 +132,15 @@ export const HALACHA_RECIPE: SidebarRecipe = {
   titleHeField: 'topicHe',
   sections: [
     { type: 'synthesis' },
-    // Codification renders as the CodificationMap (lineage + the Mechaber/Rema
-    // disagree edge), so the standalone disputes block is retired — the common
-    // codifier dispute now lives in the map; synthesis still weaves the rest.
+    // Codification renders as a plain list of the codes Sefaria links to this
+    // topic's daf lines, each with its own text (the Rema's printed gloss split
+    // out under the Shulchan Aruch). The AI summary attaches to a row whose ref it
+    // names; synthesis still weaves the rest.
     { type: 'special', block: 'halacha-codification', deps: ['halacha.codification'] },
     // One grounded dispute object (Mechaber/Rema, Sefarad/Ashkenaz, poskim),
     // shown only when present; the practical consequence + positions.
     { type: 'special', block: 'halacha-dispute', deps: ['halacha.dispute'] },
     { type: 'special', block: 'halacha-practical', deps: ['halacha.practical'] },
-    // "Where it comes from": the gemara sources the codified law derives from
-    // (deterministic reverse Sefaria, /api/derivation), reading the codifier
-    // refs off the codification leaf — so it depends on halacha.codification.
-    { type: 'special', block: 'halacha-derivation', deps: ['halacha.codification'] },
   ],
 };
 

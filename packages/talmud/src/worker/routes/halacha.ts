@@ -9,8 +9,12 @@
  */
 
 import type { Hono } from 'hono';
-import { buildCodificationChain, buildDerivation } from '../../lib/halacha/codifiers';
-import { stripHtmlServer } from '../html-text';
+import {
+  buildCodificationChain,
+  buildDerivation,
+  cleanCodeText,
+  codesForLines,
+} from '../../lib/halacha/codifiers';
 import { getCodeSourcesCached, getHalachaRefsCached } from '../source-cache';
 import type { Bindings } from '../types';
 
@@ -34,12 +38,15 @@ export function registerHalachaRoutes(app: Hono<{ Bindings: Bindings }>): void {
     return c.json({ sources });
   });
 
-  // Halacha SOURCE TEXTS: the actual codifier text behind the codification card,
-  // grouped into the deterministic codifier lineage (Rambam → Tur → Shulchan Aruch
-  // + secondary glosses). The full Hebrew/English is ALREADY cached in the
-  // halacha-refs bundle (it grounds the codification enrichment) — this only
-  // surfaces it for the reader. Read-only, no LLM. HTML stripped for display; the
-  // cached bundle (and the grounding prompt) keep the raw markup.
+  // Halacha codes: the codifier texts behind a halacha card, from the
+  // halacha-refs bundle (already cached — it grounds the codification
+  // enrichment). Read-only, no LLM.
+  //   nodes — every codifier ref Sefaria links to the daf, in lineage order
+  //           (Rambam → Tur → Shulchan Aruch + secondary glosses).
+  //   codes — with ?start=&end= (a topic's 0-indexed daf lines): only the
+  //           Rambam / Tur / Shulchan Aruch refs linked to those lines, with the
+  //           Mechaber's words and the Rema's glosses split apart. This is the
+  //           list the halacha card shows.
   app.get('/api/halacha-text/:tractate/:page', async (c) => {
     const tractate = c.req.param('tractate');
     const page = c.req.param('page');
@@ -53,11 +60,16 @@ export function registerHalachaRoutes(app: Hono<{ Bindings: Bindings }>): void {
       einMishpat: n.einMishpat,
       refs: n.refs.map((r) => ({
         ref: r.ref,
-        hebrew: stripHtmlServer(r.hebrew ?? ''),
-        english: stripHtmlServer(r.english ?? ''),
+        hebrew: cleanCodeText(r.hebrew),
+        english: cleanCodeText(r.english),
         einMishpat: !!r.einMishpat,
       })),
     }));
-    return c.json({ tractate, page, nodes });
+    const start = Number.parseInt(c.req.query('start') ?? '', 10);
+    const endQ = Number.parseInt(c.req.query('end') ?? '', 10);
+    if (!Number.isFinite(start) || start < 0) return c.json({ tractate, page, nodes });
+    const end = Number.isFinite(endQ) && endQ >= start ? endQ : start;
+    const codes = codesForLines(bundle, { start, end });
+    return c.json({ tractate, page, nodes, codes });
   });
 }

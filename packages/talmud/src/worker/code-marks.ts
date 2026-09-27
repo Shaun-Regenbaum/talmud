@@ -4751,29 +4751,16 @@ CODE_ENRICHMENTS.push(
 // Shulchan Aruch siman:seif and promote codification to scope='global'.
 // ---------------------------------------------------------------------------
 
-const HALACHA_LEAF_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
-
-Halacha topic identified on this daf:
-{{mark_input}}
-
-Hebrew/Aramaic source for the daf:
-{{gemara_he}}
-
-English translation:
-{{gemara_en}}
-
-Produce the requested output per the schema.`;
-
-// Codification gets an extra GROUNDED-REFS block: the real Mishneh Torah / Tur /
-// Shulchan Aruch refs (with text) Sefaria links to this daf, so the model
-// SELECTS a real ref rather than recalling one. Separate from the shared leaf
-// template (which practical/disputes still use without the refs block).
+// Codification gets a GROUNDED-REFS block: the Mishneh Torah / Tur / Shulchan
+// Aruch refs Sefaria links to this topic's lines (with their exact text), so the
+// model SELECTS a real ref rather than recalling one. Practical reads the same
+// block through its own template below.
 const HALACHA_CODIFICATION_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
 Halacha topic identified on this daf:
 {{mark_input}}
 
-Grounded codifier references — real Sefaria refs (with text) that cite THIS daf. SELECT from these; do not invent refs not listed here:
+Codes linked to THIS topic's lines of the daf — real Sefaria refs with their exact text. Cite ONLY refs listed here:
 {{halacha_refs}}
 
 Hebrew/Aramaic source for the daf:
@@ -4797,12 +4784,10 @@ Output STRICT JSON only:
 }
 
 Rules:
-- GROUND every ref. You are given a "Grounded codifier references" block listing the real Sefaria refs (with their text) that cite this daf. For Mishneh Torah, Tur, and Shulchan Aruch: SELECT the ref from that block and base the ruling on the text shown there. If one of those three is absent from the block, return null for it — DO NOT invent or recall a ref that is not listed.
-- PREFER Ein Mishpat. Refs tagged [Ein Mishpat] are asserted by the classical Ein Mishpat / Ner Mitzvah index as THE codification of this daf. When a codifier has an [Ein Mishpat]-tagged ref, choose it over any untagged (merely topical) ref for that codifier.
-- Rema is the EXCEPTION: Sefaria folds Rema's glosses into the Shulchan Aruch, so Rema will NOT appear as its own entry in the block. Supply Rema (using the Shulchan Aruch's siman:seif as its ref) ONLY when he explicitly disagrees with, qualifies, or adds Ashkenazi minhag to the Mechaber's ruling on THIS topic — otherwise null.
-- ref MUST be a real, citable reference (sefer + hilchot + chapter:halacha for Mishneh Torah; siman[:seif] for Tur/Shulchan Aruch/Rema). If you cannot supply a real ref with confidence, return null for that codifier — DO NOT invent references.
-- For each non-null entry, the ruling MUST genuinely match what the codifier says on THIS topic, not a general gloss.
-- Rema is only non-null when he explicitly disagrees, qualifies, or adds Ashkenazi minhag to the Mechaber's ruling. If Rema agrees silently, leave it null.
+- CITE ONLY LISTED REFS. The "Codes linked to THIS topic's lines" block lists the Mishneh Torah / Tur / Shulchan Aruch refs that Sefaria's Ein Mishpat index ties to this topic's lines of the daf, each with its exact text. For each of the three, pick the listed ref whose text is about THIS topic and copy its ref string exactly. If none is listed for a codifier, or none of the listed ones is about this topic, return null for it. Never cite a ref from memory.
+- A ref tagged "linked from a line just outside this topic" may be a neighbouring law. Use it only when its text is plainly about this topic.
+- SUMMARIZE THE TEXT, NOT YOUR MEMORY. Each ruling says what the quoted text says, in plain words, and nothing it does not say. If the text is long (a whole Tur siman), summarize only the part about this topic.
+- REMA: Sefaria prints the Rema's glosses inside the Shulchan Aruch; they are listed as "REMA (הגה)" lines under a Shulchan Aruch ref. Fill "rema" ONLY when such a line under the ref you chose disagrees with, qualifies, or adds Ashkenazi practice to the Mechaber on THIS topic. Use that Shulchan Aruch ref as its ref and summarize the gloss. With no REMA line, "rema" is null.
 - prose is a tight narrative, not a list — focus on the trail (who first fixes the rule, where it forks).
 - NO puff. Forbidden: "this teaches us", "we see that", "highlights", "underscores", "profoundly", "lens", "captures", "embodies".
 
@@ -4823,16 +4808,37 @@ Output STRICT JSON only — fill ONLY the fields for the chosen shape, leave the
   "fallback":  "best-fallback ONLY. ONE sentence: the after-the-fact standard. e.g. 'Any time until עלות השחר (dawn) still counts.' Empty if there is genuinely no fallback.",
   "statement": "statement ONLY. ONE plain sentence of what to do / not do / the requirement.",
   "rows":      [ { "when": "the case, plain (e.g. 'Tree fruit')", "value": "the answer (e.g. 'בורא פרי העץ')" } ],
-  "note":      "OPTIONAL single plain-language heads-up or exception (e.g. 'A sick person is exempt'). Empty when none — do NOT pad."
+  "note":      "OPTIONAL single plain-language exception that changes what someone does (e.g. 'A sick person is exempt'). Empty when none — do NOT pad.",
+  "basis":     "The code ref this answer rests on, copied EXACTLY from the listed codes (e.g. 'Shulchan Arukh, Orach Chayim 235:3'). Empty when no listed code states it."
 }
 
 Rules:
+- BASE IT ON THE CODES. You are given the codes linked to this topic's lines, with their exact text. State the practice the way the Shulchan Aruch text says it (with the Rema's gloss where one is listed and differs). With no Shulchan Aruch, use the Rambam's text. Put the ref you relied on in "basis".
+- Do not add rules, times, or conditions the listed texts do not state. If no listed code covers this topic, answer from the gemara's conclusion, keep it modest, and leave "basis" empty.
 - Choose exactly ONE shape and fill only its fields. Do NOT invent a בדיעבד fallback to fill best-fallback — if there's no real after-the-fact distinction, use "statement".
-- "note" is ONE short plain sentence, not a list — the most important single caveat, or "" if none. (The old chip lists are retired.)
+- "note" is ONE short plain sentence: an exception or condition that changes what a person does (who is exempt, when the rule does not apply). It is NOT the reason for the rule, a history, or a restatement. "" if none.
 - Plain English sentences; attach each Hebrew term once, Hebrew first with the English in parens, per the style below ("before חצות (halachic midnight)", not "before halachic midnight (חצות)").
 - NO puff. NO jargon: "transmitter" not "tradent".
 
 ${HEBREW_GLOSS_STYLE}`;
+
+// Practical reads the same topic-scoped codes as codification, so the "what to
+// do" line comes from the Shulchan Aruch / Rambam text rather than memory.
+const HALACHA_PRACTICAL_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Halacha topic identified on this daf:
+{{mark_input}}
+
+Codes linked to THIS topic's lines of the daf — real Sefaria refs with their exact text:
+{{halacha_refs}}
+
+Hebrew/Aramaic source for the daf:
+{{gemara_he}}
+
+English translation:
+{{gemara_en}}
+
+Produce the requested output per the schema.`;
 
 const HALACHA_DISPUTE_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
@@ -4928,25 +4934,12 @@ Produce the synthesis per the schema.`;
 
 // ---------------- Hebrew-output parallels (halacha) ----------------
 
-const HALACHA_LEAF_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
-
-נושא הלכתי שזוהה בדף זה:
-{{mark_input}}
-
-מקור עברי/ארמי לדף:
-{{gemara_he}}
-
-תרגום אנגלי:
-{{gemara_en}}
-
-הפק את הפלט המבוקש לפי הסכימה.`;
-
 const HALACHA_CODIFICATION_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 נושא הלכתי שזוהה בדף זה:
 {{mark_input}}
 
-מראי מקום מבוססים של הפוסקים — מראי מקום אמיתיים מספריא (עם טקסט) המפנים לדף זה. בחר מתוכם; אל תמציא מראי מקום שאינם ברשימה:
+מראי המקום של הפוסקים הקשורים לשורות של הנושא הזה בדף — מראי מקום אמיתיים מספריא עם לשונם המדויקת. צטט רק מראי מקום מן הרשימה:
 {{halacha_refs}}
 
 מקור עברי/ארמי לדף:
@@ -4970,11 +4963,10 @@ const HALACHA_CODIFICATION_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקי
 }
 
 כללים:
-- בסס כל מראה מקום. ניתן לך בלוק "מראי מקום מבוססים של הפוסקים" המפרט את מראי המקום האמיתיים מספריא (עם הטקסט) המפנים לדף זה. עבור משנה תורה, הטור, והשולחן ערוך: בחר את מראה המקום מתוך הבלוק הזה ובסס את הפסק על הטקסט המוצג שם. אם אחד משלושת אלה אינו מופיע בבלוק, החזר null עבורו — אל תמציא ואל תשלוף מראה מקום שאינו ברשימה.
-- הרמ"א הוא יוצא הדופן: ספריא משלבת את הגהות הרמ"א בתוך השולחן ערוך, ולכן הרמ"א לא יופיע כערך נפרד בבלוק. ספק את הרמ"א (תוך שימוש בסימן:סעיף של השולחן ערוך כמראה המקום שלו) רק כאשר הוא חולק במפורש, מסייג, או מוסיף מנהג אשכנז לפסק המחבר בנושא הזה — אחרת null.
-- ref חייב להיות מראה מקום אמיתי וניתן לציטוט (ספר + הלכות + פרק:הלכה למשנה תורה; סימן[:סעיף] לטור/שו"ע/רמ"א). אם אינך יכול לספק מראה מקום אמיתי בביטחון, החזר null לאותו פוסק — אל תמציא מראי מקום.
-- עבור כל ערך שאינו null, ה-ruling חייב להתאים באמת למה שהפוסק אומר בנושא הזה, לא להגהה כללית.
-- הרמ"א אינו null רק כשהוא חולק במפורש, מסייג, או מוסיף מנהג אשכנז לפסק המחבר. אם הרמ"א מסכים בשתיקה, השאר null.
+- צטט רק מראי מקום מן הרשימה. הבלוק "מראי המקום של הפוסקים הקשורים לשורות של הנושא" מפרט את מראי המקום במשנה תורה, בטור ובשולחן ערוך שמפתח עין משפט בספריא קושר לשורות האלה בדף, כל אחד עם לשונו המדויקת. לכל אחד משלושתם בחר את מראה המקום שלשונו עוסקת בנושא הזה והעתק אותו כפי שהוא. אם אין מראה מקום ברשימה לאותו פוסק, או שאף אחד מהם אינו עוסק בנושא הזה, החזר null. לעולם אל תצטט מן הזיכרון.
+- מראה מקום המסומן "linked from a line just outside this topic" עשוי להיות דין סמוך. השתמש בו רק כשלשונו עוסקת בבירור בנושא הזה.
+- סכם את הלשון, לא את זיכרונך. כל ruling אומר מה שהלשון המצוטטת אומרת, במילים פשוטות, ולא יותר. אם הלשון ארוכה (סימן שלם בטור), סכם רק את החלק הנוגע לנושא.
+- רמ"א: ספריא מדפיסה את הגהות הרמ"א בתוך השולחן ערוך, והן מופיעות כשורות "REMA (הגה)" תחת מראה מקום של השולחן ערוך. מלא "rema" רק כששורה כזו תחת מראה המקום שבחרת חולקת, מסייגת, או מוסיפה מנהג אשכנז לדברי המחבר בנושא הזה. השתמש במראה המקום של השולחן ערוך כ-ref וסכם את ההגהה. בלי שורת REMA — "rema" הוא null.
 - prose הוא סיפור הדוק, לא רשימה — התמקד בשלשלת (מי מקבע ראשון, היכן מתפצל).
 - ללא מליצה. אסור: "מכאן אנו למדים", "אנו רואים ש", "מבליט", "מדגיש", "עמוק", "עדשה", "לוכד", "מגלם".
 
@@ -4995,15 +4987,34 @@ const HALACHA_PRACTICAL_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא 
   "fallback":  "ל-best-fallback בלבד. משפט אחד: דין הבדיעבד. ריק אם אין באמת בדיעבד.",
   "statement": "ל-statement בלבד. משפט אחד פשוט של מה לעשות / לא לעשות / הדרישה.",
   "rows":      [ { "when": "המקרה (למשל 'פרי העץ')", "value": "התשובה (למשל 'בורא פרי העץ')" } ],
-  "note":      "אופציונלי: הערה/חריג יחיד וקצר ('חולה פטור'). ריק כשאין — אל תמלא לחינם."
+  "note":      "אופציונלי: חריג יחיד וקצר שמשנה את מה שאדם עושה ('חולה פטור'). ריק כשאין — אל תמלא לחינם.",
+  "basis":     "מראה המקום שעליו התשובה נשענת, מועתק בדיוק מרשימת הפוסקים (למשל 'Shulchan Arukh, Orach Chayim 235:3'). ריק כשאף פוסק ברשימה אינו אומר זאת."
 }
 
 כללים:
+- בסס על הפוסקים. ניתנו לך הפוסקים הקשורים לשורות של הנושא, עם לשונם המדויקת. נסח את ההנהגה כפי שלשון השולחן ערוך אומרת (עם הגהת הרמ"א כשהיא מופיעה וחולקת). בלי שולחן ערוך — לפי לשון הרמב"ם. כתוב ב-"basis" את מראה המקום שעליו נשענת.
+- אל תוסיף דינים, זמנים או תנאים שאינם בלשונות שברשימה. אם אף פוסק ברשימה אינו עוסק בנושא, ענה לפי מסקנת הגמרא, בזהירות, והשאר "basis" ריק.
 - בחר צורה אחת בלבד ומלא רק את שדותיה. אל תמציא בדיעבד כדי למלא best-fallback — אם אין הבחנה אמיתית, השתמש ב-"statement".
-- "note" הוא משפט יחיד קצר, לא רשימה — החריג החשוב ביותר, או "". (רשימות התגיות הישנות בוטלו.)
+- "note" הוא משפט יחיד קצר: חריג או תנאי שמשנה את מה שאדם עושה (מי פטור, מתי הדין אינו חל). הוא אינו טעם הדין, היסטוריה או חזרה. "" כשאין.
 - ללא מליצה.
 
 ${HEBREW_NATIVE_STYLE}`;
+
+const HALACHA_PRACTICAL_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+נושא הלכתי שזוהה בדף זה:
+{{mark_input}}
+
+הפוסקים הקשורים לשורות של הנושא הזה בדף — מראי מקום אמיתיים מספריא עם לשונם המדויקת:
+{{halacha_refs}}
+
+מקור עברי/ארמי לדף:
+{{gemara_he}}
+
+תרגום אנגלי:
+{{gemara_en}}
+
+הפק את הפלט המבוקש לפי הסכימה.`;
 
 const HALACHA_DISPUTE_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
@@ -5102,14 +5113,17 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content',
       scope: 'local',
-      // 'halacha-refs' feeds the real Sefaria codifier refs (with text) into the
-      // prompt so refs are GROUNDED (selected) rather than recalled.
+      // 'halacha-refs' feeds the Sefaria codifier refs linked to this topic's
+      // lines (with their exact text) so refs are SELECTED, not recalled.
       dependencies: ['gemara', 'halacha-refs'],
-      passes: ['hebrew-gloss'],
+      passes: ['halacha-ground', 'hebrew-gloss'],
       // v5: the prompt now prefers Ein Mishpat / Ner Mitzvah-attested refs, and
       // the grounded-refs input tags them — so cached v4 outputs regenerate.
-      defHash: 'halacha.codification-v5',
-      cacheVersion: '5',
+      // v6: the refs are scoped to the topic's own daf lines and carry the exact
+      // halacha / seif text (v5 saw the chapter's opening 360 characters), and the
+      // Rema comes from the printed הגה gloss rather than memory.
+      defHash: 'halacha.codification-v6',
+      cacheVersion: '6',
       systemPromptHe: HALACHA_CODIFICATION_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_CODIFICATION_USER_TEMPLATE_HE,
     },
@@ -5120,17 +5134,19 @@ CODE_ENRICHMENTS.push(
     'Practical',
     'Shape-aware "what to do": best/fallback, a single statement, or a case→answer map, plus one optional note.',
     HALACHA_PRACTICAL_SYSTEM_PROMPT,
-    HALACHA_LEAF_USER_TEMPLATE,
+    HALACHA_PRACTICAL_USER_TEMPLATE,
     HALACHA_PRACTICAL_OUTPUT_SCHEMA,
     {
       mode: 'augment-content',
       scope: 'local',
-      dependencies: ['gemara'],
-      passes: ['hebrew-gloss'],
-      defHash: 'halacha.practical-v5',
-      cacheVersion: '5',
+      // v6: reads the topic's linked code text ('halacha-refs') and names the
+      // ref it rests on in `basis`; before, it saw only the gemara.
+      dependencies: ['gemara', 'halacha-refs'],
+      passes: ['halacha-ground', 'hebrew-gloss'],
+      defHash: 'halacha.practical-v6',
+      cacheVersion: '6',
       systemPromptHe: HALACHA_PRACTICAL_SYSTEM_PROMPT_HE,
-      userPromptTemplateHe: HALACHA_LEAF_USER_TEMPLATE_HE,
+      userPromptTemplateHe: HALACHA_PRACTICAL_USER_TEMPLATE_HE,
     },
   ),
   makeEnrichment(
@@ -5262,7 +5278,7 @@ Focal pasuk — Hebrew verbatim text (quote from THIS when citing the verse):
 Write the Tanach-context summary per the schema. The mark_input contains verseRef (e.g. 'Deuteronomy 6:7'), the Hebrew excerpt as it appears in the gemara, and citationStyle. Use the verseRef as authoritative; the excerpt is just the snippet the gemara quoted.`;
 
 // Shared leaf user template for the daf-local pesukim leaves (why-here,
-// mechanism). Mirrors HALACHA_LEAF_USER_TEMPLATE — one template feeds every
+// mechanism). One template feeds every
 // leaf that needs the gemara + commentaries for a single citation.
 const PESUKIM_LEAF_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 

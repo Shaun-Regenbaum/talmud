@@ -98,9 +98,14 @@ export interface HalachicSnippet {
   ref: string;
   hebrew: string;
   english: string;
-  /** 0-indexed daf segment(s) this ref anchors to (from the link's anchorRef). */
+  /** 0-indexed daf segment(s) this ref anchors to (from the link's anchorRef).
+   *  The FIRST anchor, kept for older readers; `anchors` has every one. */
   segStart?: number;
   segEnd?: number;
+  /** Every daf line range that links to this ref, 0-indexed. Ein Mishpat often
+   *  ties one code to several lines (Rambam, Reading the Shema 1:9 is linked
+   *  from Berakhot 2a:1, 2a:2 and 2a:3), and a topic matches on any of them. */
+  anchors?: Array<{ segStart: number; segEnd: number }>;
   /** True when this codification is asserted by Ein Mishpat / Ner Mitzvah — the
    *  classical index (R. Yehoshua Boaz, printed on the daf) mapping each din to
    *  where it is codified. These are the authoritative "this line → this siman"
@@ -517,32 +522,35 @@ class SefariaAPI {
 
   /**
    * Fetch halachic codifications (Mishneh Torah / Rambam, Shulchan Aruch,
-   * Tur) that Sefaria links to a given amud. Returns up to N snippets per
-   * codification book, grouped by book title.
+   * Tur) that Sefaria links to a given amud, each with the exact text of the
+   * cited halacha / seif and every daf line that links to it. Returns up to N
+   * snippets per codification book, grouped by book title.
    */
   async fetchHalachicRefs(
     tractate: string,
     page: string,
     opts: { maxPerBook?: number } = {},
   ): Promise<HalachicRefBundle> {
-    const maxPerBook = opts.maxPerBook ?? 6;
+    const maxPerBook = opts.maxPerBook ?? 12;
     const ref = `${tractate}.${page}`;
     const related = await this.getRelated(ref).catch(() => null);
     if (!related) return {};
     const halakhahLinks = related.links.filter((l) => l.category === 'Halakhah');
-    // Keep each ref's anchorRef so the snippet can anchor to its daf segment,
-    // and its link `type` so we can flag the Ein Mishpat / Ner Mitzvah refs —
-    // the classical, authoritative codification index (vs. looser topical
-    // Halakhah links). A ref can appear under several link types; once any of
-    // them is Ein Mishpat the ref is authoritative.
-    const grouped = new Map<string, { ref: string; anchorRef: string; einMishpat: boolean }[]>();
+    // Keep every anchorRef per ref so a snippet can be matched to the daf lines
+    // it codifies, and its link `type` so we can flag the Ein Mishpat / Ner
+    // Mitzvah refs — the classical, authoritative codification index (vs. looser
+    // topical Halakhah links). A ref can appear under several link types; once
+    // any of them is Ein Mishpat the ref is authoritative.
+    const grouped = new Map<string, { ref: string; anchorRefs: string[]; einMishpat: boolean }[]>();
     for (const link of halakhahLinks) {
       const book = link.index_title;
       const refs = grouped.get(book) ?? [];
       const einMishpat = link.type === EIN_MISHPAT_LINK_TYPE;
       const existing = refs.find((r) => r.ref === link.ref);
-      if (existing) existing.einMishpat = existing.einMishpat || einMishpat;
-      else refs.push({ ref: link.ref, anchorRef: link.anchorRef, einMishpat });
+      if (existing) {
+        existing.einMishpat = existing.einMishpat || einMishpat;
+        if (!existing.anchorRefs.includes(link.anchorRef)) existing.anchorRefs.push(link.anchorRef);
+      } else refs.push({ ref: link.ref, anchorRefs: [link.anchorRef], einMishpat });
       grouped.set(book, refs);
     }
     const out: HalachicRefBundle = {};
@@ -552,22 +560,33 @@ class SefariaAPI {
         // ahead of looser topical links when capping per book.
         const ordered = [...refs].sort((a, b) => Number(b.einMishpat) - Number(a.einMishpat));
         const capped = ordered.slice(0, maxPerBook);
+        // context=0: without it the v1 texts API returns the WHOLE chapter / siman
+        // around the ref (Rambam, Reading the Shema 1:9 came back as all of
+        // chapter 1, ~39k chars), so the snippet was never the cited halacha.
         const texts = await Promise.all(
-          capped.map(async (r) => ({ link: r, t: await this.getText(r.ref).catch(() => null) })),
+          capped.map(async (r) => ({
+            link: r,
+            t: await this.getText(r.ref, { context: 0 }).catch(() => null),
+          })),
         );
         const snippets: HalachicSnippet[] = [];
         for (const { link, t } of texts) {
           if (!t) continue;
           const hebrew = Array.isArray(t.he) ? t.he.join(' ') : (t.he ?? '');
           const english = Array.isArray(t.text) ? t.text.join(' ') : (t.text ?? '');
-          const range = parseAnchorRefRange(link.anchorRef);
+          const anchors = link.anchorRefs
+            .map(parseAnchorRefRange)
+            .filter((r): r is { start: number; end: number } => r !== null)
+            .map((r) => ({ segStart: r.start - 1, segEnd: r.end - 1 }))
+            .sort((a, b) => a.segStart - b.segStart);
           if (hebrew || english) {
             snippets.push({
               ref: t.ref,
               hebrew,
               english,
-              segStart: range ? range.start - 1 : undefined,
-              segEnd: range ? range.end - 1 : undefined,
+              segStart: anchors[0]?.segStart,
+              segEnd: anchors[0]?.segEnd,
+              anchors: anchors.length ? anchors : undefined,
               einMishpat: link.einMishpat || undefined,
             });
           }
