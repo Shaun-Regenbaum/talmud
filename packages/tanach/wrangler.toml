@@ -119,8 +119,16 @@ send_email = []
 [env.staging.vars]
 APP_ENV = "staging"
 BILLING_APP = "tanach"
-GENERATION_DISABLED = "1"
 WORKER_ROLE = "reader"
+# Vars are not inherited by environments. Without these, staging's model
+# calls had no gateway to route through. Same values as production; the
+# staging OpenRouter key (secret) is capped at 10 USD a week.
+AI_GATEWAY_ID = "talmud"
+CLOUDFLARE_ACCOUNT_ID = "ddf8edfc3dfd489567fe3c5b28b51aca"
+DEFAULT_LLM_MODEL = "openrouter/deepseek/deepseek-v4-flash"
+OPENROUTER_GATEWAY_PROVIDER = "openrouter"
+DAILY_BUDGET_USD = "20"
+HOURLY_CUSTOM_BUDGET_USD = "5"
 PUBLIC_ORIGIN = "https://staging.tanach.dev"
 LEARNED_ADJACENCY = "1"
 
