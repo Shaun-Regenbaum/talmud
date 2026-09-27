@@ -2432,7 +2432,13 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
       // reader re-runs it and the fresh write overwrites the junk.
       const res = raw && outputMatchesShallow(markOutputSchema(def), raw.parsed) ? raw : null;
       markCached.set(def.id, !!res);
-      enumerated.push({ producerId: def.id, cold: !res });
+      // An experimental (dev-only) mark is never warmed, so an uncached one is
+      // expected and must not hold the daf out of "complete".
+      enumerated.push({
+        producerId: def.id,
+        cold: !res,
+        demandDriven: isExperimentalProducer(def.id),
+      });
       if (res) {
         pieces[pieceKey(def.id)] = {
           producerId: def.id,
@@ -2452,7 +2458,10 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
       // Demand-driven (lazy) enrichments are fetched only when a reader opens the
       // card — an uncached one is expected, so it must not count against the daf's
       // view completeness (which gates the hard edge cache).
-      const demandDriven = (def as { demand_driven?: boolean }).demand_driven === true;
+      // Experimental (dev-only) enrichments are treated the same way: never warmed.
+      const demandDriven =
+        (def as { demand_driven?: boolean }).demand_driven === true ||
+        isExperimentalProducer(def.id);
       if (perInstance) {
         const insts = instancesByMark.get(targetMark as string) ?? [];
         // Zero instances is "cold" ONLY if the parent mark itself isn't cached
@@ -4994,6 +5003,21 @@ export async function cacheKeyForRunBody(
  * only paid LLM warms are. The experimental cards are code-defined, so the code
  * registry is the source of truth for the flag.
  */
+/**
+ * A producer that belongs to an experimental (dev-only) mark: the mark itself
+ * (biyun, chart, yerushalmi) or an enrichment on it (biyun.essay, …). Readers
+ * never see these, so nothing generates them in the background: the daf warm
+ * workflow skips them and the daf-view does not count them as missing. They run
+ * only from an explicit, trusted warm (the studio, a dev with the secret).
+ */
+export function isExperimentalProducer(id: string): boolean {
+  const m = findCodeMark(id);
+  if (m) return m.experimental === true;
+  const e = findCodeEnrichment(id);
+  const target = e?.target_mark ? findCodeMark(e.target_mark) : undefined;
+  return target?.experimental === true;
+}
+
 export function isExperimentalLlmWarm(job: { mark_id?: string; enrichment_id?: string }): boolean {
   if (job.mark_id) {
     const m = findCodeMark(job.mark_id);
@@ -7166,11 +7190,12 @@ export class DafWarmWorkflow extends WorkflowEntrypoint<Bindings, DafWarmParams>
     const { tractate, page } = event.payload;
     const lang: 'en' | 'he' = event.payload.lang === 'he' ? 'he' : 'en';
     const wrapped = wrapEnv(this.env);
-    const marksLite = CODE_MARKS.map((m) => ({
+    // Experimental (dev-only) producers are never generated in the background.
+    const marksLite = CODE_MARKS.filter((m) => !isExperimentalProducer(m.id)).map((m) => ({
       id: m.id,
       anchor: (m as { anchor?: string }).anchor,
     }));
-    const enrichLite = CODE_ENRICHMENTS.map((e) => ({
+    const enrichLite = CODE_ENRICHMENTS.filter((e) => !isExperimentalProducer(e.id)).map((e) => ({
       id: e.id,
       scope: e.scope,
       target_mark: e.target_mark,

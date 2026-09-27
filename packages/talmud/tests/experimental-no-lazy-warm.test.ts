@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEEP_WARM_PLAN,
   isExperimentalLlmWarm,
+  isExperimentalProducer,
   WHOLE_DAF_WARM_ENRICHMENTS,
 } from '../src/worker/index';
 
@@ -72,5 +73,23 @@ describe('default deep-warm generates only visible (non-experimental) producers'
         expect(isExperimentalLlmWarm({ enrichment_id: eid })).toBe(false);
       }
     }
+  });
+});
+
+// The background warm workflow and the daf-view completeness check both skip
+// experimental producers — including the free biyun chip mark, so a cold daf
+// never builds the dev-only essay chain in the background.
+describe('isExperimentalProducer — never warmed in the background', () => {
+  it('covers the experimental marks and every enrichment on them', () => {
+    for (const id of ['biyun', 'biyun.essay', 'chart', 'yerushalmi']) {
+      expect(isExperimentalProducer(id)).toBe(true);
+    }
+  });
+
+  it('leaves canonical producers alone', () => {
+    for (const id of ['argument', 'halacha', 'halacha.synthesis', 'tidbit.essay', 'rabbi']) {
+      expect(isExperimentalProducer(id)).toBe(false);
+    }
+    expect(isExperimentalProducer('does-not-exist')).toBe(false);
   });
 });
