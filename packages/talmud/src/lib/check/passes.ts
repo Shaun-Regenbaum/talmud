@@ -16,6 +16,7 @@
  * DOM-free / env-free so it lives in src/lib and is unit-testable.
  */
 
+import { type ParallelCandidate, sameParallelRef } from '../aggadata/parallels';
 import { sameCodeRef, type TopicCodifier } from '../halacha/codifiers';
 import { lintHalachaParsed } from '../halachaLint';
 import {
@@ -57,6 +58,9 @@ export interface PassCtx {
   /** The codes Sefaria links to a halacha topic's lines (the halacha-refs
    *  resolver stashes them). Present only for the halacha leaves. */
   halachaCodes?: TopicCodifier[];
+  /** The passages Sefaria links to an aggadic story's lines (the
+   *  parallel-sources resolver stashes them). Present only for aggadata.parallels. */
+  parallelCandidates?: ParallelCandidate[];
   defId: string;
   lang?: 'en' | 'he';
 }
@@ -621,6 +625,34 @@ const halachaGround: PostPass = {
   }),
 };
 
+// ---- aggadata-ground: a parallel must be a passage Sefaria links to the story ----
+
+/**
+ * Transform for aggadata.parallels: drop any parallel whose ref is not one of
+ * the candidates Sefaria links to the story's lines, and respell a kept one the
+ * way Sefaria does. Without the candidate list (older runs, the inspector) the
+ * output passes unchanged.
+ */
+export function groundParallels(parsed: unknown, cands: ParallelCandidate[]): unknown {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+  const p = parsed as { parallels?: unknown };
+  if (!Array.isArray(p.parallels)) return parsed;
+  const kept = (p.parallels as Array<{ ref?: unknown }>).flatMap((x) => {
+    const ref = typeof x?.ref === 'string' ? x.ref : '';
+    const hit = cands.find((c) => sameParallelRef(ref, c.ref));
+    return hit ? [{ ...x, ref: hit.ref }] : [];
+  });
+  return { ...(parsed as Record<string, unknown>), parallels: kept };
+}
+
+const aggadataGround: PostPass = {
+  id: 'aggadata-ground',
+  phase: 'transform',
+  run: (parsed, ctx) => ({
+    parsed: ctx.parallelCandidates ? groundParallels(parsed, ctx.parallelCandidates) : parsed,
+  }),
+};
+
 export const PASSES: Record<string, PostPass> = {
   'reanchor-argument': transform('reanchor-argument', reanchorArgument),
   'reanchor-argument-move': transform('reanchor-argument-move', reanchorArgumentMove),
@@ -642,6 +674,7 @@ export const PASSES: Record<string, PostPass> = {
   'partition-clean': partitionClean,
   'edge-integrity': edgeIntegrity,
   'halacha-ground': halachaGround,
+  'aggadata-ground': aggadataGround,
 };
 
 /** Run the named passes: transforms first (in listed order), then validators.

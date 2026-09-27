@@ -252,6 +252,7 @@ function validateEnrichmentDependencies(
       e === 'context' ||
       e === 'context-light' ||
       e === 'halacha-refs' ||
+      e === 'parallel-sources' ||
       e === 'yerushalmi-text' ||
       e === 'incoming'
     ) {

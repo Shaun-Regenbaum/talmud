@@ -3328,9 +3328,19 @@ function AggadataParallels(props: SpecialBlockProps): JSX.Element {
                     'flex-wrap': 'wrap',
                   }}
                 >
-                  <span style={{ 'font-weight': 600, color: '#34506f', 'font-size': '0.85rem' }}>
+                  <a
+                    href={sefariaUrl(par.ref)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      'font-weight': 600,
+                      color: '#34506f',
+                      'font-size': '0.85rem',
+                      'text-decoration': 'none',
+                    }}
+                  >
                     {par.ref}
-                  </span>
+                  </a>
                   <span
                     style={{
                       'font-size': '0.65rem',

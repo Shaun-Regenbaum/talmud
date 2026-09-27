@@ -311,6 +311,9 @@ export type Extractor =
 //                          grouped plain text via collectContext)
 //   'halacha-refs'       → {{halacha_refs}}  (grounded Mishneh Torah / Tur /
 //                          Shulchan Aruch refs + text Sefaria links to this daf)
+//   'parallel-sources'   → {{parallel_sources}}  (the Mesorat HaShas / Yerushalmi /
+//                          Tosefta / Midrash / Mishnah / Tanakh passages Sefaria
+//                          links to an aggadic story's lines, with their text)
 //   'yerushalmi-text'    → {{yerushalmi}}  (the parallel Jerusalem Talmud
 //                          passages on the same mishnah + dafyomi.co.il
 //                          Yerushalmi study notes for this daf — real text, so
@@ -349,6 +352,9 @@ export type EnrichmentDependency =
   // pulled toward lomdus (the Tidbit). See LIGHT_CONTEXT_SOURCES in run-sources.ts.
   | 'context-light'
   | 'halacha-refs'
+  // The passages Sefaria links to an aggadic story's lines, with their text
+  // ({{parallel_sources}}): candidates for aggadata.parallels.
+  | 'parallel-sources'
   | 'yerushalmi-text'
   // The cross-daf continuation note from the previous daf (see {{incoming}}
   // above). A source leaf — assembled from the cached prev→this bridge.

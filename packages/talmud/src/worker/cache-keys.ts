@@ -105,6 +105,12 @@ export function keyForYerushalmi(tractate: string, page: string): string {
 export function keyForTalmudParallels(tractate: string, page: string): string {
   return `talmud-parallels:v1:${tractate}:${page}`;
 }
+/** Parallel-passage candidates for the daf's aggadot: the Mesorat HaShas /
+ *  Yerushalmi / Tosefta / Midrash / Mishnah / Tanakh passages Sefaria links to
+ *  each daf line, with their text. Grounds aggadata.parallels. */
+export function keyForParallelCandidates(tractate: string, page: string): string {
+  return `parallel-cands:v1:${tractate}:${page}`;
+}
 /** Shulchan Aruch commentary, keyed by an already-sanitised Sefaria ref. */
 export function keyForSaCommentary(safeKey: string): string {
   return `sa-commentary:v1:${safeKey}`;

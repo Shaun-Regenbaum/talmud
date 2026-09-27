@@ -14,6 +14,7 @@ const SOURCES = new Set([
   'context-light',
   'mishna',
   'halacha-refs',
+  'parallel-sources',
   'yerushalmi-text',
   'incoming',
 ]);

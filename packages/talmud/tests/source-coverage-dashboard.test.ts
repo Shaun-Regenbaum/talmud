@@ -86,6 +86,10 @@ const CLASSIFICATION: Record<string, Classification> = {
   keyForSaCommentary: { role: 'not-source', note: 'per-ref Shulchan Aruch commentary text' },
   keyForCommentaryText: { role: 'not-source', note: 'per-ref commentary text' },
   keyForPasuk: { role: 'not-source', note: 'per-ref Tanach verse text' },
+  keyForParallelCandidates: {
+    role: 'not-source',
+    note: 'CANDIDATE: per-daf aggadata parallel candidates (Sefaria links + text), built on demand',
+  },
 
   // --- Derived artifacts / views (not raw fetched source) -------------------
   keyForAnalyzeSkeleton: { role: 'not-source', note: 'derived section skeleton (analyze)' },

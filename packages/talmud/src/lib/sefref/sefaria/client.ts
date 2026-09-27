@@ -1,3 +1,10 @@
+import {
+  classifyParallelLink,
+  PARALLEL_SOURCE_ORDER,
+  type ParallelCandidate,
+} from '../../aggadata/parallels';
+import { cleanCodeText } from '../../halacha/codifiers';
+
 const SEFARIA_API_BASE = 'https://www.sefaria.org/api';
 
 export interface SefariaTextResponse {
@@ -631,6 +638,59 @@ class SefariaAPI {
    * distinguishes "no parallels" (cache an empty array) from "fetch failed"
    * (don't cache, retry later).
    */
+  /**
+   * Parallel-passage candidates for the daf's aggadot: every passage Sefaria
+   * links to a line of the daf that could be a parallel (Mesorat HaShas,
+   * Yerushalmi, Tosefta, Midrash, Mishnah, Tanakh), with every line it is linked
+   * from and its exact text (context=0), trimmed. Capped per daf, preferring the
+   * sources most likely to hold a real parallel.
+   */
+  async fetchParallelCandidates(
+    tractate: string,
+    page: string,
+    opts: { maxRefs?: number; textCap?: number } = {},
+  ): Promise<ParallelCandidate[]> {
+    const maxRefs = opts.maxRefs ?? 40;
+    const textCap = opts.textCap ?? 1500;
+    const related = await this.getRelated(`${tractate}.${page}`);
+    const byRef = new Map<string, ParallelCandidate>();
+    for (const l of related.links) {
+      const source = classifyParallelLink(l, { tractate, page });
+      if (!source) continue;
+      const range = parseAnchorRefRange(l.anchorRef ?? '');
+      if (!range) continue;
+      const anchor = { segStart: range.start - 1, segEnd: range.end - 1 };
+      const c = byRef.get(l.ref);
+      if (!c) {
+        byRef.set(l.ref, { ref: l.ref, source, anchors: [anchor], hebrew: '', english: '' });
+      } else if (
+        !c.anchors.some((a) => a.segStart === anchor.segStart && a.segEnd === anchor.segEnd)
+      ) {
+        c.anchors.push(anchor);
+      }
+    }
+    const picked = [...byRef.values()]
+      .sort(
+        (a, b) => PARALLEL_SOURCE_ORDER.indexOf(a.source) - PARALLEL_SOURCE_ORDER.indexOf(b.source),
+      )
+      .slice(0, maxRefs);
+    const trim = (s: string) => (s.length > textCap ? `${s.slice(0, textCap - 1)}…` : s);
+    const flat = (x: unknown): string =>
+      Array.isArray(x) ? x.map(flat).join(' ') : typeof x === 'string' ? x : '';
+    // Small batches: a busy daf links dozens of passages, and Sefaria throttles bursts.
+    for (let i = 0; i < picked.length; i += 8) {
+      await Promise.all(
+        picked.slice(i, i + 8).map(async (c) => {
+          const t = await this.getText(c.ref, { context: 0 }).catch(() => null);
+          if (!t) return;
+          c.hebrew = trim(cleanCodeText(flat(t.he)));
+          c.english = trim(cleanCodeText(flat(t.text)));
+        }),
+      );
+    }
+    return picked.filter((c) => c.hebrew || c.english);
+  }
+
   async fetchTalmudParallels(tractate: string, page: string): Promise<TalmudParallel[]> {
     const ref = `${tractate}.${page}`;
     const related = await this.getRelated(ref);

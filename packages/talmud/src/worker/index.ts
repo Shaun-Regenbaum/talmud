@@ -50,6 +50,7 @@ import { recordMcpEvent, surfaceMiddleware } from '@corpus/core/telemetry/surfac
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { GENERATION_ID_SET, GENERATION_IDS, type GenerationId } from '../client/generations';
+import type { ParallelCandidate } from '../lib/aggadata/parallels';
 import { dedupeBy, dedupeByRange, type MoveLike, selectSectionMoves } from '../lib/argumentMoves';
 import { runPasses } from '../lib/check/passes';
 import { dafLinks } from '../lib/context/dafLinks';
@@ -1766,6 +1767,7 @@ const SOURCE_DEP_KEYS = new Set([
   'context',
   'context-light',
   'halacha-refs',
+  'parallel-sources',
   'yerushalmi-text',
   'incoming',
 ]);
@@ -4215,6 +4217,8 @@ const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefini
       commentaryHe,
       // halacha-ground drops cited code refs Sefaria does not link to the topic.
       halachaCodes: a.inputs.vars.__halachaCodes as TopicCodifier[] | undefined,
+      // aggadata-ground drops parallels Sefaria does not link to the story.
+      parallelCandidates: a.inputs.vars.__parallelCandidates as ParallelCandidate[] | undefined,
       defId: a.def.id,
       lang: rc.lang,
     });
