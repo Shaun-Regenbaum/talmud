@@ -3878,6 +3878,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             <BugReport tractate={tractate()} page={page()} />
 
             <footer
+              data-tour="explore"
               style={{
                 'margin-top': '0.5rem',
                 'text-align': 'center',

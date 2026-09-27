@@ -667,6 +667,7 @@ export function GraphView(props: GraphViewProps): JSX.Element {
           <button
             type="button"
             aria-label={props.labels.expand}
+            data-tour="graph-expand"
             onClick={() => {
               inspect(null);
               setFullscreen(true);

@@ -1659,8 +1659,8 @@ const CATALOG = {
 
   'tutorial.welcome.title': { en: 'Welcome to talmud.dev', he: 'ברוכים הבאים ל-talmud.dev' },
   'tutorial.welcome.body': {
-    en: 'A quick tour of how to read a daf and use the smart notes layered onto it. Takes about a minute — you can skip anytime.',
-    he: 'סיור קצר על קריאת הדף ועל השימוש בהערות החכמות שנוספו עליו. אורך כדקה — אפשר לדלג בכל רגע.',
+    en: 'A short tour of how to read a daf here, and of the notes added around it. It takes about two minutes. You can skip at any time.',
+    he: 'סיור קצר על קריאת הדף כאן ועל ההערות שנוספו סביבו. הוא אורך כשתי דקות. אפשר לדלג בכל רגע.',
   },
 
   'tutorial.lang.title': { en: 'Hebrew or English', he: 'עברית או אנגלית' },
@@ -1684,16 +1684,20 @@ const CATALOG = {
 
   'tutorial.translatePhrase.title': { en: '…or a whole phrase', he: '…או ביטוי שלם' },
   'tutorial.translatePhrase.body': {
-    en: 'Select a run of several words and the whole phrase is translated together — handy when the sense lives in the combination, not the single word. Selecting text also lets you highlight and keep it.',
-    he: 'סמנו רצף של כמה מילים והביטוי כולו יתורגם יחד — נוח כשהמשמעות נמצאת בצירוף ולא במילה הבודדת. סימון טקסט גם מאפשר להדגיש ולשמור אותו.',
+    en: 'Drag across a few words to translate them as one phrase. This helps when the meaning comes from the words together. You can also highlight the selected words and keep them.',
+    he: 'גררו על פני כמה מילים כדי לתרגם אותן כביטוי אחד. זה עוזר כשהמשמעות באה מהמילים יחד. אפשר גם להדגיש את המילים שסימנתם ולשמור אותן.',
+  },
+  'tutorial.translatePhrase.bodyMobile': {
+    en: "Tap a word, then tap a second word nearby. Everything between them is translated as one phrase. Tap a rabbi's name or a place to see who or what it is, with a link to read more. Tap anywhere else to close.",
+    he: 'הקישו על מילה, ואז על מילה נוספת בקרבתה. כל מה שביניהן יתורגם כביטוי אחד. הקישו על שם של חכם או של מקום כדי לראות מי או מה הוא, עם קישור להרחבה. הקישו במקום אחר כדי לסגור.',
   },
   'tutorial.translatePhrase.exampleHe': { en: 'כָּל הָעוֹלָם כֻּלּוֹ', he: 'כָּל הָעוֹלָם כֻּלּוֹ' },
   'tutorial.translatePhrase.exampleEn': { en: 'the whole world', he: 'כל העולם' },
 
   'tutorial.marks.title': { en: 'Notes in the margins', he: 'הערות בשוליים' },
   'tutorial.marks.body': {
-    en: 'The small icons in the margins mark where smart notes sit. Click one to open it — a panel slides in on a computer, or up from the bottom on a phone. Each color is a different kind of note:',
-    he: 'הסמלים הקטנים בשוליים מציינים היכן יושבות ההערות החכמות. לחצו על אחד כדי לפתוח אותו — במחשב נפתחת חלונית בצד, ובטלפון מגירה מלמטה. כל צבע הוא סוג הערה אחר:',
+    en: 'The small icons in the margins show where a note sits. When one line has several notes, their icons stack together. Hover over them, or tap them on a phone, to spread them out, then pick one. The note opens beside the page on a computer, or from the bottom on a phone. Each colour is a different kind of note:',
+    he: 'הסמלים הקטנים בשוליים מראים היכן יושבת הערה. כשבשורה אחת יש כמה הערות, הסמלים שלהן נערמים יחד. רחפו מעליהם, או הקישו עליהם בטלפון, כדי לפרוש אותם, ואז בחרו אחד. ההערה נפתחת לצד הדף במחשב, או מלמטה בטלפון. כל צבע הוא סוג הערה אחר:',
   },
   'tutorial.icon.argument.label': { en: 'Argument', he: 'מהלך הסוגיה' },
   'tutorial.icon.argument.desc': {
@@ -1719,14 +1723,19 @@ const CATALOG = {
 
   'tutorial.chips.title': { en: 'Notes on the whole daf', he: 'הערות על כל הדף' },
   'tutorial.chips.body': {
-    en: 'The pills at the top open notes about the whole page rather than one spot: an Overview of the sugya, the Background you need going in, and the occasional Tidbit worth noticing.',
-    he: 'הכפתורים שלמעלה פותחים הערות על כל הדף ולא על נקודה אחת: סקירה של הסוגיה, הרקע שכדאי להכיר לפני הלימוד, ולעיתים גם תובנה ששווה לשים לב אליה.',
+    en: 'The buttons at the top open notes about the whole page, not one spot. Overview gives a short summary above the same map. Background covers what you need to know going in. Tidbit points out something worth noticing. Geography shows the places the page mentions on a map.',
+    he: 'הכפתורים שלמעלה פותחים הערות על כל הדף, ולא על נקודה אחת. סקירה נותנת סיכום קצר מעל אותה מפה. רקע מסביר מה כדאי לדעת לפני הלימוד. תובנה מצביעה על משהו ששווה לשים לב אליו. גאוגרפיה מראה על מפה את המקומות שהדף מזכיר.',
   },
 
   'tutorial.argument.title': { en: 'Following the argument', he: 'מעקב אחר מהלך הסוגיה' },
   'tutorial.argument.body': {
-    en: "Here's a real argument note open beside the daf. It draws the sugya as a small map of its moves — who speaks, and how each statement answers, objects to, or resolves another — so you can follow how the case is built. Tap a statement to highlight its words on the page.",
-    he: 'הנה הערת מהלך אמיתית פתוחה לצד הדף. היא משרטטת את הסוגיה כמפה קטנה של מהלכיה — מי מדבר, וכיצד כל אמירה עונה, מקשה או מיישבת אמירה אחרת — כדי שתוכלו לעקוב אחר בניית הטיעון. הקישו על אמירה כדי להדגיש את מילותיה בדף.',
+    en: 'This is a real argument note. Its map lists the sections of the daf in order. The lines on the side show how they connect: which one answers, objects to, or builds on another. Open a section to see its statements. Point at or tap a statement to highlight its words on the page.',
+    he: 'זו הערת מהלך אמיתית. המפה שלה מונה את קטעי הדף לפי הסדר. הקווים שבצד מראים איך הם מתחברים: איזה קטע עונה, מקשה או ממשיך קטע אחר. פתחו קטע כדי לראות את אמירותיו. הצביעו על אמירה או הקישו עליה כדי להדגיש את מילותיה בדף.',
+  },
+  'tutorial.fullMap.title': { en: 'See the whole map at once', he: 'כל המפה במבט אחד' },
+  'tutorial.fullMap.body': {
+    en: '"Full-screen map" opens the same map across the whole screen. Each section becomes a column, with its statements listed underneath. Arrows run between the columns, so you can follow the argument across the page. From there you can zoom, switch to a stacked view, or carry on to the next page.',
+    he: '"מפה במסך מלא" פותח את אותה מפה על כל המסך. כל קטע הופך לעמודה, ואמירותיו רשומות תחתיו. חצים עוברים בין העמודות, כך שאפשר לעקוב אחר הטיעון לרוחב הדף. משם אפשר להגדיל, לעבור לתצוגה מוערמת, או להמשיך לדף הבא.',
   },
 
   'tutorial.halacha.title': { en: 'The practical ruling', he: 'הפסיקה למעשה' },
@@ -1735,16 +1744,10 @@ const CATALOG = {
     he: 'הערת הלכה עוקבת אחר האופן שבו הדיון מתגבש לפסיקה — מהגמרא דרך הראשונים ועד השולחן ערוך.',
   },
 
-  'tutorial.overview.title': { en: 'The whole-daf overview', he: 'סקירת כל הדף' },
-  'tutorial.overview.body': {
-    en: 'This note zooms out to the whole page: a short summary and a map of how the discussion flows from one section to the next. Click a section in the map to open its statements right there, and click a statement to read its detail. It also points to where the sugya continues — a good place to get your bearings before diving in.',
-    he: 'הערה זו מתרחקת אל כל הדף: סיכום קצר ומפה של מהלך הדיון מקטע לקטע. הקישו על קטע במפה כדי לפתוח בו במקום את אמירותיו, והקישו על אמירה כדי לקרוא את פירוטה. ההערה גם מפנה למקום שבו הסוגיה ממשיכה — מקום טוב להתמצא בו לפני הצלילה ללימוד.',
-  },
-
   'tutorial.underline.title': { en: 'The colored names', he: 'השמות הצבעוניים' },
   'tutorial.underline.body': {
-    en: "Rabbis' names are underlined by when they lived: a red scale for the Talmudic era (darker = earlier) and a blue scale for the Geonim onward. Dotted underlines mark key terms — hover or tap them for a short gloss.",
-    he: 'שמות החכמים מסומנים בקו תחתון לפי תקופתם: סולם אדום לתקופת התלמוד (כהה = מוקדם יותר) וסולם כחול מהגאונים ואילך. קווים מקווקווים מסמנים מונחי מפתח — רחפו או הקישו עליהם להסבר קצר.',
+    en: "Rabbis' names are underlined by when they lived: a red scale for the Talmudic era (darker = earlier) and a blue scale for the Geonim onward. Click or tap a name to read about that rabbi. Dotted underlines mark key terms. Point at or tap them for a short explanation.",
+    he: 'שמות החכמים מסומנים בקו תחתון לפי תקופתם: סולם אדום לתקופת התלמוד (כהה = מוקדם יותר) וסולם כחול מהגאונים ואילך. לחצו או הקישו על שם כדי לקרוא על החכם. קווים מקווקווים מסמנים מונחי מפתח. הצביעו או הקישו עליהם להסבר קצר.',
   },
   'tutorial.underline.early': {
     en: 'Talmudic era (earlier → later)',
@@ -1772,8 +1775,13 @@ const CATALOG = {
 
   'tutorial.finish.title': { en: "You're ready", he: 'אתם מוכנים' },
   'tutorial.finish.body': {
-    en: "That's the tour. You can reopen it anytime from the Help button. Enjoy learning.",
-    he: 'זה הסיור. אפשר לפתוח אותו שוב בכל עת מכפתור העזרה. למידה נעימה.',
+    en: "That's the tour. To see it again, open More at the top of the page and choose Help. On a phone, open Menu first. Enjoy learning.",
+    he: 'זה הסיור. כדי לראות אותו שוב, פתחו את "עוד" בראש הדף ובחרו "עזרה". בטלפון, פתחו קודם את התפריט. למידה נעימה.',
+  },
+  'tutorial.explore.title': { en: 'More to explore', he: 'עוד מה לגלות' },
+  'tutorial.explore.body': {
+    en: "The links at the bottom lead further. People has a page for each rabbi: when they lived, where, and who they learned with and argued with. Argument graph shows this daf's argument on one large page. Tanach opens the sister site for the Bible.",
+    he: 'הקישורים בתחתית מובילים הלאה. חכמים: דף לכל חכם, מתי ואיפה חי, ועם מי למד והתווכח. גרף הסוגיה: הטיעון של הדף הזה על דף אחד גדול. תנ״ך: אתר האחות למקרא.',
   },
   'tutorial.finish.contact': {
     en: 'Questions, ideas, or feedback? Feel free to reach out:',
