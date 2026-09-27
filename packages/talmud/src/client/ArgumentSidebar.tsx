@@ -71,6 +71,7 @@ import {
   SIDE_COLOR,
   sefariaUrl,
   summaryFor,
+  visibleCodes,
 } from './halachaCodes';
 import { type CatalogKey, lang, t } from './i18n';
 import { InspectDot, registerMarkRenderer, runEnrichment } from './MarkEnrichmentCards';
@@ -2229,6 +2230,8 @@ function HalachaCodes(props: SpecialBlockProps): JSX.Element {
     const range = lineRangeOf(props.instance);
     return range ? { tractate: props.tractate, page: props.page, ...range } : false;
   }, fetchTopicCodes);
+  // Nearby-line codes show only once the AI summary cites them (visibleCodes).
+  const shown = () => visibleCodes(codes() ?? [], codification());
   return (
     <SectionCard
       label="halacha.codification"
@@ -2236,11 +2239,11 @@ function HalachaCodes(props: SpecialBlockProps): JSX.Element {
     >
       <Show when={!codes.loading} fallback={<div style={CODE_MUTED}>…</div>}>
         <Show
-          when={(codes() ?? []).length > 0}
+          when={shown().length > 0}
           fallback={<div style={CODE_MUTED}>{t('halacha.codes.none')}</div>}
         >
           <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0.75rem' }}>
-            <For each={codes()}>
+            <For each={shown()}>
               {(c) => (
                 <For each={c.refs}>
                   {(r) => (
