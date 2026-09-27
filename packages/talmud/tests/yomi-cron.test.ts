@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest';
 import type { JobMessage } from '../src/worker/types';
 import type { DafWarmParams } from '../src/worker/workflow-warm';
 import { runYomiWarmCron } from '../src/worker/yomi-cron';
@@ -33,7 +33,7 @@ function collectWorkflows() {
 }
 
 describe('runYomiWarmCron', () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
+  let fetchSpy: MockInstance<typeof fetch>;
 
   beforeEach(() => {
     fetchSpy = vi.spyOn(global, 'fetch');

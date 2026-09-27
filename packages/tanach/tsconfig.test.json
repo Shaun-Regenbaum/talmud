@@ -1,0 +1,8 @@
+{
+  "//": "Type-checks the test suite. Same options as the app, plus node's types (tests read fixtures with node:fs and friends). `pnpm typecheck` runs this after the app config, so CI fails on a broken test type just as it does on a broken source type.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["@cloudflare/workers-types", "vite/client", "node"]
+  },
+  "include": ["tests/**/*.ts", "tests/**/*.tsx", "vitest.config.ts"]
+}

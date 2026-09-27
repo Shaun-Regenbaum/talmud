@@ -36,6 +36,9 @@ describe('key-compat invariant — entity id === cache instance_id', () => {
     it(`${name}: instanceIdOf === entity:rabbi path === entityAnchor id`, async () => {
       const fromMark = await instanceIdOf({ fields: { name } });
       const fromSpine = talmudSpines.ref('entity:rabbi', [name])[0];
+      // A spine ref part is string | number; an entity id is always the string form.
+      if (typeof fromSpine !== 'string')
+        throw new Error(`entity ref is not a string: ${fromSpine}`);
       const fromAnchor = entityAnchor('entity:rabbi', fromSpine).span[0];
       expect(fromSpine).toBe(fromMark);
       expect((fromAnchor as { path: string[] }).path[0]).toBe(fromMark);

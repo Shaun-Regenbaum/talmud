@@ -228,6 +228,7 @@ describe('shared full-screen graph', () => {
     const dapim = [
       {
         page: '2a',
+        nextPage: null,
         sections: graphs.map((g, index) => ({
           index,
           title: g.title,

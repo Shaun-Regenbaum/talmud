@@ -1,11 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest';
 import { fetchCommentaryAnchorIndex } from '../src/client/commentaryAnchorIndex';
 
 // The anchor index module pulls Sefaria links through getSefariaLinks. We
 // stub fetch so the test exercises the depth-2 ref parsing without touching
 // the live Sefaria API.
 describe('commentaryAnchorIndex', () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
+  let fetchSpy: MockInstance<typeof fetch>;
 
   beforeEach(() => {
     fetchSpy = vi.spyOn(global, 'fetch');

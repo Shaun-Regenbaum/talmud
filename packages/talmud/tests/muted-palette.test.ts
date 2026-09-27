@@ -81,14 +81,16 @@ describe('muted inks', () => {
 
   it('colors each icon and its card title with the same ink', () => {
     const inks = new Set<string>([...Object.values(INK), 'var(--accent)']);
-    const kinds: ReaderIconKind[] = [
+    // The kinds that are BOTH a margin icon and a sidebar card. `as const` keeps
+    // the literals so ACCENTS can be indexed; ReaderIconKind is still checked.
+    const kinds = [
       'halacha',
       'aggadata',
       'yerushalmi',
       'pesuk',
       'rishonim',
       'chart',
-    ];
+    ] as const satisfies readonly ReaderIconKind[];
     for (const kind of kinds) {
       expect(inks.has(colorForKind(kind))).toBe(true);
       expect(ACCENTS[kind]).toBe(colorForKind(kind));

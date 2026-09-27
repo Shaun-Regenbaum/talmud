@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import RABBI_PLACES from '../src/lib/data/rabbi-places.json';
 import { augmentWithKnownRabbis } from '../src/worker/index';
 
+// Narrowed to the three fields these tests read. `generation` is nullable in the
+// file (a handful of entries, e.g. "jewish-people", have no generation).
 const places = (
   RABBI_PLACES as {
-    rabbis: Record<string, { canonical: string; generation: string; region: string | null }>;
+    rabbis: Record<string, { canonical: string; generation: string | null; region: string | null }>;
   }
 ).rabbis;
 

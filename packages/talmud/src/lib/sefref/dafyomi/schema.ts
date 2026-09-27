@@ -84,6 +84,9 @@ export interface DafyomiTosfosPiece {
  *  "(Gemara - Rav Yehudah)" / "(Question - Ula)". */
 export interface DafyomiPointsEntry extends DafyomiEntry {
   speaker?: { roleEn?: string; rabbiEn?: string; raw: string };
+  /** Sub-entries carry a speaker tag too: the points parser tags every marked
+   *  entry it sees, at any depth, not just the top-level ones. */
+  children?: DafyomiPointsEntry[];
 }
 
 /** A simple table (charts). Cells are plain strings; header row separate. */

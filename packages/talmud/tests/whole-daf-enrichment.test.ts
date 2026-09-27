@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { CODE_ENRICHMENTS } from '../src/worker/code-marks';
 import { isWholeDafEnrichment } from '../src/worker/index';
 import { adaptCodeEnrichment } from '../src/worker/producer-registry';
-import type { EnrichmentDefinition } from '../src/worker/studio-schema';
 
 // runEnrichmentOnce collapses whole-daf enrichments to the single canonical
 // {fields:{}} instance for every caller. That is correct ONLY for enrichments
@@ -57,19 +56,19 @@ describe('isWholeDafEnrichment — which enrichments collapse to {fields:{}}', (
   // runs/daf). Both shapes must classify identically, for the whole registry.
   it('classifies the KV-flat shape (mark, not target_mark) identically to the rich shape', () => {
     for (const rich of CODE_ENRICHMENTS) {
-      const flat = adaptCodeEnrichment(rich as never);
+      const flat = adaptCodeEnrichment(rich);
       if (!flat) continue; // non-llm/computed extractors never reach the runner
-      expect(isWholeDafEnrichment(flat as unknown as EnrichmentDefinition), rich.id).toBe(
-        isWholeDafEnrichment(rich as never),
-      );
+      expect(isWholeDafEnrichment(flat), rich.id).toBe(isWholeDafEnrichment(rich));
     }
   });
 
   it('flat-shaped daf-background.concepts collapses (the exact leaked producer)', () => {
-    const flat = adaptCodeEnrichment(byId('daf-background.concepts') as never);
+    const def = byId('daf-background.concepts');
+    expect(def, 'daf-background.concepts def').toBeTruthy();
+    const flat = adaptCodeEnrichment(def!);
     expect(flat).toBeTruthy();
     expect((flat as { target_mark?: string }).target_mark).toBeUndefined(); // the trap
-    expect(isWholeDafEnrichment(flat as unknown as EnrichmentDefinition)).toBe(true);
+    expect(isWholeDafEnrichment(flat!)).toBe(true);
   });
 });
 

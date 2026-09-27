@@ -91,6 +91,9 @@ importers:
       '@solidjs/testing-library':
         specifier: ^0.8.10
         version: 0.8.10(solid-js@1.9.15)
+      '@types/node':
+        specifier: '22'
+        version: 22.20.1
       jsdom:
         specifier: ^29.1.1
         version: 29.1.1
@@ -134,6 +137,9 @@ importers:
       '@cloudflare/workers-types':
         specifier: ^5.20260914.1
         version: 5.20260917.1
+      '@types/node':
+        specifier: '22'
+        version: 22.20.1
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
