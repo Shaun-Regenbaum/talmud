@@ -4848,6 +4848,9 @@ Halacha topic:
 Codification trail (Mishneh Torah / Tur / Shulchan Aruch / Rema on this topic):
 {{depends.halacha.codification}}
 
+Codes linked to THIS topic's lines of the daf — real Sefaria refs with their exact text (a Shulchan Aruch seif lists the Rema's printed glosses as REMA lines):
+{{halacha_refs}}
+
 Study-aid context for this daf (may include poskim notes — Gra, Pri Chodosh, Chazon Ish, Igros Moshe, etc.; may be empty):
 {{context}}
 
@@ -4877,7 +4880,8 @@ Output STRICT JSON only:
 
 Rules:
 - present=false is the COMMON case. Most topics are settled. Set present=false (and leave the other fields empty/[]) unless there is a real dispute that changes practice. DO NOT fabricate a dispute to fill the field.
-- GROUND it in the inputs. Use the codification trail's Rema entry for the Mechaber/Rema split, and the study-aid context's poskim notes for Acharonim positions — do not invent voices or refs not supported by the inputs.
+- GROUND it in the inputs. A Mechaber/Rema split needs a REMA line under a listed Shulchan Aruch seif that differs from the Mechaber's words there; with no such line there is no Mechaber/Rema dispute. Use the study-aid context's poskim notes for Acharonim positions — do not invent voices or refs not supported by the inputs.
+- A position's "ref" is copied from the listed codes when it is a Rambam / Tur / Shulchan Aruch ref; otherwise it comes from the study-aid context, or is empty.
 - "side": put the two opposing camps on "a" vs "b" consistently (e.g. Mechaber=a, Rema=b); a citing or background voice is "neutral".
 - "sephardi"/"ashkenazi" are the practical consequence — fill them only when the split is genuinely along community lines (Mechaber/Rema, Ashkenaz/Sefarad); otherwise leave empty and rely on "settled".
 - NO puff.
@@ -5024,6 +5028,9 @@ const HALACHA_DISPUTE_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 שלשלת הפסיקה (משנה תורה / טור / שולחן ערוך / רמ"א בנושא):
 {{depends.halacha.codification}}
 
+הפוסקים הקשורים לשורות של הנושא הזה בדף — מראי מקום אמיתיים מספריא עם לשונם המדויקת (בסעיף של השולחן ערוך, הגהות הרמ"א המודפסות מופיעות כשורות REMA):
+{{halacha_refs}}
+
 הקשר מעזרי לימוד לדף זה (עשוי לכלול הערות פוסקים — גר"א, פרי חדש, חזון איש, אגרות משה וכו'; עשוי להיות ריק):
 {{context}}
 
@@ -5053,7 +5060,8 @@ const HALACHA_DISPUTE_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא ב
 
 כללים:
 - present=false הוא המקרה הנפוץ. רוב הנושאים מיושבים. קבע present=false (והשאר את השאר ריק/[]) אלא אם יש מחלוקת אמיתית המשנה את ההלכה למעשה. אל תמציא מחלוקת.
-- בסס על הקלט. השתמש בערך הרמ"א שבשלשלת הפסיקה לחילוק מחבר/רמ"א, ובהערות הפוסקים שבהקשר לעמדות האחרונים — אל תמציא קולות או מראי מקום שאינם נתמכים בקלט.
+- בסס על הקלט. מחלוקת מחבר/רמ"א דורשת שורת REMA תחת סעיף של השולחן ערוך שברשימה, השונה מדברי המחבר שם; בלי שורה כזו אין מחלוקת מחבר/רמ"א. השתמש בהערות הפוסקים שבהקשר לעמדות האחרונים — אל תמציא קולות או מראי מקום שאינם נתמכים בקלט.
+- "ref" של עמדה מועתק מרשימת הפוסקים כשהוא מראה מקום ברמב"ם / טור / שולחן ערוך; אחרת מן ההקשר, או ריק.
 - "side": שים את שני המחנות החולקים על "a" מול "b" באופן עקבי (למשל מחבר=a, רמ"א=b); קול מצטט או רקע הוא "neutral".
 - "sephardi"/"ashkenazi" — מלא רק כשהפיצול הוא באמת לפי עדות; אחרת השאר ריק והסתמך על "settled".
 - ללא מליצה.
@@ -5160,12 +5168,15 @@ CODE_ENRICHMENTS.push(
     {
       mode: 'augment-content',
       scope: 'local',
-      // codification gives the Rema split; context carries the dafyomi poskim
-      // (Gra / Chazon Ish / Igros Moshe) where the daf has been ingested.
-      dependencies: ['gemara', { enrichment: 'halacha.codification' }, 'context'],
+      // codification gives the trail; 'halacha-refs' gives the linked code text,
+      // including the Rema's printed glosses, so a Mechaber/Rema split is read,
+      // not recalled; context carries the dafyomi poskim (Gra / Chazon Ish /
+      // Igros Moshe) where the daf has been ingested.
+      // v2: + halacha-refs, and reruns on the grounded codification (v6).
+      dependencies: ['gemara', { enrichment: 'halacha.codification' }, 'halacha-refs', 'context'],
       passes: ['hebrew-gloss'],
-      defHash: 'halacha.dispute-v1',
-      cacheVersion: '1',
+      defHash: 'halacha.dispute-v2',
+      cacheVersion: '2',
       systemPromptHe: HALACHA_DISPUTE_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_DISPUTE_USER_TEMPLATE_HE,
     },
@@ -5185,8 +5196,11 @@ CODE_ENRICHMENTS.push(
         { enrichment: 'daf-background.concepts' },
       ],
       passes: ['hebrew-gloss'],
-      defHash: 'halacha.synthesis-v5',
-      cacheVersion: '6', // v6: + daf-background.concepts glossary for consistent Hebrew terms
+      defHash: 'halacha.synthesis-v6',
+      // v6: + daf-background.concepts glossary for consistent Hebrew terms
+      // v7: reruns on the grounded codification / practical / dispute, so the
+      // paragraph cites the same codes the card lists.
+      cacheVersion: '7',
       systemPromptHe: HALACHA_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: HALACHA_SYNTHESIS_USER_TEMPLATE_HE,
     },
