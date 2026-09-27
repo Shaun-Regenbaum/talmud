@@ -71,17 +71,6 @@
   margin-bottom: 4px;
   border-bottom: 1px solid var(--line);
 }
-.inspect-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 0;
-  font-family: var(--font-ui);
-  font-size: 13px;
-}
-.inspect-row + .inspect-row {
-  border-top: 1px dashed var(--line);
-}
 .inspect-dot {
   width: 8px;
   height: 8px;
@@ -92,21 +81,8 @@
 .inspect-dot.hit {
   background: #3f9d52;
 }
-.inspect-label {
-  flex: 1;
-  min-width: 0;
-  color: var(--fg);
-}
 .inspect-inst {
   color: var(--muted);
-}
-.inspect-meta {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-shrink: 0;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
 }
 .inspect-ms {
   color: var(--muted);
