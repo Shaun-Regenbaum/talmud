@@ -15,6 +15,7 @@ import {
   segsFromMarkInput,
 } from '@corpus/core/context/select';
 import { recordSource, type SourceResolver } from '@corpus/core/run/producer-run';
+import { candidatesForLines, formatParallelCandidatesForPrompt } from '../lib/aggadata/parallels';
 import { codesForLines, formatGroundedRefsForPrompt, lineRangeOf } from '../lib/halacha/codifiers';
 import { adjacentAmud } from '../lib/sefref';
 import type { DafBridge } from '../lib/typing/bridge';
@@ -26,7 +27,12 @@ import { collectContext } from './context-providers';
 import { kvGetJSONAs } from './kv-json';
 import { dafBridgeShape } from './kv-shapes';
 import { placeRevachWithAi } from './revach-ai-place';
-import { getHalachaRefsCached, getMishnaBundleCached, getYerushalmiCached } from './source-cache';
+import {
+  getHalachaRefsCached,
+  getMishnaBundleCached,
+  getParallelCandidatesCached,
+  getYerushalmiCached,
+} from './source-cache';
 import type { Bindings } from './types';
 
 /** The slice of the run context the source resolvers need. The host's RunCtx
@@ -302,6 +308,17 @@ export function buildSourceResolvers<Curated>(
       // on it. Internal (double underscore): not a prompt placeholder.
       out.vars.__halachaCodes = codesForLines(bundle, range);
       recordSource(out, 'halacha-refs', out.vars.halacha_refs);
+    },
+    'parallel-sources': async ({ ctx, out, tractate, page, markInput }) => {
+      // The passages Sefaria links to THIS story's lines (or within two lines):
+      // Mesorat HaShas, Yerushalmi, Tosefta, Midrash, Mishnah, Tanakh, each with
+      // its text — the only parallels aggadata.parallels may cite.
+      const all = await getParallelCandidatesCached(ctx.env.CACHE, tractate, page);
+      const cands = candidatesForLines(all, lineRangeOf(markInput));
+      out.vars.parallel_sources = formatParallelCandidatesForPrompt(cands);
+      // For the aggadata-ground pass. Internal: not a prompt placeholder.
+      out.vars.__parallelCandidates = cands;
+      recordSource(out, 'parallel-sources', out.vars.parallel_sources);
     },
     'yerushalmi-text': async ({ ctx, out, tractate, page }) => {
       // Three grounding tiers: (1) curated Bavli<->Yerushalmi parallels a human

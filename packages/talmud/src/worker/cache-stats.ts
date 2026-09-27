@@ -529,6 +529,7 @@ const SOURCE_DEPS = new Set([
   'context',
   'context-light',
   'halacha-refs',
+  'parallel-sources',
   'yerushalmi-text',
   'incoming',
 ]);

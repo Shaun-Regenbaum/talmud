@@ -18,6 +18,7 @@
  */
 
 import { z } from 'zod';
+import type { ParallelCandidate } from '../lib/aggadata/parallels';
 import {
   fetchHebrewBooksDaf,
   type HalachicRefBundle,
@@ -39,6 +40,7 @@ import {
   keyForHalachaRefs,
   keyForHebrewBooks,
   keyForMishnaBundle,
+  keyForParallelCandidates,
   keyForRishonim,
   keyForSaCommentary,
   keyForSefariaBundle,
@@ -138,6 +140,16 @@ const halachaRefBundle = z.record(
       einMishpat: z.boolean().optional(),
     }),
   ),
+);
+
+const parallelCandidates = z.array(
+  z.looseObject({
+    ref: z.string(),
+    source: z.string(),
+    anchors: z.array(z.object({ segStart: z.number(), segEnd: z.number() })),
+    hebrew: z.string(),
+    english: z.string(),
+  }),
 );
 
 const codeSources = z.array(
@@ -483,6 +495,29 @@ export async function getTalmudParallelsCached(
   if (hit) return hit;
   try {
     const data = await sefariaAPI.fetchTalmudParallels(tractate, page);
+    await writeCache(cache, key, data);
+    return data;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Cache the daf's parallel-passage candidates (see fetchParallelCandidates):
+ * the passages Sefaria links to each daf line, with their text. They ground
+ * aggadata.parallels, so the model judges real passages instead of recalling
+ * refs. A daf with none caches []; a fetch FAILURE returns [] WITHOUT caching.
+ */
+export async function getParallelCandidatesCached(
+  cache: KVNamespace | undefined,
+  tractate: string,
+  page: string,
+): Promise<ParallelCandidate[]> {
+  const key = keyForParallelCandidates(tractate, page);
+  const hit = await readCache<ParallelCandidate[]>(cache, key, parallelCandidates);
+  if (hit) return hit;
+  try {
+    const data = await sefariaAPI.fetchParallelCandidates(tractate, page);
     await writeCache(cache, key, data);
     return data;
   } catch {

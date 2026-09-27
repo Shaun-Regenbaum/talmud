@@ -6036,6 +6036,24 @@ CODE_ENRICHMENTS.push(
 // (parallels). The synthesis weaves them. Q&A mirrors pesukim's pattern.
 // ---------------------------------------------------------------------------
 
+// Parallels read the passages Sefaria links to the story's lines, with their
+// text, so a parallel is chosen from real passages rather than recalled.
+const AGGADATA_PARALLELS_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
+
+Aggadic story identified on this daf:
+{{mark_input}}
+
+Passages Sefaria links to this story's lines (or within two lines of them), with their text — the only parallel candidates:
+{{parallel_sources}}
+
+Hebrew/Aramaic source for the daf:
+{{gemara_he}}
+
+English translation:
+{{gemara_en}}
+
+Produce the requested output per the schema.`;
+
 const AGGADATA_LEAF_USER_TEMPLATE = `Tractate: {{tractate}}, page {{page}}.
 
 Aggadic story identified on this daf:
@@ -6124,27 +6142,29 @@ Rules:
 
 ${HEBREW_GLOSS_STYLE}`;
 
-const AGGADATA_PARALLELS_SYSTEM_PROMPT = `You are a scholar of rabbinic literature. Given ONE aggadic story (title, Hebrew label, summary) and the daf's Hebrew/Aramaic source, identify other places in classical Jewish literature where the SAME story, the same actors in a similar incident, or the same motif appears — Bavli, Yerushalmi, Midrash, Tanach analogues. The parallel REFS may come from anywhere; each parallel's excerpt, however, is the verbatim phrase from THIS daf it draws from. Often empty.
+const AGGADATA_PARALLELS_SYSTEM_PROMPT = `You are a scholar of rabbinic literature. Given ONE aggadic story on a daf and the passages Sefaria links to the story's lines (each with its real text), decide which of those passages are real parallels: the SAME story, the same actors in a similar incident, the same motif, or the verse the story draws on. Each parallel's excerpt is the verbatim phrase from THIS daf it draws from. Often empty.
 
 Output STRICT JSON only:
 
 {
   "parallels": [
     {
-      "ref": "Sefaria-style canonical reference of the parallel source — e.g. 'Yerushalmi Berakhot 2:3', 'Bereishit Rabbah 78:5', 'Tehillim 23:4', 'Chullin 7b'. Use traditional Hebrew names for Tanach books.",
+      "ref": "The ref of ONE listed passage, copied EXACTLY as listed (e.g. 'Berakhot 9a:10', 'Jerusalem Talmud Berakhot 1:1:6', 'Bereshit Rabbah 78:5', 'Psalms 23:4').",
       "kind": "'same-story' | 'same-actors' | 'same-motif' | 'tanach-source'",
-      "note": "ONE sentence explaining the parallel — what's the same, what shifts. Plain English.",
+      "note": "ONE sentence on what the passage's text shares with this story and what shifts — only what the text shows. Plain English.",
       "excerpt": "Verbatim Hebrew/Aramaic copied EXACTLY from THIS daf's source above — the specific words this parallel draws from (e.g. the phrase about the wedding feast for a parallel that elaborates it). For a 'same-story' parallel, the story's opening 3-6 words. 2-8 words. MUST be copied verbatim so it can be located in the text. Empty string ONLY if no phrase on this daf corresponds."
     }
   ],
-  "prose": "Optional ONE-sentence framing if the parallels reveal a pattern (e.g. 'the עלייה-to-Eretz-Yisrael astonishment motif recurs throughout the third generation'). Empty string when there is no pattern to surface."
+  "prose": "Optional ONE-sentence framing if the parallels reveal a pattern. Empty string when there is no pattern to surface."
 }
 
 Rules:
-- 0-4 parallels. Most stories have 0 — return an empty array when there's no real parallel. Do NOT invent.
-- 'same-story' means the same narrative incident with the same actors. 'same-actors' means the same rabbis in a similar (but distinct) incident. 'same-motif' means a different story with the same structural beats. 'tanach-source' means a verse the aggadah is drawing on directly.
-- ref MUST be a citable reference. If you can't supply a real ref, omit the entry. Never fabricate.
-- excerpt MUST be copied verbatim from the Hebrew/Aramaic source provided above (the daf), so it can be located in the text — never paraphrase, never translate, never quote the parallel source itself. Empty string if no phrase on THIS daf fits.
+- CITE ONLY LISTED PASSAGES. The "Passages Sefaria links to this story's lines" block is the whole candidate list. Never cite a passage from memory, and never cite a listed ref for something its text does not contain.
+- READ EACH PASSAGE'S TEXT. Keep it only if the text itself shows the parallel. Most linked passages are NOT parallels of the story: Sefaria links a line for many reasons (a shared verse, a legal point, a quoted name). Drop those.
+- 'same-story' = the same narrative incident with the same actors, told in the passage. 'same-actors' = the same named people in a different incident. 'same-motif' = a different story with the same structural beats — use it only when the passage tells a story. 'tanach-source' = a verse the story itself quotes or retells.
+- A Bavli passage marked Mesorat HaShas often repeats a line of this sugya in another tractate; call it 'same-story' only when the passage retells the story itself, not just a ruling from it.
+- 0-4 parallels. Most stories have 0 — return an empty array when none of the listed passages is a real parallel.
+- excerpt MUST be copied verbatim from the Hebrew/Aramaic source provided above (the daf) — never paraphrase, never translate, never quote the parallel passage itself. Empty string if no phrase on THIS daf fits.
 - prose is OPTIONAL — empty string when the parallels speak for themselves.
 - NO puff. NO 'this teaches us'.
 
@@ -6297,6 +6317,23 @@ Answer the learner's question per the schema.`;
 
 // ---------------- Hebrew-output parallels (aggadata) ----------------
 
+// Parallels read the passages Sefaria links to the story's lines, with their text.
+const AGGADATA_PARALLELS_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
+
+סיפור אגדי שזוהה בדף זה:
+{{mark_input}}
+
+המקורות שספריא מקשרת לשורות של הסיפור (או עד שתי שורות ממנו), עם לשונם — המועמדים היחידים למקבילה:
+{{parallel_sources}}
+
+מקור עברי/ארמי לדף:
+{{gemara_he}}
+
+תרגום אנגלי:
+{{gemara_en}}
+
+הפק את הפלט המבוקש לפי הסכימה.`;
+
 const AGGADATA_LEAF_USER_TEMPLATE_HE = `מסכת: {{tractate}}, דף {{page}}.
 
 סיפור אגדי שזוהה בדף זה:
@@ -6349,27 +6386,29 @@ const AGGADATA_INTERPRETATION_SYSTEM_PROMPT_HE = `אתה תלמיד חכם המ�
 
 ${HEBREW_NATIVE_STYLE}`;
 
-const AGGADATA_PARALLELS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בספרות חז"ל. בהינתן סיפור אגדי אחד (כותרת, תווית עברית, תקציר) ומקור הדף העברי/ארמי, זהה מקומות אחרים בספרות היהודית הקלאסית שבהם מופיע אותו סיפור, אותן דמויות באירוע דומה, או אותו מוטיב — בבלי, ירושלמי, מדרש, מקבילות בתנ"ך. מראי-המקום של המקבילות יכולים לבוא מכל מקום; אך ה-excerpt של כל מקבילה הוא הביטוי המדויק מן הדף הזה שהיא נשענת עליו. לעיתים קרובות ריק.
+const AGGADATA_PARALLELS_SYSTEM_PROMPT_HE = `אתה תלמיד חכם הבקיא בספרות חז"ל. בהינתן סיפור אגדי אחד בדף ואת המקורות שספריא מקשרת לשורות של הסיפור (כל אחד עם לשונו), הכרע אילו מהם הם מקבילות אמיתיות: אותו סיפור, אותן דמויות באירוע דומה, אותו מוטיב, או הפסוק שהסיפור נשען עליו. ה-excerpt של כל מקבילה הוא הביטוי המדויק מן הדף הזה שהיא נשענת עליו. לעיתים קרובות ריק.
 
 החזר JSON תקין בלבד:
 
 {
   "parallels": [
     {
-      "ref": "מראה מקום קנוני בסגנון Sefaria של המקור המקביל — למשל 'Yerushalmi Berakhot 2:3', 'Bereishit Rabbah 78:5', 'תהילים כג:ד', 'Chullin 7b'. השתמש בשמות עבריים מסורתיים לספרי התנ"ך.",
+      "ref": "מראה המקום של מקור אחד מן הרשימה, מועתק בדיוק כפי שהוא מופיע (למשל 'Berakhot 9a:10', 'Jerusalem Talmud Berakhot 1:1:6', 'Bereshit Rabbah 78:5', 'Psalms 23:4').",
       "kind": "'same-story' | 'same-actors' | 'same-motif' | 'tanach-source'",
-      "note": "משפט אחד המסביר את המקבילה — מה זהה, מה משתנה. בעברית.",
+      "note": "משפט אחד: מה לשון המקור חולקת עם הסיפור ומה משתנה — רק מה שהלשון מראה. בעברית.",
       "excerpt": "עברית/ארמית המועתקת מילה-במילה מן המקור של דף זה לעיל — המילים המסוימות שהמקבילה נשענת עליהן (למשל הביטוי על סעודת החתונה למקבילה המרחיבה אותו). למקבילת 'same-story' — מילות הפתיחה של הסיפור (3-6 מילים). 2-8 מילים. חייב להיות מועתק מילה-במילה כדי שניתן יהיה לאתרו בטקסט. מחרוזת ריקה רק אם אין ביטוי בדף זה התואם."
     }
   ],
-  "prose": "מסגור אופציונלי במשפט אחד אם המקבילות חושפות דפוס (למשל 'מוטיב ההשתוממות בעלייה לארץ ישראל חוזר לאורך הדור השלישי'). מחרוזת ריקה כשאין דפוס לחשוף."
+  "prose": "מסגור אופציונלי במשפט אחד אם המקבילות חושפות דפוס. מחרוזת ריקה כשאין דפוס לחשוף."
 }
 
 כללים:
-- 0-4 מקבילות. לרוב הסיפורים יש 0 — החזר מערך ריק כשאין מקבילה ממשית. אל תמציא.
-- 'same-story' = אותו אירוע נרטיבי עם אותן דמויות. 'same-actors' = אותם חכמים באירוע דומה (אך נבדל). 'same-motif' = סיפור אחר עם אותם פעימות מבניות. 'tanach-source' = פסוק שהאגדה נשענת עליו במישרין.
-- ref חייב להיות מראה מקום ניתן לציטוט. אם אינך יכול לספק מראה מקום אמיתי, השמט את הערך. לעולם אל תמציא.
-- excerpt חייב להיות מועתק מילה-במילה מן המקור העברי/ארמי שלמעלה (הדף), כדי שניתן יהיה לאתרו בטקסט — לעולם אל תנסח מחדש, אל תתרגם, ואל תצטט את מקור המקבילה עצמו. מחרוזת ריקה אם אין ביטוי בדף זה המתאים.
+- צטט רק מקורות מן הרשימה. הבלוק "המקורות שספריא מקשרת לשורות של הסיפור" הוא כל רשימת המועמדים. לעולם אל תצטט מן הזיכרון, ואל תצטט מקור מן הרשימה לדבר שאינו בלשונו.
+- קרא את לשון כל מקור. השאר אותו רק אם הלשון עצמה מראה את המקבילה. רוב המקורות המקושרים אינם מקבילות לסיפור: ספריא מקשרת שורה מסיבות רבות (פסוק משותף, נקודה הלכתית, שם המוזכר). השמט אותם.
+- 'same-story' = אותו אירוע נרטיבי עם אותן דמויות, המסופר במקור. 'same-actors' = אותן דמויות באירוע אחר. 'same-motif' = סיפור אחר עם אותן פעימות מבניות — רק כשהמקור מספר סיפור. 'tanach-source' = פסוק שהסיפור עצמו מצטט או מספר מחדש.
+- מקור בבלי המסומן Mesorat HaShas חוזר לעיתים קרובות על שורה מן הסוגיה במסכת אחרת; קרא לו 'same-story' רק כשהוא מספר את הסיפור עצמו, לא רק דין ממנו.
+- 0-4 מקבילות. לרוב הסיפורים יש 0 — החזר מערך ריק כשאף מקור ברשימה אינו מקבילה אמיתית.
+- excerpt חייב להיות מועתק מילה-במילה מן המקור העברי/ארמי שלמעלה (הדף) — לעולם אל תנסח מחדש, אל תתרגם, ואל תצטט את לשון המקבילה עצמה. מחרוזת ריקה אם אין ביטוי בדף זה המתאים.
 - prose אופציונלי — מחרוזת ריקה כשהמקבילות מדברות בעד עצמן.
 - ללא מליצה. ללא 'מכאן אנו למדים'.
 
@@ -6557,7 +6596,7 @@ CODE_ENRICHMENTS.push(
     'Parallels',
     'Other places the same story / actors / motif appears — Bavli, Yerushalmi, Midrash, Tanach. Often empty.',
     AGGADATA_PARALLELS_SYSTEM_PROMPT,
-    AGGADATA_LEAF_USER_TEMPLATE,
+    AGGADATA_PARALLELS_USER_TEMPLATE,
     AGGADATA_PARALLELS_OUTPUT_SCHEMA,
     {
       // scope:'local' (was global): the parallel *refs* are cross-text, but each
@@ -6565,12 +6604,16 @@ CODE_ENRICHMENTS.push(
       // A global key (story-title only) could serve one daf's excerpt to another.
       mode: 'augment-content',
       scope: 'local',
-      dependencies: [],
-      defHash: 'aggadata.parallels-v2',
-      cacheVersion: '2',
+      // v3: chooses from the passages Sefaria links to the story's lines, with
+      // their text ('parallel-sources'); aggadata-ground drops any other ref.
+      // v2 named parallels from memory and most did not hold up.
+      dependencies: ['gemara', 'parallel-sources'],
+      passes: ['aggadata-ground'],
+      defHash: 'aggadata.parallels-v3',
+      cacheVersion: '3',
       model: ARGUMENT_FLASH_MODEL,
       systemPromptHe: AGGADATA_PARALLELS_SYSTEM_PROMPT_HE,
-      userPromptTemplateHe: AGGADATA_LEAF_USER_TEMPLATE_HE,
+      userPromptTemplateHe: AGGADATA_PARALLELS_USER_TEMPLATE_HE,
     },
   ),
   makeSynthesis(
@@ -6589,8 +6632,11 @@ CODE_ENRICHMENTS.push(
         { mark: 'aggadata' },
         { enrichment: 'daf-background.concepts' },
       ],
-      defHash: 'aggadata.synthesis-v2',
-      cacheVersion: '3', // v3: + daf-background.concepts glossary for consistent Hebrew terms
+      defHash: 'aggadata.synthesis-v3',
+      // v3: + daf-background.concepts glossary for consistent Hebrew terms
+      // v4: reruns on the grounded parallels (v3), so the paragraph stops
+      // repeating parallels that were recalled and wrong.
+      cacheVersion: '4',
       model: ARGUMENT_PRO_MODEL,
       systemPromptHe: AGGADATA_SYNTHESIS_SYSTEM_PROMPT_HE,
       userPromptTemplateHe: AGGADATA_SYNTHESIS_USER_TEMPLATE_HE,
