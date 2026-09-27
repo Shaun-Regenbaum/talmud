@@ -22,9 +22,15 @@
 import { applyMatches, type SegMatch } from '@corpus/core/context/match';
 import type { ContextItem } from '@corpus/core/context/types';
 import type { LLMEnv } from '@corpus/core/llm/llm';
+import { z } from 'zod';
 import type { MatchInput } from '../lib/context/anchor/ai-prompt';
 import { aiMatchToSegments } from './context-match';
+import { kvGetJSONAs } from './kv-json';
 import { getSefariaSegmentsCached } from './source-cache';
+
+/** A cached placement list. `key` and `segs` are what applyMatches walks; the
+ *  rest of a match is advisory and left open. */
+const segMatchesShape = z.array(z.looseObject({ key: z.string(), segs: z.array(z.number()) }));
 
 // Bump when the Revach parser output (entry order/keys), the segment text, or
 // the matcher prompt/model changes — positional keys (`revach:a:i`) mean stale
@@ -76,8 +82,8 @@ async function getOrCompute(
   const cacheKey = KEY(tractate, page);
   if (cache) {
     try {
-      const raw = await cache.get(cacheKey);
-      if (raw) return JSON.parse(raw) as SegMatch[];
+      const hit = await kvGetJSONAs<SegMatch[]>(cache, cacheKey, segMatchesShape);
+      if (hit) return hit;
     } catch {
       /* missing / corrupt → recompute */
     }

@@ -3,11 +3,14 @@
 // `telemetry:v1:recent`; the admin/usage routes roll these up for the dashboard.
 //
 // This is the cross-cutting recorder every route reaches for, so it lives in a
-// neutral module (importing only ./types + ./pricing) — see types.ts on why.
+// neutral module (importing only ./types, ./pricing and the leaf KV helpers) —
+// see types.ts on why.
 // captureLlmUsage / recordObserved* stay in index.ts: they depend on RunCtx,
 // which is core to the run engine, not telemetry.
 
 import { normalizeUsage, costUsd as priceCostUsd } from '@corpus/core/llm/pricing';
+import { parseJSONAs } from './kv-json';
+import { recordListShape } from './kv-shapes';
 import type { Bindings, WaitUntilCtx } from './types';
 
 // String-typed so composed labels like `stage-a-<classifyError>` work without
@@ -61,8 +64,10 @@ async function logTelemetry(cache: KVNamespace | undefined, rec: TelemetryRecord
   if (!cache) return;
   try {
     const key = 'telemetry:v1:recent';
-    const existing = await cache.get(key);
-    const arr = existing ? (JSON.parse(existing) as TelemetryRecord[]) : [];
+    // A buffer we cannot read is replaced rather than lost forever: that is
+    // what an absent key already does here, and the alternative is a log that
+    // never records again.
+    const arr = parseJSONAs<TelemetryRecord[]>(await cache.get(key), recordListShape, key) ?? [];
     arr.push(rec);
     while (arr.length > 500) arr.shift();
     await cache.put(key, JSON.stringify(arr), { expirationTtl: 60 * 60 * 24 * 30 });

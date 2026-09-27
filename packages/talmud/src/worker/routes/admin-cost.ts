@@ -11,8 +11,10 @@
 
 import { budgetStatus, clearPauses } from '@corpus/core/llm/budget';
 import type { Hono } from 'hono';
+import { z } from 'zod';
 import { fetchHebrewBooksDaf } from '../../lib/sefref/hebrewbooks/client';
 import { coalesce } from '../coalesce';
+import { parseJSONAs } from '../kv-json';
 import { isTrustedRequest } from '../request-guards';
 import type { Bindings } from '../types';
 
@@ -50,6 +52,12 @@ interface LlmCostRec {
   cache_version?: string | null;
   cost_class?: string | null;
 }
+
+/** One recorded model call. Only the timestamp is required: the scan below
+ *  compares it without a default (a record without one would sort into the
+ *  window at random), and every other field is already read behind a typeof
+ *  check, so an older record missing one still counts. */
+const llmCostRecShape = z.looseObject({ ts: z.number() });
 
 export function registerAdminCostRoutes(app: Hono<{ Bindings: Bindings }>): void {
   app.get('/api/admin/llm-cost', async (c) => {
@@ -147,15 +155,12 @@ export function registerAdminCostRoutes(app: Hono<{ Bindings: Bindings }>): void
       // memory trivial.
       const READ_BATCH = 50;
       for (let bi = 0; bi < keys.length; bi += READ_BATCH) {
-        const raws = await Promise.all(keys.slice(bi, bi + READ_BATCH).map((k) => cache.get(k)));
-        for (const raw of raws) {
-          if (!raw) continue;
-          let r: LlmCostRec;
-          try {
-            r = JSON.parse(raw) as LlmCostRec;
-          } catch {
-            continue;
-          }
+        const raws = await Promise.all(
+          keys.slice(bi, bi + READ_BATCH).map(async (k) => ({ key: k, raw: await cache.get(k) })),
+        );
+        for (const { key, raw } of raws) {
+          const r = parseJSONAs<LlmCostRec>(raw, llmCostRecShape, key);
+          if (!r) continue;
           if (since && r.ts < since) continue;
           calls++;
           if (typeof r.cost === 'number') {

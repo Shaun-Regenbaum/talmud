@@ -9,6 +9,7 @@
  * version to v2.
  */
 
+import { z } from 'zod';
 import { iterAmudim } from '../lib/sefref/amudim';
 import { listDafyomiMasechtos } from '../lib/sefref/dafyomi/masechtos';
 import { TRACTATE_IDS } from '../lib/sefref/hebrewbooks/client';
@@ -25,6 +26,8 @@ import {
 } from './cache-keys';
 import { computeCacheStats, writeCachedCacheStats } from './cache-stats';
 import { CODE_ENRICHMENTS, CODE_MARKS } from './code-marks';
+import { parseJSON, parseJSONAs } from './kv-json';
+import { artifactEnvelopeShape } from './kv-shapes';
 import { withoutLearnedAdjacency } from './rabbi-graph';
 import {
   getDafyomiContentCached,
@@ -67,6 +70,15 @@ interface WarmCursor {
   amudIdx: number;
   done?: boolean;
 }
+
+/** Every walk in this file checkpoints the same two indices, so they share one
+ *  shape. A cursor that fails this is unusable - the walk restarts from the
+ *  beginning, which is what a missing cursor already does. */
+const walkCursorShape = z.looseObject({
+  tractateIdx: z.number(),
+  amudIdx: z.number(),
+  done: z.boolean().optional(),
+});
 
 export interface EmailBinding {
   send(message: {
@@ -114,13 +126,8 @@ export function getWarmTotal(): number {
 }
 
 export async function readWarmCursor(cache: KVNamespace): Promise<WarmCursor> {
-  const raw = await cache.get(CURSOR_KEY);
-  if (!raw) return { tractateIdx: 0, amudIdx: 0 };
-  try {
-    return JSON.parse(raw) as WarmCursor;
-  } catch {
-    return { tractateIdx: 0, amudIdx: 0 };
-  }
+  const cur = parseJSON(await cache.get(CURSOR_KEY), walkCursorShape, CURSOR_KEY);
+  return cur ?? { tractateIdx: 0, amudIdx: 0 };
 }
 
 export function warmProgressProcessed(cursor: WarmCursor): number {
@@ -182,15 +189,14 @@ interface ObsBackfillCursor {
 async function runObservationsBackfill(env: WarmEnv): Promise<void> {
   if (env.OBSERVATIONS_WARM_SHAS !== '1' || !env.ENRICHMENT_QUEUE || !env.CACHE) return;
   const cache = env.CACHE;
-  const raw = await cache.get(OBS_BACKFILL_CURSOR_KEY);
-  let cur: ObsBackfillCursor = { tractateIdx: 0, amudIdx: 0, enqueued: 0 };
-  if (raw) {
-    try {
-      cur = JSON.parse(raw) as ObsBackfillCursor;
-    } catch {
-      /* reset */
-    }
-  }
+  // `enqueued` is a running total the caller re-defaults, so walkCursorShape
+  // (which does not mention it) is the right gate here too.
+  const stored = parseJSONAs<ObsBackfillCursor>(
+    await cache.get(OBS_BACKFILL_CURSOR_KEY),
+    walkCursorShape,
+    OBS_BACKFILL_CURSOR_KEY,
+  );
+  const cur: ObsBackfillCursor = stored ?? { tractateIdx: 0, amudIdx: 0, enqueued: 0 };
   if (cur.done) return; // one-time: latched after a full pass
 
   let { tractateIdx, amudIdx } = cur;
@@ -275,6 +281,17 @@ interface VoiceGraphState {
   scanned?: number;
 }
 
+/** `staging` is left open: it is the accumulator this file wrote itself, and
+ *  finalizeVoiceGraph tolerates whatever is in it. */
+const voiceGraphStateShape = z.looseObject({
+  inputs: z.looseObject({ voices: z.string(), rabbi: z.string() }),
+  staging: z.looseObject({}).optional(),
+  cursor: z.string().optional(),
+  done: z.boolean().optional(),
+  builtAt: z.number().optional(),
+  scanned: z.number().optional(),
+});
+
 function voiceGraphInputs(): { voices: string; rabbi: string } {
   return {
     voices: CODE_ENRICHMENTS.find((e) => e.id === 'argument.voices')?.cache_version ?? '',
@@ -293,10 +310,15 @@ async function readRabbiCast(
   tractate: string,
   page: string,
 ): Promise<CastItem[]> {
-  const raw = await cache.get(rabbiMarkKey(rabbiVersion, tractate, page));
-  if (!raw) return [];
+  const key = rabbiMarkKey(rabbiVersion, tractate, page);
+  const entry = parseJSONAs<{ parsed?: { instances?: unknown } }>(
+    await cache.get(key),
+    artifactEnvelopeShape,
+    key,
+  );
+  if (!entry) return [];
   try {
-    const parsed = (JSON.parse(raw) as { parsed?: { instances?: unknown } }).parsed;
+    const parsed = entry.parsed;
     const insts = Array.isArray(parsed?.instances) ? parsed.instances : [];
     const out: CastItem[] = [];
     for (const inst of insts) {
@@ -326,15 +348,12 @@ export async function runVoiceGraphBackfill(
   if (!cache) return null;
 
   const inputs = voiceGraphInputs();
-  let state: VoiceGraphState | null = null;
-  const rawState = await cache.get(VOICE_GRAPH_STATE_KEY);
-  if (rawState) {
-    try {
-      state = JSON.parse(rawState) as VoiceGraphState;
-    } catch {
-      /* reset */
-    }
-  }
+  let state: VoiceGraphState | null =
+    parseJSONAs<VoiceGraphState>(
+      await cache.get(VOICE_GRAPH_STATE_KEY),
+      voiceGraphStateShape,
+      VOICE_GRAPH_STATE_KEY,
+    ) ?? null;
   // Reset when the input producer versions changed (never mix versions in one
   // accumulation) or when a completed build has aged out.
   if (state && (state.inputs?.voices !== inputs.voices || state.inputs?.rabbi !== inputs.rabbi)) {
@@ -367,15 +386,9 @@ export async function runVoiceGraphBackfill(
   for (const [label, group] of byDaf) {
     const cast = await readRabbiCast(cache, inputs.rabbi, group.tractate, group.page);
     for (const key of group.keys) {
-      const raw = await cache.get(key);
+      const entry = parseJSON(await cache.get(key), artifactEnvelopeShape, key);
       staging.scannedKeys++;
-      if (!raw) continue;
-      let parsed: unknown = null;
-      try {
-        parsed = (JSON.parse(raw) as { parsed?: unknown }).parsed ?? null;
-      } catch {
-        /* skip corrupt */
-      }
+      const parsed = entry?.parsed ?? null;
       if (!parsed || typeof parsed !== 'object') continue;
       const voices = (parsed as { voices?: unknown }).voices;
       // Curated-only grounding: the source graph must be a deterministic
@@ -445,6 +458,14 @@ interface DafyomiCursor {
   done?: boolean;
 }
 
+// `fetched` is a running total the caller re-defaults, so it is not required.
+const dafyomiCursorShape = z.looseObject({
+  tractateIdx: z.number(),
+  daf: z.number(),
+  fetched: z.number().optional(),
+  done: z.boolean().optional(),
+});
+
 export function dafyomiWarmTotal(): number {
   return listDafyomiMasechtos().reduce((s, m) => s + Math.max(0, m.lastDaf - 1), 0);
 }
@@ -471,15 +492,12 @@ async function runDafyomiBackfill(env: WarmEnv): Promise<void> {
   if (env.DAFYOMI_WARM_SHAS !== '1' || !env.CACHE || !env.ASSETS) return;
   const cache = env.CACHE;
   const masechtos = listDafyomiMasechtos();
-  const raw = await cache.get(DAFYOMI_CURSOR_KEY);
-  let cur: DafyomiCursor = { tractateIdx: 0, daf: 2, fetched: 0 };
-  if (raw) {
-    try {
-      cur = JSON.parse(raw) as DafyomiCursor;
-    } catch {
-      /* reset */
-    }
-  }
+  const stored = parseJSONAs<DafyomiCursor>(
+    await cache.get(DAFYOMI_CURSOR_KEY),
+    dafyomiCursorShape,
+    DAFYOMI_CURSOR_KEY,
+  );
+  const cur: DafyomiCursor = stored ?? { tractateIdx: 0, daf: 2, fetched: 0 };
   if (cur.done) return; // self-latched after a full pass
 
   let { tractateIdx, daf } = cur;
@@ -613,13 +631,12 @@ interface SefariaWarmCursor {
 }
 
 async function readSefariaCursor(cache: KVNamespace): Promise<SefariaWarmCursor> {
-  const raw = await cache.get(SEFARIA_CURSOR_KEY);
-  if (!raw) return { tractateIdx: 0, amudIdx: 0, wraps: 0 };
-  try {
-    return JSON.parse(raw) as SefariaWarmCursor;
-  } catch {
-    return { tractateIdx: 0, amudIdx: 0, wraps: 0 };
-  }
+  const cur = parseJSONAs<SefariaWarmCursor>(
+    await cache.get(SEFARIA_CURSOR_KEY),
+    walkCursorShape,
+    SEFARIA_CURSOR_KEY,
+  );
+  return cur ?? { tractateIdx: 0, amudIdx: 0, wraps: 0 };
 }
 
 export async function readSefariaWarmCursor(cache: KVNamespace): Promise<SefariaWarmCursor> {
@@ -709,13 +726,12 @@ interface HalachaWarmCursor {
 }
 
 async function readHalachaCursor(cache: KVNamespace): Promise<HalachaWarmCursor> {
-  const raw = await cache.get(HALACHA_CURSOR_KEY);
-  if (!raw) return { tractateIdx: 0, amudIdx: 0, wraps: 0 };
-  try {
-    return JSON.parse(raw) as HalachaWarmCursor;
-  } catch {
-    return { tractateIdx: 0, amudIdx: 0, wraps: 0 };
-  }
+  const cur = parseJSONAs<HalachaWarmCursor>(
+    await cache.get(HALACHA_CURSOR_KEY),
+    walkCursorShape,
+    HALACHA_CURSOR_KEY,
+  );
+  return cur ?? { tractateIdx: 0, amudIdx: 0, wraps: 0 };
 }
 
 export async function readHalachaWarmCursor(cache: KVNamespace): Promise<HalachaWarmCursor> {

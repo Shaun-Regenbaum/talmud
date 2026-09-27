@@ -16,11 +16,25 @@
  * entity on a given daf.
  */
 
+import { z } from 'zod';
+import { parseJSONAs } from './kv-json';
+
 const RABBI_PREFIX = 'unknown-rabbi:v1:';
 const PLACE_PREFIX = 'observed-place:v1:';
 const CONCEPT_PREFIX = 'observed-concept:v1:';
 const TTL_S = 60 * 60 * 24 * 365; // a year; the backlog is long-lived
 const MAX_DAFS = 25; // cap the per-entity daf list
+
+/** A backlog record. `dafs` must be a list - every writer below calls
+ *  `.includes` and `.push` on it - and the rest is read with a default, so it
+ *  is optional here. A record that fails is rebuilt from its seed, the same as
+ *  one that was never written. */
+const observedRecordShape = z.looseObject({
+  dafs: z.array(z.string()),
+  count: z.number().optional(),
+  firstSeen: z.number().optional(),
+  lastSeen: z.number().optional(),
+});
 
 function norm(s: string): string {
   return (s || '')
@@ -252,8 +266,7 @@ async function bump<
 >(cache: KVNamespace, key: string, seed: () => T, daf: string): Promise<void> {
   try {
     const now = Date.now();
-    const existing = await cache.get(key);
-    const rec: T = existing ? (JSON.parse(existing) as T) : seed();
+    const rec: T = parseJSONAs<T>(await cache.get(key), observedRecordShape, key) ?? seed();
     rec.lastSeen = now;
     rec.count = (rec.count ?? 0) + 1;
     if (daf && !rec.dafs.includes(daf) && rec.dafs.length < MAX_DAFS) rec.dafs.push(daf);
@@ -379,8 +392,7 @@ async function bumpBatch<
   const now = Date.now();
   for (const [key, g] of byKey) {
     try {
-      const existing = await cache.get(key);
-      const rec: T = existing ? (JSON.parse(existing) as T) : g.seed();
+      const rec: T = parseJSONAs<T>(await cache.get(key), observedRecordShape, key) ?? g.seed();
       rec.lastSeen = now;
       rec.count = (rec.count ?? 0) + g.dafs.length;
       for (const d of g.dafs)
@@ -591,16 +603,13 @@ async function listPrefix<T extends { count: number }>(
 
   const ingest = async (names: string[]): Promise<void> => {
     for (let i = 0; i < names.length; i += LIST_BATCH) {
-      const recs = await Promise.all(names.slice(i, i + LIST_BATCH).map((n) => cache.get(n)));
-      for (const raw of recs) {
+      const recs = await Promise.all(
+        names.slice(i, i + LIST_BATCH).map(async (n) => ({ name: n, raw: await cache.get(n) })),
+      );
+      for (const { name, raw } of recs) {
         scanned += 1;
-        if (!raw) continue;
-        let r: T;
-        try {
-          r = JSON.parse(raw) as T;
-        } catch {
-          continue;
-        }
+        const r = parseJSONAs<T>(raw, observedRecordShape, name);
+        if (!r) continue;
         if (keep && !keep(r)) continue;
         kept += 1;
         sightings += r.count ?? 0;

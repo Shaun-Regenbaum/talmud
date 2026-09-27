@@ -26,7 +26,9 @@
  * OpenRouter call per minute; every other request is a single KV read.
  */
 
+import { z } from 'zod';
 import { type AiDownState, clearAiDown, noteAiDown, readAiDown } from './ai-down';
+import { kvGetJSONAs } from './kv-json';
 import { fetchOpenRouterBalance } from './openrouter-cost';
 
 interface CreditsEnv {
@@ -59,6 +61,8 @@ interface CreditsCacheRow {
   at: number;
 }
 
+const creditsCacheRowShape = z.looseObject({ remaining: z.number(), at: z.number() });
+
 const UNKNOWN_CREDITS: CreditsState = { out: false, remaining: null, at: null };
 
 /**
@@ -71,12 +75,9 @@ export async function getCreditsState(env: CreditsEnv): Promise<CreditsState> {
   const cache = env.CACHE;
   if (cache) {
     try {
-      const raw = await cache.get(AI_CREDITS_KEY);
-      if (raw) {
-        const row = JSON.parse(raw) as CreditsCacheRow | null;
-        if (row && typeof row.remaining === 'number' && typeof row.at === 'number')
-          return { out: row.remaining <= MIN_USABLE_USD, remaining: row.remaining, at: row.at };
-      }
+      const row = await kvGetJSONAs<CreditsCacheRow>(cache, AI_CREDITS_KEY, creditsCacheRowShape);
+      if (row)
+        return { out: row.remaining <= MIN_USABLE_USD, remaining: row.remaining, at: row.at };
     } catch {
       /* fall through to a fresh probe */
     }

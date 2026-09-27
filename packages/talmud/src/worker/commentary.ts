@@ -5,7 +5,9 @@
 
 import { type LLMModelId, runLLM } from '@corpus/core/llm/llm';
 import type { Hono } from 'hono';
+import { z } from 'zod';
 import { keyForCommentaryText, keyForCommentaryWorks } from './cache-keys';
+import { kvGetJSONAs } from './kv-json';
 import { getSefariaSegmentsCached } from './source-cache';
 import { classifyError, recordTelemetry } from './telemetry';
 import type { Bindings } from './types';
@@ -24,6 +26,16 @@ interface CommentaryWork {
   count: number;
   comments: CommentaryComment[];
 }
+
+/** The cached picker payload. Only the grouped works matter to the caller -
+ *  the daf it was fetched for is already in the key - so the rest is optional,
+ *  and a comment's own fields are left to the renderer, which tolerates gaps. */
+const commentaryWorksShape = z.looseObject({
+  works: z.array(z.looseObject({ title: z.string(), comments: z.array(z.looseObject({})) })),
+  tractate: z.string().optional(),
+  page: z.string().optional(),
+  fetchedAt: z.string().optional(),
+});
 
 /** Parse the first segment number out of a Sefaria ref like "Berakhot 5a:3"
  *  or "Berakhot 5a:3:1-4". Returns zero-based index, or -1 if unparseable. */
@@ -54,19 +66,13 @@ export async function fetchCommentaryWorks(
   const cache = env.CACHE;
   const cacheKey = keyForCommentaryWorks(tractate, page);
   if (cache && !bypassCache) {
-    const hit = await cache.get(cacheKey);
-    if (hit !== null) {
-      try {
-        return JSON.parse(hit) as {
-          works: CommentaryWork[];
-          tractate: string;
-          page: string;
-          fetchedAt: string;
-        };
-      } catch {
-        /* fall through to refetch */
-      }
-    }
+    const hit = await kvGetJSONAs<{
+      works: CommentaryWork[];
+      tractate: string;
+      page: string;
+      fetchedAt: string;
+    }>(cache, cacheKey, commentaryWorksShape);
+    if (hit) return hit;
   }
   const ref = `${tractate} ${page}`;
   const url = `https://www.sefaria.org/api/links/${encodeURIComponent(ref)}?with_text=1`;
