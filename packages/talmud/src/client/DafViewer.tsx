@@ -1127,11 +1127,11 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     onCleanup(() => mq.removeEventListener('change', update));
   });
 
-  // Mobile top drawer: the daf-picker / nav header is open when you arrive,
-  // then collapses to a slim handle as soon as you start reading or interacting
-  // (scroll, or a tap on the daf). The handle stays pinned at the top so it's
-  // always one tap to bring the controls back. Desktop ignores this entirely.
-  const [headerOpen, setHeaderOpen] = createSignal(true);
+  // Mobile top drawer: the daf-picker / nav header starts collapsed to a slim
+  // handle, since open it takes a large share of a phone screen. The handle
+  // stays pinned at the top, so the controls are one tap away, and it folds
+  // back as soon as you scroll or tap the daf. Desktop ignores this entirely.
+  const [headerOpen, setHeaderOpen] = createSignal(false);
   const collapseHeader = () => {
     if (isMobile() && headerOpen()) setHeaderOpen(false);
   };
@@ -3432,7 +3432,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     <main class="daf-page" classList={{ 'daf-no-rabbi-underlines': !showGenMarkers() }}>
       {/* Mobile-only top-drawer handle. Always pinned at the top so the daf
           picker / nav is one tap away; the drawer itself (the shared header
-          below) is open on arrival and collapses once you start studying. */}
+          below) starts collapsed and folds back once you start studying. */}
       <Show when={isMobile()}>
         <button
           type="button"
