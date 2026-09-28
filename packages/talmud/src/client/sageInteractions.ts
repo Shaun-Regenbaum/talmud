@@ -164,10 +164,10 @@ export function barSegments(p: Partner): Array<{ color: string; share: number }>
   }));
 }
 
-/** Hebrew first, English in parentheses once (the house rule), or Hebrew alone when we have no English label. */
-export function partnerLabel(p: Partner, lang: 'en' | 'he'): string {
-  if (lang === 'he' || !p.name) return p.nameHe;
-  return `${p.nameHe} (${p.name})`;
+/** The row shows the name as the text writes it, in Hebrew only: mixing an English gloss into a right-to-left row
+ *  broke the line up, and the English label adds nothing the card's own header does not. */
+export function partnerLabel(p: Partner): string {
+  return p.nameHe;
 }
 
 const stripNikud = (s: string): string => s.replace(/[֑-ׇ]/g, '').trim();

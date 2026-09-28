@@ -65,12 +65,9 @@ describe('barSegments', () => {
 });
 
 describe('partnerLabel', () => {
-  it('puts the Hebrew first and the English once in parentheses', () => {
-    expect(partnerLabel(abaye, 'en')).toBe('אביי (Abaye)');
-  });
-  it('shows Hebrew alone in the Hebrew interface, or when there is no English label', () => {
-    expect(partnerLabel(abaye, 'he')).toBe('אביי');
-    expect(partnerLabel({ ...abaye, name: undefined }, 'en')).toBe('אביי');
+  it('shows the Hebrew name only, in either interface language', () => {
+    expect(partnerLabel(abaye)).toBe('אביי');
+    expect(partnerLabel({ ...abaye, name: undefined })).toBe('אביי');
   });
 });
 
