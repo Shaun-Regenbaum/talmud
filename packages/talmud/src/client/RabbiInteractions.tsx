@@ -142,7 +142,13 @@ export default function RabbiInteractions(props: {
                   </For>
                 </span>
                 <span
-                  style={{ color: 'var(--muted)', 'font-size': '0.78rem', 'text-align': 'end' }}
+                  style={{
+                    color: 'var(--muted)',
+                    'font-size': '0.78rem',
+                    'text-align': 'end',
+                    'font-family': 'var(--font-ui)',
+                    'font-variant-numeric': 'tabular-nums',
+                  }}
                 >
                   {p.total}
                 </span>
@@ -176,14 +182,18 @@ export default function RabbiInteractions(props: {
                               {(ref, i) => (
                                 <>
                                   <Show when={i() > 0}>{', '}</Show>
-                                  <a
-                                    href={sefariaUrl(ref)}
-                                    target="_blank"
-                                    rel="noopener"
-                                    style={{ color: 'var(--ink-link)' }}
-                                  >
-                                    {ref}
-                                  </a>
+                                  <Show when={sefariaUrl(ref)} fallback={<span>{ref}</span>}>
+                                    {(url) => (
+                                      <a
+                                        href={url()}
+                                        target="_blank"
+                                        rel="noopener"
+                                        style={{ color: 'var(--ink-link)' }}
+                                      >
+                                        {ref}
+                                      </a>
+                                    )}
+                                  </Show>
                                 </>
                               )}
                             </For>

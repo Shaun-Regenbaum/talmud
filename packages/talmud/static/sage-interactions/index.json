@@ -1,4 +1,8 @@
 {
+"abaye": {
+"nameHe": "אביי",
+"partners": 182
+},
 "abba-shaul": {
 "nameHe": "אבא שאול",
 "partners": 40
@@ -6,6 +10,14 @@
 "bar-kappara": {
 "nameHe": "בר קפרא",
 "partners": 78
+},
+"geniva": {
+"nameHe": "גניבא",
+"partners": 8
+},
+"jacob": {
+"nameHe": "יעקב",
+"partners": 2
 },
 "mar-b-rav-ashi": {
 "nameHe": "מר בר רב אשי",
@@ -187,6 +199,18 @@
 "nameHe": "רבי יוסי ברבי יהודה",
 "partners": 42
 },
+"rabbi-zeiri": {
+"nameHe": "זעירי",
+"partners": 33
+},
+"rabi": {
+"nameHe": "רבי",
+"partners": 295
+},
+"rav": {
+"nameHe": "רב",
+"partners": 432
+},
 "rav-aha-b-rava": {
 "nameHe": "רב אחא בריה דרבא",
 "partners": 15
@@ -194,6 +218,10 @@
 "rav-aha-b-yaakov": {
 "nameHe": "רב אחא בר יעקב",
 "partners": 22
+},
+"rav-amemar": {
+"nameHe": "אמימר",
+"partners": 30
 },
 "rav-ashi": {
 "nameHe": "רב אשי",
@@ -218,6 +246,10 @@
 "rav-idi-b-avin-(i)": {
 "nameHe": "רב אידי בר אבין",
 "partners": 20
+},
+"rav-mareimar": {
+"nameHe": "מרימר",
+"partners": 13
 },
 "rav-mesharshiya": {
 "nameHe": "רב משרשיא",
@@ -251,6 +283,10 @@
 "nameHe": "רבי זירא",
 "partners": 117
 },
+"rava": {
+"nameHe": "רבא",
+"partners": 270
+},
 "shimon-b-azzai": {
 "nameHe": "בן עזאי",
 "partners": 32
@@ -266,5 +302,9 @@
 "shimon-b-zoma": {
 "nameHe": "בן זומא",
 "partners": 10
+},
+"ulla": {
+"nameHe": "עולא",
+"partners": 92
 }
 }
