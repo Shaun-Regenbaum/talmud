@@ -8,6 +8,7 @@
  */
 
 import { createEffect, createResource, createSignal, For, type JSX, Show } from 'solid-js';
+import { finishDisplayText } from './displayText';
 import { lang } from './i18n';
 import { runProducer } from './runProducer';
 
@@ -137,7 +138,7 @@ export default function ArgumentNarrative(props: {
                   'margin-bottom': '0.6rem',
                 }}
               >
-                {d().summary}
+                {finishDisplayText(d().summary)}
               </div>
             </Show>
 
@@ -160,9 +161,9 @@ export default function ArgumentNarrative(props: {
                         border: `1px solid ${ROLE_COLOR[a.role] ?? '#ccc'}`,
                         color: ROLE_COLOR[a.role] ?? '#666',
                       }}
-                      title={a.role}
+                      title={finishDisplayText(a.role)}
                     >
-                      {a.name}
+                      {finishDisplayText(a.name)}
                     </span>
                   )}
                 </For>
@@ -252,9 +253,11 @@ export default function ArgumentNarrative(props: {
                         </Show>
                         <span>
                           <Show when={b.actor}>
-                            <span style={{ 'font-weight': 600, color: '#222' }}>{b.actor}: </span>
+                            <span style={{ 'font-weight': 600, color: '#222' }}>
+                              {finishDisplayText(b.actor)}:{' '}
+                            </span>
                           </Show>
-                          {b.action}
+                          {finishDisplayText(b.action)}
                         </span>
                       </li>
                     );

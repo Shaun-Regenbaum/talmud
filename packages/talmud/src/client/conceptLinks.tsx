@@ -30,8 +30,7 @@ import {
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import type { Term } from '../lib/terms/registry';
-import { Hebraized } from './Hebraized';
-import { stripEchoParens } from './hebraize';
+import { BidiText } from './Hebraized';
 import { lang } from './i18n';
 
 /** The surfaces a reader might actually SEE for a term in prose: the Hebrew
@@ -91,13 +90,11 @@ export function useConceptLinks(): ConceptLinkContextValue | null {
   return useContext(ConceptLinkContext);
 }
 
-/** Render `text` with background-term mentions wrapped in a gloss tooltip when
- *  a ConceptLink context is in scope; otherwise behave exactly like Hebraized.
- *  This is what RabbiText hands its plain-text parts to (and what cards with no
- *  rabbi pool can use directly). */
+/** Render prepared text with background-term links. Text changes happen before
+ *  names and concepts are split into fragments. */
 export function ConceptAwareText(props: { text: string | undefined | null }): JSX.Element {
   const ctx = useConceptLinks();
-  if (!ctx) return <Hebraized text={props.text} />;
+  if (!ctx) return <BidiText text={props.text ?? ''} />;
   return <ConceptText text={props.text} matcher={ctx.matcher()} />;
 }
 
@@ -390,29 +387,16 @@ function ConceptMention(props: { value: string; term: Term }): JSX.Element {
   );
 }
 
-/** Render `text`, wrapping every occurrence of a known background term as a
- *  gloss-tooltip mention. Reads `props` inside a memo so a late daf background
- *  load (new matcher) re-tokenizes. The matcher is compiled once at the
- *  provider, so this is just a scan per fragment. */
+/** Link known background terms in text that has already been prepared. */
 export function ConceptText(props: {
   text: string | undefined | null;
   matcher: ConceptMatcher | null;
 }): JSX.Element {
-  // Strip every-but-first inline gloss, then collapse redundant Hebrew echoes
-  // (e.g. "a טרפה (טריפה)" — a double-Hebrew gloss), THEN tokenize so each
-  // remaining mention still gets its tooltip. stripEchoParens must run on the
-  // whole contiguous string here, not just per-fragment in Hebraized below: when
-  // the parenthetical restates a term whose Hebrew matches a registry surface,
-  // tokenizeWithMatcher pulls that paren out as its own concept mention, so the
-  // "term (term)" pair would never reach Hebraized's echo strip intact.
-  const parts = createMemo(() => {
-    const cleaned = stripEchoParens(firstMentionGloss(props.text ?? '', props.matcher));
-    return tokenizeWithMatcher(cleaned, props.matcher);
-  });
+  const parts = createMemo(() => tokenizeWithMatcher(props.text ?? '', props.matcher));
   return (
     <For each={parts()}>
       {(p) => {
-        if (p.kind === 'text' || !p.term) return <Hebraized text={p.value} />;
+        if (p.kind === 'text' || !p.term) return <BidiText text={p.value} />;
         return <ConceptMention value={p.value} term={p.term} />;
       }}
     </For>

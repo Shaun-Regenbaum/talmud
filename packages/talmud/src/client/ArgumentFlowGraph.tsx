@@ -18,6 +18,7 @@ import { linkTarget } from '../lib/context/linkTarget';
 import type { SectionExit } from '../lib/context/sectionExits';
 import type { StatementLink, StatementNode } from '../lib/typing/statementSpine';
 import { ArgumentPassageDialog } from './ArgumentPassageDialog';
+import { finishDisplayText } from './displayText';
 import { graphLabels } from './graphLabels';
 import { lang, t } from './i18n';
 
@@ -195,12 +196,14 @@ export const statementLabel = (s: StatementNode): string => s.speaker || stateme
 export const statementGraphNode = (s: StatementNode, id = s.id): GraphNode => ({
   id,
   label: statementLabel(s),
-  summary: s.summary || s.excerpt || undefined,
+  summary: s.summary ? finishDisplayText(s.summary) : s.excerpt || undefined,
   role: statementRole(s.role),
   color: statementRoleColor(s.role),
   badge: sideBadge(s.side),
   badgeColor: statementSideColor(s.side),
-  detail: [s.speaker, s.summary, s.excerpt].filter(Boolean).join('\n'),
+  detail: [s.speaker, s.summary ? finishDisplayText(s.summary) : '', s.excerpt]
+    .filter(Boolean)
+    .join('\n'),
   direction: 'auto',
 });
 export const statementGraphEdges = (links: StatementLink[], prefix = ''): GraphConnection[] =>
@@ -209,7 +212,7 @@ export const statementGraphEdges = (links: StatementLink[], prefix = ''): GraphC
     kindLabel: t(l.relation === 'continues' ? 'link.rel.continues' : `dafvoices.rel.${l.relation}`),
     from: `${prefix}${l.from}`,
     to: `${prefix}${l.to}`,
-    label: `${t(l.relation === 'continues' ? 'link.rel.continues' : `dafvoices.rel.${l.relation}`)}${l.note ? ` · ${l.note}` : ''}`,
+    label: `${t(l.relation === 'continues' ? 'link.rel.continues' : `dafvoices.rel.${l.relation}`)}${l.note ? ` · ${finishDisplayText(l.note)}` : ''}`,
     color: statementColor(l.relation),
     provenance: t(l.source === 'voices' ? 'graph.source.voices' : 'graph.source.roles'),
     dash: l.relation === 'opposes' ? KIND_DASH.contrasts : undefined,
@@ -331,7 +334,7 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
   const groups = createMemo<GraphGroup[]>(() =>
     props.nodes.map((n) => ({
       id: `section:${n.index}`,
-      label: n.title,
+      label: finishDisplayText(n.title),
       badge: String(n.index + 1),
       selected: n.index === props.activeIndex,
       dimmed: n.dimmed,

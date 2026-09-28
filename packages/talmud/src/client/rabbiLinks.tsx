@@ -16,10 +16,11 @@
  * state changes (e.g. dafContext loads async after the sidebar mounts).
  */
 import { type Accessor, createContext, createMemo, For, type JSX, useContext } from 'solid-js';
-import { hebrewFirst, heKey, rabbiItems } from '../lib/bilingual';
+import { heKey, rabbiItems } from '../lib/bilingual';
 import { useBilingual, usePageGlossary } from './bilingual';
 import { ConceptAwareText, firstMentionGloss, useConceptLinks } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
+import { useDisplayText } from './displayText';
 import { lang } from './i18n';
 
 export interface RabbiLinkContextValue {
@@ -55,15 +56,20 @@ export function HebraizedWithRabbis(props: { text: string | undefined | null }):
   // it into fragments.
   const judged = useBilingual(() => props.text ?? '');
   const glossary = usePageGlossary(() => ctx?.page?.());
+  const concept = useConceptLinks();
   // Hebrew first, English in parentheses once: the paragraph's own pairs
   // (Jev), then the page's glossary, then the daf's rabbis.
-  const text = () => {
-    const j = judged();
-    if (lang() !== 'en') return j.text;
-    return hebrewFirst(j.text, [...j.pairs, ...glossary(), ...rabbiItems(ctx?.rabbis() ?? [])]);
-  };
-  // No rabbi pool here — still layer in concept tooltips (ConceptAwareText
-  // itself falls back to plain Hebraized when there's no concept context).
+  const text = useDisplayText(
+    () => judged().text,
+    () => ({
+      items:
+        lang() === 'en'
+          ? [...judged().pairs, ...glossary(), ...rabbiItems(ctx?.rabbis() ?? [])]
+          : [],
+      cleanGlosses: (s: string) => firstMentionGloss(s, concept?.matcher() ?? null),
+    }),
+  );
+  // No rabbi pool here: concept links can still use the prepared paragraph.
   if (!ctx) return <ConceptAwareText text={text()} />;
   return (
     <RabbiText
@@ -166,18 +172,11 @@ export function RabbiText(props: {
   onPushRabbi: (name: string) => void;
   extraNames?: string[];
 }): JSX.Element {
-  // The concept layer (if in scope) gives us the daf's glossary matcher. Apply
-  // the first-mention gloss strip to the WHOLE section string here, before it's
-  // split at rabbi names — so a term glossed in one rabbi-gap runs bare in a
-  // later one (true per-section scope, not per-fragment). ConceptText re-applies
-  // it per fragment for cards with no rabbi pool; the pass is idempotent.
-  const concept = useConceptLinks();
   // All reactive reads happen inside this memo so prop changes (e.g.
   // dafContext loading after mount, a new sidebar entry pushing) trigger
   // re-tokenization.
   const parts = createMemo(() => {
-    const cleaned = firstMentionGloss(props.text ?? '', concept?.matcher() ?? null);
-    return tokenizeRabbiMentions(cleaned, [
+    return tokenizeRabbiMentions(props.text ?? '', [
       ...props.rabbis.map((r) => r.name),
       ...props.rabbis.map((r) => (r.nameHe ?? '').replace(/[\u0591-\u05C7]/g, '')),
       ...(props.extraNames ?? []),

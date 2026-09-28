@@ -132,21 +132,17 @@ describe('MarginPod', () => {
     expect(onActivate).not.toHaveBeenCalled();
     tap(icons[1]);
     expect(onActivate).toHaveBeenCalledWith(items[1]);
+    expect(pod.classList.contains('is-open')).toBe(false);
   });
 
-  it('closes on touch only for a tap well away from the pod', () => {
+  it('closes when a tap lands outside the pod, but stays open during a scroll', () => {
     const { pod, icons } = mount();
     tap(icons[0]);
-    // jsdom lays everything out at 0,0: a tap 20px off lands inside the edge.
-    pointer(document.body, 'pointerdown', 'touch', { x: 20, y: 20 });
-    pointer(document.body, 'pointerup', 'touch', { x: 20, y: 20 });
-    expect(pod.classList.contains('is-open')).toBe(true);
-    // A drag is a scroll, and scrolling never closes it.
+    // A drag is a scroll, so it does not produce the click that closes a pod.
     pointer(document.body, 'pointerdown', 'touch', { x: 400, y: 400 });
     pointer(document.body, 'pointerup', 'touch', { x: 400, y: 480 });
     expect(pod.classList.contains('is-open')).toBe(true);
-    pointer(document.body, 'pointerdown', 'touch', { x: 400, y: 400 });
-    pointer(document.body, 'pointerup', 'touch', { x: 400, y: 400 });
+    tap(document.body, { x: 20, y: 20 });
     expect(pod.classList.contains('is-open')).toBe(false);
   });
 

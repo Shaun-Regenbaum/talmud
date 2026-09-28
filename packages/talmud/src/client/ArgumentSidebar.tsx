@@ -60,6 +60,7 @@ import { type BackgroundGroup, orderBackgroundGroups } from './backgroundGroups'
 import { ChartTableView } from './ChartTableView';
 import { buildConceptMatcher, ConceptLinkProvider } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
+import { finishDisplayText } from './displayText';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
 import { GEO_CITIES } from './geoShapes';
 import { Hebraized } from './Hebraized';
@@ -3630,7 +3631,7 @@ function YerushalmiParallelBlock(props: SpecialBlockProps): JSX.Element {
                     'text-decoration': 'none',
                   }}
                 >
-                  {c.title}
+                  {finishDisplayText(c.title)}
                 </a>
                 <div style={{ 'font-size': '0.7rem', color: '#888', margin: '0.1rem 0 0.3rem' }}>
                   {c.ref}
@@ -3638,7 +3639,7 @@ function YerushalmiParallelBlock(props: SpecialBlockProps): JSX.Element {
                 <p
                   style={{ 'font-size': '0.84rem', color: '#444', 'line-height': 1.55, margin: 0 }}
                 >
-                  {c.summary}
+                  {finishDisplayText(c.summary)}
                 </p>
               </div>
             )}
