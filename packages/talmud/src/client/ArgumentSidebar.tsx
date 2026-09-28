@@ -2085,6 +2085,9 @@ function ConnectionsInProgress(): JSX.Element {
           d="m40.09 20.02c-1.23 0.1-2.55 1.66-2.56 3.49-0.01 0.93 0.37 1.48 1.05 1.48 0.69 0 1.03-0.58 1.04-1.38 0.01-0.77 0.52-1.41 1.09-1.69 0.42-0.21 0.52-0.59 0.47-1.05-0.08-0.54-0.53-0.87-1.09-0.85z"
         />
       </svg>
+      <div style={{ 'text-align': 'center', 'font-size': '0.75rem', 'margin-top': '0.3rem' }}>
+        {t('rabbi.connections.inDevelopment')}
+      </div>
     </div>
   );
 }
