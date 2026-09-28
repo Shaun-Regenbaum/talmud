@@ -87,6 +87,8 @@ export default function RabbiInteractions(props: {
             <div style={{ 'border-bottom': '1px solid var(--line)' }}>
               <button
                 type="button"
+                dir="rtl"
+                lang="he"
                 aria-expanded={isOpen()}
                 onClick={() => setOpen(isOpen() ? null : key)}
                 style={{
@@ -99,14 +101,14 @@ export default function RabbiInteractions(props: {
                   border: 'none',
                   padding: '0.42rem 0',
                   cursor: 'pointer',
-                  'font-family': 'inherit',
-                  'font-size': '0.85rem',
+                  'font-size': '0.95rem',
                   color: 'var(--fg)',
                   'text-align': 'start',
+                  'font-family': 'var(--font-hebrew), serif',
                 }}
               >
                 <span style={{ 'font-weight': isOpen() || here() ? 600 : 400 }}>
-                  {partnerLabel(p, L())}
+                  {partnerLabel(p)}
                   <Show when={here()}>
                     <span
                       title={t('rabbi.interactions.onThisPage')}
