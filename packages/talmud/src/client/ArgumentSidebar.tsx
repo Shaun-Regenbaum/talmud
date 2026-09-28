@@ -85,7 +85,11 @@ import RabbiObservations from './RabbiObservations';
 import RabbiTrajectoryMap, { type LocationInference } from './RabbiTrajectoryMap';
 import { HebraizedWithRabbis, RabbiLinkProvider } from './rabbiLinks';
 import { StatementSpine } from './StatementSpine';
-import { fetchSageInteractions, type SageInteractions } from './sageInteractions';
+import {
+  fetchSageInteractions,
+  interactionsSlugForName,
+  type SageInteractions,
+} from './sageInteractions';
 import type {
   AggadataStory,
   ChartTable,
@@ -2021,12 +2025,18 @@ function RabbiLineage(props: SpecialBlockProps): JSX.Element {
   const f = (): Record<string, unknown> => props.instance.fields;
   const str = (v: unknown): string => (typeof v === 'string' ? v : '');
   // Sages the study is sure about get the "Interactions" box, built from the text; everyone else keeps the tree.
-  const slug = (): string | null => {
-    const id = props.deps['rabbi.identity'] as { slug?: unknown } | undefined;
-    const s = typeof id?.slug === 'string' ? id.slug : str(f().slug);
-    return s || null;
+  // Found by slug when the card has one, else by the Hebrew name (safe: only one-man, one-entry names have a file).
+  const lookup = (): { slug: string; nameHe: string } | null => {
+    const id = props.deps['rabbi.identity'] as { slug?: unknown; nameHe?: unknown } | undefined;
+    const slug = typeof id?.slug === 'string' && id.slug ? id.slug : str(f().slug);
+    const nameHe = str(f().nameHe) || (typeof id?.nameHe === 'string' ? id.nameHe : '');
+    return slug || nameHe ? { slug, nameHe } : null;
   };
-  const [interactions] = createResource(slug, (s) => fetchSageInteractions(s));
+  const [interactions] = createResource(lookup, async (q) => {
+    const byName = q.nameHe ? await interactionsSlugForName(q.nameHe) : null;
+    const slug = q.slug || byName;
+    return slug ? fetchSageInteractions(slug) : null;
+  });
   // Clear any active reader-highlight when the rabbi changes (the old body did this).
   createEffect(() => {
     void props.instanceKey;
