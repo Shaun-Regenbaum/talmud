@@ -92,6 +92,7 @@ const EXPECTED_ROUTES = [
   'GET /api/commentaries/:tractate/:page',
   'POST /api/commentary-translate',
   'GET /api/rabbi/:slug',
+  'GET /api/rabbi-interactions/:slug',
   'GET /api/references/:tractate/:page',
   'GET /api/dafyomi/:tractate/:page',
   'GET /api/context/:tractate/:page',
