@@ -1433,6 +1433,14 @@ const CATALOG = {
 
   // — Rabbi lineage tree —
   'rabbi.lineage.title': { en: 'Lineage', he: 'שלשלת' },
+  // — Rabbi interactions (replaces the lineage tree where the study is sure who the sage is) —
+  'rabbi.interactions.title': { en: 'Interactions', he: 'קשרים' },
+  'rabbi.interactions.onThisPage': { en: 'also on this page', he: 'גם בדף הזה' },
+  'rabbi.interactions.openCard': { en: 'Open his card', he: 'פתח את הכרטיס שלו' },
+  'rabbi.interactions.about': {
+    en: 'Counted from the text: each number is a passage where the two names stand together. {n} names in all.',
+    he: 'נספר מן הטקסט: כל מספר הוא קטע שבו שני השמות מופיעים יחד. {n} שמות בסך הכל.',
+  },
   'rabbi.lineage.debatePartners': { en: 'Debate partners', he: 'בני פלוגתא' },
 
   // — Rabbi places timeline —

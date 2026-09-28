@@ -76,6 +76,7 @@ import {
 import { type CatalogKey, lang, t } from './i18n';
 import { InspectDot, registerMarkRenderer, runEnrichment } from './MarkEnrichmentCards';
 import type { GeographyData, GeographyEvidence } from './RabbiGeographyCard';
+import RabbiInteractions from './RabbiInteractions';
 import RabbiLineageTree, {
   type RelationshipsData,
   type RelationshipsEvidence,
@@ -84,6 +85,7 @@ import RabbiObservations from './RabbiObservations';
 import RabbiTrajectoryMap, { type LocationInference } from './RabbiTrajectoryMap';
 import { HebraizedWithRabbis, RabbiLinkProvider } from './rabbiLinks';
 import { StatementSpine } from './StatementSpine';
+import { fetchSageInteractions, type SageInteractions } from './sageInteractions';
 import type {
   AggadataStory,
   ChartTable,
@@ -2018,6 +2020,13 @@ function RabbiMeta(props: SpecialBlockProps): JSX.Element {
 function RabbiLineage(props: SpecialBlockProps): JSX.Element {
   const f = (): Record<string, unknown> => props.instance.fields;
   const str = (v: unknown): string => (typeof v === 'string' ? v : '');
+  // Sages the study is sure about get the "Interactions" box, built from the text; everyone else keeps the tree.
+  const slug = (): string | null => {
+    const id = props.deps['rabbi.identity'] as { slug?: unknown } | undefined;
+    const s = typeof id?.slug === 'string' ? id.slug : str(f().slug);
+    return s || null;
+  };
+  const [interactions] = createResource(slug, (s) => fetchSageInteractions(s));
   // Clear any active reader-highlight when the rabbi changes (the old body did this).
   createEffect(() => {
     void props.instanceKey;
@@ -2036,24 +2045,31 @@ function RabbiLineage(props: SpecialBlockProps): JSX.Element {
   const generationByName = (): Map<string, GenerationId> =>
     (props.extras?.generationByName as Map<string, GenerationId> | undefined) ?? EMPTY_GEN_MAP;
   return (
-    <Show when={rel()}>
-      {(r) => (
-        <div style={{ position: 'relative' }}>
-          <InspectDot
-            instanceKey={props.instanceKey}
-            leafId="rabbi.relationships"
-            style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }}
-          />
-          <RabbiLineageTree
-            subjectName={str(f().name)}
-            subjectGeneration={f().generation as GenerationId}
-            data={r()}
-            evidence={relEv()}
-            generationByName={generationByName()}
-            onHighlightRange={props.onHighlightRange ?? (() => {})}
-          />
-        </div>
-      )}
+    <Show
+      when={interactions.loading || !interactions()}
+      fallback={
+        <RabbiInteractions data={interactions() as SageInteractions} subjectName={str(f().name)} />
+      }
+    >
+      <Show when={!interactions.loading && rel()}>
+        {(r) => (
+          <div style={{ position: 'relative' }}>
+            <InspectDot
+              instanceKey={props.instanceKey}
+              leafId="rabbi.relationships"
+              style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }}
+            />
+            <RabbiLineageTree
+              subjectName={str(f().name)}
+              subjectGeneration={f().generation as GenerationId}
+              data={r()}
+              evidence={relEv()}
+              generationByName={generationByName()}
+              onHighlightRange={props.onHighlightRange ?? (() => {})}
+            />
+          </div>
+        )}
+      </Show>
     </Show>
   );
 }
