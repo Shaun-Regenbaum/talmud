@@ -265,7 +265,9 @@ export const RABBI_RECIPE: SidebarRecipe = {
     {
       type: 'special',
       block: 'rabbi-lineage',
-      deps: ['rabbi.relationships', 'rabbi.relationships.evidence'],
+      // rabbi.identity carries the slug: the block shows the text-built Interactions list when the study has one for
+      // this sage, and falls back to the relationships tree otherwise.
+      deps: ['rabbi.identity', 'rabbi.relationships', 'rabbi.relationships.evidence'],
     },
     {
       type: 'special',
