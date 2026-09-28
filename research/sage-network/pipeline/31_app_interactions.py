@@ -78,7 +78,8 @@ def sure_names(folders):
                     verdicts.append(one_man(load_answer(p), ids))
             if len(verdicts) == 2:
                 sure |= {n for n in verdicts[0] if verdicts[0][n] and verdicts[1].get(n)}
-    return sure
+    # a lone title read as a person ("רב (alone)", "רבי (alone)") stands in the pair table as the bare title itself
+    return {n.removesuffix(' (alone)') for n in sure}
 
 
 def registry_slugs():

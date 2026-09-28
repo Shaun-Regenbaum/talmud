@@ -184,7 +184,10 @@ export function onThisPage(
 }
 
 /** A passage reference such as "Berakhot 56a:2" or "Jerusalem Talmud Berakhot 1:1:2" as a Sefaria link. */
-export function sefariaUrl(ref: string): string {
+export function sefariaUrl(ref: string): string | null {
+  // Some midrash references carry an internal section slug ("Sifra sifra-shemini-chapter-10:5") that Sefaria does
+  // not know: show those as plain text rather than a link that may not work.
+  if (/[a-z]+-[a-z]+/.test(ref)) return null;
   const m = ref.match(/^(.*?)\s+([\d]+[ab]?(?::\d+)*)$/);
   const book = (m ? m[1] : ref).trim().replace(/\s+/g, '_');
   const loc = m ? m[2].replace(/:/g, '.') : '';

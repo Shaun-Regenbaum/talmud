@@ -87,6 +87,9 @@ describe('sefariaUrl', () => {
     );
     expect(sefariaUrl('Bereshit Rabbah 12:3')).toBe('https://www.sefaria.org/Bereshit_Rabbah.12.3');
   });
+  it('gives no link for a reference built on an internal section slug', () => {
+    expect(sefariaUrl('Sifra sifra-shemini-chapter-10:5')).toBeNull();
+  });
 });
 
 describe('nameKey', () => {
