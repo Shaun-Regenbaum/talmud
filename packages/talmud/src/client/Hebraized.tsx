@@ -9,15 +9,8 @@
  * fire-and-forget — render never blocks on it; on completion the text just
  * swaps in place. On any LLM error, the dict-pass result stays.
  */
-import { createMemo, createResource, For, type JSX } from 'solid-js';
-import {
-  capitalizeFirst,
-  hasEmptyParens,
-  hebraize,
-  hebraizeLLM,
-  stripEchoParens,
-  unresolvedParens,
-} from './hebraize';
+import { createMemo, For, type JSX } from 'solid-js';
+import { useDisplayText } from './displayText';
 
 // A maximal run of Hebrew/Aramaic — letters plus internal spaces, geresh/
 // gershayim, maqaf — starting and ending on a Hebrew character. We isolate each
@@ -65,34 +58,9 @@ export function Hebraized(props: {
   text: string | undefined | null;
   capitalize?: boolean;
 }): JSX.Element {
-  const dictPass = createMemo(() => hebraize(props.text ?? ''));
-  // Only fire the LLM pass when the dict pass has unresolved parens. The
-  // resource source returns null otherwise, which short-circuits the fetch.
-  const llmInput = createMemo(() => {
-    const t = dictPass();
-    return unresolvedParens(t).length > 0 ? t : null;
-  });
-  const [llmPass] = createResource(llmInput, (t) => hebraizeLLM(t));
-  // Capitalize AFTER both passes — the inverted pass can move an English gloss
-  // to the front, so capitalizing earlier would strand a lowercase word.
-  const out = createMemo(() => {
-    // The LLM pass output is otherwise used raw — unlike dictPass(), which
-    // ends with stripEchoParens. A model can over-translate a Form B gloss
-    // into an echo (`מעשה (מעשה)`), and stale KV entries from the old model
-    // may still carry one, so collapse echoes here too. dictPass() is already
-    // echo-clean, so the guard only matters on the LLM branch.
-    const dict = dictPass();
-    const llm = llmPass();
-    let s = dict;
-    if (llm != null) {
-      const cleaned = stripEchoParens(llm);
-      // The LLM fallback can empty a paren it couldn't resolve to Hebrew
-      // (`(Rabbi Eliezer)` → `()`). Never accept a result that introduces an
-      // empty parenthetical the dict pass didn't have — keep the dict pass,
-      // which preserves the original parenthetical.
-      s = hasEmptyParens(cleaned) && !hasEmptyParens(dict) ? dict : cleaned;
-    }
-    return props.capitalize ? capitalizeFirst(s) : s;
-  });
+  const out = useDisplayText(
+    () => props.text ?? '',
+    () => ({ capitalize: props.capitalize }),
+  );
   return <BidiText text={out()} />;
 }

@@ -42,6 +42,7 @@ import ArgumentFlowGraph, {
 } from './ArgumentFlowGraph';
 import DafVoiceGraph from './DafVoiceGraph';
 import { type DafViewPiece, loadDafView } from './dafViewStore';
+import { finishDisplayText } from './displayText';
 import { colorForGeneration, GENERATION_BY_ID } from './generations';
 import { lang, t } from './i18n';
 import { resolveVoiceGroup } from './voiceGroups';
@@ -460,7 +461,7 @@ export function ArgumentGraphPage(): JSX.Element {
                   )}
                 </For>
                 <Show when={node().summary}>
-                  <p dir="auto">{node().summary}</p>
+                  <p dir="auto">{finishDisplayText(node().summary ?? '')}</p>
                 </Show>
                 <Show when={node().excerpt}>
                   <p dir="rtl" lang="he">

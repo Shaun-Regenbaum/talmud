@@ -9,7 +9,7 @@
  *   as inside, and it closes a moment after the pointer really leaves, so a
  *   small slip does not close it.
  * - Touch: the first tap opens the pod with finger-sized icons; a tap on an
- *   icon opens that note; only a tap well away from the pod closes it.
+ *   icon opens that note and closes the pod; a tap outside also closes it.
  * - Keyboard: tabbing onto an icon opens its pod; arrows move; Esc closes.
  *
  * A pod with one icon never opens: a click or tap opens its note directly.
@@ -57,8 +57,6 @@ export interface MarginPodProps {
 export const POD_OPEN_DELAY_MS = 50;
 /** How long a pod stays open after the pointer leaves its forgiving edge. */
 export const POD_CLOSE_GRACE_MS = 260;
-/** A tap closes an open pod only when it lands this far outside its edge. */
-export const POD_FAR_TAP_PX = 28;
 /** Resting icon size, and the open sizes for a mouse and for a finger. */
 export const POD_REST_SIZE = 14;
 export const POD_OPEN_SIZE = 18;
@@ -69,7 +67,7 @@ const BG_PAD = 6;
 const GAP = { mouse: 6, touch: 10 } as const;
 /** The forgiving edge around an open pod: generous sideways, where the pointer
  *  drifts off into the margin, and short above and below, where it would cover
- *  the next line's icons. Touch uses it only to judge a far tap. */
+ *  the next line's icons. */
 const EDGE = { mouse: { x: 14, y: 6 }, touch: { x: 22, y: 22 } } as const;
 
 type Mode = 'mouse' | 'touch' | 'keys';
@@ -96,11 +94,7 @@ const [openPod, setOpenPod] = createSignal<string | null>(null);
  *  highlight, so a pod closing late never wipes the next pod's. */
 let previewOwner: string | null = null;
 let lastInput: 'mouse' | 'touch' | 'keys' = 'mouse';
-let tapStart: { x: number; y: number } | null = null;
-const pods = new Map<
-  string,
-  { root: () => HTMLElement | undefined; hit: () => HTMLElement | undefined; close: () => void }
->();
+const pods = new Map<string, { root: () => HTMLElement | undefined; close: () => void }>();
 let listening = false;
 
 function listen(): void {
@@ -115,28 +109,17 @@ function listen(): void {
       if (!pod) return;
       if (lastInput === 'mouse') {
         if (!pod.root()?.contains(e.target as Node)) pod.close();
-      } else tapStart = { x: e.clientX, y: e.clientY };
+      }
     },
     true,
   );
   document.addEventListener(
-    'pointerup',
+    'click',
     (e) => {
-      const start = tapStart;
-      tapStart = null;
+      if (lastInput !== 'touch') return;
       const id = openPod();
       const pod = id ? pods.get(id) : undefined;
-      if (!pod || !start || e.pointerType === 'mouse') return;
-      // A drag is a scroll, not a tap: scrolling never closes the pod.
-      if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) return;
-      const box = pod.hit()?.getBoundingClientRect();
-      if (!box) return;
-      const far =
-        e.clientX < box.left - POD_FAR_TAP_PX ||
-        e.clientX > box.right + POD_FAR_TAP_PX ||
-        e.clientY < box.top - POD_FAR_TAP_PX ||
-        e.clientY > box.bottom + POD_FAR_TAP_PX;
-      if (far) pod.close();
+      if (pod && !pod.root()?.contains(e.target as Node)) pod.close();
     },
     true,
   );
@@ -157,7 +140,6 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
   // target.
   const [scale, setScale] = createSignal(1);
   let root: HTMLDivElement | undefined;
-  let hit: HTMLDivElement | undefined;
   let openTimer: ReturnType<typeof setTimeout> | undefined;
   let closeTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -192,7 +174,7 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
 
   onMount(() => {
     listen();
-    pods.set(id, { root: () => root, hit: () => hit, close });
+    pods.set(id, { root: () => root, close });
   });
   onCleanup(() => {
     clearTimeout(openTimer);
@@ -305,7 +287,10 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
           } else if (item) props.onActivate(item);
           return;
         }
-        if (item) props.onActivate(item);
+        if (item) {
+          close();
+          props.onActivate(item);
+        }
       }}
       onFocusIn={(e) => {
         const item = itemAt(e.target);
@@ -331,7 +316,6 @@ export function MarginPod(props: MarginPodProps): JSX.Element {
       }}
     >
       <div
-        ref={hit}
         class="margin-pod-hit"
         data-tour={props.tour}
         style={{

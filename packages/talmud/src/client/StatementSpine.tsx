@@ -3,6 +3,7 @@ import { GraphView } from '@corpus/ui/GraphView';
 import { createSignal, For, type JSX, Show } from 'solid-js';
 import type { StatementSpine as Spine } from '../lib/typing/statementSpine';
 import { statementGraphEdges, statementGraphNode } from './ArgumentFlowGraph';
+import { finishDisplayText } from './displayText';
 import { graphLabels } from './graphLabels';
 import { lang, t } from './i18n';
 
@@ -66,7 +67,7 @@ export function StatementSpine(props: {
               )}
             </For>
             <Show when={s().summary}>
-              <p dir="auto">{s().summary}</p>
+              <p dir="auto">{finishDisplayText(s().summary ?? '')}</p>
             </Show>
             <Show when={s().excerpt}>
               <p dir="rtl" lang="he">
