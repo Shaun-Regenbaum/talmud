@@ -714,44 +714,27 @@ body.dev-panel-open .daf-page {
   color: var(--read-ink-dim);
   line-height: 1.5;
 }
-.read-list,
-.read-timeline {
+.read-list {
   list-style: none;
   margin: 0;
   padding: 0;
   border-top: 1px solid var(--read-rule);
 }
-.read-timeline {
-  border-bottom: 1px solid var(--read-rule);
-}
-.read-list li,
-.read-timeline li {
+.read-list li {
   display: grid;
+  grid-template-columns: 26px 1fr;
   gap: 12px;
   padding: 12px 0;
   border-bottom: 1px solid var(--read-rule-soft);
 }
-.read-list li {
-  grid-template-columns: 26px 1fr;
-}
-.read-timeline li {
-  grid-template-columns: 120px 1fr;
-  gap: 16px;
-}
-.read-timeline li:last-child {
-  border-bottom: none;
+.read-list + p {
+  margin-top: 16px;
 }
 .read-n {
   font-family: var(--read-mono);
   font-size: 12px;
   color: var(--read-ink-dim);
   padding-top: 5px;
-}
-.read-y {
-  font-family: var(--read-mono);
-  font-size: 12.5px;
-  color: var(--accent);
-  padding-top: 4px;
 }
 .read-t {
   font-weight: 600;
@@ -803,10 +786,6 @@ body.dev-panel-open .daf-page {
   .read-nav {
     gap: 16px;
     flex-wrap: wrap;
-  }
-  .read-timeline li {
-    grid-template-columns: 1fr;
-    gap: 2px;
   }
   .read-page p {
     font-size: 17px;

@@ -1,18 +1,16 @@
 /**
  * #about — the project's front door for people rather than for study: what the
- * reader is, who builds it, what it does, where it came from, and the ways in
- * for a contributor. Laid out like a well-set introduction to a sefer: one
- * reading column with marginalia (Hebrew section letters and small labels) in
- * the left margin. Deep links `#about/<section>` scroll to a section. The
- * Sources & credits list that used to be the whole page lives here as the last
- * section, so old `#about` links still land on it.
+ * reader is, what it does, who makes it, and a footer with sources and the
+ * ways in. Kept short on purpose; the technical story lives on #howitworks and
+ * in docs/. Laid out like a well-set introduction to a sefer: one reading
+ * column with marginalia (Hebrew section letters and small labels) in the left
+ * margin. Deep links `#about/<section>` scroll to a section.
  *
  * English only on purpose: the reader's chrome is bilingual, but this page is
  * long-form prose about the project and is maintained in one language. The
  * page is LTR even when the app is in Hebrew.
  */
 import { For, type JSX, onCleanup, onMount } from 'solid-js';
-import { FEATURED_DAF } from './tutorial';
 
 const REPO = 'https://github.com/Shaun-Regenbaum/talmud';
 const DOCS = `${REPO}/blob/master`;
@@ -26,62 +24,20 @@ interface Feature {
 
 const FEATURES: Feature[] = [
   {
-    title: 'The Vilna page, as printed',
-    body: 'Gemara in the middle, Rashi and Tosafot at the sides, wrapping the way the book does. The layout comes from daf-renderer.',
+    title: 'The page as printed',
+    body: 'Gemara in the middle, Rashi and Tosafot at the sides, laid out the way the Vilna Shas is.',
   },
   {
-    title: 'Notes pinned to their words',
-    body: 'Background, argument, halacha, people, places, verses, parallels. Each shows its source and its confidence.',
+    title: 'Notes pinned to the words they explain',
+    body: 'Background, halacha, people, places, verses. Each note shows where it came from.',
   },
   {
     title: 'The argument as a map',
-    body: 'Who answers whom, what stays open, which other dapim the discussion leans on.',
+    body: 'Who asks, who answers, and what is left open.',
   },
   {
-    title: 'The people, across Shas',
-    body: 'One entry per sage: generation, place, teachers, and who they are quoted with.',
-  },
-  {
-    title: 'Two languages, not one translated',
-    body: 'Every note in English and in Hebrew. The Hebrew is written as Hebrew.',
-  },
-  {
-    title: 'Ask the page, and open to machines',
-    body: 'Answers from the daf in front of you; a documented API and an MCP server for assistants. Recipe, inputs, model, and cost on every note.',
-  },
-];
-
-interface Milestone {
-  when: string;
-  title: string;
-  body: string;
-}
-
-const HISTORY: Milestone[] = [
-  {
-    when: '2019',
-    title: 'A student project at Georgia Tech',
-    body: '"The Future of the Talmud", funded by DILAC, advised by Janet Murray. The prototype already lived at talmud.dev.',
-  },
-  {
-    when: 'Nov 2020',
-    title: 'daf-renderer',
-    body: 'A dependency-free library that lays out a Vilna page. Still the engine underneath.',
-  },
-  {
-    when: '2021',
-    title: 'Talmud Lab, and Sefaria',
-    body: "A word-by-word Aramaic translation project on Sefaria's Jastrow and Dicta's lexicon.",
-  },
-  {
-    when: 'Dec 2022',
-    title: 'This repository begins',
-    body: 'Could AI models understand the Gemara and write notes that actually help?',
-  },
-  {
-    when: '2025 →',
-    title: 'The reader you are looking at',
-    body: 'Rebuilt on Cloudflare Workers and Solid, one engine shared with tanach.dev.',
+    title: 'Every sage across the whole Talmud',
+    body: 'When and where each one lived, and who they are quoted with.',
   },
 ];
 
@@ -97,32 +53,29 @@ const SOURCES: SourceCredit[] = [
   {
     name: 'Sefaria',
     url: 'https://www.sefaria.org',
-    note: 'text and commentary links, under their open licensing',
+    note: 'the texts and commentary links, under their open licenses',
   },
   {
     name: 'HebrewBooks',
     url: 'https://www.hebrewbooks.org',
-    note: 'printed-page typography',
+    note: 'the printed-page type',
   },
   {
     name: 'Kollel Iyun HaDaf',
     url: 'https://www.dafyomi.co.il',
-    note: 'per-daf study aids, © and with links back to the original pages',
+    note: 'daf study aids, © theirs, linked back to their pages',
   },
   {
     name: 'daf-renderer',
     url: 'https://github.com/TalmudLab/daf-renderer',
-    note: 'MIT, Dan Jutan and Shaun Regenbaum',
+    note: 'the page layout, MIT',
   },
 ];
 
 const SECTIONS = [
-  { id: 'who', letter: 'א', label: 'Who is behind it' },
-  { id: 'what', letter: 'ב', label: 'What it does' },
-  { id: 'how', letter: 'ג', label: 'How it works' },
-  { id: 'history', letter: 'ד', label: 'Where it came from' },
-  { id: 'ways', letter: 'ה', label: 'Ways in' },
-  { id: 'credits', letter: 'ו', label: 'Sources' },
+  { id: 'what', letter: 'א', label: 'What you get' },
+  { id: 'who', letter: 'ב', label: 'Who makes it' },
+  { id: 'credits', letter: 'ג', label: 'Sources' },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]['id'];
@@ -210,12 +163,11 @@ export function AboutPage(): JSX.Element {
           for Gemara
         </div>
         <div class="read-col">
-          <h1 class="read-title">Bringing the daf to the AI age.</h1>
+          <h1 class="read-title">Learn Gemara with the page in front of you.</h1>
           <p class="read-drop">
-            Talmud.dev is a free, open-source learning app for Gemara. It shows the Vilna page in
-            the classic tzurat hadaf layout and supplements it with translations, explanations,
-            visual aids, maps, biographies, and more. We do this through smart notes. Every note is
-            sourced and backed by the text.
+            Talmud.dev is a free learning app for Gemara. It shows the Vilna page as it is printed,
+            with notes beside it: translations, explanations, maps, and the people in the
+            discussion. Every note shows its source.
           </p>
           <div class="read-ctas">
             <a href="#daf" class="read-btn is-fill">
@@ -238,32 +190,13 @@ export function AboutPage(): JSX.Element {
             width="1600"
             height="1000"
           />
-          <p class="read-cap">
-            Berakhot 2a in the reader, with the argument overview open and anchored to the words it
-            explains. The tour opens {FEATURED_DAF.tractate} {FEATURED_DAF.page}.
-          </p>
-        </div>
-      </section>
-
-      <section id="who" ref={register('who')} class="read-sec">
-        <Margin id="who" />
-        <div class="read-col">
-          <p>
-            Shaun Regenbaum and Dan Jutan co-founded the Talmud Lab at Georgia Tech in 2020. Shaun
-            has kept this project going since. He builds and pays for the reader and the engine
-            behind it, and is now a bioengineering PhD student at the Hebrew University.
-          </p>
+          <p class="read-cap">Berakhot 2a, with the overview of the argument open.</p>
         </div>
       </section>
 
       <section id="what" ref={register('what')} class="read-sec">
         <Margin id="what" />
         <div class="read-col">
-          <h2>The daf stays at the center.</h2>
-          <p>
-            Everything else is a note attached to it, and every note can be opened, checked, and
-            traced back.
-          </p>
           <ol class="read-list">
             <For each={FEATURES}>
               {(f, i) => (
@@ -277,63 +210,22 @@ export function AboutPage(): JSX.Element {
               )}
             </For>
           </ol>
-        </div>
-      </section>
-
-      <section id="how" ref={register('how')} class="read-sec">
-        <Margin id="how" />
-        <div class="read-col">
-          <h2>Four ideas carry the whole system.</h2>
           <p>
-            <strong>A text</strong> is something with addresses: a daf and its segments, a chapter
-            and its verses. <strong>A note</strong> is a typed piece of content about the text.{' '}
-            <strong>An anchor</strong> is where the note sits; it starts coarse and is narrowed only
-            when a rule, a model, or a person is sure, because a wrong anchor is worse than a wide
-            one. <strong>A producer</strong> is the recipe that makes a note, and every result is
-            cached with that recipe, its inputs, and its cost. A person's correction outranks
-            everything and is never overwritten. <a href="#howitworks">The live walkthrough</a>{' '}
-            shows this on a real daf, and{' '}
-            <Ext href={`${DOCS}/docs/framework.md`}>the framework</Ext> is the written version.
+            Every note is written in both English and Hebrew. Curious how the notes are made?{' '}
+            <a href="#howitworks">See how it works.</a>
           </p>
         </div>
       </section>
 
-      <section id="history" ref={register('history')} class="read-sec">
-        <Margin id="history" />
-        <div class="read-col">
-          <ol class="read-timeline">
-            <For each={HISTORY}>
-              {(m) => (
-                <li>
-                  <span class="read-y">{m.when}</span>
-                  <div>
-                    <div class="read-t">{m.title}</div>
-                    <div class="read-d">{m.body}</div>
-                  </div>
-                </li>
-              )}
-            </For>
-          </ol>
-        </div>
-      </section>
-
-      <section id="ways" ref={register('ways')} class="read-sec">
-        <Margin id="ways" />
+      <section id="who" ref={register('who')} class="read-sec">
+        <Margin id="who" />
         <div class="read-col">
           <p>
-            The code is MIT licensed and you need no keys to build it or run the tests.{' '}
-            <Ext href={`${DOCS}/CONTRIBUTING.md`}>Improve the reader</Ext>,{' '}
-            <Ext href={`${DOCS}/docs/mcp.md`}>extend the MCP and API</Ext>,{' '}
-            <Ext href={`${DOCS}/docs/data.md`}>improve the data</Ext> by reporting a wrong note or
-            fixing a sage or a place, or{' '}
-            <Ext href={`${DOCS}/docs/README.md`}>learn how it is built</Ext> and fix the docs.
-          </p>
-          <p>
-            <em>Working with an AI assistant?</em> Good. There is a briefing file for agents, a
-            worktree per change, checks that need no secrets, and an MCP server so the assistant can
-            read the live corpus. Keep changes small, run the checks, say what the tool did, and
-            never let it invent a source.{' '}
-            <Ext href={`${DOCS}/docs/contributing-with-ai.md`}>Read the guide.</Ext>
+            Shaun Regenbaum builds Talmud.dev and pays for it. He is a bioengineering PhD student at
+            the Hebrew University. The project began in 2019 as a student project at Georgia Tech.
+            In 2020 he and Dan Jutan started the Talmud Lab there and wrote{' '}
+            <Ext href="https://github.com/TalmudLab/daf-renderer">daf-renderer</Ext>, which still
+            lays out the page. This version dates from 2025.
           </p>
         </div>
       </section>
@@ -341,16 +233,17 @@ export function AboutPage(): JSX.Element {
       <section id="credits" ref={register('credits')} class="read-sec read-credits">
         <Margin id="credits" />
         <div class="read-col read-small">
+          Built on{' '}
           <For each={SOURCES}>
             {(s, i) => (
               <>
-                <Ext href={s.url}>{s.name}</Ext>, {s.note}
-                {i() < SOURCES.length - 1 ? ' · ' : '. '}
+                <Ext href={s.url}>{s.name}</Ext> ({s.note}){i() < SOURCES.length - 1 ? ', ' : '. '}
               </>
             )}
           </For>
-          Code © Shaun Regenbaum, MIT. Found a wrong note?{' '}
-          <Ext href={`${REPO}/issues/new/choose`}>Report it.</Ext>
+          The code is open source under the MIT license.{' '}
+          <Ext href={`${REPO}/issues/new/choose`}>Report a wrong note</Ext> or{' '}
+          <Ext href={`${DOCS}/CONTRIBUTING.md`}>help on GitHub</Ext>.
         </div>
       </section>
     </main>
