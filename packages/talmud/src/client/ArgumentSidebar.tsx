@@ -77,19 +77,11 @@ import { type CatalogKey, lang, t } from './i18n';
 import { InspectDot, registerMarkRenderer, runEnrichment } from './MarkEnrichmentCards';
 import type { GeographyData, GeographyEvidence } from './RabbiGeographyCard';
 import RabbiInteractions from './RabbiInteractions';
-import RabbiLineageTree, {
-  type RelationshipsData,
-  type RelationshipsEvidence,
-} from './RabbiLineageTree';
 import RabbiObservations from './RabbiObservations';
 import RabbiTrajectoryMap, { type LocationInference } from './RabbiTrajectoryMap';
 import { HebraizedWithRabbis, RabbiLinkProvider } from './rabbiLinks';
 import { StatementSpine } from './StatementSpine';
-import {
-  fetchSageInteractions,
-  interactionsSlugForName,
-  type SageInteractions,
-} from './sageInteractions';
+import { fetchSageInteractions, interactionsSlugForName } from './sageInteractions';
 import type {
   AggadataStory,
   ChartTable,
@@ -1881,17 +1873,15 @@ async function fetchPasuk(ref: string): Promise<PasukDetail> {
 // Middle : synthesis paragraph (existing MarkEnrichmentCards on `rabbi`).
 //          Synthesis aggregate's deps_resolved carries rabbi.relationships,
 //          rabbi.geography, and both .evidence enrichments.
-// Below  : RabbiLineageTree + RabbiGeographyCard read from those resolved
+// Below  : Interactions (RabbiInteractions) + RabbiGeographyCard read from those resolved
 //          deps. Items the daf actually mentions (via .evidence) get a
 //          soft-highlight and clicking them paints the daf range.
 // ===========================================================================
 // Rabbi card — converted to a recipe (RABBI_RECIPE below). Its three custom
 // sections are NAMED special blocks: the formatted meta line (generation / era /
-// region / places, with the generation dot), the lineage tree, and the places
+// region / places, with the generation dot), the connections (Interactions), and the places
 // timeline. The mark synthesis still receives the FLAT {name,…} instance via the
 // recipe's synthInstance, so the rabbi mark_input — and its cache — is unchanged.
-
-const EMPTY_GEN_MAP: Map<string, GenerationId> = new Map();
 
 // Output of the EXPERIMENTAL rabbi.identity.pin producer — an IdentifiedRabbi
 // plus the disambiguation verdict (genSource 'ai-pin' on a confident pick,
@@ -2024,7 +2014,7 @@ function RabbiMeta(props: SpecialBlockProps): JSX.Element {
 function RabbiLineage(props: SpecialBlockProps): JSX.Element {
   const f = (): Record<string, unknown> => props.instance.fields;
   const str = (v: unknown): string => (typeof v === 'string' ? v : '');
-  // Sages the study is sure about get the "Interactions" box, built from the text; everyone else keeps the tree.
+  // Sages the study is sure about get the "Interactions" box, built from the text.
   // Found by slug when the card has one, else by the Hebrew name (safe: only one-man, one-entry names have a file).
   const lookup = (): { slug: string; nameHe: string } | null => {
     const id = props.deps['rabbi.identity'] as { slug?: unknown; nameHe?: unknown } | undefined;
@@ -2042,45 +2032,41 @@ function RabbiLineage(props: SpecialBlockProps): JSX.Element {
     void props.instanceKey;
     props.onHighlightRange?.(null);
   });
-  const rel = (): RelationshipsData | undefined => {
-    const r = props.deps['rabbi.relationships'] as RelationshipsData | undefined;
-    return r && Array.isArray(r.teachers) ? r : undefined;
-  };
-  const relEv = (): RelationshipsEvidence[] => {
-    const e = props.deps['rabbi.relationships.evidence'] as
-      | { evidence?: RelationshipsEvidence[] }
-      | undefined;
-    return e?.evidence ?? [];
-  };
-  const generationByName = (): Map<string, GenerationId> =>
-    (props.extras?.generationByName as Map<string, GenerationId> | undefined) ?? EMPTY_GEN_MAP;
+  // Everyone else gets an honest note instead of the old teacher/student tree, which a model had pulled out of
+  // short biographies and placed a generation up or down by guess.
   return (
-    <Show
-      when={interactions.loading || !interactions()}
-      fallback={
-        <RabbiInteractions data={interactions() as SageInteractions} subjectName={str(f().name)} />
-      }
-    >
-      <Show when={!interactions.loading && rel()}>
-        {(r) => (
-          <div style={{ position: 'relative' }}>
-            <InspectDot
-              instanceKey={props.instanceKey}
-              leafId="rabbi.relationships"
-              style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }}
-            />
-            <RabbiLineageTree
-              subjectName={str(f().name)}
-              subjectGeneration={f().generation as GenerationId}
-              data={r()}
-              evidence={relEv()}
-              generationByName={generationByName()}
-              onHighlightRange={props.onHighlightRange ?? (() => {})}
-            />
-          </div>
-        )}
+    <Show when={!interactions.loading}>
+      <Show when={interactions()} fallback={<ConnectionsInProgress />}>
+        {(d) => <RabbiInteractions data={d()} subjectName={str(f().name)} />}
       </Show>
     </Show>
+  );
+}
+
+function ConnectionsInProgress(): JSX.Element {
+  return (
+    <div
+      style={{
+        border: '1px dashed var(--line)',
+        'border-radius': '6px',
+        padding: '0.6rem 0.85rem',
+        'margin-top': '0.9rem',
+        color: 'var(--muted)',
+        'font-size': '0.82rem',
+      }}
+    >
+      <div
+        style={{
+          'font-size': '0.7rem',
+          'text-transform': 'uppercase',
+          'letter-spacing': '0.08em',
+          'margin-bottom': '0.3rem',
+        }}
+      >
+        {t('rabbi.connections.inProgressTitle')}
+      </div>
+      {t('rabbi.connections.inProgressBody')}
+    </div>
   );
 }
 

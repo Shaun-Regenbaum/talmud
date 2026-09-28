@@ -1435,6 +1435,11 @@ const CATALOG = {
   'rabbi.lineage.title': { en: 'Lineage', he: 'שלשלת' },
   // — Rabbi interactions (replaces the lineage tree where the study is sure who the sage is) —
   'rabbi.interactions.title': { en: 'Interactions', he: 'קשרים' },
+  'rabbi.connections.inProgressTitle': { en: 'Connections', he: 'קשרים' },
+  'rabbi.connections.inProgressBody': {
+    en: 'Still being worked out. We are checking who this is, and who he is linked to, from the text itself.',
+    he: 'עדיין בעבודה. אנחנו בודקים מי זה, ועם מי הוא קשור, מתוך הטקסט עצמו.',
+  },
   'rabbi.interactions.onThisPage': { en: 'also on this page', he: 'גם בדף הזה' },
   'rabbi.interactions.openCard': { en: 'Open his card', he: 'פתח את הכרטיס שלו' },
   'rabbi.interactions.about': {

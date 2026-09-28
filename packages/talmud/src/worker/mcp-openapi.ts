@@ -444,7 +444,33 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
       get: {
         summary: 'Static rabbi record: name, generation, region, places, bio.',
         parameters: [slug],
-        responses: { '200': { description: '{ rabbi: {...} }' } },
+        responses: {
+          '200': {
+            description:
+              '{ rabbi: {...}, connections: { status: "ready" | "in-progress", url } }. Follow connections.url for who ' +
+              'he is linked to in the text.',
+          },
+        },
+      },
+    },
+    '/api/rabbi-interactions/{slug}': {
+      get: {
+        summary:
+          "A sage's connections as the text records them: the names most often linked to him, and what the passages " +
+          "say between them (they argue, one speaks to or asks the other, one passes on the other's teaching, family).",
+        description:
+          'Built from the text, not by a model: every count is a passage where the two names stand together, with up ' +
+          'to three example references per kind and direction where a reader recorded it. Only for sages the study is ' +
+          'sure are one man behind one name. For everyone else status is "in-progress": say plainly that his ' +
+          'connections are still being worked out. Do not use the rabbi.relationships enrichment for this: it was built from model guesses and the app no longer shows it.',
+        parameters: [slug],
+        responses: {
+          '200': {
+            description:
+              '{ status: "ready", slug, note, interactions: { nameHe, name, partners: [{ nameHe, name?, slug?, total, ' +
+              'kinds, out, in, refs }], partnersInAll } } or { status: "in-progress", slug, note }',
+          },
+        },
       },
     },
     '/api/rabbi-observations/{slug}': {
@@ -730,7 +756,9 @@ export const TALMUD_OPENAPI: Record<string, unknown> = {
 
     '/api/entity/rabbi/{slug}': {
       get: {
-        summary: 'The entity piece for a rabbi (global enrichments lifted onto the entity spine).',
+        summary:
+          'The entity piece for a rabbi (global enrichments lifted onto the entity spine). pieces.connections is the ' +
+          'same as /api/rabbi-interactions/{slug}; the old guessed teacher/student tree is no longer served.',
         parameters: [slug],
         responses: { '200': { description: 'Rabbi entity piece' } },
       },

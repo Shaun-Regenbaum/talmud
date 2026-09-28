@@ -31,22 +31,30 @@ describe('entity piece — rabbi slug resolution', () => {
       id: 'rabbi-yochanan-b-napacha',
       name: entry.canonical,
       nameHe: entry.canonicalHe ?? undefined,
-      pieces: { identity: null, relationships: null, geography: null },
+      pieces: { identity: null, connections: null, geography: null },
     };
     expect(piece.type).toBe('rabbi');
     expect(piece.id).toBe('rabbi-yochanan-b-napacha');
-    expect(Object.keys(piece.pieces)).toEqual(['identity', 'relationships', 'geography']);
+    expect(Object.keys(piece.pieces)).toEqual(['identity', 'connections', 'geography']);
   });
 });
 
-// Drives the REAL worker fetch handler with a recording KV stub: the
-// ?facets= query must limit both the response pieces AND the KV fanout
-// (relationships probes up to 8 alias keys the daf map throws away).
+// Drives the REAL worker fetch handler with a recording KV stub and an assets stub: the ?facets= query must limit both
+// the response pieces AND the reads. The old guessed teacher/student tree (rabbi.relationships) is never read any
+// more; connections come from the static sage-interactions file, or say "in-progress".
 describe('GET /api/entity/rabbi/:slug — ?facets=', () => {
   const SLUG = 'rabbi-yochanan-b-napacha';
 
-  function makeEnv(): { env: Bindings; gets: string[] } {
+  function makeEnv(): { env: Bindings; gets: string[]; assetPaths: string[] } {
     const gets: string[] = [];
+    const assetPaths: string[] = [];
+    // No interactions file for this sage: the assets host answers with the app page, as it does for a missing path.
+    const assets = {
+      fetch: async (req: Request) => {
+        assetPaths.push(new URL(req.url).pathname);
+        return new Response('<!doctype html><html></html>', { status: 200 });
+      },
+    };
     const kv = {
       get: async (k: string) => {
         gets.push(k);
@@ -57,7 +65,11 @@ describe('GET /api/entity/rabbi/:slug — ?facets=', () => {
       list: async () => ({ keys: [], list_complete: true, cursor: '' }),
       getWithMetadata: async () => ({ value: null, metadata: null }),
     };
-    return { env: { CACHE: kv as unknown as KVNamespace } as unknown as Bindings, gets };
+    return {
+      env: { CACHE: kv as unknown as KVNamespace, ASSETS: assets } as unknown as Bindings,
+      gets,
+      assetPaths,
+    };
   }
 
   function makeCtx(): ExecutionContext {
@@ -80,23 +92,31 @@ describe('GET /api/entity/rabbi/:slug — ?facets=', () => {
     return { status: res.status, pieces: json.pieces ?? {} };
   }
 
-  it('no facets param keeps the full default (existing consumers unchanged)', async () => {
-    const { env, gets } = makeEnv();
+  it('no facets param gives identity, connections and geography, and never reads the guessed tree', async () => {
+    const { env, gets, assetPaths } = makeEnv();
     const { status, pieces } = await getEntity(env, '');
     expect(status).toBe(200);
-    expect(Object.keys(pieces)).toEqual(['identity', 'relationships', 'geography']);
+    expect(Object.keys(pieces)).toEqual(['identity', 'connections', 'geography']);
     expect(pieces.identity).toBeTruthy();
-    expect(gets.some((k) => k.includes('rabbi.relationships'))).toBe(true);
+    expect(pieces.connections).toMatchObject({ status: 'in-progress', slug: SLUG });
+    expect(assetPaths).toEqual([`/sage-interactions/${SLUG}.json`]);
+    expect(gets.some((k) => k.includes('rabbi.relationships'))).toBe(false);
     expect(gets.some((k) => k.includes('rabbi.geography'))).toBe(true);
   });
 
-  it('facets=identity,geography skips the relationships probe entirely', async () => {
-    const { env, gets } = makeEnv();
+  it('the old facet name "relationships" still asks for connections', async () => {
+    const { env } = makeEnv();
+    const { pieces } = await getEntity(env, '?facets=relationships');
+    expect(Object.keys(pieces)).toEqual(['connections']);
+  });
+
+  it('facets=identity,geography skips the connections read entirely', async () => {
+    const { env, gets, assetPaths } = makeEnv();
     const { status, pieces } = await getEntity(env, '?facets=identity,geography');
     expect(status).toBe(200);
     expect(Object.keys(pieces)).toEqual(['identity', 'geography']);
     expect(pieces.identity).toBeTruthy(); // deterministic registry identity
-    // Half the KV fanout: no rabbi.relationships keys were ever read.
+    expect(assetPaths).toEqual([]);
     expect(gets.some((k) => k.includes('rabbi.relationships'))).toBe(false);
     expect(gets.some((k) => k.includes('rabbi.geography'))).toBe(true);
   });
@@ -114,6 +134,6 @@ describe('GET /api/entity/rabbi/:slug — ?facets=', () => {
     const { env } = makeEnv();
     const { status, pieces } = await getEntity(env, '?facets=bogus,nonsense');
     expect(status).toBe(200);
-    expect(Object.keys(pieces)).toEqual(['identity', 'relationships', 'geography']);
+    expect(Object.keys(pieces)).toEqual(['identity', 'connections', 'geography']);
   });
 });

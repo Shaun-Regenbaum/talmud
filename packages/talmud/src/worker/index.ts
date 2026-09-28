@@ -247,6 +247,7 @@ import { registerUsageRoutes } from './routes/usage';
 import { enqueueTsFromRunId, makeRunId } from './run-id';
 import { buildSourceResolvers, type CommentariesSlice, type GemaraSlice } from './run-sources';
 import { indexVerdict, sageIndexForPage } from './sage-index';
+import { loadConnections } from './sage-interactions';
 import {
   getDafyomiContentCached,
   getHalachaRefsCached,
@@ -2826,7 +2827,8 @@ async function readGlobalPieceFirst(
   return hits.find((h) => h != null) ?? null;
 }
 
-const RABBI_ENTITY_FACETS = ['identity', 'relationships', 'geography'] as const;
+// 'relationships' is kept as a request name for existing callers; it now returns `connections` (the guessed tree is withdrawn).
+const RABBI_ENTITY_FACETS = ['identity', 'connections', 'relationships', 'geography'] as const;
 type RabbiEntityFacet = (typeof RABBI_ENTITY_FACETS)[number];
 
 app.get('/api/entity/rabbi/:slug', async (c) => {
@@ -2864,15 +2866,16 @@ app.get('/api/entity/rabbi/:slug', async (c) => {
       nameHe,
       (entry.generation as GenerationId | undefined) ?? 'unknown',
     );
-  const [relationships, geography] = await Promise.all([
-    want('relationships')
-      ? readGlobalPieceFirst(c.env, 'rabbi.relationships', candidates)
+  const wantConnections = want('connections') || want('relationships');
+  const [connections, geography] = await Promise.all([
+    wantConnections
+      ? loadConnections(c.env.ASSETS, slug, c.env.PUBLIC_ORIGIN ?? new URL(c.req.url).origin)
       : Promise.resolve(undefined),
     want('geography')
       ? readGlobalPieceFirst(c.env, 'rabbi.geography', candidates)
       : Promise.resolve(undefined),
   ]);
-  if (want('relationships')) pieces.relationships = relationships;
+  if (wantConnections) pieces.connections = connections;
   if (want('geography')) pieces.geography = geography;
   const piece: EntityPiece = {
     type: 'rabbi',
@@ -5714,7 +5717,7 @@ registerCommentaryRoutes(app);
 // return the same IdentifiedRabbi shape the dafContext uses, so the sidebar
 // can swap to the target rabbi's bio without a second enrichment hop. 404 if
 // the slug isn't in our rabbi dataset (biblical figures, holidays, etc.).
-app.get('/api/rabbi/:slug', (c) => {
+app.get('/api/rabbi/:slug', async (c) => {
   const rr = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
   if (!rr.ok) return rr.response;
   const { slug, entry } = rr;
@@ -5734,7 +5737,24 @@ app.get('/api/rabbi/:slug', (c) => {
     image: entry.image ?? null,
     wiki: entry.wiki ?? null,
   };
-  return c.json({ rabbi });
+  const conn = await loadConnections(
+    c.env.ASSETS,
+    slug,
+    c.env.PUBLIC_ORIGIN ?? new URL(c.req.url).origin,
+  );
+  return c.json({
+    rabbi,
+    connections: { status: conn.status, url: `/api/rabbi-interactions/${slug}` },
+  });
+});
+
+// A sage's connections as the text records them (the rabbi card's Interactions list), or an honest
+// "in-progress" for sages the study has not finished. See sage-interactions.ts.
+app.get('/api/rabbi-interactions/:slug', async (c) => {
+  const slug = c.req.param('slug');
+  return c.json(
+    await loadConnections(c.env.ASSETS, slug, c.env.PUBLIC_ORIGIN ?? new URL(c.req.url).origin),
+  );
 });
 
 // --- The daf's sources ---------------------------------------------------
