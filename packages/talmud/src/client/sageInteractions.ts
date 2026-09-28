@@ -191,6 +191,35 @@ export function sefariaUrl(ref: string): string {
   return `https://www.sefaria.org/${encodeURIComponent(book)}${loc ? `.${loc}` : ''}`;
 }
 
+/** Hebrew name as the text writes it, without vowel marks, with ר' spelled out, so "רַבִּי עֲקִיבָא" and "ר' עקיבא" match. */
+export function nameKey(he: string): string {
+  return stripNikud(he)
+    .replace(/^ר'\s+/, 'רבי ')
+    .replace(/\s+/g, ' ');
+}
+
+let indexPromise: Promise<Map<string, string>> | null = null;
+
+/** The sages that have an Interactions file, by Hebrew name. Loaded once. A name is only in this list when the study
+ *  found one man behind it and the sage list has one entry for it, so looking a card up by its name is safe here. */
+export function interactionsSlugForName(he: string): Promise<string | null> {
+  if (!indexPromise) {
+    indexPromise = fetch('/sage-interactions/index.json')
+      .then(async (r) => {
+        const ct = r.headers.get('content-type') ?? '';
+        if (!r.ok || !ct.includes('json')) return new Map<string, string>();
+        const idx = (await r.json()) as Record<string, { nameHe?: string }>;
+        const m = new Map<string, string>();
+        for (const [slug, v] of Object.entries(idx)) {
+          if (v.nameHe && !m.has(nameKey(v.nameHe))) m.set(nameKey(v.nameHe), slug);
+        }
+        return m;
+      })
+      .catch(() => new Map<string, string>());
+  }
+  return indexPromise.then((m) => m.get(nameKey(he)) ?? null);
+}
+
 export async function fetchSageInteractions(slug: string): Promise<SageInteractions | null> {
   try {
     const r = await fetch(`/sage-interactions/${encodeURIComponent(slug)}.json`);

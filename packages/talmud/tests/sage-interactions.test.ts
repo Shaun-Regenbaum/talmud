@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   barSegments,
   kindLines,
+  nameKey,
   onThisPage,
   type Partner,
   partnerLabel,
@@ -88,5 +89,13 @@ describe('sefariaUrl', () => {
       'https://www.sefaria.org/Jerusalem_Talmud_Berakhot.1.1.2',
     );
     expect(sefariaUrl('Bereshit Rabbah 12:3')).toBe('https://www.sefaria.org/Bereshit_Rabbah.12.3');
+  });
+});
+
+describe('nameKey', () => {
+  it("matches a name with vowel marks, or with ר' for רבי, to the plain spelling", () => {
+    expect(nameKey('רַבִּי עֲקִיבָא')).toBe('רבי עקיבא');
+    expect(nameKey("ר' עקיבא")).toBe('רבי עקיבא');
+    expect(nameKey('רבי  עקיבא ')).toBe('רבי עקיבא');
   });
 });
