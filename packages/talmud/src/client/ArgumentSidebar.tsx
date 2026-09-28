@@ -2044,15 +2044,18 @@ function RabbiLineage(props: SpecialBlockProps): JSX.Element {
 }
 
 function ConnectionsInProgress(): JSX.Element {
+  // A road barrier (drawn with QuiverAI Arrow 2, background stripped, recoloured to currentColor, cropped) in place
+  // of a sentence; the sentence stays as the tooltip and the accessible name.
+  const note = () => t('rabbi.connections.inProgressBody');
   return (
     <div
+      title={note()}
       style={{
         border: '1px dashed var(--line)',
         'border-radius': '6px',
-        padding: '0.6rem 0.85rem',
+        padding: '0.55rem 0.85rem 0.7rem',
         'margin-top': '0.9rem',
         color: 'var(--muted)',
-        'font-size': '0.82rem',
       }}
     >
       <div
@@ -2060,12 +2063,28 @@ function ConnectionsInProgress(): JSX.Element {
           'font-size': '0.7rem',
           'text-transform': 'uppercase',
           'letter-spacing': '0.08em',
-          'margin-bottom': '0.3rem',
+          'margin-bottom': '0.35rem',
         }}
       >
         {t('rabbi.connections.inProgressTitle')}
       </div>
-      {t('rabbi.connections.inProgressBody')}
+      <svg
+        role="img"
+        aria-label={note()}
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="7.82 7.49 65.01 65.01"
+        style={{ display: 'block', width: '44px', height: '44px', margin: '0 auto', opacity: 0.75 }}
+      >
+        <title>{note()}</title>
+        <path
+          fill="currentColor"
+          d="m67.06 31.38h-18.38v-2.42c0-1.09-0.73-1.91-1.73-1.91v-4.23c0-3.72-2.81-6.24-6.29-6.24-3.56 0.1-6.42 2.88-6.42 6.63v3.84c-1.08 0.02-1.82 0.76-1.82 1.91v2.42h-18.73c-2.02 0-3.46 1.41-3.46 3.39v8.29c0 2.03 1.55 3.52 3.52 3.52h3.66l-4.55 14.7c-0.35 1.21 0.47 2.12 1.69 2.12h5.5c1.06 0 1.68-0.65 1.98-1.74l4.14-15.08h28.35l3.85 14.97c0.28 1.16 1.05 1.85 2.19 1.85h5.24c1.39 0 2.17-1.12 1.88-2.24-1.21-4.78-2.93-10.06-4.34-14.58h3.62c2.01 0 3.46-1.49 3.46-3.49v-8.32c0-1.98-1.46-3.39-3.36-3.39zm-30.59-8.17c0.13-2.56 2.02-4.4 4.25-4.44 2.3 0.08 4 1.83 4 4.28v3.91h-8.25v-3.75zm-1.91 6.02h11.95v2.15h-11.95v-2.15zm-22.13 13.86v-8.26c0.06-0.72 0.73-1.23 1.38-1.23h7.57l-8.57 10.27c-0.27-0.13-0.38-0.41-0.38-0.78zm7.33 18.08h-4.39l4.56-14.56h3.78l-3.95 14.56zm3.62-16.91h-7.91l9.07-10.61h7.94l-9.1 10.61zm3.13 0 9-10.58h8.06l-9.02 10.58h-8.04zm11.2-0.01 9.29-10.62h7.96l-8.96 10.62h-8.29zm11.31 0 9.08-10.61h7.85l-8.88 10.61h-8.05zm16.26 16.86h-4.46l-3.88-14.5h3.96l4.38 14.5zm2.9-18c0 0.66-0.45 1.14-1.09 1.14h-7.07l8.12-9.58 0.04 8.44z"
+        />
+        <path
+          fill="currentColor"
+          d="m40.09 20.02c-1.23 0.1-2.55 1.66-2.56 3.49-0.01 0.93 0.37 1.48 1.05 1.48 0.69 0 1.03-0.58 1.04-1.38 0.01-0.77 0.52-1.41 1.09-1.69 0.42-0.21 0.52-0.59 0.47-1.05-0.08-0.54-0.53-0.87-1.09-0.85z"
+        />
+      </svg>
     </div>
   );
 }
