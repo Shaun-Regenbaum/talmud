@@ -746,6 +746,25 @@ body.dev-panel-open .daf-page {
   line-height: 1.5;
   color: var(--read-ink-soft);
 }
+.read-letter-body p {
+  margin: 0 0 18px;
+}
+.read-he {
+  font-family: var(--read-hebrew);
+  font-size: 1.12em;
+}
+.read-sig {
+  font-style: italic;
+  font-size: 20px;
+}
+.read-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .read-credits {
   margin-top: 64px;
 }
