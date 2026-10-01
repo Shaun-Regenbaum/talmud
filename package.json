@@ -20,6 +20,6 @@
     "gallery:build": "pnpm --filter tanach gallery:build"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.13"
+    "@biomejs/biome": "^2.5.14"
   }
 }
