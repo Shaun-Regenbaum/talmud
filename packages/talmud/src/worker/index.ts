@@ -874,17 +874,18 @@ registerHalachaRoutes(app);
 // first real CONSUMER of src/lib/context/link.ts — assembled by the pure
 // `dafLinks`. Best-effort per source: a cold/failed source contributes nothing
 // rather than failing the whole response.
-app.get('/api/links/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
+async function readDafLinksData(
+  env: Bindings,
+  tractate: string,
+  page: string,
+  cachedBridge = false,
+) {
   const daf = { tractate, page };
 
   // Argument sections, read once: their ranges place Revach refs (so 'cites'
   // links get a real segment source, not whole-daf), and their startSegIdx (in
   // reading order) resolves a flow edge's section index to a coordinate.
-  const sectionInstances = await readMarkInstances(c.env, 'argument', tractate, page).catch(
-    () => [],
-  );
+  const sectionInstances = await readMarkInstances(env, 'argument', tractate, page).catch(() => []);
   const sections = sectionInstances
     .filter((i) => typeof i.startSegIdx === 'number' && typeof i.endSegIdx === 'number')
     .map((i) => ({
@@ -895,26 +896,24 @@ app.get('/api/links/:tractate/:page', async (c) => {
     }));
   const sectionStartSegs = sections.map((s) => s.startSegIdx).sort((a, b) => a - b);
 
-  const bridge = await computeDafBridge(c.env, tractate, page).catch(() => null);
-  const items = await collectContext(c.env, tractate, page, { sections }).catch(() => []);
-  const flowEdges = await readFlowConnections(c.env, tractate, page);
+  const bridge = cachedBridge
+    ? await readCachedBridge(env, tractate, page).catch(() => null)
+    : await computeDafBridge(env, tractate, page).catch(() => null);
+  const items = await collectContext(env, tractate, page, { sections }).catch(() => []);
+  const flowEdges = await readFlowConnections(env, tractate, page);
   // Commentary spines: best-effort (cached 30d). A cold/failed fetch contributes
   // nothing rather than failing the response — same contract as the others.
-  const commentary = await fetchCommentaryWorks(c.env, tractate, page).catch(() => null);
+  const commentary = await fetchCommentaryWorks(env, tractate, page).catch(() => null);
   const commentaryWorks = commentary && !('error' in commentary) ? commentary.works : [];
   // Talmud↔Talmud parallels (Mesorat HaShas): deterministic, from Sefaria's
   // apparatus. Fetch-on-miss + cache, like the other source bundles above.
-  const talmudParallels = await getTalmudParallelsCached(c.env.CACHE, tractate, page).catch(
-    () => [],
-  );
+  const talmudParallels = await getTalmudParallelsCached(env.CACHE, tractate, page).catch(() => []);
   // Jerusalem Talmud parallels (cross-corpus): the `yerushalmi` mark's
   // shared-mishnah bundle, projected into 'parallels' links. Fetch-on-miss.
-  const yerushalmi = await getYerushalmiCached(c.env.CACHE, tractate, page).catch(() => []);
+  const yerushalmi = await getYerushalmiCached(env.CACHE, tractate, page).catch(() => []);
   // Pesukim: scriptural citations on the daf (the `pesukim` mark) → 'cites'
   // links INTO the Tanach spine, sourced at the segment that cites each verse.
-  const pesukimInstances = await readMarkInstances(c.env, 'pesukim', tractate, page).catch(
-    () => [],
-  );
+  const pesukimInstances = await readMarkInstances(env, 'pesukim', tractate, page).catch(() => []);
   const pesukim = pesukimInstances
     .filter((i) => typeof i.fields?.verseRef === 'string')
     .map((i) => ({
@@ -923,7 +922,7 @@ app.get('/api/links/:tractate/:page', async (c) => {
     }));
   // Halacha codifiers: the grounded Sefaria bundle (canonical), flattened to
   // 'codifies' links INTO the code spines. Fetch-on-miss + cache.
-  const halachaBundle = await getHalachaRefsCached(c.env.CACHE, tractate, page).catch(() => null);
+  const halachaBundle = await getHalachaRefsCached(env.CACHE, tractate, page).catch(() => null);
   const halacha = halachaBundle
     ? Object.values(halachaBundle)
         .flat()
@@ -949,8 +948,19 @@ app.get('/api/links/:tractate/:page', async (c) => {
   sectionStartSegs.forEach((start, i) => {
     if (exits[i].length) sectionExitsByStart[start] = exits[i];
   });
-  return c.json({ tractate, page, count: links.length, links, sectionExits: sectionExitsByStart });
-});
+  return { tractate, page, count: links.length, links, sectionExits: sectionExitsByStart };
+}
+
+app.get('/api/links/:tractate/:page', async (c) =>
+  c.json(
+    await readDafLinksData(
+      c.env,
+      c.req.param('tractate'),
+      c.req.param('page'),
+      c.req.query('cached') === '1',
+    ),
+  ),
+);
 
 /** Producer nodes over the LIVE registry (KV-over-code via listProducers), so
  *  cascades and dependents reflect Studio-defined or KV-overridden producers,
@@ -1522,18 +1532,13 @@ app.get('/api/spine-view/:tractate', async (c) => {
 // via buildStatementSpine: nodes = statements, links = role-derived + voices-
 // mapped relations, `dispute` = is it a real מחלוקת. Read-only (cached reads
 // only; never triggers compute) — mirrors /api/spine-view.
-app.get('/api/statement-spine/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
-  if (!c.env.CACHE) return c.json({ error: 'no CACHE binding in this environment' }, 503);
-
-  const sections = (await readMarkInstances(c.env, 'argument', tractate, page))
+async function readStatementSpineData(env: Bindings, tractate: string, page: string) {
+  const sections = (await readMarkInstances(env, 'argument', tractate, page))
     .filter((s) => typeof s.startSegIdx === 'number' && typeof s.endSegIdx === 'number')
     .sort((a, b) => (a.startSegIdx as number) - (b.startSegIdx as number));
   // All the daf's moves once; selectSectionMoves slices each section's set (and
   // cleans a doubled/overlapping argument-move cache — the Shabbat 126a class).
-  const allMoves: MoveLike[] = (await readMarkInstances(c.env, 'argument-move', tractate, page))
+  const allMoves: MoveLike[] = (await readMarkInstances(env, 'argument-move', tractate, page))
     .filter((m) => typeof m.startSegIdx === 'number' && typeof m.endSegIdx === 'number')
     .map((m) => ({
       startSegIdx: m.startSegIdx as number,
@@ -1552,7 +1557,7 @@ app.get('/api/statement-spine/:tractate/:page', async (c) => {
       let voices: ReturnType<typeof deriveVoiceEdges> | null = null;
       if (voicesDef) {
         const vhit = await readCachedResult(
-          c.env,
+          env,
           keyForEnrichment(voicesDef, await instanceIdOf(sec), { tractate, page }),
         );
         if (vhit?.parsed) voices = deriveVoiceEdges(vhit.parsed);
@@ -1580,8 +1585,16 @@ app.get('/api/statement-spine/:tractate/:page', async (c) => {
   // `flow` is the cached AI section→section flow (readFlowConnections — read-only,
   // empty when cold): the #argument page draws its cross-section connections from
   // it without POSTing /api/run, keeping this endpoint's never-generates contract.
-  const flow = await readFlowConnections(c.env, tractate, page);
-  return c.json({ tractate, page, sections: out, movesComputed: allMoves.length > 0, flow });
+  const flow = await readFlowConnections(env, tractate, page);
+  return { tractate, page, sections: out, movesComputed: allMoves.length > 0, flow };
+}
+
+app.get('/api/statement-spine/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
+  if (!c.env.CACHE) return c.json({ error: 'no CACHE binding in this environment' }, 503);
+  return c.json(await readStatementSpineData(c.env, tractate, page));
 });
 
 // Deterministic section→section connections derived from the STATEMENT dialectic
@@ -1593,16 +1606,11 @@ app.get('/api/statement-spine/:tractate/:page', async (c) => {
 // boxes the AI flow left disconnected. The client merges these UNDER the AI flow
 // (AI keeps final say on any pair it already covers). Cheap: reads cached
 // argument-move + argument.voices, builds the spine in-process, no LLM, no write.
-app.get('/api/derived-flow/:tractate/:page', async (c) => {
-  const tractate = c.req.param('tractate');
-  const page = c.req.param('page');
-  if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
-  if (!c.env.CACHE) return c.json({ error: 'no CACHE binding in this environment' }, 503);
-
-  const sections = (await readMarkInstances(c.env, 'argument', tractate, page))
+async function readDerivedFlowData(env: Bindings, tractate: string, page: string) {
+  const sections = (await readMarkInstances(env, 'argument', tractate, page))
     .filter((s) => typeof s.startSegIdx === 'number' && typeof s.endSegIdx === 'number')
     .sort((a, b) => (a.startSegIdx as number) - (b.startSegIdx as number));
-  const allMoves: MoveLike[] = (await readMarkInstances(c.env, 'argument-move', tractate, page))
+  const allMoves: MoveLike[] = (await readMarkInstances(env, 'argument-move', tractate, page))
     .filter((m) => typeof m.startSegIdx === 'number' && typeof m.endSegIdx === 'number')
     .map((m) => ({
       startSegIdx: m.startSegIdx as number,
@@ -1621,7 +1629,7 @@ app.get('/api/derived-flow/:tractate/:page', async (c) => {
       let voices: ReturnType<typeof deriveVoiceEdges> | null = null;
       if (voicesDef) {
         const vhit = await readCachedResult(
-          c.env,
+          env,
           keyForEnrichment(voicesDef, await instanceIdOf(sec), { tractate, page }),
         );
         if (vhit?.parsed) voices = deriveVoiceEdges(vhit.parsed);
@@ -1639,7 +1647,68 @@ app.get('/api/derived-flow/:tractate/:page', async (c) => {
   const derived = crossSectionStatementFlow(secData);
   // movesComputed false → argument-move marks not warmed yet; the client shouldn't
   // treat an empty `derived` as "no connections" (it just isn't computed).
-  return c.json({ tractate, page, derived, movesComputed: allMoves.length > 0 });
+  return { tractate, page, derived, movesComputed: allMoves.length > 0 };
+}
+
+app.get('/api/derived-flow/:tractate/:page', async (c) => {
+  const tractate = c.req.param('tractate');
+  const page = c.req.param('page');
+  if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
+  if (!c.env.CACHE) return c.json({ error: 'no CACHE binding in this environment' }, 503);
+  return c.json(await readDerivedFlowData(c.env, tractate, page));
+});
+
+// A single export for the daily daf map used in articles. The reader endpoints
+// and this export share the same assembly functions. Cross-amud flow and link
+// continuity are read from cache, without starting a new model run.
+app.get('/api/post-map/:tractate/:daf', async (c) => {
+  const tractate = c.req.param('tractate');
+  const daf = c.req.param('daf');
+  if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
+  if (!/^[1-9]\d*$/.test(daf) || !isValidAmud(tractate, `${daf}a`)) {
+    return c.json({ error: `invalid daf: ${daf}` }, 400);
+  }
+  if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
+
+  try {
+    const pages = isValidAmud(tractate, `${daf}b`) ? [`${daf}a`, `${daf}b`] : [`${daf}a`];
+    const amudim = await Promise.all(
+      pages.map(async (page) => {
+        const [spine, derived, links] = await Promise.all([
+          readStatementSpineData(c.env, tractate, page),
+          readDerivedFlowData(c.env, tractate, page),
+          readDafLinksData(c.env, tractate, page, true),
+        ]);
+        return { page, spine, derived, links };
+      }),
+    );
+    const cross = await readCachedCrossFlow(c.env, tractate, pages[0]);
+    const missing = amudim
+      .filter(
+        (amud) =>
+          amud.spine.sections.length === 0 ||
+          !amud.spine.movesComputed ||
+          !amud.derived.movesComputed,
+      )
+      .map((amud) => amud.page);
+    const ready = missing.length === 0;
+    c.header('Cache-Control', ready ? 'public, max-age=60' : 'no-store');
+    return c.json(
+      {
+        version: 1,
+        tractate,
+        daf: Number(daf),
+        ready,
+        missing,
+        amudim,
+        cross: { computed: cross !== null, edges: cross?.edges ?? [], to: cross?.to ?? null },
+      },
+      ready ? 200 : 202,
+    );
+  } catch (error) {
+    console.error('[post-map] Could not assemble map', { tractate, daf, error });
+    return c.json({ error: 'Could not assemble the daf map' }, 502);
+  }
 });
 
 // Incremental per-tractate spine-view snapshot builder — the cron payoff. A full
