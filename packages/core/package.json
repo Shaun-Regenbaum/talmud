@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260914.1",
-    "@types/node": "22",
+    "@types/node": "26",
     "miniflare": "4.20260730.0",
     "typescript": "^5.7.0",
     "vitest": "^5.0.0"
