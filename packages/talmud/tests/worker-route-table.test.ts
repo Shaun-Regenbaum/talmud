@@ -44,6 +44,7 @@ const EXPECTED_ROUTES = [
   'GET /api/spine-view/:tractate',
   'GET /api/statement-spine/:tractate/:page',
   'GET /api/derived-flow/:tractate/:page',
+  'GET /api/post-map/:tractate/:daf',
   'GET /api/run-tree/:tractate/:page/:id',
   'GET /api/daf-view/:tractate/:page',
   'GET /api/daf-runs/:tractate/:page',
