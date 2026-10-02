@@ -196,12 +196,18 @@ export const statementLabel = (s: StatementNode): string => s.speaker || stateme
 export const statementGraphNode = (s: StatementNode, id = s.id): GraphNode => ({
   id,
   label: statementLabel(s),
-  summary: s.summary ? finishDisplayText(s.summary) : s.excerpt || undefined,
+  summary: s.summary
+    ? finishDisplayText(s.summary, { english: lang() === 'en' })
+    : s.excerpt || undefined,
   role: statementRole(s.role),
   color: statementRoleColor(s.role),
   badge: sideBadge(s.side),
   badgeColor: statementSideColor(s.side),
-  detail: [s.speaker, s.summary ? finishDisplayText(s.summary) : '', s.excerpt]
+  detail: [
+    s.speaker,
+    s.summary ? finishDisplayText(s.summary, { english: lang() === 'en' }) : '',
+    s.excerpt,
+  ]
     .filter(Boolean)
     .join('\n'),
   direction: 'auto',
@@ -212,7 +218,7 @@ export const statementGraphEdges = (links: StatementLink[], prefix = ''): GraphC
     kindLabel: t(l.relation === 'continues' ? 'link.rel.continues' : `dafvoices.rel.${l.relation}`),
     from: `${prefix}${l.from}`,
     to: `${prefix}${l.to}`,
-    label: `${t(l.relation === 'continues' ? 'link.rel.continues' : `dafvoices.rel.${l.relation}`)}${l.note ? ` · ${finishDisplayText(l.note)}` : ''}`,
+    label: `${t(l.relation === 'continues' ? 'link.rel.continues' : `dafvoices.rel.${l.relation}`)}${l.note ? ` · ${finishDisplayText(l.note, { english: lang() === 'en' })}` : ''}`,
     color: statementColor(l.relation),
     provenance: t(l.source === 'voices' ? 'graph.source.voices' : 'graph.source.roles'),
     dash: l.relation === 'opposes' ? KIND_DASH.contrasts : undefined,
@@ -334,7 +340,7 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
   const groups = createMemo<GraphGroup[]>(() =>
     props.nodes.map((n) => ({
       id: `section:${n.index}`,
-      label: finishDisplayText(n.title),
+      label: finishDisplayText(n.title, { english: lang() === 'en' }),
       badge: String(n.index + 1),
       selected: n.index === props.activeIndex,
       dimmed: n.dimmed,

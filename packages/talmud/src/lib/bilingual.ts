@@ -260,9 +260,10 @@ function spellingPattern(name: string): string {
   for (let i = 0; i < n.length; i++) {
     const two = n.slice(i, i + 2);
     if (two === 'ch' || two === 'kh') {
-      out += '(?:ch|kh|ḥ)';
+      out += '(?:ch|kh|ḥ|h)';
       i++;
-    } else if (n[i] === 'ḥ') out += '(?:ch|kh|ḥ)';
+    } else if (n[i] === 'ḥ') out += '(?:ch|kh|ḥ|h)';
+    else if (n[i] === 'h') out += '(?:ch|kh|ḥ|h)';
     else if (two === 'ei') {
       out += 'ei?';
       i++;
@@ -279,7 +280,7 @@ function hebrewPattern(he: string): string {
   const key = heKey(he);
   let out = '';
   for (const c of key) {
-    out += c === ' ' ? '\\s+' : `${escapeRe(c)}[\\u0591-\\u05C7"'\\u05F3\\u05F4]*`;
+    out += c === ' ' ? '\\s+' : `${escapeRe(c)}[\\u0591-\\u05C7"'\\u05F3\\u05F4‘’“”]*`;
   }
   return out;
 }
@@ -306,6 +307,12 @@ export interface BilingualItem {
   kind: 'name' | 'term';
 }
 
+/** Display-only dictionary entries may match lowercase transliterations too.
+ * This does not change the server's bilingual response or saved schema. */
+export interface DisplayItem extends BilingualItem {
+  transliteration?: boolean;
+}
+
 /** Kept for the glossary's wire shape. */
 export type GlossaryEntry = BilingualItem;
 
@@ -330,7 +337,7 @@ interface Mention {
   script: 'en' | 'he';
   /** The English as written (for the first mention's parentheses). */
   english?: string;
-  /** A possessive ("'s") that followed an English name. */
+  /** A possessive after a name in either script. */
   poss?: string;
   /** Whether a parenthesis already follows (Hebrew mentions only). */
   glossed?: boolean;
@@ -346,10 +353,10 @@ interface Mention {
  * Longest items first; a mention inside a longer one already handled is left
  * alone. Items earlier in the list win a tie on the same English. Idempotent.
  */
-export function hebrewFirst(text: string, items: readonly BilingualItem[]): string {
+export function hebrewFirst(text: string, items: readonly DisplayItem[]): string {
   if (!text || items.length === 0) return text;
   const seen = new Set<string>();
-  const uniq: BilingualItem[] = [];
+  const groups = new Map<string, DisplayItem[]>();
   for (const it of items) {
     const en = it.en.replace(ARTICLE, '').trim();
     const he = it.he.replace(NIKUD, '').trim();
@@ -357,35 +364,54 @@ export function hebrewFirst(text: string, items: readonly BilingualItem[]): stri
     const k = nameFold(en);
     if (seen.has(k)) continue;
     seen.add(k);
-    uniq.push({ en, he, kind: it.kind });
+    const key = heKey(he);
+    const group = groups.get(key) ?? [];
+    group.push({ ...it, en, he });
+    groups.set(key, group);
   }
-  uniq.sort((a, b) => b.en.length - a.en.length);
+  const candidates: (Mention & { item: DisplayItem; length: number })[] = [];
   const claimed: [number, number][] = [];
   const free = (s: number, e: number): boolean => !claimed.some(([a, b]) => s < b && e > a);
   const edits: Edit[] = [];
-
-  for (const it of uniq) {
-    const mentions: Mention[] = [];
-    const enRe = new RegExp(
-      `(?<![\\p{L}\\p{M}])${spellingPattern(it.en)}(?![\\p{L}\\p{M}])`,
-      'giu',
-    );
-    for (const m of text.matchAll(enRe)) {
-      const at = m.index;
-      let end = at + m[0].length;
-      if (insideParen(text, at)) continue;
-      if (it.kind === 'name' && (!/^\p{Lu}/u.test(m[0]) || partOfLongerName(text, at, end))) {
-        continue;
+  for (const aliases of groups.values()) {
+    const it = aliases[0];
+    for (const alias of [...aliases].sort((a, b) => b.en.length - a.en.length)) {
+      const enRe = new RegExp(
+        `(?<![\\p{L}\\p{M}])${spellingPattern(alias.en)}(?![\\p{L}\\p{M}])`,
+        'giu',
+      );
+      for (const m of text.matchAll(enRe)) {
+        const at = m.index;
+        let end = at + m[0].length;
+        if (insideParen(text, at)) continue;
+        if (alias.kind === 'name') {
+          if (!alias.transliteration && (!/^\p{Lu}/u.test(m[0]) || partOfLongerName(text, at, end)))
+            continue;
+          // Known compound entries win before their shorter names. Rosh also
+          // starts holiday names, which are not references to the commentator.
+          if (
+            alias.transliteration &&
+            /^rosh$/i.test(m[0]) &&
+            /^\s+(?:ha)?(?:shana[h]?|[ch]h?odesh)\b/i.test(text.slice(end))
+          )
+            continue;
+        }
+        const poss =
+          alias.kind === 'name' ? text.slice(end).match(/^['’]s?(?![\p{L}])/u)?.[0] : undefined;
+        if (poss) end += poss.length;
+        const paren = text.slice(end).match(/^\s*\(([^()]*)\)/);
+        if (paren && isHebrewOnly(paren[1]) && heKey(paren[1]) === heKey(it.he))
+          end += paren[0].length;
+        candidates.push({
+          start: at,
+          end,
+          script: 'en',
+          english: m[0],
+          poss,
+          item: { ...alias, he: it.he },
+          length: m[0].length,
+        });
       }
-      // "Kontrokos's" and "Kontrokos'" are both possessives.
-      const poss =
-        it.kind === 'name' ? text.slice(end).match(/^['’]s?(?![\p{L}])/u)?.[0] : undefined;
-      if (poss) end += poss.length;
-      const paren = text.slice(end).match(/^\s*\(([^()]*)\)/);
-      if (paren && isHebrewOnly(paren[1]) && heKey(paren[1]) === heKey(it.he))
-        end += paren[0].length;
-      if (!free(at, end)) continue;
-      mentions.push({ start: at, end, script: 'en', english: m[0], poss });
     }
     const heRe = new RegExp(
       `(?<![\\u05D0-\\u05EA])${hebrewPattern(it.he)}(?![\\u05D0-\\u05EA])`,
@@ -393,28 +419,66 @@ export function hebrewFirst(text: string, items: readonly BilingualItem[]): stri
     );
     for (const m of text.matchAll(heRe)) {
       const at = m.index;
-      const end = at + m[0].length;
-      if (insideParen(text, at) || !free(at, end)) continue;
-      mentions.push({ start: at, end, script: 'he', glossed: /^\s*\(/.test(text.slice(end)) });
+      let end = at + m[0].length;
+      if (insideParen(text, at)) continue;
+      // The pattern accepts abbreviation quotes, including a trailing apostrophe.
+      // An English possessive must stay together when a gloss is inserted.
+      const trailingPoss =
+        /['’]$/.test(m[0]) && /^s(?![\p{L}])/u.test(text.slice(end))
+          ? `${m[0].slice(-1)}s`
+          : undefined;
+      if (trailingPoss) end++;
+      const paren = text.slice(end).match(/^\s*\(([^()]*)\)/);
+      const ownGloss =
+        paren &&
+        aliases.some((alias) => nameFold(paren[1].replace(/['’]s?$/, '')) === nameFold(alias.en));
+      if (ownGloss) end += paren[0].length;
+      candidates.push({
+        start: at,
+        end,
+        script: 'he',
+        glossed: !!paren,
+        english: ownGloss ? paren[1] : undefined,
+        poss: trailingPoss ?? (ownGloss ? paren[1].match(/['’]s?$/)?.[0] : undefined),
+        item: it,
+        length: m[0].length,
+      });
     }
-    if (mentions.length === 0) continue;
-    mentions.sort((a, b) => a.start - b.start);
-    // Later mentions become the Hebrew for names and multi-word terms. A
-    // one-word term is often an everyday English word ("halachic", "lamb"):
-    // it gets its Hebrew once and stays English after that.
-    const swapLater = it.kind === 'name' || it.en.split(/\s+/).length > 1;
-    mentions.forEach((mn, i) => {
+  }
+  // Resolve all overlaps by the length actually found in the text, not by
+  // another alias in the same group. Only then count first mentions in order.
+  const selected = candidates
+    .sort((a, b) => b.length - a.length)
+    .filter((mn) => {
+      if (!free(mn.start, mn.end)) return false;
       claimed.push([mn.start, mn.end]);
-      if (mn.script === 'he') {
-        if (i === 0 && !mn.glossed) edits.push({ at: mn.end, del: 0, ins: ` (${it.en})` });
-        return;
+      return true;
+    })
+    .sort((a, b) => a.start - b.start);
+  const mentioned = new Set<string>();
+  for (const mn of selected) {
+    const it = mn.item;
+    const key = heKey(it.he);
+    const first = !mentioned.has(key);
+    mentioned.add(key);
+    if (mn.script === 'he') {
+      if (first && !mn.glossed) {
+        if (mn.poss)
+          edits.push({
+            at: mn.start,
+            del: mn.end - mn.start,
+            ins: `${it.he} (${it.en}${mn.poss})`,
+          });
+        else edits.push({ at: mn.end, del: 0, ins: ` (${it.en})` });
+      } else if (!first && mn.english) {
+        edits.push({ at: mn.start, del: mn.end - mn.start, ins: `${it.he}${mn.poss ?? ''}` });
       }
-      const english = `${mn.english}${mn.poss ?? ''}`;
-      let ins = english; // a later one-word term: keep the English, drop any repeated Hebrew
-      if (i === 0) ins = `${it.he} (${english})`;
-      else if (swapLater) ins = `${it.he}${mn.poss ?? ''}`;
-      edits.push({ at: mn.start, del: mn.end - mn.start, ins });
-    });
+      continue;
+    }
+    const swapLater = it.kind === 'name' || it.en.split(/\s+/).length > 1;
+    const english = `${mn.english}${mn.poss ?? ''}`;
+    const ins = first ? `${it.he} (${english})` : swapLater ? `${it.he}${mn.poss ?? ''}` : english;
+    edits.push({ at: mn.start, del: mn.end - mn.start, ins });
   }
   return edits.length ? applyEdits(text, edits) : text;
 }

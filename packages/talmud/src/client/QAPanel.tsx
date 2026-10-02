@@ -32,9 +32,9 @@ import { StatusMessage } from '@corpus/ui/Study';
 import './reader-controls.css';
 import { createEffect, createResource, createSignal, For, type JSX, onMount, Show } from 'solid-js';
 import { trackAI } from './aiActivity';
+import { finishDisplayText } from './displayText';
 import { isPausedError, isServiceUnavailableError, type RunResult } from './enrichmentQueue';
 import { Hebraized } from './Hebraized';
-import { hebraize } from './hebraize';
 import { lang, t } from './i18n';
 import { runProducer } from './runProducer';
 import { tutorialPrefetch } from './tutorial';
@@ -487,10 +487,10 @@ export default function QAPanel(props: QAPanelProps): JSX.Element {
                     type="button"
                     onClick={() => handleQuestionClick(item.q)}
                     // Title is an HTML attribute — can't host a JSX component,
-                    // so we run the why_useful hint through the synchronous
-                    // dict pass directly. Async LLM upgrade isn't worth it for
-                    // hover text that vanishes the moment the user moves on.
-                    title={item.why ? hebraize(item.why) : ''}
+                    // so the tooltip uses the synchronous paragraph formatter.
+                    title={
+                      item.why ? finishDisplayText(item.why, { english: lang() === 'en' }) : ''
+                    }
                     class="reader-qa-question"
                     active={!!ans()}
                     aria-expanded={!!ans()}

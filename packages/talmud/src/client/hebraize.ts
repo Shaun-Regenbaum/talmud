@@ -16,6 +16,7 @@
  *      map to the same Hebrew — the lookup normalizes both.
  */
 
+import { type DisplayItem, heKey } from '../lib/bilingual';
 import { canonicalDictEntries } from '../lib/hebrewTerms';
 
 const HEBRAIZE_DICT: Record<string, string> = {
@@ -24,6 +25,22 @@ const HEBRAIZE_DICT: Record<string, string> = {
   // Spread first; everything below is the long tail (sugya structure, places,
   // texts, codices) that lives only here.
   ...canonicalDictEntries(),
+  // Additional spellings used by the display allowlist below.
+  'tosafot harosh': 'תוספות הרא״ש',
+  'tosfos harosh': 'תוספות הרא״ש',
+  'tosafot rid': 'תוספות רי״ד',
+  'tosfos rid': 'תוספות רי״ד',
+  'tosafot yeshanim': 'תוספות ישנים',
+  'tosfos yeshanim': 'תוספות ישנים',
+  tosfos: 'תוספות',
+  'orach chayim': 'אורח חיים',
+  'orach chayyim': 'אורח חיים',
+  'even haezer': 'אבן העזר',
+  treif: 'טריפה',
+  treifa: 'טריפה',
+  trefah: 'טריפה',
+  baraitot: 'ברייתות',
+
   // ── Sugya structure / argument moves ─────────────────────────────────
   "yi'ud": 'ייעוד',
   hakhanah: 'הכנה',
@@ -322,7 +339,7 @@ const INVERTED_RE = new RegExp(
   'gi',
 );
 
-/** Bare-word hebraize whitelist — names of authorities + work titles that
+/** Bare-word allowlist — names of authorities + work titles that
  *  should be in Hebrew script whenever they appear, even outside parens.
  *  Curated CONSERVATIVELY: each entry must be unambiguous in halachic
  *  context. Generic religious terms ("Torah", "Mishnah", "Gemara",
@@ -330,112 +347,98 @@ const INVERTED_RE = new RegExp(
  *  in this corpus and bare-swapping would hurt readability. Multi-word
  *  entries are matched first via longest-first sort so "Mishneh Torah"
  *  wins over a hypothetical bare "Torah" entry. */
-const BARE_HEBRAIZE_NAMES: Record<string, string> = {
+const BARE_DISPLAY_SPELLINGS = [
   // Halachic authorities
-  Rambam: 'רמב״ם',
-  Ramban: 'רמב״ן',
-  Rashba: 'רשב״א',
-  Ritva: 'ריטב״א',
-  Rashi: 'רש״י',
+  'Rambam',
+  'Ramban',
+  'Rashba',
+  'Ritva',
+  'Rashi',
   // Tosafot — compound forms listed alongside the bare word. Longest-first
-  // sort (below) makes the compounds win, so "Tosafot HaRosh" swaps whole
+  // matching makes the compounds win, so "Tosafot HaRosh" swaps whole
   // instead of half-translating to "תוספות HaRosh" (one author rendered half
   // Hebrew, half English). The HaRosh/Rid/Yeshanim suffixes are not bare-list
   // entries on their own, so without these the second word leaks through.
-  'Tosafot HaRosh': 'תוספות הרא״ש',
-  'Tosfos HaRosh': 'תוספות הרא״ש',
-  'Tosafot Rid': 'תוספות רי״ד',
-  'Tosfos Rid': 'תוספות רי״ד',
-  'Tosafot Yeshanim': 'תוספות ישנים',
-  'Tosfos Yeshanim': 'תוספות ישנים',
-  Tosafot: 'תוספות',
-  Tosfos: 'תוספות',
-  Meiri: 'מאירי',
-  Maharsha: 'מהרש״א',
-  Rema: 'רמ״א',
-  Tur: 'טור',
-  Rosh: 'רא״ש',
+  'Tosafot HaRosh',
+  'Tosfos HaRosh',
+  'Tosafot Rid',
+  'Tosfos Rid',
+  'Tosafot Yeshanim',
+  'Tosfos Yeshanim',
+  'Tosafot',
+  'Tosfos',
+  'Meiri',
+  'Maharsha',
+  'Rema',
+  'Tur',
+  'Rosh',
   // Work titles (multi-word — listed alongside their spelling variants).
-  'Mishneh Torah': 'משנה תורה',
-  'Shulchan Aruch': 'שולחן ערוך',
-  'Orach Chaim': 'אורח חיים',
-  'Orach Chayim': 'אורח חיים',
-  'Orach Chayyim': 'אורח חיים',
-  'Yoreh Deah': 'יורה דעה',
-  'Even HaEzer': 'אבן העזר',
-  'Even Ha-Ezer': 'אבן העזר',
-  'Choshen Mishpat': 'חושן משפט',
+  'Mishneh Torah',
+  'Shulchan Aruch',
+  'Orach Chaim',
+  'Orach Chayim',
+  'Orach Chayyim',
+  'Yoreh Deah',
+  'Even HaEzer',
+  'Even Ha-Ezer',
+  'Choshen Mishpat',
   // Halachic procedures (unambiguous in this corpus).
-  melikah: 'מליקה',
-  melikha: 'מליקה',
-  shechita: 'שחיטה',
-  shechitah: 'שחיטה',
-  chalitza: 'חליצה',
-  chalitzah: 'חליצה',
-  yibum: 'יבום',
+  'melikah',
+  'melikha',
+  'shechita',
+  'shechitah',
+  'chalitza',
+  'chalitzah',
+  'yibum',
   // Kashrut categories.
-  neveilah: 'נבלה',
-  neveila: 'נבלה',
-  nevelah: 'נבלה',
-  treif: 'טריפה',
-  treifa: 'טריפה',
-  trefah: 'טריפה',
+  'neveilah',
+  'neveila',
+  'nevelah',
+  'treif',
+  'treifa',
+  'trefah',
   // Sacrifices.
-  chatat: 'חטאת',
-  asham: 'אשם',
-  korban: 'קרבן',
-  korbanot: 'קרבנות',
+  'chatat',
+  'asham',
+  'korban',
+  'korbanot',
   // Marriage / family.
-  ketubah: 'כתובה',
-  ketuba: 'כתובה',
+  'ketubah',
+  'ketuba',
   // Priestly portions / firstborn.
-  challah: 'חלה',
-  challa: 'חלה',
-  pidyon: 'פדיון',
-  bechor: 'בכור',
-  bekhor: 'בכור',
+  'challah',
+  'challa',
+  'pidyon',
+  'bechor',
+  'bekhor',
   // Concluding / collective sages.
-  siyum: 'סיום',
-  Chazal: 'חז״ל',
-  Hazal: 'חז״ל',
+  'siyum',
+  'Chazal',
+  'Hazal',
   // Generation labels.
-  amoraim: 'אמוראים',
-  tannaim: 'תנאים',
-  rishonim: 'ראשונים',
-  acharonim: 'אחרונים',
+  'amoraim',
+  'tannaim',
+  'rishonim',
+  'acharonim',
   // Discourse / argument terms.
-  baraita: 'ברייתא',
-  baraitot: 'ברייתות',
-  kushya: 'קושיא',
-  terutz: 'תירוץ',
-};
+  'baraita',
+  'baraitot',
+  'kushya',
+  'terutz',
+] as const;
 
-/** Lowercase lookup for case-insensitive match. */
-const BARE_NAMES_LOOKUP: Record<string, string> = Object.fromEntries(
-  Object.entries(BARE_HEBRAIZE_NAMES).map(([k, v]) => [k.toLowerCase(), v]),
-);
-
-/** Names with collision potential — exclude via negative lookahead. `Rosh`
- *  also means a holiday qualifier ("Rosh Hashanah", "Rosh Chodesh"); never
- *  swap in those contexts. */
-const BARE_NAMES_KEYS_SORTED = Object.keys(BARE_HEBRAIZE_NAMES).sort((a, b) => b.length - a.length);
-const BARE_NAMES_ALT = BARE_NAMES_KEYS_SORTED.map((k) => {
-  const esc = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  if (k === 'Rosh') {
-    return `${esc}(?!\\s+(?:Hashanah|HaShanah|Hashana|HaShana|Chodesh|Hodesh|HaShana))`;
-  }
-  return esc;
-}).join('|');
-const BARE_NAMES_RE = new RegExp(`\\b(${BARE_NAMES_ALT})\\b`, 'gi');
-
-/** Replace bare-word occurrences of whitelisted authorities and work titles
- *  with their Hebrew script. Case-insensitive; word-boundary on both sides
- *  prevents mid-word matches ("torture" never matches "tor"). Multi-word
- *  entries match first (longest-first sort), so "Mishneh Torah" wins. */
-export function hebraizeBareNames(text: string): string {
-  if (!text) return text;
-  return text.replace(BARE_NAMES_RE, (match) => BARE_NAMES_LOOKUP[match.toLowerCase()] ?? match);
-}
+/** Known spellings are data for the paragraph formatter, never blind replacements.
+ * Include known compounds so a shorter spelling cannot split a work or term. */
+export const DISPLAY_ITEMS: readonly DisplayItem[] = Object.entries({
+  ...Object.fromEntries(
+    BARE_DISPLAY_SPELLINGS.map((en) => [en, NORMALIZED_DICT[normalizeKey(en)]]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(HEBRAIZE_DICT).filter(([en]) =>
+      BARE_DISPLAY_SPELLINGS.some((bare) => en.toLowerCase().startsWith(`${bare.toLowerCase()} `)),
+    ),
+  ),
+}).map(([en, he]) => ({ en, he, kind: 'name', transliteration: true }));
 
 /** Function words that, when immediately preceding a pure-Hebrew parens
  *  group, mark the parens as a redundant mid-phrase interjection rather
@@ -543,7 +546,7 @@ const HE = '\\u0590-\\u05FF\\uFB1D-\\uFB4F';
 // term like 'מלא צואר' (מלא צואר) still matches; the quote is preserved.
 const GLOSS_GAP = ` '"\\u2018\\u2019\\u201C\\u201D`;
 const HE_GLOSS_PAREN_RE = new RegExp(
-  `([${HE}][${HE}\\u05BE\\u05F3\\u05F4 -]*?)([${GLOSS_GAP}]*)\\(\\s*([${HE}][${HE}\\u05BE\\u05F3\\u05F4 ]*)\\)`,
+  `([${HE}][${HE}\\u05BE\\u05F3\\u05F4'"‘’“” -]*?)([${GLOSS_GAP}]*)\\(\\s*([${HE}][${HE}\\u05BE\\u05F3\\u05F4'"‘’“” ]*)\\)`,
   'g',
 );
 
@@ -587,8 +590,8 @@ const MIN_SKELETON_MATCH_LEN = 3;
  *  separated it are dropped. */
 function dropHebrewGlossEchoes(text: string): string {
   return text.replace(HE_GLOSS_PAREN_RE, (m: string, term: string, gap: string, paren: string) => {
-    const termWords = term.trim().split(/\s+/).filter(Boolean);
-    const parenWords = paren.trim().split(/\s+/).filter(Boolean);
+    const termWords = heKey(term).split(/\s+/).filter(Boolean);
+    const parenWords = heKey(paren).split(/\s+/).filter(Boolean);
     if (parenWords.length === 0) return m;
     const termSet = new Set(termWords);
     // Only long skeletons are trusted for variant matching (see MIN_… above).
@@ -620,22 +623,7 @@ export function stripEchoParens(text: string): string {
   return prev;
 }
 
-/** Capitalize the first cased letter of a phrase, skipping leading quotes,
- *  parens, and whitespace. Hebrew script has no case, so a phrase that opens
- *  with Hebrew is returned unchanged (`toUpperCase` is a no-op there). Used
- *  for the appliesWhen / exceptions chips, which the LLM emits lowercase but
- *  which render as standalone scannable labels — "locking a door on Shabbat"
- *  should read "Locking a door on Shabbat". Apply AFTER hebraize() so the
- *  inverted pass (which can move an English gloss to the front) doesn't strand
- *  a lowercased word at the start. */
-/** True if `text` contains an empty parenthetical — `()` or `(  )`. The LLM
- *  hebraize fallback can empty a paren it couldn't resolve (e.g. an English
- *  name like `(Rabbi Eliezer)` → `()`); callers use this to reject such a
- *  result and keep the paren-preserving dict pass. Pure + exported for tests. */
-export function hasEmptyParens(text: string): boolean {
-  return /\(\s*\)/.test(text);
-}
-
+/** Capitalize an English opening after formatting. Hebrew has no letter case. */
 export function capitalizeFirst(text: string): string {
   if (!text) return text;
   const i = text.search(/[^\s'"“”‘’([]/);
@@ -643,89 +631,17 @@ export function capitalizeFirst(text: string): string {
   return text.slice(0, i) + text.charAt(i).toUpperCase() + text.slice(i + 1);
 }
 
-/** Scan `text` for two formats:
- *   1. `english (transliteration)` → `english (עברית)`
- *   2. `transliteration (english gloss)` → `english gloss (עברית)`
- *  Anything else (verse refs, dates, English-only asides) is unchanged.
- *  Then bare-swap whitelisted authority/work names. Finally, collapse
- *  echo-parens (`X (X)` → `X`).
- */
-export function hebraize(text: string): string {
-  if (!text) return text;
-  // Pass 1: standard `english (transliteration)` form.
-  let out = text.replace(PAREN_RE, (full, inner: string) => {
+/** Read dictionary spellings without deciding paragraph order or touching an
+ * existing Hebrew-first English gloss. Unknown text stays as written. */
+export function prepareDisplayText(text: string): string {
+  let out = text.replace(PAREN_RE, (full, inner: string, at: number) => {
+    if (/[א-ת][\u0591-\u05C7"'׳״’”]*(?:['’]s)?\s*$/.test(text.slice(0, at))) return full;
     const heb = NORMALIZED_DICT[normalizeKey(inner)];
     return heb ? `(${heb})` : full;
   });
-  // Pass 2: inverted `transliteration (english gloss)` form. Only swap when
-  // the inside-parens text is plain Latin (no Hebrew, no digits) so we don't
-  // mangle things like "Shabbat 31a" or "Mishneh Torah (Hilchot Shabbat 8:1)".
   out = out.replace(INVERTED_RE, (full, translit: string, gloss: string) => {
     const heb = NORMALIZED_DICT[normalizeKey(translit)];
-    if (!heb) return full;
-    if (/[֐-׿\d]/.test(gloss)) return full;
-    return `${gloss} (${heb})`;
+    return heb ? `${heb} (${gloss})` : full;
   });
-  // Pass 3: bare-word swap for halachic authorities and work titles. Runs
-  // BEFORE echo-strip so that any echoes the bare-swap creates get caught.
-  out = hebraizeBareNames(out);
-  // Pass 4: strip pure-Hebrew parens preceded by a function word — these
-  // are mid-phrase interjections, not Form B glosses. `the (מליקה)
-  // procedure` → `the מליקה procedure`. Content-word-preceded parens
-  // (real Form B like `Tanna (תנא)`) are kept.
-  out = stripStopwordHebrewParens(out);
-  // Pass 5: collapse echo-parens. Runs AFTER the dict passes so that a
-  // dict-promoted Hebrew matching its English equivalent gets collapsed too.
-  out = stripEchoParens(out);
-  return out;
-}
-
-/** Same as `hebraize` but also returns whether anything was replaced. */
-export function hebraizeWithFlag(text: string): { text: string; replaced: number } {
-  let replaced = 0;
-  if (!text) return { text, replaced };
-  const out = text.replace(PAREN_RE, (full, inner: string) => {
-    const heb = NORMALIZED_DICT[normalizeKey(inner)];
-    if (heb) {
-      replaced++;
-      return `(${heb})`;
-    }
-    return full;
-  });
-  return { text: out, replaced };
-}
-
-/** Returns the parenthesized substrings that the static dict couldn't resolve.
- *  The LLM hebraize endpoint only needs to be invoked when this list is
- *  non-empty — otherwise the dict pass alone is sufficient. */
-export function unresolvedParens(text: string): string[] {
-  if (!text) return [];
-  const out: string[] = [];
-  for (const m of text.matchAll(PAREN_RE)) {
-    const inner = m[1];
-    if (!NORMALIZED_DICT[normalizeKey(inner)]) out.push(inner);
-  }
-  return out;
-}
-
-/** LLM-driven hebraize for the long tail (composite phrases, slash-separated
- *  alternatives, unusual academic spellings). Hits /api/hebraize, which
- *  KV-caches by content hash + double-buffers via the AI Gateway prompt
- *  cache, so repeat calls on the same text are instant + free.
- *  Returns the input unchanged on any error so callers can render fall-back
- *  via the dict pass. */
-export async function hebraizeLLM(text: string): Promise<string> {
-  if (!text) return text;
-  try {
-    const res = await fetch('/api/hebraize', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ text }),
-    });
-    if (!res.ok) return text;
-    const body = (await res.json()) as { hebraized?: string; error?: string };
-    return body.hebraized ?? text;
-  } catch {
-    return text;
-  }
+  return stripStopwordHebrewParens(out);
 }

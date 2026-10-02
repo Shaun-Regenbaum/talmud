@@ -461,7 +461,9 @@ export function ArgumentGraphPage(): JSX.Element {
                   )}
                 </For>
                 <Show when={node().summary}>
-                  <p dir="auto">{finishDisplayText(node().summary ?? '')}</p>
+                  <p dir="auto">
+                    {finishDisplayText(node().summary ?? '', { english: lang() === 'en' })}
+                  </p>
                 </Show>
                 <Show when={node().excerpt}>
                   <p dir="rtl" lang="he">

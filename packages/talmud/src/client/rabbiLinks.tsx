@@ -17,7 +17,7 @@
  */
 import { type Accessor, createContext, createMemo, For, type JSX, useContext } from 'solid-js';
 import { heKey, rabbiItems } from '../lib/bilingual';
-import { useBilingual, usePageGlossary } from './bilingual';
+import { usePageGlossary } from './bilingual';
 import { ConceptAwareText, firstMentionGloss, useConceptLinks } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
 import { useDisplayText } from './displayText';
@@ -54,18 +54,14 @@ export function HebraizedWithRabbis(props: { text: string | undefined | null }):
   const ctx = useRabbiLinks();
   // The house rule runs on the WHOLE paragraph here, before anything splits
   // it into fragments.
-  const judged = useBilingual(() => props.text ?? '');
   const glossary = usePageGlossary(() => ctx?.page?.());
   const concept = useConceptLinks();
   // Hebrew first, English in parentheses once: the paragraph's own pairs
   // (Jev), then the page's glossary, then the daf's rabbis.
   const text = useDisplayText(
-    () => judged().text,
+    () => props.text ?? '',
     () => ({
-      items:
-        lang() === 'en'
-          ? [...judged().pairs, ...glossary(), ...rabbiItems(ctx?.rabbis() ?? [])]
-          : [],
+      items: lang() === 'en' ? [...glossary(), ...rabbiItems(ctx?.rabbis() ?? [])] : [],
       cleanGlosses: (s: string) => firstMentionGloss(s, concept?.matcher() ?? null),
     }),
   );

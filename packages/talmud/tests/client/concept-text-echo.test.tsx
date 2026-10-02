@@ -37,7 +37,7 @@ describe('ConceptText — collapses double-Hebrew gloss in the rendered DOM', ()
     const { container } = render(() => (
       <ConceptText text={prepare('a טריפה (טריפה).')} matcher={matcher} />
     ));
-    expect(container.textContent).toBe('a טריפה.');
+    expect(container.textContent).toBe('a טריפה (treif).');
   });
 
   it('keeps a genuine Hebrew clarification that adds new words', () => {
@@ -85,7 +85,7 @@ describe('RabbiText — double-Hebrew collapses in reader prose with rabbi links
         <HebraizedWithRabbis text="רש״י (רש״י) explains the passage." />
       </RabbiLinkProvider>
     ));
-    expect(container.textContent).toBe('רש״י explains the passage.');
+    expect(container.textContent).toBe('רש״י (Rashi) explains the passage.');
     expect(container.querySelector('[role="link"]')?.textContent).toBe('רש״י');
   });
 });
