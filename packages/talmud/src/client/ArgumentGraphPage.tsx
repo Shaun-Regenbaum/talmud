@@ -71,10 +71,10 @@ interface SpinesResp {
   failed?: boolean;
 }
 
-async function fetchSpines(tractate: string, page: string): Promise<SpinesResp> {
+async function fetchSpines(tractate: string, page: string, language: string): Promise<SpinesResp> {
   try {
     const r = await fetch(
-      `/api/statement-spine/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}`,
+      `/api/statement-spine/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}?lang=${language}`,
     );
     if (!r.ok) return { sections: [], movesComputed: false, flow: [], failed: true };
     const j = (await r.json()) as Partial<SpinesResp>;
@@ -131,10 +131,10 @@ export function ArgumentGraphPage(): JSX.Element {
     },
   );
   const [spines] = createResource(
-    () => `${ref().tractate}:${ref().page}`,
+    () => `${ref().tractate}:${ref().page}:${lang()}`,
     async () => {
       const r = ref();
-      return fetchSpines(r.tractate, r.page);
+      return fetchSpines(r.tractate, r.page, lang());
     },
   );
   const [derived] = createResource(

@@ -1155,11 +1155,11 @@ function ArgumentOverviewMaps(props: SpecialBlockProps): JSX.Element {
   };
   type SpinesResp = { sections: SectionSpine[]; movesComputed: boolean; failed?: boolean };
   const [spines] = createResource(
-    () => `${props.tractate}|${props.page}`,
+    () => `${props.tractate}|${props.page}|${lang()}`,
     async (): Promise<SpinesResp> => {
       try {
         const r = await fetch(
-          `/api/statement-spine/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}`,
+          `/api/statement-spine/${encodeURIComponent(props.tractate)}/${encodeURIComponent(props.page)}?lang=${lang()}`,
         );
         if (!r.ok) return { sections: [], movesComputed: false, failed: true };
         const j = (await r.json()) as { sections?: SectionSpine[]; movesComputed?: boolean };
@@ -1611,11 +1611,18 @@ function BackgroundGroups(props: { groups: BackgroundGroup[] }): JSX.Element {
                         color: '#222',
                       }}
                     >
-                      <span>{tm.term}</span>
+                      {/* Hebrew mode shows the Hebrew term alone; the English label
+                          is only the fallback when the model gave no Hebrew term. */}
+                      <Show when={lang() !== 'he' || !tm.termHe}>
+                        <span>{tm.term}</span>
+                      </Show>
                       <Show when={tm.termHe}>
                         <span
                           dir="rtl"
-                          style={{ color: ACCENTS['daf-background'], 'font-weight': 500 }}
+                          style={{
+                            color: ACCENTS['daf-background'],
+                            'font-weight': lang() === 'he' ? 600 : 500,
+                          }}
                         >
                           {tm.termHe}
                         </span>

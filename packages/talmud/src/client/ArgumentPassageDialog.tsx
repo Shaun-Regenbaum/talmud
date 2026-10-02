@@ -190,7 +190,7 @@ export function ArgumentPassageDialog(
     setMessage('');
     try {
       const [saved, derived] = await Promise.all([
-        get<SavedPage>(base('statement-spine', page)),
+        get<SavedPage>(`${base('statement-spine', page)}?lang=${lang()}`),
         get<{ derived?: { fromSection: number; toSection: number; relation: string }[] }>(
           base('derived-flow', page),
         ).catch(() => ({ derived: [] })),

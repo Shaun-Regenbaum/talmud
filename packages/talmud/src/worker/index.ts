@@ -575,10 +575,11 @@ async function readMarkInstances(
   markId: string,
   tractate: string,
   page: string,
+  lang: 'en' | 'he' = 'en',
 ): Promise<RawInstance[]> {
   const def = findCodeMark(markId);
   if (!def) return [];
-  const hit = await readCachedResult(env, keyForMark(def, tractate, page, 'en'));
+  const hit = await readCachedResult(env, keyForMark(def, tractate, page, lang));
   // A mark whose cached output lost its shape reads as empty here (and as
   // cold in daf-view), so nothing builds on junk instances.
   if (hit && !outputMatchesShallow(markOutputSchema(def), hit.parsed)) return [];
@@ -1532,13 +1533,27 @@ app.get('/api/spine-view/:tractate', async (c) => {
 // via buildStatementSpine: nodes = statements, links = role-derived + voices-
 // mapped relations, `dispute` = is it a real מחלוקת. Read-only (cached reads
 // only; never triggers compute) — mirrors /api/spine-view.
-async function readStatementSpineData(env: Bindings, tractate: string, page: string) {
-  const sections = (await readMarkInstances(env, 'argument', tractate, page))
+async function readStatementSpineData(
+  env: Bindings,
+  tractate: string,
+  page: string,
+  lang: 'en' | 'he' = 'en',
+) {
+  // Hebrew reads the Hebrew sections, moves and voices so the map's labels match
+  // the language of the rest of the card. Section indices come from the same
+  // language's section list, which is also what the reader shows. When the
+  // Hebrew moves are not warmed yet the whole read falls back to English
+  // (a map in English beats no map).
+  if (lang === 'he') {
+    const heMoves = await readMarkInstances(env, 'argument-move', tractate, page, 'he');
+    if (heMoves.length === 0) return readStatementSpineData(env, tractate, page, 'en');
+  }
+  const sections = (await readMarkInstances(env, 'argument', tractate, page, lang))
     .filter((s) => typeof s.startSegIdx === 'number' && typeof s.endSegIdx === 'number')
     .sort((a, b) => (a.startSegIdx as number) - (b.startSegIdx as number));
   // All the daf's moves once; selectSectionMoves slices each section's set (and
   // cleans a doubled/overlapping argument-move cache — the Shabbat 126a class).
-  const allMoves: MoveLike[] = (await readMarkInstances(env, 'argument-move', tractate, page))
+  const allMoves: MoveLike[] = (await readMarkInstances(env, 'argument-move', tractate, page, lang))
     .filter((m) => typeof m.startSegIdx === 'number' && typeof m.endSegIdx === 'number')
     .map((m) => ({
       startSegIdx: m.startSegIdx as number,
@@ -1558,7 +1573,7 @@ async function readStatementSpineData(env: Bindings, tractate: string, page: str
       if (voicesDef) {
         const vhit = await readCachedResult(
           env,
-          keyForEnrichment(voicesDef, await instanceIdOf(sec), { tractate, page }),
+          keyForEnrichment(voicesDef, await instanceIdOf(sec), { tractate, page }, undefined, lang),
         );
         if (vhit?.parsed) voices = deriveVoiceEdges(vhit.parsed);
       }
@@ -1594,7 +1609,9 @@ app.get('/api/statement-spine/:tractate/:page', async (c) => {
   const page = c.req.param('page');
   if (!isKnownTractate(tractate)) return c.json({ error: `unknown tractate: ${tractate}` }, 404);
   if (!c.env.CACHE) return c.json({ error: 'no CACHE binding in this environment' }, 503);
-  return c.json(await readStatementSpineData(c.env, tractate, page));
+  return c.json(
+    await readStatementSpineData(c.env, tractate, page, c.req.query('lang') === 'he' ? 'he' : 'en'),
+  );
 });
 
 // Deterministic section→section connections derived from the STATEMENT dialectic

@@ -3416,10 +3416,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === 'SELECT' || t.tagName === 'INPUT' || t.isContentEditable)) return;
-      if (e.key === 'ArrowLeft') {
+      // Hebrew reads right to left, so "forward" is the left arrow there.
+      const forward = lang() === 'he' ? 'ArrowLeft' : 'ArrowRight';
+      const back = lang() === 'he' ? 'ArrowRight' : 'ArrowLeft';
+      if (e.key === back) {
         e.preventDefault();
         go(prevPage(page()));
-      } else if (e.key === 'ArrowRight') {
+      } else if (e.key === forward) {
         e.preventDefault();
         go(nextPage(page()));
       }
@@ -3524,7 +3527,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           <For each={TRACTATE_OPTIONS}>
             {(opt) => (
               <option value={opt.value}>
-                {opt.value} · {opt.label}
+                {lang() === 'he' ? opt.label : `${opt.value} · ${opt.label}`}
               </option>
             )}
           </For>

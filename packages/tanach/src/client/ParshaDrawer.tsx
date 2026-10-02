@@ -5,6 +5,7 @@ import { revealInPanel } from '@corpus/ui/reveal';
 import { ChoiceCard, SectionHeading, SourceCard, StatusMessage } from '@corpus/ui/Study';
 import { StudyOverview } from '@corpus/ui/StudyOverview';
 import { createEffect, createResource, createSignal, For, type JSX, Show } from 'solid-js';
+import { localizeRef } from '../lib/books.ts';
 import {
   type ParshaFlowSection,
   type ParshaSectionStudy,
@@ -133,7 +134,7 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
   return (
     <section class="parsha-study">
       <StudyOverview
-        reference={props.study.ref}
+        reference={localizeRef(props.study.ref, props.lang)}
         title={textFor(props.lang, props.study.titleEn, props.study.titleHe)}
       >
         <TermedProse
@@ -287,7 +288,8 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
       <Show when={threadRequest()}>
         <section class="parsha-thread" ref={(element) => (threadPanel = element)}>
           <p class="parsha-thread-kicker">
-            {selectedFlow()?.ref} · {props.lang === 'he' ? 'מסלול לימוד' : 'study thread'}
+            {localizeRef(selectedFlow()?.ref ?? '', props.lang)} ·{' '}
+            {props.lang === 'he' ? 'מסלול לימוד' : 'study thread'}
           </p>
           <Show when={thread.loading}>
             <StatusMessage>
@@ -327,7 +329,8 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
                         <SourceCard
                           title={
                             <a href={sourceUrl(source.ref)} target="_blank" rel="noreferrer">
-                              {textFor(props.lang, source.labelEn, source.labelHe) || source.ref}
+                              {textFor(props.lang, source.labelEn, source.labelHe) ||
+                                localizeRef(source.ref, props.lang)}
                             </a>
                           }
                           reference={source.ref}

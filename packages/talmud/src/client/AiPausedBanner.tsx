@@ -10,6 +10,7 @@
 import { AiStatusBanner } from '@corpus/ui/AiStatusBanner';
 import { aiStatus } from '@corpus/ui/aiStatus';
 import { createEffect, createSignal, type JSX } from 'solid-js';
+import { lang } from './i18n';
 
 const CONTACT_HREF = 'mailto:shaunregenbaum@gmail.com?subject=Sponsoring%20the%20Talmud%20project';
 
@@ -32,6 +33,7 @@ export function AiPausedBanner(): JSX.Element {
 
   return (
     <AiStatusBanner
+      lang={lang}
       sponsor={() => {
         const rem = remainingUsd();
         const figure =
@@ -40,9 +42,18 @@ export function AiPausedBanner(): JSX.Element {
                 Math.round(rem / 100) * 100
               ).toLocaleString('en-US')} more in AI.`
             : '';
+        const he = lang() === 'he';
+        const figureHe =
+          rem != null
+            ? ` העלאת כל התלמוד לרמת העומק המלאה תעלה בערך ${(
+                Math.round(rem / 100) * 100
+              ).toLocaleString('en-US')} דולר נוספים ב-AI.`
+            : '';
         return {
-          message: `This is a self-funded project (about $300/week of AI).${figure} If you'd like to help finish Shas, get in touch.`,
-          ctaLabel: 'Sponsor / get in touch',
+          message: he
+            ? `זה פרויקט במימון עצמי (כ-300 דולר לשבוע ל-AI).${figureHe} אם תרצו לעזור לסיים את הש"ס, צרו קשר.`
+            : `This is a self-funded project (about $300/week of AI).${figure} If you'd like to help finish Shas, get in touch.`,
+          ctaLabel: he ? 'לתמיכה / ליצירת קשר' : 'Sponsor / get in touch',
           ctaHref: CONTACT_HREF,
         };
       }}

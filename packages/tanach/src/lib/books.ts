@@ -81,3 +81,17 @@ export function isBook(name: string): boolean {
 }
 
 export const SECTIONS: Section[] = ['Torah', "Nevi'im", 'Ketuvim'];
+
+const BOOKS_LONGEST_FIRST = [...BOOKS].sort((a, b) => b.name.length - a.name.length);
+
+/** A reference like "Deuteronomy 14:22-16:17" with the book named in Hebrew when
+ *  `lang` is 'he'. The numbers are wrapped in a left-to-right isolate so the verse
+ *  range keeps its order inside a right-to-left line. Refs that do not start with
+ *  a Tanach book (Rashi on ..., Talmud pages) come back unchanged. */
+export function localizeRef(ref: string, lang: 'en' | 'he'): string {
+  if (lang !== 'he') return ref;
+  const book = BOOKS_LONGEST_FIRST.find((b) => ref === b.name || ref.startsWith(`${b.name} `));
+  if (!book) return ref;
+  const rest = ref.slice(book.name.length).trim();
+  return rest ? `${book.he} ⁦${rest}⁩` : book.he;
+}

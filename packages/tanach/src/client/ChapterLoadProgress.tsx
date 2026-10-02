@@ -9,8 +9,9 @@
 import { LoadProgress } from '@corpus/ui/LoadProgress';
 import { createMemo, type JSX } from 'solid-js';
 import { chapterLoadEntries } from './chapterLoad.ts';
+import { t } from './i18n.ts';
 
-export function ChapterLoadProgress(): JSX.Element {
+export function ChapterLoadProgress(props: { lang: 'en' | 'he' }): JSX.Element {
   const cohort = createMemo(() => {
     const all = chapterLoadEntries();
     const done = all.filter((e) => e.state === 'ok' || e.state === 'error').length;
@@ -30,8 +31,9 @@ export function ChapterLoadProgress(): JSX.Element {
 
   const label = createMemo(() => {
     const c = cohort();
-    if (c.loadingLabel) return `Loading ${c.loadingLabel.toLowerCase()}…`;
-    return 'Up to date';
+    // The tracker stores an i18n key as the label, so the bar speaks the app language.
+    if (c.loadingLabel) return t(c.loadingLabel as Parameters<typeof t>[0], props.lang);
+    return t('upToDate', props.lang);
   });
 
   return <LoadProgress percent={percent} label={label} loading={loading} variant="banner" />;
