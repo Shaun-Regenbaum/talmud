@@ -5,8 +5,26 @@
  * exposes Run / Re-run / Refresh per stage. Top bar shows global coverage
  * and lets you compile graph / cohort / places-index / academy-roster.
  */
+import { Button } from '@corpus/ui/Button';
+import { DetailSection } from '@corpus/ui/MetricSummary';
+import { Select } from '@corpus/ui/Select';
+import {
+  ChoiceCard,
+  FilterChip,
+  Input,
+  SectionHeading,
+  StatCard,
+  StatusMessage,
+} from '@corpus/ui/Study';
 import { createMemo, createResource, createSignal, For, type JSX, Show } from 'solid-js';
-import { t } from './i18n';
+import {
+  colorForGeneration,
+  GENERATION_BY_ID,
+  type GenerationId,
+  generationLabelHe,
+} from './generations';
+import { lang, t } from './i18n';
+import './sages.css';
 import { SageCoverageStrip } from './SageCoverageStrip';
 import { SageNetworkSection } from './SageNetworkSection';
 import { type IndexRow, isHebrewQuery, normalize, scoreRow } from './sageSearch';
@@ -126,6 +144,30 @@ async function getJSON<T>(url: string): Promise<T | null> {
   return res.json() as Promise<T>;
 }
 
+/* -------- display helpers -------- */
+
+type NameFor = (slug: string) => string;
+
+/** A generation id as a reader-facing label in the app language. */
+function genLabel(id: string | null | undefined): string {
+  if (!id) return '';
+  const info = GENERATION_BY_ID[id as GenerationId];
+  if (!info) return id;
+  return lang() === 'he' ? generationLabelHe(info) : info.label;
+}
+
+function regionLabel(r: string | null | undefined): string {
+  if (r === 'israel') return t('sages.region.israel');
+  if (r === 'bavel') return t('sages.region.bavel');
+  return r ?? '';
+}
+
+/** The sage's name in the app language first, the other language second. */
+function namePair(en: string, he: string | null | undefined): { main: string; other: string } {
+  if (lang() === 'he' && he) return { main: he, other: en };
+  return { main: en, other: he ?? '' };
+}
+
 /* -------- missing-from-registry panel -------- */
 
 interface BacklogRabbi {
@@ -156,34 +198,30 @@ function MissingSagesPanel(): JSX.Element {
     return `?tractate=${encodeURIComponent(label.slice(0, i))}&page=${encodeURIComponent(label.slice(i + 1))}#daf`;
   };
   return (
-    <div class="sages-missing">
-      <button
-        type="button"
-        class="sages-missing-toggle"
-        aria-expanded={open()}
-        onClick={() => setOpen((o) => !o)}
+    <DetailSection title={t('sages.missing.title')} onToggle={setOpen}>
+      <Show
+        when={backlog()}
+        fallback={<StatusMessage tone="loading">{t('sages.list.loading')}</StatusMessage>}
       >
-        {open() ? '▾' : '▸'} {t('sages.missing.title')}
-      </button>
-      <Show when={open()}>
-        <Show when={backlog()} fallback={<div class="sages-empty">{t('sages.list.loading')}</div>}>
-          {(b) => (
-            <>
-              <Show when={!b().rabbis}>
-                <p class="sages-missing-note">{t('sages.missing.unavailable')}</p>
-              </Show>
-              <p class="sages-missing-note">
-                {t('sages.missing.note', {
-                  total: b().rabbis?.total ?? 0,
-                  scanned: b().rabbis?.scanned ?? 0,
-                })}
-              </p>
-              <For each={b().rabbis?.sample ?? []}>
-                {(r) => (
+        {(b) => (
+          <>
+            <Show when={!b().rabbis}>
+              <p class="sages-note">{t('sages.missing.unavailable')}</p>
+            </Show>
+            <p class="sages-note">
+              {t('sages.missing.note', {
+                total: b().rabbis?.total ?? 0,
+                scanned: b().rabbis?.scanned ?? 0,
+              })}
+            </p>
+            <For each={b().rabbis?.sample ?? []}>
+              {(r) => {
+                const n = namePair(r.name, r.nameHe);
+                return (
                   <div class="sages-missing-row">
-                    <span class="sages-list-name">{r.name}</span>
-                    <Show when={r.nameHe}>
-                      <span class="sages-list-name-he">{r.nameHe}</span>
+                    <strong>{n.main}</strong>
+                    <Show when={n.other}>
+                      <span class="sages-muted">{n.other}</span>
                     </Show>
                     <span class="sages-missing-count">×{r.count}</span>
                     <span class="sages-missing-dafs">
@@ -196,13 +234,13 @@ function MissingSagesPanel(): JSX.Element {
                       </For>
                     </span>
                   </div>
-                )}
-              </For>
-            </>
-          )}
-        </Show>
+                );
+              }}
+            </For>
+          </>
+        )}
       </Show>
-    </div>
+    </DetailSection>
   );
 }
 
@@ -276,6 +314,13 @@ export function SagesPage(): JSX.Element {
     return [...set].sort();
   });
 
+  // slug -> row, so every sage link can show a name instead of a slug.
+  const rowBySlug = createMemo(() => new Map((index()?.rows ?? []).map((r) => [r.slug, r])));
+  const nameFor: NameFor = (slug) => {
+    const row = rowBySlug().get(slug);
+    return row ? namePair(row.canonical, row.canonicalHe).main : slug;
+  };
+
   const ranked = createMemo<IndexRow[]>(() => {
     const rows = index()?.rows ?? [];
     const reg = region();
@@ -301,178 +346,158 @@ export function SagesPage(): JSX.Element {
     return scored.map((x) => x.r);
   });
 
+  const globalStamp = (id: (typeof COMPILES)[number]['id'], s: CacheStats): string | null =>
+    id === 'graph'
+      ? s.globals.graph
+      : id === 'cohort'
+        ? s.globals.cohort
+        : id === 'places-index'
+          ? s.globals.placesIndex
+          : s.globals.academyRoster;
+
   return (
-    <div class="sages-page">
-      <style>{SAGES_CSS}</style>
-
-      <header class="sages-head">
-        <div class="sages-head-row">
-          <h1 class="sages-title">{t('sages.title')}</h1>
-          <Show when={index()}>
-            {(idx) => (
-              <span class="sages-count">
-                {ranked().length === idx().count
-                  ? t('sages.count.all', { count: idx().count })
-                  : t('sages.count.filtered', { shown: ranked().length, total: idx().count })}
-              </span>
-            )}
-          </Show>
-        </div>
-
-        <div class="sages-stats">
-          <Show when={stats.loading && !stats()}>
-            <span class="sages-stats-loading">{t('sages.stats.loading')}</span>
-          </Show>
-          <Show when={stats()}>
-            {(s) => (
-              <>
-                <span class="stats-cell">
-                  {t('sages.stats.unified')} <b>{s().perSage.unified}</b>
-                  <span class="stats-tot">/{s().totalSlugs}</span>
-                </span>
-                <span class="stats-cell">
-                  {t('sages.stats.wikidata')} <b>{s().perSage.wikidata}</b>
-                </span>
-                <span class="stats-cell">
-                  {t('sages.stats.wikiBio')} <b>{s().perSage.wikiBio}</b>
-                </span>
-                <span class="stats-divider">·</span>
-                <For each={COMPILES}>
-                  {(c) => {
-                    const ts =
-                      c.id === 'graph'
-                        ? s().globals.graph
-                        : c.id === 'cohort'
-                          ? s().globals.cohort
-                          : c.id === 'places-index'
-                            ? s().globals.placesIndex
-                            : s().globals.academyRoster;
-                    return (
-                      <button
-                        type="button"
-                        class="compile-btn"
-                        classList={{ 'compile-btn-fresh': !!ts }}
-                        disabled={!!compiling()[c.id]}
-                        onClick={() => runCompile(c.id)}
-                        title={t('sages.compile.title', {
-                          desc: t(c.descKey),
-                          last: ts ? new Date(ts).toLocaleString() : t('sages.compile.never'),
-                        })}
-                      >
-                        {compiling()[c.id]
-                          ? t('sages.compile.running', { name: t(c.labelKey) })
-                          : t('sages.compile.action', { name: t(c.labelKey) })}
-                        <Show when={ts}>
-                          <span class="compile-btn-ts">{fmtDate(ts as string)}</span>
-                        </Show>
-                        <Show when={compileErr()[c.id]}>
-                          <span class="compile-btn-err">{t('sages.compile.err')}</span>
-                        </Show>
-                      </button>
-                    );
-                  }}
-                </For>
-              </>
-            )}
-          </Show>
-        </div>
-        <div class="sages-controls">
-          <input
-            type="text"
-            class="sages-search"
-            placeholder={t('sages.search.placeholder')}
-            value={filter()}
-            onInput={(e) => setFilter(e.currentTarget.value)}
-            autofocus
-          />
-          <div class="sages-chips">
-            <span class="chip-label">{t('sages.filter.region')}</span>
-            <button
-              type="button"
-              class="chip"
-              classList={{ 'chip-active': region() === 'all' }}
-              onClick={() => setRegion('all')}
-            >
-              {t('sages.filter.all')}
-            </button>
-            <button
-              type="button"
-              class="chip"
-              classList={{ 'chip-active': region() === 'israel' }}
-              onClick={() => setRegion('israel')}
-            >
-              {t('sages.region.israel')}
-            </button>
-            <button
-              type="button"
-              class="chip"
-              classList={{ 'chip-active': region() === 'bavel' }}
-              onClick={() => setRegion('bavel')}
-            >
-              {t('sages.region.bavel')}
-            </button>
-          </div>
-          <Show when={generations().length > 0}>
-            <div class="sages-chips">
-              <span class="chip-label">{t('sages.filter.gen')}</span>
-              <select
-                class="sages-gen-select"
-                value={generation()}
-                onChange={(e) => setGeneration(e.currentTarget.value)}
-              >
-                <option value="all">{t('sages.filter.all')}</option>
-                <For each={generations()}>{(g) => <option value={g}>{g}</option>}</For>
-              </select>
-            </div>
-          </Show>
-        </div>
+    <main class="page-shell sages-page">
+      <header class="responsive-row sages-head">
+        <h1 class="sages-title">{t('sages.title')}</h1>
+        <Show when={index()}>
+          {(idx) => (
+            <span class="sages-muted">
+              {ranked().length === idx().count
+                ? t('sages.count.all', { count: idx().count })
+                : t('sages.count.filtered', { shown: ranked().length, total: idx().count })}
+            </span>
+          )}
+        </Show>
+        <a href="#daf" class="sages-back">
+          {t('usage.backToDaf')}
+        </a>
       </header>
 
+      <Show when={stats.loading && !stats()}>
+        <StatusMessage tone="loading">{t('sages.stats.loading')}</StatusMessage>
+      </Show>
+      <Show when={stats()}>
+        {(s) => (
+          <section class="sages-stats">
+            <div class="sages-stat-cards">
+              <StatCard
+                label={t('sages.stats.unified')}
+                value={s().perSage.unified}
+                detail={`/ ${s().totalSlugs}`}
+              />
+              <StatCard label={t('sages.stats.wikidata')} value={s().perSage.wikidata} />
+              <StatCard label={t('sages.stats.wikiBio')} value={s().perSage.wikiBio} />
+            </div>
+            <div class="sages-compiles">
+              <For each={COMPILES}>
+                {(c) => {
+                  const ts = () => globalStamp(c.id, s());
+                  return (
+                    <Button
+                      disabled={!!compiling()[c.id]}
+                      onClick={() => runCompile(c.id)}
+                      title={t('sages.compile.title', {
+                        desc: t(c.descKey),
+                        last: ts()
+                          ? new Date(ts() as string).toLocaleString()
+                          : t('sages.compile.never'),
+                      })}
+                    >
+                      {compiling()[c.id]
+                        ? t('sages.compile.running', { name: t(c.labelKey) })
+                        : t('sages.compile.action', { name: t(c.labelKey) })}
+                      <Show when={ts()}>
+                        <span class="sages-ts">{fmtDate(ts() as string)}</span>
+                      </Show>
+                      <Show when={compileErr()[c.id]}>
+                        <span class="sages-err">{t('sages.compile.err')}</span>
+                      </Show>
+                    </Button>
+                  );
+                }}
+              </For>
+            </div>
+          </section>
+        )}
+      </Show>
+
+      <div class="sages-controls">
+        <Input
+          type="text"
+          class="sages-search"
+          placeholder={t('sages.search.placeholder')}
+          value={filter()}
+          onInput={(e) => setFilter(e.currentTarget.value)}
+          autofocus
+        />
+        <div class="sages-chips">
+          <span class="sages-label">{t('sages.filter.region')}</span>
+          <FilterChip active={region() === 'all'} onClick={() => setRegion('all')}>
+            {t('sages.filter.all')}
+          </FilterChip>
+          <FilterChip active={region() === 'israel'} onClick={() => setRegion('israel')}>
+            {t('sages.region.israel')}
+          </FilterChip>
+          <FilterChip active={region() === 'bavel'} onClick={() => setRegion('bavel')}>
+            {t('sages.region.bavel')}
+          </FilterChip>
+        </div>
+        <Show when={generations().length > 0}>
+          <div class="sages-chips">
+            <span class="sages-label">{t('sages.filter.gen')}</span>
+            <Select
+              aria-label={t('sages.filter.gen')}
+              value={generation()}
+              onChange={(e) => setGeneration(e.currentTarget.value)}
+            >
+              <option value="all">{t('sages.filter.all')}</option>
+              <For each={generations()}>{(g) => <option value={g}>{genLabel(g)}</option>}</For>
+            </Select>
+          </div>
+        </Show>
+      </div>
+
       <div class="sages-grid">
-        <aside class="sages-list panel">
+        <aside class="sages-panel sages-list">
           <Show when={index.loading}>
-            <div class="sages-empty">{t('sages.list.loading')}</div>
+            <StatusMessage tone="loading">{t('sages.list.loading')}</StatusMessage>
           </Show>
           <Show when={!index.loading && ranked().length === 0}>
-            <div class="sages-empty">{t('sages.list.noMatches')}</div>
+            <StatusMessage tone="empty">{t('sages.list.noMatches')}</StatusMessage>
           </Show>
           <For each={ranked().slice(0, 300)}>
-            {(row) => (
-              <button
-                type="button"
-                class="sages-list-item"
-                classList={{ 'sages-list-item-active': selected() === row.slug }}
-                onClick={() => select(row.slug)}
-              >
-                <span class="sages-list-name">{row.canonical}</span>
-                <Show when={row.canonicalHe}>
-                  <span class="sages-list-name-he">{row.canonicalHe}</span>
-                </Show>
-                <span class="sages-list-meta">
-                  <Show when={row.generation}>
-                    <span>{t('sages.meta.gen', { gen: row.generation as string })}</span>
-                  </Show>
-                  <Show when={row.region}>
-                    <span class="sages-list-region">{row.region}</span>
-                  </Show>
-                </span>
-              </button>
-            )}
+            {(row) => {
+              const n = () => namePair(row.canonical, row.canonicalHe);
+              return (
+                <ChoiceCard
+                  title={n().main}
+                  detail={n().other || undefined}
+                  active={selected() === row.slug}
+                  stripe={row.generation ? colorForGeneration(row.generation) : undefined}
+                  onClick={() => select(row.slug)}
+                >
+                  <span class="sages-list-meta">
+                    <Show when={row.generation}>
+                      <span>{genLabel(row.generation)}</span>
+                    </Show>
+                    <Show when={row.region}>
+                      <span>{regionLabel(row.region)}</span>
+                    </Show>
+                  </span>
+                </ChoiceCard>
+              );
+            }}
           </For>
           <Show when={ranked().length > 300}>
-            <div class="sages-list-cap">
-              {t('sages.list.cap', { count: ranked().length - 300 })}
-            </div>
+            <p class="sages-note">{t('sages.list.cap', { count: ranked().length - 300 })}</p>
           </Show>
           <MissingSagesPanel />
         </aside>
 
-        <main class="sages-detail panel">
+        <section class="sages-panel sages-detail">
           <Show
             when={selected()}
-            fallback={
-              <div class="sages-empty sages-empty-large">{t('sages.detail.pickPrompt')}</div>
-            }
+            fallback={<StatusMessage tone="empty">{t('sages.detail.pickPrompt')}</StatusMessage>}
           >
             {(slug) => (
               <SageDetail
@@ -481,15 +506,16 @@ export function SagesPage(): JSX.Element {
                 cohort={cohort()}
                 places={places()}
                 academy={academy()}
+                nameFor={nameFor}
                 onSelect={select}
                 onClose={clearSelection}
                 onStageRan={() => refetchStats()}
               />
             )}
           </Show>
-        </main>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -501,6 +527,7 @@ function SageDetail(props: {
   cohort: CohortBlob | null | undefined;
   places: PlacesBlob | null | undefined;
   academy: AcademyRosterBlob | null | undefined;
+  nameFor: NameFor;
   onSelect: (slug: string) => void;
   onClose: () => void;
   onStageRan: () => void;
@@ -575,93 +602,111 @@ function SageDetail(props: {
   };
 
   const refs = (): UnifiedRecord['refs'] => unified()?.refs ?? {};
+  const SageLinks = (p: { slugs: string[] }): JSX.Element => (
+    <div class="sages-tags">
+      <For each={p.slugs}>
+        {(s) => (
+          <Button class="sages-tag sages-tag-link" onClick={() => props.onSelect(s)}>
+            {props.nameFor(s)}
+          </Button>
+        )}
+      </For>
+    </div>
+  );
 
   return (
     <article class="sage-detail">
       <header class="sage-head">
         <div class="sage-head-titles">
-          <Show when={unified()?.canonical.en} fallback={<h2 class="sage-name">{props.slug}</h2>}>
-            <h2 class="sage-name">
-              {unified()!.canonical.en}
-              <Show when={unified()!.canonical.he}>
-                <span class="sage-name-he"> · {unified()!.canonical.he}</span>
-              </Show>
-            </h2>
+          <Show
+            when={unified()?.canonical.en}
+            fallback={<h2 class="sage-name">{props.nameFor(props.slug)}</h2>}
+          >
+            {(() => {
+              const n = () => namePair(unified()!.canonical.en, unified()!.canonical.he);
+              return (
+                <h2 class="sage-name">
+                  {n().main}
+                  <Show when={n().other}>
+                    <span class="sage-name-other"> · {n().other}</span>
+                  </Show>
+                </h2>
+              );
+            })()}
           </Show>
           <code class="sage-slug">{props.slug}</code>
         </div>
-        <button
-          type="button"
+        <Button
           class="sage-close"
           onClick={props.onClose}
           title={t('sages.detail.clearSelection')}
+          aria-label={t('sages.detail.clearSelection')}
         >
           ×
-        </button>
+        </Button>
       </header>
 
       <Show when={unified.loading && !unified()}>
-        <div class="sage-loading">{t('sages.detail.loadingSage')}</div>
+        <StatusMessage tone="loading">{t('sages.detail.loadingSage')}</StatusMessage>
       </Show>
 
       <Show when={!unified.loading && !unified()}>
-        <div class="sage-empty-state">
-          <span>{t('sages.detail.noUnified')}</span>
-          <button
-            type="button"
-            class="stage-btn primary"
+        <StatusMessage tone="empty">
+          {t('sages.detail.noUnified')}{' '}
+          <Button
+            variant="primary"
             disabled={!!stageRunning().unified}
             onClick={() => runStage('unified')}
             title={t(STAGE_PATHS.unified.descKey)}
           >
             {stageRunning().unified ? t('sages.stage.running') : t('sages.detail.runUnified')}
-          </button>
+          </Button>
           <Show when={stageError().unified}>
-            <span class="stage-err">{stageError().unified}</span>
+            <span class="sages-err">{stageError().unified}</span>
           </Show>
-        </div>
+        </StatusMessage>
       </Show>
 
       <Show when={unified()}>
         {(u) => (
           <>
-            {/* Identity strip. */}
-            <div class="sage-meta-strip">
+            <div class="sages-tags">
               <Show when={u().generation}>
-                <span class="meta-pill">
-                  {t('sages.meta.genLabel')} <b>{u().generation}</b>
+                <span class="sages-pill">
+                  {t('sages.meta.genLabel')} <b>{genLabel(u().generation)}</b>
                 </span>
               </Show>
               <Show when={u().region}>
-                <span class="meta-pill">
-                  {t('sages.meta.region')} <b>{u().region}</b>
+                <span class="sages-pill">
+                  {t('sages.meta.region')} <b>{regionLabel(u().region)}</b>
                 </span>
               </Show>
               <Show when={u().academy}>
-                <span class="meta-pill">
+                <span class="sages-pill">
                   {t('sages.meta.academy')} <b>{u().academy}</b>
                 </span>
               </Show>
               <Show when={u().birthYear || u().deathYear}>
-                <span class="meta-pill">
+                <span class="sages-pill">
                   {u().birthYear ?? '?'}–{u().deathYear ?? '?'}
                 </span>
               </Show>
               <Show when={u().orientation && u().orientation !== 'unknown'}>
-                <span class="meta-pill orientation-{u().orientation}">{u().orientation}</span>
+                <span class="sages-pill">{u().orientation}</span>
               </Show>
               <Show when={u().prominence != null}>
-                <span class="meta-pill">
+                <span class="sages-pill">
                   {t('sages.meta.prominence')} <b>{u().prominence}</b>
                 </span>
               </Show>
             </div>
 
             <Show when={u().aliases.length > 0}>
-              <div class="sage-aliases">
-                <span class="sage-section-label">{t('sages.section.aliases')}</span>
-                <For each={u().aliases}>{(a) => <span class="alias-tag">{a}</span>}</For>
-              </div>
+              <Section label={t('sages.section.aliases')}>
+                <div class="sages-tags">
+                  <For each={u().aliases}>{(a) => <span class="sages-tag">{a}</span>}</For>
+                </div>
+              </Section>
             </Show>
 
             <Show when={u().image?.url}>
@@ -689,27 +734,31 @@ function SageDetail(props: {
                 <p class="sage-prose">{u().bio.en}</p>
               </Show>
               <Show when={u().bio.he}>
-                <p class="sage-prose" dir="rtl" lang="he">
+                <p class="sage-prose sage-prose-he" dir="rtl" lang="he">
                   {u().bio.he}
                 </p>
               </Show>
               <Show when={!u().bio.en && !u().bio.he}>
-                <p class="sage-empty-inline">{t('sages.bio.empty')}</p>
+                <StatusMessage tone="empty">{t('sages.bio.empty')}</StatusMessage>
               </Show>
             </Section>
 
             <Show when={u().characteristics.length > 0}>
               <Section label={t('sages.section.characteristics')}>
-                <div class="tag-row">
-                  <For each={u().characteristics}>{(c) => <span class="char-tag">{c}</span>}</For>
+                <div class="sages-tags">
+                  <For each={u().characteristics}>
+                    {(c) => <span class="sages-tag sages-tag-ochre">{c}</span>}
+                  </For>
                 </div>
               </Section>
             </Show>
 
             <Show when={u().places.length > 0}>
               <Section label={t('sages.section.places')}>
-                <div class="tag-row">
-                  <For each={u().places}>{(p) => <span class="place-tag">{p}</span>}</For>
+                <div class="sages-tags">
+                  <For each={u().places}>
+                    {(p) => <span class="sages-tag sages-tag-teal">{p}</span>}
+                  </For>
                 </div>
               </Section>
             </Show>
@@ -717,80 +766,62 @@ function SageDetail(props: {
             <Show when={hasAnyRelations(u())}>
               <Section label={t('sages.section.relationships')}>
                 <Show when={u().primaryTeacher || u().primaryStudent}>
-                  <div class="rel-primaries">
+                  <div class="sages-tags sages-primaries">
                     <Show when={u().primaryTeacher}>
-                      <button
-                        type="button"
-                        class="rel-primary-btn"
-                        onClick={() => props.onSelect(u().primaryTeacher!)}
-                      >
-                        <span class="rel-arrow">↑</span>
-                        <span class="rel-primary-label">{t('sages.rel.primaryTeacher')}</span>
-                        <span class="rel-primary-slug">{u().primaryTeacher}</span>
-                      </button>
+                      <Button onClick={() => props.onSelect(u().primaryTeacher!)}>
+                        <span aria-hidden="true">↑</span> {t('sages.rel.primaryTeacher')}:{' '}
+                        <b>{props.nameFor(u().primaryTeacher!)}</b>
+                      </Button>
                     </Show>
                     <Show when={u().primaryStudent}>
-                      <button
-                        type="button"
-                        class="rel-primary-btn"
-                        onClick={() => props.onSelect(u().primaryStudent!)}
-                      >
-                        <span class="rel-arrow">↓</span>
-                        <span class="rel-primary-label">{t('sages.rel.primaryStudent')}</span>
-                        <span class="rel-primary-slug">{u().primaryStudent}</span>
-                      </button>
+                      <Button onClick={() => props.onSelect(u().primaryStudent!)}>
+                        <span aria-hidden="true">↓</span> {t('sages.rel.primaryStudent')}:{' '}
+                        <b>{props.nameFor(u().primaryStudent!)}</b>
+                      </Button>
                     </Show>
                   </div>
                 </Show>
                 <EdgeBucket
                   label={t('sages.rel.teachers')}
                   edges={u().teachers}
+                  nameFor={props.nameFor}
                   onSelect={props.onSelect}
                 />
                 <EdgeBucket
                   label={t('sages.rel.students')}
                   edges={u().students}
+                  nameFor={props.nameFor}
                   onSelect={props.onSelect}
                 />
-                <FamilyBucket family={u().family} onSelect={props.onSelect} />
+                <FamilyBucket
+                  family={u().family}
+                  nameFor={props.nameFor}
+                  onSelect={props.onSelect}
+                />
                 <EdgeBucket
                   label={t('sages.rel.opposed')}
                   edges={u().opposed}
+                  nameFor={props.nameFor}
                   onSelect={props.onSelect}
                 />
                 <EdgeBucket
                   label={t('sages.rel.influences')}
                   edges={u().influences}
+                  nameFor={props.nameFor}
                   onSelect={props.onSelect}
                 />
               </Section>
             </Show>
 
             <Show when={contemporaries().length > 0}>
-              <Section label={t('sages.section.contemporaries', { gen: u().generation as string })}>
-                <div class="slug-row">
-                  <For each={contemporaries()}>
-                    {(s) => (
-                      <button type="button" class="slug-tag" onClick={() => props.onSelect(s)}>
-                        {s}
-                      </button>
-                    )}
-                  </For>
-                </div>
+              <Section label={t('sages.section.contemporaries', { gen: genLabel(u().generation) })}>
+                <SageLinks slugs={contemporaries()} />
               </Section>
             </Show>
 
             <Show when={academyMates().length > 0}>
               <Section label={t('sages.section.academyOf', { name: u().academy as string })}>
-                <div class="slug-row">
-                  <For each={academyMates()}>
-                    {(s) => (
-                      <button type="button" class="slug-tag" onClick={() => props.onSelect(s)}>
-                        {s}
-                      </button>
-                    )}
-                  </For>
-                </div>
+                <SageLinks slugs={academyMates()} />
               </Section>
             </Show>
 
@@ -798,21 +829,9 @@ function SageDetail(props: {
               <Section label={t('sages.section.placeMates')}>
                 <For each={placeMates()}>
                   {(pm) => (
-                    <div class="place-mates-row">
-                      <span class="place-mates-place">{pm.place}</span>
-                      <div class="slug-row">
-                        <For each={pm.sages}>
-                          {(s) => (
-                            <button
-                              type="button"
-                              class="slug-tag"
-                              onClick={() => props.onSelect(s)}
-                            >
-                              {s}
-                            </button>
-                          )}
-                        </For>
-                      </div>
+                    <div class="sages-place-mates">
+                      <strong>{pm.place}</strong>
+                      <SageLinks slugs={pm.sages} />
                     </div>
                   )}
                 </For>
@@ -821,7 +840,7 @@ function SageDetail(props: {
 
             <Show when={u().events.length > 0}>
               <Section label={t('sages.section.events')}>
-                <ul class="event-list">
+                <ul class="sage-events">
                   <For each={u().events}>{(e) => <li>{e}</li>}</For>
                 </ul>
               </Section>
@@ -829,15 +848,7 @@ function SageDetail(props: {
 
             <Show when={u().contemporaries?.length > 0 && contemporaries().length === 0}>
               <Section label={t('sages.section.contemporariesRecord')}>
-                <div class="slug-row">
-                  <For each={u().contemporaries}>
-                    {(s) => (
-                      <button type="button" class="slug-tag" onClick={() => props.onSelect(s)}>
-                        {s}
-                      </button>
-                    )}
-                  </For>
-                </div>
+                <SageLinks slugs={u().contemporaries} />
               </Section>
             </Show>
           </>
@@ -848,50 +859,33 @@ function SageDetail(props: {
 
       <SageNetworkSection slug={props.slug} />
 
-      {/* External refs. */}
       <Show when={hasAnyRefs(refs())}>
         <Section label={t('sages.section.externalRefs')}>
-          <div class="ref-row">
+          <div class="sages-tags">
             <Show when={refs().sefariaSlug}>
-              <a
-                class="ref-link"
-                href={`https://www.sefaria.org/topics/${refs().sefariaSlug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <ExtLink href={`https://www.sefaria.org/topics/${refs().sefariaSlug}`}>
                 {t('sages.refs.sefaria')}
-              </a>
+              </ExtLink>
             </Show>
             <Show when={refs().enWiki}>
-              <a class="ref-link" href={refs().enWiki} target="_blank" rel="noopener noreferrer">
-                {t('sages.refs.wikipediaEn')}
-              </a>
+              <ExtLink href={refs().enWiki as string}>{t('sages.refs.wikipediaEn')}</ExtLink>
             </Show>
             <Show when={refs().heWiki}>
-              <a class="ref-link" href={refs().heWiki} target="_blank" rel="noopener noreferrer">
-                {t('sages.refs.wikipediaHe')}
-              </a>
+              <ExtLink href={refs().heWiki as string}>{t('sages.refs.wikipediaHe')}</ExtLink>
             </Show>
             <Show when={refs().je}>
-              <a class="ref-link" href={refs().je} target="_blank" rel="noopener noreferrer">
-                {t('sages.refs.jewishEncyclopedia')}
-              </a>
+              <ExtLink href={refs().je as string}>{t('sages.refs.jewishEncyclopedia')}</ExtLink>
             </Show>
             <Show when={refs().wikidata}>
-              <a class="ref-link" href={refs().wikidata} target="_blank" rel="noopener noreferrer">
-                {t('sages.refs.wikidata')}
-              </a>
+              <ExtLink href={refs().wikidata as string}>{t('sages.refs.wikidata')}</ExtLink>
             </Show>
           </div>
         </Section>
       </Show>
 
-      {/* Operator tools — enrichment stages + provenance, tucked away so the
+      {/* Operator tools — enrichment steps + provenance, folded away so the
           page reads as a rabbi profile first. */}
-      <details class="sage-ops">
-        <summary>{t('sages.ops.title')}</summary>
-
-        {/* Wikipedia. Always renders so Run/Refresh stays reachable. */}
+      <DetailSection title={t('sages.ops.title')}>
         <Section
           label={t('sages.section.wikipedia')}
           actions={
@@ -906,30 +900,30 @@ function SageDetail(props: {
         >
           <Show
             when={wikiBio()}
-            fallback={<p class="sage-empty-inline">{t('sages.wiki.noExtract')}</p>}
+            fallback={<StatusMessage tone="empty">{t('sages.wiki.noExtract')}</StatusMessage>}
           >
             {(w) => (
               <Show
                 when={w().enWiki || w().heWiki}
-                fallback={<p class="sage-empty-inline">{t('sages.wiki.noPage')}</p>}
+                fallback={<StatusMessage tone="empty">{t('sages.wiki.noPage')}</StatusMessage>}
               >
                 <Show when={w().enWiki}>
                   {(p) => (
-                    <div class="wiki-block">
-                      <a class="wiki-link" href={p().url} target="_blank" rel="noopener noreferrer">
+                    <div class="sage-wiki">
+                      <ExtLink href={p().url}>
                         {t('sages.wiki.enPrefix')} {p().title}
-                      </a>
-                      <p class="wiki-extract">{p().extract}</p>
+                      </ExtLink>
+                      <p class="sage-prose">{p().extract}</p>
                     </div>
                   )}
                 </Show>
                 <Show when={w().heWiki}>
                   {(p) => (
-                    <div class="wiki-block">
-                      <a class="wiki-link" href={p().url} target="_blank" rel="noopener noreferrer">
+                    <div class="sage-wiki">
+                      <ExtLink href={p().url}>
                         {t('sages.wiki.hePrefix')} {p().title}
-                      </a>
-                      <p class="wiki-extract" dir="rtl" lang="he">
+                      </ExtLink>
+                      <p class="sage-prose sage-prose-he" dir="rtl" lang="he">
                         {p().extract}
                       </p>
                     </div>
@@ -940,7 +934,6 @@ function SageDetail(props: {
           </Show>
         </Section>
 
-        {/* Wikidata. Always renders so Run/Refresh stays reachable. */}
         <Section
           label={t('sages.section.wikidata')}
           actions={
@@ -955,21 +948,14 @@ function SageDetail(props: {
         >
           <Show
             when={wikidata()}
-            fallback={<p class="sage-empty-inline">{t('sages.wikidata.noRecord')}</p>}
+            fallback={<StatusMessage tone="empty">{t('sages.wikidata.noRecord')}</StatusMessage>}
           >
             {(w) => (
               <>
-                <div class="wd-head">
-                  <a
-                    class="wd-qid"
-                    href={`https://www.wikidata.org/wiki/${w().qid}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {w().qid}
-                  </a>
+                <div class="sages-tags">
+                  <ExtLink href={`https://www.wikidata.org/wiki/${w().qid}`}>{w().qid}</ExtLink>
                   <Show when={w().birthYear || w().deathYear}>
-                    <span class="wd-years">
+                    <span class="sages-muted">
                       {w().birthYear ?? '?'}–{w().deathYear ?? '?'}
                     </span>
                   </Show>
@@ -985,15 +971,21 @@ function SageDetail(props: {
             <footer class="sage-foot">
               <span>{t('sages.foot.enriched', { date: fmtDate(u().enrichedAt) })}</span>
               <Show when={u().sources.length > 0}>
-                <span class="sage-foot-sources">
-                  {t('sages.foot.sources', { sources: u().sources.join(', ') })}
-                </span>
+                <span>{t('sages.foot.sources', { sources: u().sources.join(', ') })}</span>
               </Show>
             </footer>
           )}
         </Show>
-      </details>
+      </DetailSection>
     </article>
+  );
+}
+
+function ExtLink(props: { href: string; children: JSX.Element }): JSX.Element {
+  return (
+    <a class="sages-ext" href={props.href} target="_blank" rel="noopener noreferrer">
+      {props.children}
+    </a>
   );
 }
 
@@ -1004,12 +996,7 @@ function Section(props: {
 }): JSX.Element {
   return (
     <section class="sage-section">
-      <div class="sage-section-head">
-        <h3 class="sage-section-label">{props.label}</h3>
-        <Show when={props.actions}>
-          <div class="sage-section-actions">{props.actions}</div>
-        </Show>
-      </div>
+      <SectionHeading title={props.label} detail={props.actions} />
       {props.children}
     </section>
   );
@@ -1025,29 +1012,26 @@ function StageActions(props: {
   return (
     <>
       <Show when={!props.cached}>
-        <button
-          type="button"
-          class="stage-btn primary"
+        <Button
+          variant="primary"
           disabled={props.running}
           onClick={() => props.onRun(props.stage)}
           title={t(STAGE_PATHS[props.stage].descKey)}
         >
           {props.running ? t('sages.stage.running') : t('sages.stage.run')}
-        </button>
+        </Button>
       </Show>
       <Show when={props.cached}>
-        <button
-          type="button"
-          class="stage-btn"
+        <Button
           disabled={props.running}
           onClick={() => props.onRun(props.stage, true)}
           title={t('sages.stage.refreshTitle')}
         >
           {props.running ? t('sages.stage.refreshing') : t('sages.stage.refresh')}
-        </button>
+        </Button>
       </Show>
       <Show when={props.error}>
-        <span class="stage-err">{props.error}</span>
+        <span class="sages-err">{props.error}</span>
       </Show>
     </>
   );
@@ -1056,20 +1040,19 @@ function StageActions(props: {
 function EdgeBucket(props: {
   label: string;
   edges: RabbiEdge[];
+  nameFor: NameFor;
   onSelect: (s: string) => void;
 }): JSX.Element {
   return (
     <Show when={props.edges.length > 0}>
-      <div class="rel-bucket">
-        <span class="rel-bucket-label">{props.label}</span>
-        <div class="rel-edges">
+      <div class="sages-bucket">
+        <span class="sages-label">{props.label}</span>
+        <div class="sages-tags">
           <For each={props.edges}>
             {(e) => (
-              <Show when={e.slug} fallback={<span class="rel-edge rel-edge-noslug">{e.name}</span>}>
-                <button
-                  type="button"
-                  class="rel-edge"
-                  classList={{ 'rel-edge-sefaria': e.source === 'sefaria' }}
+              <Show when={e.slug} fallback={<span class="sages-tag sages-tag-dim">{e.name}</span>}>
+                <Button
+                  class="sages-tag sages-tag-link"
                   onClick={() => props.onSelect(e.slug!)}
                   title={
                     e.weight != null
@@ -1080,11 +1063,11 @@ function EdgeBucket(props: {
                       : t('sages.edge.source', { source: e.source })
                   }
                 >
-                  {e.slug}
+                  {props.nameFor(e.slug!)}
                   <Show when={e.weight != null}>
-                    <span class="rel-edge-weight">{(e.weight as number).toFixed(2)}</span>
+                    <span class="sages-ts">{(e.weight as number).toFixed(2)}</span>
                   </Show>
-                </button>
+                </Button>
               </Show>
             )}
           </For>
@@ -1094,33 +1077,33 @@ function EdgeBucket(props: {
   );
 }
 
-function FamilyBucket(props: { family: FamilyEdge[]; onSelect: (s: string) => void }): JSX.Element {
+function FamilyBucket(props: {
+  family: FamilyEdge[];
+  nameFor: NameFor;
+  onSelect: (s: string) => void;
+}): JSX.Element {
   return (
     <Show when={props.family.length > 0}>
-      <div class="rel-bucket">
-        <span class="rel-bucket-label">{t('sages.rel.family')}</span>
-        <div class="rel-edges">
+      <div class="sages-bucket">
+        <span class="sages-label">{t('sages.rel.family')}</span>
+        <div class="sages-tags">
           <For each={props.family}>
             {(e) => (
               <Show
                 when={e.slug}
                 fallback={
-                  <span class="rel-edge rel-edge-noslug">
-                    <span class="rel-relation">{e.relation}</span>
-                    {e.name}
+                  <span class="sages-tag sages-tag-dim">
+                    <span class="sages-ts">{e.relation}</span> {e.name}
                   </span>
                 }
               >
-                <button
-                  type="button"
-                  class="rel-edge"
-                  classList={{ 'rel-edge-sefaria': e.source === 'sefaria' }}
+                <Button
+                  class="sages-tag sages-tag-link"
                   onClick={() => props.onSelect(e.slug!)}
                   title={t('sages.edge.source', { source: e.source })}
                 >
-                  <span class="rel-relation">{e.relation}</span>
-                  {e.slug}
-                </button>
+                  <span class="sages-ts">{e.relation}</span> {props.nameFor(e.slug!)}
+                </Button>
               </Show>
             )}
           </For>
@@ -1144,27 +1127,18 @@ function WikidataEdges(props: { rec: WikidataRecord }): JSX.Element {
   };
   return (
     <Show when={rows().length > 0}>
-      <div class="wd-edges">
-        <For each={rows()}>
-          {(row) => (
-            <div class="wd-edge-row">
-              <span class="rel-relation">{row.label}</span>
+      <For each={rows()}>
+        {(row) => (
+          <div class="sages-bucket">
+            <span class="sages-label">{row.label}</span>
+            <div class="sages-tags">
               <For each={row.ids}>
-                {(id) => (
-                  <a
-                    class="wd-ref"
-                    href={`https://www.wikidata.org/wiki/${id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {id}
-                  </a>
-                )}
+                {(id) => <ExtLink href={`https://www.wikidata.org/wiki/${id}`}>{id}</ExtLink>}
               </For>
             </div>
-          )}
-        </For>
-      </div>
+          </div>
+        )}
+      </For>
     </Show>
   );
 }
@@ -1191,161 +1165,3 @@ function fmtDate(s: string): string {
     return s;
   }
 }
-
-const SAGES_CSS = `
-.sages-page { max-width: 1280px; margin: 0 auto; padding: 1rem 1.25rem 2rem; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; color: #0f172a; }
-.sages-page .panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; }
-
-.sages-head { margin-bottom: 1rem; }
-.sages-head-row { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 0.6rem; }
-.sages-title { margin: 0; font-size: 22px; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
-.sages-count { font-size: 12px; color: #7a7d82; }
-
-.sages-stats { display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap; padding: 0.4rem 0.65rem; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 11.5px; color: #5b5f66; margin-bottom: 0.55rem; }
-.sages-stats-loading { color: #94a3b8; font-style: italic; }
-.stats-cell { font-size: 11.5px; color: #5b5f66; }
-.stats-cell b { color: #0f172a; font-weight: 600; }
-.stats-tot { color: #94a3b8; }
-.stats-divider { color: #cbd5e1; padding: 0 0.15rem; }
-.compile-btn { background: white; border: 1px solid #cbd5e1; color: #5b5f66; padding: 0.18rem 0.55rem; font-size: 11px; border-radius: 999px; cursor: pointer; display: inline-flex; gap: 0.3rem; align-items: baseline; }
-.compile-btn:hover:not(:disabled) { background: #f1f5f9; color: #0f172a; }
-.compile-btn:disabled { opacity: 0.55; cursor: not-allowed; }
-.compile-btn-fresh { background: #eef2ec; border-color: #b4c8ae; color: #166534; }
-.compile-btn-fresh:hover:not(:disabled) { background: #dde6da; }
-.compile-btn-ts { font-size: 9.5px; color: #94a3b8; font-family: ui-monospace, Menlo, monospace; }
-.compile-btn-fresh .compile-btn-ts { color: #4d7c0f; }
-.compile-btn-err { font-size: 9.5px; color: #9c4a36; margin-left: 0.2rem; }
-
-.sages-controls { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
-.sages-search { flex: 1; min-width: 240px; padding: 0.5rem 0.75rem; font-size: 13.5px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
-.sages-search:focus { outline: 2px solid #4b5478; outline-offset: -1px; border-color: #4b5478; }
-.sages-chips { display: flex; gap: 0.3rem; align-items: center; }
-.chip-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #7a7d82; margin-right: 0.2rem; }
-.chip { background: white; border: 1px solid #cbd5e1; padding: 0.25rem 0.6rem; font-size: 11.5px; border-radius: 999px; cursor: pointer; color: #5b5f66; }
-.chip:hover { background: #f1f5f9; color: #1e293b; }
-.chip-active { background: #1e293b; color: #fff; border-color: #0f172a; }
-.chip-active:hover { background: #0f172a; color: #fff; }
-.sages-gen-select { padding: 0.25rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; background: #fff; }
-
-.sages-grid { display: grid; grid-template-columns: 320px 1fr; gap: 0.85rem; align-items: start; }
-@media (max-width: 760px) { .sages-grid { grid-template-columns: 1fr; } }
-
-.sages-list { padding: 0.5rem; max-height: 78vh; overflow-y: auto; }
-.sages-empty { color: #94a3b8; font-style: italic; font-size: 12.5px; padding: 1rem; text-align: center; }
-.sage-ops { border-top: 1px dashed #e2e8f0; margin-top: 1.2rem; padding-top: 0.6rem; }
-.sage-ops > summary { cursor: pointer; color: #94a3b8; font-size: 12px; font-weight: 600; }
-.sages-missing { border-top: 1px solid #e2e8f0; margin-top: 0.6rem; padding: 0.4rem 0.2rem; }
-.sages-missing-toggle { border: none; background: transparent; cursor: pointer; font-size: 12.5px; font-weight: 600; color: #8a6d3b; padding: 0.3rem 0.5rem; width: 100%; text-align: start; }
-.sages-missing-note { color: #94a3b8; font-size: 11.5px; margin: 0.2rem 0.5rem 0.5rem; line-height: 1.4; }
-.sages-missing-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35rem; padding: 0.25rem 0.5rem; font-size: 12.5px; border-bottom: 1px dashed #eef2f7; }
-.sages-missing-count { color: #8a6d3b; font-weight: 600; font-size: 11.5px; }
-.sages-missing-dafs { display: inline-flex; flex-wrap: wrap; gap: 0.3rem; }
-.sages-missing-daf { color: #7a7d82; font-size: 11px; text-decoration: none; border: 1px solid #e2e8f0; border-radius: 5px; padding: 0 0.3rem; }
-.sages-empty-large { padding: 3rem 1rem; font-size: 14px; }
-.sages-list-item { display: flex; flex-direction: column; gap: 0.15rem; align-items: flex-start; text-align: left; padding: 0.4rem 0.55rem; border: none; border-radius: 4px; background: transparent; cursor: pointer; width: 100%; box-sizing: border-box; }
-.sages-list-item:hover { background: #f1f5f9; }
-.sages-list-item-active { background: #1e293b; color: white; }
-.sages-list-item-active .sages-list-meta span,
-.sages-list-item-active .sages-list-name-he { color: #cbd5e1; }
-.sages-list-item-active:hover { background: #0f172a; }
-.sages-list-name { font-weight: 600; font-size: 13px; color: inherit; }
-.sages-list-name-he { font-family: 'SBL Hebrew', 'Arial Hebrew', David, serif; font-size: 12.5px; color: #7a7d82; }
-.sages-list-meta { display: flex; gap: 0.35rem; font-size: 10px; color: #94a3b8; flex-wrap: wrap; }
-.sages-list-meta span { background: rgba(0,0,0,0.04); padding: 0 5px; border-radius: 8px; }
-.sages-list-item-active .sages-list-meta span { background: rgba(255,255,255,0.12); }
-.sages-list-region { text-transform: uppercase; letter-spacing: 0.04em; }
-.sages-list-cap { font-size: 10.5px; color: #94a3b8; padding: 0.6rem; font-style: italic; text-align: center; }
-
-.sages-detail { padding: 1rem 1.25rem; min-height: 200px; min-width: 0; width: 100%; max-width: 100%; max-height: 82vh; overflow-y: auto; }
-.sages-list { min-width: 0; width: 100%; max-width: 100%; }
-.sage-detail { display: flex; flex-direction: column; gap: 0.75rem; }
-.sage-head { display: flex; align-items: flex-start; gap: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
-.sage-head-titles { flex: 1; min-width: 0; }
-.sage-name { margin: 0; font-size: 22px; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
-.sage-name-he { font-family: 'SBL Hebrew', 'Arial Hebrew', David, serif; font-weight: 500; color: #5b5f66; font-size: 19px; }
-.sage-slug { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #94a3b8; background: #f1f5f9; padding: 1px 6px; border-radius: 3px; display: inline-block; margin-top: 0.2rem; }
-.sage-close { background: transparent; border: none; font-size: 22px; line-height: 1; color: #94a3b8; cursor: pointer; padding: 0 0.4rem; }
-.sage-close:hover { color: #0f172a; }
-.sage-loading { color: #94a3b8; font-style: italic; padding: 1rem 0; }
-/* sage-empty-state defined below with action layout */
-
-.sage-meta-strip { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-.meta-pill { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 2px 8px; font-size: 11.5px; color: #5b5f66; border-radius: 999px; }
-.meta-pill b { color: #0f172a; font-weight: 600; }
-
-.sage-aliases { display: flex; gap: 0.35rem; flex-wrap: wrap; align-items: baseline; }
-.alias-tag { font-family: ui-monospace, Menlo, monospace; font-size: 11px; padding: 1px 6px; background: #fff; border: 1px dashed #cbd5e1; color: #5b5f66; border-radius: 3px; }
-
-.sage-image { margin: 0; max-width: 220px; }
-.sage-image img { width: 100%; height: auto; border-radius: 4px; border: 1px solid #e5e7eb; }
-.sage-image figcaption { font-size: 10.5px; color: #94a3b8; margin-top: 0.2rem; font-style: italic; }
-
-.sage-section { display: flex; flex-direction: column; gap: 0.4rem; }
-.sage-section-head { display: flex; align-items: baseline; gap: 0.5rem; }
-.sage-section-label { margin: 0; font-size: 10.5px; font-weight: 700; color: #7a7d82; text-transform: uppercase; letter-spacing: 0.08em; }
-.sage-section-actions { margin-left: auto; display: flex; gap: 0.3rem; align-items: baseline; }
-.stage-btn { background: white; border: 1px solid #cbd5e1; color: #5b5f66; padding: 0.2rem 0.6rem; font-size: 11px; border-radius: 4px; cursor: pointer; }
-.stage-btn:hover:not(:disabled) { background: #f1f5f9; color: #0f172a; }
-.stage-btn:disabled { opacity: 0.55; cursor: not-allowed; }
-.stage-btn.primary { background: #1e293b; color: white; border-color: #0f172a; }
-.stage-btn.primary:hover:not(:disabled) { background: #0f172a; }
-.stage-err { font-size: 10.5px; color: #9c4a36; margin-left: 0.2rem; }
-.sage-empty-inline { margin: 0; font-size: 12px; color: #94a3b8; font-style: italic; }
-.sage-empty-state { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; color: #7a7d82; font-size: 13px; padding: 0.75rem; background: #f8fafc; border-radius: 4px; }
-
-.sage-prose { margin: 0; font-size: 13.5px; line-height: 1.6; color: #1e293b; }
-.sage-prose[dir="rtl"] { font-family: 'SBL Hebrew', 'Arial Hebrew', David, serif; font-size: 14px; }
-
-.tag-row { display: flex; gap: 0.3rem; flex-wrap: wrap; }
-.char-tag { font-size: 11px; padding: 1px 7px; background: #fef3c7; border: 1px solid #fde68a; color: #7a5424; border-radius: 999px; }
-.place-tag { font-size: 11px; padding: 1px 7px; background: #edf2f1; border: 1px solid #dbe6e4; color: #155e75; border-radius: 999px; }
-
-.rel-primaries { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-bottom: 0.4rem; border-bottom: 1px dashed #e5e7eb; }
-.rel-primary-btn { display: flex; gap: 0.35rem; align-items: baseline; background: #eeedf3; border: 1px solid #cfd0dc; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 12px; }
-.rel-primary-btn:hover { background: #e3e2ec; border-color: #8a90b0; }
-.rel-arrow { color: #4b5478; font-weight: 700; }
-.rel-primary-label { font-size: 9.5px; color: #4b5478; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
-.rel-primary-slug { font-family: ui-monospace, Menlo, monospace; color: #2b2d3f; font-size: 11.5px; }
-
-.rel-bucket { display: flex; gap: 0.5rem; align-items: baseline; flex-wrap: wrap; }
-.rel-bucket-label { font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #4b5478; min-width: 70px; }
-.rel-edges { display: flex; gap: 0.3rem; flex-wrap: wrap; }
-.rel-edge { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; padding: 2px 7px; background: #fff; border: 1px solid #cfd0dc; color: #2b2d3f; border-radius: 3px; cursor: pointer; display: inline-flex; gap: 0.25rem; align-items: baseline; }
-.rel-edge:hover { background: #eeedf3; border-color: #8a90b0; }
-.rel-edge-sefaria { border-color: #4b5478; background: #e3e2ec; }
-.rel-edge-noslug { background: #f8fafc; border-color: #e2e8f0; color: #7a7d82; cursor: default; }
-.rel-edge-weight { font-size: 9.5px; color: #4b5478; }
-.rel-relation { font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: #4b5478; font-weight: 600; }
-
-.slug-row { display: flex; gap: 0.3rem; flex-wrap: wrap; }
-.slug-tag { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; padding: 2px 7px; background: #f8fafc; border: 1px solid #e2e8f0; color: #5b5f66; border-radius: 3px; cursor: pointer; }
-.slug-tag:hover { background: #eeedf3; border-color: #8a90b0; color: #2b2d3f; }
-
-.place-mates-row { display: flex; gap: 0.5rem; align-items: baseline; padding: 0.2rem 0; }
-.place-mates-place { font-size: 11px; font-weight: 600; color: #155e75; min-width: 90px; }
-
-.event-list { margin: 0; padding-left: 1.2rem; font-size: 12.5px; color: #334155; line-height: 1.6; }
-
-.wiki-block { margin-bottom: 0.5rem; }
-.wiki-block:last-child { margin-bottom: 0; }
-.wiki-link { font-size: 12px; color: #4b5478; font-weight: 600; text-decoration: none; }
-.wiki-link:hover { text-decoration: underline; }
-.wiki-extract { font-size: 12.5px; color: #334155; line-height: 1.55; margin: 0.25rem 0 0; }
-.wiki-extract[dir="rtl"] { font-family: 'SBL Hebrew', 'Arial Hebrew', David, serif; font-size: 13.5px; }
-
-.wd-head { display: flex; gap: 0.5rem; align-items: baseline; }
-.wd-qid { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: #4b5478; text-decoration: none; padding: 1px 6px; background: #eeedf3; border-radius: 3px; }
-.wd-qid:hover { text-decoration: underline; }
-.wd-years { font-size: 11.5px; color: #7a7d82; }
-.wd-edges { display: flex; flex-direction: column; gap: 0.25rem; }
-.wd-edge-row { display: flex; gap: 0.4rem; align-items: baseline; flex-wrap: wrap; }
-.wd-ref { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; color: #4b5478; text-decoration: none; padding: 0 4px; }
-.wd-ref:hover { text-decoration: underline; }
-
-.ref-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-.ref-link { font-size: 12px; color: #4b5478; text-decoration: none; padding: 2px 8px; background: #eeedf3; border: 1px solid #cfd0dc; border-radius: 3px; }
-.ref-link:hover { background: #e3e2ec; }
-
-.sage-foot { display: flex; gap: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #f1f5f9; font-size: 10.5px; color: #94a3b8; }
-.sage-foot-sources { margin-left: auto; font-family: ui-monospace, Menlo, monospace; }
-`;

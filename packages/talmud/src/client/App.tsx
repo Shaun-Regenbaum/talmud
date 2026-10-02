@@ -1,4 +1,4 @@
-import { createSignal, Show } from 'solid-js';
+import { createSignal, Match, Show, Switch } from 'solid-js';
 import { AboutPage } from './AboutPage';
 import { AiPausedBanner } from './AiPausedBanner';
 import { AlignPage } from './AlignPage';
@@ -7,6 +7,7 @@ import Compare from './Compare';
 import DafViewer from './DafViewer';
 import { HowItWorksPage } from './HowItWorksPage';
 import { McpPage } from './McpPage';
+import { NotFoundPage } from './NotFoundPage';
 import PretextSpike from './PretextSpike';
 import { SagesPage } from './SagesPage';
 import SettingsPage from './SettingsPage';
@@ -14,6 +15,22 @@ import { SpineCoveragePage } from './SpineCoveragePage';
 import { TopBar } from './TopBar';
 import { TutorialPage } from './TutorialPage';
 import { UsagePage } from './UsagePage';
+
+const KNOWN_ROUTES = new Set([
+  'daf',
+  'tutorial',
+  'align',
+  'usage',
+  'compare',
+  'spike',
+  'sages',
+  'settings',
+  'about',
+  'mcp',
+  'spine',
+  'howitworks',
+  'argument',
+]);
 
 function currentRoute() {
   // #sages/<slug> deep-links into SagesPage; treat the prefix as the route.
@@ -48,7 +65,11 @@ function currentRoute() {
   if (raw === 'sages' || raw.startsWith('sages/')) return 'sages';
   // #about/<section> deep-links into a section of the About page.
   if (raw === 'about' || raw.startsWith('about/')) return 'about';
-  return raw;
+  if (raw === 'spine' || raw.startsWith('spine/')) return 'spine';
+  if (raw === 'argument' || raw.startsWith('argument/')) return 'argument';
+  // Only a named page renders. Anything else is a page that does not exist, not
+  // the reader with a second toolbar on top.
+  return KNOWN_ROUTES.has(raw) ? raw : 'notfound';
 }
 
 export default function App() {
@@ -66,94 +87,47 @@ export default function App() {
       <Show when={route() !== 'daf' && route() !== 'tutorial'}>
         <TopBar />
       </Show>
-      <Show
-        when={route() === 'tutorial'}
-        fallback={
-          <Show
-            when={route() === 'align'}
-            fallback={
-              <Show
-                when={route() === 'usage'}
-                fallback={
-                  <Show
-                    when={route() === 'compare'}
-                    fallback={
-                      <Show
-                        when={route() === 'spike'}
-                        fallback={
-                          <Show
-                            when={route() === 'sages'}
-                            fallback={
-                              <Show
-                                when={route() === 'settings'}
-                                fallback={
-                                  <Show
-                                    when={route() === 'about'}
-                                    fallback={
-                                      <Show
-                                        when={route() === 'mcp'}
-                                        fallback={
-                                          <Show
-                                            when={
-                                              route() === 'spine' || route().startsWith('spine/')
-                                            }
-                                            fallback={
-                                              <Show
-                                                when={route() === 'howitworks'}
-                                                fallback={
-                                                  <Show
-                                                    when={
-                                                      route() === 'argument' ||
-                                                      route().startsWith('argument/')
-                                                    }
-                                                    fallback={<DafViewer />}
-                                                  >
-                                                    <ArgumentGraphPage />
-                                                  </Show>
-                                                }
-                                              >
-                                                <HowItWorksPage />
-                                              </Show>
-                                            }
-                                          >
-                                            <SpineCoveragePage />
-                                          </Show>
-                                        }
-                                      >
-                                        <McpPage />
-                                      </Show>
-                                    }
-                                  >
-                                    <AboutPage />
-                                  </Show>
-                                }
-                              >
-                                <SettingsPage />
-                              </Show>
-                            }
-                          >
-                            <SagesPage />
-                          </Show>
-                        }
-                      >
-                        <PretextSpike />
-                      </Show>
-                    }
-                  >
-                    <Compare />
-                  </Show>
-                }
-              >
-                <UsagePage />
-              </Show>
-            }
-          >
-            <AlignPage />
-          </Show>
-        }
-      >
-        <TutorialPage />
-      </Show>
+      <Switch fallback={<NotFoundPage />}>
+        <Match when={route() === 'daf'}>
+          <DafViewer />
+        </Match>
+        <Match when={route() === 'tutorial'}>
+          <TutorialPage />
+        </Match>
+        <Match when={route() === 'align'}>
+          <AlignPage />
+        </Match>
+        <Match when={route() === 'usage'}>
+          <UsagePage />
+        </Match>
+        <Match when={route() === 'compare'}>
+          <Compare />
+        </Match>
+        <Match when={route() === 'spike'}>
+          <PretextSpike />
+        </Match>
+        <Match when={route() === 'sages'}>
+          <SagesPage />
+        </Match>
+        <Match when={route() === 'settings'}>
+          <SettingsPage />
+        </Match>
+        <Match when={route() === 'about'}>
+          <AboutPage />
+        </Match>
+        <Match when={route() === 'mcp'}>
+          <McpPage />
+        </Match>
+        <Match when={route() === 'spine'}>
+          <SpineCoveragePage />
+        </Match>
+        <Match when={route() === 'howitworks'}>
+          <HowItWorksPage />
+        </Match>
+        <Match when={route() === 'argument'}>
+          <ArgumentGraphPage />
+        </Match>
+      </Switch>
     </>
   );
 }
