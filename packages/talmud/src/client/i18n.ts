@@ -154,7 +154,7 @@ const CATALOG = {
   'header.page': { en: 'Page', he: 'דף' },
   'header.nav.hint': {
     en: '← / → to navigate · click any word to translate',
-    he: '← / → לניווט · לחצו על מילה לתרגום',
+    he: 'חיצי המקלדת לניווט · לחצו על מילה לתרגום',
   },
   'header.todaysDaf': { en: "Today's Daf", he: 'הדף היומי' },
   'header.todaysDaf.finding': { en: 'Finding today’s daf…', he: 'מאתר את דף היום…' },

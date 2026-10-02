@@ -34,6 +34,12 @@ import { t } from './i18n';
 import { MikraotGedolot } from './MikraotGedolot.tsx';
 import { ParshaDrawer } from './ParshaDrawer.tsx';
 
+const SECTION_HE: Record<Section, string> = {
+  Torah: 'תורה',
+  "Nevi'im": 'נביאים',
+  Ketuvim: 'כתובים',
+};
+
 interface Verse {
   n: number;
   he: string;
@@ -866,19 +872,19 @@ export function App(): JSX.Element {
     resetChapterLoad();
   });
   createEffect(() => {
-    if (data.loading) reportLoad('text', 'Text', 'loading');
-    else if (data.error || data() === null) reportLoad('text', 'Text', 'error');
-    else if (data()) reportLoad('text', 'Text', 'ok');
+    if (data.loading) reportLoad('text', 'loadingText', 'loading');
+    else if (data.error || data() === null) reportLoad('text', 'loadingText', 'error');
+    else if (data()) reportLoad('text', 'loadingText', 'ok');
   });
   createEffect(() => {
-    if (events.loading) reportLoad('events', 'Sections', 'loading');
-    else if (events.error) reportLoad('events', 'Sections', 'error');
-    else if (events()) reportLoad('events', 'Sections', 'ok');
+    if (events.loading) reportLoad('events', 'loadingSections', 'loading');
+    else if (events.error) reportLoad('events', 'loadingSections', 'error');
+    else if (events()) reportLoad('events', 'loadingSections', 'ok');
   });
   createEffect(() => {
-    if (sourcesIndex.loading) reportLoad('sources', 'Sources', 'loading');
-    else if (sourcesIndex.error) reportLoad('sources', 'Sources', 'error');
-    else if (sourcesIndex() !== undefined) reportLoad('sources', 'Sources', 'ok');
+    if (sourcesIndex.loading) reportLoad('sources', 'loadingSources', 'loading');
+    else if (sourcesIndex.error) reportLoad('sources', 'loadingSources', 'error');
+    else if (sourcesIndex() !== undefined) reportLoad('sources', 'loadingSources', 'ok');
   });
 
   return (
@@ -890,10 +896,13 @@ export function App(): JSX.Element {
       }}
     >
       <AiStatusBanner
+        lang={() => loc().lang}
         sponsor={() => ({
           message:
-            'This is a self-funded project (about $300/week of AI). If you would like to help keep its AI features running, get in touch.',
-          ctaLabel: 'Sponsor / get in touch',
+            loc().lang === 'he'
+              ? 'זה פרויקט במימון עצמי (כ-300 דולר לשבוע ל-AI). אם תרצו לעזור להמשיך להפעיל את תכונות ה-AI, צרו קשר.'
+              : 'This is a self-funded project (about $300/week of AI). If you would like to help keep its AI features running, get in touch.',
+          ctaLabel: loc().lang === 'he' ? 'לתמיכה / ליצירת קשר' : 'Sponsor / get in touch',
           ctaHref: 'mailto:shaunregenbaum@gmail.com?subject=Sponsoring%20the%20Tanach%20project',
         })}
       />
@@ -942,11 +951,11 @@ export function App(): JSX.Element {
         >
           <For each={SECTIONS}>
             {(section: Section) => (
-              <optgroup label={section}>
+              <optgroup label={loc().lang === 'he' ? SECTION_HE[section] : section}>
                 <For each={BOOKS.filter((b) => b.section === section)}>
                   {(b) => (
                     <option value={b.name}>
-                      {b.name} · {b.he}
+                      {loc().lang === 'he' ? b.he : `${b.name} · ${b.he}`}
                     </option>
                   )}
                 </For>
@@ -975,7 +984,7 @@ export function App(): JSX.Element {
         </Show>
       </ReaderHeader>
 
-      <ChapterLoadProgress />
+      <ChapterLoadProgress lang={loc().lang} />
       <Show when={!data.loading && data() === null}>
         <StatusMessage
           tone="error"

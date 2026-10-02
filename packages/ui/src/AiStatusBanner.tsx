@@ -26,6 +26,8 @@ export interface SponsorInfo {
 }
 
 export interface AiStatusBannerProps {
+  /** The app language. English when omitted. */
+  lang?: () => 'en' | 'he';
   /** Per-reason sponsor block. Return undefined to omit it for a given reason
    *  (e.g. transient provider blips, where a funding ask makes no sense). */
   sponsor?: (reason: AiUnavailableReason) => SponsorInfo | undefined;
@@ -40,7 +42,19 @@ const SPEND_REASONS: ReadonlySet<AiUnavailableReason> = new Set([
   'cost-control',
 ]);
 
-function headline(reason: AiUnavailableReason): string {
+const HEADLINE_HE: Record<AiUnavailableReason, string> = {
+  credits: 'תכונות ה-AI מושהות — כרגע נגמרו קרדיטי ה-AI של הפרויקט.',
+  'key-limit': 'תכונות ה-AI מושהות — הגענו לתקרת ההוצאה לתקופה הזו, כדי שהפרויקט יוכל להמשיך.',
+  'daily-cap': 'תכונות ה-AI מושהות להיום — יש תקרת הוצאה יומית שמאפשרת לפרויקט להמשיך.',
+  'hourly-cap': 'תכונות ה-AI מושהות לזמן קצר — יש תקרת הוצאה לשעה כדי לשמור על העלויות.',
+  'cost-control':
+    'חלק מהערות הלימוד של ה-AI מושהות בדפים שעוד לא חושבו, כדי שהפרויקט יישאר בר-קיימא.',
+  'rate-limit': 'תכונות ה-AI עמוסות כרגע — נסו שוב בעוד רגע.',
+  provider: 'תכונות ה-AI אינן זמינות זמנית — נסו שוב בקרוב.',
+};
+
+function headline(reason: AiUnavailableReason, lang: 'en' | 'he'): string {
+  if (lang === 'he') return HEADLINE_HE[reason];
   switch (reason) {
     case 'credits':
       return 'AI features are paused — the project is out of AI credits right now.';
@@ -61,7 +75,13 @@ function headline(reason: AiUnavailableReason): string {
 
 /** A short "when will it be back" hint, derived from the reason alone (the
  *  budget caps roll over predictably — daily by UTC day, hourly by the hour). */
-function resumeHint(reason: AiUnavailableReason): string | null {
+function resumeHint(reason: AiUnavailableReason, lang: 'en' | 'he'): string | null {
+  if (lang === 'he') {
+    if (reason === 'daily-cap') return 'הן יחזרו מחר.';
+    if (reason === 'hourly-cap') return 'חוזרות תוך שעה.';
+    if (reason === 'key-limit') return 'הן יחזרו כשהתקציב יתאפס.';
+    return null;
+  }
   if (reason === 'daily-cap') return "They'll be back tomorrow.";
   if (reason === 'hourly-cap') return 'Back within the hour.';
   if (reason === 'key-limit') return "They'll be back when the budget resets.";
@@ -78,7 +98,7 @@ export function AiStatusBanner(props: AiStatusBannerProps): JSX.Element {
   });
   const hint = createMemo(() => {
     const s = st();
-    return s ? resumeHint(s.reason) : null;
+    return s ? resumeHint(s.reason, props.lang?.() ?? 'en') : null;
   });
 
   return (
@@ -89,7 +109,7 @@ export function AiStatusBanner(props: AiStatusBannerProps): JSX.Element {
             <div class="ui-banner-text">
               <p class="ui-banner-line">
                 <span class="ui-banner-dot" aria-hidden="true" />
-                {headline(s().reason)}
+                {headline(s().reason, props.lang?.() ?? 'en')}
                 <Show when={hint()}>
                   {' '}
                   <span class="ui-banner-hint">{hint()}</span>
@@ -112,8 +132,8 @@ export function AiStatusBanner(props: AiStatusBannerProps): JSX.Element {
             <button
               type="button"
               class="ui-banner-close"
-              aria-label="Dismiss"
-              title="Dismiss"
+              aria-label={props.lang?.() === 'he' ? 'סגירה' : 'Dismiss'}
+              title={props.lang?.() === 'he' ? 'סגירה' : 'Dismiss'}
               onClick={() => dismissAiStatus()}
             >
               &times;

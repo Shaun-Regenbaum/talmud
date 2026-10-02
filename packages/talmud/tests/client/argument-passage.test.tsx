@@ -31,7 +31,9 @@ beforeEach(() => {
     'fetch',
     vi.fn(async (url: string) => {
       if (url.includes('statement-spine'))
-        return new Response(JSON.stringify(saved.pages.find((p) => url.endsWith(p.page))));
+        return new Response(
+          JSON.stringify(saved.pages.find((p) => url.split('?')[0].endsWith(p.page))),
+        );
       if (url.includes('spine-view'))
         return new Response(JSON.stringify({ dapim: saved.boundaries }));
       return new Response(JSON.stringify({ derived: [] }));

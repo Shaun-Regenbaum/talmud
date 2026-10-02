@@ -63,6 +63,11 @@ const messages = {
   loadingMidrash: { en: 'Loading midrash\u2026', he: 'טוען מדרש…' },
   noMidrash: { en: 'No midrash on this verse.', he: 'אין מדרש לפסוק הזה.' },
 
+  loadingText: { en: 'Loading text\u2026', he: 'טוען טקסט…' },
+  loadingSections: { en: 'Loading sections\u2026', he: 'טוען מקטעים…' },
+  loadingSources: { en: 'Loading sources\u2026', he: 'טוען מקורות…' },
+  upToDate: { en: 'Up to date', he: 'מעודכן' },
+
   more: { en: 'More', he: 'עוד' },
   title: { en: 'Tanach', he: 'תנ״ך' },
   book: { en: 'Book', he: 'ספר' },

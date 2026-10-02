@@ -12,7 +12,9 @@ export interface PageNavigationProps {
   'data-tour'?: string;
 }
 
-/** Keep page numbers and directional arrows in reading order in either language. */
+/** Page numbers stay left-to-right in either language. In Hebrew the two arrow
+ *  buttons swap sides and point the other way (next is on the left, the
+ *  direction Hebrew reads), which components.css does under html[dir=rtl]. */
 export function PageNavigation(props: PageNavigationProps): JSX.Element {
   return (
     <nav
@@ -27,7 +29,7 @@ export function PageNavigation(props: PageNavigationProps): JSX.Element {
         disabled={props.previousDisabled}
         onClick={props.onPrevious}
       >
-        ‹
+        <span class="ui-page-arrow">‹</span>
       </button>
       {props.children}
       <button
@@ -36,7 +38,7 @@ export function PageNavigation(props: PageNavigationProps): JSX.Element {
         disabled={props.nextDisabled}
         onClick={props.onNext}
       >
-        ›
+        <span class="ui-page-arrow">›</span>
       </button>
     </nav>
   );
