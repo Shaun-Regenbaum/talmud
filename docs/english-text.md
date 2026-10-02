@@ -1,6 +1,7 @@
 # How English prose is formatted
 
-`packages/talmud/src/client/displayText.ts` owns paragraph formatting. Use
+`packages/core/src/text/displayText.ts` owns paragraph formatting for both readers.
+The Talmud wrapper is `packages/talmud/src/client/displayText.ts`. Use
 `useDisplayText` in a component, or `finishDisplayText` for a synchronous label.
 Pass the current language to synchronous calls. `Hebraized` and
 `HebraizedWithRabbis` use the same hook.
@@ -40,7 +41,7 @@ pair identifies them. Saved text, producer prompts, and cache keys do not change
 
 ## Where to add rules and tests
 
-Add known spellings to the dictionary data in `hebraize.ts`. The bare-word
+Add known spellings to the dictionary data in `packages/core/src/text/hebraize.ts`. The bare-word
 allowlist selects which entries can appear without parentheses; it stores no
 second copy of their Hebrew. Do not add string replacements to link renderers
 or individual panels. Keep name and term ordering
@@ -52,3 +53,17 @@ repeated application. It also rejects independent cleanup calls in other client
 modules. The browser check renders the supplied sentence through both real reader
 components. Existing dictionary, concept, and bilingual tests cover their narrower
 contracts.
+
+## Tanach uses the same formatter
+
+Tanach formats generated notes, summaries, titles, map labels, and copied study
+text through `packages/tanach/src/lib/displayText.ts`. Original verses and source
+commentaries stay unchanged. Hebrew fields stay unchanged too. When a field is
+missing, formatting follows the language of the field actually shown.
+
+Glossary meanings such as “blessing” remain ordinary English unless the source
+explicitly pairs them with Hebrew. Both readers use the shared `BidiText` component
+to keep Hebrew abbreviations together. First mentions restart in each paragraph.
+
+Tests also check quoted names, late glossary updates, plain and linked text, and
+Tanach language changes.

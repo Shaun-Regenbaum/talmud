@@ -12,6 +12,7 @@ import {
   Show,
 } from 'solid-js';
 import { DafRenderer } from '../lib/daf-render/index.ts';
+import { generatedTextFor } from '../lib/displayText';
 import { hebrewNumeral } from '../lib/hebrew.ts';
 import { type SourceKind, type SourceVerse, verseKinds } from '../lib/sources.ts';
 import { t } from './i18n.ts';
@@ -202,7 +203,7 @@ export function MikraotGedolot(props: {
       if (t == null) continue;
       an.push({
         verse: s.verse,
-        label: (props.lang === 'he' ? s.he : s.en) || s.en || s.he,
+        label: generatedTextFor(props.lang, s.en, s.he),
         top: t,
       });
     }

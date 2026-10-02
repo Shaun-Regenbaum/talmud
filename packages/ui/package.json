@@ -64,7 +64,8 @@
     "./MetricSummary": "./src/MetricSummary.tsx",
     "./highlightOverlay": "./src/highlightOverlay.ts",
     "./reveal": "./src/reveal.ts",
-    "./hoverIntent": "./src/hoverIntent.ts"
+    "./hoverIntent": "./src/hoverIntent.ts",
+    "./BidiText": "./src/BidiText.tsx"
   },
   "peerDependencies": {
     "solid-js": "^1.9.15"

@@ -161,3 +161,42 @@ it('keeps Hebrew-first possessives together', () => {
   const input = 'מצוה’s (mitzvah) requirement';
   expect(finishDisplayText(input)).toBe(input);
 });
+
+it.each([
+  ["'Rashi'", "'רש״י' (Rashi)"],
+  ['‘baraita’', '‘ברייתא’ (baraita)'],
+  ["'according to Rashi'", "'according to רש״י' (Rashi)"],
+  ['"Rashi"', '"רש״י" (Rashi)'],
+])('keeps the closing quote in %s', (input, expected) => {
+  expect(finishDisplayText(input)).toBe(expected);
+  expect(finishDisplayText(expected)).toBe(expected);
+});
+
+it('does not undo known spellings when page pairs arrive', () => {
+  const items = [{ en: 'Rashi', he: 'רש״י', kind: 'name' as const }];
+  for (const input of ['Rashi; rashi', 'Rashi Explains']) {
+    expect(finishDisplayText(input, { items })).toBe(finishDisplayText(input));
+  }
+  expect(
+    finishDisplayText('neveilah', { items: [{ en: 'nevelah', he: 'נבלה', kind: 'term' }] }),
+  ).toBe('נבלה (neveilah)');
+});
+
+it('ignores whitespace when removing a repeated matching gloss', () => {
+  expect(finishDisplayText('רש״י (Rashi); רש״י ( Rashi )')).toBe('רש״י (Rashi); רש״י');
+});
+
+it('starts the first-mention count again in each paragraph', () => {
+  expect(finishDisplayText('Rashi; Rashi\n\nRashi; Rashi')).toBe(
+    'רש״י (Rashi); רש״י\n\nרש״י (Rashi); רש״י',
+  );
+});
+
+it('keeps possessives inside quoted sentences', () => {
+  expect(finishDisplayText("'Rashi's view'")).toBe("'רש״י (Rashi's) view'");
+  expect(finishDisplayText('‘Rashi’s view’')).toBe('‘רש״י (Rashi’s) view’');
+});
+
+it('keeps closing Hebrew quotes when removing repeated glosses', () => {
+  expect(finishDisplayText("'רש״י' (Rashi); 'רש״י' (Rashi)")).toBe("'רש״י' (Rashi); 'רש״י'");
+});

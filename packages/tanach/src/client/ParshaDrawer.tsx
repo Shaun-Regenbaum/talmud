@@ -1,11 +1,11 @@
 import { aiStatus, noteAiResponse, noteAiSuccess } from '@corpus/ui/aiStatus';
 import { Button } from '@corpus/ui/Button';
-import { Prose } from '@corpus/ui/Prose';
 import { revealInPanel } from '@corpus/ui/reveal';
 import { ChoiceCard, SectionHeading, SourceCard, StatusMessage } from '@corpus/ui/Study';
 import { StudyOverview } from '@corpus/ui/StudyOverview';
 import { createEffect, createResource, createSignal, For, type JSX, Show } from 'solid-js';
 import { localizeRef } from '../lib/books.ts';
+import { generatedTextFor } from '../lib/displayText';
 import {
   type ParshaFlowSection,
   type ParshaSectionStudy,
@@ -29,15 +29,13 @@ export interface ParshaDrawerProps {
   onHoverRange?: (section: ParshaFlowSection | null) => void;
 }
 
-function textFor(lang: 'en' | 'he', en: string, he: string): string {
-  return lang === 'he' ? he || en : en || he;
-}
-
 function sourceUrl(ref: string): string {
   return `https://www.sefaria.org/${encodeURI(ref.replace(/ /g, '_'))}`;
 }
 
 export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
+  const textFor = (language: 'en' | 'he', en: string, he: string) =>
+    generatedTextFor(language, en, he, props.study.terms ?? []);
   const [selected, setSelected] = createSignal<number | null>(null);
   const [threadRequest, setThreadRequest] = createSignal<{ index: number } | null>(null);
   const [copied, setCopied] = createSignal(false);
@@ -315,11 +313,21 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
                 <h4>{textFor(props.lang, value().titleEn, value().titleHe)}</h4>
                 <div class="parsha-thread-block question">
                   <span>{props.lang === 'he' ? 'השאלה' : 'The question'}</span>
-                  <Prose en={value().questionEn} he={value().questionHe} lang={props.lang} />
+                  <TermedProse
+                    en={value().questionEn}
+                    he={value().questionHe}
+                    lang={props.lang}
+                    terms={props.study.terms ?? []}
+                  />
                 </div>
                 <div class="parsha-thread-block">
                   <span>{props.lang === 'he' ? 'העומק' : 'The deeper idea'}</span>
-                  <Prose en={value().insightEn} he={value().insightHe} lang={props.lang} />
+                  <TermedProse
+                    en={value().insightEn}
+                    he={value().insightHe}
+                    lang={props.lang}
+                    terms={props.study.terms ?? []}
+                  />
                 </div>
                 <Show when={value().sources.length}>
                   <div class="parsha-thread-sources">
@@ -335,8 +343,9 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
                           }
                           reference={source.ref}
                         >
-                          <Prose
+                          <TermedProse
                             en={source.contributionEn}
+                            terms={props.study.terms ?? []}
                             he={source.contributionHe}
                             lang={props.lang}
                           />
@@ -347,8 +356,9 @@ export function ParshaDrawer(props: ParshaDrawerProps): JSX.Element {
                 </Show>
                 <div class="parsha-thread-block dvar">
                   <span>{props.lang === 'he' ? 'דבר תורה מוכן' : 'Ready-to-share dvar Torah'}</span>
-                  <Prose
+                  <TermedProse
                     en={value().dvarEn}
+                    terms={props.study.terms ?? []}
                     he={value().dvarHe}
                     lang={props.lang}
                     class="parsha-dvar-copy"
