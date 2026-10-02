@@ -67,7 +67,7 @@ export function StatementSpine(props: {
               )}
             </For>
             <Show when={s().summary}>
-              <p dir="auto">{finishDisplayText(s().summary ?? '')}</p>
+              <p dir="auto">{finishDisplayText(s().summary ?? '', { english: lang() === 'en' })}</p>
             </Show>
             <Show when={s().excerpt}>
               <p dir="rtl" lang="he">

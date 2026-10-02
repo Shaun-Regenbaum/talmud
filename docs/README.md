@@ -12,6 +12,7 @@ Start with the question you have. Each row points at the one document that answe
 | Know what data ships in the repo, what lives in the cache, and how to fix a wrong entry | [data.md](data.md) |
 | Connect an AI assistant to the corpus, or extend the MCP server and API | [mcp.md](mcp.md) |
 | Contribute with an AI coding assistant | [contributing-with-ai.md](contributing-with-ai.md) |
+| Change how English prose shows Hebrew names and terms | [english-text.md](english-text.md) |
 | Match the house code style | [code-style.md](code-style.md) |
 | Pick something to work on | [roadmap.md](roadmap.md) |
 | Understand how request costs are recorded | [cost-accounting.md](cost-accounting.md) |

@@ -27,6 +27,12 @@
  * (Sandbox/2026-09-23-hebrew-mixing-jev): Jev put 46/46 names in "name" and
  * one non-name there.
  */
+import { type BilingualItem, heKey, nameFold } from '@corpus/core/text/bilingual';
+
+export * from '@corpus/core/text/bilingual';
+
+const ARTICLE = /^(?:the|a|an)\s+/i;
+
 import type { ChoiceQuestion } from '@corpus/core/llm/jev';
 
 /** A parenthesis whose content is Hebrew script only (no Latin letters, no
@@ -44,16 +50,6 @@ export interface HebrewParen {
 
 const HE_LETTER = /[א-ת]/;
 const NIKUD = /[֑-ׇ]/g;
-
-/** Identity of a Hebrew gloss: strip nikud/cantillation and geresh/quote
- *  marks, collapse whitespace. "רַבִּי יוֹחָנָן" and "רבי יוחנן" are one key. */
-export function heKey(s: string): string {
-  return s
-    .replace(NIKUD, '')
-    .replace(/["'׳״‘’“”]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
 
 const isHebrewOnly = (s: string): boolean => HE_LETTER.test(s) && !/[A-Za-z0-9]/.test(s);
 
@@ -184,8 +180,6 @@ export function readDecisions(
   });
 }
 
-const escapeRe = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
 interface Edit {
   at: number;
   del: number;
@@ -199,9 +193,6 @@ function applyEdits(text: string, edits: Edit[]): string {
   }
   return out;
 }
-
-const insideParen = (text: string, at: number): boolean =>
-  text.lastIndexOf('(', at) > text.lastIndexOf(')', at);
 
 /** Quotations: "'from that day onward' (מאותו היום ואילך)" becomes
  *  "'מאותו היום ואילך' (from that day onward)" — the Hebrew wording goes
@@ -239,183 +230,6 @@ export function flipQuotes(
       ins: `${close[open]}${p.inner}${q} (${english})`,
     });
   });
-  return edits.length ? applyEdits(text, edits) : text;
-}
-
-/** Fold the romanization choices our producers disagree on, so the rabbi
- *  list's "Rabbi Yochanan" / "Reish Lakish" / "Rav Mordechai" also find the
- *  prose's "Rabbi Yoḥanan" / "Resh Lakish" / "Rav Mordekhai". */
-export function nameFold(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/kh|ḥ|ch/g, 'h')
-    .replace(/ei/g, 'e')
-    .replace(/['’]/g, '');
-}
-
-/** A regex source matching `name` under every spelling nameFold folds together. */
-function spellingPattern(name: string): string {
-  let out = '';
-  const n = name.toLowerCase();
-  for (let i = 0; i < n.length; i++) {
-    const two = n.slice(i, i + 2);
-    if (two === 'ch' || two === 'kh') {
-      out += '(?:ch|kh|ḥ)';
-      i++;
-    } else if (n[i] === 'ḥ') out += '(?:ch|kh|ḥ)';
-    else if (two === 'ei') {
-      out += 'ei?';
-      i++;
-    } else if (n[i] === "'" || n[i] === '’') out += "['’]?";
-    else if (/\s/.test(n[i])) out += '\\s+';
-    else out += escapeRe(n[i]);
-  }
-  return out;
-}
-
-/** A regex source matching Hebrew `he` with or without nikud and geresh /
- *  quote marks between the letters. */
-function hebrewPattern(he: string): string {
-  const key = heKey(he);
-  let out = '';
-  for (const c of key) {
-    out += c === ' ' ? '\\s+' : `${escapeRe(c)}[\\u0591-\\u05C7"'\\u05F3\\u05F4]*`;
-  }
-  return out;
-}
-
-/** A leading English article, folded away when comparing or counting words. */
-const ARTICLE = /^(?:the|a|an)\s+/i;
-
-/** Whether the name found at [at, end) is only part of a longer name: the
- *  next word is capitalized or a patronymic ("Rav" inside "Rav Papa", "Rabbi
- *  Elazar" inside "Rabbi Elazar ben Pedat"), or the word before is a title
- *  or patronymic ("Yochanan" inside "Rabbi Yochanan"). A capitalized word
- *  before is fine ("Later Rabbi Yochanan"). */
-function partOfLongerName(text: string, at: number, end: number): boolean {
-  if (/^[ \t]+(?:\p{Lu}|ben\b|bar\b|b\.)/u.test(text.slice(end))) return true;
-  return /\b(?:Rabbi|Rabban|Rav|Rabbeinu|Mar|R\.|ben|bar|b\.)[ \t]+$/.test(
-    text.slice(Math.max(0, at - 40), at),
-  );
-}
-
-/** One English name or term and its Hebrew. */
-export interface BilingualItem {
-  en: string;
-  he: string;
-  kind: 'name' | 'term';
-}
-
-/** Kept for the glossary's wire shape. */
-export type GlossaryEntry = BilingualItem;
-
-/** A daf rabbi as the reader knows it: the English display name and its Hebrew. */
-export interface NamedRabbi {
-  name: string;
-  nameHe: string;
-}
-
-/** The daf's rabbis as items (nikud stripped: prose Hebrew carries none). */
-export function rabbiItems(rabbis: readonly NamedRabbi[]): BilingualItem[] {
-  return rabbis
-    .filter((r) => r.name?.trim() && HE_LETTER.test(r.nameHe ?? ''))
-    .map((r) => ({ en: r.name, he: r.nameHe.replace(NIKUD, '').trim(), kind: 'name' }));
-}
-
-interface Mention {
-  start: number;
-  end: number;
-  /** 'en' = the English words (plus any Hebrew paren that followed them);
-   *  'he' = the Hebrew itself. */
-  script: 'en' | 'he';
-  /** The English as written (for the first mention's parentheses). */
-  english?: string;
-  /** A possessive ("'s") that followed an English name. */
-  poss?: string;
-  /** Whether a parenthesis already follows (Hebrew mentions only). */
-  glossed?: boolean;
-}
-
-/**
- * The house rule over one paragraph, for a set of known names and terms:
- *   - first mention (English or Hebrew, whichever comes first): Hebrew, then
- *     the English in parentheses;
- *   - every later mention: the Hebrew alone (a one-word term stays English);
- *   - a Hebrew parenthesis that restated the item after its English is folded
- *     into that rewrite.
- * Longest items first; a mention inside a longer one already handled is left
- * alone. Items earlier in the list win a tie on the same English. Idempotent.
- */
-export function hebrewFirst(text: string, items: readonly BilingualItem[]): string {
-  if (!text || items.length === 0) return text;
-  const seen = new Set<string>();
-  const uniq: BilingualItem[] = [];
-  for (const it of items) {
-    const en = it.en.replace(ARTICLE, '').trim();
-    const he = it.he.replace(NIKUD, '').trim();
-    if (!en || !HE_LETTER.test(he)) continue;
-    const k = nameFold(en);
-    if (seen.has(k)) continue;
-    seen.add(k);
-    uniq.push({ en, he, kind: it.kind });
-  }
-  uniq.sort((a, b) => b.en.length - a.en.length);
-  const claimed: [number, number][] = [];
-  const free = (s: number, e: number): boolean => !claimed.some(([a, b]) => s < b && e > a);
-  const edits: Edit[] = [];
-
-  for (const it of uniq) {
-    const mentions: Mention[] = [];
-    const enRe = new RegExp(
-      `(?<![\\p{L}\\p{M}])${spellingPattern(it.en)}(?![\\p{L}\\p{M}])`,
-      'giu',
-    );
-    for (const m of text.matchAll(enRe)) {
-      const at = m.index;
-      let end = at + m[0].length;
-      if (insideParen(text, at)) continue;
-      if (it.kind === 'name' && (!/^\p{Lu}/u.test(m[0]) || partOfLongerName(text, at, end))) {
-        continue;
-      }
-      // "Kontrokos's" and "Kontrokos'" are both possessives.
-      const poss =
-        it.kind === 'name' ? text.slice(end).match(/^['’]s?(?![\p{L}])/u)?.[0] : undefined;
-      if (poss) end += poss.length;
-      const paren = text.slice(end).match(/^\s*\(([^()]*)\)/);
-      if (paren && isHebrewOnly(paren[1]) && heKey(paren[1]) === heKey(it.he))
-        end += paren[0].length;
-      if (!free(at, end)) continue;
-      mentions.push({ start: at, end, script: 'en', english: m[0], poss });
-    }
-    const heRe = new RegExp(
-      `(?<![\\u05D0-\\u05EA])${hebrewPattern(it.he)}(?![\\u05D0-\\u05EA])`,
-      'gu',
-    );
-    for (const m of text.matchAll(heRe)) {
-      const at = m.index;
-      const end = at + m[0].length;
-      if (insideParen(text, at) || !free(at, end)) continue;
-      mentions.push({ start: at, end, script: 'he', glossed: /^\s*\(/.test(text.slice(end)) });
-    }
-    if (mentions.length === 0) continue;
-    mentions.sort((a, b) => a.start - b.start);
-    // Later mentions become the Hebrew for names and multi-word terms. A
-    // one-word term is often an everyday English word ("halachic", "lamb"):
-    // it gets its Hebrew once and stays English after that.
-    const swapLater = it.kind === 'name' || it.en.split(/\s+/).length > 1;
-    mentions.forEach((mn, i) => {
-      claimed.push([mn.start, mn.end]);
-      if (mn.script === 'he') {
-        if (i === 0 && !mn.glossed) edits.push({ at: mn.end, del: 0, ins: ` (${it.en})` });
-        return;
-      }
-      const english = `${mn.english}${mn.poss ?? ''}`;
-      let ins = english; // a later one-word term: keep the English, drop any repeated Hebrew
-      if (i === 0) ins = `${it.he} (${english})`;
-      else if (swapLater) ins = `${it.he}${mn.poss ?? ''}`;
-      edits.push({ at: mn.start, del: mn.end - mn.start, ins });
-    });
-  }
   return edits.length ? applyEdits(text, edits) : text;
 }
 

@@ -1,5 +1,6 @@
 import { AiStatusBanner } from '@corpus/ui/AiStatusBanner';
 import { aiStatus, noteAiResponse, noteAiSuccess } from '@corpus/ui/aiStatus';
+import { BidiText } from '@corpus/ui/BidiText';
 import { Button } from '@corpus/ui/Button';
 import { Drawer } from '@corpus/ui/Drawer';
 import { fitBbox, GeoMap } from '@corpus/ui/GeoMap';
@@ -24,6 +25,7 @@ import {
   Show,
 } from 'solid-js';
 import { BOOKS, SECTIONS, type Section } from '../lib/books.ts';
+import { formatGeneratedText, generatedTextFor } from '../lib/displayText';
 import { hebrewNumeral } from '../lib/hebrew.ts';
 import type { ParshaFlowSection, ParshaStudy, WeeklyParsha } from '../lib/parsha.ts';
 import { type SourceKind, type SourceVerse, verseKinds } from '../lib/sources.ts';
@@ -314,9 +316,8 @@ export function App(): JSX.Element {
   const paragraphs = createMemo(() => {
     const ch = data();
     if (!ch) return [];
-    const he = loc().lang === 'he';
     const labels = new Map(
-      (events() ?? []).map((s) => [s.verse, (he ? s.he : s.en) || s.en || s.he] as const),
+      (events() ?? []).map((s) => [s.verse, generatedTextFor(loc().lang, s.en, s.he)] as const),
     );
     return buildParagraphs(ch.verses, loc().nikud, labels);
   });
@@ -1109,7 +1110,7 @@ export function App(): JSX.Element {
                   <Show when={note()}>
                     {(n) => (
                       <p class="note-pop-body" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
-                        {loc().lang === 'he' ? n().he || n().en : n().en || n().he}
+                        <BidiText text={generatedTextFor(loc().lang, n().en, n().he)} />
                       </p>
                     )}
                   </Show>
@@ -1269,7 +1270,7 @@ export function App(): JSX.Element {
                   <Show when={!synthesis.error && synthesis()}>
                     {(sy) => (
                       <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
-                        {loc().lang === 'he' ? sy().he || sy().en : sy().en || sy().he}
+                        <BidiText text={generatedTextFor(loc().lang, sy().en, sy().he)} />
                       </p>
                     )}
                   </Show>
@@ -1344,7 +1345,7 @@ export function App(): JSX.Element {
                         >
                           {(paragraph) => (
                             <p class="comm-synth-text" dir={loc().lang === 'he' ? 'rtl' : 'ltr'}>
-                              {paragraph}
+                              <BidiText text={formatGeneratedText(paragraph, loc().lang)} />
                             </p>
                           )}
                         </For>

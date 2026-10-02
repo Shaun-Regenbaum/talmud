@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { capitalizeFirst, hebraize } from '../src/client/hebraize';
+import { finishDisplayText } from '../src/client/displayText';
+import { capitalizeFirst } from '../src/client/hebraize';
 import {
   alwaysHebraizeBlock,
   CANONICAL_HEBREW_TERMS,
@@ -43,18 +44,16 @@ describe('capitalizeFirst', () => {
   }
 });
 
-// The chips render as capitalizeFirst(hebraize(item)). When hebraize's inverted
-// pass moves an English gloss to the front, capitalization must apply AFTER —
-// otherwise the leading word lands lowercase. This locks the ordering in.
-describe('capitalizeFirst composes after hebraize for chips', () => {
-  it('capitalizes the English gloss the inverted pass surfaces', () => {
-    expect(capitalizeFirst(hebraize('muktzeh (set aside) may not be handled'))).toBe(
-      'Set aside (מוקצה) may not be handled',
+// Chips keep Hebrew first and capitalize an English opening when needed.
+describe('chip formatting keeps Hebrew first', () => {
+  it('keeps the English gloss after the Hebrew term', () => {
+    expect(capitalizeFirst(finishDisplayText('muktzeh (set aside) may not be handled'))).toBe(
+      'מוקצה (set aside) may not be handled',
     );
   });
   it('leaves a Form-A chip Hebrew-first and uncapitalized at the Hebrew', () => {
     // Hebrew already leads — capitalization is a no-op, Hebrew preserved.
-    expect(capitalizeFirst(hebraize('מוקצה (set aside) may not be handled'))).toBe(
+    expect(capitalizeFirst(finishDisplayText('מוקצה (set aside) may not be handled'))).toBe(
       'מוקצה (set aside) may not be handled',
     );
   });
@@ -63,17 +62,17 @@ describe('capitalizeFirst composes after hebraize for chips', () => {
 // ---------------------------------------------------------------------------
 // Drift guard — the whole point of the shared CANONICAL_HEBREW_TERMS module is
 // that the generation prompt and the client dict can't fall out of sync. Every
-// canonical term (and each variant spelling) MUST resolve through hebraize() to
+// canonical term (and each variant spelling) MUST resolve through finishDisplayText() to
 // its Hebrew, AND must appear in the prompt's always-hebraize block.
 // ---------------------------------------------------------------------------
 
-describe('canonical terms resolve through hebraize() (dict side)', () => {
+describe('canonical terms resolve through finishDisplayText() (dict side)', () => {
   for (const t of CANONICAL_HEBREW_TERMS) {
     for (const form of [t.translit, ...(t.variants ?? [])]) {
       it(`"${form}" → ${t.hebrew}`, () => {
         // Pass 1 form: `content (translit)` → `content (Hebrew)`. "noun" is a
         // content word, so the parens are kept (not stripped as a stopword).
-        expect(hebraize(`a noun (${form})`)).toContain(t.hebrew);
+        expect(finishDisplayText(`a noun (${form})`)).toContain(t.hebrew);
       });
     }
   }

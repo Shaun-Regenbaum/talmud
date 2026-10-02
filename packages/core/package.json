@@ -19,7 +19,8 @@
     "./store/*": "./src/store/*.ts",
     "./run/*": "./src/run/*.ts",
     "./telemetry/*": "./src/telemetry/*.ts",
-    "./mcp/*": "./src/mcp/*.ts"
+    "./mcp/*": "./src/mcp/*.ts",
+    "./text/*": "./src/text/*.ts"
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",

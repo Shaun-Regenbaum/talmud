@@ -5,7 +5,7 @@ import {
   glossKey,
   tokenizeWithMatcher,
 } from '../src/client/conceptLinks';
-import { hebraize, stripEchoParens } from '../src/client/hebraize';
+import { finishDisplayText } from '../src/client/displayText';
 import { globalTerms, type Term } from '../src/lib/terms/registry';
 
 // A glossary term is glossed inline on its FIRST mention in a prose unit and
@@ -139,22 +139,12 @@ describe('firstMentionGloss', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// ConceptText render path — the contiguous prose must have its Hebrew echoes
-// collapsed BEFORE tokenization. Reproduces the reported "double Hebrew" bug:
-// "a טרפה (טריפה)". The parenthetical טריפה matches the registry surface for
-// treif, so tokenizeWithMatcher would pull it out as its own concept mention —
-// meaning the "term (term)" pair never reaches the per-fragment echo strip in
-// Hebraized. ConceptText therefore runs stripEchoParens on the whole string
-// first. This mirrors ConceptText's parts() memo exactly.
-// ---------------------------------------------------------------------------
-
+// Format the whole paragraph before passive link tokenization.
 function renderLikeConceptText(text: string): string {
   const matcher = buildConceptMatcher(globalTerms());
-  const cleaned = stripEchoParens(firstMentionGloss(text, matcher));
-  // Text parts go through Hebraized (hebraize); concept parts render raw.
+  const cleaned = finishDisplayText(text, { cleanGlosses: (s) => firstMentionGloss(s, matcher) });
   return tokenizeWithMatcher(cleaned, matcher)
-    .map((p) => (p.kind === 'text' ? hebraize(p.value) : p.value))
+    .map((p) => p.value)
     .join('');
 }
 
@@ -169,7 +159,7 @@ describe('ConceptText render path — collapses double-Hebrew across the tokeniz
   it('collapses an identical Hebrew echo where both sides match a surface', () => {
     // Both spell טריפה fully; both tokenize as concepts, so only a whole-string
     // pass can collapse them.
-    expect(renderLikeConceptText('a טריפה (טריפה).')).toBe('a טריפה.');
+    expect(renderLikeConceptText('a טריפה (טריפה).')).toBe('a טריפה (treif).');
   });
 
   it('keeps a genuine Hebrew clarification that adds new words', () => {

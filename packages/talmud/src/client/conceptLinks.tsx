@@ -18,6 +18,8 @@
  * The context value uses ACCESSORS (functions) so Solid tracks reads and
  * consumers re-tokenize when the daf's background terms load async.
  */
+
+import { BidiText } from '@corpus/ui/BidiText';
 import {
   type Accessor,
   createContext,
@@ -30,7 +32,6 @@ import {
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import type { Term } from '../lib/terms/registry';
-import { BidiText } from './Hebraized';
 import { lang } from './i18n';
 
 /** The surfaces a reader might actually SEE for a term in prose: the Hebrew

@@ -138,7 +138,7 @@ export default function ArgumentNarrative(props: {
                   'margin-bottom': '0.6rem',
                 }}
               >
-                {finishDisplayText(d().summary)}
+                {finishDisplayText(d().summary, { english: lang() === 'en' })}
               </div>
             </Show>
 
@@ -161,9 +161,9 @@ export default function ArgumentNarrative(props: {
                         border: `1px solid ${ROLE_COLOR[a.role] ?? '#ccc'}`,
                         color: ROLE_COLOR[a.role] ?? '#666',
                       }}
-                      title={finishDisplayText(a.role)}
+                      title={finishDisplayText(a.role, { english: lang() === 'en' })}
                     >
-                      {finishDisplayText(a.name)}
+                      {finishDisplayText(a.name, { english: lang() === 'en' })}
                     </span>
                   )}
                 </For>
@@ -254,10 +254,10 @@ export default function ArgumentNarrative(props: {
                         <span>
                           <Show when={b.actor}>
                             <span style={{ 'font-weight': 600, color: '#222' }}>
-                              {finishDisplayText(b.actor)}:{' '}
+                              {finishDisplayText(b.actor, { english: lang() === 'en' })}:{' '}
                             </span>
                           </Show>
-                          {finishDisplayText(b.action)}
+                          {finishDisplayText(b.action, { english: lang() === 'en' })}
                         </span>
                       </li>
                     );

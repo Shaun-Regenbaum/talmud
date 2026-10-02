@@ -3638,7 +3638,7 @@ function YerushalmiParallelBlock(props: SpecialBlockProps): JSX.Element {
                     'text-decoration': 'none',
                   }}
                 >
-                  {finishDisplayText(c.title)}
+                  {finishDisplayText(c.title, { english: lang() === 'en' })}
                 </a>
                 <div style={{ 'font-size': '0.7rem', color: '#888', margin: '0.1rem 0 0.3rem' }}>
                   {c.ref}
@@ -3646,7 +3646,7 @@ function YerushalmiParallelBlock(props: SpecialBlockProps): JSX.Element {
                 <p
                   style={{ 'font-size': '0.84rem', color: '#444', 'line-height': 1.55, margin: 0 }}
                 >
-                  {finishDisplayText(c.summary)}
+                  {finishDisplayText(c.summary, { english: lang() === 'en' })}
                 </p>
               </div>
             )}

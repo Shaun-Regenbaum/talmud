@@ -15,60 +15,21 @@
  * tracks reads inside JSX/memos and consumers re-evaluate when daf-level
  * state changes (e.g. dafContext loads async after the sidebar mounts).
  */
-import { type Accessor, createContext, createMemo, For, type JSX, useContext } from 'solid-js';
-import { heKey, rabbiItems } from '../lib/bilingual';
-import { useBilingual, usePageGlossary } from './bilingual';
-import { ConceptAwareText, firstMentionGloss, useConceptLinks } from './conceptLinks';
+import { createMemo, For, type JSX } from 'solid-js';
+import { heKey } from '../lib/bilingual';
+import { ConceptAwareText } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
 import { useDisplayText } from './displayText';
-import { lang } from './i18n';
+import { useRabbiLinks } from './rabbiLinkContext';
 
-export interface RabbiLinkContextValue {
-  rabbis: Accessor<IdentifiedRabbi[]>;
-  extraNames: Accessor<string[]>;
-  onPushRabbi: (name: string) => void;
-  /** The page on screen, so prose can use that page's glossary (names and
-   *  terms whose Hebrew another paragraph on the page gives). */
-  page?: Accessor<{ tractate: string; page: string }>;
-}
-
-const RabbiLinkContext = createContext<RabbiLinkContextValue | null>(null);
-
-export function RabbiLinkProvider(props: {
-  value: RabbiLinkContextValue;
-  children: JSX.Element;
-}): JSX.Element {
-  return (
-    <RabbiLinkContext.Provider value={props.value}>{props.children}</RabbiLinkContext.Provider>
-  );
-}
-
-export function useRabbiLinks(): RabbiLinkContextValue | null {
-  return useContext(RabbiLinkContext);
-}
+export { type RabbiLinkContextValue, RabbiLinkProvider, useRabbiLinks } from './rabbiLinkContext';
 
 /** Drop-in replacement for `<Hebraized text=...>` that, when a RabbiLink
  *  context is in scope, wraps rabbi mentions as clickable links. When no
  *  context is present (e.g. outside the sidebar), behaves like Hebraized. */
 export function HebraizedWithRabbis(props: { text: string | undefined | null }): JSX.Element {
   const ctx = useRabbiLinks();
-  // The house rule runs on the WHOLE paragraph here, before anything splits
-  // it into fragments.
-  const judged = useBilingual(() => props.text ?? '');
-  const glossary = usePageGlossary(() => ctx?.page?.());
-  const concept = useConceptLinks();
-  // Hebrew first, English in parentheses once: the paragraph's own pairs
-  // (Jev), then the page's glossary, then the daf's rabbis.
-  const text = useDisplayText(
-    () => judged().text,
-    () => ({
-      items:
-        lang() === 'en'
-          ? [...judged().pairs, ...glossary(), ...rabbiItems(ctx?.rabbis() ?? [])]
-          : [],
-      cleanGlosses: (s: string) => firstMentionGloss(s, concept?.matcher() ?? null),
-    }),
-  );
+  const text = useDisplayText(() => props.text ?? '');
   // No rabbi pool here: concept links can still use the prepared paragraph.
   if (!ctx) return <ConceptAwareText text={text()} />;
   return (
