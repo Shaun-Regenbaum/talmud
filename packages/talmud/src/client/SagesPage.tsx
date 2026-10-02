@@ -730,14 +730,20 @@ function SageDetail(props: {
                 />
               }
             >
-              <Show when={u().bio.en}>
-                <p class="sage-prose">{u().bio.en}</p>
-              </Show>
-              <Show when={u().bio.he}>
-                <p class="sage-prose sage-prose-he" dir="rtl" lang="he">
-                  {u().bio.he}
-                </p>
-              </Show>
+              <For each={lang() === 'he' ? (['he', 'en'] as const) : (['en', 'he'] as const)}>
+                {(l) => (
+                  <Show when={u().bio[l]}>
+                    <p
+                      class="sage-prose"
+                      classList={{ 'sage-prose-he': l === 'he' }}
+                      dir={l === 'he' ? 'rtl' : undefined}
+                      lang={l === 'he' ? 'he' : undefined}
+                    >
+                      {u().bio[l]}
+                    </p>
+                  </Show>
+                )}
+              </For>
               <Show when={!u().bio.en && !u().bio.he}>
                 <StatusMessage tone="empty">{t('sages.bio.empty')}</StatusMessage>
               </Show>
