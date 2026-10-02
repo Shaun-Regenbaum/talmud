@@ -577,6 +577,12 @@ const CATALOG = {
   'region.unknown': { en: 'Unknown', he: 'לא ידוע' },
 
   // — Sages page —
+  'notFound.title': { en: 'Page not found', he: 'הדף לא נמצא' },
+  'notFound.body': {
+    en: 'There is no page at this address.',
+    he: 'אין דף בכתובת הזו.',
+  },
+  'notFound.back': { en: 'Open the reader', he: 'פתיחת הקורא' },
   'sages.title': { en: 'Sages', he: 'חכמים' },
   'sages.count.all': { en: '{count} sages', he: '{count} חכמים' },
   'sages.count.filtered': { en: '{shown} of {total}', he: '{shown} מתוך {total}' },

@@ -1,0 +1,319 @@
+/* #sages — the sage registry page. Colours, borders and radii come from the
+   shared tokens (@corpus/ui tokens.css); nothing here hard-codes a colour. */
+.sages-page {
+  --page-max: 1280px;
+  font-family: var(--font-ui);
+  color: var(--fg);
+}
+.sages-head {
+  margin-bottom: 1rem;
+}
+.sages-title {
+  margin: 0;
+  font: 700 1.4rem / 1.3 var(--font-serif, var(--font-ui));
+}
+.sages-muted {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.sages-back {
+  margin-inline-start: auto;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.sages-back:hover {
+  color: var(--accent);
+}
+.sages-note {
+  margin: 0.4rem 0.2rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+.sages-err {
+  color: var(--danger);
+  font-size: 0.78rem;
+}
+.sages-ts {
+  color: var(--muted);
+  font: 0.72rem var(--font-mono);
+}
+.sages-label {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sages-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.sages-stat-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.sages-compiles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sages-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.sages-search {
+  flex: 1;
+  min-width: 240px;
+}
+.sages-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sages-grid {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+@media (max-width: 760px) {
+  .sages-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.sages-panel {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.sages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 78vh;
+  padding: 0.5rem;
+  overflow-y: auto;
+}
+.sages-list-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+.sages-list-meta span {
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunk);
+}
+.sages-missing-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px dashed var(--line);
+  font-size: 0.85rem;
+}
+.sages-missing-count {
+  color: var(--ink-umber);
+  font-weight: 600;
+}
+.sages-missing-dafs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.sages-missing-daf {
+  padding: 0 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink-slate-light);
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+
+.sages-detail {
+  padding: 1rem 1.25rem;
+  max-height: 82vh;
+  overflow-y: auto;
+}
+.sage-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.sage-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--line);
+}
+.sage-head-titles {
+  flex: 1;
+  min-width: 0;
+}
+.sage-name {
+  margin: 0;
+  font: 700 1.4rem / 1.3 var(--font-serif, var(--font-ui));
+}
+.sage-name-other {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 1.1rem;
+}
+.sage-slug {
+  display: inline-block;
+  margin-top: 0.2rem;
+  padding: 1px 6px;
+  border-radius: var(--radius);
+  background: var(--surface-sunk);
+  color: var(--muted);
+  font: 0.72rem var(--font-mono);
+}
+.sage-close {
+  padding: 0 0.6rem;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.sage-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.sage-image {
+  margin: 0;
+  max-width: 220px;
+}
+.sage-image img {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.sage-image figcaption {
+  margin-top: 0.2rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.sage-prose {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+.sage-prose-he {
+  font-family: var(--font-hebrew);
+  font-size: 1rem;
+}
+.sage-events {
+  margin: 0;
+  padding-inline-start: 1.2rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.sage-wiki {
+  margin-bottom: 0.6rem;
+}
+.sage-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.sages-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+.sages-pill {
+  padding: 2px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunk);
+  color: var(--ink-slate);
+  font-size: 0.8rem;
+}
+.sages-pill b {
+  color: var(--fg);
+  font-weight: 600;
+}
+.sages-tag {
+  padding: 1px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--ink-slate);
+  font-size: 0.8rem;
+}
+.sages-tag-link {
+  min-height: 0;
+  height: auto;
+  cursor: pointer;
+}
+.sages-tag-dim {
+  background: var(--surface-sunk);
+  color: var(--ink-slate-light);
+}
+.sages-tag-ochre {
+  color: var(--ink-ochre);
+}
+.sages-tag-teal {
+  color: var(--ink-teal);
+}
+.sages-bucket {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+.sages-bucket > .sages-label {
+  min-width: 80px;
+  color: var(--ink-indigo);
+}
+.sages-primaries {
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--line);
+}
+.sages-place-mates {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+}
+.sages-place-mates > strong {
+  min-width: 90px;
+  color: var(--ink-teal);
+  font-size: 0.85rem;
+}
+.sages-ext {
+  color: var(--ink-link);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+.sages-ext:hover {
+  text-decoration: underline;
+}
