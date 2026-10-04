@@ -24,6 +24,7 @@ import {
   generationLabelHe,
 } from './generations';
 import { lang, t } from './i18n';
+import { academyLabel, orientationLabel, placeLabel, roleLabel } from './sageLabels';
 import './sages.css';
 import { SageCoverageStrip } from './SageCoverageStrip';
 import { SageNetworkSection } from './SageNetworkSection';
@@ -683,7 +684,7 @@ function SageDetail(props: {
               </Show>
               <Show when={u().academy}>
                 <span class="sages-pill">
-                  {t('sages.meta.academy')} <b>{u().academy}</b>
+                  {t('sages.meta.academy')} <b>{academyLabel(u().academy as string, lang())}</b>
                 </span>
               </Show>
               <Show when={u().birthYear || u().deathYear}>
@@ -692,7 +693,7 @@ function SageDetail(props: {
                 </span>
               </Show>
               <Show when={u().orientation && u().orientation !== 'unknown'}>
-                <span class="sages-pill">{u().orientation}</span>
+                <span class="sages-pill">{orientationLabel(u().orientation, lang())}</span>
               </Show>
               <Show when={u().prominence != null}>
                 <span class="sages-pill">
@@ -730,7 +731,15 @@ function SageDetail(props: {
                 />
               }
             >
-              <For each={lang() === 'he' ? (['he', 'en'] as const) : (['en', 'he'] as const)}>
+              <For
+                each={
+                  lang() === 'he' && u().bio.he
+                    ? (['he'] as const)
+                    : lang() === 'he'
+                      ? (['en'] as const)
+                      : (['en', 'he'] as const)
+                }
+              >
                 {(l) => (
                   <Show when={u().bio[l]}>
                     <p
@@ -753,7 +762,7 @@ function SageDetail(props: {
               <Section label={t('sages.section.characteristics')}>
                 <div class="sages-tags">
                   <For each={u().characteristics}>
-                    {(c) => <span class="sages-tag sages-tag-ochre">{c}</span>}
+                    {(c) => <span class="sages-tag sages-tag-ochre">{roleLabel(c, lang())}</span>}
                   </For>
                 </div>
               </Section>
@@ -763,7 +772,7 @@ function SageDetail(props: {
               <Section label={t('sages.section.places')}>
                 <div class="sages-tags">
                   <For each={u().places}>
-                    {(p) => <span class="sages-tag sages-tag-teal">{p}</span>}
+                    {(p) => <span class="sages-tag sages-tag-teal">{placeLabel(p, lang())}</span>}
                   </For>
                 </div>
               </Section>
@@ -826,7 +835,11 @@ function SageDetail(props: {
             </Show>
 
             <Show when={academyMates().length > 0}>
-              <Section label={t('sages.section.academyOf', { name: u().academy as string })}>
+              <Section
+                label={t('sages.section.academyOf', {
+                  name: academyLabel(u().academy as string, lang()),
+                })}
+              >
                 <SageLinks slugs={academyMates()} />
               </Section>
             </Show>
@@ -836,7 +849,7 @@ function SageDetail(props: {
                 <For each={placeMates()}>
                   {(pm) => (
                     <div class="sages-place-mates">
-                      <strong>{pm.place}</strong>
+                      <strong>{placeLabel(pm.place, lang())}</strong>
                       <SageLinks slugs={pm.sages} />
                     </div>
                   )}
@@ -1166,7 +1179,7 @@ function hasAnyRefs(r: UnifiedRecord['refs']): boolean {
 function fmtDate(s: string): string {
   if (!s) return '?';
   try {
-    return new Date(s).toLocaleDateString();
+    return new Date(s).toLocaleDateString(lang() === 'he' ? 'he-IL' : undefined);
   } catch {
     return s;
   }
