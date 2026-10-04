@@ -132,6 +132,9 @@ const halachaRefBundle = z.record(
   z.array(
     z.looseObject({
       ref: z.string(),
+      // Required on purpose: entries cached before the Hebrew ref was stored
+      // read as a miss and refetch once, so the Hebrew card gets its ref.
+      heRef: z.string(),
       hebrew: z.string().optional(),
       english: z.string().optional(),
       segStart: z.number().optional(),

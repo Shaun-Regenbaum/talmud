@@ -292,6 +292,8 @@ function lineDistance(a: LineRange, topic: LineRange): number {
 /** One code ref tied to a topic, with its clean text. */
 export interface TopicCodeRef {
   ref: string;
+  /** Hebrew form of `ref`; empty when Sefaria gave none. */
+  heRef?: string;
   match: LineMatch;
   einMishpat: boolean;
   /** Clean Hebrew. For the Shulchan Aruch this is the Mechaber's words only. */
@@ -345,6 +347,7 @@ export function codesForLines(
         const split = isSA ? splitRema(r.hebrew) : null;
         return {
           ref: r.ref,
+          heRef: r.heRef ?? '',
           match: d === 0 ? 'on-lines' : 'near',
           einMishpat: Boolean(r.einMishpat),
           hebrew: split ? split.mechaber : cleanCodeText(r.hebrew),

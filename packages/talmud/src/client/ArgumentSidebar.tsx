@@ -557,7 +557,7 @@ export function ArgumentMoveCard(props: {
               'font-family': 'ui-monospace, Menlo, monospace',
             }}
           >
-            seg{' '}
+            {t('move.segment')}{' '}
             {props.move.startSegIdx === props.move.endSegIdx
               ? props.move.startSegIdx
               : `${props.move.startSegIdx}–${props.move.endSegIdx}`}
@@ -2363,7 +2363,7 @@ function HalachaCodeRow(props: {
             'text-decoration': 'none',
           }}
         >
-          {props.code.ref}
+          {lang() === 'he' && props.code.heRef ? props.code.heRef : props.code.ref}
         </a>
         <Show when={props.code.einMishpat}>
           <span style={CODE_TAG}>{t('halacha.codes.einMishpat')}</span>
@@ -3832,17 +3832,6 @@ function RishonimSources(props: SpecialBlockProps): JSX.Element {
                 <span dir="rtl" lang="he" style={{ 'font-family': '"Mekorot Vilna", serif' }}>
                   {c.workHe || c.work}
                 </span>
-                <Show when={c.workHe && c.work}>
-                  <span
-                    style={{
-                      'margin-inline-start': '0.4rem',
-                      color: '#94a3b8',
-                      'font-size': '0.78rem',
-                    }}
-                  >
-                    {c.work}
-                  </span>
-                </Show>
               </Show>
               <Show when={c.sourceRef && lang() !== 'he'}>
                 <span
@@ -3871,7 +3860,9 @@ function RishonimSources(props: SpecialBlockProps): JSX.Element {
                 innerHTML={c.textHe}
               />
             </Show>
-            <Show when={c.textEn}>
+            {/* Hebrew mode shows the Hebrew commentary alone; the English
+                translation is only the fallback when there is no Hebrew. */}
+            <Show when={c.textEn && (lang() !== 'he' || !c.textHe)}>
               <p
                 style={{
                   margin: '0.4rem 0 0',
