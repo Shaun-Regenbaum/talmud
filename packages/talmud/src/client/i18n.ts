@@ -389,6 +389,7 @@ const CATALOG = {
   'move.kind.digression': { en: 'digression', he: 'הרחבה' },
   'move.kind.shift': { en: 'shift', he: 'מעבר' },
   'move.kind.other': { en: 'other', he: 'אחר' },
+  'move.segment': { en: 'seg', he: 'קטע' },
   'move.highlighted': { en: 'highlighted', he: 'מודגש' },
   'move.highlight.set': {
     en: 'Click to highlight this move on the daf',

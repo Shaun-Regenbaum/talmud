@@ -103,6 +103,8 @@ export type RishonimBundle = RishonComment[];
 
 export interface HalachicSnippet {
   ref: string;
+  /** The same ref in Hebrew (Sefaria's heRef), for the Hebrew reader. */
+  heRef?: string;
   hebrew: string;
   english: string;
   /** 0-indexed daf segment(s) this ref anchors to (from the link's anchorRef).
@@ -589,6 +591,7 @@ class SefariaAPI {
           if (hebrew || english) {
             snippets.push({
               ref: t.ref,
+              heRef: t.heRef ?? '',
               hebrew,
               english,
               segStart: anchors[0]?.segStart,
