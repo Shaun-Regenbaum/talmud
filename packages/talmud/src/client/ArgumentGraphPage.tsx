@@ -156,6 +156,22 @@ export function ArgumentGraphPage(): JSX.Element {
     return m;
   });
 
+  // A speaker's name in the app language. Hebrew mode uses the Hebrew name from
+  // the rabbi list, or the Hebrew name of a group like "Sages"; the English name
+  // stays as the fallback and as the key everything else matches on.
+  const heByName = createMemo(() => {
+    const m = new Map<string, string>();
+    const rabbiParsed = payload()?.pieces?.rabbi?.parsed as RabbiMarkParsed | undefined;
+    for (const inst of rabbiParsed?.instances ?? []) {
+      const nm = inst.fields?.name?.trim();
+      const he = inst.fields?.nameHe?.trim();
+      if (nm && he && !m.has(nm)) m.set(nm, he);
+    }
+    return m;
+  });
+  const displayName = (name: string): string =>
+    lang() === 'he' ? (heByName().get(name) ?? resolveVoiceGroup(name)?.nameHe ?? name) : name;
+
   const classify = (name: string): VoiceClass => ({
     collective: !!resolveVoiceGroup(name),
     generation: genByName().get(name),
@@ -369,7 +385,7 @@ export function ArgumentGraphPage(): JSX.Element {
                           'flex-shrink': 0,
                         }}
                       />
-                      {p.name}
+                      {displayName(p.name)}
                       <span style={{ color: '#999', 'font-size': '0.68rem' }}>
                         {p.statementCount}
                       </span>
@@ -390,7 +406,7 @@ export function ArgumentGraphPage(): JSX.Element {
                       'flex-wrap': 'wrap',
                     }}
                   >
-                    <strong style={{ color: '#2a2520' }}>{p().name}</strong>
+                    <strong style={{ color: '#2a2520' }}>{displayName(p().name)}</strong>
                     <Show when={genLabel(p())}>
                       <span>{genLabel(p())}</span>
                     </Show>
@@ -456,7 +472,7 @@ export function ArgumentGraphPage(): JSX.Element {
                       onClick={() => toggleFocus(name)}
                       style={{ 'margin-inline-start': '.5rem' }}
                     >
-                      {name}
+                      {displayName(name)}
                     </button>
                   )}
                 </For>
