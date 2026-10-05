@@ -26,6 +26,9 @@ export interface SegmentStats {
   alignedSegments: number;
   totalWords: number;
   alignedWords: number;
+  /** Segments (by Sefaria index) that have words but could not be placed on the
+   *  printed page. They get no `data-seg`, so nothing anchored to them can paint. */
+  unalignedSegments: number[];
 }
 
 /**
@@ -38,7 +41,12 @@ export interface SegmentStats {
  */
 export function abbreviationMatches(hbRaw: string, sefWords: string[], sj: number): number {
   // Strip nikkud/cantillation but KEEP punctuation so we can see the ' / ׳ / " / ״ markers.
-  const s = hbRaw.replace(/[֑-ׇ]/g, '').trim();
+  // A trailing colon/period ("וחכ"א:") is sentence punctuation, not part of the
+  // abbreviation, so drop it before matching.
+  const s = hbRaw
+    .replace(/[֑-ׇ]/g, '')
+    .trim()
+    .replace(/[:.,;?!]+$/, '');
   const eq = (a: string, b: string): boolean => normalizeHebrew(a) === normalizeHebrew(b);
   const startsWith = (word: string, prefix: string): boolean =>
     normalizeHebrew(word).startsWith(normalizeHebrew(prefix));
@@ -79,6 +87,18 @@ export function abbreviationMatches(hbRaw: string, sefWords: string[], sj: numbe
     const first = m[1] ? 'וחכמים' : 'חכמים';
     if (sj + 1 < sefWords.length && eq(sefWords[sj], first) && eq(sefWords[sj + 1], 'אומרים'))
       return 2;
+    return 0;
+  }
+
+  // בא"י  →  ברוך אתה ה׳  (3 Sefaria words; the closing of a blessing)
+  if (/^בא[״"״]י$/.test(s)) {
+    if (
+      sj + 2 < sefWords.length &&
+      eq(sefWords[sj], 'ברוך') &&
+      eq(sefWords[sj + 1], 'אתה') &&
+      eq(sefWords[sj + 2], 'ה')
+    )
+      return 3;
     return 0;
   }
 
@@ -381,6 +401,7 @@ export function injectSegmentMarkers(
         alignedSegments: 0,
         totalWords: 0,
         alignedWords: 0,
+        unalignedSegments: [],
       },
     };
   }
@@ -395,6 +416,7 @@ export function injectSegmentMarkers(
         alignedSegments: 0,
         totalWords: 0,
         alignedWords: 0,
+        unalignedSegments: [],
       },
     };
   }
@@ -412,6 +434,7 @@ export function injectSegmentMarkers(
 
   let hbPtr = 0;
   let alignedSegments = 0;
+  const unalignedSegments: number[] = [];
   let alignedWords = 0;
 
   for (let segIdx = 0; segIdx < segWordLists.length; segIdx++) {
@@ -468,7 +491,10 @@ export function injectSegmentMarkers(
       if (segStart >= 0) break;
     }
 
-    if (segStart < 0) continue;
+    if (segStart < 0) {
+      unalignedSegments.push(segIdx);
+      continue;
+    }
 
     // Consume the full segment from segStart. A small lookahead on both
     // sides tolerates single-word insertions/deletions without aborting the
@@ -539,6 +565,7 @@ export function injectSegmentMarkers(
       alignedSegments,
       totalWords: words.length,
       alignedWords,
+      unalignedSegments,
     },
   };
 }

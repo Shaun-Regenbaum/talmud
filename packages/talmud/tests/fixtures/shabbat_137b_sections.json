@@ -26,7 +26,8 @@
       "endSegIdx": 0,
       "fields": {
         "excerpt": "מָל וְלֹא פָּרַע אֶת הַמִּילָה",
-        "endExcerpt": "כְּאִילּוּ לֹא מָל"
+        "endExcerpt": "כְּאִילּוּ לֹא מָל",
+        "title": "Opening Mishnah: Circumcision without uncovering"
       }
     },
     {
@@ -34,7 +35,8 @@
       "endSegIdx": 4,
       "fields": {
         "excerpt": "אָמַר רַבִּי אֲבִינָא אָמַר רַבִּי יִרְמְיָה בַּר אַבָּא אָמַר רַב",
-        "endExcerpt": "נִרְאֶה וְאֵינוֹ נִרְאֶה"
+        "endExcerpt": "נִרְאֶה וְאֵינוֹ נִרְאֶה",
+        "title": "Gemara: Defining the flesh that must be removed and the case of a fleshy infant"
       }
     },
     {
@@ -42,7 +44,8 @@
       "endSegIdx": 6,
       "fields": {
         "excerpt": "תָּנוּ רַבָּנַן, הַמָּל אוֹמֵר",
-        "endExcerpt": "בָּרוּךְ אַתָּה ה׳ כּוֹרֵת הַבְּרִית"
+        "endExcerpt": "בָּרוּךְ אַתָּה ה׳ כּוֹרֵת הַבְּרִית",
+        "title": "Baraita: Blessings for circumcision of a Jewish infant, converts, and slaves"
       }
     },
     {
@@ -50,7 +53,8 @@
       "endSegIdx": 10,
       "fields": {
         "excerpt": "רַבִּי אֱלִיעֶזֶר אוֹמֵר: תּוֹלִין אֶת הַמְשַׁמֶּרֶת בְּיוֹם טוֹב",
-        "endExcerpt": "אֲבָל נוֹתְנִין לַתְּלוּיָה בְּיוֹם טוֹב"
+        "endExcerpt": "אֲבָל נוֹתְנִין לַתְּלוּיָה בְּיוֹם טוֹב",
+        "title": "New Mishnah: Hanging a strainer on Yom Tov and Shabbat"
       }
     },
     {
@@ -58,7 +62,8 @@
       "endSegIdx": 16,
       "fields": {
         "excerpt": "הַשְׁתָּא רַבִּי אֱלִיעֶזֶר אוֹסוֹפֵי אֹהֶל עֲרַאי לָא מוֹסְפִינַן",
-        "endExcerpt": "דְּרַבִּי אֱלִיעֶזֶר עֲדִיפָא מִדְּרַבִּי יְהוּדָה"
+        "endExcerpt": "דְּרַבִּי אֱלִיעֶזֶר עֲדִיפָא מִדְּרַבִּי יְהוּדָה",
+        "title": "Gemara: Analysis of Rabbi Eliezer's leniency and comparison with Rabbi Yehuda"
       }
     },
     {
@@ -66,7 +71,70 @@
       "endSegIdx": 18,
       "fields": {
         "excerpt": "אִיבַּעְיָא לְהוּ: תָּלָה מַאי?",
-        "endExcerpt": "דְּמִיחַיַּיב"
+        "endExcerpt": "דְּמִיחַיַּיב",
+        "title": "Gemara: The status of hanging a strainer on Shabbat"
+      }
+    }
+  ],
+  "moves": [
+    {
+      "startSegIdx": 0,
+      "endSegIdx": 0,
+      "fields": {
+        "id": "0-0_0",
+        "sectionStartSegIdx": 0,
+        "sectionEndSegIdx": 0,
+        "moveOrder": 0
+      }
+    },
+    {
+      "startSegIdx": 1,
+      "endSegIdx": 4,
+      "fields": {
+        "id": "1-4_0",
+        "sectionStartSegIdx": 1,
+        "sectionEndSegIdx": 4,
+        "moveOrder": 0
+      }
+    },
+    {
+      "startSegIdx": 5,
+      "endSegIdx": 6,
+      "fields": {
+        "id": "5-6_0",
+        "sectionStartSegIdx": 5,
+        "sectionEndSegIdx": 6,
+        "moveOrder": 0
+      }
+    },
+    {
+      "startSegIdx": 7,
+      "endSegIdx": 10,
+      "fields": {
+        "id": "7-10_0",
+        "sectionStartSegIdx": 7,
+        "sectionEndSegIdx": 10,
+        "moveOrder": 0
+      }
+    },
+    {
+      "startSegIdx": 11,
+      "endSegIdx": 16,
+      "fields": {
+        "id": "11-16_0",
+        "sectionStartSegIdx": 11,
+        "sectionEndSegIdx": 16,
+        "moveOrder": 0
+      }
+    },
+    {
+      "startSegIdx": 17,
+      "endSegIdx": 18,
+      "fields": {
+        "id": "17-18_0",
+        "sectionStartSegIdx": 17,
+        "sectionEndSegIdx": 18,
+        "moveOrder": 0
       }
     }
   ]

@@ -57,3 +57,12 @@ describe('segment alignment with an editorial label', () => {
     expect(seg1).toEqual(['רבי', 'אליעזר', 'אומר', 'תולין', 'את', 'המשמרת']);
   });
 });
+
+describe('segment alignment reports what it could not place', () => {
+  it('lists a segment that has no match on the printed page', () => {
+    const word = (t: string) => `<span class="daf-word">${t}</span>`;
+    const html = ['אחד', 'שנים', 'שלשה'].map(word).join(' ');
+    const { stats } = injectSegmentMarkers(html, ['אחד שנים שלשה', 'ארבעה חמשה ששה']);
+    expect(stats.unalignedSegments).toEqual([1]);
+  });
+});
