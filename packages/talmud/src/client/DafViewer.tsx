@@ -19,6 +19,7 @@ import {
 import { dedupeBy, partitionSections } from '../lib/argumentMoves';
 import { DafRenderer } from '../lib/daf-render';
 import type { DafGeoModel } from '../lib/geographyModel';
+import { perakimOf, perekAt } from '../lib/perakim';
 import type { TalmudPageData } from '../lib/sefref';
 import { clampAmud, dafRefHe, TRACTATE_OPTIONS } from '../lib/sefref';
 import { conceptToTerm, glossaryForDaf, type Term } from '../lib/terms/registry';
@@ -62,6 +63,7 @@ import MarksRegistryPanel, {
   markStatuses,
 } from './MarksRegistryPanel';
 import { MobileShelf } from './MobileShelf';
+import './reader-controls.css';
 import RunTreeDock from './RunTreeDock';
 import { recordStage } from './rendererActivity';
 import { applyMarkRenderers } from './renderers/dispatch';
@@ -2668,6 +2670,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     }
   };
 
+  const perakim = () => perakimOf(tractate());
+  const currentPerek = () => perekAt(perakim(), page());
+
   const pageNum = () => parsePage(page()).num;
   const pageAmud = () => parsePage(page()).amud;
 
@@ -3558,6 +3563,26 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             {pageAmud()}
           </button>
         </PageNavigation>
+
+        <Show when={perakim().length > 0}>
+          <Select
+            class="perek-select"
+            aria-label={t('header.perek')}
+            title={t('header.perek.title')}
+            value={currentPerek()?.start ?? ''}
+            onChange={(e) => go(e.currentTarget.value)}
+          >
+            <For each={perakim()}>
+              {(pk) => (
+                <option value={pk.start}>
+                  {lang() === 'he'
+                    ? `${t('header.perek')} ${pk.n} · ${pk.he}`
+                    : `${t('header.perek')} ${pk.n} · ${pk.he}${pk.en ? ` (${pk.en})` : ''}`}
+                </option>
+              )}
+            </For>
+          </Select>
+        </Show>
 
         <Button
           type="button"

@@ -159,6 +159,8 @@ const CATALOG = {
   'header.todaysDaf': { en: "Today's Daf", he: 'הדף היומי' },
   'header.todaysDaf.finding': { en: 'Finding today’s daf…', he: 'מאתר את דף היום…' },
   'header.todaysDaf.title': { en: "Jump to today's Daf Yomi", he: 'מעבר לדף היומי של היום' },
+  'header.perek': { en: 'Perek', he: 'פרק' },
+  'header.perek.title': { en: 'Jump to a chapter (perek)', he: 'מעבר לפרק' },
   'header.amud.title': { en: 'Toggle amud (side)', he: 'החלפת עמוד (צד)' },
   'header.dev': { en: 'Inspect', he: 'בדיקה' },
   'header.dev.title': {
