@@ -613,3 +613,94 @@
 .sage-name {
   color: var(--fg);
 }
+
+.sage-partners {
+  margin: 1.5rem 0;
+}
+.sage-partners h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.sage-partner-list {
+  list-style: none;
+  margin: 0.75rem 0 0.5rem;
+  padding: 0;
+}
+.sage-partner {
+  border-top: 1px solid var(--line);
+}
+.sage-partner summary {
+  display: grid;
+  grid-template-columns: minmax(8rem, 14rem) minmax(5rem, 1fr) 6.5rem;
+  grid-template-areas: "name bar total" "gist gist gist";
+  gap: 0.2rem 0.9rem;
+  align-items: center;
+  padding: 0.7rem 0;
+  cursor: pointer;
+}
+.sage-partner-name {
+  grid-area: name;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+}
+.sage-partner-he {
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.sage-partner-bar {
+  grid-area: bar;
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--line);
+}
+.sage-partner-bar span {
+  display: block;
+  height: 100%;
+}
+.sage-partner-total {
+  grid-area: total;
+  text-align: end;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.sage-partner-gist {
+  grid-area: gist;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.sage-partner-body {
+  padding: 0 0 1rem;
+  display: grid;
+  gap: 0.7rem;
+}
+.sage-kind-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+.sage-kind-head i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.sage-kind-dir {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin: 0.15rem 0 0 1.05rem;
+}
+.sage-kind-line .sages-reference-links {
+  margin: 0.25rem 0 0 1.05rem;
+}
+@media (max-width: 640px) {
+  .sage-partner summary {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "name total" "bar bar" "gist gist";
+  }
+}
