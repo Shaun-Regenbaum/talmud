@@ -38,8 +38,8 @@ export interface MoveLike {
  * survives only if it begins past the span already covered by the last kept
  * section. The end-ascending tiebreak means that when a coarse split and a fine
  * split start at the same segment, the finer split wins — we'd rather show more
- * granular sections than fewer. Surviving sections then have their start pushed
- * to `prev.end + 1` to close any gap a dropped section left behind, and the
+ * granular sections than fewer. A gap a dropped section left behind is closed by
+ * stretching the previous section's end forward (starts never move back), and the
  * final ranges are clamped to `lastSeg`.
  *
  * Mutates the surviving instances' start/end in place (the caller has already
@@ -57,12 +57,16 @@ export function partitionSections<T extends SectionRange>(instances: T[], lastSe
     if (last && s.startSegIdx <= last.endSegIdx) continue;
     kept.push(s);
   }
-  // Re-tile: each section starts right after the previous one ends, closing
-  // gaps left by dropped sections.
+  // Re-tile: close gaps left by dropped sections by stretching the PREVIOUS
+  // section forward. Never pull a start back: a start was found by matching the
+  // section's opening words, so it is the reliable edge; an end is the soft one.
+  // (Pulling starts back put Shabbat 137b's new Mishnah over the segments of
+  // the baraita before it.)
   for (let i = 1; i < kept.length; i++) {
     const prev = kept[i - 1];
     const cur = kept[i];
-    if (cur.startSegIdx !== prev.endSegIdx + 1) {
+    if (cur.startSegIdx > prev.endSegIdx + 1) prev.endSegIdx = cur.startSegIdx - 1;
+    else if (cur.startSegIdx !== prev.endSegIdx + 1) {
       cur.startSegIdx = prev.endSegIdx + 1;
       if (cur.endSegIdx < cur.startSegIdx) cur.endSegIdx = cur.startSegIdx;
     }
