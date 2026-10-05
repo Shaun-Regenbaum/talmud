@@ -91,3 +91,20 @@ describe('abbreviationMatches — existing expansions still work', () => {
     expect(abbreviationMatches('קטנה', ['קטנה'], 0)).toBe(0);
   });
 });
+
+describe('abbreviationMatches — Shabbat 137b shapes', () => {
+  // Segment 17 ("וחכמים אומרים. איבעיא להו") was skipped whole because the printed
+  // token is "וחכ"א:" with a trailing colon.
+  it('ignores a trailing colon on an abbreviation', () => {
+    expect(abbreviationMatches('וחכ"א:', ['וחכמים', 'אומרים', 'איבעיא'], 0)).toBe(2);
+  });
+
+  // The closing of three blessings printed as בא"י כורת הברית.
+  it('expands בא"י to ברוך אתה ה׳ (3 words)', () => {
+    expect(abbreviationMatches('בא"י', ['בָּרוּךְ', 'אַתָּה', 'ה׳', 'כּוֹרֵת'], 0)).toBe(3);
+  });
+
+  it('does not expand בא"י when the words do not follow', () => {
+    expect(abbreviationMatches('בא"י', ['ברוך', 'אתה', 'אלהינו'], 0)).toBe(0);
+  });
+});

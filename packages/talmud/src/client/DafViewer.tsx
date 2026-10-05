@@ -2243,8 +2243,17 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       main = html;
       const ms = Math.round(performance.now() - t0);
       recordStage('sefaria-align', 'Sefaria align', ms, {
-        detail: `${stats.alignedSegments}/${stats.totalSegments} segs · ${stats.alignedWords}/${stats.totalWords} words`,
+        detail: `${stats.alignedSegments}/${stats.totalSegments} segs · ${stats.alignedWords}/${stats.totalWords} words${
+          stats.unalignedSegments.length
+            ? ` · not placed: ${stats.unalignedSegments.join(',')}`
+            : ''
+        }`,
       });
+      if (stats.unalignedSegments.length > 0) {
+        console.warn(
+          `[align] ${tractate()} ${page()}: segments not placed on the page: ${stats.unalignedSegments.join(', ')}`,
+        );
+      }
     }
 
     // Chapter-closing formula "הדרן עלך ..." renders as its own centered

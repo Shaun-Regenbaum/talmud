@@ -60,6 +60,7 @@ import { dafSpine } from '../lib/context/spine';
 import heAliasData from '../lib/data/rabbi-he-aliases.json';
 import { buildGeoModel, type GeoEnrichment, type RabbiGeoSource } from '../lib/geographyModel';
 import type { TopicCodifier } from '../lib/halacha/codifiers';
+import { type RangeChange, remapMoveSections, repairArgumentSections } from '../lib/place/repair';
 import { filterRabbiBoundaries, nameCrossesBoundary } from '../lib/rabbi/nameBoundaries';
 import type { EntityPiece } from '../lib/registry/entity';
 import { adjacentAmud, sefariaAPI, TRACTATE_OPTIONS } from '../lib/sefref';
@@ -3609,28 +3610,81 @@ function enrichKeyInfo(def: EnrichmentDefinition) {
   };
 }
 
+/** The daf's Hebrew segments from CACHE ONLY. A miss returns null rather than
+ *  fetching: a warm read must never add a remote call. */
+async function cachedSegmentsHe(
+  env: Bindings,
+  tractate: string,
+  page: string,
+): Promise<string[] | null> {
+  const source = await kvGetJSONAs<GemaraSlice>(
+    env.CACHE,
+    keyForGemara(tractate, page),
+    gemaraSliceShape,
+  );
+  if (source) return source.segments_he;
+  // Opening a daf refreshes this source even after the generation slice expires.
+  const segs = await kvGetJSONAs<{ he: string[] }>(
+    env.CACHE,
+    keyForSefariaSegments(tractate, page),
+    sefariaSegmentsShape,
+  );
+  return segs ? segs.he.map(stripHtmlServer) : null;
+}
+
+/** Stored argument sections whose range was fixed after the daf was generated
+ *  (#714), healed on read: the deterministic re-anchorer re-runs over the stored
+ *  output. No model call, no cache write, no change to any cache key — see
+ *  lib/place/repair.ts for why that holds. The moves ride along: they point at
+ *  their section by range, so they are remapped from the same stored sections. */
+async function repairSectionRangesOnRead(
+  env: Bindings,
+  stored: RunResult,
+  m: RegExpExecArray,
+): Promise<RunResult> {
+  const [, markId, tractateSlug, page] = m;
+  const tractate = canonicalTractateName(tractateSlug);
+  const segments = await cachedSegmentsHe(env, tractate, page);
+  if (!segments) return stored;
+  let parsed: unknown = stored.parsed;
+  let changes: RangeChange[];
+  if (markId === 'argument') {
+    ({ parsed, changes } = repairArgumentSections(stored.parsed, segments));
+  } else {
+    // argument-move: derive the range changes from the stored argument sections.
+    const argDef = CODE_MARKS.find((d) => d.id === 'argument');
+    if (!argDef) return stored;
+    const lang = m[0].includes(':he:') ? 'he' : 'en';
+    const arg = await artifactStore(env).get(keyForMark(argDef, tractate, page, lang));
+    if (!arg || authorityOf(arg) === 'human') return stored;
+    ({ changes } = repairArgumentSections((arg as RunResult).parsed, segments));
+    parsed = remapMoveSections(stored.parsed, changes);
+  }
+  if (changes.length === 0 || parsed === stored.parsed) return stored;
+  return { ...stored, parsed, content: JSON.stringify(parsed) } as RunResult;
+}
+
 export async function readCachedResult(env: Bindings, key: string): Promise<RunResult | null> {
   if (!env.CACHE) return null;
   const stored = await artifactStore(env).get(key);
-  // Repair old name scans on read without rewriting the cache or its recipe.
+  // Repair old stored output on read without rewriting the cache or its recipe.
   // Human corrections remain authoritative, including on this read path.
+  if (!stored || authorityOf(stored) === 'human') return stored as RunResult | null;
+  const sectionKey = /^mark:(argument|argument-move):[^:]+:(?:he:)?([^:]+):(\d+[ab])$/.exec(key);
+  if (sectionKey) {
+    try {
+      return await repairSectionRangesOnRead(env, stored as RunResult, sectionKey);
+    } catch {
+      return stored as RunResult; // a repair failure must not make a warm mark unreadable
+    }
+  }
   const rabbiKey = /^mark:rabbi:[^:]+:(?:he:)?([^:]+):(\d+[ab])$/.exec(key);
-  if (!stored || !rabbiKey || authorityOf(stored) === 'human') return stored as RunResult | null;
+  if (!rabbiKey) return stored as RunResult | null;
   try {
     // Stay cache-only: a source miss must not add remote fetches to a warm read.
     const tractate = canonicalTractateName(rabbiKey[1]);
-    const gemaraKey = keyForGemara(tractate, rabbiKey[2]);
-    const source = await kvGetJSONAs<GemaraSlice>(env.CACHE, gemaraKey, gemaraSliceShape);
-    let segments: string[];
-    if (source) {
-      segments = source.segments_he;
-    } else {
-      // Opening a daf refreshes this source even after the generation slice expires.
-      const segKey = keyForSefariaSegments(tractate, rabbiKey[2]);
-      const segs = await kvGetJSONAs<{ he: string[] }>(env.CACHE, segKey, sefariaSegmentsShape);
-      if (!segs) return stored as RunResult;
-      segments = segs.he.map(stripHtmlServer);
-    }
+    const segments = await cachedSegmentsHe(env, tractate, rabbiKey[2]);
+    if (!segments) return stored as RunResult;
     const parsed = filterRabbiBoundaries(stored.parsed, segments.join('\n'));
     if (parsed !== stored.parsed) {
       return { ...stored, parsed, content: JSON.stringify(parsed) } as RunResult;
