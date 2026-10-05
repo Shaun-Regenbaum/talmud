@@ -33,7 +33,8 @@
   position: absolute;
   top: calc(100% + 4px);
   inset-inline-start: 0;
-  z-index: 50;
+  /* Above the sticky load bar (50) so the list never slides under it. */
+  z-index: 60;
   width: 260px;
   max-height: min(60vh, 360px);
   overflow-y: auto;
