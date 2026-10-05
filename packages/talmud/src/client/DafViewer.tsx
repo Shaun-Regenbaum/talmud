@@ -2670,6 +2670,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     }
   };
 
+  const [perekOpen, setPerekOpen] = createSignal(false);
   const perakim = () => perakimOf(tractate());
   const currentPerek = () => perekAt(perakim(), page());
 
@@ -3519,8 +3520,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         }
         hint={
           <>
-            {lang() === 'he' ? dafRefHe(tractate(), page()) : `${tractate()} ${page()}`} ·{' '}
-            {t('header.nav.hint')}
+            {lang() === 'he' ? dafRefHe(tractate(), page()) : `${tractate()} ${page()}`}
+            {currentPerek()
+              ? ` · ${t('header.perek')} ${currentPerek()?.n}${
+                  lang() === 'he' ? ` ${currentPerek()?.he}` : ''
+                }`
+              : ''}{' '}
+            · {t('header.nav.hint')}
           </>
         }
       >
@@ -3545,6 +3551,12 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           onPrevious={() => go(prevPage(page()))}
           onNext={() => go(nextPage(page()))}
           data-tour="daf-nav"
+          onFocusOut={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setPerekOpen(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setPerekOpen(false);
+          }}
         >
           <input
             class="ui-page-number"
@@ -3553,7 +3565,42 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             min={2}
             value={pageNum()}
             onInput={(e) => setPageNum(Number(e.currentTarget.value))}
+            onFocus={() => setPerekOpen(true)}
+            onClick={() => setPerekOpen(true)}
           />
+          <Show when={perekOpen() && perakim().length > 0}>
+            {/* Second way to a page: pick a chapter. Mousedown is held so the
+                number box keeps focus until the click lands. */}
+            <div
+              class="perek-menu"
+              role="listbox"
+              aria-label={t('header.perek.title')}
+              dir={lang() === 'he' ? 'rtl' : 'ltr'}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <For each={perakim()}>
+                {(pk) => (
+                  <button
+                    type="button"
+                    role="option"
+                    class="perek-item"
+                    aria-selected={currentPerek()?.n === pk.n}
+                    classList={{ 'is-current': currentPerek()?.n === pk.n }}
+                    onClick={() => {
+                      setPerekOpen(false);
+                      go(pk.start);
+                    }}
+                  >
+                    <span class="perek-n">{pk.n}</span>
+                    <span class="perek-name">{lang() === 'he' ? pk.he : pk.en || pk.he}</span>
+                    <span class="perek-start" dir="ltr">
+                      {pk.start}
+                    </span>
+                  </button>
+                )}
+              </For>
+            </div>
+          </Show>
           <button
             type="button"
             class="ui-page-side"
@@ -3563,26 +3610,6 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             {pageAmud()}
           </button>
         </PageNavigation>
-
-        <Show when={perakim().length > 0}>
-          <Select
-            class="perek-select"
-            aria-label={t('header.perek')}
-            title={t('header.perek.title')}
-            value={currentPerek()?.start ?? ''}
-            onChange={(e) => go(e.currentTarget.value)}
-          >
-            <For each={perakim()}>
-              {(pk) => (
-                <option value={pk.start}>
-                  {lang() === 'he'
-                    ? `${t('header.perek')} ${pk.n} · ${pk.he}`
-                    : `${t('header.perek')} ${pk.n} · ${pk.he}${pk.en ? ` (${pk.en})` : ''}`}
-                </option>
-              )}
-            </For>
-          </Select>
-        </Show>
 
         <Button
           type="button"

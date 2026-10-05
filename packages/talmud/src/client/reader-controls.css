@@ -24,21 +24,55 @@
   }
 }
 
-/* Chapter picker: stays quiet next to the daf box until hovered or focused. */
-.ui-reader-header > .ui-select.perek-select {
-  width: auto;
-  max-width: 150px;
-  min-height: 32px;
-  padding: 4px 8px;
-  border-color: transparent;
-  background: transparent;
-  color: var(--muted, var(--fg));
-  font-size: 12px;
-  text-overflow: ellipsis;
+/* Chapter list: opens under the daf number box, so a page can be reached by
+   typing a number or by picking a chapter. */
+.ui-page-navigation {
+  position: relative;
 }
-.ui-reader-header > .ui-select.perek-select:hover,
-.ui-reader-header > .ui-select.perek-select:focus-visible {
-  border-color: var(--accent);
+.perek-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  inset-inline-start: 0;
+  z-index: 50;
+  width: 260px;
+  max-height: min(60vh, 360px);
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   background: var(--surface);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
+}
+.perek-item {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
   color: var(--fg);
+  font: 400 13px / 1.35 var(--font-ui);
+  text-align: start;
+  cursor: pointer;
+}
+.perek-item:hover,
+.perek-item:focus-visible {
+  background: var(--surface-sunk);
+}
+.perek-item.is-current {
+  color: var(--accent);
+  font-weight: 600;
+}
+.perek-n,
+.perek-start {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.perek-item.is-current .perek-n,
+.perek-item.is-current .perek-start {
+  color: inherit;
 }
