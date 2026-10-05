@@ -330,3 +330,286 @@
 .sages-ext:hover {
   text-decoration: underline;
 }
+
+/* The directory is navigation; the profile is the reading surface. */
+.sages-intro {
+  margin: 0 0 1.5rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.sages-grid {
+  grid-template-columns: 285px minmax(0, 1fr);
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+.sages-directory {
+  min-width: 0;
+  position: sticky;
+  top: 1rem;
+}
+.sages-directory .sages-controls {
+  gap: 0.75rem;
+}
+.sages-directory .sages-search {
+  min-width: 0;
+  width: 100%;
+  flex-basis: 100%;
+}
+.sages-directory .sages-chips {
+  width: 100%;
+}
+.sages-directory select {
+  flex: 1;
+  min-width: 0;
+}
+.sages-list {
+  max-height: 65vh;
+  padding: 0;
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+.sages-directory-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.75rem;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  text-align: start;
+  font: inherit;
+}
+.sages-directory-row:hover,
+.sages-directory-row[aria-pressed="true"] {
+  background: var(--surface-sunk);
+}
+.sages-directory-row[aria-pressed="true"] {
+  box-shadow: inset 3px 0 var(--accent);
+}
+[dir="rtl"] .sages-directory-row[aria-pressed="true"] {
+  box-shadow: inset -3px 0 var(--accent);
+}
+.sages-directory-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.sages-directory-other {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.sages-list-meta span {
+  padding: 0;
+  background: none;
+}
+.sages-list-meta {
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+.sages-detail {
+  max-height: none;
+  overflow: visible;
+  padding: 1.5rem;
+  border-radius: var(--radius);
+}
+.sage-detail {
+  gap: 1.5rem;
+}
+.sage-name {
+  font-size: 1.8rem;
+}
+.sage-name-other {
+  display: block;
+  margin-top: 0.3rem;
+}
+.sages-welcome {
+  padding: 1rem 0;
+}
+.sages-welcome h2 {
+  font: 600 2rem / 1.2 var(--font-serif);
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--fg);
+  margin: 0.5rem 0 1rem;
+}
+.sages-welcome > p {
+  color: var(--muted);
+  max-width: 38rem;
+  line-height: 1.6;
+}
+.sages-start-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.5rem 0 2rem;
+}
+.sages-group-guide {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+.sages-group-guide > div {
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}
+.sages-group-guide h3,
+.sage-connections h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.sages-group-guide p {
+  color: var(--muted);
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.sages-group-tabs {
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+.sages-group-description {
+  color: var(--muted);
+  line-height: 1.5;
+  font-size: 0.9rem;
+  margin: 0 0 1rem;
+}
+.sages-connection-list {
+  margin-top: 1rem;
+}
+.sages-connection-row {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--line);
+}
+.sages-connection-role,
+.sages-connection-source {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.sages-person-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--ink-link);
+  cursor: pointer;
+  text-align: start;
+  font: 500 0.95rem / 1.5 var(--font-ui);
+}
+.sages-person-link:hover {
+  text-decoration: underline;
+}
+.sages-passage-row {
+  border-top: 1px solid var(--line);
+}
+.sages-passage-row summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  cursor: pointer;
+  list-style: none;
+}
+.sages-passage-row summary::after {
+  content: "+";
+  color: var(--muted);
+}
+.sages-passage-row[open] summary::after {
+  content: "−";
+}
+.sages-passage-statement {
+  flex: 1;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.sages-passage-statement strong {
+  font-weight: 500;
+}
+.sages-passage-count {
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
+  padding-top: 0.2rem;
+}
+.sages-passage-body {
+  padding: 0 0 1rem;
+}
+.sages-reference-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+}
+.sages-page a {
+  color: var(--ink-link);
+}
+.sages-page button:focus-visible,
+.sages-page summary:focus-visible,
+.sages-page a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+@media (max-width: 760px) {
+  .sages-head {
+    padding-inline-end: 0;
+    padding-top: 2.5rem;
+  }
+  .sages-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .sages-directory {
+    position: static;
+  }
+  .sages-list {
+    max-height: 48vh;
+  }
+  .sages-detail {
+    padding: 1rem;
+  }
+  .sages-grid.has-selection .sages-directory {
+    display: none;
+  }
+  .sages-grid:not(.has-selection) .sages-detail {
+    display: none;
+  }
+  .sages-connection-row {
+    grid-template-columns: 80px minmax(0, 1fr);
+  }
+  .sages-connection-source {
+    grid-column: 2;
+  }
+  .sages-passage-row summary {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .sages-passage-count {
+    white-space: normal;
+  }
+  .sages-stat-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+  .sages-group-guide {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sage-detail > section,
+.sage-detail > header {
+  margin-block: 0;
+}
+.sage-name {
+  color: var(--fg);
+}

@@ -1,31 +1,14 @@
-/**
- * #sages — single page for browsing the canonical ~1.3K sage list and
- * managing enrichment. Fuzzy search across slug + canonical EN/HE + aliases.
- * Detail pane pulls every cached enrichment for the selected sage and
- * exposes Run / Re-run / Refresh per stage. Top bar shows global coverage
- * and lets you compile graph / cohort / places-index / academy-roster.
- */
+/** Browse sages, their relationships, and the passages behind their connections. */
 import { Button } from '@corpus/ui/Button';
 import { DetailSection } from '@corpus/ui/MetricSummary';
 import { Select } from '@corpus/ui/Select';
-import {
-  ChoiceCard,
-  FilterChip,
-  Input,
-  SectionHeading,
-  StatCard,
-  StatusMessage,
-} from '@corpus/ui/Study';
-import { createMemo, createResource, createSignal, For, type JSX, Show } from 'solid-js';
-import {
-  colorForGeneration,
-  GENERATION_BY_ID,
-  type GenerationId,
-  generationLabelHe,
-} from './generations';
+import { FilterChip, Input, SectionHeading, StatCard, StatusMessage } from '@corpus/ui/Study';
+import { createMemo, createResource, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
+import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
 import { lang, t } from './i18n';
-import { academyLabel, orientationLabel, placeLabel, roleLabel } from './sageLabels';
+import { academyLabel, placeLabel, roleLabel } from './sageLabels';
 import './sages.css';
+import { SAGE_CONNECTION_GROUPS, SageConnections } from './SageConnections';
 import { SageCoverageStrip } from './SageCoverageStrip';
 import { SageNetworkSection } from './SageNetworkSection';
 import { type IndexRow, isHebrewQuery, normalize, scoreRow } from './sageSearch';
@@ -140,9 +123,13 @@ const STAGE_PATHS = {
 type StageId = keyof typeof STAGE_PATHS;
 
 async function getJSON<T>(url: string): Promise<T | null> {
-  const res = await fetch(url);
-  if (!res.ok) return null;
-  return res.json() as Promise<T>;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
 }
 
 /* -------- display helpers -------- */
@@ -248,9 +235,9 @@ function MissingSagesPanel(): JSX.Element {
 /* -------- page -------- */
 
 export function SagesPage(): JSX.Element {
-  const [index] = createResource(async () => {
+  const [index, { refetch: refetchIndex }] = createResource(async () => {
     const r = await getJSON<IndexResp>('/api/sages-index');
-    return r ?? { rows: [], count: 0 };
+    return r;
   });
   const [cohort, { refetch: refetchCohort }] = createResource(async () =>
     getJSON<CohortBlob>('/api/admin/rabbi-cohort'),
@@ -296,16 +283,23 @@ export function SagesPage(): JSX.Element {
   const hashSlug = (): string | null => {
     const h = window.location.hash.replace(/^#/, '');
     if (!h.startsWith('sages/')) return null;
-    return decodeURIComponent(h.slice('sages/'.length)) || null;
+    try {
+      return decodeURIComponent(h.slice('sages/'.length)) || null;
+    } catch {
+      return null;
+    }
   };
   const [selected, setSelected] = createSignal<string | null>(hashSlug());
-  window.addEventListener('hashchange', () => setSelected(hashSlug()));
+  const syncSelection = () => setSelected(hashSlug());
+  window.addEventListener('hashchange', syncSelection);
+  onCleanup(() => window.removeEventListener('hashchange', syncSelection));
 
   const select = (slug: string) => {
     window.location.hash = `sages/${encodeURIComponent(slug)}`;
   };
   const clearSelection = () => {
     window.location.hash = 'sages';
+    requestAnimationFrame(() => document.querySelector<HTMLInputElement>('.sages-search')?.focus());
   };
 
   const generations = createMemo<string[]>(() => {
@@ -374,136 +368,127 @@ export function SagesPage(): JSX.Element {
         </a>
       </header>
 
-      <Show when={stats.loading && !stats()}>
-        <StatusMessage tone="loading">{t('sages.stats.loading')}</StatusMessage>
-      </Show>
-      <Show when={stats()}>
-        {(s) => (
-          <section class="sages-stats">
-            <div class="sages-stat-cards">
-              <StatCard
-                label={t('sages.stats.unified')}
-                value={s().perSage.unified}
-                detail={`/ ${s().totalSlugs}`}
-              />
-              <StatCard label={t('sages.stats.wikidata')} value={s().perSage.wikidata} />
-              <StatCard label={t('sages.stats.wikiBio')} value={s().perSage.wikiBio} />
+      <p class="sages-intro">{t('sages.intro')}</p>
+      <div class="sages-grid" classList={{ 'has-selection': !!selected() }}>
+        <aside class="sages-directory" aria-label={t('sages.directory')}>
+          <div class="sages-controls">
+            <Input
+              type="text"
+              class="sages-search"
+              aria-label={t('sages.search.placeholder')}
+              placeholder={t('sages.search.placeholder')}
+              value={filter()}
+              onInput={(e) => setFilter(e.currentTarget.value)}
+            />
+            <div class="sages-chips">
+              <span class="sages-label">{t('sages.filter.region')}</span>
+              <FilterChip active={region() === 'all'} onClick={() => setRegion('all')}>
+                {t('sages.filter.all')}
+              </FilterChip>
+              <FilterChip active={region() === 'israel'} onClick={() => setRegion('israel')}>
+                {t('sages.region.israel')}
+              </FilterChip>
+              <FilterChip active={region() === 'bavel'} onClick={() => setRegion('bavel')}>
+                {t('sages.region.bavel')}
+              </FilterChip>
             </div>
-            <div class="sages-compiles">
-              <For each={COMPILES}>
-                {(c) => {
-                  const ts = () => globalStamp(c.id, s());
-                  return (
-                    <Button
-                      disabled={!!compiling()[c.id]}
-                      onClick={() => runCompile(c.id)}
-                      title={t('sages.compile.title', {
-                        desc: t(c.descKey),
-                        last: ts()
-                          ? new Date(ts() as string).toLocaleString()
-                          : t('sages.compile.never'),
-                      })}
-                    >
-                      {compiling()[c.id]
-                        ? t('sages.compile.running', { name: t(c.labelKey) })
-                        : t('sages.compile.action', { name: t(c.labelKey) })}
-                      <Show when={ts()}>
-                        <span class="sages-ts">{fmtDate(ts() as string)}</span>
-                      </Show>
-                      <Show when={compileErr()[c.id]}>
-                        <span class="sages-err">{t('sages.compile.err')}</span>
-                      </Show>
-                    </Button>
-                  );
-                }}
-              </For>
-            </div>
-          </section>
-        )}
-      </Show>
-
-      <div class="sages-controls">
-        <Input
-          type="text"
-          class="sages-search"
-          placeholder={t('sages.search.placeholder')}
-          value={filter()}
-          onInput={(e) => setFilter(e.currentTarget.value)}
-          autofocus
-        />
-        <div class="sages-chips">
-          <span class="sages-label">{t('sages.filter.region')}</span>
-          <FilterChip active={region() === 'all'} onClick={() => setRegion('all')}>
-            {t('sages.filter.all')}
-          </FilterChip>
-          <FilterChip active={region() === 'israel'} onClick={() => setRegion('israel')}>
-            {t('sages.region.israel')}
-          </FilterChip>
-          <FilterChip active={region() === 'bavel'} onClick={() => setRegion('bavel')}>
-            {t('sages.region.bavel')}
-          </FilterChip>
-        </div>
-        <Show when={generations().length > 0}>
-          <div class="sages-chips">
-            <span class="sages-label">{t('sages.filter.gen')}</span>
-            <Select
-              aria-label={t('sages.filter.gen')}
-              value={generation()}
-              onChange={(e) => setGeneration(e.currentTarget.value)}
-            >
-              <option value="all">{t('sages.filter.all')}</option>
-              <For each={generations()}>{(g) => <option value={g}>{genLabel(g)}</option>}</For>
-            </Select>
-          </div>
-        </Show>
-      </div>
-
-      <div class="sages-grid">
-        <aside class="sages-panel sages-list">
-          <Show when={index.loading}>
-            <StatusMessage tone="loading">{t('sages.list.loading')}</StatusMessage>
-          </Show>
-          <Show when={!index.loading && ranked().length === 0}>
-            <StatusMessage tone="empty">{t('sages.list.noMatches')}</StatusMessage>
-          </Show>
-          <For each={ranked().slice(0, 300)}>
-            {(row) => {
-              const n = () => namePair(row.canonical, row.canonicalHe);
-              return (
-                <ChoiceCard
-                  title={n().main}
-                  detail={n().other || undefined}
-                  active={selected() === row.slug}
-                  stripe={row.generation ? colorForGeneration(row.generation) : undefined}
-                  onClick={() => select(row.slug)}
+            <Show when={generations().length > 0}>
+              <div class="sages-chips">
+                <span class="sages-label">{t('sages.filter.gen')}</span>
+                <Select
+                  aria-label={t('sages.filter.gen')}
+                  value={generation()}
+                  onChange={(e) => setGeneration(e.currentTarget.value)}
                 >
-                  <span class="sages-list-meta">
-                    <Show when={row.generation}>
-                      <span>{genLabel(row.generation)}</span>
+                  <option value="all">{t('sages.filter.all')}</option>
+                  <For each={generations()}>{(g) => <option value={g}>{genLabel(g)}</option>}</For>
+                </Select>
+              </div>
+            </Show>
+          </div>
+
+          <div class="sages-list">
+            <Show when={index.loading}>
+              <StatusMessage tone="loading">{t('sages.list.loading')}</StatusMessage>
+            </Show>
+            <Show when={!index.loading && !index()}>
+              <StatusMessage
+                tone="error"
+                onRetry={() => refetchIndex()}
+                retryLabel={t('sages.connections.retry')}
+              >
+                {t('sages.directory.error')}
+              </StatusMessage>
+            </Show>
+            <Show when={!index.loading && index() && ranked().length === 0}>
+              <StatusMessage tone="empty">{t('sages.list.noMatches')}</StatusMessage>
+            </Show>
+            <For each={ranked()}>
+              {(row) => {
+                const n = () => namePair(row.canonical, row.canonicalHe);
+                return (
+                  <button
+                    type="button"
+                    class="sages-directory-row"
+                    aria-pressed={selected() === row.slug}
+                    onClick={() => select(row.slug)}
+                  >
+                    <span class="sages-directory-name">{n().main}</span>
+                    <Show when={n().other}>
+                      <span class="sages-directory-other" dir="auto">
+                        {n().other}
+                      </span>
                     </Show>
-                    <Show when={row.region}>
-                      <span>{regionLabel(row.region)}</span>
-                    </Show>
-                  </span>
-                </ChoiceCard>
-              );
-            }}
-          </For>
-          <Show when={ranked().length > 300}>
-            <p class="sages-note">{t('sages.list.cap', { count: ranked().length - 300 })}</p>
-          </Show>
-          <MissingSagesPanel />
+                    <span class="sages-list-meta">
+                      <Show when={row.generation}>
+                        <span>{genLabel(row.generation)}</span>
+                      </Show>
+                      <Show when={row.region}>
+                        <span>{regionLabel(row.region)}</span>
+                      </Show>
+                    </span>
+                  </button>
+                );
+              }}
+            </For>
+          </div>
         </aside>
 
         <section class="sages-panel sages-detail">
           <Show
             when={selected()}
-            fallback={<StatusMessage tone="empty">{t('sages.detail.pickPrompt')}</StatusMessage>}
+            keyed
+            fallback={
+              <div class="sages-welcome">
+                <span class="sages-label">{t('sages.welcome.eyebrow')}</span>
+                <h2>{t('sages.welcome.title')}</h2>
+                <p>{t('sages.welcome.description')}</p>
+                <div class="sages-start-links">
+                  <For
+                    each={['abaye', 'rava', 'hillel', 'rabbi-akiva'].filter((slug) =>
+                      rowBySlug().has(slug),
+                    )}
+                  >
+                    {(slug) => <Button onClick={() => select(slug)}>{nameFor(slug)}</Button>}
+                  </For>
+                </div>
+                <div class="sages-group-guide">
+                  <For each={SAGE_CONNECTION_GROUPS}>
+                    {(key) => (
+                      <div>
+                        <h3>{t(`sages.group.${key}`)}</h3>
+                        <p>{t(`sages.group.${key}.description`)}</p>
+                      </div>
+                    )}
+                  </For>
+                </div>
+              </div>
+            }
           >
             {(slug) => (
               <SageDetail
-                slug={slug()}
-                generationId={index()?.rows.find((r) => r.slug === slug())?.generation ?? null}
+                slug={slug}
+                generationId={index()?.rows.find((r) => r.slug === slug)?.generation ?? null}
                 cohort={cohort()}
                 places={places()}
                 academy={academy()}
@@ -516,6 +501,57 @@ export function SagesPage(): JSX.Element {
           </Show>
         </section>
       </div>
+      <DetailSection title={t('sages.maintenance')}>
+        <Show when={stats.loading && !stats()}>
+          <StatusMessage tone="loading">{t('sages.stats.loading')}</StatusMessage>
+        </Show>
+        <Show when={stats()}>
+          {(s) => (
+            <section class="sages-stats">
+              <div class="sages-stat-cards">
+                <StatCard
+                  label={t('sages.stats.unified')}
+                  value={s().perSage.unified}
+                  detail={`/ ${s().totalSlugs}`}
+                />
+                <StatCard label={t('sages.stats.wikidata')} value={s().perSage.wikidata} />
+                <StatCard label={t('sages.stats.wikiBio')} value={s().perSage.wikiBio} />
+              </div>
+              <div class="sages-compiles">
+                <For each={COMPILES}>
+                  {(c) => {
+                    const ts = () => globalStamp(c.id, s());
+                    return (
+                      <Button
+                        disabled={!!compiling()[c.id]}
+                        onClick={() => runCompile(c.id)}
+                        title={t('sages.compile.title', {
+                          desc: t(c.descKey),
+                          last: ts()
+                            ? new Date(ts() as string).toLocaleString()
+                            : t('sages.compile.never'),
+                        })}
+                      >
+                        {compiling()[c.id]
+                          ? t('sages.compile.running', { name: t(c.labelKey) })
+                          : t('sages.compile.action', { name: t(c.labelKey) })}
+                        <Show when={ts()}>
+                          <span class="sages-ts">{fmtDate(ts() as string)}</span>
+                        </Show>
+                        <Show when={compileErr()[c.id]}>
+                          <span class="sages-err">{t('sages.compile.err')}</span>
+                        </Show>
+                      </Button>
+                    );
+                  }}
+                </For>
+              </div>
+            </section>
+          )}
+        </Show>
+
+        <MissingSagesPanel />
+      </DetailSection>
     </main>
   );
 }
@@ -533,12 +569,14 @@ function SageDetail(props: {
   onClose: () => void;
   onStageRan: () => void;
 }): JSX.Element {
+  const [profileFailed, setProfileFailed] = createSignal(false);
   const [unified, { refetch: refetchUnified }] = createResource(
     () => props.slug,
     async (slug) => {
       const r = await getJSON<{ record: UnifiedRecord | null }>(
         `/api/admin/rabbi-enriched/${encodeURIComponent(slug)}`,
       );
+      setProfileFailed(!r);
       return r?.record ?? null;
     },
   );
@@ -629,13 +667,14 @@ function SageDetail(props: {
                 <h2 class="sage-name">
                   {n().main}
                   <Show when={n().other}>
-                    <span class="sage-name-other"> · {n().other}</span>
+                    <span class="sage-name-other" dir="auto">
+                      {n().other}
+                    </span>
                   </Show>
                 </h2>
               );
             })()}
           </Show>
-          <code class="sage-slug">{props.slug}</code>
         </div>
         <Button
           class="sage-close"
@@ -653,15 +692,7 @@ function SageDetail(props: {
 
       <Show when={!unified.loading && !unified()}>
         <StatusMessage tone="empty">
-          {t('sages.detail.noUnified')}{' '}
-          <Button
-            variant="primary"
-            disabled={!!stageRunning().unified}
-            onClick={() => runStage('unified')}
-            title={t(STAGE_PATHS.unified.descKey)}
-          >
-            {stageRunning().unified ? t('sages.stage.running') : t('sages.detail.runUnified')}
-          </Button>
+          {t(profileFailed() ? 'sages.connections.profileError' : 'sages.connections.noBio')}{' '}
           <Show when={stageError().unified}>
             <span class="sages-err">{stageError().unified}</span>
           </Show>
@@ -674,12 +705,12 @@ function SageDetail(props: {
             <div class="sages-tags">
               <Show when={u().generation}>
                 <span class="sages-pill">
-                  {t('sages.meta.genLabel')} <b>{genLabel(u().generation)}</b>
+                  <b>{genLabel(props.generationId ?? u().generation)}</b>
                 </span>
               </Show>
               <Show when={u().region}>
                 <span class="sages-pill">
-                  {t('sages.meta.region')} <b>{regionLabel(u().region)}</b>
+                  <b>{regionLabel(u().region)}</b>
                 </span>
               </Show>
               <Show when={u().academy}>
@@ -692,52 +723,18 @@ function SageDetail(props: {
                   {u().birthYear ?? '?'}–{u().deathYear ?? '?'}
                 </span>
               </Show>
-              <Show when={u().orientation && u().orientation !== 'unknown'}>
-                <span class="sages-pill">{orientationLabel(u().orientation, lang())}</span>
-              </Show>
-              <Show when={u().prominence != null}>
-                <span class="sages-pill">
-                  {t('sages.meta.prominence')} <b>{u().prominence}</b>
-                </span>
-              </Show>
             </div>
 
-            <Show when={u().aliases.length > 0}>
-              <Section label={t('sages.section.aliases')}>
-                <div class="sages-tags">
-                  <For each={u().aliases}>{(a) => <span class="sages-tag">{a}</span>}</For>
-                </div>
-              </Section>
-            </Show>
-
-            <Show when={u().image?.url}>
-              <figure class="sage-image">
-                <img src={u().image!.url} alt={u().canonical.en} />
-                <Show when={u().image!.caption}>
-                  <figcaption>{u().image!.caption}</figcaption>
-                </Show>
-              </figure>
-            </Show>
-
-            <Section
-              label={t('sages.section.bio')}
-              actions={
-                <StageActions
-                  stage="unified"
-                  cached={true}
-                  running={!!stageRunning().unified}
-                  error={stageError().unified}
-                  onRun={runStage}
-                />
-              }
-            >
+            <DetailSection title={t('sages.section.bio')}>
               <For
                 each={
                   lang() === 'he' && u().bio.he
                     ? (['he'] as const)
                     : lang() === 'he'
                       ? (['en'] as const)
-                      : (['en', 'he'] as const)
+                      : u().bio.en
+                        ? (['en'] as const)
+                        : (['he'] as const)
                 }
               >
                 {(l) => (
@@ -756,8 +753,37 @@ function SageDetail(props: {
               <Show when={!u().bio.en && !u().bio.he}>
                 <StatusMessage tone="empty">{t('sages.bio.empty')}</StatusMessage>
               </Show>
-            </Section>
+            </DetailSection>
+          </>
+        )}
+      </Show>
 
+      <SageConnections
+        slug={props.slug}
+        profile={unified()}
+        profileLoading={unified.loading}
+        profileFailed={profileFailed()}
+        nameFor={props.nameFor}
+        onSelect={props.onSelect}
+      />
+      <Show when={unified()}>
+        {(u) => (
+          <DetailSection title={t('sages.background')}>
+            <Show when={u().aliases.length > 0}>
+              <Section label={t('sages.section.aliases')}>
+                <div class="sages-tags">
+                  <For each={u().aliases}>{(a) => <span class="sages-tag">{a}</span>}</For>
+                </div>
+              </Section>
+            </Show>
+            <Show when={u().image?.url}>
+              <figure class="sage-image">
+                <img src={u().image!.url} alt={u().canonical.en} />
+                <Show when={u().image!.caption}>
+                  <figcaption>{u().image!.caption}</figcaption>
+                </Show>
+              </figure>
+            </Show>
             <Show when={u().characteristics.length > 0}>
               <Section label={t('sages.section.characteristics')}>
                 <div class="sages-tags">
@@ -767,7 +793,6 @@ function SageDetail(props: {
                 </div>
               </Section>
             </Show>
-
             <Show when={u().places.length > 0}>
               <Section label={t('sages.section.places')}>
                 <div class="sages-tags">
@@ -777,42 +802,8 @@ function SageDetail(props: {
                 </div>
               </Section>
             </Show>
-
-            <Show when={hasAnyRelations(u())}>
-              <Section label={t('sages.section.relationships')}>
-                <Show when={u().primaryTeacher || u().primaryStudent}>
-                  <div class="sages-tags sages-primaries">
-                    <Show when={u().primaryTeacher}>
-                      <Button onClick={() => props.onSelect(u().primaryTeacher!)}>
-                        <span aria-hidden="true">↑</span> {t('sages.rel.primaryTeacher')}:{' '}
-                        <b>{props.nameFor(u().primaryTeacher!)}</b>
-                      </Button>
-                    </Show>
-                    <Show when={u().primaryStudent}>
-                      <Button onClick={() => props.onSelect(u().primaryStudent!)}>
-                        <span aria-hidden="true">↓</span> {t('sages.rel.primaryStudent')}:{' '}
-                        <b>{props.nameFor(u().primaryStudent!)}</b>
-                      </Button>
-                    </Show>
-                  </div>
-                </Show>
-                <EdgeBucket
-                  label={t('sages.rel.teachers')}
-                  edges={u().teachers}
-                  nameFor={props.nameFor}
-                  onSelect={props.onSelect}
-                />
-                <EdgeBucket
-                  label={t('sages.rel.students')}
-                  edges={u().students}
-                  nameFor={props.nameFor}
-                  onSelect={props.onSelect}
-                />
-                <FamilyBucket
-                  family={u().family}
-                  nameFor={props.nameFor}
-                  onSelect={props.onSelect}
-                />
+            <Show when={u().opposed.length || u().influences.length}>
+              <Section label={t('sages.connections.otherProfile')}>
                 <EdgeBucket
                   label={t('sages.rel.opposed')}
                   edges={u().opposed}
@@ -826,14 +817,12 @@ function SageDetail(props: {
                   onSelect={props.onSelect}
                 />
               </Section>
-            </Show>
-
+            </Show>{' '}
             <Show when={contemporaries().length > 0}>
               <Section label={t('sages.section.contemporaries', { gen: genLabel(u().generation) })}>
                 <SageLinks slugs={contemporaries()} />
               </Section>
             </Show>
-
             <Show when={academyMates().length > 0}>
               <Section
                 label={t('sages.section.academyOf', {
@@ -843,7 +832,6 @@ function SageDetail(props: {
                 <SageLinks slugs={academyMates()} />
               </Section>
             </Show>
-
             <Show when={placeMates().length > 0}>
               <Section label={t('sages.section.placeMates')}>
                 <For each={placeMates()}>
@@ -856,27 +844,19 @@ function SageDetail(props: {
                 </For>
               </Section>
             </Show>
-
-            <Show when={u().events.length > 0}>
-              <Section label={t('sages.section.events')}>
-                <ul class="sage-events">
-                  <For each={u().events}>{(e) => <li>{e}</li>}</For>
-                </ul>
-              </Section>
-            </Show>
-
             <Show when={u().contemporaries?.length > 0 && contemporaries().length === 0}>
               <Section label={t('sages.section.contemporariesRecord')}>
                 <SageLinks slugs={u().contemporaries} />
               </Section>
             </Show>
-          </>
+          </DetailSection>
         )}
       </Show>
+      <DetailSection title={t('sages.passagesMap')}>
+        <SageCoverageStrip slug={props.slug} generation={props.generationId} />
 
-      <SageCoverageStrip slug={props.slug} generation={props.generationId} />
-
-      <SageNetworkSection slug={props.slug} />
+        <SageNetworkSection slug={props.slug} />
+      </DetailSection>
 
       <Show when={hasAnyRefs(refs())}>
         <Section label={t('sages.section.externalRefs')}>
@@ -905,6 +885,13 @@ function SageDetail(props: {
       {/* Operator tools — enrichment steps + provenance, folded away so the
           page reads as a rabbi profile first. */}
       <DetailSection title={t('sages.ops.title')}>
+        <StageActions
+          stage="unified"
+          cached={!!unified()}
+          running={!!stageRunning().unified}
+          error={stageError().unified}
+          onRun={runStage}
+        />
         <Section
           label={t('sages.section.wikipedia')}
           actions={
@@ -1096,42 +1083,6 @@ function EdgeBucket(props: {
   );
 }
 
-function FamilyBucket(props: {
-  family: FamilyEdge[];
-  nameFor: NameFor;
-  onSelect: (s: string) => void;
-}): JSX.Element {
-  return (
-    <Show when={props.family.length > 0}>
-      <div class="sages-bucket">
-        <span class="sages-label">{t('sages.rel.family')}</span>
-        <div class="sages-tags">
-          <For each={props.family}>
-            {(e) => (
-              <Show
-                when={e.slug}
-                fallback={
-                  <span class="sages-tag sages-tag-dim">
-                    <span class="sages-ts">{e.relation}</span> {e.name}
-                  </span>
-                }
-              >
-                <Button
-                  class="sages-tag sages-tag-link"
-                  onClick={() => props.onSelect(e.slug!)}
-                  title={t('sages.edge.source', { source: e.source })}
-                >
-                  <span class="sages-ts">{e.relation}</span> {props.nameFor(e.slug!)}
-                </Button>
-              </Show>
-            )}
-          </For>
-        </div>
-      </div>
-    </Show>
-  );
-}
-
 function WikidataEdges(props: { rec: WikidataRecord }): JSX.Element {
   const r = () => props.rec;
   const rows = (): Array<{ label: string; ids: string[] }> => {
@@ -1162,17 +1113,6 @@ function WikidataEdges(props: { rec: WikidataRecord }): JSX.Element {
   );
 }
 
-function hasAnyRelations(u: UnifiedRecord): boolean {
-  return !!(
-    u.primaryTeacher ||
-    u.primaryStudent ||
-    u.teachers.length ||
-    u.students.length ||
-    u.family.length ||
-    u.opposed.length ||
-    u.influences.length
-  );
-}
 function hasAnyRefs(r: UnifiedRecord['refs']): boolean {
   return !!(r.sefariaSlug || r.enWiki || r.heWiki || r.je || r.wikidata);
 }
