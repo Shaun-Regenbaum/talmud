@@ -10,6 +10,8 @@ export interface PageNavigationProps {
   nextDisabled?: boolean;
   children: JSX.Element;
   'data-tour'?: string;
+  onFocusOut?: JSX.EventHandler<HTMLElement, FocusEvent>;
+  onKeyDown?: JSX.EventHandler<HTMLElement, KeyboardEvent>;
 }
 
 /** Page numbers stay left-to-right in either language. In Hebrew the two arrow
@@ -22,6 +24,8 @@ export function PageNavigation(props: PageNavigationProps): JSX.Element {
       aria-label={props.label}
       dir="ltr"
       data-tour={props['data-tour']}
+      onFocusOut={props.onFocusOut}
+      onKeyDown={props.onKeyDown}
     >
       <button
         type="button"
