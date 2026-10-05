@@ -10,6 +10,7 @@ import { academyLabel, placeLabel, roleLabel } from './sageLabels';
 import './sages.css';
 import { SAGE_CONNECTION_GROUPS, SageConnections } from './SageConnections';
 import { SageCoverageStrip } from './SageCoverageStrip';
+import { SagePartners } from './SagePartners';
 import { SageNetworkSection } from './SageNetworkSection';
 import { type IndexRow, isHebrewQuery, normalize, scoreRow } from './sageSearch';
 
@@ -759,6 +760,8 @@ function SageDetail(props: {
         )}
       </Show>
 
+      <SageCoverageStrip slug={props.slug} generation={props.generationId} />
+      <SagePartners slug={props.slug} nameFor={props.nameFor} onSelect={props.onSelect} />
       <SageConnections
         slug={props.slug}
         profile={unified()}
@@ -855,8 +858,6 @@ function SageDetail(props: {
       </Show>
       <DetailSection title={t('sages.passagesMap')} open={mapOpen()} onToggle={setMapOpen}>
         <Show when={mapOpen()}>
-          <SageCoverageStrip slug={props.slug} generation={props.generationId} />
-
           <SageNetworkSection slug={props.slug} />
         </Show>
       </DetailSection>
