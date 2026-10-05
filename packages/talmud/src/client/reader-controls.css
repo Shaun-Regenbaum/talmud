@@ -23,3 +23,22 @@
     min-height: 44px;
   }
 }
+
+/* Chapter picker: stays quiet next to the daf box until hovered or focused. */
+.ui-reader-header > .ui-select.perek-select {
+  width: auto;
+  max-width: 150px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted, var(--fg));
+  font-size: 12px;
+  text-overflow: ellipsis;
+}
+.ui-reader-header > .ui-select.perek-select:hover,
+.ui-reader-header > .ui-select.perek-select:focus-visible {
+  border-color: var(--accent);
+  background: var(--surface);
+  color: var(--fg);
+}
