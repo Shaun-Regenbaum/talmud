@@ -7322,7 +7322,7 @@ async function processEnrichmentJob(
         result: { kind: 'rebuild-moves', ...out, total_ms: Date.now() - t0 },
       });
       console.log(
-        `[queue] rebuild-moves ${job.tractate}/${job.page} lang=${rc.lang} rebuilt=${out?.rebuilt ?? 0}`,
+        `[queue] rebuild-moves ${job.tractate}/${job.page} lang=${rc.lang} rebuilt=${out.rebuilt}${out.skipped ? ` skipped: ${out.skipped}` : ''}`,
       );
       return;
     }
