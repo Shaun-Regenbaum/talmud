@@ -8,15 +8,17 @@
  * closing line. Re-running the (deterministic) re-anchorer over the stored
  * output heals them without paying for any model call.
  *
- * Two guards keep this free and safe:
- *   1. COST. A per-instance note is cached under the section's identity. For a
- *      section with a Latin-letter title that identity is the title slug, so a
- *      corrected range keeps the same key. For a Hebrew-only title the identity
- *      is a hash that includes the range, so a corrected range would miss the
- *      cache and regenerate. Any daf with such a section that would change is
- *      left exactly as stored.
- *   2. NO WORSE. A repair is applied only if the new partition is clean and no
- *      section moves AWAY from a segment that contains its own opening words.
+ * One guard keeps it safe:
+ *   NO WORSE. A repair is applied only if the new partition is clean and no
+ *   section moves AWAY from a segment that contains its own opening words.
+ *
+ * Cost: the repair itself never calls a model. A per-instance note is cached
+ * under the section's identity. For a Latin-letter title that is the title slug,
+ * so a corrected range keeps the same key and the note is dropped and rebuilt
+ * on open (settleRepairedSections). For a Hebrew-only title the identity is a
+ * hash that includes the range, so a corrected range is a new key: the old note
+ * is orphaned and a new one is generated when the daf is opened. Either way the
+ * spend happens only for dafs people open, and only for the changed sections.
  */
 
 import { slugId } from '@corpus/core/cache/keys';
@@ -115,9 +117,7 @@ export function repairArgumentSections(parsed: unknown, segmentsHe: string[]): S
     const a = before[i];
     const b = after[i];
     if (a.startSegIdx === b.startSegIdx && a.endSegIdx === b.endSegIdx) continue;
-    // Guard 1: a range change must not change the section's cache identity.
-    if (!hasRangeFreeIdentity(a)) return unchanged;
-    // Guard 2: never move a start off a segment that holds its opening words.
+    // Never move a start off a segment that holds its opening words.
     if (startHasExcerpt(a, a.startSegIdx) && !startHasExcerpt(b, b.startSegIdx)) return unchanged;
     changes.push({ from: [a.startSegIdx, a.endSegIdx], to: [b.startSegIdx, b.endSegIdx] });
     changedIndexes.push(i);
@@ -151,4 +151,57 @@ export function remapMoveSections(parsed: unknown, changes: RangeChange[]): unkn
     return { ...(m as Inst), fields: { ...f, sectionStartSegIdx: to[0], sectionEndSegIdx: to[1] } };
   });
   return touched ? { ...obj, instances } : parsed;
+}
+
+const rangeKey = (a: number, b: number) => `${a}-${b}`;
+
+/** Which of a parent mark's sections to fan a rebuild over: keep only the
+ *  instances whose range is in `only` (`start-end` strings). `undefined` keeps
+ *  all of them. */
+export function pickFanOutInstances<T>(instances: T[], only: ReadonlySet<string> | undefined): T[] {
+  if (!only) return instances;
+  return instances.filter((i) => {
+    const s = (i as { startSegIdx?: unknown }).startSegIdx;
+    const e = (i as { endSegIdx?: unknown }).endSegIdx;
+    return typeof s === 'number' && typeof e === 'number' && only.has(rangeKey(s, e));
+  });
+}
+
+/** Splice freshly generated moves for some sections into the stored move list.
+ *  Moves of any section named in `changes` (by its old OR new range) are
+ *  replaced by `fresh`; every other stored move is kept as it was. The result is
+ *  ordered by section, then by each move's own position, like a full generation. */
+export function mergeRebuiltMoves(
+  stored: unknown,
+  fresh: unknown,
+  changes: RangeChange[],
+): unknown {
+  const s = stored as { instances?: unknown } | null;
+  const f = fresh as { instances?: unknown } | null;
+  if (!s || !Array.isArray(s.instances) || !f || !Array.isArray(f.instances)) return stored;
+  const replaced = new Set<string>();
+  for (const c of changes) {
+    replaced.add(rangeKey(c.from[0], c.from[1]));
+    replaced.add(rangeKey(c.to[0], c.to[1]));
+  }
+  const sectionOf = (m: unknown): string => {
+    const fl = (m as Inst | null)?.fields;
+    return typeof fl?.sectionStartSegIdx === 'number' && typeof fl?.sectionEndSegIdx === 'number'
+      ? rangeKey(fl.sectionStartSegIdx, fl.sectionEndSegIdx)
+      : '';
+  };
+  const kept = s.instances.filter((m) => !replaced.has(sectionOf(m)));
+  const order = (m: unknown): [number, number] => {
+    const fl = (m as Inst | null)?.fields;
+    return [
+      typeof fl?.sectionStartSegIdx === 'number' ? fl.sectionStartSegIdx : 0,
+      typeof fl?.moveOrder === 'number' ? fl.moveOrder : 0,
+    ];
+  };
+  const merged = [...kept, ...f.instances].sort((a, b) => {
+    const [as, ao] = order(a);
+    const [bs, bo] = order(b);
+    return as - bs || ao - bo;
+  });
+  return { ...s, instances: merged };
 }

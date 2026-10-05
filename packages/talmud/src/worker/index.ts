@@ -60,7 +60,13 @@ import { dafSpine } from '../lib/context/spine';
 import heAliasData from '../lib/data/rabbi-he-aliases.json';
 import { buildGeoModel, type GeoEnrichment, type RabbiGeoSource } from '../lib/geographyModel';
 import type { TopicCodifier } from '../lib/halacha/codifiers';
-import { type RangeChange, remapMoveSections, repairArgumentSections } from '../lib/place/repair';
+import {
+  mergeRebuiltMoves,
+  pickFanOutInstances,
+  type RangeChange,
+  remapMoveSections,
+  repairArgumentSections,
+} from '../lib/place/repair';
 import { filterRabbiBoundaries, nameCrossesBoundary } from '../lib/rabbi/nameBoundaries';
 import type { EntityPiece } from '../lib/registry/entity';
 import { adjacentAmud, sefariaAPI, TRACTATE_OPTIONS } from '../lib/sefref';
@@ -3411,6 +3417,9 @@ interface RunCtx {
    *  (relationships, geography, …) are generated in Hebrew too. Marks ignore
    *  it. Defaults to 'en' at every construction site. */
   lang: 'en' | 'he';
+  /** Partial rebuild: fan a parent mark out over ONLY these sections (`start-end`),
+   *  and do not persist the result (it is a fragment; the caller merges it). */
+  fanOutOnly?: ReadonlySet<string>;
 }
 
 // The walk itself (ResolvedInputs assembly, cycle detection, fanOut, the
@@ -3669,6 +3678,35 @@ async function repairSectionRangesOnRead(
   return { ...stored, parsed, content: JSON.stringify(parsed) } as RunResult;
 }
 
+/** Regenerate the moves of only the sections whose range was repaired, and splice
+ *  them into the stored moves. Runs in the queue consumer (the reader never
+ *  generates). One cheap model call per changed section, with the same
+ *  section-at-a-time generator a full run uses; nothing else is regenerated and
+ *  the fragment itself is never saved. A human-edited entry is left alone. */
+async function rebuildSectionMoves(
+  rc: RunCtx,
+  tractate: string,
+  page: string,
+  changes: RangeChange[],
+): Promise<{ rebuilt: number } | null> {
+  const def = await loadMarkDef(rc.env, 'argument-move');
+  if (!def || changes.length === 0) return null;
+  const key = keyForMark(def, tractate, page, rc.lang);
+  const stored = await artifactStore(rc.env).get(key);
+  if (!stored || authorityOf(stored) === 'human') return null;
+  const only = new Set(changes.map((c) => `${c.to[0]}-${c.to[1]}`));
+  const partial = await runMarkOnce({ ...rc, fanOutOnly: only }, def, tractate, page, true);
+  const fresh = partial.parsed as { instances?: unknown[] } | null;
+  if (!fresh || !Array.isArray(fresh.instances) || fresh.instances.length === 0) return null;
+  const merged = mergeRebuiltMoves((stored as RunResult).parsed, fresh, changes);
+  await writeCachedResult(rc.env, key, {
+    ...(stored as RunResult),
+    parsed: merged,
+    content: JSON.stringify(merged),
+  } as RunResult);
+  return { rebuilt: fresh.instances.length };
+}
+
 /** Rebuild-on-open for sections the range repair moved. The notes built on a
  *  section (synthesis, voices, narrative) were made from the OLD range's text.
  *  The first time a daf is read after its ranges were repaired, drop the stored
@@ -3720,6 +3758,17 @@ export async function settleRepairedSections(
       await store.evict(key);
       evicted++;
     }
+  }
+  // The moves were written from the old range's text too. Rebuild just those
+  // sections' moves in the background worker (the reader never generates).
+  if (env.ENRICHMENT_QUEUE) {
+    await env.ENRICHMENT_QUEUE.send({
+      runId: `rebuild-moves:${tractate}:${page}:${lang}:${Math.floor(Date.now() / 1000)}`,
+      rebuild_moves: { changes },
+      tractate,
+      page,
+      ...(lang === 'he' ? { lang } : {}),
+    }).catch(() => undefined);
   }
   return evicted;
 }
@@ -4038,9 +4087,10 @@ async function runExtractorFannedOut(
   // mark emitted the same section twice (a doubled `argument` partition), we'd
   // otherwise call the LLM for that section twice and concatenate the moves.
   const rawInstances = anchors[fanOutMarkId];
-  const instances = Array.isArray(rawInstances)
+  const deduped = Array.isArray(rawInstances)
     ? dedupeByRange(rawInstances as Array<Partial<{ startSegIdx: number; endSegIdx: number }>>)
     : rawInstances;
+  const instances = Array.isArray(deduped) ? pickFanOutInstances(deduped, rc.fanOutOnly) : deduped;
 
   // Shared-prefix restructure: the whole-daf context becomes the byte-stable
   // leading block of EVERY fan-out call (same preamble the single-call and
@@ -4084,7 +4134,7 @@ async function runExtractorFannedOut(
   };
 
   // Nothing to split — one call over the whole daf (preserves prior behavior).
-  if (!Array.isArray(instances) || instances.length <= 1) {
+  if (!Array.isArray(instances) || (!rc.fanOutOnly && instances.length <= 1)) {
     const { r, systemPrompt, userPrompt } = await renderAndCall(anchors, 16000);
     return { result: r, systemPromptSample: systemPrompt, userPromptSample: userPrompt };
   }
@@ -4258,7 +4308,9 @@ export function fillUngroundedGenerations(parsed: unknown): unknown {
 
 const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefinition> = {
   cacheRead: (rc, key) => readCachedResult(rc.env, key),
-  cacheWrite: (rc, key, value) => writeCachedResult(rc.env, key, value as RunResult),
+  // A partial (fanOutOnly) rebuild is a fragment: never persist it as the entry.
+  cacheWrite: (rc, key, value) =>
+    rc.fanOutOnly ? Promise.resolve() : writeCachedResult(rc.env, key, value as RunResult),
   // Both key ports derive through the SAME scheme as cacheKeyForRunBody, so
   // the 202 cacheKey, the queued job, and the write-through can never disagree
   // (a spine-scoped def would otherwise throw here while deriving a valid
@@ -4846,7 +4898,7 @@ async function runMarkOnce(
     lang: rc.lang,
   })) as RunResult;
   // Stamp the daf-index on a FRESH write only (a cache hit is already indexed).
-  if (!res.cache_hit && rc.env.CACHE) {
+  if (!res.cache_hit && rc.env.CACHE && !rc.fanOutOnly) {
     fireDafIndex(rc, recordMarkDafIndex(rc.env.CACHE, def.id, tractate, page, rc.lang, res));
   }
   return res;
@@ -7243,7 +7295,7 @@ async function processEnrichmentJob(
     // the blip), and trusted explicit re-runs always try — they probe recovery.
     if (!job.bypass_cache && !job.explicit) {
       const down = await readAiDown(cache);
-      if (down && (isHardAiPause(down.reason) || job.warm_deep)) {
+      if (down && (isHardAiPause(down.reason) || job.warm_deep || job.rebuild_moves)) {
         console.log(`[queue] skip (ai-down: ${down.reason})`, job.runId);
         await writeResult({
           status: 'error',
@@ -7254,6 +7306,17 @@ async function processEnrichmentJob(
         });
         return;
       }
+    }
+    if (job.rebuild_moves) {
+      const out = await rebuildSectionMoves(rc, job.tractate, job.page, job.rebuild_moves.changes);
+      await writeResult({
+        status: 'ok',
+        result: { kind: 'rebuild-moves', ...out, total_ms: Date.now() - t0 },
+      });
+      console.log(
+        `[queue] rebuild-moves ${job.tractate}/${job.page} lang=${rc.lang} rebuilt=${out?.rebuilt ?? 0}`,
+      );
+      return;
     }
     if (job.warm_deep) {
       const only = job.rewarm_only?.length ? new Set(job.rewarm_only) : undefined;
