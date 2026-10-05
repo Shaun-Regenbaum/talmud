@@ -44,7 +44,6 @@ import {
 } from '@corpus/core/run/run-producer';
 import { ArtifactStore, type KVStore, type Staleness } from '@corpus/core/store/artifact-store';
 import { authorityOf, type StoredArtifact } from '@corpus/core/store/envelope';
-import { type RangeChange, remapMoveSections, repairArgumentSections } from '../lib/place/repair';
 import { producerKeyInfo, talmudLegacyKeyScheme } from '@corpus/core/store/key-schemes';
 import { billingSummary, reconcileBilling } from '@corpus/core/telemetry/billing';
 import { recordMcpEvent, surfaceMiddleware } from '@corpus/core/telemetry/surface';
@@ -61,6 +60,7 @@ import { dafSpine } from '../lib/context/spine';
 import heAliasData from '../lib/data/rabbi-he-aliases.json';
 import { buildGeoModel, type GeoEnrichment, type RabbiGeoSource } from '../lib/geographyModel';
 import type { TopicCodifier } from '../lib/halacha/codifiers';
+import { type RangeChange, remapMoveSections, repairArgumentSections } from '../lib/place/repair';
 import { filterRabbiBoundaries, nameCrossesBoundary } from '../lib/rabbi/nameBoundaries';
 import type { EntityPiece } from '../lib/registry/entity';
 import { adjacentAmud, sefariaAPI, TRACTATE_OPTIONS } from '../lib/sefref';
