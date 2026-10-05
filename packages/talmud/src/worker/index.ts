@@ -3417,9 +3417,11 @@ interface RunCtx {
    *  (relationships, geography, …) are generated in Hebrew too. Marks ignore
    *  it. Defaults to 'en' at every construction site. */
   lang: 'en' | 'he';
-  /** Partial rebuild: fan a parent mark out over ONLY these sections (`start-end`),
-   *  and do not persist the result (it is a fragment; the caller merges it). */
-  fanOutOnly?: ReadonlySet<string>;
+  /** Partial rebuild of `markId`: fan its parent mark out over ONLY these
+   *  sections (`start-end`), skip reading `markId`'s own stored entry, and do not
+   *  persist the result (it is a fragment; the caller merges it). Every OTHER
+   *  entry, including the parent mark, is read from the cache as usual. */
+  fanOutOnly?: { markId: string; ranges: ReadonlySet<string> };
 }
 
 // The walk itself (ResolvedInputs assembly, cycle detection, fanOut, the
@@ -3698,7 +3700,13 @@ async function rebuildSectionMoves(
   if (authorityOf(stored) === 'human')
     return { rebuilt: 0, skipped: 'moves were edited by a person' };
   const only = new Set(changes.map((c) => `${c.to[0]}-${c.to[1]}`));
-  const partial = await runMarkOnce({ ...rc, fanOutOnly: only }, def, tractate, page, true);
+  const partial = await runMarkOnce(
+    { ...rc, fanOutOnly: { markId: def.id, ranges: only } },
+    def,
+    tractate,
+    page,
+    false,
+  );
   const fresh = partial.parsed as { instances?: unknown[] } | null;
   if (!fresh || !Array.isArray(fresh.instances) || fresh.instances.length === 0) {
     return {
@@ -4098,13 +4106,15 @@ async function runExtractorFannedOut(
   const deduped = Array.isArray(rawInstances)
     ? dedupeByRange(rawInstances as Array<Partial<{ startSegIdx: number; endSegIdx: number }>>)
     : rawInstances;
-  const instances = Array.isArray(deduped) ? pickFanOutInstances(deduped, rc.fanOutOnly) : deduped;
+  const instances = Array.isArray(deduped)
+    ? pickFanOutInstances(deduped, rc.fanOutOnly?.ranges)
+    : deduped;
   if (rc.fanOutOnly) {
     const have = Array.isArray(deduped)
       ? deduped.map((i) => `${i.startSegIdx}-${i.endSegIdx}`).join(',')
       : 'not-an-array';
     console.log(
-      `[fan-out] ${fanOutMarkId} only=[${[...rc.fanOutOnly].join(',')}] parent=[${have}] picked=${Array.isArray(instances) ? instances.length : 'n/a'}`,
+      `[fan-out] ${fanOutMarkId} only=[${[...rc.fanOutOnly.ranges].join(',')}] parent=[${have}] picked=${Array.isArray(instances) ? instances.length : 'n/a'}`,
     );
   }
 
@@ -4323,7 +4333,12 @@ export function fillUngroundedGenerations(parsed: unknown): unknown {
 // ===========================================================================
 
 const RUN_PORTS: RunProducerPorts<RunCtx, EnrichmentDefinition, SchemaMarkDefinition> = {
-  cacheRead: (rc, key) => readCachedResult(rc.env, key),
+  // A partial rebuild must not read the entry it is rebuilding (that would just
+  // serve it), but every dependency still reads the cache.
+  cacheRead: (rc, key) =>
+    rc.fanOutOnly && key.startsWith(`mark:${rc.fanOutOnly.markId}:`)
+      ? Promise.resolve(null)
+      : readCachedResult(rc.env, key),
   // A partial (fanOutOnly) rebuild is a fragment: never persist it as the entry.
   cacheWrite: (rc, key, value) =>
     rc.fanOutOnly ? Promise.resolve() : writeCachedResult(rc.env, key, value as RunResult),
