@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { reanchorArgument } from '../src/lib/place/reanchor';
 import {
   hasRangeFreeIdentity,
+  mergeRebuiltMoves,
+  pickFanOutInstances,
   remapMoveSections,
   repairArgumentSections,
 } from '../src/lib/place/repair';
@@ -47,24 +49,25 @@ describe('repairArgumentSections on Shabbat 137b as stored', () => {
   });
 });
 
-describe('cost guard: a repair never changes a cache identity', () => {
+describe('cache identity of a repaired section', () => {
   it('a Latin-title section keeps its instance id when its range changes', async () => {
     const inst = shabbat137b.instances[3];
     expect(hasRangeFreeIdentity(inst)).toBe(true);
     expect(await instanceIdOf(inst)).toBe(await instanceIdOf({ ...inst, startSegIdx: 10 }));
   });
 
-  it('a Hebrew-only title is keyed by its range, so a daf with one is left alone', async () => {
+  it('a Hebrew-only title is keyed by its range, and is repaired like the others', async () => {
     const hebrew = structuredClone(stored137b);
     for (const i of hebrew.instances) i.fields.title = 'משנה: תולין את המשמרת';
     expect(hasRangeFreeIdentity(hebrew.instances[3] as Inst)).toBe(false);
-    // the premise: that identity really does include the range
+    // the premise: that identity really does include the range, so the repaired
+    // section gets a NEW id and its notes are generated afresh when opened
     const a = await instanceIdOf(hebrew.instances[3]);
     const b = await instanceIdOf({ ...hebrew.instances[3], startSegIdx: 10 });
     expect(a).not.toBe(b);
     const out = repairArgumentSections(hebrew, shabbat137b.segments_he);
-    expect(out.changes).toEqual([]);
-    expect(out.parsed).toBe(hebrew);
+    expect(rangesOf(out.parsed)[3][0]).toBe(10);
+    expect(out.changes.length).toBeGreaterThan(0);
   });
 });
 
@@ -188,4 +191,72 @@ describe('stored dafs from staging (before the range fix)', () => {
       });
     });
   }
+});
+
+describe('pickFanOutInstances', () => {
+  const secs = [
+    { startSegIdx: 0, endSegIdx: 0 },
+    { startSegIdx: 1, endSegIdx: 4 },
+    { startSegIdx: 5, endSegIdx: 9 },
+  ];
+  it('keeps everything when no filter is set', () => {
+    expect(pickFanOutInstances(secs, undefined)).toEqual(secs);
+  });
+  it('keeps only the named sections', () => {
+    expect(pickFanOutInstances(secs, new Set(['5-9']))).toEqual([secs[2]]);
+  });
+  it('drops an instance with no usable range', () => {
+    expect(pickFanOutInstances([{ startSegIdx: 'x' }, secs[0]] as never, new Set(['0-0']))).toEqual(
+      [secs[0]],
+    );
+  });
+});
+
+describe('mergeRebuiltMoves', () => {
+  const mv = (s: number, e: number, order: number, tag: string) => ({
+    startSegIdx: s,
+    endSegIdx: s,
+    fields: {
+      id: `${s}-${e}_${order}`,
+      sectionStartSegIdx: s,
+      sectionEndSegIdx: e,
+      moveOrder: order,
+      tag,
+    },
+  });
+  const stored = {
+    instances: [
+      mv(0, 0, 0, 'keep-a'),
+      mv(5, 6, 0, 'old-b'),
+      mv(7, 10, 0, 'old-c'),
+      mv(11, 16, 0, 'keep-d'),
+    ],
+  };
+  const changes = [
+    { from: [5, 6] as [number, number], to: [5, 9] as [number, number] },
+    { from: [7, 10] as [number, number], to: [10, 10] as [number, number] },
+  ];
+  const fresh = {
+    instances: [mv(5, 9, 0, 'new-b'), mv(5, 9, 1, 'new-b2'), mv(10, 10, 0, 'new-c')],
+  };
+  const out = mergeRebuiltMoves(stored, fresh, changes) as { instances: ReturnType<typeof mv>[] };
+
+  it('replaces the moves of the changed sections and keeps the rest untouched', () => {
+    expect(out.instances.map((m) => m.fields.tag)).toEqual([
+      'keep-a',
+      'new-b',
+      'new-b2',
+      'new-c',
+      'keep-d',
+    ]);
+  });
+
+  it('keeps unchanged sections byte-for-byte (same objects)', () => {
+    expect(out.instances[0]).toBe(stored.instances[0]);
+    expect(out.instances[4]).toBe(stored.instances[3]);
+  });
+
+  it('returns the stored value when the fresh result is unusable', () => {
+    expect(mergeRebuiltMoves(stored, null, changes)).toBe(stored);
+  });
 });

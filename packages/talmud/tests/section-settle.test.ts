@@ -59,8 +59,10 @@ async function setup(
       cache.delete(k);
     },
   };
-  const env = { CACHE: kv, ...opts.env } as unknown as Bindings;
-  return { env, cache, noteKeys };
+  const sent: unknown[] = [];
+  const queue = { send: async (m: unknown) => void sent.push(m) };
+  const env = { CACHE: kv, ENRICHMENT_QUEUE: queue, ...opts.env } as unknown as Bindings;
+  return { env, cache, noteKeys, sent };
 }
 
 describe('settleRepairedSections', () => {
@@ -130,5 +132,31 @@ describe('settleRepairedSections', () => {
     const before = new Map(cache);
     expect(await settleRepairedSections(env, 'Shabbat', '137b', 'en')).toBe(0);
     expect(cache).toEqual(before);
+  });
+
+  it('asks the background worker to rebuild the moves of the changed sections, once', async () => {
+    const { env, sent } = await setup();
+    await settleRepairedSections(env, 'Shabbat', '137b', 'en');
+    await settleRepairedSections(env, 'Shabbat', '137b', 'en');
+    expect(sent.length).toBe(1);
+    const job = sent[0] as {
+      rebuild_moves: { changes: { from: number[]; to: number[] }[] };
+      tractate: string;
+      page: string;
+    };
+    expect([job.tractate, job.page]).toEqual(['Shabbat', '137b']);
+    expect(job.rebuild_moves.changes.some((c) => c.from[0] === 7 && c.to[0] === 10)).toBe(true);
+  });
+
+  it('sends no job while generation is switched off', async () => {
+    const { env, sent } = await setup({ env: { GENERATION_DISABLED: '1' } });
+    await settleRepairedSections(env, 'Shabbat', '137b', 'en');
+    expect(sent).toEqual([]);
+  });
+
+  it('still settles when there is no queue (the notes are dropped, no job is sent)', async () => {
+    const { env, noteKeys, cache } = await setup({ env: { ENRICHMENT_QUEUE: undefined } });
+    expect(await settleRepairedSections(env, 'Shabbat', '137b', 'en')).toBeGreaterThan(0);
+    expect(cache.has(noteKeys.find((n) => n.idx === 3)!.key)).toBe(false);
   });
 });

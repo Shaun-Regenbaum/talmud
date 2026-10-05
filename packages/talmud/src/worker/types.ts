@@ -45,6 +45,10 @@ export interface JobMessage {
    *  suggested-questions / overview); cascade ids outside it regenerate on their
    *  next on-demand request. */
   rewarm_only?: string[];
+  /** Rebuild the moves (argument-move) of only these sections, and merge them
+   *  into the stored moves. `from` is the range the stored moves still carry;
+   *  `to` is the repaired range. See rebuildSectionMoves. */
+  rebuild_moves?: { changes: Array<{ from: [number, number]; to: [number, number] }> };
 }
 
 /** Worker environment bindings (declared in wrangler.toml). */
