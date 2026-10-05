@@ -1,9 +1,14 @@
 # Present sages through their connections and sources
 
-The sages page starts with a searchable list. Selecting a sage opens their name,
-period, short biography and connections. On a phone, the profile replaces the
-list; closing it returns to the same search. Maintenance tools sit below the
-reader's page.
+The sages page starts with one autocomplete search in English or Hebrew. There
+is no permanent directory or filter sidebar. Selecting a result opens a profile;
+linked names lead to other profiles and browser Back returns to the previous one.
+
+The biography and background sections are visible without opening disclosures.
+Where in Shas keeps its chart. The text-based partner list keeps its passage links.
+Teacher, student and family names are grouped by role rather than repeated as
+separate table rows. External reference lists and maintenance tools are removed
+from this reader page.
 
 ## Four views answer four different questions
 
@@ -24,27 +29,24 @@ someone does not prove they lived at the same time.
 
 ## What this version displays
 
-The page reads the existing biography and argument-network APIs. It does not
-import the new passage batch or change any extraction recipe.
+The page reads existing biographies and the saved passage-partner files. It does
+not import the new passage batch or change any extraction recipe.
 
-Teacher, student and family records appear in Relationships, with their existing
-source label. These records do not yet have individual passage citations.
-Existing biography events are shown as summaries, without claiming that their
-wording or status has been checked against a passage.
+Teacher, student and family records appear under From biographies, grouped by
+role. These records do not yet have individual passage citations. Biography
+events remain summaries rather than verified quotations.
 
-The existing network's `cites` entries appear under Words and teachings.
-`opposes`, `responds-to`, `supports` and `resolves` appear under Views and debate.
-These older links are marked as unreviewed. Inspection found an attribution
-from Rabbi Akiva to Abaye, so their person assignments must not be treated as
-settled identifications.
+Who he appears with uses the saved text study. Only sages with a saved record
+get partners. Missing records are never filled from the biography tree. Each
+partner opens a pair view with counts by kind and saved example references.
+Counts can overlap, and the example references are not a complete passage list.
+Bavli quotations are loaded from the exact Sefaria segment through the existing
+source endpoint. Other texts retain source links without invented quotations.
 
-Each row preserves direction and opens the available source-page links. The
-number beside a row counts those links, not every occurrence in the text. Unknown
-network kinds are not guessed into a category. Existing biographical influence
-and opposition summaries remain under background information.
-
-The old passage map remains available in a disclosure. Its lines describe the
-argument network, not a map of in-person encounters.
+The old arc diagram and its argument-network rows are removed from this page.
+Inspection found an attribution from Rabbi Akiva to Abaye, so these person
+assignments must not be presented as settled. The stored graph is unchanged.
+Existing biographical influence and opposition summaries remain in background.
 
 ## How the new results should enter the page
 

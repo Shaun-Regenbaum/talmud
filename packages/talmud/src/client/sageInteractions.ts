@@ -223,16 +223,22 @@ export function interactionsSlugForName(he: string): Promise<string | null> {
   return indexPromise.then((m) => m.get(nameKey(he)) ?? null);
 }
 
-export async function fetchSageInteractions(slug: string): Promise<SageInteractions | null> {
+export async function fetchSageInteractions(
+  slug: string,
+  strict = false,
+): Promise<SageInteractions | null> {
   try {
     const r = await fetch(`/sage-interactions/${encodeURIComponent(slug)}.json`);
-    if (!r.ok) return null;
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error('Could not load passage records');
     const ct = r.headers.get('content-type') ?? '';
     // The static host falls back to the app shell (HTML) for a missing file: treat that as "no data".
     if (!ct.includes('json')) return null;
     const body = (await r.json()) as SageInteractions;
-    return Array.isArray(body.partners) ? body : null;
-  } catch {
+    if (!Array.isArray(body.partners)) throw new Error('Invalid passage record');
+    return body;
+  } catch (error) {
+    if (strict) throw error;
     return null;
   }
 }
