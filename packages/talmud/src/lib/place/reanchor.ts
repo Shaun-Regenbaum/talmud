@@ -57,7 +57,11 @@ export function reanchorArgument(parsed: unknown, segmentsHe: string[]): unknown
     const upperBound = next ? Math.max(cur.startSegIdx, next.startSegIdx - 1) : lastSeg;
     const endEx = typeof cur.fields?.endExcerpt === 'string' ? cur.fields.endExcerpt : '';
     let endSeg = -1;
-    if (endEx) endSeg = findExcerptSeg(endEx, cur.startSegIdx, upperBound);
+    // LAST hit in range, not first: closing formulas repeat (three blessings
+    // in a row all end "ברוך אתה ה׳ כורת הברית"), and the section's bound is the
+    // next section's anchored start, so the last hit is the true end.
+    if (endEx)
+      endSeg = findExcerpt(grid, endEx, cur.startSegIdx, upperBound, { last: true })?.seg ?? -1;
     if (endSeg < 0) {
       cur.endSegIdx = upperBound;
       if (endEx) {

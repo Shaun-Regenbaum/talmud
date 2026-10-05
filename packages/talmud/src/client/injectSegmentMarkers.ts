@@ -422,7 +422,12 @@ export function injectSegmentMarkers(
     // position, try to consume the first 3 Sefaria words (or the whole
     // segment if shorter) using singleWordMatch + abbreviationMatches. If
     // we can, that's the start.
-    const needed = Math.min(3, segWords.length);
+    // Sefaria opens some segments with an editorial label (מתני׳ / גמ׳) that the
+    // printed page omits or sets apart (Shabbat 137b: the chapter's first word
+    // is a big drop-cap, with no "מתני׳" before it). Probe with the label
+    // first, then without, so those segments are not skipped whole.
+    const leadingLabel = /^(מתני|מתניתין|גמ|גמרא)$/.test(normalizeHebrew(segWords[0]));
+    const probeOffsets = leadingLabel && segWords.length > 1 ? [0, 1] : [0];
     let segStart = -1;
 
     // Scan forward for a starting position where we can consume at least
@@ -430,32 +435,37 @@ export function injectSegmentMarkers(
     // matches or 1-to-N abbreviation expansions. The counter `sj` measures
     // Sefaria-word progress (not HB iterations), so `א"ר + יצחק` correctly
     // consumes 3 Sefaria words from only 2 HB iterations.
-    for (let i = hbPtr; i < words.length; i++) {
-      let hb = i;
-      let sj = 0;
-      while (sj < needed && hb < words.length) {
-        const raw = wordRaw[hb];
-        if (!normalizeHebrew(raw)) {
-          hb++;
-          continue;
+    for (const off of probeOffsets) {
+      const probeWords = off === 0 ? segWords : segWords.slice(off);
+      const needed = Math.min(3, probeWords.length);
+      for (let i = hbPtr; i < words.length; i++) {
+        let hb = i;
+        let sj = 0;
+        while (sj < needed && hb < words.length) {
+          const raw = wordRaw[hb];
+          if (!normalizeHebrew(raw)) {
+            hb++;
+            continue;
+          }
+          const abbrev = abbreviationMatches(raw, probeWords, sj);
+          if (abbrev > 0) {
+            hb++;
+            sj += abbrev;
+            continue;
+          }
+          if (singleWordMatch(raw, probeWords[sj])) {
+            hb++;
+            sj++;
+            continue;
+          }
+          break;
         }
-        const abbrev = abbreviationMatches(raw, segWords, sj);
-        if (abbrev > 0) {
-          hb++;
-          sj += abbrev;
-          continue;
+        if (sj >= needed) {
+          segStart = i;
+          break;
         }
-        if (singleWordMatch(raw, segWords[sj])) {
-          hb++;
-          sj++;
-          continue;
-        }
-        break;
       }
-      if (sj >= needed) {
-        segStart = i;
-        break;
-      }
+      if (segStart >= 0) break;
     }
 
     if (segStart < 0) continue;

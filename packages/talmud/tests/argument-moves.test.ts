@@ -93,11 +93,12 @@ describe('partitionSections', () => {
 
   it('closes a gap left by a dropped/absent section', () => {
     const out = partitionSections([section(0, 0), section(1, 1), section(3, 3)], 3);
-    // seg 2 had no section; the next section's start is pushed back to fill it.
+    // seg 2 had no section; the previous section stretches forward to cover it.
+    // The later section's start (anchored by its own opening words) never moves.
     expect(out.map((s) => [s.startSegIdx, s.endSegIdx])).toEqual([
       [0, 0],
-      [1, 1],
-      [2, 3],
+      [1, 2],
+      [3, 3],
     ]);
     assertCleanPartition(out);
   });
