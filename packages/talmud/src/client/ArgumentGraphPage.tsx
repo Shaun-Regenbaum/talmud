@@ -1,51 +1,21 @@
 /**
- * #argument — the daf ARGUMENT GRAPH page (replaces the old #voices page).
- * One readable walk of the whole daf's argument: every section in daf order,
- * its statements as rows (role, speaker, side, summary), the relations between
- * statements as labeled chips on the rows, and the section→section connections
- * as labeled chips on the section headers — the argument map and the voices
- * integrated into ONE view instead of two disconnected renderings of the same
- * underlying data.
- *
- * The "who speaks" strip at the top is the voice network folded into the
- * structure: click a person to light up their statements across every section.
- * The old abstract daf-wide voice network survives as a collapsed aggregate
- * view at the bottom (same DafVoiceGraph renderer).
- *
- * Read-only like the page it replaces — nothing generates here:
- *   - /api/daf-view (already cached client-side) supplies rabbi generations +
- *     the per-section voices the aggregate network stitches;
- *   - GET /api/statement-spine supplies sections + statements + the CACHED AI
- *     flow (empty when cold — never POSTs /api/run);
+ * #argument — opens the passage map for the daf in the URL.
+ * The page itself is empty: it reads the saved sections (never generates),
+ * hands them to the same passage map the reader opens from the overview, and
+ * returns to the daf when the map is closed.
+ *   - GET /api/statement-spine supplies sections, statements and the cached AI flow;
  *   - GET /api/derived-flow supplies the deterministic cross-section edges,
  *     merged UNDER the AI flow via mergeFlows (AI keeps final say).
  */
-import { createMemo, createResource, createSignal, For, type JSX, Show } from 'solid-js';
-import { dafRefHe } from '../lib/sefref';
-import { buildArgumentPeople } from '../lib/typing/argumentPeople';
-import {
-  buildDafVoiceGraph,
-  type SectionVoicesInput,
-  type VoiceClass,
-} from '../lib/typing/dafVoices';
+import { createMemo, createResource, createSignal, type JSX, Show } from 'solid-js';
 import { mergeFlows } from '../lib/typing/flowMerge';
-import type {
-  StatementNode,
-  StatementSpine as StatementSpineData,
-} from '../lib/typing/statementSpine';
-import type { ArgumentVoicesData } from '../lib/typing/voices';
+import type { StatementSpine as StatementSpineData } from '../lib/typing/statementSpine';
 import ArgumentFlowGraph, {
   type FlowConnection,
   KIND_COLOR,
-  statementRole,
   stmtRelKind,
 } from './ArgumentFlowGraph';
-import DafVoiceGraph from './DafVoiceGraph';
-import { type DafViewPiece, loadDafView } from './dafViewStore';
-import { finishDisplayText } from './displayText';
-import { colorForGeneration, GENERATION_BY_ID } from './generations';
 import { lang, t } from './i18n';
-import { resolveVoiceGroup } from './voiceGroups';
 
 interface DafRef {
   tractate: string;
@@ -60,15 +30,11 @@ function readRef(): DafRef {
 interface SpineSection {
   index: number;
   title: string;
-  startSegIdx: number;
-  endSegIdx: number;
   spine: StatementSpineData;
 }
 interface SpinesResp {
   sections: SpineSection[];
-  movesComputed: boolean;
   flow: { from: number; to: number; kind: string }[];
-  failed?: boolean;
 }
 
 async function fetchSpines(tractate: string, page: string, language: string): Promise<SpinesResp> {
@@ -76,15 +42,14 @@ async function fetchSpines(tractate: string, page: string, language: string): Pr
     const r = await fetch(
       `/api/statement-spine/${encodeURIComponent(tractate)}/${encodeURIComponent(page)}?lang=${language}`,
     );
-    if (!r.ok) return { sections: [], movesComputed: false, flow: [], failed: true };
+    if (!r.ok) return { sections: [], flow: [] };
     const j = (await r.json()) as Partial<SpinesResp>;
     return {
       sections: Array.isArray(j.sections) ? j.sections : [],
-      movesComputed: !!j.movesComputed,
       flow: Array.isArray(j.flow) ? j.flow : [],
     };
   } catch {
-    return { sections: [], movesComputed: false, flow: [], failed: true };
+    return { sections: [], flow: [] };
   }
 }
 
@@ -106,91 +71,24 @@ async function fetchDerived(tractate: string, page: string): Promise<DerivedFlow
   }
 }
 
-/** A merged cross-section connection; `derived` marks the deterministic fills. */
-type PageConn = { from: number; to: number; kind: FlowConnection['kind']; derived?: boolean };
-
-const CARD_BORDER = '1px solid #ece7db';
-type RabbiMarkParsed = {
-  instances?: Array<{ fields?: { name?: string; nameHe?: string; generation?: string } }>;
-};
-type ArgumentMarkParsed = {
-  instances?: Array<{ startSegIdx?: number; fields?: { title?: string } }>;
-};
-
 export function ArgumentGraphPage(): JSX.Element {
   const [ref, setRef] = createSignal<DafRef>(readRef());
   const sync = () => setRef(readRef());
   window.addEventListener('popstate', sync);
   window.addEventListener('hashchange', sync);
 
-  const [payload] = createResource(
-    () => `${ref().tractate}:${ref().page}:${lang()}`,
-    async () => {
-      const r = ref();
-      return loadDafView(r.tractate, r.page, lang());
-    },
-  );
   const [spines] = createResource(
     () => `${ref().tractate}:${ref().page}:${lang()}`,
-    async () => {
-      const r = ref();
-      return fetchSpines(r.tractate, r.page, lang());
-    },
+    () => fetchSpines(ref().tractate, ref().page, lang()),
   );
   const [derived] = createResource(
     () => `${ref().tractate}:${ref().page}`,
-    async () => {
-      const r = ref();
-      return fetchDerived(r.tractate, r.page);
-    },
+    () => fetchDerived(ref().tractate, ref().page),
   );
-
-  // Rabbi generations from the daf view (name -> generation id), for coloring.
-  const genByName = createMemo(() => {
-    const m = new Map<string, string>();
-    const rabbiParsed = payload()?.pieces?.rabbi?.parsed as RabbiMarkParsed | undefined;
-    for (const inst of rabbiParsed?.instances ?? []) {
-      const nm = inst.fields?.name?.trim();
-      if (nm && inst.fields?.generation && !m.has(nm)) m.set(nm, inst.fields.generation);
-    }
-    return m;
-  });
-
-  // A speaker's name in the app language. Hebrew mode uses the Hebrew name from
-  // the rabbi list, or the Hebrew name of a group like "Sages"; the English name
-  // stays as the fallback and as the key everything else matches on.
-  const heByName = createMemo(() => {
-    const m = new Map<string, string>();
-    const rabbiParsed = payload()?.pieces?.rabbi?.parsed as RabbiMarkParsed | undefined;
-    for (const inst of rabbiParsed?.instances ?? []) {
-      const nm = inst.fields?.name?.trim();
-      const he = inst.fields?.nameHe?.trim();
-      if (nm && he && !m.has(nm)) m.set(nm, he);
-    }
-    return m;
-  });
-  const displayName = (name: string): string =>
-    lang() === 'he' ? (heByName().get(name) ?? resolveVoiceGroup(name)?.nameHe ?? name) : name;
-
-  const classify = (name: string): VoiceClass => ({
-    collective: !!resolveVoiceGroup(name),
-    generation: genByName().get(name),
-  });
 
   const sections = (): SpineSection[] => spines()?.sections ?? [];
 
-  // The "who speaks" strip: every statement's rabbiNames deduped into one
-  // prominence-ordered cast list (speaker labels are descriptive, not names).
-  const people = createMemo(() =>
-    buildArgumentPeople(
-      sections().map((s) => ({ index: s.index, nodes: s.spine.nodes })),
-      classify,
-    ),
-  );
-
-  // Cross-section connections: the cached AI flow, with the deterministic
-  // statement-derived edges merged UNDER it (same semantics as the Overview map).
-  const connections = createMemo<PageConn[]>(() => {
+  const connections = createMemo<FlowConnection[]>(() => {
     const n = sections().length;
     const valid = (e: { from: number; to: number }) =>
       Number.isInteger(e.from) &&
@@ -200,12 +98,12 @@ export function ArgumentGraphPage(): JSX.Element {
       e.from < n &&
       e.to >= 0 &&
       e.to < n;
-    const ai: PageConn[] = (spines()?.flow ?? []).filter(valid).map((e) => ({
+    const ai: FlowConnection[] = (spines()?.flow ?? []).filter(valid).map((e) => ({
       from: e.from,
       to: e.to,
       kind: (e.kind in KIND_COLOR ? e.kind : 'continues') as FlowConnection['kind'],
     }));
-    const det: PageConn[] = (derived() ?? [])
+    const det: FlowConnection[] = (derived() ?? [])
       .map((d) => ({
         from: d.fromSection,
         to: d.toSection,
@@ -216,301 +114,52 @@ export function ArgumentGraphPage(): JSX.Element {
     return mergeFlows(ai, det);
   });
 
-  // Person focus: click a person (in the strip or on a row) to light their
-  // statements across the daf; everything else dims.
-  const [focus, setFocus] = createSignal<string | null>(null);
-  const toggleFocus = (name: string) => setFocus((f) => (f === name ? null : name));
-  const involves = (node: StatementNode, f: string) => (node.rabbiNames ?? []).includes(f);
-  const sectionOpacity = (sec: SpineSection) => {
-    const f = focus();
-    if (!f) return 1;
-    return sec.spine.nodes.some((nd) => involves(nd, f)) ? 1 : 0.5;
-  };
-  const focusedPerson = () => people().find((p) => p.name === focus()) ?? null;
-
   const [activeSection, setActiveSection] = createSignal(0);
   const [selectedStatement, setSelectedStatement] = createSignal<string | null>(null);
-  const selectedNode = () =>
-    sections()
-      .find((s) => s.index === activeSection())
-      ?.spine.nodes.find((n) => n.id === selectedStatement());
-
-  // The aggregate people network (the old voice graph), fed the same way the
-  // retired #voices page fed it: per-section voices riding each warmed
-  // argument.synthesis piece in the daf view. Collapsed by default.
-  const network = createMemo(() => {
-    const pieces = (payload()?.pieces ?? {}) as Record<string, DafViewPiece>;
-    const orderByTitle = new Map<string, number>();
-    const argParsed = pieces.argument?.parsed as ArgumentMarkParsed | undefined;
-    (argParsed?.instances ?? []).forEach((inst, i) => {
-      const ti = inst.fields?.title?.trim();
-      if (ti && !orderByTitle.has(ti)) {
-        orderByTitle.set(ti, typeof inst.startSegIdx === 'number' ? inst.startSegIdx : i);
-      }
-    });
-    const secs: SectionVoicesInput[] = [];
-    for (const piece of Object.values(pieces)) {
-      if (piece.producerId !== 'argument.synthesis') continue;
-      const voices = piece.deps_resolved?.['argument.voices'] as ArgumentVoicesData | undefined;
-      secs.push({ title: piece.instanceLabel ?? piece.instanceId ?? '', voices: voices ?? null });
-    }
-    secs.sort(
-      (a, b) =>
-        (orderByTitle.get(a.title) ?? Number.MAX_SAFE_INTEGER) -
-        (orderByTitle.get(b.title) ?? Number.MAX_SAFE_INTEGER),
-    );
-    return buildDafVoiceGraph(secs, classify);
-  });
-
-  const title = () =>
-    lang() === 'he' ? dafRefHe(ref().tractate, ref().page) : `${ref().tractate} ${ref().page}`;
   const backHref = () =>
     `?tractate=${encodeURIComponent(ref().tractate)}&page=${encodeURIComponent(ref().page)}#daf`;
 
-  const genLabel = (p: { collective: boolean; generation?: string }): string => {
-    if (p.collective) return t('dafvoices.collective');
-    if (!p.generation) return '';
-    return GENERATION_BY_ID[p.generation as keyof typeof GENERATION_BY_ID]?.label ?? '';
-  };
-  const personDot = (p: { collective: boolean; generation?: string }) =>
-    p.collective ? '#b8b2a4' : colorForGeneration(p.generation);
-
-  const chipBase: JSX.CSSProperties = {
-    display: 'inline-flex',
-    'align-items': 'center',
-    gap: '.25rem',
-    padding: '.08rem .45rem',
-    'border-radius': '999px',
-    background: '#fff',
-    'font-size': '.7rem',
-    cursor: 'pointer',
-  };
-
-  const loading = () => payload.loading || spines.loading;
-
   return (
-    <main class="page-shell" style={{ '--page-max': '940px', color: '#222' }}>
-      <header style={{ 'margin-bottom': '1.1rem' }}>
-        <a
-          href={backHref()}
-          style={{ color: '#666', 'font-size': '0.85rem', 'text-decoration': 'none' }}
-        >
-          ← {t('arggraph.back')}
-        </a>
-        <h1 style={{ margin: '0.4rem 0 0', 'font-size': '1.45rem' }}>
-          {t('arggraph.title')} · <span style={{ color: 'var(--accent)' }}>{title()}</span>
-        </h1>
-        <p
-          style={{ margin: '0.3rem 0 0', color: '#666', 'font-size': '0.9rem', 'line-height': 1.5 }}
-        >
-          {t('arggraph.subtitle')}
-        </p>
-      </header>
-
-      <Show when={!loading()} fallback={<p style={{ color: '#888' }}>{t('arggraph.loading')}</p>}>
-        <Show
-          when={sections().length > 0}
-          fallback={
-            <div
-              style={{
-                border: CARD_BORDER,
-                'border-radius': '8px',
-                background: '#faf8f3',
-                padding: '1rem 1.1rem',
-                color: '#6b6661',
-                'line-height': 1.55,
-              }}
-            >
-              <p style={{ margin: 0 }}>{t('arggraph.empty')}</p>
-              <a
-                href={backHref()}
-                style={{
-                  color: 'var(--accent)',
-                  'font-size': '0.85rem',
-                  'text-decoration': 'none',
-                }}
-              >
-                {t('arggraph.openDaf')} →
-              </a>
-            </div>
-          }
-        >
-          {/* Cold banner: sections exist but the statement extraction hasn't run. */}
-          <Show when={!spines()?.movesComputed}>
-            <div
-              style={{
-                border: '1px solid #e7ddc6',
-                'border-radius': '8px',
-                background: '#fbf6e9',
-                padding: '0.55rem 0.85rem',
-                color: '#8a6d3b',
-                'font-size': '0.82rem',
-                'margin-bottom': '0.9rem',
-              }}
-            >
-              {t('arggraph.cold')}
-            </div>
-          </Show>
-
-          {/* Who speaks: prominence-ordered people strip; click to focus. */}
-          <Show when={people().length > 0}>
-            <section style={{ 'margin-bottom': '1.1rem' }}>
-              <h2 style={{ 'font-size': '0.95rem', color: '#444', margin: '0 0 0.5rem' }}>
-                {t('arggraph.people')}
-              </h2>
-              <div style={{ display: 'flex', 'flex-wrap': 'wrap', gap: '0.35rem 0.4rem' }}>
-                <For each={people()}>
-                  {(p) => (
-                    <button
-                      type="button"
-                      onClick={() => toggleFocus(p.name)}
-                      style={{
-                        ...chipBase,
-                        font: 'inherit',
-                        'font-size': '0.78rem',
-                        color: '#333',
-                        border:
-                          focus() === p.name ? '1px solid var(--accent)' : '1px solid #e4e0d4',
-                        background: focus() === p.name ? 'var(--surface-sunk)' : '#fafafa',
-                        'font-style': p.collective ? 'italic' : 'normal',
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: '8px',
-                          height: '8px',
-                          'border-radius': '999px',
-                          background: personDot(p),
-                          display: 'inline-block',
-                          'flex-shrink': 0,
-                        }}
-                      />
-                      {displayName(p.name)}
-                      <span style={{ color: '#999', 'font-size': '0.68rem' }}>
-                        {p.statementCount}
-                      </span>
-                    </button>
-                  )}
-                </For>
-              </div>
-              <Show when={focusedPerson()}>
-                {(p) => (
-                  <p
-                    style={{
-                      margin: '0.5rem 0 0',
-                      'font-size': '0.8rem',
-                      color: '#6b6661',
-                      display: 'flex',
-                      'align-items': 'center',
-                      gap: '0.5rem',
-                      'flex-wrap': 'wrap',
-                    }}
-                  >
-                    <strong style={{ color: '#2a2520' }}>{displayName(p().name)}</strong>
-                    <Show when={genLabel(p())}>
-                      <span>{genLabel(p())}</span>
-                    </Show>
-                    <span>
-                      {p().statementCount}{' '}
-                      {p().statementCount === 1
-                        ? t('arggraph.statement')
-                        : t('arggraph.statements')}{' '}
-                      · {p().sections.length}{' '}
-                      {p().sections.length === 1 ? t('arggraph.section') : t('arggraph.sections')}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setFocus(null)}
-                      style={{
-                        font: 'inherit',
-                        'font-size': '0.75rem',
-                        color: 'var(--accent)',
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        cursor: 'pointer',
-                        'text-decoration': 'underline',
-                        'text-underline-offset': '2px',
-                      }}
-                    >
-                      {t('arggraph.clearFocus')}
-                    </button>
-                  </p>
-                )}
-              </Show>
-            </section>
-          </Show>
-
-          <ArgumentFlowGraph
-            initialFullscreen={new URLSearchParams(window.location.search).get('map') === 'passage'}
-            passage={ref()}
-            nodes={sections().map((sec) => ({
-              index: sec.index,
-              title: sec.title,
-              statements: sec.spine.nodes,
-              statementLinks: sec.spine.links,
-              dimmed: sectionOpacity(sec) < 1,
-            }))}
-            connections={connections()}
-            activeIndex={activeSection()}
-            onSelect={(index) => {
-              setActiveSection(index);
-              setSelectedStatement(null);
-            }}
-            selectedStatementId={selectedStatement()}
-            onSelectStatement={setSelectedStatement}
-            isStatementDimmed={(node) => !!focus() && !involves(node, focus()!)}
-          />
-          <Show when={selectedNode()}>
-            {(node) => (
-              <article style={{ padding: '.65rem 0', 'font-size': '.85rem' }}>
-                <strong>{statementRole(node().role)}</strong>
-                <For each={node().rabbiNames}>
-                  {(name) => (
-                    <button
-                      type="button"
-                      onClick={() => toggleFocus(name)}
-                      style={{ 'margin-inline-start': '.5rem' }}
-                    >
-                      {displayName(name)}
-                    </button>
-                  )}
-                </For>
-                <Show when={node().summary}>
-                  <p dir="auto">
-                    {finishDisplayText(node().summary ?? '', { english: lang() === 'en' })}
-                  </p>
-                </Show>
-                <Show when={node().excerpt}>
-                  <p dir="rtl" lang="he">
-                    {node().excerpt}
-                  </p>
-                </Show>
-                <a href={backHref()}>{t('arggraph.openDaf')}</a>
-              </article>
-            )}
-          </Show>
-
-          {/* The old daf-wide voice network, kept as a collapsed aggregate view. */}
-          <Show when={network().nodes.length > 0}>
-            <details style={{ 'margin-top': '1.4rem' }}>
-              <summary
-                style={{
-                  cursor: 'pointer',
-                  'font-size': '0.9rem',
-                  color: '#444',
-                  'font-weight': 600,
-                }}
-              >
-                {t('arggraph.network')}
-              </summary>
-              <div style={{ 'margin-top': '0.7rem' }}>
-                <DafVoiceGraph nodes={network().nodes} edges={network().edges} />
-              </div>
-            </details>
-          </Show>
-        </Show>
+    <Show
+      when={!spines.loading}
+      fallback={
+        <main class="page-shell">
+          <p style={{ color: '#888' }}>{t('arggraph.loading')}</p>
+        </main>
+      }
+    >
+      <Show
+        when={sections().length > 0}
+        fallback={
+          <main class="page-shell" style={{ '--page-max': '940px' }}>
+            <p>{t('arggraph.empty')}</p>
+            <a href={backHref()}>{t('arggraph.openDaf')} →</a>
+          </main>
+        }
+      >
+        <ArgumentFlowGraph
+          initialFullscreen
+          controlsOnly
+          onFullscreenClose={() => {
+            window.location.hash = 'daf';
+          }}
+          passage={ref()}
+          nodes={sections().map((sec) => ({
+            index: sec.index,
+            title: sec.title,
+            statements: sec.spine.nodes,
+            statementLinks: sec.spine.links,
+          }))}
+          connections={connections()}
+          activeIndex={activeSection()}
+          onSelect={(index) => {
+            setActiveSection(index);
+            setSelectedStatement(null);
+          }}
+          selectedStatementId={selectedStatement()}
+          onSelectStatement={setSelectedStatement}
+        />
       </Show>
-    </main>
+    </Show>
   );
 }

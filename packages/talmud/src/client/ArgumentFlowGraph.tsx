@@ -56,6 +56,10 @@ export interface FlowNode {
 
 interface Props {
   initialFullscreen?: boolean;
+  /** Runs when the passage map is closed (the #argument page leaves for the daf). */
+  onFullscreenClose?: () => void;
+  /** Hide the inline map and show only the expand control. */
+  controlsOnly?: boolean;
   passage?: { tractate: string; page: string };
   nodes: FlowNode[];
   connections: FlowConnection[];
@@ -427,6 +431,7 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
   return (
     <GraphView
       initialFullscreen={props.initialFullscreen}
+      controlsOnly={props.controlsOnly}
       renderFullscreen={
         props.passage
           ? (close) => (
@@ -439,7 +444,10 @@ export default function ArgumentFlowGraph(props: Props): JSX.Element {
                 direction={lang() === 'he' ? 'rtl' : 'ltr'}
                 onSelect={select}
                 onToggleActions={toggleActions}
-                onClose={close}
+                onClose={() => {
+                  close();
+                  props.onFullscreenClose?.();
+                }}
               />
             )
           : undefined
