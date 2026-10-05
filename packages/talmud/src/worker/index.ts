@@ -3688,16 +3688,24 @@ async function rebuildSectionMoves(
   tractate: string,
   page: string,
   changes: RangeChange[],
-): Promise<{ rebuilt: number } | null> {
+): Promise<{ rebuilt: number; skipped?: string }> {
   const def = await loadMarkDef(rc.env, 'argument-move');
-  if (!def || changes.length === 0) return null;
+  if (!def) return { rebuilt: 0, skipped: 'no argument-move definition' };
+  if (changes.length === 0) return { rebuilt: 0, skipped: 'no changes' };
   const key = keyForMark(def, tractate, page, rc.lang);
   const stored = await artifactStore(rc.env).get(key);
-  if (!stored || authorityOf(stored) === 'human') return null;
+  if (!stored) return { rebuilt: 0, skipped: `no stored moves at ${key}` };
+  if (authorityOf(stored) === 'human')
+    return { rebuilt: 0, skipped: 'moves were edited by a person' };
   const only = new Set(changes.map((c) => `${c.to[0]}-${c.to[1]}`));
   const partial = await runMarkOnce({ ...rc, fanOutOnly: only }, def, tractate, page, true);
   const fresh = partial.parsed as { instances?: unknown[] } | null;
-  if (!fresh || !Array.isArray(fresh.instances) || fresh.instances.length === 0) return null;
+  if (!fresh || !Array.isArray(fresh.instances) || fresh.instances.length === 0) {
+    return {
+      rebuilt: 0,
+      skipped: `generation returned no moves (cache_hit=${String(partial.cache_hit)}, content=${String(partial.content).slice(0, 120)})`,
+    };
+  }
   const merged = mergeRebuiltMoves((stored as RunResult).parsed, fresh, changes);
   await writeCachedResult(rc.env, key, {
     ...(stored as RunResult),
@@ -7314,7 +7322,7 @@ async function processEnrichmentJob(
         result: { kind: 'rebuild-moves', ...out, total_ms: Date.now() - t0 },
       });
       console.log(
-        `[queue] rebuild-moves ${job.tractate}/${job.page} lang=${rc.lang} rebuilt=${out?.rebuilt ?? 0}`,
+        `[queue] rebuild-moves ${job.tractate}/${job.page} lang=${rc.lang} rebuilt=${out.rebuilt}${out.skipped ? ` skipped: ${out.skipped}` : ''}`,
       );
       return;
     }
