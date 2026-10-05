@@ -633,7 +633,7 @@
 .sage-partner summary {
   display: grid;
   grid-template-columns: minmax(8rem, 14rem) minmax(5rem, 1fr) 6.5rem;
-  grid-template-areas: 'name bar total' 'gist gist gist';
+  grid-template-areas: "name bar total" "gist gist gist";
   gap: 0.2rem 0.9rem;
   align-items: center;
   padding: 0.7rem 0;
@@ -701,6 +701,6 @@
 @media (max-width: 640px) {
   .sage-partner summary {
     grid-template-columns: 1fr auto;
-    grid-template-areas: 'name total' 'bar bar' 'gist gist';
+    grid-template-areas: "name total" "bar bar" "gist gist";
   }
 }

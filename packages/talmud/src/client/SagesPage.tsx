@@ -10,8 +10,8 @@ import { academyLabel, placeLabel, roleLabel } from './sageLabels';
 import './sages.css';
 import { SAGE_CONNECTION_GROUPS, SageConnections } from './SageConnections';
 import { SageCoverageStrip } from './SageCoverageStrip';
-import { SagePartners } from './SagePartners';
 import { SageNetworkSection } from './SageNetworkSection';
+import { SagePartners } from './SagePartners';
 import { type IndexRow, isHebrewQuery, normalize, scoreRow } from './sageSearch';
 
 interface IndexResp {
