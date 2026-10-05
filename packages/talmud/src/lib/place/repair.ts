@@ -78,12 +78,14 @@ function isCleanTiling(list: Inst[], segCount: number): boolean {
 export interface SectionRepair {
   parsed: unknown;
   changes: RangeChange[];
+  /** Positions (in the stored `instances` array) of the sections whose range changed. */
+  changedIndexes: number[];
 }
 
 /** Re-run the re-anchorer over stored argument output. Returns the SAME `parsed`
  *  object and no changes when nothing should change (so callers can skip work). */
 export function repairArgumentSections(parsed: unknown, segmentsHe: string[]): SectionRepair {
-  const unchanged: SectionRepair = { parsed, changes: [] };
+  const unchanged: SectionRepair = { parsed, changes: [], changedIndexes: [] };
   const obj = parsed as { instances?: unknown } | null;
   if (!obj || !Array.isArray(obj.instances) || segmentsHe.length === 0) return unchanged;
   const before = obj.instances;
@@ -108,6 +110,7 @@ export function repairArgumentSections(parsed: unknown, segmentsHe: string[]): S
   };
 
   const changes: RangeChange[] = [];
+  const changedIndexes: number[] = [];
   for (let i = 0; i < before.length; i++) {
     const a = before[i];
     const b = after[i];
@@ -117,6 +120,7 @@ export function repairArgumentSections(parsed: unknown, segmentsHe: string[]): S
     // Guard 2: never move a start off a segment that holds its opening words.
     if (startHasExcerpt(a, a.startSegIdx) && !startHasExcerpt(b, b.startSegIdx)) return unchanged;
     changes.push({ from: [a.startSegIdx, a.endSegIdx], to: [b.startSegIdx, b.endSegIdx] });
+    changedIndexes.push(i);
   }
   if (changes.length === 0) return unchanged;
 
@@ -125,7 +129,7 @@ export function repairArgumentSections(parsed: unknown, segmentsHe: string[]): S
     startSegIdx: after[i].startSegIdx,
     endSegIdx: after[i].endSegIdx,
   }));
-  return { parsed: { ...obj, instances: fixed }, changes };
+  return { parsed: { ...obj, instances: fixed }, changes, changedIndexes };
 }
 
 /** Point stored moves at their section's corrected range. Move ids are left
