@@ -121,6 +121,7 @@ import {
   prefixForDafIndex,
   qualifierHash,
   recipeHash,
+  slugDaf,
 } from './cache-keys';
 import { coalesce } from './coalesce';
 import {
@@ -2479,6 +2480,10 @@ app.get('/api/daf-view/:tractate/:page', async (c) => {
   const page = c.req.param('page');
   const lang: 'en' | 'he' = c.req.query('lang') === 'he' ? 'he' : 'en';
 
+  // Sections whose range was repaired get their stale notes dropped once, so the
+  // cold path below regenerates them from the corrected text.
+  await settleRepairedSections(c.env, tractate, page, lang).catch(() => 0);
+
   const iid = await instanceIdOf({ fields: {} });
   const markAnchorById = new Map(CODE_MARKS.map((m) => [m.id, (m as { anchor?: string }).anchor]));
   // Argument SECTION enrichments are excluded EXCEPT argument.synthesis. It's the
@@ -3662,6 +3667,61 @@ async function repairSectionRangesOnRead(
   }
   if (changes.length === 0 || parsed === stored.parsed) return stored;
   return { ...stored, parsed, content: JSON.stringify(parsed) } as RunResult;
+}
+
+/** Rebuild-on-open for sections the range repair moved. The notes built on a
+ *  section (synthesis, voices, narrative) were made from the OLD range's text.
+ *  The first time a daf is read after its ranges were repaired, drop the stored
+ *  notes for just the sections whose range changed. The page's normal cold path
+ *  then regenerates them when someone opens the daf (synthesis) or the card
+ *  (voices, narrative), from the corrected text. Nothing is regenerated here.
+ *
+ *  Guards: only when AI spending is available (never delete notes that cannot be
+ *  rebuilt), a per-daf marker is written BEFORE anything is deleted (so a
+ *  regenerated note is never deleted again), and a human edit is never evicted.
+ *  Returns how many entries were dropped. */
+export async function settleRepairedSections(
+  env: Bindings,
+  tractate: string,
+  page: string,
+  lang: 'en' | 'he',
+): Promise<number> {
+  if (!env.CACHE) return 0;
+  const argDef = CODE_MARKS.find((d) => d.id === 'argument');
+  if (!argDef) return 0;
+  const store = artifactStore(env);
+  const stored = await store.get(keyForMark(argDef, tractate, page, lang));
+  if (!stored || authorityOf(stored) === 'human') return 0;
+  const segments = await cachedSegmentsHe(env, tractate, page);
+  if (!segments) return 0;
+  const { changes, changedIndexes } = repairArgumentSections(
+    (stored as RunResult).parsed,
+    segments,
+  );
+  if (changes.length === 0) return 0;
+
+  const markerKey = `section-settle:v1:${slugDaf(tractate, page)}:${lang}`;
+  if (await env.CACHE.get(markerKey)) return 0;
+  // Never delete notes we cannot regenerate: wait until spending is available.
+  if ((await resolveAiDown(env)) || !(await checkBudget(env, { custom: false })).ok) return 0;
+  await env.CACHE.put(markerKey, JSON.stringify({ at: Date.now(), changes }));
+
+  const insts = (stored as RunResult).parsed as { instances: RawInstance[] };
+  const defs = CODE_ENRICHMENTS.filter(
+    (e) => e.scope === 'local' && e.target_mark === 'argument' && !e.id.includes('.qa'),
+  );
+  let evicted = 0;
+  for (const i of changedIndexes) {
+    const instanceId = await instanceIdOf(insts.instances[i]);
+    for (const def of defs) {
+      const key = keyForEnrichment(def, instanceId, { tractate, page }, undefined, lang);
+      const entry = await store.get(key);
+      if (!entry || authorityOf(entry) === 'human') continue;
+      await store.evict(key);
+      evicted++;
+    }
+  }
+  return evicted;
 }
 
 export async function readCachedResult(env: Bindings, key: string): Promise<RunResult | null> {
