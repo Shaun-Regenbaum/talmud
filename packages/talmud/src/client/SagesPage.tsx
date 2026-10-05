@@ -569,6 +569,7 @@ function SageDetail(props: {
   onClose: () => void;
   onStageRan: () => void;
 }): JSX.Element {
+  const [mapOpen, setMapOpen] = createSignal(false);
   const [profileFailed, setProfileFailed] = createSignal(false);
   const [unified, { refetch: refetchUnified }] = createResource(
     () => props.slug,
@@ -852,10 +853,12 @@ function SageDetail(props: {
           </DetailSection>
         )}
       </Show>
-      <DetailSection title={t('sages.passagesMap')}>
-        <SageCoverageStrip slug={props.slug} generation={props.generationId} />
+      <DetailSection title={t('sages.passagesMap')} open={mapOpen()} onToggle={setMapOpen}>
+        <Show when={mapOpen()}>
+          <SageCoverageStrip slug={props.slug} generation={props.generationId} />
 
-        <SageNetworkSection slug={props.slug} />
+          <SageNetworkSection slug={props.slug} />
+        </Show>
       </DetailSection>
 
       <Show when={hasAnyRefs(refs())}>
