@@ -1,3 +1,4 @@
+import { StatusMessage } from '@corpus/ui/Study';
 /**
  * Where in Shas does this sage speak? A SKYLINE: one column per masechet in
  * seder order (width ∝ the masechet's size), bar HEIGHT = how often the sage
@@ -37,20 +38,28 @@ const PX_PER_AMUD = 0.24;
 const CELL_MIN_W = 12;
 
 export function SageCoverageStrip(props: { slug: string; generation: string | null }): JSX.Element {
-  const [obs] = createResource(
+  const [obs, { refetch }] = createResource(
     () => props.slug,
     async (slug) => {
-      const r = await fetch(
-        `/api/rabbi-observations/${encodeURIComponent(slug)}?summary=1&min=9999`,
-      );
-      if (!r.ok) return null;
-      return (await r.json()) as ObsSummary;
+      try {
+        const r = await fetch(
+          `/api/rabbi-observations/${encodeURIComponent(slug)}?summary=1&min=9999`,
+        );
+        if (!r.ok) return null;
+        return (await r.json()) as ObsSummary;
+      } catch {
+        return null;
+      }
     },
   );
   const [net] = createResource(async () => {
-    const r = await fetch('/api/rabbi-network');
-    if (!r.ok) return null;
-    return (await r.json()) as NetworkSummary;
+    try {
+      const r = await fetch('/api/rabbi-network');
+      if (!r.ok) return null;
+      return (await r.json()) as NetworkSummary;
+    } catch {
+      return null;
+    }
   });
 
   const cells = createMemo(() => {
@@ -77,122 +86,135 @@ export function SageCoverageStrip(props: { slug: string; generation: string | nu
     <section class="sage-coverage" style={{ margin: '0.9rem 0' }}>
       <h3 style={{ margin: '0 0 0.2rem', 'font-size': '0.95rem' }}>{t('coverage.title')}</h3>
       <Show when={!obs.loading} fallback={<p class="sages-empty">{t('sages.list.loading')}</p>}>
-        <p style={{ margin: '0 0 0.5rem', color: '#777', 'font-size': '0.8rem' }}>
-          {t('coverage.summary', { dapim: sageTotal(), masechtot: tractatesWithSage() })}
-          <Show
-            when={hasDenominator()}
-            fallback={<span style={{ color: '#a89e8a' }}> {t('coverage.noDenominator')}</span>}
-          >
-            {' '}
-            <span style={{ color: '#a89e8a' }}>
-              {t('coverage.analyzedNote', { analyzed: net()?.dapim ?? 0 })}
-            </span>
-          </Show>
-        </p>
-        <div style={{ 'overflow-x': 'auto' }}>
-          <div
-            style={{
-              display: 'flex',
-              'align-items': 'flex-end',
-              gap: '2px',
-              'padding-bottom': '2.6rem',
-              width: 'max-content',
-            }}
-          >
-            <For each={cells()}>
-              {(c) => {
-                // Height = DENSITY: the share of this masechet's dapim where the
-                // sage appears. Width is already the masechet's size, so bar
-                // AREA tracks the absolute count while height answers "how
-                // present is he HERE" — a small masechet he saturates stands
-                // as tall as a big one he dominates.
-                const h = () =>
-                  c.sage > 0 && c.total > 0
-                    ? 4 + (BAR_AREA - 8) * Math.min(1, c.sage / c.total)
-                    : BASELINE_H;
-                const analyzedFrac = () =>
-                  c.analyzed != null && c.total > 0 ? Math.min(1, c.analyzed / c.total) : 0;
-                const title = () =>
-                  c.analyzed != null
-                    ? t('coverage.cellTitle', {
-                        masechet: c.value,
-                        sage: c.sage,
-                        analyzed: c.analyzed,
-                        total: c.total,
-                      })
-                    : t('coverage.cellTitleNoDenom', {
-                        masechet: c.value,
-                        sage: c.sage,
-                        total: c.total,
-                      });
-                return (
-                  <div
-                    style={{ position: 'relative', width: `${c.w}px`, height: `${BAR_AREA}px` }}
-                    title={title()}
-                  >
-                    {/* the skyline bar: height = sage's presence */}
+        <Show
+          when={obs()}
+          fallback={
+            <StatusMessage
+              tone="error"
+              onRetry={() => refetch()}
+              retryLabel={t('sages.connections.retry')}
+            >
+              {t('coverage.error')}
+            </StatusMessage>
+          }
+        >
+          <p style={{ margin: '0 0 0.5rem', color: '#777', 'font-size': '0.8rem' }}>
+            {t('coverage.summary', { dapim: sageTotal(), masechtot: tractatesWithSage() })}
+            <Show
+              when={hasDenominator()}
+              fallback={<span style={{ color: '#a89e8a' }}> {t('coverage.noDenominator')}</span>}
+            >
+              {' '}
+              <span style={{ color: '#a89e8a' }}>
+                {t('coverage.analyzedNote', { analyzed: net()?.dapim ?? 0 })}
+              </span>
+            </Show>
+          </p>
+          <div style={{ 'overflow-x': 'auto' }}>
+            <div
+              style={{
+                display: 'flex',
+                'align-items': 'flex-end',
+                gap: '2px',
+                'padding-bottom': '2.6rem',
+                width: 'max-content',
+              }}
+            >
+              <For each={cells()}>
+                {(c) => {
+                  // Height = DENSITY: the share of this masechet's dapim where the
+                  // sage appears. Width is already the masechet's size, so bar
+                  // AREA tracks the absolute count while height answers "how
+                  // present is he HERE" — a small masechet he saturates stands
+                  // as tall as a big one he dominates.
+                  const h = () =>
+                    c.sage > 0 && c.total > 0
+                      ? 4 + (BAR_AREA - 8) * Math.min(1, c.sage / c.total)
+                      : BASELINE_H;
+                  const analyzedFrac = () =>
+                    c.analyzed != null && c.total > 0 ? Math.min(1, c.analyzed / c.total) : 0;
+                  const title = () =>
+                    c.analyzed != null
+                      ? t('coverage.cellTitle', {
+                          masechet: c.value,
+                          sage: c.sage,
+                          analyzed: c.analyzed,
+                          total: c.total,
+                        })
+                      : t('coverage.cellTitleNoDenom', {
+                          masechet: c.value,
+                          sage: c.sage,
+                          total: c.total,
+                        });
+                  return (
                     <div
-                      style={{
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        height: `${h()}px`,
-                        background: c.sage > 0 ? colorForGeneration(props.generation) : '#e4ddcc',
-                        'border-radius': '3px 3px 0 0',
-                      }}
-                    />
-                    {/* analyzed-so-far underline (denominator context) */}
-                    <Show when={analyzedFrac() > 0}>
+                      style={{ position: 'relative', width: `${c.w}px`, height: `${BAR_AREA}px` }}
+                      title={title()}
+                    >
+                      {/* the skyline bar: height = sage's presence */}
                       <div
                         style={{
                           position: 'absolute',
                           left: 0,
-                          bottom: '-4px',
-                          height: '2.5px',
-                          width: `${analyzedFrac() * 100}%`,
-                          background: '#8a6d3b',
-                          'border-radius': '2px',
-                          opacity: 0.65,
+                          right: 0,
+                          bottom: 0,
+                          height: `${h()}px`,
+                          background: c.sage > 0 ? colorForGeneration(props.generation) : '#e4ddcc',
+                          'border-radius': '3px 3px 0 0',
                         }}
                       />
-                    </Show>
-                    {/* count on top of meaningful bars */}
-                    <Show when={c.sage > 0 && c.total > 0 && c.sage / c.total > 0.3}>
+                      {/* analyzed-so-far underline (denominator context) */}
+                      <Show when={analyzedFrac() > 0}>
+                        <div
+                          style={{
+                            position: 'absolute',
+                            left: 0,
+                            bottom: '-4px',
+                            height: '2.5px',
+                            width: `${analyzedFrac() * 100}%`,
+                            background: '#8a6d3b',
+                            'border-radius': '2px',
+                            opacity: 0.65,
+                          }}
+                        />
+                      </Show>
+                      {/* count on top of meaningful bars */}
+                      <Show when={c.sage > 0 && c.total > 0 && c.sage / c.total > 0.3}>
+                        <span
+                          style={{
+                            position: 'absolute',
+                            bottom: `${h() + 1}px`,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            'font-size': '8px',
+                            color: '#8a8271',
+                          }}
+                        >
+                          {c.sage}
+                        </span>
+                      </Show>
                       <span
                         style={{
                           position: 'absolute',
-                          bottom: `${h() + 1}px`,
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          'font-size': '8px',
-                          color: '#8a8271',
+                          top: `${BAR_AREA + 6}px`,
+                          left: '2px',
+                          'font-size': '8.5px',
+                          color: c.sage > 0 ? '#555' : '#b6ae9c',
+                          'white-space': 'nowrap',
+                          transform: 'rotate(40deg)',
+                          'transform-origin': 'top left',
+                          'text-shadow': '0 0 3px #fff, 0 0 3px #fff',
                         }}
                       >
-                        {c.sage}
+                        {c.label}
                       </span>
-                    </Show>
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: `${BAR_AREA + 6}px`,
-                        left: '2px',
-                        'font-size': '8.5px',
-                        color: c.sage > 0 ? '#555' : '#b6ae9c',
-                        'white-space': 'nowrap',
-                        transform: 'rotate(40deg)',
-                        'transform-origin': 'top left',
-                        'text-shadow': '0 0 3px #fff, 0 0 3px #fff',
-                      }}
-                    >
-                      {c.label}
-                    </span>
-                  </div>
-                );
-              }}
-            </For>
+                    </div>
+                  );
+                }}
+              </For>
+            </div>
           </div>
-        </div>
+        </Show>
       </Show>
     </section>
   );

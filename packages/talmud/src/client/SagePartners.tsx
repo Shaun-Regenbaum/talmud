@@ -81,7 +81,21 @@ export function SagePartners(props: {
                   <details class="sage-partner">
                     <summary>
                       <span class="sage-partner-name">
-                        {display(p)}
+                        <Show when={p.slug} fallback={display(p)}>
+                          <a
+                            href={`#sages/${encodeURIComponent(p.slug!)}`}
+                            class="sages-person-link"
+                            onClick={(event) => {
+                              if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+                                return;
+                              event.preventDefault();
+                              event.stopPropagation();
+                              props.onSelect(p.slug!);
+                            }}
+                          >
+                            {display(p)}
+                          </a>
+                        </Show>
                         <Show when={lang() !== 'he' && display(p) !== p.nameHe}>
                           <span class="sage-partner-he" dir="rtl" lang="he">
                             {p.nameHe}
@@ -101,6 +115,12 @@ export function SagePartners(props: {
                       <span class="sage-partner-gist">{topKind(p)}</span>
                     </summary>
                     <div class="sage-partner-body">
+                      <a
+                        class="sages-person-link"
+                        href={`#sages/${encodeURIComponent(props.slug)}/with/${encodeURIComponent(p.slug ?? p.nameHe)}`}
+                      >
+                        {t('sages.pair.open')}
+                      </a>
                       <For each={kindLines(p, subject(), lang())}>
                         {(line) => (
                           <div class="sage-kind-line">
