@@ -4099,6 +4099,14 @@ async function runExtractorFannedOut(
     ? dedupeByRange(rawInstances as Array<Partial<{ startSegIdx: number; endSegIdx: number }>>)
     : rawInstances;
   const instances = Array.isArray(deduped) ? pickFanOutInstances(deduped, rc.fanOutOnly) : deduped;
+  if (rc.fanOutOnly) {
+    const have = Array.isArray(deduped)
+      ? deduped.map((i) => `${i.startSegIdx}-${i.endSegIdx}`).join(',')
+      : 'not-an-array';
+    console.log(
+      `[fan-out] ${fanOutMarkId} only=[${[...rc.fanOutOnly].join(',')}] parent=[${have}] picked=${Array.isArray(instances) ? instances.length : 'n/a'}`,
+    );
+  }
 
   // Shared-prefix restructure: the whole-daf context becomes the byte-stable
   // leading block of EVERY fan-out call (same preamble the single-call and
