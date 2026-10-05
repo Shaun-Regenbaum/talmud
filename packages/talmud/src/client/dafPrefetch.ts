@@ -99,6 +99,26 @@ const FRIENDLY: Record<string, string> = {
   'biyun.essay': 'dafLoad.family.biyun',
 };
 
+/** Notes the background daf job never generates, so the page must request them
+ *  itself even while that job is running. The job skips the per-section
+ *  `argument` family on purpose (see DafWarmWorkflow, "the excluded `argument`
+ *  per-instance family"); without this, a missing section synthesis waited for
+ *  the view-driven stall timeout before the page asked for it. */
+const PAGE_OWNED_ENRICHMENTS: ReadonlySet<string> = new Set(['argument.synthesis']);
+
+/** While the background job is generating the daf (`viewDriven`), the page asks
+ *  only for the notes the job will not make. Otherwise it asks for everything. */
+export function splitPrefetchTasks<T extends { enrichmentId: string }>(
+  tasks: T[],
+  viewDriven: boolean,
+): { run: T[]; skip: T[] } {
+  if (!viewDriven) return { run: tasks, skip: [] };
+  return {
+    run: tasks.filter((t) => PAGE_OWNED_ENRICHMENTS.has(t.enrichmentId)),
+    skip: tasks.filter((t) => !PAGE_OWNED_ENRICHMENTS.has(t.enrichmentId)),
+  };
+}
+
 interface MarkInstance {
   fields?: { id?: string; name?: string; verseRef?: string; topic?: string; title?: string };
   name?: string;
@@ -255,15 +275,15 @@ export function prefetchDaf(
     await ensureDafView(tractate, page, lang);
     if (myGen !== gen || controller.signal.aborted) return;
     // Cold daf in view-driven mode: the parallel Workflow (POST /api/daf-generate,
-    // kicked by openDafView) is generating every piece. Do NOT fan out our own
-    // /api/run — mark the cohort done and let the view-poll fill the cards in. If
-    // generation later stalls/fails, openDafView drops view-driven and the cards
-    // fetch any straggler themselves.
-    if (isViewDriven(tractate, page, lang)) {
-      for (const t of tasks) markDone(t.enrichmentId, false, false);
-      return;
-    }
-    for (const t of tasks) {
+    // kicked by openDafView) is generating every piece it owns. Do NOT fan out our
+    // own /api/run for those — mark them done and let the view-poll fill the cards
+    // in. The per-section argument family is not the Workflow's, so it is still
+    // requested here. If generation later stalls/fails, openDafView drops
+    // view-driven and the cards fetch any straggler themselves.
+    const viewDriven = isViewDriven(tractate, page, lang);
+    const { run, skip } = splitPrefetchTasks(tasks, viewDriven);
+    for (const t of skip) markDone(t.enrichmentId, false, false);
+    for (const t of run) {
       if (myGen !== gen || controller.signal.aborted) return;
       if (await dafViewHas(t.enrichmentId, t.instance, tractate, page, lang)) {
         markDone(t.enrichmentId, false, false); // already warm — no request
@@ -291,6 +311,8 @@ export function prefetchDaf(
           markDone(t.enrichmentId, paused, failed);
         });
     }
+
+    if (viewDriven) return;
 
     // Reverse-index capture (rabbi.observations) — one daf-level run, deliberately
     // NOT counted in the visible progress bar: it's an internal deterministic
