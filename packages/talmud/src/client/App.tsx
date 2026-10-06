@@ -12,6 +12,7 @@ import PretextSpike from './PretextSpike';
 import { SagesPage } from './SagesPage';
 import SettingsPage from './SettingsPage';
 import { SpineCoveragePage } from './SpineCoveragePage';
+import { StoryReadingsPage } from './StoryReadingsPage';
 import { TopBar } from './TopBar';
 import { TutorialPage } from './TutorialPage';
 import { UsagePage } from './UsagePage';
@@ -24,6 +25,7 @@ const KNOWN_ROUTES = new Set([
   'compare',
   'spike',
   'sages',
+  'stories',
   'settings',
   'about',
   'mcp',
@@ -62,6 +64,7 @@ function currentRoute() {
     window.location.hash = 'argument';
     return 'argument';
   }
+  if (raw === 'stories' || raw.startsWith('stories/')) return 'stories';
   if (raw === 'sages' || raw.startsWith('sages/')) return 'sages';
   // #about/<section> deep-links into a section of the About page.
   if (raw === 'about' || raw.startsWith('about/')) return 'about';
@@ -105,6 +108,9 @@ export default function App() {
         </Match>
         <Match when={route() === 'spike'}>
           <PretextSpike />
+        </Match>
+        <Match when={route() === 'stories'}>
+          <StoryReadingsPage />
         </Match>
         <Match when={route() === 'sages'}>
           <SagesPage />

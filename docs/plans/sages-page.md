@@ -30,7 +30,8 @@ someone does not prove they lived at the same time.
 ## What this version displays
 
 The page reads existing biographies and the saved passage-partner files. It does
-not import the new passage batch or change any extraction recipe.
+not change any extraction recipe. The completed passage readings are available
+through Story passages; they are not added as historical identity edges.
 
 Teacher, student and family records appear under From biographies, grouped by
 role. These records do not yet have individual passage citations. Biography
@@ -85,3 +86,22 @@ Before publication, check the 125 reviewed entries against these rules. Inspect
 all entries that would create a new identity, claim an encounter, lose an event
 participant or turn a proposal into an event. Preserve human corrections and
 retain the original records so every grouping can be revised.
+
+## Read the completed story batch
+
+Story passages contains 5,975 distinct source references from 598 packs. Four
+older passage readings are withheld because their quotes do not match the saved
+source; their source text remains readable. The source and surrounding context
+stay separate from the reading notes. Every displayed claim keeps its original
+note, exact quotation, basis and context location. Open questions remain visible.
+
+A profile links to a name search, not an identity match. No story reading silently
+creates a teacher, family or encounter edge in the existing graph. The reading
+batch is complete, but historical identity matching, relationship review and
+coverage of the remaining source passages are not complete.
+
+Rebuild with `python3 scripts/story-readings/build.py --input <saved-batch>`.
+The input contains the frozen manifest, source packs, accepted answers and the
+earlier test answers. The importer checks source hashes, answer receipts, exact
+quotes, person references and duplicate source references. Published provenance
+keeps the source and answer hashes for each pack. Original inputs remain intact.

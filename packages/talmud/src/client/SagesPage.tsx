@@ -134,6 +134,9 @@ export function SagesPage(): JSX.Element {
           {t('usage.backToDaf')}
         </a>
       </header>
+      <p>
+        <a href="#stories">{t('stories.title')}</a>
+      </p>
       <SageAutocomplete
         rows={index()?.rows ?? []}
         loading={index.loading}
@@ -321,6 +324,13 @@ function SageDetail(props: {
         )}
       </Show>
 
+      <p>
+        <a
+          href={`#stories/q/${encodeURIComponent(unified()?.canonical.he || props.nameFor(props.slug))}`}
+        >
+          {t('stories.profileLink')}
+        </a>
+      </p>
       <SageCoverageStrip slug={props.slug} generation={props.generationId} />
       <SagePartners slug={props.slug} nameFor={props.nameFor} onSelect={props.onSelect} />
       <SageConnections
