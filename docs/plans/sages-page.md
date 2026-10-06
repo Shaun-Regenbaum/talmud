@@ -105,3 +105,37 @@ The input contains the frozen manifest, source packs, accepted answers and the
 earlier test answers. The importer checks source hashes, answer receipts, exact
 quotes, person references and duplicate source references. Published provenance
 keeps the source and answer hashes for each pack. Original inputs remain intact.
+
+## First check of Abaye and Rava
+
+The pair route now shows 87 checked passages from the completed story readings.
+The selection is deliberately narrow: the saved people list must contain both
+exact labels אביי and רבא. It does not cover every spelling, every separate
+appearance of either sage, or every passage in the earlier pair study.
+
+59 passages support a connection between the pair. 18 do not establish one and
+10 need further checking. These are passage counts, not unique historical events.
+Parallel accounts remain separate passages. Groups overlap: 56 connect their
+views, three report or carry words between them, and five narrate encounters.
+None of these passages establishes a family or lasting teacher–student link.
+
+Each decision in `static/sage-reviews/abaye-rava.json` stores the original passage
+identifier, a hash of the complete saved reading, both passage-local person
+identifiers, the exact source text, and the reason for its treatment. The source
+text and original readings are unchanged. Tests reject changed source records,
+missing decisions, duplicate decisions, and unsupported endpoints.
+
+The earlier name studies group the regular Bavli Abaye–Rava pair together. The
+new review checks their roles in each selected passage. It does not extend that
+identification to a patronymic, a chronicle, an alternative name, or an unrelated
+mention. The page preserves the text's attributions rather than claiming to
+prove the events historically. Context-dependent attributions stay unresolved.
+
+Both language views have summaries and reasons. Full source text is visible.
+The reader can filter by group and inspect excluded and unresolved cases.
+The original partner files remain unchanged; their older counts cover a
+separate study and must not be added to these counts.
+
+Next: check the held context and name variants, then review each sage's links
+to other people with the same source and identity checks. No new reading batch
+was required for this pair check.

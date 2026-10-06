@@ -8,6 +8,7 @@ import { SageConnections } from './SageConnections';
 import { SageCoverageStrip } from './SageCoverageStrip';
 import { SagePair } from './SagePair';
 import { SagePartners } from './SagePartners';
+import { SageReviewedPair } from './SageReviewedPair';
 import { academyLabel, placeLabel, roleLabel } from './sageLabels';
 import type { IndexRow } from './sageSearch';
 import './sages.css';
@@ -166,7 +167,15 @@ export function SagesPage(): JSX.Element {
               />
             }
           >
-            <SagePair partnerKey={partner()} slug={slug} nameFor={nameFor} />
+            <Show
+              when={
+                (slug === 'abaye' && partner() === 'rava') ||
+                (slug === 'rava' && partner() === 'abaye')
+              }
+              fallback={<SagePair partnerKey={partner()} slug={slug} nameFor={nameFor} />}
+            >
+              <SageReviewedPair slug={slug} />
+            </Show>
           </Show>
         )}
       </Show>
@@ -332,6 +341,13 @@ function SageDetail(props: {
         </a>
       </p>
       <SageCoverageStrip slug={props.slug} generation={props.generationId} />
+      <Show when={props.slug === 'abaye' || props.slug === 'rava'}>
+        <p>
+          <a href={`#sages/${props.slug}/with/${props.slug === 'abaye' ? 'rava' : 'abaye'}`}>
+            {t('sages.review.open')}
+          </a>
+        </p>
+      </Show>
       <SagePartners slug={props.slug} nameFor={props.nameFor} onSelect={props.onSelect} />
       <SageConnections
         slug={props.slug}

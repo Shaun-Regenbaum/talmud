@@ -1,0 +1,1932 @@
+{
+  "version": 1,
+  "pair": [
+    "abaye",
+    "rava"
+  ],
+  "scope": {
+    "en": "87 passages whose saved readings contain both exact labels אביי and רבא. This is a first check of their shared passages, not every passage about either sage.",
+    "he": "87 קטעים שברשומות הקריאה שלהם מופיעים שני השמות המדויקים אביי ורבא. זו בדיקה ראשונה של קטעים משותפים, ולא כל הקטעים על כל אחד מהחכמים."
+  },
+  "identityBasis": {
+    "en": "The earlier name studies place the regular Bavli Abaye–Rava pair together. Each included passage was checked for the named pair and their roles. Patronymics, alternative names, and unrelated mentions are not enough to add a connection. These are attributions in the text, not independent historical proof.",
+    "he": "מחקרי השמות הקודמים מזהים את הצמד הרגיל אביי ורבא בבבלי. בכל קטע שנכלל נבדקו השמות והתפקידים. שם אב, גרסאות חלופיות או אזכורים לא קשורים אינם מספיקים להוספת קשר. אלה ייחוסים בטקסט, ולא הוכחה היסטורית עצמאית."
+  },
+  "rows": [
+    {
+      "passageId": "b000-p2",
+      "ref": "Sotah 7b:14",
+      "corpus": "bavli",
+      "readingHash": "4039d7b9486ae69192e9ea8b1e54f6a4e64430c4fa5cbbeaefc44936c49f0654",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אמר אביי תני מקרעת א\"ל רבא והא שוברת קתני אלא אמר רבא במקום שאין כותבין כתובה עסקינן",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava challenges Abaye’s reading of the marriage-document rule.",
+        "he": "רבא מקשה על פירוש אביי לדין הכתובה."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b017-p1",
+      "ref": "Zevachim 34b:5",
+      "corpus": "bavli",
+      "readingHash": "f0fd76bf079e7e8ce076e00ab421f2671f36aa6b53007f9f5c0818523c796085",
+      "people": {
+        "abaye": "B",
+        "rava": "C"
+      },
+      "quote": "רב ירמיה מדיפתי מתני הכי בעא מיניה אביי (מרבא) [מרבה] כוס מהו שיעשה את חבירו דחוי או שירים",
+      "status": "unresolved",
+      "groups": [],
+      "summary": {
+        "en": "The printed addressee is Rava or Rabbah.",
+        "he": "בנוסח המודפס הנמען הוא רבא או רבה."
+      }
+    },
+    {
+      "passageId": "b026-p0",
+      "ref": "Menachot 46b:6",
+      "corpus": "bavli",
+      "readingHash": "179840840405301a0ad33f2d41e2ba485574060c9ba35b09e4958f222bb55d7c",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אמר ליה אביי לרבא מאי שנא שני כבשים דמקדשי לחם ומעכבי ומאי שנא שבעה כבשים ופר ואילים דלא מקדשי לחם ולא מעכבי",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye asks Rava why the two sets of offerings have different rules.",
+        "he": "אביי שואל את רבא מדוע דיני הקרבנות שונים."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b029-p1",
+      "ref": "Bava Kamma 34a:19",
+      "corpus": "bavli",
+      "readingHash": "d217f61d6b86183b6c4129e468a580d7edc14508c3d7996946c1e7fed2d3072d",
+      "people": {
+        "abaye": "A",
+        "rava": "C"
+      },
+      "quote": "א\"ל אביי אם כן מצינו לרבי יהודה",
+      "status": "unresolved",
+      "groups": [],
+      "summary": {
+        "en": "The addressee depends on the preceding passage; the sentence is incomplete.",
+        "he": "זיהוי הנמען תלוי בקטע הקודם, והמשפט אינו שלם."
+      }
+    },
+    {
+      "passageId": "b031-p7",
+      "ref": "Makkot 7b:4",
+      "corpus": "bavli",
+      "readingHash": "7619af477146fcab6e3e728ee66b7f44134acb5a4b2ef059f6f939d51e97737b",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "מזיד פשיטא בר קטלא הוא (אלא) אמר רבא אימא פרט לאומר מותר א\"ל אביי אי אומר מותר אנוס הוא אמר ליה שאני אומר האומר מותר קרוב למזיד הוא",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye challenges Rava about a person who thinks an act is permitted.",
+        "he": "אביי מקשה על רבא בעניין האומר מותר."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b043-p5",
+      "ref": "Sukkah 46a:5",
+      "corpus": "bavli",
+      "readingHash": "35658c8fcf8e7b9694d804bc9cb1f02b396abfe97af72bf410e5747c9e2e0c40",
+      "people": {
+        "abaye": "A",
+        "rava": "C"
+      },
+      "quote": "אתמר אביי אמר הלכתא כרבי ורבא אמר הלכתא כרבנן אמר רב מרי ברה דבת שמואל חזינא ליה לרבא דלא עביד כשמעתיה אלא מקדים וקאי ועייל לבית הכסא ונפיק ומשי ידיה ומנח תפילין ומברך וכי אצטריך זימנא אחרינא עייל לבית הכסא ונפיק ומשי ידיה ומנח תפילין ומברך ואנן נמי כרבי עבדינן ומברכין כל שבעה",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "reported",
+      "summary": {
+        "en": "The passage gives different rulings for Abaye and Rava.",
+        "he": "הקטע מביא פסיקות שונות של אביי ורבא."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b054-p0",
+      "ref": "Eruvin 57b:10",
+      "corpus": "bavli",
+      "readingHash": "4a837dcf12c188039bb94eb2fa8ba1b2b52d219867141c0700349b1d93ee91d5",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "ואמר ליה רבא לאביי כמה יהא בין חיצון לחיצון כמה יהא מאי נפקא לך מינה כל שאילו מכניס אמצעי ביניהן ואין בין זה לזה אלא מאה וארבעים ואחת ושליש",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava asks Abaye how to measure the distance between settlements.",
+        "he": "רבא שואל את אביי על מדידת המרחק בין יישובים."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b056-p7",
+      "ref": "Zevachim 30a:7",
+      "corpus": "bavli",
+      "readingHash": "59571a4bbc6f97220461d408a6e991672a35852049cd89299e7061be73dc7a32",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "אמר רבא לאביי לדידך דאמרת בהא ודאי מודה רבי מאיר הרי שחיטה דלכי לחצות דמי ופליגי",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava challenges Abaye’s account of Rabbi Meir’s view.",
+        "he": "רבא מקשה על הסבר אביי לשיטת רבי מאיר."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b065-p0",
+      "ref": "Bava Kamma 117b:9",
+      "corpus": "bavli",
+      "readingHash": "a530971bb8708ccedeb6aa794f1c3a472ba611b0eb9e850daa874ee4f9efca26",
+      "people": {
+        "abaye": "D",
+        "rava": "C"
+      },
+      "quote": "ההוא גברא דהוה מפקיד גביה ארנקא דפדיון שבויים סליקו גנבי עילויה שקלה יהבה ניהלייהו אתא לקמיה דרבא פטריה א\"ל אביי והא מציל עצמו בממון חבירו הוא א\"ל אין לך פדיון שבויים גדול מזה:",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye challenges Rava’s ruling about money taken by thieves.",
+        "he": "אביי מקשה על פטור שפסק רבא במקרה של גנבים."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b066-p4",
+      "ref": "Yoma 46a:12",
+      "corpus": "bavli",
+      "readingHash": "686bddd9e0d0d82352dc1cf8e0bdc107275fd960571d61028c5655e28cd6185c",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אמר ליה אביי (לרבא) לדידך קשיא ולרב חסדא קשיא לדידך קשיא מאי שנא טומאה דכתיב במועדו ואפי' בטומאה שבת נמי במועדו ואפי' בשבת",
+      "status": "unresolved",
+      "groups": [],
+      "summary": {
+        "en": "Rava’s name is parenthesized in the supplied text.",
+        "he": "שמו של רבא מופיע בסוגריים בטקסט שסופק."
+      }
+    },
+    {
+      "passageId": "b070-p2",
+      "ref": "Ketubot 14a:4",
+      "corpus": "bavli",
+      "readingHash": "d5bc4f9a4e5679f1ed70cd4f9df50f11cf51cb9343fd1075074a52c45f53e2df",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "רמי ליה אביי לרבא ומי אמר רבי יהושע אינה נאמנת ורמינהו העיד ר' יהושע ורבי יהודה בן בתירא על אלמנת עיסה שהיא כשרה לכהונה",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye puts two apparently conflicting teachings to Rava.",
+        "he": "אביי מציג לרבא סתירה לכאורה בין שתי עדויות."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b070-p7",
+      "ref": "Moed Katan 19b:12",
+      "corpus": "bavli",
+      "readingHash": "3e7b10b712f85d3a64bcc871e9c81dbe39ff8a9678c43aa1377323ac3db56eba",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "בעא מיניה אביי (מרבא) קברו ברגל רגל עולה לו למנין שלשים או אין רגל עולה לו למנין שלשים למנין שבעה לא קמיבעיא לי דלא נהגא מצות שבעה ברגל כי קא מיבעיא לי למנין שלשים דקא נהגא מצות שלשים ברגל מאי",
+      "status": "unresolved",
+      "groups": [],
+      "summary": {
+        "en": "Rava’s name is parenthesized in the supplied text.",
+        "he": "שמו של רבא מופיע בסוגריים בטקסט שסופק."
+      }
+    },
+    {
+      "passageId": "b075-p5",
+      "ref": "Menachot 21a:17",
+      "corpus": "bavli",
+      "readingHash": "5eebcefc5255ab8a07ddedca2303185e585a0bd6e9d28b9f015c9feb6550d947",
+      "people": {
+        "abaye": "C",
+        "rava": "D"
+      },
+      "quote": "מאי תבונהו אמר רבה בר עולא הכי קאמר יכול יתבוננו כתבן בטיט אמר ליה אביי אי הכי יתבוננו מיבעי ליה אלא אמר אביי יכול יעשנו כבנין אמר ליה רבא אי הכי יבננו מיבעי ליה אלא אמר רבא יכול תבונהו",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava challenges Abaye’s interpretation of a word.",
+        "he": "רבא מקשה על פירוש אביי למילה."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b079-p2",
+      "ref": "Shabbat 35a:4",
+      "corpus": "bavli",
+      "readingHash": "885d884523b46a28733bb3f7247b0b65590771304b1b6096877e07e3e0f3dbed",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אביי חזייה לרבא דקא דאוי למערב א\"ל והתניא כל זמן שפני מזרח מאדימין א\"ל מי סברת פני מזרח ממש לא פנים המאדימין את המזרח. א\"ד רבא חזייה לאביי דקא דאוי למזרח א\"ל מי סברת פני מזרח ממש פנים המאדימין את המזרח וסימניך כוותא:",
+      "status": "included",
+      "groups": [
+        "views",
+        "events"
+      ],
+      "mode": "versions",
+      "summary": {
+        "en": "The passage gives two versions of an encounter about the sunset.",
+        "he": "הקטע מביא שתי גרסאות למפגש בעניין השקיעה."
+      },
+      "note": {
+        "en": "The versions reverse who sees whom; this is one passage, not two meetings.",
+        "he": "הגרסאות מחליפות מי ראה את מי. זהו קטע אחד, ולא שני מפגשים."
+      }
+    },
+    {
+      "passageId": "b086-p8",
+      "ref": "Bava Kamma 58b:17",
+      "corpus": "bavli",
+      "readingHash": "c570b055b3d2207b55755d6a11eb00b9c0d0f1c1171daa0b2a2d3ad37fb45e93",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אמר ליה אביי לרבא בנזקי גופו מאי דעתיך דתניא המבכיר כרמו של חבירו סמדר רואין אותו כמה היתה יפה קודם לכן וכמה היא יפה לאחר מכאן ואילו בששים לא קתני",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye challenges Rava’s method of valuing damage.",
+        "he": "אביי מקשה על שיטת רבא להערכת נזק."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b092-p1",
+      "ref": "Sotah 8b:9",
+      "corpus": "bavli",
+      "readingHash": "21c0bef14c4b90e1906873f43d30f562e6e7861718474d714f36e738076cfe51",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אמר אביי תרגמה אנשים אמר ליה רבא והא כל הרוצה לראות בה רואה קתני",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava challenges Abaye’s reading of who may watch.",
+        "he": "רבא מקשה על פירוש אביי בעניין הצפייה באישה."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b103-p0",
+      "ref": "Pesachim 48a:6",
+      "corpus": "bavli",
+      "readingHash": "a886257c84c866eb1014fa1aab185289edde460411a8041c59e68e526f8e740f",
+      "people": {
+        "abaye": "C",
+        "rava": "B"
+      },
+      "quote": "אמר ליה רב אחא בריה דרבא לאביי ונלקי נמי משום (דברים ז, כו) ולא תביא תועבה אל ביתך",
+      "status": "excluded",
+      "groups": [],
+      "reason": "father",
+      "summary": {
+        "en": "Rava appears only as Rav Aha’s father. The speaker is Rav Aha.",
+        "he": "רבא נזכר רק כאביו של רב אחא. הדובר הוא רב אחא."
+      }
+    },
+    {
+      "passageId": "b121-p3",
+      "ref": "Berakhot 48a:3",
+      "corpus": "bavli",
+      "readingHash": "69d8f26dd61c328edc93c749d26abef103696320cb036a1ac58398978826a671",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אביי ורבא הוו יתבי קמיה דרבה אמר להו רבה למי מברכין אמרי ליה לרחמנא ורחמנא היכא יתיב רבא אחוי לשמי טללא אביי נפק לברא אחוי כלפי שמיא אמר להו רבה תרווייכו רבנן הויתו היינו דאמרי אינשי בוצין בוצין מקטפיה ידיע:",
+      "status": "included",
+      "groups": [
+        "events"
+      ],
+      "mode": "narrated",
+      "summary": {
+        "en": "Abaye and Rava sit before Rabbah and answer his question.",
+        "he": "אביי ורבא יושבים לפני רבה ומשיבים לשאלתו."
+      },
+      "note": {
+        "en": "This scene supports being together. It does not by itself establish a lasting teacher–student relationship.",
+        "he": "הסיפור מעיד על שהות יחד. הוא אינו מבסס לבדו קשר קבוע של רב ותלמיד."
+      }
+    },
+    {
+      "passageId": "b127-p1",
+      "ref": "Berakhot 61b:3",
+      "corpus": "bavli",
+      "readingHash": "433becb438f7735c74e2a5da03cf0ae9924ffe339d2c7286c407311e7a0183ed",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "אמר רבא כגון אנו בינונים אמר ליה אביי לא שביק מר חיי לכל בריה",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye objects to Rava’s description of himself as intermediate.",
+        "he": "אביי משיב על דברי רבא שהוא בינוני."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b128-p2",
+      "ref": "Bava Kamma 7a:10",
+      "corpus": "bavli",
+      "readingHash": "4ecea53f5c61b4f6677a5305b2a58c4f2e8d2201734a971879bc41822b22c7c3",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "רמי ליה אביי לרבא כתיב מיטב שדהו ומיטב כרמו ישלם מיטב אין מידי אחרינא לא",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye puts a question about compensation to Rava.",
+        "he": "אביי שואל את רבא על תשלום הנזק."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b151-p5",
+      "ref": "Keritot 17b:14",
+      "corpus": "bavli",
+      "readingHash": "73657b85a03149e35bbf1b1e18a04de07e5194fc9c3bc299cbd949c37d07a321",
+      "people": {
+        "abaye": "A",
+        "rava": "C"
+      },
+      "quote": "איתיביה אביי רבי אליעזר אומר כוי חייבין עליו אשם תלוי",
+      "status": "unresolved",
+      "groups": [],
+      "summary": {
+        "en": "The addressee is supplied only by the preceding passage.",
+        "he": "זיהוי הנמען נשען רק על הקטע הקודם."
+      }
+    },
+    {
+      "passageId": "b154-p7",
+      "ref": "Eruvin 46a:9",
+      "corpus": "bavli",
+      "readingHash": "24dc6a615e71979a31a400ee61b594d2a9f1dafca102f9000522e89d95c3fb0c",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "אמר ליה רבא לאביי מכדי עירובין דרבנן מה לי יחיד במקום יחיד ומה לי יחיד במקום רבים",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava challenges Abaye about a lone authority and a majority.",
+        "he": "רבא מקשה על אביי בעניין יחיד ורבים."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b155-p1",
+      "ref": "Ketubot 35a:5",
+      "corpus": "bavli",
+      "readingHash": "b8e5829e16e8bdcd12c429d7bea8c35e4639038dd77cb17c6f22fae4d053c6a0",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "היכן ריבתה תורה אמר אביי אתיא (במדבר לה, לא) רשע (דברים כה, א) רשע רבא אמר אתיא מכה מכה אמר ליה רב פפא לרבא הי מכה אילימא (ויקרא כד, כא) ומכה בהמה ישלמנה ומכה אדם יומת האי בקטלא כתיב אלא האי מכה (ויקרא כד, יח) מכה נפש בהמה ישלמנה נפש תחת נפש וסמיך ליה ואיש כי יתן מום בעמיתו [כאשר עשה כן יעשה לו]",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "reported",
+      "summary": {
+        "en": "Abaye and Rava give different scriptural explanations.",
+        "he": "אביי ורבא מציעים לימודים שונים מן הפסוקים."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b156-p7",
+      "ref": "Eruvin 57b:7",
+      "corpus": "bavli",
+      "readingHash": "9fc25030a1ba62025ffaae5721f44fbdd1b2e9dc7221d4891ede45af269583cb",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "א\"ל רבא לאביי כמה יהא בין חיצון לאמצעי א\"ל אלפים אמה",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava asks Abaye about distance, and Abaye answers.",
+        "he": "רבא שואל את אביי על המרחק, ואביי משיב."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b167-p0",
+      "ref": "Nedarim 24b:6",
+      "corpus": "bavli",
+      "readingHash": "e30e6a4ba361a5f628e7a45ba6129ea9e27f209055de74fff252b8ceb1b53613",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אמר אביי דאמר שבועה שראיתי אמר ליה רבא אם כן למה לי למימר ועוד דומיא דנדר קתני אלא אמר רבא באומר ייאסרו פירות העולם עלי בשבועה אם לא ראיתי בדרך הזה כעולי מצרים",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava challenges Abaye’s explanation of an oath.",
+        "he": "רבא מקשה על הסבר אביי לשבועה."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b168-p7",
+      "ref": "Horayot 14a:5",
+      "corpus": "bavli",
+      "readingHash": "76bc5b71cd82df6ef03e6b3ed94164877ce85db6c4d1ff98a813dd77cb4fc2be",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אביי ורבא ורבי זירא ורבה בר מתנה הוו יתבי והוו צריכי רישא אמרי כל דאמר מלתא ולא מפריך להוי רישא דכולהו איפריך דאביי לא איפריך חזייה רבה לאביי דגבה רישא א\"ל נחמני פתח ואימא",
+      "status": "included",
+      "groups": [
+        "events"
+      ],
+      "mode": "narrated",
+      "summary": {
+        "en": "Abaye and Rava sit with Rabbi Zeira and Rabbah bar Mattana to choose a leader.",
+        "he": "אביי ורבא יושבים עם רבי זירא ורבה בר מתנה לבחירת ראש."
+      },
+      "note": {
+        "en": "Keep the other participants in the scene. This is not a private meeting of two people.",
+        "he": "יש לשמור את שאר המשתתפים בסיפור. אין זה מפגש פרטי בין שני אנשים."
+      }
+    },
+    {
+      "passageId": "b181-p9",
+      "ref": "Ketubot 65a:10",
+      "corpus": "bavli",
+      "readingHash": "cbeda2d2cab56b3f966a63555d39f539aa59cbeec26649311a8111f68566a4a4",
+      "people": {
+        "abaye": "E",
+        "rava": "A"
+      },
+      "quote": "קם רבא על לביתיה תבעה לבת רב חסדא אמרה ליה בת רב חסדא מאן הוי האידנא בבי דינא אמר לה חומא דביתהו דאביי נפקא אבתרה מחתא לה בקולפי דשידא עד דאפקה לה מכולי מחוזא אמרה לה קטלת ליך תלתא ואתת למיקטל אחרינא",
+      "status": "excluded",
+      "groups": [],
+      "reason": "indirect",
+      "summary": {
+        "en": "Abaye is named through Homa. No exchange between Abaye and Rava is described.",
+        "he": "אביי נזכר דרך חומא. לא מתוארת כאן שיחה בין אביי לרבא."
+      }
+    },
+    {
+      "passageId": "b188-p8",
+      "ref": "Niddah 67b:8",
+      "corpus": "bavli",
+      "readingHash": "16584ece3c5b0ede3bc6101e7d2f7dd314fca3915e3ff9f45149f1b8420175a7",
+      "people": {
+        "abaye": "C",
+        "rava": "B"
+      },
+      "quote": "אמר ליה רב פפא לרבא ולאביי מכדי האידנא כולהו ספק זבות שוינהו רבנן ליטבלינהו ביממא דשביעאה",
+      "status": "excluded",
+      "groups": [],
+      "summary": {
+        "en": "Rav Pappa addresses both men. This does not establish words exchanged between Abaye and Rava.",
+        "he": "רב פפא פונה לשניהם. אין בכך עדות לדברים שנאמרו בין אביי לרבא."
+      },
+      "reason": "shared_addressees"
+    },
+    {
+      "passageId": "b192-p2",
+      "ref": "Ketubot 75a:12",
+      "corpus": "bavli",
+      "readingHash": "195073360d008f1fbf797abdd872880681fd177d761bf8a95da7c3d3762696fc",
+      "people": {
+        "abaye": "I",
+        "rava": "G"
+      },
+      "quote": "א\"ר חסדא הא מילתא מגברא רבה שמיע לי ומנו ר' שילא נשכה כלב ונעשה מקומו צלקת הרי זה מום א\"ר חסדא קול עבה באשה ה\"ז מום שנאמר (שיר השירים ב, יד) כי קולך ערב ומראך נאוה: תני ר' נתן ביראה בין דדי אשה טפח סבר רב אחא בריה דרבא קמיה דרב אשי למימר טפח למעליותא א\"ל רב אשי גבי מומין תניא וכמה אמר אביי שלש אצבעות",
+      "status": "excluded",
+      "groups": [],
+      "reason": "father",
+      "summary": {
+        "en": "Rava occurs in a patronymic. Abaye’s separate ruling does not connect the two.",
+        "he": "רבא נזכר בשם אביו של אדם אחר. פסיקת אביי אינה קושרת ביניהם."
+      }
+    },
+    {
+      "passageId": "b200-p6",
+      "ref": "Makkot 9a:12",
+      "corpus": "bavli",
+      "readingHash": "3d8e0c4e56b50feb83aac348287a17e3ae6a9b64cafb43ae2ad0d5a336faa82e",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "איתיביה אביי לרבא (בראשית כ, ד) הגוי גם צדיק תהרוג התם כדקא מהדרי עלויה (בראשית כ, ז) ועתה השב אשת האיש כי נביא הוא",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye challenges Rava with a biblical verse.",
+        "he": "אביי מקשה על רבא מפסוק."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b200-p8",
+      "ref": "Sanhedrin 15a:15",
+      "corpus": "bavli",
+      "readingHash": "f08e3ad90edc47ab72eaacec426036a033bd38b22a2480fd3771ec6897319b44",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "שור הנסקל בעשרים ושלשה: שנא' (שמות כא, כט) השור יסקל וגם בעליו יומת כמיתת הבעלים כך מיתת השור: א\"ל אביי לרבא ממאי דהאי וגם בעליו יומת לכמיתת בעלים כך מיתת השור הוא דאתא",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye asks Rava how the verse establishes the court’s size.",
+        "he": "אביי שואל את רבא כיצד הפסוק מלמד על גודל בית הדין."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b202-p5",
+      "ref": "Eruvin 92b:10",
+      "corpus": "bavli",
+      "readingHash": "f3104fb0c6a0a13898e5b0d5d401543db6b78cca4fae434688c1ff1aba2ccaca",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "אמר ליה רבא לאביי ולא מצינו מחיצה לאיסור והא אתמר",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava challenges Abaye about a partition that makes something forbidden.",
+        "he": "רבא מקשה על אביי בעניין מחיצה האוסרת."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b208-p0",
+      "ref": "Shabbat 71a:4",
+      "corpus": "bavli",
+      "readingHash": "3d6595b12e463c6bea88683dc96c89e7ad2f7b3a1221d6c72e1ef9cbbbf458c4",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "מילתא דפשיטא להו לאביי ורבא מבעיא לר' זירא דבעי רבי זירא מרבי אסי ואמרי לה בעא מיניה רבי ירמיה מרבי זירא קצר וטחן חצי גרוגרת בשגגת שבת וזדון מלאכות וחזר וקצר וטחן חצי גרוגרת בזדון שבת ושגגת מלאכות מהו שיצטרפו אמר ליה חלוקין לחטאות ולא מצטרפין",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "reported",
+      "summary": {
+        "en": "The narrator attributes the same conclusion to Abaye and Rava.",
+        "he": "המספר מייחס לאביי ולרבא אותה מסקנה."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b212-p8",
+      "ref": "Taanit 4a:15",
+      "corpus": "bavli",
+      "readingHash": "c6cfbfc0934710a2e4763ecc8e5c453337bbac9524c025e8582da04515f06cdf",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "א\"ל אביי אפילו תימא רבי אליעזר שאלה לחוד והזכרה לחוד",
+      "status": "unresolved",
+      "groups": [],
+      "summary": {
+        "en": "The addressee is supplied only by the preceding passage.",
+        "he": "זיהוי הנמען נשען רק על הקטע הקודם."
+      }
+    },
+    {
+      "passageId": "b214-p4",
+      "ref": "Menachot 11a:5",
+      "corpus": "bavli",
+      "readingHash": "53f5996cd7638f02d760f91206736e30c9db15961adf8c90c67f76e10a2edd7a",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אמר ליה אביי לרבא כיצד קומצין אמר ליה כדקמצי אינשי איתיביה זו זרת זו קמיצה",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye asks Rava how to take a handful, then challenges the answer.",
+        "he": "אביי שואל את רבא כיצד קומצים ומקשה על תשובתו."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b218-p6",
+      "ref": "Shabbat 8a:7",
+      "corpus": "bavli",
+      "readingHash": "3248eebc3bbc05f913abb90aea45bd16e9becf6040982895e82f6d2aaa10346b",
+      "people": {
+        "abaye": "A",
+        "rava": "C"
+      },
+      "quote": "א\"ל אביי לרב יוסף גומא מאי אמר ליה וכן בגומא רבא אמר בגומא לא מ\"ט תשמיש על ידי הדחק לא שמיה תשמיש",
+      "status": "excluded",
+      "groups": [],
+      "reason": "separate",
+      "summary": {
+        "en": "Abaye asks Rav Yosef. The passage does not explicitly make Abaye the opposing authority to Rava.",
+        "he": "אביי שואל את רב יוסף. הקטע אינו מייחס במפורש לאביי דעה החולקת על רבא."
+      }
+    },
+    {
+      "passageId": "b247-p7",
+      "ref": "Arakhin 20a:27",
+      "corpus": "bavli",
+      "readingHash": "28ab55e47ef7533977749698bdcffcdb3d60546a5c7e4de35fb563b68c7b7329",
+      "people": {
+        "abaye": "F",
+        "rava": "E"
+      },
+      "quote": "ת\"ר המעריך חצי ערך כלי ר\"מ אומר נותן דמיו וחכ\"א לא אמר כלום רבא חלש עול לגביה אביי ורבנן ויתבי וקאמרי בשלמא ר\"מ קסבר אין אדם מוציא דבריו לבטלה לא שנא כולו ול\"ש חציו",
+      "status": "included",
+      "groups": [
+        "events"
+      ],
+      "mode": "narrated",
+      "summary": {
+        "en": "Abaye and other scholars visit Rava when he is ill.",
+        "he": "אביי וחכמים נוספים מבקרים את רבא כשהוא חולה."
+      },
+      "note": {
+        "en": "The visit is explicit; it is not inferred from a debate.",
+        "he": "הביקור נאמר במפורש, ואינו מוסק מדיון הלכתי."
+      }
+    },
+    {
+      "passageId": "b251-p6",
+      "ref": "Bava Metzia 93b:21",
+      "corpus": "bavli",
+      "readingHash": "93c0d66a6cdbcd47b3f6bd47974841f567ce11651765b089b7045b8e89266ee6",
+      "people": {
+        "abaye": "C",
+        "rava": "D"
+      },
+      "quote": "איבעיא להו לסטים מזויין ורועה מזויין מהו מי אמרינן אוקי גברא להדי גברא או דלמא האי מסר נפשיה והאי לא מסר נפשיה מסתברא דהאי מסר נפשיה והאי לא מסר נפשיה אמר ליה אביי לרבא אשכחיה רועה ואמר ליה גנבא סריא בדוכתא פלניא יתיבינן",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye puts a shepherd-and-thief example to Rava.",
+        "he": "אביי מציג לרבא מקרה של רועה וגנב."
+      },
+      "note": {
+        "en": "The legal example or quoted dialogue is not an event involving Abaye and Rava themselves.",
+        "he": "הדוגמה ההלכתית או השיחה המצוטטת אינן אירוע של אביי ורבא עצמם."
+      }
+    },
+    {
+      "passageId": "b277-p0",
+      "ref": "Seder Olam Zutta 9:1",
+      "corpus": "midrash-aggadah",
+      "readingHash": "4f41a2431198de8f3ae3b9ec35747b7d4d5c4fe979a963fd88ed91dfe766fe88",
+      "people": {
+        "abaye": "A49",
+        "rava": "A43"
+      },
+      "quote": "ומלך אגריפס בן המלך הורודוס ומלך אחריו מונבז בנו. ושכיב שמעיה ועמד אחריו שכניה וחכמים דברוהו. בשנת מאה ושלש למלכות הגרים היא שנת ארבע מאות ועשרים שנה לבנין הבית והיא שנת שלשת אלפים ותתכ\"ח לבריאת עולם בא אספסיינוס והחריב הבית והגלה את ישראל ובתים הרבה מבית דוד ויהודה לאספמיא היא ספרד. והיא היתה שנת מאה ושמונים לרומיים שמלכו לפני הבית. ובשנת חמשים ושתים לחרבן הבית חרבה ביתר. בשנת מאה וששים ושש לחרבן הבית אתו פרסאי על רומאי. ושכיב שכניה ועמד אחריו חזקיה בנו חכמים דברוהו. ושכיב חזקיה ונקבר בארץ ישראל בגבעת ארבאל אשר ליהושע בן שרף הכהן במזרח העיר. ועמד אחריו בנו וחכמים דברוהו. וכד שכיב פש נתן במעי אמו הוא נתן דצוציתא. ושכיב נתן ועמד אחריו רב הונא בנו חכמים דברוהו. ושכיב עקוב ועמד נחום בנו חכמים דברוהו. רב הונא ורב חננא ורב מתנא ורב חננאל חכמים שלו. ושכיב נחום ועמד יוחנן חכמים דברוהו רב חננאל חכם שלו. ושכיב יוחנן ועמד שפט בנו חכמים דברוהו ורב חננאל חכם שלו. ושכיב שפט ועמד אחריו ענן בנו חכמים דברוהו ורב שמואל חכם שלו. וסליק פסא בר נצר דא ואחרבה לנהרדעא. ושכיב רב הונא ונקבר בארץ ישראל אצל רבי חייא רבה. ועמד נתן בנו חכמים דברוהו. רב יהודה בר יחזקאל ורב ששת חכמים שלו. ואחסינו מלכותא פרסאי בשנת מאתים וארבעים וחמשה לחרבן הבית וגזרו פרסאי שמדא על יהודאי. ושכיב נתן ועמד נחמיה בנו חכמים דברוהו. רב שזבי חכם שלו. ושכיב נחמיה ועמד עקביה בנו חכמים דברוהו. רבא ורב אדא חכמים שלו. ובימיו סליק שבור לארמאי וכבשה. ושכיב מר עוקבן דצוציתא ונקבר בארץ ישראל. ועמד אחריו הונא בר אחיו חכמים דברוהו. אביי ורבה ורב יוסף בר חמא חכמים שלו. ובימיו סליק שבור לנציבא וכבשה. ושמע הונא מר ועמד אחריו עוקבא אחיו חכמים דברוהו. רב חננאל חכם שלו. ומת עוקבא ועמד אחריו אבא בן אחיו בן מר עוקבן. רבא ורבינא חכמים שלו. בשנת ארבע מאות ושש עשרה שנה לחרבן הבית קם עלמא בלא מלכא. ושכיב אבא ועמד אחריו רב כהנא אחיו. רב ספרא חכם שלו. ושכיב רב כהנא ועמד אחריו רב ספרא אחיו. רב אחא מדפתי חכם שלו. ושכיב מר זוטרא ועמד אחריו כהנא בנו. רבינא חכם שלו. ושכיב רב כהנא ועמד אחריו רב הונא מר אחיו. רב אחא מדפתי בר חנילאי חכם שלו. ושכיב ועמד אחריו רב הונא אחי אביו בר רב כהנא. רב מרי ומר חנינא רבא חכמים שלו.",
+      "status": "excluded",
+      "groups": [],
+      "reason": "identity",
+      "summary": {
+        "en": "This chronicle lists several names and offices. Their identities and a connection between this pair are not established here.",
+        "he": "הרשימה הכרונולוגית אינה מבססת כאן את זיהוי האנשים או קשר בין השניים."
+      }
+    },
+    {
+      "passageId": "b278-p0",
+      "ref": "Kiddushin 7a:11",
+      "corpus": "bavli",
+      "readingHash": "e24d5ef8d9461b8a50f56ba13e8c4b7b64865a087f761457ffabcb440a72d393",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "אמר רבא התקדשי לי לחציי מקודשת חצייך מקודשת לי אינה מקודשת אמר ליה אביי לרבא מאי שנא חצייך מקודשת לי דאינה מקודשת אשה אמר רחמנא ולא חצי אשה ה\"נ איש אמר רחמנא ולא חצי איש",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye challenges Rava’s rule about a partial betrothal.",
+        "he": "אביי מקשה על דין רבא בעניין קידושי חצי אישה."
+      },
+      "note": {
+        "en": "The legal example or quoted dialogue is not an event involving Abaye and Rava themselves.",
+        "he": "הדוגמה ההלכתית או השיחה המצוטטת אינן אירוע של אביי ורבא עצמם."
+      }
+    },
+    {
+      "passageId": "b286-p2",
+      "ref": "Nedarim 55a:5",
+      "corpus": "bavli",
+      "readingHash": "f5d7eec46f673afce49a5a5659b377ae6344814465e30e94e571768f2c2fce2e",
+      "people": {
+        "abaye": "E",
+        "rava": "C"
+      },
+      "quote": "בר מר שמואל פקיד דליתנון תליסר אלפי זוזי לרבא מן עללתא דנהר פניא שלחה רבא לקמיה דרב יוסף עללתא היכי מיקריא אמר רב יוסף מתניתין היא ושוין בנודר מן התבואה שאין אסור אלא מחמשת המינין א\"ל אביי מי דמי תבואה לא משמע אלא מחמשת המינין עללתא כל מילי משמע",
+      "status": "excluded",
+      "groups": [],
+      "reason": "indirect",
+      "summary": {
+        "en": "Rava sends a question to Rav Yosef. Abaye addresses Rav Yosef, not Rava.",
+        "he": "רבא שולח שאלה לרב יוסף. אביי פונה לרב יוסף, ולא לרבא."
+      }
+    },
+    {
+      "passageId": "b301-p7",
+      "ref": "Ketubot 81a:11",
+      "corpus": "bavli",
+      "readingHash": "42b6c5c8126b1f926c9efef912806b2e3b5674cd9ae2b990ef2efa81089a506a",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "שלח ליה רבא לאביי ביד רב שמעיה בר זירא ומי נתנה כתובה לגבות מחיים",
+      "status": "included",
+      "groups": [
+        "words",
+        "views"
+      ],
+      "mode": "message",
+      "summary": {
+        "en": "Rava sends Abaye a question through Rav Shemaya bar Zeira.",
+        "he": "רבא שולח לאביי שאלה בידי רב שמעיה בר זירא."
+      },
+      "note": {
+        "en": "The messenger is named. Sending a question does not mean the sender and recipient met.",
+        "he": "השליח נקוב בשם. שליחת שאלה אינה מעידה על מפגש בין השולח לנמען."
+      }
+    },
+    {
+      "passageId": "b317-p7",
+      "ref": "Bava Batra 20b:16",
+      "corpus": "bavli",
+      "readingHash": "9b126ee574d0d3fef3e98a02543a840375b4bd45c136c6728ef37317fdcaac64",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "גמ' מ\"ש רישא ומ\"ש סיפא אמר אביי סיפא אתאן לחצר אחרת א\"ל רבא אי הכי ליתני חצר אחרת מותר אלא אמר רבא",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava challenges Abaye’s explanation of the courtyard rule.",
+        "he": "רבא מקשה על הסבר אביי לדין החצר."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b317-p8",
+      "ref": "Chullin 105b:4",
+      "corpus": "bavli",
+      "readingHash": "e1423a8c94837ba104f0ab099a0f1577cbb813911c694ffdc51ece1726012619",
+      "people": {
+        "abaye": "C",
+        "rava": "E"
+      },
+      "quote": "אמר רב יהודה בריה דרבי חייא מפני מה אמרו מים אחרונים חובה שמלח סדומית יש שמסמא את העינים אמר אביי ומשתכח כי קורטא בכורא אמר ליה רב אחא בריה דרבא לרב אשי כל מלחא מאי אמר ליה לא מבעיא",
+      "status": "excluded",
+      "groups": [],
+      "reason": "father",
+      "summary": {
+        "en": "Rava occurs only in Rav Aha’s patronymic.",
+        "he": "רבא נזכר רק כאביו של רב אחא."
+      }
+    },
+    {
+      "passageId": "b317-p9",
+      "ref": "Nazir 19b:5",
+      "corpus": "bavli",
+      "readingHash": "02947d12c9663a0c17191596b50003364eb42b592d810ab0df6f094017fec9e0",
+      "people": {
+        "abaye": "B",
+        "rava": "C"
+      },
+      "quote": "א\"ל רב פפא לאביי הלין ימים דקאמרינן דנפק חד ומתחילין תרין או דלמא דנפקין תרין ומתחילין תלתא לא הוה בידיה אתא שייליה לרבא א\"ל יפלו כתיב",
+      "status": "excluded",
+      "groups": [],
+      "reason": "separate",
+      "summary": {
+        "en": "Rav Pappa asks each man separately. No exchange between Abaye and Rava is stated.",
+        "he": "רב פפא שואל כל אחד בנפרד. לא מתוארת שיחה בין אביי לרבא."
+      }
+    },
+    {
+      "passageId": "b319-p9",
+      "ref": "Avodah Zarah 50b:12",
+      "corpus": "bavli",
+      "readingHash": "e54f96763e8c9aeedd34ae35e00ab9efcc60c5628fdbd9179ad091f293f99768",
+      "people": {
+        "abaye": "C",
+        "rava": "D"
+      },
+      "quote": "אמר רב יהודה אמר רב עבודת כוכבים שעובדין אותה במקל שבר מקל בפניה חייב זרק מקל בפניה פטור א\"ל אביי לרבא מאי שנא שבר דהוה ליה כעין זביחה זרק נמי הוה ליה כעין זריקה אמר ליה בעינא זריקה משתברת וליכא",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye questions Rava about breaking and throwing a stick.",
+        "he": "אביי שואל את רבא על שבירת מקל וזריקתו."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b332-p9",
+      "ref": "Yoma 53b:5",
+      "corpus": "bavli",
+      "readingHash": "362b9ad3ec86e3c343a979fdcc982cfbcc109409d2c971cd71f4c941e252bc97",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "רבא חזייה לאביי דיהיב שלמא לימינא ברישא א\"ל מי סברת לימין דידך לשמאל דידך קא אמינא דהוי ימינו של הקב\"ה אמר רב חייא בריה דרב הונא חזינא להו לאביי ורבא דפסעי להו שלש פסיעות בכריעה אחת",
+      "status": "included",
+      "groups": [
+        "views",
+        "events"
+      ],
+      "mode": "narrated",
+      "summary": {
+        "en": "Rava sees Abaye’s gesture and corrects him. A separate report describes both men’s practice.",
+        "he": "רבא רואה את תנועת אביי ומתקן אותו. דיווח נפרד מתאר את מנהג שניהם."
+      },
+      "note": {
+        "en": "Rava’s observation supports an encounter. The later report does not establish a second shared occasion.",
+        "he": "ראיית רבא מעידה על מפגש. הדיווח שבהמשך אינו מוכיח אירוע משותף נוסף."
+      }
+    },
+    {
+      "passageId": "b334-p0",
+      "ref": "Sukkah 18b:2",
+      "corpus": "bavli",
+      "readingHash": "485532090c8c0d6fd685ec7b54fa0d26c89d979de61955421501d179da35e60a",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "אמר ליה רבא לאביי לדידך דאמרת פי תקרה יורד וסותם אפילו הפחית דופן אמצעי אמר ליה מודינא לך בההיא דהוה ליה כמבוי המפולש",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava challenges Abaye about a missing wall, and Abaye concedes this case.",
+        "he": "רבא מקשה על אביי בעניין דופן חסרה, ואביי מודה במקרה זה."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b338-p3",
+      "ref": "Ketubot 62a:6",
+      "corpus": "bavli",
+      "readingHash": "d09fc000608d73cb2886a74035a7496f6145349ec39cd3b42f0b46e5057e4737",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "הטיילין בכל יום: מאי טיילין אמר רבא בני פירקי א\"ל אביי מאן דכתיב בהו (תהלים קכז, ב) שוא לכם משכימי קום מאחרי שבת אוכלי לחם העצבים כן יתן לידידו שנא ואמר רב יצחק אלו נשותיהן של ת\"ח שמנדדות שינה מעיניהם בעוה\"ז ובאות לחיי העוה\"ב ואת אמרת בני פירקי",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye challenges Rava’s identification of the men in the rule.",
+        "he": "אביי מקשה על זיהוי הטיילים בדברי רבא."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b338-p8",
+      "ref": "Temurah 6a:14",
+      "corpus": "bavli",
+      "readingHash": "5dbc5c62cad66ff7f95c31b88d44eebc2faa257ef1c71120d41a12208903a535",
+      "people": {
+        "abaye": "D",
+        "rava": "B"
+      },
+      "quote": "אמר ליה רב אחא בריה דרבא לרב אשי והשתא דשנינן כל הני שינויי דאביי ורבא במאי פליגי",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "reported",
+      "summary": {
+        "en": "A later question refers to the dispute between Abaye and Rava.",
+        "he": "שאלה מאוחרת מתייחסת למחלוקת אביי ורבא."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b345-p4",
+      "ref": "Eruvin 20a:5",
+      "corpus": "bavli",
+      "readingHash": "267599cfb2dd575fdd869784bc9d06c9f30c081182ae0c1d896a8628d6770af3",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "א\"ל אביי לרבא תניא דמסייע לך חצר שראשה אחד נכנס לבין הפסין מותר לטלטל מתוכה לבין הפסין ומבין הפסין לתוכה אבל שתים אסור בד\"א שלא עירבו אבל עירבו מותרין",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye cites a teaching that supports Rava.",
+        "he": "אביי מביא ברייתא התומכת בדברי רבא."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b361-p7",
+      "ref": "Moed Katan 24a:16",
+      "corpus": "bavli",
+      "readingHash": "8534fcd8b90f2ad9b8645ae72eb6e7d3bd4b6ee49f58606345a28c9e9c53e138",
+      "people": {
+        "abaye": "abaye",
+        "rava": "rava"
+      },
+      "quote": "אמר רבא אבל מטייל באונקלי בתוך ביתו אביי אשכחיה לרב יוסף דפריס ליה סודרא ארישיה ואזיל ואתי בביתיה א\"ל לאו סבר לה מר אין אבילות בשבת א\"ל הכי א\"ר יוחנן דברים שבצינעא נוהג:",
+      "status": "excluded",
+      "groups": [],
+      "reason": "separate",
+      "summary": {
+        "en": "Abaye’s narrated encounter is with Rav Yosef. Rava gives a separate ruling.",
+        "he": "המפגש המתואר של אביי הוא עם רב יוסף. רבא מוסר פסיקה נפרדת."
+      }
+    },
+    {
+      "passageId": "b365-p7",
+      "ref": "Zevachim 104b:7",
+      "corpus": "bavli",
+      "readingHash": "ee7c48a77a6975d57ac3dc9a658e8adb77a5bda15b7d3e30e816a7da81aed79c",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "אמר רבא הא מילתא איבעיא ליה לאביי ופשטנא ליה מהא ושוין שאם חישב באכילת פרים ובשריפתן שלא עשה כלום מאי לאו מדמחשבה לא פסלה לינה נמי לא פסלה",
+      "status": "included",
+      "groups": [
+        "words",
+        "views"
+      ],
+      "mode": "reported",
+      "summary": {
+        "en": "Rava reports having answered Abaye’s question.",
+        "he": "רבא מספר שהשיב על שאלת אביי."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b371-p1",
+      "ref": "Bava Batra 46a:8",
+      "corpus": "bavli",
+      "readingHash": "8fc0d0adf53263e80b8aa931bcbf0ff54efffcf8587a08d44b08bcaf57c65ea4",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "א\"ל אביי לרבא תא אחוי לך רמאי דפומבדיתא מאי עבדי אמר ליה הב לי סרבלאי לא היו דברים מעולם הא אית לי סהדי דחזיוה גבך אמר ליה ההוא אחרינא הוה אפקיניה ונחזינהו אמר ליה איברא לא מפיקנא ליה",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye describes a deceptive exchange to Rava.",
+        "he": "אביי מתאר לרבא שיחה של רמאים."
+      },
+      "note": {
+        "en": "The legal example or quoted dialogue is not an event involving Abaye and Rava themselves.",
+        "he": "הדוגמה ההלכתית או השיחה המצוטטת אינן אירוע של אביי ורבא עצמם."
+      }
+    },
+    {
+      "passageId": "b373-p3",
+      "ref": "Shabbat 7b:5",
+      "corpus": "bavli",
+      "readingHash": "64ed315f396ac70a002ee5ce97b474402498e19d0846bc56f79c171a46eb1f4c",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "א\"ל רבא לאביי לדידך דאמרת חורי רה\"ר כרה\"ר דמו מ\"ש מהא דכי אתא רב דימי א\"ר יוחנן לא נצרכה אלא לקרן זוית הסמוכה לרה\"ר ותיהוי כחורי רה\"ר התם לא ניחא תשמישתיה הכא ניחא תשמישתיה",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava challenges Abaye’s rule about holes beside a public domain.",
+        "he": "רבא מקשה על דין אביי בעניין חורי רשות הרבים."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b382-p8",
+      "ref": "Bava Kamma 113b:6",
+      "corpus": "bavli",
+      "readingHash": "07b58587dba1e8c2c25b775e81bc28e052ab972cf5b0e3ec197936a81d4aaec1",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "א\"ל אביי עבד עברי הפקעת הלוואתו הוא רבא לטעמיה דאמר רבא עבד עברי גופו קנוי",
+      "status": "unresolved",
+      "groups": [],
+      "summary": {
+        "en": "The addressee of Abaye’s objection depends on context.",
+        "he": "זיהוי הנמען של קושיית אביי תלוי בהקשר."
+      }
+    },
+    {
+      "passageId": "b383-p8",
+      "ref": "Sukkah 44a:3",
+      "corpus": "bavli",
+      "readingHash": "f00cddc6b6464153ba5839dc7f897574ff43dc8c252d779a4632c343d77d0bfd",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "א\"ל אביי לרבא מאי שנא לולב דעבדינן ליה שבעה זכר למקדש ומאי שנא ערבה דלא עבדינן לה שבעה זכר למקדש א\"ל הואיל ואדם יוצא ידי חובתו בערבה שבלולב א\"ל ההוא משום לולב הוא דקא עביד ליה וכי תימא דקא מגבה ליה והדר מגבה ליה והא מעשים בכל יום דלא קא עבדינן הכי",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye questions Rava’s distinction between lulav and willow.",
+        "he": "אביי שואל את רבא על ההבדל בין לולב לערבה."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b396-p2",
+      "ref": "Temurah 11b:17",
+      "corpus": "bavli",
+      "readingHash": "f1311c31bc89a1ebe493f4f9e61f2d9fe2ae765195a17e21c484b3d6ace13e4c",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "בעא מיניה אביי מרבא הקדיש עורה מהו בעבודה תא שמע האומר מה שבמעיה של זו עולה מותרת בגיזה ואסורה בעבודה מפני כחוש עובר שבה",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye asks Rava about consecrating an animal’s hide.",
+        "he": "אביי שואל את רבא על הקדשת עור בהמה."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b396-p4",
+      "ref": "Bava Kamma 11a:5",
+      "corpus": "bavli",
+      "readingHash": "30969e37502b84567ace853e990cdc993a1a1bdf71a26a321a34cbfeca420313",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אמר ליה אביי לרבא האי טורח נבילה ה\"ד",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye asks Rava about the burden of handling a carcass.",
+        "he": "אביי שואל את רבא על טורח הטיפול בנבלה."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b402-p8",
+      "ref": "Bava Metzia 90b:3",
+      "corpus": "bavli",
+      "readingHash": "e1e76d3d8db6f79fb1ebcfa09cf5c5b9f386a9cb63e625f1bdf0be7683858684",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "סבר רבא למימר ימכרו לשחיטה א\"ל אביי דיין שקנסת עליהם מכירה",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "proposed",
+      "summary": {
+        "en": "Abaye challenges the ruling Rava was considering.",
+        "he": "אביי מקשה על הפסיקה שרבא שקל להציע."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b414-p5",
+      "ref": "Bava Batra 11b:12",
+      "corpus": "bavli",
+      "readingHash": "944ae6c69164fa4999bccdf8d9703b4c1baf42ecb7d1f42c4337a4691ce233f0",
+      "people": {
+        "abaye": "C",
+        "rava": "B"
+      },
+      "quote": "אמר מר היה סתום ובקש לפותחו אין בני מבוי מעכבין עליו אמר רבא לא שנו אלא שלא פרץ את פצימיו אבל פרץ את פצימיו בני מבוי מעכבין עליו אמר ליה אביי לרבא תניא דמסייע לך",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye cites a teaching that supports Rava.",
+        "he": "אביי מביא ברייתא התומכת בדברי רבא."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b416-p8",
+      "ref": "Sotah 3a:15",
+      "corpus": "bavli",
+      "readingHash": "b8878771ee1c5ec448f8e3bdebf08b6f42fcc20bba977bf686bf592d193ed2ba",
+      "people": {
+        "abaye": "B",
+        "rava": "D"
+      },
+      "quote": "אמר ליה רב פפא לאביי ואמרי לה רב משרשיא לרבא לימא ר' ישמעאל ור' עקיבא בכל התורה כולה הכי פליגי דמר אמר רשות ומר אמר חובה א\"ל הכא בקראי פליגי",
+      "status": "excluded",
+      "groups": [],
+      "reason": "alternative",
+      "summary": {
+        "en": "Two alternative speaker–recipient pairs are given. Abaye and Rava are not one pair here.",
+        "he": "מובאים שני צמדים חלופיים של דובר ונמען. אביי ורבא אינם צמד כאן."
+      }
+    },
+    {
+      "passageId": "b426-p3",
+      "ref": "Yevamot 21b:4",
+      "corpus": "bavli",
+      "readingHash": "f3b1dc9b2eeb15266e00b65422fc2087d32de0f6e0004cc3a839b585713e3259",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אמר ליה אביי לרבא אסברה לך כגון כלתה דבי בר ציתאי רב פפא אמר כגון כלתה דבי רב פפא בר אבא רב אשי אמר כגון כלתה דבי מרי בר איסק:",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye offers Rava an example to explain the rule.",
+        "he": "אביי מציע לרבא דוגמה המבהירה את הדין."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b442-p4",
+      "ref": "Ketubot 39a:5",
+      "corpus": "bavli",
+      "readingHash": "1f6c6f08b78c26d979a0accce4d5fbf955b92cb31493a99c1bcaf7b74bddbec9",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "בעי מיניה רבא מאביי בא עליה ונתארסה מהו א\"ל מי כתיב ונתן לאבי הנערה אשר לא ארוסה ולטעמיך הא דתניא בא עליה ונשאת לעצמה מי כתיב ונתן לאבי הנערה אשר לא נשואה",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava asks Abaye about a betrothal after an assault.",
+        "he": "רבא שואל את אביי על אירוסין לאחר אונס."
+      },
+      "note": {
+        "en": "The legal example or quoted dialogue is not an event involving Abaye and Rava themselves.",
+        "he": "הדוגמה ההלכתית או השיחה המצוטטת אינן אירוע של אביי ורבא עצמם."
+      }
+    },
+    {
+      "passageId": "b442-p6",
+      "ref": "Shabbat 124a:12",
+      "corpus": "bavli",
+      "readingHash": "3ee3514af63882204ebf5a89cf4520f89e5025cb7429fac0f1c8cf1b42c68571",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "איתיביה אביי לרבא מדוכה אם יש בה שום מטלטלין אותה ואם לאו אין מטלטלין אותה הכא במאי עסקינן מחמה לצל איתיביה ושוין שאם קיצב עליו בשר שאסור לטלטלו הכא נמי מחמה לצל",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye raises objections to Rava’s rule about moving objects.",
+        "he": "אביי מקשה על דין רבא בעניין טלטול כלים."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b448-p8",
+      "ref": "Makkot 9a:7",
+      "corpus": "bavli",
+      "readingHash": "8f835151718e44bbda38d09f93ca3652b8b4033158fb23d33fe5b6d758ddffa3",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "אלא אמר רבא באומר מותר א\"ל אביי אומר מותר אנוס הוא א\"ל שאני אומר אומר מותר קרוב למזיד הוא",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye challenges Rava about someone who thinks an act is permitted.",
+        "he": "אביי מקשה על רבא בעניין האומר מותר."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b451-p6",
+      "ref": "Bava Batra 174b:10",
+      "corpus": "bavli",
+      "readingHash": "9498d60f963b5650dea3a1c2121aac2f6d048bf04715a64ac8a1c50b0c6455e8",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "א\"ל רבא והא ידירנה הנאה תנן א\"ל אביי אטו כל דמגרש בבי דינא מגרש",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava objects to Abaye, who answers about divorce outside court.",
+        "he": "רבא מקשה על אביי, ואביי משיב בעניין גירושין מחוץ לבית דין."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b453-p3",
+      "ref": "Bava Metzia 37b:3",
+      "corpus": "bavli",
+      "readingHash": "980b887cd67601cb2acb5a9f9bc536598c32e75d0ca25ff0d997ff8b9c01d79c",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "א\"ל אביי לרבא מי א\"ר עקיבא לא זו הדרך מוציאתו מידי עבירה עד שישלם גזילה לכל חד וחד אלמא מספיקא מפקינן ממונא ולא אמרי' אוקים ממונא בחזקת מריה",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye challenges Rava about restitution when ownership is uncertain.",
+        "he": "אביי מקשה על רבא בעניין השבה כשיש ספק למי שייך הממון."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b459-p8",
+      "ref": "Eruvin 17b:7",
+      "corpus": "bavli",
+      "readingHash": "b4b650b2e836744788ebfe283a39f5a35ca2081e7001bd5c95a2bce0e696091a",
+      "people": {
+        "abaye": "A",
+        "rava": "C"
+      },
+      "quote": "אמר אביי ומשתכחא כקורטא בכורא א\"ל רב אחא בריה דרבא לרב אשי כייל מילחא מאי א\"ל [הא] לא מיבעיא:",
+      "status": "excluded",
+      "groups": [],
+      "reason": "father",
+      "summary": {
+        "en": "Rava occurs only in Rav Aha’s patronymic.",
+        "he": "רבא נזכר רק כאביו של רב אחא."
+      }
+    },
+    {
+      "passageId": "b466-p6",
+      "ref": "Temurah 33b:6",
+      "corpus": "bavli",
+      "readingHash": "47bfe3d2394880fc00c9430820c3c8e0c62f21ded07307c0f70e2169d92fe9c0",
+      "people": {
+        "abaye": "B",
+        "rava": "C"
+      },
+      "quote": "א\"ל רב פפא לאביי ואמרי לה רבא לר' יוחנן דמוקים לה בבעל מום מעיקרו וכולי עלמא סבירא להו דבעל מום מעיקרו דלא הוי בכלל העמדה והערכה ולא",
+      "status": "excluded",
+      "groups": [],
+      "reason": "alternative",
+      "summary": {
+        "en": "The passage gives alternative conversations, not an Abaye–Rava exchange.",
+        "he": "הקטע מביא שיחות חלופיות, ולא שיחה בין אביי לרבא."
+      }
+    },
+    {
+      "passageId": "b468-p6",
+      "ref": "Bava Metzia 36b:8",
+      "corpus": "bavli",
+      "readingHash": "8e5a0852b1e56d75a64d0c4f4064fe4f90700534b9544c610e5a2b145497df80",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אמר ליה אביי לרבא לדידך דאמרת מלאך המות מה לי הכא ומה לי התם האי דאותביה ר' אבא בר ממל לרבי אמי ושני ליה בשנתנו לו בעלים רשות להשאיל ולימא ליה מלאך המות מה לי הכא ומה לי התם",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye challenges Rava’s reasoning about a borrowed animal’s death.",
+        "he": "אביי מקשה על הסבר רבא למות בהמה שאולה."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b469-p1",
+      "ref": "Shabbat 148b:2",
+      "corpus": "bavli",
+      "readingHash": "3fb6b47107f62328690e04fde5e655e5a5c405c10c0657f17131223b277b5176",
+      "people": {
+        "abaye": "C",
+        "rava": "D"
+      },
+      "quote": "וא\"ל רבא בר רב חנן לאביי תנן לא מספקין ולא מטפחין ולא מרקדין ביו\"ט וקא חזינן דעבדין ולא אמרינן להו ולא מידי ולטעמיך הא דאמר רבא לא ליתיב איניש אפומא דלחייא דילמא מיגנדר ליה חפץ ואתי לאיתויי והא קא חזינן נמי דמותבי חצבי ויתבן אפומא דמבואה ולא אמרינן להו ולא מידי אלא הנח לישראל מוטב שיהו שוגגין ואל יהו מזידין",
+      "status": "excluded",
+      "groups": [],
+      "reason": "indirect",
+      "summary": {
+        "en": "Rava bar Rav Hanan addresses Abaye. Rava’s teaching is quoted in an unattributed reply.",
+        "he": "רבא בר רב חנן פונה לאביי. דברי רבא מובאים בתשובה שאין בה שם דובר."
+      }
+    },
+    {
+      "passageId": "b478-p8",
+      "ref": "Bava Batra 135a:6",
+      "corpus": "bavli",
+      "readingHash": "13b243eb15667fc5274ea9e3f69f7a0ea806a28f83615dc8945f62de0d43fbef",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אמר ליה אביי אם הקלנו בשבויה (משום דמנוולא נפשה לגבי שבאי) נקל באשת איש א\"ל רבא לרב נתן בר אמי חוש לה:",
+      "status": "excluded",
+      "groups": [],
+      "reason": "unclear",
+      "summary": {
+        "en": "Abaye’s addressee is unnamed. Rava addresses Rav Natan bar Ammi.",
+        "he": "הנמען של אביי אינו נקוב בשם. רבא פונה לרב נתן בר אמי."
+      }
+    },
+    {
+      "passageId": "b484-p3",
+      "ref": "Arakhin 23a:12",
+      "corpus": "bavli",
+      "readingHash": "07c2064269ed99ef563fb29d0b00a60b4b5cea60144bd018c8c88c3efb18aa84",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "א\"ל רבא והאנן ידור הנאה תנן ואביי אטו כל דמגרש בבי דינא מגרש לסוף איגלאי מלתא דכהן הוה אמר אביי בתר עניא אזלא עניותא",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Rava objects to Abaye’s proposed divorce arrangement.",
+        "he": "רבא מקשה על עצת אביי בעניין גירושין."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b501-p2",
+      "ref": "Gittin 37a:15",
+      "corpus": "bavli",
+      "readingHash": "d84628a72c2b12e6a1c9c77d0d71557f0611e19633248feaa5aa416fb1c55220",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "אמר רבא משום דתפס ליה אמר ליה אביי אלא מעתה הלוהו ודר בחצרו דתפיס ליה הכי נמי דלא משמט",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye challenges Rava’s reasoning about a debt.",
+        "he": "אביי מקשה על הסבר רבא בעניין חוב."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b504-p4",
+      "ref": "Shabbat 146b:3",
+      "corpus": "bavli",
+      "readingHash": "07e73d58b7cd9ef601df65c7c0609674e870a9d803a03c106e5e0a2a7e8dc696",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "א\"ל אביי לרבא תניא דמסייע לך בית סתום יש לו ארבע אמות פרץ את פצימיו אין לו ד' אמות בית סתום אינו מטמא כל סביביו פרץ את פצימיו מטמא כל סביביו",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye cites a teaching that supports Rava.",
+        "he": "אביי מביא ברייתא התומכת בדברי רבא."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b520-p6",
+      "ref": "Menachot 106a:18",
+      "corpus": "bavli",
+      "readingHash": "601a6d852bb7d5093bdd3aadd35c0c83f479a005d052e0e60cb0d63ac03ed14c",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "אמר ליה אביי לרבא לרבנן דאמרי מותר לערב חובה בנדבה הא בעינן שני קמצים דקמיץ והדר קמיץ",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye asks Rava how two handfuls can be taken.",
+        "he": "אביי שואל את רבא כיצד אפשר לקמוץ פעמיים."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b526-p0",
+      "ref": "Eruvin 93a:5",
+      "corpus": "bavli",
+      "readingHash": "91fbf4fec0ce1d1196d7babd4bd6ab83ed1d9c50250ca12bd112b6149e286d9c",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "שלח ליה רבא לאביי ביד רב שמעיה בר זעירא ולא מצינו מחיצה לאיסור והתניא יש במחיצות הכרם להקל ולהחמיר כיצד כרם הנטוע עד עיקר מחיצה זורע מעיקר מחיצה ואילך שאילו אין שם מחיצה מרחיק ד\"א וזורע וזה הוא מחיצות הכרם להקל",
+      "status": "included",
+      "groups": [
+        "words",
+        "views"
+      ],
+      "mode": "message",
+      "summary": {
+        "en": "Rava sends Abaye an objection through Rav Shemaya bar Zeira.",
+        "he": "רבא שולח לאביי קושיה בידי רב שמעיה בר זעירא."
+      },
+      "note": {
+        "en": "A named messenger carries the objection; this does not establish a meeting.",
+        "he": "שליח נקוב בשם נושא את הקושיה. אין בכך הוכחה למפגש."
+      }
+    },
+    {
+      "passageId": "b526-p5",
+      "ref": "Yoma 78b:1",
+      "corpus": "bavli",
+      "readingHash": "7e9f55dde147f1487471bd3da69bf2277d101e2476261aa8294dde71ba42002c",
+      "people": {
+        "abaye": "J",
+        "rava": "K"
+      },
+      "quote": "שעם ביום הכפורים עמד רבי יצחק בר נחמני על רגליו ואמר אני ראיתי את רבי יהושע בן לוי שיצא בסנדל של שעם ביוה\"כ ואמינא ליה בתענית צבור מאי א\"ל לא שנא אמר רבה בר בר חנה אני ראיתי את רבי אלעזר דמן ננוה שיצא בסנדל של שעם בתענית צבור ואמינא ליה ביום הכפורים מאי א\"ל לא שנא רב יהודה נפיק בדהיטני אביי נפיק בדהוצי רבא נפיק (בדיבלי) רבה בר רב הונא כריך סודרא אכרעיה ונפיק",
+      "status": "excluded",
+      "groups": [],
+      "reason": "separate",
+      "summary": {
+        "en": "Separate practices are listed. The passage does not say the men went out together.",
+        "he": "מפורטים מנהגים נפרדים. לא נאמר שהשניים יצאו יחד."
+      }
+    },
+    {
+      "passageId": "b527-p6",
+      "ref": "Kiddushin 18a:13",
+      "corpus": "bavli",
+      "readingHash": "460e80b453b7c8c9a22a95ff1551aa89173d67177ff62badd8379457ed8854d9",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "ומפדין אותה בעל כרחו: סבר רבא למימר בעל כרחיה דאדון א\"ל אביי מאי ניהו דכתבנא ליה שטרא אדמיה אמאי נקיט מרגניתא בידיה יהיבנא ליה חספא",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "proposed",
+      "summary": {
+        "en": "Abaye challenges the interpretation Rava was considering.",
+        "he": "אביי מקשה על הפירוש שרבא שקל להציע."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b529-p4",
+      "ref": "Shabbat 47a:5",
+      "corpus": "bavli",
+      "readingHash": "d4c77d04a3ca65111a3d49d8b50da4177f9f50383943385b097ce132d3ee5a4b",
+      "people": {
+        "abaye": "C",
+        "rava": "A"
+      },
+      "quote": "אמר רבא שתי תשובות בדבר חדא גרף של ריעי מאיס והאי לא מאיס ועוד גרף של ריעי מיגלי והאי מיכסי אלא אמר רבא כי הוינן בי רב נחמן הוה מטלטלינן כנונא אגב קיטמא ואע\"ג דאיכא עליה שברי עצים מיתיבי ושוין שאם יש בה שברי פתילה שאסור לטלטל אמר אביי בגלילא שנו",
+      "status": "unresolved",
+      "groups": [],
+      "summary": {
+        "en": "Rava’s objections answer Abaye’s preceding explanation. Check the two passages together before adding this connection.",
+        "he": "קושיות רבא משיבות להסבר אביי בקטע הקודם. יש לבדוק את שני הקטעים יחד לפני הוספת הקשר."
+      }
+    },
+    {
+      "passageId": "b545-p0",
+      "ref": "Sukkah 53a:9",
+      "corpus": "bavli",
+      "readingHash": "f97568b8d1d4aa3ad1e69377ac33587e7bfbb156d8e99dfe8b1cee6a759e0069",
+      "people": {
+        "abaye": "E",
+        "rava": "F"
+      },
+      "quote": "לוי הוה מטייל קמיה דרבי בתמני סכיני שמואל קמיה שבור מלכא בתמניא מזגי חמרא אביי קמיה (דרבא) בתמניא ביעי ואמרי לה בארבעה ביעי",
+      "status": "unresolved",
+      "groups": [],
+      "summary": {
+        "en": "Rava’s name is parenthesized. Check the attribution before adding the performance.",
+        "he": "שמו של רבא מופיע בסוגריים. יש לבדוק את הייחוס לפני הוספת המעשה."
+      }
+    },
+    {
+      "passageId": "b547-p5",
+      "ref": "Yoma 77b:9",
+      "corpus": "bavli",
+      "readingHash": "c67d18a307dd257c1a607f0f672e311992b1c4ef4501fc8da3c93aec510de44d",
+      "people": {
+        "abaye": "C",
+        "rava": "A"
+      },
+      "quote": "רבא שרא לבני עבר ימינא למעבר במיא לנטורי פירי א\"ל אביי לרבא תניא דמסייע לך שומרי פירות עוברין עד צוארן במים ואין חוששין",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye cites a teaching that supports Rava’s permission to cross water.",
+        "he": "אביי מביא ברייתא התומכת בהיתר רבא לעבור במים."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    },
+    {
+      "passageId": "b563-p6",
+      "ref": "Bava Batra 82b:13",
+      "corpus": "bavli",
+      "readingHash": "90a6bcc1d4227b5a56ca1cd8693517aff697035655f5ee0e55acaca0da6ed075",
+      "people": {
+        "abaye": "F",
+        "rava": "D"
+      },
+      "quote": "וכמה יהא ביניהן רב יוסף אמר רב יהודה אמר שמואל מארבע אמות ועד שמונה רבא אמר רב נחמן אמר שמואל משמונה ועד שש עשרה א\"ל אביי לרב יוסף לא תפלוג עליה דרב נחמן דתנן מתניתין כוותיה",
+      "status": "excluded",
+      "groups": [],
+      "reason": "indirect",
+      "summary": {
+        "en": "Abaye addresses Rav Yosef about Rav Nachman. Rava is a transmitter in another chain.",
+        "he": "אביי פונה לרב יוסף בעניין רב נחמן. רבא מוסר שמועה בשרשרת אחרת."
+      }
+    },
+    {
+      "passageId": "b569-p4",
+      "ref": "Avodah Zarah 28b:4",
+      "corpus": "bavli",
+      "readingHash": "3ecdcf06a3c604a5df684d7db5740b251928e265c05061d15281d888203630a9",
+      "people": {
+        "abaye": "D",
+        "rava": "F"
+      },
+      "quote": "רבי אבהו חש באודניה אורי ליה ר' יוחנן ואמרי ליה בי מדרשא מאי אורי ליה כי הא דאמר אביי אמרה לי אם לא איברי כולייתא אלא לאודנא ואמר רבא אמר לי מניומי אסיא כולהו שקיינו קשו לאודנא לבר ממיא דכולייתא לייתי כולייתא דברחא קרחא וליקרעיה שתי וערב ולינח אמללא דנורא והנהו מיא דנפקי מיניה לישדינהו באודניה לא קרירי ולא חמימי אלא פשורי",
+      "status": "excluded",
+      "groups": [],
+      "reason": "separate",
+      "summary": {
+        "en": "Each man quotes a different source for a remedy. No connection between the two is stated.",
+        "he": "כל אחד מוסר עצה רפואית ממקור אחר. לא נאמר קשר בין השניים."
+      }
+    },
+    {
+      "passageId": "b574-p9",
+      "ref": "Shabbat 95a:8",
+      "corpus": "bavli",
+      "readingHash": "c1c9e8d46d732e169dc745873c961d4e711c7007ff7d8d98383331b677887286",
+      "people": {
+        "abaye": "A",
+        "rava": "B"
+      },
+      "quote": "גמ' רמי ליה אביי לרבא ואמרי לה רבי חייא בר רב לרב תנן רבי שמעון פוטר בזה ובזה אלמא נקוב לר\"ש כשאינו נקוב משוי ליה ורמינהו ר\"ש אומר אין בין נקוב לשאינו נקוב",
+      "status": "unresolved",
+      "groups": [],
+      "summary": {
+        "en": "The text offers Abaye–Rava or Rav Hiyya bar Rav–Rav as alternative pairs.",
+        "he": "הטקסט מציע שני צמדים חלופיים: אביי ורבא, או רבי חייא בר רב ורב."
+      }
+    },
+    {
+      "passageId": "b588-p4",
+      "ref": "Ketubot 6b:1",
+      "corpus": "bavli",
+      "readingHash": "8877aa0493a2c068051bb5e87d308de0874ab6870fb5541c53af01de133caa97",
+      "people": {
+        "abaye": "B",
+        "rava": "A"
+      },
+      "quote": "מאי לאו דאי לא בעל מצי בעיל אפילו בשבת אמר רבא לא לבר משבת אמר ליה אביי והא עד מוצאי שבת ארבעה לילות קתני אלא אמר רבא כשבעל",
+      "status": "included",
+      "groups": [
+        "views"
+      ],
+      "mode": "discussion",
+      "summary": {
+        "en": "Abaye challenges Rava’s reading of the four-night allowance.",
+        "he": "אביי מקשה על פירוש רבא לדין ארבעת הלילות."
+      },
+      "note": {
+        "en": "The passage connects their views. It does not by itself establish an in-person meeting.",
+        "he": "הקטע קושר בין דבריהם. אין בכך לבדו הוכחה למפגש פנים אל פנים."
+      }
+    }
+  ]
+}
