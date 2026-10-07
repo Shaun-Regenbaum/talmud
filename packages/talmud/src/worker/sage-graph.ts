@@ -119,7 +119,7 @@ sageGraph.get('/checked', async (c) => {
   const result = await db
     .prepare(
       `SELECT record_id,payload_json FROM sage_graph_records WHERE revision_id=? AND kind='connection'
-     AND authority='user_correction' AND decision='supported' AND ${where} AND record_id>? ORDER BY record_id LIMIT 21`,
+     AND authority IN ('user_correction','source_review') AND decision='supported' AND ${where} AND record_id>? ORDER BY record_id LIMIT 21`,
     )
     .bind(saved.id, ...filter, c.req.query('after') ?? '')
     .all<{ record_id: string; payload_json: string }>();
@@ -186,22 +186,34 @@ sageGraph.get('/checked', async (c) => {
       id,
       name: personRecord?.canonical ?? node.label,
       nameHe:
+        node.labelHe ??
         personRecord?.canonicalHe ??
         (/[א-ת]/.test(node.label) ? node.label : (sourcePerson?.quote ?? node.label)),
       identityResolved: node.identityResolved,
+      hasSourceProfile: !!node.sourceProfile,
       generation: node.generation,
     };
   });
+  const occurrenceNodes = await read(
+    occurrences
+      .filter((r) => r.personId.startsWith('local:'))
+      .map((r) => `graph_node:${r.personId}`),
+  );
   const safeOccurrences = occurrences.flatMap((row) => {
     const source = passages.get(`passage:${row.passageId}`)?.source?.passage;
     const entry = registry.get(`registry_person:${row.personId}`);
+    const local = occurrenceNodes.get(`graph_node:${row.personId}`);
+    const sourceProfile =
+      local?.sourceProfile && local.personKeys?.includes(row.personKey)
+        ? local.sourceProfile
+        : undefined;
     if (
       typeof source !== 'string' ||
-      !entry ||
+      (!entry && !sourceProfile) ||
       source.slice(row.characterStart, row.characterEnd) !== row.quote
     )
       return [];
-    return [{ ...row, source, name: entry.canonical }];
+    return [{ ...row, source, name: entry?.canonical ?? sourceProfile.name }];
   });
   const body: CheckedGraph = {
     revision: saved.id,
@@ -213,4 +225,43 @@ sageGraph.get('/checked', async (c) => {
     nextCursor: result.results.length > 20 ? main[main.length - 1].record_id : null,
   };
   return c.json(body);
+});
+
+sageGraph.get('/person', async (c) => {
+  const db = c.env.SAGE_GRAPH_DB;
+  if (!db) return c.json({ error: 'Graph database is unavailable' }, 503);
+  const saved = await revision(db, c.req.query('revision'));
+  if (!saved) return c.json({ error: 'No verified graph import was found' }, 404);
+  const id = c.req.query('id');
+  if (!id?.startsWith('local:')) return c.json({ error: 'Unknown person' }, 404);
+  const row = await db
+    .prepare(
+      "SELECT payload_json FROM sage_graph_records WHERE revision_id=? AND record_id=? AND kind='graph_node'",
+    )
+    .bind(saved.id, `graph_node:${id}`)
+    .first<{ payload_json: string }>();
+  const node = row ? JSON.parse(row.payload_json) : null;
+  const profile = node?.sourceProfile;
+  if (!profile || !node.personKeys?.includes(profile.personKey))
+    return c.json({ error: 'Unknown person' }, 404);
+  const passageId = profile.personKey.split('/')[0];
+  const sourceRow = await db
+    .prepare(
+      "SELECT payload_json FROM sage_graph_records WHERE revision_id=? AND record_id=? AND kind='passage'",
+    )
+    .bind(saved.id, `passage:${passageId}`)
+    .first<{ payload_json: string }>();
+  const passage = sourceRow ? JSON.parse(sourceRow.payload_json) : null;
+  if (!passage?.source?.passage?.includes(profile.quote))
+    return c.json({ error: 'Source could not be checked' }, 503);
+  return c.json({
+    revision: saved.id,
+    id,
+    name: profile.name,
+    nameHe: profile.nameHe,
+    summary: profile.summary,
+    summaryHe: profile.summaryHe,
+    ref: passage.ref,
+    quote: profile.quote,
+  });
 });

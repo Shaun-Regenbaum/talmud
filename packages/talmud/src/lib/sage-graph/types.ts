@@ -19,6 +19,7 @@ export interface CheckedNode {
   name: string;
   nameHe: string;
   identityResolved: boolean;
+  hasSourceProfile?: boolean;
   generation: string | null;
 }
 export interface CheckedOccurrence {
@@ -41,4 +42,15 @@ export interface CheckedGraph {
   occurrences: CheckedOccurrence[];
   nextCursor: string | null;
   occurrencesTruncated: boolean;
+}
+
+export interface SourcePerson {
+  revision: string;
+  id: string;
+  name: string;
+  nameHe: string;
+  summary: string;
+  summaryHe: string;
+  ref: string;
+  quote: string;
 }

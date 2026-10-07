@@ -9,18 +9,22 @@ import './checkedConnections.css';
 export function CheckedConnections(props: {
   query?: GraphQuery;
   data?: CheckedGraph;
+  revision?: string;
   onPerson?: (slug: string) => void;
   onRetry?: () => void;
 }) {
   const [cursor, setCursor] = createSignal('');
   const [fixedRevision, setFixedRevision] = createSignal('');
   createEffect(() => {
-    void JSON.stringify(props.query);
+    void JSON.stringify([props.query, props.revision]);
     setCursor('');
     setFixedRevision('');
   });
   const [result, { refetch }] = createResource(
-    () => (props.query ? { query: props.query, after: cursor(), revision: fixedRevision() } : null),
+    () =>
+      props.query
+        ? { query: props.query, after: cursor(), revision: fixedRevision() || props.revision || '' }
+        : null,
     async (args) => {
       try {
         return {
@@ -39,11 +43,14 @@ export function CheckedConnections(props: {
   const Person = (p: { id: string }) => (
     <Show when={node(p.id)}>
       {(n) => (
-        <Show when={n().identityResolved} fallback={<bdi>{label(n())}</bdi>}>
+        <Show
+          when={n().identityResolved || n().hasSourceProfile}
+          fallback={<bdi>{label(n())}</bdi>}
+        >
           <a
-            href={`#sages/${encodeURIComponent(p.id)}`}
+            href={`${n().hasSourceProfile ? '#source-person/' : '#sages/'}${encodeURIComponent(p.id)}`}
             onClick={(event) => {
-              if (props.onPerson) {
+              if (props.onPerson && !n().hasSourceProfile) {
                 event.preventDefault();
                 props.onPerson(p.id);
               }
@@ -84,7 +91,12 @@ export function CheckedConnections(props: {
   };
   const retry = () => {
     if (props.query)
-      void fetchCheckedGraph(props.query, cursor(), fixedRevision(), true).catch(() => {});
+      void fetchCheckedGraph(
+        props.query,
+        cursor(),
+        fixedRevision() || props.revision || '',
+        true,
+      ).catch(() => {});
     props.onRetry?.();
     void refetch();
   };

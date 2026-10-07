@@ -43,6 +43,7 @@ export const ACCENTS = {
   pesuk: INK.ochre,
   rishonim: INK.slate,
   rabbi: '#222',
+  'source-person': INK.blue,
   place: '#222',
   'voice-group': '#222',
 } as const;
@@ -81,6 +82,8 @@ export function kindLabelKey(kind: SidebarKind): CatalogKey {
       return 'sidebar.kind.rishonim';
     case 'voice-group':
       return 'sidebar.kind.voice-group';
+    case 'source-person':
+      return 'sidebar.kind.source-person';
     case 'rabbi':
       return 'sidebar.kind.rabbi';
   }

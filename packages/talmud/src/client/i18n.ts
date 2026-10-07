@@ -327,6 +327,17 @@ const CATALOG = {
   },
   'sages.review.abaye': { en: 'Abaye', he: 'אביי' },
   'sages.review.rava': { en: 'Rava', he: 'רבא' },
+  'sidebar.kind.source-person': { en: 'Person', he: 'אדם' },
+  'sourcePerson.title': { en: 'Person in this passage', he: 'האדם בקטע זה' },
+  'sourcePerson.loading': { en: 'Loading the source…', he: 'טוען את המקור…' },
+  'sourcePerson.error': { en: 'Could not load this person.', he: 'לא ניתן לטעון את פרטי האדם.' },
+  'sourcePerson.unresolved': {
+    en: 'This card identifies the person in this passage. Their match to a biography and their generation are still being checked.',
+    he: 'כרטיס זה מזהה את האדם בקטע הזה. השיוך לביוגרפיה ולדור עדיין בבדיקה.',
+  },
+  'checked.relation.grandchild_of': { en: 'Grandchild of', he: 'נכד או נכדה של' },
+  'checked.role.grandchild_of.incoming': { en: 'Grandparent', he: 'סב או סבתא' },
+  'checked.role.grandchild_of.outgoing': { en: 'Grandchild', he: 'נכד או נכדה' },
   'checked.title': { en: 'Checked connections', he: 'קשרים שנבדקו' },
   'checked.scope': {
     en: 'From passages reviewed so far.',
