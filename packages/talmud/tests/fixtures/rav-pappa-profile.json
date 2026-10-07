@@ -1,0 +1,20 @@
+{
+  "source": "https://talmud.dev/api/rabbi/rav-pappa",
+  "captured": "2026-10-07",
+  "rabbi": {
+    "slug": "rav-pappa",
+    "name": "Rav Pappa",
+    "nameHe": "רב פפא",
+    "generation": "amora-bavel-5",
+    "region": "bavel",
+    "places": ["Sura", "Naresh"],
+    "moved": null,
+    "bio": "Rav Pappa studied under Abaye and Rava, among others. He was wealthy and established his own academy in Naresh, not far from Sura. He is often remembered for his pithy aphorisms.",
+    "image": null,
+    "wiki": "https://he.wikipedia.org/wiki/%D7%A8%D7%91_%D7%A4%D7%A4%D7%90"
+  },
+  "connections": {
+    "status": "ready",
+    "url": "/api/rabbi-interactions/rav-pappa"
+  }
+}

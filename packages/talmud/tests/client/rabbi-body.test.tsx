@@ -10,6 +10,7 @@ import {
 import type { IdentifiedRabbi } from '../../src/client/dafContext';
 import { setLang } from '../../src/client/i18n';
 import { SidebarCardFromHint } from '../../src/client/sidebar/primitives';
+import profile from '../fixtures/rav-pappa-profile.json';
 
 beforeEach(() => {
   setLang('en');
@@ -51,6 +52,9 @@ const renderCard = () =>
   ));
 
 describe('Rabbi recipe card — name-flip', () => {
+  it('retains the clicked registry identity before any enrichment arrives', () => {
+    expect(rabbiDisplayInstance(profile.rabbi as IdentifiedRabbi).fields.slug).toBe('rav-pappa');
+  });
   it('English mode: Latin name is the LTR title, Hebrew name is the RTL subtitle', () => {
     const { container } = renderCard();
     const h3 = container.querySelector('h3')!;

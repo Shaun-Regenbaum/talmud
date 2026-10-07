@@ -2027,7 +2027,7 @@ function RabbiLineage(props: SpecialBlockProps): JSX.Element {
   // Found by slug when the card has one, else by the Hebrew name (safe: only one-man, one-entry names have a file).
   const lookup = (): { slug: string; nameHe: string } | null => {
     const id = props.deps['rabbi.identity'] as { slug?: unknown; nameHe?: unknown } | undefined;
-    const slug = typeof id?.slug === 'string' && id.slug ? id.slug : str(f().slug);
+    const slug = str(f().slug) || (typeof id?.slug === 'string' ? id.slug : '');
     const nameHe = str(f().nameHe) || (typeof id?.nameHe === 'string' ? id.nameHe : '');
     return slug || nameHe ? { slug, nameHe } : null;
   };
@@ -2158,6 +2158,7 @@ function RabbiObservationsBlock(props: SpecialBlockProps): JSX.Element {
 export function rabbiDisplayInstance(rabbi: IdentifiedRabbi): { fields: Record<string, unknown> } {
   return {
     fields: {
+      slug: rabbi.slug,
       name: rabbi.name,
       nameHe: rabbi.nameHe,
       generation: rabbi.generation,
