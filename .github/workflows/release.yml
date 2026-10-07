@@ -120,6 +120,7 @@ jobs:
         if: steps.latest.outputs.latest == 'true'
         run: |
           pnpm --filter talmud exec wrangler d1 migrations apply corpus-billing-staging --env staging --remote
+          pnpm --filter talmud exec wrangler d1 migrations apply talmud-sage-graph-staging --env staging --remote
           # The staging generator first: the reader's workflow binding names it.
           pnpm --filter talmud exec wrangler deploy -c wrangler.generator.toml --env staging
           pnpm --filter talmud exec wrangler deploy --env staging --var BUILD_SHA:$GITHUB_SHA
@@ -199,6 +200,7 @@ jobs:
           rm -f ~/.ssh/release_key
       - run: pnpm --filter talmud exec wrangler deploy -c wrangler.staging-source.toml
       - run: pnpm --filter talmud exec wrangler d1 migrations apply corpus-billing --remote
+      - run: pnpm --filter talmud exec wrangler d1 migrations apply talmud-sage-graph --remote
       - run: pnpm --filter talmud exec wrangler deploy -c wrangler.generator.toml
       - run: pnpm --filter talmud exec vite build
       - run: pnpm --filter talmud exec wrangler deploy --var BUILD_SHA:$GITHUB_SHA

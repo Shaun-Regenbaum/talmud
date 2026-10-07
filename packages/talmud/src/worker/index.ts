@@ -254,6 +254,7 @@ import { registerTranslateRoutes } from './routes/translate';
 import { registerUsageRoutes } from './routes/usage';
 import { enqueueTsFromRunId, makeRunId } from './run-id';
 import { buildSourceResolvers, type CommentariesSlice, type GemaraSlice } from './run-sources';
+import { sageGraph } from './sage-graph';
 import { indexVerdict, sageIndexForPage } from './sage-index';
 import { loadConnections } from './sage-interactions';
 import {
@@ -799,6 +800,8 @@ async function computeDafBridge(env: Bindings, tractate: string, page: string): 
 // indexed mention with the person it resolved to and the probability, at
 // statement grain. Read-only, from the bundled static file; an empty list
 // means the tractate has no index or the page has no indexed mention.
+app.route('/api/sage-graph', sageGraph);
+
 app.get('/api/sage-index/:tractate/:page', async (c) => {
   const tractate = c.req.param('tractate');
   const page = c.req.param('page');

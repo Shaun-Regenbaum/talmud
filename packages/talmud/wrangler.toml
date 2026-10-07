@@ -212,6 +212,12 @@ database_name = "corpus-billing"
 database_id = "50ab90fa-cfdd-4b8c-8576-68f3eba6371d"
 migrations_dir = "migrations"
 
+[[d1_databases]]
+binding = "SAGE_GRAPH_DB"
+database_name = "talmud-sage-graph"
+database_id = "f4dde848-d1a8-434d-a8f8-c5220f3cbb7a"
+migrations_dir = "migrations-sage-graph"
+
 # Review new releases here before approving production.
 [env.staging]
 name = "talmud-staging"
@@ -276,3 +282,9 @@ directory = "./dist/client"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 run_worker_first = ["/", "/api/*", "/mcp", "/gallery-api/*"]
+
+[[env.staging.d1_databases]]
+binding = "SAGE_GRAPH_DB"
+database_name = "talmud-sage-graph-staging"
+database_id = "c1f6d83d-bc0f-4777-bb9f-435a5adba309"
+migrations_dir = "migrations-sage-graph"

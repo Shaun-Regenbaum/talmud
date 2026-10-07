@@ -64,6 +64,7 @@ export interface Bindings {
   STAGING_SOURCE?: Fetcher;
   GENERATION_DISABLED?: string;
   BILLING_DB?: D1Database;
+  SAGE_GRAPH_DB?: D1Database;
   BILLING_APP?: string;
   ASSETS: Fetcher;
   AI?: Ai;
