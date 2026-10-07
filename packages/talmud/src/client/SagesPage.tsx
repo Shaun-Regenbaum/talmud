@@ -1,6 +1,7 @@
 /** Browse a sage through names, sources and links to other people. */
 import { StatusMessage } from '@corpus/ui/Study';
 import { createMemo, createResource, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
+import { CheckedConnections } from './CheckedConnections';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
 import { lang, t } from './i18n';
 import { SageAutocomplete } from './SageAutocomplete';
@@ -348,6 +349,7 @@ function SageDetail(props: {
           </a>
         </p>
       </Show>
+      <CheckedConnections query={{ person: props.slug }} onPerson={props.onSelect} />
       <SagePartners slug={props.slug} nameFor={props.nameFor} onSelect={props.onSelect} />
       <SageConnections
         slug={props.slug}
