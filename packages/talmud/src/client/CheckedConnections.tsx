@@ -1,5 +1,5 @@
 import { SectionHeading, StatusMessage } from '@corpus/ui/Study';
-import { createEffect, createResource, createSignal, For, Show } from 'solid-js';
+import { createEffect, createMemo, createResource, createSignal, For, Show } from 'solid-js';
 import type { CheckedConnection, CheckedGraph, CheckedNode } from '../lib/sage-graph/types';
 import { fetchCheckedGraph, type GraphQuery } from './checkedGraph';
 import { lang, t } from './i18n';
@@ -60,6 +60,22 @@ export function CheckedConnections(props: {
     const key = row.relation ?? row.type;
     return t(`checked.relation.${key}`);
   };
+  const subject = () => (props.query && 'person' in props.query ? props.query.person : undefined);
+  const groups = createMemo(() => {
+    const grouped = new Map<string, { a: string; b: string; rows: CheckedConnection[] }>();
+    for (const row of data()?.connections ?? []) {
+      const key = JSON.stringify([row.a, row.b].sort());
+      const group = grouped.get(key);
+      if (group) group.rows.push(row);
+      else grouped.set(key, { a: row.a, b: row.b, rows: [row] });
+    }
+    return [...grouped.values()];
+  });
+  const shortRelation = (row: CheckedConnection) => {
+    if (!subject() || !row.relation) return relation(row);
+    const role = row.a === subject() ? 'incoming' : 'outgoing';
+    return t(`checked.role.${row.relation}.${role}`);
+  };
   const openPassage = (ref: string) => {
     const match = ref.match(/^(.*?) (\d+[ab]):(\d+)$/);
     return match
@@ -83,81 +99,107 @@ export function CheckedConnections(props: {
         <SectionHeading title={t('checked.title')} />
         <p class="checked-scope">{t('checked.scope')}</p>
         <ul class="checked-map">
-          <For each={data()?.connections}>
-            {(row) => (
+          <For each={groups()}>
+            {(group) => (
               <li class="checked-connection">
                 <div class="checked-pair">
-                  <Person id={row.a} />
-                  <span class="checked-separator" aria-hidden="true">
-                    ·
-                  </span>
-                  <Person id={row.b} />
+                  <Show
+                    when={subject() && (group.a === subject() || group.b === subject())}
+                    fallback={
+                      <>
+                        <Person id={group.a} />
+                        <span class="checked-separator" aria-hidden="true">
+                          ·
+                        </span>
+                        <Person id={group.b} />
+                      </>
+                    }
+                  >
+                    <Person id={group.a === subject() ? group.b : group.a} />
+                  </Show>
                 </div>
                 <details>
                   <summary>
-                    <span class="checked-kind">{relation(row)}</span>
-                    <span class="checked-source">
-                      <span dir="ltr">{row.ref}</span>
-                      <span class="checked-disclosure" aria-hidden="true" />
+                    <span class="checked-overview">
+                      <span class="checked-kinds">
+                        <For each={[...new Set(group.rows.map(shortRelation))]}>
+                          {(kind) => <span class="checked-kind">{kind}</span>}
+                        </For>
+                      </span>
+                      <span class="checked-sources">
+                        <For each={[...new Set(group.rows.map((row) => row.ref))]}>
+                          {(ref) => <span dir="ltr">{ref}</span>}
+                        </For>
+                      </span>
                     </span>
+                    <span class="checked-disclosure" aria-hidden="true" />
                   </summary>
-                  <div class="checked-evidence">
-                    <Show when={!row.historicalIdentityResolved}>
-                      <p>{t('checked.unresolved')}</p>
-                    </Show>
-                    <Show when={row.type === 'intellectual'}>
-                      <p>{t('checked.intellectual')}</p>
-                    </Show>
-                    <Show when={lang() === 'en'}>
-                      <p>{row.reason}</p>
-                    </Show>
-                    <For each={row.evidence}>
-                      {(e) => (
-                        <blockquote dir="rtl" lang="he">
-                          {e.quote}
-                        </blockquote>
-                      )}
-                    </For>
-                    <Show when={row.premiseConnectionIds?.length}>
-                      <h5>{t('checked.familySteps')}</h5>
-                      <For each={row.premiseConnectionIds}>
-                        {(id) => {
-                          const premise = () =>
-                            [...(data()?.connections ?? []), ...(data()?.supporting ?? [])].find(
-                              (r) => r.id === id,
-                            );
-                          return (
-                            <Show when={premise()}>
-                              {(p) => (
-                                <div class="checked-premise">
-                                  <p>
-                                    <Person id={p().a} /> · {relation(p())} · <Person id={p().b} />
-                                  </p>
-                                  <For each={p().evidence}>
-                                    {(e) => (
-                                      <blockquote dir="rtl" lang="he">
-                                        {e.quote}
-                                      </blockquote>
-                                    )}
-                                  </For>
-                                </div>
-                              )}
-                            </Show>
-                          );
-                        }}
-                      </For>
-                    </Show>
-                    <div class="checked-source-links">
-                      <a href={openPassage(row.ref) ?? undefined}>{t('checked.openPassage')}</a>
-                      <Show when={sefariaUrl(row.ref)}>
-                        {(url) => (
-                          <a href={url()} target="_blank" rel="noopener noreferrer">
-                            {t('sages.pair.source')}
-                          </a>
-                        )}
-                      </Show>
-                    </div>
-                  </div>
+                  <For each={group.rows}>
+                    {(row) => (
+                      <div class="checked-evidence">
+                        <p class="checked-statement">
+                          <Person id={row.a} /> · {relation(row)} · <Person id={row.b} />
+                        </p>
+                        <Show when={!row.historicalIdentityResolved}>
+                          <p>{t('checked.unresolved')}</p>
+                        </Show>
+                        <Show when={row.type === 'intellectual'}>
+                          <p>{t('checked.intellectual')}</p>
+                        </Show>
+                        <Show when={lang() === 'en'}>
+                          <p>{row.reason}</p>
+                        </Show>
+                        <For each={row.evidence}>
+                          {(e) => (
+                            <blockquote dir="rtl" lang="he">
+                              {e.quote}
+                            </blockquote>
+                          )}
+                        </For>
+                        <Show when={row.premiseConnectionIds?.length}>
+                          <h5>{t('checked.familySteps')}</h5>
+                          <For each={row.premiseConnectionIds}>
+                            {(id) => {
+                              const premise = () =>
+                                [
+                                  ...(data()?.connections ?? []),
+                                  ...(data()?.supporting ?? []),
+                                ].find((r) => r.id === id);
+                              return (
+                                <Show when={premise()}>
+                                  {(p) => (
+                                    <div class="checked-premise">
+                                      <p>
+                                        <Person id={p().a} /> · {relation(p())} ·{' '}
+                                        <Person id={p().b} />
+                                      </p>
+                                      <For each={p().evidence}>
+                                        {(e) => (
+                                          <blockquote dir="rtl" lang="he">
+                                            {e.quote}
+                                          </blockquote>
+                                        )}
+                                      </For>
+                                    </div>
+                                  )}
+                                </Show>
+                              );
+                            }}
+                          </For>
+                        </Show>
+                        <div class="checked-source-links">
+                          <a href={openPassage(row.ref) ?? undefined}>{t('checked.openPassage')}</a>
+                          <Show when={sefariaUrl(row.ref)}>
+                            {(url) => (
+                              <a href={url()} target="_blank" rel="noopener noreferrer">
+                                {t('sages.pair.source')}
+                              </a>
+                            )}
+                          </Show>
+                        </div>
+                      </div>
+                    )}
+                  </For>
                 </details>
               </li>
             )}
