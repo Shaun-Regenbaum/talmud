@@ -22,9 +22,29 @@ A generation label from the existing registry is not new chronological evidence.
 - Pagination: pass `after=nextCursor` and the returned `revision` on every next
   request. Keep that revision fixed throughout an export. `limit` is 1–50.
 
-The API is read-only. It serves only verified imports. It does not yet replace
-the reader's saved graph files or apply new name underlines. Source character
-positions still need a separate check against rendered page words.
+The API is read-only. It serves only verified imports.
+
+## Show checked connections and names
+
+`GET /api/sage-graph/checked?person=rav-pappa` returns accepted human corrections
+for one person. Use `tractate=Horayot&page=12b` instead to fetch a reader page.
+Each response includes the people, source quotes, and supporting family links.
+Pagination uses `after=nextCursor` with the returned `revision` fixed.
+
+The reader, sage pages, and reader cards show these checked connections beside
+the existing material. This is a small checked set, not confirmation of every
+stored claim. Unresolved people keep their names and connections but do not
+link to an unconfirmed registry profile.
+
+Page responses also include accepted name occurrences. Before placing a link,
+the reader compares the whole saved passage with the rendered segment. It
+ignores pointing and punctuation and expands a few explicit abbreviations.
+Different words, conflicting identities, or a span across separate elements
+prevent placement. Accepted links replace older guesses on the same words.
+The generation color comes from the matched registry person.
+
+Pages with more than 100 accepted occurrences return no occurrence links and
+set `occurrencesTruncated`. Connection results remain paginated separately.
 
 ## Import and verify a new revision
 

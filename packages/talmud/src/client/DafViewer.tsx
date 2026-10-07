@@ -38,8 +38,10 @@ import {
 } from './anchorMarkers';
 import { BugReport } from './BugReport';
 import { type BackgroundGroup, orderBackgroundGroups } from './backgroundGroups';
+import { CheckedConnections } from './CheckedConnections';
 import ChecksPanel from './ChecksPanel';
 import type { CommentaryComment, CommentaryWork } from './CommentaryPicker';
+import { fetchCheckedGraph } from './checkedGraph';
 import { type CommentaryAnchorIndex, fetchCommentaryAnchorIndex } from './commentaryAnchorIndex';
 import DafLoadProgress from './DafLoadProgress';
 import { readDevMode, setDevModeActive } from './DevModeShelf';
@@ -52,6 +54,7 @@ import { GutterOverlay } from './GutterOverlay';
 import type { GenerationId } from './generations';
 import { buildTokenRange } from './highlightRange';
 import { lang, setLang, t } from './i18n';
+import { injectCheckedNames } from './injectCheckedNames';
 import { injectHadran } from './injectHadran';
 import { type GenerationRabbi, injectRabbiUnderlines } from './injectRabbiUnderlines';
 import { injectSegmentMarkers } from './injectSegmentMarkers';
@@ -437,6 +440,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
 
   const ref = createMemo<Ref>(() => ({ tractate: tractate(), page: page() }));
   const [daf] = createResource(ref, fetchDaf);
+  const [checkedGraph, { refetch: retryCheckedGraph }] = createResource(ref, (value) =>
+    fetchCheckedGraph(value).catch(() => null),
+  );
 
   // Open the materialized daf-view as early as the daf itself: load the cached
   // pieces in ONE fetch so warm cards render from it, and if the daf is COLD,
@@ -2297,6 +2303,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       }
     }
 
+    if (!checkedGraph.loading && checkedGraph())
+      main = injectCheckedNames(main, checkedGraph()!.occurrences);
+
     // City-marker wraps + the per-daf places list come from the `places`
     // worker mark via applyMarkRenderers above; the geography mark's compute
     // fn reads the same places run server-side to build its model.
@@ -3949,6 +3958,12 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               />
             </Show>
 
+            <CheckedConnections
+              query={ref()}
+              data={checkedGraph.loading ? undefined : (checkedGraph() ?? undefined)}
+              onRetry={() => void retryCheckedGraph()}
+              onPerson={(slug) => void openRabbiSlug(slug)}
+            />
             <BugReport tractate={tractate()} page={page()} />
 
             <footer

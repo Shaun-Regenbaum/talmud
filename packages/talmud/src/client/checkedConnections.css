@@ -1,0 +1,71 @@
+.checked-connections {
+  margin-block: 1rem;
+  color: var(--text);
+}
+.checked-connections:empty {
+  display: none;
+}
+.checked-scope {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.checked-map {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.checked-connection {
+  padding: 0.75rem;
+}
+.checked-connection + .checked-connection {
+  border-top: 1px solid var(--line);
+}
+.checked-pair {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-weight: 600;
+}
+.checked-pair a,
+.checked-pair span {
+  overflow-wrap: anywhere;
+}
+.checked-connection summary {
+  cursor: pointer;
+  padding-block: 0.5rem;
+}
+.checked-connection summary span {
+  margin-inline-start: 0.75rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.checked-connection details p {
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+.checked-connection blockquote {
+  margin: 0.6rem 0;
+  padding-inline-start: 0.65rem;
+  border-inline-start: 2px solid var(--line);
+  line-height: 1.7;
+}
+.checked-connection details > a {
+  display: inline-block;
+  margin-inline-end: 1rem;
+  font-size: 0.8rem;
+}
+.checked-premise {
+  padding-inline-start: 0.65rem;
+  border-inline-start: 1px solid var(--line);
+}
+.checked-connections button {
+  margin: 0.6rem 0.5rem 0 0;
+}
+.checked-connection a:focus-visible,
+.checked-connection summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}

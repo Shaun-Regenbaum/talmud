@@ -1,0 +1,209 @@
+{
+  "provenance": {
+    "source": "Production D1 revision sage-graph-b03f3c0453e3ca139ded and saved production Sefaria page responses",
+    "captured": "2026-10-07",
+    "description": "Actual accepted occurrence records and matching page segments; no invented text."
+  },
+  "rows": [
+    {
+      "occurrence": {
+        "personKey": "b087-p7/D",
+        "personId": "shimon-b-azzai",
+        "ref": "Sanhedrin 17b:4",
+        "passageId": "b087-p7",
+        "sourceSha256": "7c4aaea8c36089de2739acce7aca874aaadad7953022a29f9cfc4adeb141d501",
+        "characterStart": 43,
+        "characterEnd": 56,
+        "quote": "שמעון בן עזאי",
+        "generation": "tanna-3",
+        "generationBasis": "existing_registry",
+        "pagePlacementVerified": false,
+        "source": "למידין לפני חכמים לוי מרבי דנין לפני חכמים שמעון בן עזאי ושמעון בן זומא וחנן המצרי וחנניא בן חכינאי רב נחמן בר יצחק מתני חמשה שמעון שמעון ושמעון חנן וחנניה",
+        "name": "[Shimon] b. Azzai"
+      },
+      "segment": "לְמֵידִין לִפְנֵי חֲכָמִים – לֵוִי מֵרַבִּי. דָּנִין לִפְנֵי חֲכָמִים – שִׁמְעוֹן בֶּן עַזַּאי, וְשִׁמְעוֹן בֶּן זוֹמָא, וְחָנָן הַמִּצְרִי, וַחֲנַנְיָא בֶּן חֲכִינַאי. רַב נַחְמָן בַּר יִצְחָק מַתְנֵי חֲמִשָּׁה: שִׁמְעוֹן, שִׁמְעוֹן, וְשִׁמְעוֹן, חָנָן, וַחֲנַנְיָה.",
+      "segIdx": 3,
+      "expectedNameText": "שמעון בן עזאי,"
+    },
+    {
+      "occurrence": {
+        "personKey": "b087-p7/F",
+        "personId": "shimon-b-zoma",
+        "ref": "Sanhedrin 17b:4",
+        "passageId": "b087-p7",
+        "sourceSha256": "7c4aaea8c36089de2739acce7aca874aaadad7953022a29f9cfc4adeb141d501",
+        "characterStart": 58,
+        "characterEnd": 71,
+        "quote": "שמעון בן זומא",
+        "generation": "tanna-3",
+        "generationBasis": "existing_registry",
+        "pagePlacementVerified": false,
+        "source": "למידין לפני חכמים לוי מרבי דנין לפני חכמים שמעון בן עזאי ושמעון בן זומא וחנן המצרי וחנניא בן חכינאי רב נחמן בר יצחק מתני חמשה שמעון שמעון ושמעון חנן וחנניה",
+        "name": "[Shimon] b. Zoma"
+      },
+      "segment": "לְמֵידִין לִפְנֵי חֲכָמִים – לֵוִי מֵרַבִּי. דָּנִין לִפְנֵי חֲכָמִים – שִׁמְעוֹן בֶּן עַזַּאי, וְשִׁמְעוֹן בֶּן זוֹמָא, וְחָנָן הַמִּצְרִי, וַחֲנַנְיָא בֶּן חֲכִינַאי. רַב נַחְמָן בַּר יִצְחָק מַתְנֵי חֲמִשָּׁה: שִׁמְעוֹן, שִׁמְעוֹן, וְשִׁמְעוֹן, חָנָן, וַחֲנַנְיָה.",
+      "segIdx": 3,
+      "expectedNameText": "ושמעון בן זומא,"
+    },
+    {
+      "occurrence": {
+        "personKey": "b042-p0/A",
+        "personId": "shmuel-(amora)",
+        "ref": "Ketubot 22a:11",
+        "passageId": "b042-p0",
+        "sourceSha256": "1fd05dd35b28827850858ad4b32f447524bb8f10bd3586848bfa7f9964aae6af",
+        "characterStart": 10,
+        "characterEnd": 15,
+        "quote": "שמואל",
+        "generation": "amora-bavel-1",
+        "generationBasis": "existing_registry",
+        "pagePlacementVerified": false,
+        "source": "בעא מיניה שמואל מרב אמרה טמאה אני וחזרה ואמרה טהורה אני מהו אמר ליה אף בזו אם נתנה",
+        "name": "Shmuel (Amora)"
+      },
+      "segment": "בְּעָא מִינֵּיהּ שְׁמוּאֵל מֵרַב: אָמְרָה ״טְמֵאָה אֲנִי״, וְחָזְרָה וְאָמְרָה ״טְהוֹרָה אֲנִי״, מַהוּ? אֲמַר לֵיהּ: אַף בְּזוֹ, אִם נָתְנָה",
+      "segIdx": 10,
+      "expectedNameText": "שמואל"
+    },
+    {
+      "occurrence": {
+        "personKey": "b042-p0/B",
+        "personId": "rav",
+        "ref": "Ketubot 22a:11",
+        "passageId": "b042-p0",
+        "sourceSha256": "1fd05dd35b28827850858ad4b32f447524bb8f10bd3586848bfa7f9964aae6af",
+        "characterStart": 16,
+        "characterEnd": 19,
+        "quote": "מרב",
+        "generation": "amora-bavel-1",
+        "generationBasis": "existing_registry",
+        "pagePlacementVerified": false,
+        "source": "בעא מיניה שמואל מרב אמרה טמאה אני וחזרה ואמרה טהורה אני מהו אמר ליה אף בזו אם נתנה",
+        "name": "Rav"
+      },
+      "segment": "בְּעָא מִינֵּיהּ שְׁמוּאֵל מֵרַב: אָמְרָה ״טְמֵאָה אֲנִי״, וְחָזְרָה וְאָמְרָה ״טְהוֹרָה אֲנִי״, מַהוּ? אֲמַר לֵיהּ: אַף בְּזוֹ, אִם נָתְנָה",
+      "segIdx": 10,
+      "expectedNameText": "מרב:"
+    },
+    {
+      "occurrence": {
+        "personKey": "b042-p3/A",
+        "personId": "rav-pappa",
+        "ref": "Horayot 12b:13",
+        "passageId": "b042-p3",
+        "sourceSha256": "6f2e80fd6369679f4dfddd811036b0a5e249c3e97b44f869ae26e3d3490d83b4",
+        "characterStart": 16,
+        "characterEnd": 22,
+        "quote": "רב פפא",
+        "generation": "amora-bavel-5",
+        "generationBasis": "existing_registry",
+        "pagePlacementVerified": false,
+        "source": "זימנין הוי יתיב רב פפא וקמבעיא ליה א\"ל הונא בריה דרב נחמן לרב פפא תנינא אין לי אלא שעבר מחמת קריו עבר מחמת מומין מנין ת\"ל והוא קם נשקיה ברישיה ויהיב ליה ברתיה:",
+        "name": "Rav Pappa"
+      },
+      "segment": "זִימְנִין הָוֵי יָתֵיב רַב פָּפָּא וְקָמִבַּעְיָא לֵיהּ. אֲמַר לֵיהּ הוּנָא בְּרֵיהּ דְּרַב נַחְמָן לְרַב פָּפָּא, תְּנֵינָא: אֵין לִי אֶלָּא שֶׁעָבַר מֵחֲמַת קִרְיוֹ, עָבַר מֵחֲמַת מוּמִין מִנַּיִן? תַּלְמוּד לוֹמַר: ״וְהוּא״. קָם נַשְּׁקֵיהּ בְּרֵישֵׁיהּ וִיהַיב לֵיהּ בְּרַתֵּיה.",
+      "segIdx": 12,
+      "expectedNameText": "רב פפא"
+    },
+    {
+      "occurrence": {
+        "personKey": "b042-p3/A",
+        "personId": "rav-pappa",
+        "ref": "Horayot 12b:13",
+        "passageId": "b042-p3",
+        "sourceSha256": "6f2e80fd6369679f4dfddd811036b0a5e249c3e97b44f869ae26e3d3490d83b4",
+        "characterStart": 59,
+        "characterEnd": 65,
+        "quote": "רב פפא",
+        "generation": "amora-bavel-5",
+        "generationBasis": "existing_registry",
+        "pagePlacementVerified": false,
+        "source": "זימנין הוי יתיב רב פפא וקמבעיא ליה א\"ל הונא בריה דרב נחמן לרב פפא תנינא אין לי אלא שעבר מחמת קריו עבר מחמת מומין מנין ת\"ל והוא קם נשקיה ברישיה ויהיב ליה ברתיה:",
+        "name": "Rav Pappa"
+      },
+      "segment": "זִימְנִין הָוֵי יָתֵיב רַב פָּפָּא וְקָמִבַּעְיָא לֵיהּ. אֲמַר לֵיהּ הוּנָא בְּרֵיהּ דְּרַב נַחְמָן לְרַב פָּפָּא, תְּנֵינָא: אֵין לִי אֶלָּא שֶׁעָבַר מֵחֲמַת קִרְיוֹ, עָבַר מֵחֲמַת מוּמִין מִנַּיִן? תַּלְמוּד לוֹמַר: ״וְהוּא״. קָם נַשְּׁקֵיהּ בְּרֵישֵׁיהּ וִיהַיב לֵיהּ בְּרַתֵּיה.",
+      "segIdx": 12,
+      "expectedNameText": "לרב פפא,"
+    },
+    {
+      "occurrence": {
+        "personKey": "b042-p9/B",
+        "personId": "rav-pappa",
+        "ref": "Bava Batra 146b:2",
+        "passageId": "b042-p9",
+        "sourceSha256": "b97306fa46cf73521acf8b54d8c777665056c7433f8fda745359fc3eb69fd277",
+        "characterStart": 61,
+        "characterEnd": 68,
+        "quote": "דרב פפא",
+        "generation": "amora-bavel-5",
+        "generationBasis": "existing_registry",
+        "pagePlacementVerified": false,
+        "source": "סבלונות מועטין שתשתמש בהן בבית אביה וכו': יתיב רבין סבא קמיה דרב פפא ויתיב וקאמר בין שמתה היא ובין שמת הוא הדר הוא סבלונות הדרי מאכל ומשתה לא הדר הדרא בה איהי הדרא אפילו כישא דירקא אמר רב הונא בריה דרב יהושע ושמין להן דמי בשר בזול עד כמה בזול עד תילתא:",
+        "name": "Rav Pappa"
+      },
+      "segment": "סִבְלוֹנוֹת מוּעָטִין שֶׁתִּשְׁתַּמֵּשׁ בָּהֶן בְּבֵית אָבִיהָ וְכוּ׳. יָתֵיב רָבִין סָבָא קַמֵּיהּ דְּרַב פָּפָּא, וְיָתֵיב וְקָאָמַר: בֵּין שֶׁמֵּתָה הִיא וּבֵין שֶׁמֵּת הוּא, הָדַר הוּא – סִבְלוֹנוֹת הָדְרִי, מַאֲכָל וּמִשְׁתֶּה לָא הָדַר. הָדְרָא בָּהּ אִיהִי – הָדְרָא אֲפִילּוּ כִּישָּׁא דְיַרְקָא. אָמַר רַב הוּנָא בְּרֵיהּ דְּרַב יְהוֹשֻׁעַ: וְשָׁמִין לָהֶן דְּמֵי בָשָׂר בְּזוֹל. עַד כַּמָּה ״בְּזוֹל״? עַד תִּילְתָּא.",
+      "segIdx": 1,
+      "expectedNameText": "דרב פפא,"
+    },
+    {
+      "occurrence": {
+        "personKey": "b288-p1/F",
+        "personId": "rabbi-yirmeyah",
+        "ref": "Niddah 23a:24",
+        "passageId": "b288-p1",
+        "sourceSha256": "4d19cd88fb49a8afa81ad643cacdf0d2a6706823af6e583300063c0091a50b0f",
+        "characterStart": 102,
+        "characterEnd": 111,
+        "quote": "רבי ירמיה",
+        "generation": "amora-ey-3",
+        "generationBasis": "existing_registry",
+        "pagePlacementVerified": false,
+        "source": "למימרא דחיי והאמר רב יהודה אמר רב לא אמרה ר\"מ אלא הואיל ובמינו מתקיים אמר רב אחא בר יעקב עד כאן הביאו רבי ירמיה לר' זירא לידי גיחוך ולא גחיך",
+        "name": "Rabbi Yirmeyah"
+      },
+      "segment": "לְמֵימְרָא דְּחָיֵי? וְהָאָמַר רַב יְהוּדָה אָמַר רַב: לֹא אֲמָרָהּ רַבִּי מֵאִיר אֶלָּא הוֹאִיל וּבְמִינוֹ מִתְקַיֵּים! אָמַר רַב אַחָא בַּר יַעֲקֹב: עַד כָּאן הֱבִיאוֹ רַבִּי יִרְמְיָה לְרַבִּי זֵירָא לִידֵי גִּיחוּךְ, וְלֹא גִּחֵיךְ.",
+      "segIdx": 23,
+      "expectedNameText": "רבי ירמיה"
+    },
+    {
+      "occurrence": {
+        "personKey": "b288-p1/G",
+        "personId": "rav-zera",
+        "ref": "Niddah 23a:24",
+        "passageId": "b288-p1",
+        "sourceSha256": "4d19cd88fb49a8afa81ad643cacdf0d2a6706823af6e583300063c0091a50b0f",
+        "characterStart": 113,
+        "characterEnd": 120,
+        "quote": "ר' זירא",
+        "generation": "amora-bavel-3",
+        "generationBasis": "existing_registry",
+        "pagePlacementVerified": false,
+        "source": "למימרא דחיי והאמר רב יהודה אמר רב לא אמרה ר\"מ אלא הואיל ובמינו מתקיים אמר רב אחא בר יעקב עד כאן הביאו רבי ירמיה לר' זירא לידי גיחוך ולא גחיך",
+        "name": "Rabbi Zeira"
+      },
+      "segment": "לְמֵימְרָא דְּחָיֵי? וְהָאָמַר רַב יְהוּדָה אָמַר רַב: לֹא אֲמָרָהּ רַבִּי מֵאִיר אֶלָּא הוֹאִיל וּבְמִינוֹ מִתְקַיֵּים! אָמַר רַב אַחָא בַּר יַעֲקֹב: עַד כָּאן הֱבִיאוֹ רַבִּי יִרְמְיָה לְרַבִּי זֵירָא לִידֵי גִּיחוּךְ, וְלֹא גִּחֵיךְ.",
+      "segIdx": 23,
+      "expectedNameText": "לרבי זירא"
+    },
+    {
+      "occurrence": {
+        "personKey": "b489-p3/B",
+        "personId": "rava",
+        "ref": "Avodah Zarah 22a:7",
+        "passageId": "b489-p3",
+        "sourceSha256": "f3031730af0b5655e190aede6b1cd8f546900926cd9928d23b7d1b38a9de2c6b",
+        "characterStart": 18,
+        "characterEnd": 21,
+        "quote": "רבא",
+        "generation": "amora-bavel-4",
+        "generationBasis": "existing_registry",
+        "pagePlacementVerified": false,
+        "source": "והא אותביה רבינא לרבא לסיועי סייעיה והא אכסיף לא היו דברים מעולם",
+        "name": "Rava"
+      },
+      "segment": "וְהָא אוֹתְבֵיהּ רָבִינָא לְרָבָא! לְסַיּוֹעֵי סַיְּיעֵיהּ. וְהָא אִכְּסִיף! לֹא הָיוּ דְבָרִים מֵעוֹלָם.",
+      "segIdx": 6,
+      "expectedNameText": "לרבא!"
+    }
+  ]
+}

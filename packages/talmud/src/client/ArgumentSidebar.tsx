@@ -58,6 +58,7 @@ import ArgumentFlowGraph, { type FlowConnection, stmtRelKind } from './ArgumentF
 import ArgumentNarrative from './ArgumentNarrative';
 import { type BackgroundGroup, orderBackgroundGroups } from './backgroundGroups';
 import { ChartTableView } from './ChartTableView';
+import { CheckedConnections } from './CheckedConnections';
 import { buildConceptMatcher, ConceptLinkProvider } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
 import { finishDisplayText } from './displayText';
@@ -2043,11 +2044,16 @@ function RabbiLineage(props: SpecialBlockProps): JSX.Element {
   // Everyone else gets an honest note instead of the old teacher/student tree, which a model had pulled out of
   // short biographies and placed a generation up or down by guess.
   return (
-    <Show when={!interactions.loading}>
-      <Show when={interactions()} fallback={<ConnectionsInProgress />}>
-        {(d) => <RabbiInteractions data={d()} subjectName={str(f().name)} />}
+    <>
+      <Show when={lookup()?.slug}>
+        {(slug) => <CheckedConnections query={{ person: slug() }} />}
       </Show>
-    </Show>
+      <Show when={!interactions.loading}>
+        <Show when={interactions()} fallback={<ConnectionsInProgress />}>
+          {(d) => <RabbiInteractions data={d()} subjectName={str(f().name)} />}
+        </Show>
+      </Show>
+    </>
   );
 }
 
