@@ -5,6 +5,9 @@ export interface GenerationRabbi {
   name: string;
   nameHe: string;
   generation: GenerationId;
+  slug?: string;
+  segIdx?: number;
+  tokenStart?: number;
 }
 
 /**
@@ -59,6 +62,9 @@ export function injectRabbiUnderlines(
     tokens: string[];
     generation: GenerationId;
     rabbiName: string;
+    slug?: string;
+    segIdx?: number;
+    tokenStart?: number;
     underlineStart?: number; // default 0
     underlineEnd?: number; // default tokens.length - 1
   };
@@ -110,7 +116,14 @@ export function injectRabbiUnderlines(
   const candidates: Candidate[] = rabbis
     .flatMap((r) => {
       const tokens = normalizeHebrew(r.nameHe).split(' ').filter(Boolean);
-      const base: Candidate = { tokens, generation: r.generation, rabbiName: r.name };
+      const base: Candidate = {
+        tokens,
+        generation: r.generation,
+        rabbiName: r.name,
+        slug: r.slug,
+        segIdx: r.segIdx,
+        tokenStart: r.tokenStart,
+      };
       const variants: Candidate[] = [base];
       // `א"ר X` variant.
       if (tokens.length >= 2 && TITLE_PREFIXES.has(tokens[0])) {
@@ -149,7 +162,12 @@ export function injectRabbiUnderlines(
       return variants;
     })
     .filter((c) => c.tokens.length > 0 && c.tokens.length <= 5)
-    .sort((a, b) => b.tokens.length - a.tokens.length);
+    .sort(
+      (a, b) =>
+        Number(b.tokenStart !== undefined) - Number(a.tokenStart !== undefined) ||
+        Number(b.segIdx !== undefined) - Number(a.segIdx !== undefined) ||
+        b.tokens.length - a.tokens.length,
+    );
 
   // Track which word indices have already been wrapped so we don't double-wrap
   // when a shorter name is a prefix of a longer one.
@@ -162,10 +180,49 @@ export function injectRabbiUnderlines(
     end: number;
     generation: GenerationId;
     rabbiName: string;
+    slug?: string;
   }
   const wraps: Wrap[] = [];
   const sourceMatches = segmentsHe.map(nameBoundaryMatches);
 
+  const segmentWords = new Map<number, number[]>();
+  words.forEach((word, index) => {
+    const raw = word.getAttribute('data-seg');
+    if (raw === null) return;
+    const seg = Number(raw);
+    const indices = segmentWords.get(seg) ?? [];
+    indices.push(index);
+    segmentWords.set(seg, indices);
+  });
+  const matchesScope = (c: Candidate, i: number): boolean => {
+    if (c.segIdx !== undefined) {
+      if (!Number.isInteger(c.segIdx) || c.segIdx < 0) return false;
+      if (
+        words[i + (c.underlineStart ?? 0)].getAttribute('data-seg') !== String(c.segIdx) ||
+        words[i + (c.underlineEnd ?? c.tokens.length - 1)].getAttribute('data-seg') !==
+          String(c.segIdx)
+      )
+        return false;
+      if (c.tokenStart !== undefined) {
+        const indices = segmentWords.get(c.segIdx) ?? [];
+        const sourceTokens = normalizeHebrew(segmentsHe[c.segIdx] ?? '')
+          .split(' ')
+          .filter(Boolean);
+        // Token offsets are safe only when the displayed and source segment agree.
+        if (
+          !Number.isInteger(c.tokenStart) ||
+          c.tokenStart < 0 ||
+          sourceTokens.length !== indices.length ||
+          !indices.every((index, ordinal) => normed[index] === sourceTokens[ordinal]) ||
+          indices[c.tokenStart] !== i + (c.underlineStart ?? 0)
+        )
+          return false;
+      }
+    } else if (c.tokenStart !== undefined) {
+      return false;
+    }
+    return true;
+  };
   for (const c of candidates) {
     const n = c.tokens.length;
     const uStart = c.underlineStart ?? 0;
@@ -198,6 +255,7 @@ export function injectRabbiUnderlines(
     }
     for (let i = 0; i <= words.length - n; i++) {
       if (blocked.has(i)) continue;
+      if (!matchesScope(c, i)) continue;
       // Only the tokens within the underline range must be free — context
       // tokens (e.g. דברי before רמ) are allowed to be already wrapped or
       // free, since we don't wrap them. Check the underline window only.
@@ -218,6 +276,20 @@ export function injectRabbiUnderlines(
         }
       }
       if (!match) continue;
+      const conflicting = candidates.some(
+        (other) =>
+          other !== c &&
+          (other.tokenStart !== undefined) === (c.tokenStart !== undefined) &&
+          (other.segIdx !== undefined) === (c.segIdx !== undefined) &&
+          other.tokens.join(' ') === c.tokens.join(' ') &&
+          matchesScope(other, i) &&
+          (other.slug ?? other.rabbiName) !== (c.slug ?? c.rabbiName),
+      );
+      if (conflicting) {
+        // Reserve the disputed words so a less precise match cannot claim them.
+        for (let j = uStart; j <= uEnd; j++) wrapped[i + j] = 1;
+        continue;
+      }
 
       // Record the wrap over the underline range and mark those indices only.
       wraps.push({
@@ -225,6 +297,7 @@ export function injectRabbiUnderlines(
         end: i + uEnd,
         generation: c.generation,
         rabbiName: c.rabbiName,
+        slug: c.slug,
       });
       for (let j = uStart; j <= uEnd; j++) wrapped[i + j] = 1;
     }
@@ -238,7 +311,7 @@ export function injectRabbiUnderlines(
     const first = words[w.start];
     const last = words[w.end];
     const parent = first.parentNode;
-    if (!parent) continue;
+    if (!parent || last.parentNode !== parent) continue;
 
     const wrapperEl = doc.createElement('span');
     // Keep the rabbi-gen-<id> class for hover/highlight targeting, but drive
@@ -247,6 +320,7 @@ export function injectRabbiUnderlines(
     wrapperEl.className = `rabbi-underline rabbi-gen-${w.generation}`;
     wrapperEl.style.borderBottomColor = colorForGeneration(w.generation);
     wrapperEl.setAttribute('data-rabbi', w.rabbiName);
+    if (w.slug) wrapperEl.setAttribute('data-rabbi-slug', w.slug);
 
     // Move first..last (inclusive) + any whitespace/text nodes between them
     // into the wrapper. We need to walk siblings from `first` until we hit

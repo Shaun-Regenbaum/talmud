@@ -166,7 +166,7 @@ interface ActiveWord {
   segIdx?: number;
   /** Set when the tap landed on a rabbi's name or a place (mobile). The popup
    *  then shows the name and a link to its card instead of a translation. */
-  entity?: { kind: 'rabbi' | 'place'; name: string };
+  entity?: { kind: 'rabbi' | 'place'; name: string; slug?: string };
 }
 
 type RangeHighlightKind =
@@ -3057,6 +3057,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // from the dataset via /api/rabbi/:slug. ALWAYS pushes so chains of
   // rabbi → cited-rabbi → ... can be unwound by the back chip.
   const openRabbiSlug = async (slug: string) => {
+    clearCommentarySelection();
     // dafRabbis() carries the grounding-stamped slug when the registry pinned
     // the rabbi (older cached runs may still have null slugs) — prefer the
     // in-context entry, else fall through to the standalone /api/rabbi/:slug
@@ -3351,7 +3352,11 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         const rabbiName = rabbiEl?.getAttribute('data-rabbi');
         if (rabbiEl && rabbiName) {
           const els = Array.from(rabbiEl.querySelectorAll<HTMLElement>('.daf-word'));
-          setActiveFromWordEls(els.length ? els : [wordEl], e, { kind: 'rabbi', name: rabbiName });
+          setActiveFromWordEls(els.length ? els : [wordEl], e, {
+            kind: 'rabbi',
+            name: rabbiName,
+            slug: rabbiEl.getAttribute('data-rabbi-slug') ?? undefined,
+          });
           return;
         }
         const cityEl = target.closest('.city-marker') as HTMLElement | null;
@@ -3391,7 +3396,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (rabbiEl) {
       const rabbiName = rabbiEl.getAttribute('data-rabbi');
       if (rabbiName) {
-        openRabbi(rabbiName);
+        const slug = rabbiEl.getAttribute('data-rabbi-slug');
+        if (slug) void openRabbiSlug(slug);
+        else openRabbi(rabbiName);
         return;
       }
     }
@@ -3874,9 +3881,12 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
                   maxWords={MAX_PHRASE_WORDS}
                   entity={a().entity}
                   onOpenEntity={(ent) => {
+                    const slug = a().entity?.slug;
                     clearActive();
-                    if (ent.kind === 'rabbi') openRabbi(ent.name);
-                    else openPlace(ent.name);
+                    if (ent.kind === 'rabbi') {
+                      if (slug) void openRabbiSlug(slug);
+                      else openRabbi(ent.name);
+                    } else openPlace(ent.name);
                   }}
                 />
               )}
