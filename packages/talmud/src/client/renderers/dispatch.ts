@@ -73,6 +73,9 @@ const phraseInline: Renderer = (html, instances, def, segmentsHe) => {
         name: String(i.fields?.name ?? ''),
         nameHe: String(i.fields?.nameHe ?? i.excerpt ?? ''),
         generation: (i.fields?.generation ?? 'unknown') as GenerationId,
+        slug: typeof i.fields?.slug === 'string' ? i.fields.slug : undefined,
+        segIdx: i.segIdx,
+        tokenStart: i.tokenStart,
       }))
       .filter((r) => r.nameHe.length > 0);
     return injectRabbiUnderlines(html, rabbis, segmentsHe);

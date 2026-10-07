@@ -19,7 +19,7 @@ const rabbis: GenerationRabbi[] = fixture.cachedResult.parsed.instances.map((i) 
   return { ...i.fields, generation };
 });
 
-function render(segments: string[], punctuated: boolean) {
+function render(segments: string[], punctuated: boolean, entries: GenerationRabbi[] = rabbis) {
   const html = segments
     .map((s, seg) => {
       const text = punctuated ? s : normalizeHebrew(s);
@@ -30,11 +30,13 @@ function render(segments: string[], punctuated: boolean) {
     })
     .join(' ');
   const doc = new DOMParser().parseFromString(
-    injectRabbiUnderlines(html, rabbis, segments),
+    injectRabbiUnderlines(html, entries, segments),
     'text/html',
   );
   return Array.from(doc.querySelectorAll('.rabbi-underline')).map((el) => ({
     name: el.getAttribute('data-rabbi'),
+    slug: el.getAttribute('data-rabbi-slug'),
+    seg: el.querySelector('.daf-word')?.getAttribute('data-seg'),
     text: normalizeHebrew(el.textContent ?? ''),
   }));
 }
@@ -78,5 +80,56 @@ describe('speaker boundaries in rabbi underlines', () => {
     );
     const marks = render([text], false);
     expect(marks.filter((m) => m.name === 'Rav Pinchas')).toHaveLength(1);
+  });
+});
+
+describe('saved identity at a specific name occurrence', () => {
+  const segments = [fixture.cachedSource.segments_he[12], fixture.cachedSource.segments_he[13]];
+  const rav = rabbis.find((r) => r.name === 'Rav')!;
+  const tokenStart = normalizeHebrew(segments[1]).split(' ').indexOf('רב');
+
+  it('keeps the saved person ID on just the requested occurrence', () => {
+    expect(tokenStart).toBeGreaterThanOrEqual(0);
+    const marks = render(segments, false, [{ ...rav, segIdx: 1, tokenStart }]);
+    expect(marks).toHaveLength(1);
+    expect(marks[0]).toMatchObject({ name: 'Rav', slug: 'rav', seg: '1', text: 'רב' });
+  });
+
+  it('does not replace a bad position with a different occurrence of the same name', () => {
+    expect(render(segments, false, [{ ...rav, segIdx: 1, tokenStart: tokenStart + 1 }])).toEqual(
+      [],
+    );
+  });
+
+  it('keeps segment-scoped identities out of commentary without matching segment addresses', () => {
+    const html = tokenizeHebrewHtml(segments[1]);
+    const marked = injectRabbiUnderlines(html, [{ ...rav, segIdx: 1 }], segments);
+    expect(marked).not.toContain('rabbi-underline');
+  });
+
+  it('rejects conflicting identity stamps rather than trusting their list order', () => {
+    const placed = { ...rav, segIdx: 1, tokenStart };
+    // Fault injection changes metadata on a real captured occurrence, not its text.
+    const conflict = { ...placed, slug: rabbis.find((r) => r.name === 'Rava')!.slug };
+    for (const entries of [
+      [placed, conflict, rav],
+      [conflict, placed, rav],
+    ]) {
+      const marks = render(segments, false, entries);
+      expect(marks.filter((m) => m.seg === '1')).toEqual([]);
+    }
+  });
+
+  it('uses an exact position before a segment-wide identity stamp', () => {
+    const exact = { ...rav, segIdx: 1, tokenStart };
+    const broad = { ...rav, segIdx: 1, slug: rabbis.find((r) => r.name === 'Rava')!.slug };
+    for (const entries of [
+      [broad, exact],
+      [exact, broad],
+    ]) {
+      expect(render(segments, false, entries)).toEqual([
+        { name: 'Rav', slug: 'rav', seg: '1', text: 'רב' },
+      ]);
+    }
   });
 });
