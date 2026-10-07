@@ -329,8 +329,20 @@ const CATALOG = {
   'sages.review.rava': { en: 'Rava', he: 'רבא' },
   'checked.title': { en: 'Checked connections', he: 'קשרים שנבדקו' },
   'checked.scope': {
-    en: 'These are checked examples. More passages are still being reviewed.',
-    he: 'אלה דוגמאות שנבדקו. קטעים נוספים עדיין נבדקים.',
+    en: 'From passages reviewed so far.',
+    he: 'מתוך הקטעים שנבדקו עד כה.',
+  },
+  'checked.role.child_of.incoming': { en: 'Parent', he: 'הורה' },
+  'checked.role.child_of.outgoing': { en: 'Child', he: 'ילד או ילדה' },
+  'checked.role.spouse_of.incoming': { en: 'Spouse', he: 'בן או בת זוג' },
+  'checked.role.spouse_of.outgoing': { en: 'Spouse', he: 'בן או בת זוג' },
+  'checked.role.father_in_law_of.incoming': { en: 'Child-in-law', he: 'חתן או כלה' },
+  'checked.role.father_in_law_of.outgoing': { en: 'Father-in-law', he: 'חותן' },
+  'checked.role.parent_in_law_of.incoming': { en: 'Child-in-law', he: 'חתן או כלה' },
+  'checked.role.parent_in_law_of.outgoing': { en: 'Parent-in-law', he: 'הורה של בן או בת הזוג' },
+  'checked.namesError': {
+    en: 'Could not load the checked name links.',
+    he: 'לא ניתן לטעון את קישורי השמות שנבדקו.',
   },
   'checked.error': {
     en: 'Could not load the checked connections.',

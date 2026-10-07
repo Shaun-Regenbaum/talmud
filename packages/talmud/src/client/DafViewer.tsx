@@ -4,6 +4,7 @@ import { LangToggle } from '@corpus/ui/LangToggle';
 import { PageNavigation } from '@corpus/ui/PageNavigation';
 import { ReaderHeader } from '@corpus/ui/ReaderHeader';
 import { Select } from '@corpus/ui/Select';
+import { StatusMessage } from '@corpus/ui/Study';
 import { ToolbarMenu } from '@corpus/ui/ToolbarMenu';
 import {
   createEffect,
@@ -38,7 +39,6 @@ import {
 } from './anchorMarkers';
 import { BugReport } from './BugReport';
 import { type BackgroundGroup, orderBackgroundGroups } from './backgroundGroups';
-import { CheckedConnections } from './CheckedConnections';
 import ChecksPanel from './ChecksPanel';
 import type { CommentaryComment, CommentaryWork } from './CommentaryPicker';
 import { fetchCheckedGraph } from './checkedGraph';
@@ -3647,6 +3647,15 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           {yomiLoading() ? t('header.todaysDaf.finding') : t('header.todaysDaf')}
         </Button>
       </ReaderHeader>
+      <Show when={!checkedGraph.loading && checkedGraph() === null}>
+        <StatusMessage
+          tone="error"
+          onRetry={() => void retryCheckedGraph()}
+          retryLabel={t('sages.connections.retry')}
+        >
+          {t('checked.namesError')}
+        </StatusMessage>
+      </Show>
 
       {/* No raw error strip here: pause/outage states are the AiStatusBanner's
           job, and genuine mark failures fold into the load bar's localized
@@ -3958,12 +3967,6 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
               />
             </Show>
 
-            <CheckedConnections
-              query={ref()}
-              data={checkedGraph.loading ? undefined : (checkedGraph() ?? undefined)}
-              onRetry={() => void retryCheckedGraph()}
-              onPerson={(slug) => void openRabbiSlug(slug)}
-            />
             <BugReport tractate={tractate()} page={page()} />
 
             <footer
