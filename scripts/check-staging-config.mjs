@@ -14,8 +14,16 @@ assert.deepEqual(config.routes, [{ pattern: `staging.${app}.dev`, custom_domain:
 const namespace =
   app === 'talmud' ? '74de4dafe9e94071bcce4ac2873ba043' : 'e4fab94968a64e3c8626a101edce9280';
 assert.deepEqual(config.kv_namespaces, [{ binding: 'CACHE', id: namespace }]);
-assert.equal(config.d1_databases.length, 1);
-assert.equal(config.d1_databases[0].database_id, '49930fc7-f92a-446b-886d-0ec8ae882dc6');
+assert.deepEqual(
+  config.d1_databases.map((db) => [db.binding, db.database_id]).sort(),
+  (app === 'talmud'
+    ? [
+        ['BILLING_DB', '49930fc7-f92a-446b-886d-0ec8ae882dc6'],
+        ['SAGE_GRAPH_DB', 'c1f6d83d-bc0f-4777-bb9f-435a5adba309'],
+      ]
+    : [['BILLING_DB', '49930fc7-f92a-446b-886d-0ec8ae882dc6']]
+  ).sort(),
+);
 assert.equal(config.send_email.length, 0);
 assert.deepEqual(config.triggers.crons, []);
 if (app === 'talmud') {
