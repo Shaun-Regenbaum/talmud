@@ -1,3 +1,4 @@
+import { SourcePerson } from './SourcePerson';
 // Recipes now live in the shared lib (carried on the worker mark def too).
 // Re-exported so existing importers (CARD_DEFS, tests) keep their `from
 // './ArgumentSidebar'` path.
@@ -244,6 +245,7 @@ export type SidebarContent =
   | { kind: 'yerushalmi'; parallel: YerushalmiParallel; index: number }
   | { kind: 'pesuk'; pasuk: Pasuk; index: number }
   | { kind: 'rabbi'; rabbi: IdentifiedRabbi }
+  | { kind: 'source-person'; id: string }
   | { kind: 'place'; place: PlaceInstance }
   | { kind: 'voice-group'; group: { name: string; nameHe: string; bio: string } }
   | { kind: 'rishonim'; instance: RishonimInstance; index: number }
@@ -4268,6 +4270,9 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
                 )}
               </Show>
 
+              <Show when={c().kind === 'source-person'}>
+                <SourcePerson id={(c() as Extract<SidebarContent, { kind: 'source-person' }>).id} />
+              </Show>
               <Show when={c().kind === 'voice-group'}>
                 <VoiceGroupBody
                   group={(c() as Extract<SidebarContent, { kind: 'voice-group' }>).group}

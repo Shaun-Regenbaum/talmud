@@ -67,3 +67,22 @@ verified revision. Corrections require a new revision.
 An interrupted import must be inspected before retrying. Do not replace inserts
 with upserts or edit a verified revision to make a retry pass. The API deliberately
 ignores incomplete imports.
+
+## Keep same-name people separate within a passage
+
+A checked name can point to a `local:<passage>/<person>` record when the passage
+clearly identifies a participant but the registry match remains unsettled.
+`GET /api/sage-graph/person?id=<local-id>` returns a source card only for a graph
+node with a reviewed `sourceProfile` and a quotation present in its saved passage.
+The card keeps the exact source, local identity, and checked connections together.
+It does not borrow a biography or generation from a similarly named registry entry.
+
+`source_identity` records accept passage-local distinctions without claiming a
+historical registry match. Source-reviewed supported connections are served beside
+user corrections. A new review must preserve prior human corrections and keep
+contradictory proposals out of the checked connection set.
+
+The first source cards distinguish the two Huna participants in Ketubot 61a:2,
+the two Kahana participants in Menachot 66b:11, and the Parta grandfather and grandson
+in Jerusalem Talmud Ketubot 11:6:5. The latter is a family connection, not an encounter.
+The Jerusalem passage has source cards but is outside the Bavli reader.

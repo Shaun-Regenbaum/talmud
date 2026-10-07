@@ -1029,6 +1029,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (c.kind === 'aggadata') return c.story.title || 'Aggada';
     if (c.kind === 'yerushalmi') return c.parallel.yerushalmiRef || 'Yerushalmi';
     if (c.kind === 'pesuk') return c.pasuk.verseRef || 'Pasuk';
+    if (c.kind === 'source-person') return t('sourcePerson.title');
     if (c.kind === 'rabbi') return c.rabbi.name || 'Rabbi';
     if (c.kind === 'place') return c.place.fields.name || 'Place';
     if (c.kind === 'voice-group') return c.group.name;
@@ -1050,6 +1051,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (c.kind === 'aggadata') return `aggadata:${c.story.title}`;
     if (c.kind === 'yerushalmi') return `yerushalmi:${c.parallel.yerushalmiRef}`;
     if (c.kind === 'pesuk') return `pesuk:${c.pasuk.verseRef}`;
+    if (c.kind === 'source-person') return `source-person:${c.id}`;
     if (c.kind === 'rabbi') return `rabbi:${c.rabbi.slug ?? c.rabbi.name}`;
     if (c.kind === 'place') return `place:${c.place.fields.name}`;
     if (c.kind === 'voice-group') return `voice-group:${c.group.name}`;
@@ -2535,6 +2537,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const sidebarActiveKey = createMemo(() => {
     const s = sidebar();
     if (!s) return null;
+    if (s.kind === 'source-person') return `source-person:${s.id}`;
     if (s.kind === 'rabbi') return `rabbi:${s.rabbi.name}`;
     if (s.kind === 'place') return `place:${s.place.fields.name}`;
     if (s.kind === 'voice-group') return `voice-group:${s.group.name}`;
@@ -3067,6 +3070,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // rabbi → cited-rabbi → ... can be unwound by the back chip.
   const openRabbiSlug = async (slug: string) => {
     clearCommentarySelection();
+    if (slug.startsWith('local:')) {
+      setActiveRabbi(null);
+      setActivePlace(null);
+      pushSidebar({ kind: 'source-person', id: slug });
+      setLastInteractedCard('argument');
+      return;
+    }
     // dafRabbis() carries the grounding-stamped slug when the registry pinned
     // the rabbi (older cached runs may still have null slugs) — prefer the
     // in-context entry, else fall through to the standalone /api/rabbi/:slug

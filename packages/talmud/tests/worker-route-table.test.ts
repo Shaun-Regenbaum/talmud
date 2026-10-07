@@ -36,6 +36,7 @@ const EXPECTED_ROUTES = [
   'GET /api/sage-graph',
   'GET /api/sage-graph/records',
   'GET /api/sage-graph/checked',
+  'GET /api/sage-graph/person',
   'GET /api/sage-index/:tractate/:page',
   'GET /api/bridge/:tractate/:page',
   'GET /api/spine/:tractate/:page',

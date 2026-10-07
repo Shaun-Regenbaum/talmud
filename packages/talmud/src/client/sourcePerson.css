@@ -1,0 +1,42 @@
+.source-person-page {
+  max-width: 42rem;
+  margin: 2rem auto;
+  padding: 1.25rem;
+}
+.source-person {
+  color: var(--fg);
+  font-family: var(--font-ui);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.source-person h2 {
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--fg);
+  margin-block: 0.25rem 0.75rem;
+  font-size: 1.2rem;
+}
+.source-person p {
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+}
+.source-person .source-person-caption,
+.source-person .source-person-note {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.source-person blockquote {
+  margin: 1rem 0;
+  padding-inline-start: 0.75rem;
+  border-inline-start: 2px solid var(--line);
+  font-family: var(--font-hebrew);
+  font-size: 1.05rem;
+}
+.source-person a {
+  color: var(--ink-link);
+  text-underline-offset: 0.15em;
+}
+.source-person a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}

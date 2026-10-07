@@ -11,6 +11,7 @@ import { NotFoundPage } from './NotFoundPage';
 import PretextSpike from './PretextSpike';
 import { SagesPage } from './SagesPage';
 import SettingsPage from './SettingsPage';
+import { SourcePersonPage } from './SourcePerson';
 import { SpineCoveragePage } from './SpineCoveragePage';
 import { StoryReadingsPage } from './StoryReadingsPage';
 import { TopBar } from './TopBar';
@@ -65,6 +66,7 @@ function currentRoute() {
     return 'argument';
   }
   if (raw === 'stories' || raw.startsWith('stories/')) return 'stories';
+  if (raw.startsWith('source-person/')) return 'source-person';
   if (raw === 'sages' || raw.startsWith('sages/')) return 'sages';
   // #about/<section> deep-links into a section of the About page.
   if (raw === 'about' || raw.startsWith('about/')) return 'about';
@@ -111,6 +113,9 @@ export default function App() {
         </Match>
         <Match when={route() === 'stories'}>
           <StoryReadingsPage />
+        </Match>
+        <Match when={route() === 'source-person'}>
+          <SourcePersonPage />
         </Match>
         <Match when={route() === 'sages'}>
           <SagesPage />
