@@ -1,14 +1,13 @@
 /** Browse a sage through names, sources and links to other people. */
 import { StatusMessage } from '@corpus/ui/Study';
 import { createMemo, createResource, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
-import { CheckedConnections } from './CheckedConnections';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
 import { lang, t } from './i18n';
+import { PersonConnections } from './PersonConnections';
 import { SageAutocomplete } from './SageAutocomplete';
 import { SageConnections } from './SageConnections';
 import { SageCoverageStrip } from './SageCoverageStrip';
 import { SagePair } from './SagePair';
-import { SagePartners } from './SagePartners';
 import { SageReviewedPair } from './SageReviewedPair';
 import { academyLabel, placeLabel, roleLabel } from './sageLabels';
 import type { IndexRow } from './sageSearch';
@@ -349,8 +348,11 @@ function SageDetail(props: {
           </a>
         </p>
       </Show>
-      <CheckedConnections query={{ person: props.slug }} onPerson={props.onSelect} />
-      <SagePartners slug={props.slug} nameFor={props.nameFor} onSelect={props.onSelect} />
+      <PersonConnections
+        id={props.slug}
+        name={props.nameFor(props.slug)}
+        onPerson={props.onSelect}
+      />
       <SageConnections
         slug={props.slug}
         profile={unified()}

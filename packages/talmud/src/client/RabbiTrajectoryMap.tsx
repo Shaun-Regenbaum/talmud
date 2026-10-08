@@ -26,6 +26,7 @@ export interface LocationInference {
 }
 
 interface Props {
+  journeyControls?: boolean;
   data: GeographyData;
   evidence: GeographyEvidence[];
   /** Per-daf inference of WHERE the rabbi is in this sugya — its stop gets the
@@ -61,6 +62,7 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
     props.onHighlightRange?.(null);
   });
 
+  const hasOrder = () => buildTrajectory(props.data).every((s) => s.seq != null);
   const placed = (): PlacedStop[] => collapsePlaced(buildTrajectory(props.data));
   // Stops we can actually plot — the detail card + default selection key off
   // these so a numbered badge is always reachable.
@@ -171,6 +173,9 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
   // Single-region rabbis just fit their stops. (lng 39 splits EY from Bavel.)
   const mapBbox = createMemo(() => {
     const stops = trajStops();
+    if (props.journeyControls) {
+      return fitBbox(stops, GEO_BBOX.nearEast, { minSpan: 1.4 });
+    }
     const bavel = stops.filter((s) => s.lng >= 39);
     const ey = stops.filter((s) => s.lng < 39);
     if (bavel.length && ey.length) {
@@ -186,12 +191,13 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
   return (
     <Show when={positioned().length > 0}>
       <div
+        classList={{ 'journey-map': !!props.journeyControls }}
         style={{
-          border: '1px solid #eae8e0',
+          border: props.journeyControls ? '0' : '1px solid #eae8e0',
           'border-radius': '6px',
-          background: 'var(--bg)',
-          padding: '0.7rem 0.8rem 0.8rem',
-          'margin-top': '0.7rem',
+          background: props.journeyControls ? 'transparent' : 'var(--bg)',
+          padding: props.journeyControls ? '0' : '0.7rem 0.8rem 0.8rem',
+          'margin-top': props.journeyControls ? '6px' : '0.7rem',
         }}
       >
         <div
@@ -209,6 +215,30 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
         {/* The life-path on the shared real-coordinate atlas — auto-framed to
             wherever the rabbi lived. Clicking a numbered badge opens its node. */}
         <GeoMap
+          annotation={
+            props.journeyControls ? (
+              <Show when={activeStop()}>
+                {(p) => (
+                  <div class="journey-annotation">
+                    <strong>
+                      {p().num}. {p().stop.place}
+                    </strong>
+                    <For each={p().stops}>
+                      {(s) => (
+                        <span>
+                          {t(`rabbi.places.kind.${s.kind}`)}
+                          {s.detail ? ` · ${s.detail}` : ''}
+                        </span>
+                      )}
+                    </For>
+                    <Show when={!hasOrder()}>
+                      <small>{t('journey.unknownOrder')}</small>
+                    </Show>
+                  </div>
+                )}
+              </Show>
+            ) : undefined
+          }
           bbox={mapBbox()}
           points={[]}
           lang={lang() === 'he' ? 'he' : 'en'}
@@ -216,13 +246,14 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
           layerToggle={false}
           expandable
           trajectory={trajStops()}
+          connectTrajectory={props.journeyControls ? hasOrder() : undefined}
           onTrajectoryStop={onTrajectoryStop}
         />
 
         {/* Detail card for the open node — renders EVERY event collapsed at that
             spot (e.g. moved-to + studied + notable in one city) so nothing the
             old timeline showed is lost. */}
-        <Show when={activeStop()}>
+        <Show when={!props.journeyControls && activeStop()}>
           {(p) => {
             const isHere = (): boolean => p().num === hereNum();
             return (

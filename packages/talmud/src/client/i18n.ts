@@ -107,6 +107,57 @@ export function toggleLang(): void {
 type Entry = { en: string; he: string };
 
 const CATALOG = {
+  'person.era': { en: 'Era', he: 'תקופה' },
+  'person.eraUnknown': { en: 'The era has not been established.', he: 'התקופה טרם נקבעה.' },
+  'person.generationRange': {
+    en: 'Approximate generation range, not a lifespan.',
+    he: 'טווח משוער של הדור, לא שנות חיים.',
+  },
+  'person.biography': { en: 'Biography', he: 'ביוגרפיה' },
+  'person.bioEmpty': { en: 'No biography is currently available.', he: 'אין כרגע ביוגרפיה זמינה.' },
+  'person.bioCredits': {
+    en: 'No biography yet. There are no credits left to create it.',
+    he: 'אין עדיין ביוגרפיה. אין יתרת קרדיטים ליצירתה.',
+  },
+  'person.bioPaused': {
+    en: 'Biography is not available yet. Writing is paused.',
+    he: 'הביוגרפיה עדיין אינה זמינה. הכתיבה מושהית.',
+  },
+  'person.bioError': { en: 'Could not load the biography.', he: 'לא ניתן לטעון את הביוגרפיה.' },
+  'person.connectionsLoading': { en: 'Loading connections…', he: 'טוען קשרים…' },
+  'person.connectionsEmpty': {
+    en: 'No connections are currently available.',
+    he: 'אין כרגע קשרים זמינים.',
+  },
+  'person.connectionsError': {
+    en: 'Some connections could not be loaded.',
+    he: 'חלק מהקשרים לא נטענו.',
+  },
+  'person.mixedCounts': {
+    en: 'Counts come from the passage records. For people without those records, they count checked passages only. Checked evidence below is shown separately and is not added again.',
+    he: 'המספרים מבוססים על רישומי הקטעים. כשאין רישומים כאלה, נספרים רק קטעים שנבדקו. הראיות שנבדקו מוצגות בנפרד ואינן נספרות שוב.',
+  },
+  'person.checkedCounts': {
+    en: 'Counts show distinct passages reviewed so far. Open a person for the evidence.',
+    he: 'המספרים מציגים קטעים נפרדים שנבדקו עד כה. פתחו אדם להצגת הראיות.',
+  },
+  'person.checkedPassages': { en: 'Checked passages', he: 'קטעים שנבדקו' },
+  'person.places': { en: 'Places', he: 'מקומות' },
+  'person.placesEmpty': { en: 'No places are currently available.', he: 'אין כרגע מקומות זמינים.' },
+  'person.placesLoading': { en: 'Loading places…', he: 'טוען מקומות…' },
+  'person.openSource': { en: 'Open source', he: 'פתיחת המקור' },
+
+  'journey.unknownOrder': {
+    en: 'Order unknown. Numbers identify places, not stages of a journey.',
+    he: 'הסדר אינו ידוע. המספרים מזהים מקומות, לא שלבים במסע.',
+  },
+  'journey.whole': { en: 'Whole journey', he: 'כל המסע' },
+  'journey.local': { en: 'Selected place', he: 'המקום שנבחר' },
+  'journey.stops': { en: 'Journey stops', he: 'תחנות במסע' },
+  'journey.orderNote': {
+    en: 'Lines connect places in the saved order, not a known travel route.',
+    he: 'הקווים מחברים מקומות לפי הסדר השמור, לא לפי נתיב נסיעה ידוע.',
+  },
   'usage.daily.scale': {
     en: 'Requests \u00b7 one scale across all days and channels',
     he: 'בקשות · קנה מידה אחיד לכל הימים והערוצים',

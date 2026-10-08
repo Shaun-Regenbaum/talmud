@@ -9,6 +9,9 @@
  */
 
 export type InteractionKind =
+  | 'direct'
+  | 'response'
+  | 'action'
   | 'disputes'
   | 'addresses'
   | 'asks'
@@ -55,6 +58,19 @@ export const KINDS: ReadonlyArray<{
   mine?: { en: string; he: string };
   theirs?: { en: string; he: string };
 }> = [
+  {
+    kind: 'direct',
+    color: 'var(--ink-blue)',
+    en: 'direct interactions',
+    he: 'מפגשים ושיחות ישירות',
+  },
+  {
+    kind: 'response',
+    color: 'var(--ink-ochre)',
+    en: 'responses to teachings',
+    he: 'תגובות לדברים',
+  },
+  { kind: 'action', color: 'var(--ink-blue)', en: 'actions', he: 'מעשים' },
   { kind: 'disputes', color: 'var(--ink-brick)', en: 'argue', he: 'חולקים' },
   {
     kind: 'addresses',

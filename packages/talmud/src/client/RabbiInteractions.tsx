@@ -24,6 +24,8 @@ const COLLAPSED = 8;
 export default function RabbiInteractions(props: {
   data: SageInteractions;
   subjectName: string;
+  renderEvidence?: (partner: Partner) => JSX.Element;
+  footer?: JSX.Element;
 }): JSX.Element {
   const links = useRabbiLinks();
   const [expanded, setExpanded] = createSignal(false);
@@ -80,7 +82,7 @@ export default function RabbiInteractions(props: {
 
       <For each={shown()}>
         {(p) => {
-          const key = p.nameHe;
+          const key = p.slug ?? p.nameHe;
           const isOpen = () => open() === key;
           const here = () => onThisPage(p, pageRabbis());
           return (
@@ -202,7 +204,8 @@ export default function RabbiInteractions(props: {
                       </div>
                     )}
                   </For>
-                  <Show when={links && (p.name || p.nameHe)}>
+                  {props.renderEvidence?.(p)}
+                  <Show when={!props.renderEvidence && links && (p.name || p.nameHe)}>
                     <button
                       type="button"
                       onClick={() => links?.onPushRabbi(p.name ?? p.nameHe)}
@@ -227,7 +230,7 @@ export default function RabbiInteractions(props: {
       </For>
 
       <p style={{ margin: '0.5rem 0 0', color: 'var(--muted)', 'font-size': '0.72rem' }}>
-        {t('rabbi.interactions.about', { n: String(props.data.partnersInAll) })}
+        {props.footer ?? t('rabbi.interactions.about', { n: String(props.data.partnersInAll) })}
       </p>
     </div>
   );

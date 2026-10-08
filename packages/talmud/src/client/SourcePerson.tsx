@@ -1,8 +1,9 @@
-import { StatusMessage } from '@corpus/ui/Study';
 import { createResource, createSignal, onCleanup, Show } from 'solid-js';
 import type { SourcePerson as SourcePersonData } from '../lib/sage-graph/types';
-import { CheckedConnections } from './CheckedConnections';
 import { lang, t } from './i18n';
+import { PersonConnections } from './PersonConnections';
+import { PersonEra } from './PersonEra';
+import { PersonStatus } from './PersonStatus';
 import { sefariaUrl } from './sageInteractions';
 import './sourcePerson.css';
 
@@ -24,13 +25,9 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
         <p>{t('sourcePerson.loading')}</p>
       </Show>
       <Show when={!person.loading && !person()}>
-        <StatusMessage
-          tone="error"
-          onRetry={() => void refetch()}
-          retryLabel={t('sages.connections.retry')}
-        >
+        <PersonStatus error onRetry={() => void refetch()}>
           {t('sourcePerson.error')}
-        </StatusMessage>
+        </PersonStatus>
       </Show>
       <Show when={!person.loading && person()}>
         {(p) => (
@@ -39,19 +36,35 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
             <h2>
               <bdi>{lang() === 'he' ? p().nameHe : p().name}</bdi>
             </h2>
-            <p>{lang() === 'he' ? p().summaryHe : p().summary}</p>
-            <p class="source-person-note">{t('sourcePerson.unresolved')}</p>
-            <blockquote lang="he" dir="rtl">
-              {p().quote}
-            </blockquote>
-            <a href={sefariaUrl(p().ref) ?? undefined} target="_blank" rel="noopener noreferrer">
-              <bdi>{p().ref}</bdi>
-            </a>
-            <CheckedConnections
-              query={{ person: p().id }}
+            <PersonEra />
+            <section class="person-biography">
+              <h4>{t('person.biography')}</h4>
+              <PersonStatus>{t('person.bioEmpty')}</PersonStatus>
+              <p>{lang() === 'he' ? p().summaryHe : p().summary}</p>
+              <details class="person-passage">
+                <summary>{p().ref}</summary>
+                <blockquote lang="he" dir="rtl">
+                  {p().quote}
+                </blockquote>
+                <a
+                  href={sefariaUrl(p().ref) ?? undefined}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t('person.openSource')}
+                </a>
+              </details>
+            </section>
+            <PersonConnections
+              id={p().id}
+              name={lang() === 'he' ? p().nameHe : p().name}
               revision={p().revision}
               onPerson={props.onPerson}
             />
+            <section class="person-places">
+              <h4>{t('person.places')}</h4>
+              <PersonStatus>{t('person.placesEmpty')}</PersonStatus>
+            </section>
           </>
         )}
       </Show>
