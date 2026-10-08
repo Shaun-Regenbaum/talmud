@@ -254,9 +254,43 @@ sageGraph.get('/person', async (c) => {
   const passage = sourceRow ? JSON.parse(sourceRow.payload_json) : null;
   if (!passage?.source?.passage?.includes(profile.quote))
     return c.json({ error: 'Source could not be checked' }, 503);
+  const places = [];
+  if ((profile.places ?? []).length > 50)
+    return c.json({ error: 'Too many place sources for one profile' }, 503);
+  for (const place of profile.places ?? []) {
+    const row = await db
+      .prepare(
+        "SELECT payload_json FROM sage_graph_records WHERE revision_id=? AND record_id=? AND kind='passage'",
+      )
+      .bind(saved.id, `passage:${place.passageId}`)
+      .first<{ payload_json: string }>();
+    const source = row ? JSON.parse(row.payload_json) : null;
+    if (
+      !place.quote ||
+      source?.ref !== place.ref ||
+      !source?.source?.passage?.includes(place.quote)
+    )
+      return c.json({ error: 'Place source could not be checked' }, 503);
+    places.push(place);
+  }
+  const era = profile.era;
+  if (
+    era &&
+    (!Number.isInteger(era.start) ||
+      !Number.isInteger(era.end) ||
+      era.end <= era.start ||
+      !era.label ||
+      !era.labelHe ||
+      !/^https:\/\//.test(era.source?.url ?? ''))
+  )
+    return c.json({ error: 'Era source could not be checked' }, 503);
   return c.json({
     revision: saved.id,
     id,
+    era,
+    generation: profile.generation,
+    resolvedTo: profile.resolvedTo,
+    places,
     name: profile.name,
     nameHe: profile.nameHe,
     summary: profile.summary,

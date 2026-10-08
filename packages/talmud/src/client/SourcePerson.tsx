@@ -1,9 +1,10 @@
-import { createResource, createSignal, onCleanup, Show } from 'solid-js';
+import { createResource, createSignal, For, onCleanup, Show } from 'solid-js';
 import type { SourcePerson as SourcePersonData } from '../lib/sage-graph/types';
 import { lang, t } from './i18n';
 import { PersonConnections } from './PersonConnections';
 import { PersonEra } from './PersonEra';
 import { PersonStatus } from './PersonStatus';
+import RabbiTrajectoryMap from './RabbiTrajectoryMap';
 import { sefariaUrl } from './sageInteractions';
 import './sourcePerson.css';
 
@@ -36,7 +37,7 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
             <h2>
               <bdi>{lang() === 'he' ? p().nameHe : p().name}</bdi>
             </h2>
-            <PersonEra />
+            <PersonEra reviewed={p().era} generation={p().generation} />
             <section class="person-biography">
               <h4>{t('person.biography')}</h4>
               <PersonStatus>{t('person.bioEmpty')}</PersonStatus>
@@ -56,14 +57,71 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
               </details>
             </section>
             <PersonConnections
-              id={p().id}
+              id={p().resolvedTo ?? p().id}
               name={lang() === 'he' ? p().nameHe : p().name}
               revision={p().revision}
               onPerson={props.onPerson}
             />
             <section class="person-places">
               <h4>{t('person.places')}</h4>
-              <PersonStatus>{t('person.placesEmpty')}</PersonStatus>
+              <Show
+                when={p().places?.length}
+                fallback={<PersonStatus>{t('person.placesEmpty')}</PersonStatus>}
+              >
+                <RabbiTrajectoryMap
+                  journeyControls
+                  data={{
+                    primaryStudyPlaces: [],
+                    movements: [],
+                    notablePlaces: (p().places ?? [])
+                      .filter((place) => place.mapPlace)
+                      .map((place) => ({
+                        place: place.mapPlace!,
+                        event: lang() === 'he' ? place.eventHe : place.event,
+                      })),
+                  }}
+                  evidence={[]}
+                  sourceForPlace={(name) => (
+                    <For each={(p().places ?? []).filter((place) => place.mapPlace === name)}>
+                      {(place) => (
+                        <details class="person-passage">
+                          <summary>{place.ref}</summary>
+                          <blockquote lang="he" dir="rtl">
+                            {place.quote}
+                          </blockquote>
+                          <a
+                            href={sefariaUrl(place.ref) ?? undefined}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {t('person.openSource')}
+                          </a>
+                        </details>
+                      )}
+                    </For>
+                  )}
+                />
+                <For each={(p().places ?? []).filter((place) => !place.mapPlace)}>
+                  {(place) => (
+                    <details class="person-passage">
+                      <summary>
+                        {lang() === 'he' ? place.placeHe : place.place} · {place.ref}
+                      </summary>
+                      <p>{lang() === 'he' ? place.eventHe : place.event}</p>
+                      <blockquote lang="he" dir="rtl">
+                        {place.quote}
+                      </blockquote>
+                      <a
+                        href={sefariaUrl(place.ref) ?? undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {t('person.openSource')}
+                      </a>
+                    </details>
+                  )}
+                </For>
+              </Show>
             </section>
           </>
         )}

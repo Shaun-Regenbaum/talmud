@@ -1,4 +1,5 @@
 import { For, Show } from 'solid-js';
+import type { ReviewedEra } from '../lib/sage-graph/types';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
 import { lang, t } from './i18n';
 import './personCard.css';
@@ -22,12 +23,31 @@ function eraLabel(era: string) {
         .replace(/\bc\.\s*/g, '~')
     : era;
 }
-export function PersonEra(props: { generation?: string | null; uncertain?: boolean }) {
+export function PersonEra(props: {
+  generation?: string | null;
+  uncertain?: boolean;
+  reviewed?: ReviewedEra;
+}) {
   const gen = () =>
     props.generation && props.generation !== 'unknown'
       ? GENERATION_BY_ID[props.generation as GenerationId]
       : undefined;
-  const range = () => (gen() ? generationRange(gen()!.era) : null);
+  const range = (): [number, number] | null =>
+    props.reviewed
+      ? [props.reviewed.start, props.reviewed.end]
+      : gen()
+        ? generationRange(gen()!.era)
+        : null;
+  const label = () =>
+    props.reviewed
+      ? lang() === 'he'
+        ? props.reviewed.labelHe
+        : props.reviewed.label
+      : gen()
+        ? lang() === 'he'
+          ? generationLabelHe(gen()!)
+          : gen()!.label
+        : t('person.eraUnknown');
   const bounds = () =>
     range()
       ? [Math.floor((range()![0] - 50) / 100) * 100, Math.ceil((range()![1] + 50) / 100) * 100]
@@ -45,12 +65,7 @@ export function PersonEra(props: { generation?: string | null; uncertain?: boole
         </Show>
       </div>
       <Show when={range()}>
-        <div
-          class="person-era-ruler"
-          dir="ltr"
-          role="img"
-          aria-label={gen() ? eraLabel(gen()!.era) : t('person.eraUnknown')}
-        >
+        <div class="person-era-ruler" dir="ltr" role="img" aria-label={label()}>
           <div class="person-era-line" />
           <Show when={range()}>
             <div
@@ -72,12 +87,20 @@ export function PersonEra(props: { generation?: string | null; uncertain?: boole
         </div>
       </Show>
       <p class="person-era-caption" title={t('person.generationRange')}>
-        {gen()
-          ? lang() === 'he'
-            ? generationLabelHe(gen()!)
-            : gen()!.label
-          : t('person.eraUnknown')}
+        {label()}
       </p>
+      <Show when={props.reviewed}>
+        {(era) => (
+          <a
+            class="person-partner-link"
+            href={era().source.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {era().source.title}
+          </a>
+        )}
+      </Show>
     </section>
   );
 }
