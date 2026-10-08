@@ -1615,6 +1615,11 @@
       "reason": "A frozen random draw of 12 test passages for a future reader test, saved before anyone read them. It is a list of passage references, not a result.",
       "sha256": "f3e19efd13b7c986994749a652b6882a8f052a39e6b97e8e97b2f2f753c185d7"
     },
+    "research/sage-network/identity/README.md": {
+      "disposition": "excluded",
+      "reason": "Engineering instructions for running and validating the namesake scanner; this is repository documentation, not a research report.",
+      "sha256": "98deea11fd6bdde3436c5f310e044b88e6e2dbca148e30c9fa8117d0a0f4280d"
+    },
     "research/sage-network/lake/README.md": {
       "disposition": "published",
       "sha256": "9841bdc66689b50949740a2572aff99d6c3469a80a82694aa0807b149e4318c9",
@@ -2279,6 +2284,11 @@
       "disposition": "excluded",
       "reason": "Plan and method documents for the sage study. They describe what to build and link to the published results; they hold no measured findings of their own.",
       "sha256": "2afa301e49e9e40c138bae1abd5aa985aa328dece0197187ea60078039edf602"
+    },
+    "research/sage-network/tests/fixtures/namesake-network.json": {
+      "disposition": "excluded",
+      "reason": "Regression fixture containing saved public passage records for the personal Talmud project; project instructions prohibit uploading this research to a company service.",
+      "sha256": "647f48142437143d12b038c2b6a7d6c50d966dee413ebe3f10f4a8350829bf2c"
     }
   },
   "version": 1
