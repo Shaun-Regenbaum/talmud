@@ -1,0 +1,81 @@
+{
+  "provenance": {
+    "captured": "2026-10-08",
+    "source": "Rendered production main-text fragments and /api/sage-graph/checked, revision sage-graph-cfe1dd3297f1a159a108",
+    "description": "Actual page fragments with missing segment markers and reviewed occurrence records."
+  },
+  "rows": [
+    {
+      "ref": "Keritot 25a:21",
+      "html": "<span class=\"daf-word\" data-word-index=\"423\" data-seg=\"19\">כתיב</span> <span class=\"daf-word\" data-word-index=\"424\">יד]</span> <span class=\"daf-word\" data-word-index=\"425\">תני</span> <span class=\"daf-word\" data-word-index=\"426\">רבי</span> <span class=\"daf-word\" data-word-index=\"427\">טו]</span> <span class=\"daf-word\" data-word-index=\"428\">חייא</span> <span class=\"daf-word\" data-word-index=\"429\">קמיה</span> <span class=\"daf-word\" data-word-index=\"430\">דרבא</span>\n <span class=\"daf-word\" data-word-index=\"431\">אשם</span>",
+      "occurrences": [
+        {
+          "characterEnd": 12,
+          "characterStart": 4,
+          "generation": null,
+          "generationBasis": null,
+          "pagePlacementVerified": false,
+          "passageId": "b010-p8",
+          "personId": "local:b010-p8/A",
+          "personKey": "b010-p8/A",
+          "quote": "רבי חייא",
+          "ref": "Keritot 25a:21",
+          "sourceSha256": "e661134d43984953726723498ba08491df02aa0e389d69de41fe0116a600b787",
+          "source": "תני רבי חייא קמיה דרבא",
+          "name": "Rabbi Hiyya teaching before Rava"
+        },
+        {
+          "characterEnd": 22,
+          "characterStart": 19,
+          "generation": null,
+          "generationBasis": null,
+          "pagePlacementVerified": false,
+          "passageId": "b010-p8",
+          "personId": "local:b010-p8/B",
+          "personKey": "b010-p8/B",
+          "quote": "רבא",
+          "ref": "Keritot 25a:21",
+          "sourceSha256": "e661134d43984953726723498ba08491df02aa0e389d69de41fe0116a600b787",
+          "source": "תני רבי חייא קמיה דרבא",
+          "name": "Rava in the teaching scene"
+        }
+      ]
+    },
+    {
+      "ref": "Bava Kamma 117a:10",
+      "html": "<span class=\"daf-word\" data-word-index=\"138\" data-seg=\"8\">ניסוך</span> <span class=\"daf-argument-anchor\" data-idx=\"3\" data-excerpt-len=\"7\" aria-hidden=\"true\"></span><span class=\"daf-word\" data-word-index=\"139\" data-seg=\"9\">רב</span> <span class=\"daf-word\" data-word-index=\"140\" data-seg=\"9\">הונא</span> <span class=\"daf-word\" data-word-index=\"141\" data-seg=\"9\">בר</span> <span class=\"daf-word\" data-word-index=\"142\" data-seg=\"9\">יהודה</span> <span class=\"daf-word\" data-word-index=\"143\" data-seg=\"9\">איקלע</span> <span class=\"daf-word\" data-word-index=\"144\" data-seg=\"9\">לבי</span> <span class=\"daf-word\" data-word-index=\"145\" data-seg=\"9\">אביוני</span>\n<span class=\"daf-word\" data-word-index=\"146\" data-seg=\"9\">אתא</span> <span class=\"daf-word\" data-word-index=\"147\" data-seg=\"9\">לקמיה</span> <span class=\"daf-word\" data-word-index=\"148\" data-seg=\"9\">דרבא</span> <span class=\"daf-word\" data-word-index=\"149\" data-seg=\"9\">א\"ל</span> <span class=\"daf-word\" data-word-index=\"150\" data-seg=\"9\">כלום</span> <span class=\"daf-word\" data-word-index=\"151\" data-seg=\"9\">מעשה</span> <span class=\"daf-word\" data-word-index=\"152\" data-seg=\"9\">בא</span> <span class=\"daf-word\" data-word-index=\"153\" data-seg=\"9\">לידך</span> <span class=\"daf-word\" data-word-index=\"154\" data-seg=\"9\">א\"ל</span> <span class=\"daf-word\" data-word-index=\"155\" data-seg=\"9\">ישראל</span> <span class=\"daf-word\" data-word-index=\"156\" data-seg=\"9\">שאנסוהו</span> <span class=\"daf-word\" data-word-index=\"157\">עובדי</span>\n<span class=\"daf-word\" data-word-index=\"158\">כוכבים</span> <span class=\"daf-word\" data-word-index=\"159\">והראה</span> <span class=\"daf-word\" data-word-index=\"160\">ממון</span> <span class=\"daf-word\" data-word-index=\"161\">חבירו</span> <span class=\"daf-word\" data-word-index=\"162\">בא</span> <span class=\"daf-word\" data-word-index=\"163\">לידי</span> <span class=\"daf-word\" data-word-index=\"164\">וחייבתיו</span> <span class=\"daf-word\" data-word-index=\"165\" data-seg=\"10\">א\"ל</span>",
+      "occurrences": [
+        {
+          "characterEnd": 16,
+          "characterStart": 0,
+          "generation": "amora-bavel-4",
+          "generationBasis": "existing_registry_not_new_dating",
+          "pagePlacementVerified": false,
+          "passageId": "b033-p0",
+          "personId": "rav-huna-b-yehuda",
+          "personKey": "b033-p0/A",
+          "quote": "רב הונא בר יהודה",
+          "ref": "Bava Kamma 117a:10",
+          "sourceSha256": "b662a525f5eb122f0b50e89659b4901e99d00e11e79622c3b24611c841b8ddae",
+          "source": "רב הונא בר יהודה איקלע לבי אביוני אתא לקמיה דרבא א\"ל כלום מעשה בא לידך א\"ל ישראל שאנסוהו עובדי כוכבים והראה ממון חבירו בא לידי וחייבתיו",
+          "name": "Rav Huna b. Yehuda"
+        },
+        {
+          "characterEnd": 48,
+          "characterStart": 45,
+          "generation": "amora-bavel-4",
+          "generationBasis": "existing_registry",
+          "pagePlacementVerified": false,
+          "passageId": "b033-p0",
+          "personId": "rava",
+          "personKey": "b033-p0/C",
+          "quote": "רבא",
+          "ref": "Bava Kamma 117a:10",
+          "sourceSha256": "b662a525f5eb122f0b50e89659b4901e99d00e11e79622c3b24611c841b8ddae",
+          "source": "רב הונא בר יהודה איקלע לבי אביוני אתא לקמיה דרבא א\"ל כלום מעשה בא לידך א\"ל ישראל שאנסוהו עובדי כוכבים והראה ממון חבירו בא לידי וחייבתיו",
+          "name": "Rava"
+        }
+      ]
+    }
+  ]
+}

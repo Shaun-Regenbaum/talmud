@@ -32,6 +32,57 @@ function letters(text: string) {
   return output;
 }
 
+// Repair only a complete, unique source match between the neighboring segment
+// markers. This does not extend the fuzzy aligner or search another segment.
+function restoreSegment(doc: Document, segment: number, source: string): HTMLElement[] {
+  const all = [...doc.querySelectorAll<HTMLElement>('.daf-word')];
+  const tagged = (word: HTMLElement) =>
+    word.dataset.seg === undefined ? undefined : Number(word.dataset.seg);
+  let previous = -1;
+  for (let i = 0; i < all.length; i++) {
+    const tag = tagged(all[i]);
+    if (tag !== undefined && tag < segment) previous = i;
+  }
+  const next = all.findIndex((word, i) => {
+    const tag = tagged(word);
+    return i > previous && tag !== undefined && tag > segment;
+  });
+  const existing = all.filter((word) => tagged(word) === segment);
+  if (
+    !existing.length &&
+    (previous < 0 || tagged(all[previous]) !== segment - 1) &&
+    (next < 0 || tagged(all[next]) !== segment + 1)
+  )
+    return [];
+  if (source.trim().split(/\s+/).length < 4) return [];
+  const window = all.slice(previous + 1, next < 0 ? all.length : next);
+  const words = window.filter((word) => {
+    // The printed footnote labels טו] and יד] are not part of the sentence.
+    const text = (word.textContent ?? '').trim();
+    return !(tagged(word) === undefined && /^[א-ת]{1,3}\]$/.test(text));
+  });
+  const mapped = words.flatMap((word) =>
+    letters(word.textContent ?? '').map(({ letter }) => ({ letter, word })),
+  );
+  const needle = letters(source)
+    .map((x) => x.letter)
+    .join('');
+  const haystack = mapped.map((x) => x.letter).join('');
+  const start = haystack.indexOf(needle);
+  if (!needle || start < 0 || haystack.indexOf(needle, start + 1) >= 0) return [];
+  const end = start + needle.length;
+  // Never accept a match that begins or ends inside a printed word.
+  if (
+    (start > 0 && mapped[start - 1].word === mapped[start].word) ||
+    (end < mapped.length && mapped[end - 1].word === mapped[end].word)
+  )
+    return [];
+  const selected = [...new Set(mapped.slice(start, end).map((x) => x.word))];
+  if (existing.some((word) => !selected.includes(word))) return [];
+  for (const word of selected) word.dataset.seg = String(segment);
+  return selected;
+}
+
 export function injectCheckedNames(html: string, occurrences: CheckedOccurrence[]): string {
   if (!occurrences.length || typeof document === 'undefined') return html;
   const doc = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html');
@@ -39,15 +90,17 @@ export function injectCheckedNames(html: string, occurrences: CheckedOccurrence[
   for (const row of occurrences) {
     const segment = row.ref.match(/:(\d+)$/);
     if (!segment || row.source.slice(row.characterStart, row.characterEnd) !== row.quote) continue;
-    const words = [
+    let words = [
       ...doc.querySelectorAll<HTMLElement>(`.daf-word[data-seg="${Number(segment[1]) - 1}"]`),
     ];
-    if (!words.length) continue;
-    const rendered = words.map((w) => w.textContent ?? '').join(' ');
     const sourceLetters = letters(row.source);
-    const pageLetters = letters(rendered);
-    if (sourceLetters.map((x) => x.letter).join('') !== pageLetters.map((x) => x.letter).join(''))
-      continue;
+    const normalizedSource = sourceLetters.map((x) => x.letter).join('');
+    let pageLetters = letters(words.map((w) => w.textContent ?? '').join(' '));
+    if (normalizedSource !== pageLetters.map((x) => x.letter).join('')) {
+      words = restoreSegment(doc, Number(segment[1]) - 1, row.source);
+      pageLetters = letters(words.map((w) => w.textContent ?? '').join(' '));
+    }
+    if (!words.length || normalizedSource !== pageLetters.map((x) => x.letter).join('')) continue;
     const start = sourceLetters.findIndex((x) => x.at >= row.characterStart);
     let end = sourceLetters.findIndex((x) => x.at >= row.characterEnd);
     if (end < 0) end = sourceLetters.length;
@@ -98,27 +151,43 @@ export function injectCheckedNames(html: string, occurrences: CheckedOccurrence[
     )
       continue;
     if (words.some((w) => painted.has(w))) continue;
-    const first = words[0],
-      last = words[words.length - 1],
-      parent = first.parentNode;
+    const parent = words[0].parentNode;
     if (!parent || words.some((w) => w.parentNode !== parent)) continue;
     const generation =
       row.generation && row.generation in GENERATION_BY_ID
         ? (row.generation as GenerationId)
         : 'unknown';
-    const wrapper = doc.createElement('span');
-    wrapper.className = `rabbi-underline rabbi-gen-${generation}`;
-    wrapper.style.borderBottomColor = colorForGeneration(generation);
-    wrapper.dataset.rabbi = row.name;
-    wrapper.dataset.rabbiSlug = row.personId;
-    wrapper.dataset.checkedPerson = row.personKey;
-    parent.insertBefore(wrapper, first);
-    let current: Node | null = first;
-    while (current) {
-      const next: Node | null = current.nextSibling;
-      wrapper.appendChild(current);
-      if (current === last) break;
-      current = next;
+    // A footnote may sit inside a name. Link the name on either side while
+    // leaving the footnote in its original position and outside the link.
+    const groups: HTMLElement[][] = [];
+    for (const word of words) {
+      const group = groups[groups.length - 1];
+      let sibling = group?.[group.length - 1].nextSibling;
+      while (sibling && sibling !== word) {
+        if (sibling instanceof Element && sibling.querySelector('.daf-word')) break;
+        if (sibling instanceof Element && sibling.matches('.daf-word')) break;
+        sibling = sibling.nextSibling;
+      }
+      if (group && sibling === word) group.push(word);
+      else groups.push([word]);
+    }
+    for (const group of groups) {
+      const first = group[0],
+        last = group[group.length - 1];
+      const wrapper = doc.createElement('span');
+      wrapper.className = `rabbi-underline rabbi-gen-${generation}`;
+      wrapper.style.borderBottomColor = colorForGeneration(generation);
+      wrapper.dataset.rabbi = row.name;
+      wrapper.dataset.rabbiSlug = row.personId;
+      wrapper.dataset.checkedPerson = row.personKey;
+      parent.insertBefore(wrapper, first);
+      let current: Node | null = first;
+      while (current) {
+        const next: Node | null = current.nextSibling;
+        wrapper.appendChild(current);
+        if (current === last) break;
+        current = next;
+      }
     }
     for (const word of words) painted.add(word);
   }
