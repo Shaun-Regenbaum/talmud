@@ -28,6 +28,7 @@ export interface LocationInference {
 interface Props {
   journeyControls?: boolean;
   sourceForPlace?: (place: string) => JSX.Element;
+  labelForPlace?: (place: string) => string;
   data: GeographyData;
   evidence: GeographyEvidence[];
   /** Per-daf inference of WHERE the rabbi is in this sugya — its stop gets the
@@ -161,7 +162,7 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
           lat: ll.lat,
           lng: ll.lng,
           seq: p.num,
-          label: p.stop.place,
+          label: props.labelForPlace?.(p.stop.place) ?? p.stop.place,
           active: p.num === active,
         },
       ];
@@ -222,7 +223,7 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
                 {(p) => (
                   <div class="journey-annotation">
                     <strong>
-                      {p().num}. {p().stop.place}
+                      {p().num}. {props.labelForPlace?.(p().stop.place) ?? p().stop.place}
                     </strong>
                     <For each={p().stops}>
                       {(s) => (

@@ -81,6 +81,11 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
                       })),
                   }}
                   evidence={[]}
+                  labelForPlace={(name) =>
+                    lang() === 'he'
+                      ? (p().places?.find((place) => place.mapPlace === name)?.placeHe ?? name)
+                      : name
+                  }
                   sourceForPlace={(name) => (
                     <For each={(p().places ?? []).filter((place) => place.mapPlace === name)}>
                       {(place) => (
