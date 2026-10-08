@@ -88,6 +88,28 @@ class ReviewImportTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'Invalid name bounds'):
                     self.run_import()
 
+    def test_era_screen_cannot_be_accepted(self):
+        self.item('era_review')['decision'] = 'supported'
+        with self.assertRaisesRegex(ValueError, 'new unaccepted reviews'):
+            self.run_import()
+
+    def test_era_screen_must_name_a_real_passage_person(self):
+        self.item('era_review')['data']['a']['personKey'] = 'b493-p6/does-not-exist'
+        with self.assertRaisesRegex(ValueError, 'Era review indexes differ'):
+            self.run_import()
+
+    def test_era_screen_cannot_switch_the_speakers(self):
+        item = self.item('era_review')
+        item['data']['a'], item['data']['b'] = item['data']['b'], item['data']['a']
+        item['subject_id'], item['object_id'] = item['object_id'], item['subject_id']
+        with self.assertRaisesRegex(ValueError, 'Era review pair differs from claim'):
+            self.run_import()
+
+    def test_era_screen_cannot_change_its_quote(self):
+        self.item('era_review')['data']['quote'] = 'changed quote'
+        with self.assertRaisesRegex(ValueError, 'Era review quote differs from claim'):
+            self.run_import()
+
     def test_wrong_replacement_hash(self):
         self.item('graph_node')['replacesSha256'] = '0' * 64
         with self.assertRaisesRegex(ValueError, 'previous hash'):

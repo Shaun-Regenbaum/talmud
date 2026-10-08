@@ -63,6 +63,24 @@ export function injectCheckedNames(html: string, occurrences: CheckedOccurrence[
     if ([...old.querySelectorAll<HTMLElement>('.daf-word')].some((w) => touched.has(w)))
       old.replaceWith(...old.childNodes);
   }
+  // A place used inside a checked full name belongs to the person link.
+  // Only unwrap a place marker wholly covered by one accepted occurrence.
+  for (const place of doc.querySelectorAll('.city-marker')) {
+    const placeWords = [...place.querySelectorAll<HTMLElement>('.daf-word')];
+    if (
+      placeWords.length > 0 &&
+      candidates.some(
+        (candidate) =>
+          placeWords.every((word) => candidate.words.includes(word)) &&
+          !candidates.some(
+            (other) =>
+              other.row.personId !== candidate.row.personId &&
+              other.words.some((word) => candidate.words.includes(word)),
+          ),
+      )
+    )
+      place.replaceWith(...place.childNodes);
+  }
   const painted = new Set<HTMLElement>();
   for (const candidate of candidates) {
     const { row, words } = candidate;

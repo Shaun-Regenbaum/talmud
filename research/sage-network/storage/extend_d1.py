@@ -11,7 +11,7 @@ from pathlib import Path
 from prepare_d1 import encode
 from verify_d1 import verify
 
-ALLOWED_KINDS = {'graph_node', 'source_identity', 'connection', 'name_occurrence', 'place_review'}
+ALLOWED_KINDS = {'graph_node', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review'}
 
 COLUMNS = 'record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json'
 
@@ -55,7 +55,10 @@ def prepare(export, manifest_path, changes_path, output):
                 raise ValueError('Replacement must name the previous hash: ' + key)
             if not old and item.get('replacesSha256'):
                 raise ValueError('Replacement does not exist: ' + key)
-            if item['authority'] != 'source_review':
+            if item['kind'] == 'era_review':
+                if old or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
+                    raise ValueError('Era screens must be new unaccepted reviews: ' + key)
+            elif item['authority'] != 'source_review':
                 raise ValueError('New records must be source reviews: ' + key)
             payload = encode(item['data'])
             row = (key, item['kind'], item.get('passage_id'), item.get('ref'),
@@ -89,6 +92,25 @@ def prepare(export, manifest_path, changes_path, output):
                 if data['personKey'].split('/')[0] != row[2]:
                     raise ValueError('Person passage differs: ' + key)
                 member(data['personKey'], data['personId'])
+            if row[1] == 'era_review':
+                original = payload('claim:' + data['claimId'])
+                if data.get('status') != 'needs_review' or data.get('accepted') is not False:
+                    raise ValueError('Era screen payload cannot accept a fact: ' + key)
+                pair = (data['a']['personKey'], data['b']['personKey'])
+                if (row[4], row[5]) != tuple('local:' + person for person in pair):
+                    raise ValueError('Era review indexes differ: ' + key)
+                expected_pair = tuple(original['passageId'] + '/' + original['claim'][role] for role in ('speaker', 'addressee'))
+                if pair != expected_pair:
+                    raise ValueError('Era review pair differs from claim: ' + key)
+                if data.get('quote') != original['claim']['quote'] or data.get('evidence') != [dict(quote=original['claim']['quote'], location=original['claim']['quoteLocation'])]:
+                    raise ValueError('Era review quote differs from claim: ' + key)
+                if original['passageId'] != row[2] or not data.get('evidence'):
+                    raise ValueError('Era review claim differs: ' + key)
+                for person in (data['a'], data['b']):
+                    pid, local = person['personKey'].split('/')
+                    source = payload('passage:' + pid)
+                    if pid != row[2] or not any(p['id'] == local for p in source['people']):
+                        raise ValueError('Era review person differs: ' + key)
             if row[1] == 'graph_node':
                 if data['id'] != row[4] or key != 'graph_node:' + data['id']:
                     raise ValueError('Node index differs: ' + key)

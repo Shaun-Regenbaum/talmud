@@ -106,3 +106,11 @@ its occurrence has been matched to a registry person.
 Only reviewed place matches receive map coordinates. Unmapped places retain
 readable source evidence. The source cards do not draw travel lines from the
 order of passages or turn a requested journey into a completed one.
+
+`GET /api/sage-graph/records?kind=era_review` lists unaccepted era-screen flags.
+These rows use `screening` authority and `needs_review`, never accepted identity
+or connection status. They compare original classifications with current name
+candidates and their registry generations. Corrections are not applied in this
+screen. Missing candidates can explain a large gap, and generation ranges are
+not lifespans. Each flag preserves its original claim, the candidate names,
+input hashes, and screening coverage. It cannot change a checked connection.
