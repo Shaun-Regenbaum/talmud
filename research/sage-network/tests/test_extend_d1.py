@@ -110,6 +110,53 @@ class ReviewImportTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Era review quote differs from claim'):
             self.run_import()
 
+    def add_assessment(self):
+        screen = self.item('era_review')
+        assessment = copy.deepcopy(screen)
+        assessment.update(record_id='era_assessment:' + screen['data']['claimId'],
+                          kind='era_assessment', authority='source_review', decision='reviewed')
+        assessment['data'] = dict(
+            claimId=screen['data']['claimId'],
+            screenPayloadSha256=hashlib.sha256(encode(screen['data']).encode()).hexdigest(),
+            status='reviewed', outcome='full_name_restored', acceptedIdentity=False, acceptedEra=False,
+            reason='The passage gives Yochanan a longer identifying name.',
+            nextStep='Compare a separate historical identity before assigning an era.',
+            evidence=copy.deepcopy(screen['data']['evidence']))
+        self.changes['records'].append(assessment)
+        return assessment
+
+    def test_assessment_preserves_original_screen(self):
+        self.add_assessment()
+        self.run_import()
+        manifest = json.loads((self.root / 'out/manifest.json').read_text())
+        self.assertEqual(manifest['countsByKind']['era_review'], 1)
+        self.assertEqual(manifest['countsByKind']['era_assessment'], 1)
+
+    def test_assessment_cannot_accept_identity_or_era(self):
+        assessment = self.add_assessment()
+        for field in ['acceptedIdentity', 'acceptedEra']:
+            with self.subTest(field=field):
+                assessment['data'][field] = True
+                with self.assertRaisesRegex(ValueError, 'cannot accept'):
+                    self.run_import()
+                assessment['data'][field] = False
+
+    def test_assessment_requires_exact_screen_hash(self):
+        self.add_assessment()['data']['screenPayloadSha256'] = '0' * 64
+        with self.assertRaisesRegex(ValueError, 'original screen'):
+            self.run_import()
+
+    def test_assessment_cannot_switch_people(self):
+        row = self.add_assessment()
+        row['subject_id'], row['object_id'] = row['object_id'], row['subject_id']
+        with self.assertRaisesRegex(ValueError, 'indexes differ from screen'):
+            self.run_import()
+
+    def test_assessment_cannot_switch_evidence(self):
+        self.add_assessment()['data']['evidence'][0]['quote'] = 'Changed evidence'
+        with self.assertRaisesRegex(ValueError, 'evidence differs from screen'):
+            self.run_import()
+
     def test_wrong_replacement_hash(self):
         self.item('graph_node')['replacesSha256'] = '0' * 64
         with self.assertRaisesRegex(ValueError, 'previous hash'):
