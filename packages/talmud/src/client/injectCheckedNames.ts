@@ -5,7 +5,13 @@ import { colorForGeneration, GENERATION_BY_ID, type GenerationId } from './gener
 function letters(text: string) {
   const output: { letter: string; at: number }[] = [];
   const forms: Record<string, string> = { אל: 'אמרליה', תל: 'תלמודלומר', רמ: 'רבימאיר' };
-  for (const match of text.matchAll(/\S+/g)) {
+  // Printed verse references may be absent from the page's running text.
+  // Mask only a known book followed by chapter and verse; retain original offsets.
+  const books =
+    'בראשית|שמות|ויקרא|במדבר|דברים|יהושע|שופטים|שמואל [אב]|מלכים [אב]|ישעיה|ירמיה|יחזקאל|הושע|יואל|עמוס|עובדיה|יונה|מיכה|נחום|חבקוק|צפניה|חגי|זכריה|מלאכי|תהלים|משלי|איוב|שיר השירים|רות|איכה|קהלת|אסתר|דניאל|עזרא|נחמיה|דברי הימים [אב]';
+  const references = new RegExp(`\\((?:${books}) [א-ת׳״"']+, [א-ת׳״"']+\\)`, 'g');
+  const runningText = text.replace(references, (reference) => ' '.repeat(reference.length));
+  for (const match of runningText.matchAll(/\S+/g)) {
     const raw = match[0];
     const clean = raw.replace(/[֑-ׇ]/g, '');
     const key = clean.replace(/[^א-ת]/g, '');
