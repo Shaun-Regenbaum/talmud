@@ -1,5 +1,25 @@
 {
   "files": {
+    "packages/talmud/src/lib/data/rabbi-family.json": {
+      "disposition": "excluded",
+      "reason": "Bundled runtime records for the owner\u2019s personal Talmud app. Project instructions keep supporting research in the owner\u2019s results folder and prohibit publishing it to a company research service.",
+      "sha256": "a9c9e4c62dba3fc23f3f6978f1534c4133fc954f6ff94eb94de15cd731d932a7"
+    },
+    "packages/talmud/src/lib/data/rabbi-hierarchy.json": {
+      "disposition": "excluded",
+      "reason": "Bundled runtime records for the owner\u2019s personal Talmud app. Project instructions keep supporting research in the owner\u2019s results folder and prohibit publishing it to a company research service.",
+      "sha256": "49bcc18900db242725511ae6b0b6c117fb23947c86dc1a4666205554502eef77"
+    },
+    "packages/talmud/src/lib/data/rabbi-orientation.json": {
+      "disposition": "excluded",
+      "reason": "Bundled runtime records for the owner\u2019s personal Talmud app. Project instructions keep supporting research in the owner\u2019s results folder and prohibit publishing it to a company research service.",
+      "sha256": "7e91d7d016c0659c4f8516e52c4da76463bb3ce7cd3d753938e8cd1b92e5613b"
+    },
+    "packages/talmud/src/lib/data/rabbi-places.json": {
+      "disposition": "excluded",
+      "reason": "Bundled runtime records for the owner\u2019s personal Talmud app. Project instructions keep supporting research in the owner\u2019s results folder and prohibit publishing it to a company research service.",
+      "sha256": "99c6efed32c0706a6a8f9a8f6a24fbed7e472dac89c29a8a408d74f963440a70"
+    },
     "research/sage-network/METHOD.md": {
       "disposition": "excluded",
       "reason": "Plan and method documents for the sage study. They describe what to build and link to the published results; they hold no measured findings of their own.",
