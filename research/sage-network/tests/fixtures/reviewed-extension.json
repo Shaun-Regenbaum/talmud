@@ -1,6 +1,18 @@
 {
   "records": [
     [
+      "claim:b493-p6/s0",
+      "claim",
+      "b493-p6",
+      "Shabbat 94b:2",
+      "b493-p6/D",
+      "b493-p6/B",
+      "classification",
+      "supported",
+      "c111bffaf738417495023d8ad56038c0fe3be65df1a6cce8b775678344af226a",
+      "{\"claim\":{\"addressee\":\"B\",\"addressee_basis\":\"text\",\"field\":\"speech\",\"id\":\"s0\",\"kind\":\"objected\",\"note\":\"He objects that exemption from a sin-offering still leaves a rabbinic prohibition.\",\"quote\":\"א\\\"ל רבי יוחנן אחוה דמר בריה דרבנא לרב נחמן בר יצחק כמאן כר\\\"ש אימר דפטר ר\\\"ש מחיוב חטאת איסורא דרבנן מיהא איכא\",\"quoteLocation\":\"passage\",\"speaker\":\"D\",\"speaker_basis\":\"text\"},\"classification\":{\"decision\":\"supported\",\"flags\":[],\"groups\":[\"words\",\"views\"],\"id\":\"s0\",\"mode\":\"stated\"},\"graphReady\":false,\"historicalIdentityStatus\":\"unresolved\",\"id\":\"b493-p6/s0\",\"packSha256\":\"db253ec240d2f0a7926a81fb87c736e6e7d5d07b7838c12f9920ccdc3d2de174\",\"participants\":[{\"historicalId\":null,\"id\":\"D\",\"label\":\"רבי יוחנן\",\"localId\":\"b493-p6/D\",\"named\":\"name\",\"quote\":\"רבי יוחנן אחוה דמר בריה דרבנא\",\"quoteLocation\":\"passage\"},{\"historicalId\":null,\"id\":\"B\",\"label\":\"רב נחמן בר יצחק\",\"localId\":\"b493-p6/B\",\"named\":\"name\",\"quote\":\"רב נחמן בר יצחק\",\"quoteLocation\":\"passage\"}],\"passageId\":\"b493-p6\",\"ref\":\"Shabbat 94b:2\",\"reviewReasons\":[],\"sourcePack\":\"b493\"}"
+    ],
+    [
       "connection:source-review/b059-p9",
       "connection",
       "b059-p9",
@@ -155,6 +167,18 @@
       null,
       "88f94b8e9dbb3c8e9c14d92cfde530242876a6254548dd3eafa9e04fdd6ace4d",
       "{\"claims\":[{\"addressee\":\"none\",\"addressee_basis\":\"context\",\"field\":\"speech\",\"id\":\"s0\",\"kind\":\"taught\",\"note\":\"The opening rule fragment has no named speaker or audience.\",\"quote\":\"אפילו עם בהמה\",\"quoteLocation\":\"passage\",\"speaker\":\"A\",\"speaker_basis\":\"context\"},{\"addressee\":\"E\",\"addressee_basis\":\"unambiguous_pronoun\",\"field\":\"speech\",\"id\":\"s1\",\"kind\":\"asked\",\"note\":\"The antecedents are רב חנן מנהרדעא איקלע לרב כהנא: Hanan sees Kahana studying with an animal before him and addresses him as מר.\",\"quote\":\"אמר ליה לא סבר לה מר אפילו עם בהמה\",\"quoteLocation\":\"passage\",\"speaker\":\"D\",\"speaker_basis\":\"unambiguous_pronoun\"},{\"addressee\":\"D\",\"addressee_basis\":\"unambiguous_pronoun\",\"field\":\"speech\",\"id\":\"s2\",\"kind\":\"answered\",\"note\":\"The antecedents are רב חנן מנהרדעא and רב כהנא; Kahana replies to Hanan's question.\",\"quote\":\"אמר ליה לאו אדעתאי\",\"quoteLocation\":\"passage\",\"speaker\":\"E\",\"speaker_basis\":\"unambiguous_pronoun\"},{\"a\":\"D\",\"b\":\"E\",\"basis\":\"text\",\"field\":\"relations\",\"id\":\"r0\",\"note\":\"The visit and observation are narrated explicitly; this relation is not inferred merely from the speech exchange.\",\"quote\":\"רב חנן מנהרדעא איקלע לרב כהנא לפום נהרא חזייה דיתיב וקא גרס\",\"quoteLocation\":\"passage\",\"relation\":\"in_the_presence_of\"}],\"id\":\"b312-p9\",\"people\":[{\"id\":\"A\",\"label\":\"Unnamed voice stating the rule about an animal\",\"named\":\"pronoun_only\",\"quote\":\"אפילו עם בהמה\",\"quoteLocation\":\"passage\"},{\"id\":\"B\",\"label\":\"אביי\",\"named\":\"name\",\"quote\":\"אביי מכלליה מכולה דברא\",\"quoteLocation\":\"passage\"},{\"id\":\"C\",\"label\":\"רב ששת\",\"named\":\"name\",\"quote\":\"רב ששת מעבר ליה מצרא\",\"quoteLocation\":\"passage\"},{\"id\":\"D\",\"label\":\"רב חנן מנהרדעא\",\"named\":\"name\",\"quote\":\"רב חנן מנהרדעא\",\"quoteLocation\":\"passage\"},{\"id\":\"E\",\"label\":\"רב כהנא\",\"named\":\"name\",\"quote\":\"איקלע לרב כהנא לפום נהרא\",\"quoteLocation\":\"passage\"}],\"ref\":\"Kiddushin 81b:11\",\"source\":{\"after\":\"אמר רבא מתייחד אדם עם שתי יבמות ועם שתי צרות עם אשה וחמותה עם אשה ובת בעלה עם אשה ותינוקת שיודעת טעם ביאה ואין מוסרת עצמה לביאה\",\"before\":\"אלא תנאי היא דתניא אמר רבי מאיר הזהרו בי מפני בתי אמר רבי טרפון הזהרו בי מפני כלתי ליגלג עליו אותו תלמיד אמר רבי אבהו משום רבי חנינא בן גמליאל לא היו ימים מועטים עד שנכשל אותו תלמיד בחמותו\",\"passage\":\"אפילו עם בהמה אביי מכלליה מכולה דברא רב ששת מעבר ליה מצרא רב חנן מנהרדעא איקלע לרב כהנא לפום נהרא חזייה דיתיב וקא גרס וקיימא בהמה קמיה אמר ליה לא סבר לה מר אפילו עם בהמה אמר ליה לאו אדעתאי\"},\"unclear\":[\"The opening rule fragment has no attributed speaker.\",\"The object pronouns in the brief Abaye and Rav Sheshet reports are unnamed; their connection to an animal follows from the opening rule.\",\"The exact action described by רב ששת מעבר ליה מצרא is compressed, and the passage does not explain his circumstances.\",\"The wife, daughter, daughter-in-law, student, and other people in the context lines are not participants described by this passage.\"]}"
+    ],
+    [
+      "passage:b493-p6",
+      "passage",
+      "b493-p6",
+      "Shabbat 94b:2",
+      null,
+      null,
+      "source",
+      null,
+      "2291868c6ee338143a517578ef99e27e7989b6a6a47fff298f39687b01be842e",
+      "{\"claims\":[{\"addressee\":\"B\",\"addressee_basis\":\"text\",\"field\":\"speech\",\"id\":\"s0\",\"kind\":\"objected\",\"note\":\"He objects that exemption from a sin-offering still leaves a rabbinic prohibition.\",\"quote\":\"א\\\"ל רבי יוחנן אחוה דמר בריה דרבנא לרב נחמן בר יצחק כמאן כר\\\"ש אימר דפטר ר\\\"ש מחיוב חטאת איסורא דרבנן מיהא איכא\",\"quoteLocation\":\"passage\",\"speaker\":\"D\",\"speaker_basis\":\"text\"},{\"addressee\":\"D\",\"addressee_basis\":\"context\",\"field\":\"speech\",\"id\":\"s1\",\"kind\":\"answered\",\"note\":\"The exchange supplies the likely respondent and recipient. האלהים is an oath invocation, not the addressee.\",\"quote\":\"א\\\"ל האלהים דעיילת ביה את ואפילו לר' יהודה (שרי) דמי קאמינא לרה\\\"ר לכרמלית קאמינא גדול כבוד הבריות שדוחה את לא תעשה שבתורה\",\"quoteLocation\":\"passage\",\"speaker\":\"B\",\"speaker_basis\":\"context\"},{\"a\":\"B\",\"b\":\"C\",\"basis\":\"text\",\"field\":\"relations\",\"id\":\"r0\",\"note\":\"\",\"quote\":\"רב נחמן בר יצחק\",\"quoteLocation\":\"passage\",\"relation\":\"child_of\"},{\"a\":\"D\",\"b\":\"E\",\"basis\":\"text\",\"field\":\"relations\",\"id\":\"r1\",\"note\":\"\",\"quote\":\"רבי יוחנן אחוה דמר בריה דרבנא\",\"quoteLocation\":\"passage\",\"relation\":\"sibling_of\"},{\"a\":\"E\",\"b\":\"F\",\"basis\":\"text\",\"field\":\"relations\",\"id\":\"r2\",\"note\":\"\",\"quote\":\"מר בריה דרבנא\",\"quoteLocation\":\"passage\",\"relation\":\"child_of\"}],\"id\":\"b493-p6\",\"people\":[{\"id\":\"A\",\"label\":\"the deceased person in דרוקרא\",\"named\":\"described\",\"quote\":\"ההוא שכבא דהוה בדרוקרא\",\"quoteLocation\":\"passage\"},{\"id\":\"B\",\"label\":\"רב נחמן בר יצחק\",\"named\":\"name\",\"quote\":\"רב נחמן בר יצחק\",\"quoteLocation\":\"passage\"},{\"id\":\"C\",\"label\":\"יצחק\",\"named\":\"father_of_named\",\"quote\":\"בר יצחק\",\"quoteLocation\":\"passage\"},{\"id\":\"D\",\"label\":\"רבי יוחנן\",\"named\":\"name\",\"quote\":\"רבי יוחנן אחוה דמר בריה דרבנא\",\"quoteLocation\":\"passage\"},{\"id\":\"E\",\"label\":\"מר בריה דרבנא\",\"named\":\"name\",\"quote\":\"מר בריה דרבנא\",\"quoteLocation\":\"passage\"},{\"id\":\"F\",\"label\":\"רבנא\",\"named\":\"father_of_named\",\"quote\":\"בריה דרבנא\",\"quoteLocation\":\"passage\"},{\"id\":\"G\",\"label\":\"ר\\\"ש\",\"named\":\"name\",\"quote\":\"כר\\\"ש\",\"quoteLocation\":\"passage\"},{\"id\":\"H\",\"label\":\"ר' יהודה\",\"named\":\"name\",\"quote\":\"לר' יהודה\",\"quoteLocation\":\"passage\"},{\"id\":\"I\",\"label\":\"האלהים\",\"named\":\"name\",\"quote\":\"האלהים\",\"quoteLocation\":\"passage\"},{\"id\":\"J\",\"label\":\"people whose dignity is invoked\",\"named\":\"group\",\"quote\":\"כבוד הבריות\",\"quoteLocation\":\"passage\"}],\"ref\":\"Shabbat 94b:2\",\"source\":{\"after\":\"תנן התם התולש סימני טומאה והכוה המחיה עובר בלא תעשה איתמר אחת משתים חייב אחת משלש רב נחמן אמר חייב רב ששת אמר פטור רב נחמן אמר חייב אהני מעשיו דאי משתקלא חדא אחריתי אזלה לה טומאה רב ששת אמר פטור השתא מיהת הא איתא לטומאה\",\"before\":\"אף במוציא את המת לקוברו אמר רבא ומודה ר' שמעון במר לחפור בו וספר תורה לקרות בו דחייב פשיטא דאי הא נמי מלאכה שאינה צריכה לגופה היא אלא מלאכה שצריכה לגופה לרבי שמעון היכי משכחת לה מהו דתימא עד דאיכא לגופו ולגופה כגון מר לעשות לו טס ולחפור ספר תורה להגיה ולקרות בו קא משמע לן\",\"passage\":\"ההוא שכבא דהוה בדרוקרא שרא רב נחמן בר יצחק לאפוקיה לכרמלית א\\\"ל רבי יוחנן אחוה דמר בריה דרבנא לרב נחמן בר יצחק כמאן כר\\\"ש אימר דפטר ר\\\"ש מחיוב חטאת איסורא דרבנן מיהא איכא א\\\"ל האלהים דעיילת ביה את ואפילו לר' יהודה (שרי) דמי קאמינא לרה\\\"ר לכרמלית קאמינא גדול כבוד הבריות שדוחה את לא תעשה שבתורה\"},\"unclear\":[\"The reply identifies its participants only through the exchange.\",\"The deceased person's identity and the identity of the people who would carry the body are not supplied.\",\"ר\\\"ש is left abbreviated rather than identified from outside knowledge.\"]}"
     ],
     [
       "passage:b574-p4",
@@ -1754,6 +1778,71 @@
           "type": "encounter"
         },
         "replacesSha256": "b031297ecafefdcec2c81864083f78451885b8cea43f3ef28cf5ae8db86cd12b"
+      },
+      {
+        "record_id": "era_review:b493-p6/s0",
+        "kind": "era_review",
+        "passage_id": "b493-p6",
+        "ref": "Shabbat 94b:2",
+        "subject_id": "local:b493-p6/D",
+        "object_id": "local:b493-p6/B",
+        "authority": "screening",
+        "decision": "needs_review",
+        "data": {
+          "claimId": "b493-p6/s0",
+          "ref": "Shabbat 94b:2",
+          "quote": "א\"ל רבי יוחנן אחוה דמר בריה דרבנא לרב נחמן בר יצחק כמאן כר\"ש אימר דפטר ר\"ש מחיוב חטאת איסורא דרבנן מיהא איכא",
+          "a": {
+            "personKey": "b493-p6/D",
+            "ref": "Shabbat 94b:2",
+            "label": "רבי יוחנן",
+            "candidates": [
+              {
+                "slug": "rabbi-yochanan-b-napacha",
+                "generation": "amora-ey-1",
+                "range": [220, 250]
+              }
+            ],
+            "status": "review_candidates_only"
+          },
+          "b": {
+            "personKey": "b493-p6/B",
+            "ref": "Shabbat 94b:2",
+            "label": "רב נחמן בר יצחק",
+            "candidates": [
+              {
+                "slug": "rav-nahman-b-yitzhak",
+                "generation": "amora-bavel-5",
+                "range": [350, 375]
+              }
+            ],
+            "status": "review_candidates_only"
+          },
+          "minimumGenerationGapYears": 100,
+          "status": "needs_review",
+          "reason": "All current name candidates have generation ranges separated by more than 80 years. Generation ranges are not lifespans; inspect the passage and missing or mistaken candidates before changing any identity.",
+          "passageId": "b493-p6",
+          "evidence": [
+            {
+              "quote": "א\"ל רבי יוחנן אחוה דמר בריה דרבנא לרב נחמן בר יצחק כמאן כר\"ש אימר דפטר ר\"ש מחיוב חטאת איסורא דרבנן מיהא איכא",
+              "location": "passage"
+            }
+          ],
+          "accepted": false,
+          "scope": "Original classifications and name candidates; corrections are not applied. This is a retrieval review queue, not an audit of the corrected graph.",
+          "inputHashes": {
+            "rabbi-places.json": "30778b97f202c9d9d5b05bda1df01a2d5b9a2136d893a50f9108b802411f0f5e",
+            "classified-claims.jsonl": "7db9b48d061fc0d5c8b9df3f1b9d780d494fd5878796e3fb1f46a309d9d1b271",
+            "generations.ts": "6a1ff947c8d1cc69c0554838917f7e97e15aa9cccd2370748132c286cd032c2e",
+            "evidence-reviewed-all-nine.json": "18fcb406ad673b3c4329f96af2eb53bf83c86ae0cdb62960623c5a54d27637c1"
+          },
+          "coverage": {
+            "claimsScanned": 54611,
+            "directSpeechClaimsEligible": 5643,
+            "directSpeechClaimsWithCandidateEras": 1803,
+            "flaggedPassages": 26
+          }
+        }
       }
     ]
   }
