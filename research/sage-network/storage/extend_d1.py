@@ -11,7 +11,7 @@ from pathlib import Path
 from prepare_d1 import encode
 from verify_d1 import verify
 
-ALLOWED_KINDS = {'graph_node', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review'}
+ALLOWED_KINDS = {'graph_node', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review', 'era_assessment'}
 
 COLUMNS = 'record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json'
 
@@ -111,6 +111,25 @@ def prepare(export, manifest_path, changes_path, output):
                     source = payload('passage:' + pid)
                     if pid != row[2] or not any(p['id'] == local for p in source['people']):
                         raise ValueError('Era review person differs: ' + key)
+            if row[1] == 'era_assessment':
+                screen_key = 'era_review:' + data['claimId']
+                screen = payload(screen_key)
+                if key != 'era_assessment:' + data['claimId'] or data.get('screenPayloadSha256') != rows[screen_key][-2]:
+                    raise ValueError('Assessment must identify its original screen: ' + key)
+                if (row[2], row[3], row[4], row[5]) != rows[screen_key][2:6]:
+                    raise ValueError('Assessment indexes differ from screen: ' + key)
+                if row[7] != 'reviewed' or data.get('status') != 'reviewed':
+                    raise ValueError('Assessment must record a review: ' + key)
+                if data.get('acceptedIdentity') is not False or data.get('acceptedEra') is not False:
+                    raise ValueError('An assessment cannot accept an identity or era: ' + key)
+                if data.get('outcome') not in {'candidate_set_incomplete', 'full_name_restored', 'existing_correction', 'registry_era_conflict', 'unresolved_title'}:
+                    raise ValueError('Unknown era assessment outcome: ' + key)
+                if not data.get('reason') or not data.get('nextStep') or not data.get('evidence'):
+                    raise ValueError('Assessment needs reasoning, next step and evidence: ' + key)
+                if data['evidence'] != screen['evidence']:
+                    raise ValueError('Assessment evidence differs from screen: ' + key)
+                for slug in data.get('candidateSlugs', []):
+                    payload('registry_person:' + slug)
             if row[1] == 'graph_node':
                 if data['id'] != row[4] or key != 'graph_node:' + data['id']:
                     raise ValueError('Node index differs: ' + key)

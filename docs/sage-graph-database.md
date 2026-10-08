@@ -114,3 +114,16 @@ candidates and their registry generations. Corrections are not applied in this
 screen. Missing candidates can explain a large gap, and generation ranges are
 not lifespans. Each flag preserves its original claim, the candidate names,
 input hashes, and screening coverage. It cannot change a checked connection.
+
+`GET /api/sage-graph/records?kind=era_assessment` lists completed passage reviews.
+Join an assessment to its original flag by `claimId`. A reviewed flag can still
+need identity research: `reviewed` means someone checked the passage, not that
+the people or their dates were settled. `nextStep` records what remains open.
+The original screening row stays unchanged, including its old `needs_review`
+value. Consumers should use the assessment when reporting review progress.
+
+Assessments must name the original screen's payload hash, people and evidence.
+They cannot accept a historical identity or era. Supported conversations and
+name occurrences are separate checked records, so uncertainty about a namesake
+does not erase a clear interaction. The importer also preserves earlier local
+identity corrections instead of rebuilding people from the original screen.
