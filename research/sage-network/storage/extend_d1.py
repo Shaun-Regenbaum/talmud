@@ -4,6 +4,7 @@ import hashlib
 import json
 import sqlite3
 import tempfile
+import sys
 from collections import Counter
 from contextlib import closing
 from pathlib import Path
@@ -11,7 +12,10 @@ from pathlib import Path
 from prepare_d1 import encode
 from verify_d1 import verify
 
-ALLOWED_KINDS = {'graph_node', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review', 'era_assessment'}
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "identity"))
+from prepare_scan import build as build_namesake_changes
+
+ALLOWED_KINDS = {'graph_node', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review', 'era_assessment', 'namesake_scan', 'namesake_registry'}
 
 COLUMNS = 'record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json'
 
@@ -41,6 +45,11 @@ def prepare(export, manifest_path, changes_path, output):
         rows = {r[0]: r for r in db.execute(
             f'SELECT {COLUMNS} FROM sage_graph_records WHERE revision_id=?',
             (parent['revision'],))}
+        if 'namesakeRegistry' in changes or 'namesakeRegistrySha256' in changes or any(item['kind'] in {'namesake_scan','namesake_registry'} for item in changes['records']):
+            # Recompute every proposed record from the verified parent before import.
+            expected = build_namesake_changes(list(rows.values()), changes.get('namesakeRegistry', {}), parent)
+            if changes != expected:
+                raise ValueError('Namesake scan differs from verified parent recomputation')
         changed = {}
         for item in changes['records']:
             key = item['record_id']
@@ -55,9 +64,9 @@ def prepare(export, manifest_path, changes_path, output):
                 raise ValueError('Replacement must name the previous hash: ' + key)
             if not old and item.get('replacesSha256'):
                 raise ValueError('Replacement does not exist: ' + key)
-            if item['kind'] == 'era_review':
+            if item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry'}:
                 if old or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
-                    raise ValueError('Era screens must be new unaccepted reviews: ' + key)
+                    raise ValueError('Screens must be new unaccepted reviews: ' + key)
             elif item['authority'] != 'source_review':
                 raise ValueError('New records must be source reviews: ' + key)
             payload = encode(item['data'])
