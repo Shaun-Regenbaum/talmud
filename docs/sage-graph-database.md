@@ -86,3 +86,23 @@ The first source cards distinguish the two Huna participants in Ketubot 61a:2,
 the two Kahana participants in Menachot 66b:11, and the Parta grandfather and grandson
 in Jerusalem Talmud Ketubot 11:6:5. The latter is a family connection, not an encounter.
 The Jerusalem passage has source cards but is outside the Bavli reader.
+
+## Extend reviewed records without replacing the original readings
+
+`research/sage-network/storage/extend_d1.py <export.sql> <parent-manifest.json>
+<changes.json> <output-directory>` prepares a new revision from a verified parent.
+It verifies the full export first. Replacements name the previous payload hash;
+human corrections, original passages, and registry records cannot be replaced.
+The importer checks passage membership, name spans, quotes, and indexed fields,
+then compares a local SQL round trip. Different existing output files are refused.
+Use the same remote export, verification, and activation steps described above.
+
+A source profile may carry a reviewed century with a citation, or place evidence
+with its passage and exact quote. A century is an approximate period, not a
+lifespan. Registry generations remain separately identified as registry data.
+`resolvedTo` lets an old passage-local card retain access to connections after
+its occurrence has been matched to a registry person.
+
+Only reviewed place matches receive map coordinates. Unmapped places retain
+readable source evidence. The source cards do not draw travel lines from the
+order of passages or turn a requested journey into a completed one.

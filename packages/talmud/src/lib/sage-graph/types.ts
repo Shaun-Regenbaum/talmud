@@ -44,6 +44,27 @@ export interface CheckedGraph {
   occurrencesTruncated: boolean;
 }
 
+export interface PersonSource {
+  title: string;
+  url: string;
+}
+export interface ReviewedEra {
+  start: number;
+  end: number;
+  label: string;
+  labelHe: string;
+  source: PersonSource;
+}
+export interface ReviewedPlace {
+  place: string;
+  placeHe: string;
+  event: string;
+  eventHe: string;
+  ref: string;
+  quote: string;
+  /** Only a reviewed gazetteer match may be plotted. */
+  mapPlace: string | null;
+}
 export interface SourcePerson {
   revision: string;
   id: string;
@@ -51,6 +72,10 @@ export interface SourcePerson {
   nameHe: string;
   summary: string;
   summaryHe: string;
+  era?: ReviewedEra;
+  generation?: string | null;
+  resolvedTo?: string;
+  places?: ReviewedPlace[];
   ref: string;
   quote: string;
 }

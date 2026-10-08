@@ -27,6 +27,7 @@ export interface LocationInference {
 
 interface Props {
   journeyControls?: boolean;
+  sourceForPlace?: (place: string) => JSX.Element;
   data: GeographyData;
   evidence: GeographyEvidence[];
   /** Per-daf inference of WHERE the rabbi is in this sugya — its stop gets the
@@ -231,6 +232,7 @@ export default function RabbiTrajectoryMap(props: Props): JSX.Element {
                         </span>
                       )}
                     </For>
+                    {props.sourceForPlace?.(p().stop.place)}
                     <Show when={!hasOrder()}>
                       <small>{t('journey.unknownOrder')}</small>
                     </Show>
