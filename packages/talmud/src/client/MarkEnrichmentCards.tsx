@@ -18,6 +18,7 @@
  */
 
 import { instanceIdOf } from '@corpus/core/cache/keys';
+import { aiStatus } from '@corpus/ui/aiStatus';
 import {
   createEffect,
   createResource,
@@ -49,6 +50,7 @@ import {
 } from './enrichmentQueue';
 import { lang, t } from './i18n';
 import { requestInspect } from './inspectBridge';
+import { PersonStatus } from './PersonStatus';
 import { HebraizedWithRabbis as Hebraized } from './rabbiLinks';
 import { runProducer } from './runProducer';
 
@@ -291,6 +293,13 @@ export function registerMarkRenderer(markId: string, render: EnrichmentRenderer)
 export default function MarkEnrichmentCards(props: Props) {
   const [defs] = createResource(fetchEnrichments);
   const [runs, setRuns] = createSignal<Record<string, RunState>>({});
+  const [retryVersion, setRetryVersion] = createSignal(0);
+  const retryBiography = () => {
+    const d = primaryView();
+    if (!d) return;
+    setRun(d.id, { kind: 'idle' });
+    setRetryVersion((v) => v + 1);
+  };
 
   const setRun = (id: string, state: RunState) => setRuns((cur) => ({ ...cur, [id]: state }));
 
@@ -451,6 +460,7 @@ export default function MarkEnrichmentCards(props: Props) {
   });
 
   createEffect(() => {
+    retryVersion();
     const list = matching();
     if (list.length === 0) return;
     const s = stamp();
@@ -791,6 +801,18 @@ export default function MarkEnrichmentCards(props: Props) {
     }
     if (r.kind === 'error') {
       const paused = r.error === PAUSED_ERROR;
+      if (props.markId === 'rabbi')
+        return (
+          <PersonStatus error={!paused} onRetry={paused ? undefined : retryBiography}>
+            {t(
+              paused
+                ? aiStatus()?.reason === 'credits'
+                  ? 'person.bioCredits'
+                  : 'person.bioPaused'
+                : 'person.bioError',
+            )}
+          </PersonStatus>
+        );
       const unavailable = !paused && isServiceUnavailableError(r.error);
       // Both paused and provider-outage are calm, expected states (amber); a
       // genuine bug (parse/schema/unknown) is loud (red). Either way the failure
@@ -816,6 +838,12 @@ export default function MarkEnrichmentCards(props: Props) {
       );
     }
     const result = r.result;
+    if (
+      props.markId === 'rabbi' &&
+      !result.content?.trim() &&
+      (!result.parsed || Object.keys(result.parsed).length === 0)
+    )
+      return <PersonStatus>{t('person.bioEmpty')}</PersonStatus>;
     if (result.parsed && typeof result.parsed === 'object') {
       const parsed = result.parsed as Record<string, unknown>;
       const custom = MARK_RENDERERS[props.markId];
@@ -849,10 +877,10 @@ export default function MarkEnrichmentCards(props: Props) {
     <div
       style={{
         position: 'relative',
-        background: '#fafafa',
-        border: '1px solid #eee',
+        background: props.markId === 'rabbi' ? 'transparent' : '#fafafa',
+        border: props.markId === 'rabbi' ? '0' : '1px solid #eee',
         'border-radius': '6px',
-        padding: '0.85rem 1rem',
+        padding: props.markId === 'rabbi' ? '0' : '0.85rem 1rem',
       }}
     >
       {renderCardBody()}

@@ -90,6 +90,8 @@ export interface GeoMapProps {
    *  and dims the regular markers — a drill-down overlay (e.g. one sage's
    *  journey). Clear it to return to the full map. */
   trajectory?: GeoTrajectoryStop[];
+  connectTrajectory?: boolean;
+  annotation?: JSX.Element;
   /** Click a numbered trajectory badge (makes them interactive buttons). */
   onTrajectoryStop?: (stop: GeoTrajectoryStop, index: number) => void;
   /** Enable wheel-zoom + drag-pan (used by the expanded modal). The inline map
@@ -350,6 +352,31 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
       index: i,
     })),
   );
+  const trajectoryLabelPlacement = createMemo(() => {
+    const font = he() ? 12.5 : 11;
+    const candidates = trajStops().map((s, index) => {
+      const estimatedWidth = (s.label?.length ?? 0) * font * 0.7;
+      const left = s.xy[0] + 12 + estimatedWidth > proj().W - 4;
+      return {
+        index,
+        x: s.xy[0],
+        y: s.xy[1],
+        text: s.active ? (s.label ?? '') : '',
+        anchorX: s.xy[0] + (left ? -12 : 12),
+        anchor: left ? ('end' as const) : ('start' as const),
+        priority: s.active,
+      };
+    });
+    const positions = placeLabels(candidates, {
+      width: proj().W,
+      height: proj().H,
+      lineHeight: font,
+      charWidth: 0.7,
+      pad: 3,
+      dotRadius: 11,
+    });
+    return new Map(positions.map((p) => [p.index, { ...p, anchor: candidates[p.index].anchor }]));
+  });
   const trajPath = createMemo(() => {
     const pts = trajStops();
     if (pts.length < 2) return '';
@@ -548,7 +575,7 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
           {/* the numbered drill-down path on top */}
           <Show when={trajActive()}>
             <g class="geomap-traj">
-              <Show when={trajPath()}>
+              <Show when={props.connectTrajectory !== false && trajPath()}>
                 <path class="geomap-traj-path" d={trajPath()} />
               </Show>
               <For each={trajStops()}>
@@ -588,12 +615,12 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
                       >
                         {s.seq}
                       </text>
-                      <Show when={s.active && s.label}>
+                      <Show when={s.active && s.label && trajectoryLabelPlacement().get(s.index)}>
                         <text
                           class="geomap-traj-label"
-                          x={s.xy[0]}
-                          y={s.xy[1] + 19}
-                          text-anchor="middle"
+                          x={trajectoryLabelPlacement().get(s.index)?.x}
+                          y={trajectoryLabelPlacement().get(s.index)?.y}
+                          text-anchor={trajectoryLabelPlacement().get(s.index)?.anchor}
                         >
                           {s.label}
                         </text>
@@ -605,6 +632,9 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
             </g>
           </Show>
         </svg>
+        <Show when={props.annotation}>
+          <div class="geomap-annotation">{props.annotation}</div>
+        </Show>
         <Show when={canExpand()}>
           <button
             type="button"
@@ -660,6 +690,8 @@ export function GeoMap(props: GeoMapProps): JSX.Element {
                 onSelect={props.onSelect}
                 selected={props.selected}
                 trajectory={props.trajectory}
+                connectTrajectory={props.connectTrajectory}
+                annotation={props.annotation}
                 onTrajectoryStop={props.onTrajectoryStop}
                 panZoom={true}
                 height={680}

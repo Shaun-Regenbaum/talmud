@@ -1,3 +1,6 @@
+import { PersonConnections } from './PersonConnections';
+import { PersonEra } from './PersonEra';
+import { PersonStatus } from './PersonStatus';
 import { SourcePerson } from './SourcePerson';
 // Recipes now live in the shared lib (carried on the worker mark def too).
 // Re-exported so existing importers (CARD_DEFS, tests) keep their `from
@@ -59,11 +62,10 @@ import ArgumentFlowGraph, { type FlowConnection, stmtRelKind } from './ArgumentF
 import ArgumentNarrative from './ArgumentNarrative';
 import { type BackgroundGroup, orderBackgroundGroups } from './backgroundGroups';
 import { ChartTableView } from './ChartTableView';
-import { CheckedConnections } from './CheckedConnections';
 import { buildConceptMatcher, ConceptLinkProvider } from './conceptLinks';
 import type { IdentifiedRabbi } from './dafContext';
 import { finishDisplayText } from './displayText';
-import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
+import { GENERATION_BY_ID, type GenerationId } from './generations';
 import { GEO_CITIES } from './geoShapes';
 import { Hebraized } from './Hebraized';
 import {
@@ -79,12 +81,11 @@ import {
 import { type CatalogKey, lang, t } from './i18n';
 import { InspectDot, registerMarkRenderer, runEnrichment } from './MarkEnrichmentCards';
 import type { GeographyData, GeographyEvidence } from './RabbiGeographyCard';
-import RabbiInteractions from './RabbiInteractions';
 import RabbiObservations from './RabbiObservations';
 import RabbiTrajectoryMap, { type LocationInference } from './RabbiTrajectoryMap';
 import { HebraizedWithRabbis, RabbiLinkProvider } from './rabbiLinks';
 import { StatementSpine } from './StatementSpine';
-import { fetchSageInteractions, interactionsSlugForName } from './sageInteractions';
+import { interactionsSlugForName } from './sageInteractions';
 import type {
   AggadataStory,
   ChartTable,
@@ -126,15 +127,6 @@ export {
   TIDBIT_RECIPE,
   YERUSHALMI_RECIPE,
 };
-
-/** Localize an era date-range ("c. 290 – 320 CE") for Hebrew display. */
-function eraLabel(era: string): string {
-  if (lang() !== 'he' || !era) return era;
-  return era
-    .replace(/\bBCE\b/g, 'לפנה״ס')
-    .replace(/\bCE\b/g, 'לספירה')
-    .replace(/\bc\.\s*/g, '~');
-}
 
 /** Translate an argument move-kind to the active language, falling back to the
  *  raw kind string when the catalog has no entry. */
@@ -1909,7 +1901,6 @@ interface RabbiPin extends IdentifiedRabbi {
 // possibly-stub instance the rabbi was opened with.
 function RabbiMeta(props: SpecialBlockProps): JSX.Element {
   const f = (): Record<string, unknown> => props.instance.fields;
-  const str = (v: unknown): string => (typeof v === 'string' ? v : '');
   const identity = (): IdentifiedRabbi | undefined => {
     const i = props.deps['rabbi.identity'] as IdentifiedRabbi | undefined;
     return i && typeof i.name === 'string' ? i : undefined;
@@ -1938,30 +1929,6 @@ function RabbiMeta(props: SpecialBlockProps): JSX.Element {
     return r && r.genSource === 'ai-pin' && r.slug ? r : undefined;
   };
   const effGenId = (): GenerationId => (pin()?.generation ?? f().generation) as GenerationId;
-  const gen = () => GENERATION_BY_ID[effGenId()];
-  const effRegion = (): string => pin()?.region ?? identity()?.region ?? str(f().region);
-  const effPlaces = (): string[] => {
-    const pp = pin()?.places;
-    if (pp && pp.length > 0) return pp;
-    return identity()?.places ?? (f().places as string[] | undefined) ?? [];
-  };
-  const regionLabel = (): string =>
-    effRegion() === 'israel'
-      ? t('geography.eretzYisrael')
-      : effRegion() === 'bavel'
-        ? t('geography.bavel')
-        : effRegion();
-  const metaParts = (): string[] => {
-    const g = gen();
-    const parts: string[] = [];
-    if (g) parts.push(lang() === 'he' ? generationLabelHe(g) : g.label);
-    if (g) parts.push(eraLabel(g.era));
-    const rl = regionLabel();
-    if (rl) parts.push(rl);
-    const pl = effPlaces();
-    if (pl.length > 0) parts.push(pl.join(', '));
-    return parts;
-  };
   // Homonym note: a confident dev-mode pin reads as "most likely X (N share the
   // name)"; otherwise grounding's honest "generation uncertain — N share this
   // name" (the bare name couldn't be pinned, so don't leave an unexplained gray
@@ -1974,51 +1941,22 @@ function RabbiMeta(props: SpecialBlockProps): JSX.Element {
     return t('rabbi.generationUncertain', { count: n });
   };
   return (
-    <Show when={metaParts().length > 0 || homonymNote()}>
-      <div style={{ 'margin-bottom': '0.85rem' }}>
-        <Show when={metaParts().length > 0}>
-          <div
-            style={{
-              display: 'flex',
-              'align-items': 'center',
-              gap: '0.45rem',
-              'font-size': '0.78rem',
-              color: '#666',
-              'flex-wrap': 'wrap',
-              'line-height': 1.5,
-            }}
-          >
-            <Show when={gen()}>
-              <span
-                style={{
-                  display: 'inline-block',
-                  width: '0.55rem',
-                  height: '0.55rem',
-                  'background-color': gen()!.color,
-                  'border-radius': '50%',
-                  'flex-shrink': 0,
-                }}
-              />
-            </Show>
-            <span>{metaParts().join(' · ')}</span>
-          </div>
-        </Show>
-        <Show when={homonymNote()}>
-          <div
-            style={{
-              'font-size': '0.74rem',
-              // calmer gray for a resolved "most likely" pin; amber for the
-              // honest "uncertain" warning.
-              color: pin() ? '#6b7280' : '#8a6d1a',
-              'line-height': 1.5,
-              'margin-top': metaParts().length > 0 ? '0.2rem' : '0',
-            }}
-          >
-            {homonymNote()}
-          </div>
-        </Show>
-      </div>
-    </Show>
+    <>
+      <PersonEra
+        generation={
+          pin()?.generation ??
+          (f().genSource === 'ambiguous'
+            ? null
+            : effGenId() && effGenId() !== 'unknown'
+              ? effGenId()
+              : identity()?.generation)
+        }
+        uncertain={!!pin()}
+      />
+      <Show when={homonymNote()}>
+        <PersonStatus>{homonymNote()}</PersonStatus>
+      </Show>
+    </>
   );
 }
 
@@ -2033,85 +1971,30 @@ function RabbiLineage(props: SpecialBlockProps): JSX.Element {
     const nameHe = str(f().nameHe) || (typeof id?.nameHe === 'string' ? id.nameHe : '');
     return slug || nameHe ? { slug, nameHe } : null;
   };
-  const [interactions] = createResource(lookup, async (q) => {
-    const byName = q.nameHe ? await interactionsSlugForName(q.nameHe) : null;
-    const slug = q.slug || byName;
-    return slug ? fetchSageInteractions(slug) : null;
-  });
-  // Clear any active reader-highlight when the rabbi changes (the old body did this).
-  createEffect(() => {
-    void props.instanceKey;
-    props.onHighlightRange?.(null);
-  });
-  // Everyone else gets an honest note instead of the old teacher/student tree, which a model had pulled out of
-  // short biographies and placed a generation up or down by guess.
-  return (
-    <>
-      <Show when={lookup()?.slug}>
-        {(slug) => <CheckedConnections query={{ person: slug() }} />}
-      </Show>
-      <Show when={!interactions.loading}>
-        <Show when={interactions()} fallback={<ConnectionsInProgress />}>
-          {(d) => <RabbiInteractions data={d()} subjectName={str(f().name)} />}
-        </Show>
-      </Show>
-    </>
+  const [slug] = createResource(
+    lookup,
+    async (q) => q.slug || (q.nameHe ? await interactionsSlugForName(q.nameHe) : null),
   );
-}
-
-function ConnectionsInProgress(): JSX.Element {
-  // A road barrier (drawn with QuiverAI Arrow 2, background stripped, recoloured to currentColor, cropped) in place
-  // of a sentence; the sentence stays as the tooltip and the accessible name.
-  const note = () => t('rabbi.connections.inProgressBody');
   return (
-    <div
-      title={note()}
-      style={{
-        border: '1px dashed var(--line)',
-        'border-radius': '6px',
-        padding: '0.55rem 0.85rem 0.7rem',
-        'margin-top': '0.9rem',
-        color: 'var(--muted)',
-      }}
+    <Show
+      when={!slug.loading && slug()}
+      fallback={<PersonStatus>{t('person.connectionsEmpty')}</PersonStatus>}
     >
-      <div
-        style={{
-          'font-size': '0.7rem',
-          'text-transform': 'uppercase',
-          'letter-spacing': '0.08em',
-          'margin-bottom': '0.35rem',
-        }}
-      >
-        {t('rabbi.connections.inProgressTitle')}
-      </div>
-      <svg
-        role="img"
-        aria-label={note()}
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="7.82 7.49 65.01 65.01"
-        style={{ display: 'block', width: '44px', height: '44px', margin: '0 auto', opacity: 0.75 }}
-      >
-        <title>{note()}</title>
-        <path
-          fill="currentColor"
-          d="m67.06 31.38h-18.38v-2.42c0-1.09-0.73-1.91-1.73-1.91v-4.23c0-3.72-2.81-6.24-6.29-6.24-3.56 0.1-6.42 2.88-6.42 6.63v3.84c-1.08 0.02-1.82 0.76-1.82 1.91v2.42h-18.73c-2.02 0-3.46 1.41-3.46 3.39v8.29c0 2.03 1.55 3.52 3.52 3.52h3.66l-4.55 14.7c-0.35 1.21 0.47 2.12 1.69 2.12h5.5c1.06 0 1.68-0.65 1.98-1.74l4.14-15.08h28.35l3.85 14.97c0.28 1.16 1.05 1.85 2.19 1.85h5.24c1.39 0 2.17-1.12 1.88-2.24-1.21-4.78-2.93-10.06-4.34-14.58h3.62c2.01 0 3.46-1.49 3.46-3.49v-8.32c0-1.98-1.46-3.39-3.36-3.39zm-30.59-8.17c0.13-2.56 2.02-4.4 4.25-4.44 2.3 0.08 4 1.83 4 4.28v3.91h-8.25v-3.75zm-1.91 6.02h11.95v2.15h-11.95v-2.15zm-22.13 13.86v-8.26c0.06-0.72 0.73-1.23 1.38-1.23h7.57l-8.57 10.27c-0.27-0.13-0.38-0.41-0.38-0.78zm7.33 18.08h-4.39l4.56-14.56h3.78l-3.95 14.56zm3.62-16.91h-7.91l9.07-10.61h7.94l-9.1 10.61zm3.13 0 9-10.58h8.06l-9.02 10.58h-8.04zm11.2-0.01 9.29-10.62h7.96l-8.96 10.62h-8.29zm11.31 0 9.08-10.61h7.85l-8.88 10.61h-8.05zm16.26 16.86h-4.46l-3.88-14.5h3.96l4.38 14.5zm2.9-18c0 0.66-0.45 1.14-1.09 1.14h-7.07l8.12-9.58 0.04 8.44z"
-        />
-        <path
-          fill="currentColor"
-          d="m40.09 20.02c-1.23 0.1-2.55 1.66-2.56 3.49-0.01 0.93 0.37 1.48 1.05 1.48 0.69 0 1.03-0.58 1.04-1.38 0.01-0.77 0.52-1.41 1.09-1.69 0.42-0.21 0.52-0.59 0.47-1.05-0.08-0.54-0.53-0.87-1.09-0.85z"
-        />
-      </svg>
-      <div style={{ 'text-align': 'center', 'font-size': '0.75rem', 'margin-top': '0.3rem' }}>
-        {t('rabbi.connections.inDevelopment')}
-      </div>
-    </div>
+      {(id) => <PersonConnections id={id()} name={str(f().name)} />}
+    </Show>
   );
 }
 
 function RabbiGeography(props: SpecialBlockProps): JSX.Element {
   const geo = (): GeographyData | undefined => {
     const g = props.deps['rabbi.geography'] as GeographyData | undefined;
-    return g && (g.birthplace || Array.isArray(g.primaryStudyPlaces)) ? g : undefined;
+    return g &&
+      (g.birthplace ||
+        g.primaryStudyPlaces?.length ||
+        g.notablePlaces?.length ||
+        g.movements?.length)
+      ? g
+      : undefined;
   };
   const geoEv = (): GeographyEvidence[] => {
     const e = props.deps['rabbi.geography.evidence'] as
@@ -2124,23 +2007,27 @@ function RabbiGeography(props: SpecialBlockProps): JSX.Element {
     return l && typeof l.place === 'string' && l.place.length > 0 ? l : null;
   };
   return (
-    <Show when={geo()}>
-      {(g) => (
-        <div style={{ position: 'relative' }}>
-          <InspectDot
-            instanceKey={props.instanceKey}
-            leafId="rabbi.geography"
-            style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }}
-          />
-          <RabbiTrajectoryMap
-            data={g()}
-            evidence={geoEv()}
-            location={loc()}
-            onHighlightRange={props.onHighlightRange ?? (() => {})}
-          />
-        </div>
-      )}
-    </Show>
+    <section class="person-places">
+      <h4>{t('person.places')}</h4>
+      <Show when={geo()} fallback={<PersonStatus>{t('person.placesEmpty')}</PersonStatus>}>
+        {(g) => (
+          <div style={{ position: 'relative' }}>
+            <InspectDot
+              instanceKey={props.instanceKey}
+              leafId="rabbi.geography"
+              style={{ position: 'absolute', top: '0.2rem', right: 0, 'z-index': 2 }}
+            />
+            <RabbiTrajectoryMap
+              journeyControls
+              data={g()}
+              evidence={geoEv()}
+              location={loc()}
+              onHighlightRange={props.onHighlightRange ?? (() => {})}
+            />
+          </div>
+        )}
+      </Show>
+    </section>
   );
 }
 

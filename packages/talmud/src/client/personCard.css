@@ -1,0 +1,201 @@
+.person-biography h4,
+.person-places h4 {
+  margin: 0 0 8px;
+  font: 600 14px var(--font-ui);
+  color: var(--fg);
+}
+.person-era-ruler {
+  position: relative;
+  height: 36px;
+  margin: 10px 10px 4px;
+}
+.person-era-line {
+  height: 2px;
+  position: absolute;
+  top: 9px;
+  left: 0;
+  right: 0;
+  background: var(--line);
+}
+.person-era-tick {
+  position: absolute;
+  top: 5px;
+  width: 1px;
+  height: 9px;
+  background: var(--muted);
+}
+.person-era-tick span {
+  position: absolute;
+  top: 14px;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.person-era-range {
+  position: absolute;
+  top: 4px;
+  height: 12px;
+  background: var(--accent);
+  border-radius: 4px;
+  z-index: 1;
+}
+.person-era-range.uncertain {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--surface-sunk) 0,
+    var(--surface-sunk) 4px,
+    var(--accent) 4px,
+    var(--accent) 6px
+  );
+  border: 1px solid var(--accent);
+}
+.person-era-caption {
+  font-weight: 500;
+  font-size: 12px;
+  margin: 0;
+  line-height: 1.35;
+}
+.person-era-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.person-era-heading span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.person-checked-evidence {
+  margin: 8px 0 4px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+  font: 12px var(--font-ui);
+  overflow-wrap: anywhere;
+}
+.person-checked-evidence > summary {
+  cursor: pointer;
+  color: var(--ink-link);
+}
+.person-checked-evidence .ui-source-card {
+  margin-top: 5px;
+  padding: 7px 0;
+}
+.person-checked-evidence blockquote {
+  font-size: 14px;
+  margin: 3px 0;
+  line-height: 1.4;
+}
+.person-checked-evidence p {
+  font-size: 12px;
+  color: var(--muted);
+}
+.person-checked-evidence .ui-source-heading {
+  margin-bottom: 3px;
+  gap: 6px;
+}
+.person-checked-evidence .ui-source-heading h4 {
+  font-size: 12px;
+  color: var(--fg);
+}
+.person-checked-evidence .ui-source-reference {
+  font-size: 11px;
+}
+.person-checked-evidence .ui-source-content p {
+  margin: 2px 0;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.journey-map > div:first-child:not(.geomap) {
+  display: none;
+}
+.journey-map .geomap-svg {
+  max-height: 320px;
+  box-shadow: none;
+}
+.journey-annotation {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.journey-annotation strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.journey-annotation span,
+.journey-annotation small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.person-era {
+  margin-bottom: 12px;
+}
+.person-biography,
+.person-places {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+
+.person-status {
+  margin: 6px 0;
+  font: 13px / 1.5 var(--font-ui);
+  color: var(--muted);
+}
+.person-status-error {
+  color: var(--accent);
+}
+.person-retry {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 0;
+  margin-inline-start: 5px;
+  width: 1em;
+  height: 1em;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+  vertical-align: baseline;
+  cursor: pointer;
+}
+.person-retry::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+.person-retry:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.person-partner-link {
+  display: inline-block;
+  margin-top: 7px;
+  font: 11px var(--font-ui);
+}
+.person-checked-evidence .person-supporting {
+  margin-top: 6px;
+}
+.person-checked-evidence .person-supporting > div {
+  padding-inline-start: 8px;
+  border-inline-start: 1px solid var(--line);
+}
+
+.source-person .person-era-caption {
+  font-size: 12px;
+}
+.source-person .person-status {
+  font-size: 13px;
+}
+.source-person .person-checked-evidence blockquote {
+  margin: 3px 0;
+  font-size: 14px;
+}

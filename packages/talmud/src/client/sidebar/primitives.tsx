@@ -656,8 +656,8 @@ export function SidebarCardFromHint(props: {
             </p>
           </Show>
         );
-      case 'synthesis':
-        return (
+      case 'synthesis': {
+        const Body = () => (
           <Synthesis
             markId={props.recipe.markId}
             instance={props.synthInstance ?? props.instance}
@@ -671,6 +671,15 @@ export function SidebarCardFromHint(props: {
             }}
           />
         );
+        return (
+          <Show when={props.recipe.kind === 'rabbi'} fallback={<Body />}>
+            <section class="person-biography">
+              <h4>{t('person.biography')}</h4>
+              <Body />
+            </section>
+          </Show>
+        );
+      }
       case 'explainer': {
         const text = (): string => {
           const d = deps()[s.dep] as Record<string, unknown> | undefined;
