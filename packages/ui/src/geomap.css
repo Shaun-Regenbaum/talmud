@@ -289,18 +289,33 @@
   border-color: var(--accent);
 }
 
+/* Keep place notes inside the map frame, with room of their own. */
+.geomap-stage:has(> .geomap-annotation) {
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--geo-land);
+  overflow: hidden;
+}
+.geomap-stage:has(> .geomap-annotation) > .geomap-svg {
+  border: 0;
+  border-radius: 0;
+}
 .geomap-annotation {
-  position: absolute;
-  inset-inline: 8px;
-  bottom: 8px;
-  z-index: 2;
-  width: fit-content;
-  max-width: calc(100% - 16px);
+  position: relative;
+  margin: 0 8px 8px;
   padding: 6px 9px;
   border: 1px solid var(--line);
   border-radius: 4px;
   background: var(--surface);
   color: var(--fg);
   font: 12px / 1.4 var(--font-ui);
-  pointer-events: none;
+}
+.geomap-modal .geomap-stage:has(> .geomap-annotation) > .geomap-svg {
+  max-height: 60dvh;
+}
+
+.geomap-stage:has(> .geomap-annotation) > .geomap-zoom {
+  top: 12px;
+  bottom: auto;
 }
