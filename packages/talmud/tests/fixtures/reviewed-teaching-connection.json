@@ -1,0 +1,53 @@
+{
+  "provenance": "Independently reviewed Pesikta Rabbati40:1 passage connection, prepared for publication; names and quotation preserve the saved source.",
+  "graph": {
+    "revision": "reviewed-source-fixture",
+    "connections": [
+      {
+        "id": "b100-p4/review/v12-A28-A30-intellectual",
+        "passageId": "b100-p4",
+        "ref": "Pesikta Rabbati 40:1",
+        "a": "local:b100-p4/A28",
+        "b": "rabbi-huna-bar-yitzchak",
+        "sourcePersonKey": "b100-p4/A28",
+        "targetPersonKey": "b100-p4/A30",
+        "type": "intellectual",
+        "claimIds": [],
+        "evidence": [
+          {
+            "location": "passage",
+            "quote": "א\"ר יהושע הכהן ברבי נחמיה בשם רבי הונא בר' יצחק"
+          }
+        ],
+        "reason": "Yehoshua HaKohen son of Nehemiah transmits a teaching in Huna son of Yitzhak’s name. This establishes attribution, not a meeting.",
+        "decision": "supported",
+        "mode": "stated",
+        "outcome": "occurred",
+        "historicalIdentityResolved": false,
+        "sourceSha256": "6d159bc79696d0a9be78e39575b4cb0e9a2a3b5671dfe0cab4ccded76b5981b0",
+        "sourcePassageRecordSha256": "ba0619720adc4af131148cd15b6a9c613d9f967cf97193483cccc3871c73f5b5",
+        "relation": "quoted_teaching"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "local:b100-p4/A28",
+        "name": "יהושע הכהן ברבי נחמיה",
+        "nameHe": "יהושע הכהן ברבי נחמיה",
+        "identityResolved": false,
+        "generation": null
+      },
+      {
+        "id": "rabbi-huna-bar-yitzchak",
+        "name": "Rabbi Huna bar Yitzhak",
+        "nameHe": "רבי הונא בר יצחק",
+        "identityResolved": true,
+        "generation": null
+      }
+    ],
+    "supporting": [],
+    "occurrences": [],
+    "nextCursor": null,
+    "occurrencesTruncated": false
+  }
+}

@@ -30,6 +30,7 @@ export function mergePersonConnections(
     const groups = {
       direct: new Set<string>(),
       response: new Set<string>(),
+      cites: new Set<string>(),
       action: new Set<string>(),
       kin: new Set<string>(),
     };
@@ -38,7 +39,9 @@ export function mergePersonConnections(
         c.type === 'family'
           ? 'kin'
           : c.type === 'intellectual'
-            ? 'response'
+            ? c.relation === 'quoted_teaching'
+              ? 'cites'
+              : 'response'
             : c.type === 'action'
               ? 'action'
               : 'direct'
@@ -53,9 +56,25 @@ export function mergePersonConnections(
           .filter(([, v]) => v.size)
           .map(([k, v]) => [k, v.size]),
       ),
-      out: {},
-      in: {},
-      refs: {},
+      out: groups.cites.size
+        ? {
+            cites: new Set(
+              rows
+                .filter((c) => c.relation === 'quoted_teaching' && c.a === subject)
+                .map((c) => c.ref),
+            ).size,
+          }
+        : {},
+      in: groups.cites.size
+        ? {
+            cites: new Set(
+              rows
+                .filter((c) => c.relation === 'quoted_teaching' && c.b === subject)
+                .map((c) => c.ref),
+            ).size,
+          }
+        : {},
+      refs: groups.cites.size ? { cites: [...groups.cites] } : {},
     });
   }
   partners.sort((a, b) => b.total - a.total);

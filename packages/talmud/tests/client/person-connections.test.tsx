@@ -3,6 +3,7 @@ import { mergePersonConnections } from '../../src/client/PersonConnections';
 import { generationRange } from '../../src/client/PersonEra';
 import type { SageInteractions } from '../../src/client/sageInteractions';
 import fixture from '../fixtures/person-connections.json';
+import teaching from '../fixtures/reviewed-teaching-connection.json';
 
 describe('person connection summary from saved public records', () => {
   it('counts one passage even when it contains both a family link and an encounter', () => {
@@ -22,6 +23,18 @@ describe('person connection summary from saved public records', () => {
   it('only includes connections involving the requested person', () => {
     const result = mergePersonConnections('local:b042-p3/B', fixture.graph, null);
     expect(result.partners.map((p) => p.slug)).toEqual(['rav-pappa']);
+  });
+  it('shows a reviewed attribution as passing on a teaching in the right direction', () => {
+    const connection = teaching.graph.connections[0];
+    const speaker = mergePersonConnections(connection.a, teaching.graph, null).partners[0];
+    expect(speaker.kinds).toEqual({ cites: 1 });
+    expect(speaker.out).toEqual({ cites: 1 });
+    expect(speaker.in).toEqual({ cites: 0 });
+    expect(speaker.refs).toEqual({ cites: [connection.ref] });
+    const teacher = mergePersonConnections(connection.b, teaching.graph, null).partners[0];
+    expect(teacher.kinds).toEqual({ cites: 1 });
+    expect(teacher.in).toEqual({ cites: 1 });
+    expect(teacher.out).toEqual({ cites: 0 });
   });
   it('keeps an empty result empty', () => {
     expect(mergePersonConnections('rav-pappa', null, null).partners).toEqual([]);
