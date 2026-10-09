@@ -54,6 +54,7 @@ import {
   resolveRabbiByName,
 } from '../rabbi-places';
 import { isTrustedRequest } from '../request-guards';
+import { loadReviewedRabbiEntries } from '../reviewed-rabbi';
 import type { Bindings } from '../types';
 import { egoSlice, type VoiceGraphBlob } from '../voice-graph';
 import { runVoiceGraphBackfill, VOICE_GRAPH_STATE_KEY } from '../warm-cron';
@@ -969,14 +970,16 @@ export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): voi
   });
   // Slim search index for the #sages browser. Returns one row per rabbinic
   // entry with the fields needed for client-side fuzzy search + filter chips.
-  // Reads straight from the bundled rabbi-places.json — no cache lookup.
-  app.get('/api/sages-index', (c) => {
-    const rows = Object.entries(RABBI_PLACES.rabbis)
+  // Reviewed additions share the same search and card routes as bundled people.
+  app.get('/api/sages-index', async (c) => {
+    const reviewed = await loadReviewedRabbiEntries(c.env?.SAGE_GRAPH_DB);
+    const entries = { ...RABBI_PLACES.rabbis, ...reviewed };
+    const rows = Object.entries(entries)
       .filter(
         ([slug, r]) =>
           canonicalSlug(slug) === slug &&
           !isNonSageTopic(slug, r.canonicalHe) &&
-          isRabbinicPerson(slug, r),
+          (Object.hasOwn(reviewed, slug) || isRabbinicPerson(slug, r)),
       )
       .map(([slug, r]) => ({
         slug,

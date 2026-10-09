@@ -49,7 +49,7 @@ import { billingSummary, reconcileBilling } from '@corpus/core/telemetry/billing
 import { recordMcpEvent, surfaceMiddleware } from '@corpus/core/telemetry/surface';
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { GENERATION_ID_SET, GENERATION_IDS, type GenerationId } from '../client/generations';
+import { GENERATION_ID_SET, type GenerationId } from '../client/generations';
 import type { ParallelCandidate } from '../lib/aggadata/parallels';
 import { dedupeBy, dedupeByRange, type MoveLike, selectSectionMoves } from '../lib/argumentMoves';
 import { runPasses } from '../lib/check/passes';
@@ -158,7 +158,7 @@ import {
 } from './follow-up';
 import { registerHebraizeRoutes } from './hebraize-route';
 import { stripHtmlServer } from './html-text';
-import { getRabbiEntryOr404, readJsonBody } from './http-helpers';
+import { readJsonBody } from './http-helpers';
 import {
   aggregateProbes,
   type DafIndexEntryMeta,
@@ -228,7 +228,7 @@ import {
   resolveSegIdxs,
 } from './rabbi-observations';
 import { buildRabbiPinJevRequest, decideRabbiPin } from './rabbi-pin-jev';
-import { type Movement, RABBI_PLACES, resolveRabbi } from './rabbi-places';
+import { type Movement, RABBI_PLACES, type RabbiPlacesEntry, resolveRabbi } from './rabbi-places';
 import { classificationFromProfile } from './rabbi-profile';
 import { recordRecentJobError } from './recent-errors';
 import {
@@ -238,6 +238,7 @@ import {
   pauseRetryAfterSec,
 } from './request-guards';
 import { placeRevachWithAi } from './revach-ai-place';
+import { loadRabbiEntry, loadReviewedRabbiEntry } from './reviewed-rabbi';
 import { registerAdminCostRoutes } from './routes/admin-cost';
 import { registerAdminLlmRoutes } from './routes/admin-llm';
 import { registerAdminOpsRoutes } from './routes/admin-ops';
@@ -2934,7 +2935,7 @@ type RabbiEntityFacet = (typeof RABBI_ENTITY_FACETS)[number];
 
 app.get('/api/entity/rabbi/:slug', async (c) => {
   const slug = canonicalSlug(c.req.param('slug'));
-  const entry = RABBI_PLACES.rabbis[slug];
+  const entry = await loadRabbiEntry(c.env.SAGE_GRAPH_DB, slug);
   if (!entry) return c.json({ error: 'not found' }, 404);
   // Facet selection (additive): ?facets=identity,geography limits which
   // pieces are assembled — the daf map only consumes identity+geography, and
@@ -2958,23 +2959,17 @@ app.get('/api/entity/rabbi/:slug', async (c) => {
     .slice(0, 8)
     .map((n) => ({ name: n, nameHe }));
   const pieces: Record<string, unknown> = {};
-  // identity is the deterministic rabbi-places lookup (always available); the
-  // others are the same global enrichments the card reads — keyed by the rabbi
-  // instance the card passes (flat {name,...}), so instanceIdOf matches.
-  if (want('identity'))
-    pieces.identity = enrichRabbi(
-      name,
-      nameHe,
-      (entry.generation as GenerationId | undefined) ?? 'unknown',
-    );
+  // Preserve the requested identity. Resolving the canonical name again can
+  // select a different person when namesakes share a short name.
+  if (want('identity')) pieces.identity = identifyRabbiEntry(slug, entry);
   const wantConnections = want('connections') || want('relationships');
   const [connections, geography] = await Promise.all([
     wantConnections
       ? loadConnections(c.env.ASSETS, slug, c.env.PUBLIC_ORIGIN ?? new URL(c.req.url).origin)
       : Promise.resolve(undefined),
-    want('geography')
+    want('geography') && !('identityStatus' in entry)
       ? readGlobalPieceFirst(c.env, 'rabbi.geography', candidates)
-      : Promise.resolve(undefined),
+      : Promise.resolve(null),
   ]);
   if (wantConnections) pieces.connections = connections;
   if (want('geography')) pieces.geography = geography;
@@ -5999,30 +5994,15 @@ registerCommentaryRoutes(app);
  *   POST /api/rabbi-places   { "names": ["Rabbi Akiva", "Rav Huna"] }
  */
 
-// Bio-sidebar nav: given a Sefaria topic slug (as linked from the bio text),
+// Bio-sidebar nav: given a stable person slug (as linked from the bio text),
 // return the same IdentifiedRabbi shape the dafContext uses, so the sidebar
 // can swap to the target rabbi's bio without a second enrichment hop. 404 if
-// the slug isn't in our rabbi dataset (biblical figures, holidays, etc.).
+// the slug isn't in the registry or its reviewed additions.
 app.get('/api/rabbi/:slug', async (c) => {
-  const rr = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
-  if (!rr.ok) return rr.response;
-  const { slug, entry } = rr;
-  const rawGen = entry.generation ?? 'unknown';
-  const generation: GenerationId = (GENERATION_IDS as string[]).includes(rawGen)
-    ? (rawGen as GenerationId)
-    : 'unknown';
-  const rabbi: IdentifiedRabbi = {
-    slug,
-    name: entry.canonical,
-    nameHe: entry.canonicalHe ?? '',
-    generation,
-    region: entry.region ?? deriveRegionFromGeneration(generation),
-    places: entry.places ?? [],
-    moved: entry.moved ?? null,
-    bio: entry.bio ?? null,
-    image: entry.image ?? null,
-    wiki: entry.wiki ?? null,
-  };
+  const slug = canonicalSlug(c.req.param('slug'));
+  const entry = await loadRabbiEntry(c.env.SAGE_GRAPH_DB, slug);
+  if (!entry) return c.json({ error: `unknown slug: ${slug}` }, 404);
+  const rabbi = identifyRabbiEntry(slug, entry);
   const conn = await loadConnections(
     c.env.ASSETS,
     slug,
@@ -6411,6 +6391,23 @@ interface IdentifiedRabbi {
   genSource?: string;
   /** Registry candidate count for the name when >1 (homonym). */
   homonyms?: number;
+}
+
+function identifyRabbiEntry(slug: string, entry: RabbiPlacesEntry): IdentifiedRabbi {
+  const rawGen = entry.generation ?? 'unknown';
+  const generation = GENERATION_ID_SET.has(rawGen) ? (rawGen as GenerationId) : 'unknown';
+  return {
+    slug,
+    name: entry.canonical,
+    nameHe: entry.canonicalHe ?? '',
+    generation,
+    region: entry.region ?? deriveRegionFromGeneration(generation),
+    places: entry.places ?? [],
+    moved: entry.moved ?? null,
+    bio: entry.bio ?? null,
+    image: entry.image ?? null,
+    wiki: entry.wiki ?? null,
+  };
 }
 
 /**
@@ -6977,8 +6974,12 @@ registerHebraizeRoutes(app);
 registerBilingualRoutes(app);
 
 app.get('/api/admin/rabbi-enriched/:slug', async (c) => {
-  if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
   const slug = canonicalSlug(c.req.param('slug'));
+  // The card falls back to /api/rabbi when record is null. Do not let an older
+  // cached biography or generation conceal a reviewed registry correction.
+  if (await loadReviewedRabbiEntry(c.env.SAGE_GRAPH_DB, slug))
+    return c.json({ slug, record: null, profileSource: 'reviewed_registry' });
+  if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
   const saved = await readEnrichedForPerson(c.env.CACHE, slug);
   if (!saved) return c.json({ error: 'not enriched', slug }, 404);
   return c.json({

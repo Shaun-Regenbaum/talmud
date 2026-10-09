@@ -49,6 +49,48 @@ class ReviewImportTest(unittest.TestCase):
     def item(self, kind):
         return next(r for r in self.changes['records'] if r['kind'] == kind)
 
+    def add_registry_person(self):
+        captured = json.loads((ROOT / 'packages/talmud/tests/fixtures/reviewed-elazar.json').read_text())
+        row = dict(record_id='registry_person:' + captured['slug'], kind='registry_person',
+                   passage_id=None, ref=None, subject_id=captured['slug'], object_id=None,
+                   authority='source_review', decision='supported', data=captured['entry'])
+        self.changes['records'].append(row)
+        return row
+
+    def test_sourced_missing_registry_person_round_trips(self):
+        self.add_registry_person()
+        self.assertEqual(self.run_import()['changedRecords'], len(self.changes['records']))
+
+    def test_registry_person_requires_sources(self):
+        self.add_registry_person()['data']['sources'] = []
+        with self.assertRaisesRegex(ValueError, 'Registry person needs sources'):
+            self.run_import()
+
+    def test_registry_person_cannot_change_indexed_identity(self):
+        self.add_registry_person()['subject_id'] = 'rabbi-elazar-b-yose'
+        with self.assertRaisesRegex(ValueError, 'Invalid reviewed registry indexes'):
+            self.run_import()
+
+    def test_registry_person_cannot_use_unknown_generation_label(self):
+        self.add_registry_person()['data']['generation'] = 'invalid-generation-for-test'
+        with self.assertRaisesRegex(ValueError, 'Invalid registry generation'):
+            self.run_import()
+
+    def test_registry_person_requires_explicit_empty_biography(self):
+        del self.add_registry_person()['data']['bio']
+        with self.assertRaisesRegex(ValueError, 'Invalid registry biography'):
+            self.run_import()
+
+    def test_registry_person_rejects_source_urls_the_card_cannot_read(self):
+        row = self.add_registry_person()
+        for invalid in ('https://example.com:bad', 'https://exa mple.com',
+                        'HTTPS://example.com', 'https://example.com:99999',
+                        'https://example.com\\@invalid', 'https://example.com\n.invalid'):
+            with self.subTest(url=invalid):
+                row['data']['sources'][0]['url'] = invalid
+                with self.assertRaisesRegex(ValueError, 'Invalid registry source URL'):
+                    self.run_import()
+
     def test_real_reviews_round_trip_and_identical_resume(self):
         first = self.run_import()
         self.assertEqual(first, self.run_import())

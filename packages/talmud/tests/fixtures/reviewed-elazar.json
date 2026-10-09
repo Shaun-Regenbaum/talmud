@@ -1,0 +1,26 @@
+{
+  "slug": "rabbi-elazar-b-yose-b-halafta",
+  "sourcePassage": "Shemot Rabbah 52:5",
+  "entry": {
+    "identityStatus": "reviewed_person",
+    "canonical": "Rabbi Elazar, son of Yose ben Halafta",
+    "canonicalHe": "רבי אלעזר ברבי יוסי בן חלפתא",
+    "aliases": ["Rabbi Elazar b. Yose ben Halafta", "רבי אלעזר ברבי יוסי"],
+    "generation": null,
+    "region": "israel",
+    "places": [],
+    "moved": null,
+    "bio": "Rabbi Elazar was a son of Rabbi Yose ben Halafta. Shemot Rabbah 52:5 describes Shimon bar Yochai asking him about his father's teaching.",
+    "sources": [
+      {
+        "title": "Aharon Hyman, Toldot Tannaim veAmoraim: Elazar son of Yose ben Halafta",
+        "url": "https://he.wikisource.org/w/index.php?title=תולדות_תנאים_ואמוראים/א/ר%27_אלעזר_בר%27_יוסי_בן_חלפתא&oldid=764669"
+      }
+    ],
+    "reviewNotes": [
+      "Keep separate from the later Eretz Yisrael amora rabbi-elazar-b-yose.",
+      "Hyman explicitly cites the Shemot Rabbah 52 story under the son of Yose ben Halafta.",
+      "Tannaitic status is supported; a numbered generation and date range are not assigned by this record."
+    ]
+  }
+}
