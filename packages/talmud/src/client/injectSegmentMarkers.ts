@@ -419,7 +419,20 @@ export function injectSegmentMarkers(
   }
 
   const doc = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html');
-  const words = Array.from(doc.body.querySelectorAll<HTMLSpanElement>('.daf-word'));
+  // Printed footnote labels can interrupt the first three words of a paragraph.
+  // Keep them on the page, but exclude them from matching and segment assignment.
+  let bracketDepth = 0;
+  const words = Array.from(doc.body.querySelectorAll<HTMLSpanElement>('.daf-word')).filter(
+    (word) => {
+      const text = (word.textContent ?? '').trim();
+      if (bracketDepth === 0 && /^[א-ת]{1,3}\]$/.test(text)) return false;
+      for (const char of text) {
+        if (char === '[') bracketDepth++;
+        else if (char === ']') bracketDepth = Math.max(0, bracketDepth - 1);
+      }
+      return true;
+    },
+  );
   if (words.length === 0) {
     return {
       html,
