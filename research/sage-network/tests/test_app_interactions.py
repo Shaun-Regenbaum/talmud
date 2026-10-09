@@ -26,5 +26,24 @@ class WhoCountsAsOneMan(unittest.TestCase):
         self.assertTrue(appi.one_man(answer(17, unsure=3), IDS)['רבא'])
 
 
+
+class DuplicateSpellingPassages(unittest.TestCase):
+    def test_bava_kamma_77b_keeps_both_readings_but_counts_one_passage(self):
+        # Two saved pair readings of the same passage, using the two names of Reish Lakish.
+        rows = [
+            {'key': 'bavli|Bava Kamma|77b|2|6|24', 'ref': 'Bava Kamma 77b:2',
+             'a': 'רבי יוחנן', 'b': 'רבי שמעון בן לקיש', 'kind': 'disputes', 'direction': ''},
+            {'key': 'bavli|Bava Kamma|77b|2|84|110', 'ref': 'Bava Kamma 77b:2',
+             'a': 'ריש לקיש', 'b': 'רבי יוחנן', 'kind': 'disputes', 'direction': ''},
+        ]
+        identities = {'רבי שמעון בן לקיש': 'rabbi-shimon-b-lakish',
+                      'ריש לקיש': 'rabbi-shimon-b-lakish', 'רבי יוחנן': 'rabbi-yochanan'}
+        links = appi.collect_links(rows, identities, {})
+        partner = links['rabbi-shimon-b-lakish']['רבי יוחנן']
+        self.assertEqual(partner['passages'], {'Bava Kamma 77b:2'})
+        self.assertEqual(partner['kinds']['disputes'], {'Bava Kamma 77b:2'})
+        self.assertEqual(partner['refs']['disputes'], {'Bava Kamma 77b:2'})
+        self.assertNotIn('rabbi-shimon-b-lakish-2', links)
+
 if __name__ == '__main__':
     unittest.main()

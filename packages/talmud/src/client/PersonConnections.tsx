@@ -1,5 +1,6 @@
 import { SourceCard } from '@corpus/ui/Study';
 import { createMemo, createResource, For, Show } from 'solid-js';
+import { canonicalSlug } from '../lib/rabbi/identity';
 import type { CheckedConnection, CheckedGraph } from '../lib/sage-graph/types';
 import { fetchCheckedGraph } from './checkedGraph';
 import { lang, t } from './i18n';
@@ -75,7 +76,7 @@ export function PersonConnections(props: {
   onPerson?: (id: string) => void;
 }) {
   const [data, { refetch }] = createResource(
-    () => ({ id: props.id, revision: props.revision }),
+    () => ({ id: canonicalSlug(props.id), revision: props.revision }),
     async ({ id, revision }) => {
       const graphJob = async () => {
         let g = await fetchCheckedGraph({ person: id }, '', revision ?? '', true);
@@ -105,7 +106,7 @@ export function PersonConnections(props: {
     },
   );
   const combined = createMemo(() =>
-    mergePersonConnections(props.id, data()?.graph ?? null, data()?.summary ?? null),
+    mergePersonConnections(canonicalSlug(props.id), data()?.graph ?? null, data()?.summary ?? null),
   );
   const matches = (p: Partner) =>
     (data()?.graph?.connections ?? []).filter((c) => c.a === p.slug || c.b === p.slug);
@@ -123,7 +124,9 @@ export function PersonConnections(props: {
       : t(`checked.relation.${row.relation ?? row.type}`);
   const familyRole = (row: CheckedConnection) =>
     row.relation
-      ? t(`checked.role.${row.relation}.${row.a === props.id ? 'incoming' : 'outgoing'}`)
+      ? t(
+          `checked.role.${row.relation}.${row.a === canonicalSlug(props.id) ? 'incoming' : 'outgoing'}`,
+        )
       : relation(row);
   return (
     <section class="person-connections">

@@ -1,5 +1,10 @@
 {
   "files": {
+    "packages/talmud/src/lib/data/rabbi-duplicates.json": {
+      "disposition": "excluded",
+      "reason": "Runtime identity redirect configuration for the personal Talmud reader. Supporting source links are embedded; personal research is retained outside the repository and is not published to company storage.",
+      "sha256": "6eb992d650ce40a8848e34032170b971de0d8fbd6e729d2272f4409fea803e64"
+    },
     "packages/talmud/src/lib/data/rabbi-family.json": {
       "disposition": "excluded",
       "reason": "Bundled runtime records for the owner\u2019s personal Talmud app. Project instructions keep supporting research in the owner\u2019s results folder and prohibit publishing it to a company research service.",

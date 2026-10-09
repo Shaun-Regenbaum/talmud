@@ -16,6 +16,7 @@ import {
   rabbiCandidateSummaries,
   rabbiCandidates,
 } from '../src/worker/rabbi-graph';
+import { resolveRabbiByHe, resolveRabbiByName } from '../src/worker/rabbi-places';
 
 const nodes = (hierarchy as { nodes: Record<string, { canonicalHe?: string }> }).nodes;
 
@@ -42,6 +43,15 @@ describe('rabbi-duplicates.json', () => {
 });
 
 describe('rabbiCandidates folds duplicates', () => {
+  it('resolves the reviewed Shimon spellings to one record per person', () => {
+    expect(canonicalSlug('rabbi-shimon-b-lakish-2')).toBe('rabbi-shimon-b-lakish');
+    expect(canonicalSlug('rabbi-shimon-bar-abba')).toBe('rabbi-shimon-b-abba');
+    expect(resolveRabbiByHe('ריש לקיש')?.slug).toBe('rabbi-shimon-b-lakish');
+    expect(resolveRabbiByHe('רבי שמעון בר אבא')?.slug).toBe('rabbi-shimon-b-abba');
+    expect(resolveRabbiByName('Rabbi Shimon bar Abba')?.slug).toBe('rabbi-shimon-b-abba');
+    expect(rabbiCandidates('Reish Lakish')).not.toContain('rabbi-shimon-b-lakish-2');
+    expect(rabbiCandidates('Rabbi Shimon bar Abba')).not.toContain('rabbi-shimon-bar-abba');
+  });
   it('the duplicate spelling resolves to the Sefaria node, once', () => {
     expect(rabbiCandidates('Rabbah bar Nahmani')).toEqual(['rabbah-b-nachmani']);
     expect(rabbiCandidates('Rabbi Shmuel bar Nachmani')).toEqual(['rabbi-shmuel-b-nahmani']);

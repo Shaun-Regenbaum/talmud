@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { canonicalSlug } from '../lib/rabbi/identity';
 import type {
   CheckedConnection,
   CheckedGraph,
@@ -102,7 +103,8 @@ sageGraph.get('/records', async (c) => {
 sageGraph.get('/checked', async (c) => {
   const db = c.env.SAGE_GRAPH_DB;
   if (!db) return c.json({ error: 'Graph database is unavailable' }, 503);
-  const person = c.req.query('person');
+  const rawPerson = c.req.query('person');
+  const person = rawPerson ? canonicalSlug(rawPerson) : undefined;
   const tractate = c.req.query('tractate');
   const page = c.req.query('page');
   if ((!person && (!tractate || !page)) || (person && (tractate || page))) {

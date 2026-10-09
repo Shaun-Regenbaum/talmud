@@ -125,11 +125,19 @@
 },
 "rabbi-shimon-b-lakish": {
 "nameHe": "רבי שמעון בן לקיש",
-"partners": 137
+"nameHes": [
+"רבי שמעון בן לקיש",
+"ריש לקיש"
+],
+"partners": 190
 },
 "rabbi-shimon-b-lakish-2": {
 "nameHe": "ריש לקיש",
-"partners": 121
+"nameHes": [
+"רבי שמעון בן לקיש",
+"ריש לקיש"
+],
+"partners": 190
 },
 "rabbi-shimon-b-pazzi-2": {
 "nameHe": "רבי סימון",

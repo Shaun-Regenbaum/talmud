@@ -9,7 +9,7 @@ A sage gets a file only when the study is sure his name is one man and the app's
 Everyone else keeps the old lineage box until the identity work reaches him.
 
 Each file lists the names most often linked to him in the final pair table (23_pairs_final.py), what the text says between
-them (kinds, with direction where a reader recorded it) and up to three passages per kind. Lone titles are resolved with
+them (kinds, with direction where a reader recorded it) and the supporting passages per kind. Lone titles are resolved with
 data/bare-titles.jsonl the same way 24_name_map.py does. Output: packages/talmud/static/sage-interactions/<slug>.json and
 index.json.
 """
@@ -97,64 +97,94 @@ def registry_slugs():
     return reg, by_he, all_slugs_of
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument('--identity', action='append', required=True, help='a folder of identity packs and readers\' answers')
-    a = ap.parse_args()
-    sure = sure_names(a.identity)
-    reg, by_he, all_slugs_of = registry_slugs()
-    slug_of = {name: next(iter(by_he[name])) for name in sure if len(by_he.get(name, ())) == 1}
-    decisions = namemap.bare_title_decisions()
+def collect_links(rows, slug_of, decisions):
+    """Combine spelling variants by person, counting each passage once per kind and direction."""
     applied = collections.Counter()
     links = collections.defaultdict(lambda: collections.defaultdict(lambda: {
-        'kinds': collections.Counter(), 'out': collections.Counter(), 'in': collections.Counter(), 'refs': collections.defaultdict(list)}))
-    for line in open(DATA / 'pairs-final.jsonl'):
-        r = json.loads(line)
+        'kinds': collections.defaultdict(set), 'out': collections.defaultdict(set),
+        'in': collections.defaultdict(set), 'refs': collections.defaultdict(set), 'passages': set()}))
+    for r in rows:
         kind = r.get('kind') or 'open'
         if kind in NOT_A_LINK:
             continue
-        a_name = namemap.resolve_bare(r['a'], r['key'], 0, decisions, applied)
-        b_name = namemap.resolve_bare(r['b'], r['key'], 1, decisions, applied)
-        if a_name is None or b_name is None:
+        names = [namemap.resolve_bare(r[k], r['key'], side, decisions, applied)
+                 for side, k in enumerate(('a', 'b'))]
+        if None in names:
             continue
-        a_name, b_name = spelling(a_name), spelling(b_name)
-        if a_name == b_name:
+        a_name, b_name = map(spelling, names)
+        if a_name == b_name or (slug_of.get(a_name) and slug_of.get(a_name) == slug_of.get(b_name)):
             continue
         for me, other, my_side in ((a_name, b_name, 'A'), (b_name, a_name, 'B')):
             if me not in slug_of:
                 continue
-            e = links[me][other]
-            e['kinds'][kind] += 1
+            e = links[slug_of[me]][other]
+            ref = r['ref']
+            e['passages'].add(ref)
+            e['kinds'][kind].add(ref)
             d = r.get('direction')
             if d in ('AB', 'BA'):
-                e['out' if d[0] == my_side else 'in'][kind] += 1
-            if len(e['refs'][kind]) < 3 and r['ref'] not in e['refs'][kind]:
-                e['refs'][kind].append(r['ref'])
+                e['out' if d[0] == my_side else 'in'][kind].add(ref)
+            e['refs'][kind].add(ref)
+    return links
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--identity', action='append', help='a folder of identity packs and readers\' answers')
+    ap.add_argument('--refresh-slug', action='append', help='rebuild only this retained person using names already in the shipped index')
+    a = ap.parse_args()
+    if bool(a.identity) == bool(a.refresh_slug):
+        ap.error('choose --identity or --refresh-slug')
+    existing = json.loads((OUT / 'index.json').read_text()) if a.refresh_slug else {}
+    sure = {spelling(n) for v in existing.values() for n in v.get('nameHes', [v['nameHe']])} if a.refresh_slug else sure_names(a.identity)
+    reg, by_he, all_slugs_of = registry_slugs()
+    if a.refresh_slug:
+        # Keep the already reviewed name-to-person assignments, including a short name
+        # absent from canonicalHe. Only reviewed duplicate mappings fold those assignments.
+        dup = json.load(open(DUPLICATES))['duplicates']
+        slug_of = {}
+        for slug, entry in existing.items():
+            target = dup.get(slug, slug)
+            for name in map(spelling, entry.get('nameHes', [entry['nameHe']])):
+                if name in slug_of and slug_of[name] != target:
+                    raise ValueError('Conflicting shipped identity: ' + name)
+                slug_of[name] = target
+        if any(slug not in set(slug_of.values()) for slug in a.refresh_slug):
+            raise ValueError('Requested person has no shipped name reading')
+    else:
+        slug_of = {name: next(iter(by_he[name])) for name in sure if len(by_he.get(name, ())) == 1}
+    decisions = namemap.bare_title_decisions()
+    with (DATA / 'pairs-final.jsonl').open() as source:
+        links = collect_links((json.loads(line) for line in source if line.strip()), slug_of, decisions)
     OUT.mkdir(parents=True, exist_ok=True)
-    for old in OUT.glob('*.json'):
-        old.unlink()
-    index = {}
+    if not a.refresh_slug:
+        for old in OUT.glob('*.json'):
+            old.unlink()
+    index = existing.copy()
     stamp = dt.date.today().isoformat()
-    for name, slug in sorted(slug_of.items()):
+    for slug in sorted(set(a.refresh_slug or slug_of.values())):
+        name = reg[slug]['canonicalHe']
         partners = []
-        for other, e in links[name].items():
-            total = sum(e['kinds'].values())
+        for other, e in links[slug].items():
+            total = len(e['passages'])
             other_slug = slug_of.get(other)
             # English label: from the sage list when this Hebrew name has exactly one entry there (a label only, not a claim
             # about who he is); a slug only when the study is also sure the name is one man, so the card can link to him
             only = next(iter(by_he[other])) if len(by_he.get(other, ())) == 1 else None
             label = {'name': reg[only]['canonical']} if only in reg else {}
             partners.append({'nameHe': other, **label, **({'slug': other_slug} if other_slug in reg else {}),
-                             'total': total, 'kinds': dict(e['kinds']), 'out': dict(e['out']), 'in': dict(e['in']),
-                             'refs': {k: v for k, v in e['refs'].items()}})
+                             'total': total, **{field: {k: len(v) for k, v in e[field].items()} for field in ('kinds', 'out', 'in')},
+                             'refs': {k: sorted(v) for k, v in e['refs'].items()}})
         partners.sort(key=lambda p: (-p['total'], p['nameHe']))
         body = {'slug': slug, 'nameHe': name, 'name': reg[slug]['canonical'], 'generated': stamp,
                 'about': 'Every passage where this name stands near another name, and what the text says between them. '
                          'Counts are passages. A partner is a name as the text writes it; one name can still stand for more than one man.',
-                'partners': partners[:TOP_PARTNERS], 'partnersInAll': len(partners)}
+                'partners': partners if a.refresh_slug else partners[:TOP_PARTNERS], 'partnersInAll': len(partners)}
         for s in all_slugs_of[slug]:   # the app may hold either the canonical slug or a duplicate folded onto it
             (OUT / f'{s}.json').write_text(json.dumps(body, ensure_ascii=False, separators=(',', ':')))
-            index[s] = {'nameHe': name, 'partners': len(partners)}
+            index[s] = {'nameHe': existing.get(s, {}).get('nameHe', name),
+                        'nameHes': sorted(n for n, target in slug_of.items() if target == slug),
+                        'partners': len(partners)}
     (OUT / 'index.json').write_text(json.dumps(index, ensure_ascii=False, indent=0, sort_keys=True))
     print(f'names both readers call one man: {len(sure)}; with one sage-list entry: {len(slug_of)}; files: {len(index)}')
 

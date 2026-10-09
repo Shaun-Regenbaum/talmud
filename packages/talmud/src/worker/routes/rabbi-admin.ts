@@ -17,6 +17,7 @@ import type { Hono } from 'hono';
 import { z } from 'zod';
 import { GENERATION_ID_SET, GENERATIONS_PROMPT_REFERENCE } from '../../client/generations';
 import { isNonSageTopic } from '../../lib/nonSageTopics';
+import { canonicalSlug, DUPLICATE_SLUGS } from '../../lib/rabbi/identity';
 import {
   buildRabbiEnrichUserMessage,
   type LocalRabbiInput,
@@ -927,7 +928,12 @@ interface RabbiAcademyRosterBlob {
 export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): void {
   app.get('/api/admin/rabbi-slugs', (c) => {
     const slugs = Object.entries(RABBI_PLACES.rabbis)
-      .filter(([slug, r]) => !isNonSageTopic(slug, r.canonicalHe) && isRabbinicEntry(r))
+      .filter(
+        ([slug, r]) =>
+          canonicalSlug(slug) === slug &&
+          !isNonSageTopic(slug, r.canonicalHe) &&
+          isRabbinicEntry(r),
+      )
       .map(([slug]) => slug);
     return c.json({ slugs, count: slugs.length });
   });
@@ -936,12 +942,27 @@ export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): voi
   // Reads straight from the bundled rabbi-places.json — no cache lookup.
   app.get('/api/sages-index', (c) => {
     const rows = Object.entries(RABBI_PLACES.rabbis)
-      .filter(([slug, r]) => !isNonSageTopic(slug, r.canonicalHe) && isRabbinicEntry(r))
+      .filter(
+        ([slug, r]) =>
+          canonicalSlug(slug) === slug &&
+          !isNonSageTopic(slug, r.canonicalHe) &&
+          isRabbinicEntry(r),
+      )
       .map(([slug, r]) => ({
         slug,
         canonical: r.canonical,
         canonicalHe: r.canonicalHe ?? null,
-        aliases: r.aliases ?? [],
+        aliases: [
+          ...new Set([
+            ...(r.aliases ?? []),
+            ...Object.entries(DUPLICATE_SLUGS)
+              .filter(([, target]) => target === slug)
+              .flatMap(([other]) => {
+                const entry = RABBI_PLACES.rabbis[other];
+                return entry ? [entry.canonical, entry.canonicalHe ?? '', ...entry.aliases] : [];
+              }),
+          ]),
+        ].filter(Boolean),
         generation: r.generation ?? null,
         region: r.region ?? null,
       }));
