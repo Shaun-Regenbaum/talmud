@@ -1,0 +1,107 @@
+{
+  "slug": "rabbi-shimon-bar-abba",
+  "name": "Rabbi Shimon bar Abba",
+  "nameHe": "רַבִּי שִׁמְעוֹן בַּר אַבָּא",
+  "tractate": "Chullin",
+  "page": "116b",
+  "computedAt": "2026-08-23T03:03:11.050Z",
+  "defHash": "1",
+  "observations": [
+    {
+      "type": "place",
+      "segIdx": 12,
+      "confidence": "high",
+      "source": "rabbi.location",
+      "payload": {
+        "place": "Tiberias"
+      },
+      "hash": "8b5ecef8"
+    },
+    {
+      "type": "opinion",
+      "segIdx": 12,
+      "confidence": "medium",
+      "source": "argument-move",
+      "payload": {
+        "role": "opening",
+        "voice": "רבי חייא בר אבא בשם רבי יוחנן",
+        "summary": "רבי יוחנן פוסק שמותר להעמיד גבינה בקיבת נבלות, אך אסור בקיבת שחיטת גוי.",
+        "startSegIdx": 12,
+        "endSegIdx": 12
+      },
+      "hash": "7611af18"
+    },
+    {
+      "type": "opinion",
+      "segIdx": 12,
+      "confidence": "high",
+      "source": "argument-move",
+      "payload": {
+        "role": "question",
+        "voice": "רבי שמעון בר אבא",
+        "summary": "רבי שמעון בר אבא שואל את רבי חייא בר אבא לאיזו שיטה כוונת דברי רבי יוחנן.",
+        "startSegIdx": 12,
+        "endSegIdx": 12
+      },
+      "hash": "7611af19"
+    },
+    {
+      "type": "opinion",
+      "segIdx": 12,
+      "confidence": "high",
+      "source": "argument-move",
+      "payload": {
+        "role": "answer",
+        "voice": "רבי שמעון בר אבא (משיב לעצמו)",
+        "summary": "רבי שמעון בר אבא משיב שהדברים כרבי אליעזר, הסובר שסתם מחשבת גוי לעבודה זרה.",
+        "startSegIdx": 12,
+        "endSegIdx": 12
+      },
+      "hash": "7611af1a"
+    },
+    {
+      "type": "lineage",
+      "segIdx": 12,
+      "confidence": "medium",
+      "source": "co-occurrence",
+      "payload": {
+        "slug": "rabbi-yochanan-b-napacha",
+        "name": "Rabbi Yochanan"
+      },
+      "hash": "2b22c1cb"
+    },
+    {
+      "type": "lineage",
+      "segIdx": 12,
+      "confidence": "medium",
+      "source": "co-occurrence",
+      "payload": {
+        "slug": "rabbi-chiyya-b-abba",
+        "name": "Rabbi Chiyya bar Abba"
+      },
+      "hash": "6e87c25b"
+    },
+    {
+      "type": "lineage",
+      "segIdx": 12,
+      "confidence": "medium",
+      "source": "co-occurrence",
+      "payload": {
+        "slug": "rabbi-eliezer-b-hyrcanus",
+        "name": "Rabbi Eliezer"
+      },
+      "hash": "3be67bcb"
+    },
+    {
+      "type": "lineage",
+      "segIdx": 12,
+      "confidence": "medium",
+      "source": "co-occurrence",
+      "payload": {
+        "slug": "rabbi-chiyya",
+        "name": "Rabbi Chiyya"
+      },
+      "hash": "9528ff99"
+    }
+  ]
+}

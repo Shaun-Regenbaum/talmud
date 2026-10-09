@@ -1,0 +1,176 @@
+{
+  "sourceRevision": "sage-graph-2b3836143acb955b36c7",
+  "records": [
+    {
+      "record_id": "accepted_identity:b042-p0/A",
+      "kind": "accepted_identity",
+      "ref": "Ketubot 22a:11",
+      "subject_id": "shmuel-(amora)",
+      "authority": "source_review",
+      "decision": "accepted",
+      "payload_json": "{\"personKey\": \"b042-p0/A\"}"
+    },
+    {
+      "record_id": "source_identity:b001-p6/A",
+      "kind": "source_identity",
+      "ref": "Midrash Tanchuma midrash-tanchuma-bereshit-13:5",
+      "subject_id": "shimon-b-chalafta",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b001-p6/A\"}"
+    },
+    {
+      "record_id": "source_identity:b200-p7/Q",
+      "kind": "source_identity",
+      "ref": "Shemot Rabbah 24:1",
+      "subject_id": "shimon-b-chalafta",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b200-p7/Q\"}"
+    },
+    {
+      "record_id": "source_identity:b283-p6/G",
+      "kind": "source_identity",
+      "ref": "Shabbat 148a:1",
+      "subject_id": "shmuel-(amora)",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b283-p6/G\"}"
+    },
+    {
+      "record_id": "source_identity:b295-p9/P",
+      "kind": "source_identity",
+      "ref": "Shemot Rabbah 52:3",
+      "subject_id": "shimon-b-chalafta",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b295-p9/P\"}"
+    },
+    {
+      "record_id": "source_identity:b509-p5/D",
+      "kind": "source_identity",
+      "ref": "Shevuot 46a:2",
+      "subject_id": "shmuel-(amora)",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b509-p5/D\"}"
+    },
+    {
+      "record_id": "source_identity:b547-p6/D",
+      "kind": "source_identity",
+      "ref": "Ketubot 12b:8",
+      "subject_id": "shmuel-(amora)",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b547-p6/D\"}"
+    },
+    {
+      "record_id": "source_identity:b061-p0/Q",
+      "kind": "source_identity",
+      "ref": "Jerusalem Talmud Terumot 10:6:8",
+      "subject_id": "rabbi-shimon-b-abba",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b061-p0/Q\"}"
+    },
+    {
+      "record_id": "source_identity:b061-p0/B",
+      "kind": "source_identity",
+      "ref": "Jerusalem Talmud Terumot 10:6:8",
+      "subject_id": "rabbi-shimon-b-abba",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b061-p0/B\"}"
+    },
+    {
+      "record_id": "source_identity:b317-p0/A",
+      "kind": "source_identity",
+      "ref": "Moed Katan 9b:8",
+      "subject_id": "shimon-b-chalafta",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b317-p0/A\"}"
+    },
+    {
+      "record_id": "source_identity:b277-p0/A36",
+      "kind": "source_identity",
+      "ref": "Seder Olam Zutta 9:1",
+      "subject_id": "rav-yehudah-b-yechezkel",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b277-p0/A36\"}"
+    },
+    {
+      "record_id": "source_identity:b010-p4/HA",
+      "kind": "source_identity",
+      "ref": "Vayikra Rabbah 1:3",
+      "subject_id": "rav-huna-bar-acha",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b010-p4/HA\"}"
+    },
+    {
+      "record_id": "source_identity:b018-p2/C",
+      "kind": "source_identity",
+      "ref": "Shabbat 139b:8",
+      "subject_id": "rav-huna-bar-hiyyon",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b018-p2/C\"}"
+    },
+    {
+      "record_id": "source_identity:b019-p1/B",
+      "kind": "source_identity",
+      "ref": "Yoma 6b:4",
+      "subject_id": "rav-huna-bar-tachlifa",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b019-p1/B\"}"
+    },
+    {
+      "record_id": "source_identity:b027-p8/HUNA_YOKO",
+      "kind": "source_identity",
+      "ref": "Pesikta Rabbati 16:1",
+      "subject_id": "huna-bar-yaki",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b027-p8/HUNA_YOKO\"}"
+    },
+    {
+      "record_id": "source_identity:b049-p7/A",
+      "kind": "source_identity",
+      "ref": "Bekhorot 54b:7",
+      "subject_id": "rav-huna-son-of-rav-nachman",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b049-p7/A\"}"
+    },
+    {
+      "record_id": "source_identity:b100-p4/A30",
+      "kind": "source_identity",
+      "ref": "Pesikta Rabbati 40:1",
+      "subject_id": "rabbi-huna-bar-yitzchak",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b100-p4/A30\"}"
+    },
+    {
+      "record_id": "source_identity:b581-p9/A",
+      "kind": "source_identity",
+      "ref": "Zevachim 115b:6",
+      "subject_id": "rav-huna-bar-rav-ketina",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b581-p9/A\"}"
+    },
+    {
+      "record_id": "source_identity:b257-p4/F",
+      "kind": "source_identity",
+      "ref": "Nedarim 77b:4",
+      "subject_id": "rav-huna-bar-avin",
+      "authority": "source_review",
+      "decision": "accepted_registry_identity",
+      "payload_json": "{\"personKey\": \"b257-p4/F\"}"
+    }
+  ]
+}

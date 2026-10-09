@@ -309,6 +309,14 @@ const CATALOG = {
   'dafvoices.rel.supports': { en: 'supports', he: 'תומך ב' },
   'dafvoices.rel.responds-to': { en: 'responds to', he: 'משיב ל' },
   'coverage.title': { en: 'Where in Shas', he: 'היכן בש״ס' },
+  'coverage.reviewed': {
+    en: 'The identity has been checked on {pages} of these pages.',
+    he: 'זיהוי האדם נבדק ב־{pages} מהעמודים האלה.',
+  },
+  'coverage.otherSources': {
+    en: 'Also identified in {passages} passages outside the Babylonian Talmud.',
+    he: 'זוהה גם ב־{passages} קטעים מחוץ לתלמוד הבבלי.',
+  },
   'coverage.summary': {
     en: 'Observed on {dapim} dapim across {masechtot} masechtot — bar height = share of that masechet\u2019s dapim.',
     he: 'נצפה ב־{dapim} דפים ב־{masechtot} מסכתות — גובה העמודה = חלקו מדפי אותה מסכת.',

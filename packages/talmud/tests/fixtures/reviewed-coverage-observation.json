@@ -1,0 +1,51 @@
+{
+  "slug": "shimon-b-chalafta",
+  "name": "Shimon b. Chalafta",
+  "nameHe": "רבי שמעון בן חלפתא",
+  "tractate": "Moed Katan",
+  "page": "9b",
+  "computedAt": "2026-05-27T03:28:08.664Z",
+  "defHash": "1",
+  "observations": [
+    {
+      "type": "opinion",
+      "segIdx": 7,
+      "confidence": "medium",
+      "source": "argument-move",
+      "payload": {
+        "role": "opening",
+        "voice": "Narrative: Rabbi Shimon ben Chalafta visits Rav",
+        "summary": "Rabbi Shimon ben Chalafta takes leave of Rav, and his father tells him to go back for a blessing; Rav blesses him that he should not shame nor be shamed, but Rabbi Shimon dismisses it as mere words.",
+        "startSegIdx": 7,
+        "endSegIdx": 7
+      },
+      "hash": "2930ee3e"
+    },
+    {
+      "type": "story",
+      "segIdx": 7,
+      "confidence": "medium",
+      "source": "aggadata",
+      "payload": {
+        "title": "Rabbi Shimon ben Chalafta's blessing from Rav",
+        "titleHe": "ברכת רבי שמעון בן חלפתא",
+        "theme": "biography",
+        "summary": "Rabbi Shimon ben Chalafta is sent by his father to receive a blessing from Rav. Rav blesses him that he should not cause shame nor be shamed. When Rabbi Shimon returns, his father interprets this as a blessing equivalent to the one God gave Israel in the verse 'And My people shall never be ashamed.'",
+        "startSegIdx": 7,
+        "endSegIdx": 8
+      },
+      "hash": "d4b04499"
+    },
+    {
+      "type": "lineage",
+      "segIdx": 7,
+      "confidence": "medium",
+      "source": "co-occurrence",
+      "payload": {
+        "slug": "rav",
+        "name": "Rav"
+      },
+      "hash": "6de520ae"
+    }
+  ]
+}

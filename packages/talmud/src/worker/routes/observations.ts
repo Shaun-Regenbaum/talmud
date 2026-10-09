@@ -10,11 +10,13 @@
 
 import type { Hono } from 'hono';
 import { z } from 'zod';
+import { canonicalSlug, DUPLICATE_SLUGS } from '../../lib/rabbi/identity';
 import { prefixForRabbiObs } from '../cache-keys';
 import { parseJSONAs } from '../kv-json';
 import { recordListShape } from '../kv-shapes';
 import type { ObservationSlice } from '../rabbi-observations';
 import { RECENT_ERRORS_CAP, RECENT_ERRORS_KEY, type RecentJobError } from '../recent-errors';
+import { countCoverage, coveragePage, loadReviewedCoverage } from '../reviewed-coverage';
 import type { Bindings } from '../types';
 
 /** One rabbi's observations for one daf. The route counts by tractate and walks
@@ -25,10 +27,14 @@ const observationSliceShape = z.looseObject({
   observations: z.array(z.looseObject({})),
 });
 
-/** The cached aggregate the summary view serves back verbatim. Nothing reads
- *  into it here, so the gate only asks that it be an object and not, say, the
- *  truncated half of one. */
+/** Legacy summaries are objects; coverage requests separately validate their page list. */
 const cachedAggregateShape = z.looseObject({});
+const coveragePagesShape = z.array(
+  z.string().refine((ref) => {
+    const split = ref.lastIndexOf(' ');
+    return coveragePage(ref.slice(0, split), ref.slice(split + 1)) === ref;
+  }),
+);
 
 export function registerObservationRoutes(app: Hono<{ Bindings: Bindings }>): void {
   /**
@@ -70,8 +76,24 @@ export function registerObservationRoutes(app: Hono<{ Bindings: Bindings }>): vo
   app.get('/api/rabbi-observations/:slug', async (c) => {
     const cache = c.env.CACHE;
     if (!cache) return c.json({ error: 'no cache binding' }, 503);
-    const slug = c.req.param('slug');
+    const withCoverage = c.req.query('coverage') === '1';
+    const slug = withCoverage ? canonicalSlug(c.req.param('slug')) : c.req.param('slug');
     const prefix = prefixForRabbiObs(slug);
+    const aliases = Object.keys(DUPLICATE_SLUGS)
+      .filter((alias) => canonicalSlug(alias) === slug)
+      .sort();
+    const aliasKey = aliases.join(',');
+    const reviewed = withCoverage ? await loadReviewedCoverage(c.env.SAGE_GRAPH_DB, slug) : null;
+    const includeReviewed = (body: Record<string, unknown>, pages: string[]) =>
+      reviewed
+        ? {
+            ...body,
+            ...countCoverage([...pages, ...reviewed.pages]),
+            reviewedDafCount: reviewed.pages.length,
+            reviewedOtherPassages: reviewed.otherPassageCount,
+            coverageRevision: reviewed.revision,
+          }
+        : body;
 
     const typeFilterEarly = c.req.query('type') ?? '';
     const minEarly = Math.max(1, parseInt(c.req.query('min') ?? '1', 10) || 1);
@@ -93,7 +115,14 @@ export function registerObservationRoutes(app: Hono<{ Bindings: Bindings }>): vo
         cachedAggregateShape,
         aggKey,
       );
-      if (cachedAgg) return c.json(cachedAgg);
+      if (cachedAgg) {
+        if (!withCoverage) return c.json(cachedAgg);
+        const pages = coveragePagesShape.safeParse(cachedAgg.coveragePages);
+        if (pages.success && cachedAgg.coverageAliases === aliasKey)
+          return c.json(includeReviewed(cachedAgg, pages.data));
+        // Older ten-minute summaries have counts but no page list. Rebuild
+        // that derived view once so an overlapping reviewed page is not added twice.
+      }
     }
 
     const keys: string[] = [];
@@ -103,6 +132,7 @@ export function registerObservationRoutes(app: Hono<{ Bindings: Bindings }>): vo
       for (const k of res.keys) keys.push(k.name);
       cursor = res.list_complete ? undefined : res.cursor;
     } while (cursor && keys.length < 5000);
+    if (withCoverage && cursor) return c.json({ error: 'Incomplete page coverage' }, 503);
 
     const typeFilter = typeFilterEarly || undefined;
     const minDafs = minEarly;
@@ -129,13 +159,21 @@ export function registerObservationRoutes(app: Hono<{ Bindings: Bindings }>): vo
     let dafCount = 0;
     let name = '';
     let nameHe = '';
+    const coveragePages = new Set<string>();
+    let coverageComplete = !cursor;
     for (let i = 0; i < keys.length; i += READ_BATCH) {
       const raws = await Promise.all(
         keys.slice(i, i + READ_BATCH).map(async (k) => ({ key: k, raw: await cache.get(k) })),
       );
       for (const { key, raw } of raws) {
         const s = parseJSONAs<ObservationSlice>(raw, observationSliceShape, key);
-        if (!s) continue; // skip corrupt slice
+        if (!s) {
+          coverageComplete = false;
+          continue;
+        }
+        const page = typeof s.page === 'string' ? coveragePage(s.tractate, s.page) : null;
+        if (page) coveragePages.add(page);
+        else coverageComplete = false;
         dafCount++;
         byTractate[s.tractate] = (byTractate[s.tractate] ?? 0) + 1;
         if (!name && s.name) name = s.name;
@@ -165,6 +203,41 @@ export function registerObservationRoutes(app: Hono<{ Bindings: Bindings }>): vo
       .filter((e) => e.dafs >= minDafs)
       .sort((a, b) => b.dafs - a.dafs || (RANK[b.confidence] ?? 0) - (RANK[a.confidence] ?? 0));
 
+    // Historical observation slices may still use a merged duplicate identity.
+    // Only their distinct pages join coverage; their claims stay in their own record.
+    if (withCoverage) {
+      for (const alias of aliases) {
+        let aliasCursor: string | undefined;
+        let read = 0;
+        do {
+          const listed = await cache.list({
+            prefix: prefixForRabbiObs(alias),
+            cursor: aliasCursor,
+            limit: 1000,
+          });
+          read += listed.keys.length;
+          if (read > 5000) return c.json({ error: 'Incomplete page coverage' }, 503);
+          for (let i = 0; i < listed.keys.length; i += READ_BATCH) {
+            const slices = await Promise.all(
+              listed.keys
+                .slice(i, i + READ_BATCH)
+                .map(async ({ name }) => ({ key: name, raw: await cache.get(name) })),
+            );
+            for (const { key, raw } of slices) {
+              const slice = parseJSONAs<ObservationSlice>(raw, observationSliceShape, key);
+              const page =
+                slice && typeof slice.page === 'string'
+                  ? coveragePage(slice.tractate, slice.page)
+                  : null;
+              if (!page) return c.json({ error: 'Incomplete page coverage' }, 503);
+              coveragePages.add(page);
+            }
+          }
+          aliasCursor = listed.list_complete ? undefined : listed.cursor;
+        } while (aliasCursor);
+      }
+    }
+
     const body = {
       slug,
       name: name || slug,
@@ -174,13 +247,17 @@ export function registerObservationRoutes(app: Hono<{ Bindings: Bindings }>): vo
       byTractate,
       aggregated,
       observations,
+      coveragePages: coverageComplete ? [...coveragePages] : null,
+      coverageAliases: withCoverage || aliases.length === 0 ? aliasKey : null,
     };
+    if (withCoverage && !coverageComplete)
+      return c.json({ error: 'Incomplete page coverage' }, 503);
     // 10-minute TTL: fast on repeat opens; the lifetime view tolerates staleness.
     // summary only (bounded size); best-effort so a failed/oversized put never
     // turns a good read into a 500.
     if (summary) {
       await cache.put(aggKey, JSON.stringify(body), { expirationTtl: 600 }).catch(() => {});
     }
-    return c.json(body);
+    return c.json(includeReviewed(body, [...coveragePages]));
   });
 }
