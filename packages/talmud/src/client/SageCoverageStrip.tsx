@@ -8,8 +8,8 @@ import { StatusMessage } from '@corpus/ui/Study';
  * shows how much of that masechet has been analyzed — so absence in a barely
  * analyzed masechet is honestly not evidence of absence.
  *
- * Numerator: /api/rabbi-observations/:slug?summary=1 byTractate (10-min cached
- * fold of the per-daf observation slices, near-all-Shas coverage). Denominator:
+ * Numerator: distinct pages from cached observations plus accepted identities
+ * in the current verified graph revision. Denominator:
  * dapimByTractate from the Shas-wide voice-graph blob (appears after its next
  * rebuild).
  */
@@ -26,6 +26,8 @@ const AMUDIM_TOTAL = new Map<string, number>(
 interface ObsSummary {
   dafCount?: number;
   byTractate?: Record<string, number>;
+  reviewedDafCount?: number;
+  reviewedOtherPassages?: number;
 }
 interface NetworkSummary {
   dapim?: number;
@@ -43,7 +45,7 @@ export function SageCoverageStrip(props: { slug: string; generation: string | nu
     async (slug) => {
       try {
         const r = await fetch(
-          `/api/rabbi-observations/${encodeURIComponent(slug)}?summary=1&min=9999`,
+          `/api/rabbi-observations/${encodeURIComponent(slug)}?summary=1&min=9999&coverage=1`,
         );
         if (!r.ok) return null;
         return (await r.json()) as ObsSummary;
@@ -100,6 +102,14 @@ export function SageCoverageStrip(props: { slug: string; generation: string | nu
         >
           <p style={{ margin: '0 0 0.5rem', color: '#777', 'font-size': '0.8rem' }}>
             {t('coverage.summary', { dapim: sageTotal(), masechtot: tractatesWithSage() })}
+            <Show when={(obs()?.reviewedDafCount ?? 0) > 0}>
+              {' '}
+              {t('coverage.reviewed', { pages: obs()?.reviewedDafCount ?? 0 })}
+            </Show>
+            <Show when={(obs()?.reviewedOtherPassages ?? 0) > 0}>
+              {' '}
+              {t('coverage.otherSources', { passages: obs()?.reviewedOtherPassages ?? 0 })}
+            </Show>
             <Show
               when={hasDenominator()}
               fallback={<span style={{ color: '#a89e8a' }}> {t('coverage.noDenominator')}</span>}
