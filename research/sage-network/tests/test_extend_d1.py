@@ -44,7 +44,8 @@ class ReviewImportTest(unittest.TestCase):
 
     def run_import(self):
         self.input.write_text(json.dumps(self.changes, ensure_ascii=False))
-        return prepare(self.export, self.manifest_file, self.input, self.root / 'out')
+        return prepare(self.export, self.manifest_file, self.input, self.root / 'out',
+                       shared=getattr(self, 'shared', False))
 
     def item(self, kind):
         return next(r for r in self.changes['records'] if r['kind'] == kind)

@@ -6,6 +6,7 @@ import sqlite3
 import tempfile
 from pathlib import Path
 from prepare_d1 import encode
+from shared_records import FORMAT, record_table, verify_members
 
 
 def verify(export, manifest_path):
@@ -20,8 +21,10 @@ def verify(export, manifest_path):
         expected = {k: v for k, v in manifest.items() if k != 'revision'}
         if not revision or json.loads(revision[0]) != expected:
             raise ValueError('Remote manifest does not match')
-        rows = db.execute('''SELECT record_id,kind,passage_id,ref,subject_id,object_id,authority,
-                             decision,payload_sha256,payload_json FROM sage_graph_records
+        if manifest.get('storageFormat') == FORMAT:
+            verify_members(db, manifest['revision'])
+        rows = db.execute(f'''SELECT record_id,kind,passage_id,ref,subject_id,object_id,authority,
+                             decision,payload_sha256,payload_json FROM {record_table(db)}
                              WHERE revision_id=? ORDER BY record_id''', (manifest['revision'],))
         indexed = []
         for row in rows:

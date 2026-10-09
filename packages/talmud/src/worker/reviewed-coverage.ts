@@ -45,18 +45,20 @@ export async function loadReviewedCoverage(db: RegistryDatabase | undefined, req
   for (let batch = 0; batch < 100; batch++) {
     const { results } = await db
       .prepare(
-        `SELECT r.record_id,r.ref FROM sage_graph_records r
-         LEFT JOIN sage_graph_records other ON other.revision_id=r.revision_id
-          AND other.record_id=(CASE r.kind WHEN 'source_identity' THEN 'accepted_identity:'
-            ELSE 'source_identity:' END)||json_extract(r.payload_json,'$.personKey')
+        `SELECT r.record_id,r.ref FROM sage_graph_all_records r
          WHERE r.revision_id=? AND r.subject_id=? AND r.record_id>?
           AND r.kind IN ('source_identity','accepted_identity')
           AND r.authority IN ('source_review','user_correction')
           AND ((r.kind='source_identity' AND r.decision='accepted_registry_identity')
             OR (r.kind='accepted_identity' AND r.decision='accepted'))
-          AND (other.record_id IS NULL OR other.authority NOT IN ('source_review','user_correction')
-            OR (r.authority='user_correction' AND other.authority='source_review')
-            OR (r.authority=other.authority AND r.kind='source_identity'))
+          AND NOT EXISTS (
+            SELECT 1 FROM sage_graph_all_records other WHERE other.revision_id=r.revision_id
+             AND other.record_id=(CASE r.kind WHEN 'source_identity' THEN 'accepted_identity:'
+               ELSE 'source_identity:' END)||json_extract(r.payload_json,'$.personKey')
+             AND other.authority IN ('source_review','user_correction')
+             AND ((other.authority='user_correction' AND r.authority='source_review')
+               OR (other.authority=r.authority AND r.kind='accepted_identity'))
+          )
          ORDER BY r.record_id LIMIT 500`,
       )
       .bind(revision.id, slug, after)

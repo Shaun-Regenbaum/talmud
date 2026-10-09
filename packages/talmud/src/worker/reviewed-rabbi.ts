@@ -55,7 +55,7 @@ export async function loadReviewedRabbiEntry(
   if (!db) return null;
   const row = await db
     .prepare(
-      `SELECT payload_json FROM sage_graph_records
+      `SELECT payload_json FROM sage_graph_all_records
        WHERE revision_id=(
          SELECT id FROM sage_graph_revisions WHERE state='verified'
          ORDER BY created_at DESC, id DESC LIMIT 1
@@ -88,7 +88,7 @@ export async function loadReviewedRabbiEntries(
   for (let page = 0; page < 100; page++) {
     const { results } = await db
       .prepare(
-        `SELECT record_id, payload_json FROM sage_graph_records
+        `SELECT record_id, payload_json FROM sage_graph_all_records
          WHERE revision_id=? AND kind='registry_person' AND record_id>?
            AND authority IN ('source_review', 'user_correction') AND decision='supported'
          ORDER BY record_id LIMIT ?`,

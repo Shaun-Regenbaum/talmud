@@ -51,6 +51,12 @@ beforeEach(() => {
   sqlite.exec(
     readFileSync(new URL('../migrations-sage-graph/0001_graph.sql', import.meta.url), 'utf8'),
   );
+  sqlite.exec(
+    readFileSync(
+      new URL('../migrations-sage-graph/0003_shared_records.sql', import.meta.url),
+      'utf8',
+    ),
+  );
   db = { prepare: (sql) => statement(sql) };
 });
 afterEach(() => sqlite.close());
