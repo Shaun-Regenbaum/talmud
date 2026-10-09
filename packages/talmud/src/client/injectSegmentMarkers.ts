@@ -78,6 +78,14 @@ export function abbreviationMatches(hbRaw: string, sefWords: string[], sj: numbe
     return 0;
   }
 
+  // מדא"ר → מדאמר רבי (Chullin 57a). The prefix belongs to אמר;
+  // the generic acronym matcher cannot consume its three initial letters.
+  if (/^מדא[״"]ר$/.test(s)) {
+    return sj + 1 < sefWords.length && eq(sefWords[sj], 'מדאמר') && eq(sefWords[sj + 1], 'רבי')
+      ? 2
+      : 0;
+  }
+
   // חכ"א → חכמים אומרים  ;  וחכ"א → וחכמים אומרים  ("(and) the Sages say").
   // Needs an explicit rule: the generic acronym matcher caps each Sefaria word
   // at 2 acronym letters, but חכמים supplies 3 (ח,כ,_ → חכ plus the leading ו),
