@@ -1,0 +1,501 @@
+{
+  "provenance": "Actual saved source passages and independently reviewed passage-local nodes prepared for graph revision sage-graph-443a4de35dff9c257983.",
+  "records": [
+    {
+      "record_id": "graph_node:local:b581-p9/B",
+      "kind": "graph_node",
+      "data": {
+        "id": "local:b581-p9/B",
+        "label": "רב קטינא",
+        "identityResolved": false,
+        "personKeys": ["b581-p9/B"],
+        "generation": null,
+        "generationBasis": null
+      }
+    },
+    {
+      "record_id": "graph_node:local:b257-p4/E",
+      "kind": "graph_node",
+      "data": {
+        "id": "local:b257-p4/E",
+        "label": "The son of רב הונא בר אבין",
+        "identityResolved": false,
+        "personKeys": ["b257-p4/E"],
+        "generation": null,
+        "generationBasis": null
+      }
+    },
+    {
+      "record_id": "passage:b581-p9",
+      "kind": "passage",
+      "data": {
+        "claims": [
+          {
+            "addressee": "C",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s0",
+            "kind": "quoted_teaching",
+            "note": "The subject of וקא קרי is רב הונא בר רב קטינא. His presence before רב חסדא is explicit; treating the reading as directed to him is contextual.",
+            "quote": "יתיב רב הונא בר רב קטינא קמיה דרב חסדא וקא קרי (שמות כד, ה) וישלח את נערי בני ישראל",
+            "quoteLocation": "passage",
+            "speaker": "A",
+            "speaker_basis": "unambiguous_pronoun"
+          },
+          {
+            "addressee": "A",
+            "addressee_basis": "unambiguous_pronoun",
+            "field": "speech",
+            "id": "s1",
+            "kind": "said",
+            "note": "Antecedents: יתיב רב הונא בר רב קטינא קמיה דרב חסדא וקא קרי; רב חסדא replies to the reader.",
+            "quote": "א\"ל הכי אמר ר' אסי (קרבו) ופסקו",
+            "quoteLocation": "passage",
+            "speaker": "C",
+            "speaker_basis": "unambiguous_pronoun"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s2",
+            "kind": "quoted_teaching",
+            "note": "An attributed teaching inside C's statement; ר' אסי is not placed at the reading scene, and (קרבו) is preserved as supplied.",
+            "quote": "הכי אמר ר' אסי (קרבו) ופסקו",
+            "quoteLocation": "passage",
+            "speaker": "D",
+            "speaker_basis": "text"
+          },
+          {
+            "a": "A",
+            "b": "B",
+            "basis": "text",
+            "field": "relations",
+            "id": "r0",
+            "note": "Patronymic as written.",
+            "quote": "רב הונא בר רב קטינא",
+            "quoteLocation": "passage",
+            "relation": "child_of"
+          },
+          {
+            "a": "A",
+            "b": "C",
+            "basis": "text",
+            "field": "relations",
+            "id": "r1",
+            "note": "A textual sitting and reading scene; no teacher-student relationship is explicitly stated.",
+            "quote": "יתיב רב הונא בר רב קטינא קמיה דרב חסדא",
+            "quoteLocation": "passage",
+            "relation": "in_the_presence_of"
+          },
+          {
+            "a": "F",
+            "b": "E",
+            "basis": "text",
+            "field": "relations",
+            "id": "r2",
+            "note": "The verb supplies an unnamed singular sender and an explicitly named group sent; the sender's identity is left open.",
+            "quote": "וישלח את נערי בני ישראל",
+            "quoteLocation": "passage",
+            "relation": "other:sent"
+          }
+        ],
+        "id": "b581-p9",
+        "people": [
+          {
+            "id": "A",
+            "label": "רב הונא בר רב קטינא",
+            "named": "name",
+            "quote": "רב הונא בר רב קטינא",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "B",
+            "label": "רב קטינא",
+            "named": "father_of_named",
+            "quote": "בר רב קטינא",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "C",
+            "label": "רב חסדא",
+            "named": "name",
+            "quote": "רב חסדא",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "D",
+            "label": "ר' אסי",
+            "named": "name",
+            "quote": "ר' אסי",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "E",
+            "label": "נערי בני ישראל",
+            "named": "group",
+            "quote": "נערי בני ישראל",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "F",
+            "label": "The unnamed sender in the scriptural quotation",
+            "named": "pronoun_only",
+            "quote": "וישלח את נערי בני ישראל",
+            "quoteLocation": "passage"
+          }
+        ],
+        "ref": "Zevachim 115b:6",
+        "source": {
+          "after": "סבר לאותוביה ממתניתין שמעיה דקאמר משמיה דרב אדא בר אהבה עולה שהקריבו ישראל במדבר אינה טעונה הפשט וניתוח אותביה ברייתא דשויא בכולהו",
+          "before": "ת\"ל (ויקרא יז, ח) אשר יעלה עולה או זבח מה העלאה שהיא גמר עבודה אף כל שהוא גמר עבודה:",
+          "passage": "עד שלא הוקם המשכן [וכו']: יתיב רב הונא בר רב קטינא קמיה דרב חסדא וקא קרי (שמות כד, ה) וישלח את נערי בני ישראל א\"ל הכי אמר ר' אסי (קרבו) ופסקו"
+        },
+        "unclear": [
+          "The subject and scope of (קרבו) ופסקו are supplied only contextually by נערי בני ישראל and the surrounding discussion.",
+          "The sender in וישלח is not named in this PASSAGE and is not identified from outside knowledge.",
+          "ר' אסי's original audience is unspecified, and the attribution does not imply his presence with the two rabbis."
+        ]
+      }
+    },
+    {
+      "record_id": "passage:b257-p4",
+      "kind": "passage",
+      "data": {
+        "claims": [
+          {
+            "addressee": "B",
+            "addressee_basis": "text",
+            "field": "speech",
+            "id": "s0",
+            "kind": "said",
+            "note": "Rava draws Rav Naḥman's attention to the arriving rabbi.",
+            "quote": "א\"ל רבא לרב נחמן חזי מר האי מרבנן דאתא ממערבא",
+            "quoteLocation": "passage",
+            "speaker": "A",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "unclear",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s1",
+            "kind": "said",
+            "note": "The natural reading attaches ואמר to האי מרבנן דאתא ממערבא. The reporter's audience and where his report ends are not explicitly marked.",
+            "quote": "ואמר איזדקיקו ליה רבנן לבריה דרב הונא בר אבין ושרו ליה נדריה ואמרו ליה זיל ובעי רחמי על נפשך דחטאת",
+            "quoteLocation": "passage",
+            "speaker": "C",
+            "speaker_basis": "context"
+          },
+          {
+            "addressee": "E",
+            "addressee_basis": "unambiguous_pronoun",
+            "field": "speech",
+            "id": "s2",
+            "kind": "said",
+            "note": "The antecedents are רבנן, who released the vow, and בריה דרב הונא בר אבין, whose vow they released.",
+            "quote": "ואמרו ליה זיל ובעי רחמי על נפשך דחטאת",
+            "quoteLocation": "passage",
+            "speaker": "D",
+            "speaker_basis": "unambiguous_pronoun"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s3",
+            "kind": "quoted_teaching",
+            "note": "The vow teaching is cited as a reason for calling the vow-maker a sinner; its original audience is unspecified.",
+            "quote": "דתני רב דימי אחוה דרב ספרא כל הנודר אע\"פ שהוא מקיימו נקרא חוטא",
+            "quoteLocation": "passage",
+            "speaker": "H",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s4",
+            "kind": "taught",
+            "note": "Rav Zevid supplies the scriptural support. The verse's grammatical ‘you’ does not identify a new scene participant.",
+            "quote": "אמר רב זביד מאי קרא (דברים כג, כג) וכי תחדל לנדור לא יהיה בך חטא הא לא חדלת איכא חטא",
+            "quoteLocation": "passage",
+            "speaker": "J",
+            "speaker_basis": "text"
+          },
+          {
+            "a": "E",
+            "b": "F",
+            "basis": "text",
+            "field": "relations",
+            "id": "r0",
+            "note": "The son has no personal name in this passage.",
+            "quote": "לבריה דרב הונא בר אבין",
+            "quoteLocation": "passage",
+            "relation": "child_of"
+          },
+          {
+            "a": "F",
+            "b": "G",
+            "basis": "text",
+            "field": "relations",
+            "id": "r1",
+            "note": "Patronymic only.",
+            "quote": "רב הונא בר אבין",
+            "quoteLocation": "passage",
+            "relation": "child_of"
+          },
+          {
+            "a": "H",
+            "b": "I",
+            "basis": "text",
+            "field": "relations",
+            "id": "r2",
+            "note": "The passage explicitly calls Rav Dimi Rav Safra's brother.",
+            "quote": "רב דימי אחוה דרב ספרא",
+            "quoteLocation": "passage",
+            "relation": "sibling_of"
+          },
+          {
+            "a": "D",
+            "b": "E",
+            "basis": "text",
+            "field": "relations",
+            "id": "r3",
+            "note": "This is an action in the reported account.",
+            "quote": "איזדקיקו ליה רבנן לבריה דרב הונא בר אבין ושרו ליה נדריה",
+            "quoteLocation": "passage",
+            "relation": "other:released_the_vow_of"
+          }
+        ],
+        "id": "b257-p4",
+        "people": [
+          {
+            "id": "A",
+            "label": "רבא",
+            "named": "name",
+            "quote": "א\"ל רבא לרב נחמן",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "B",
+            "label": "רב נחמן",
+            "named": "name",
+            "quote": "לרב נחמן",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "C",
+            "label": "The rabbi who came from the west",
+            "named": "described",
+            "quote": "האי מרבנן דאתא ממערבא",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "D",
+            "label": "רבנן who attended to the vow",
+            "named": "group",
+            "quote": "איזדקיקו ליה רבנן",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "E",
+            "label": "The son of רב הונא בר אבין",
+            "named": "described",
+            "quote": "לבריה דרב הונא בר אבין",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "F",
+            "label": "רב הונא בר אבין",
+            "named": "name",
+            "quote": "רב הונא בר אבין",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "G",
+            "label": "אבין",
+            "named": "father_of_named",
+            "quote": "רב הונא בר אבין",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "H",
+            "label": "רב דימי",
+            "named": "name",
+            "quote": "רב דימי אחוה דרב ספרא",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "I",
+            "label": "רב ספרא",
+            "named": "name",
+            "quote": "אחוה דרב ספרא",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "J",
+            "label": "רב זביד",
+            "named": "name",
+            "quote": "אמר רב זביד",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "K",
+            "label": "Anyone who vows, in the general teaching",
+            "named": "described",
+            "quote": "כל הנודר אע\"פ שהוא מקיימו",
+            "quoteLocation": "passage"
+          }
+        ],
+        "ref": "Nedarim 77b:4",
+        "source": {
+          "after": "תניא האומר לאשתו כל נדרים שתדורי אי אפשי שתדורי אין זה נדר לא אמר כלום יפה עשית ואין כמותך ואם לא נדרת מדירך אני דבריו קיימין",
+          "before": "עומד והתניא ירד ר\"ג מן החמור ונתעטף וישב והתיר לו נדרו רבן גמליאל סבר פותחין בחרטה מיעקר נדר' בעינן ובעי עיוני אהכי ישב ורב נחמן סבר אין פותחין בחרטה ואפילו מעומד",
+          "passage": "א\"ל רבא לרב נחמן חזי מר האי מרבנן דאתא ממערבא ואמר איזדקיקו ליה רבנן לבריה דרב הונא בר אבין ושרו ליה נדריה ואמרו ליה זיל ובעי רחמי על נפשך דחטאת דתני רב דימי אחוה דרב ספרא כל הנודר אע\"פ שהוא מקיימו נקרא חוטא אמר רב זביד מאי קרא (דברים כג, כג) וכי תחדל לנדור לא יהיה בך חטא הא לא חדלת איכא חטא"
+        },
+        "unclear": [
+          "The arriving rabbi, the son, and the rabbis who released his vow are unnamed.",
+          "The precise limits of the arriving rabbi's report are not marked.",
+          "The universal vow-maker is a legal category, not another identified participant."
+        ]
+      }
+    },
+    {
+      "record_id": "graph_node:local:b001-p2/B",
+      "kind": "graph_node",
+      "data": {
+        "generation": null,
+        "generationBasis": null,
+        "id": "local:b001-p2/B",
+        "identityResolved": false,
+        "label": "Shimon son of Lakish addressed by Yochanan",
+        "labelHe": "רבי שמעון בן לקיש שאליו פונה רבי יוחנן",
+        "personKeys": ["b001-p2/B"],
+        "sourceProfile": {
+          "generation": "amora-ey-1",
+          "name": "Shimon son of Lakish addressed by Yochanan",
+          "nameHe": "רבי שמעון בן לקיש שאליו פונה רבי יוחנן",
+          "personKey": "b001-p2/B",
+          "quote": "מתיב ר' יוחנן לר' שמעון בן לקיש והא תנינן עצמות והגידים והנותר ישרפו בששה עשר ויקוץ. מפני מוח. ויחלוץ בשר מן העצים ויקוץ. שלא לפקע תחת הבשר:",
+          "resolvedTo": "rabbi-shimon-b-lakish",
+          "summary": "Yochanan directs an objection to Shimon son of Lakish. This occurrence is linked to the retained Reish Lakish record.",
+          "summaryHe": "רבי יוחנן מקשה על רבי שמעון בן לקיש. האזכור מקושר לרשומה המאוחדת של ריש לקיש."
+        }
+      }
+    },
+    {
+      "record_id": "passage:b001-p2",
+      "kind": "passage",
+      "data": {
+        "claims": [
+          {
+            "addressee": "B",
+            "addressee_basis": "text",
+            "field": "speech",
+            "id": "s0",
+            "kind": "objected",
+            "note": "The objection explicitly names both participants.",
+            "quote": "מתיב ר' יוחנן לר' שמעון בן לקיש והא תנינן עצמות והגידים והנותר ישרפו בששה עשר ויקוץ.",
+            "quoteLocation": "passage",
+            "speaker": "A",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s1",
+            "kind": "quoted_teaching",
+            "note": "A teaching embedded in ר' יוחנן's objection; its original speaker is not given.",
+            "quote": "עצמות והגידים והנותר ישרפו בששה עשר",
+            "quoteLocation": "passage",
+            "speaker": "unclear",
+            "speaker_basis": "context"
+          },
+          {
+            "addressee": "A",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s2",
+            "kind": "answered",
+            "note": "Assigned to the respondent from the exchange's structure, not from an explicit speech marker.",
+            "quote": "מפני מוח.",
+            "quoteLocation": "passage",
+            "speaker": "B",
+            "speaker_basis": "context"
+          },
+          {
+            "addressee": "B",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s3",
+            "kind": "objected",
+            "note": "Read as the original questioner's follow-up; the text does not identify its speaker.",
+            "quote": "ויחלוץ בשר מן העצים ויקוץ.",
+            "quoteLocation": "passage",
+            "speaker": "A",
+            "speaker_basis": "context"
+          },
+          {
+            "addressee": "A",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s4",
+            "kind": "answered",
+            "note": "Read as a further reply from the exchange's structure.",
+            "quote": "שלא לפקע תחת הבשר:",
+            "quoteLocation": "passage",
+            "speaker": "B",
+            "speaker_basis": "context"
+          },
+          {
+            "a": "B",
+            "b": "C",
+            "basis": "text",
+            "field": "relations",
+            "id": "r0",
+            "note": "Literal patronymic only.",
+            "quote": "ר' שמעון בן לקיש",
+            "quoteLocation": "passage",
+            "relation": "child_of"
+          }
+        ],
+        "id": "b001-p2",
+        "people": [
+          {
+            "id": "A",
+            "label": "ר' יוחנן",
+            "named": "name",
+            "quote": "ר' יוחנן",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "B",
+            "label": "ר' שמעון בן לקיש",
+            "named": "name",
+            "quote": "ר' שמעון בן לקיש",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "C",
+            "label": "לקיש",
+            "named": "father_of_named",
+            "quote": "לקיש",
+            "quoteLocation": "passage"
+          }
+        ],
+        "ref": "Jerusalem Talmud Pesachim 7:11:5",
+        "source": {
+          "after": "אבר שיצא מקצתו חותך עד שמגיע לעצם וקולף עד שמגיע לפרק וחותך ובמוקדשין קוצץ בקופיץ שאין בהן שבירת העצם מן האגף ולפנים כלפנים ומן האגף לחוץ כלחוץ החלונות ועובי החומה כלפנים:",
+          "before": "אבל המותיר בטהור והשובר בטמא אינו לוקה ארבעים. רבי אבון בשם ר\"א מתניתא כשבא בטומאה משעה ראשונה אבל אם בא בטהרה ונטמא כבא בטהרה ולוקין על שבירתו.",
+          "passage": "מתיב ר' יוחנן לר' שמעון בן לקיש והא תנינן עצמות והגידים והנותר ישרפו בששה עשר ויקוץ. מפני מוח. ויחלוץ בשר מן העצים ויקוץ. שלא לפקע תחת הבשר:"
+        },
+        "unclear": [
+          "Only the opening objection names its speaker and addressee; the alternating assignments of the later lines are contextual.",
+          "The cited teaching's original speaker is unnamed."
+        ]
+      }
+    }
+  ]
+}
