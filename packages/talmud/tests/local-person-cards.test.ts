@@ -7,7 +7,7 @@ let db: DatabaseSync;
 beforeEach(() => {
   db = new DatabaseSync(':memory:');
   db.exec(
-    'CREATE TABLE sage_graph_revisions(id TEXT,state TEXT,manifest_json TEXT,created_at TEXT); CREATE TABLE sage_graph_records(revision_id TEXT,record_id TEXT,kind TEXT,payload_json TEXT);',
+    'CREATE TABLE sage_graph_revisions(id TEXT,state TEXT,manifest_json TEXT,created_at TEXT); CREATE TABLE sage_graph_records(revision_id TEXT,record_id TEXT,kind TEXT,payload_json TEXT); CREATE VIEW sage_graph_all_records AS SELECT * FROM sage_graph_records;',
   );
   db.prepare(
     "INSERT INTO sage_graph_revisions VALUES('reviewed','verified','{}','2026-10-09')",

@@ -42,6 +42,12 @@ beforeEach(() => {
       VALUES('reviewed',?,?,?,?,?,?,'not-used-by-reader',?)`)
       .run(r.record_id, r.kind, r.ref, r.subject_id, r.authority, r.decision, r.payload_json);
   }
+  sqlite.exec(
+    readFileSync(
+      new URL('../migrations-sage-graph/0003_shared_records.sql', import.meta.url),
+      'utf8',
+    ),
+  );
   db = { prepare: (sql) => statement(sql) };
 });
 afterEach(() => sqlite.close());

@@ -2290,6 +2290,11 @@
       "reason": "Plan and method documents for the sage study. They describe what to build and link to the published results; they hold no measured findings of their own.",
       "sha256": "2afa301e49e9e40c138bae1abd5aa985aa328dece0197187ea60078039edf602"
     },
+    "research/sage-network/storage/README.md": {
+      "disposition": "excluded",
+      "reason": "Engineering instructions for graph storage, import verification, and deployment order. No research findings or dataset; belongs with the storage code in Git.",
+      "sha256": "d6223d4b66eb8e96ea33dd5591c8bba2a83476a7e34bc0bbd46719112d80ccf1"
+    },
     "research/sage-network/tests/fixtures/namesake-network.json": {
       "disposition": "excluded",
       "reason": "Regression fixture containing saved public passage records for the personal Talmud project; project instructions prohibit uploading this research to a company service.",

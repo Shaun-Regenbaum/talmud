@@ -13,6 +13,7 @@ from urllib.parse import urlsplit
 
 from prepare_d1 import encode
 from verify_d1 import verify
+import shared_records
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "identity"))
 from prepare_scan import build as build_namesake_changes
@@ -76,7 +77,7 @@ def validate_registry_person(key, row, data):
             raise ValueError('Invalid registry source URL: ' + key)
 
 
-def prepare(export, manifest_path, changes_path, output):
+def prepare(export, manifest_path, changes_path, output, *, shared=False):
     parent = json.loads(manifest_path.read_text())
     verify(export, manifest_path)
     changes = json.loads(changes_path.read_text())
@@ -86,12 +87,15 @@ def prepare(export, manifest_path, changes_path, output):
         db.execute('PRAGMA journal_mode=OFF')
         db.execute('PRAGMA synchronous=OFF')
         db.executescript(export.read_text())
+        if shared:
+            shared_records.ensure_schema(db)
+        table = shared_records.record_table(db)
         state = db.execute('SELECT state FROM sage_graph_revisions WHERE id=?',
                            (parent['revision'],)).fetchone()
         if state != ('verified',):
             raise ValueError('Parent revision is not verified')
         rows = {r[0]: r for r in db.execute(
-            f'SELECT {COLUMNS} FROM sage_graph_records WHERE revision_id=?',
+            f'SELECT {COLUMNS} FROM {table} WHERE revision_id=?',
             (parent['revision'],))}
         if 'namesakeRegistry' in changes or 'namesakeRegistrySha256' in changes or any(item['kind'] in {'namesake_scan','namesake_registry'} for item in changes['records']):
             # Recompute every proposed record from the verified parent before import.
@@ -265,22 +269,29 @@ def prepare(export, manifest_path, changes_path, output):
                         recordCount=len(rows), countsByKind=dict(sorted(Counter(r[1] for r in ordered).items())),
                         recordSetSha256=digest(encode([r[:-1] for r in ordered])),
                         changesSha256=digest(changes_path.read_text()))
+        if shared:
+            manifest['storageFormat'] = shared_records.FORMAT
         revision = 'sage-graph-' + digest(encode(manifest))[:20]
         sql = [f'INSERT INTO sage_graph_revisions(id,manifest_json,state) VALUES ({literal(revision)},{literal(encode(manifest))},\'loading\');']
-        # Copy bounded ranges; exclude every changed key before inserting replacements.
-        keys = sorted(rows)
-        for start in range(0, len(keys), 2000):
-            chunk = keys[start:start + 2000]
-            excluded = [k for k in changed if chunk[0] <= k <= chunk[-1]]
-            exclusion = (' AND record_id NOT IN (' + ','.join(map(literal, excluded)) + ')') if excluded else ''
-            sql.append(f'INSERT INTO sage_graph_records(revision_id,{COLUMNS}) SELECT {literal(revision)},{COLUMNS} FROM sage_graph_records WHERE revision_id={literal(parent["revision"])} AND record_id>={literal(chunk[0])} AND record_id<={literal(chunk[-1])}{exclusion};')
-        for key in sorted(changed):
-            sql.append(f'INSERT INTO sage_graph_records(revision_id,{COLUMNS}) VALUES (' + ','.join(map(literal, (revision, *changed[key]))) + ');')
+        if shared:
+            sql.extend(shared_records.statements(parent, revision, rows, changed))
+        else:
+            # Copy bounded ranges; exclude every changed key before inserting replacements.
+            keys = sorted(rows)
+            for start in range(0, len(keys), 2000):
+                chunk = keys[start:start + 2000]
+                excluded = [k for k in changed if chunk[0] <= k <= chunk[-1]]
+                exclusion = (' AND record_id NOT IN (' + ','.join(map(literal, excluded)) + ')') if excluded else ''
+                sql.append(f'INSERT INTO sage_graph_records(revision_id,{COLUMNS}) SELECT {literal(revision)},{COLUMNS} FROM {table} WHERE revision_id={literal(parent["revision"])} AND record_id>={literal(chunk[0])} AND record_id<={literal(chunk[-1])}{exclusion};')
+            for key in sorted(changed):
+                sql.append(f'INSERT INTO sage_graph_records(revision_id,{COLUMNS}) VALUES (' + ','.join(map(literal, (revision, *changed[key]))) + ');')
         script = '\n'.join(sql) + '\n'
         db.executescript(script)
-        actual = list(db.execute(f'SELECT {COLUMNS} FROM sage_graph_records WHERE revision_id=? ORDER BY record_id', (revision,)))
+        actual = list(db.execute(f'SELECT {COLUMNS} FROM {table} WHERE revision_id=? ORDER BY record_id', (revision,)))
         if actual != ordered:
             raise ValueError('SQL round trip differs')
+        if shared:
+            shared_records.verify_members(db, revision)
         outputs = {
             'import.sql': script,
             'manifest.json': json.dumps(dict(revision=revision, **manifest), indent=2) + '\n',
@@ -303,5 +314,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ['export', 'manifest', 'changes', 'output']:
         parser.add_argument(name, type=Path)
+    parser.add_argument('--shared-records', action='store_true', help='Require migration 0003 and reuse immutable record versions')
     args = parser.parse_args()
-    print(json.dumps(prepare(args.export, args.manifest, args.changes, args.output)))
+    print(json.dumps(prepare(args.export, args.manifest, args.changes, args.output, shared=args.shared_records)))
