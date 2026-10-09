@@ -11,11 +11,22 @@ function letters(text: string) {
     'בראשית|שמות|ויקרא|במדבר|דברים|יהושע|שופטים|שמואל [אב]|מלכים [אב]|ישעיה|ירמיה|יחזקאל|הושע|יואל|עמוס|עובדיה|יונה|מיכה|נחום|חבקוק|צפניה|חגי|זכריה|מלאכי|תהלים|משלי|איוב|שיר השירים|רות|איכה|קהלת|אסתר|דניאל|עזרא|נחמיה|דברי הימים [אב]';
   const references = new RegExp(`\\((?:${books}) [א-ת׳״"']+, [א-ת׳״"']+\\)`, 'g');
   const runningText = text.replace(references, (reference) => ' '.repeat(reference.length));
-  for (const match of runningText.matchAll(/\S+/g)) {
+  const tokens = [...runningText.matchAll(/\S+/g)];
+  const cleanToken = (index: number) =>
+    (tokens[index]?.[0] ?? '').replace(/[֑-ׇ]/g, '').replace(/[.,:;!?]+$/, '');
+  for (const [index, match] of tokens.entries()) {
     const raw = match[0];
     const clean = raw.replace(/[֑-ׇ]/g, '');
     const key = clean.replace(/[^א-ת]/g, '');
-    const expanded = /["״]/.test(clean) ? forms[key] : undefined;
+    let expanded = /["״]/.test(clean) ? forms[key] : undefined;
+    // Expand compound names only with their written qualifier. A bare ר"א or
+    // ר"ש remains ambiguous; the complete source paragraph must still match.
+    const first = cleanToken(index).match(/^(ד?)ר["״]א$/);
+    if (first && /^בר["״]ש$/.test(cleanToken(index + 1))) expanded = `${first[1]}רביאלעזר`;
+    else if (/^בר["״]ש$/.test(cleanToken(index)) && /^(ד?)ר["״]א$/.test(cleanToken(index - 1)))
+      expanded = 'ברבישמעון';
+    else if (/^ר["״]ש$/.test(cleanToken(index)) && cleanToken(index + 1) === 'ברבי')
+      expanded = 'רבישמעון';
     if (expanded) {
       for (const letter of expanded) output.push({ letter, at: match.index! });
       continue;
