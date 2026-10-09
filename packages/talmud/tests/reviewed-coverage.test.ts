@@ -8,6 +8,7 @@ import { registerObservationRoutes } from '../src/worker/routes/observations';
 import type { Bindings } from '../src/worker/types';
 import saved from './fixtures/reviewed-coverage.json';
 import aliasObservation from './fixtures/reviewed-coverage-alias.json';
+import invalidPage from './fixtures/reviewed-coverage-invalid-page.json';
 import observation from './fixtures/reviewed-coverage-observation.json';
 
 // These identity rows and the annotation slice were captured from production.
@@ -146,6 +147,32 @@ describe('the card coverage response', () => {
       });
     }
     expect(reads).toBe(2);
+  });
+
+  it('excludes the captured annotation for nonexistent Megillah 32b', async () => {
+    publish();
+    const key = 'rabbi-obs:v1:rabbi-shimon-b-lakish:megillah:32b';
+    const entries = new Map([[key, JSON.stringify(invalidPage)]]);
+    const kv = {
+      ...cache(entries),
+      list: async ({ prefix }: { prefix: string }) => ({
+        keys: [...entries.keys()]
+          .filter((name) => name.startsWith(prefix))
+          .map((name) => ({ name })),
+        list_complete: true,
+      }),
+    };
+    const request = '/api/rabbi-observations/rabbi-shimon-b-lakish?summary=1&min=9999&coverage=1';
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const response = await app.request(request, {}, { CACHE: kv, SAGE_GRAPH_DB: db });
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject({
+        dafCount: 0,
+        byTractate: {},
+        coveragePages: [],
+      });
+    }
+    expect(entries.get(key)).toBe(JSON.stringify(invalidPage));
   });
 
   it('rebuilds an old summary, deduplicates the reviewed page, and caches only annotations', async () => {

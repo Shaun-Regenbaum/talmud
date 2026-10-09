@@ -16,7 +16,12 @@ import { parseJSONAs } from '../kv-json';
 import { recordListShape } from '../kv-shapes';
 import type { ObservationSlice } from '../rabbi-observations';
 import { RECENT_ERRORS_CAP, RECENT_ERRORS_KEY, type RecentJobError } from '../recent-errors';
-import { countCoverage, coveragePage, loadReviewedCoverage } from '../reviewed-coverage';
+import {
+  countCoverage,
+  coveragePage,
+  isNonexistentCoveragePage,
+  loadReviewedCoverage,
+} from '../reviewed-coverage';
 import type { Bindings } from '../types';
 
 /** One rabbi's observations for one daf. The route counts by tractate and walks
@@ -173,7 +178,7 @@ export function registerObservationRoutes(app: Hono<{ Bindings: Bindings }>): vo
         }
         const page = typeof s.page === 'string' ? coveragePage(s.tractate, s.page) : null;
         if (page) coveragePages.add(page);
-        else coverageComplete = false;
+        else if (!isNonexistentCoveragePage(s.tractate, s.page)) coverageComplete = false;
         dafCount++;
         byTractate[s.tractate] = (byTractate[s.tractate] ?? 0) + 1;
         if (!name && s.name) name = s.name;
@@ -229,8 +234,9 @@ export function registerObservationRoutes(app: Hono<{ Bindings: Bindings }>): vo
                 slice && typeof slice.page === 'string'
                   ? coveragePage(slice.tractate, slice.page)
                   : null;
-              if (!page) return c.json({ error: 'Incomplete page coverage' }, 503);
-              coveragePages.add(page);
+              if (page) coveragePages.add(page);
+              else if (!slice || !isNonexistentCoveragePage(slice.tractate, slice.page))
+                return c.json({ error: 'Incomplete page coverage' }, 503);
             }
           }
           aliasCursor = listed.list_complete ? undefined : listed.cursor;

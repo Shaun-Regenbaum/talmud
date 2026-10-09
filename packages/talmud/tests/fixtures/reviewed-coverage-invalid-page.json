@@ -1,0 +1,21 @@
+{
+  "slug": "rabbi-shimon-b-lakish",
+  "name": "Reish Lakish",
+  "nameHe": "ר' שמעון בן לקיש",
+  "tractate": "Megillah",
+  "page": "32b",
+  "computedAt": "2026-08-02T10:40:16.304Z",
+  "defHash": "1",
+  "observations": [
+    {
+      "type": "place",
+      "segIdx": -1,
+      "confidence": "high",
+      "source": "rabbi.location",
+      "payload": {
+        "place": "Tiberias"
+      },
+      "hash": "8b5ecef8"
+    }
+  ]
+}
