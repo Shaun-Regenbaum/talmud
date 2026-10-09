@@ -5,6 +5,7 @@ import { lang, t } from './i18n';
 import { sefariaUrl } from './sageInteractions';
 import {
   loadStories,
+  loadStoryPeople,
   type StoryClaim,
   type StoryIndex,
   type StoryPassage,
@@ -151,6 +152,18 @@ export function StoryReadingsPage() {
   );
 }
 function StoryDetail(props: { id: string }) {
+  const [people, { refetch: retryPeople }] = createResource(
+    () => props.id,
+    async (id) => {
+      try {
+        return { id, links: await loadStoryPeople(id), failed: false };
+      } catch {
+        return { id, links: {}, failed: true };
+      }
+    },
+  );
+  const personId = (id: string) =>
+    !people.loading && people()?.id === props.id ? people()?.links[`${props.id}/${id}`] : undefined;
   const [failed, setFailed] = createSignal(false);
   const [pack, { refetch }] = createResource(
     () => props.id.split('-')[0],
@@ -283,11 +296,28 @@ function StoryDetail(props: { id: string }) {
                       </Show>
                       <section>
                         <h3>{t('stories.people')}</h3>
+                        <Show
+                          when={!people.loading && people()?.id === props.id && people()?.failed}
+                        >
+                          <StatusMessage
+                            tone="error"
+                            onRetry={() => retryPeople()}
+                            retryLabel={t('sages.connections.retry')}
+                          >
+                            {t('checked.namesError')}
+                          </StatusMessage>
+                        </Show>
                         <ul class="story-people">
                           <For each={reading().people}>
                             {(p) => (
                               <li>
-                                <strong dir="auto">{p.label}</strong>
+                                <strong dir="auto">
+                                  <Show when={personId(p.id)} fallback={p.label}>
+                                    {(id) => (
+                                      <a href={`#sages/${encodeURIComponent(id())}`}>{p.label}</a>
+                                    )}
+                                  </Show>
+                                </strong>
                                 <span class="story-note">{t(`stories.named.${p.named}`)}</span>
                                 <Show when={p.note}>
                                   <p class="story-person-note" dir="ltr" lang="en">

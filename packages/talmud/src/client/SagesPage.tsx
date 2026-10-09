@@ -2,9 +2,11 @@
 import { StatusMessage } from '@corpus/ui/Study';
 import { createMemo, createResource, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 import { canonicalSlug } from '../lib/rabbi/identity';
+import type { IdentifiedRabbi } from './dafContext';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
 import { lang, t } from './i18n';
 import { PersonConnections } from './PersonConnections';
+import { PersonEra } from './PersonEra';
 import { SageAutocomplete } from './SageAutocomplete';
 import { SageConnections } from './SageConnections';
 import { SageCoverageStrip } from './SageCoverageStrip';
@@ -80,9 +82,10 @@ function namePair(en: string, he: string | null | undefined): { main: string; ot
   return { main: en, other: he ?? '' };
 }
 
-async function getJSON<T>(url: string): Promise<T | null> {
+async function getJSON<T>(url: string, missing?: T): Promise<T | null> {
   try {
     const response = await fetch(url);
+    if (response.status === 404 && missing !== undefined) return missing;
     return response.ok ? ((await response.json()) as T) : null;
   } catch {
     return null;
@@ -196,11 +199,19 @@ function SageDetail(props: {
     async (slug) => {
       const result = await getJSON<{ record: UnifiedRecord | null }>(
         `/api/admin/rabbi-enriched/${encodeURIComponent(slug)}`,
+        { record: null },
       );
       setProfileFailed(!result);
       return result?.record ?? null;
     },
   );
+  const [basic, { refetch: retryBasic }] = createResource(
+    () => (!unified.loading && !unified() && !profileFailed() ? props.slug : undefined),
+    async (slug) => getJSON<{ rabbi: IdentifiedRabbi }>(`/api/rabbi/${encodeURIComponent(slug)}`),
+  );
+  const savedPerson = () =>
+    !unified() && basic()?.rabbi.slug === props.slug ? basic()?.rabbi : undefined;
+  const personFailed = () => profileFailed() || (basic.state === 'ready' && !basic());
   const [cohort] = createResource(() =>
     getJSON<{ bySage: Record<string, string[]> }>('/api/admin/rabbi-cohort'),
   );
@@ -239,16 +250,16 @@ function SageDetail(props: {
             <span>
               {
                 namePair(
-                  unified()?.canonical.en ?? props.nameFor(props.slug),
-                  unified()?.canonical.he,
+                  unified()?.canonical.en ?? savedPerson()?.name ?? props.nameFor(props.slug),
+                  unified()?.canonical.he ?? savedPerson()?.nameHe,
                 ).main
               }
             </span>
             <Show
               when={
                 namePair(
-                  unified()?.canonical.en ?? props.nameFor(props.slug),
-                  unified()?.canonical.he,
+                  unified()?.canonical.en ?? savedPerson()?.name ?? props.nameFor(props.slug),
+                  unified()?.canonical.he ?? savedPerson()?.nameHe,
                 ).other
               }
             >
@@ -262,18 +273,36 @@ function SageDetail(props: {
         </div>
       </header>
 
-      <Show when={unified.loading && !unified()}>
+      <Show when={(unified.loading || basic.loading) && !unified() && !savedPerson()}>
         <StatusMessage tone="loading">{t('sages.detail.loadingSage')}</StatusMessage>
       </Show>
 
-      <Show when={!unified.loading && !unified()}>
+      <Show when={!unified.loading && !basic.loading && !unified() && !savedPerson()}>
         <StatusMessage
-          tone={profileFailed() ? 'error' : 'empty'}
-          onRetry={profileFailed() ? () => refetch() : undefined}
+          tone={personFailed() ? 'error' : 'empty'}
+          onRetry={() => (profileFailed() ? refetch() : retryBasic())}
           retryLabel={t('sages.connections.retry')}
         >
-          {t(profileFailed() ? 'sages.connections.profileError' : 'sages.connections.noBio')}{' '}
+          {t(personFailed() ? 'sages.connections.profileError' : 'sages.connections.noBio')}{' '}
         </StatusMessage>
+      </Show>
+
+      <Show when={savedPerson()}>
+        {(person) => (
+          <>
+            <PersonEra generation={person().generation} />
+            <section class="sage-biography">
+              <Show
+                when={person().bio}
+                fallback={<StatusMessage tone="empty">{t('sages.bio.empty')}</StatusMessage>}
+              >
+                <p class="sage-prose" dir="ltr" lang="en">
+                  {person().bio}
+                </p>
+              </Show>
+            </section>
+          </>
+        )}
       </Show>
 
       <Show when={unified()}>
@@ -337,7 +366,7 @@ function SageDetail(props: {
 
       <p>
         <a
-          href={`#stories/q/${encodeURIComponent(unified()?.canonical.he || props.nameFor(props.slug))}`}
+          href={`#stories/q/${encodeURIComponent(unified()?.canonical.he || savedPerson()?.nameHe || props.nameFor(props.slug))}`}
         >
           {t('stories.profileLink')}
         </a>
