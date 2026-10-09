@@ -64,9 +64,13 @@ export function abbreviationMatches(hbRaw: string, sefWords: string[], sj: numbe
     return 0;
   }
 
-  // א"ר  →  אמר רבי
+  // א"ר → אמר רב / אמר רבי, as written in the corresponding source.
   if (/^א[״"״]ר$/.test(s)) {
-    if (sj + 1 < sefWords.length && eq(sefWords[sj], 'אמר') && eq(sefWords[sj + 1], 'רבי'))
+    if (
+      sj + 1 < sefWords.length &&
+      eq(sefWords[sj], 'אמר') &&
+      (eq(sefWords[sj + 1], 'רבי') || eq(sefWords[sj + 1], 'רב'))
+    )
       return 2;
     return 0;
   }
