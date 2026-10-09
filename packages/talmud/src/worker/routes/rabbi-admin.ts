@@ -111,6 +111,16 @@ function isRabbinicEntry(r: RabbiPlacesEntry): boolean {
   return isRabbinicHebrewName(r.canonicalHe);
 }
 
+function isRabbinicPerson(slug: string, entry: RabbiPlacesEntry): boolean {
+  return (
+    isRabbinicEntry(entry) ||
+    Object.entries(DUPLICATE_SLUGS).some(([other, target]) => {
+      const alternate = RABBI_PLACES.rabbis[other];
+      return target === slug && alternate !== undefined && isRabbinicEntry(alternate);
+    })
+  );
+}
+
 // --- Admin: per-rabbi relationship extraction ---------------------------
 // Extracts teachers / students / colleagues from each rabbi's bio via
 // Kimi K2.6 thinking. Names returned by the model are resolved server-side
@@ -932,7 +942,7 @@ export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): voi
         ([slug, r]) =>
           canonicalSlug(slug) === slug &&
           !isNonSageTopic(slug, r.canonicalHe) &&
-          isRabbinicEntry(r),
+          isRabbinicPerson(slug, r),
       )
       .map(([slug]) => slug);
     return c.json({ slugs, count: slugs.length });
@@ -946,7 +956,7 @@ export function registerRabbiAdminRoutes(app: Hono<{ Bindings: Bindings }>): voi
         ([slug, r]) =>
           canonicalSlug(slug) === slug &&
           !isNonSageTopic(slug, r.canonicalHe) &&
-          isRabbinicEntry(r),
+          isRabbinicPerson(slug, r),
       )
       .map(([slug, r]) => ({
         slug,
