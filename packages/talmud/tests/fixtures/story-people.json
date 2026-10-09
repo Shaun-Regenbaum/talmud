@@ -1,0 +1,131 @@
+{
+  "source": "https://talmud.dev/api/sage-graph/records?kind=source_identity&passage=b000-p8&limit=1",
+  "capturedAt": "2026-10-09",
+  "pages": [
+    {
+      "revision": "sage-graph-a50e50493b5a84d2077f",
+      "note": "These records preserve accepted, rejected and unresolved readings. Storage does not confirm an identity. User corrections are separate from the original claims and take precedence over them. Name positions are not ready for the reader until page placement is checked.",
+      "nextCursor": "source_identity:b000-p8/A",
+      "records": [
+        {
+          "record_id": "source_identity:b000-p8/A",
+          "kind": "source_identity",
+          "passage_id": "b000-p8",
+          "ref": "Shabbat 35b:6",
+          "authority": "source_review",
+          "decision": "accepted_registry_identity",
+          "payload_sha256": "b05058e4e49b4b5beddfa69bcd6d600cc76548dbfad68bb0236791db2e703945",
+          "data": {
+            "evidence": [
+              {
+                "location": "passage",
+                "quote": "מתני ליה רב יהודה לרב יצחק בריה שניה להדליק את הנר כמאן לא כר' נתן ולא כר' יהודה הנשיא אלא שלישית להדליק את הנר כמאן כרבי נתן"
+              }
+            ],
+            "generationBasis": "existing_registry_not_new_dating",
+            "historicalIdentityResolved": true,
+            "personId": "rav-yehudah-b-yechezkel",
+            "personKey": "b000-p8/A",
+            "reason": "The named son Yitzchak anchors Rav Yehuda, and the full paternal identity anchors his son. Natan and Yehuda HaNasi are cited authorities, not participants.",
+            "sources": ["https://www.sefaria.org/Shabbat_35b.6"],
+            "status": "accepted_registry_identity"
+          }
+        }
+      ]
+    },
+    {
+      "revision": "sage-graph-a50e50493b5a84d2077f",
+      "note": "These records preserve accepted, rejected and unresolved readings. Storage does not confirm an identity. User corrections are separate from the original claims and take precedence over them. Name positions are not ready for the reader until page placement is checked.",
+      "nextCursor": "source_identity:b000-p8/B",
+      "records": [
+        {
+          "record_id": "source_identity:b000-p8/B",
+          "kind": "source_identity",
+          "passage_id": "b000-p8",
+          "ref": "Shabbat 35b:6",
+          "authority": "source_review",
+          "decision": "accepted_registry_identity",
+          "payload_sha256": "648cf34139de34dca3e47ca8e84d95e6ed17eb2c6c666bf602ca91a481d265ee",
+          "data": {
+            "evidence": [
+              {
+                "location": "passage",
+                "quote": "מתני ליה רב יהודה לרב יצחק בריה שניה להדליק את הנר כמאן לא כר' נתן ולא כר' יהודה הנשיא אלא שלישית להדליק את הנר כמאן כרבי נתן"
+              }
+            ],
+            "generationBasis": "existing_registry_not_new_dating",
+            "historicalIdentityResolved": true,
+            "personId": "rav-yitzchak-b-yehuda",
+            "personKey": "b000-p8/B",
+            "reason": "The named son Yitzchak anchors Rav Yehuda, and the full paternal identity anchors his son. Natan and Yehuda HaNasi are cited authorities, not participants.",
+            "sources": ["https://www.sefaria.org/Shabbat_35b.6"],
+            "status": "accepted_registry_identity"
+          }
+        }
+      ]
+    },
+    {
+      "revision": "sage-graph-a50e50493b5a84d2077f",
+      "note": "These records preserve accepted, rejected and unresolved readings. Storage does not confirm an identity. User corrections are separate from the original claims and take precedence over them. Name positions are not ready for the reader until page placement is checked.",
+      "nextCursor": null,
+      "records": [
+        {
+          "record_id": "source_identity:b000-p8/D",
+          "kind": "source_identity",
+          "passage_id": "b000-p8",
+          "ref": "Shabbat 35b:6",
+          "authority": "source_review",
+          "decision": "accepted_registry_identity",
+          "payload_sha256": "85178a71468ff541725b6bc86ff74c0cf473d8afdd4e2a31d0c4e4de5bc0a95c",
+          "data": {
+            "evidence": [
+              {
+                "location": "passage",
+                "quote": "מתני ליה רב יהודה לרב יצחק בריה שניה להדליק את הנר כמאן לא כר' נתן ולא כר' יהודה הנשיא אלא שלישית להדליק את הנר כמאן כרבי נתן"
+              }
+            ],
+            "generationBasis": "existing_registry_not_new_dating",
+            "historicalIdentityResolved": true,
+            "personId": "rabbi-yehudah-hanasi",
+            "personKey": "b000-p8/D",
+            "reason": "HaNasi names a quoted authority, not a person present during Rav Judah teaching.",
+            "sources": ["https://talmud.dev/?lang=en#stories/b000-p8"],
+            "status": "accepted_registry_identity"
+          }
+        }
+      ]
+    }
+  ],
+  "qualifiedSource": "https://talmud.dev/api/sage-graph/records?kind=source_identity&passage=b530-p2&limit=50",
+  "qualified": {
+    "revision": "sage-graph-a50e50493b5a84d2077f",
+    "note": "These records preserve accepted, rejected and unresolved readings. Storage does not confirm an identity. User corrections are separate from the original claims and take precedence over them. Name positions are not ready for the reader until page placement is checked.",
+    "nextCursor": null,
+    "records": [
+      {
+        "record_id": "source_identity:b530-p2/E",
+        "kind": "source_identity",
+        "passage_id": "b530-p2",
+        "ref": "Gittin 76b:19",
+        "authority": "source_review",
+        "decision": "accepted_registry_identity",
+        "payload_sha256": "5f29f322510310c02d088468e628cfd1c43ffc5ba9df12e69ced5dbcf29f21e4",
+        "data": {
+          "evidence": [
+            {
+              "location": "passage",
+              "quote": "א\"ר אבא בריה דרבי חייא בר אבא א\"ר יוחנן ר' יהודה נשיאה בנו של ר\"ג בר רבי הורה ולא הודו לו כל סיעתו ואמרי לה כל שעתו"
+            }
+          ],
+          "generationBasis": "existing_registry_not_new_dating",
+          "historicalIdentityResolved": true,
+          "personId": "rabbi-yehudah-nesia-(i)",
+          "personKey": "b530-p2/E",
+          "reason": "The source explicitly supplies son of Gamliel son of Rabbi ancestry, anchoring the working identity and provisionally distinguishing numbered candidates subject to the local Rabbi identification.",
+          "sources": ["https://talmud.dev/?lang=en#stories/b530-p2"],
+          "status": "accepted_registry_identity"
+        }
+      }
+    ]
+  }
+}
