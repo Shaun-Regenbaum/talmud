@@ -248,7 +248,7 @@ import { registerEnrichmentDefRoutes, registerMarkDefRoutes } from './routes/def
 import { registerHalachaRoutes } from './routes/halacha';
 import { registerObservationRoutes } from './routes/observations';
 import { registerQaRoutes } from './routes/qa';
-import { readEnriched, registerRabbiAdminRoutes } from './routes/rabbi-admin';
+import { readEnrichedForPerson, registerRabbiAdminRoutes } from './routes/rabbi-admin';
 import { registerRegionMesorahRoutes } from './routes/region-mesorah';
 import { registerTranslateRoutes } from './routes/translate';
 import { registerUsageRoutes } from './routes/usage';
@@ -6978,10 +6978,14 @@ registerBilingualRoutes(app);
 
 app.get('/api/admin/rabbi-enriched/:slug', async (c) => {
   if (!c.env.CACHE) return c.json({ error: 'CACHE unavailable' }, 503);
-  const slug = c.req.param('slug');
-  const record = await readEnriched(c.env.CACHE, slug);
-  if (!record) return c.json({ error: 'not enriched', slug }, 404);
-  return c.json({ slug, record });
+  const slug = canonicalSlug(c.req.param('slug'));
+  const saved = await readEnrichedForPerson(c.env.CACHE, slug);
+  if (!saved) return c.json({ error: 'not enriched', slug }, 404);
+  return c.json({
+    slug,
+    record: saved.record,
+    ...(saved.sourceSlug === slug ? {} : { sourceSlug: saved.sourceSlug }),
+  });
 });
 
 // ============================================================================

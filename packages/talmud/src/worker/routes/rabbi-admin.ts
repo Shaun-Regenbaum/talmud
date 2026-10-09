@@ -754,6 +754,26 @@ export async function readEnriched(
   return (await kvGetJSONAs<EnrichedRabbiRecord>(cache, key, enrichedRabbiShape)) ?? null;
 }
 
+/** Read saved biographies across reviewed duplicate IDs without rewriting cached records. */
+export async function readEnrichedForPerson(cache: KVNamespace, personId: string) {
+  const slug = canonicalSlug(personId);
+  const candidates = [
+    slug,
+    ...Object.keys(DUPLICATE_SLUGS).filter((id) => DUPLICATE_SLUGS[id] === slug),
+  ];
+  for (const sourceSlug of candidates) {
+    const record = await readEnriched(cache, sourceSlug);
+    if (record) {
+      // A legacy profile's generation codes use a different numbering system.
+      // Keep the retained registry generation when borrowing its biography.
+      const generation =
+        sourceSlug === slug ? record.generation : (RABBI_PLACES.rabbis[slug]?.generation ?? null);
+      return { record: { ...record, slug, generation }, sourceSlug };
+    }
+  }
+  return null;
+}
+
 function parseWikidataYear(time: string | undefined): number | null {
   if (!time) return null;
   const m = time.match(/^([+-])(\d{4,})/);

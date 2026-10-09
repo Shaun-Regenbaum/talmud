@@ -1,0 +1,147 @@
+{
+  "rabbi-shimon-bar-abba": {
+    "slug": "rabbi-shimon-bar-abba",
+    "canonical": {
+      "en": "Rabbi Shimon b. Abba",
+      "he": "רבי שמעון בר אבא"
+    },
+    "aliases": [
+      "R. Shimon bar Abba",
+      "Rabbi Shimon b. Abba",
+      "Rabbi Shimon bar Ba",
+      "Rabbi Shimon bar Va"
+    ],
+    "generation": "A2",
+    "region": "israel",
+    "academy": null,
+    "birthYear": null,
+    "deathYear": null,
+    "places": ["Damascus"],
+    "bio": {
+      "en": "Rabbi Shimon b. Abba was a second-generation Eretz Yisrael Amora and student-colleague of Rabbi Yochanan. The Jerusalem Talmud describes him as meticulous in mitzvah observance and an expert diamond appraiser, yet he remained poor despite his priestly lineage. A wealthy landowner named Eliposa once sought to give him tithes, but Rabbi Shimon hesitated to accept them due to doubts about the man's reliability in matters of terumot and maasrot; he agreed only after Rabbi Yochanan affirmed Eliposa's trustworthiness. He may have been a relative or brother of Rabbi Chiyya bar Abba. Impoverished, he eventually left the Land of Israel to settle in Damascus, despite Rabbi Chiyya's unsuccessful attempt to dissuade him with a poignant appeal about the loss of a precious plant from the land.",
+      "he": "רבי שמעון בר אבא היה אמורא ארץ-ישראלי מן הדור השני ותלמיד-חברו של רבי יוחנן. התלמוד הירושלמי מתאר אותו כמדקדק במצוות ובמומחה להערכת יהלומים, אך נשאר עני למרות היותו כהן. בעל אחוזה עשיר בשם אליפוסה ביקש פעם לתת לו מעשרות, אך רבי שמעון היסס לקבלן בשל ספקות לגבי אמינות האיש בענייני תרומות ומעשרות; הוא הסכים רק לאחר שרבי יוחנן אישר את אמינותו של אליפוסה. ייתכן שהיה קרוב או אח של רבי חייא בר אבא. בשל עוניו, עזב לבסוף את ארץ ישראל והתיישב בדמשק, למרות ניסיונו הכושל של רבי חייא לשכנעו אחרת באמצעות פנייה נוגעת ללב על אובדן צמח יקר מהארץ."
+    },
+    "prominence": null,
+    "orientation": "practical",
+    "characteristics": ["halakhist", "aggadist", "priest", "poor", "emigrant"],
+    "primaryTeacher": null,
+    "primaryStudent": null,
+    "teachers": [
+      {
+        "slug": null,
+        "name": "Rabbi Yochanan",
+        "weight": 0.8,
+        "source": "llm"
+      }
+    ],
+    "students": [],
+    "contemporaries": [],
+    "family": [
+      {
+        "slug": null,
+        "name": "Rabbi Chiyya bar Abba",
+        "weight": 0.6,
+        "source": "llm",
+        "relation": "brother"
+      }
+    ],
+    "opposed": [],
+    "influences": [],
+    "events": [],
+    "refs": {
+      "sefariaSlug": "rabbi-shimon-bar-abba",
+      "heWiki": "https://he.wikipedia.org/wiki/%D7%A8%D7%91%D7%99_%D7%A9%D7%9E%D7%A2%D7%95%D7%9F_%D7%91%D7%A8_%D7%90%D7%91%D7%90"
+    },
+    "image": null,
+    "schemaVersion": 1,
+    "enrichedAt": "2026-05-21T18:54:30.256Z",
+    "sources": ["sefaria", "llm", "wikipedia"]
+  },
+  "rabbi-shimon-b-lakish": {
+    "slug": "rabbi-shimon-b-lakish",
+    "canonical": {
+      "en": "Rabbi Shimon b. Lakish",
+      "he": "רבי שמעון בן לקיש"
+    },
+    "aliases": [
+      "Reish Lakish",
+      "Resh Lakish",
+      "Rabbi Shimon ben Lakish",
+      "R. Simeon b. Laqish",
+      "Rabbi Simeon b. Laqish",
+      "Resh Laqish",
+      "Rebbi Simeon ban Laqish",
+      "Rebbi Simeon b. Laqush"
+    ],
+    "generation": "A2",
+    "region": "israel",
+    "academy": "tiberias",
+    "birthYear": null,
+    "deathYear": null,
+    "places": ["Tiberias"],
+    "bio": {
+      "en": "Rabbi Shimon ben Lakish began his journey studying Torah in his youth but later turned to a life of banditry. Recognizing his potential, Rabbi Yochanan persuaded him to become a Torah scholar, and they studied together for many years. During this time, Rabbi Lakish became renowned for his scholarship, eventually reaching a level comparable to Rabbi Yochanan. Unfortunately, an argument between them indirectly led to Rabbi Lakish's premature death.",
+      "he": "רבי שמעון בן לקיש למד תורה בצעירותו ולאחר מכן הצטרף לחבורת שודדים. רבי יוחנן הכיר בפוטנציאל שלו ושכנע אותו ללמוד תורה, והשניים למדו יחד במשך שנים רבות, עד שהגיע ריש לקיש למדרגתו של רבי יוחנן. עם זאת מחלוקת ביניהם הביאה לידי מותו בטרם עת של ריש לקיש."
+    },
+    "prominence": 8154,
+    "orientation": "practical",
+    "characteristics": ["halakhist", "aggadist", "exegete"],
+    "primaryTeacher": "rabbi-yochanan-b-napacha",
+    "primaryStudent": "ulla",
+    "teachers": [
+      {
+        "slug": "rabbi-yochanan-b-napacha",
+        "name": "Rabbi Yochanan b. Napacha",
+        "weight": 1,
+        "source": "sefaria"
+      },
+      {
+        "slug": "rabbi-yehudah-nesia-(i)",
+        "name": "Rabbi Yehudah Nesia (I)",
+        "weight": 0.251,
+        "source": "sefaria"
+      },
+      {
+        "slug": "rabbi-nehunya-b-hakanah",
+        "name": "Rabbi Nehunya b. HaKanah",
+        "weight": 0,
+        "source": "sefaria"
+      }
+    ],
+    "students": [
+      {
+        "slug": "ulla",
+        "name": "Ulla",
+        "weight": 1,
+        "source": "sefaria"
+      },
+      {
+        "slug": "rabbi-ilai-(ii)",
+        "name": "Rabbi Ilai (II)",
+        "weight": 0.975,
+        "source": "sefaria"
+      },
+      {
+        "slug": "rabbi-abahu",
+        "name": "Rabbi Abahu",
+        "weight": 0.935,
+        "source": "sefaria"
+      }
+    ],
+    "contemporaries": [],
+    "family": [],
+    "opposed": [],
+    "influences": [],
+    "events": [],
+    "refs": {
+      "sefariaSlug": "rabbi-shimon-b-lakish",
+      "enWiki": "http://en.wikipedia.org/wiki/Shimon_ben_Lakish",
+      "heWiki": "https://he.wikipedia.org/wiki/%D7%A8%D7%99%D7%A9_%D7%9C%D7%A7%D7%99%D7%A9",
+      "je": "http://www.jewishencyclopedia.com/view.jsp?letter=S&artid=757"
+    },
+    "image": null,
+    "schemaVersion": 1,
+    "enrichedAt": "2026-05-21T18:35:54.136Z",
+    "sources": ["sefaria", "llm"]
+  }
+}
