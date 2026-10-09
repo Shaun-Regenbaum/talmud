@@ -192,7 +192,12 @@ sageGraph.get('/checked', async (c) => {
         personRecord?.canonicalHe ??
         (/[א-ת]/.test(node.label) ? node.label : (sourcePerson?.quote ?? node.label)),
       identityResolved: node.identityResolved,
-      hasSourceProfile: !!node.sourceProfile,
+      hasSourceProfile:
+        !!node.sourceProfile ||
+        (id === `local:${key}` &&
+          sourcePerson?.quoteLocation === 'passage' &&
+          !!sourcePerson.quote &&
+          !!passages.get(`passage:${pid}`)?.source?.passage?.includes(sourcePerson.quote)),
       generation: node.generation,
     };
   });
@@ -243,10 +248,10 @@ sageGraph.get('/person', async (c) => {
     .bind(saved.id, `graph_node:${id}`)
     .first<{ payload_json: string }>();
   const node = row ? JSON.parse(row.payload_json) : null;
-  const profile = node?.sourceProfile;
-  if (!profile || !node.personKeys?.includes(profile.personKey))
-    return c.json({ error: 'Unknown person' }, 404);
-  const passageId = profile.personKey.split('/')[0];
+  let profile = node?.sourceProfile;
+  const personKey = profile?.personKey ?? id.slice('local:'.length);
+  if (!node?.personKeys?.includes(personKey)) return c.json({ error: 'Unknown person' }, 404);
+  const [passageId, localId] = personKey.split('/');
   const sourceRow = await db
     .prepare(
       "SELECT payload_json FROM sage_graph_records WHERE revision_id=? AND record_id=? AND kind='passage'",
@@ -254,6 +259,22 @@ sageGraph.get('/person', async (c) => {
     .bind(saved.id, `passage:${passageId}`)
     .first<{ payload_json: string }>();
   const passage = sourceRow ? JSON.parse(sourceRow.payload_json) : null;
+  if (!profile) {
+    const person = passage?.people?.find((p: { id: string }) => p.id === localId);
+    if (!person?.quote || person.quoteLocation !== 'passage')
+      return c.json({ error: 'Source could not be checked' }, 503);
+    // A passage-local card needs no historical biography or proposed identity.
+    // Keep the saved label and exact name quote; leave unsourced fields empty.
+    profile = {
+      personKey,
+      name: node.label,
+      nameHe: /[א-ת]/.test(node.label) ? node.label : person.quote,
+      quote: person.quote,
+      summary: '',
+      summaryHe: '',
+      places: [],
+    };
+  }
   if (!passage?.source?.passage?.includes(profile.quote))
     return c.json({ error: 'Source could not be checked' }, 503);
   const places = [];
