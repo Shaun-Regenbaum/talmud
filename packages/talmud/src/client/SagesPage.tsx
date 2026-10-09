@@ -1,6 +1,7 @@
 /** Browse a sage through names, sources and links to other people. */
 import { StatusMessage } from '@corpus/ui/Study';
 import { createMemo, createResource, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
+import { canonicalSlug } from '../lib/rabbi/identity';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
 import { lang, t } from './i18n';
 import { PersonConnections } from './PersonConnections';
@@ -92,7 +93,7 @@ export function SagesPage(): JSX.Element {
   const hashSlug = () => {
     if (!location.hash.startsWith('#sages/')) return null;
     try {
-      return decodeURIComponent(location.hash.slice(7).split('/with/')[0]) || null;
+      return canonicalSlug(decodeURIComponent(location.hash.slice(7).split('/with/')[0])) || null;
     } catch {
       return null;
     }
@@ -100,7 +101,7 @@ export function SagesPage(): JSX.Element {
   const [selected, setSelected] = createSignal(hashSlug());
   const pairKey = () => {
     try {
-      return decodeURIComponent(location.hash.split('/with/')[1] ?? '');
+      return canonicalSlug(decodeURIComponent(location.hash.split('/with/')[1] ?? ''));
     } catch {
       return '';
     }
@@ -114,10 +115,11 @@ export function SagesPage(): JSX.Element {
   onCleanup(() => window.removeEventListener('hashchange', sync));
   const rows = createMemo(() => new Map((index()?.rows ?? []).map((row) => [row.slug, row])));
   const nameFor: NameFor = (slug) => {
-    const row = rows().get(slug);
+    const row = rows().get(canonicalSlug(slug));
     return row ? namePair(row.canonical, row.canonicalHe).main : slug;
   };
   const select = (slug: string) => {
+    slug = canonicalSlug(slug);
     setPartner('');
     setSelected(slug);
     location.hash = `sages/${encodeURIComponent(slug)}`;

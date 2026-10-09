@@ -1,3 +1,5 @@
+import { canonicalSlug } from '../lib/rabbi/identity';
+
 /**
  * Data and wording for the rabbi card's "Interactions" box.
  *
@@ -227,10 +229,12 @@ export function interactionsSlugForName(he: string): Promise<string | null> {
       .then(async (r) => {
         const ct = r.headers.get('content-type') ?? '';
         if (!r.ok || !ct.includes('json')) return new Map<string, string>();
-        const idx = (await r.json()) as Record<string, { nameHe?: string }>;
+        const idx = (await r.json()) as Record<string, { nameHe?: string; nameHes?: string[] }>;
         const m = new Map<string, string>();
         for (const [slug, v] of Object.entries(idx)) {
-          if (v.nameHe && !m.has(nameKey(v.nameHe))) m.set(nameKey(v.nameHe), slug);
+          for (const name of v.nameHes ?? (v.nameHe ? [v.nameHe] : [])) {
+            if (!m.has(nameKey(name))) m.set(nameKey(name), canonicalSlug(slug));
+          }
         }
         return m;
       })
@@ -244,7 +248,7 @@ export async function fetchSageInteractions(
   strict = false,
 ): Promise<SageInteractions | null> {
   try {
-    const r = await fetch(`/sage-interactions/${encodeURIComponent(slug)}.json`);
+    const r = await fetch(`/sage-interactions/${encodeURIComponent(canonicalSlug(slug))}.json`);
     if (r.status === 404) return null;
     if (!r.ok) throw new Error('Could not load passage records');
     const ct = r.headers.get('content-type') ?? '';

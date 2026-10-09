@@ -1,3 +1,5 @@
+import { canonicalSlug } from '../lib/rabbi/identity';
+
 /**
  * A sage's connections, as the text records them, for the API and the MCP.
  *
@@ -46,6 +48,7 @@ export async function loadConnections(
   slug: string,
   origin: string | null,
 ): Promise<Connections> {
+  slug = canonicalSlug(slug);
   const inProgress: Connections = {
     status: 'in-progress',
     slug,

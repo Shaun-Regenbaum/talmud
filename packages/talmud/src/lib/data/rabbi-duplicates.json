@@ -3,6 +3,16 @@
   "duplicates": {
     "rabbah-bar-nahmani": "rabbah-b-nachmani",
     "rabbi-yehoshua-b-hananiah": "rabbi-yehoshua-b-hananyah",
-    "rabbi-shmuel-bar-nachmani": "rabbi-shmuel-b-nahmani"
+    "rabbi-shmuel-bar-nachmani": "rabbi-shmuel-b-nahmani",
+    "rabbi-shimon-b-lakish-2": "rabbi-shimon-b-lakish",
+    "rabbi-shimon-bar-abba": "rabbi-shimon-b-abba"
+  },
+  "sources": {
+    "rabbi-shimon-b-lakish-2": [
+      "https://sefaria.jewishencyclopedia.com/articles/12690-resh-lakish"
+    ],
+    "rabbi-shimon-bar-abba": [
+      "https://www.jewishencyclopedia.com/articles/13682-simeon-b-abba"
+    ]
   }
 }

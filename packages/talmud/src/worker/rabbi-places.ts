@@ -5,6 +5,7 @@
 // no run engine. This is the foundation the rabbi identity/enrichment layer sits on.
 
 import rabbiPlacesData from '../lib/data/rabbi-places.json';
+import { canonicalSlug } from '../lib/rabbi/identity';
 
 export type Movement = 'bavel->israel' | 'israel->bavel' | 'both' | null;
 
@@ -78,7 +79,7 @@ const BY_CANONICAL_HE: Record<string, string> = (() => {
   for (const [slug, r] of Object.entries(RABBI_PLACES.rabbis)) {
     if (!r.canonicalHe) continue;
     const key = normalizeHeForResolve(r.canonicalHe);
-    if (key && !out[key]) out[key] = slug;
+    if (key && !out[key]) out[key] = canonicalSlug(slug);
   }
   return out;
 })();
@@ -98,7 +99,8 @@ export function resolveRabbiByHe(rawHe: string): RabbiResolution | null {
 export function resolveRabbiByName(raw: string): RabbiResolution | null {
   const key = raw.toLowerCase().trim();
   if (!key) return null;
-  const direct = RABBI_PLACES.aliasIndex[key];
+  const rawDirect = RABBI_PLACES.aliasIndex[key];
+  const direct = rawDirect ? canonicalSlug(rawDirect) : undefined;
   if (direct) {
     const entry = RABBI_PLACES.rabbis[direct];
     if (entry) return { slug: direct, entry };
@@ -118,7 +120,8 @@ export function resolveRabbiByName(raw: string): RabbiResolution | null {
     const tokens = stripped.split(' ');
     const isBareTitle = tokens.length < 2;
     if (!isBareTitle) {
-      const s = RABBI_PLACES.aliasIndex[stripped];
+      const rawSlug = RABBI_PLACES.aliasIndex[stripped];
+      const s = rawSlug ? canonicalSlug(rawSlug) : undefined;
       if (s) {
         const entry = RABBI_PLACES.rabbis[s];
         if (entry) return { slug: s, entry };

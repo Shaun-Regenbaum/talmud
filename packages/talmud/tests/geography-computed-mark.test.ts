@@ -153,10 +153,10 @@ describe('geography computed mark — computeGeographyModel', () => {
 
   // FINDING 2 (homonym): identity must come from the grounded SLUG (direct
   // dataset join), NOT a name re-resolution (first-wins, homonym-blind). The
-  // registry has two "Rabbi Shimon b. Lakish": rabbi-shimon-b-lakish (placed at
-  // Tiberias — the one name-resolution always returns) and
-  // rabbi-shimon-b-lakish-2 (no places). A daf grounded to slug -2 must NOT be
-  // placed at Tiberias (which is bearer #1's place); a name re-resolve would.
+  // registry has two "Rabbi Oshaya": rabbi-oshaya (placed at
+  // Caesarea — the one name-resolution always returns) and
+  // rabbi-oshaya-2 (no places). A daf grounded to slug -2 must NOT be
+  // placed at Caesarea (which is bearer #1's place); a name re-resolve would.
   it('places the SLUG-stamped homonym, not the first same-name bearer', async () => {
     const t = 'Berakhot';
     const p = '5a';
@@ -166,12 +166,12 @@ describe('geography computed mark — computeGeographyModel', () => {
           {
             fields: {
               // Bare name (no distinguishing nameHe) → name re-resolution lands
-              // on bearer #1 (rabbi-shimon-b-lakish, placed at Tiberias). The
+              // on bearer #1 (rabbi-oshaya, placed at Caesarea). The
               // grounded slug points at bearer #2 — the slug-join must win.
-              name: 'Rabbi Shimon b. Lakish',
+              name: 'Rabbi Oshaya',
               nameHe: '',
               // Grounded to bearer #2 (the place-less homonym).
-              slug: 'rabbi-shimon-b-lakish-2',
+              slug: 'rabbi-oshaya-2',
             },
           },
         ],
@@ -186,10 +186,10 @@ describe('geography computed mark — computeGeographyModel', () => {
     const model = out.instances[0].fields.model as {
       dots: Array<{ city: { name: string }; rabbis: { name: string }[] }>;
     };
-    // Bearer #2 has no registry place → must NOT be planted on Tiberias.
-    const tiberias = model.dots.find((d) => d.city.name === 'Tiberias');
-    expect(tiberias?.rabbis.map((r) => r.name) ?? []).not.toContain('Rabbi Shimon b. Lakish');
-    // (Sanity: the name-resolution path WOULD have placed him at Tiberias.)
+    // Bearer #2 has no registry place → must NOT be planted on Caesarea.
+    const caesarea = model.dots.find((d) => d.city.name === 'Caesarea');
+    expect(caesarea?.rabbis.map((r) => r.name) ?? []).not.toContain('Rabbi Oshaya');
+    // (Sanity: the name-resolution path WOULD have placed him at Caesarea.)
   });
 
   // FINDING 1 (cold-daf not-ready): the geography mark declares deps on the

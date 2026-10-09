@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { describe, expect, it } from 'vitest';
 import { getRabbiEntryOr404, readJsonBody } from '../src/worker/http-helpers';
+import { RABBI_PLACES } from '../src/worker/rabbi-places';
 
 // These helpers replace boilerplate that appeared verbatim across ~18 route
 // bodies in index.ts. The tests pin the contract those call sites relied on:
@@ -61,6 +62,25 @@ describe('readJsonBody', () => {
 });
 
 describe('getRabbiEntryOr404', () => {
+  it('keeps old Shimon links working with the retained registry entries', async () => {
+    const registry = new Hono();
+    registry.get('/:slug', (c) => {
+      const result = getRabbiEntryOr404(c, RABBI_PLACES.rabbis);
+      return result.ok ? c.json(result) : result.response;
+    });
+    for (const [oldSlug, retained] of [
+      ['rabbi-shimon-b-lakish-2', 'rabbi-shimon-b-lakish'],
+      ['rabbi-shimon-bar-abba', 'rabbi-shimon-b-abba'],
+    ]) {
+      const response = await registry.request(`/${oldSlug}`);
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({
+        ok: true,
+        slug: retained,
+        entry: RABBI_PLACES.rabbis[retained],
+      });
+    }
+  });
   it('resolves a known slug to its entry', async () => {
     const res = await app.request('/rabbi/hillel');
     expect(res.status).toBe(200);

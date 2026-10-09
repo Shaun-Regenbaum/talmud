@@ -13,6 +13,7 @@
 // recent-errors, section-range-guarded hot path) and don't share one shape.
 
 import type { Context } from 'hono';
+import { canonicalSlug } from '../lib/rabbi/identity';
 
 /** Result of reading a JSON body: either the parsed value or a ready-to-return
  *  error Response. Callers do `if (!r.ok) return r.response;` then use r.value. */
@@ -44,7 +45,7 @@ export type RabbiEntryResult<E> =
  * Response (`{ error: 'unknown slug: <slug>' }`) when the slug is absent.
  */
 export function getRabbiEntryOr404<E>(c: Context, rabbis: Record<string, E>): RabbiEntryResult<E> {
-  const slug = c.req.param('slug') ?? '';
+  const slug = canonicalSlug(c.req.param('slug') ?? '');
   const entry = rabbis[slug];
   if (!entry) return { ok: false, response: c.json({ error: `unknown slug: ${slug}` }, 404) };
   return { ok: true, slug, entry };

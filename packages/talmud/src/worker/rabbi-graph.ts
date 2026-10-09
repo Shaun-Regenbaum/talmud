@@ -22,7 +22,10 @@
  * resolve (graph references a node we don't have) are dropped silently.
  */
 
-import duplicatesData from '../lib/data/rabbi-duplicates.json';
+import { canonicalSlug } from '../lib/rabbi/identity';
+
+export { canonicalSlug, DUPLICATE_SLUGS } from '../lib/rabbi/identity';
+
 import hierarchyData from '../lib/data/rabbi-hierarchy.json';
 import { isNonSageTopic } from '../lib/nonSageTopics';
 
@@ -186,19 +189,6 @@ function normalizeHeName(s: string): string {
   );
 }
 
-/** Registry nodes that are the same person as another node (rabbi-duplicates.json):
- *  duplicate slug → the slug to use. Both nodes stay in the data files (cached
- *  content still references the duplicates); every resolver output is folded
- *  through canonicalSlug so a homonym never splits between two nodes for one
- *  person. */
-export const DUPLICATE_SLUGS: Readonly<Record<string, string>> = (
-  duplicatesData as { duplicates: Record<string, string> }
-).duplicates;
-
-export function canonicalSlug(slug: string): string {
-  return DUPLICATE_SLUGS[slug] ?? slug;
-}
-
 /** Fold duplicates and dedupe, keeping first-seen order. */
 function foldSlugs(slugs: Iterable<string>): string[] {
   const out: string[] = [];
@@ -330,7 +320,7 @@ export function slugToName(slug: string): string {
 }
 
 export function generationOf(slug: string): string | null {
-  return DATA.nodes[slug]?.generation ?? null;
+  return DATA.nodes[canonicalSlug(slug)]?.generation ?? null;
 }
 
 // Every (normalizedCanonical, slug) pair, built once — for enumerating ALL
