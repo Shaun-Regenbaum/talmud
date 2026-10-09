@@ -2933,7 +2933,7 @@ const RABBI_ENTITY_FACETS = ['identity', 'connections', 'relationships', 'geogra
 type RabbiEntityFacet = (typeof RABBI_ENTITY_FACETS)[number];
 
 app.get('/api/entity/rabbi/:slug', async (c) => {
-  const slug = c.req.param('slug');
+  const slug = canonicalSlug(c.req.param('slug'));
   const entry = RABBI_PLACES.rabbis[slug];
   if (!entry) return c.json({ error: 'not found' }, 404);
   // Facet selection (additive): ?facets=identity,geography limits which
