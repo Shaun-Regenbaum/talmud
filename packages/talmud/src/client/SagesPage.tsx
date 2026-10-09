@@ -101,7 +101,7 @@ export function SagesPage(): JSX.Element {
   const [selected, setSelected] = createSignal(hashSlug());
   const pairKey = () => {
     try {
-      return canonicalSlug(decodeURIComponent(location.hash.split('/with/')[1] ?? ''));
+      return decodeURIComponent(location.hash.split('/with/')[1] ?? '');
     } catch {
       return '';
     }
