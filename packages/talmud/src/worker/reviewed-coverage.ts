@@ -11,6 +11,14 @@ export function coveragePage(tractate: string, page: string): string | null {
   return name && isValidAmud(name, page) ? `${name} ${page}` : null;
 }
 
+/** Old annotations can name a page beyond a known tractate's final page. */
+export function isNonexistentCoveragePage(tractate: string, page: unknown): boolean {
+  const name = tractates.get(tractate.toLowerCase());
+  return (
+    !!name && typeof page === 'string' && /^\d+[ab]$/.test(page.trim()) && !isValidAmud(name, page)
+  );
+}
+
 export function countCoverage(pages: Iterable<string>) {
   const distinct = new Set(pages);
   const byTractate: Record<string, number> = {};
