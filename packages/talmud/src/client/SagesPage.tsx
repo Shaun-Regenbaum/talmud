@@ -308,12 +308,8 @@ function SageDetail(props: {
       <Show when={unified()}>
         {(u) => (
           <>
+            <PersonEra generation={props.generationId ?? u().generation} />
             <div class="sages-tags">
-              <Show when={u().generation}>
-                <span class="sages-pill">
-                  <b>{genLabel(props.generationId ?? u().generation)}</b>
-                </span>
-              </Show>
               <Show when={u().region}>
                 <span class="sages-pill">
                   <b>{regionLabel(u().region)}</b>
