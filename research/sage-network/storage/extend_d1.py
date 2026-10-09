@@ -2,12 +2,14 @@
 import argparse
 import hashlib
 import json
+import re
 import sqlite3
 import tempfile
 import sys
 from collections import Counter
 from contextlib import closing
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from prepare_d1 import encode
 from verify_d1 import verify
@@ -15,7 +17,7 @@ from verify_d1 import verify
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "identity"))
 from prepare_scan import build as build_namesake_changes
 
-ALLOWED_KINDS = {'graph_node', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review', 'era_assessment', 'namesake_scan', 'namesake_registry'}
+ALLOWED_KINDS = {'graph_node', 'registry_person', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review', 'era_assessment', 'namesake_scan', 'namesake_registry'}
 
 COLUMNS = 'record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json'
 
@@ -26,6 +28,52 @@ def digest(value):
 
 def literal(value):
     return 'NULL' if value is None else "'" + str(value).replace("'", "''") + "'"
+
+
+def validate_registry_person(key, row, data):
+    match = re.fullmatch(r'registry_person:([a-z0-9()-]+)', key)
+    if not match or row[4] != match[1] or row[5] is not None or row[7] != 'supported':
+        raise ValueError('Invalid reviewed registry indexes: ' + key)
+    if data.get('identityStatus') != 'reviewed_person':
+        raise ValueError('Registry person needs explicit review status: ' + key)
+    for name in ('canonical', 'canonicalHe'):
+        if not isinstance(data.get(name), str) or not data[name].strip():
+            raise ValueError('Registry person needs names: ' + key)
+    for name in ('aliases', 'places'):
+        if not isinstance(data.get(name), list) or any(not isinstance(v, str) or not v for v in data[name]):
+            raise ValueError('Invalid registry list: ' + key)
+    # Read the same vocabulary as the card; do not maintain a second era list.
+    definitions = (Path(__file__).resolve().parents[3] / 'packages/talmud/src/client/generations.ts').read_text()
+    declaration = definitions.split('export type GenerationId =', 1)[1].split(';', 1)[0]
+    generations = set(re.findall(r"'([^']+)'", declaration))
+    if 'unknown' not in generations:
+        raise ValueError('Could not read the card generation vocabulary')
+    if 'generation' not in data or data['generation'] not in generations | {None}:
+        raise ValueError('Invalid registry generation: ' + key)
+    if 'region' not in data or data['region'] not in ('israel', 'bavel', None):
+        raise ValueError('Invalid registry region: ' + key)
+    if 'moved' not in data or data['moved'] not in ('bavel->israel', 'israel->bavel', 'both', None):
+        raise ValueError('Invalid registry movement: ' + key)
+    if 'bio' not in data or (data['bio'] is not None and (not isinstance(data['bio'], str) or not data['bio'])):
+        raise ValueError('Invalid registry biography: ' + key)
+    sources = data.get('sources')
+    if not isinstance(sources, list) or not sources:
+        raise ValueError('Registry person needs sources: ' + key)
+    for source in sources:
+        if not isinstance(source, dict) or not isinstance(source.get('title'), str) or not source['title'].strip() or not isinstance(source.get('url'), str):
+            raise ValueError('Invalid registry source: ' + key)
+        raw_url = source['url']
+        url = urlsplit(raw_url)
+        # Source references use public DNS names (ASCII or punycode). urlsplit
+        # alone accepts spaces in hosts and nonnumeric/out-of-range ports.
+        host = url.hostname or ''
+        valid_host = re.fullmatch(r'(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?', host)
+        try:
+            port = url.port
+        except ValueError:
+            raise ValueError('Invalid registry source URL: ' + key) from None
+        if not raw_url.startswith('https://') or not valid_host or url.username is not None or url.password is not None or any(ord(ch) < 32 for ch in raw_url) or (port is not None and not 0 <= port <= 65535):
+            raise ValueError('Invalid registry source URL: ' + key)
 
 
 def prepare(export, manifest_path, changes_path, output):
@@ -92,6 +140,8 @@ def prepare(export, manifest_path, changes_path, output):
 
         for key, row in changed.items():
             data = json.loads(row[-1])
+            if row[1] == 'registry_person':
+                validate_registry_person(key, row, data)
             if data.get('passageId', row[2]) != row[2] or data.get('ref', row[3]) != row[3]:
                 raise ValueError('Payload passage index differs: ' + key)
             if row[1] in {'name_occurrence', 'source_identity', 'place_review'}:
