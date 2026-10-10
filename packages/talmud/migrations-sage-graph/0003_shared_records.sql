@@ -51,27 +51,29 @@ WHEN EXISTS (SELECT 1 FROM sage_graph_record_versions
 BEGIN SELECT RAISE(ABORT, 'Record versions are immutable'); END;
 
 CREATE TRIGGER sage_graph_member_insert BEFORE INSERT ON sage_graph_revision_members
-BEGIN
-  SELECT CASE WHEN NOT EXISTS (
+WHEN NOT EXISTS (
     SELECT 1 FROM sage_graph_revisions WHERE id=NEW.revision_id AND state='loading'
       AND json_extract(manifest_json,'$.storageFormat')='shared-v1'
-  ) THEN RAISE(ABORT, 'Shared revisions must be loading') END;
-  SELECT CASE WHEN NOT EXISTS (
+  )
+BEGIN SELECT RAISE(ABORT, 'Shared revisions must be loading'); END;
+CREATE TRIGGER sage_graph_member_insert_matches BEFORE INSERT ON sage_graph_revision_members
+WHEN NOT EXISTS (
     SELECT 1 FROM sage_graph_record_versions WHERE id=NEW.version_id AND record_id=NEW.record_id
-  ) THEN RAISE(ABORT, 'Record membership differs from its version') END;
-END;
+  )
+BEGIN SELECT RAISE(ABORT, 'Record membership differs from its version'); END;
 CREATE TRIGGER sage_graph_member_update BEFORE UPDATE ON sage_graph_revision_members
-BEGIN
-  SELECT CASE WHEN NOT EXISTS (
+WHEN NOT EXISTS (
     SELECT 1 FROM sage_graph_revisions WHERE id=OLD.revision_id AND state='loading'
   ) OR NOT EXISTS (
     SELECT 1 FROM sage_graph_revisions WHERE id=NEW.revision_id AND state='loading'
       AND json_extract(manifest_json,'$.storageFormat')='shared-v1'
-  ) THEN RAISE(ABORT, 'Shared revisions must be loading') END;
-  SELECT CASE WHEN NOT EXISTS (
+  )
+BEGIN SELECT RAISE(ABORT, 'Shared revisions must be loading'); END;
+CREATE TRIGGER sage_graph_member_update_matches BEFORE UPDATE ON sage_graph_revision_members
+WHEN NOT EXISTS (
     SELECT 1 FROM sage_graph_record_versions WHERE id=NEW.version_id AND record_id=NEW.record_id
-  ) THEN RAISE(ABORT, 'Record membership differs from its version') END;
-END;
+  )
+BEGIN SELECT RAISE(ABORT, 'Record membership differs from its version'); END;
 CREATE TRIGGER sage_graph_member_delete BEFORE DELETE ON sage_graph_revision_members
 WHEN (SELECT state FROM sage_graph_revisions WHERE id=OLD.revision_id)='verified'
 BEGIN SELECT RAISE(ABORT, 'Verified graph revisions are immutable'); END;
