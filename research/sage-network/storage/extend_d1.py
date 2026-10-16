@@ -14,11 +14,12 @@ from urllib.parse import urlsplit
 from prepare_d1 import encode
 from verify_d1 import verify
 import shared_records
+import identity_proposals
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "identity"))
 from prepare_scan import build as build_namesake_changes
 
-ALLOWED_KINDS = {'graph_node', 'registry_person', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review', 'era_assessment', 'namesake_scan', 'namesake_registry'}
+ALLOWED_KINDS = {'identity_proposal', 'graph_node', 'registry_person', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review', 'era_assessment', 'namesake_scan', 'namesake_registry'}
 
 COLUMNS = 'record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json'
 
@@ -102,6 +103,68 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             expected = build_namesake_changes(list(rows.values()), changes.get('namesakeRegistry', {}), parent)
             if changes != expected:
                 raise ValueError('Namesake scan differs from verified parent recomputation')
+        proposals = [item for item in changes['records'] if item['kind'] == 'identity_proposal']
+        if proposals:
+            if len(proposals) != len(changes['records']):
+                raise ValueError('Proposal archives cannot alter graph facts')
+            input_manifest = changes.get('proposalInputManifest', {})
+            if (input_manifest.get('revision') != parent['revision'] or
+                    input_manifest.get('sourceRecordSetSha256') != parent['recordSetSha256']):
+                raise ValueError('Proposal source snapshot differs from verified parent')
+            if changes.get('proposalInputManifestSha256') != identity_proposals.sha(input_manifest):
+                raise ValueError('Proposal manifest hash differs')
+            if len(proposals) != input_manifest.get('cases'):
+                raise ValueError('Proposal coverage differs from input manifest')
+            by_case = {item['data']['case']['id']: item['data']['case'] for item in proposals}
+            file_cases = changes.get('proposalInputFileCases', {})
+            if set(file_cases) != set(input_manifest.get('inputFiles', {})):
+                raise ValueError('Proposal input files differ')
+            covered = []
+            for name, ids in file_cases.items():
+                covered.extend(ids)
+                raw = json.dumps([by_case[i] for i in ids], ensure_ascii=False) + '\n'
+                if digest(raw) != input_manifest['inputFiles'][name]:
+                    raise ValueError('Proposal input file hash differs')
+            if len(covered) != len(set(covered)) or set(covered) != set(by_case):
+                raise ValueError('Proposal case coverage differs')
+            recovery = changes.get('proposalRecoveryReceipt')
+            if recovery is None:
+                raise ValueError('Proposal archive requires validated recovery receipt')
+            if recovery is not None:
+                order = changes['proposalRecoveryOrder']
+                data_by_id = {item['data']['case']['id']: item['data'] for item in proposals}
+                answer_ids, remaining_ids = order['answers'], order['remaining']
+                if len(answer_ids + remaining_ids) != len(set(answer_ids + remaining_ids)) or set(answer_ids + remaining_ids) != set(by_case):
+                    raise ValueError('Recovery coverage differs')
+                answers = []
+                for cid in answer_ids:
+                    d = data_by_id[cid]
+                    if d['status'] != 'complete':
+                        raise ValueError('Recovery answer is not complete')
+                    answers.append(dict(id=cid, inputHash=d['inputSha256'], answer=d['answer'], resultHash=d['resultSha256'], recipe=d['recipe'], path=d['resultPath']))
+                if any(data_by_id[cid]['status'] not in {'missing', 'failed'} for cid in remaining_ids):
+                    raise ValueError('Recovery remainder is not held')
+                if recovery.get('sourceManifestHash') != identity_proposals.sha(input_manifest) or recovery.get('sourceRevision') != input_manifest['revision']:
+                    raise ValueError('Recovery source binding differs')
+                if recovery.get('answersHash') != identity_proposals.sha(answers) or recovery.get('remainingHash') != identity_proposals.sha([by_case[cid] for cid in remaining_ids]):
+                    raise ValueError('Recovery bundle differs')
+                if (recovery.get('total'), recovery.get('complete'), recovery.get('remaining')) != (len(proposals),len(answer_ids),len(remaining_ids)):
+                    raise ValueError('Recovery counts differ')
+            audit_receipt = changes.get('proposalAuditReceipt')
+            audited = [item['data'] for item in proposals if item['data'].get('audit') is not None]
+            if audit_receipt is not None:
+                if audit_receipt.get('accepted') is not False or set(audit_receipt['disagreementIds']) != {d['case']['id'] for d in audited}:
+                    raise ValueError('Audit archive coverage differs')
+                expected_annotations = {d['case']['id']: dict(comparison=identity_proposals.sha(d['audit']['comparison']), review=identity_proposals.sha(d['audit']['review'])) for d in audited}
+                if audit_receipt.get('annotationHashes') != expected_annotations:
+                    raise ValueError('Audit annotations differ from receipt')
+                if any(d['audit']['receiptSha256'] != identity_proposals.sha(audit_receipt) for d in audited):
+                    raise ValueError('Audit receipt differs')
+            elif audited:
+                raise ValueError('Missing audit receipt')
+            keys = [item['data']['case']['personKey'] for item in proposals]
+            if len(set(keys)) != len(keys):
+                raise ValueError('Duplicate proposal person')
         changed = {}
         for item in changes['records']:
             key = item['record_id']
@@ -116,7 +179,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                 raise ValueError('Replacement must name the previous hash: ' + key)
             if not old and item.get('replacesSha256'):
                 raise ValueError('Replacement does not exist: ' + key)
-            if item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry'}:
+            if item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry', 'identity_proposal'}:
                 if old or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
                     raise ValueError('Screens must be new unaccepted reviews: ' + key)
             elif item['authority'] != 'source_review':
@@ -144,6 +207,13 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
 
         for key, row in changed.items():
             data = json.loads(row[-1])
+            if row[1] == 'identity_proposal':
+                identity_proposals.validate(data, payload('passage:' + row[2]))
+                expected_key = 'identity_proposal:' + data['runId'] + '/' + data['case']['id']
+                if row[3] != data['case']['ref']:
+                    raise ValueError('Proposal ref index differs: ' + key)
+                if key != expected_key or row[4] != 'local:' + data['case']['personKey'] or row[5] is not None:
+                    raise ValueError('Proposal indexes differ: ' + key)
             if row[1] == 'registry_person':
                 validate_registry_person(key, row, data)
             if data.get('passageId', row[2]) != row[2] or data.get('ref', row[3]) != row[3]:
@@ -269,6 +339,10 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                         recordCount=len(rows), countsByKind=dict(sorted(Counter(r[1] for r in ordered).items())),
                         recordSetSha256=digest(encode([r[:-1] for r in ordered])),
                         changesSha256=digest(changes_path.read_text()))
+        if proposals:
+            manifest['proposalArchive'] = {k: changes.get(k) for k in (
+                'proposalInputManifest', 'proposalInputManifestSha256',
+                'proposalRecoveryReceipt', 'proposalAuditReceipt')}
         if shared:
             manifest['storageFormat'] = shared_records.FORMAT
         revision = 'sage-graph-' + digest(encode(manifest))[:20]

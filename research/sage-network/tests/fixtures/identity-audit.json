@@ -1,0 +1,293 @@
+{
+  "provenance": "Actual saved audit disagreement and source review",
+  "case": {
+    "id": "case-cbac1f49e7fc5bdf715a",
+    "personKey": "b169-p1/C",
+    "ref": "Shabbat 43b:5",
+    "person": {
+      "id": "C",
+      "label": "ר' יצחק",
+      "named": "name",
+      "quote": "ר' יצחק",
+      "quoteLocation": "passage"
+    },
+    "source": {
+      "after": "מאי היא דא\"ר שמואל בר יהודה וכן תנא שילא מרי מת המוטל בחמה באים שני בני אדם ויושבין בצדו חם להם מלמטה זה מביא מטה ויושב עליה וזה מביא מטה ויושב עליה חם להם מלמעלה מביאים מחצלת ופורסין עליהן זה זוקף מטתו ונשמט והולך לו וזה זוקף מטתו ונשמט והולך לו ונמצאת מחיצה עשויה מאליה",
+      "before": "רב אשי אמר מי קתני בימות החמה ובימות הגשמים בחמה מפני החמה ובגשמים מפני הגשמים קתני ביומי ניסן וביומי תשרי דאיכא חמה (ואיכא צינה) ואיכא גשמים ואיכא דבש",
+      "passage": "אמר להו רב ששת פוקו ואמרו ליה לר' יצחק כבר תרגמא רב הונא לשמעתיך בבבל דא\"ר הונא עושין מחיצה למת בשביל חי ואין עושין מחיצה למת בשביל מת"
+    },
+    "candidates": [
+      {
+        "id": "isaac",
+        "canonical": "Isaac",
+        "canonicalHe": "יצחק",
+        "aliases": [
+          "Isaac",
+          "Yitschak",
+          "Yizhaq",
+          "Yitskhak",
+          "Yitzchok",
+          "Yitzhak",
+          "Yizhak",
+          "Yitzchak",
+          "Yitzchaq",
+          "Issac",
+          "#Yitzchak"
+        ],
+        "generation": null,
+        "bio": "Isaac is the second of the three patriarchs of the Jewish people, the son of [Abraham](https://www.sefaria.org/topics/abraham?tab=sources) and [Sarah](https://www.sefaria.org/topics/sarah?tab=sources), and the husband of [Rebecca](https://www.sefaria.org/topics/rebecca?tab=sources). After he was almost sacrificed in a test of his father's faith at the [Binding of Isaac](https://www.sefaria.org/topics/binding-of-isaac?tab=sources), he became heir to the covenant of Abraham, which he eventually passed on to his younger son, [Jacob](https://www.sefaria.org/topics/jacob?tab=sources), later renamed Israel. ",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yitzchak-atushia",
+        "canonical": "Rabbi Yitzchak Atushia",
+        "canonicalHe": "רבי יצחק עטושיא",
+        "aliases": [
+          "R. Yitzchak Atushia",
+          "Rabbi Yitzchak Ish Kfar Atush",
+          "R. Yitzchak Ish Kfar Atush",
+          "Rabbi Yitzchak of Kfar Atush"
+        ],
+        "generation": "amora-ey-3",
+        "bio": "Rabbi Yitzchak Atushia was an Eretz-Yisraeli Amora of the third and fourth generations (late 3rd to early 4th century). His name derives from his hometown, the village of Atush, identified with Khirbat Atusha in the Lower Galilee. He learned from Reish Lakish and was a student of Rabbi Zeira; according to one opinion, he also studied under Rabbi Yirmeyah. He appears several times in Seder Nashim, transmitting teachings in the name of Rabbi Zeira. His son, Rabbi Chiyya, was also a Torah scholar.",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yitzchak-b-avdimi",
+        "canonical": "Rabbi Yitzchak b. Avdimi",
+        "canonicalHe": "רב יצחק בר אבדימי",
+        "aliases": [
+          "Rav Yitzchak b. Avdimi",
+          "Rabbi Yitzchak b. Avudimi",
+          "Rabbi Yitzchak Ruba",
+          "R. Yitzchak b. Avdimi"
+        ],
+        "generation": "amora-bavel-1",
+        "bio": "Rabbi Yitzchak b. Avdimi was a first- and second-generation Eretz Yisrael Amora. In his youth he studied under and served Rabbi Yehuda HaNasi. Sources indicate that he served as the tanna (reciter) in Rabbi Yehuda HaNasi's academy, playing a decisive role in the final formulation of the Mishnah; he taught most of the Mishnah to Rav, who transmitted it to Babylonia. In the Yerushalmi he is called Rabbi Yitzchak Ruba. He is to be distinguished from a later figure of the same name.",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yitzchak-bar-abba",
+        "canonical": "Rabbi Yitzchak bar Abba",
+        "canonicalHe": "רבי יצחק בר אבא",
+        "aliases": [
+          "Rav Yitzchak bar Abba",
+          "R. Yitzchak bar Abba",
+          "Rabbi Yitzchak b. Abba",
+          "Rav Yitzchak b. Abba"
+        ],
+        "generation": "amora-ey-3",
+        "bio": "Rabbi Yitzchak bar Abba was a third-generation Babylonian Amora and colleague of Rabbi Zeira and Abaye. He likely came from Eretz Yisrael, hence his title \"Rabbi,\" arriving in Babylonia when other Eretz Yisrael Amoraim migrated there. This accords with the version of his name as \"Rabbi Yitzchak bar Abba.\" Yet other early sources refer to him as \"Rav Yitzchak bar Abba,\" which would indicate he was a Babylonian Amora.",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yitzchak-of-magdala",
+        "canonical": "Rabbi Yitzchak of Magdala",
+        "canonicalHe": "רבי יצחק מגדלאה",
+        "aliases": [
+          "R. Yitzchak of Magdala",
+          "Rabbi Yitzchak Magdala",
+          "Rabbi Yitzchak Magdalia",
+          "Rabbi Yitzchak Magdalim",
+          "R. Yitzchak Magdala"
+        ],
+        "generation": "amora-ey-1",
+        "bio": "Rabbi Yitzchak of Magdala was a first-generation Eretz Yisraeli Amora, also known as Magdalia or Magdalim. He interpreted the Mishnah in Bava Metzia regarding coins stacked like towers, which Maharatz Chayes suggested as the origin of his name, though Aharon Heiman considered this uncertain. In Niddah, conflicting traditions place him as either the teacher or student of Rabbi Shabbtai, and additional statements are cited in his name. Rabbi Simlai transmitted teachings in his name. He interpreted \"lulvei gafanim\" in Yoma as referring to vines that budded between Rosh Hashanah and Yom Kippur. Bereishit Rabbah records his teaching that pleasure exists even in flies, mosquitoes, and fleas, and his exposition of the verse about the consecrated brother's crown as \"you are the chosen of your brot",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yitzhak",
+        "canonical": "Rabbi Yitzhak",
+        "canonicalHe": "רבי יצחק",
+        "aliases": [
+          "Rabbi Yitzhak",
+          "Rav Yitzhak",
+          "Rebbi Isaac",
+          "R. Isaac",
+          "Rebbi Issac",
+          "Rabbi Yitzchak"
+        ],
+        "generation": "tanna-5",
+        "bio": "R. Yitzhak was a rabbi in Babylonia at the time of R. Yehudah haNasi. Together with R. Natan, he was involved in helping R. Yehudah haNasi maintain his office's influence over the community in Babylonia.",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yitzhak-b-elazar",
+        "canonical": "Rabbi Yitzhak b. Elazar",
+        "canonicalHe": "רבי יצחק בן אליעזר",
+        "aliases": [
+          "Rabbi Yitzhak b. Elazar",
+          "Rabbi Isaac b. Elazar",
+          "Rabbi Isaac b. Eleazar",
+          "Rav Yitzhak b. Elazar",
+          "Rabbi Yitzhak ben Elazar",
+          "Rabbi Isaac ben Elazar",
+          "Rabbi Isaac ben Eleazar",
+          "Rav Yitzhak ben Elazar",
+          "Rebbi Isaac b. Rebbi Eleazar",
+          "Isaac b. Eleazar",
+          "Rebbi Isaac b. Eleazar",
+          "Rebbi Isaac b. Rebbi Elazar",
+          "Rebbi Isaac b. R. Eleazar"
+        ],
+        "generation": "amora-ey-2",
+        "bio": "R. Yitzchak b. Elazar was a much beloved teacher in Caesarea who taught in its old synagogue.",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yitzhak-b-nahman",
+        "canonical": "Rabbi Yitzhak b. Nahman",
+        "canonicalHe": "רבי יצחק בן נחמן",
+        "aliases": [
+          "Rabbi Yitzhak b. Nahman",
+          "Rabbi Yitzhak b. Nahmani",
+          "Rav Yitzhak b. Nahmani",
+          "Rabbi Yitzhak ben Nahman",
+          "Rabbi Yitzhak ben Nahmani",
+          "Rav Yitzhak ben Nahmani",
+          "Rebbi Isaac b. Nahman",
+          "Rebbi Issac b. Nahman"
+        ],
+        "generation": "amora-ey-2",
+        "bio": "R. Yitzchak b. Nachman was a student of Shmuel in Nehardea, and then moved to Israel where he studied under R. Yehoshua B. Levi.",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yitzhak-nappaha",
+        "canonical": "Rabbi Yitzhak Nappaha",
+        "canonicalHe": "רבי יצחק נפחא",
+        "aliases": [
+          "Rabbi Yitzhak Nappaha",
+          "Rabbi Yitzhak b. Tavlai",
+          "Rabbi Yitzhak b. Tavla",
+          "Rabbi Yitzhak ben Tavlai",
+          "Rabbi Yitzhak ben Tavla",
+          "Rebbi Isaac b. Tabelai",
+          "Rebbi Isaac b. Tebelai",
+          "Rebbi Isaac b. Tevelai",
+          "Rebbi Isaac b. Tevele",
+          "Rebbi Isaac b. Tebele",
+          "Rebbi Isaac b. Tevlai"
+        ],
+        "generation": "amora-ey-2",
+        "bio": "R. Yitzchak Nappacha was a student of R. Yochanan. When his academy moved to Caesarea, he moved to Babylonia, but eventually rejoined his colleagues. He was a renowned authority in both legal and homiletical matters.",
+        "sources": null
+      },
+      {
+        "id": "rav-yitzchak-b-ashian",
+        "canonical": "Rav Yitzchak b. Ashian",
+        "canonicalHe": "רב יצחק בר אשיאן",
+        "aliases": [
+          "R. Yitzchak b. Ashian",
+          "Rav Yitzchak bar Ashian",
+          "Rav Yitzchak ben Ashian",
+          "R. Yitzchak bar Ashian"
+        ],
+        "generation": "amora-bavel-3",
+        "bio": "Rav Yitzchak b. Ashian was a third-generation Babylonian Amora.",
+        "sources": null
+      },
+      {
+        "id": "rav-yitzchak-b-elishiv",
+        "canonical": "Rav Yitzchak b. Elishiv",
+        "canonicalHe": "יצחק בן אלישיב",
+        "aliases": [
+          "R. Yitzchak b. Elishiv",
+          "Rav Yitzchak ben Elishiv",
+          "Rabbi Yitzchak b. Elishiv",
+          "Rav Yitzchak bar Elishiv",
+          "R. Yitzchak ben Elishiv"
+        ],
+        "generation": "amora-ey-4",
+        "bio": "Rav Yitzchak b. Elishiv was a fourth-generation Babylonian Amora who lived during the time of Abaye and Rava. He may have belonged to the wealthy and respected Bar Elishiv family. He appears only rarely in the Talmud and was known as a miracle worker. The Talmud relates that his student Rabbi Mani complained that his wealthy in-laws tormented him; Rav Yitzchak caused them to become poor, and when they then pestered him for money, restored their wealth. In another story, the same student complained that his wife was ugly; Rav Yitzchak made her beautiful, but when she became haughty, returned her to her former appearance. When two other students asked to be blessed with wisdom, he replied that he had lost the power to have his prayers answered.",
+        "sources": null
+      },
+      {
+        "id": "rav-yitzchak-b-shmuel-b-marta",
+        "canonical": "Rav Yitzchak b. Shmuel b. Marta",
+        "canonicalHe": "רב יצחק בר שמואל בר מרתא",
+        "aliases": [
+          "R. Yitzchak b. Shmuel b. Marta",
+          "Rav Yitzchak bar Shmuel bar Marta",
+          "R. Yitzchak bar Shmuel bar Marta",
+          "Rav Yitzchak b. Shmuel bar Marta"
+        ],
+        "generation": "amora-bavel-2",
+        "bio": "Rav Yitzchak b. Shmuel b. Marta was a Babylonian Amora of the second and third generations.",
+        "sources": null
+      },
+      {
+        "id": "rav-yitzchak-b-yehuda",
+        "canonical": "Rav Yitzchak b. Yehuda",
+        "canonicalHe": "רב יצחק בריה דרב יהודה",
+        "aliases": [
+          "R. Yitzchak b. Yehuda",
+          "Rav Yitzchak bar Yehuda",
+          "Rav Yitzchak b. Rav Yehuda",
+          "Yitzchak b. Yehuda"
+        ],
+        "generation": "amora-bavel-4",
+        "bio": "Rav Yitzchak b. Yehuda was a Babylonian Amora of the third and fourth generations. He was a distinguished student of his father, Rav Yehuda, with whom he engaged extensively in halakhic discourse. His father held him in very high regard and would even transmit teachings in his name, a practice considered exceptional, as an Amora generally would not teach in the name of his son or student. At times, he would interpret his father Rav Yehuda's statements and transmit them in his father's name in the study hall.",
+        "sources": null
+      },
+      {
+        "id": "rav-yitzchak-of-peroz-shapur",
+        "canonical": "Rav Yitzchak of Peroz Shapur",
+        "canonicalHe": "רב יצחק (פירוז שבור)",
+        "aliases": [
+          "R. Yitzchak of Peroz Shapur",
+          "Rav Yitzchak (Peroz Shapur)",
+          "Rav Yitzchak of Peroz-Shapur",
+          "Rav Yitzchak of Firuz Shapur"
+        ],
+        "generation": "savora",
+        "bio": "Rav Yitzchak of Peroz Shapur was the final head of the Yeshiva of Peroz Shapur in Babylonia during the fourth generation of the Savoraim in the seventh century. The yeshiva had served for several generations as a third Babylonian academy alongside Pumbedita and Sura. When the Muslims conquered Babylonia under Ali ibn Abi Talib, Rav Yitzchak went out to greet him with a large Jewish congregation. Some regard his generation as the transitional period between the Savoraim and the Geonim.",
+        "sources": null
+      }
+    ]
+  },
+  "comparison": {
+    "id": "case-cbac1f49e7fc5bdf715a",
+    "ref": "Shabbat 43b:5",
+    "group": "randomPool",
+    "first": {
+      "id": "case-cbac1f49e7fc5bdf715a",
+      "status": "matched",
+      "personId": "rabbi-yitzhak-nappaha",
+      "generation": "amora-ey-2",
+      "evidence": [
+        {
+          "location": "passage",
+          "quote": "אמר להו רב ששת פוקו ואמרו ליה לר' יצחק כבר תרגמא רב הונא לשמעתיך בבבל"
+        },
+        {
+          "location": "passage",
+          "quote": "דא\"ר הונא עושין מחיצה למת בשביל חי ואין עושין מחיצה למת בשביל מת"
+        }
+      ],
+      "reason": "Rav Sheshet addresses R' Yitzchak and says Rav Huna already interpreted his teaching in Babylonia, matching Rabbi Yitzhak Nappaha, the Eretz Yisrael Amora commonly called R' Yitzchak and contemporary with Rav Huna/Rav Sheshet."
+    },
+    "second": {
+      "id": "case-cbac1f49e7fc5bdf715a",
+      "status": "unresolved",
+      "personId": null,
+      "generation": null,
+      "evidence": [
+        {
+          "location": "passage",
+          "quote": "פוקו ואמרו ליה לר' יצחק כבר תרגמא רב הונא לשמעתיך בבבל"
+        }
+      ],
+      "reason": "The text refers only to 'ר' יצחק' without a patronymic or cognomen. Although he is an Eretz Yisrael contemporary of Rav Huna and Rav Sheshet, an exact short-name match alone is insufficient to decisively distinguish Rabbi Yitzchak Nappaha from other contemporary sages named Rabbi Yitzchak."
+    }
+  },
+  "review": {
+    "index": 0,
+    "caseId": "case-cbac1f49e7fc5bdf715a",
+    "ref": "Shabbat 43b:5",
+    "finding": "The exchange supports an Amora called Yitzchak. Neither the patronymic nor Nappaha appears. The first match is plausible but the supplied passage does not settle the identity. The audit is a stricter threshold, not proof of an incorrect match.",
+    "disposition": "held",
+    "supportingQuote": "פוקו ואמרו ליה לר' יצחק כבר תרגמא רב הונא לשמעתיך בבבל",
+    "quoteLocation": "passage"
+  }
+}

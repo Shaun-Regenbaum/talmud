@@ -1,0 +1,353 @@
+{
+  "provenance": "Saved public-text pilot input and actual completed response, case-019",
+  "case": {
+    "id": "case-019",
+    "personKey": "b216-p5/O",
+    "ref": "Jerusalem Talmud Terumot 2:1:19",
+    "person": {
+      "id": "O",
+      "label": "רבי יוחנן בן ברוקה",
+      "named": "father_of_named",
+      "quote": "בנו של רבי יוחנן בן ברוקה",
+      "quoteLocation": "passage"
+    },
+    "source": {
+      "after": "חזרו לומר כל תבשיל שהוא מצטמק ויפה לו אסור מצטמק ורע לו מותר איזה תבשיל שהוא מצטמק ויפה לו כרוב ואפונין ובשר טרוף א\"ר תנחום בר עילא אף ראשי לפתות וראשי קפלוטות עשו אותן כתבשיל שהוא מצטמק ויפה לו ביצים מה הן רבי יוסי בשם ר' ישמעאל ר' ירמיה ר' חנינא בשם ר' ישמעאל בי ר' יוסי אבא עלה לביתו ומצא שם ביצים ואסר חמין והתיר ר' שמואל בר נתן בשם ר' חמא בר חנינא אני ואבא עלינו לחמת גדר והביאו לפנינו ביצים קטנות כעזרידין וטעמון יפה כפינקריסין",
+      "before": "ר' ירמיה ר' זעירא בשם ר' חייא בר אשי אשה פיקחת מדיחה כוס כן קערה כן תמחוי כן נמצאת מרבצת ביתה בשבת",
+      "passage": "רבי שמואל בשם רבי אבהו בשוגג באיסור ובמזיד באיסור א\"ר יוסי מתני' אמרה כן המעשר והמבשל בשבת שוגג יאכל מזיד לא יאכל בשוגג באיסור במזיד באיסור. תני המבשל בשבת שוגג יאכל מזיד לא יאכל דברי ר\"מ ר' יהודה אומר בשוגג יאכל למוצאי שבת במזיד לא יאכל עולמית ר\"י הסנדלר אומר בשוגג יאכל למוצאי שבת לאחרים ולא לו במזיד לא יאכל לא לו ולא לאחרים שמואל כר\"י הסנדלר רב כד הוה מורי בחבורתיה הורי כר\"מ בציבורא כרבי יוחנן הסנדלר א\"ר שמעון בר ברסנא כרבי ישמעאל בנו של רבי יוחנן בן ברוקה הורי לון דתני רבי ישמעאל בנו של רבי יוחנן בן ברוקה כל דבר שחייבין על זדונו כרת ועל שגגתו חטאת ועשאו בשבת בין בשוגג בין במזיד אסור בין לו בין לאחרים לא יאכל וכל דבר שאין חייבין על זדונו כרת ועל שגגתו חטאת ועשאו בשבת בשוגג יאכל למ\"ש לאחרים ולא לו במזיד לא לו ולא לאחרים בעון קומי רבי יוחנן את מה את אמר אמר לון אני אין לי אלא משנה המעשר והמבשל בשבת בשוגג יאכל במזיד לא יאכל שמע רב חסדא ומר הותרו שבתות לא כן אמר רב הונא בשם רב ותני ר' חייא כן בראשונה היו אומרים השוכח תבשילו על גבי כירתו בשבת בשוגג יאכל במזיד לא יאכל נחשדו שהיו מניחים מזידים ואומרים שכיחים היינו ואסרו להם את השוכח ואת אמר הכא הכין א\"ר הילא נחשדו להיות מניחים ולא נחשדו להיות מבשלין קנסו במניח ולא קנסו במבשל"
+    },
+    "candidates": [
+      {
+        "id": "rabbi-yochanan-b-gudgada",
+        "canonical": "Rabbi Yochanan b. Gudgada",
+        "canonicalHe": "רבי יוחנן בן גודגדא",
+        "aliases": [
+          "R. Yochanan b. Gudgada",
+          "Rabbi Yochanan ben Gudgada",
+          "R. Yochanan ben Gudgada"
+        ],
+        "generation": "tanna-2",
+        "bio": "Rabbi Yochanan b. Gudgada was a Levite sage of the first generation of Tannaim. He served in the Second Temple and was among the Levites appointed to lock its gates.",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yochanan-b-torta",
+        "canonical": "Rabbi Yochanan b. Torta",
+        "canonicalHe": "רבי יוחנן בן תורתא",
+        "aliases": [
+          "R. Yochanan b. Torta",
+          "Rabbi Yochanan ben Torta",
+          "R. Johanan b. Torta",
+          "Rabbi Yohanan b. Torta",
+          "R. Yochanan ben Torta"
+        ],
+        "generation": "tanna-3",
+        "bio": "Rabbi Yochanan b. Torta was a third-generation Tanna of the early 2nd century CE and a close friend of Rabbi Akiva. He is remembered for opposing Bar Kokhba, notably challenging Rabbi Akiva's messianic application of \"A star shall go forth from Jacob\" (Numbers 24:17) to him. Only two statements of his are preserved in rabbinic literature. Aggadic tradition associates him with the legend of a Shabbat-observant cow that inspired a gentile's conversion; some versions identify him as the convert who took the name ben Torta (\"son of the cow\").",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yochanan-dekatzion",
+        "canonical": "Rabbi Yochanan deKatzion",
+        "canonicalHe": "יוחנן דקציון",
+        "aliases": [
+          "Rabbi Yochanan deKartzion",
+          "Rabbi Yochanan deKisaryon",
+          "R. Yochanan deKatzion",
+          "Rabbi Yohanan deKatzion"
+        ],
+        "generation": "amora-ey-2",
+        "bio": "Rabbi Yochanan deKatzion, also called deKartzion, was an Eretz Yisraeli Amora whose exact period is unknown, though he likely belonged to the second generation of Amoraim. Shlomo Sirilio, an early commentator on the Jerusalem Talmud, proposed that his name should be read as Rabbi Yochanan deKisaryon, indicating an origin in Caesarea.",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yohanan-hasandlar",
+        "canonical": "Rabbi Yohanan Hasandlar",
+        "canonicalHe": "ר יוחנן הסנדלר",
+        "aliases": [
+          "Rabbi Yohanan haSandlar",
+          "Rabbi Yochanan Hasandlar",
+          "Rabbi Yohanan the Cobbler",
+          "Rabbi Yohanan Ha-Sandelar",
+          "Rebbi Johanan the Alexandrian",
+          "Rabbi Yochanan haSandlar",
+          "R. Yochanan haSandlar",
+          "Rabbi Yochanan the Sandal Maker",
+          "Rabbi Yochanan the Sandal-maker",
+          "Rabbi Yochanan ha-Sandlar"
+        ],
+        "generation": "tanna-4",
+        "bio": "R. Yohanan Hasandlar was born in Egypt, but moved to the Land of Israel where he became a devoted student of R. Akiva. Even when the latter was in a Roman jail, R. Yochanan found a way to come to him for instruction.",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yochanan-b-napacha",
+        "canonical": "Rabbi Yochanan b. Napacha",
+        "canonicalHe": "רבי יוחנן",
+        "aliases": [
+          "Rabbi Yohanan b. Nappaha",
+          "Rabbi Yohanan",
+          "Rabbi Yochanan",
+          "Rabbi Yochanan b. Napacha",
+          "Rav Yohanan",
+          "Rav Yoḥanan",
+          "Rabbi Yoḥanan",
+          "Rabbi Johanan",
+          "Rabbi Yohanan ben Nappaha",
+          "Rabbi Yochanan ben Napacha",
+          "Rebbi Yohanan",
+          "Johanan",
+          "Rebbi Johanan",
+          "R. Yohanan",
+          "R. Johanan",
+          "Rebbi Yochanan"
+        ],
+        "generation": "amora-ey-1",
+        "bio": "R. Yochanan studied under R. Yehudah haNasi and emerged as the next leader after his death. He directed the academy in Tiberias and set up the groundwork for the Jerusalem Talmud. His unusual beauty, sharpness and personal sufferings made him a captivating yet intimidating teacher. It was due to his personality and his unrivaled learning that the center of Torah study did not move to Babylonia during his lifetime.",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yishmael-b-yohanan-b-berokah",
+        "canonical": "Rabbi Yishmael b. Yohanan b. Berokah",
+        "canonicalHe": "רבי ישמעאל בנו של רבי יוחנן בן ברוקה",
+        "aliases": [
+          "Rabbi Yishmael b. Yohanan b. Berokah",
+          "Rabbi Yishmael b. Rabbi Yohanan b. Beroka",
+          "Rabbi Yishmael ben Yohanan ben Berokah",
+          "Rabbi Yishmael ben Rabbi Yohanan ben Beroka",
+          "Rebbi Ismael b. Rebbi Johanan b. Beroqa",
+          "Rebbi Ismael b. Rebbi Johanan b. Baroqa"
+        ],
+        "generation": "tanna-5",
+        "bio": "R. Yishmael b. Yohanan b. Berokah was a contemporary of R. Shimon b. Gamliel and is often cited together with him.",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yohanan-b-nuri",
+        "canonical": "Rabbi Yohanan b. Nuri",
+        "canonicalHe": "רבי יוחנן בן נורי",
+        "aliases": [
+          "Rabbi Yohanan b. Nuri",
+          "Rabbi Yochanan b. Nuri",
+          "Rabbi Yohanan ben Nuri",
+          "Rabbi Yochanan ben Nuri",
+          "Rebbi Yohanan b. Nuri",
+          "Rebbi Johanan b. Nuri"
+        ],
+        "generation": "tanna-2",
+        "bio": "R. Yohanan b. Nuri was a brilliant and pious member of Rabban Gamliel's academy in Yavneh. After finding out about his desperate poverty, R. Gamliel promoted him.",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yochanan-b-ha-chorani",
+        "canonical": "Rabbi Yochanan b. ha-Chorani",
+        "canonicalHe": "רבי יוחנן בן החורני",
+        "aliases": [
+          "Rabbi Yochanan ha-Chorani",
+          "R. Yochanan b. ha-Chorani",
+          "Rabbi Yohanan b. ha-Chorani",
+          "Rabbi Yochanan ben ha-Chorani",
+          "Rabbi Yochanan b. ha-Chornit"
+        ],
+        "generation": "tanna-1",
+        "bio": "Rabbi Yochanan b. ha-Chorani was a Tanna who lived in the generation between the era of the Pairs and the era of the Tannaim. He was a student of Shammai the Elder, yet in practice he followed the rulings of Beit Hillel all his life. He was the teacher of Rabbi Elazar b. Rabbi Zadok. The accepted view is that his name indicates that he or one of his parents dwelt in the city of Choran in Syria, though some claim he lived in Beit Choron.",
+        "sources": null
+      },
+      {
+        "id": "yochanan-ben-bag-bag",
+        "canonical": "[Yochanan] Ben Bag Bag",
+        "canonicalHe": "יוחנן בן בג בג",
+        "aliases": [
+          "[Yochanan] Ben Bag Bag",
+          "Ben Bag Bag",
+          "BenBagBag",
+          "Yohanan b. Bag Bag",
+          "Yohanan ben Bag Bag",
+          "Ben Bag-bag",
+          "Rebbi Johanan b. Bagbag"
+        ],
+        "generation": null,
+        "bio": "Ben Bag Bag was an early scholar who was considered to be very learned.",
+        "sources": null
+      },
+      {
+        "id": "yose-b-yochanan",
+        "canonical": "Yose b. Yochanan",
+        "canonicalHe": "יוסי בן יוחנן",
+        "aliases": [
+          "Yose b. Yochanan",
+          "Yosei b. Yohanan",
+          "Yose b. Yohanan [a man] of Jerusalem",
+          "Yose b. Yohanan",
+          "Yose Ben Yochanan",
+          "Yose b. Yohanan of Jerusalem",
+          "Yosef b. Johanan",
+          "Yosef b. Yohanan",
+          "Yose b. Yochanan (a man) of Jerusalem",
+          "Yose ben Yochanan",
+          "Yosei ben Yohanan",
+          "Yose ben Yohanan [a man] of Jerusalem",
+          "Yose ben Yohanan",
+          "Yose ben Yohanan of Jerusalem",
+          "Yosef ben Johanan",
+          "Yosef ben Yohanan",
+          "Yose ben Yochanan (a man) of Jerusalem",
+          "Yose b. Johanan",
+          "Yose b. Johanan from Jerusalem",
+          "Joseph b. Johanan from Jerusalem"
+        ],
+        "generation": null,
+        "bio": "Yose b. Yoezer and Yose b. Yochanan served as the first of the zugot (pairs), with the first being Nasi (religious leader) and the second the head of the court. They served after Antigonos in a period of intense Hellenization and war, and promulgated several leniencies to encourage Jews to keep the law under these difficult conditions.",
+        "sources": null
+      },
+      {
+        "id": "yochanan-the-high-priest",
+        "canonical": "Yochanan the High Priest",
+        "canonicalHe": "יוחנן כהן גדול",
+        "aliases": [
+          "Yochanan the High Priest",
+          "יוֹחָנָן כֹּהֵן גָּדוֹל",
+          "Yohanan the High Priest",
+          "Yochanan the high priest",
+          "Yohanan the high priest",
+          "Johanan the High Priest",
+          "The High Priest Johanan"
+        ],
+        "generation": null,
+        "bio": "Yochanan (John Hyrkanus) the High Priest was the son of Shimon the Hasmonean and succeeded him as high priest and political leader. He fought several wars against the Syrian Greeks and local enemies. Among them were the Idumeans whom he forced to convert. Though loyal to the Pharisees most of his life, he was finally seduced into joining with the Sadducees.",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yochanan-b-beroka",
+        "canonical": "Rabbi Yochanan b. Beroka",
+        "canonicalHe": "רבי יוחנן בן ברוקה",
+        "aliases": [
+          "R. Yochanan b. Beroka",
+          "Rabbi Yochanan ben Beroka",
+          "Rabbi Yohanan b. Beroka",
+          "R. Yochanan ben Beroka",
+          "Rabbi Yochanan b. Berokah"
+        ],
+        "generation": "tanna-4",
+        "bio": "Rabbi Yochanan b. Beroka was a third-generation Tanna and student of Rabbi Yehoshua b. Hananiah, and a colleague of Rabbi Elazar b. Hisma. Several laws in the Mishnah and many baraitot are cited in his name, often together with Rabbi Meir, Rabbi Yehuda, and Rabbi Shimon. His statement in Avot concerns desecration of God's name. He innovated a ruling that one may redirect an inheritance among heirs of the same gender category fit to inherit, and the halakha follows his opinion. He also ruled that a man must allot provisions for his daughters after his death. Distinctively, he held that the commandment of procreation applies to women as well as men, based on the word \"them\" in the biblical verse. His son, Rabbi Yishmael, was also a sage whose teachings appear in Avot and in baraitot.",
+        "sources": null
+      },
+      {
+        "id": "rabban-yochanan-b-zakkai",
+        "canonical": "Rabban Yochanan ben Zakkai",
+        "canonicalHe": "רבן יוחנן בן זכאי",
+        "aliases": [
+          "Rabban Yochanan ben Zakkai",
+          "Rabban Yohanan b. Zakkai",
+          "Rabbi Yohanan b. Zakkai",
+          "Yochanan Ben Zakkai",
+          "Yochanan Ben-Zakkai",
+          "Rabban Yochanan Ben Zakkai",
+          "Rabbi Yochanan Ben Zakkai",
+          "Yochanan Ben Zakai",
+          "Ben Zakkai",
+          "Rabban Yohanan b. Zakai",
+          "Rabban Yohanan ben Zakkai",
+          "Rabbi Yohanan ben Zakkai",
+          "Rabban Yohanan ben Zakai",
+          "Rabban Johanan b. Zakkai",
+          "Rabbon Johanan b. Zakkai",
+          "Rebbi Yohanan b. Zakkai",
+          "Rebbi Johanan b. Zakkai"
+        ],
+        "generation": "tanna-1",
+        "bio": "Rabban Yochanan ben Zakkai was a first-century Jewish leader and scholar who oversaw the fragile transition of the Jewish people to life without a [Temple](https://www.sefaria.org/topics/beit-hamikdash?sort=Relevance&amp;tab=notable-sources), upon the destruction of the Second Temple in 70 CE at the hands of the Romans. While he sought accommodation with the Romans, he was unable to convince the faction of zealots to give up their position, which ultimately led to the destruction of [Jerusalem](https://www.sefaria.org/topics/jerusalem?tab=admin). Rabban Yochanan ben Zakkai's students smuggled him out of Jerusalem, enabling him to renew Jewish life and learning from [Yavneh](https://www.sefaria.org/topics/yavneh?tab=admin). He is famous for establishing  *takkanot*, halakhic decrees, that r",
+        "sources": null
+      },
+      {
+        "id": "rabbi-yochanan-ben-dahavai",
+        "canonical": "Rabbi Yochanan ben Dahavai",
+        "canonicalHe": "יוחנן בן דהבאי",
+        "aliases": [
+          "Rabbi Yochanan ben Dahavai",
+          "Yochanan ben Dehavai",
+          "Johanan ben Dahabai",
+          "Johanan b. Dahabai",
+          "Yohanan ben Dehava'i",
+          "R. Yochanan ben Dahavai",
+          "Yohanan ben Dahavai"
+        ],
+        "generation": "tanna-4",
+        "bio": "Yochanan ben Dahavai was a tanna of the land of Israel who does not appear in the Mishnah but is cited in several baraitot across the Bavli, Tosefta, and Sifra. He transmits halakhot in the name of Rabbi Yehuda (bar Ilai) — most prominently the ruling that a person blind in one eye is exempt from the pilgrimage obligation of 're'iyah' (appearance at the Temple), derived from reading the verse 'yera'eh/yir'eh' (Exodus 23:17) as requiring two-way seeing (Chagigah 2a, 4b; Arakhin 2b; Tosefta Chagigah 1:2; Sanhedrin 4b, where the source is given as Rabbi Yehuda ben Teima). The Tosefta records that Rabbi (Yehuda HaNasi) responded against his view and that the Sages decided in favor of Rabbi Yehuda's position. He also gives an opinion on the dyeing of tekhelet (Menachot 42b) and a related exegesis of 'shni tola'at' (Sifra, Metzora 1), and is the author of the rejected teaching in Nedarim 20a on marital conduct. The name 'Dahavai' (from Aramaic 'dahava', gold) is widely regarded as an epithet rather than a birth name, perhaps reflecting a goldsmith father or a wordplay on one of his teachings (R. Reuven Margaliot, Shemot ve-Kinuyim ba-Talmud).",
+        "sources": null
+      }
+    ]
+  },
+  "result": {
+    "inputHash": "d19c2e504e02d5cd5843e49c57e0f3e64a73b7909be7a333f7f471c312e157cc",
+    "recipe": "033e991e0e860fe8bb3bcd6a2fdb84c9ea19c881bdf0b4f919eefecb8a5d7bda",
+    "status": "complete",
+    "response": {
+      "id": "gen-1792049669-qI7C5aUUZFezaUEd4Ihp",
+      "object": "chat.completion",
+      "created": 1792049669,
+      "model": "deepseek/deepseek-v4.1-flash",
+      "provider": "Sail Research",
+      "system_fingerprint": null,
+      "service_tier": null,
+      "choices": [
+        {
+          "index": 0,
+          "logprobs": null,
+          "finish_reason": "stop",
+          "native_finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "{\"id\":\"case-019\",\"status\":\"matched\",\"personId\":\"rabbi-yochanan-b-beroka\",\"generation\":\"tanna-4\",\"evidence\":[{\"location\":\"passage\",\"quote\":\"רבי ישמעאל בנו של רבי יוחנן בן ברוקה\"}],\"reason\":\"The passage names Rabbi Yishmael son of Rabbi Yochanan b. Beroka, matching the candidate Rabbi Yochanan b. Beroka, whose biography identifies his son Rabbi Yishmael.\"}",
+            "refusal": null,
+            "reasoning": "We need answer JSON only. Need solve case. We have passage Jerusalem Talmud Terumot 2:1:19. personKey b216-p5/O. person id O label רבי יוחנן בן ברוקה, named father_of_named, quote \"בנו של רבי יוחנן בן ברוקה\" quoteLocation passage. Need select historical person only when names, relatives or surrounding evidence distinguish. Exact short-name match alone insufficient. Preserve real interaction even if identity unresolved. Quotation alone does not prove people met. Registry generation labels inherited background, not new dates. Need return {\"id\":\"case-019\",\"status\":\"matched\" or \"unresolved\",\"personId\":candidate id or null,\"generation\":candidate generation or null,\"evidence\":[{\"location\":\"passage\" or \"before\" or \"after\",\"quote\":exact source substring}],\"reason\":short explanation}. Never invent sources/dates. Unresolved null.\n\nWe need determine if passage mentions \"רבי יוחנן בן ברוקה\" via son \"רבי ישמעאל בנו של רבי יוחנן בן ברוקה\". The person in case is \"רבי יוחנן בן ברוקה\" (father). Candidates include rabbi-yochanan-b-beroka canonical \"Rabbi Yochanan b. Beroka\" gen tanna-4. Also candidate rabbi-yishmael-b-yohanan-b-berokah (son). The case person label O is Rabbi Yochanan b. Beroka? The passage has \"רבי ישמעאל בנו של רבי יוחנן בן ברוקה\" and \"דתני רבי ישמעאל בנו של רבי יוחנן בן ברוקה\". Candidate rabbi-yochanan-b-beroka exactly name, bio says his son Rabbi Yishmael also sage. So matched to rabbi-yochanan-b-beroka, generation tanna-4. Need evidence from passage exact substring. We need include maybe quote \"רבי ישמעאל בנו של רבי יוחנן בן ברוקה\" appears. Check passage: \"א\\\"ר שמעון בר ברסנא כרבי ישמעאל בנו של רבי יוחנן בן ברוקה הורי לון דתני רבי ישמעאל בנו של רבי יוחנן בן ברוקה כל דבר...\" Exact substring. Also person.quote in prompt: \"בנו של רבי יוחנן בן ברוקה\" quoteLocation passage. Need evidence locations passage. Need status matched. personId candidate id \"rabbi-yochanan-b-beroka\". generation \"tanna-4\". reason short: passage names R. Yishmael son of R. Yochanan b. Beroka, matching candidate's father and son. Need exact source substring. Could include evidence quote from passage: \"רבי ישמעאל בנו של רבי יוחנן בן ברוקה\" or \"בנו של רבי יוחנן בן ברוקה\". Ensure exact substring in passage. The passage text contains: \"כרבי ישמעאל בנו של רבי יוחנן בן ברוקה הורי לון דתני רבי ישמעאל בנו של רבי יוחנן בן ברוקה כל דבר...\" Yes.\n\nNeed maybe evidence location \"passage\", quote exact. Could include only one. Maybe include also \"רבי יוחנן בן ברוקה\" exact? It appears as part. Evidence should be exact source substring. Use quote \"רבי ישמעאל בנו של רבי יוחנן בן ברוקה\". It identifies father. Need reason.\n\nNeed ensure JSON only no markdown. Final with proper JSON.",
+            "reasoning_details": [
+              {
+                "type": "reasoning.text",
+                "text": "We need answer JSON only. Need solve case. We have passage Jerusalem Talmud Terumot 2:1:19. personKey b216-p5/O. person id O label רבי יוחנן בן ברוקה, named father_of_named, quote \"בנו של רבי יוחנן בן ברוקה\" quoteLocation passage. Need select historical person only when names, relatives or surrounding evidence distinguish. Exact short-name match alone insufficient. Preserve real interaction even if identity unresolved. Quotation alone does not prove people met. Registry generation labels inherited background, not new dates. Need return {\"id\":\"case-019\",\"status\":\"matched\" or \"unresolved\",\"personId\":candidate id or null,\"generation\":candidate generation or null,\"evidence\":[{\"location\":\"passage\" or \"before\" or \"after\",\"quote\":exact source substring}],\"reason\":short explanation}. Never invent sources/dates. Unresolved null.\n\nWe need determine if passage mentions \"רבי יוחנן בן ברוקה\" via son \"רבי ישמעאל בנו של רבי יוחנן בן ברוקה\". The person in case is \"רבי יוחנן בן ברוקה\" (father). Candidates include rabbi-yochanan-b-beroka canonical \"Rabbi Yochanan b. Beroka\" gen tanna-4. Also candidate rabbi-yishmael-b-yohanan-b-berokah (son). The case person label O is Rabbi Yochanan b. Beroka? The passage has \"רבי ישמעאל בנו של רבי יוחנן בן ברוקה\" and \"דתני רבי ישמעאל בנו של רבי יוחנן בן ברוקה\". Candidate rabbi-yochanan-b-beroka exactly name, bio says his son Rabbi Yishmael also sage. So matched to rabbi-yochanan-b-beroka, generation tanna-4. Need evidence from passage exact substring. We need include maybe quote \"רבי ישמעאל בנו של רבי יוחנן בן ברוקה\" appears. Check passage: \"א\\\"ר שמעון בר ברסנא כרבי ישמעאל בנו של רבי יוחנן בן ברוקה הורי לון דתני רבי ישמעאל בנו של רבי יוחנן בן ברוקה כל דבר...\" Exact substring. Also person.quote in prompt: \"בנו של רבי יוחנן בן ברוקה\" quoteLocation passage. Need evidence locations passage. Need status matched. personId candidate id \"rabbi-yochanan-b-beroka\". generation \"tanna-4\". reason short: passage names R. Yishmael son of R. Yochanan b. Beroka, matching candidate's father and son. Need exact source substring. Could include evidence quote from passage: \"רבי ישמעאל בנו של רבי יוחנן בן ברוקה\" or \"בנו של רבי יוחנן בן ברוקה\". Ensure exact substring in passage. The passage text contains: \"כרבי ישמעאל בנו של רבי יוחנן בן ברוקה הורי לון דתני רבי ישמעאל בנו של רבי יוחנן בן ברוקה כל דבר...\" Yes.\n\nNeed maybe evidence location \"passage\", quote exact. Could include only one. Maybe include also \"רבי יוחנן בן ברוקה\" exact? It appears as part. Evidence should be exact source substring. Use quote \"רבי ישמעאל בנו של רבי יוחנן בן ברוקה\". It identifies father. Need reason.\n\nNeed ensure JSON only no markdown. Final with proper JSON.",
+                "format": "unknown",
+                "index": 0
+              }
+            ]
+          }
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 4882,
+        "completion_tokens": 925,
+        "total_tokens": 5807,
+        "cost": 0.00071688,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00071688,
+          "upstream_inference_prompt_cost": 0.00043938,
+          "upstream_inference_completions_cost": 0.0002775
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 815,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      }
+    },
+    "answer": {
+      "id": "case-019",
+      "status": "matched",
+      "personId": "rabbi-yochanan-b-beroka",
+      "generation": "tanna-4",
+      "evidence": [
+        {
+          "location": "passage",
+          "quote": "רבי ישמעאל בנו של רבי יוחנן בן ברוקה"
+        }
+      ],
+      "reason": "The passage names Rabbi Yishmael son of Rabbi Yochanan b. Beroka, matching the candidate Rabbi Yochanan b. Beroka, whose biography identifies his son Rabbi Yishmael."
+    },
+    "resultHash": "f981d8b8f904cae74db2cabc2242a8f4119ecc432509ed42647b29933fb593b2"
+  }
+}
