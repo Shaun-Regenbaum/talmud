@@ -154,6 +154,7 @@ describe('reviewed registry people', () => {
     expect(card.status).toBe(200);
     const body = (await card.json()) as { rabbi: IdentifiedRabbi };
     expect(body.rabbi.slug).toBe(captured.slug);
+    expect(body.rabbi.identityStatus).toBe('reviewed_person');
     expect(body.rabbi.name).toBe(captured.entry.canonical);
     const entity = await app.request(`/api/entity/rabbi/${captured.slug}`, {}, env);
     expect(entity.status).toBe(200);

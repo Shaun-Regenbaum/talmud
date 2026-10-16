@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { CARD_DEFS } from '../../src/client/ArgumentSidebar';
+import {
+  CARD_DEFS,
+  rabbiDisplayInstance,
+  rabbiSynthInstance,
+} from '../../src/client/ArgumentSidebar';
 
 describe('CARD_DEFS registry', () => {
   it('every entry self-describes: recipe.kind === key, blocks registered for every special section', () => {
@@ -36,4 +40,54 @@ describe('CARD_DEFS registry', () => {
       ].sort(),
     );
   });
+});
+
+import type { IdentifiedRabbi } from '../../src/client/dafContext';
+import captured from '../fixtures/reviewed-yirmeyah.json';
+
+describe('reviewed person sidebar', () => {
+  const rabbi: IdentifiedRabbi = {
+    slug: captured.slug,
+    name: captured.entry.canonical,
+    nameHe: captured.entry.canonicalHe,
+    generation: 'unknown',
+    identityStatus: 'reviewed_person',
+    era: captured.entry.era,
+    region: captured.entry.region as IdentifiedRabbi['region'],
+    places: [],
+    moved: null,
+    bio: captured.entry.bio,
+    image: null,
+    wiki: null,
+  };
+  it('carries saved identity and biography without changing synthesis inputs', () => {
+    expect(rabbiDisplayInstance(rabbi).fields).toMatchObject({
+      identityStatus: 'reviewed_person',
+      era: captured.entry.era,
+      bio: captured.entry.bio,
+      slug: captured.slug,
+    });
+    expect(rabbiSynthInstance(rabbi)).not.toHaveProperty('identityStatus');
+    expect(rabbiSynthInstance(rabbi)).not.toHaveProperty('bio');
+  });
+  it('uses the saved biography only for reviewed cards, keeping the producer recipe intact', () => {
+    const def = CARD_DEFS.rabbi!;
+    const recipe = def.recipeFor!({ kind: 'rabbi', rabbi });
+    expect(recipe.sections.some((s) => s.type === 'synthesis')).toBe(true);
+    expect(
+      recipe.sections.some((s) => s.type === 'special' && s.block === 'rabbi-reviewed-biography'),
+    ).toBe(true);
+    expect(def.recipe.sections.some((s) => s.type === 'synthesis')).toBe(true);
+    expect(def.recipeFor!({ kind: 'rabbi', rabbi: { ...rabbi, identityStatus: undefined } })).toBe(
+      def.recipe,
+    );
+  });
+});
+
+it('uses exact registry cards even when their identity has no review stamp', () => {
+  const recipe = CARD_DEFS.rabbi!.recipeFor!({
+    kind: 'rabbi',
+    rabbi: { registryIdentity: true } as IdentifiedRabbi,
+  });
+  expect(recipe.sections.some((s) => s.type === 'synthesis')).toBe(true);
 });

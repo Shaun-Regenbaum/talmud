@@ -996,7 +996,9 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     const s = sidebarStack();
     return s.length > 0 ? s[s.length - 1] : null;
   };
+  let sidebarNavigation = 0;
   const setSidebar = (content: SidebarContent | null) => {
+    sidebarNavigation++;
     setSidebarStack(content ? [content] : []);
     // Switching the active card (or closing) clears the prior card's transient
     // move-range band so it can't linger over an unrelated card — e.g. opening
@@ -1004,6 +1006,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     setArgumentMoveHighlight(null);
   };
   const pushSidebar = (content: SidebarContent) => {
+    sidebarNavigation++;
     setSidebarStack((s) => {
       // Skip a redundant push if the top of stack is already this exact
       // entry (same kind + same primary id). Cheap idempotence so a
@@ -1014,6 +1017,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     });
   };
   const popSidebar = () => {
+    sidebarNavigation++;
     setSidebarStack((s) => (s.length > 1 ? s.slice(0, -1) : s));
     // A move-range band belongs to the card being popped (e.g. an argument
     // section's sub-move); clear it so it doesn't linger over the card beneath
@@ -3069,6 +3073,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // from the dataset via /api/rabbi/:slug. ALWAYS pushes so chains of
   // rabbi → cited-rabbi → ... can be unwound by the back chip.
   const openRabbiSlug = async (slug: string) => {
+    const navigation = ++sidebarNavigation;
     clearCommentarySelection();
     if (slug.startsWith('local:')) {
       setActiveRabbi(null);
@@ -3077,28 +3082,20 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       setLastInteractedCard('argument');
       return;
     }
-    // dafRabbis() carries the grounding-stamped slug when the registry pinned
-    // the rabbi (older cached runs may still have null slugs) — prefer the
-    // in-context entry, else fall through to the standalone /api/rabbi/:slug
-    // fetch, which resolves the dataset entry.
-    const inCtx = dafRabbis().find((x) => x.slug === slug);
-    if (inCtx) {
-      // Thread the slug through — a name-only re-lookup could land on a
-      // SAME-NAME homonym that grounding pinned to a different slug.
-      pushRabbi(inCtx.name, slug);
-      return;
-    }
     try {
       const res = await fetch(`/api/rabbi/${encodeURIComponent(slug)}`);
-      if (!res.ok) return;
+      if (!res.ok) throw new Error('Person lookup failed');
       const body = (await res.json()) as { rabbi?: IdentifiedRabbi };
-      if (!body.rabbi) return;
-      setActiveRabbi(null);
+      if (navigation !== sidebarNavigation) return;
+      if (!body.rabbi) throw new Error('Person lookup missing');
+      setActiveRabbi(dafRabbis().find((x) => x.slug === slug)?.name ?? null);
       setActivePlace(null);
-      pushSidebar({ kind: 'rabbi', rabbi: body.rabbi });
+      pushSidebar({ kind: 'rabbi', rabbi: { ...body.rabbi, registryIdentity: true } });
       setLastInteractedCard('argument');
     } catch {
-      /* silent — link falls back to no-op */
+      if (navigation !== sidebarNavigation) return;
+      const inCtx = dafRabbis().find((x) => x.slug === slug);
+      if (inCtx) pushRabbi(inCtx.name, slug);
     }
   };
 

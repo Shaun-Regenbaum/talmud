@@ -1,0 +1,45 @@
+{
+  "slug": "rabbi-yirmeyah",
+  "entry": {
+    "aliases": [
+      "Rabbi Yirmeyah",
+      "Rabbi Yirmeya",
+      "Rav Yirmeya",
+      "Rebbi Jereniah",
+      "Rebbi Jeremiah",
+      "Rav Jeremiah"
+    ],
+    "bio": "A student of R. Abuha and a colleague of R. Zera, R Yirmeyah was known for his humility as well as his exacting and outlandish questions. The latter got to the point where he was removed from the academy.",
+    "bioSource": "sefaria",
+    "canonical": "Rabbi Yirmeyah",
+    "canonicalHe": "רבי ירמיה",
+    "generation": null,
+    "image": null,
+    "moved": null,
+    "numSources": null,
+    "places": ["Tiberias"],
+    "region": "israel",
+    "wiki": "https://he.wikipedia.org/wiki/%D7%A8%D7%91%D7%99_%D7%99%D7%A8%D7%9E%D7%99%D7%94_(%D7%94%D7%A8%D7%90%D7%A9%D7%95%D7%9F)",
+    "identityStatus": "reviewed_person",
+    "era": {
+      "start": 300,
+      "end": 400,
+      "label": "Active in the fourth century CE; broad period, not a lifespan.",
+      "labelHe": "פעל במאה הרביעית לספירה; תקופה כללית, לא שנות חיים.",
+      "source": {
+        "title": "Jewish Encyclopedia: Jeremiah",
+        "url": "https://www.jewishencyclopedia.com/articles/8591-jeremiah.html"
+      }
+    },
+    "sources": [
+      {
+        "title": "Jewish Encyclopedia: Jeremiah",
+        "url": "https://www.jewishencyclopedia.com/articles/8591-jeremiah.html"
+      }
+    ],
+    "reviewedFields": ["generation", "era"],
+    "reviewNotes": [
+      "The displayed interval is a broad period of activity, not birth and death dates. Biography and places are retained from the previous registry."
+    ]
+  }
+}
