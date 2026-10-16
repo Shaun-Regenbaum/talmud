@@ -1913,7 +1913,8 @@ function RabbiMeta(props: SpecialBlockProps): JSX.Element {
   // "generation uncertain". Fetched lazily on-demand for any ambiguous homonym
   // (the pin is not warmed / not a synthesis dep) and cached per daf+name;
   // benchmarked at 10/10 clear, 0 confidently-wrong before promotion (PR #423).
-  const pinEnabled = (): boolean => f().genSource === 'ambiguous' && homonymCount() > 1;
+  const pinEnabled = (): boolean =>
+    !identity()?.era && f().genSource === 'ambiguous' && homonymCount() > 1;
   const [pinRes] = createResource(
     () => (pinEnabled() ? { t: props.tractate, p: props.page, key: props.instanceKey } : null),
     async (src) => {
@@ -1926,7 +1927,7 @@ function RabbiMeta(props: SpecialBlockProps): JSX.Element {
   // "uncertain" line untouched.
   const pin = (): RabbiPin | undefined => {
     const r = pinRes();
-    return r && r.genSource === 'ai-pin' && r.slug ? r : undefined;
+    return pinEnabled() && r && r.genSource === 'ai-pin' && r.slug ? r : undefined;
   };
   const effGenId = (): GenerationId => (pin()?.generation ?? f().generation) as GenerationId;
   // Homonym note: a confident dev-mode pin reads as "most likely X (N share the
@@ -1935,7 +1936,7 @@ function RabbiMeta(props: SpecialBlockProps): JSX.Element {
   // "unknown" era).
   const homonymNote = (): string | null => {
     const n = homonymCount();
-    if (f().genSource !== 'ambiguous' || n <= 1) return null;
+    if (identity()?.era || f().genSource !== 'ambiguous' || n <= 1) return null;
     const p = pin();
     if (p) return t('rabbi.generationLikely', { name: p.name, count: n });
     return t('rabbi.generationUncertain', { count: n });
@@ -1943,6 +1944,7 @@ function RabbiMeta(props: SpecialBlockProps): JSX.Element {
   return (
     <>
       <PersonEra
+        reviewed={identity()?.era}
         generation={
           pin()?.generation ??
           (f().genSource === 'ambiguous'

@@ -69,6 +69,7 @@ import {
 } from '../lib/place/repair';
 import { filterRabbiBoundaries, nameCrossesBoundary } from '../lib/rabbi/nameBoundaries';
 import type { EntityPiece } from '../lib/registry/entity';
+import type { ReviewedEra } from '../lib/sage-graph/types';
 import { adjacentAmud, sefariaAPI, TRACTATE_OPTIONS } from '../lib/sefref';
 import { isValidAmud, iterAmudim, TRACTATE_END_AMUD } from '../lib/sefref/amudim';
 import {
@@ -6379,6 +6380,7 @@ interface IdentifiedRabbi {
   name: string;
   nameHe: string;
   generation: GenerationId;
+  era?: ReviewedEra;
   region: 'israel' | 'bavel' | null;
   places: string[];
   moved: Movement;
@@ -6401,6 +6403,7 @@ function identifyRabbiEntry(slug: string, entry: RabbiPlacesEntry): IdentifiedRa
     name: entry.canonical,
     nameHe: entry.canonicalHe ?? '',
     generation,
+    ...(entry.era ? { era: entry.era } : {}),
     region: entry.region ?? deriveRegionFromGeneration(generation),
     places: entry.places ?? [],
     moved: entry.moved ?? null,

@@ -19,7 +19,7 @@ import identity_proposals
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "identity"))
 from prepare_scan import build as build_namesake_changes
 
-ALLOWED_KINDS = {'identity_proposal', 'graph_node', 'registry_person', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review', 'era_assessment', 'namesake_scan', 'namesake_registry'}
+ALLOWED_KINDS = {'identity_assessment', 'identity_proposal', 'graph_node', 'registry_person', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review', 'era_assessment', 'namesake_scan', 'namesake_registry'}
 
 COLUMNS = 'record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json'
 
@@ -32,7 +32,45 @@ def literal(value):
     return 'NULL' if value is None else "'" + str(value).replace("'", "''") + "'"
 
 
+def valid_https_url(raw_url):
+    if not isinstance(raw_url, str) or not raw_url.startswith('https://') or any(c.isspace() or ord(c) < 32 for c in raw_url):
+        return False
+    try:
+        url = urlsplit(raw_url)
+        port = url.port
+        host = url.hostname or ''
+    except ValueError:
+        return False
+    return bool(re.fullmatch(r'(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?', host)) and url.username is None and url.password is None and (port is None or 0 <= port <= 65535)
+
+
+def validate_reviewed_era(era):
+    if (not isinstance(era, dict) or type(era.get('start')) is not int or
+            type(era.get('end')) is not int or era['end'] <= era['start'] or
+            any(not isinstance(era.get(k), str) or not era[k].strip() for k in ('label', 'labelHe'))):
+        raise ValueError('Invalid registry era')
+    source = era.get('source')
+    if (not isinstance(source, dict) or not isinstance(source.get('title'), str) or
+            not source['title'].strip() or not valid_https_url(source.get('url'))):
+        raise ValueError('Invalid registry era source')
+
+
+def validate_generation_evidence(evidence, person_id, registry):
+    if (not isinstance(evidence, dict) or evidence.get('personId') != person_id or
+            evidence.get('supportedGeneration') != registry.get('generation') or
+            not isinstance(evidence.get('supportedGeneration'), str) or
+            not evidence.get('supportedGeneration') or
+            not isinstance(evidence.get('decision'), str) or not evidence['decision'].strip()):
+        raise ValueError('Invalid sourced generation evidence')
+    source = evidence.get('source')
+    if (not isinstance(source, dict) or not valid_https_url(source.get('url')) or
+            any(not isinstance(source.get(k), str) or not source[k].strip() for k in ('exactExcerpt', 'summary'))):
+        raise ValueError('Invalid sourced generation reference')
+
+
 def validate_registry_person(key, row, data):
+    if 'era' in data:
+        validate_reviewed_era(data['era'])
     match = re.fullmatch(r'registry_person:([a-z0-9()-]+)', key)
     if not match or row[4] != match[1] or row[5] is not None or row[7] != 'supported':
         raise ValueError('Invalid reviewed registry indexes: ' + key)
@@ -76,6 +114,90 @@ def validate_registry_person(key, row, data):
             raise ValueError('Invalid registry source URL: ' + key) from None
         if not raw_url.startswith('https://') or not valid_host or url.username is not None or url.password is not None or any(ord(ch) < 32 for ch in raw_url) or (port is not None and not 0 <= port <= 65535):
             raise ValueError('Invalid registry source URL: ' + key)
+
+
+def canonical_registry_slug(slug):
+    duplicates_path = Path(__file__).resolve().parents[3] / 'packages/talmud/src/lib/data/rabbi-duplicates.json'
+    duplicates = json.loads(duplicates_path.read_text())['duplicates']
+    return duplicates.get(slug, slug)
+
+
+def validate_identity_assessment(key, row, data, rows, parent_keys, member):
+    if 'acceptedPersonId' not in data or 'proposedPersonId' not in data:
+        raise ValueError('Assessment needs explicit identity decisions: ' + key)
+    proposal_key = data.get('proposalId')
+    proposal_row = rows.get(proposal_key)
+    if proposal_key not in parent_keys or not proposal_row or proposal_row[1] != 'identity_proposal':
+        raise ValueError('Assessment needs an existing proposal: ' + key)
+    if data.get('proposalPayloadSha256') != proposal_row[-2]:
+        raise ValueError('Assessment proposal hash differs: ' + key)
+    proposal = json.loads(proposal_row[-1])
+    case = proposal['case']
+    person_key = case['personKey']
+    proposed = (proposal.get('answer') or {}).get('personId')
+    if (key != 'identity_assessment:' + case['id'] or data.get('personKey') != person_key or
+            data.get('proposedPersonId') != proposed or row[2:4] != proposal_row[2:4] or
+            row[4] != 'local:' + person_key or person_key.split('/')[0] != row[2]):
+        raise ValueError('Assessment indexes differ from proposal: ' + key)
+    if row[6:8] != ('source_review', 'reviewed'):
+        raise ValueError('Assessment must record a source review: ' + key)
+    outcome = data.get('outcome')
+    accepted = data.get('acceptedPersonId')
+    if outcome not in {'accepted', 'held'} or row[5] != accepted:
+        raise ValueError('Invalid assessment outcome: ' + key)
+    if outcome == 'held':
+        if accepted is not None:
+            raise ValueError('Held assessment cannot accept an identity: ' + key)
+    else:
+        canonical_proposed = canonical_registry_slug(proposed)
+        if not isinstance(accepted, str) or not accepted or accepted != canonical_proposed:
+            raise ValueError('Accepted assessment must match its proposal: ' + key)
+        identity_row = rows.get('source_identity:' + person_key)
+        identity = json.loads(identity_row[-1]) if identity_row else {}
+        if (not identity_row or identity_row[1] != 'source_identity' or
+                identity_row[2:6] != (row[2], row[3], accepted, None) or
+                identity_row[6] not in {'source_review', 'user_correction'} or
+                identity_row[7] != 'accepted_registry_identity' or
+                identity.get('personKey') != person_key or identity.get('personId') != accepted or
+                identity.get('status') != 'accepted_registry_identity' or
+                identity.get('historicalIdentityResolved') is not True):
+            raise ValueError('Assessment needs an accepted source identity: ' + key)
+        member(person_key, accepted)
+        node = json.loads(rows['graph_node:' + accepted][-1])
+        registry_row = rows.get('registry_person:' + accepted)
+        if node.get('identityResolved') is not True or not registry_row or registry_row[1] != 'registry_person':
+            raise ValueError('Assessment needs a resolved registry node: ' + key)
+    if data.get('generationDecision') not in {'held', 'inherited_registry', 'sourced'}:
+        raise ValueError('Invalid assessment generation decision: ' + key)
+    if data.get('generationDecision') == 'sourced':
+        if outcome != 'accepted':
+            raise ValueError('Sourced generation requires an accepted identity: ' + key)
+        validate_generation_evidence(data.get('generationEvidence'), accepted, json.loads(registry_row[-1]))
+    if not isinstance(data.get('reason'), str) or not data['reason'].strip():
+        raise ValueError('Assessment needs a reason: ' + key)
+    evidence = data.get('evidence')
+    if not isinstance(evidence, list) or not evidence or any(
+            not isinstance(e, dict) or not isinstance(e.get('location'), str) or
+            not isinstance(e.get('quote'), str) or not e['quote'] for e in evidence):
+        raise ValueError('Assessment needs source evidence: ' + key)
+    sources = data.get('sources')
+    if not isinstance(sources, list) or not sources:
+        raise ValueError('Assessment needs source URLs: ' + key)
+    for raw_url in sources:
+        if not isinstance(raw_url, str):
+            raise ValueError('Invalid assessment source URL: ' + key)
+        try:
+            url = urlsplit(raw_url)
+            port = url.port
+            host = url.hostname or ''
+        except ValueError:
+            raise ValueError('Invalid assessment source URL: ' + key) from None
+        if (not raw_url.startswith('https://') or
+                not re.fullmatch(r'(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?', host) or
+                url.username is not None or url.password is not None or
+                any(ch.isspace() or ord(ch) < 32 for ch in raw_url) or
+                (port is not None and not 0 <= port <= 65535)):
+            raise ValueError('Invalid assessment source URL: ' + key)
 
 
 def prepare(export, manifest_path, changes_path, output, *, shared=False):
@@ -215,6 +337,8 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                     raise ValueError('Proposal ref index differs: ' + key)
                 if key != expected_key or row[4] != 'local:' + data['case']['personKey'] or row[5] is not None:
                     raise ValueError('Proposal indexes differ: ' + key)
+            if row[1] == 'identity_assessment':
+                validate_identity_assessment(key, row, data, rows, parent_keys, member)
             if row[1] == 'registry_person':
                 validate_registry_person(key, row, data)
             if data.get('passageId', row[2]) != row[2] or data.get('ref', row[3]) != row[3]:
