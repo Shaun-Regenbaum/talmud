@@ -45,6 +45,29 @@ class SharedReviewImportTest(original.ReviewImportTest):
         self.assertEqual(previous, current)
         self.assertEqual([], db.execute('PRAGMA foreign_key_check').fetchall())
 
+    def test_new_keys_inside_parent_range_need_no_exclusion(self):
+        from shared_records import statements, COLUMNS
+        db, manifest = self.loaded()
+        rows = {r[0]: r for r in db.execute(
+            f'SELECT {COLUMNS} FROM sage_graph_all_records WHERE revision_id=?',
+            (manifest['revision'],))}
+        keys = sorted(rows)
+        # Reuse an actual captured record inside the range as the new child record.
+        key = keys[len(keys) // 2]
+        changed = {key: rows[key]}
+        db.execute("INSERT INTO sage_graph_revisions(id,manifest_json,state) VALUES('bounded-child',?, 'loading')",
+                   ('{"storageFormat":"shared-v1"}',))
+        # Remove its parent membership only in this loading copy, preserving saved evidence.
+        parent = dict(manifest, revision='bounded-parent')
+        db.execute("INSERT INTO sage_graph_revisions(id,manifest_json,state) VALUES('bounded-parent',?, 'loading')",
+                   ('{"storageFormat":"shared-v1"}',))
+        db.execute("INSERT INTO sage_graph_revision_members SELECT 'bounded-parent',record_id,version_id FROM sage_graph_revision_members WHERE revision_id=? AND record_id!=?",
+                   (manifest['revision'], key))
+        sql = statements(parent, 'bounded-child', rows, changed, replaced_keys=set())
+        self.assertFalse(any('NOT IN' in statement for statement in sql))
+        db.executescript('\n'.join(sql))
+        self.assertEqual(len(rows), db.execute("SELECT count(*) FROM sage_graph_revision_members WHERE revision_id='bounded-child'").fetchone()[0])
+
     def test_verified_records_and_memberships_cannot_change(self):
         db, manifest = self.loaded()
         revision = manifest['revision']

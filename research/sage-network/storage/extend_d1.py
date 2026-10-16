@@ -98,6 +98,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
         rows = {r[0]: r for r in db.execute(
             f'SELECT {COLUMNS} FROM {table} WHERE revision_id=?',
             (parent['revision'],))}
+        parent_keys = set(rows)
         if 'namesakeRegistry' in changes or 'namesakeRegistrySha256' in changes or any(item['kind'] in {'namesake_scan','namesake_registry'} for item in changes['records']):
             # Recompute every proposed record from the verified parent before import.
             expected = build_namesake_changes(list(rows.values()), changes.get('namesakeRegistry', {}), parent)
@@ -348,7 +349,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
         revision = 'sage-graph-' + digest(encode(manifest))[:20]
         sql = [f'INSERT INTO sage_graph_revisions(id,manifest_json,state) VALUES ({literal(revision)},{literal(encode(manifest))},\'loading\');']
         if shared:
-            sql.extend(shared_records.statements(parent, revision, rows, changed))
+            sql.extend(shared_records.statements(parent, revision, rows, changed, replaced_keys=parent_keys & set(changed)))
         else:
             # Copy bounded ranges; exclude every changed key before inserting replacements.
             keys = sorted(rows)

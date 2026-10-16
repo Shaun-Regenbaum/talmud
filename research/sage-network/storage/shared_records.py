@@ -41,13 +41,17 @@ def verify_members(db, revision):
             raise ValueError('Shared record version or membership differs: ' + row[0])
 
 
-def statements(parent, revision, rows, changed):
+def statements(parent, revision, rows, changed, replaced_keys=None):
     sql = []
     inherited = sorted(set(rows) - set(changed))
+    # New keys cannot be selected from the parent, so only replacements need exclusion.
+    exclusions = set(changed) if replaced_keys is None else set(replaced_keys)
+    if not exclusions <= set(changed):
+        raise ValueError("Replacement keys must be changed records")
     if parent.get('storageFormat') == FORMAT:
         for start in range(0, len(inherited), 2000):
             chunk = inherited[start:start + 2000]
-            excluded = [k for k in changed if chunk[0] <= k <= chunk[-1]]
+            excluded = sorted(k for k in exclusions if chunk[0] <= k <= chunk[-1])
             exclusion = (' AND record_id NOT IN (' + ','.join(map(literal, excluded)) + ')') if excluded else ''
             sql.append(
                 'INSERT INTO sage_graph_revision_members(revision_id,record_id,version_id) '
