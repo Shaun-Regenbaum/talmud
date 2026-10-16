@@ -2290,6 +2290,11 @@
       "reason": "Plan and method documents for the sage study. They describe what to build and link to the published results; they hold no measured findings of their own.",
       "sha256": "2afa301e49e9e40c138bae1abd5aa985aa328dece0197187ea60078039edf602"
     },
+    "research/sage-network/remote/README.md": {
+      "disposition": "excluded",
+      "reason": "Engineering instructions for running identity jobs and importing unaccepted proposals; no measured research findings.",
+      "sha256": "a35de97cd30c20dc1cec7edd3f98d7faa22214bced190554b0b0969bcb1b1f07"
+    },
     "research/sage-network/storage/README.md": {
       "disposition": "excluded",
       "reason": "Engineering instructions for graph storage, import verification, and deployment order. No research findings or dataset; belongs with the storage code in Git.",
