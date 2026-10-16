@@ -290,7 +290,7 @@ function SageDetail(props: {
       <Show when={savedPerson()}>
         {(person) => (
           <>
-            <PersonEra generation={person().generation} />
+            <PersonEra generation={person().generation} reviewed={person().era} />
             <section class="sage-biography">
               <Show
                 when={person().bio}

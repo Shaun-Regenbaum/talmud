@@ -1,0 +1,21 @@
+{
+  "provenance": "Saved reviewed source profile from graph-candidates.json, local:b574-p4/A, Menachot 66b:11.",
+  "sourceProfile": {
+    "era": {
+      "end": 300,
+      "label": "Babylonian Amora, third century CE; not a lifespan.",
+      "labelHe": "אמורא בבלי במאה השלישית לספירה; לא שנות חיים.",
+      "source": {
+        "title": "Jewish Encyclopedia · Kahana b. Taḥlifa",
+        "url": "https://www.jewishencyclopedia.com/articles/3896"
+      },
+      "start": 200
+    },
+    "name": "Rav Kahana bar Tahlifa",
+    "nameHe": "רב כהנא בר תחליפא",
+    "personKey": "b574-p4/A",
+    "quote": "ועוד איתיביה רב כהנא בר תחליפא לרב כהנא (בר מתתיה)",
+    "summary": "He raises an objection to another Rav Kahana. The two speakers are distinct. This passage quotes Rabbi Akiva’s ruling; it does not put Rabbi Akiva in their exchange.",
+    "summaryHe": "הוא מקשה על רב כהנא אחר. אלה שני דוברים נפרדים. הקטע מצטט את דעת רבי עקיבא ואינו מציג אותו כמשתתף בשיחה."
+  }
+}

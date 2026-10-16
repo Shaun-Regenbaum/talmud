@@ -1,3 +1,4 @@
+import type { ReviewedEra } from '../lib/sage-graph/types';
 import type { GenerationId } from './generations';
 
 // The unit of identified-rabbi state shared by underlines, timeline, geography
@@ -11,6 +12,7 @@ export interface IdentifiedRabbi {
   name: string;
   nameHe: string;
   generation: GenerationId;
+  era?: ReviewedEra;
   region: 'israel' | 'bavel' | null;
   places: string[];
   moved: Movement;

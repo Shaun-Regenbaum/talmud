@@ -1,0 +1,80 @@
+{
+  "provenance": "Saved source-reviewed v15 registry era and generation evidence.",
+  "registry": {
+    "record_id": "registry_person:rabbi-yochanan-b-napacha",
+    "kind": "registry_person",
+    "passage_id": null,
+    "ref": null,
+    "subject_id": "rabbi-yochanan-b-napacha",
+    "object_id": null,
+    "authority": "source_review",
+    "decision": "supported",
+    "data": {
+      "aliases": [
+        "Rabbi Yohanan b. Nappaha",
+        "Rabbi Yohanan",
+        "Rabbi Yochanan",
+        "Rabbi Yochanan b. Napacha",
+        "Rav Yohanan",
+        "Rav Yoḥanan",
+        "Rabbi Yoḥanan",
+        "Rabbi Johanan",
+        "Rabbi Yohanan ben Nappaha",
+        "Rabbi Yochanan ben Napacha",
+        "Rebbi Yohanan",
+        "Johanan",
+        "Rebbi Johanan",
+        "R. Yohanan",
+        "R. Johanan",
+        "Rebbi Yochanan"
+      ],
+      "bio": "R. Yochanan studied under R. Yehudah haNasi and emerged as the next leader after his death. He directed the academy in Tiberias and set up the groundwork for the Jerusalem Talmud. His unusual beauty, sharpness and personal sufferings made him a captivating yet intimidating teacher. It was due to his personality and his unrivaled learning that the center of Torah study did not move to Babylonia during his lifetime.",
+      "bioSource": "sefaria",
+      "canonical": "Rabbi Yochanan b. Napacha",
+      "canonicalHe": "רבי יוחנן",
+      "generation": null,
+      "image": null,
+      "moved": null,
+      "numSources": null,
+      "places": ["Tiberias", "Jerusalem"],
+      "region": "israel",
+      "wiki": "https://he.wikipedia.org/wiki/%D7%A8%D7%91%D7%99_%D7%99%D7%95%D7%97%D7%A0%D7%9F",
+      "identityStatus": "reviewed_person",
+      "era": {
+        "start": 200,
+        "end": 300,
+        "label": "Active in the third century CE; broad period, not a lifespan.",
+        "labelHe": "פעל במאה השלישית לספירה; תקופה כללית, לא שנות חיים.",
+        "source": {
+          "title": "Jewish Encyclopedia: Johanan",
+          "url": "https://www.jewishencyclopedia.com/articles/8719-johanan-b-nappaha-ha-nappah"
+        }
+      },
+      "sources": [
+        {
+          "title": "Jewish Encyclopedia: Johanan",
+          "url": "https://www.jewishencyclopedia.com/articles/8719-johanan-b-nappaha-ha-nappah"
+        }
+      ],
+      "reviewedFields": ["generation", "era"],
+      "reviewNotes": [
+        "The displayed interval is a broad period of activity, not birth and death dates. Biography and places are retained from the previous registry."
+      ]
+    },
+    "replacesSha256": "49e90350a2cff04d040cbf6c56546f39f2e96008ee25b25a481c6e4305e06967"
+  },
+  "generationEvidence": {
+    "personId": "rav-ashi",
+    "registryGeneration": "amora-bavel-6",
+    "supportedGeneration": "amora-bavel-6",
+    "decision": "support_existing_label",
+    "source": {
+      "url": "https://daat.ac.il/encyclopedia/value.asp?id1=52",
+      "exactExcerpt": "בדור השישי",
+      "summary": "Sixth-generation section names Rav Ashi and places him in the early fifth century."
+    },
+    "suggestedLabel": "Babylonian amora, sixth generation; active into the early fifth century.",
+    "calendarRange": null,
+    "limitation": "Supports a conventional generation label. It does not establish birth/death years or fixed timeline endpoints."
+  }
+}

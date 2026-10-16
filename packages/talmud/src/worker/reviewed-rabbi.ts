@@ -19,10 +19,21 @@ const source = z.object({
   url: z.string().url().startsWith('https://'),
 });
 
+export const reviewedEraShape = z
+  .object({
+    start: z.number().int(),
+    end: z.number().int(),
+    label: z.string().trim().min(1),
+    labelHe: z.string().trim().min(1),
+    source,
+  })
+  .refine((era) => era.end > era.start, { message: 'Era end must follow its start' });
+
 // Reviewed people use the same card fields as the bundled registry, with saved
 // source references. A reviewed correction takes precedence over bundled data.
 export const reviewedRabbiShape = z.object({
   identityStatus: z.literal('reviewed_person'),
+  era: reviewedEraShape.optional(),
   canonical: z.string().trim().min(1),
   canonicalHe: z.string().trim().min(1),
   aliases: z.array(z.string().min(1)),

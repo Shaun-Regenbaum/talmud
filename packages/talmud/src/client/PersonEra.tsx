@@ -57,7 +57,7 @@ export function PersonEra(props: {
     <section class="person-era" aria-label={t('person.era')}>
       <div class="person-era-heading">
         <strong>{t('person.era')}</strong>
-        <Show when={gen()}>
+        <Show when={!props.reviewed && gen()}>
           <span>
             {eraLabel(gen()!.era)}
             {props.uncertain ? ' · ?' : ''}

@@ -1,3 +1,4 @@
+import type { ReviewedEra } from '../lib/sage-graph/types';
 // Rabbi static dataset (rabbi-places.json) + the name/Hebrew -> entry resolver.
 // Neutral module: RABBI_PLACES and the resolvers are used across index.ts (the
 // rabbi routes, the rabbi mark path, and the daf payload), so they live here to
@@ -17,6 +18,7 @@ export interface RabbiPlacesEntry {
   region: 'israel' | 'bavel' | null;
   numSources?: number | null;
   generation?: string | null;
+  era?: ReviewedEra;
   moved?: Movement;
   bio?: string | null;
   bioSource?: 'sefaria' | 'wikipedia' | null;
