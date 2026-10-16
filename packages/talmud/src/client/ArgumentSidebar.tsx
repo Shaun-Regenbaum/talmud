@@ -1902,6 +1902,8 @@ interface RabbiPin extends IdentifiedRabbi {
 function RabbiMeta(props: SpecialBlockProps): JSX.Element {
   const f = (): Record<string, unknown> => props.instance.fields;
   const identity = (): IdentifiedRabbi | undefined => {
+    if (f().registryIdentity || f().identityStatus === 'reviewed_person')
+      return f() as unknown as IdentifiedRabbi;
     const i = props.deps['rabbi.identity'] as IdentifiedRabbi | undefined;
     return i && typeof i.name === 'string' ? i : undefined;
   };
@@ -1989,6 +1991,13 @@ function RabbiLineage(props: SpecialBlockProps): JSX.Element {
 
 function RabbiGeography(props: SpecialBlockProps): JSX.Element {
   const geo = (): GeographyData | undefined => {
+    if (
+      props.instance.fields.registryIdentity ||
+      props.instance.fields.identityStatus === 'reviewed_person'
+    ) {
+      const identity = props.deps['rabbi.identity'] as IdentifiedRabbi | undefined;
+      if (identity?.slug !== props.instance.fields.slug) return undefined;
+    }
     const g = props.deps['rabbi.geography'] as GeographyData | undefined;
     return g &&
       (g.birthplace ||
@@ -2039,7 +2048,8 @@ function RabbiGeography(props: SpecialBlockProps): JSX.Element {
 function RabbiObservationsBlock(props: SpecialBlockProps): JSX.Element {
   const slug = (): string | null => {
     const i = props.deps['rabbi.identity'] as IdentifiedRabbi | undefined;
-    return i?.slug ?? null;
+    const explicit = props.instance.fields.slug;
+    return typeof explicit === 'string' ? explicit : (i?.slug ?? null);
   };
   return <RabbiObservations slug={slug()} />;
 }
@@ -2053,6 +2063,10 @@ export function rabbiDisplayInstance(rabbi: IdentifiedRabbi): { fields: Record<s
       name: rabbi.name,
       nameHe: rabbi.nameHe,
       generation: rabbi.generation,
+      era: rabbi.era,
+      identityStatus: rabbi.identityStatus,
+      registryIdentity: rabbi.registryIdentity,
+      bio: rabbi.bio,
       region: rabbi.region,
       places: rabbi.places,
       genSource: rabbi.genSource,
@@ -2081,6 +2095,21 @@ export function rabbiSynthInstance(rabbi: IdentifiedRabbi): unknown {
 }
 export const RABBI_BLOCKS: Record<string, (p: SpecialBlockProps) => JSX.Element> = {
   'rabbi-meta': RabbiMeta,
+  'rabbi-reviewed-biography': (props) => (
+    <section class="sage-biography">
+      <h4>{t('person.biography')}</h4>
+      <Show
+        when={typeof props.instance.fields.bio === 'string' && props.instance.fields.bio}
+        fallback={<PersonStatus>{t('sages.bio.empty')}</PersonStatus>}
+      >
+        {(bio) => (
+          <p class="sage-prose" dir="ltr" lang="en">
+            {bio()}
+          </p>
+        )}
+      </Show>
+    </section>
+  ),
   'rabbi-lineage': RabbiLineage,
   'rabbi-geography': RabbiGeography,
   'rabbi-observations': RabbiObservationsBlock,
@@ -3962,6 +3991,19 @@ export const CARD_DEFS: Partial<Record<SidebarContent['kind'], CardDef>> = {
   },
   rabbi: {
     recipe: RABBI_RECIPE,
+    recipeFor: (c) => {
+      const rabbi = (c as Extract<SidebarContent, { kind: 'rabbi' }>).rabbi;
+      if (!rabbi.registryIdentity && rabbi.identityStatus !== 'reviewed_person')
+        return RABBI_RECIPE;
+      return {
+        ...RABBI_RECIPE,
+        sections: RABBI_RECIPE.sections.flatMap<SidebarRecipe['sections'][number]>((section) =>
+          section.type === 'synthesis'
+            ? [{ type: 'special' as const, block: 'rabbi-reviewed-biography' }, section]
+            : [section],
+        ),
+      };
+    },
     blocks: RABBI_BLOCKS,
     instance: (c) => rabbiDisplayInstance((c as Extract<SidebarContent, { kind: 'rabbi' }>).rabbi),
     synthInstance: (c) =>

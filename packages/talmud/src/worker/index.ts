@@ -6381,6 +6381,7 @@ interface IdentifiedRabbi {
   nameHe: string;
   generation: GenerationId;
   era?: ReviewedEra;
+  identityStatus?: 'reviewed_person';
   region: 'israel' | 'bavel' | null;
   places: string[];
   moved: Movement;
@@ -6404,6 +6405,7 @@ function identifyRabbiEntry(slug: string, entry: RabbiPlacesEntry): IdentifiedRa
     nameHe: entry.canonicalHe ?? '',
     generation,
     ...(entry.era ? { era: entry.era } : {}),
+    ...(entry.identityStatus ? { identityStatus: entry.identityStatus } : {}),
     region: entry.region ?? deriveRegionFromGeneration(generation),
     places: entry.places ?? [],
     moved: entry.moved ?? null,

@@ -673,7 +673,10 @@ export function SidebarCardFromHint(props: {
         );
         return (
           <Show when={props.recipe.kind === 'rabbi'} fallback={<Body />}>
-            <section class="person-biography">
+            <section
+              class="person-biography"
+              hidden={!!fields().registryIdentity || fields().identityStatus === 'reviewed_person'}
+            >
               <h4>{t('person.biography')}</h4>
               <Body />
             </section>

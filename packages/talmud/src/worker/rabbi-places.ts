@@ -19,6 +19,7 @@ export interface RabbiPlacesEntry {
   numSources?: number | null;
   generation?: string | null;
   era?: ReviewedEra;
+  identityStatus?: 'reviewed_person';
   moved?: Movement;
   bio?: string | null;
   bioSource?: 'sefaria' | 'wikipedia' | null;

@@ -13,6 +13,8 @@ export interface IdentifiedRabbi {
   nameHe: string;
   generation: GenerationId;
   era?: ReviewedEra;
+  identityStatus?: 'reviewed_person';
+  registryIdentity?: boolean;
   region: 'israel' | 'bavel' | null;
   places: string[];
   moved: Movement;
