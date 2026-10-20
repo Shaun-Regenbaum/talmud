@@ -50,14 +50,95 @@ plus that repair, not just v3.
    must be words, not a space or a mark.
    - The quote is the exact slice of the source.
    - The occurrence is counted exactly as v2 counts it.
-   - The result is the v2 answer form, which then goes through v2's `validate.check` unchanged.
+   - The result is a v2-form answer, which then goes through v2's `validate.check` unchanged.
 
    So the strict checks, the record shape and the exact resolved offsets all stay as they are. The
-   envelope adds three things: the splitter version, a binding per source (the source hash and the
-   unit table hash), and the map from units to offsets.
-5. **Binding.** The splitter version is `source-units-v1`. The compiler refuses unit tables that
-   differ from the ones the request was built with. An old answer is never re-split with a new
-   version.
+   v2-form answer is a derived copy. It is never saved or read as a raw v2 answer (see below).
+
+## The order of checks
+
+Each step either passes or refuses the whole answer. Nothing is defaulted, and nothing is matched
+loosely.
+
+1. **The job.**
+   - The job's hash equals the frozen job's hash in the queue manifest.
+   - Every source ID appears exactly once.
+   - Every source text hashes to its recorded sha256.
+2. **The unit tables.** The splitter version and each source's unit table hash are rebuilt from
+   the frozen text. They must equal the ones the request was built with, and the ones saved in
+   the request record.
+3. **The raw v4 answer, against the v4 JSON schema** (below).
+   - A missing or empty `mentions` or `evidence` fails here. It never becomes `[]`.
+   - An anchor with any field other than `source_id`, `first` and `last` fails.
+   - A `quote` field fails.
+4. **The anchors.** Each anchor names a source in this job. `first` and `last` are integers in
+   range, `first` is not after `last`, and both fall on word units.
+5. **The compile.** Each anchor becomes `{source_id, quote, occurrence}`, an exact slice and v2's
+   own occurrence count. Every other field of the answer is copied unchanged.
+6. **The v2 check.** The unchanged `compact_source_v2.validate.check` runs on the derived v2-form
+   answer. All its people, link, anchor and whole-word rules apply as they do today.
+7. **The saved record.** Its fields are listed below. A resume rebuilds steps 1–6 from the raw
+   answer and the frozen job. It must reproduce the saved record exactly, as `check_saved` does
+   for v2.
+
+The current `units.compile_answer` already refuses a missing or empty `mentions` or `evidence`, a
+repeated source ID, and a text that does not match its hash. A test covers each. The full raw v4
+schema check (step 3) belongs to the integration step, and it is not written yet.
+
+## The raw v4 schema
+
+It is the v2 schema with three changes:
+
+- **The version:** `schema_version` is the constant `compact-source-v4`.
+- **The anchor:** an anchor is `{source_id: text, first: integer ≥ 1, last: integer ≥ 1}`, with no
+  other fields.
+- **The anchor lists:** `mentions` and `evidence` are lists of these anchors, each with at least
+  one item.
+
+Every field is required, and none may be added, as in v2. The v4 contract file holds its own copy
+of this schema. Nothing about it is inferred from the v2 file.
+
+## What gets saved, and how to trace it
+
+One record per job. Every hash is sha256 of the canonical JSON.
+
+| field | what it holds |
+|---|---|
+| `raw.schema_version` | `compact-source-v4` |
+| `raw.answer`, `raw.answer_sha256` | the model's answer exactly as received (the original) |
+| `binding.recipe` | the v4 recipe binding (below) |
+| `binding.job_sha256` | the frozen job |
+| `binding.sources[]` | for each source: `source_id`, `source_sha256`, `tokenizer`, `units`, `table_sha256` |
+| `compile.map[]` | for each anchor: its path, `source_id`, `first`, `last`, the start and end offsets, `quote`, `occurrence` |
+| `compile.derived_v2_answer`, `compile.derived_v2_answer_sha256` | the v2-form answer; derived, never raw |
+| `compile.derived_from` | `raw.answer_sha256` |
+| `v2_check` | the unchanged output of `compact_source_v2.validate.check` on the derived answer |
+| `record_sha256` | everything above |
+
+**The provenance chain.**
+
+- The raw answer is the original.
+- `compile.map` and `compile.derived_v2_answer` are derived from it. Their `derived_from` names the
+  raw answer's hash.
+- `v2_check` is the checker's verdict on that derived answer.
+
+`v2_check.recipe` names the v2 validator, because that is the checker. The producer is the v4
+recipe in `binding.recipe`. An importer must read `raw.schema_version` and `binding.recipe`. It must
+never treat `derived_v2_answer` as a v2 model answer.
+
+## What the v4 recipe binds
+
+The v4 recipe binding hashes the four v4 files and the units module:
+
+- `contract.py`
+- `validate.py`
+- `request.py`
+- `reader.md`
+- `units.py`
+
+It also records the splitter version, and the hashes of the two v2 files it runs unchanged
+(`compact_source_v2/validate.py` and `contract.py`). A change to any of these gives a new recipe
+hash. The v2 and v3 recipe hashes stay as they are.
 
 ## The unit rules (`source-units-v1`)
 
@@ -81,7 +162,7 @@ What this does to real text:
 | `(אמר ר' אסי)` (011) | `(`, `אמר`, `ר'`, `אסי`, `)` |
 | vowelled Rosh Hashanah (031) | each word keeps all its marks, in the source's order |
 
-## Tests on real sources (`tests/test_compact_source_v4_units.py`, 13 tests, all passing)
+## Tests on real sources (`tests/test_compact_source_v4_units.py`, 14 tests, all passing)
 
 The fixtures are already in the repo. `quality-210-source-jobs.jsonl.gz` is the frozen 210-trial
 shard, sha256 `823e4fb0…`, with 1,046 sources. `paired-source-v3-real.json.gz` holds the 30 matched
@@ -108,6 +189,8 @@ errors.
     becomes `דר' יוסי`, and `ר' יהושע` becomes `ור' יהושע`.
   - 1 typed quote (`ר' אבהו`) is not in the text at all.
 - **Fathers inside one word with the son:** 0 in the 15 saved answers.
+- **Nothing is defaulted.** A missing or empty `mentions` or `evidence` list is refused, and so is
+  a missing `relationships` list, a repeated source ID, or a source text edited by one space.
 - **Bad anchors are refused:** an unknown source, a reversed range, out of range, not an integer,
   starting or ending on a space, an extra `quote` field, or a changed unit table.
 - **The unit tables are pinned.** Any change to the splitter needs a new version.
@@ -140,6 +223,23 @@ That range is honest, but it is not an exact count. The numbers are in `token-es
 | B. source text kept, plus every unit (word, mark, space) as `[id, text]` | 445 Hebrew + 1,905 other chars | +535 to +1,402 (+10% to +27%) |
 | C. every unit as `[id, text]`, source text left out of the prompt (still hashed in the job) | 1,739 other chars | +252 to +1,044 (+5% to +20%) |
 | G. one unit per word, with the spaces and marks after it folded into its text; source text left out | 877 other chars | +127 to +526 (+2% to +10%) |
+
+**Answers get shorter.** Unit IDs replace the typed Hebrew quotes. I converted the 15 saved v2
+answers that passed (199 anchors), and each answer shrinks by 134 Hebrew characters and about 105
+other characters. That is 94 to 144 fewer output tokens per answer, or 9% to 13% of v3-none's 1,079
+output tokens per job.
+
+**Net cost per job.** The route charges $1.01 per million input tokens and $1.50 per million output
+tokens. v3-none cost $0.00051 per job.
+
+| layout | input change | output change | net change per job |
+|---|---|---|---|
+| B | +535 to +1,402 | −94 to −144 | +6% to +25% |
+| C | +252 to +1,044 | −94 to −144 | +1% to +18% |
+| G | +127 to +526 | −94 to −144 | −2% to +8% |
+
+With reasoning on, reasoning tokens are most of the output, so the prompt growth matters even less
+in relative terms.
 
 **Proposed: G.** Each unit holds the exact text of one word plus what follows it, so the list still
 joins back exactly. The compiler takes the word part of the first and last unit for the offsets.

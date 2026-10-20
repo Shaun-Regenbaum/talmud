@@ -135,7 +135,24 @@ def compile_anchor(source, anchor, table=None):
 
 def compile_answer(job, answer, expected_bindings=None):
     """Turn every unit anchor of a v4-shaped answer into the v2 quote form. The answer is not
-    otherwise changed; the strict v2 checks are run on the result by the caller."""
+    otherwise changed; the strict v2 checks are run on the result by the caller.
+
+    Design stage: this checks only what the compile step itself depends on. The full raw v4 JSON
+    schema check comes first in the planned pipeline (DESIGN.md), before this function runs."""
+    ids = [s.get('source_id') for s in job.get('sources') or []]
+    if not ids or len(set(ids)) != len(ids):
+        raise UnitError('source_id_duplicate', 'every source needs exactly one unique source_id')
+    for s in job['sources']:
+        if hashlib.sha256(s['text'].encode()).hexdigest() != s.get('sha256'):
+            raise UnitError('source_hash', f"{s['source_id']} text does not match its sha256")
+    if not isinstance(answer, dict) or not isinstance(answer.get('people'), list) or not isinstance(answer.get('relationships'), list):
+        raise UnitError('raw_schema', 'the answer needs people and relationships lists')
+    for p in answer['people']:
+        if not isinstance(p, dict) or not isinstance(p.get('mentions'), list) or not p['mentions']:
+            raise UnitError('raw_schema', f"person {p.get('id') if isinstance(p, dict) else p!r} needs at least one mention")
+    for r in answer['relationships']:
+        if not isinstance(r, dict) or not isinstance(r.get('evidence'), list) or not r['evidence']:
+            raise UnitError('raw_schema', f"relationship {r.get('id') if isinstance(r, dict) else r!r} needs at least one evidence anchor")
     sources = {s['source_id']: s for s in job['sources']}
     tables = {sid: units(s['text']) for sid, s in sources.items()}
     bindings = {sid: binding(s) for sid, s in sources.items()}
@@ -152,10 +169,10 @@ def compile_answer(job, answer, expected_bindings=None):
         mapping.append(dict(path=path, **c))
         return {'source_id': c['source_id'], 'quote': c['quote'], 'occurrence': c['occurrence']}
 
-    for p in compiled.get('people', []):
-        p['mentions'] = [convert(a, f"people/{p.get('id')}/mentions/{k}") for k, a in enumerate(p.get('mentions') or [])]
-    for r in compiled.get('relationships', []):
-        r['evidence'] = [convert(a, f"relationships/{r.get('id')}/evidence/{k}") for k, a in enumerate(r.get('evidence') or [])]
+    for p in compiled['people']:
+        p['mentions'] = [convert(a, f"people/{p.get('id')}/mentions/{k}") for k, a in enumerate(p['mentions'])]
+    for r in compiled['relationships']:
+        r['evidence'] = [convert(a, f"relationships/{r.get('id')}/evidence/{k}") for k, a in enumerate(r['evidence'])]
     return compiled, {'tokenizer': TOKENIZER, 'bindings': bindings, 'anchors': mapping}
 
 

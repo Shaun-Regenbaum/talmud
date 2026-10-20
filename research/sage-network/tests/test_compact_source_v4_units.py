@@ -276,6 +276,23 @@ class CompactSourceV4UnitTests(unittest.TestCase):
             U.compile_answer(job, test_answer(job, [{'source_id': 's1', 'first': 1, 'last': 1}], []), bindings)
         self.assertEqual(e.exception.code, 'unit_binding')
 
+    def test_missing_anchors_and_bad_jobs_are_refused_not_defaulted(self):
+        job = JOBS['v18-bavli-001']
+        good = test_answer(job, [{'source_id': 's1', 'first': 1, 'last': 1}], [{'source_id': 's1', 'first': 1, 'last': 1}])
+        U.compile_answer(job, good)
+        cases = []
+        a = json.loads(json.dumps(good)); del a['people'][0]['mentions']; cases.append((job, a, 'raw_schema'))
+        a = json.loads(json.dumps(good)); a['people'][0]['mentions'] = []; cases.append((job, a, 'raw_schema'))
+        a = json.loads(json.dumps(good)); del a['relationships'][0]['evidence']; cases.append((job, a, 'raw_schema'))
+        a = json.loads(json.dumps(good)); a['relationships'][0]['evidence'] = []; cases.append((job, a, 'raw_schema'))
+        a = json.loads(json.dumps(good)); del a['relationships']; cases.append((job, a, 'raw_schema'))
+        twin = json.loads(json.dumps(job)); twin['sources'][1]['source_id'] = 's1'; cases.append((twin, good, 'source_id_duplicate'))
+        edited = json.loads(json.dumps(job)); edited['sources'][0]['text'] += ' '; cases.append((edited, good, 'source_hash'))
+        for j, a, code in cases:
+            with self.assertRaises(U.UnitError) as e:
+                U.compile_answer(j, a)
+            self.assertEqual(e.exception.code, code)
+
     def test_word_tables_are_pinned(self):
         self.assertEqual(U.TOKENIZER, 'source-units-v1')
         self.assertEqual(U._digest([U.binding(s) for _, s in SOURCES]), TABLES_SHA256)
