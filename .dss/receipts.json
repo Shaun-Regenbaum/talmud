@@ -55,6 +55,16 @@
       "reason": "Executable reader instructions for a separate research recipe, not research findings.",
       "sha256": "465d78d6666c318a5f4aa8a3030cf52154cdb4757242a83e06181bcf5b650e50"
     },
+    "research/sage-network/compact_source_v3/README.md": {
+      "disposition": "excluded",
+      "reason": "Engineering documentation for an isolated reading recipe and its test fixture, not measured research findings.",
+      "sha256": "3f9862b3301c42a5fa393a19dfdd41583f961876d4d0d6a7773896fe6085d54d"
+    },
+    "research/sage-network/compact_source_v3/reader.md": {
+      "disposition": "excluded",
+      "reason": "Executable research recipe instructions; existing production recipes remain unchanged.",
+      "sha256": "3a03c7b73dafdf654f791e81c83614efd4911831d0de85241d5d22489c269717"
+    },
     "research/sage-network/data/checkpoint/CHECKPOINT.md": {
       "disposition": "published",
       "sha256": "ca1a1af6d10d2ae43cb0cf3fe59d50ddcc5600640e78710db6059b822c18fb18",
