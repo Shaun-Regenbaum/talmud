@@ -228,6 +228,16 @@ class UnresolvedProposalTests(unittest.TestCase):
         result = self.run_import(self.records_for())
         self.assertEqual(result['changedRecords'], 3)
 
+    def test_unverified_reference_blocks_confirmed_facts(self):
+        # Test-only marker. This passage's real reference is not in doubt; the row stands in
+        # for a reading that carries a source reference warning, which is what the guard reads.
+        self.records.append(dict(record_id='name_reading:test-only/case-0', kind='name_reading', passage_id=self.pid, ref=self.proposal['ref'],
+                                 authority='screening', decision='needs_review', data=dict(sourceQuality=dict(sourceReferenceVerified=False))))
+        with self.assertRaisesRegex(ValueError, 'Passage reference is unverified'):
+            self.run_import(self.records_for())
+        self.records[-1]['data']['sourceQuality']['sourceReferenceVerified'] = True
+        self.assertEqual(self.run_import(self.records_for())['changedRecords'], 3)
+
     def test_proposal_null_is_kept(self):
         with self.assertRaisesRegex(ValueError, 'indexes differ from proposal'):
             self.run_import(self.records_for(proposedPersonId=self.person))

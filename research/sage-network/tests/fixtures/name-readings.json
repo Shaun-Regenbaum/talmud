@@ -1,7 +1,7 @@
 {
   "provenance": {
-    "revision": "sage-graph-127f6c1cf009b41498a5",
-    "note": "Verbatim live records and three frozen first readings (missing-names v18, chunk-003). Test data only; readings are proposals, not approved identities."
+    "revision": "sage-graph-f15358515d466f49b619",
+    "note": "Verbatim live records and four frozen first readings (missing-names v18, chunk-003). Test data only; readings are proposals, not approved identities."
   },
   "records": [
     {
@@ -1103,11 +1103,523 @@
         "wiki": "https://www.hamichlol.org.il/%D7%A8%D7%91%D7%99_%D7%A1%D7%99%D7%9E%D7%90%D7%99"
       },
       "payloadSha256": "179b8b7b67a23f07133269134c6772fcf8a25b260373274cc6a2bf21480ed9a5"
+    },
+    {
+      "record_id": "passage:b147-p4",
+      "kind": "passage",
+      "passage_id": "b147-p4",
+      "ref": "Mekhilta DeRabbi Shimon Ben Yochai 3b:17:8",
+      "subject_id": null,
+      "object_id": null,
+      "authority": "source",
+      "decision": null,
+      "data": {
+        "claims": [
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s0",
+            "kind": "taught",
+            "note": "Joint attribution with ר' אלעזר חסמא; no addressee is supplied.",
+            "quote": "ר' יאשיה ור' אלעזר חסמא אומרין מקרא זה רשום ומפורש על ידי איוב (ח' י\"א) היגאה גמא בלא בצה ישגה אחו בלי מים וכי אפשר לגמא זה להיות שלא בצים ואפשר לאחו זה להיות שלא מים כך אי אפשר להן לישראל לפרוש מדברי תורה לפי שפירשו מדברי תורה באו לתרעומת לפיכך בא עליהן שונא שאין השונא בא אלא על החטא ועל העבירה שנ' ויבא עמלק:",
+            "quoteLocation": "passage",
+            "speaker": "A",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s1",
+            "kind": "taught",
+            "note": "The same joint teaching is recorded for its second named speaker, not as a second scene.",
+            "quote": "ר' יאשיה ור' אלעזר חסמא אומרין מקרא זה רשום ומפורש על ידי איוב (ח' י\"א) היגאה גמא בלא בצה ישגה אחו בלי מים וכי אפשר לגמא זה להיות שלא בצים ואפשר לאחו זה להיות שלא מים כך אי אפשר להן לישראל לפרוש מדברי תורה לפי שפירשו מדברי תורה באו לתרעומת לפיכך בא עליהן שונא שאין השונא בא אלא על החטא ועל העבירה שנ' ויבא עמלק:",
+            "quoteLocation": "passage",
+            "speaker": "B",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s2",
+            "kind": "quoted_teaching",
+            "note": "The passage attributes the scriptural explanation through איוב; it does not identify the speaker within the book or any hearer.",
+            "quote": "על ידי איוב (ח' י\"א) היגאה גמא בלא בצה ישגה אחו בלי מים",
+            "quoteLocation": "passage",
+            "speaker": "C",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s3",
+            "kind": "taught",
+            "note": "No addressee is supplied; the following dialogue is embedded in this account.",
+            "quote": "ר' יוסי בן חלפתא אומר ויבא עמלק שבא בעצה לפי שהלך וכינס כל אותן אלפים וכל אותן רבבות בשביל לקבל פורענות",
+            "quoteLocation": "passage",
+            "speaker": "F",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "E",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s4",
+            "kind": "asked",
+            "note": "The plural antecedent is כל אותן אלפים וכל אותן רבבות. Their question is inferred to address the one who assembled them.",
+            "quote": "אמרו היאך אנו יכולין לעמוד כנגדן: פרעה שעמד כנגדן טבעו הקב\"ה בים היאך אנו יכולין לעמוד כנגדן",
+            "quoteLocation": "passage",
+            "speaker": "G",
+            "speaker_basis": "unambiguous_pronoun"
+          },
+          {
+            "addressee": "G",
+            "addressee_basis": "unambiguous_pronoun",
+            "field": "speech",
+            "id": "s5",
+            "kind": "answered",
+            "note": "The speaker is inferred to be עמלק, who gathered the group; להם refers to כל אותן אלפים וכל אותן רבבות, who just asked.",
+            "quote": "אמר להם אני אתן לכם עצה מה תעשו: אם ינצחונו ברחו ואם לאו באו וסייעונו עליהם:",
+            "quoteLocation": "passage",
+            "speaker": "E",
+            "speaker_basis": "context"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s6",
+            "kind": "taught",
+            "note": "No addressee is supplied.",
+            "quote": "ר' נתן בן יוסף [אומר] חמשת עממים פסע ובא עמלק ועשה מלחמה עם ישראל שנ' (במדבר י\"ג כ\"ט) עמלק יושב בארץ הנגב והחתי והיבוסי והאמרי יושב בהר והכנעני יושב על הים ועל יד הירדן הוא היה לפנים מכולם:",
+            "quoteLocation": "passage",
+            "speaker": "J",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s7",
+            "kind": "taught",
+            "note": "No fuller name or addressee is supplied.",
+            "quote": "רבי אומר לא בא אלא מהררי שעיר ארבע מאות פרסה פסע ובא עמלק ועשה מלחמה עם ישראל:",
+            "quoteLocation": "passage",
+            "speaker": "O",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s8",
+            "kind": "taught",
+            "note": "The group is not individually named; no addressee is supplied.",
+            "quote": "אחרים אומרים יבא עמלק כפוי טובה ויפרע מעם כפויי טובה:",
+            "quoteLocation": "passage",
+            "speaker": "P",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s9",
+            "kind": "taught",
+            "note": "No addressee is supplied.",
+            "quote": "ר' יהושע אומר היה נכנס תחת ענני הכבוד וגונב נפשות מישראל והורגן שנ' (דברים כ\"ה י\"ח) אשר קרך בדרך ויזנב בך כל הנחשלים אחריך:",
+            "quoteLocation": "passage",
+            "speaker": "Q",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s10",
+            "kind": "said",
+            "note": "A report of an earlier question and answer; no current addressee is supplied.",
+            "quote": "אמר רבי חנניה דבר זה שאלנו את ר' אליעזר כשהוא יושב במותבא רבא רפידים מה הוא אמר לנו כמשמעו:",
+            "quoteLocation": "passage",
+            "speaker": "R",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "S",
+            "addressee_basis": "text",
+            "field": "speech",
+            "id": "s11",
+            "kind": "asked",
+            "note": "The first-person plural includes the reporting speaker רבי חנניה and unspecified others.",
+            "quote": "שאלנו את ר' אליעזר כשהוא יושב במותבא רבא רפידים מה הוא",
+            "quoteLocation": "passage",
+            "speaker": "T",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "T",
+            "addressee_basis": "unambiguous_pronoun",
+            "field": "speech",
+            "id": "s12",
+            "kind": "answered",
+            "note": "ר' אליעזר is the expressly named recipient of שאלנו; לנו refers back to those questioners.",
+            "quote": "אמר לנו כמשמעו:",
+            "quoteLocation": "passage",
+            "speaker": "S",
+            "speaker_basis": "unambiguous_pronoun"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s13",
+            "kind": "said",
+            "note": "The name's spelling differs from רבי חנניה in the preceding report; no current addressee is supplied.",
+            "quote": "ועוד אמר ר' חניניה דבר זה שאלנו את ר' אליעזר כשהוא יושב במותבא רבא מפני מה פדו ישראל פטרי חמורים ולא פדו פטרי גמלים ולא פטרי סוסים אמר לנו גזרת מלך מלכי המלכים ב\"ה:",
+            "quoteLocation": "passage",
+            "speaker": "U",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "S",
+            "addressee_basis": "text",
+            "field": "speech",
+            "id": "s14",
+            "kind": "asked",
+            "note": "This שאלנו includes ר' חניניה and unspecified others; it need not have exactly the same membership as the first group.",
+            "quote": "שאלנו את ר' אליעזר כשהוא יושב במותבא רבא מפני מה פדו ישראל פטרי חמורים ולא פדו פטרי גמלים ולא פטרי סוסים",
+            "quoteLocation": "passage",
+            "speaker": "T",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "T",
+            "addressee_basis": "unambiguous_pronoun",
+            "field": "speech",
+            "id": "s15",
+            "kind": "answered",
+            "note": "ר' אליעזר is the named recipient of the immediately preceding question; לנו refers to its questioners.",
+            "quote": "אמר לנו גזרת מלך מלכי המלכים ב\"ה:",
+            "quoteLocation": "passage",
+            "speaker": "S",
+            "speaker_basis": "unambiguous_pronoun"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s16",
+            "kind": "taught",
+            "note": "The alternative explanation is not explicitly assigned to ר' אליעזר or another named speaker.",
+            "quote": "ד\"א לפי שסייעו את ישראל ביציאתן ממצרים שאין לך כל אחד ואחד שלא היו לו שבעים חמורים לפניו שהיו טעונין כסף וזהב ואבנים טובות ומרגליות:",
+            "quoteLocation": "passage",
+            "speaker": "unclear",
+            "speaker_basis": "context"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s17",
+            "kind": "taught",
+            "note": "No individual members or addressee are supplied.",
+            "quote": "דורשי רשומות אומרין אין רפידים אלא רפין ידים לפי שריפו ידיהם של ישראל מן התורה לפיכך בא עליהן שונא שאין השונא בא [אלא] על החטא ועל העבירה",
+            "quoteLocation": "passage",
+            "speaker": "V",
+            "speaker_basis": "text"
+          },
+          {
+            "a": "E",
+            "b": "G",
+            "basis": "context",
+            "field": "relations",
+            "id": "r0",
+            "note": "The singular actor is inferred from the preceding עמלק שבא בעצה.",
+            "quote": "לפי שהלך וכינס כל אותן אלפים וכל אותן רבבות",
+            "quoteLocation": "passage",
+            "relation": "other:assembled"
+          },
+          {
+            "a": "I",
+            "b": "H",
+            "basis": "text",
+            "field": "relations",
+            "id": "r1",
+            "note": "A claim inside the assembled group's quoted speech.",
+            "quote": "פרעה שעמד כנגדן טבעו הקב\"ה בים",
+            "quoteLocation": "passage",
+            "relation": "other:drowned"
+          },
+          {
+            "a": "E",
+            "b": "D",
+            "basis": "text",
+            "field": "relations",
+            "id": "r2",
+            "note": "A claim in the attributed teaching.",
+            "quote": "ובא עמלק ועשה מלחמה עם ישראל",
+            "quoteLocation": "passage",
+            "relation": "other:waged_war_against"
+          },
+          {
+            "a": "R",
+            "b": "T",
+            "basis": "text",
+            "field": "relations",
+            "id": "r3",
+            "note": "The reporting speaker includes himself in שאלנו.",
+            "quote": "אמר רבי חנניה דבר זה שאלנו",
+            "quoteLocation": "passage",
+            "relation": "other:member_of_questioners"
+          },
+          {
+            "a": "U",
+            "b": "T",
+            "basis": "text",
+            "field": "relations",
+            "id": "r4",
+            "note": "The second reporting speaker includes himself in this שאלנו; the two groups' full membership is unknown.",
+            "quote": "ועוד אמר ר' חניניה דבר זה שאלנו",
+            "quoteLocation": "passage",
+            "relation": "other:member_of_questioners"
+          }
+        ],
+        "id": "b147-p4",
+        "people": [
+          {
+            "id": "A",
+            "label": "ר' יאשיה",
+            "named": "name",
+            "quote": "ר' יאשיה",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "B",
+            "label": "ר' אלעזר חסמא",
+            "named": "name",
+            "quote": "ר' אלעזר חסמא",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "C",
+            "label": "איוב",
+            "named": "name",
+            "quote": "איוב",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "D",
+            "label": "ישראל",
+            "named": "group",
+            "quote": "לישראל",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "E",
+            "label": "עמלק",
+            "named": "name",
+            "quote": "עמלק",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "F",
+            "label": "ר' יוסי בן חלפתא",
+            "named": "name",
+            "quote": "ר' יוסי בן חלפתא",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "G",
+            "label": "The assembled thousands and myriads",
+            "named": "group",
+            "quote": "כל אותן אלפים וכל אותן רבבות",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "H",
+            "label": "פרעה",
+            "named": "name",
+            "quote": "פרעה",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "I",
+            "label": "הקב\"ה",
+            "named": "name",
+            "quote": "הקב\"ה",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "J",
+            "label": "ר' נתן בן יוסף",
+            "named": "name",
+            "quote": "ר' נתן בן יוסף",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "K",
+            "label": "החתי",
+            "named": "group",
+            "quote": "והחתי",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "L",
+            "label": "היבוסי",
+            "named": "group",
+            "quote": "והיבוסי",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "M",
+            "label": "האמרי",
+            "named": "group",
+            "quote": "והאמרי",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "N",
+            "label": "הכנעני",
+            "named": "group",
+            "quote": "והכנעני",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "O",
+            "label": "רבי",
+            "named": "name",
+            "quote": "רבי אומר",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "P",
+            "label": "אחרים",
+            "named": "group",
+            "quote": "אחרים אומרים",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "Q",
+            "label": "ר' יהושע",
+            "named": "name",
+            "quote": "ר' יהושע",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "R",
+            "label": "רבי חנניה",
+            "named": "name",
+            "quote": "רבי חנניה",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "S",
+            "label": "ר' אליעזר",
+            "named": "name",
+            "quote": "ר' אליעזר",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "T",
+            "label": "The questioners described as שאלנו",
+            "named": "group",
+            "quote": "שאלנו",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "U",
+            "label": "ר' חניניה",
+            "named": "name",
+            "quote": "ר' חניניה",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "V",
+            "label": "דורשי רשומות",
+            "named": "group",
+            "quote": "דורשי רשומות",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "W",
+            "label": "רחבעם",
+            "named": "name",
+            "quote": "רחבעם",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "X",
+            "label": "שישק מלך מצרים",
+            "named": "name",
+            "quote": "שישק מלך מצרים",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "Y",
+            "label": "The allies included in וסייעונו",
+            "named": "group",
+            "quote": "באו וסייעונו עליהם",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "Z",
+            "label": "מלך מלכי המלכים ב\"ה",
+            "named": "described",
+            "quote": "מלך מלכי המלכים ב\"ה",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "AA",
+            "label": "אלהים",
+            "named": "name",
+            "quote": "אלהים",
+            "quoteLocation": "passage"
+          }
+        ],
+        "ref": "Mekhilta DeRabbi Shimon Ben Yochai 3b:17:8",
+        "source": {
+          "after": "ויאמר משה אל יהושע בחר לנו אנשים מיכאן שיהיה כבוד תלמידו של אדם חביב עליו ככבוד חברו וילמד כל העולם כולו ממשה שלא אמר ליהושע בחר לי אנשים אלא בחר לנו אנשים עשאו כמותו: אנשים. אנשים גבורים אנשים יראי חטא: וצא הלחם בעמלק. וכי משה עומד ואומר ליהושע [לעשות] מלחמה עם עמלק אלא מסורת היא שאין בני עשו נופלין אלא ביד בניה של רחל: וצא הלחם בעמלק. ר' יהושע אומר אמר לו הקב\"ה למשה צא מתחת כנפי השכינה והלחם בעמלק: ר' אלעזר המודעי אומר אמר לו הקב\"ה למשה אמור לו ליהושע ראשך זה למה אתה משמרו לא לכתר צא והלחם בעמלק: מחר אנכי נצב על ראש הגבעה ומטה האלהים בידי. מחר נהיה מעותדין ועומדין על ראש הגבעה ומטה שאמר הקב\"",
+          "before": "ויקרא שם המקום מסה ומריבה ר' יהושע אומר משה קראו מסה ומריבה: ר' אליעזר המודעי אומר המקום קראו מסה ומריבה שנ' ויקרא שם המקום מיכאן לבית דין הגדול ב\"ה שנקרא מקום: על ריב בני ישראל וגו'. ר' יהושע אומר אמרו אם ישנו רבון כל העולמים ב\"ה כדרך שהוא ישנו עלינו נדע ואם לאו [לא] נדע: ר' אלעזר המודעי אומר [אמרו] אם ספק צרכינו במדבד נעבדנו ואם לאו לא נעבדנו:",
+          "passage": "[ויבא עמלק] ר' יאשיה ור' אלעזר חסמא אומרין מקרא זה רשום ומפורש על ידי איוב (ח' י\"א) היגאה גמא בלא בצה ישגה אחו בלי מים וכי אפשר לגמא זה להיות שלא בצים ואפשר לאחו זה להיות שלא מים כך אי אפשר להן לישראל לפרוש מדברי תורה לפי שפירשו מדברי תורה באו לתרעומת לפיכך בא עליהן שונא שאין השונא בא אלא על החטא ועל העבירה שנ' ויבא עמלק: ויבא עמלק. שבא בגילוי פנים שנ' (דברים כ\"ה י\"ח) ולא ירא אלהים: ר' יוסי בן חלפתא אומר ויבא עמלק שבא בעצה לפי שהלך וכינס כל אותן אלפים וכל אותן רבבות בשביל לקבל פורענות אמרו היאך אנו יכולין לעמוד כנגדן: פרעה שעמד כנגדן טבעו הקב\"ה בים היאך אנו יכולין לעמוד כנגדן אמר להם אני אתן לכם עצה מה תעשו: אם ינצחונו ברחו ואם לאו באו וסייעונו עליהם: ר' נתן בן יוסף [אומר] חמשת עממים פסע ובא עמלק ועשה מלחמה עם ישראל שנ' (במדבר י\"ג כ\"ט) עמלק יושב בארץ הנגב והחתי והיבוסי והאמרי יושב בהר והכנעני יושב על הים ועל יד הירדן הוא היה לפנים מכולם: רבי אומר לא בא אלא מהררי שעיר ארבע מאות פרסה פסע ובא עמלק ועשה מלחמה עם ישראל: אחרים אומרים יבא עמלק כפוי טובה ויפרע מעם כפויי טובה: וילחם עם ישראל ברפידים. ר' יהושע אומר היה נכנס תחת ענני הכבוד וגונב נפשות מישראל והורגן שנ' (דברים כ\"ה י\"ח) אשר קרך בדרך ויזנב בך כל הנחשלים אחריך: ברפידים. אמר רבי חנניה דבר זה שאלנו את ר' אליעזר כשהוא יושב במותבא רבא רפידים מה הוא אמר לנו כמשמעו: ועוד אמר ר' חניניה דבר זה שאלנו את ר' אליעזר כשהוא יושב במותבא רבא מפני מה פדו ישראל פטרי חמורים ולא פדו פטרי גמלים ולא פטרי סוסים אמר לנו גזרת מלך מלכי המלכים ב\"ה: ד\"א לפי שסייעו את ישראל ביציאתן ממצרים שאין לך כל אחד ואחד שלא היו לו שבעים חמורים לפניו שהיו טעונין כסף וזהב ואבנים טובות ומרגליות: דורשי רשומות אומרין אין רפידים אלא רפין ידים לפי שריפו ידיהם של ישראל מן התורה לפיכך בא עליהן שונא שאין השונא בא [אלא] על החטא ועל העבירה וכן הוא אומר (דה\"ב י\"ב א') ויהי כהכין מלכות רחבעם וכחזקתו עזב את תורת ה' וכל ישראל עמו: מהוא אומר (שם ב') ויהי בשנה החמישית עלה שישק מלך מצרים על ירושלים כי מעלו בה':"
+        },
+        "unclear": [
+          "רבי חנניה and ר' חניניה are recorded separately as written; the passage does not expressly identify them as one person.",
+          "The membership of the two שאלנו groups is unspecified and may differ.",
+          "עמלק is given singular speech and military action, but the passage does not define whether the name denotes an individual leader or a collective.",
+          "וסייעונו implies associates of the answering speaker without naming them.",
+          "רבי, אחרים, and דורשי רשומות are not identified more fully.",
+          "איוב is a scriptural attribution; the passage does not name the internal speaker of the quoted verse.",
+          "הקב\"ה, אלהים, and מלך מלכי המלכים ב\"ה are recorded as divine designations appearing in the passage, without importing a human identity.",
+          "No names or events from the context's subsequent משה and יהושע scene are included."
+        ]
+      },
+      "payloadSha256": "589a6359eb3c37324e8250726e90112570826b97d1c248fbc670fe2ace30722d"
+    },
+    {
+      "record_id": "person:b147-p4/W",
+      "kind": "person",
+      "passage_id": "b147-p4",
+      "ref": "Mekhilta DeRabbi Shimon Ben Yochai 3b:17:8",
+      "subject_id": null,
+      "object_id": null,
+      "authority": "source",
+      "decision": null,
+      "data": {
+        "id": "W",
+        "label": "רחבעם",
+        "named": "name",
+        "quote": "רחבעם",
+        "quoteLocation": "passage"
+      },
+      "payloadSha256": "90bcf2e57564e3b0b35d8ffa4689e33951104b96b57acb012c799785a085146b"
     }
   ],
   "cases": [
     {
-      "file": "frozen/chunk-003/cases/case-fd8f43be0994077e73a0.json",
+      "file": "initial-import/frozen/chunk-003/cases/case-fd8f43be0994077e73a0.json",
       "sha256": "358a26895eef8b5d83abbaf6e99c8a9ec1dbdd82d08e3a7fe56b952a7ff10e75",
       "case": {
         "schema": "missing-name-reading/v2",
@@ -1232,7 +1744,7 @@
       }
     },
     {
-      "file": "frozen/chunk-003/cases/case-efa68139d0b44b5e8520.json",
+      "file": "initial-import/frozen/chunk-003/cases/case-efa68139d0b44b5e8520.json",
       "sha256": "dabce385ed439549c97ed58a82b2b29a99f5a7a11ed936ac1f359504d555e85b",
       "case": {
         "schema": "missing-name-reading/v2",
@@ -1358,7 +1870,7 @@
       }
     },
     {
-      "file": "frozen/chunk-003/cases/case-013d229f52e47de90185.json",
+      "file": "initial-import/frozen/chunk-003/cases/case-013d229f52e47de90185.json",
       "sha256": "717478de1f6062ae63e1fef3e1c106378aa8faa654da274fb46bb5a8daa6d080",
       "case": {
         "schema": "missing-name-reading/v2",
@@ -1528,5 +2040,216 @@
         }
       }
     }
-  ]
+  ],
+  "flagged": {
+    "note": "A live reading (Mekhilta DeRabbi Shimon Ben Yochai 3b:17:8) whose reference repeats in the capture, the reading as production serves it, and the source reference warning built for it by rest-import/tools/quality.py.",
+    "case": {
+      "file": "initial-import/frozen/chunk-003/cases/case-7c5432b01877b8b87c54.json",
+      "sha256": "995b5dd7c32a8c3712e063c9c3fc3066b538ee5f0131fd68beb29d9cc4f2542a",
+      "case": {
+        "schema": "missing-name-reading/v2",
+        "caseId": "case-7c5432b01877b8b87c54",
+        "personKey": "b147-p4/W",
+        "passageId": "b147-p4",
+        "ref": "Mekhilta DeRabbi Shimon Ben Yochai 3b:17:8",
+        "original": {
+          "personKey": "b147-p4/W",
+          "ref": "Mekhilta DeRabbi Shimon Ben Yochai 3b:17:8",
+          "label": "רחבעם",
+          "named": "name",
+          "quote": "רחבעם",
+          "quoteLocation": "passage",
+          "livePersonRecord": "person:b147-p4/W",
+          "livePersonPayloadSha256": "90bcf2e57564e3b0b35d8ffa4689e33951104b96b57acb012c799785a085146b",
+          "personMatchesLive": true
+        },
+        "source": {
+          "liveRevision": "sage-graph-be60d672d43df1924af0",
+          "livePassageRecord": "passage:b147-p4",
+          "livePassagePayloadSha256": "589a6359eb3c37324e8250726e90112570826b97d1c248fbc670fe2ace30722d",
+          "sourceSha256": "51b8189bea3df702e2708bceb68b12ef5df35dce61ca1c4393c19e8244ce0e18",
+          "sourceMatchesNoCandidatesFile": true
+        },
+        "reading": {
+          "status": "read",
+          "isInitialProposal": true,
+          "entityKind": "biblical_person",
+          "identityStatus": "local",
+          "proposedRegistryId": null,
+          "proposedRegistryName": null,
+          "historicalIdentityResolved": false,
+          "confidence": null,
+          "localIdentity": {
+            "personKey": "b147-p4/W",
+            "label": "רחבעם",
+            "gloss": null
+          },
+          "alternatives": [],
+          "reason": "Rehoboam, king of Judah, named in the quoted verse from Chronicles. A biblical king. No registry entry.",
+          "evidence": [
+            {
+              "location": "passage",
+              "quote": "רחבעם",
+              "role": "name as extracted"
+            },
+            {
+              "location": "passage",
+              "quote": "ויהי כהכין מלכות רחבעם",
+              "role": "reader evidence"
+            }
+          ],
+          "registryEvidence": [],
+          "existingReviewedRecords": [],
+          "datesOrGenerationsAssigned": null
+        },
+        "relationships": {
+          "status": "no_relationship_claims_for_this_person",
+          "note": "No classified claim in story-classification-v1 names this participant. No relationship is proposed.",
+          "claims": []
+        },
+        "proposalOnly": true,
+        "reader": {
+          "batch": "sample-150-v2",
+          "reads": 1,
+          "note": "Single first reading. Not second-read, not approved."
+        }
+      }
+    },
+    "liveReading": {
+      "record_id": "name_reading:missing-names-v18/case-7c5432b01877b8b87c54",
+      "kind": "name_reading",
+      "passage_id": "b147-p4",
+      "ref": "Mekhilta DeRabbi Shimon Ben Yochai 3b:17:8",
+      "subject_id": "local:b147-p4/W",
+      "object_id": null,
+      "authority": "screening",
+      "decision": "needs_review",
+      "data": {
+        "caseFileSha256": "995b5dd7c32a8c3712e063c9c3fc3066b538ee5f0131fd68beb29d9cc4f2542a",
+        "caseId": "case-7c5432b01877b8b87c54",
+        "caseSha256": "d8b193d2f448feb5baafd3e5cbaddfdbf54270f8d414ec0ae2a26cb30effe57a",
+        "chunk": "chunk-003",
+        "original": {
+          "label": "רחבעם",
+          "livePersonPayloadSha256": "90bcf2e57564e3b0b35d8ffa4689e33951104b96b57acb012c799785a085146b",
+          "livePersonRecord": "person:b147-p4/W",
+          "named": "name",
+          "personKey": "b147-p4/W",
+          "personMatchesLive": true,
+          "quote": "רחבעם",
+          "quoteLocation": "passage",
+          "ref": "Mekhilta DeRabbi Shimon Ben Yochai 3b:17:8"
+        },
+        "passageId": "b147-p4",
+        "personKey": "b147-p4/W",
+        "proposalOnly": true,
+        "reader": {
+          "batch": "sample-150-v2",
+          "note": "Single first reading. Not second-read, not approved.",
+          "reads": 1
+        },
+        "reading": {
+          "alternatives": [],
+          "confidence": null,
+          "datesOrGenerationsAssigned": null,
+          "entityKind": "biblical_person",
+          "evidence": [
+            {
+              "location": "passage",
+              "quote": "רחבעם",
+              "role": "name as extracted"
+            },
+            {
+              "location": "passage",
+              "quote": "ויהי כהכין מלכות רחבעם",
+              "role": "reader evidence"
+            }
+          ],
+          "existingReviewedRecords": [],
+          "historicalIdentityResolved": false,
+          "identityStatus": "local",
+          "isInitialProposal": true,
+          "localIdentity": {
+            "gloss": null,
+            "label": "רחבעם",
+            "personKey": "b147-p4/W"
+          },
+          "proposedRegistryId": null,
+          "proposedRegistryName": null,
+          "reason": "Rehoboam, king of Judah, named in the quoted verse from Chronicles. A biblical king. No registry entry.",
+          "registryEvidence": [],
+          "status": "read"
+        },
+        "ref": "Mekhilta DeRabbi Shimon Ben Yochai 3b:17:8",
+        "registryRecords": {},
+        "relationships": {
+          "claims": [],
+          "note": "No classified claim in story-classification-v1 names this participant. No relationship is proposed.",
+          "status": "no_relationship_claims_for_this_person"
+        },
+        "runId": "missing-names-v18",
+        "schema": "missing-name-reading/v2",
+        "source": {
+          "livePassagePayloadSha256": "589a6359eb3c37324e8250726e90112570826b97d1c248fbc670fe2ace30722d",
+          "livePassageRecord": "passage:b147-p4",
+          "liveRevision": "sage-graph-be60d672d43df1924af0",
+          "sourceMatchesNoCandidatesFile": true,
+          "sourceSha256": "51b8189bea3df702e2708bceb68b12ef5df35dce61ca1c4393c19e8244ce0e18"
+        }
+      },
+      "payloadSha256": "bb85c273d71c67bddd6d2bbadb8473c90c921c8691325444eaed924ea146428d"
+    },
+    "sourceQuality": {
+      "sourceReferenceVerified": false,
+      "status": "source_reference_unverified",
+      "ref": "Mekhilta DeRabbi Shimon Ben Yochai 3b:17:8",
+      "reason": "The capture saved this same text under 18 different page references in Mekhilta DeRabbi Shimon Ben Yochai. So this reference is not known to be the right one. The reading of the text stays a proposal. The reference must not be used as a citation until it is checked.",
+      "grounds": [
+        {
+          "file": "name-coverage-v18/reference-quality-alert.txt",
+          "sha256": "b8972b78b63790f42a56237bd61bcfa1caa9dddf3676304cb72d51af673f53c7",
+          "finding": "Root alert: readings from Sifrei Zuta and Mekhilta DeRabbi Shimon whose text repeats under page-prefixed references are held or flagged."
+        },
+        {
+          "file": "name-coverage-v18/reference-flag-display-note.txt",
+          "sha256": "a8ab9a9ac5a9a0eb3c6ad66fbead52569a8721f85493d32460cea9f5e61a3e14",
+          "finding": "Root note: the warning goes inside the reading so the records API shows it."
+        },
+        {
+          "file": "name-coverage-v18/suspect-reference-cases.json",
+          "sha256": "a2ec5befc46340df6c669476529da52f3f8e5de4637afb9a15fe6e58c9bd1271",
+          "finding": "This case (case-7c5432b01877b8b87c54, file sha256 995b5dd7c32a8c3712e063c9c3fc3066b538ee5f0131fd68beb29d9cc4f2542a) is listed with a suspect reference."
+        },
+        {
+          "file": "name-coverage-v18/full-other-texts-tiles/repeated-text-segments.jsonl",
+          "sha256": "b3d76a4e4c98705353ff1d945fb819d61128d29edd87a24bc56c57e685f7577f",
+          "finding": "This reference is one of 18 captured segments with the same text."
+        }
+      ],
+      "repeatedText": {
+        "textSha256": "e1a6bb7b4c7cd594d9a2ff05f109ac7a6f93c354f9f5f2d8fdadf1b5e26cdf54",
+        "copies": 18,
+        "segmentIds": [
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|2a|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|2b|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|3b|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|6b|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|7a|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|7b|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|8a|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|8b|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|9a|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|9b|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|10a|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|10b|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|11a|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|11b|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|12a|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|16a|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|17b|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+          "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|18a|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905"
+        ]
+      }
+    }
+  }
 }

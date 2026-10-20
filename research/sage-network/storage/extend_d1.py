@@ -187,7 +187,28 @@ def registry_text(record, field):
     return [value] if isinstance(value, str) else [v for v in value if isinstance(v, str)] if isinstance(value, list) else []
 
 
-def validate_name_reading(key, row, data, rows):
+SOURCE_QUALITY_KEYS = {'sourceReferenceVerified', 'status', 'ref', 'reason', 'grounds', 'repeatedText'}
+
+
+def validate_source_quality(key, row, quality):
+    # A warning that the passage reference itself is in doubt. It travels inside
+    # the reading so every reader of the record sees it; it never names a
+    # replacement reference, because none has been verified.
+    if (not isinstance(quality, dict) or not set(quality) <= SOURCE_QUALITY_KEYS or quality.get('sourceReferenceVerified') is not False or
+            quality.get('status') != 'source_reference_unverified' or quality.get('ref') != row[3] or
+            not isinstance(quality.get('reason'), str) or not quality['reason'].strip() or not isinstance(quality.get('grounds'), list) or
+            not quality['grounds'] or any(not isinstance(g, dict) or set(g) != {'file', 'sha256', 'finding'} or not str(g['file']).strip() or
+                                          not re.fullmatch(r'[0-9a-f]{64}', str(g['sha256'])) or not str(g['finding']).strip()
+                                          for g in quality['grounds'])):
+        raise ValueError('Source reference warning is incomplete: ' + key)
+    repeated = quality.get('repeatedText')
+    if repeated is not None and (not isinstance(repeated, dict) or set(repeated) != {'textSha256', 'copies', 'segmentIds'} or
+                                 not re.fullmatch(r'[0-9a-f]{64}', str(repeated['textSha256'])) or type(repeated['copies']) is not int or
+                                 repeated['copies'] < 2 or not isinstance(repeated['segmentIds'], list) or len(repeated['segmentIds']) != repeated['copies']):
+        raise ValueError('Source reference warning is incomplete: ' + key)
+
+
+def validate_name_reading(key, row, data, rows, previous=None):
     # A first reading of one source person: a proposal with its reasons and
     # quotes. It never resolves an identity and never becomes a connection.
     match = re.fullmatch(r'name_reading:([a-z0-9][a-z0-9-]*)/(case-[0-9a-f]+)', key)
@@ -209,7 +230,16 @@ def validate_name_reading(key, row, data, rows):
         raise ValueError('Reading is not bound to the current source: ' + key)
     local_ids = {pid + '/' + p['id'] for p in passage['people']}
     # Everything the reader saved stays byte-for-byte: strip what the builder added and compare.
-    copied = {k: v for k, v in data.items() if k not in ('runId', 'chunk', 'caseFileSha256', 'caseSha256', 'registryRecords')}
+    if previous is not None:
+        # A later version may only add the source reference warning. Everything else,
+        # including the saved case, stays exactly as first imported.
+        before = json.loads(previous[-1])
+        if (previous[1] != 'name_reading' or previous[2:8] != row[2:8] or 'sourceQuality' in before or 'sourceQuality' not in data or
+                {k: v for k, v in data.items() if k != 'sourceQuality'} != before):
+            raise ValueError('A reading can only gain a source reference warning: ' + key)
+    if 'sourceQuality' in data:
+        validate_source_quality(key, row, data['sourceQuality'])
+    copied = {k: v for k, v in data.items() if k not in ('runId', 'chunk', 'caseFileSha256', 'caseSha256', 'registryRecords', 'sourceQuality')}
     if 'relationships' not in data or digest(encode(copied)) != data.get('caseSha256'):
         raise ValueError('Reading differs from the saved case: ' + key)
 
@@ -471,7 +501,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
         readings = [item for item in changes['records'] if item['kind'] == 'name_reading']
         if readings and len(readings) != len(changes['records']):
             raise ValueError('Name readings cannot alter graph facts')
-        changed = {}
+        changed, previous = {}, {}
         for item in changes['records']:
             key = item['record_id']
             if key in changed:
@@ -486,7 +516,8 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             if not old and item.get('replacesSha256'):
                 raise ValueError('Replacement does not exist: ' + key)
             if item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry', 'identity_proposal', 'name_reading'}:
-                if old or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
+                # Only a reading may be superseded, and only to add a source reference warning (checked below).
+                if (old and item['kind'] != 'name_reading') or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
                     raise ValueError('Screens must be new unaccepted reviews: ' + key)
             elif item['authority'] != 'source_review':
                 raise ValueError('New records must be source reviews: ' + key)
@@ -495,6 +526,8 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                    item.get('subject_id'), item.get('object_id'), item['authority'],
                    item.get('decision'), digest(payload), payload)
             changed[key] = row
+            if old:
+                previous[key] = old
             rows[key] = row
         def payload(key):
             if key not in rows:
@@ -523,7 +556,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             if row[1] == 'identity_assessment':
                 validate_identity_assessment(key, row, data, rows, parent_keys, member)
             if row[1] == 'name_reading':
-                validate_name_reading(key, row, data, rows)
+                validate_name_reading(key, row, data, rows, previous.get(key))
             if row[1] == 'registry_person':
                 validate_registry_person(key, row, data)
             if data.get('passageId', row[2]) != row[2] or data.get('ref', row[3]) != row[3]:
@@ -632,6 +665,14 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                 expected = digest(json.dumps(source, ensure_ascii=False, sort_keys=True))
                 if data['sourceSha256'] != expected:
                     raise ValueError('Name source hash differs: ' + key)
+        # A passage whose reference is in doubt cannot gain confirmed identities, name links,
+        # places or connections until the reference is verified. Existing records stay as they are.
+        unverified = {r[2] for r in rows.values() if r[1] == 'name_reading' and
+                      (json.loads(r[-1]).get('sourceQuality') or {}).get('sourceReferenceVerified') is False}
+        for key, row in changed.items():
+            accepts = row[1] == 'identity_assessment' and json.loads(row[-1]).get('acceptedPersonId')
+            if row[2] in unverified and (row[1] in {'source_identity', 'name_occurrence', 'connection', 'place_review'} or accepts):
+                raise ValueError('Passage reference is unverified, so it cannot gain confirmed facts: ' + key)
         replaced_nodes = {r[4] for k, r in changed.items() if r[1] == 'graph_node'}
         for key, row in rows.items():
             if key in changed or not replaced_nodes.intersection((row[4], row[5])):

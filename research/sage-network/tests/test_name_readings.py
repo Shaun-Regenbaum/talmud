@@ -1,7 +1,8 @@
 """Import rules for first readings of source people (name_reading records).
 
-The fixture holds two real frozen readings and the live records they point at,
-copied verbatim. The tests check the import rules only; the readings are proposals.
+The fixture holds real frozen readings, the live records they point at and one live
+reading whose reference repeats in the capture, copied verbatim. The tests check the
+import rules only; the readings are proposals.
 """
 import copy
 import json
@@ -21,7 +22,7 @@ RUN = 'missing-names-v18'
 
 
 REGISTRY = {r['record_id'].split(':', 1)[1]: r['payloadSha256'] for r in FIXTURE['records'] if r['kind'] == 'registry_person'}
-CASE_FILE_SHA = {c['case']['caseId']: c['sha256'] for c in FIXTURE['cases']}
+CASE_FILE_SHA = {c['case']['caseId']: c['sha256'] for c in FIXTURE['cases'] + [FIXTURE['flagged']['case']]}
 
 
 def named_people(case):
@@ -87,7 +88,7 @@ class NameReadingTests(ReadingFixture):
             with self.subTest(field=field):
                 self.rejects('Screens must be new', [record])
         self.records.append(reading_record(self.local))
-        self.rejects('Screens must be new', [dict(reading_record(self.local), replacesSha256=digest(encode(reading_record(self.local)['data'])))])
+        self.rejects('can only gain a source reference warning', [dict(reading_record(self.local), replacesSha256=digest(encode(reading_record(self.local)['data'])))])
 
     def test_reading_stays_an_unresolved_initial_proposal(self):
         for path, value in [(('reading', 'historicalIdentityResolved'), True), (('reading', 'isInitialProposal'), False),
@@ -217,6 +218,73 @@ class CorrectionTests(ReadingFixture):
                        lambda e: e.update(derivedFromClaimId='b407-p8/r6'), lambda e: e['observer'].update(named='name'),
                        lambda e: e['seen'].update(localId='b407-p8/ZZ'), lambda e: e['seen'].update(localId=None)):
             self.rejects('not a sourced proposal', self.mutated(lambda case, claim: change(claim['correctedEvent'])))
+
+
+class SourceQualityTests(ReadingFixture):
+    """A live reading whose reference repeats in the capture gains a warning inside its own record."""
+
+    def setUp(self):
+        super().setUp()
+        flagged = FIXTURE['flagged']
+        self.live = {k: v for k, v in flagged['liveReading'].items() if k != 'payloadSha256'}
+        self.records.append(copy.deepcopy(self.live))
+
+    def superseding(self, quality=None):
+        flagged = FIXTURE['flagged']
+        data = dict(copy.deepcopy(self.live['data']), sourceQuality=copy.deepcopy(quality or flagged['sourceQuality']))
+        return dict(copy.deepcopy(self.live), data=data, replacesSha256=flagged['liveReading']['payloadSha256'])
+
+    def test_live_reading_is_the_frozen_case(self):
+        flagged = FIXTURE['flagged']
+        self.assertEqual(digest(encode(self.live['data'])), flagged['liveReading']['payloadSha256'])
+        self.assertEqual(self.live['data']['caseSha256'], digest(encode(flagged['case']['case'])))
+        self.assertNotIn('sourceQuality', self.live['data'])
+
+    def test_live_reading_gains_the_warning(self):
+        self.assertEqual(self.run_import([self.superseding()])['changedRecords'], 1)
+
+    def test_nothing_else_can_change(self):
+        changed = self.superseding()
+        changed['data']['reading']['reason'] += ' Added later.'
+        self.rejects('can only gain a source reference warning', [changed])
+        moved = self.superseding()
+        moved['subject_id'] = 'local:' + moved['passage_id'] + '/ZZ'
+        self.rejects('can only gain a source reference warning|indexes differ', [moved])
+        unnamed = self.superseding()
+        unnamed.pop('replacesSha256')
+        self.rejects('Replacement must name the previous hash', [unnamed])
+        accepted = self.superseding()
+        accepted['decision'] = 'supported'
+        self.rejects('Screens must be new', [accepted])
+
+    def test_a_warning_is_not_replaced(self):
+        warned = self.superseding()
+        self.records[-1] = {k: v for k, v in warned.items() if k != 'replacesSha256'}
+        again = copy.deepcopy(warned)
+        again['data']['sourceQuality']['reason'] = 'A different reason.'
+        again['replacesSha256'] = digest(encode(warned['data']))
+        self.rejects('can only gain a source reference warning', [again])
+
+    def test_warning_is_complete_and_names_no_new_reference(self):
+        base = FIXTURE['flagged']['sourceQuality']
+        mutations = [lambda q: q.update(sourceReferenceVerified=True), lambda q: q.update(status='checked'),
+                     lambda q: q.update(ref=q['ref'].replace('3b', '4a')), lambda q: q.update(reason=' '),
+                     lambda q: q.update(grounds=[]), lambda q: q['grounds'][0].update(sha256='b8972b78'),
+                     lambda q: q.update(correctRef='Mekhilta DeRabbi Shimon Ben Yochai 17:8'),
+                     lambda q: q['repeatedText'].update(copies=1), lambda q: q['repeatedText']['segmentIds'].pop()]
+        for index, mutate in enumerate(mutations):
+            quality = copy.deepcopy(base)
+            mutate(quality)
+            with self.subTest(mutation=index):
+                self.rejects('warning is incomplete', [self.superseding(quality)])
+
+    def test_new_reading_can_carry_the_warning(self):
+        self.records.pop()
+        record = reading_record(copy.deepcopy(FIXTURE['flagged']['case']['case']))
+        record['data']['sourceQuality'] = copy.deepcopy(FIXTURE['flagged']['sourceQuality'])
+        self.assertEqual(self.run_import([record])['changedRecords'], 1)
+        record['data']['sourceQuality']['sourceReferenceVerified'] = None
+        self.rejects('warning is incomplete', [record])
 
 
 if __name__ == '__main__':
