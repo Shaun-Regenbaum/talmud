@@ -226,6 +226,60 @@ def config_check(config, manifest, recipe, concurrency):
     if (not isinstance(route.get('provider'), str) or not route['provider'] or
             not money(route.get('inputPrice')) or not money(route.get('outputPrice'))):
         raise ValueError('Invalid frozen route prices')
+    text_pricing_check(config)
+
+
+
+def text_pricing_check(config, pricing=None):
+    """Approve only the frozen plain-text fee table for this reviewed route."""
+    policy = config.get('pricingApplicability')
+    if policy is None:
+        return
+    expected = {'version', 'input', 'tools', 'plugins', 'explicitCache', 'pricing'}
+    if (not isinstance(policy, dict) or set(policy) != expected or
+            policy['version'] != 'gemini-text-only-v1' or policy['input'] != 'plain_text' or
+            policy['tools'] is not False or policy['plugins'] is not False or
+            policy['explicitCache'] is not False or
+            config['parameters']['model'] != 'google/gemini-2.5-flash-lite' or
+            config['route']['provider'] != 'google-ai-studio'):
+        raise ValueError('Unreviewed text-only pricing applicability')
+    frozen = policy['pricing']
+    required = {'prompt', 'completion', 'image', 'audio', 'input_audio_cache',
+                'web_search', 'internal_reasoning', 'input_cache_read', 'input_cache_write', 'discount'}
+    if not isinstance(frozen, dict) or set(frozen) != required:
+        raise ValueError('Unknown or missing frozen pricing fields')
+    try:
+        rates = {k: float(v) for k, v in frozen.items() if not isinstance(v, bool)}
+    except (TypeError, ValueError):
+        raise ValueError('Invalid frozen pricing rates') from None
+    if len(rates) != len(frozen) or any(not money(v) for v in rates.values()):
+        raise ValueError('Invalid frozen pricing rates')
+    route = config['route']
+    if (rates['prompt'] != route['inputPrice'] or rates['completion'] != route['outputPrice'] or
+            rates['internal_reasoning'] > route['outputPrice'] or
+            rates['input_cache_read'] > route['inputPrice'] or rates['discount'] != 0):
+        raise ValueError('Text rates exceed the frozen reservation')
+    # Explicit cache writes need cache_control, which this request shape cannot carry.
+    # Media and search fees need content blocks, tools, plugins or an online model route.
+    if pricing is not None and pricing != frozen:
+        raise ValueError('Frozen text-only pricing table changed')
+
+
+def text_payload_check(payload, config):
+    if config.get('pricingApplicability') is None:
+        return
+    text_pricing_check(config)
+    route = config['route']
+    provider = {'only': [route['provider']], 'allow_fallbacks': False,
+                'require_parameters': True, 'max_price': {
+                    'prompt': route['inputPrice'] * 1e6, 'completion': route['outputPrice'] * 1e6}}
+    if (set(payload) != {'model', 'max_tokens', 'reasoning', 'response_format',
+                         'temperature', 'messages', 'provider'} or
+            payload['provider'] != provider or not isinstance(payload['messages'], list) or
+            not payload['messages'] or any(set(m) != {'role', 'content'} or m['role'] not in {'system', 'user'} or
+                not isinstance(m['content'], str) for m in payload['messages']) or
+            any(payload[k] != v for k, v in config['parameters'].items())):
+        raise ValueError('Request is outside approved text-only pricing')
 
 
 def preflight(config, key, request):
@@ -240,9 +294,12 @@ def preflight(config, key, request):
         raise RuntimeError('Frozen provider unavailable')
     endpoint = matches[0]
     pricing = endpoint['pricing']
+    if config.get('pricingApplicability') is not None:
+        text_pricing_check(config, pricing)
     if (pricing.get('overrides') or float(pricing['prompt']) != route['inputPrice'] or
             float(pricing['completion']) != route['outputPrice'] or
-            any(float(v) != 0 for k, v in pricing.items() if k not in {'prompt', 'completion', 'input_cache_read', 'discount', 'overrides'}) or
+            (config.get('pricingApplicability') is None and
+             any(float(v) != 0 for k, v in pricing.items() if k not in {'prompt', 'completion', 'input_cache_read', 'discount', 'overrides'})) or
             not {'max_tokens', 'reasoning', 'response_format', 'temperature'} <= set(endpoint.get('supported_parameters', [])) or
             endpoint.get('max_completion_tokens', 0) < config['parameters']['max_tokens']):
         raise RuntimeError('Frozen provider pricing or capabilities changed')
@@ -256,14 +313,17 @@ def payload_for(job, adapter, config):
                 not isinstance(m['content'], str) for m in messages)):
         raise ValueError('Recipe must return explicit text messages')
     route = config['route']
-    return dict(config['parameters'], messages=messages,
+    payload = dict(config['parameters'], messages=messages,
                 provider={'only': [route['provider']], 'allow_fallbacks': False,
                           'require_parameters': True, 'max_price': {
                               'prompt': route['inputPrice'] * 1e6,
                               'completion': route['outputPrice'] * 1e6}})
+    text_payload_check(payload, config)
+    return payload
 
 
 def reservation(payload, config):
+    text_payload_check(payload, config)
     # Bytes plus protocol overhead conservatively bound text tokens; reserve full output.
     value = ((len(canonical(payload['messages']).encode()) + 4096) * config['route']['inputPrice'] +
              payload['max_tokens'] * config['route']['outputPrice'])
