@@ -45,6 +45,15 @@ export interface ReadingClaim {
   };
 }
 export interface InitialRelationship {
+  reviewBinding?: {
+    readingRecordId: string;
+    readingPayloadSha256: string;
+    kind: 'claim' | 'corrected_event' | 'supplemental';
+    claimRecordId?: string;
+    claimPayloadSha256?: string;
+    localProposalId?: string;
+    verdict?: string;
+  };
   countable?: boolean;
   reviewStatus?: string;
   partnerNavigable?: boolean;

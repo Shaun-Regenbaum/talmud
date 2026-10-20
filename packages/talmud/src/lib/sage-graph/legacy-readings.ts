@@ -357,6 +357,14 @@ export async function legacyCards(revision: string, rows: LegacyRow[], registry:
       const relation = legacyRelation(claim);
       initial.relationships.push({
         id: `${row.record_id}/${claim.claimId}`,
+        reviewBinding: {
+          readingRecordId: row.record_id,
+          readingPayloadSha256: row.payload_sha256,
+          kind: 'claim',
+          claimRecordId: live.record_id,
+          claimPayloadSha256: live.payload_sha256,
+          verdict: claim.readerVerdict,
+        },
         subject,
         object,
         partnerId: partner?.id ?? null,
@@ -424,6 +432,14 @@ export async function legacyCards(revision: string, rows: LegacyRow[], registry:
       const partner = event.observer?.localId === key ? object : subject;
       initial.relationships.push({
         id: `${row.record_id}/${claim.claimId}/correction`,
+        reviewBinding: {
+          readingRecordId: row.record_id,
+          readingPayloadSha256: row.payload_sha256,
+          kind: 'corrected_event',
+          claimRecordId: live.record_id,
+          claimPayloadSha256: live.payload_sha256,
+          verdict: claim.readerVerdict,
+        },
         subject,
         object,
         partnerId: partner?.id ?? null,
@@ -475,6 +491,12 @@ export async function legacyCards(revision: string, rows: LegacyRow[], registry:
       const partner = subjectKey === key ? object : subject;
       initial.relationships.push({
         id: `${row.record_id}/${proposal.localClaimId}`,
+        reviewBinding: {
+          readingRecordId: row.record_id,
+          readingPayloadSha256: row.payload_sha256,
+          kind: 'supplemental',
+          localProposalId: proposal.localClaimId,
+        },
         subject,
         object,
         partnerId: partner?.id ?? null,
