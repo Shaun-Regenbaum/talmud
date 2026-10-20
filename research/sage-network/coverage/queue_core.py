@@ -14,6 +14,8 @@ import subprocess
 import threading
 import time
 
+from provider_errors import ProviderError, parse_response
+
 API = 'https://openrouter.ai/api/v1/'
 KEY_CAP = 100.0
 MAX_RUN_CAP = 50.0
@@ -90,7 +92,7 @@ class Transport:
         with self.lock:
             if self.closed:
                 raise RuntimeError('Transport stopped')
-            child = subprocess.Popen(['curl', '--silent', '--show-error', '--fail',
+            child = subprocess.Popen(['curl', '--silent', '--show-error', '--write-out', '\n%{http_code}',
                 '--connect-timeout', '10', '--max-time', '360', '--max-filesize', '16777216',
                 '--config', '-'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE, text=True, start_new_session=True)
@@ -102,9 +104,7 @@ class Transport:
                 os.killpg(child.pid, signal.SIGKILL)
                 child.communicate()
                 raise TimeoutError('Provider wall deadline exceeded') from None
-            if child.returncode:
-                raise RuntimeError('Provider request failed; curl code ' + str(child.returncode))
-            return json.loads(stdout)
+            return parse_response(stdout, child.returncode, key)
         finally:
             with self.lock:
                 self.children.discard(child)
@@ -167,10 +167,14 @@ def config_check(config, manifest, recipe, concurrency):
     safe_id(config['runId'])
     if not money(config.get('budgetUsd')) or not 0 < config['budgetUsd'] <= MAX_RUN_CAP:
         raise ValueError('Explicit run budget must be within 50 USD')
+    if not money(config.get('carriedUnknownReservedUsd', 0)):
+        raise ValueError('Invalid carried unknown reservation')
     if config.get('inputManifestHash') != digest(manifest):
         raise ValueError('Input manifest differs')
     if config.get('recipeFiles') != recipe_files(recipe):
         raise ValueError('Frozen recipe files differ')
+    if config.get('providerErrorsHash') != file_hash(Path(__file__).with_name('provider_errors.py')):
+        raise ValueError('Frozen provider diagnostics code differs')
     if config.get('runnerHash') != file_hash(Path(__file__)):
         raise ValueError('Frozen queue code differs')
     if type(concurrency) is not int or not 1 <= concurrency <= 128:
@@ -256,6 +260,8 @@ def read_one(job, payload, adapter, config_hash, key, request):
         raw = request(API + 'chat/completions', key, payload)
     except Exception as error:
         result.update(errorKind='provider', error=type(error).__name__)
+        if isinstance(error, ProviderError):
+            result['providerDiagnostic'] = error.diagnostic
     else:
         result['response'] = raw
         try:
@@ -305,6 +311,21 @@ def saved(job, directory, config, adapter):
     return attempt, result
 
 
+def verified_carry(config, output):
+    expected_scope = dict(runId=config['runId'], configHash=digest(config))
+    carried_unknown = config.get('carriedUnknownReservedUsd', 0)
+    if carried_unknown:
+        prior = config.get('priorRun', {})
+        archive = output/'budget-history'/(prior.get('configHash', '') + '-' + digest(config) + '.json')
+        receipt = load(archive)
+        checksum = receipt.pop('transitionHash', None)
+        if (checksum != digest(receipt) or receipt.get('nextScope') != expected_scope or
+                receipt.get('priorCost') != prior or
+                receipt.get('carriedUnknownReservedUsd') != carried_unknown):
+            raise ValueError('Carried unknown reservation lacks its exact transition receipt')
+    return carried_unknown
+
+
 def run(config, inputs, recipe, output, commit, concurrency=16, request=None,
         seconds=22 * 3600, stop_event=None):
     """Caller must hold the remote singleton lock for the full invocation."""
@@ -329,6 +350,7 @@ def run(config, inputs, recipe, output, commit, concurrency=16, request=None,
         raise ValueError('Frozen key differs')
     if frozen.exists() and load(frozen) != config:
         raise ValueError('Run config changed; no budget or recipe reset allowed')
+    carried_unknown = verified_carry(config, output)
     # Full streaming preflight catches a late damaged shard before dispatching any requests.
     counts = Counter()
     known_cost = held_cost = 0.0
@@ -358,7 +380,7 @@ def run(config, inputs, recipe, output, commit, concurrency=16, request=None,
         raise RuntimeError('Earlier failure stop requires explicit reconciliation')
     info = preflight(config, key, request)
     # Balance already includes settled known charges; subtract unresolved reservations again.
-    allowance = min(config['budgetUsd'] - known_cost - held_cost, info['limit_remaining'] - held_cost)
+    allowance = min(config['budgetUsd'] - known_cost - held_cost - carried_unknown, info['limit_remaining'] - held_cost - carried_unknown)
     atomic(budget_scope, expected_scope)
     atomic(frozen, config)
     atomic(directory/'key-check.json', dict(checkedAt=utc(), usage=info['usage'], remaining=info['limit_remaining']))
@@ -378,6 +400,7 @@ def run(config, inputs, recipe, output, commit, concurrency=16, request=None,
             total=manifest['jobs'], counts=dict(counts), inFlight=len(active),
             notStarted=manifest['jobs']-sum(counts.values())-len(active),
             reportedCostUsd=known_cost, unknownReservedUsd=held_cost,
+            carriedUnknownReservedUsd=carried_unknown, totalUnknownReservedUsd=held_cost+carried_unknown,
             activeReservedUsd=reservations, budgetUsd=config['budgetUsd'],
             stopReason=stop_reason, queueExhausted=exhausted and not active, concurrency=concurrency, allStructurallyRead=counts['complete']+counts['needs_context']==manifest['jobs'],
             acceptedFacts=0, elapsedSeconds=round(time.monotonic()-started))
@@ -397,8 +420,8 @@ def run(config, inputs, recipe, output, commit, concurrency=16, request=None,
                     # A failed balance/pricing check stops admission, never reports zero spend.
                     try:
                         info = preflight(config, key, request)
-                        allowance = min(config['budgetUsd']-known_cost-held_cost-reservations,
-                                        info['limit_remaining']-held_cost-reservations)
+                        allowance = min(config['budgetUsd']-known_cost-held_cost-carried_unknown-reservations,
+                                        info['limit_remaining']-held_cost-carried_unknown-reservations)
                     except Exception:
                         stop_reason = 'provider_preflight_failed'
                     last_check, writes = now, 0

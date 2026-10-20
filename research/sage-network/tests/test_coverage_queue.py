@@ -82,7 +82,8 @@ class QueueHarness(unittest.TestCase):
         q.atomic(self.inputs/'queue-manifest.json', self.manifest)
         self.config = dict(runId='transport-test', budgetUsd=1.0, approvedConcurrency=16,
             inputManifestHash=q.digest(self.manifest), recipeFiles=q.recipe_files(self.recipe),
-            runnerHash=q.file_hash(Path(q.__file__)), keyFingerprint=hashlib.sha256(b'test-only').hexdigest(),
+            runnerHash=q.file_hash(Path(q.__file__)),
+            providerErrorsHash=q.file_hash(Path(q.__file__).with_name('provider_errors.py')), keyFingerprint=hashlib.sha256(b'test-only').hexdigest(),
             route=dict(provider='test-transport', inputPrice=0.000001, outputPrice=0.000001),
             parameters=dict(model='test-transport', max_tokens=1024, reasoning={'effort':'none'},
                             response_format={'type':'json_object'}, temperature=0))
@@ -346,6 +347,40 @@ class ProbeTransitionTests(QueueHarness):
                        q.digest(self.config), q.digest(following), self.commit)
         self.assertEqual(q.load(self.output/'budget-scope.json')['runId'], self.config['runId'])
 
+    def test_unknown_cost_carries_and_reduces_next_budget(self):
+        from queue_transition import transition
+        inputs, following = self.prepare_transition()
+        prior_dir = self.output/self.config['runId']
+        held = 0
+        for job in self.jobs:
+            path = prior_dir/'results'/(job['job_id']+'.json')
+            result = q.load(path)
+            result['costUsd'] = None
+            result.pop('resultHash')
+            result['resultHash'] = q.digest(result)
+            q.atomic(path, result)
+            held += q.load(prior_dir/'attempts'/(job['job_id']+'.json'))['reservedUsd']
+        from decimal import Decimal
+        held = float(sum(Decimal(str(q.load(prior_dir/'attempts'/(j['job_id']+'.json'))['reservedUsd'])) for j in self.jobs))
+        following['priorRun'].update(reportedCostUsd=0, unknownReservedUsd=held)
+        following['carriedUnknownReservedUsd'] = held
+        following['budgetUsd'] = held + .0000001
+        q.atomic(inputs/following['runId']/'config.json', following)
+        receipt = transition(inputs, self.output, self.config['runId'], following['runId'],
+                             q.digest(self.config), q.digest(following), self.commit)
+        self.assertEqual(receipt['carriedUnknownReservedUsd'], held)
+        progress = q.run(following, inputs/following['runId'], inputs/following['runId']/'recipe',
+                         self.output, self.commit, concurrency=3, request=self.wire)
+        self.assertEqual(progress['stopReason'], 'budget_limit')
+        self.assertEqual(progress['carriedUnknownReservedUsd'], held)
+        self.assertEqual(len(self.wire.calls), 3)
+
+    def test_carry_without_archive_cannot_dispatch(self):
+        self.config['carriedUnknownReservedUsd'] = .01
+        with self.assertRaises((FileNotFoundError, ValueError)):
+            self.run_queue()
+        self.assertEqual(self.wire.calls, [])
+
     def test_transition_rejects_unknown_charge(self):
         from queue_transition import transition
         inputs, following = self.prepare_transition()
@@ -355,7 +390,7 @@ class ProbeTransitionTests(QueueHarness):
         result.pop('resultHash')
         result['resultHash']=q.digest(result)
         q.atomic(path,result)
-        with self.assertRaisesRegex(ValueError, 'unknown charge'):
+        with self.assertRaisesRegex(ValueError, 'exact prior cost'):
             transition(inputs, self.output, self.config['runId'], following['runId'],
                        q.digest(self.config), q.digest(following), self.commit)
 

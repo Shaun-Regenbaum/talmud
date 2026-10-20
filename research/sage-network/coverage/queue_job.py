@@ -14,6 +14,7 @@ image = (modal.Image.debian_slim(python_version='3.12').apt_install('curl')
          .env({'COVERAGE_QUEUE_MODE': MODE})
          .pip_install('jsonschema==4.25.1')
          .add_local_file(Path(__file__).with_name('queue_core.py'), '/app/queue_core.py')
+         .add_local_file(Path(__file__).with_name('provider_errors.py'), '/app/provider_errors.py')
          .add_local_file(Path(__file__), '/app/queue_job.py')
          .add_local_file(Path(__file__).with_name('queue_transition.py'), '/app/queue_transition.py'))
 
