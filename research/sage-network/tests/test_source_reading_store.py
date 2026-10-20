@@ -76,13 +76,41 @@ class SourceReadingStoreTests(unittest.TestCase):
         self.assertTrue(reading['provenance']['artifactKey'].startswith('source-readings/v1/artifacts/'))
         self.assertNotIn('manifest', reading['provenance']['inputProof'])
 
-    def test_expand_refuses_mismatched_artifacts_and_manifests(self):
+    def test_expand_refuses_an_r2_bundle_that_is_not_the_named_artifact(self):
         compact = store.compact(v1_rows(BUNDLES))
+        pid = next(iter(artifacts(BUNDLES)))
+        # dropped provenance, kept text, and anything else in the bundle: each changes its hash
+        for edit in (lambda s: s['provenance'].__setitem__('source_url', s['provenance']['source_url'] + '?x'),
+                     lambda s: s['provenance'].__setitem__('license', 'changed'),
+                     lambda s: s.__setitem__('text', s['text'] + ' ')):
+            edited = copy.deepcopy(artifacts(BUNDLES))
+            edit(edited[pid]['job']['sources'][0])
+            with self.assertRaisesRegex(ValueError, 'R2 artifact differs from its source_reading envelope'):
+                store.expand(compact, edited)
         edited = copy.deepcopy(artifacts(BUNDLES))
-        pid = next(iter(edited))
-        edited[pid]['job']['sources'][0]['text'] += ' '
-        with self.assertRaisesRegex(ValueError, 'differs from the R2 artifact'):
+        edited[pid]['result']['costUsd'] = 0
+        with self.assertRaisesRegex(ValueError, 'R2 artifact differs'):
             store.expand(compact, edited)
+        # the envelope itself must name the bundle exactly: hash, length, key and bucket
+        for field, value in (('artifactBytes', 1), ('artifactKey', 'source-readings/v1/artifacts/other.json'),
+                             ('artifactBucket', 'public'), ('artifactSha256', '0' * 64)):
+            bad = copy.deepcopy(compact)
+            next(r for r in bad if r['kind'] == 'source_reading' and r['passage_id'] == pid)['data']['provenance'][field] = value
+            with self.assertRaisesRegex(ValueError, 'R2 artifact differs'):
+                store.expand(bad, artifacts(BUNDLES))
+        # exactly one envelope per passage
+        for change in ('drop', 'twin'):
+            bad = copy.deepcopy(compact)
+            envelope = next(r for r in bad if r['kind'] == 'source_reading' and r['passage_id'] == pid)
+            if change == 'drop':
+                bad.remove(envelope)
+            else:
+                bad.append(dict(envelope, record_id=envelope['record_id'] + '-twin'))
+            with self.assertRaisesRegex(ValueError, 'exactly one source_reading envelope'):
+                store.expand(bad, artifacts(BUNDLES))
+
+    def test_expand_refuses_mismatched_manifests_and_rows(self):
+        compact = store.compact(v1_rows(BUNDLES))
         bad = copy.deepcopy(compact)
         next(r for r in bad if r['kind'] == 'source_reading_run')['data']['manifest']['jobs'] += 1
         with self.assertRaisesRegex(ValueError, 'Run manifest differs'):

@@ -16,9 +16,13 @@ its offsets and occurrence, people with labels, kind, form, setting, reasons and
 full typed relationships, the episode, ownership units, and the R2 artifact pointer and hashes.
 
 `expand(rows, artifacts)` rebuilds the exact v1 rows. `artifacts` maps a passage ID to its bundle
-from R2; only the dropped segment provenance is read from it, and the kept fields must agree with it.
+from R2. Before any field of a bundle is read, its canonical bytes must match the SHA-256, length,
+key, bucket and media type that the passage's one source_reading envelope names. Then only the
+dropped segment provenance is read from it, and the kept fields must agree with it.
 """
 import copy
+import hashlib
+import json
 import sys
 from pathlib import Path
 
@@ -33,6 +37,8 @@ ANCHOR = ('source_id', 'start', 'end', 'occurrence', 'quote')  # the order of a 
 NAMED = {'named': 'name', 'embedded_parent': 'father_of_named', 'unnamed': 'unnamed', 'generic': 'unnamed'}
 REVIEW_REASONS = ['Initial source reading; not independently confirmed.']
 KEPT_PROVENANCE = ('segment_id', 'focal', 'piece')
+ARTIFACT_BUCKET = 'talmud-source-evidence'
+ARTIFACT_PREFIX = 'source-readings/v1/artifacts/'
 
 
 def require(value, message):
@@ -115,8 +121,24 @@ def expand(rows, artifacts):
     return [built[r['record_id']] for r in rows if r['kind'] != 'source_reading_run']
 
 
+def verify_artifact(envelope, bundle):
+    """The R2 bundle must be exactly the artifact its source_reading envelope names: the same
+    canonical bytes (SHA-256 and length), key, bucket and media type. Checked before any field of
+    the bundle is read."""
+    raw = json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()
+    got = hashlib.sha256(raw).hexdigest()
+    prov = envelope['provenance']
+    require(prov['artifactSha256'] == got and prov['artifactBytes'] == len(raw)
+            and prov['artifactKey'] == ARTIFACT_PREFIX + got + '.json' and prov['artifactBucket'] == ARTIFACT_BUCKET
+            and prov['artifactMediaType'] == 'application/json',
+            'R2 artifact differs from its source_reading envelope')
+
+
 def _expand_passage(pid, group, bundle, runs):
     get = lambda kind: [r for r in group if r['kind'] == kind]
+    readings = get('source_reading')
+    require(len(readings) == 1, 'A passage needs exactly one source_reading envelope')
+    verify_artifact(readings[0]['data'], bundle)
     passage = get('passage')
     require(len(passage) == 1, 'A passage needs exactly one passage row')
     prow, p = passage[0], passage[0]['data']

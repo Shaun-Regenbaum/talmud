@@ -19,8 +19,11 @@ legacy graph is never touched.
   - source segment provenance that no reader uses, such as the raw file, URL, licence and capture
     time. It stays in the private R2 artifact, which holds the whole bundle.
 - **`expand(rows, artifacts)`** rebuilds the exact v1 rows. `artifacts` maps each passage ID to its
-  bundle from R2. Only the dropped segment provenance is read from it, and the fields D1 kept must
-  agree with it.
+  bundle from R2. Each passage must have exactly one `source_reading` row. That row names the R2
+  artifact by its SHA-256, byte length, key, bucket and media type. The bundle must match all five
+  before any of it is read. So a bundle with a changed URL or licence is refused, even though D1 no
+  longer stores those fields. Then only the dropped segment provenance is read from it, and the
+  fields D1 kept must agree with it.
 
 ## What stays in D1 for readers
 
