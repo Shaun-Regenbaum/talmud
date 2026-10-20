@@ -1,0 +1,943 @@
+{
+  "provenance": {
+    "revision": "sage-graph-2ae38b2df7aee0cc75ec",
+    "source": "era-audit/work/live-2ae3.sqlite",
+    "note": "Verbatim source records; tests explicitly mutate metadata to check rejection."
+  },
+  "entries": [
+    {
+      "personKey": "b000-p0/B",
+      "tier": "A",
+      "originalCandidateId": "rav-ashi",
+      "canonicalCandidateId": "rav-ashi",
+      "generation": "amora-bavel-6",
+      "identity": {
+        "recordId": "source_identity:b000-p0/B",
+        "payloadSha256": "7c6e97badbcd2eec9f09f9287708a6c9b2d0ec8aba8c77e7c011dd1a903203ad",
+        "authority": "source_review",
+        "decision": "accepted_registry_identity"
+      },
+      "registry": {
+        "recordId": "registry_person:rav-ashi",
+        "payloadSha256": "0e8e71c69a7e158f748a9e9692c463ad7164276455b8d19bc5b6849eacc05fbb",
+        "authority": "registry",
+        "decision": null
+      },
+      "dependencies": [
+        {
+          "recordId": "identity_assessment:case-11d6afd1d3120fb4494d",
+          "payloadSha256": "60b2fa8d351d5d3a277f4b50132b5d5ebafe2f2fcad7b71b324a5b5aab3f68d2",
+          "authority": "source_review",
+          "decision": "reviewed"
+        },
+        {
+          "recordId": "identity_proposal:wide-v1-recovery/case-11d6afd1d3120fb4494d",
+          "payloadSha256": "28e131b30bacea49f7a3729c91fae528e08a437366785b1972387f1fc33eb7cd",
+          "authority": "screening",
+          "decision": "needs_review"
+        },
+        {
+          "recordId": "passage:b000-p0",
+          "payloadSha256": "9ffd494b60f26d2ea46fba8d769ac053dbf9cb26b8745309e1b9ec5c7a459c40",
+          "authority": "source",
+          "decision": null
+        },
+        {
+          "recordId": "person:b000-p0/B",
+          "payloadSha256": "6456ea909dfedeae66e880666f79ffad40ff2c99a41cad63dbb2a98ca4c58bc0",
+          "authority": "source",
+          "decision": null
+        },
+        {
+          "recordId": "registry_person:rav-ashi",
+          "payloadSha256": "0e8e71c69a7e158f748a9e9692c463ad7164276455b8d19bc5b6849eacc05fbb",
+          "authority": "registry",
+          "decision": null
+        },
+        {
+          "recordId": "source_identity:b000-p0/B",
+          "payloadSha256": "7c6e97badbcd2eec9f09f9287708a6c9b2d0ec8aba8c77e7c011dd1a903203ad",
+          "authority": "source_review",
+          "decision": "accepted_registry_identity"
+        }
+      ],
+      "scope": [
+        {
+          "recordId": "identity_assessment:case-11d6afd1d3120fb4494d",
+          "payloadSha256": "60b2fa8d351d5d3a277f4b50132b5d5ebafe2f2fcad7b71b324a5b5aab3f68d2",
+          "authority": "source_review",
+          "decision": "reviewed"
+        },
+        {
+          "recordId": "identity_proposal:wide-v1-recovery/case-11d6afd1d3120fb4494d",
+          "payloadSha256": "28e131b30bacea49f7a3729c91fae528e08a437366785b1972387f1fc33eb7cd",
+          "authority": "screening",
+          "decision": "needs_review"
+        },
+        {
+          "recordId": "source_identity:b000-p0/B",
+          "payloadSha256": "7c6e97badbcd2eec9f09f9287708a6c9b2d0ec8aba8c77e7c011dd1a903203ad",
+          "authority": "source_review",
+          "decision": "accepted_registry_identity"
+        }
+      ]
+    },
+    {
+      "personKey": "b000-p0/C",
+      "tier": "B",
+      "originalCandidateId": "rabbi-chiyya",
+      "canonicalCandidateId": "rabbi-chiyya",
+      "generation": "tanna-6",
+      "identity": {
+        "recordId": "identity_proposal:wide-v1-recovery/case-941ce1b31e57561f00d2",
+        "payloadSha256": "c4b71eb77054c51e76abf47dd107c596b4093ee6a540b93aeb52c1d282d6cbc2",
+        "authority": "screening",
+        "decision": "needs_review"
+      },
+      "registry": {
+        "recordId": "registry_person:rabbi-chiyya",
+        "payloadSha256": "60f1a9c76640bdf8d093bc71b4edbce2537880d4ff6b2c31fedcb9b8ba5aa2c9",
+        "authority": "registry",
+        "decision": null
+      },
+      "dependencies": [
+        {
+          "recordId": "identity_proposal:wide-v1-recovery/case-941ce1b31e57561f00d2",
+          "payloadSha256": "c4b71eb77054c51e76abf47dd107c596b4093ee6a540b93aeb52c1d282d6cbc2",
+          "authority": "screening",
+          "decision": "needs_review"
+        },
+        {
+          "recordId": "passage:b000-p0",
+          "payloadSha256": "9ffd494b60f26d2ea46fba8d769ac053dbf9cb26b8745309e1b9ec5c7a459c40",
+          "authority": "source",
+          "decision": null
+        },
+        {
+          "recordId": "person:b000-p0/C",
+          "payloadSha256": "249cb2b07995d0168e0350a2692e95ca0e379e48cbc5a8582182e42e407dba0c",
+          "authority": "source",
+          "decision": null
+        },
+        {
+          "recordId": "registry_person:rabbi-chiyya",
+          "payloadSha256": "60f1a9c76640bdf8d093bc71b4edbce2537880d4ff6b2c31fedcb9b8ba5aa2c9",
+          "authority": "registry",
+          "decision": null
+        }
+      ],
+      "scope": [
+        {
+          "recordId": "identity_proposal:wide-v1-recovery/case-941ce1b31e57561f00d2",
+          "payloadSha256": "c4b71eb77054c51e76abf47dd107c596b4093ee6a540b93aeb52c1d282d6cbc2",
+          "authority": "screening",
+          "decision": "needs_review"
+        }
+      ]
+    },
+    {
+      "canonicalCandidateId": "rabbi-yehudah-b-pazi",
+      "dependencies": [
+        {
+          "authority": "source_review",
+          "decision": "supported",
+          "payloadSha256": "1099c0c761f037d960fce1fcee79466b5486122b7b4fb0460454213a6fe25570",
+          "recordId": "identity_assignment:name-05/b004-p7/K"
+        },
+        {
+          "authority": "source_review",
+          "decision": null,
+          "payloadSha256": "28c599f9804b8dcc9ab1564d8b18a53fc3679f3cfae80b75c7086a129e862b54",
+          "recordId": "identity_finding:123"
+        },
+        {
+          "authority": "source_review",
+          "decision": null,
+          "payloadSha256": "b2977265b7487f0af526a8ecc76fd05c037b65c73244f3c1f392509e315944fd",
+          "recordId": "identity_finding:130"
+        },
+        {
+          "authority": "source_review",
+          "decision": "proposed",
+          "payloadSha256": "da4f3b7cafe16639af1554f3fe6f4189088bf32df245eb52417fd2703ea81db4",
+          "recordId": "identity_group:name-05/g4"
+        },
+        {
+          "authority": "screening",
+          "decision": "needs_review",
+          "payloadSha256": "44c63e94fb4a8e81be38ebfd2c31c8892ad2e1df53e0293be1dbf499fe84ed65",
+          "recordId": "identity_proposal:wide-v1-recovery/case-67ca04de7bd1604dacfb"
+        },
+        {
+          "authority": "source",
+          "decision": null,
+          "payloadSha256": "9a5d556dcad9a69b4d5a10e9ee565bc2e8b641f73434c24d78f08dcb7d396fc4",
+          "recordId": "passage:b004-p7"
+        },
+        {
+          "authority": "source",
+          "decision": null,
+          "payloadSha256": "ba70266ceb563862c92c0518c3bf1b73dfdc8f4de87356fe3b2f518c010e794f",
+          "recordId": "person:b004-p7/K"
+        },
+        {
+          "authority": "registry",
+          "decision": null,
+          "payloadSha256": "170ea2c622ed76dfffdf75bf7a940184ea6cebafa7ec04cf79ab10552081ccf3",
+          "recordId": "registry_person:rabbi-yehudah-b-pazi"
+        }
+      ],
+      "generation": "amora-ey-3",
+      "identity": {
+        "authority": "screening",
+        "decision": "needs_review",
+        "payloadSha256": "44c63e94fb4a8e81be38ebfd2c31c8892ad2e1df53e0293be1dbf499fe84ed65",
+        "recordId": "identity_proposal:wide-v1-recovery/case-67ca04de7bd1604dacfb"
+      },
+      "originalCandidateId": "rabbi-yehudah-b-pazi",
+      "personKey": "b004-p7/K",
+      "registry": {
+        "authority": "registry",
+        "decision": null,
+        "payloadSha256": "170ea2c622ed76dfffdf75bf7a940184ea6cebafa7ec04cf79ab10552081ccf3",
+        "recordId": "registry_person:rabbi-yehudah-b-pazi"
+      },
+      "scope": [
+        {
+          "authority": "source_review",
+          "decision": "supported",
+          "payloadSha256": "1099c0c761f037d960fce1fcee79466b5486122b7b4fb0460454213a6fe25570",
+          "recordId": "identity_assignment:name-05/b004-p7/K"
+        },
+        {
+          "authority": "source_review",
+          "decision": null,
+          "payloadSha256": "28c599f9804b8dcc9ab1564d8b18a53fc3679f3cfae80b75c7086a129e862b54",
+          "recordId": "identity_finding:123"
+        },
+        {
+          "authority": "source_review",
+          "decision": null,
+          "payloadSha256": "b2977265b7487f0af526a8ecc76fd05c037b65c73244f3c1f392509e315944fd",
+          "recordId": "identity_finding:130"
+        },
+        {
+          "authority": "source_review",
+          "decision": "proposed",
+          "payloadSha256": "da4f3b7cafe16639af1554f3fe6f4189088bf32df245eb52417fd2703ea81db4",
+          "recordId": "identity_group:name-05/g4"
+        },
+        {
+          "authority": "screening",
+          "decision": "needs_review",
+          "payloadSha256": "44c63e94fb4a8e81be38ebfd2c31c8892ad2e1df53e0293be1dbf499fe84ed65",
+          "recordId": "identity_proposal:wide-v1-recovery/case-67ca04de7bd1604dacfb"
+        }
+      ],
+      "tier": "B"
+    }
+  ],
+  "rows": [
+    [
+      "identity_assessment:case-11d6afd1d3120fb4494d",
+      "identity_assessment",
+      "b000-p0",
+      "Sanhedrin 33a:6",
+      "local:b000-p0/B",
+      "rav-ashi",
+      "source_review",
+      "reviewed",
+      "60b2fa8d351d5d3a277f4b50132b5d5ebafe2f2fcad7b71b324a5b5aab3f68d2",
+      "{\"acceptedPersonId\":\"rav-ashi\",\"evidence\":[{\"location\":\"passage\",\"quote\":\"א\\\"ל רבינא לרב אשי אפילו טעה בר' חייא ורבי אושעיא א\\\"ל אין אפילו בדרב ושמואל אמר ליה אין אפילו בדידי ודידך א\\\"ל אטו אנן קטלי קני באגמא אנן\"}],\"generationDecision\":\"sourced\",\"generationEvidence\":{\"calendarRange\":null,\"decision\":\"support_existing_label\",\"limitation\":\"Supports a conventional generation label. It does not establish birth/death years or fixed timeline endpoints.\",\"personId\":\"rav-ashi\",\"registryGeneration\":\"amora-bavel-6\",\"source\":{\"exactExcerpt\":\"בדור השישי\",\"summary\":\"Sixth-generation section names Rav Ashi and places him in the early fifth century.\",\"url\":\"https://daat.ac.il/encyclopedia/value.asp?id1=52\"},\"suggestedLabel\":\"Babylonian amora, sixth generation; active into the early fifth century.\",\"supportedGeneration\":\"amora-bavel-6\"},\"generationReason\":\"Supports a conventional generation label. It does not establish birth/death years or fixed timeline endpoints.\",\"outcome\":\"accepted\",\"personKey\":\"b000-p0/B\",\"proposalId\":\"identity_proposal:wide-v1-recovery/case-11d6afd1d3120fb4494d\",\"proposalPayloadSha256\":\"28e131b30bacea49f7a3729c91fae528e08a437366785b1972387f1fc33eb7cd\",\"proposedPersonId\":\"rav-ashi\",\"reason\":\"Rav Ashi and Ravina discuss rulings of earlier Rav and Shmuel. The exact name and later Babylonian discussion identify Rav Ashi, not Asi.\",\"reviewSha256\":\"be71587f9123d0c69e03cc24945c79a7b305b7e37814e2614063f774e414277b\",\"sources\":[\"https://daat.ac.il/encyclopedia/value.asp?id1=52\",\"https://www.sefaria.org/Sanhedrin_33a.6\"]}"
+    ],
+    [
+      "identity_assessment:case-e38f0ec6032230146b11",
+      "identity_assessment",
+      "b000-p0",
+      "Sanhedrin 33a:6",
+      "local:b000-p0/A",
+      null,
+      "source_review",
+      "reviewed",
+      "9b2c97c0ce1846b1fa7a92f182a1396d426b88d2eaf07f690fe91ecd2c727cd8",
+      "{\"acceptedPersonId\":null,\"evidence\":[{\"location\":\"passage\",\"quote\":\"א\\\"ל רבינא לרב אשי\"},{\"location\":\"passage\",\"quote\":\"אמר ליה אין אפילו בדידי ודידך\"}],\"generationDecision\":\"held\",\"generationReason\":\"No independent source check of the exact generation was completed. Candidate generation is not evidence.\",\"outcome\":\"held\",\"personKey\":\"b000-p0/A\",\"proposalId\":\"identity_proposal:wide-v1-recovery/case-e38f0ec6032230146b11\",\"proposalPayloadSha256\":\"7535af845c0611b450a4369863292560d6af7d06594ea9c9b49c75ebdf82c15e\",\"proposedPersonId\":\"ravina-(i)\",\"reason\":\"The exchange establishes Ravina as Rav Ashi’s contemporary, but that alone does not exclude Ravina the Last, who also had contact with Rav Ashi. A specific source identification is needed.\",\"reviewSha256\":\"3424f9770d2b99710228974fdc20f4a7716515017f1b6e3d5f496ee8149e4204\",\"sources\":[\"https://kotar.cet.ac.il/kotarapp/index/Chapter.aspx?nBookID=96612401&nTocEntryID=96615425\",\"https://www.sefaria.org/Sanhedrin_33a.6\"]}"
+    ],
+    [
+      "identity_assignment:name-05/b004-p7/K",
+      "identity_assignment",
+      "b004-p7",
+      "Devarim Rabbah 1:17",
+      null,
+      null,
+      "source_review",
+      "supported",
+      "1099c0c761f037d960fce1fcee79466b5486122b7b4fb0460454213a6fe25570",
+      "{\"dossierId\":\"name-05\",\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b004-p7\",\"quote\":\"ן, שכתיב (איכה ב, ג): השיב אחור ימינו מפני אויב, אף הם נתנו מקום. אמר רבי יהודה ברבי סימון, ראה אותו מחריב את ביתו, ושותק לו, ואתם מבקשין להזדוג לו, עד עכשו מתבקש לו שכר כבוד אבותיו. רב לכם סב. מהו סב את ההר, אמר רבי חנינא הרבה סבב עשו את הורו זה, זה אביו שהיה זקוק לו ל\"}],\"groupIds\":[\"name-05/g4\"],\"historicalIdentityConfirmed\":false,\"passageId\":\"b004-p7\",\"personId\":\"K\",\"personKey\":\"b004-p7/K\",\"reason\":\"The complete Simon patronymic anchors the exegete, not a participant meeting his biblical subjects.\",\"status\":\"supported\"}"
+    ],
+    [
+      "identity_finding:123",
+      "identity_finding",
+      null,
+      null,
+      null,
+      null,
+      "source_review",
+      null,
+      "28c599f9804b8dcc9ab1564d8b18a53fc3679f3cfae80b75c7086a129e862b54",
+      "{\"dossierId\":\"name-05\",\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b015-p8\",\"quote\":\"משעה שהפילה שוב לא ילדה, ר' יהודה ב\\\"ר סימון אומר במוך היתה משמשת, אמר ר' יהודה ב\\\"ר סימן דריוש האחרון היה טהור מאמו וטמא מאביו.\"},{\"location\":\"passage\",\"passageId\":\"b559-p0\",\"quote\":\"ים האלה כל מקום שכתוב: דבר, דברים, הדברים, אלות ותוכחות הם. ר' יוחנן ור' יהודה ב\\\"ר שמעון, ר' יוחנן אמר: כתב לך את הדברים האלה כי על פי הדברים האלה, תורה שבכתב ותורה שבעל פה, כרתי אתך ברית ואם המרת אותה ועשית אותה מה שבעל פה בכתב, ומה שבכתב בעל פה, אינך מקבל שכר. למה? \"},{\"location\":\"passage\",\"passageId\":\"b559-p0\",\"quote\":\" ולא הייתי מביט בכם משאר עובדי כוכבים, לפיכך כרתי אתך ברית ואת ישראל. ר' יהודה ב\\\"ר סימון אמר, בשם רבי יהושע בן לוי: אמר להם הקב\\\"ה: לשעבר הייתם נקראין כשאר אומות, כמו סבתא, ורעמא, וסבתכא, ומשקבלתם תורתי, כרתי ברית עמכם ועליתי אתכם ולא ישראל בלבד, אלא אף אתה מלכם, לא גד\"},{\"location\":\"passage\",\"passageId\":\"b432-p0\",\"quote\":\"אקפן אנא אמר ליה מה אעביד לך דכי אתו לקמיה דרבי יוחנן משדר להו לקמיה דרבי יהודה ברבי שמעון דמורי בה משמיה דרבי אלעזר ברבי שמעון להיתירא וליה לא סבירא ליה\"},{\"location\":\"passage\",\"passageId\":\"b040-p2\",\"quote\":\"ויהי היום ויעבר אלישע אל שונם ושם אשה גדולה ותחזק בו לאכל לחם, אמר לו רבי יהודה ברבי סימון על ידי שכתב ותחזק בו לאכל לחם זכתה להחיות את בנה, רבי יודן בשם רבי זעירא ורבי יוחנן בשם רבי שמעון בן יוחאי אמרו גדולה היא הפרנסה שגורמת לתחית המתים לבוא שלא בעונתה, צרפית על ידי ש\"}],\"groupIds\":[\"name-05/g4\"],\"kind\":\"uncertain_assignment\",\"reason\":\"Simon/Siman/Simeon variants warrant comparison, not automatic splits. The Torah passage has both ben Rabbi Simeon and ben Rabbi Simon; the lung-ruling story uses bar Rabbi Simeon with Yohanan referrals. They could be variants or namesakes. The Usha compilation reads a reply by bar Simon to Shimon ben Yohai; the pronoun favors an encounter while an inserted-comment reading remains possible. Supplied chronology does not resolve the alternatives.\"}"
+    ],
+    [
+      "identity_finding:130",
+      "identity_finding",
+      null,
+      null,
+      null,
+      null,
+      "source_review",
+      null,
+      "b2977265b7487f0af526a8ecc76fd05c037b65c73244f3c1f392509e315944fd",
+      "{\"dossierId\":\"name-05\",\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b004-p7\",\"quote\":\"ן, שכתיב (איכה ב, ג): השיב אחור ימינו מפני אויב, אף הם נתנו מקום. אמר רבי יהודה ברבי סימון, ראה אותו מחריב את ביתו, ושותק לו, ואתם מבקשין להזדוג לו, עד עכשו מתבקש לו שכר כבוד אבותיו. רב לכם סב. מהו סב את ההר, אמר רבי חנינא הרבה סבב עשו את הורו זה, זה אביו שהיה זקוק לו ל\"},{\"location\":\"passage\",\"passageId\":\"b006-p8\",\"quote\":\"שם ר' ליעזר כורכום אין ניקח בכסף מעשר, לפי שאין בו טעם אלא למראה. אמ' ר' יהודה בן גדיש לפני ר' ליעזר של בית אבא היו מוכרין ציר בירושלם. אמרו מי אמר, שמא דגים מוכרין עמו.\"},{\"location\":\"passage\",\"passageId\":\"b011-p2\",\"quote\":\"אמר רבי יוחנן דרבי יהודה בן חגרא היא דתני גר שנתגייר והיתה לו קמה נקצרת עד שלא נתגייר פטור משנתגייר חייב ואם ספק פטור רבי יהודא בן חגרא מחייב ר\\\"ש בן לקיש אומר ד\\\"ה היא ישראל שעיקרו חייב ספקו חייב וגוי שעקרו פטור ס\"},{\"location\":\"passage\",\"passageId\":\"b027-p1\",\"quote\":\"עסק בצרכי צבור, משכחין תלמודו. אמר רבי יהושע בן לוי: ששים הלכות למדני רבי יהודה בן פדיא בחרישת הקבר, וכלן נשתכחו ממני, בשביל שהייתי עוסק בצרכי צבור. הוי, כי העשק יהולל חכם. כי העשק יהולל חכם, עסק שנתעסק שלמה בדברים בטלים, הטעוהו, ויהי לעת זקנת שלמה נשיו הטו את לבבו א\"},{\"location\":\"passage\",\"passageId\":\"b374-p7\",\"quote\":\"נים וחבלים של קורייס מטלטלין אותן בשבת. מה דר' יוסה אמר ר' יוחנן שאל לר' יהודה בן לוי מהו לטלטל כלי קורייס בשבת א\\\"ל מטלטלין. ר' יהודה בן פזי לא אמר כן אלא ר' יוחנן שאל לר' יהודה בן לוי מהו לטלטל כלי קורייס בשבת א\\\"ל אין מטלטלין. א\\\"ל למה א\\\"ל מפני שאין מטלטלין:\"},{\"location\":\"before\",\"passageId\":\"b381-p8\",\"quote\":\"יהודה גר עמוני\"},{\"location\":\"passage\",\"passageId\":\"b193-p1\",\"quote\":\"יהודה בר נתן הוה שקיל ואזיל בתריה דרב המנונא אתנח אמר ליה יסורים בעי ההוא גברא לאתויי אנפשיה דכתיב (איוב ג, כה) כי פחד פחדתי ויאתיני ואשר יגורתי יבא לי והא כתיב אשרי אדם מפחד תמיד ההוא בדברי ת\"},{\"location\":\"passage\",\"passageId\":\"b411-p1\",\"quote\":\"העיד ר' יהודה בן ישעיה הבשם לפני ר' עקיבה משם ר' טרפון שיש לקטף שביעית. עלה זתים ועלי קנים ועלי חרובין אין להן ביעור, לפי שאינן כלין.\"},{\"location\":\"passage\",\"passageId\":\"b089-p7\",\"quote\":\" בהם מצות עשר תעשר את כל מהו את כל אפילו ממונך. א\\\"ר שמעון בן לקיש בשם ר' יהודה בן חנינא נימנו באושא שיהא אדם מפריש חומש נכסיו מה טעם כדי תרומות ומעשרות. מעשה במונבז המלך שהיה מבזבז ממונו לעניים שלחו לו אחיו ואמרו לו מה שכינסו אבותיך אתה מבזבז אמר להם אבותי כינסו בעול\"}],\"groupIds\":[\"name-05/g4\",\"name-05/g6\",\"name-05/g11\",\"name-05/g13\",\"name-05/g16\",\"name-05/g18\",\"name-05/g20\",\"name-05/g21\",\"name-05/g23\",\"name-05/g25\",\"name-05/g26\",\"name-05/g27\",\"name-05/g28\"],\"kind\":\"coverage_gap\",\"reason\":\"Selected full names or concrete descriptions lack supplied registry matches, including Simon, Gadish, Hagra, Pedia, Levi, Papus, Tammuza, the priest bar Avin, the Ammonite convert, Nathan, Isaiah the perfumer, the nephew of Yose and ben Hanina. Null slugs flag potentially unlisted or unresolved identities. All 134 supplied target mentions in 80 selected passages are assigned once. The inventory of 730 omitted references limits scope: no omitted passage is assigned and no exhaustive census of historical bearers is claimed.\"}"
+    ],
+    [
+      "identity_group:name-05/g4",
+      "identity_group",
+      null,
+      null,
+      null,
+      null,
+      "source_review",
+      "proposed",
+      "da4f3b7cafe16639af1554f3fe6f4189088bf32df245eb52417fd2703ea81db4",
+      "{\"dossierId\":\"name-05\",\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b004-p7\",\"quote\":\"ן, שכתיב (איכה ב, ג): השיב אחור ימינו מפני אויב, אף הם נתנו מקום. אמר רבי יהודה ברבי סימון, ראה אותו מחריב את ביתו, ושותק לו, ואתם מבקשין להזדוג לו, עד עכשו מתבקש לו שכר כבוד אבותיו. רב לכם סב. מהו סב את ההר, אמר רבי חנינא הרבה סבב עשו את הורו זה, זה אביו שהיה זקוק לו ל\"},{\"location\":\"passage\",\"passageId\":\"b122-p5\",\"quote\":\" כה, כא): ונתת את הכפרת על הארן מלמעלה. תוכו רצוף אהבה מבנות ירושלים, רבי יהודה בן רבי סימון אמר זו זכות התורה, זו זכות הצדיקים שעוסקין בה. רבי עזריה בשם רבי יהודה בן רבי סימון אמר זו השכינה. אמר רבי אבא בר כהנא כתיב (שמות כה, כב): ונועדתי לך שם וגו' וכלה. דבר אחר, אפריון\"},{\"location\":\"passage\",\"passageId\":\"b015-p8\",\"quote\":\"רי פירסה נדה, ורבנן דהכא אמרי שהפילה עוברה, ומשעה שהפילה שוב לא ילדה, ר' יהודה ב\\\"ר סימון אומר במוך היתה משמשת, אמר ר' יהודה ב\\\"ר סימן דריוש האחרון היה טהור מאמו וטמא מאביו.\"},{\"location\":\"passage\",\"passageId\":\"b015-p8\",\"quote\":\"משעה שהפילה שוב לא ילדה, ר' יהודה ב\\\"ר סימון אומר במוך היתה משמשת, אמר ר' יהודה ב\\\"ר סימן דריוש האחרון היה טהור מאמו וטמא מאביו.\"},{\"location\":\"passage\",\"passageId\":\"b040-p2\",\"quote\":\"ויהי היום ויעבר אלישע אל שונם ושם אשה גדולה ותחזק בו לאכל לחם, אמר לו רבי יהודה ברבי סימון על ידי שכתב ותחזק בו לאכל לחם זכתה להחיות את בנה, רבי יודן בשם רבי זעירא ורבי יוחנן בשם רבי שמעון בן יוחאי אמרו גדולה היא הפרנסה שגורמת לתחית המתים לבוא שלא בעונתה, צרפית על ידי ש\"},{\"location\":\"passage\",\"passageId\":\"b559-p0\",\"quote\":\"ים האלה כל מקום שכתוב: דבר, דברים, הדברים, אלות ותוכחות הם. ר' יוחנן ור' יהודה ב\\\"ר שמעון, ר' יוחנן אמר: כתב לך את הדברים האלה כי על פי הדברים האלה, תורה שבכתב ותורה שבעל פה, כרתי אתך ברית ואם המרת אותה ועשית אותה מה שבעל פה בכתב, ומה שבכתב בעל פה, אינך מקבל שכר. למה? \"},{\"location\":\"passage\",\"passageId\":\"b432-p0\",\"quote\":\"אקפן אנא אמר ליה מה אעביד לך דכי אתו לקמיה דרבי יוחנן משדר להו לקמיה דרבי יהודה ברבי שמעון דמורי בה משמיה דרבי אלעזר ברבי שמעון להיתירא וליה לא סבירא ליה\"}],\"historicalIdentityConfirmed\":false,\"id\":\"name-05/g4\",\"label\":\"Judah son of Simon, with Simeon spellings under comparison\",\"reason\":\"Repeated full Simon names and recurring Azariah reports anchor a potentially unlisted bearer: no supplied registry candidate names him. Ben/bar/bi and Simon/Siman variants need not create separate people. Simeon forms in the Torah and lung-ruling sources may be variants or another son of Simeon; no selected text establishes that split, so those assignments remain uncertain. The apparent Usha address to Shimon ben Yohai is preserved rather than discarded to fit assumed chronology. Simon differs from Ilai.\",\"registrySlug\":null,\"status\":\"proposed\"}"
+    ],
+    [
+      "identity_proposal:wide-v1-recovery/case-11d6afd1d3120fb4494d",
+      "identity_proposal",
+      "b000-p0",
+      "Sanhedrin 33a:6",
+      "local:b000-p0/B",
+      null,
+      "screening",
+      "needs_review",
+      "28e131b30bacea49f7a3729c91fae528e08a437366785b1972387f1fc33eb7cd",
+      "{\"accepted\":false,\"answer\":{\"evidence\":[{\"location\":\"passage\",\"quote\":\"לרב אשי\"}],\"generation\":\"amora-bavel-6\",\"id\":\"case-11d6afd1d3120fb4494d\",\"personId\":\"rav-ashi\",\"reason\":\"The passage explicitly names Rav Ashi as the interlocutor of Ravina, matching candidate rav-ashi (Rav Ashi).\",\"status\":\"matched\"},\"audit\":null,\"case\":{\"candidates\":[{\"aliases\":[\"Jesse\",\"Yishai\"],\"bio\":\"Yishai \",\"canonical\":\"Jesse\",\"canonicalHe\":\"ישי\",\"generation\":null,\"id\":\"jesse\",\"sources\":null},{\"aliases\":[\"Rabbi Acha b. Rabbi Yoshiah\",\"Rabbi Achai b. Yoshiah\",\"R. Achi b. Rabbi Yoshiah\",\"Rabbi Achi b. Yoshiah\",\"Rabbi Achai b. Rabbi Yoshiah\"],\"bio\":\"Rabbi Achi b. Rabbi Yoshiah was a Babylonian Tanna of the fifth generation who lived at the end of the second century CE. He is cited in baraitot appearing in both Talmuds, as well as in Avot de-Rabbi Natan and the halakhic midrashim.\",\"canonical\":\"Rabbi Achi b. Rabbi Yoshiah\",\"canonicalHe\":\"רבי אחי ברבי יאשיה\",\"generation\":\"tanna-5\",\"id\":\"rabbi-achi-b-rabbi-yoshiah\",\"sources\":null},{\"aliases\":[\"Rabbi Ami b. Nathan\",\"R. Ami\",\"Rabbi Imi\",\"R. Ami b. Nathan\"],\"bio\":\"Rabbi Ami b. Nathan, known as Rabbi Ami, was a third-generation Eretz-Yisraeli Amora. A student of Rabbi Yochanan, he was a colleague and bar plugta of Rabbi Assi. The Jerusalem Talmud occasionally calls him Rabbi Imi.\",\"canonical\":\"Rabbi Ami\",\"canonicalHe\":\"רבי אמי\",\"generation\":\"amora-ey-3\",\"id\":\"rabbi-ami\",\"sources\":null},{\"aliases\":[\"Rabbi Ami and Rabbi Asi\"],\"bio\":\"R. Ami and R. Asi had studied together in Babylonia before coming to study with R. Yochanan. They excelled and eventually became the leaders of his academy in Tiberias, after R. Elazar b. Pedat. They assisted R. Yehudah Nesi'a II with their scholarship in the administration of the community.\",\"canonical\":\"Rabbi Ami and Rabbi Asi\",\"canonicalHe\":\"רבי אמי ורבי אסי\",\"generation\":\"amora-ey-2\",\"id\":\"rabbi-ami-and-rabbi-asi\",\"sources\":null},{\"aliases\":[\"R. Ami of Vardina\",\"Rabbi Ami Vardinaah\",\"R. Ami Vardinaah\"],\"bio\":\"Rabbi Ami of Vardina was a third-generation Eretz Yisrael Amora. Also known as Shafir Naah, he transmits teachings in the name of Rabbi Abbahu. He served as a sage in the house of the Nasi, where he was asked to rule on matters of forbidden and permitted and to inspect blemished firstborn animals. On Yom Tov, however, he would not inspect them.\",\"canonical\":\"Rabbi Ami of Vardina\",\"canonicalHe\":\"אמי ורדינאה\",\"generation\":\"amora-ey-3\",\"id\":\"rabbi-ami-of-vardina\",\"sources\":null},{\"aliases\":[\"Rav Assi\",\"Rav Asi\",\"Rebbi Issi\",\"Rebbi Asi\",\"Rebbi Assi\"],\"bio\":\"R. Assi is one of the names mentioned most frequently in the Babylonian and Jerusalem Talmud. R. Assi studied under Shmuel in Babylonia before coming to study together with R. Ami in the academy of R. Yochanan in Tiberias. The Babylonian Talmud reports that when he died, all trees were uprootsd (Moed Katan 25b), while the Jerusalem Talmud records that on that day a fountain of Tiberias fell (Avodah Zarah 3:1).\",\"canonical\":\"Rav Assi (II)\",\"canonicalHe\":\"רב אסי (2)\",\"generation\":\"amora-ey-2\",\"id\":\"rabbi-assi\",\"sources\":null},{\"aliases\":[\"R. Assi\",\"Rabbi Asi\",\"R. Asi\"],\"bio\":\"Rabbi Assi was a third-generation Eretz Yisraeli Amora. A student of Rabbi Yochanan, he was a colleague and frequent disputant of Rabbi Ami. He resided primarily in Tiberias.\",\"canonical\":\"Rabbi Assi\",\"canonicalHe\":\"רבי אסי\",\"generation\":\"amora-ey-3\",\"id\":\"rabbi-assi-2\",\"sources\":null},{\"aliases\":[\"Rav Ashi\"],\"bio\":\"Rav Ashi studied under the disciples of Abaye and Rava before becoming the head of one of the academies at the young age of fourteen. He held this position for sixty years, making him the prominent Jewish religious leader of his era. During the tolerant reigns succeeding Shapur II, Rav Ashi undertook the task of gathering and organizing all existing explanations of the Mishnah and its related texts. This monumental effort laid the foundation for the compilation of the Babylonian Talmud.\",\"canonical\":\"Rav Ashi\",\"canonicalHe\":\"רב אשי\",\"generation\":\"amora-bavel-6\",\"id\":\"rav-ashi\",\"sources\":null},{\"aliases\":[\"Rav Assi\",\"Rav Asi\",\"Rebbi Issy\",\"Rebbi Yasa\",\"Rebbi Yassa\"],\"bio\":\"Rav Assi was a highly respected colleague of Rav, to whom Rav deferred on more than one occasion. His misunderstanding of Rav's last request to him led him to a war of words with Shela, and ultimately cost him his life. Nevertheless, he was known for his piety.\",\"canonical\":\"Rav Assi (I)\",\"canonicalHe\":\"רב אסי (1)\",\"generation\":\"amora-bavel-1\",\"id\":\"rav-assi\",\"sources\":null}],\"id\":\"case-11d6afd1d3120fb4494d\",\"person\":{\"id\":\"B\",\"label\":\"רב אשי\",\"named\":\"name\",\"quote\":\"לרב אשי\",\"quoteLocation\":\"passage\"},\"personKey\":\"b000-p0/B\",\"ref\":\"Sanhedrin 33a:6\",\"source\":{\"after\":\"היכי דמי שיקול הדעת אמר רב פפא כגון תרי תנאי או תרי אמוראי דפליגי אהדדי ולא איתמר הלכתא לא כמר ולא כמר ואיקרי ועבד כחד מינייהו וסוגיא דשמעת' אזלי כאידך היינו שיקול הדעת\",\"before\":\"רב ששת אמר כאן שטעה בדבר משנה כאן שטעה בשיקול הדעת דאמר רב ששת אמר רב אסי טעה בדבר משנה חוזר טעה בשיקול הדעת אינו חוזר\",\"passage\":\"א\\\"ל רבינא לרב אשי אפילו טעה בר' חייא ורבי אושעיא א\\\"ל אין אפילו בדרב ושמואל אמר ליה אין אפילו בדידי ודידך א\\\"ל אטו אנן קטלי קני באגמא אנן\"}},\"error\":null,\"generationBasis\":\"candidate_metadata_not_verified\",\"inputSha256\":\"f7c8034a7497ca17c2f258877588832446697a583dcf6fee57399ab0f5170998\",\"recipe\":\"e2b6717450baa4be7c260a9a14a8d9d2e46ad4f2473ab081a60c8c9050ff47e9\",\"resultPath\":\"results/inputs-000/first/case-11d6afd1d3120fb4494d.json\",\"resultSha256\":\"d7e20d78b01adf10871a746c9e6ee9fe050780fd2ea9b978b0c497b10ca43e4f\",\"runId\":\"wide-v1-recovery\",\"sourceSha256\":\"6a9de6018bd6b8dc7fbc06c9c7b7447eae94c9008aab1f21d8bd0c770b21b975\",\"status\":\"complete\"}"
+    ],
+    [
+      "identity_proposal:wide-v1-recovery/case-342963fcc176e969f74b",
+      "identity_proposal",
+      "b000-p0",
+      "Sanhedrin 33a:6",
+      "local:b000-p0/E",
+      null,
+      "screening",
+      "needs_review",
+      "5a2b6f2263541b31f22e155581d9c4a6545d9b003f0cddc1c5ce12508a75f9aa",
+      "{\"accepted\":false,\"answer\":{\"evidence\":[{\"location\":\"passage\",\"quote\":\"אפילו בדרב ושמואל\"}],\"generation\":\"amora-bavel-1\",\"id\":\"case-342963fcc176e969f74b\",\"personId\":\"rav\",\"reason\":\"The passage pairs Rav with Shmuel, the standard first-generation Babylonian amora, matching candidate Rav.\",\"status\":\"matched\"},\"audit\":null,\"case\":{\"candidates\":[{\"aliases\":[\"Rav\",\"Rab\"],\"bio\":\"Moving from Babylonia to Israel around the same time as his uncle, Rav Chiyya, Rav studied in Rabbi' Yehudah haNasi's academy. Not finding his place there, he moved back to eventually set up an academy in Sura. His academy came to rival Shmuel's academy in Nehardea, as the fame of Rav's wisdom and learning spread far and wide. Besides his many legal decisions and interpretations, he wrote many prayers that are still in use.\",\"canonical\":\"Rav\",\"canonicalHe\":\"רב (שם אמורא)\",\"generation\":\"amora-bavel-1\",\"id\":\"rav\",\"sources\":null}],\"id\":\"case-342963fcc176e969f74b\",\"person\":{\"id\":\"E\",\"label\":\"רב\",\"named\":\"name\",\"quote\":\"אפילו בדרב ושמואל\",\"quoteLocation\":\"passage\"},\"personKey\":\"b000-p0/E\",\"ref\":\"Sanhedrin 33a:6\",\"source\":{\"after\":\"היכי דמי שיקול הדעת אמר רב פפא כגון תרי תנאי או תרי אמוראי דפליגי אהדדי ולא איתמר הלכתא לא כמר ולא כמר ואיקרי ועבד כחד מינייהו וסוגיא דשמעת' אזלי כאידך היינו שיקול הדעת\",\"before\":\"רב ששת אמר כאן שטעה בדבר משנה כאן שטעה בשיקול הדעת דאמר רב ששת אמר רב אסי טעה בדבר משנה חוזר טעה בשיקול הדעת אינו חוזר\",\"passage\":\"א\\\"ל רבינא לרב אשי אפילו טעה בר' חייא ורבי אושעיא א\\\"ל אין אפילו בדרב ושמואל אמר ליה אין אפילו בדידי ודידך א\\\"ל אטו אנן קטלי קני באגמא אנן\"}},\"error\":null,\"generationBasis\":\"candidate_metadata_not_verified\",\"inputSha256\":\"f6a8677cbe158d6df85acaa335d7b9f59a2198929c0ed52b197ba58d4ed8676c\",\"recipe\":\"e2b6717450baa4be7c260a9a14a8d9d2e46ad4f2473ab081a60c8c9050ff47e9\",\"resultPath\":\"results/inputs-000/first/case-342963fcc176e969f74b.json\",\"resultSha256\":\"35ff763693717e65365dfcd3dbb40f0e93c4cb035997861e845c37eed77cc194\",\"runId\":\"wide-v1-recovery\",\"sourceSha256\":\"6a9de6018bd6b8dc7fbc06c9c7b7447eae94c9008aab1f21d8bd0c770b21b975\",\"status\":\"complete\"}"
+    ],
+    [
+      "identity_proposal:wide-v1-recovery/case-498d6f358afcdb303b84",
+      "identity_proposal",
+      "b000-p0",
+      "Sanhedrin 33a:6",
+      "local:b000-p0/D",
+      null,
+      "screening",
+      "needs_review",
+      "c53b51a6fa4c1ea2b07f3884847cbcecf59bbed1ea1ee2f860224e782aa4bb68",
+      "{\"accepted\":false,\"answer\":{\"evidence\":[{\"location\":\"passage\",\"quote\":\"אפילו טעה בר' חייא ורבי אושעיא\"}],\"generation\":\"tanna-6\",\"id\":\"case-498d6f358afcdb303b84\",\"personId\":\"rabbi-oshaya\",\"reason\":\"The passage pairs רבי אושעיא with R. Chiyya. Registry candidate rabbi-oshaya (tanna-6) is described as R. Chiyya's student and transmitter, fitting this pairing; the other Oshaya candidates are later amoraim/baraita reciters and lack this R. Chiyya link.\",\"status\":\"matched\"},\"audit\":null,\"case\":{\"candidates\":[{\"aliases\":[\"Oshaya Ze'ira de-min Chavraya\",\"Oshaya Zeira de-min Chavraya\",\"Oshaya the youngest of the company\",\"Oshaya the small of the fellowship\",\"Hoshaya Ze'ira\",\"Oshaya the Younger\",\"Oshaiah Ze'ira\"],\"bio\":\"Oshaya Ze'ira de-min Chavraya ('Oshaya the youngest of the fellowship') was a Palestinian amora and baraita-reciter of the second-to-third amoraic generation, active in the milieu of R. Yohanan, Reish Lakish, and the Patriarchal court. Rashi explains his epithet 'Ze'ira de-min Chavraya' as 'the youngest member of the academy/fellowship,' a tag attached to distinguish him from the much greater R. Oshaya Rabba; Hyman suggests instead that 'Ze'ira' marks him as a chaver (an associate scholar) rather than a fully ordained (samukh) sage — the same 'companions of the rabbis' status borne by the Eli-descended priestly Oshaya and his brother Hanina. His teachings are preserved chiefly as baraitot on matters of measures (shiurim) and ritual purity, found in tractates Niddah and Hullin (e.g., Niddah 26a; Hullin 31a, where he teaches R. Natan's view that valid slaughter requires no intent, a baraita later discussed by Rava and Rav Nahman). His most famous appearance is the rainmaking story of Taanit 24a: when a fast decreed in the house of the Nasi failed to bring rain, the young Oshaya expounded Numbers 15:24 with a parable comparing the people's leaders to a bride's eyes — implying the drought was the leadership's fault — and though the Patriarch's servants assaulted him, the townsfolk defended him because 'all his deeds are for the sake of Heaven.'\",\"canonical\":\"Oshaya Ze'ira de-min Chavraya\",\"canonicalHe\":\"אושעיא זעירא דמן חבריא\",\"generation\":\"amora-ey-3\",\"id\":\"oshaya-zeira-demin-chavraya\",\"sources\":null},{\"aliases\":[\"Rabbi Oshaya\",\"Rabbi Hoshaya\",\"Rav Oshaya\",\"Rabbi Oshaya Rabbah\",\"Rabbi Hoshaya [Rabbah]\",\"Rabbi Oshaya [Rabbah]\",\"R. Hoshaia\",\"Rabbi Oshaia\",\"Rebbi Hoshaia the Elder\",\"Rebbi Oshaya\",\"Rebbi Hoshaya\",\"Rebbi Hoshaia\",\"Rav Hoshaia\",\"Rebbi Yoshaia\",\"Rav Oshaia\",\"Rebbi Oshaia\",\"Rebbi Oshaiah\",\"Rav Oshaiah\",\"Rebbi Hoshaiah\",\"Rav Hoshaiah\",\"the Great Rebbi Hoshaia\",\"The Great Rebbi Hoshaia\"],\"bio\":\"R. Oshaya was a prominent student of R. Chiyya, and was known for the clarity of his transmission of his teacher's Bereita. He played an important role in the Sanhedrin under R. Yehudah Nesi'a. After the latter died, he went to Caesarea to lead his own academy. His students included R. Yochanan.\",\"canonical\":\"Rabbi Oshaya\",\"canonicalHe\":\"רבי אושעיא\",\"generation\":\"tanna-6\",\"id\":\"rabbi-oshaya\",\"sources\":null},{\"aliases\":[\"R. Oshaya\",\"Rabbi Hoshaya\",\"R. Hoshaya\",\"Rav Oshaya\",\"Rav Hoshaya\"],\"bio\":\"Rabbi Oshaya (also Hoshaya) was an Amora of the second and third generations. Born in Babylonia, he moved to Eretz Yisrael in his youth. He was the brother of the Amora Rav Chanina.\",\"canonical\":\"Rabbi Oshaya\",\"canonicalHe\":\"רב אושעיא\",\"generation\":\"amora-ey-2\",\"id\":\"rabbi-oshaya-2\",\"sources\":null}],\"id\":\"case-498d6f358afcdb303b84\",\"person\":{\"id\":\"D\",\"label\":\"רבי אושעיא\",\"named\":\"name\",\"quote\":\"רבי אושעיא\",\"quoteLocation\":\"passage\"},\"personKey\":\"b000-p0/D\",\"ref\":\"Sanhedrin 33a:6\",\"source\":{\"after\":\"היכי דמי שיקול הדעת אמר רב פפא כגון תרי תנאי או תרי אמוראי דפליגי אהדדי ולא איתמר הלכתא לא כמר ולא כמר ואיקרי ועבד כחד מינייהו וסוגיא דשמעת' אזלי כאידך היינו שיקול הדעת\",\"before\":\"רב ששת אמר כאן שטעה בדבר משנה כאן שטעה בשיקול הדעת דאמר רב ששת אמר רב אסי טעה בדבר משנה חוזר טעה בשיקול הדעת אינו חוזר\",\"passage\":\"א\\\"ל רבינא לרב אשי אפילו טעה בר' חייא ורבי אושעיא א\\\"ל אין אפילו בדרב ושמואל אמר ליה אין אפילו בדידי ודידך א\\\"ל אטו אנן קטלי קני באגמא אנן\"}},\"error\":null,\"generationBasis\":\"candidate_metadata_not_verified\",\"inputSha256\":\"765af0f41150d695fd8c83e06deea08d8463cc207a2a732955a05f2cf9c6f954\",\"recipe\":\"e2b6717450baa4be7c260a9a14a8d9d2e46ad4f2473ab081a60c8c9050ff47e9\",\"resultPath\":\"results/inputs-000/first/case-498d6f358afcdb303b84.json\",\"resultSha256\":\"a60a474d719851a34b64d61a2e2c02d86490735f8857d7cbeeb16fcfab9fee00\",\"runId\":\"wide-v1-recovery\",\"sourceSha256\":\"6a9de6018bd6b8dc7fbc06c9c7b7447eae94c9008aab1f21d8bd0c770b21b975\",\"status\":\"complete\"}"
+    ],
+    [
+      "identity_proposal:wide-v1-recovery/case-67ca04de7bd1604dacfb",
+      "identity_proposal",
+      "b004-p7",
+      "Devarim Rabbah 1:17",
+      "local:b004-p7/K",
+      null,
+      "screening",
+      "needs_review",
+      "44c63e94fb4a8e81be38ebfd2c31c8892ad2e1df53e0293be1dbf499fe84ed65",
+      "{\"accepted\":false,\"answer\":{\"evidence\":[{\"location\":\"passage\",\"quote\":\"אמר רבי יהודה ברבי סימון\"},{\"location\":\"before\",\"quote\":\"אמר רבי יהודה ברבי סימון אמר לו הקדוש ברוך הוא\"}],\"generation\":\"amora-ey-3\",\"id\":\"case-67ca04de7bd1604dacfb\",\"personId\":\"rabbi-yehudah-b-pazi\",\"reason\":\"The passage names Rabbi Yehuda b. R. Simon; candidate rabbi-yehudah-b-pazi is R. Yehudah b. Shimon b. Pazi, matching the patronymic and amoraic context.\",\"status\":\"matched\"},\"audit\":null,\"case\":{\"candidates\":[{\"aliases\":[\"Judah\",\"Yehudah\",\"Yehuda\",\"#Yehuda\",\"Jehudah\"],\"bio\":\"Judah was the founder of the tribe of Judah and an ancestor of King David, through whom his tribe gained prominence. The territory of Judea is named for him, as are the modern Jewish people. He was the son of Leah and the fourth of Jacob's twelve sons, blessed by his father to be a leader of his brothers.\",\"canonical\":\"Judah\",\"canonicalHe\":\"יהודה\",\"generation\":null,\"id\":\"judah\",\"sources\":null},{\"aliases\":[\"R. Yehuda b. Betera II\",\"Rabbi Judah b. Betera II\",\"Rabbi Yehuda ben Betera II\",\"Rabbi Yehuda b. Betera the Second\"],\"bio\":\"Rabbi Yehuda b. Betera II was a Tanna of the third generation, living at the beginning of the second century CE. His main place of residence was Nisibis in Babylonia, and he was the grandson of Rabbi Yehuda b. Betera I.\",\"canonical\":\"Rabbi Yehuda b. Betera II\",\"canonicalHe\":\"רבי יהודה בן בתירא השני\",\"generation\":\"tanna-3\",\"id\":\"rabbi-yehuda-b-betera-ii\",\"sources\":null},{\"aliases\":[\"Rabbi Yehuda b. Geris\",\"Rabbi Yudan b. Geyori\",\"R. Yehuda b. Gerim\",\"Rabbi Judah b. Gerim\"],\"bio\":\"Rabbi Yehuda b. Gerim was a tanna of the fifth generation and a disciple of Rabbi Shimon b. Yochai. The Babylonian Talmud relates that he publicized his teacher's critical remarks about the Romans, inadvertently bringing about Rabbi Shimon b. Yochai's persecution by the authorities.\",\"canonical\":\"Rabbi Yehuda b. Gerim\",\"canonicalHe\":\"יהודה בן גרים\",\"generation\":\"tanna-5\",\"id\":\"rabbi-yehuda-b-gerim\",\"sources\":null},{\"aliases\":[\"R. Yehuda b. Kenusa\",\"Rabbi Judah b. Kenusa\",\"Rabbi Yehuda b. Nekosa\",\"R. Judah b. Kenusa\",\"Rabbi Yehuda ben Kenusa\"],\"bio\":\"Rabbi Yehuda b. Kenusa was an Eretz Yisraeli Amora of the transitional generation from the Tannaim to the Amoraim, and of the first generation of Eretz Yisraeli Amoraim. He was a student of Rabbi Chiya. Rabbi Rafael Natan Neta Rabinovitz, followed by Rabbi Aharon Heiman, identified him with the Tanna Rabbi Yehuda b. Nekosa.\",\"canonical\":\"Rabbi Yehuda b. Kenusa\",\"canonicalHe\":\"רבי יהודה בן קנוסא\",\"generation\":\"amora-ey-1\",\"id\":\"rabbi-yehuda-b-kenusa\",\"sources\":null},{\"aliases\":[\"Rabbi Yehuda b. Nachman\",\"Rabbi Yudan b. Nechemya\",\"R. Yehuda b. Nachmani\",\"Rabbi Yehuda bar Nachmani\",\"Rabbi Judah b. Nachmani\"],\"bio\":\"Rabbi Yehuda b. Nachmani, also known as Rabbi Yehuda b. Nachman and Rabbi Yudan b. Nechemya, was an Eretz Yisraeli Amora of the second and third generations, active during the third and fourth centuries. His primary place of residence was Tiberias.\",\"canonical\":\"Rabbi Yehuda b. Nachmani\",\"canonicalHe\":\"רבי יהודה בר נחמני\",\"generation\":\"amora-ey-2\",\"id\":\"rabbi-yehuda-b-nachmani\",\"sources\":null},{\"aliases\":[\"R. Yehuda b. Shalom\",\"Rabbi Yudan b. Shalom\",\"R. Yudan b. Shalom\",\"Rabbi Yehuda bar Shalom\",\"Rabbi Yudan bar Shalom\"],\"bio\":\"Rabbi Yehuda b. Shalom, also called Yudan, was a fifth-generation Eretz Yisrael Amora of the late fourth century and a student of Rabbi Yosei. He is mentioned in a halachic dispute with Rabbi Matunya, engaged in halacha, and likely served as a judge, though most of his statements are aggadic. Shlomo Buber identified him with Rabbi Yehuda HaLevi cited frequently in Midrash Tanchuma. Yechiel Heilprin suggested he lived in the time of Rabbi Abbahu but admitted lack of evidence; Buber attributed this to a corrupted text in Sefer Yuchasin. His son may have been named Yehuda as well, based on a mention of \\\"Rabbi Yudan b. Yudan b. Shalom,\\\" though this may be a corrupt reading of his own name.\",\"canonical\":\"Rabbi Yehuda b. Shalom\",\"canonicalHe\":\"רבי יהודה בר שלום\",\"generation\":\"amora-ey-5\",\"id\":\"rabbi-yehuda-b-shalom\",\"sources\":null},{\"aliases\":[\"R. Yehuda b. Shila\",\"Rabbi Yehudah b. Shila\",\"Rabbi Yehuda bar Shila\",\"Rav Yehuda b. Shila\"],\"bio\":\"Rabbi Yehuda b. Shila was a fourth-generation Eretz Yisrael Amora. He transmitted teachings in the name of Rabbi Assi, a disciple of Rabbi Yochanan, including an aggadic teaching enumerating six meritorious acts whose reward persists in the World to Come. He is credited with few halakhot, notably a foundational rule regarding secondary incest prohibitions (she'niyot), which Rava subsequently limited to cases involving a single marital bond. He also transmitted rulings concerning mikvah and muktzeh in the name of Rabbi Assi citing Rabbi Yochanan. Toward the end of his life he traveled to Babylonia.\",\"canonical\":\"Rabbi Yehuda b. Shila\",\"canonicalHe\":\"רב יהודה בר שילא\",\"generation\":\"amora-ey-4\",\"id\":\"rabbi-yehuda-b-shila\",\"sources\":null},{\"aliases\":[\"Rabbi Yehuda bar Titus\",\"Rabbi Yehuda bar Titam\",\"Rabbi Yehuda bar Sotes\",\"R. Yehuda bar Titas\",\"Rabbi Judah bar Titas\"],\"bio\":\"Rabbi Yehuda bar Titas was a fourth-generation Eretz-Yisraeli Amora. He appears several times in the Jerusalem Talmud. His name is recorded in variant spellings, including Titus, Titam, and Sotes.\",\"canonical\":\"Rabbi Yehuda bar Titas\",\"canonicalHe\":\"רבי יהודה בר טיטס\",\"generation\":\"amora-ey-4\",\"id\":\"rabbi-yehuda-bar-titas\",\"sources\":null},{\"aliases\":[\"Rabbi Judah HaNachtom\",\"R. Yehuda HaNachtom\",\"Rabbi Yehuda Hanachtom\",\"R. Judah HaNachtom\"],\"bio\":\"Rabbi Yehuda HaNachtom was a Tanna of the third generation. He is not mentioned in the Mishnah; two statements of his, one concerning the boundaries of the district of those who came up from Babylonia and one concerning the laws of sacrifices, appear in the Tosefta. The Jerusalem Talmud and Midrashim indicate that he was killed during the decrees of persecution, and according to some Midrashim he was counted among the Ten Martyrs. Midrash Shir HaShirim states that he never walked four cubits without Torah.\",\"canonical\":\"Rabbi Yehuda HaNachtom\",\"canonicalHe\":\"רבי יהודה הנחתום\",\"generation\":\"tanna-3\",\"id\":\"rabbi-yehuda-hanachtom\",\"sources\":null},{\"aliases\":[\"R. Yehuda Nesiah II\",\"Rabbi Judah Nesiah II\",\"Rabbi Yehudah Nesiah II\",\"Rabbi Yehuda Nesiah the Second\"],\"bio\":\"Rabbi Yehuda Nesiah II was the son of Rabban Gamliel IV and served as Nasi of the Sanhedrin in the second or third generation of Eretz Yisrael Amoraim. According to his lineage, he was the tenth generation from Hillel the Elder.\",\"canonical\":\"Rabbi Yehuda Nesiah II\",\"canonicalHe\":\"רבי יהודה נשיאה השני\",\"generation\":\"amora-ey-2\",\"id\":\"rabbi-yehuda-nesiah-ii\",\"sources\":null},{\"aliases\":[\"Rabbi Yehudah b. Bava\",\"Rabbi Yehuda b. Bava\",\"Rabbi Judah b. Baba\",\"Rabbi Judah b. Bava\",\"Rabbi Yehudah ben Bava\",\"Rabbi Yehuda ben Bava\",\"Rabbi Judah ben Baba\",\"Rabbi Judah ben Bava\",\"Rebbi Jehudah b. Baba\",\"Jehudah b. Baba\",\"Rebbi Jehudah b. Bava\",\"Rebbi Judah b. Baba\"],\"bio\":\"R. Yehudah b. Bava was an important scholar who lived at the same time as R. Akiva. He was so exceptional in his piety, that when the Talmud mentions a certain pious man, the reference is almost always to him. He defied the persecutory Roman laws by ordaining students in a hidden location in the mountains. Caught in this act, he was killed by the Romans.\",\"canonical\":\"Rabbi Yehudah b. Bava\",\"canonicalHe\":\"רבי יהודה בן בבא\",\"generation\":\"tanna-3\",\"id\":\"rabbi-yehudah-b-bava\",\"sources\":null},{\"aliases\":[\"Rabbi Yehudah b. Betera\",\"Rabbi Judah b. Bathyra\",\"Rabbi Judah b. Betera\",\"Rabbi Yehuda b. Beseira\",\"Rabbi Yehuda b. Beteira\",\"Rabbi Judah b. Batera\",\"Rabbi Yehudah b. Batera\",\"Rabbi Yehudah ben Betera (I)\",\"Rabbi Judah ben Bathyra (I)\",\"Rabbi Judah ben Betera (I)\",\"Rabbi Yehuda ben Beseira (I)\",\"Rabbi Yehuda ben Beteira (I)\",\"Rabbi Judah ben Batera (I)\",\"Rabbi Yehudah ben Batera\",\"Rebbi Jehudah b. Bathyra\",\"Rebbi Yehudah b. Bathyra\",\"ben Bathyra\",\"Ben Bathyra\"],\"bio\":\"R. Yehudah b. Betera was a scholar and the head of an academy in Netzivin in northern Babylonia.\",\"canonical\":\"Rabbi Yehudah b. Betera (I)\",\"canonicalHe\":\"רבי יהודה בן בתירא\",\"generation\":\"tanna-2\",\"id\":\"rabbi-yehudah-b-betera-(i)\",\"sources\":null},{\"aliases\":[\"Rabbi Yehudah b. Betera\",\"Rabbi Judah b. Bathyra\",\"Rabbi Judah b. Betera\",\"Rabbi Yehuda b. Beseira\",\"Rabbi Yehuda b. Beteira\",\"Rabbi Judah b. Batera\",\"Rabbi Yehudah b. Batera\",\"Rabbi Yehudah ben Betera (II)\",\"Rabbi Judah ben Bathyra (II)\",\"Rabbi Judah ben Betera (II)\",\"Rabbi Yehuda ben Beseira (II)\",\"Rabbi Yehuda ben Beteira (II)\",\"Rabbi Judah ben Batera (II)\",\"Rabbi Yehudah ben Batera\",\"Rebbi Jehudah b. Bathyra\",\"Rebbi Yehudah b. Bathyra\"],\"bio\":\"R. Yehudah b. Betera was a prominent teacher with an academy in Netzivin in Babylonia. He seems to have traveled a great deal and had prominent visitors come to him as well.\",\"canonical\":\"Rabbi Yehudah b. Betera (II)\",\"canonicalHe\":\"רבי יהודה בן בתירא (2)\",\"generation\":\"tanna-2\",\"id\":\"rabbi-yehudah-b-betera-(ii)\",\"sources\":null},{\"aliases\":[\"Rabbi Yehudah [b. Il'ai]\",\"Rabbi Yehuda b. Rabbi Elai\",\"Rabbi Yehuda b. Elai\",\"Rabbi Yehuda b. Ilai\",\"Rabbi Yehudah b. R' II'ai\",\"Rabbi Yehuda of the West\",\"Rabbi Yehuda\",\"Rabbi Yehudah\",\"Rabbi Judah\",\"R. Judah\",\"Rabbi Yehuda ben Rabbi Elai\",\"Rabbi Yehuda ben Elai\",\"Rabbi Yehuda ben Ilai\",\"Rabbi Yehudah ben R' II'ai\",\"Rebbi Judah\",\"R. Jehudah\",\"Rebbi Jehudah b. Ilay\",\"Rebbi Jehudah b. liai\",\"Rebbi Yehudah b. Rebbi Ilaï\",\"Rebbi Jehudah b. Ilaï\",\"Rebbi Jehudah b. Ilai\",\"Rebbi Jehudah b. Rebbi Ilaї\",\"Rebbi Jehudah b. Rebbi Illai\",\"Rebbi Jehuda\",\"Rebbi Yehuda\",\"Rebbi Yehudah\",\"Rebbi Jehudah\",\"Rabbi Yehuda b. Rabbi Ilai\",\"Rabbi Yehuda b. Rabbi El’ai\"],\"bio\":\"R. Yehudah was one of the most prolific scholars of the Mishnaic period, cited almost 3,000 times in Tannaitic literature. He had several teachers but was likely closest to R. Tarfon. Due to his conciliatory attitude towards the Romans, they decreed that he speak first at rabbinic convocations.\",\"canonical\":\"Rabbi Yehudah [b. Il'ai]\",\"canonicalHe\":\"רבי יהודה\",\"generation\":\"tanna-4\",\"id\":\"rabbi-yehudah-b-ilai\",\"sources\":null},{\"aliases\":[\"Rabbi Yehudah b. Pazi\",\"Rabbi Judah b. Pazi\",\"Rabbi Yehudah b. Shimon b. Pazi\",\"Rav Yehuda b. Rabbi Shimon b. Pazi\",\"Rabbi Yehudah ben Pazi\",\"Rabbi Judah ben Pazi\",\"Rabbi Yehudah ben Shimon ben Pazi\",\"Rav Yehuda ben Rabbi Shimon ben Pazi\",\"R. Judan b. Pazi\",\"R. Yehudah b. Pazi\",\"Rebbi Yehudah b. Pazi\",\"Rebbi Jehudah b. Pazi\",\"Rebbi Jehudah b. Pazy\",\"Rebbi Judah b. Pazy\",\"Rebbi Judah b. Pazi\",\"Rebbi Yuda b. Pazi\",\"Rebbi Yudan b. Pazi\"],\"bio\":\"R. Yehudah b. Pazi was the son and student of R. Shimon b. Pazi. As he grew into an outstanding scholar and judge, other scholars would inquire about his father's teachings from him.\",\"canonical\":\"Rabbi Yehudah b. Pazi\",\"canonicalHe\":\"רבי יהודה בן פזי\",\"generation\":\"amora-ey-3\",\"id\":\"rabbi-yehudah-b-pazi\",\"sources\":null},{\"aliases\":[\"R. Yehudah HaNasi\",\"Rabbi Yehuda HaNasi\",\"Rabbi Judah HaNasi\",\"Rabbi Yehudah ha-Nasi\"],\"bio\":\"Rabbi Yehudah HaNasi, known as Rabbeinu HaKadosh and by the shortened name Rabbi, was a fifth-generation Tanna, Nasi of the Sanhedrin, and redactor of the Mishnah. A descendant of Hillel the Elder, he is regarded as the last of the Tannaim. Born between 135 and 137 CE during Hadrian's persecutions following the Bar Kokhba revolt, he studied under Rabbi Shimon bar Yochai, Rabbi Yehudah bar Ilai, Rabbi Elazar ben Shammua, and his father Rabban Shimon ben Gamliel. He lived in Tiberias and Tzippori, where he died around 220 CE, and was buried in Beit She'arim.\",\"canonical\":\"Rabbi Yehudah HaNasi\",\"canonicalHe\":\"רבי יהודה הנשיא\",\"generation\":\"tanna-5\",\"id\":\"rabbi-yehudah-hanasi\",\"sources\":null},{\"aliases\":[\"Rabbi Yehudah Nesi'a\",\"Rabbi Yehudah Nesiyah\",\"Rebbi Judah the Prince, grandson of Rebbi Judah the Prince\",\"Rebbi Judah the Prince, grandson of Rebbi Judah\",\"Rebbi Yudan Neśia\",\"Rebbi Jehudah the Patriarch\",\"Rebbi Yudan the Patriarch\",\"Rabbi Yehuda Nesia b. Rabban Gamliel b. Rabbi Yehuda HaNasi\",\"Rabbi Yehuda Nesia b. Rabban Gamliel\",\"Rabbi Yehuda Nesia\"],\"bio\":\"R. Yehudah Nesi'a was the last Nasi to be both leader of the Academy and of the Jewish community in Palestine. Grandson of R. and son of Rabban Gamliel III, he emerged as a powerful leader at a difficult time. Mistrust of the aristocratic and lenient ways of the academy were growing, such that R. Yehudah often quelled challenges from within.\",\"canonical\":\"Rabbi Yehudah Nesi'a (I)\",\"canonicalHe\":\"רבי יהודה נשיאה (1)\",\"generation\":\"amora-ey-2\",\"id\":\"rabbi-yehudah-nesia-(i)\",\"sources\":null},{\"aliases\":[\"Rabbi Yehudah Nesi'a\",\"Rebbi Yudan Neśia\",\"Rebbi Judah Neśia\",\"Rebbi Judah Neśia\",\"Rebbi Jehudah Neśia\",\"Rebbi Jehudah Nesia\",\"Rebbi Jehudah Neśia\",\"Rebbi Jehudah the Patriarch\",\"Rebbi Yudan the Patriarch\",\"Rabbi Yehuda Nesia\"],\"bio\":\"R. Yehudah Nesi'a II was the grandson of R. Yehudah Nesi'a I. He studied under R. Yochanan and depended upon him and R. Ami to come to many of his decisions. He promoted Torah education at a time when it was in decline.\",\"canonical\":\"Rabbi Yehudah Nesi'a (II)\",\"canonicalHe\":\"רבי יהודה נשיאה (2)\",\"generation\":\"amora-ey-3\",\"id\":\"rabbi-yehudah-nesia-(ii)\",\"sources\":null},{\"aliases\":[\"R. Yehuda b. Chaviva\",\"Rabbi Yehuda b. Chaviva\",\"Rav Yehuda bar Chaviva\",\"Rav Judah b. Chaviva\",\"Yehuda b. Chaviva\"],\"bio\":\"Rav Yehuda b. Chaviva was a second-generation Babylonian Amora of the third century and a student of Shmuel. His own statements in the Talmud are sparse; he generally transmits teachings in the names of other sages or baraitot. Little is known of his life, family, or place of residence, aside from the fact that his daughter married the son of Rav Yehuda, the famous Amora and leading student of Shmuel. The only statement he issued in his own name concerns combining the passage of tzitzit with the recitation of the Shema.\",\"canonical\":\"Rav Yehuda b. Chaviva\",\"canonicalHe\":\"רב יהודה בר חביבא\",\"generation\":\"amora-bavel-2\",\"id\":\"rav-yehuda-b-chaviva\",\"sources\":null},{\"aliases\":[\"Rav Judah b. Merimar\",\"Rav Yehuda Mar b. Merimar\",\"R. Yehuda b. Merimar\",\"Rav Yehuda bar Merimar\",\"Judah b. Merimar\"],\"bio\":\"Rav Yehuda b. Merimar was a fifth-generation Babylonian Amora and student of Rava, transmitting halakha in his name. A colleague of Rav Papa and a man of great stature, he was asked to accompany Rav Papa to negotiate a dowry with Abba Sura. Fearing Abba Sura would be shamed into giving more than he wished, Yehuda initially refused; though he eventually attended, he remained silent. Abba Sura interpreted this as displeasure and kept increasing the dowry until he had given most of his assets. Yehuda then explained that even the original sum was unnecessary, but since Abba Sura had pledged it, he should not retract. Some identify him with the figure called Yehuda Mar b. Merimar, though scholars differ on whether the \\\"Mar\\\" belongs to him or to a later namesake, a colleague of Mar b. Rav Ashi.\",\"canonical\":\"Rav Yehuda b. Merimar\",\"canonicalHe\":\"יהודה בר מרימר (הראשון)\",\"generation\":\"amora-bavel-5\",\"id\":\"rav-yehuda-b-merimar\",\"sources\":null},{\"aliases\":[\"Rav Judah b. Rav Samuel bar Sheilat\",\"Rav Yehuda ben Rav Shmuel bar Sheilat\",\"R. Yehuda b. Rav Shmuel bar Sheilat\",\"Rav Yehuda b. Rav Shmuel b. Sheilat\"],\"bio\":\"Rav Yehuda b. Rav Shmuel bar Sheilat was a second-generation Babylonian Amora. He lived and was active in Babylonia.\",\"canonical\":\"Rav Yehuda b. Rav Shmuel bar Sheilat\",\"canonicalHe\":\"רב יהודה בן רב שמואל בר שילת\",\"generation\":\"amora-bavel-2\",\"id\":\"rav-yehuda-b-rav-shmuel-bar-sheilat\",\"sources\":null},{\"aliases\":[\"Rav Judah, Brother of Rav Sela the Hasid\",\"R. Yehuda, Brother of Rav Sela the Hasid\",\"Rav Yehuda, the Brother of Rav Sela the Hasid\",\"Rav Yehuda, Brother of Rav Sela HaHasid\",\"Rav Yehuda Brother of Rav Sela the Hasid\"],\"bio\":\"Rav Yehuda, Brother of Rav Sela the Hasid, was a Babylonian Amora. He is mentioned several times in the Talmud, primarily in connection with aggadic teachings he heard from Elijah the Prophet.\",\"canonical\":\"Rav Yehuda, Brother of Rav Sela the Hasid\",\"canonicalHe\":\"רב יהודה אחוה דרב סלא חסידא\",\"generation\":\"amora-bavel-4\",\"id\":\"rav-yehuda-brother-of-rav-sela-the-hasid\",\"sources\":null},{\"aliases\":[\"Rav Yehudah [b. Yehezkel]\",\"Rav Yehuda\",\"Rav Yehudah b. Yehezkel\",\"Rav Yehudah [b. Yechezkel]\",\"Rav Judah\",\"Rav Yehudah ben Yehezkel\",\"Rav Jehudah b. Ezechiel\",\"Rav Yehudah b. Ezechiel\",\"Rav Yehudah\",\"Rav Jehudah\"],\"bio\":\"Rav Yehudah studied under Rav until he died and eventually went to study under Shmuel, with whom he had a more complicated relationship. After Shmuel died, he established an academy in Pumbedita, which eventually became the leading center of the Babylonian community. He further consolidated the independence of the Jewish center in Babylonia.\",\"canonical\":\"Rav Yehudah [b. Yechezkel]\",\"canonicalHe\":\"רב יהודה\",\"generation\":\"amora-bavel-2\",\"id\":\"rav-yehudah-b-yechezkel\",\"sources\":null},{\"aliases\":[\"The Tetragrammaton\",\"Adonay\",\"Adonoy\",\"יהוה\",\"Y HWH\",\"Hashem\",\"YHVH\",\"YHWH\",\"YHV'H\",\"YHW'H\"],\"bio\":\"The Hebrew letters ‘yud,’ ‘hey,’ ‘vav,’ and ‘hey’ (in English, YHVH) form what is known as the Tetragrammaton, or God’s four-letter name. Given the longstanding Jewish prohibition against speaking God’s name aloud, the word’s original pronunciation is unclear, and it is traditionally not pronounced as written. Instead, a variety of substitutes are used - like “Adonai” (“My Lord”) and “Hashem” (“The Name”) - depending on the context.\",\"canonical\":\"The Tetragrammaton\",\"canonicalHe\":\"שם הויה\",\"generation\":null,\"id\":\"the-tetragrammaton\",\"sources\":null},{\"aliases\":[\"Yehuda Ashlag\",\"Baal Hasulam\",\"Rabbi Yehuda Ashlag\",\"Yehudah Ashlag\"],\"bio\":\"Rabbi Yehuda Ashlag, also known as the Ba’al HaSulam, was a rabbi and kabbalist. Born in Poland, he emigrated to Israel in 1921 and was appointed rabbi of Givat Shaul, Jerusalem. He is best known for his work *Talmud Eser Sefirot*, a commentary on the work of Isaac Luria, as well as *HaSulam*, a commentary on the Zohar. While Kabbalah was traditionally treated as a body of secrets reserved for elite students, Ashlag believed it held the keys to finding meaning and achieving personal and social reform and should be made accessible to all. He and his students were instrumental in the contemporary popularization of the study of Kabbalah. \",\"canonical\":\"Yehuda Ashlag\",\"canonicalHe\":\"יהודה לייב הלוי אשלג\",\"generation\":null,\"id\":\"yehuda-ashlag\",\"sources\":null},{\"aliases\":[\"Yehudah b. Hiyya\",\"Yehudah ben Hiyya\",\"Jehudah b. the rabbi\",\"Jehudah b. Rebbi Hiyya\",\"Jehudah b. Hiyya\",\"Rebbi Jehuda b. Rebbi\",\"Rebbi Jehudah b. Rebbi\",\"Jehudah b. Rebbi\",\"the Great Rebbi Jehudah\",\"The Great Jehudah\"],\"bio\":\"R. Chiyya's two sons, Yehudah b. Chiyya and Chizkiyah b. Chiyya, came with him from Babylonia to Palestine as young adults. Already known for their scholarship, they added distinction to Rabbi's academy. They died prematurely and were buried on either side of their father.\",\"canonical\":\"Yehudah b. Hiyya\",\"canonicalHe\":\"יהודה בר חייה\",\"generation\":null,\"id\":\"yehudah-b-hiyya\",\"sources\":null},{\"aliases\":[\"Yehudah b. Tabbai\",\"Rabbi Yehuda b. Tabbai\",\"Judah b. Tabbai\",\"Rabbi Judah b. Tabbai\",\"Judah Ben Tabbai\",\"Judah b. Tabai\",\"Yehuda b. Tabbai\",\"Yehudah ben Tabbai\",\"Rabbi Yehuda ben Tabbai\",\"Judah ben Tabbai\",\"Rabbi Judah ben Tabbai\",\"Judah ben Tabai\",\"Yehuda ben Tabbai\",\"Jehudah b. Tabbai\",\"Rebbi Jehudah b. Tabbai\"],\"bio\":\"The third of the pairs, Yehudah b. Tabbai and Shimon b. Shetach served during the tumultuous reign of Alexander Yannai. Though Yannai's brother-in-law, Shimon had to hide at the height of Yannai's persecution of the Pharisees; while Yehudah fled to Egypt. Nevertheless, Shimon wrested control of the Sanhedrin away from the Sadducees.\",\"canonical\":\"Yehudah b. Tabbai\",\"canonicalHe\":\"רבי יהודה בן טבאי\",\"generation\":\"zugim\",\"id\":\"yehudah-b-tabbai\",\"sources\":null},{\"aliases\":[\"Yehudah b. Tema\",\"Yehuda b. Teima\",\"Judah b. Tema\",\"Yehudah ben Tema\",\"Yehuda ben Teima\",\"Judah ben Tema\",\"Rebbi Jehudah b. Tema\",\"Jehudah b. Tema\"],\"bio\":\"Not much is known about R. Yehudah b. Tema, but he is described as a master of the Mishnah. He was a student of R. Yehuda haNasi.\",\"canonical\":\"Yehudah b. Tema\",\"canonicalHe\":\"יהודה בן תימא\",\"generation\":null,\"id\":\"yehudah-b-tema\",\"sources\":null}],\"id\":\"case-67ca04de7bd1604dacfb\",\"person\":{\"id\":\"K\",\"label\":\"רבי יהודה ברבי סימון\",\"named\":\"name\",\"quote\":\"רבי יהודה ברבי סימון\",\"quoteLocation\":\"passage\"},\"personKey\":\"b004-p7/K\",\"ref\":\"Devarim Rabbah 1:17\",\"source\":{\"after\":\"דבר אחר, מהו רב לכם, אמר רבי אחא נוגעין אתם בו, בשלכם אתם נוגעים, כיצד, ברכה אחת ברכו אביו (בראשית כז, מ): ועל חרבך תחיה, וליעקב ברך עשר ברכות, מנין, שכן כתיב (בראשית לג, כח): ויתן לך האלהים מטל השמים, אם בטלה היא ברכתו, אף עשר שלכם בטלות, רב לכם סב.\",\"before\":\"ר שהכל מבצרין אותה. אמר רבי יוחנן היה דוד מתאוה ואומר מי יובלני עיר מצור, מי יתן שאפרע ממנה, אמר לו הקדוש ברוך הוא, דוד, ויכול אתה לה, אמר לפניו רבונו של עולם (תהלים ס, יא): מי נחני עד אדום, אמר לפניו מי שכבר השליטני על אדום הוא משליט אותי אף על זו סגיאין, ומנין ששלט דוד על אדום, שנאמר (שמואל ב ח, יד): וישם באדום נצבים. מהו נציבים, רבי סימון אמר קסטרס. רבנן אמרי אדריאנטין. אמר רבי יהודה ברבי סימון אמר לו הקדוש ברוך הוא, דוד, יודע אני שידיך חדות וחרוצות, ואני מבקש לרדות את עולמי בהם. דבר אחר, דוד, אני צריך לה לדורות, וכבר משה רבך בקש להזדוג בהן, ואמרתי לו רב לכם, רב יצוה לתלמידיו סב את ההר הזה.\",\"passage\":\"דבר אחר, רב לכם סב. זה שאמר הכתוב (תהלים לז, ז): דום לה' והתחולל לו וגו', מהו והתחולל לו, צפה להקדוש ברוך הוא, כענין שנאמר (תהלים מב, ו): מה תשתוחחי נפשי וגו'. דבר אחר, והתחולל לו, אמר רבי תחליפא דקסרין, מהו והתחולל לו, אם באו עליך יסורין קבל אותן בחילה. (תהלים לז, ז): אל תתחר במצליח דרכו, זה עשו, שכתוב בו (ירמיה יב, א): מדוע דרך רשעים צלחה. (תהלים לז, ז): באיש עשה מזמות, זה עשו שדן את בני האדם בערמה, כיצד, הדין הזה של מלכות, דן את הרוצח, והוא אומר למה הרגת, והוא אומר לא הרגתיו, והוא שואל אותו ואומר ובמה הרגתו בסיף או ברומח או בסכין. דבר אחר, דום לה' והתחולל לו, אמר רבי יהושע בן לוי, בשעה שבאו השונאים להחריב את ירושלים, היו שם ששים רבוא של מזיקין, והיו עומדים על פתחו של היכל לפגע בהם, כיון שראו את השכינה רואה ושותקת, מנין, שכתיב (איכה ב, ג): השיב אחור ימינו מפני אויב, אף הם נתנו מקום. אמר רבי יהודה ברבי סימון, ראה אותו מחריב את ביתו, ושותק לו, ואתם מבקשין להזדוג לו, עד עכשו מתבקש לו שכר כבוד אבותיו. רב לכם סב. מהו סב את ההר, אמר רבי חנינא הרבה סבב עשו את הורו זה, זה אביו שהיה זקוק לו להאכילו, מנין (בראשית כה, כח): ויאהב יצחק את עשו כי ציד בפיו. אמר רבי שמואל ברבי גדליה, אמר הקדוש ברוך הוא גמולות אני פורע, בשעה שנתן יעקב דורון לעשו, מה עשו אומר לו (בראשית לג, ט): יש לי רב, לא תצטער. אמר הקדוש ברוך הוא בלשון הזה כבדו בלשון הזה אני אומר לו פנו מלפניו רב לכם סב.\"}},\"error\":null,\"generationBasis\":\"candidate_metadata_not_verified\",\"inputSha256\":\"8b15a27556d6b113aeb2624db73a7a249fed48312ada43958e23db9e9937ea13\",\"recipe\":\"e2b6717450baa4be7c260a9a14a8d9d2e46ad4f2473ab081a60c8c9050ff47e9\",\"resultPath\":\"results/inputs-000/first/case-67ca04de7bd1604dacfb.json\",\"resultSha256\":\"d9fe3ada4b1cdaa5e521747871aa2ce41d2fd99629e007d061562502ee82c278\",\"runId\":\"wide-v1-recovery\",\"sourceSha256\":\"0a584d52695358ef9431a74b83e7293a6cf940dffe198fc49e973664640d27c2\",\"status\":\"complete\"}"
+    ],
+    [
+      "identity_proposal:wide-v1-recovery/case-6fea88bd42fcd7593a88",
+      "identity_proposal",
+      "b000-p0",
+      "Sanhedrin 33a:6",
+      "local:b000-p0/F",
+      null,
+      "screening",
+      "needs_review",
+      "a7f626d1cc803efbd33772431afcacf50f69014957ea449cf4975f3feec50249",
+      "{\"accepted\":false,\"answer\":{\"evidence\":[{\"location\":\"passage\",\"quote\":\"אפילו בדרב ושמואל\"}],\"generation\":\"amora-bavel-1\",\"id\":\"case-6fea88bd42fcd7593a88\",\"personId\":\"shmuel-(amora)\",\"reason\":\"The passage’s “דרב ושמואל” refers to the standard Babylonian pair Rav and Shmuel; Shmuel (Amora) is the first-generation Babylonian Amora paired with Rav.\",\"status\":\"matched\"},\"audit\":null,\"case\":{\"candidates\":[{\"aliases\":[\"Rabbi Shmuel b. Nahmani\",\"Rabbi Shmuel b. Nahman\",\"Rav Shmuel b. Nahman\",\"Rav Shmuel b. Nahmani\",\"Rabbi Shmuel ben Nahmani\",\"Rabbi Shmuel ben Nahman\",\"Rav Shmuel ben Nahman\",\"Rav Shmuel ben Nahmani\",\"R. Samuel b. Nahmani\",\"Rav Samuel b. Nahman\",\"Samuel b. Nahman\",\"Rebbi Samuel b. Nahman\",\"Rebbi Samuel b. Rav Nahman\",\"Rebbi Samuel b. Rebbi Nahman\",\"Rebbi Samuel b. Nahmani\",\"Rebbi Samuel b. Rebbi Nahmani\",\"Rabbi Samuel b. Nahmani\"],\"bio\":\"R. Shmuel b. Nachmani was a student of R. Yochanan who became an influential scholar often sent by the Sanhedrin to Babylonia. He was known for his colorful homiletics and his longevity.\",\"canonical\":\"Rabbi Shmuel b. Nahmani\",\"canonicalHe\":\"רבי שמואל בן נחמן\",\"generation\":\"amora-ey-2\",\"id\":\"rabbi-shmuel-b-nahmani\",\"sources\":null},{\"aliases\":[\"Rabbi Shmuel b. Yitzhak\",\"Shmuel b. Yitzhak\",\"Rav Shmuel b. Yitzhak\",\"Rav Shmuel b. Rav Yitzhak\",\"Rabbi Shmuel b. Rav Yitzhak\",\"Rabbi Shmuel ben Yitzhak\",\"Shmuel ben Yitzhak\",\"Rav Shmuel ben Yitzhak\",\"Rav Shmuel ben Rav Yitzhak\",\"Rabbi Shmuel ben Rav Yitzhak\",\"Rebbi Samuel b. Rabbi Isaac\",\"Rebbi Samuel b. Rebbi Issac\",\"Rebbi Samuel b. Rebbi Isaac\",\"Rebbi Samuel b. Rav Isaac\",\"Samuel b. Rav Isaac\",\"Rav Samuel b. Rav Isaac\",\"Rebbi Samuel b. Isaac\",\"Rav Yehuda b. Yitzhak\"],\"bio\":\"Like many others, R. Shmuel b. Yitzchak left Babylonia to study in Israel. As he established himself there, he became close to his teacher, R. Chiyya - to the point that he mourned the latter's death as would have a family member; something repeated by his devoted student, Rav Zera, when he died. He was particularly known for his kindness in helping brides rejoice at their weddings.\",\"canonical\":\"Rabbi Shmuel b. Yitzhak\",\"canonicalHe\":\"רב שמואל בר יצחק\",\"generation\":\"amora-ey-2\",\"id\":\"rabbi-shmuel-b-yitzhak\",\"sources\":null},{\"aliases\":[\"Rabbi Shmuel bar Nachman\",\"R. Shmuel bar Nachmani\",\"Rabbi Samuel bar Nachmani\",\"Rabbi Shmuel bar Nahmani\"],\"bio\":\"Rabbi Shmuel bar Nachmani was an Eretz Yisraeli Amora of the second and third generations, active in the 3rd and 4th centuries, who resided primarily in Lod. A kohen, he was among the greatest Jewish aggadists. He studied under Rabbi Yonatan ben Elazar and Rabbi Yehoshua ben Levi, and also saw the Tanna Rabbi Shimon ben Elazar; his colleague was Rabbi Yaakov bar Idi. Though he engaged extensively in halakha and was considered a leading authority of his generation, he was especially renowned for aggadah, earning the title \\\"ba'al aggadah.\\\" Many of his aggadic teachings were quoted by Rabbi Chelbo. His sons included the Amora Rabbi Hillel ben Rabbi Shmuel bar Nachmani and Nachman.\",\"canonical\":\"Rabbi Shmuel bar Nachmani\",\"canonicalHe\":\"רבי שמואל בר נחמני\",\"generation\":\"amora-ey-2\",\"id\":\"rabbi-shmuel-bar-nachmani\",\"sources\":null},{\"aliases\":[\"R. Shmuel bar Rav Yitzchak\",\"Rav Shmuel bar Rav Yitzchak\",\"Rabbi Shmuel bar R. Yitzchak\",\"R. Shmuel bar R. Yitzchak\"],\"bio\":\"Rabbi Shmuel bar Rav Yitzchak was a third-generation Amora born in Babylonia who ascended to Eretz Yisrael. He was considered, together with Rabbi Zeira, the greatest sage of his generation in Eretz Yisrael, and was known primarily as an aggadist.\",\"canonical\":\"Rabbi Shmuel bar Rav Yitzchak\",\"canonicalHe\":\"רב שמואל בר רב יצחק\",\"generation\":\"amora-ey-3\",\"id\":\"rabbi-shmuel-bar-rav-yitzchak\",\"sources\":null},{\"aliases\":[\"Rav Shmuel b. Rava\",\"R. Shmuel b. Rav Avahu\",\"Rav Shmuel bar Rav Avahu\",\"R. Shmuel b. Rava\"],\"bio\":\"Rav Shmuel b. Rav Avahu was a Jewish sage of the second generation of Savoraim, on the border of the first generation. He was the son of Rav Avahu, a sage of Pumbedita in the late Amoraic period. His colleague and disputant was Rav Achai, and they appear together in two sugyot in the Babylonian Talmud.\",\"canonical\":\"Rav Shmuel b. Rav Avahu\",\"canonicalHe\":\"רב שמואל בריה דרב אבהו\",\"generation\":\"savora\",\"id\":\"rav-shmuel-b-rav-avahu\",\"sources\":null},{\"aliases\":[\"R. Shmuel b. Yehuda\",\"Rav Shmuel bar Yehuda\",\"Rav Samuel b. Yehuda\",\"Shmuel b. Yehuda\"],\"bio\":\"Rav Shmuel b. Yehuda was a third-generation Babylonian Amora who later immigrated to Eretz Yisrael.\",\"canonical\":\"Rav Shmuel b. Yehuda\",\"canonicalHe\":\"רב שמואל בר יהודה\",\"generation\":\"amora-ey-3\",\"id\":\"rav-shmuel-b-yehuda\",\"sources\":null},{\"aliases\":[\"R. Shmuel bar Sheilat\",\"Rav Shmuel b. Sheilat\",\"Rav Samuel bar Sheilat\",\"R. Shmuel b. Sheilat\",\"Shmuel bar Sheilat\"],\"bio\":\"Rav Shmuel bar Sheilat was a first- and second-generation Babylonian Amora and a student of Rav. All halakhot he cites in the Talmud are transmitted in Rav's name. He was renowned as a dedicated teacher of young children; the Talmud records that he taught uninterrupted for thirteen years, earning Rav's praise with the verse from Daniel 12:3. Rav entrusted him with pedagogical guidance and requested that he deliver his eulogy so as to warm the hearts of listeners and bring them to tears. He was a wealthy man. A tradition identifies him as a descendant of Haman who studied Torah in Bnei Brak, though the Lubavitcher Rebbe concluded that his primary residence was Babylonia, with occasional study and teaching in Eretz Yisrael. His son was the Amora Rav Yehuda b. Rav Shmuel bar Sheilat.\",\"canonical\":\"Rav Shmuel bar Sheilat\",\"canonicalHe\":\"רב שמואל בר שילת\",\"generation\":\"amora-bavel-1\",\"id\":\"rav-shmuel-bar-sheilat\",\"sources\":null},{\"aliases\":[\"Rebbi Samuel\",\"Rabbi Shmuel\"],\"bio\":\"R. Shmuel was a student of R. Abahu and of R. Zeira and a fourth generation talmudic sage of the Land of israel. \",\"canonical\":\"Rebbi Samuel\",\"canonicalHe\":\"רבי שמואל\",\"generation\":\"amora-ey-4\",\"id\":\"rebbi-samuel\",\"sources\":null},{\"aliases\":[\"Samuel\",\"Shmuel\",\"Samuel from Ramah\"],\"bio\":\"The prophet Samuel (Shmuel in Hebrew) led the Israelites before the King Saul, the first king, was anointed. Under his leadership, Israel rose up against the Phillistines. He anointed Saul as king and advised him before secretly anointing David when God decided Saul was no longer fit to be king. \",\"canonical\":\"Samuel (Prophet)\",\"canonicalHe\":\"שמואל הנביא\",\"generation\":null,\"id\":\"samuel-(prophet)\",\"sources\":null},{\"aliases\":[\"Shmuel\",\"Samuel\"],\"bio\":\"Shmuel also left his native Babylonia to study at Rabbi's academy. Coming back before Rav and outliving him, Shmuel established Neharedea as the leading center of Torah study in Babylonia. Besides his Torah scholarship, Shmuel was famous for being an astronomer and physician and was honored by King Shapur I of Persia.\",\"canonical\":\"Shmuel (Amora)\",\"canonicalHe\":\"שמואל (שם אמורא)\",\"generation\":\"amora-bavel-1\",\"id\":\"shmuel-(amora)\",\"sources\":null},{\"aliases\":[\"Shmuel the Little\",\"Shmuel haKatan\",\"Shmuel HaKatan\",\"Shmuel Hakatan\",\"Samuel Minor\"],\"bio\":\"Shmuel the Little was a scholar known for his great humility and concern for others. Hence he was chosen to compose the text of a blessing (in the Amidah prayer) calling for the elimination of those endangering the Jewish people.\",\"canonical\":\"Shmuel the Little\",\"canonicalHe\":\"שמואל הקטן\",\"generation\":null,\"id\":\"shmuel-the-little\",\"sources\":null}],\"id\":\"case-6fea88bd42fcd7593a88\",\"person\":{\"id\":\"F\",\"label\":\"שמואל\",\"named\":\"name\",\"quote\":\"אפילו בדרב ושמואל\",\"quoteLocation\":\"passage\"},\"personKey\":\"b000-p0/F\",\"ref\":\"Sanhedrin 33a:6\",\"source\":{\"after\":\"היכי דמי שיקול הדעת אמר רב פפא כגון תרי תנאי או תרי אמוראי דפליגי אהדדי ולא איתמר הלכתא לא כמר ולא כמר ואיקרי ועבד כחד מינייהו וסוגיא דשמעת' אזלי כאידך היינו שיקול הדעת\",\"before\":\"רב ששת אמר כאן שטעה בדבר משנה כאן שטעה בשיקול הדעת דאמר רב ששת אמר רב אסי טעה בדבר משנה חוזר טעה בשיקול הדעת אינו חוזר\",\"passage\":\"א\\\"ל רבינא לרב אשי אפילו טעה בר' חייא ורבי אושעיא א\\\"ל אין אפילו בדרב ושמואל אמר ליה אין אפילו בדידי ודידך א\\\"ל אטו אנן קטלי קני באגמא אנן\"}},\"error\":null,\"generationBasis\":\"candidate_metadata_not_verified\",\"inputSha256\":\"2a562ee0ef1cd00636e4a060a2ebb45c07913bac2132c87f4f9fb4834c8e1aa8\",\"recipe\":\"e2b6717450baa4be7c260a9a14a8d9d2e46ad4f2473ab081a60c8c9050ff47e9\",\"resultPath\":\"results/inputs-000/first/case-6fea88bd42fcd7593a88.json\",\"resultSha256\":\"5ee4489f04258d23ce6b1cda7037164d6e50b6a4771c63a536e2a735acc9094d\",\"runId\":\"wide-v1-recovery\",\"sourceSha256\":\"6a9de6018bd6b8dc7fbc06c9c7b7447eae94c9008aab1f21d8bd0c770b21b975\",\"status\":\"complete\"}"
+    ],
+    [
+      "identity_proposal:wide-v1-recovery/case-941ce1b31e57561f00d2",
+      "identity_proposal",
+      "b000-p0",
+      "Sanhedrin 33a:6",
+      "local:b000-p0/C",
+      null,
+      "screening",
+      "needs_review",
+      "c4b71eb77054c51e76abf47dd107c596b4093ee6a540b93aeb52c1d282d6cbc2",
+      "{\"accepted\":false,\"answer\":{\"evidence\":[{\"location\":\"passage\",\"quote\":\"ר' חייא\"},{\"location\":\"passage\",\"quote\":\"ורבי אושעיא\"}],\"generation\":\"tanna-6\",\"id\":\"case-941ce1b31e57561f00d2\",\"personId\":\"rabbi-chiyya\",\"reason\":\"The passage pairs ר' חייא with רבי אושעיא, the classic Tanna Rabbi Chiyya; other candidates are Amoraim with patronymics and do not fit this pairing.\",\"status\":\"matched\"},\"audit\":null,\"case\":{\"candidates\":[{\"aliases\":[\"Rabbi Hiyya\",\"Rav Hiyya\",\"Rabbi Chiyya\",\"R. Hiyya\",\"Rebbi Hiyya the Great\",\"Rebbi Hiyya\",\"Rebbi Hiyya the elder\",\"Rebbi Hiyya the Elder\",\"The Great Rebbi Hiyya\",\"the Elder Rabbi Hiyya\",\"the Great Rabbi Hiyya\",\"the elder Rebbi Hiyya\",\"the Elder Rebbi Hiyya\",\"The Elder Rebbi Hiyya\",\"the older Rebbi Hiyya\",\"The older Rebbi Hiyya\"],\"bio\":\"Raised in Babylonia, R. Chiyya moved to Palestine and became the greatest scholar in R. Yehudah haNasi's academy. He was centrally involved in the compilation of the Bereita and the Tosefta and led his own academy in Tiberias. Known for his piety as well as his scholarship, it is said that all of his prayers were answered.\",\"canonical\":\"Rabbi Chiyya\",\"canonicalHe\":\"רבי חייא\",\"generation\":\"tanna-6\",\"id\":\"rabbi-chiyya\",\"sources\":null},{\"aliases\":[\"Rabbi Hiyya b. Abba\",\"Rabbi Hiyya b. [Abba]\",\"Rabbi Chiyya b. Abba\",\"Rabbi Hiyya ben Abba\",\"Rabbi Hiyya ben [Abba]\",\"Rabbi Chiyya ben Abba\",\"Rebbi Hiyya b. Abun\",\"Hiyya b. Rebbi Abun\",\"Rebbi Hiyya b. Abba\",\"Hiyya b. Abba\",\"R. Hiyya b. Abba\",\"Rebbi Hiyyas b. Abba\",\"Rebbi Hiyya b. Aba\",\"Rebbi Hiya b. Abun\",\"Rebbi Hiyya ber Abba\"],\"bio\":\"R. Chiyya b. Abba (II) came from Babylonia and studied under R. Yochanan in Tiberias. Due to poverty and various conflicts, he moved a great deal. Due to his piety, his prayers were known to be particularly effective.\",\"canonical\":\"Rabbi Chiyya b. Abba\",\"canonicalHe\":\"רבי חייא בר אבא\",\"generation\":\"amora-ey-2\",\"id\":\"rabbi-chiyya-b-abba\",\"sources\":null},{\"aliases\":[\"Rav Chiya b. Ashi\",\"Hiyya b. Ashi\",\"Rav Hiyya b. Ashi\",\"Rav Chiya ben Ashi\",\"Hiyya ben Ashi\",\"Rav Hiyya ben Ashi\",\"Rebbi Hiyya b. Ashi\",\"Rebbi Hiyya ber Ashi\",\"Rabbi Hiyya b. Ashi\",\"Rab Hiyya b. Ashi\",\"Rebbi Abba Hiyya b. Ashi\"],\"bio\":\"Rav Chiya b.Ashi was a student of Rav and was his personal assistant. Hence he was able to pass on many accounts of Rav's practices, which were used as legal precedents.\",\"canonical\":\"Rav Chiya b. Ashi\",\"canonicalHe\":\"רב חייא בר אשי\",\"generation\":\"amora-bavel-2\",\"id\":\"rav-chiya-b-ashi\",\"sources\":null},{\"aliases\":[\"Rav Chiyya b. Ami\",\"R. Hiyya b. Ami\",\"Rav Hiyya bar Ami\",\"R. Chiyya bar Ami\"],\"bio\":\"Rav Hiyya b. Ami was a Babylonian Amora of the third and fourth generations.\",\"canonical\":\"Rav Hiyya b. Ami\",\"canonicalHe\":\"רבי חייא בר אמי\",\"generation\":\"amora-bavel-3\",\"id\":\"rav-hiyya-b-ami\",\"sources\":null},{\"aliases\":[\"[Rav] Hiyya b. Yosef\",\"Rabbi Hiyya b. Yosef\",\"Rav Hiyya b. Yosef\",\"Rav Ḥiyya\",\"[Rav] Hiyya ben Yosef\",\"Rabbi Hiyya ben Yosef\",\"Rav Hiyya ben Yosef\",\"Rav Hiyya b. Joseph\",\"Rebbi Hiyya b. Joseph\",\"Rebbi Hiyya b. Josef\",\"Rebbi Hiyya b. Yosef\",\"Rebbi Hiyya b. Yose\"],\"bio\":\"[Rav] Hiyya b. Yosef was a student of Rav who would exchange Rav's teaching with Shmuel's responses. When Rav died, he studied under Shmuel and then went to Israel, where he taught and studied with R. Yochanan, again bringing the teachings of Rav.\",\"canonical\":\"[Rav] Hiyya b. Yosef\",\"canonicalHe\":\"רבי חייא בר יוסף\",\"generation\":\"amora-bavel-1\",\"id\":\"rav-hiyya-b-yosef\",\"sources\":null},{\"aliases\":[\"R. Hiyya bar Avin\",\"Rav Hiyya bar Abin\",\"R. Hiyya bar Abin\",\"Rabbi Hiyya bar Bun\",\"Rav Chiya bar Avin\"],\"bio\":\"Rav Hiyya bar Avin was a fourth-generation Babylonian Amora, the son of Rabbi Avin Naggara and brother of Rav Idi bar Avin. He studied under Rav Amram, Rav Huna, Rav Chisda, and Rav Sheshet, and was a preeminent student of Rav Huna; the Talmud relates that he once misunderstood Rav Huna's words as a dismissal, when Rav Huna had actually meant that his statement aligned with Rav Assi of Hutzal. He also studied under Rabbi Yochanan in Eretz Yisrael, transmitting teachings of the Land's sages. He cited many traditions in the names of Rav and Shmuel, though probably not from direct contact. In the Yerushalmi he is called Rabbi Hiyya bar Bun. His colleague was Rav Huna bar Chinena and his student was Rav Nachman bar Yitzchak.\",\"canonical\":\"Rav Hiyya bar Avin\",\"canonicalHe\":\"רב חייא בר אבין\",\"generation\":\"amora-bavel-4\",\"id\":\"rav-hiyya-bar-avin\",\"sources\":null},{\"aliases\":[\"Rav Chiyya bar Gamda\",\"Rabbi Hiyya bar Gamda\",\"Rabbi Chiyya bar Gamda\",\"R. Hiyya bar Gamda\"],\"bio\":\"Rav Hiyya bar Gamda was a second-generation Babylonian Amora. He is mentioned occasionally in the Jerusalem Talmud, where he is called Rabbi Hiyya bar Gamda.\",\"canonical\":\"Rav Hiyya bar Gamda\",\"canonicalHe\":\"רבי חייא בר גמדא\",\"generation\":\"amora-bavel-2\",\"id\":\"rav-hiyya-bar-gamda\",\"sources\":null},{\"aliases\":[\"Rav Chiyya bar Rav\",\"R. Hiyya bar Rav\",\"Hiyya bar Rav\",\"Rav Hiyya b. Rav\"],\"bio\":\"Rav Hiyya bar Rav was a Babylonian Amora of the third generation. The son of Rav, he was likely named for his uncle Rabbi Hiyya. He studied under his father, under Rav Hanan bar Rava, and under Rav Hiyya bar Ashi; after Rav's death he studied under Shmuel. He is frequently recorded disputing Rav Huna, and in every such case the halakhah follows Rav Huna. He ruled on the laws of Keriat Shema and held that Musaf is recited only with a congregation, in accordance with Rabbi Yehuda. He transmitted a question and answer between Rabba bar Avuha and Rav, and Abaye cites a statement in his name. The Talmud records that Rav described him as sickly. His son, Shimi bar Hiyya, was a Torah scholar who appears often in the Talmud in discussions with his grandfather Rav. Rav Hiyya bar Rav is also mention\",\"canonical\":\"Rav Hiyya bar Rav\",\"canonicalHe\":\"חייא בר רב\",\"generation\":\"amora-bavel-3\",\"id\":\"rav-hiyya-bar-rav\",\"sources\":null}],\"id\":\"case-941ce1b31e57561f00d2\",\"person\":{\"id\":\"C\",\"label\":\"ר' חייא\",\"named\":\"name\",\"quote\":\"ר' חייא\",\"quoteLocation\":\"passage\"},\"personKey\":\"b000-p0/C\",\"ref\":\"Sanhedrin 33a:6\",\"source\":{\"after\":\"היכי דמי שיקול הדעת אמר רב פפא כגון תרי תנאי או תרי אמוראי דפליגי אהדדי ולא איתמר הלכתא לא כמר ולא כמר ואיקרי ועבד כחד מינייהו וסוגיא דשמעת' אזלי כאידך היינו שיקול הדעת\",\"before\":\"רב ששת אמר כאן שטעה בדבר משנה כאן שטעה בשיקול הדעת דאמר רב ששת אמר רב אסי טעה בדבר משנה חוזר טעה בשיקול הדעת אינו חוזר\",\"passage\":\"א\\\"ל רבינא לרב אשי אפילו טעה בר' חייא ורבי אושעיא א\\\"ל אין אפילו בדרב ושמואל אמר ליה אין אפילו בדידי ודידך א\\\"ל אטו אנן קטלי קני באגמא אנן\"}},\"error\":null,\"generationBasis\":\"candidate_metadata_not_verified\",\"inputSha256\":\"adaed130798e9a45063609cbf35fd6c82c51105d22f4b70d2bc7e1822985da10\",\"recipe\":\"e2b6717450baa4be7c260a9a14a8d9d2e46ad4f2473ab081a60c8c9050ff47e9\",\"resultPath\":\"results/inputs-000/first/case-941ce1b31e57561f00d2.json\",\"resultSha256\":\"f68739a49de83dae659fdb986681be1c29dc2df7718a81fee10be62c3bae614d\",\"runId\":\"wide-v1-recovery\",\"sourceSha256\":\"6a9de6018bd6b8dc7fbc06c9c7b7447eae94c9008aab1f21d8bd0c770b21b975\",\"status\":\"complete\"}"
+    ],
+    [
+      "identity_proposal:wide-v1-recovery/case-e38f0ec6032230146b11",
+      "identity_proposal",
+      "b000-p0",
+      "Sanhedrin 33a:6",
+      "local:b000-p0/A",
+      null,
+      "screening",
+      "needs_review",
+      "7535af845c0611b450a4369863292560d6af7d06594ea9c9b49c75ebdf82c15e",
+      "{\"accepted\":false,\"answer\":{\"evidence\":[{\"location\":\"passage\",\"quote\":\"א\\\"ל רבינא לרב אשי\"},{\"location\":\"passage\",\"quote\":\"אמר ליה אין אפילו בדידי ודידך\"}],\"generation\":\"amora-bavel-6\",\"id\":\"case-e38f0ec6032230146b11\",\"personId\":\"ravina-(i)\",\"reason\":\"The passage records Ravina speaking with Rav Ashi; candidate Ravina (I) is identified as Rav Ashi's major assistant, distinguishing him from later Ravina II and Savora candidates.\",\"status\":\"matched\"},\"audit\":null,\"case\":{\"candidates\":[{\"aliases\":[\"Rabbana Ukva\",\"Rabana Ukba\",\"Rabbana Uqba\",\"Ravana Ukva\",\"Rabbana Ukba bar Nehemiah\"],\"bio\":\"Rabbana Ukva was a Babylonian amora of the exilarchic ('Rabbana' / princely) family, paired in the sources with Rabbana Nehemiah; the two were reckoned among the aristocratic 'princes' of the Babylonian community and were associated with Rav Chisda of Sura. He is best known from Beitzah 29a, where 'Rav Chisda authorized Rabbana Ukva to deliver a public teaching' (אדבריה רב חסדא לרבנא עוקבא ודרש) — i.e. Rav Chisda empowered him to give a halakhic discourse — concerning the permitted way to portion barley for one's animal on a Festival without transgressing the prohibition on measuring. The honorific 'Rabbana' and the pairing with Nehemiah mark him as a member of the house of the Exilarch rather than a career academic sage.\",\"canonical\":\"Rabbana Ukva\",\"canonicalHe\":\"רבנא עוקבא\",\"generation\":\"amora-bavel-3\",\"id\":\"rabbana-ukva\",\"sources\":null},{\"aliases\":[\"R. Avina\",\"Rav Avina\"],\"bio\":\"Rabbi Avina was a third-generation Amora, counted among both the Babylonian and the Eretz Yisrael Amoraim.\",\"canonical\":\"Rabbi Avina\",\"canonicalHe\":\"רבי אבינא\",\"generation\":\"amora-ey-3\",\"id\":\"rabbi-avina\",\"sources\":null},{\"aliases\":[\"Ravina II\",\"Ravina the Last\",\"Rav Avina b. Rav Huna\",\"R. Avina bar Rav Huna\"],\"bio\":\"Rav Avina bar Rav Huna, known as Ravina the Last, was a Babylonian Amora of the eighth and final generation. He succeeded his teacher Rabba Tosfa'ah as head of the yeshiva in Mata Mehasia, a suburb of Sura. He completed the editing of the Babylonian Talmud begun by Rav Ashi and Ravina the First, sealing the teachings of earlier generations shortly before his death in 499. His death marked the end of the Amoraic period of hora'ah. The Talmudic statement \\\"Rav Ashi and Ravina are the end of hora'ah\\\" (Bava Metzia 86a) was applied by Rav Sherira Gaon to Rav Ashi and to him as the one who sealed the Talmud. Subsequent sages, including some of his students, were known as the Savoraim, who explained the Gemara.\",\"canonical\":\"Rav Avina bar Rav Huna\",\"canonicalHe\":\"רבינא האחרון\",\"generation\":\"amora-bavel-8\",\"id\":\"rav-avina-bar-rav-huna\",\"sources\":null},{\"aliases\":[\"Ravina\",\"Rav Avina\",\"Rebbi Avinah\",\"Rebbi Avuna\",\"Rebbi Avinna\",\"Rebbi Avina\",\"Rebbi Abinna\",\"Rebbi Abina\"],\"bio\":\"Ravina was Rav Ashi's major assistant in compiling the Babylonian Talmud. Though older than Rav Ashi, Ravina saw the latter as his teacher. He spent his early years studying under Rava and frequently cited him. While he headed an academy for a very short time, he did much of his teaching on the road. He was also known for his compassion for others.\",\"canonical\":\"Ravina (I)\",\"canonicalHe\":\"רבינא (1)\",\"generation\":\"amora-bavel-6\",\"id\":\"ravina-(i)\",\"sources\":null},{\"aliases\":[\"Ravina bar Amotzia\",\"Ravina b. Amutzia\",\"Ravina min Umtza\",\"Ravina of Umtza\",\"Ravina b. Amoza\"],\"bio\":\"Ravina b. Amotzia was a Savora of the second generation, bordering on the first. According to Iggeret Rav Sherira Gaon, he died in Adar of 507. In Sefer HaKabbalah, Rabbi Abraham ibn Daud lists him among second-generation Savoraim as Ravina of Umtza, stating that he headed the Pumbedita academy for one year after Rav Shmuel b. Rava and died in 519; he was succeeded by Rav Simuna. Some scholars, however, understand from Iggeret Rav Sherira Gaon that he belonged to the first generation, the era of Rabbah Yosei, and was not head of the academy.\",\"canonical\":\"Ravina b. Amotzia\",\"canonicalHe\":\"רבינא בר אמוציא\",\"generation\":\"savora\",\"id\":\"ravina-b-amotzia\",\"sources\":null}],\"id\":\"case-e38f0ec6032230146b11\",\"person\":{\"id\":\"A\",\"label\":\"רבינא\",\"named\":\"name\",\"quote\":\"רבינא\",\"quoteLocation\":\"passage\"},\"personKey\":\"b000-p0/A\",\"ref\":\"Sanhedrin 33a:6\",\"source\":{\"after\":\"היכי דמי שיקול הדעת אמר רב פפא כגון תרי תנאי או תרי אמוראי דפליגי אהדדי ולא איתמר הלכתא לא כמר ולא כמר ואיקרי ועבד כחד מינייהו וסוגיא דשמעת' אזלי כאידך היינו שיקול הדעת\",\"before\":\"רב ששת אמר כאן שטעה בדבר משנה כאן שטעה בשיקול הדעת דאמר רב ששת אמר רב אסי טעה בדבר משנה חוזר טעה בשיקול הדעת אינו חוזר\",\"passage\":\"א\\\"ל רבינא לרב אשי אפילו טעה בר' חייא ורבי אושעיא א\\\"ל אין אפילו בדרב ושמואל אמר ליה אין אפילו בדידי ודידך א\\\"ל אטו אנן קטלי קני באגמא אנן\"}},\"error\":null,\"generationBasis\":\"candidate_metadata_not_verified\",\"inputSha256\":\"60766a8ad5819cd97c7605f63c7d7a793f30e2e53d33bfc05ee5060a49b975f3\",\"recipe\":\"e2b6717450baa4be7c260a9a14a8d9d2e46ad4f2473ab081a60c8c9050ff47e9\",\"resultPath\":\"results/inputs-000/first/case-e38f0ec6032230146b11.json\",\"resultSha256\":\"e076255c0a5be1d4d4d0782eda68dab77b9ef59ba87b4da8910c4187f0ac1644\",\"runId\":\"wide-v1-recovery\",\"sourceSha256\":\"6a9de6018bd6b8dc7fbc06c9c7b7447eae94c9008aab1f21d8bd0c770b21b975\",\"status\":\"complete\"}"
+    ],
+    [
+      "passage:b000-p0",
+      "passage",
+      "b000-p0",
+      "Sanhedrin 33a:6",
+      null,
+      null,
+      "source",
+      null,
+      "9ffd494b60f26d2ea46fba8d769ac053dbf9cb26b8745309e1b9ec5c7a459c40",
+      "{\"claims\":[{\"addressee\":\"B\",\"addressee_basis\":\"text\",\"field\":\"speech\",\"id\":\"s0\",\"kind\":\"asked\",\"note\":\"The passage names both parties at this turn.\",\"quote\":\"א\\\"ל רבינא לרב אשי אפילו טעה בר' חייא ורבי אושעיא\",\"quoteLocation\":\"passage\",\"speaker\":\"A\",\"speaker_basis\":\"text\"},{\"addressee\":\"A\",\"addressee_basis\":\"unambiguous_pronoun\",\"field\":\"speech\",\"id\":\"s1\",\"kind\":\"answered\",\"note\":\"Antecedent words: \\\"א\\\"ל רבינא לרב אשי\\\" — the reply to Ravina's question can only be Rav Ashi's, back to Ravina.\",\"quote\":\"א\\\"ל אין\",\"quoteLocation\":\"passage\",\"speaker\":\"B\",\"speaker_basis\":\"unambiguous_pronoun\"},{\"addressee\":\"B\",\"addressee_basis\":\"context\",\"field\":\"speech\",\"id\":\"s2\",\"kind\":\"asked\",\"note\":\"No speech verb and no name attached to this line; the speaker is inferred from the alternation of the exchange.\",\"quote\":\"אפילו בדרב ושמואל\",\"quoteLocation\":\"passage\",\"speaker\":\"A\",\"speaker_basis\":\"context\"},{\"addressee\":\"A\",\"addressee_basis\":\"unambiguous_pronoun\",\"field\":\"speech\",\"id\":\"s3\",\"kind\":\"answered\",\"note\":\"Antecedent words: \\\"א\\\"ל רבינא לרב אשי\\\"; \\\"ליה\\\" is unnamed but the exchange has only two parties.\",\"quote\":\"אמר ליה אין\",\"quoteLocation\":\"passage\",\"speaker\":\"B\",\"speaker_basis\":\"unambiguous_pronoun\"},{\"addressee\":\"B\",\"addressee_basis\":\"context\",\"field\":\"speech\",\"id\":\"s4\",\"kind\":\"asked\",\"note\":\"Again no attribution in the text; inferred from the alternation. Who \\\"דידי\\\" and \\\"דידך\\\" are depends on who is speaking.\",\"quote\":\"אפילו בדידי ודידך\",\"quoteLocation\":\"passage\",\"speaker\":\"A\",\"speaker_basis\":\"context\"},{\"addressee\":\"A\",\"addressee_basis\":\"unambiguous_pronoun\",\"field\":\"speech\",\"id\":\"s5\",\"kind\":\"answered\",\"note\":\"Antecedent words: \\\"א\\\"ל רבינא לרב אשי\\\". \\\"אנן\\\" appears to take in both parties to the conversation.\",\"quote\":\"א\\\"ל אטו אנן קטלי קני באגמא אנן\",\"quoteLocation\":\"passage\",\"speaker\":\"B\",\"speaker_basis\":\"unambiguous_pronoun\"}],\"id\":\"b000-p0\",\"people\":[{\"id\":\"A\",\"label\":\"רבינא\",\"named\":\"name\",\"quote\":\"רבינא\",\"quoteLocation\":\"passage\"},{\"id\":\"B\",\"label\":\"רב אשי\",\"named\":\"name\",\"quote\":\"לרב אשי\",\"quoteLocation\":\"passage\"},{\"id\":\"C\",\"label\":\"ר' חייא\",\"named\":\"name\",\"quote\":\"ר' חייא\",\"quoteLocation\":\"passage\"},{\"id\":\"D\",\"label\":\"רבי אושעיא\",\"named\":\"name\",\"quote\":\"רבי אושעיא\",\"quoteLocation\":\"passage\"},{\"id\":\"E\",\"label\":\"רב\",\"named\":\"name\",\"quote\":\"אפילו בדרב ושמואל\",\"quoteLocation\":\"passage\"},{\"id\":\"F\",\"label\":\"שמואל\",\"named\":\"name\",\"quote\":\"אפילו בדרב ושמואל\",\"quoteLocation\":\"passage\"},{\"id\":\"G\",\"label\":\"the one who erred (subject of טעה)\",\"named\":\"described\",\"quote\":\"אפילו טעה בר' חייא ורבי אושעיא\",\"quoteLocation\":\"passage\"}],\"ref\":\"Sanhedrin 33a:6\",\"source\":{\"after\":\"היכי דמי שיקול הדעת אמר רב פפא כגון תרי תנאי או תרי אמוראי דפליגי אהדדי ולא איתמר הלכתא לא כמר ולא כמר ואיקרי ועבד כחד מינייהו וסוגיא דשמעת' אזלי כאידך היינו שיקול הדעת\",\"before\":\"רב ששת אמר כאן שטעה בדבר משנה כאן שטעה בשיקול הדעת דאמר רב ששת אמר רב אסי טעה בדבר משנה חוזר טעה בשיקול הדעת אינו חוזר\",\"passage\":\"א\\\"ל רבינא לרב אשי אפילו טעה בר' חייא ורבי אושעיא א\\\"ל אין אפילו בדרב ושמואל אמר ליה אין אפילו בדידי ודידך א\\\"ל אטו אנן קטלי קני באגמא אנן\"},\"unclear\":[\"Two of the six lines (\\\"אפילו בדרב ושמואל\\\" and \\\"אפילו בדידי ודידך\\\") carry no attribution at all; the speaker is only inferred from the back-and-forth.\",\"\\\"בדידי ודידך\\\" names nobody; which of the two men is \\\"mine\\\" and which \\\"yours\\\" follows only from who is taken to be speaking.\",\"\\\"אנן\\\" in the last line is not defined — whether it means the two of them, their generation, or scholars generally.\",\"Whether ר' חייא, רבי אושעיא, רב and שמואל are present in any sense or are only cited as authorities; the passage only names their teachings.\",\"The subject of טעה is unnamed and generic — a judge who erred; nothing in the passage identifies him.\"]}"
+    ],
+    [
+      "passage:b004-p7",
+      "passage",
+      "b004-p7",
+      "Devarim Rabbah 1:17",
+      null,
+      null,
+      "source",
+      null,
+      "9a5d556dcad9a69b4d5a10e9ee565bc2e8b641f73434c24d78f08dcb7d396fc4",
+      "{\"claims\":[{\"addressee\":\"unclear\",\"addressee_basis\":\"context\",\"field\":\"speech\",\"id\":\"s0\",\"kind\":\"taught\",\"note\":\"An anonymous exposition quotes scripture; neither a human speaker of the scriptural words nor a specific audience is named.\",\"quote\":\"דבר אחר, רב לכם סב. זה שאמר הכתוב (תהלים לז, ז): דום לה' והתחולל לו וגו', מהו והתחולל לו, צפה להקדוש ברוך הוא, כענין שנאמר (תהלים מב, ו): מה תשתוחחי נפשי וגו'.\",\"quoteLocation\":\"passage\",\"speaker\":\"unclear\",\"speaker_basis\":\"context\"},{\"addressee\":\"V\",\"addressee_basis\":\"text\",\"field\":\"speech\",\"id\":\"s1\",\"kind\":\"taught\",\"note\":\"The second-person wording addresses a generic person undergoing suffering, not an identified listener.\",\"quote\":\"דבר אחר, והתחולל לו, אמר רבי תחליפא דקסרין, מהו והתחולל לו, אם באו עליך יסורין קבל אותן בחילה.\",\"quoteLocation\":\"passage\",\"speaker\":\"A\",\"speaker_basis\":\"text\"},{\"addressee\":\"none\",\"addressee_basis\":\"context\",\"field\":\"speech\",\"id\":\"s2\",\"kind\":\"taught\",\"note\":\"This exposition identifies עשו and introduces a royal judicial example. It has no new explicit speaker attribution.\",\"quote\":\"(תהלים לז, ז): אל תתחר במצליח דרכו, זה עשו, שכתוב בו (ירמיה יב, א): מדוע דרך רשעים צלחה. (תהלים לז, ז): באיש עשה מזמות, זה עשו שדן את בני האדם בערמה, כיצד, הדין הזה של מלכות, דן את הרוצח\",\"quoteLocation\":\"passage\",\"speaker\":\"unclear\",\"speaker_basis\":\"context\"},{\"addressee\":\"E\",\"addressee_basis\":\"context\",\"field\":\"speech\",\"id\":\"s3\",\"kind\":\"asked\",\"note\":\"The speaker's antecedent is הדין הזה של מלכות, דן את הרוצח. The addressee is inferred to be the person being judged.\",\"quote\":\"והוא אומר למה הרגת\",\"quoteLocation\":\"passage\",\"speaker\":\"D\",\"speaker_basis\":\"unambiguous_pronoun\"},{\"addressee\":\"D\",\"addressee_basis\":\"context\",\"field\":\"speech\",\"id\":\"s4\",\"kind\":\"answered\",\"note\":\"The courtroom exchange assigns this denial to הרוצח addressing the judge; the repeated והוא alone does not name the switch of speaker.\",\"quote\":\"והוא אומר לא הרגתיו\",\"quoteLocation\":\"passage\",\"speaker\":\"E\",\"speaker_basis\":\"context\"},{\"addressee\":\"E\",\"addressee_basis\":\"unambiguous_pronoun\",\"field\":\"speech\",\"id\":\"s5\",\"kind\":\"asked\",\"note\":\"The judge is inferred as questioner from the judicial example; אותו refers to the accused who has just denied killing.\",\"quote\":\"והוא שואל אותו ואומר ובמה הרגתו בסיף או ברומח או בסכין.\",\"quoteLocation\":\"passage\",\"speaker\":\"D\",\"speaker_basis\":\"context\"},{\"addressee\":\"none\",\"addressee_basis\":\"context\",\"field\":\"speech\",\"id\":\"s6\",\"kind\":\"narration\",\"note\":\"He tells of destructive beings giving way when they see the שכינה remain silent.\",\"quote\":\"דבר אחר, דום לה' והתחולל לו, אמר רבי יהושע בן לוי, בשעה שבאו השונאים להחריב את ירושלים, היו שם ששים רבוא של מזיקין, והיו עומדים על פתחו של היכל לפגע בהם, כיון שראו את השכינה רואה ושותקת, מנין, שכתיב (איכה ב, ג): השיב אחור ימינו מפני אויב, אף הם נתנו מקום.\",\"quoteLocation\":\"passage\",\"speaker\":\"F\",\"speaker_basis\":\"text\"},{\"addressee\":\"W\",\"addressee_basis\":\"text\",\"field\":\"speech\",\"id\":\"s7\",\"kind\":\"taught\",\"note\":\"אתם marks an addressed group without identifying it. The subject of ראה and the identity of אותו are not explicitly named here.\",\"quote\":\"אמר רבי יהודה ברבי סימון, ראה אותו מחריב את ביתו, ושותק לו, ואתם מבקשין להזדוג לו, עד עכשו מתבקש לו שכר כבוד אבותיו.\",\"quoteLocation\":\"passage\",\"speaker\":\"K\",\"speaker_basis\":\"text\"},{\"addressee\":\"none\",\"addressee_basis\":\"context\",\"field\":\"speech\",\"id\":\"s8\",\"kind\":\"asked\",\"note\":\"An unattributed interpretive question introduces רבי חנינא's explanation.\",\"quote\":\"רב לכם סב. מהו סב את ההר\",\"quoteLocation\":\"passage\",\"speaker\":\"unclear\",\"speaker_basis\":\"context\"},{\"addressee\":\"none\",\"addressee_basis\":\"context\",\"field\":\"speech\",\"id\":\"s9\",\"kind\":\"taught\",\"note\":\"He connects עשו's attendance on his father with the quoted verse naming יצחק.\",\"quote\":\"אמר רבי חנינא הרבה סבב עשו את הורו זה, זה אביו שהיה זקוק לו להאכילו, מנין (בראשית כה, כח): ויאהב יצחק את עשו כי ציד בפיו.\",\"quoteLocation\":\"passage\",\"speaker\":\"O\",\"speaker_basis\":\"text\"},{\"addressee\":\"none\",\"addressee_basis\":\"context\",\"field\":\"speech\",\"id\":\"s10\",\"kind\":\"narration\",\"note\":\"He reports divine words and the exchange surrounding יעקב's gift to עשו.\",\"quote\":\"אמר רבי שמואל ברבי גדליה, אמר הקדוש ברוך הוא גמולות אני פורע, בשעה שנתן יעקב דורון לעשו, מה עשו אומר לו (בראשית לג, ט): יש לי רב, לא תצטער. אמר הקדוש ברוך הוא בלשון הזה כבדו בלשון הזה אני אומר לו פנו מלפניו רב לכם סב.\",\"quoteLocation\":\"passage\",\"speaker\":\"Q\",\"speaker_basis\":\"text\"},{\"addressee\":\"unclear\",\"addressee_basis\":\"context\",\"field\":\"speech\",\"id\":\"s11\",\"kind\":\"said\",\"note\":\"The divine speaker is explicit; no addressee is specified for this declaration.\",\"quote\":\"אמר הקדוש ברוך הוא גמולות אני פורע\",\"quoteLocation\":\"passage\",\"speaker\":\"S\",\"speaker_basis\":\"text\"},{\"addressee\":\"T\",\"addressee_basis\":\"unambiguous_pronoun\",\"field\":\"speech\",\"id\":\"s12\",\"kind\":\"said\",\"note\":\"The antecedent of לו is יעקב, the giver of the gift to עשו.\",\"quote\":\"בשעה שנתן יעקב דורון לעשו, מה עשו אומר לו (בראשית לג, ט): יש לי רב, לא תצטער.\",\"quoteLocation\":\"passage\",\"speaker\":\"B\",\"speaker_basis\":\"text\"},{\"addressee\":\"U\",\"addressee_basis\":\"text\",\"field\":\"speech\",\"id\":\"s13\",\"kind\":\"said\",\"note\":\"The imperatives פנו and לכם mark a plural audience. The intervening לו is singular, and its relation to this plural audience remains unclear.\",\"quote\":\"אמר הקדוש ברוך הוא בלשון הזה כבדו בלשון הזה אני אומר לו פנו מלפניו רב לכם סב.\",\"quoteLocation\":\"passage\",\"speaker\":\"S\",\"speaker_basis\":\"text\"},{\"a\":\"F\",\"b\":\"G\",\"basis\":\"text\",\"field\":\"relations\",\"id\":\"r0\",\"note\":\"Only the patronymic supplies the relation.\",\"quote\":\"רבי יהושע בן לוי\",\"quoteLocation\":\"passage\",\"relation\":\"child_of\"},{\"a\":\"K\",\"b\":\"L\",\"basis\":\"text\",\"field\":\"relations\",\"id\":\"r1\",\"note\":\"The patronymic is recorded without identifying the father from other passages.\",\"quote\":\"רבי יהודה ברבי סימון\",\"quoteLocation\":\"passage\",\"relation\":\"child_of\"},{\"a\":\"Q\",\"b\":\"R\",\"basis\":\"text\",\"field\":\"relations\",\"id\":\"r2\",\"note\":\"Only the patronymic supplies the relation.\",\"quote\":\"רבי שמואל ברבי גדליה\",\"quoteLocation\":\"passage\",\"relation\":\"child_of\"},{\"a\":\"B\",\"b\":\"P\",\"basis\":\"context\",\"field\":\"relations\",\"id\":\"r3\",\"note\":\"The unnamed אביו is identified with יצחק through the verse offered as evidence, rather than an explicit statement that יצחק is his father.\",\"quote\":\"הרבה סבב עשו את הורו זה, זה אביו שהיה זקוק לו להאכילו, מנין (בראשית כה, כח): ויאהב יצחק את עשו כי ציד בפיו.\",\"quoteLocation\":\"passage\",\"relation\":\"child_of\"},{\"a\":\"B\",\"b\":\"P\",\"basis\":\"context\",\"field\":\"relations\",\"id\":\"r4\",\"note\":\"The service is explicit, but identifying the unnamed father with יצחק relies on the following supporting verse.\",\"quote\":\"זה אביו שהיה זקוק לו להאכילו\",\"quoteLocation\":\"passage\",\"relation\":\"other:fed_father\"},{\"a\":\"T\",\"b\":\"B\",\"basis\":\"text\",\"field\":\"relations\",\"id\":\"r5\",\"note\":\"The passage explicitly names both parties to the gift.\",\"quote\":\"בשעה שנתן יעקב דורון לעשו\",\"quoteLocation\":\"passage\",\"relation\":\"other:gave_gift_to\"},{\"a\":\"I\",\"b\":\"H\",\"basis\":\"unambiguous_pronoun\",\"field\":\"relations\",\"id\":\"r6\",\"note\":\"The subject of והיו is ששים רבוא של מזיקין; בהם refers to השונאים.\",\"quote\":\"בשעה שבאו השונאים להחריב את ירושלים, היו שם ששים רבוא של מזיקין, והיו עומדים על פתחו של היכל לפגע בהם\",\"quoteLocation\":\"passage\",\"relation\":\"other:intended_to_attack\"},{\"a\":\"I\",\"b\":\"J\",\"basis\":\"unambiguous_pronoun\",\"field\":\"relations\",\"id\":\"r7\",\"note\":\"The antecedent of שראו is the destructive beings standing at the sanctuary entrance.\",\"quote\":\"כיון שראו את השכינה רואה ושותקת\",\"quoteLocation\":\"passage\",\"relation\":\"other:observed\"},{\"a\":\"M\",\"b\":\"N\",\"basis\":\"context\",\"field\":\"relations\",\"id\":\"r8\",\"note\":\"The possessor in אבותיו is understood as the destroyer under discussion, but repeated singular pronouns leave this contextual.\",\"quote\":\"ראה אותו מחריב את ביתו, ושותק לו, ואתם מבקשין להזדוג לו, עד עכשו מתבקש לו שכר כבוד אבותיו.\",\"quoteLocation\":\"passage\",\"relation\":\"other:descendant_of\"}],\"id\":\"b004-p7\",\"people\":[{\"id\":\"A\",\"label\":\"רבי תחליפא דקסרין\",\"named\":\"name\",\"quote\":\"רבי תחליפא דקסרין\",\"quoteLocation\":\"passage\"},{\"id\":\"B\",\"label\":\"עשו\",\"named\":\"name\",\"quote\":\"עשו\",\"quoteLocation\":\"passage\"},{\"id\":\"C\",\"label\":\"People judged deceitfully\",\"named\":\"group\",\"quote\":\"בני האדם\",\"quoteLocation\":\"passage\"},{\"id\":\"D\",\"label\":\"The royal judge in the example\",\"named\":\"described\",\"quote\":\"הדין הזה של מלכות\",\"quoteLocation\":\"passage\"},{\"id\":\"E\",\"label\":\"The person accused of murder\",\"named\":\"described\",\"quote\":\"הרוצח\",\"quoteLocation\":\"passage\"},{\"id\":\"F\",\"label\":\"רבי יהושע בן לוי\",\"named\":\"name\",\"quote\":\"רבי יהושע בן לוי\",\"quoteLocation\":\"passage\"},{\"id\":\"G\",\"label\":\"לוי\",\"named\":\"father_of_named\",\"quote\":\"בן לוי\",\"quoteLocation\":\"passage\"},{\"id\":\"H\",\"label\":\"The enemies coming to destroy Jerusalem\",\"named\":\"group\",\"quote\":\"השונאים להחריב את ירושלים\",\"quoteLocation\":\"passage\"},{\"id\":\"I\",\"label\":\"The sixty myriads of destructive beings\",\"named\":\"group\",\"quote\":\"ששים רבוא של מזיקין\",\"quoteLocation\":\"passage\"},{\"id\":\"J\",\"label\":\"השכינה\",\"named\":\"described\",\"quote\":\"השכינה\",\"quoteLocation\":\"passage\"},{\"id\":\"K\",\"label\":\"רבי יהודה ברבי סימון\",\"named\":\"name\",\"quote\":\"רבי יהודה ברבי סימון\",\"quoteLocation\":\"passage\"},{\"id\":\"L\",\"label\":\"רבי סימון\",\"named\":\"father_of_named\",\"quote\":\"ברבי סימון\",\"quoteLocation\":\"passage\"},{\"id\":\"M\",\"label\":\"The destroyer referred to as אותו\",\"named\":\"pronoun_only\",\"quote\":\"אותו מחריב את ביתו\",\"quoteLocation\":\"passage\"},{\"id\":\"N\",\"label\":\"The ancestors whose honor is invoked\",\"named\":\"group\",\"quote\":\"אבותיו\",\"quoteLocation\":\"passage\"},{\"id\":\"O\",\"label\":\"רבי חנינא\",\"named\":\"name\",\"quote\":\"רבי חנינא\",\"quoteLocation\":\"passage\"},{\"id\":\"P\",\"label\":\"יצחק\",\"named\":\"name\",\"quote\":\"יצחק\",\"quoteLocation\":\"passage\"},{\"id\":\"Q\",\"label\":\"רבי שמואל ברבי גדליה\",\"named\":\"name\",\"quote\":\"רבי שמואל ברבי גדליה\",\"quoteLocation\":\"passage\"},{\"id\":\"R\",\"label\":\"רבי גדליה\",\"named\":\"father_of_named\",\"quote\":\"ברבי גדליה\",\"quoteLocation\":\"passage\"},{\"id\":\"S\",\"label\":\"הקדוש ברוך הוא\",\"named\":\"described\",\"quote\":\"הקדוש ברוך הוא\",\"quoteLocation\":\"passage\"},{\"id\":\"T\",\"label\":\"יעקב\",\"named\":\"name\",\"quote\":\"יעקב\",\"quoteLocation\":\"passage\"},{\"id\":\"U\",\"label\":\"The group told to turn away before him\",\"named\":\"pronoun_only\",\"quote\":\"פנו מלפניו רב לכם סב\",\"quoteLocation\":\"passage\"},{\"id\":\"V\",\"label\":\"The generic sufferer addressed in the teaching\",\"named\":\"pronoun_only\",\"quote\":\"אם באו עליך יסורין קבל אותן בחילה\",\"quoteLocation\":\"passage\"},{\"id\":\"W\",\"label\":\"The group addressed as אתם\",\"named\":\"pronoun_only\",\"quote\":\"ואתם מבקשין להזדוג לו\",\"quoteLocation\":\"passage\"},{\"id\":\"X\",\"label\":\"The alleged victim referred to in the denial\",\"named\":\"pronoun_only\",\"quote\":\"לא הרגתיו\",\"quoteLocation\":\"passage\"}],\"ref\":\"Devarim Rabbah 1:17\",\"source\":{\"after\":\"דבר אחר, מהו רב לכם, אמר רבי אחא נוגעין אתם בו, בשלכם אתם נוגעים, כיצד, ברכה אחת ברכו אביו (בראשית כז, מ): ועל חרבך תחיה, וליעקב ברך עשר ברכות, מנין, שכן כתיב (בראשית לג, כח): ויתן לך האלהים מטל השמים, אם בטלה היא ברכתו, אף עשר שלכם בטלות, רב לכם סב.\",\"before\":\"ר שהכל מבצרין אותה. אמר רבי יוחנן היה דוד מתאוה ואומר מי יובלני עיר מצור, מי יתן שאפרע ממנה, אמר לו הקדוש ברוך הוא, דוד, ויכול אתה לה, אמר לפניו רבונו של עולם (תהלים ס, יא): מי נחני עד אדום, אמר לפניו מי שכבר השליטני על אדום הוא משליט אותי אף על זו סגיאין, ומנין ששלט דוד על אדום, שנאמר (שמואל ב ח, יד): וישם באדום נצבים. מהו נציבים, רבי סימון אמר קסטרס. רבנן אמרי אדריאנטין. אמר רבי יהודה ברבי סימון אמר לו הקדוש ברוך הוא, דוד, יודע אני שידיך חדות וחרוצות, ואני מבקש לרדות את עולמי בהם. דבר אחר, דוד, אני צריך לה לדורות, וכבר משה רבך בקש להזדוג בהן, ואמרתי לו רב לכם, רב יצוה לתלמידיו סב את ההר הזה.\",\"passage\":\"דבר אחר, רב לכם סב. זה שאמר הכתוב (תהלים לז, ז): דום לה' והתחולל לו וגו', מהו והתחולל לו, צפה להקדוש ברוך הוא, כענין שנאמר (תהלים מב, ו): מה תשתוחחי נפשי וגו'. דבר אחר, והתחולל לו, אמר רבי תחליפא דקסרין, מהו והתחולל לו, אם באו עליך יסורין קבל אותן בחילה. (תהלים לז, ז): אל תתחר במצליח דרכו, זה עשו, שכתוב בו (ירמיה יב, א): מדוע דרך רשעים צלחה. (תהלים לז, ז): באיש עשה מזמות, זה עשו שדן את בני האדם בערמה, כיצד, הדין הזה של מלכות, דן את הרוצח, והוא אומר למה הרגת, והוא אומר לא הרגתיו, והוא שואל אותו ואומר ובמה הרגתו בסיף או ברומח או בסכין. דבר אחר, דום לה' והתחולל לו, אמר רבי יהושע בן לוי, בשעה שבאו השונאים להחריב את ירושלים, היו שם ששים רבוא של מזיקין, והיו עומדים על פתחו של היכל לפגע בהם, כיון שראו את השכינה רואה ושותקת, מנין, שכתיב (איכה ב, ג): השיב אחור ימינו מפני אויב, אף הם נתנו מקום. אמר רבי יהודה ברבי סימון, ראה אותו מחריב את ביתו, ושותק לו, ואתם מבקשין להזדוג לו, עד עכשו מתבקש לו שכר כבוד אבותיו. רב לכם סב. מהו סב את ההר, אמר רבי חנינא הרבה סבב עשו את הורו זה, זה אביו שהיה זקוק לו להאכילו, מנין (בראשית כה, כח): ויאהב יצחק את עשו כי ציד בפיו. אמר רבי שמואל ברבי גדליה, אמר הקדוש ברוך הוא גמולות אני פורע, בשעה שנתן יעקב דורון לעשו, מה עשו אומר לו (בראשית לג, ט): יש לי רב, לא תצטער. אמר הקדוש ברוך הוא בלשון הזה כבדו בלשון הזה אני אומר לו פנו מלפניו רב לכם סב.\"},\"unclear\":[\"הקדוש ברוך הוא, השכינה and the destructive beings are included as narrative participants, though they are not ordinary human people.\",\"The passage does not expressly equate the divine designations in a statement of identity.\",\"The royal judge may illustrate עשו's deceit rather than be a separate historical individual; the accused and victim belong to that illustrative exchange.\",\"The identity of the destroyer in אותו מחריב את ביתו, the subject of ראה, and the antecedent of ביתו are not explicit. The destroyer may connect with the enemies or with עשו, but these are not merged.\",\"The group addressed as אתם may be the destructive beings from the preceding story; this is not explicit.\",\"The recipients of the final plural command, the singular לו in אני אומר לו, and the ancestors in אבותיו are not named.\",\"It is unclear whether the anonymous exposition after רבי תחליפא דקסרין continues his teaching.\",\"No sibling relationship between יעקב and עשו is stated in these lines.\"]}"
+    ],
+    [
+      "person:b000-p0/B",
+      "person",
+      "b000-p0",
+      "Sanhedrin 33a:6",
+      null,
+      null,
+      "source",
+      null,
+      "6456ea909dfedeae66e880666f79ffad40ff2c99a41cad63dbb2a98ca4c58bc0",
+      "{\"id\":\"B\",\"label\":\"רב אשי\",\"named\":\"name\",\"quote\":\"לרב אשי\",\"quoteLocation\":\"passage\"}"
+    ],
+    [
+      "person:b000-p0/C",
+      "person",
+      "b000-p0",
+      "Sanhedrin 33a:6",
+      null,
+      null,
+      "source",
+      null,
+      "249cb2b07995d0168e0350a2692e95ca0e379e48cbc5a8582182e42e407dba0c",
+      "{\"id\":\"C\",\"label\":\"ר' חייא\",\"named\":\"name\",\"quote\":\"ר' חייא\",\"quoteLocation\":\"passage\"}"
+    ],
+    [
+      "person:b004-p7/K",
+      "person",
+      "b004-p7",
+      "Devarim Rabbah 1:17",
+      null,
+      null,
+      "source",
+      null,
+      "ba70266ceb563862c92c0518c3bf1b73dfdc8f4de87356fe3b2f518c010e794f",
+      "{\"id\":\"K\",\"label\":\"רבי יהודה ברבי סימון\",\"named\":\"name\",\"quote\":\"רבי יהודה ברבי סימון\",\"quoteLocation\":\"passage\"}"
+    ],
+    [
+      "registry_person:rabbi-chiyya",
+      "registry_person",
+      null,
+      null,
+      "rabbi-chiyya",
+      null,
+      "registry",
+      null,
+      "60f1a9c76640bdf8d093bc71b4edbce2537880d4ff6b2c31fedcb9b8ba5aa2c9",
+      "{\"aliases\":[\"Rabbi Hiyya\",\"Rav Hiyya\",\"Rabbi Chiyya\",\"R. Hiyya\",\"Rebbi Hiyya the Great\",\"Rebbi Hiyya\",\"Rebbi Hiyya the elder\",\"Rebbi Hiyya the Elder\",\"The Great Rebbi Hiyya\",\"the Elder Rabbi Hiyya\",\"the Great Rabbi Hiyya\",\"the elder Rebbi Hiyya\",\"the Elder Rebbi Hiyya\",\"The Elder Rebbi Hiyya\",\"the older Rebbi Hiyya\",\"The older Rebbi Hiyya\"],\"bio\":\"Raised in Babylonia, R. Chiyya moved to Palestine and became the greatest scholar in R. Yehudah haNasi's academy. He was centrally involved in the compilation of the Bereita and the Tosefta and led his own academy in Tiberias. Known for his piety as well as his scholarship, it is said that all of his prayers were answered.\",\"bioSource\":\"sefaria\",\"canonical\":\"Rabbi Chiyya\",\"canonicalHe\":\"רבי חייא\",\"generation\":\"tanna-6\",\"image\":null,\"moved\":\"bavel->israel\",\"numSources\":null,\"places\":[\"Tiberias\"],\"region\":\"israel\",\"wiki\":\"https://he.wikipedia.org/wiki/%D7%A8%D7%91%D7%99_%D7%97%D7%99%D7%99%D7%90\"}"
+    ],
+    [
+      "registry_person:rabbi-yehudah-b-pazi",
+      "registry_person",
+      null,
+      null,
+      "rabbi-yehudah-b-pazi",
+      null,
+      "registry",
+      null,
+      "170ea2c622ed76dfffdf75bf7a940184ea6cebafa7ec04cf79ab10552081ccf3",
+      "{\"aliases\":[\"Rabbi Yehudah b. Pazi\",\"Rabbi Judah b. Pazi\",\"Rabbi Yehudah b. Shimon b. Pazi\",\"Rav Yehuda b. Rabbi Shimon b. Pazi\",\"Rabbi Yehudah ben Pazi\",\"Rabbi Judah ben Pazi\",\"Rabbi Yehudah ben Shimon ben Pazi\",\"Rav Yehuda ben Rabbi Shimon ben Pazi\",\"R. Judan b. Pazi\",\"R. Yehudah b. Pazi\",\"Rebbi Yehudah b. Pazi\",\"Rebbi Jehudah b. Pazi\",\"Rebbi Jehudah b. Pazy\",\"Rebbi Judah b. Pazy\",\"Rebbi Judah b. Pazi\",\"Rebbi Yuda b. Pazi\",\"Rebbi Yudan b. Pazi\"],\"bio\":\"R. Yehudah b. Pazi was the son and student of R. Shimon b. Pazi. As he grew into an outstanding scholar and judge, other scholars would inquire about his father's teachings from him.\",\"bioSource\":\"sefaria\",\"canonical\":\"Rabbi Yehudah b. Pazi\",\"canonicalHe\":\"רבי יהודה בן פזי\",\"generation\":\"amora-ey-3\",\"image\":null,\"moved\":null,\"numSources\":null,\"places\":[],\"region\":\"israel\",\"wiki\":\"https://he.wikipedia.org/wiki/%D7%A8%D7%91%D7%99_%D7%99%D7%94%D7%95%D7%93%D7%94_%D7%91%D7%9F_%D7%A4%D7%96%D7%99\"}"
+    ],
+    [
+      "registry_person:rav-ashi",
+      "registry_person",
+      null,
+      null,
+      "rav-ashi",
+      null,
+      "registry",
+      null,
+      "0e8e71c69a7e158f748a9e9692c463ad7164276455b8d19bc5b6849eacc05fbb",
+      "{\"aliases\":[\"Rav Ashi\"],\"bio\":\"Rav Ashi studied under the disciples of Abaye and Rava before becoming the head of one of the academies at the young age of fourteen. He held this position for sixty years, making him the prominent Jewish religious leader of his era. During the tolerant reigns succeeding Shapur II, Rav Ashi undertook the task of gathering and organizing all existing explanations of the Mishnah and its related texts. This monumental effort laid the foundation for the compilation of the Babylonian Talmud.\",\"bioSource\":\"sefaria\",\"canonical\":\"Rav Ashi\",\"canonicalHe\":\"רב אשי\",\"generation\":\"amora-bavel-6\",\"image\":null,\"moved\":null,\"numSources\":null,\"places\":[\"Mata Mehasya\"],\"region\":\"bavel\",\"wiki\":\"https://he.wikipedia.org/wiki/%D7%A8%D7%91_%D7%90%D7%A9%D7%99\"}"
+    ],
+    [
+      "source_identity:b000-p0/B",
+      "source_identity",
+      "b000-p0",
+      "Sanhedrin 33a:6",
+      "rav-ashi",
+      null,
+      "source_review",
+      "accepted_registry_identity",
+      "7c6e97badbcd2eec9f09f9287708a6c9b2d0ec8aba8c77e7c011dd1a903203ad",
+      "{\"assessmentId\":\"identity_assessment:case-11d6afd1d3120fb4494d\",\"evidence\":[{\"location\":\"passage\",\"quote\":\"א\\\"ל רבינא לרב אשי אפילו טעה בר' חייא ורבי אושעיא א\\\"ל אין אפילו בדרב ושמואל אמר ליה אין אפילו בדידי ודידך א\\\"ל אטו אנן קטלי קני באגמא אנן\"}],\"generationBasis\":\"existing_registry_not_new_dating\",\"historicalIdentityResolved\":true,\"personId\":\"rav-ashi\",\"personKey\":\"b000-p0/B\",\"proposalId\":\"identity_proposal:wide-v1-recovery/case-11d6afd1d3120fb4494d\",\"reason\":\"Rav Ashi and Ravina discuss rulings of earlier Rav and Shmuel. The exact name and later Babylonian discussion identify Rav Ashi, not Asi.\",\"sources\":[\"https://daat.ac.il/encyclopedia/value.asp?id1=52\",\"https://www.sefaria.org/Sanhedrin_33a.6\"],\"status\":\"accepted_registry_identity\"}"
+    ]
+  ],
+  "pins": {
+    "holdsSha256": "c4c5a91522695dc5d6fc489e62458128195bb2d364d253d9f7c47c31f8beca18",
+    "aliasMapSha256": "6eb992d650ce40a8848e34032170b971de0d8fbd6e729d2272f4409fea803e64"
+  },
+  "policySha256": "73dedaade975d72fcb015d735435d9b73131e9bd6ab022fb1ccd919e43f0ef01",
+  "outputs": [
+    {
+      "record_id": "possible_era:v1/b000-p0/B",
+      "kind": "possible_era",
+      "passage_id": "b000-p0",
+      "ref": "Sanhedrin 33a:6",
+      "subject_id": "local:b000-p0/B",
+      "object_id": null,
+      "authority": "screening",
+      "decision": "needs_review",
+      "data": {
+        "version": "possible-era-v1",
+        "personKey": "b000-p0/B",
+        "tier": "A",
+        "originalCandidateId": "rav-ashi",
+        "canonicalCandidateId": "rav-ashi",
+        "generation": "amora-bavel-6",
+        "identity": {
+          "recordId": "source_identity:b000-p0/B",
+          "payloadSha256": "7c6e97badbcd2eec9f09f9287708a6c9b2d0ec8aba8c77e7c011dd1a903203ad",
+          "authority": "source_review",
+          "decision": "accepted_registry_identity"
+        },
+        "reason": {
+          "recordId": "source_identity:b000-p0/B",
+          "payloadSha256": "7c6e97badbcd2eec9f09f9287708a6c9b2d0ec8aba8c77e7c011dd1a903203ad",
+          "authority": "source_review",
+          "decision": "accepted_registry_identity",
+          "text": "Rav Ashi and Ravina discuss rulings of earlier Rav and Shmuel. The exact name and later Babylonian discussion identify Rav Ashi, not Asi.",
+          "evidence": [
+            {
+              "location": "passage",
+              "quote": "א\"ל רבינא לרב אשי אפילו טעה בר' חייא ורבי אושעיא א\"ל אין אפילו בדרב ושמואל אמר ליה אין אפילו בדידי ודידך א\"ל אטו אנן קטלי קני באגמא אנן"
+            }
+          ]
+        },
+        "registry": {
+          "recordId": "registry_person:rav-ashi",
+          "payloadSha256": "0e8e71c69a7e158f748a9e9692c463ad7164276455b8d19bc5b6849eacc05fbb",
+          "authority": "registry",
+          "decision": null,
+          "name": "Rav Ashi",
+          "nameHe": "רב אשי"
+        },
+        "dependencies": [
+          {
+            "recordId": "identity_assessment:case-11d6afd1d3120fb4494d",
+            "payloadSha256": "60b2fa8d351d5d3a277f4b50132b5d5ebafe2f2fcad7b71b324a5b5aab3f68d2",
+            "authority": "source_review",
+            "decision": "reviewed"
+          },
+          {
+            "recordId": "identity_proposal:wide-v1-recovery/case-11d6afd1d3120fb4494d",
+            "payloadSha256": "28e131b30bacea49f7a3729c91fae528e08a437366785b1972387f1fc33eb7cd",
+            "authority": "screening",
+            "decision": "needs_review"
+          },
+          {
+            "recordId": "passage:b000-p0",
+            "payloadSha256": "9ffd494b60f26d2ea46fba8d769ac053dbf9cb26b8745309e1b9ec5c7a459c40",
+            "authority": "source",
+            "decision": null
+          },
+          {
+            "recordId": "person:b000-p0/B",
+            "payloadSha256": "6456ea909dfedeae66e880666f79ffad40ff2c99a41cad63dbb2a98ca4c58bc0",
+            "authority": "source",
+            "decision": null
+          },
+          {
+            "recordId": "registry_person:rav-ashi",
+            "payloadSha256": "0e8e71c69a7e158f748a9e9692c463ad7164276455b8d19bc5b6849eacc05fbb",
+            "authority": "registry",
+            "decision": null
+          },
+          {
+            "recordId": "source_identity:b000-p0/B",
+            "payloadSha256": "7c6e97badbcd2eec9f09f9287708a6c9b2d0ec8aba8c77e7c011dd1a903203ad",
+            "authority": "source_review",
+            "decision": "accepted_registry_identity"
+          }
+        ],
+        "scope": [
+          {
+            "recordId": "identity_assessment:case-11d6afd1d3120fb4494d",
+            "payloadSha256": "60b2fa8d351d5d3a277f4b50132b5d5ebafe2f2fcad7b71b324a5b5aab3f68d2",
+            "authority": "source_review",
+            "decision": "reviewed"
+          },
+          {
+            "recordId": "identity_proposal:wide-v1-recovery/case-11d6afd1d3120fb4494d",
+            "payloadSha256": "28e131b30bacea49f7a3729c91fae528e08a437366785b1972387f1fc33eb7cd",
+            "authority": "screening",
+            "decision": "needs_review"
+          },
+          {
+            "recordId": "source_identity:b000-p0/B",
+            "payloadSha256": "7c6e97badbcd2eec9f09f9287708a6c9b2d0ec8aba8c77e7c011dd1a903203ad",
+            "authority": "source_review",
+            "decision": "accepted_registry_identity"
+          }
+        ],
+        "policySha256": "73dedaade975d72fcb015d735435d9b73131e9bd6ab022fb1ccd919e43f0ef01",
+        "holdsSha256": "c4c5a91522695dc5d6fc489e62458128195bb2d364d253d9f7c47c31f8beca18",
+        "aliasMapSha256": "6eb992d650ce40a8848e34032170b971de0d8fbd6e729d2272f4409fea803e64",
+        "acceptedEra": false,
+        "independentlyConfirmed": false,
+        "usableForDatingOthers": false,
+        "meaning": "approximate_activity_generation_not_lifespan"
+      }
+    },
+    {
+      "record_id": "possible_era:v1/b000-p0/C",
+      "kind": "possible_era",
+      "passage_id": "b000-p0",
+      "ref": "Sanhedrin 33a:6",
+      "subject_id": "local:b000-p0/C",
+      "object_id": null,
+      "authority": "screening",
+      "decision": "needs_review",
+      "data": {
+        "version": "possible-era-v1",
+        "personKey": "b000-p0/C",
+        "tier": "B",
+        "originalCandidateId": "rabbi-chiyya",
+        "canonicalCandidateId": "rabbi-chiyya",
+        "generation": "tanna-6",
+        "identity": {
+          "recordId": "identity_proposal:wide-v1-recovery/case-941ce1b31e57561f00d2",
+          "payloadSha256": "c4b71eb77054c51e76abf47dd107c596b4093ee6a540b93aeb52c1d282d6cbc2",
+          "authority": "screening",
+          "decision": "needs_review"
+        },
+        "reason": {
+          "recordId": "identity_proposal:wide-v1-recovery/case-941ce1b31e57561f00d2",
+          "payloadSha256": "c4b71eb77054c51e76abf47dd107c596b4093ee6a540b93aeb52c1d282d6cbc2",
+          "authority": "screening",
+          "decision": "needs_review",
+          "text": "The passage pairs ר' חייא with רבי אושעיא, the classic Tanna Rabbi Chiyya; other candidates are Amoraim with patronymics and do not fit this pairing.",
+          "evidence": [
+            {
+              "location": "passage",
+              "quote": "ר' חייא"
+            },
+            {
+              "location": "passage",
+              "quote": "ורבי אושעיא"
+            }
+          ]
+        },
+        "registry": {
+          "recordId": "registry_person:rabbi-chiyya",
+          "payloadSha256": "60f1a9c76640bdf8d093bc71b4edbce2537880d4ff6b2c31fedcb9b8ba5aa2c9",
+          "authority": "registry",
+          "decision": null,
+          "name": "Rabbi Chiyya",
+          "nameHe": "רבי חייא"
+        },
+        "dependencies": [
+          {
+            "recordId": "identity_proposal:wide-v1-recovery/case-941ce1b31e57561f00d2",
+            "payloadSha256": "c4b71eb77054c51e76abf47dd107c596b4093ee6a540b93aeb52c1d282d6cbc2",
+            "authority": "screening",
+            "decision": "needs_review"
+          },
+          {
+            "recordId": "passage:b000-p0",
+            "payloadSha256": "9ffd494b60f26d2ea46fba8d769ac053dbf9cb26b8745309e1b9ec5c7a459c40",
+            "authority": "source",
+            "decision": null
+          },
+          {
+            "recordId": "person:b000-p0/C",
+            "payloadSha256": "249cb2b07995d0168e0350a2692e95ca0e379e48cbc5a8582182e42e407dba0c",
+            "authority": "source",
+            "decision": null
+          },
+          {
+            "recordId": "registry_person:rabbi-chiyya",
+            "payloadSha256": "60f1a9c76640bdf8d093bc71b4edbce2537880d4ff6b2c31fedcb9b8ba5aa2c9",
+            "authority": "registry",
+            "decision": null
+          }
+        ],
+        "scope": [
+          {
+            "recordId": "identity_proposal:wide-v1-recovery/case-941ce1b31e57561f00d2",
+            "payloadSha256": "c4b71eb77054c51e76abf47dd107c596b4093ee6a540b93aeb52c1d282d6cbc2",
+            "authority": "screening",
+            "decision": "needs_review"
+          }
+        ],
+        "policySha256": "73dedaade975d72fcb015d735435d9b73131e9bd6ab022fb1ccd919e43f0ef01",
+        "holdsSha256": "c4c5a91522695dc5d6fc489e62458128195bb2d364d253d9f7c47c31f8beca18",
+        "aliasMapSha256": "6eb992d650ce40a8848e34032170b971de0d8fbd6e729d2272f4409fea803e64",
+        "acceptedEra": false,
+        "independentlyConfirmed": false,
+        "usableForDatingOthers": false,
+        "meaning": "approximate_activity_generation_not_lifespan"
+      }
+    },
+    {
+      "record_id": "possible_era:v1/b004-p7/K",
+      "kind": "possible_era",
+      "passage_id": "b004-p7",
+      "ref": "Devarim Rabbah 1:17",
+      "subject_id": "local:b004-p7/K",
+      "object_id": null,
+      "authority": "screening",
+      "decision": "needs_review",
+      "data": {
+        "version": "possible-era-v1",
+        "personKey": "b004-p7/K",
+        "tier": "B",
+        "originalCandidateId": "rabbi-yehudah-b-pazi",
+        "canonicalCandidateId": "rabbi-yehudah-b-pazi",
+        "generation": "amora-ey-3",
+        "identity": {
+          "authority": "screening",
+          "decision": "needs_review",
+          "payloadSha256": "44c63e94fb4a8e81be38ebfd2c31c8892ad2e1df53e0293be1dbf499fe84ed65",
+          "recordId": "identity_proposal:wide-v1-recovery/case-67ca04de7bd1604dacfb"
+        },
+        "reason": {
+          "authority": "screening",
+          "decision": "needs_review",
+          "payloadSha256": "44c63e94fb4a8e81be38ebfd2c31c8892ad2e1df53e0293be1dbf499fe84ed65",
+          "recordId": "identity_proposal:wide-v1-recovery/case-67ca04de7bd1604dacfb",
+          "text": "The passage names Rabbi Yehuda b. R. Simon; candidate rabbi-yehudah-b-pazi is R. Yehudah b. Shimon b. Pazi, matching the patronymic and amoraic context.",
+          "evidence": [
+            {
+              "location": "passage",
+              "quote": "אמר רבי יהודה ברבי סימון"
+            },
+            {
+              "location": "before",
+              "quote": "אמר רבי יהודה ברבי סימון אמר לו הקדוש ברוך הוא"
+            }
+          ]
+        },
+        "registry": {
+          "authority": "registry",
+          "decision": null,
+          "payloadSha256": "170ea2c622ed76dfffdf75bf7a940184ea6cebafa7ec04cf79ab10552081ccf3",
+          "recordId": "registry_person:rabbi-yehudah-b-pazi",
+          "name": "Rabbi Yehudah b. Pazi",
+          "nameHe": "רבי יהודה בן פזי"
+        },
+        "dependencies": [
+          {
+            "authority": "source_review",
+            "decision": "supported",
+            "payloadSha256": "1099c0c761f037d960fce1fcee79466b5486122b7b4fb0460454213a6fe25570",
+            "recordId": "identity_assignment:name-05/b004-p7/K"
+          },
+          {
+            "authority": "source_review",
+            "decision": null,
+            "payloadSha256": "28c599f9804b8dcc9ab1564d8b18a53fc3679f3cfae80b75c7086a129e862b54",
+            "recordId": "identity_finding:123"
+          },
+          {
+            "authority": "source_review",
+            "decision": null,
+            "payloadSha256": "b2977265b7487f0af526a8ecc76fd05c037b65c73244f3c1f392509e315944fd",
+            "recordId": "identity_finding:130"
+          },
+          {
+            "authority": "source_review",
+            "decision": "proposed",
+            "payloadSha256": "da4f3b7cafe16639af1554f3fe6f4189088bf32df245eb52417fd2703ea81db4",
+            "recordId": "identity_group:name-05/g4"
+          },
+          {
+            "authority": "screening",
+            "decision": "needs_review",
+            "payloadSha256": "44c63e94fb4a8e81be38ebfd2c31c8892ad2e1df53e0293be1dbf499fe84ed65",
+            "recordId": "identity_proposal:wide-v1-recovery/case-67ca04de7bd1604dacfb"
+          },
+          {
+            "authority": "source",
+            "decision": null,
+            "payloadSha256": "9a5d556dcad9a69b4d5a10e9ee565bc2e8b641f73434c24d78f08dcb7d396fc4",
+            "recordId": "passage:b004-p7"
+          },
+          {
+            "authority": "source",
+            "decision": null,
+            "payloadSha256": "ba70266ceb563862c92c0518c3bf1b73dfdc8f4de87356fe3b2f518c010e794f",
+            "recordId": "person:b004-p7/K"
+          },
+          {
+            "authority": "registry",
+            "decision": null,
+            "payloadSha256": "170ea2c622ed76dfffdf75bf7a940184ea6cebafa7ec04cf79ab10552081ccf3",
+            "recordId": "registry_person:rabbi-yehudah-b-pazi"
+          }
+        ],
+        "scope": [
+          {
+            "authority": "source_review",
+            "decision": "supported",
+            "payloadSha256": "1099c0c761f037d960fce1fcee79466b5486122b7b4fb0460454213a6fe25570",
+            "recordId": "identity_assignment:name-05/b004-p7/K"
+          },
+          {
+            "authority": "source_review",
+            "decision": null,
+            "payloadSha256": "28c599f9804b8dcc9ab1564d8b18a53fc3679f3cfae80b75c7086a129e862b54",
+            "recordId": "identity_finding:123"
+          },
+          {
+            "authority": "source_review",
+            "decision": null,
+            "payloadSha256": "b2977265b7487f0af526a8ecc76fd05c037b65c73244f3c1f392509e315944fd",
+            "recordId": "identity_finding:130"
+          },
+          {
+            "authority": "source_review",
+            "decision": "proposed",
+            "payloadSha256": "da4f3b7cafe16639af1554f3fe6f4189088bf32df245eb52417fd2703ea81db4",
+            "recordId": "identity_group:name-05/g4"
+          },
+          {
+            "authority": "screening",
+            "decision": "needs_review",
+            "payloadSha256": "44c63e94fb4a8e81be38ebfd2c31c8892ad2e1df53e0293be1dbf499fe84ed65",
+            "recordId": "identity_proposal:wide-v1-recovery/case-67ca04de7bd1604dacfb"
+          }
+        ],
+        "policySha256": "73dedaade975d72fcb015d735435d9b73131e9bd6ab022fb1ccd919e43f0ef01",
+        "holdsSha256": "c4c5a91522695dc5d6fc489e62458128195bb2d364d253d9f7c47c31f8beca18",
+        "aliasMapSha256": "6eb992d650ce40a8848e34032170b971de0d8fbd6e729d2272f4409fea803e64",
+        "acceptedEra": false,
+        "independentlyConfirmed": false,
+        "usableForDatingOthers": false,
+        "meaning": "approximate_activity_generation_not_lifespan"
+      }
+    }
+  ],
+  "legacyControls": [
+    [
+      "identity_assignment:name-00/b004-p4/A",
+      "identity_assignment",
+      "b004-p4",
+      "Gittin 7a:10",
+      null,
+      null,
+      "source_review",
+      "supported",
+      "e81efd24072cfdb3059bfb07e5d7ba6684511baa20699dcafd405a5cec88f212",
+      "{\"dossierId\":\"name-00\",\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b004-p4\",\"quote\":\"א\\\"ל רב הונא בר נתן לרב אשי\"}],\"groupIds\":[\"name-00/g3\"],\"historicalIdentityConfirmed\":false,\"passageId\":\"b004-p4\",\"personId\":\"A\",\"personKey\":\"b004-p4/A\",\"reason\":\"Explicit bar Natan and direct address to Rav Ashi anchor this occurrence.\",\"status\":\"supported\"}"
+    ],
+    [
+      "accepted_identity:b042-p0/A",
+      "accepted_identity",
+      "b042-p0",
+      "Ketubot 22a:11",
+      "shmuel-(amora)",
+      null,
+      "source_review",
+      "accepted",
+      "83233e5d8c4eb87582418fb427211a5cfd24b41acb4c6c3aced86e1a7b505227",
+      "{\"generation\":\"amora-bavel-1\",\"generationBasis\":\"existing_registry\",\"identityDecision\":{\"evidence\":[{\"location\":\"passage\",\"quote\":\"בעא מיניה שמואל מרב אמרה טמאה אני וחזרה ואמרה טהורה אני מהו אמר ליה אף בזו אם נתנה\"}],\"occurrences\":[{\"end\":15,\"quote\":\"שמואל\",\"start\":10}],\"personKey\":\"b042-p0/A\",\"personSha256\":\"9e259521006bca1b03ed53a918f1f688f833325d01329d6d8f4d82b9bd00c57c\",\"reason\":\"The named Shmuel directly asks Rav a legal question. This is the Amora, not the biblical prophet.\",\"registrySlug\":\"shmuel-(amora)\",\"sourceSha256\":\"1fd05dd35b28827850858ad4b32f447524bb8f10bd3586848bfa7f9964aae6af\",\"status\":\"accepted\"},\"label\":\"Shmuel (Amora)\",\"personId\":\"shmuel-(amora)\",\"personKey\":\"b042-p0/A\"}"
+    ],
+    [
+      "identity_review:groupComparisons/0",
+      "identity_review",
+      null,
+      null,
+      null,
+      null,
+      "source_review",
+      null,
+      "6bf0f60398bdd5d3e22ae02c422bd594ca9b50a19a9269c337c5aa20d7f44b3f",
+      "{\"answerSha256\":\"43b1e1da3b66bb303d3d508dcf3702929a665bd1c2a962e689c7c714bf6a606c\",\"dossierId\":\"name-00\",\"evidence\":[{\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b115-p9\",\"quote\":\"רב הונא בר מנוח ורב שמואל בר אידי ורב חייא מווסתניא הוו שכיחי קמיה דרבא כי נח נפשיה דרבא אתו לקמיה דרב פפא\"}],\"id\":\"g7\",\"label\":\"Rav Huna son of Manoah, attendee of Rava and subsequently Rav Papa\",\"reason\":\"The explicit patronymic and the narrative transition after Rava died anchor this working identity. It is kept separate from the bar Ika anchor because the supplied sources do not supply an alias bridge; this is provisional and does not disprove the registry biography that equates them.\",\"registrySlug\":\"rav-huna-b-manoach\",\"status\":\"proposed\"},{\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b521-p0\",\"quote\":\"רב פפא איקלע לבי רב הונא בריה דרב איקא\"}],\"id\":\"g8\",\"label\":\"Rav Huna son of Rav Ika, host of Rav Papa\",\"reason\":\"The explicit son-of-Ika designation and the visit by Rav Papa support this candidate. Shared association with Rav Papa cannot independently identify him with bar Manoah, although the supplied biography proposes that alias. No brother or direct study under Rabbi Abbahu is established here.\",\"registrySlug\":\"rav-huna-son-of-rav-ika\",\"status\":\"proposed\"}],\"groupIds\":[\"g7\",\"g8\"],\"relation\":\"possible_same_person\",\"status\":\"unresolved\"}"
+    ],
+    [
+      "identity_finding:0",
+      "identity_finding",
+      null,
+      null,
+      null,
+      null,
+      "source_review",
+      null,
+      "f4e54d999c37a1482b2a8880a1b624094a3fd9bfa3604f3d195db6da93f66915",
+      "{\"dossierId\":\"name-00\",\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b059-p9\",\"quote\":\"אמר רב הונא בדק לן רב הונא בר חיננא\"},{\"location\":\"passage\",\"passageId\":\"b011-p4\",\"quote\":\"רב הונא בריה דרב יהושע\"},{\"location\":\"passage\",\"passageId\":\"b004-p4\",\"quote\":\"רב הונא בר נתן\"},{\"location\":\"passage\",\"passageId\":\"b033-p0\",\"quote\":\"רב הונא בר יהודה\"},{\"location\":\"passage\",\"passageId\":\"b118-p7\",\"quote\":\"רב הונא בר חייא\"}],\"groupIds\":[\"name-00/g1\",\"name-00/g2\",\"name-00/g3\",\"name-00/g4\",\"name-00/g5\",\"name-00/g6\"],\"kind\":\"possible_namesakes\",\"reason\":\"The selected retrieval cannot be one undifferentiated historical identity: it contains several explicit paternal signatures, and the examination expressly distinguishes a reporting Huna from Huna bar Hinena. The patronymic clusters are proposed identities, not proof that every variant father name denotes a different historical father. Bare-name outliers remain unresolved.\"}"
+    ],
+    [
+      "exclusion:0",
+      "exclusion",
+      "b199-p7",
+      "Sanhedrin 6b:15",
+      null,
+      null,
+      "user_correction",
+      "excluded",
+      "c6951d7b20d845530e4fa3314154275205afb8a4a23396b7f92f332093d8c22e",
+      "{\"claimIds\":[\"s2\",\"s3\"],\"evidence\":[{\"location\":\"passage\",\"quote\":\"אמר רב איש פלוני אתה חייב\"},{\"location\":\"passage\",\"quote\":\"איש פלוני אתה זכאי\"}],\"passageId\":\"b199-p7\",\"reason\":\"Sample judicial declarations do not create real litigant interactions.\",\"sourceRowSha256\":\"7c520ec40684b7d8b979ff372b9f68f5ba5159387948ac0747088251927d4da4\"}"
+    ],
+    [
+      "withheld:b350-p4",
+      "withheld",
+      "b350-p4",
+      "Jerusalem Talmud Bava Batra 8:8:2",
+      null,
+      null,
+      "source_review",
+      "withheld",
+      "44ce07b977234b82d41952446a3c0cc90aafbd743f026aad062c812f25de67f7",
+      "{\"id\":\"b350-p4\",\"reason\":\"Original reading withheld; no classification attempted.\",\"ref\":\"Jerusalem Talmud Bava Batra 8:8:2\"}"
+    ]
+  ],
+  "heldControl": {
+    "personKey": "b006-p8/A",
+    "candidate": "rabbi-yehudah-b-ilai",
+    "rows": [
+      [
+        "identity_assignment:name-05/b006-p8/A",
+        "identity_assignment",
+        "b006-p8",
+        "Tosefta Maaser Sheni 1:14",
+        null,
+        null,
+        "source_review",
+        "uncertain",
+        "a91dc37425783b9368204792887affb12f6f10cf5371e0bfe2ab7b5d847eeca8",
+        "{\"dossierId\":\"name-05\",\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b006-p8\",\"quote\":\", ואין מטמא טומאת אוכלין. כפניות נקחות בכסף מעשר, ומטמא טומאת אוכלין. ר' יהודה אומ' קור הרי הוא כעץ לכל דבר, אלא שניקח בכסף מעשר. כפניות הרי [הן] כפרי לכל דבר, אלא שפטורות מן המעשרות. ר' שמעון אמ' משם ר' ליעזר כורכום אין ניקח בכסף מעשר, לפי שאין בו טעם אלא ל\"}],\"groupIds\":[\"name-05/g1\"],\"historicalIdentityConfirmed\":false,\"passageId\":\"b006-p8\",\"personId\":\"A\",\"personKey\":\"b006-p8/A\",\"reason\":\"The unqualified food ruling lacks parentage. Adjacency to Gadish testimony does not identify this speaker.\",\"status\":\"uncertain\"}"
+      ]
+    ]
+  }
+}

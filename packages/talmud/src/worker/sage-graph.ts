@@ -11,6 +11,11 @@ import {
   type ReadingPerson,
 } from '../lib/sage-graph/initial-readings';
 import { type LegacyPayload, type LegacyRow, legacyCards } from '../lib/sage-graph/legacy-readings';
+import {
+  POSSIBLE_ERA_SCOPE_SQL,
+  type PossibleEra,
+  possibleEra,
+} from '../lib/sage-graph/possible-era';
 import { shareReviewedRelationships } from '../lib/sage-graph/reviewed-relationships';
 import {
   applyReadingCoverage,
@@ -507,6 +512,51 @@ sageGraph.get('/initial', async (c) => {
   });
 });
 
+async function readPossibleEra(db: D1Database, revisionId: string, personKey: string) {
+  try {
+    const columns =
+      'record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json';
+    const row = await db
+      .prepare(`SELECT ${columns} FROM sage_graph_all_records WHERE revision_id=? AND record_id=?`)
+      .bind(revisionId, `possible_era:v1/${personKey}`)
+      .first<LegacyRow>();
+    if (!row) return undefined;
+    const saved = JSON.parse(row.payload_json) as PossibleEra;
+    if (
+      !Array.isArray(saved.dependencies) ||
+      saved.dependencies.length > 64 ||
+      !saved.dependencies.length
+    )
+      return undefined;
+    const ids = saved.dependencies.map((d) => d.recordId);
+    const dependencies = await db
+      .prepare(
+        `SELECT ${columns} FROM sage_graph_all_records WHERE revision_id=? AND record_id IN (${ids.map(() => '?').join(',')})`,
+      )
+      .bind(revisionId, ...ids)
+      .all<LegacyRow>();
+    const scope = await db
+      .prepare(POSSIBLE_ERA_SCOPE_SQL)
+      .bind(
+        revisionId,
+        personKey.split('/')[0],
+        personKey,
+        personKey,
+        personKey,
+        personKey,
+        personKey,
+        personKey,
+      )
+      .all<LegacyRow>();
+    if (scope.results.length > 2000) return undefined;
+    const byId = new Map([...dependencies.results, ...scope.results].map((r) => [r.record_id, r]));
+    return await possibleEra(personKey, row, [...byId.values()]);
+  } catch {
+    // Missing or stale optional dating hints must not replace the checked person card.
+    return undefined;
+  }
+}
+
 sageGraph.get('/person', async (c) => {
   const db = c.env.SAGE_GRAPH_DB;
   if (!db) return c.json({ error: 'Graph database is unavailable' }, 503);
@@ -518,6 +568,7 @@ sageGraph.get('/person', async (c) => {
     if (!match) return c.json({ error: 'Unknown person' }, 404);
     const result = await readLegacyPassage(db, saved.id, match[1]);
     const person = result.cards.find((person) => person.id === id);
+    if (person) person.possibleEra = await readPossibleEra(db, saved.id, `${match[1]}/${match[2]}`);
     return person ? c.json(person) : c.json({ error: 'Unknown person' }, 404);
   }
   if (id?.startsWith('reading:')) {
@@ -620,6 +671,7 @@ sageGraph.get('/person', async (c) => {
   return c.json({
     readingBasis,
     readingBasisUnavailable,
+    possibleEra: await readPossibleEra(db, saved.id, personKey),
     revision: saved.id,
     id,
     era,

@@ -1,4 +1,5 @@
 import { For, Show } from 'solid-js';
+import type { PossibleEra } from '../lib/sage-graph/possible-era';
 import type { ReviewedEra } from '../lib/sage-graph/types';
 import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './generations';
 import { lang, t } from './i18n';
@@ -27,10 +28,18 @@ export function PersonEra(props: {
   generation?: string | null;
   uncertain?: boolean;
   reviewed?: ReviewedEra;
+  possible?: PossibleEra;
+  revision?: string;
 }) {
+  const possible = () =>
+    !props.reviewed && (!props.generation || props.generation === 'unknown')
+      ? props.possible
+      : undefined;
+  const generation = () =>
+    props.generation && props.generation !== 'unknown' ? props.generation : possible()?.generation;
   const gen = () =>
-    props.generation && props.generation !== 'unknown'
-      ? GENERATION_BY_ID[props.generation as GenerationId]
+    generation() && generation() !== 'unknown'
+      ? GENERATION_BY_ID[generation() as GenerationId]
       : undefined;
   const range = (): [number, number] | null =>
     props.reviewed
@@ -64,13 +73,22 @@ export function PersonEra(props: {
           </span>
         </Show>
       </div>
+      <Show when={possible()}>
+        {(hint) => (
+          <p class="person-era-caption">
+            {t(hint().tier === 'A' ? 'person.possibleAccepted' : 'person.possibleCandidate', {
+              name: lang() === 'he' ? hint().registry.nameHe : hint().registry.name,
+            })}
+          </p>
+        )}
+      </Show>
       <Show when={range()}>
         <div class="person-era-ruler" dir="ltr" role="img" aria-label={label()}>
           <div class="person-era-line" />
           <Show when={range()}>
             <div
               class="person-era-range"
-              classList={{ uncertain: props.uncertain }}
+              classList={{ uncertain: props.uncertain || !!possible() }}
               style={{
                 left: `${pct(range()![0])}%`,
                 width: `${pct(range()![1]) - pct(range()![0])}%`,
@@ -89,6 +107,37 @@ export function PersonEra(props: {
       <p class="person-era-caption" title={t('person.generationRange')}>
         {label()}
       </p>
+      <Show when={possible()}>
+        {(hint) => (
+          <>
+            <p class="person-era-caption">{t('person.possibleRange')}</p>
+            <details class="person-passage">
+              <summary>{t('person.possibleBasis')}</summary>
+              <p>{hint().reason.text}</p>
+              <For each={hint().reason.evidence}>
+                {(e) => (
+                  <blockquote lang="he" dir="rtl">
+                    {e.quote}
+                  </blockquote>
+                )}
+              </For>
+              <a
+                class="person-partner-link"
+                href={`/api/sage-graph/records?revision=${encodeURIComponent(props.revision ?? '')}&id=${encodeURIComponent(hint().identity.recordId)}`}
+              >
+                {t('person.possibleIdentitySource')}
+              </a>
+              {' · '}
+              <a
+                class="person-partner-link"
+                href={`/api/sage-graph/records?revision=${encodeURIComponent(props.revision ?? '')}&id=${encodeURIComponent(hint().registry.recordId)}`}
+              >
+                {t('person.possibleRegistrySource')}
+              </a>
+            </details>
+          </>
+        )}
+      </Show>
       <Show when={props.reviewed}>
         {(era) => (
           <a

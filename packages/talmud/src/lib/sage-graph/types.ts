@@ -1,4 +1,5 @@
 import type { InitialReading } from './initial-readings';
+import type { PossibleEra } from './possible-era';
 
 export interface CheckedConnection {
   id: string;
@@ -68,6 +69,7 @@ export interface ReviewedPlace {
   mapPlace: string | null;
 }
 export interface SourcePerson {
+  possibleEra?: PossibleEra;
   initialReading?: InitialReading;
   readingBasis?: InitialReading;
   readingBasisUnavailable?: boolean;
