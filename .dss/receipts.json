@@ -1725,6 +1725,11 @@
       "sha256": "55a11ec11c59a72e6f01e5aa58b4be195e75169fa83c84f7a4018fba89470400",
       "url": "https://dss.402.network/analyses/talmud/sage-network-passage-followup?revision=1"
     },
+    "research/sage-network/ownership/README.md": {
+      "disposition": "excluded",
+      "reason": "Engineering instructions for validating and consuming the source ownership map; no research findings or generated dataset.",
+      "sha256": "8aaf49dee7c1a87a5a97fe68574f2a957678464f8aeca09b184a37dd4605a5dc"
+    },
     "research/sage-network/pilot/README.md": {
       "disposition": "published",
       "sha256": "8642c33ab98942ce2d7a03bd9658483951e7086ac6715b4799dc92512cef1352",
