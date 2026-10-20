@@ -1,17 +1,19 @@
-"""Source units for compact-source-v4 (design stage; not wired to any runner).
+"""Source units for compact-source-v4.
 
-The model would name units by ID instead of retyping Hebrew and counting occurrences. Each source
-is split into units that cover every character: words, marks (punctuation) and spaces. Joining the
-unit texts in order gives back the source text exactly. The units go to the model as a separate
-JSON list next to the hashed source; nothing is written into the text itself. A word range compiles
-back to the exact quote, occurrence and offsets that compact-source-v2 already checks. There is no
-fuzzy matching: a range names whole words of this exact source, or it is rejected.
+The model names units by number instead of retyping Hebrew and counting occurrences. A source is
+first split into pieces that cover every character: words, marks (punctuation) and spaces. What the
+model is shown is one unit per word: the word together with the spaces and marks after it, numbered
+1, 2, ... in order. Text before the first word, if any, is unit 0 and cannot be chosen. Joining the
+shown units in order gives back the source text exactly; nothing is written into the text itself.
+A unit range compiles back to the exact quote, occurrence and offsets that compact-source-v2 checks.
+There is no fuzzy matching: a range names whole words of this exact source, or it is rejected.
 """
 import hashlib
 import json
 import unicodedata
 
 TOKENIZER = 'source-units-v1'
+DISPLAY = 'word-with-following-v1'
 QUOTE_MARKS = frozenset('"\'׳״')
 
 
@@ -88,19 +90,38 @@ def units(text):
 
 
 def words(text):
-    return [u for u in units(text) if u['kind'] == 'word']
+    """The word pieces, each with its word number n (1, 2, ...), which is its shown unit number."""
+    out = [dict(u) for u in units(text) if u['kind'] == 'word']
+    for n, w in enumerate(out, 1):
+        w['n'] = n
+    return out
+
+
+def shown_units(text):
+    """One unit per word, holding the word and everything after it up to the next word. Text before
+    the first word is unit 0. Each unit keeps its full span and its word span."""
+    pieces, out = units(text), []
+    lead_end = next((u['start'] for u in pieces if u['kind'] == 'word'), len(text))
+    if lead_end > 0:
+        out.append({'n': 0, 'start': 0, 'end': lead_end, 'word_start': None, 'word_end': None, 'text': text[:lead_end]})
+    ws = words(text)
+    for k, w in enumerate(ws):
+        end = ws[k + 1]['start'] if k + 1 < len(ws) else len(text)
+        out.append({'n': w['n'], 'start': w['start'], 'end': end, 'word_start': w['start'], 'word_end': w['end'], 'text': text[w['start']:end]})
+    return out
 
 
 def unit_list(source):
-    """What the model is shown for one source, beside its hashed text: [[unit_id, exact text], ...]."""
-    return [[u['id'], u['text']] for u in units(source['text'])]
+    """What the model is shown for one source, in place of its text: [[unit_number, exact text], ...]."""
+    return [[u['n'], u['text']] for u in shown_units(source['text'])]
 
 
 def binding(source):
-    """What a compiled anchor is bound to: the tokenizer, the exact source text, and its unit table."""
-    us = units(source['text'])
-    return {'tokenizer': TOKENIZER, 'source_id': source['source_id'], 'source_sha256': source['sha256'], 'units': len(us),
-            'table_sha256': _digest([[u['id'], u['kind'], u['start'], u['end']] for u in us])}
+    """What a compiled anchor is bound to: the splitter, the shown layout, the exact source text and
+    its unit table."""
+    us = shown_units(source['text'])
+    return {'tokenizer': TOKENIZER, 'display': DISPLAY, 'source_id': source['source_id'], 'source_sha256': source['sha256'],
+            'units': len(us), 'table_sha256': _digest([[u['n'], u['start'], u['end'], u['word_start'], u['word_end']] for u in us])}
 
 
 def occurrence_of(text, quote, start):
@@ -116,18 +137,18 @@ def occurrence_of(text, quote, start):
 
 
 def compile_anchor(source, anchor, table=None):
-    """{'source_id', 'first', 'last'} (unit IDs) -> exact quote, occurrence and offsets."""
+    """{'source_id', 'first', 'last'} (shown unit numbers) -> exact quote, occurrence and offsets.
+    The quote runs from the first unit's word to the last unit's word; trailing spaces and marks of
+    the last unit are not part of it."""
     if anchor.get('source_id') != source['source_id']:
         raise UnitError('unit_source', f"anchor names {anchor.get('source_id')!r}, not {source['source_id']!r}")
     first, last = anchor.get('first'), anchor.get('last')
     if type(first) is not int or type(last) is not int:
         raise UnitError('unit_range', 'first and last must be integers')
-    us = table if table is not None else units(source['text'])
-    if not 1 <= first <= last <= len(us):
-        raise UnitError('unit_range', f'{first}..{last} outside 1..{len(us)} or reversed')
-    if us[first - 1]['kind'] != 'word' or us[last - 1]['kind'] != 'word':
-        raise UnitError('unit_kind', f'{first}..{last} must start and end on a word, not a space or mark')
-    start, end = us[first - 1]['start'], us[last - 1]['end']
+    ws = table if table is not None else words(source['text'])
+    if not 1 <= first <= last <= len(ws):
+        raise UnitError('unit_range', f'{first}..{last} outside 1..{len(ws)} or reversed (unit 0 cannot be chosen)')
+    start, end = ws[first - 1]['start'], ws[last - 1]['end']
     quote = source['text'][start:end]
     return {'source_id': source['source_id'], 'quote': quote, 'occurrence': occurrence_of(source['text'], quote, start),
             'start': start, 'end': end, 'first': first, 'last': last}
@@ -154,7 +175,7 @@ def compile_answer(job, answer, expected_bindings=None):
         if not isinstance(r, dict) or not isinstance(r.get('evidence'), list) or not r['evidence']:
             raise UnitError('raw_schema', f"relationship {r.get('id') if isinstance(r, dict) else r!r} needs at least one evidence anchor")
     sources = {s['source_id']: s for s in job['sources']}
-    tables = {sid: units(s['text']) for sid, s in sources.items()}
+    tables = {sid: words(s['text']) for sid, s in sources.items()}
     bindings = {sid: binding(s) for sid, s in sources.items()}
     if expected_bindings is not None and expected_bindings != bindings:
         raise UnitError('unit_binding', 'unit tables differ from the ones the request was built with')
@@ -173,7 +194,7 @@ def compile_answer(job, answer, expected_bindings=None):
         p['mentions'] = [convert(a, f"people/{p.get('id')}/mentions/{k}") for k, a in enumerate(p['mentions'])]
     for r in compiled['relationships']:
         r['evidence'] = [convert(a, f"relationships/{r.get('id')}/evidence/{k}") for k, a in enumerate(r['evidence'])]
-    return compiled, {'tokenizer': TOKENIZER, 'bindings': bindings, 'anchors': mapping}
+    return compiled, {'tokenizer': TOKENIZER, 'display': DISPLAY, 'bindings': bindings, 'anchors': mapping}
 
 
 def to_units(source, quote, occurrence):
@@ -192,9 +213,9 @@ def to_units(source, quote, occurrence):
     ws = words(text)
     first = next((w for w in ws if w['start'] == a), None)
     last = next((w for w in ws if w['end'] == b), None)
-    if first and last and first['id'] <= last['id']:
-        return {'source_id': source['source_id'], 'first': first['id'], 'last': last['id']}, None
+    if first and last and first['n'] <= last['n']:
+        return {'source_id': source['source_id'], 'first': first['n'], 'last': last['n']}, None
     inside = [w for w in ws if w['start'] < b and a < w['end']]
     if inside and inside[0]['start'] <= a and b <= inside[-1]['end']:
-        return {'source_id': source['source_id'], 'first': inside[0]['id'], 'last': inside[-1]['id'], 'widened': True}, 'part of a word'
+        return {'source_id': source['source_id'], 'first': inside[0]['n'], 'last': inside[-1]['n'], 'widened': True}, 'part of a word'
     return None, 'covers marks only'

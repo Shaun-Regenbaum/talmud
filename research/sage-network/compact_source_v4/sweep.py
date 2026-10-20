@@ -13,10 +13,11 @@ from collections import Counter
 
 try:
     from . import units as U
-    from compact_source_v2.validate import hebrew_word_character
+    from .dependency import V2
 except ImportError:
     import units as U
-    from validate import hebrew_word_character
+    from dependency import V2
+hebrew_word_character = V2.hebrew_word_character
 
 
 def main():

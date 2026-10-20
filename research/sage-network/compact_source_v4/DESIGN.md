@@ -1,14 +1,27 @@
 # compact-source-v4: point at source units instead of retyping Hebrew
 
-**Status: a design for root review.** The only working code is a small, tested piece:
-`units.py`, which splits a source into units and turns unit numbers back into exact quotes. Nothing
-selects this directory. These do not exist yet:
+**Status: a bounded implementation, sent for independent review.** These exist and are tested on
+real sources:
 
-- the request builder
-- the schema
-- the reader instructions
-- the validator wiring
+- the unit splitter (`units.py`)
+- the raw v4 schema (`contract.py`)
+- the request builder (`request.py`)
+- the instructions (`reader.md`)
+- the validator with the check order and the saved record (`validate.py`)
+- the shared request body (`body.py`), which the validator rebuilds and compares in full
+- the pinned v2 loader (`dependency.py`)
+
+The entry points are in `README.md`. These do not exist:
+
 - any runner, cache or importer change
+- any deploy
+
+Two choices are taken as defaults until root decides otherwise:
+
+- **The shown layout is G.** Each unit is one word with the spaces and marks that follow it, and
+  it is numbered by word.
+- **A father inside one abbreviated unit with his son** (`רשב"ג`) is kept in the son's reason, not
+  as a separate person. This keeps the unchanged v2 rule on shared spans.
 
 No model calls were made. v2 and v3 are unchanged, and a test pins their files.
 

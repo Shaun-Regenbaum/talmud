@@ -40,7 +40,7 @@ FROZEN = {
 }
 SHARD_SHA256 = '823e4fb01d29f858e635130229860eae01c506ec5b2dd2e3e822c0b83d192b88'
 # unit tables of all 1,046 real sources; a change here needs a new TOKENIZER version
-TABLES_SHA256 = '2256745b26e9efad3a930ae95a72e6f352bceaa29b78f16ae6f8bcd8d70be7bd'
+TABLES_SHA256 = '29c613360e45bf58998867d17c11c535d0d82be64e215caacda7a07a9f9d5379'
 
 
 def source(job_id, source_id):
@@ -52,9 +52,8 @@ def word_texts(job_id, source_id):
 
 
 def word_range(job_id, source_id, first_word, last_word):
-    """Unit IDs of the n-th through m-th words (1-based word positions)."""
-    ws = U.words(source(job_id, source_id)['text'])
-    return {'source_id': source_id, 'first': ws[first_word - 1]['id'], 'last': ws[last_word - 1]['id']}
+    """Shown unit numbers are word numbers: the n-th through m-th words."""
+    return {'source_id': source_id, 'first': first_word, 'last': last_word}
 
 
 def test_answer(job, people_mentions, evidence):
@@ -96,7 +95,12 @@ class CompactSourceV4UnitTests(unittest.TestCase):
             self.assertEqual(at, len(text))
             listed = U.unit_list(s)
             self.assertEqual(''.join(x[1] for x in listed), text)
+            numbers = [x[0] for x in listed]
+            self.assertEqual(numbers[numbers[0] == 0:], list(range(1, len(U.words(text)) + 1)))
             self.assertEqual(json.loads(json.dumps(listed, ensure_ascii=False)), listed)
+            for u in U.shown_units(text):
+                if u['n']:
+                    self.assertEqual(text[u['word_start']:u['word_end']], U.words(text)[u['n'] - 1]['text'])
 
     def test_every_word_passes_the_v2_whole_word_rule(self):
         for job, s in SOURCES:
@@ -113,10 +117,10 @@ class CompactSourceV4UnitTests(unittest.TestCase):
             for s in job['sources']:
                 ws = U.words(s['text'])
                 for w in ws:
-                    mentions.append({'source_id': s['source_id'], 'first': w['id'], 'last': w['id']})
+                    mentions.append({'source_id': s['source_id'], 'first': w['n'], 'last': w['n']})
                 for length in (2, 3):
                     for k in range(len(ws) - length + 1):
-                        evidence.append({'source_id': s['source_id'], 'first': ws[k]['id'], 'last': ws[k + length - 1]['id']})
+                        evidence.append({'source_id': s['source_id'], 'first': ws[k]['n'], 'last': ws[k + length - 1]['n']})
             answer = test_answer(job, mentions, evidence)
             compiled_answer, envelope = U.compile_answer(job, answer)
             for a in envelope['anchors']:
@@ -133,6 +137,14 @@ class CompactSourceV4UnitTests(unittest.TestCase):
         ws = word_texts('v18-bavli-t17155', 's5')
         self.assertEqual((ws[0], ws[5]), ('תרבא', 'רבא'))
         self.assertEqual(U.compile_anchor(source('v18-bavli-t17155', 's5'), word_range('v18-bavli-t17155', 's5', 6, 6))['occurrence'], 2)
+        # Eruvin 29a: the DeepInfra low run quoted the second word רב as occurrence 2, which is inside
+        # מערבין; by literal count that word is occurrence 4. Its unit number compiles to 4.
+        s = source('v18-bavli-005', 's1')
+        ws = word_texts('v18-bavli-005', 's1')
+        self.assertEqual([n for n, w in enumerate(ws, 1) if w == 'רב'], [8, 20])
+        self.assertEqual(ws[8], 'מערבין')
+        self.assertEqual(U.compile_anchor(s, word_range('v18-bavli-005', 's1', 20, 20))['occurrence'], 4)
+        self.assertEqual(s['text'].find('רב', s['text'].find('רב') + 1), s['text'].find('מערבין') + 2)
         # Bava Metzia 61b: no word starts after the quote mark of א"ר
         ws = word_texts('v18-bavli-051', 's3')
         self.assertEqual(ws[:2], ['א"ר', 'אבהו'])
@@ -255,8 +267,7 @@ class CompactSourceV4UnitTests(unittest.TestCase):
     def test_bad_anchors_are_rejected(self):
         job = JOBS['v18-bavli-001']
         s = job['sources'][0]
-        n = len(U.units(s['text']))
-        space = next(u['id'] for u in U.units(s['text']) if u['kind'] == 'space')
+        n = len(U.words(s['text']))
         for anchor, code in [({'source_id': 's9', 'first': 1, 'last': 1}, 'unit_source'),
                              ({'source_id': 's1', 'first': 2, 'last': 1}, 'unit_range'),
                              ({'source_id': 's1', 'first': 0, 'last': 1}, 'unit_range'),
@@ -264,8 +275,6 @@ class CompactSourceV4UnitTests(unittest.TestCase):
                              ({'source_id': 's1', 'first': 1.0, 'last': 1}, 'unit_range'),
                              ({'source_id': 's1', 'first': '1', 'last': 1}, 'unit_range'),
                              ({'source_id': 's1', 'first': True, 'last': 1}, 'unit_range'),
-                             ({'source_id': 's1', 'first': space, 'last': space + 1}, 'unit_kind'),
-                             ({'source_id': 's1', 'first': 1, 'last': space}, 'unit_kind'),
                              ({'source_id': 's1', 'first': 1, 'last': 1, 'quote': 'x'}, 'unit_anchor')]:
             with self.assertRaises(U.UnitError) as e:
                 U.compile_answer(job, test_answer(job, [anchor], []))
