@@ -105,6 +105,10 @@ class ResponseMismatch(ValueError):
     """Sefaria answered a different reference or edition than the one asked for."""
 
 
+class MissingPartShape(ValueError):
+    """The index lists a named part, but its shape is missing or unusable, so the part would be lost."""
+
+
 def index_address_types(index, work):
     """{full node title: addressTypes} for every text node of a Sefaria index record.
 
@@ -149,7 +153,10 @@ def chapter_refs(work, fetch=None):
         _walk_shape(nd, nd.get('title') or work, out, types, seen)
     for title in sorted(set(types) - seen):
         part = fetch('shape/' + urllib.parse.quote(title))
-        for nd in (part if isinstance(part, list) else [part] if part else []):
+        nodes = part if isinstance(part, list) else [part] if part else []
+        if not nodes or not all(isinstance(nd, dict) and isinstance(nd.get('chapters'), (int, list)) for nd in nodes):
+            raise MissingPartShape(f'{work}: the index lists {title!r}, but Sefaria gave no usable shape for it')
+        for nd in nodes:
             _walk_shape(dict(nd, _named=True), title, out, types, seen)
     return out
 

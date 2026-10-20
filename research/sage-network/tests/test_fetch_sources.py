@@ -91,6 +91,22 @@ class NothingIsGuessed(unittest.TestCase):
             with self.assertRaises(fetch.AmbiguousShape):
                 fetch._is_talmud_daf(node)
 
+    def test_a_named_part_whose_shape_is_withheld_is_not_dropped(self):
+        # The real Mekhilta index lists Additions; without its shape all 7 Additions chapters would vanish.
+        files = {f'v2/raw/index/{MK}': 'index-mekhilta-drs.json', f'shape/{MK}': 'shape-mekhilta-drs.json'}
+        with self.assertRaises(fetch.MissingPartShape):
+            fetch.chapter_refs(MK, server(files))
+
+    def test_a_named_part_whose_shape_is_unusable_is_not_dropped(self):
+        # A real Sefaria error reply ({"error": ...}, from text-replies.json) standing where the part's shape should be.
+        error_reply = next(r['reply'] for r in load('text-replies.json')['replies'] if r['reply'].get('error'))
+        base = server({f'v2/raw/index/{MK}': 'index-mekhilta-drs.json', f'shape/{MK}': 'shape-mekhilta-drs.json'})
+
+        def get(path):
+            return {'error': error_reply['error']} if urllib.parse.unquote(path) == f'shape/{MK}, Additions' else base(path)
+        with self.assertRaises(fetch.MissingPartShape):
+            fetch.chapter_refs(MK, get)
+
     def test_a_shape_that_cannot_be_pages_needs_no_index(self):
         no_index = server({'shape/Jerusalem Talmud Berakhot': 'shape-jt-berakhot.json'})
         self.assertEqual(len(fetch.chapter_refs('Jerusalem Talmud Berakhot', no_index)), 9)
