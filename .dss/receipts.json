@@ -45,6 +45,16 @@
       "reason": "Executable reading instructions for a separately versioned research recipe, not a dataset or findings report.",
       "sha256": "463ec3bd6c1f4f35ccf91b37446110b972c36f9f1077828f1f046cff7c036f71"
     },
+    "research/sage-network/compact_source_v2/README.md": {
+      "disposition": "excluded",
+      "reason": "Engineering documentation for a separate research recipe; no measured findings.",
+      "sha256": "c30256d12133652bf8f23af7f54d8a9e5068df6b26f567010f24ba26ae36700f"
+    },
+    "research/sage-network/compact_source_v2/reader.md": {
+      "disposition": "excluded",
+      "reason": "Executable reader instructions for a separate research recipe, not research findings.",
+      "sha256": "465d78d6666c318a5f4aa8a3030cf52154cdb4757242a83e06181bcf5b650e50"
+    },
     "research/sage-network/data/checkpoint/CHECKPOINT.md": {
       "disposition": "published",
       "sha256": "ca1a1af6d10d2ae43cb0cf3fe59d50ddcc5600640e78710db6059b822c18fb18",
