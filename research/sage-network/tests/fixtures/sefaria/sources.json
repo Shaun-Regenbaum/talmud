@@ -1,0 +1,85 @@
+{
+  "fixtures": [
+    {
+      "fixture": "shape-sifrei-zuta.json",
+      "url": "https://www.sefaria.org/api/shape/Sifrei_Zuta",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "06768cbc0a4beabf59f37f435f5cba596d422e654016960bfbc3375f662460c6",
+      "note": "reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
+      "fixture": "index-sifrei-zuta.json",
+      "url": "https://www.sefaria.org/api/v2/raw/index/Sifrei_Zuta",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "40b7cc0428e0110be9c8bfa645648f6f7f73e00314084562c8df2763d07bd6cf",
+      "note": "reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
+      "fixture": "shape-mekhilta-drs.json",
+      "url": "https://www.sefaria.org/api/shape/Mekhilta_DeRabbi_Shimon_Ben_Yochai",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "e9c3db433f53b1102647c4bb8a41119c6ca20052ac2a5a5fa0b63d7dfcff3c83",
+      "note": "reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
+      "fixture": "index-mekhilta-drs.json",
+      "url": "https://www.sefaria.org/api/v2/raw/index/Mekhilta_DeRabbi_Shimon_Ben_Yochai",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "1094a8ea3d6768e116ffac8950294b850c6e764237768c8931abe955c80d39c8",
+      "note": "reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
+      "fixture": "shape-mekhilta-drs-additions.json",
+      "url": "https://www.sefaria.org/api/shape/Mekhilta%20DeRabbi%20Shimon%20Ben%20Yochai%2C%20Additions",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "29e2fabbdd349ff5cdb424c21bf186dfa348d94ad9ceafef6aafca76622a7e33",
+      "note": "reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
+      "fixture": "shape-berakhot.json",
+      "url": "https://www.sefaria.org/api/shape/Berakhot",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "fbdd0bc4f29282cf78d5b51cda7228fc1c98dc8943039f9d1d056ef5f88ecf27",
+      "note": "reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
+      "fixture": "index-berakhot.json",
+      "url": "https://www.sefaria.org/api/v2/raw/index/Berakhot",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "77f74cf10ef2d00bec205a92861437812ff61ee25422df0791131c99c6a10ebf",
+      "note": "reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
+      "fixture": "shape-jt-berakhot.json",
+      "url": "https://www.sefaria.org/api/shape/Jerusalem%20Talmud%20Berakhot",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "e2f270bce17f254763a13134d3b2e24de7c6429accbe2766f8be00181eda6e84",
+      "note": "reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
+      "fixture": "index-jt-berakhot.json",
+      "url": "https://www.sefaria.org/api/v2/raw/index/Jerusalem%20Talmud%20Berakhot",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "129af6a3b96d1025d237a1f47b0383cb213f475785ddfc4ee2bb837d81a49783",
+      "note": "reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
+      "fixture": "text-mk-additions-3-full.json",
+      "url": "https://www.sefaria.org/api/v3/texts/Mekhilta%20DeRabbi%20Shimon%20Ben%20Yochai%2C%20Additions%203?version=hebrew%7CMechilta+de-Rabbi+Simon+b.+Jochai%2C+Dr.+D.+Hoffman%2C+Frankfurt+1905&return_format=text_only",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "c4f2fa1a9ed5c6f04cefaecc402e20be3138f9d372cab0800402c7739a3ad4dd",
+      "note": "full reply with its text; reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
+      "fixture": "versions-mekhilta-drs.json",
+      "url": "https://www.sefaria.org/api/texts/versions/Mekhilta%20DeRabbi%20Shimon%20Ben%20Yochai",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "89093d1931bd9af3ea5e3c07af6cf2eb81a7b527c652db80df004893d908f9fd",
+      "note": "reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
+      "fixture": "text-replies.json",
+      "note": "extract of eight real v3 text replies; text bodies removed, other kept fields unchanged; each entry carries the hash of its full original reply"
+    }
+  ]
+}

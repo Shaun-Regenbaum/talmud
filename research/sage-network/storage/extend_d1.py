@@ -434,9 +434,15 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             f'SELECT {COLUMNS} FROM {table} WHERE revision_id=?',
             (parent['revision'],))}
         parent_keys = set(rows)
+        source_batch = any(key in changes for key in ('sourceReadingBundles', 'sourceReadingVersion', 'sourceReadingInputs'))
+        if source_batch:
+            import source_readings
+            source_readings.validate_changes(changes, rows)
         # A reference correction only re-points records already in the parent, so every record is
         # rebuilt from the parent and the frozen map and must match exactly.
         correcting = 'referenceCorrection' in changes
+        if correcting and source_batch:
+            raise ValueError('A reference correction cannot carry source readings')
         if correcting and changes != reference_correction.build(list(rows.values()), changes['referenceCorrection'], parent):
             raise ValueError('Reference correction differs from verified parent recomputation')
         if not correcting and ('namesakeRegistry' in changes or 'namesakeRegistrySha256' in changes or any(item['kind'] in {'namesake_scan','namesake_registry'} for item in changes['records'])):
@@ -514,7 +520,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             key = item['record_id']
             if key in changed:
                 raise ValueError('Duplicate change: ' + key)
-            if (not correcting and item['kind'] not in ALLOWED_KINDS) or not key.startswith(item['kind'] + ':'):
+            if (not correcting and item['kind'] not in (ALLOWED_KINDS | (source_readings.KINDS if source_batch else set()))) or not key.startswith(item['kind'] + ':'):
                 raise ValueError('Unsupported review kind: ' + key)
             old = rows.get(key)
             if old and old[6] == 'user_correction':
@@ -528,6 +534,9 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             elif 'referenceCorrection' in item['data']:
                 # Only a reference correction, rebuilt from the parent and the frozen map, may write this field.
                 raise ValueError('referenceCorrection is reserved for a reference correction: ' + key)
+            elif source_batch:
+                if old or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
+                    raise ValueError('Source readings must be new proposals: ' + key)
             elif item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry', 'identity_proposal', 'name_reading'}:
                 # Only a reading may be superseded, and only to add a source reference warning (checked below).
                 if (old and item['kind'] != 'name_reading') or item['authority'] != 'screening' or item.get('decision') != 'needs_review':

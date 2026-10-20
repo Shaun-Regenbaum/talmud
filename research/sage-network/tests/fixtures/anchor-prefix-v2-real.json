@@ -1,0 +1,745 @@
+{
+  "description": "Actual frozen source jobs and unchanged v7 research responses. Responses are unaccepted proposals and contain known quote errors.",
+  "cases": [
+    {
+      "job": {
+        "focal_ref": "Shabbat 153b:13",
+        "job_id": "v18-bavli-001",
+        "sources": [
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "11",
+              "captured_at": "2026-09-20T08:10:19Z",
+              "corpus": "bavli",
+              "focal": false,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/shabbat/wikisource-talmud-bavli/153b.json",
+              "raw_file_sha256": "e1a62d8bade72e530a08e1898be457314a2518d7e2e77e70f1a00d4e036f70d4",
+              "segment_id": "bavli|Shabbat|153b|11|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Shabbat%20153b",
+              "unit_segments_sha256": "408181e452efab7785f735c9a9381d2f5129f7c637002185444c540649664f95",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Shabbat"
+            },
+            "ref": "Shabbat 153b:11",
+            "sha256": "e77fb88671e8d329865afd09c271584ecda3a4bf6d07c7f42c184891942e6794",
+            "source_id": "s1",
+            "text": "מאי טעמא כיון דלית ליה היכירא אתי למיעבד עקירה והנחה סוף סוף כי מטא לביתיה אי אפשר דלא קאי פורתא וקמעייל מרשות הרבים לרה\"י דזריק ליה כלאחר יד"
+          },
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "12",
+              "captured_at": "2026-09-20T08:10:19Z",
+              "corpus": "bavli",
+              "focal": false,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/shabbat/wikisource-talmud-bavli/153b.json",
+              "raw_file_sha256": "e1a62d8bade72e530a08e1898be457314a2518d7e2e77e70f1a00d4e036f70d4",
+              "segment_id": "bavli|Shabbat|153b|12|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Shabbat%20153b",
+              "unit_segments_sha256": "408181e452efab7785f735c9a9381d2f5129f7c637002185444c540649664f95",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Shabbat"
+            },
+            "ref": "Shabbat 153b:12",
+            "sha256": "9d2b44acd53b64b3ab7da2048f999bfa00e2da3048231dc36d59816ba8db9257",
+            "source_id": "s2",
+            "text": "אמר רמי בר חמא המחמר אחר בהמתו בשבת בשוגג חייב חטאת במזיד חייב סקילה מאי טעמא אמר רבא דאמר קרא לא תעשה כל מלאכה אתה ובהמתך בהמתו דומיא דידיה מה הוא בשוגג חייב חטאת במזיד חייב סקילה אף בהמתו נמי בשוגג חייב חטאת במזיד חייב סקילה"
+          },
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "13",
+              "captured_at": "2026-09-20T08:10:19Z",
+              "corpus": "bavli",
+              "focal": true,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/shabbat/wikisource-talmud-bavli/153b.json",
+              "raw_file_sha256": "e1a62d8bade72e530a08e1898be457314a2518d7e2e77e70f1a00d4e036f70d4",
+              "segment_id": "bavli|Shabbat|153b|13|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Shabbat%20153b",
+              "unit_segments_sha256": "408181e452efab7785f735c9a9381d2f5129f7c637002185444c540649664f95",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Shabbat"
+            },
+            "ref": "Shabbat 153b:13",
+            "sha256": "a288f1be62b090718475b6de55b8854b52a864533c06a2ebcfcde38e435b553a",
+            "source_id": "s3",
+            "text": "אמר רבא שתי תשובות בדבר חדא דכתיב (במדבר טו, כט) תורה אחת יהיה לכם לעושה בשגגה והנפש אשר תעשה ביד רמה הוקשה כל התורה כולה לע\"ז מה ע\"ז דעביד מעשה בגופיה ה\"נ עד דעביד מעשה בגופיה"
+          },
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "14",
+              "captured_at": "2026-09-20T08:10:19Z",
+              "corpus": "bavli",
+              "focal": false,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/shabbat/wikisource-talmud-bavli/153b.json",
+              "raw_file_sha256": "e1a62d8bade72e530a08e1898be457314a2518d7e2e77e70f1a00d4e036f70d4",
+              "segment_id": "bavli|Shabbat|153b|14|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Shabbat%20153b",
+              "unit_segments_sha256": "408181e452efab7785f735c9a9381d2f5129f7c637002185444c540649664f95",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Shabbat"
+            },
+            "ref": "Shabbat 153b:14",
+            "sha256": "ff18d061cd348fbc2f66b6b4995f7684ea0577c573f01b8eb3c0efe5286e6090",
+            "source_id": "s4",
+            "text": "ועוד תנן המחלל את השבת בדבר שחייבין על שגגתו חטאת ועל זדונו סקילה מכלל דאיכא מידי דאין חייבין על שגגתו חטאת ולא על זדונו סקילה"
+          },
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "15",
+              "captured_at": "2026-09-20T08:10:19Z",
+              "corpus": "bavli",
+              "focal": false,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/shabbat/wikisource-talmud-bavli/153b.json",
+              "raw_file_sha256": "e1a62d8bade72e530a08e1898be457314a2518d7e2e77e70f1a00d4e036f70d4",
+              "segment_id": "bavli|Shabbat|153b|15|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Shabbat%20153b",
+              "unit_segments_sha256": "408181e452efab7785f735c9a9381d2f5129f7c637002185444c540649664f95",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Shabbat"
+            },
+            "ref": "Shabbat 153b:15",
+            "sha256": "1455997cd935c497bbbd96c1a74b0e48a23934f305c90a2d4d4178333e546fe3",
+            "source_id": "s5",
+            "text": "ומאי ניהו לאו דמחמר לא תחומין ואליבא דר\"ע והבערה אליבא דר' יוסי"
+          }
+        ]
+      },
+      "reading": {
+        "schema_version": "compact-source-v2",
+        "job_id": "v18-bavli-001",
+        "episode": {
+          "coverage": "complete_for_supplied_text",
+          "needed_context": [],
+          "notes": [
+            "s1 and s4 contain only generic hypothetical legal actors with no identifiable named person.",
+            "The Mishnah in s4 is cited anonymously (תנן) with no named author in the supplied text.",
+            "s5 attributes positions to ר\"ע and ר' יוסי via אליבא ד without a named speaker reporting them in this text."
+          ]
+        },
+        "people": [
+          {
+            "id": "p1",
+            "kind": "person",
+            "label": "Rami bar Hama",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "רמי בר חמא",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Named amora who states the law about driving one's animal on Shabbat.",
+            "alternatives": []
+          },
+          {
+            "id": "p2",
+            "kind": "person",
+            "label": "Rava",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "רבא",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s3",
+                "quote": "רבא",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Named amora who gives the scriptural reason in s2 and two further answers in s3.",
+            "alternatives": []
+          },
+          {
+            "id": "p3",
+            "kind": "person",
+            "label": "Rabbi Akiva",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s5",
+                "quote": "ר\"ע",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Tanna whose position (אליבא דר\"ע) is cited regarding techumin.",
+            "alternatives": []
+          },
+          {
+            "id": "p4",
+            "kind": "person",
+            "label": "Rabbi Yosei",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s5",
+                "quote": "ר' יוסי",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Tanna whose position (אליבא דר' יוסי) is cited regarding burning.",
+            "alternatives": []
+          },
+          {
+            "id": "p5",
+            "kind": "person",
+            "label": "Hypothetical person without acquaintance",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "לית ליה היכירא",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Generic legal actor in s1 described as having no acquaintance (היכירא); hypothetical scenario.",
+            "alternatives": []
+          },
+          {
+            "id": "p6",
+            "kind": "person",
+            "label": "Hypothetical animal driver",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "המחמר",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Generic legal actor in s2 who drives his animal on Shabbat; hypothetical case.",
+            "alternatives": []
+          },
+          {
+            "id": "p7",
+            "kind": "person",
+            "label": "Hypothetical Shabbat violator",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s4",
+                "quote": "המחלל",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Generic legal actor in s4 who desecrates Shabbat; hypothetical case in Mishnah.",
+            "alternatives": []
+          }
+        ],
+        "relationships": [
+          {
+            "id": "r1",
+            "subject": "p2",
+            "object": "p1",
+            "alternatives": [],
+            "relation": "responds_to_teaching",
+            "verb": "gives scriptural reason",
+            "modality": "response_to_teaching",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "Rava answers the question 'מאי טעמא' raised about Rami bar Hama's statement by citing a verse.",
+            "evidence": [
+              {
+                "source_id": "s2",
+                "quote": "מאי טעמא אמר רבא",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r2",
+            "subject": "p2",
+            "object": "p1",
+            "alternatives": [],
+            "relation": "responds_to_teaching",
+            "verb": "gives two answers",
+            "modality": "response_to_teaching",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "Rava continues addressing the matter of Rami bar Hama's teaching with two further answers.",
+            "evidence": [
+              {
+                "source_id": "s3",
+                "quote": "אמר רבא שתי תשובות בדבר",
+                "occurrence": 1
+              }
+            ]
+          }
+        ]
+      },
+      "sourceResultHash": "e9cf02ed2616c65dc706a1704f7040669da00fa2a792d9878b2d8c0d1f132c22"
+    },
+    {
+      "job": {
+        "focal_ref": "Bava Metzia 61b:13",
+        "job_id": "v18-bavli-051",
+        "sources": [
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "11",
+              "captured_at": "2026-09-20T08:22:09Z",
+              "corpus": "bavli",
+              "focal": false,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/bava-metzia/wikisource-talmud-bavli/61b.json",
+              "raw_file_sha256": "5352a1af3fd1641f3b4f7930725160b7d8302f2ff2ea75b2a887d201be04a8dc",
+              "segment_id": "bavli|Bava Metzia|61b|11|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Bava%20Metzia%2061b",
+              "unit_segments_sha256": "85243b38c9a6f0246bdbf143b35bf98a4c8a70f669382efafb831a964b1a3947",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Bava Metzia"
+            },
+            "ref": "Bava Metzia 61b:11",
+            "sha256": "fe9046d4cbd9f7ace878140248e4c4a6d16b8f8c498cff212e94e9e6781f2824",
+            "source_id": "s1",
+            "text": "א\"ל ומי נפיש אגרייהו טפי מרבית ומציצית וממשקלות א\"ל אע\"ג דלא נפיש אגרייהו טפי מאיסי למכלינהו:"
+          },
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "12",
+              "captured_at": "2026-09-20T08:22:09Z",
+              "corpus": "bavli",
+              "focal": false,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/bava-metzia/wikisource-talmud-bavli/61b.json",
+              "raw_file_sha256": "5352a1af3fd1641f3b4f7930725160b7d8302f2ff2ea75b2a887d201be04a8dc",
+              "segment_id": "bavli|Bava Metzia|61b|12|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Bava%20Metzia%2061b",
+              "unit_segments_sha256": "85243b38c9a6f0246bdbf143b35bf98a4c8a70f669382efafb831a964b1a3947",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Bava Metzia"
+            },
+            "ref": "Bava Metzia 61b:12",
+            "sha256": "ef7bd702c44e8917b9d63896d1e616cab8a1205c61328f5a0c6e2e3f9d46973d",
+            "source_id": "s2",
+            "text": "ואיזהו תרבית המרבה בפירות כיצד לקח הימנו חטים בדינר זהב וכו': אטו כל הני דאמרינן עד השתא לאו רבית הוא"
+          },
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "13",
+              "captured_at": "2026-09-20T08:22:09Z",
+              "corpus": "bavli",
+              "focal": true,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/bava-metzia/wikisource-talmud-bavli/61b.json",
+              "raw_file_sha256": "5352a1af3fd1641f3b4f7930725160b7d8302f2ff2ea75b2a887d201be04a8dc",
+              "segment_id": "bavli|Bava Metzia|61b|13|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Bava%20Metzia%2061b",
+              "unit_segments_sha256": "85243b38c9a6f0246bdbf143b35bf98a4c8a70f669382efafb831a964b1a3947",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Bava Metzia"
+            },
+            "ref": "Bava Metzia 61b:13",
+            "sha256": "ebe59d78f45a32b86bf0bee7bf3d12e91f346d9dded7a6d02809395f6a0c142f",
+            "source_id": "s3",
+            "text": "א\"ר אבהו עד כאן של תורה מכאן ואילך של דבריהם וכן אמר רבא עד כאן של תורה מכאן ואילך של דבריהם"
+          },
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "14",
+              "captured_at": "2026-09-20T08:22:09Z",
+              "corpus": "bavli",
+              "focal": false,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/bava-metzia/wikisource-talmud-bavli/61b.json",
+              "raw_file_sha256": "5352a1af3fd1641f3b4f7930725160b7d8302f2ff2ea75b2a887d201be04a8dc",
+              "segment_id": "bavli|Bava Metzia|61b|14|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Bava%20Metzia%2061b",
+              "unit_segments_sha256": "85243b38c9a6f0246bdbf143b35bf98a4c8a70f669382efafb831a964b1a3947",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Bava Metzia"
+            },
+            "ref": "Bava Metzia 61b:14",
+            "sha256": "bad8b73759a02b8e68986e71e664171fb339a3a4704f9d833d1e0d7ef6355fab",
+            "source_id": "s4",
+            "text": "ע\"כ (איוב כז, יז) יכין רשע וילבש צדיק עד כאן ותו לא אלא אפי' ע\"כ יכין רשע וילבש צדיק"
+          },
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "15",
+              "captured_at": "2026-09-20T08:22:09Z",
+              "corpus": "bavli",
+              "focal": false,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/bava-metzia/wikisource-talmud-bavli/61b.json",
+              "raw_file_sha256": "5352a1af3fd1641f3b4f7930725160b7d8302f2ff2ea75b2a887d201be04a8dc",
+              "segment_id": "bavli|Bava Metzia|61b|15|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Bava%20Metzia%2061b",
+              "unit_segments_sha256": "85243b38c9a6f0246bdbf143b35bf98a4c8a70f669382efafb831a964b1a3947",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Bava Metzia"
+            },
+            "ref": "Bava Metzia 61b:15",
+            "sha256": "7a3c5f277c223aae7725020f6e1afbb92e26fd8ae55057699acb28d27058ae58",
+            "source_id": "s5",
+            "text": "ע\"כ רבית קצוצה מכאן ואילך אבק רבית"
+          }
+        ]
+      },
+      "reading": {
+        "schema_version": "compact-source-v2",
+        "job_id": "v18-bavli-051",
+        "episode": {
+          "coverage": "complete_for_supplied_text",
+          "needed_context": [],
+          "notes": [
+            "The anonymous Q&A in s1 and the challenge in s2 lack identifiable participants from the supplied text alone; no relationships can be attributed to them.",
+            "Rava's 'וכן אמר' in s3 is a clear response-to-teaching supporting Rabbi Abbahu's statement."
+          ]
+        },
+        "people": [
+          {
+            "id": "p1",
+            "kind": "person",
+            "label": "Rabbi Abbahu",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s3",
+                "quote": "ר' אבהו",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Named as the authority who stated the Torah/rabbinic boundary.",
+            "alternatives": []
+          },
+          {
+            "id": "p2",
+            "kind": "person",
+            "label": "Rava",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s3",
+                "quote": "רבא",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Named as the one who echoed Rabbi Abbahu's teaching with 'וכן אמר'.",
+            "alternatives": []
+          }
+        ],
+        "relationships": [
+          {
+            "id": "r1",
+            "subject": "p2",
+            "object": "p1",
+            "alternatives": [],
+            "relation": "responds_to_teaching",
+            "verb": "echoes the same ruling",
+            "modality": "response_to_teaching",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "Rava states the identical formulation prefaced by 'וכן אמר', indicating agreement with Rabbi Abbahu's teaching.",
+            "evidence": [
+              {
+                "source_id": "s3",
+                "quote": "וכן אמר רבא עד כאן של תורה מכאן ואילך של דבריהם",
+                "occurrence": 1
+              }
+            ]
+          }
+        ]
+      },
+      "sourceResultHash": "db0231b9b2f9a784d0c8e08db1933d3043b6477a9836b2db67101c58fd38e00a"
+    },
+    {
+      "job": {
+        "focal_ref": "Pesachim 71b:10",
+        "job_id": "v18-bavli-101",
+        "sources": [
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "8",
+              "captured_at": "2026-09-20T08:09:05Z",
+              "corpus": "bavli",
+              "focal": false,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/pesachim/wikisource-talmud-bavli/71b.json",
+              "raw_file_sha256": "719d5c8f8daec3de2adc8da0bbb23797311e711209e5f23fabd5dc59d60a0307",
+              "segment_id": "bavli|Pesachim|71b|8|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Pesachim%2071b",
+              "unit_segments_sha256": "3d9465c003dd3778a7be0586603358634237435c4ef9d31bd4b29672c4195089",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Pesachim"
+            },
+            "ref": "Pesachim 71b:8",
+            "sha256": "6a8d0fcb5f430c5c5269a8f5532741bbc12b07ed99231f07143ebcf9f38f9dc5",
+            "source_id": "s1",
+            "text": "ושאר כל הזבחים ששחטן לשם פסח אם אינן ראויין חייב ואם ראויין הן רבי אליעזר מחייב חטאת ור' יהושע פוטר"
+          },
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "9",
+              "captured_at": "2026-09-20T08:09:05Z",
+              "corpus": "bavli",
+              "focal": false,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/pesachim/wikisource-talmud-bavli/71b.json",
+              "raw_file_sha256": "719d5c8f8daec3de2adc8da0bbb23797311e711209e5f23fabd5dc59d60a0307",
+              "segment_id": "bavli|Pesachim|71b|9|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Pesachim%2071b",
+              "unit_segments_sha256": "3d9465c003dd3778a7be0586603358634237435c4ef9d31bd4b29672c4195089",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Pesachim"
+            },
+            "ref": "Pesachim 71b:9",
+            "sha256": "549969003ace12f17eb9dfd22de82f4fb448e1feb4fee2921d2f03aa4e5b427b",
+            "source_id": "s2",
+            "text": "א\"ל ר' אליעזר מה אם הפסח שהוא מותר לשמו כששינה את שמו חייב זבחים שהן אסורין לשמן כששינה את שמן אינו דין שיהא חייב א\"ל ר' יהושע לא אם אמרת בפסח ששינהו בדבר אסור תאמר בזבחים ששינן בדבר המותר"
+          },
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "10",
+              "captured_at": "2026-09-20T08:09:05Z",
+              "corpus": "bavli",
+              "focal": true,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/pesachim/wikisource-talmud-bavli/71b.json",
+              "raw_file_sha256": "719d5c8f8daec3de2adc8da0bbb23797311e711209e5f23fabd5dc59d60a0307",
+              "segment_id": "bavli|Pesachim|71b|10|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Pesachim%2071b",
+              "unit_segments_sha256": "3d9465c003dd3778a7be0586603358634237435c4ef9d31bd4b29672c4195089",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Pesachim"
+            },
+            "ref": "Pesachim 71b:10",
+            "sha256": "081e6d60843b38173eecb2620932ebcf1640e15d89687c248d7349cfcbd55898",
+            "source_id": "s3",
+            "text": "א\"ל ר\"א אימורי ציבור יוכיחו שהן מותרין לשמן והשוחט לשמן חייב א\"ל ר' יהושע לא אם אמרת באימורי ציבור שיש להן קצבה תאמר בפסח שאין לו קצבה"
+          },
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "11",
+              "captured_at": "2026-09-20T08:09:05Z",
+              "corpus": "bavli",
+              "focal": false,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/pesachim/wikisource-talmud-bavli/71b.json",
+              "raw_file_sha256": "719d5c8f8daec3de2adc8da0bbb23797311e711209e5f23fabd5dc59d60a0307",
+              "segment_id": "bavli|Pesachim|71b|11|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Pesachim%2071b",
+              "unit_segments_sha256": "3d9465c003dd3778a7be0586603358634237435c4ef9d31bd4b29672c4195089",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Pesachim"
+            },
+            "ref": "Pesachim 71b:11",
+            "sha256": "93798d9de5e3fecd82c923a547162e02ccac0cdc5b4a7c6ba5bad3fab2ba9772",
+            "source_id": "s4",
+            "text": "רבי מאיר אומר אף השוחט לשם אימורי ציבור פטור"
+          },
+          {
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "address": "12",
+              "captured_at": "2026-09-20T08:09:05Z",
+              "corpus": "bavli",
+              "focal": false,
+              "license": "CC-BY-SA",
+              "raw_file": "raw/bavli/pesachim/wikisource-talmud-bavli/71b.json",
+              "raw_file_sha256": "719d5c8f8daec3de2adc8da0bbb23797311e711209e5f23fabd5dc59d60a0307",
+              "segment_id": "bavli|Pesachim|71b|12|Wikisource Talmud Bavli",
+              "source_url": "https://www.sefaria.org/Pesachim%2071b",
+              "unit_segments_sha256": "3d9465c003dd3778a7be0586603358634237435c4ef9d31bd4b29672c4195089",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "work": "Pesachim"
+            },
+            "ref": "Pesachim 71b:12",
+            "sha256": "85d2632cad2270bba24ba387cdd5638196c81a50c2aef2f9a6f01cbeb3bf703c",
+            "source_id": "s5",
+            "text": "שחטו שלא לאוכליו ושלא למנויו לערלין ולטמאין חייב לאוכליו ושלא לאוכליו למנויו ושלא למנויו למולין ולערלים לטמאין ולטהורין פטור"
+          }
+        ]
+      },
+      "reading": {
+        "schema_version": "compact-source-v2",
+        "job_id": "v18-bavli-101",
+        "episode": {
+          "coverage": "complete_for_supplied_text",
+          "needed_context": [],
+          "notes": [
+            "The focal passage (s3) continues a kal-va-chomer debate between R. Eliezer and R. Yehoshua begun in s2, with s1 stating their opposing rulings. s4 introduces R. Meir's independent ruling. s5 is an anonymous legal ruling with no named participants."
+          ]
+        },
+        "people": [
+          {
+            "id": "p1",
+            "kind": "person",
+            "label": "Rabbi Eliezer",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "רבי אליעזר",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s2",
+                "quote": "ר' אליעזר",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s3",
+                "quote": "ר\"א",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Named authority who rules liable and presents kal-va-chomer arguments in the debate.",
+            "alternatives": []
+          },
+          {
+            "id": "p2",
+            "kind": "person",
+            "label": "Rabbi Yehoshua",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "ר' יהושע",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s2",
+                "quote": "ר' יהושע",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s3",
+                "quote": "ר' יהושע",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Named authority who rules exempt and rejects R. Eliezer's kal-va-chomer arguments.",
+            "alternatives": []
+          },
+          {
+            "id": "p3",
+            "kind": "person",
+            "label": "Rabbi Meir",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s4",
+                "quote": "רבי מאיר",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Named authority who states an independent ruling exempting one who slaughters for communal offerings.",
+            "alternatives": []
+          }
+        ],
+        "relationships": [
+          {
+            "id": "r1",
+            "subject": "p1",
+            "object": "p2",
+            "alternatives": [],
+            "relation": "opposes",
+            "verb": "presents kal-va-chomer arguing Passover liability should extend to other sacrifices",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "R. Eliezer addresses R. Yehoshua with an a fortiori argument challenging his exemption ruling.",
+            "evidence": [
+              {
+                "source_id": "s2",
+                "quote": "א\"ל ר' אליעזר מה אם הפסח שהוא מותר לשמו כששינה את שמו חייב זבחים שהן אסורין לשמן כששינה את שמן אינו דין שיהא חייב",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r2",
+            "subject": "p2",
+            "object": "p1",
+            "alternatives": [],
+            "relation": "opposes",
+            "verb": "rejects the kal-va-chomer by distinguishing prohibited from permitted change of name",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "R. Yehoshua responds 'No' and refutes R. Eliezer's analogy.",
+            "evidence": [
+              {
+                "source_id": "s2",
+                "quote": "א\"ל ר' יהושע לא אם אמרת בפסח ששינהו בדבר אסור תאמר בזבחים ששינן בדבר המותר",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r3",
+            "subject": "p1",
+            "object": "p2",
+            "alternatives": [],
+            "relation": "opposes",
+            "verb": "presents a second kal-va-chomer from communal offerings",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "R. Eliezer (abbreviated ר\"א) again addresses R. Yehoshua with an argument from communal offerings.",
+            "evidence": [
+              {
+                "source_id": "s3",
+                "quote": "א\"ל ר\"א אימורי ציבור יוכיחו שהן מותרין לשמן והשוחט לשמן חייב",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r4",
+            "subject": "p2",
+            "object": "p1",
+            "alternatives": [],
+            "relation": "opposes",
+            "verb": "rejects the second kal-va-chomer by distinguishing fixed from unfixed time",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "R. Yehoshua responds 'No' and refutes the analogy from communal offerings.",
+            "evidence": [
+              {
+                "source_id": "s3",
+                "quote": "א\"ל ר' יהושע לא אם אמרת באימורי ציבור שיש להן קצבה תאמר בפסח שאין לו קצבה",
+                "occurrence": 1
+              }
+            ]
+          }
+        ]
+      },
+      "sourceResultHash": "c2ef1150394b548e2166546fe1492559df36ea4cbe345524555a23757c71ae97"
+    }
+  ]
+}
