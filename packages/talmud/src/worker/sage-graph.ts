@@ -10,6 +10,7 @@ import {
   type ReadingPerson,
 } from '../lib/sage-graph/initial-readings';
 import { type LegacyPayload, type LegacyRow, legacyCards } from '../lib/sage-graph/legacy-readings';
+import { shareReviewedRelationships } from '../lib/sage-graph/reviewed-relationships';
 import {
   applyReadingCoverage,
   type OwnedReadingUnit,
@@ -341,7 +342,7 @@ async function reviewedPeopleAtSameWords(
 async function readLegacyPassage(db: D1Database, revisionId: string, passageId: string) {
   const rows = await db
     .prepare(
-      "SELECT record_id,kind,passage_id,ref,authority,decision,payload_sha256,payload_json FROM sage_graph_all_records WHERE revision_id=? AND passage_id=? AND kind IN ('passage','person','claim','name_reading','identity_proposal','identity_assessment','source_identity','graph_node') ORDER BY record_id LIMIT 801",
+      "SELECT record_id,kind,passage_id,ref,authority,decision,payload_sha256,payload_json FROM sage_graph_all_records WHERE revision_id=? AND passage_id=? AND kind IN ('passage','person','claim','name_reading','identity_proposal','identity_assessment','source_identity','graph_node','connection','exclusion') ORDER BY record_id LIMIT 801",
     )
     .bind(revisionId, passageId)
     .all<LegacyRow>();
@@ -387,6 +388,7 @@ async function readLegacyPassage(db: D1Database, revisionId: string, passageId: 
       existing.initialReading.proposals?.push(...(card.initialReading.proposals ?? []));
     else legacy.cards.push(card);
   }
+  shareReviewedRelationships(legacy.cards, rows.results);
   for (const occurrence of identities.occurrences) {
     const existing = legacy.occurrences.find((o) => o.key === occurrence.key);
     if (existing)

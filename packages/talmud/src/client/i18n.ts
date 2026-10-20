@@ -181,6 +181,10 @@ const CATALOG = {
   'initial.relation.teacher_of': { en: 'Teacher of', he: 'מורה של' },
   'initial.relation.meets': { en: 'In the presence of', he: 'בנוכחות' },
   'initial.context': { en: 'Surrounding text', he: 'טקסט סמוך' },
+  'initial.review.conflicting_reviews': {
+    en: 'These readings disagree. The details remain open.',
+    he: 'הקריאות חלוקות. הפרטים עדיין לא הוכרעו.',
+  },
   'initial.review.attempted': {
     en: 'Attempted; completion is not established.',
     he: 'ניסיון; לא נקבע שהפעולה הושלמה.',
