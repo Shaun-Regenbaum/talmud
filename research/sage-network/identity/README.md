@@ -41,3 +41,23 @@ The existing records API can retrieve a review by passage:
 ```
 
 These records support the next source review. They do not add new confirmed connections or change the reader’s person links.
+
+## First registry suggestions for new source readings
+
+`name_candidates.py` looks up the name each new source reading prints, such as "רמי בר חמא", in the registry
+snapshot of the parent revision. It reads only the quoted name at its source span. The reader's English label is
+kept for display and never matched.
+
+- One registry entry with the exact full name gives a tentative suggestion. It is never accepted.
+- A short name ("רבי מאיר") gives alternatives, even when only one entry has it.
+- A registry name with a label such as "(2)", or a person listed in two rows, gives alternatives.
+- An abbreviation gives guesses only. Each guess names its list: first the site's `expandAbbreviations`, then
+  the matcher's own unreviewed list. Other readings stay possible.
+- If the source goes on with "בר", "בן" or "בריה" right after the quote, the quote may be cut short, and no
+  suggestion is made.
+- A father inside a patronymic stays a local relative. Generic actors are not matched.
+- A person already placed by an older reading at the same source position, or already decided by a human
+  correction or accepted identity, is skipped.
+
+Registry generations are copied onto each candidate as stored metadata only. They are never this person's era.
+The output kind is `name_candidates`. Existing `identity_proposal` records and recipes are unchanged.
