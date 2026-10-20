@@ -119,5 +119,54 @@ class ARepliedReferenceMustBeTheOneAskedFor(unittest.TestCase):
         self.assertIsNotNone(self.check(f'{MK}, Additions 1', edition='x'))
 
 
+class AUnitWithoutTextIsRecordedNeverSkipped(unittest.TestCase):
+    """fetch_work on real replies: one with text, one with none, and the whole-book answer."""
+    ED = 'Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905'
+    replies = {r['requestedRef']: r['reply'] for r in load('text-replies.json')['replies']}
+
+    def run_work(self, units, answers):
+        import tempfile
+        saved = (fetch.get, fetch.hebrew_editions, fetch.chapter_refs, fetch.RAW, list(fetch.absences))
+        tmp = tempfile.mkdtemp()
+        fetch.get = lambda path: answers.get(urllib.parse.unquote(path.split('/', 2)[2].split('?')[0]), None)
+        fetch.hebrew_editions = lambda title: [self.ED]
+        fetch.chapter_refs = lambda title: units
+        fetch.RAW = tmp
+        fetch.absences.clear()
+        try:
+            fetch.fetch_work('midrash-halakhah', MK)
+            return tmp, list(fetch.absences)
+        finally:
+            fetch.get, fetch.hebrew_editions, fetch.chapter_refs, fetch.RAW = saved[:4]
+            fetch.absences[:] = saved[4]
+
+    def test_text_is_saved_and_an_empty_unit_is_listed(self):
+        full = load('text-mk-additions-3-full.json')
+        tmp, absent = self.run_work(
+            [('mekhilta-derabbi-shimon-ben-yochai-additions-1', f'{MK}, Additions 1'), ('mekhilta-derabbi-shimon-ben-yochai-additions-3', f'{MK}, Additions 3')],
+            {f'{MK}, Additions 1': self.replies[f'{MK}, Additions 1'], f'{MK}, Additions 3': full})
+        saved = [os.path.join(d, f) for d, _, fs in os.walk(tmp) for f in fs]
+        self.assertEqual(len(saved), 1)
+        with open(saved[0]) as f:
+            rec = json.load(f)
+        self.assertEqual(rec['ref'], f'{MK}, Additions 3')
+        self.assertEqual(rec['nSegments'], len(full['versions'][0]['text']))
+        self.assertEqual([a['ref'] for a in absent], [f'{MK}, Additions 1'])
+        self.assertIn('We have no text', absent[0]['reason'])
+
+    def test_no_reply_stops_the_work(self):
+        with self.assertRaises(fetch.ResponseMismatch):
+            self.run_work([('3', f'{MK} 3')], {})
+
+    def test_a_whole_book_answer_stops_the_work(self):
+        with self.assertRaises(fetch.ResponseMismatch):
+            self.run_work([('10b', f'{MK} 10b')], {f'{MK} 10b': self.replies[f'{MK} 10b']})
+
+    def test_exit_status(self):
+        self.assertEqual(fetch.exit_status([], []), 0)
+        self.assertEqual(fetch.exit_status([], [{'unit': '1'}]), 2)
+        self.assertEqual(fetch.exit_status([{'work': 'x'}], [{'unit': '1'}]), 1)
+
+
 if __name__ == '__main__':
     unittest.main()

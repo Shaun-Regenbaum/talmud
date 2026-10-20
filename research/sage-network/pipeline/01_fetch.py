@@ -11,6 +11,15 @@ what this run happened to fetch.
 
 Set SAGE_NETWORK_DATA to keep the snapshot outside a git worktree. An earlier
 snapshot lived inside one and was deleted with it.
+
+A re-capture after the October 2026 fix (Talmud pages read from the index)
+must use a fresh SAGE_NETWORK_DATA. The old snapshot holds Sifrei Zuta and
+Mekhilta DeRabbi Shimon under page labels like 3a; fetching into it would put
+the new chapter files beside those, and both would be read.
+
+A unit the shape lists but an edition has no text for is not skipped quietly:
+it is written to fetch-absences.json, and the run exits with status 2, so a
+snapshot with gaps cannot pass for a complete one.
 """
 import argparse, concurrent.futures as cf, hashlib, json, os, re, sys, threading, time
 import urllib.error, urllib.parse, urllib.request
@@ -22,6 +31,7 @@ from textio import DATA, RAW
 BASE = 'https://www.sefaria.org/api/'
 UA = 'sage-network-study/0.1 (research; +https://github.com/Shaun-Regenbaum/talmud)'
 _lock = threading.Lock()
+absences = []          # units an edition has no text for, written to fetch-absences.json
 
 
 def get(path, tries=5):
@@ -255,14 +265,19 @@ def fetch_work(corpus, title):
                 continue
             q = urllib.parse.urlencode({'version': f'hebrew|{ed0}', 'return_format': 'text_only'})
             doc = get(f'v3/texts/{urllib.parse.quote(ref)}?{q}')
-            vs = (doc or {}).get('versions') or []
-            if not vs:
-                continue
-            problem = response_problem(doc, ref, ed0)
-            if problem:
-                raise ResponseMismatch(f'{work} | {ed} | {unit}: {problem}')
-            addrs, segs = flatten(vs[0].get('text'))
+            if doc is None:
+                raise ResponseMismatch(f'{work} | {ed} | {unit}: no reply for {ref!r}')
+            vs = doc.get('versions') or []
+            if vs or doc.get('ref'):
+                problem = response_problem(doc, ref, ed0)
+                if problem:
+                    raise ResponseMismatch(f'{work} | {ed} | {unit}: {problem}')
+            addrs, segs = flatten(vs[0].get('text')) if vs else ([], [])
             if not segs:
+                # Known and recorded, never silent: this edition has no text for the unit.
+                reason = doc.get('error') or ('the edition has no text for this unit' if vs else 'the reply holds no version')
+                with _lock:
+                    absences.append({'corpus': corpus, 'work': work, 'witness': ed, 'unit': unit, 'ref': ref, 'reason': reason})
                 continue
             rec = {
                 'corpus': corpus, 'work': work, 'witness': ed, 'unit': unit, 'ref': ref,
@@ -366,11 +381,21 @@ def main():
     print(f'\nmanifest: {write_manifest():,} units on disk')
     with open(os.path.join(DATA, 'fetch-failures.json'), 'w') as f:
         json.dump(failures, f, ensure_ascii=False, indent=1)
+    with open(os.path.join(DATA, 'fetch-absences.json'), 'w') as f:
+        json.dump(absences, f, ensure_ascii=False, indent=1)
     if failures:
         print(f'{len(failures)} work(s) FAILED and are listed in fetch-failures.json:')
         for x in failures:
             print('  ', x['corpus'], '|', x['work'], '|', x['error'])
-        sys.exit(1)
+    if absences:
+        print(f'{len(absences)} unit(s) have no text in an edition and are listed in fetch-absences.json; '
+              'the snapshot is not complete for them')
+    sys.exit(exit_status(failures, absences))
+
+
+def exit_status(failures, absences):
+    """1 when a work failed, 2 when units are missing from an edition, 0 only when nothing is."""
+    return 1 if failures else (2 if absences else 0)
 
 
 if __name__ == '__main__':

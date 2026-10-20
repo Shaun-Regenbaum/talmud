@@ -64,6 +64,13 @@
       "note": "reformatted for the linter; the parsed JSON equals the original reply"
     },
     {
+      "fixture": "text-mk-additions-3-full.json",
+      "url": "https://www.sefaria.org/api/v3/texts/Mekhilta%20DeRabbi%20Shimon%20Ben%20Yochai%2C%20Additions%203?version=hebrew%7CMechilta+de-Rabbi+Simon+b.+Jochai%2C+Dr.+D.+Hoffman%2C+Frankfurt+1905&return_format=text_only",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "c4f2fa1a9ed5c6f04cefaecc402e20be3138f9d372cab0800402c7739a3ad4dd",
+      "note": "full reply with its text; reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
       "fixture": "text-replies.json",
       "note": "extract of eight real v3 text replies; text bodies removed, other kept fields unchanged; each entry carries the hash of its full original reply"
     }
