@@ -18,7 +18,7 @@ FIXTURE = json.loads((Path(__file__).parent / 'fixtures/identity-proposal.json')
 UNRESOLVED = json.loads((Path(__file__).parent / 'fixtures/identity-unresolved-proposal.json').read_text())
 
 
-def import_records(root, records, change_records):
+def import_records(root, records, change_records, **change_fields):
     rows = []
     for item in records:
         payload = encode(item['data'])
@@ -40,7 +40,7 @@ def import_records(root, records, change_records):
         db.execute("UPDATE sage_graph_revisions SET state='verified'")
         (root / 'parent.sql').write_text('\n'.join(db.iterdump()))
     (root / 'manifest.json').write_text(json.dumps(parent))
-    changes = dict(parentRevision=parent['revision'], description='Review saved pilot identity', records=list(change_records))
+    changes = dict(dict(parentRevision=parent['revision'], description='Review saved pilot identity', records=list(change_records)), **change_fields)
     (root / 'changes.json').write_text(json.dumps(changes))
     return prepare(root/'parent.sql', root/'manifest.json', root/'changes.json', root/'output', shared=True)
 
