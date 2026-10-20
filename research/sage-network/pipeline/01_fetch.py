@@ -32,6 +32,10 @@ BASE = 'https://www.sefaria.org/api/'
 UA = 'sage-network-study/0.1 (research; +https://github.com/Shaun-Regenbaum/talmud)'
 _lock = threading.Lock()
 absences = []          # units an edition has no text for, written to fetch-absences.json
+# Works allowed to be fetched without a usable index, each with the reason a person gave. Empty: no
+# work has needed it. Every use is recorded in fetch-index-exceptions.json; nothing passes silently.
+NO_INDEX_EXCEPTIONS = {}
+index_exceptions = []
 
 
 def get(path, tries=5):
@@ -111,6 +115,10 @@ class MissingPartShape(ValueError):
     """The index lists a named part, but its shape is missing or unusable, so the part would be lost."""
 
 
+class MissingIndex(ValueError):
+    """A work's index is missing or unusable, so its named parts cannot be found; the work fails."""
+
+
 class MissingShape(ValueError):
     """A work's own shape is missing or unusable; the work is not treated as empty."""
 
@@ -160,9 +168,17 @@ def chapter_refs(work, fetch=None):
     rather than assumed. Whether a node is Talmud pages comes from the index's
     address types. A named part that the work's shape leaves out (Mekhilta
     DeRabbi Shimon's Additions) is found in the index and read by its own title.
+    Without a usable index those parts cannot be found, so the work fails unless
+    NO_INDEX_EXCEPTIONS names it, and then the exception is recorded.
     """
     fetch = fetch or get
-    types = index_address_types(fetch('v2/raw/index/' + urllib.parse.quote(work)), work)
+    index = fetch('v2/raw/index/' + urllib.parse.quote(work))
+    types = index_address_types(index if isinstance(index, dict) else None, work)
+    if not types:
+        if work not in NO_INDEX_EXCEPTIONS:
+            raise MissingIndex(f'{work}: Sefaria gave no usable index, so named parts cannot be found')
+        with _lock:
+            index_exceptions.append({'work': work, 'reason': NO_INDEX_EXCEPTIONS[work]})
     shape = fetch('shape/' + urllib.parse.quote(work))
     nodes = shape if isinstance(shape, list) else [shape] if shape else []
     if not _usable(nodes):
@@ -408,6 +424,11 @@ def main():
         json.dump(failures, f, ensure_ascii=False, indent=1)
     with open(os.path.join(DATA, 'fetch-absences.json'), 'w') as f:
         json.dump(absences, f, ensure_ascii=False, indent=1)
+    with open(os.path.join(DATA, 'fetch-index-exceptions.json'), 'w') as f:
+        json.dump(index_exceptions, f, ensure_ascii=False, indent=1)
+    if index_exceptions:
+        print(f'{len(index_exceptions)} work(s) were fetched without an index by recorded exception '
+              '(fetch-index-exceptions.json)')
     if failures:
         print(f'{len(failures)} work(s) FAILED and are listed in fetch-failures.json:')
         for x in failures:

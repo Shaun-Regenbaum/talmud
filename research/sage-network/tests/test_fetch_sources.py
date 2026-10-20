@@ -81,7 +81,7 @@ class UnitsComeFromTheIndexAddressTypes(unittest.TestCase):
 class NothingIsGuessed(unittest.TestCase):
     def test_a_page_like_shape_without_an_index_is_refused(self):
         no_index = server({f'shape/{SZ}': 'shape-sifrei-zuta.json'})
-        with self.assertRaises(fetch.AmbiguousShape):
+        with self.assertRaises(fetch.MissingIndex):
             fetch.chapter_refs(SZ, no_index)
 
     def test_the_old_slot_rule_alone_would_have_called_these_pages(self):
@@ -107,9 +107,37 @@ class NothingIsGuessed(unittest.TestCase):
         with self.assertRaises(fetch.MissingPartShape):
             fetch.chapter_refs(MK, get)
 
-    def test_a_shape_that_cannot_be_pages_needs_no_index(self):
+    def test_a_missing_index_fails_even_when_the_shape_cannot_be_pages(self):
+        # Without the index, named parts such as the Mekhilta's Additions could not be found.
         no_index = server({'shape/Jerusalem Talmud Berakhot': 'shape-jt-berakhot.json'})
-        self.assertEqual(len(fetch.chapter_refs('Jerusalem Talmud Berakhot', no_index)), 9)
+        with self.assertRaises(fetch.MissingIndex):
+            fetch.chapter_refs('Jerusalem Talmud Berakhot', no_index)
+        with self.assertRaises(fetch.MissingIndex):
+            fetch.chapter_refs(MK, server({f'shape/{MK}': 'shape-mekhilta-drs.json', f'shape/{MK}, Additions': 'shape-mekhilta-drs-additions.json'}))
+
+    def test_an_unusable_index_fails(self):
+        error_reply = next(r['reply'] for r in load('text-replies.json')['replies'] if r['reply'].get('error'))
+        base = server({f'shape/{MK}': 'shape-mekhilta-drs.json'})
+
+        def get(path):
+            return {'error': error_reply['error']} if urllib.parse.unquote(path) == f'v2/raw/index/{MK}' else base(path)
+        with self.assertRaises(fetch.MissingIndex):
+            fetch.chapter_refs(MK, get)
+
+    def test_a_named_exception_lets_a_work_through_without_an_index_and_is_recorded(self):
+        no_index = server({'shape/Jerusalem Talmud Berakhot': 'shape-jt-berakhot.json'})
+        saved = dict(fetch.NO_INDEX_EXCEPTIONS), list(fetch.index_exceptions)
+        fetch.NO_INDEX_EXCEPTIONS['Jerusalem Talmud Berakhot'] = 'exception under test'
+        fetch.index_exceptions.clear()
+        try:
+            self.assertEqual(len(fetch.chapter_refs('Jerusalem Talmud Berakhot', no_index)), 9)
+            self.assertEqual(fetch.index_exceptions, [{'work': 'Jerusalem Talmud Berakhot', 'reason': 'exception under test'}])
+        finally:
+            fetch.NO_INDEX_EXCEPTIONS.clear(); fetch.NO_INDEX_EXCEPTIONS.update(saved[0])
+            fetch.index_exceptions[:] = saved[1]
+
+    def test_no_work_is_excepted_by_default(self):
+        self.assertEqual(fetch.NO_INDEX_EXCEPTIONS, {})
 
 
 class ARepliedReferenceMustBeTheOneAskedFor(unittest.TestCase):
@@ -231,7 +259,7 @@ class MissingDataIsAFailureNotAnEmptyWork(unittest.TestCase):
             fetch.chapter_refs = saved
 
     def test_check_exits_nonzero_for_a_bad_row(self):
-        for key in (f'shape/{MK}', f'texts/versions/{MK}', f'shape/{MK}, Additions'):
+        for key in (f'shape/{MK}', f'texts/versions/{MK}', f'shape/{MK}, Additions', f'v2/raw/index/{MK}'):
             row = self.with_sefaria(self.without(key), lambda: fetch.probe_work(('midrash-halakhah', MK)))
             bad, status = fetch.check_status([row])
             self.assertEqual((len(bad), status), (1, 1), key)
