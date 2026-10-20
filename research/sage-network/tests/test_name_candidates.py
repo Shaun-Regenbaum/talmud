@@ -5,6 +5,7 @@ Where a test needs a situation the two readings do not contain, it says so and b
 """
 import copy
 import json
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -218,6 +219,32 @@ class NameCandidateTests(unittest.TestCase):
         self.assertEqual(result['nameShape'], 'short', 'so it can never become a suggestion')
         mention.update(quote='רבא', start=67)
         self.assertEqual([f['name'] for f in nc.match_mention(mention, source, self.registry)['forms']], ['רבא'], 'no retry when the printed word fits')
+
+    def test_quote_inside_a_longer_word_is_not_a_name(self):
+        # Real text of Temurah 6a:14. רבא after an attached ד or ו is a whole word; בא at the end of רבא is not,
+        # and neither is the end of השתא inside והשתא. This is the anchor audit's rule.
+        text = 'אמר ליה רב אחא בריה דרבא לרב אשי והשתא דשנינן כל הני שינויי דאביי ורבא במאי פליגי'
+        at = lambda word, part: (text.index(word) + word.index(part), text.index(word) + word.index(part) + len(part))
+        self.assertTrue(nc.on_word_edges(text, *at('דרבא', 'רבא')))
+        self.assertTrue(nc.on_word_edges(text, *at('ורבא', 'ורבא')))
+        self.assertFalse(nc.on_word_edges(text, *at('ורבא', 'בא')))
+        self.assertFalse(nc.on_word_edges(text, *at('והשתא', 'שת')))
+        start, end = at('ורבא', 'בא')
+        source = dict(text=text, sha256=nc.sha(text), provenance=dict(segment_id='bavli|Temurah|6a|14|Wikisource Talmud Bavli'))
+        mention = dict(quote='בא', start=start, end=end, occurrence=1, occurrenceKey='occ-test', source_id='s1',
+                       segmentId=source['provenance']['segment_id'], edition='Wikisource Talmud Bavli', ref='Temurah 6a:14',
+                       source_sha256=source['sha256'], primary=True)
+        result = nc.match_mention(mention, source, self.registry)
+        self.assertEqual((result['forms'], result['exact'], result['notes'][0]['rule']), ([], [], 'inside-a-word'))
+
+    def test_registry_rows_that_are_not_sages_are_never_candidates(self):
+        ts = (DATA.parent / 'nonSageTopics.ts').read_text()
+        listed = set(re.findall(r"'([^']+)'", ts[ts.index('new Set(['):ts.index('])')]))
+        self.assertEqual(listed, set(nc.NON_SAGE_SLUGS), 'keep the Python copy equal to the site list')
+        self.assertIn("includes('קבלה')", ts)
+        self.assertTrue(nc.is_non_sage_topic('mordechai1', 'מרדכי'))
+        self.assertTrue(nc.is_non_sage_topic('sefira1', 'סְפִירָה (קבלה)'))
+        self.assertFalse(nc.is_non_sage_topic('rava', 'רבא'))
 
     def test_lookup_rules(self):
         self.assertEqual(nc.forms('מהר"ל')['forms'], [dict(name='מהר"ל', rules=[], readings=[])], 'an abbreviation is never cut down')

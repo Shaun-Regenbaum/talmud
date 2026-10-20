@@ -65,6 +65,11 @@ UNREVIEWED_READINGS = {
     'רשב"ג': ['רבן שמעון בן גמליאל'],
     'רשב"ל': ['רבי שמעון בן לקיש'],
 }
+# The site's one rule for registry rows that are not sages (packages/talmud/src/lib/nonSageTopics.ts).
+NON_SAGE_SLUGS = frozenset({'hallel', 'mordekhai', 'mordechai1', 'blessings', 'blessings-(halakhah)'})
+# The anchor audit's whole-word rule (name-coverage-v18/anchor-audit/anchor_audit.py): a quote may follow only a
+# short attached prefix, and may not start after a quote mark or end inside a word.
+WORD_PREFIX = re.compile('[ודלבכמשה]{1,3}|א|אד|ואד|כד|מד')
 QUOTES = str.maketrans({'׳': "'", '’': "'", '‘': "'", '״': '"', '“': '"', '”': '"'})
 # Before a title two attached letters are safe (מדר' סימאי). Before an abbreviation only ו and one more,
 # so that an abbreviation such as מהר"ל is never cut down to ר"ל.
@@ -170,19 +175,45 @@ def shape(name, abbreviated):
     return 'full' if len(words) > 1 + titles else 'short'
 
 
+def is_non_sage_topic(slug, canonical_he):
+    return slug in NON_SAGE_SLUGS or 'קבלה' in (canonical_he or '')
+
+
+def on_word_edges(text, start, end):
+    """The anchor audit's rule, so a quote such as רבא inside תרבא is never read as a name."""
+    letter = lambda c: '\u05d0' <= c <= '\u05ea'
+    mark = lambda c: '\u0591' <= c <= '\u05c7'
+    ws = start
+    while ws > 0 and (letter(text[ws - 1]) or mark(text[ws - 1]) or text[ws - 1] in '"\''):
+        ws -= 1
+    before = ''.join(c for c in text[ws:start] if not mark(c))
+    bare = before.replace('"', '').replace("'", '')
+    start_ok = before == '' or (bool(WORD_PREFIX.fullmatch(bare)) and '"' not in before and "'" not in before)
+    stop = end
+    while stop < len(text) and mark(text[stop]):
+        stop += 1
+    return start_ok and (stop >= len(text) or not letter(text[stop]))
+
+
 def registry_index(rows, he_aliases):
     """rows: (record_id, payload_sha256, payload_json) of every registry_person in the parent revision."""
-    entries, index = {}, defaultdict(list)
+    entries, index, not_people = {}, defaultdict(list), []
     for record_id, payload_sha, payload in sorted(rows):
         require(record_id.startswith('registry_person:'), 'Not a registry person: ' + record_id)
         require(sha(payload) == payload_sha, 'Registry payload hash differs: ' + record_id)
         slug, data = record_id.split(':', 1)[1], json.loads(payload)
         entries[slug] = dict(recordId=record_id, payloadSha256=payload_sha, data=data)
+        if is_non_sage_topic(slug, data.get('canonicalHe')):
+            not_people.append(slug)
+            continue
         if data.get('canonicalHe'):
             name, rules, labels = registry_form(data['canonicalHe'])
             index[name].append(dict(slug=slug, via='canonicalHe', registryName=data['canonicalHe'], registryRules=rules, registryLabels=labels))
     unusable = []
     for alias in he_aliases['aliases']:
+        if alias['slug'] in not_people:
+            unusable.append(dict(alias=alias['he'], slug=alias['slug'], reason='slug is not a sage'))
+            continue
         if alias['slug'] not in entries:
             unusable.append(dict(alias=alias['he'], slug=alias['slug'], reason='slug not in registry snapshot'))
             continue
@@ -191,7 +222,7 @@ def registry_index(rows, he_aliases):
                                 guard=dict(notFollowedBy=alias.get('notFollowedBy', []),
                                            notAfterPatronymic=alias.get('notAfterPatronymic', False))))
     snapshot = sorted((e['recordId'], e['payloadSha256']) for e in entries.values())
-    return dict(entries=entries, index=dict(index), unusableAliases=unusable,
+    return dict(entries=entries, index=dict(index), unusableAliases=unusable, notSages=sorted(not_people),
                 registryRecordSetSha256=digest(snapshot), registryRecords=len(snapshot))
 
 
@@ -207,13 +238,18 @@ def match_mention(mention, source, registry):
     _, raw_start, _, segment_sha = source_unit(source)
     previous, following = neighbours(source['text'], mention['start'], mention['end'])
     f = forms(mention['quote'], previous, following)
+    if not on_word_edges(source['text'], mention['start'], mention['end']):
+        # Kept with its anchor so a reviewer sees it, but nothing is looked up for a quote inside another word.
+        f['forms'] = []
     word = f['text']
     if (' ' not in word and not f['abbreviated'] and len(word) > 2 and word[0] in 'ודלבמשכה'
             and not any(registry['index'].get(x['name']) for x in f['forms'])):
         # A one-word name is never more than a short name, so one retry without an attached letter is safe.
         f['forms'].append(dict(name=word[1:], rules=f['forms'][0]['rules'] + ['attached-prefix'], readings=[]))
     found, guesses, rejected, notes = [], [], [], []
-    if following in PATRONYMIC:
+    if not f['forms']:
+        notes.append(dict(rule='inside-a-word', note='The quote starts or ends inside a longer word, so it is not read as a name.'))
+    elif following in PATRONYMIC:
         notes.append(dict(rule='continues-with-patronymic', word=following,
                           note='The source goes on with a patronymic after the quoted name, so the quote may be cut short.'))
     for form in f['forms']:
@@ -226,7 +262,7 @@ def match_mention(mention, source, registry):
                 rejected.append(dict(slug=hit['slug'], form=form['name'], reason=f'Alias guard: the name follows {previous}, so it names a father.'))
                 continue
             (guesses if form['readings'] else found).append(dict(hit, form=form['name'], rules=form['rules'], readings=form['readings']))
-    name_shape = 'abbreviation' if f['abbreviated'] else shape(f['forms'][0]['name'], False)
+    name_shape = 'abbreviation' if f['abbreviated'] else shape(f['forms'][0]['name'] if f['forms'] else f['text'], False)
     longer = []
     if name_shape == 'short' or any(h['registryLabels'] for h in found):
         for form in f['forms']:

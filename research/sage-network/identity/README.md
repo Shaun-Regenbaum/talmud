@@ -56,6 +56,8 @@ kept for display and never matched.
 - If the source goes on with "בר", "בן" or "בריה" right after the quote, the quote may be cut short, and no
   suggestion is made.
 - A father inside a patronymic stays a local relative. Generic actors are not matched.
+- Registry rows the site treats as non-sages (`nonSageTopics.ts`) are never candidates, and a quote that starts or
+  ends inside a longer word gives none (the anchor audit's whole-word rule).
 - A person already placed by an older reading at the same source position, or already decided by a human
   correction or accepted identity, is skipped.
 
