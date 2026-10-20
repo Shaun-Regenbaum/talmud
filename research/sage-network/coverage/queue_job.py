@@ -19,7 +19,8 @@ image = (modal.Image.debian_slim(python_version='3.12').apt_install('curl')
          .add_local_file(Path(__file__), '/app/queue_job.py')
          .add_local_file(Path(__file__).with_name('queue_transition.py'), '/app/queue_transition.py')
          .add_local_file(Path(__file__).with_name('quality_bridge.py'), '/app/quality_bridge.py')
-         .add_local_file(Path(__file__).with_name('matched_transition.py'), '/app/matched_transition.py'))
+         .add_local_file(Path(__file__).with_name('matched_transition.py'), '/app/matched_transition.py')
+         .add_local_file(Path(__file__).with_name('provider_recovery.py'), '/app/provider_recovery.py'))
 
 
 @app.function(image=image, volumes={'/data': volume},
@@ -158,6 +159,33 @@ def transition_matched_trial(prior_run: str, next_run: str, prior_hash: str, nex
         following = load(Path('/data/inputs')/next_run/'config.json')
         if (following.get('coordinatorHash') != file_hash(Path('/app/queue_job.py')) or
                 following.get('matchedTransitionHash') != file_hash(Path('/app/matched_transition.py'))):
+            raise ValueError('Reviewed matched coordinator differs')
+        return transition(Path('/data/inputs'), Path('/data/runs'), prior_run, next_run,
+                          prior_hash, next_hash, volume.commit)
+    finally:
+        if locks.get('queue', None) == lock:
+            locks.pop('queue')
+
+
+@app.function(image=image, volumes={'/data': volume}, cpu=0.25, memory=512,
+              timeout=180, retries=0, max_containers=1)
+def reconcile_provider_failure(prior_run: str, next_run: str, prior_hash: str, next_hash: str):
+    import sys
+    import uuid
+    sys.path.insert(0, '/app')
+    from provider_recovery import transition
+    from queue_core import file_hash, load, safe_id
+    if MODE != 'full':
+        raise ValueError('Matched comparisons require the full volume')
+    safe_id(prior_run); safe_id(next_run)
+    lock = {'owner': str(uuid.uuid4()), 'runId': 'recovery:' + prior_run + ':' + next_run}
+    if not locks.put('queue', lock, skip_if_exists=True):
+        raise RuntimeError('A queue or transition is already running')
+    try:
+        volume.reload()
+        following = load(Path('/data/inputs')/next_run/'config.json')
+        if (following.get('coordinatorHash') != file_hash(Path('/app/queue_job.py')) or
+                following.get('providerRecoveryHash') != file_hash(Path('/app/provider_recovery.py'))):
             raise ValueError('Reviewed matched coordinator differs')
         return transition(Path('/data/inputs'), Path('/data/runs'), prior_run, next_run,
                           prior_hash, next_hash, volume.commit)
