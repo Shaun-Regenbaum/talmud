@@ -10,11 +10,39 @@ from contextlib import closing
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'storage'))
-from extend_d1 import canonical_registry_slug, digest, prepare, validate_registry_person, validate_generation_evidence
+from extend_d1 import canonical_registry_slug, digest, prepare, review_receipt_sha256, validate_registry_person, validate_generation_evidence
 from identity_proposals import record
 from prepare_d1 import encode
 
 FIXTURE = json.loads((Path(__file__).parent / 'fixtures/identity-proposal.json').read_text())
+UNRESOLVED = json.loads((Path(__file__).parent / 'fixtures/identity-unresolved-proposal.json').read_text())
+
+
+def import_records(root, records, change_records):
+    rows = []
+    for item in records:
+        payload = encode(item['data'])
+        rows.append((item['record_id'], item['kind'], item.get('passage_id'), item.get('ref'),
+                     item.get('subject_id'), item.get('object_id'), item['authority'],
+                     item.get('decision'), digest(payload), payload))
+    rows.sort()
+    parent = dict(revision='saved-pilot-assessment-source', recordCount=len(rows),
+                  countsByKind=dict(sorted(Counter(r[1] for r in rows).items())),
+                  recordSetSha256=digest(encode([r[:-1] for r in rows])))
+    repo = Path(__file__).resolve().parents[3]
+    with closing(sqlite3.connect(':memory:')) as db:
+        for migration in sorted((repo / 'packages/talmud/migrations-sage-graph').glob('*.sql')):
+            db.executescript(migration.read_text())
+        db.execute('INSERT INTO sage_graph_revisions VALUES (?,?,?,CURRENT_TIMESTAMP)',
+                   (parent['revision'], encode({k:v for k,v in parent.items() if k != 'revision'}), 'loading'))
+        db.executemany('INSERT INTO sage_graph_records VALUES (' + ','.join('?'*11) + ')',
+                       [(parent['revision'], *r) for r in rows])
+        db.execute("UPDATE sage_graph_revisions SET state='verified'")
+        (root / 'parent.sql').write_text('\n'.join(db.iterdump()))
+    (root / 'manifest.json').write_text(json.dumps(parent))
+    changes = dict(parentRevision=parent['revision'], description='Review saved pilot identity', records=list(change_records))
+    (root / 'changes.json').write_text(json.dumps(changes))
+    return prepare(root/'parent.sql', root/'manifest.json', root/'changes.json', root/'output', shared=True)
 
 
 class IdentityAssessmentTests(unittest.TestCase):
@@ -41,32 +69,7 @@ class IdentityAssessmentTests(unittest.TestCase):
                 sources=['https://www.sefaria.org/Jerusalem_Talmud_Terumot.2.1.19'], generationDecision='held'))
 
     def run_import(self, assessment=None, extra=()):
-        rows = []
-        for item in self.records:
-            payload = encode(item['data'])
-            rows.append((item['record_id'], item['kind'], item.get('passage_id'), item.get('ref'),
-                         item.get('subject_id'), item.get('object_id'), item['authority'],
-                         item.get('decision'), digest(payload), payload))
-        rows.sort()
-        parent = dict(revision='saved-pilot-assessment-source', recordCount=len(rows),
-                      countsByKind=dict(sorted(Counter(r[1] for r in rows).items())),
-                      recordSetSha256=digest(encode([r[:-1] for r in rows])))
-        repo = Path(__file__).resolve().parents[3]
-        with closing(sqlite3.connect(':memory:')) as db:
-            for migration in sorted((repo / 'packages/talmud/migrations-sage-graph').glob('*.sql')):
-                db.executescript(migration.read_text())
-            db.execute('INSERT INTO sage_graph_revisions VALUES (?,?,?,CURRENT_TIMESTAMP)',
-                       (parent['revision'], encode({k:v for k,v in parent.items() if k != 'revision'}), 'loading'))
-            db.executemany('INSERT INTO sage_graph_records VALUES (' + ','.join('?'*11) + ')',
-                           [(parent['revision'], *r) for r in rows])
-            db.execute("UPDATE sage_graph_revisions SET state='verified'")
-            (self.root / 'parent.sql').write_text('\n'.join(db.iterdump()))
-        (self.root / 'manifest.json').write_text(json.dumps(parent))
-        changes = dict(parentRevision=parent['revision'], description='Review saved pilot identity',
-                       records=[assessment or self.assessment, *extra])
-        (self.root / 'changes.json').write_text(json.dumps(changes))
-        return prepare(self.root/'parent.sql', self.root/'manifest.json', self.root/'changes.json',
-                       self.root/'output', shared=True)
+        return import_records(self.root, self.records, [assessment or self.assessment, *extra])
 
     def test_held_assessment_keeps_proposal(self):
         self.assertEqual(self.run_import()['changedRecords'], 1)
@@ -168,6 +171,115 @@ class IdentityAssessmentTests(unittest.TestCase):
         self.records.append(correction)
         with self.assertRaisesRegex(ValueError, 'human correction'):
             self.run_import()
+
+
+class UnresolvedProposalTests(unittest.TestCase):
+    """A saved proposal that named nobody, accepted by two reviews bound to this case.
+
+    The records are a real captured case (Bava Batra 123a:11) copied verbatim; the
+    tests check the import rules only and do not approve the identity."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.records = [{k: v for k, v in r.items() if k != 'payloadSha256'} for r in UNRESOLVED['records']]
+        self.proposal = self.records[0]
+        self.passage = self.records[1]
+        self.pk = self.proposal['data']['case']['personKey']
+        self.pid = self.pk.split('/')[0]
+        self.person = 'rabbi-shmuel-b-nahmani'
+
+    def records_for(self, person=None, reviews=None, **data):
+        person = person or self.person
+        assessment = dict(record_id='identity_assessment:' + self.proposal['data']['case']['id'], kind='identity_assessment',
+            passage_id=self.pid, ref=self.proposal['ref'], subject_id='local:' + self.pk, object_id=person,
+            authority='source_review', decision='reviewed', data=dict(
+                proposalId=self.proposal['record_id'], proposalPayloadSha256=digest(encode(self.proposal['data'])),
+                personKey=self.pk, proposedPersonId=None, reviewerChosenPersonId=person, outcome='accepted', acceptedPersonId=person,
+                reason=UNRESOLVED['firstReaderReason'], evidence=copy.deepcopy(UNRESOLVED['evidence']),
+                sources=['https://www.sefaria.org/Bava%20Batra%20123a'], generationDecision='held',
+                acceptedOverUnresolvedProposal=dict(reason='The saved proposal stopped on two registry records for one man; the duplicate map names the canonical one.',
+                                                    reviews=copy.deepcopy(UNRESOLVED['reviews']) if reviews is None else reviews)))
+        assessment['data'].update(data)
+        identity = dict(record_id='source_identity:' + self.pk, kind='source_identity', passage_id=self.pid, ref=self.proposal['ref'],
+            subject_id=person, authority='source_review', decision='accepted_registry_identity',
+            data=dict(personKey=self.pk, personId=person, status='accepted_registry_identity', historicalIdentityResolved=True))
+        node = dict(record_id='graph_node:' + person, kind='graph_node', subject_id=person, authority='source_review',
+            decision='supported', data=dict(id=person, personKeys=[self.pk], identityResolved=True))
+        return [assessment, identity, node]
+
+    def run_import(self, changes):
+        return import_records(self.root, self.records, changes)
+
+    @staticmethod
+    def resign(review):
+        review['receiptSha256'] = review_receipt_sha256(review)
+        return review
+
+    def test_fixture_is_the_saved_unresolved_proposal(self):
+        answer = self.proposal['data']['answer']
+        self.assertIsNone(answer['personId'])
+        self.assertEqual(answer['status'], 'unresolved')
+        for record in UNRESOLVED['records']:
+            self.assertEqual(digest(encode(record['data'])), record['payloadSha256'])
+
+    def test_bound_reviews_accept_the_reviewer_choice(self):
+        result = self.run_import(self.records_for())
+        self.assertEqual(result['changedRecords'], 3)
+
+    def test_proposal_null_is_kept(self):
+        with self.assertRaisesRegex(ValueError, 'indexes differ from proposal'):
+            self.run_import(self.records_for(proposedPersonId=self.person))
+        with self.assertRaisesRegex(ValueError, 'explicit and separate'):
+            self.run_import(self.records_for(reviewerChosenPersonId=None))
+
+    def test_duplicate_registry_slug_is_refused(self):
+        duplicate = 'rabbi-shmuel-bar-nachmani'
+        self.assertEqual(canonical_registry_slug(duplicate), self.person)
+        reviews = [self.resign(dict(r, acceptedPersonId=duplicate)) for r in copy.deepcopy(UNRESOLVED['reviews'])]
+        with self.assertRaisesRegex(ValueError, 'canonical registry person'):
+            self.run_import(self.records_for(person=duplicate, reviews=reviews))
+
+    def test_reviews_cannot_move_to_another_case(self):
+        for field, value in [('caseId', 'case-another'), ('personKey', self.pid + '/Z'), ('proposalPayloadSha256', '0' * 64),
+                             ('sourceSha256', '0' * 64), ('decision', 'hold'), ('acceptedPersonId', 'rav-ashi')]:
+            reviews = copy.deepcopy(UNRESOLVED['reviews'])
+            self.resign(reviews[0].__setitem__(field, value) or reviews[0])
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'not bound to this case'):
+                self.run_import(self.records_for(reviews=reviews))
+
+    def test_receipt_hash_and_file_hash_are_checked(self):
+        reviews = copy.deepcopy(UNRESOLVED['reviews'])
+        reviews[1]['reviewer'] = 'someone-else'
+        with self.assertRaisesRegex(ValueError, 'not bound to this case'):
+            self.run_import(self.records_for(reviews=reviews))
+        reviews = copy.deepcopy(UNRESOLVED['reviews'])
+        self.resign(reviews[1].__setitem__('fileSha256', 'not-a-hash') or reviews[1])
+        with self.assertRaisesRegex(ValueError, 'not bound to this case'):
+            self.run_import(self.records_for(reviews=reviews))
+
+    def test_two_different_reviews_are_required(self):
+        reviews = copy.deepcopy(UNRESOLVED['reviews'])
+        with self.assertRaisesRegex(ValueError, 'at least two reviews'):
+            self.run_import(self.records_for(reviews=reviews[:1]))
+        with self.assertRaisesRegex(ValueError, 'different reviewers'):
+            self.run_import(self.records_for(reviews=[reviews[0], copy.deepcopy(reviews[0])]))
+        same_reviewer = self.resign(dict(reviews[1], reviewer=reviews[0]['reviewer']))
+        with self.assertRaisesRegex(ValueError, 'different reviewers'):
+            self.run_import(self.records_for(reviews=[reviews[0], same_reviewer]))
+
+    def test_reason_and_target_evidence_are_required(self):
+        changes = self.records_for()
+        changes[0]['data']['acceptedOverUnresolvedProposal']['reason'] = ' '
+        with self.assertRaisesRegex(ValueError, 'needs a reason'):
+            self.run_import(changes)
+        text = self.passage['data']['source']['passage']
+        target = next(p for p in self.passage['data']['people'] if p['id'] == self.pk.split('/')[1])['quote']
+        other = text[:text.index(target)].strip()[-40:]
+        self.assertTrue(other and target not in other)
+        with self.assertRaisesRegex(ValueError, 'quote the target occurrence'):
+            self.run_import(self.records_for(evidence=[dict(location='passage', quote=other)]))
 
 
 class ReviewedEraTests(unittest.TestCase):

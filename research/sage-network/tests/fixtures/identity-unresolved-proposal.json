@@ -1,0 +1,494 @@
+{
+  "provenance": {
+    "revision": "sage-graph-a389d63c07946980b0bf",
+    "packetId": "v17-0159",
+    "caseId": "case-812e6605b9d27d284b20",
+    "note": "Verbatim records from the live sage graph; review receipts hash the real review files. Test data only; this fixture does not approve the identity."
+  },
+  "records": [
+    {
+      "record_id": "identity_proposal:wide-v1-recovery/case-812e6605b9d27d284b20",
+      "kind": "identity_proposal",
+      "passage_id": "b486-p3",
+      "ref": "Bava Batra 123a:11",
+      "subject_id": "local:b486-p3/B",
+      "object_id": null,
+      "authority": "screening",
+      "decision": "needs_review",
+      "data": {
+        "accepted": false,
+        "answer": {
+          "evidence": [
+            {
+              "location": "passage",
+              "quote": "בעא מיניה ר' חלבו מרבי שמואל בר נחמני"
+            }
+          ],
+          "generation": null,
+          "id": "case-812e6605b9d27d284b20",
+          "personId": null,
+          "reason": "Exact name matches rabbi-shmuel-bar-nachmani, and its bio notes Rabbi Chelbo quoted him; however rabbi-shmuel-b-nahmani is a close variant/duplicate of the same Amora, so identity is left unresolved.",
+          "status": "unresolved"
+        },
+        "audit": null,
+        "case": {
+          "candidates": [
+            {
+              "aliases": [
+                "Rabbi Shmuel b. Nahmani",
+                "Rabbi Shmuel b. Nahman",
+                "Rav Shmuel b. Nahman",
+                "Rav Shmuel b. Nahmani",
+                "Rabbi Shmuel ben Nahmani",
+                "Rabbi Shmuel ben Nahman",
+                "Rav Shmuel ben Nahman",
+                "Rav Shmuel ben Nahmani",
+                "R. Samuel b. Nahmani",
+                "Rav Samuel b. Nahman",
+                "Samuel b. Nahman",
+                "Rebbi Samuel b. Nahman",
+                "Rebbi Samuel b. Rav Nahman",
+                "Rebbi Samuel b. Rebbi Nahman",
+                "Rebbi Samuel b. Nahmani",
+                "Rebbi Samuel b. Rebbi Nahmani",
+                "Rabbi Samuel b. Nahmani"
+              ],
+              "bio": "R. Shmuel b. Nachmani was a student of R. Yochanan who became an influential scholar often sent by the Sanhedrin to Babylonia. He was known for his colorful homiletics and his longevity.",
+              "canonical": "Rabbi Shmuel b. Nahmani",
+              "canonicalHe": "רבי שמואל בן נחמן",
+              "generation": "amora-ey-2",
+              "id": "rabbi-shmuel-b-nahmani",
+              "sources": null
+            },
+            {
+              "aliases": [
+                "Rabbi Shmuel b. Yitzhak",
+                "Shmuel b. Yitzhak",
+                "Rav Shmuel b. Yitzhak",
+                "Rav Shmuel b. Rav Yitzhak",
+                "Rabbi Shmuel b. Rav Yitzhak",
+                "Rabbi Shmuel ben Yitzhak",
+                "Shmuel ben Yitzhak",
+                "Rav Shmuel ben Yitzhak",
+                "Rav Shmuel ben Rav Yitzhak",
+                "Rabbi Shmuel ben Rav Yitzhak",
+                "Rebbi Samuel b. Rabbi Isaac",
+                "Rebbi Samuel b. Rebbi Issac",
+                "Rebbi Samuel b. Rebbi Isaac",
+                "Rebbi Samuel b. Rav Isaac",
+                "Samuel b. Rav Isaac",
+                "Rav Samuel b. Rav Isaac",
+                "Rebbi Samuel b. Isaac",
+                "Rav Yehuda b. Yitzhak"
+              ],
+              "bio": "Like many others, R. Shmuel b. Yitzchak left Babylonia to study in Israel. As he established himself there, he became close to his teacher, R. Chiyya - to the point that he mourned the latter's death as would have a family member; something repeated by his devoted student, Rav Zera, when he died. He was particularly known for his kindness in helping brides rejoice at their weddings.",
+              "canonical": "Rabbi Shmuel b. Yitzhak",
+              "canonicalHe": "רב שמואל בר יצחק",
+              "generation": "amora-ey-2",
+              "id": "rabbi-shmuel-b-yitzhak",
+              "sources": null
+            },
+            {
+              "aliases": [
+                "Rabbi Shmuel bar Nachman",
+                "R. Shmuel bar Nachmani",
+                "Rabbi Samuel bar Nachmani",
+                "Rabbi Shmuel bar Nahmani"
+              ],
+              "bio": "Rabbi Shmuel bar Nachmani was an Eretz Yisraeli Amora of the second and third generations, active in the 3rd and 4th centuries, who resided primarily in Lod. A kohen, he was among the greatest Jewish aggadists. He studied under Rabbi Yonatan ben Elazar and Rabbi Yehoshua ben Levi, and also saw the Tanna Rabbi Shimon ben Elazar; his colleague was Rabbi Yaakov bar Idi. Though he engaged extensively in halakha and was considered a leading authority of his generation, he was especially renowned for aggadah, earning the title \"ba'al aggadah.\" Many of his aggadic teachings were quoted by Rabbi Chelbo. His sons included the Amora Rabbi Hillel ben Rabbi Shmuel bar Nachmani and Nachman.",
+              "canonical": "Rabbi Shmuel bar Nachmani",
+              "canonicalHe": "רבי שמואל בר נחמני",
+              "generation": "amora-ey-2",
+              "id": "rabbi-shmuel-bar-nachmani",
+              "sources": null
+            },
+            {
+              "aliases": [
+                "R. Shmuel bar Rav Yitzchak",
+                "Rav Shmuel bar Rav Yitzchak",
+                "Rabbi Shmuel bar R. Yitzchak",
+                "R. Shmuel bar R. Yitzchak"
+              ],
+              "bio": "Rabbi Shmuel bar Rav Yitzchak was a third-generation Amora born in Babylonia who ascended to Eretz Yisrael. He was considered, together with Rabbi Zeira, the greatest sage of his generation in Eretz Yisrael, and was known primarily as an aggadist.",
+              "canonical": "Rabbi Shmuel bar Rav Yitzchak",
+              "canonicalHe": "רב שמואל בר רב יצחק",
+              "generation": "amora-ey-3",
+              "id": "rabbi-shmuel-bar-rav-yitzchak",
+              "sources": null
+            },
+            {
+              "aliases": [
+                "Rav Shmuel b. Rava",
+                "R. Shmuel b. Rav Avahu",
+                "Rav Shmuel bar Rav Avahu",
+                "R. Shmuel b. Rava"
+              ],
+              "bio": "Rav Shmuel b. Rav Avahu was a Jewish sage of the second generation of Savoraim, on the border of the first generation. He was the son of Rav Avahu, a sage of Pumbedita in the late Amoraic period. His colleague and disputant was Rav Achai, and they appear together in two sugyot in the Babylonian Talmud.",
+              "canonical": "Rav Shmuel b. Rav Avahu",
+              "canonicalHe": "רב שמואל בריה דרב אבהו",
+              "generation": "savora",
+              "id": "rav-shmuel-b-rav-avahu",
+              "sources": null
+            },
+            {
+              "aliases": [
+                "R. Shmuel b. Yehuda",
+                "Rav Shmuel bar Yehuda",
+                "Rav Samuel b. Yehuda",
+                "Shmuel b. Yehuda"
+              ],
+              "bio": "Rav Shmuel b. Yehuda was a third-generation Babylonian Amora who later immigrated to Eretz Yisrael.",
+              "canonical": "Rav Shmuel b. Yehuda",
+              "canonicalHe": "רב שמואל בר יהודה",
+              "generation": "amora-ey-3",
+              "id": "rav-shmuel-b-yehuda",
+              "sources": null
+            },
+            {
+              "aliases": [
+                "R. Shmuel bar Sheilat",
+                "Rav Shmuel b. Sheilat",
+                "Rav Samuel bar Sheilat",
+                "R. Shmuel b. Sheilat",
+                "Shmuel bar Sheilat"
+              ],
+              "bio": "Rav Shmuel bar Sheilat was a first- and second-generation Babylonian Amora and a student of Rav. All halakhot he cites in the Talmud are transmitted in Rav's name. He was renowned as a dedicated teacher of young children; the Talmud records that he taught uninterrupted for thirteen years, earning Rav's praise with the verse from Daniel 12:3. Rav entrusted him with pedagogical guidance and requested that he deliver his eulogy so as to warm the hearts of listeners and bring them to tears. He was a wealthy man. A tradition identifies him as a descendant of Haman who studied Torah in Bnei Brak, though the Lubavitcher Rebbe concluded that his primary residence was Babylonia, with occasional study and teaching in Eretz Yisrael. His son was the Amora Rav Yehuda b. Rav Shmuel bar Sheilat.",
+              "canonical": "Rav Shmuel bar Sheilat",
+              "canonicalHe": "רב שמואל בר שילת",
+              "generation": "amora-bavel-1",
+              "id": "rav-shmuel-bar-sheilat",
+              "sources": null
+            },
+            {
+              "aliases": ["Rebbi Samuel", "Rabbi Shmuel"],
+              "bio": "R. Shmuel was a student of R. Abahu and of R. Zeira and a fourth generation talmudic sage of the Land of israel. ",
+              "canonical": "Rebbi Samuel",
+              "canonicalHe": "רבי שמואל",
+              "generation": "amora-ey-4",
+              "id": "rebbi-samuel",
+              "sources": null
+            },
+            {
+              "aliases": ["Samuel", "Shmuel", "Samuel from Ramah"],
+              "bio": "The prophet Samuel (Shmuel in Hebrew) led the Israelites before the King Saul, the first king, was anointed. Under his leadership, Israel rose up against the Phillistines. He anointed Saul as king and advised him before secretly anointing David when God decided Saul was no longer fit to be king. ",
+              "canonical": "Samuel (Prophet)",
+              "canonicalHe": "שמואל הנביא",
+              "generation": null,
+              "id": "samuel-(prophet)",
+              "sources": null
+            },
+            {
+              "aliases": ["Shmuel", "Samuel"],
+              "bio": "Shmuel also left his native Babylonia to study at Rabbi's academy. Coming back before Rav and outliving him, Shmuel established Neharedea as the leading center of Torah study in Babylonia. Besides his Torah scholarship, Shmuel was famous for being an astronomer and physician and was honored by King Shapur I of Persia.",
+              "canonical": "Shmuel (Amora)",
+              "canonicalHe": "שמואל (שם אמורא)",
+              "generation": "amora-bavel-1",
+              "id": "shmuel-(amora)",
+              "sources": null
+            },
+            {
+              "aliases": [
+                "Shmuel the Little",
+                "Shmuel haKatan",
+                "Shmuel HaKatan",
+                "Shmuel Hakatan",
+                "Samuel Minor"
+              ],
+              "bio": "Shmuel the Little was a scholar known for his great humility and concern for others. Hence he was chosen to compose the text of a blessing (in the Amidah prayer) calling for the elimination of those endangering the Jewish people.",
+              "canonical": "Shmuel the Little",
+              "canonicalHe": "שמואל הקטן",
+              "generation": null,
+              "id": "shmuel-the-little",
+              "sources": null
+            }
+          ],
+          "id": "case-812e6605b9d27d284b20",
+          "person": {
+            "id": "B",
+            "label": "רבי שמואל בר נחמני",
+            "named": "name",
+            "quote": "רבי שמואל בר נחמני",
+            "quoteLocation": "passage"
+          },
+          "personKey": "b486-p3/B",
+          "ref": "Bava Batra 123a:11",
+          "source": {
+            "after": "אמשול לך משל למה הדבר דומה לבעל הבית שגדל יתום בתוך ביתו לימים העשיר אותו יתום ואמר אהניהו לבעל הבית מנכסי א\"ל ואי לאו דחטא ראובן לא מהני ליה ליוסף ולא מדעם",
+            "before": "א\"ל רב פפא לאביי אימא דיקלא בעלמא א\"ל עליך אמר קרא (בראשית מח, ה) אפרים ומנשה כראובן ושמעון יהיו לי:",
+            "passage": "בעא מיניה ר' חלבו מרבי שמואל בר נחמני מה ראה יעקב שנטל בכורה מראובן ונתנה ליוסף מה ראה ובחללו יצועי אביו כתיב אלא מה ראה שנתנה ליוסף"
+          }
+        },
+        "error": null,
+        "generationBasis": "candidate_metadata_not_verified",
+        "inputSha256": "f7ff67dd82aded2dc34395087b562d95624e0662141da044284025bb0a51b705",
+        "recipe": "e2b6717450baa4be7c260a9a14a8d9d2e46ad4f2473ab081a60c8c9050ff47e9",
+        "resultPath": "results/inputs-080/first/case-812e6605b9d27d284b20.json",
+        "resultSha256": "0ff8b54f4560396f9d06fa96549f4b072e60a2843deb0b52a3366ccf6199e7ce",
+        "runId": "wide-v1-recovery",
+        "sourceSha256": "d99e68c7db0e2be516267c9e02336433160e0a54b56b1ab4521a161f96b9c395",
+        "status": "complete"
+      },
+      "payloadSha256": "ee10a846af7f211581a77d15aa1e33e245c20cdc33e46bda39547e3e67e1ae81"
+    },
+    {
+      "record_id": "passage:b486-p3",
+      "kind": "passage",
+      "passage_id": "b486-p3",
+      "ref": "Bava Batra 123a:11",
+      "subject_id": null,
+      "object_id": null,
+      "authority": "source",
+      "decision": null,
+      "data": {
+        "claims": [
+          {
+            "addressee": "B",
+            "addressee_basis": "text",
+            "field": "speech",
+            "id": "s0",
+            "kind": "asked",
+            "note": "Both participants in the question are named.",
+            "quote": "בעא מיניה ר' חלבו מרבי שמואל בר נחמני מה ראה יעקב שנטל בכורה מראובן ונתנה ליוסף",
+            "quoteLocation": "passage",
+            "speaker": "A",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "unclear",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s1",
+            "kind": "objected",
+            "note": "The objection has no speaker attribution; it could be an interlocutor's response or an editorial intervention.",
+            "quote": "מה ראה ובחללו יצועי אביו כתיב",
+            "quoteLocation": "passage",
+            "speaker": "unclear",
+            "speaker_basis": "context"
+          },
+          {
+            "addressee": "unclear",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s2",
+            "kind": "asked",
+            "note": "The question is narrowed to the choice of יוסף, but the reformulating voice is not named.",
+            "quote": "אלא מה ראה שנתנה ליוסף",
+            "quoteLocation": "passage",
+            "speaker": "unclear",
+            "speaker_basis": "context"
+          },
+          {
+            "a": "B",
+            "b": "C",
+            "basis": "text",
+            "field": "relations",
+            "id": "r0",
+            "note": "The patronymic names his father.",
+            "quote": "רבי שמואל בר נחמני",
+            "quoteLocation": "passage",
+            "relation": "child_of"
+          },
+          {
+            "a": "D",
+            "b": "E",
+            "basis": "text",
+            "field": "relations",
+            "id": "r1",
+            "note": "The action is stated in A's question.",
+            "quote": "יעקב שנטל בכורה מראובן",
+            "quoteLocation": "passage",
+            "relation": "other:took_birthright_from"
+          },
+          {
+            "a": "D",
+            "b": "F",
+            "basis": "text",
+            "field": "relations",
+            "id": "r2",
+            "note": "The action is stated in A's question.",
+            "quote": "יעקב שנטל בכורה מראובן ונתנה ליוסף",
+            "quoteLocation": "passage",
+            "relation": "other:gave_birthright_to"
+          },
+          {
+            "a": "E",
+            "b": "D",
+            "basis": "context",
+            "field": "relations",
+            "id": "r3",
+            "note": "The objection is understood to concern ראובן, with יעקב as the father referred to by אביו; the father is not named within that objection.",
+            "quote": "מה ראה יעקב שנטל בכורה מראובן ונתנה ליוסף מה ראה ובחללו יצועי אביו כתיב",
+            "quoteLocation": "passage",
+            "relation": "child_of"
+          }
+        ],
+        "id": "b486-p3",
+        "people": [
+          {
+            "id": "A",
+            "label": "ר' חלבו",
+            "named": "name",
+            "quote": "ר' חלבו",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "B",
+            "label": "רבי שמואל בר נחמני",
+            "named": "name",
+            "quote": "רבי שמואל בר נחמני",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "C",
+            "label": "נחמני",
+            "named": "father_of_named",
+            "quote": "רבי שמואל בר נחמני",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "D",
+            "label": "יעקב",
+            "named": "name",
+            "quote": "יעקב",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "E",
+            "label": "ראובן",
+            "named": "name",
+            "quote": "ראובן",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "F",
+            "label": "יוסף",
+            "named": "name",
+            "quote": "יוסף",
+            "quoteLocation": "passage"
+          }
+        ],
+        "ref": "Bava Batra 123a:11",
+        "source": {
+          "after": "אמשול לך משל למה הדבר דומה לבעל הבית שגדל יתום בתוך ביתו לימים העשיר אותו יתום ואמר אהניהו לבעל הבית מנכסי א\"ל ואי לאו דחטא ראובן לא מהני ליה ליוסף ולא מדעם",
+          "before": "א\"ל רב פפא לאביי אימא דיקלא בעלמא א\"ל עליך אמר קרא (בראשית מח, ה) אפרים ומנשה כראובן ושמעון יהיו לי:",
+          "passage": "בעא מיניה ר' חלבו מרבי שמואל בר נחמני מה ראה יעקב שנטל בכורה מראובן ונתנה ליוסף מה ראה ובחללו יצועי אביו כתיב אלא מה ראה שנתנה ליוסף"
+        },
+        "unclear": [
+          "The objection and reformulation are not assigned to named speakers.",
+          "The passage does not expressly state יוסף's parentage.",
+          "The parable in the following context is not part of this passage."
+        ]
+      },
+      "payloadSha256": "f5c264da662bab29471be71dd3d55907136a3273538f357c994e0c0bc5762ba5"
+    },
+    {
+      "record_id": "registry_person:rabbi-shmuel-b-nahmani",
+      "kind": "registry_person",
+      "passage_id": null,
+      "ref": null,
+      "subject_id": "rabbi-shmuel-b-nahmani",
+      "object_id": null,
+      "authority": "registry",
+      "decision": null,
+      "data": {
+        "aliases": [
+          "Rabbi Shmuel b. Nahmani",
+          "Rabbi Shmuel b. Nahman",
+          "Rav Shmuel b. Nahman",
+          "Rav Shmuel b. Nahmani",
+          "Rabbi Shmuel ben Nahmani",
+          "Rabbi Shmuel ben Nahman",
+          "Rav Shmuel ben Nahman",
+          "Rav Shmuel ben Nahmani",
+          "R. Samuel b. Nahmani",
+          "Rav Samuel b. Nahman",
+          "Samuel b. Nahman",
+          "Rebbi Samuel b. Nahman",
+          "Rebbi Samuel b. Rav Nahman",
+          "Rebbi Samuel b. Rebbi Nahman",
+          "Rebbi Samuel b. Nahmani",
+          "Rebbi Samuel b. Rebbi Nahmani",
+          "Rabbi Samuel b. Nahmani"
+        ],
+        "bio": "R. Shmuel b. Nachmani was a student of R. Yochanan who became an influential scholar often sent by the Sanhedrin to Babylonia. He was known for his colorful homiletics and his longevity.",
+        "bioSource": "sefaria",
+        "canonical": "Rabbi Shmuel b. Nahmani",
+        "canonicalHe": "רבי שמואל בן נחמן",
+        "generation": "amora-ey-2",
+        "image": null,
+        "moved": null,
+        "numSources": null,
+        "places": ["Tiberias"],
+        "region": "bavel",
+        "wiki": null
+      },
+      "payloadSha256": "d29daea97c80c5b830c875d683c0777dc5546f69e7069ae1480a3b164821ae25"
+    },
+    {
+      "record_id": "registry_person:rabbi-shmuel-bar-nachmani",
+      "kind": "registry_person",
+      "passage_id": null,
+      "ref": null,
+      "subject_id": "rabbi-shmuel-bar-nachmani",
+      "object_id": null,
+      "authority": "registry",
+      "decision": null,
+      "data": {
+        "aliases": [
+          "Rabbi Shmuel bar Nachman",
+          "R. Shmuel bar Nachmani",
+          "Rabbi Samuel bar Nachmani",
+          "Rabbi Shmuel bar Nahmani"
+        ],
+        "bio": "Rabbi Shmuel bar Nachmani was an Eretz Yisraeli Amora of the second and third generations, active in the 3rd and 4th centuries, who resided primarily in Lod. A kohen, he was among the greatest Jewish aggadists. He studied under Rabbi Yonatan ben Elazar and Rabbi Yehoshua ben Levi, and also saw the Tanna Rabbi Shimon ben Elazar; his colleague was Rabbi Yaakov bar Idi. Though he engaged extensively in halakha and was considered a leading authority of his generation, he was especially renowned for aggadah, earning the title \"ba'al aggadah.\" Many of his aggadic teachings were quoted by Rabbi Chelbo. His sons included the Amora Rabbi Hillel ben Rabbi Shmuel bar Nachmani and Nachman.",
+        "bioSource": "wikipedia",
+        "canonical": "Rabbi Shmuel bar Nachmani",
+        "canonicalHe": "רבי שמואל בר נחמני",
+        "generation": "amora-ey-2",
+        "image": null,
+        "moved": null,
+        "numSources": null,
+        "places": [],
+        "region": "israel",
+        "wiki": "https://he.wikipedia.org/wiki/%D7%A8%D7%91%D7%99_%D7%A9%D7%9E%D7%95%D7%90%D7%9C_%D7%91%D7%A8_%D7%A0%D7%97%D7%9E%D7%A0%D7%99"
+      },
+      "payloadSha256": "1d81909c41202604eb3cbebccc851d479046864c56fdbf682ac74e83e8bb4296"
+    }
+  ],
+  "evidence": [
+    {
+      "location": "passage",
+      "quote": "רבי שמואל בר נחמני",
+      "start": 19,
+      "end": 37,
+      "supports": "Target occurrence: R. Chelbo asked him about the birthright."
+    }
+  ],
+  "firstReaderReason": "R. Chelbo asked him about the birthright. Group reasoning: Written name R. Shmuel bar Nachman / bar Nachmani (also \"בן נחמן\" and once \"בר רב נחמן\"). The registry joins rabbi-shmuel-bar-nachmani to rabbi-shmuel-b-nahmani in the pinned duplicate map, and its aliases list both forms including \"b. Rav Nahman\". The full-registry check finds no other Shmuel with this father. Each occurrence is the Land-of-Israel aggadist in his usual company (R. Yonatan, R. Elazar, R. Chanina bar Pappa, R. Ami, R. Shimon ben Yehotzadak, R. Chelbo). The saved proposal differs (unresolved/None); its reason was read and does not change this source-based judgment. The saved proposal chose nobody because the registry holds two entries for this sage (rabbi-shmuel-b-nahmani and rabbi-shmuel-bar-nachmani). The pinned duplicate map (rabbi-duplicates.json, sha256 6eb992d6...) already maps rabbi-shmuel-bar-nachmani to rabbi-shmuel-b-nahmani, so the duplicate does not block a single canonical identity. This disagreement is escalated for dual review.",
+  "reviews": [
+    {
+      "reviewer": "reader-v17-a",
+      "caseId": "case-812e6605b9d27d284b20",
+      "personKey": "b486-p3/B",
+      "proposalPayloadSha256": "ee10a846af7f211581a77d15aa1e33e245c20cdc33e46bda39547e3e67e1ae81",
+      "sourceSha256": "d99e68c7db0e2be516267c9e02336433160e0a54b56b1ab4521a161f96b9c395",
+      "decision": "accept",
+      "acceptedPersonId": "rabbi-shmuel-b-nahmani",
+      "fileSha256": "c0696d859f48dba87fa430a8d1c7b465bd5345a30cb2d231b6bb7abbd864afaf",
+      "file": "identity-scale-v17/reviews/reader-v17-a/case-812e6605b9d27d284b20.final.json",
+      "receiptSha256": "86e10648ede85bc9c930c59dabb6c5cc3f37aac8092aff6e45c184049eefe7fb"
+    },
+    {
+      "reviewer": "independent-2",
+      "caseId": "case-812e6605b9d27d284b20",
+      "personKey": "b486-p3/B",
+      "proposalPayloadSha256": "ee10a846af7f211581a77d15aa1e33e245c20cdc33e46bda39547e3e67e1ae81",
+      "sourceSha256": "d99e68c7db0e2be516267c9e02336433160e0a54b56b1ab4521a161f96b9c395",
+      "decision": "accept",
+      "acceptedPersonId": "rabbi-shmuel-b-nahmani",
+      "fileSha256": "071d490bfa674d6547a4f876f18eff6de6666cc6b1a722d5ee38980681ed8e5b",
+      "file": "identity-scale-v17/audit/independent-2/cases/case-812e6605b9d27d284b20.json",
+      "receiptSha256": "3881e76edbb5eed84d2e303b7538ae5d49b267b5751a6ff302745c6b607877f4"
+    }
+  ]
+}

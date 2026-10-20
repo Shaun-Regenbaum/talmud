@@ -122,6 +122,51 @@ def canonical_registry_slug(slug):
     return duplicates.get(slug, slug)
 
 
+def review_receipt_sha256(review):
+    """Hash of one review receipt without its own hash field."""
+    return digest(encode({k: v for k, v in review.items() if k != 'receiptSha256'}))
+
+
+def validate_unresolved_acceptance(key, data, proposal, proposal_row, accepted, rows):
+    # The saved proposal named nobody. Its null stays in proposedPersonId; the
+    # reviewers' choice is a separate field, backed by receipts bound to this
+    # case and by evidence quoting the target's own words.
+    # The receipts prove integrity and binding only: they are unaltered and name
+    # this case, proposal and passage. The importer cannot open review files, so
+    # it cannot prove a review happened; the release verifier must open each
+    # file named by fileSha256 and compare its case, decision and chosen person.
+    answer = proposal.get('answer') or {}
+    if proposal.get('status') != 'complete' or answer.get('status') != 'unresolved' or answer.get('personId') is not None:
+        raise ValueError('Only an unresolved saved proposal can be overridden: ' + key)
+    if data.get('proposedPersonId') is not None or data.get('reviewerChosenPersonId') != accepted:
+        raise ValueError('Reviewer choice must be explicit and separate from the proposal: ' + key)
+    if canonical_registry_slug(accepted) != accepted:
+        raise ValueError('Reviewer choice must be a canonical registry person: ' + key)
+    case = proposal['case']
+    passage = json.loads(rows['passage:' + case['personKey'].split('/')[0]][-1])
+    source_sha = digest(json.dumps(passage['source'], ensure_ascii=False, sort_keys=True))
+    target = next((p for p in passage['people'] if p['id'] == case['personKey'].split('/')[1]), None)
+    if not target or not any(e.get('location') == 'passage' and target['quote'] in e.get('quote', '')
+                             for e in data.get('evidence') or []):
+        raise ValueError('Evidence must quote the target occurrence: ' + key)
+    override = data.get('acceptedOverUnresolvedProposal')
+    if not isinstance(override, dict) or not isinstance(override.get('reason'), str) or not override['reason'].strip():
+        raise ValueError('Override of an unresolved proposal needs a reason: ' + key)
+    reviews = override.get('reviews')
+    if not isinstance(reviews, list) or len(reviews) < 2:
+        raise ValueError('Override needs at least two reviews: ' + key)
+    bound = dict(caseId=case['id'], personKey=case['personKey'], proposalPayloadSha256=proposal_row[-2],
+                 sourceSha256=source_sha, decision='accept', acceptedPersonId=accepted)
+    for review in reviews:
+        if (not isinstance(review, dict) or any(review.get(k) != v for k, v in bound.items()) or
+                not isinstance(review.get('reviewer'), str) or not review['reviewer'].strip() or
+                not re.fullmatch(r'[0-9a-f]{64}', str(review.get('fileSha256'))) or
+                review.get('receiptSha256') != review_receipt_sha256(review)):
+            raise ValueError('Review receipt is not bound to this case: ' + key)
+    if len({r['reviewer'] for r in reviews}) != len(reviews) or len({r['fileSha256'] for r in reviews}) != len(reviews):
+        raise ValueError('Override reviews must come from different reviewers and files: ' + key)
+
+
 def validate_identity_assessment(key, row, data, rows, parent_keys, member):
     if 'acceptedPersonId' not in data or 'proposedPersonId' not in data:
         raise ValueError('Assessment needs explicit identity decisions: ' + key)
@@ -149,8 +194,11 @@ def validate_identity_assessment(key, row, data, rows, parent_keys, member):
         if accepted is not None:
             raise ValueError('Held assessment cannot accept an identity: ' + key)
     else:
-        canonical_proposed = canonical_registry_slug(proposed)
-        if not isinstance(accepted, str) or not accepted or accepted != canonical_proposed:
+        if not isinstance(accepted, str) or not accepted:
+            raise ValueError('Accepted assessment must match its proposal: ' + key)
+        if proposed is None:
+            validate_unresolved_acceptance(key, data, proposal, proposal_row, accepted, rows)
+        elif accepted != canonical_registry_slug(proposed):
             raise ValueError('Accepted assessment must match its proposal: ' + key)
         identity_row = rows.get('source_identity:' + person_key)
         identity = json.loads(identity_row[-1]) if identity_row else {}
