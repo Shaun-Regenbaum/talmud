@@ -14,7 +14,8 @@ image = (modal.Image.debian_slim(python_version='3.12').apt_install('curl')
          .env({'COVERAGE_QUEUE_MODE': MODE})
          .pip_install('jsonschema==4.25.1')
          .add_local_file(Path(__file__).with_name('queue_core.py'), '/app/queue_core.py')
-         .add_local_file(Path(__file__), '/app/queue_job.py'))
+         .add_local_file(Path(__file__), '/app/queue_job.py')
+         .add_local_file(Path(__file__).with_name('queue_transition.py'), '/app/queue_transition.py'))
 
 
 @app.function(image=image, volumes={'/data': volume},
@@ -73,6 +74,36 @@ def status(run_id: str):
     path = Path('/data/runs') / run_id / 'progress.json'
     return {'lock': locks.get('queue', None),
             'progress': json.loads(path.read_text()) if path.exists() else {'status': 'not_started'}}
+
+
+@app.function(image=image, volumes={'/data': volume}, cpu=0.25, memory=256, timeout=120,
+              retries=0, max_containers=1)
+def transition_probe(prior_run: str, next_run: str, prior_hash: str, next_hash: str):
+    import sys
+    import uuid
+    sys.path.insert(0, '/app')
+    from queue_core import file_hash, load
+    from queue_transition import transition
+    if MODE != 'probe':
+        raise ValueError('Budget transitions are restricted to the probe volume')
+    owner = str(uuid.uuid4())
+    lock = {'owner': owner, 'runId': 'transition:' + prior_run + ':' + next_run}
+    if not locks.put('queue', lock, skip_if_exists=True):
+        raise RuntimeError('A queue is running or its lock needs reconciliation')
+    try:
+        volume.reload()
+        from queue_core import safe_id
+        safe_id(next_run)
+        following = load(Path('/data/inputs')/next_run/'config.json')
+        if following.get('coordinatorHash') != file_hash(Path('/app/queue_job.py')):
+            raise ValueError('Next probe coordinator hash differs')
+        if following.get('transitionHash') != file_hash(Path('/app/queue_transition.py')):
+            raise ValueError('Reviewed transition code hash differs')
+        return transition(Path('/data/inputs'), Path('/data/runs'), prior_run, next_run,
+                          prior_hash, next_hash, volume.commit)
+    finally:
+        if locks.get('queue', None) == lock:
+            locks.pop('queue')
 
 
 @app.local_entrypoint()

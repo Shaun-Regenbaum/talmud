@@ -71,7 +71,8 @@ def freeze(source, package, destination, settings):
     config = dict(settings, inputManifestHash=digest(manifest),
                   recipeFiles=recipe_files(pending/'recipe'),
                   runnerHash=file_hash(Path(__file__).with_name('queue_core.py')),
-                  coordinatorHash=file_hash(Path(__file__).with_name('queue_job.py')))
+                  coordinatorHash=file_hash(Path(__file__).with_name('queue_job.py')),
+                  transitionHash=file_hash(Path(__file__).with_name('queue_transition.py')))
     config_check(config, manifest, pending/'recipe', min(16, config.get('approvedConcurrency', 16)))
     atomic(pending/'config.json', config)
     pending.replace(destination)
