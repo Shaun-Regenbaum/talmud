@@ -33,6 +33,28 @@ SPEECH_KINDS = {'asked': ('direct_interaction', 'narrative'), 'answered': ('dire
                 'objected': ('direct_interaction', 'narrative'), 'narration': ('direct_interaction', 'narrative'),
                 'quoted_teaching': ('direct_interaction', 'teaching_transmission', 'narrative')}
 DESCENT_RELATION = {'child_of': 'descendant_of', 'parent_of': 'ancestor_of'}
+# Kinds with no direction. Every other kind is read from one person to the other, so 'symmetric' contradicts it.
+SYMMETRIC_KINDS = re.compile(r'^(sibling_of|spouse_of|other:.*(disagree|dispute|companion|fellow|walks_with|together|sibling|'
+                             r'brother|sister|spouse|married|colleague|views_align|opinion_aligned|compared_with).*)$')
+TRANSMISSION_KINDS = re.compile(r'^other:.*(name_of|transmit|quotes|reports_teaching|reports_interpretation|reports_view|'
+                                r'reports_opinion|teaching_attributed|attributes_teaching|cites).*$')
+RESPONSE_KINDS = re.compile(r'^other:.*(explain|interpret|objects_to|challeng).*$')
+
+
+def expected_kinds(claim):
+    """The supported kinds that agree with the claim's own kind, or None when its kind does not say."""
+    kind = claim['kind']
+    if claim['field'] == 'speech':
+        return SPEECH_KINDS.get(kind)
+    if FAMILY_KINDS.match(kind):
+        return ('family',)
+    if TRANSMISSION_KINDS.match(kind):
+        return ('teaching_transmission',)
+    if RESPONSE_KINDS.match(kind):
+        return ('response_to_teaching',)
+    if SYMMETRIC_KINDS.match(kind) and re.search('disagree|dispute', kind):
+        return ('intellectual_disagreement',)
+    return None
 HEBREW_RUN = re.compile(r'[א-ת][א-ת֑-ׇ"\'׳״]*(?:\s+[א-ת][א-ת֑-ׇ"\'׳״]*)+')
 OUTSIDE_FACTS = re.compile(r'\b(generations?|tannaim|tanna|amoraim|amora|century|centuries|BCE|CE|registry)\b', re.IGNORECASE)
 
@@ -171,6 +193,9 @@ def field_conflicts(claim, v):
             out.append('other_claim_supported_as_family')
         if claim['field'] == 'speech' and kind not in SPEECH_KINDS.get(claim['kind'], (kind,)):
             out.append('speech_claim_supported_as_other_kind')
+    # A parent link, a transmission or a question has a direction; calling it symmetric loses which way it runs.
+    if direction == 'symmetric' and not SYMMETRIC_KINDS.match(claim['kind']):
+        out.append('symmetric_direction_on_directed_claim')
     if DEGREE_KINDS.match(claim['kind']) and degree == 'not_applicable':
         out.append('parent_claim_without_family_degree')
     if not DEGREE_KINDS.match(claim['kind']) and degree != 'not_applicable':
@@ -198,9 +223,16 @@ def prose_flags(v, text):
 
 
 def correction(claim, v):
-    """At most one typed correction, between the same two people. It is a proposal and is never published as a fact."""
+    """At most one typed correction, between the same two people. It is a proposal and is never published as a fact.
+
+    Returns (corrections, flags). A reversal or descent is proposed only when the supported kind still agrees with
+    the claim's own kind; if the kind changes too, or the claim's kind does not say, no detailed correction is made.
+    """
     reversed_ = v['direction'] == 'reversed'
     descent = v['family_degree'] == 'descent' and DEGREE_KINDS.match(claim['kind']) is not None
+    if (reversed_ or descent) and (v['supported_kind'] not in (expected_kinds(claim) or ()) or
+                                   (descent and v['supported_kind'] != 'family')):
+        return [], ['mixed_aspects_need_review']
     if reversed_ or descent:
         # Direction and degree are applied together, so a proposal never keeps one of them wrong.
         out = {'type': 'reversed_descent' if reversed_ and descent else 'reverse_direction' if reversed_ else 'family_degree',
@@ -211,9 +243,9 @@ def correction(claim, v):
     elif v['claim_as_written'] == 'contradicted':
         out = {'type': 'connection_kind', 'supported_kind': v['supported_kind'], 'people': sorted([claim['from'], claim['to']])}
     else:
-        return []
+        return [], []
     out.update(status='proposal', accepted=False, publishable=False)
-    return [out]
+    return [out], []
 
 
 def compile_claim(claim, v, text):
@@ -233,6 +265,8 @@ def compile_claim(claim, v, text):
         blocked.append('detail_contradicted')
     blocked += conflicts
     endorsed = not blocked
+    # An answer that contradicts itself gets no correction: a person must read it first.
+    corrections, mixed = correction(claim, v) if pair == 'retained' and not conflicts else ([], [])
     return {
         'claim_id': claim['claim_id'],
         'pair': {'people': sorted([claim['from'], claim['to']]), 'connection': pair, 'kind': kind},
@@ -241,10 +275,9 @@ def compile_claim(claim, v, text):
         # When the original is not endorsed, only an undirected connection of the supported kind survives.
         'general_connection': None if endorsed or pair != 'retained' else {'people': sorted([claim['from'], claim['to']]),
                                                                             'kind': kind, 'directed': False},
-        # An answer that contradicts itself gets no correction: a person must read it first.
-        'corrections': correction(claim, v) if pair == 'retained' and not conflicts else [],
+        'corrections': corrections,
         'verdict': v['verdict'], 'reason': v['reason'], 'uncertain_detail': v['uncertain_detail'],
-        'audit_flags': conflicts + prose_flags(v, text),
+        'audit_flags': conflicts + mixed + prose_flags(v, text),
         'proposal_only': True,
     }
 

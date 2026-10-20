@@ -180,6 +180,18 @@ class Contradictions(unittest.TestCase):
     def test_an_old_code_that_drops_the_tie_withholds_it(self):
         self.withheld('mc-13', {'verdict': 'bad'}, 'legacy_verdict_disagrees_with_pair')
 
+    def test_symmetric_direction_on_a_directed_claim_is_not_passed_on(self):
+        # Answer-fault mutation: each real claim below runs one way (parent link, transmission, objection, question).
+        for control in ('mc-14', 'mc-10', 'mc-13', 'mc-02'):
+            x = self.withheld(control, {'direction': 'symmetric'}, 'symmetric_direction_on_directed_claim')
+            self.assertEqual(x['pair']['connection'], 'retained', control)
+            self.assertEqual(x['general_connection']['directed'], False, control)
+
+    def test_symmetric_direction_on_a_dispute_is_passed_on(self):
+        x = compiled('mc-12')
+        self.assertEqual(CASES['mc-12']['answer']['verdicts'][0]['direction'], 'symmetric')
+        self.assertTrue(x['original']['endorsed'])
+
 
 class Corrections(unittest.TestCase):
     """Made-up answers on real claims: corrections stay between the same two people, as one coherent proposal."""
@@ -198,6 +210,26 @@ class Corrections(unittest.TestCase):
         self.assertEqual(x['corrections'], [{'type': 'reversed_descent', 'relation': 'descendant_of', 'from': claim['to'],
                                              'to': claim['from'], 'degree': 'descent', 'status': 'proposal',
                                              'accepted': False, 'publishable': False}])
+
+    def mixed(self, control, change, kind):
+        x = compiled(control, change)
+        self.assertFalse(x['original']['endorsed'])
+        self.assertEqual(x['corrections'], [])
+        self.assertIn('mixed_aspects_need_review', x['audit_flags'])
+        self.assertEqual(x['general_connection'], {'people': x['pair']['people'], 'kind': kind, 'directed': False})
+
+    def test_a_reversal_with_a_kind_change_gives_no_detailed_correction(self):
+        # Answer-fault mutation: the real parent link is said to run the other way and to be a meeting instead.
+        self.mixed('mc-14', {'claim_as_written': 'contradicted', 'direction': 'reversed',
+                             'supported_kind': 'direct_interaction', 'verdict': 'ok'}, 'direct_interaction')
+
+    def test_reversed_descent_with_a_kind_change_gives_no_detailed_correction(self):
+        self.mixed('mc-15', {'direction': 'reversed', 'supported_kind': 'narrative', 'verdict': 'narr'}, 'narrative')
+
+    def test_a_reversal_on_a_claim_whose_kind_says_nothing_gives_no_detailed_correction(self):
+        # mc-08's claim kind is 'other:saw', which does not fix a supported kind.
+        self.mixed('mc-08', {'supported_kind': 'direct_interaction', 'direction': 'reversed', 'verdict': 'ok'},
+                   'direct_interaction')
 
     def test_an_undetermined_direction_gives_no_proposal(self):
         x = compiled('mc-14', {'claim_as_written': 'uncertain', 'direction': 'undetermined'})

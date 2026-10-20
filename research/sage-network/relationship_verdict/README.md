@@ -30,13 +30,15 @@ The check also compiles each claim:
 
 - **The original claim is passed on only when** the answer supports it as written, the direction is as written or
   symmetric, the family degree is as written or not applicable, and the typed fields do not contradict each other or
-  the claim (for example, a parent claim with no family degree, or a speech claim supported as a family tie).
+  the claim (for example, a parent claim with no family degree, a speech claim supported as a family tie, or a parent
+  link, transmission or question called symmetric).
 - **Otherwise only an undirected connection of the supported kind survives**, with the reason and the doubts. A real
   pair stays connected even when the detailed claim is wrong.
 - **A reversed direction or a "descendant, not child" reading becomes one typed correction between the same two
   people.** When both apply they form one `reversed_descent` proposal, so no proposal keeps a wrong direction or degree.
   It is marked `status: proposal`, `accepted: false` and `publishable: false`. An answer that contradicts itself gets no
-  correction at all.
+  correction at all. If the direction or degree changes and the kind of tie changes too, or the claim's kind does not
+  fix a kind of tie, no detailed correction is made; the claim is flagged `mixed_aspects_need_review`.
 
 Human corrections outrank everything here. The compiled output carries `proposal_only: true`, and the importer keeps
 human-authored records.
