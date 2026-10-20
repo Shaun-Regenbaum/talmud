@@ -1,0 +1,1148 @@
+{
+  "provenance": "Three real captured jobs and compact annotations based on existing independent readings. Not mock data. Validator tests do not approve historical identities.",
+  "cases": [
+    {
+      "job": {
+        "job_id": "v18-bavli-001",
+        "focal_ref": "Shabbat 153b:13",
+        "sources": [
+          {
+            "source_id": "s1",
+            "ref": "Shabbat 153b:11",
+            "text": "מאי טעמא כיון דלית ליה היכירא אתי למיעבד עקירה והנחה סוף סוף כי מטא לביתיה אי אפשר דלא קאי פורתא וקמעייל מרשות הרבים לרה\"י דזריק ליה כלאחר יד",
+            "sha256": "e77fb88671e8d329865afd09c271584ecda3a4bf6d07c7f42c184891942e6794",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Shabbat|153b|11|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Shabbat",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:10:19Z",
+              "source_url": "https://www.sefaria.org/Shabbat%20153b",
+              "raw_file": "raw/bavli/shabbat/wikisource-talmud-bavli/153b.json",
+              "raw_file_sha256": "e1a62d8bade72e530a08e1898be457314a2518d7e2e77e70f1a00d4e036f70d4",
+              "unit_segments_sha256": "408181e452efab7785f735c9a9381d2f5129f7c637002185444c540649664f95",
+              "address": "11",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s2",
+            "ref": "Shabbat 153b:12",
+            "text": "אמר רמי בר חמא המחמר אחר בהמתו בשבת בשוגג חייב חטאת במזיד חייב סקילה מאי טעמא אמר רבא דאמר קרא לא תעשה כל מלאכה אתה ובהמתך בהמתו דומיא דידיה מה הוא בשוגג חייב חטאת במזיד חייב סקילה אף בהמתו נמי בשוגג חייב חטאת במזיד חייב סקילה",
+            "sha256": "9d2b44acd53b64b3ab7da2048f999bfa00e2da3048231dc36d59816ba8db9257",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Shabbat|153b|12|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Shabbat",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:10:19Z",
+              "source_url": "https://www.sefaria.org/Shabbat%20153b",
+              "raw_file": "raw/bavli/shabbat/wikisource-talmud-bavli/153b.json",
+              "raw_file_sha256": "e1a62d8bade72e530a08e1898be457314a2518d7e2e77e70f1a00d4e036f70d4",
+              "unit_segments_sha256": "408181e452efab7785f735c9a9381d2f5129f7c637002185444c540649664f95",
+              "address": "12",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s3",
+            "ref": "Shabbat 153b:13",
+            "text": "אמר רבא שתי תשובות בדבר חדא דכתיב (במדבר טו, כט) תורה אחת יהיה לכם לעושה בשגגה והנפש אשר תעשה ביד רמה הוקשה כל התורה כולה לע\"ז מה ע\"ז דעביד מעשה בגופיה ה\"נ עד דעביד מעשה בגופיה",
+            "sha256": "a288f1be62b090718475b6de55b8854b52a864533c06a2ebcfcde38e435b553a",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Shabbat|153b|13|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Shabbat",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:10:19Z",
+              "source_url": "https://www.sefaria.org/Shabbat%20153b",
+              "raw_file": "raw/bavli/shabbat/wikisource-talmud-bavli/153b.json",
+              "raw_file_sha256": "e1a62d8bade72e530a08e1898be457314a2518d7e2e77e70f1a00d4e036f70d4",
+              "unit_segments_sha256": "408181e452efab7785f735c9a9381d2f5129f7c637002185444c540649664f95",
+              "address": "13",
+              "focal": true
+            }
+          },
+          {
+            "source_id": "s4",
+            "ref": "Shabbat 153b:14",
+            "text": "ועוד תנן המחלל את השבת בדבר שחייבין על שגגתו חטאת ועל זדונו סקילה מכלל דאיכא מידי דאין חייבין על שגגתו חטאת ולא על זדונו סקילה",
+            "sha256": "ff18d061cd348fbc2f66b6b4995f7684ea0577c573f01b8eb3c0efe5286e6090",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Shabbat|153b|14|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Shabbat",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:10:19Z",
+              "source_url": "https://www.sefaria.org/Shabbat%20153b",
+              "raw_file": "raw/bavli/shabbat/wikisource-talmud-bavli/153b.json",
+              "raw_file_sha256": "e1a62d8bade72e530a08e1898be457314a2518d7e2e77e70f1a00d4e036f70d4",
+              "unit_segments_sha256": "408181e452efab7785f735c9a9381d2f5129f7c637002185444c540649664f95",
+              "address": "14",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s5",
+            "ref": "Shabbat 153b:15",
+            "text": "ומאי ניהו לאו דמחמר לא תחומין ואליבא דר\"ע והבערה אליבא דר' יוסי",
+            "sha256": "1455997cd935c497bbbd96c1a74b0e48a23934f305c90a2d4d4178333e546fe3",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Shabbat|153b|15|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Shabbat",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:10:19Z",
+              "source_url": "https://www.sefaria.org/Shabbat%20153b",
+              "raw_file": "raw/bavli/shabbat/wikisource-talmud-bavli/153b.json",
+              "raw_file_sha256": "e1a62d8bade72e530a08e1898be457314a2518d7e2e77e70f1a00d4e036f70d4",
+              "unit_segments_sha256": "408181e452efab7785f735c9a9381d2f5129f7c637002185444c540649664f95",
+              "address": "15",
+              "focal": false
+            }
+          }
+        ]
+      },
+      "reading": {
+        "schema_version": "compact-source-v1",
+        "job_id": "v18-bavli-001",
+        "episode": {
+          "coverage": "needs_context",
+          "needed_context": [
+            "s1 opens with \"מאי טעמא\" about a man with no distinguishing mark carrying home; the ruling it explains (before s1) is not supplied."
+          ],
+          "notes": [
+            "Scripture (Num 15:29) is quoted as authority; no person in it is a participant.",
+            "The same written name רבא explains the ruling in s2 and refutes it in s3. Either one man does both, or the s2 attribution is an edition reading. The supplied text cannot settle it."
+          ]
+        },
+        "people": [
+          {
+            "id": "p1",
+            "kind": "person",
+            "label": "רמי בר חמא",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "רמי בר חמא",
+                "occurrence": 1
+              }
+            ],
+            "reason": "The written full name identifies the speaker locally; no registry identity is assigned.",
+            "alternatives": []
+          },
+          {
+            "id": "p2",
+            "kind": "person",
+            "label": "חמא",
+            "form": "embedded_parent",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "חמא",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Named only as Rami's father inside בר חמא.",
+            "alternatives": []
+          },
+          {
+            "id": "p3",
+            "kind": "person",
+            "label": "רבא",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "רבא",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s3",
+                "quote": "רבא",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Same written name explains and challenges the ruling; keep the edition question in notes.",
+            "alternatives": []
+          },
+          {
+            "id": "p4",
+            "kind": "person",
+            "label": "ר\"ע",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s5",
+                "quote": "דר\"ע",
+                "occurrence": 1
+              }
+            ],
+            "reason": "An authority whose view is cited; the abbreviation is not expanded.",
+            "alternatives": []
+          },
+          {
+            "id": "p5",
+            "kind": "person",
+            "label": "ר' יוסי",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s5",
+                "quote": "דר' יוסי",
+                "occurrence": 1
+              }
+            ],
+            "reason": "An authority whose view is cited, without a reported encounter.",
+            "alternatives": []
+          },
+          {
+            "id": "p6",
+            "kind": "person",
+            "label": "the traveller",
+            "form": "unnamed",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "ליה",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s1",
+                "quote": "לביתיה",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Pronouns describe a hypothetical traveller; the preceding ruling is missing.",
+            "alternatives": []
+          },
+          {
+            "id": "p7",
+            "kind": "person",
+            "label": "one driving his animal",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "המחמר",
+                "occurrence": 1
+              }
+            ],
+            "reason": "The legal case's actor, not Rami himself.",
+            "alternatives": []
+          },
+          {
+            "id": "p8",
+            "kind": "person",
+            "label": "one violating Shabbat",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s4",
+                "quote": "המחלל את השבת",
+                "occurrence": 1
+              }
+            ],
+            "reason": "A generic legal actor in the quoted Mishnah.",
+            "alternatives": []
+          }
+        ],
+        "relationships": [
+          {
+            "id": "r1",
+            "subject": "p1",
+            "object": "p2",
+            "alternatives": [],
+            "category": "family",
+            "relation": "child_of",
+            "direction": "directed",
+            "verb": "is named as son of",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "בר names Rami as the child and Hama as father.",
+            "evidence": [
+              {
+                "source_id": "s2",
+                "quote": "רמי בר חמא",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r2",
+            "subject": "p3",
+            "object": "p1",
+            "alternatives": [],
+            "category": "debate",
+            "relation": "responds_to_teaching",
+            "direction": "directed",
+            "verb": "gives the reason for the ruling",
+            "modality": "response_to_teaching",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "The reason addresses Rami's preceding ruling; it does not establish a meeting.",
+            "evidence": [
+              {
+                "source_id": "s2",
+                "quote": "אמר רמי בר חמא המחמר אחר בהמתו בשבת",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s2",
+                "quote": "מאי טעמא אמר רבא דאמר קרא",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r3",
+            "subject": "p3",
+            "object": "p1",
+            "alternatives": [],
+            "category": "debate",
+            "relation": "opposes",
+            "direction": "directed",
+            "verb": "raises two objections",
+            "modality": "response_to_teaching",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "The objections refer back to Rami's ruling; attribution of its earlier explanation remains an edition question.",
+            "evidence": [
+              {
+                "source_id": "s3",
+                "quote": "אמר רבא שתי תשובות בדבר",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s2",
+                "quote": "אמר רמי בר חמא המחמר אחר בהמתו בשבת",
+                "occurrence": 1
+              }
+            ]
+          }
+        ]
+      },
+      "provenance": {
+        "source": "captured source texts and independent reading",
+        "independentFile": "independent-source-sample/readings/jobs/v18-bavli-001.json",
+        "independentSha256": "95c6142e2f2234805f965e8f6440bf18be78e3cc07cf313b159afc8d3b98eeea",
+        "status": "Research projection of real readings; not a new model response or historical approval."
+      }
+    },
+    {
+      "job": {
+        "job_id": "v18-bavli-051",
+        "focal_ref": "Bava Metzia 61b:13",
+        "sources": [
+          {
+            "source_id": "s1",
+            "ref": "Bava Metzia 61b:11",
+            "text": "א\"ל ומי נפיש אגרייהו טפי מרבית ומציצית וממשקלות א\"ל אע\"ג דלא נפיש אגרייהו טפי מאיסי למכלינהו:",
+            "sha256": "fe9046d4cbd9f7ace878140248e4c4a6d16b8f8c498cff212e94e9e6781f2824",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Bava Metzia|61b|11|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Bava Metzia",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:22:09Z",
+              "source_url": "https://www.sefaria.org/Bava%20Metzia%2061b",
+              "raw_file": "raw/bavli/bava-metzia/wikisource-talmud-bavli/61b.json",
+              "raw_file_sha256": "5352a1af3fd1641f3b4f7930725160b7d8302f2ff2ea75b2a887d201be04a8dc",
+              "unit_segments_sha256": "85243b38c9a6f0246bdbf143b35bf98a4c8a70f669382efafb831a964b1a3947",
+              "address": "11",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s2",
+            "ref": "Bava Metzia 61b:12",
+            "text": "ואיזהו תרבית המרבה בפירות כיצד לקח הימנו חטים בדינר זהב וכו': אטו כל הני דאמרינן עד השתא לאו רבית הוא",
+            "sha256": "ef7bd702c44e8917b9d63896d1e616cab8a1205c61328f5a0c6e2e3f9d46973d",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Bava Metzia|61b|12|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Bava Metzia",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:22:09Z",
+              "source_url": "https://www.sefaria.org/Bava%20Metzia%2061b",
+              "raw_file": "raw/bavli/bava-metzia/wikisource-talmud-bavli/61b.json",
+              "raw_file_sha256": "5352a1af3fd1641f3b4f7930725160b7d8302f2ff2ea75b2a887d201be04a8dc",
+              "unit_segments_sha256": "85243b38c9a6f0246bdbf143b35bf98a4c8a70f669382efafb831a964b1a3947",
+              "address": "12",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s3",
+            "ref": "Bava Metzia 61b:13",
+            "text": "א\"ר אבהו עד כאן של תורה מכאן ואילך של דבריהם וכן אמר רבא עד כאן של תורה מכאן ואילך של דבריהם",
+            "sha256": "ebe59d78f45a32b86bf0bee7bf3d12e91f346d9dded7a6d02809395f6a0c142f",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Bava Metzia|61b|13|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Bava Metzia",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:22:09Z",
+              "source_url": "https://www.sefaria.org/Bava%20Metzia%2061b",
+              "raw_file": "raw/bavli/bava-metzia/wikisource-talmud-bavli/61b.json",
+              "raw_file_sha256": "5352a1af3fd1641f3b4f7930725160b7d8302f2ff2ea75b2a887d201be04a8dc",
+              "unit_segments_sha256": "85243b38c9a6f0246bdbf143b35bf98a4c8a70f669382efafb831a964b1a3947",
+              "address": "13",
+              "focal": true
+            }
+          },
+          {
+            "source_id": "s4",
+            "ref": "Bava Metzia 61b:14",
+            "text": "ע\"כ (איוב כז, יז) יכין רשע וילבש צדיק עד כאן ותו לא אלא אפי' ע\"כ יכין רשע וילבש צדיק",
+            "sha256": "bad8b73759a02b8e68986e71e664171fb339a3a4704f9d833d1e0d7ef6355fab",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Bava Metzia|61b|14|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Bava Metzia",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:22:09Z",
+              "source_url": "https://www.sefaria.org/Bava%20Metzia%2061b",
+              "raw_file": "raw/bavli/bava-metzia/wikisource-talmud-bavli/61b.json",
+              "raw_file_sha256": "5352a1af3fd1641f3b4f7930725160b7d8302f2ff2ea75b2a887d201be04a8dc",
+              "unit_segments_sha256": "85243b38c9a6f0246bdbf143b35bf98a4c8a70f669382efafb831a964b1a3947",
+              "address": "14",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s5",
+            "ref": "Bava Metzia 61b:15",
+            "text": "ע\"כ רבית קצוצה מכאן ואילך אבק רבית",
+            "sha256": "7a3c5f277c223aae7725020f6e1afbb92e26fd8ae55057699acb28d27058ae58",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Bava Metzia|61b|15|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Bava Metzia",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:22:09Z",
+              "source_url": "https://www.sefaria.org/Bava%20Metzia%2061b",
+              "raw_file": "raw/bavli/bava-metzia/wikisource-talmud-bavli/61b.json",
+              "raw_file_sha256": "5352a1af3fd1641f3b4f7930725160b7d8302f2ff2ea75b2a887d201be04a8dc",
+              "unit_segments_sha256": "85243b38c9a6f0246bdbf143b35bf98a4c8a70f669382efafb831a964b1a3947",
+              "address": "15",
+              "focal": false
+            }
+          }
+        ]
+      },
+      "reading": {
+        "schema_version": "compact-source-v1",
+        "job_id": "v18-bavli-051",
+        "episode": {
+          "coverage": "needs_context",
+          "needed_context": ["Who speaks to whom in s1 (\"א\"ל ... א\"ל\") is set before s1."],
+          "notes": [
+            "R. Abbahu and Rava say the same thing; the text does not make them speak to each other.",
+            "The earlier independent reading grouped righteous/wicked roles and assigned למכלינהו to people; this projection separates the roles and omits that non-person suffix."
+          ]
+        },
+        "people": [
+          {
+            "id": "p1",
+            "kind": "person",
+            "label": "first speaker in s1",
+            "form": "unnamed",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "א\"ל ומי",
+                "occurrence": 1
+              }
+            ],
+            "reason": "The first speaking turn is identifiable, but its name lies outside the supplied text.",
+            "alternatives": []
+          },
+          {
+            "id": "p2",
+            "kind": "person",
+            "label": "replying speaker in s1",
+            "form": "unnamed",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "א\"ל אע\"ג",
+                "occurrence": 1
+              }
+            ],
+            "reason": "The reply reverses the two speakers; neither is assigned a historical name.",
+            "alternatives": []
+          },
+          {
+            "id": "p3",
+            "kind": "person",
+            "label": "רבי אבהו",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s3",
+                "quote": "א\"ר אבהו",
+                "occurrence": 1
+              }
+            ],
+            "reason": "The opening abbreviation introduces Abbahu's statement.",
+            "alternatives": []
+          },
+          {
+            "id": "p4",
+            "kind": "person",
+            "label": "רבא",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s3",
+                "quote": "רבא",
+                "occurrence": 1
+              }
+            ],
+            "reason": "וכן introduces a matching statement, not an exchange with Abbahu.",
+            "alternatives": []
+          },
+          {
+            "id": "p5",
+            "kind": "group",
+            "label": "people receiving the reward",
+            "form": "generic",
+            "setting": "uncertain",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "אגרייהו",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s1",
+                "quote": "אגרייהו",
+                "occurrence": 2
+              }
+            ],
+            "reason": "The plural suffix refers to people discussed before this excerpt; their precise identity remains open.",
+            "alternatives": []
+          },
+          {
+            "id": "p6",
+            "kind": "person",
+            "label": "the wicked person in the quotation",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s4",
+                "quote": "רשע",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s4",
+                "quote": "רשע",
+                "occurrence": 2
+              }
+            ],
+            "reason": "A generic person in the quoted verse, not a named interlocutor.",
+            "alternatives": []
+          },
+          {
+            "id": "p7",
+            "kind": "person",
+            "label": "the righteous person in the quotation",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s4",
+                "quote": "צדיק",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s4",
+                "quote": "צדיק",
+                "occurrence": 2
+              }
+            ],
+            "reason": "A different generic role in the quoted verse.",
+            "alternatives": []
+          },
+          {
+            "id": "p8",
+            "kind": "person",
+            "label": "buyer in the legal example",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "לקח",
+                "occurrence": 1
+              }
+            ],
+            "reason": "The purchase example has an unnamed buyer.",
+            "alternatives": []
+          },
+          {
+            "id": "p9",
+            "kind": "person",
+            "label": "seller in the legal example",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "הימנו",
+                "occurrence": 1
+              }
+            ],
+            "reason": "The person from whom the wheat is bought is unnamed.",
+            "alternatives": []
+          }
+        ],
+        "relationships": [
+          {
+            "id": "r1",
+            "subject": "p1",
+            "object": "p2",
+            "alternatives": [],
+            "category": "debate",
+            "relation": "asks",
+            "direction": "directed",
+            "verb": "asks about the reward",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "The reported question addresses the replying speaker; missing names do not erase the exchange.",
+            "evidence": [
+              {
+                "source_id": "s1",
+                "quote": "א\"ל ומי נפיש אגרייהו",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r2",
+            "subject": "p2",
+            "object": "p1",
+            "alternatives": [],
+            "category": "debate",
+            "relation": "answers",
+            "direction": "directed",
+            "verb": "answers the question",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "The second speaking turn answers the first speaker.",
+            "evidence": [
+              {
+                "source_id": "s1",
+                "quote": "א\"ל אע\"ג דלא נפיש אגרייהו",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r3",
+            "subject": "p8",
+            "object": "p9",
+            "alternatives": [],
+            "category": "action",
+            "relation": "acts_on",
+            "direction": "directed",
+            "verb": "buys wheat from",
+            "modality": "hypothetical",
+            "scene_status": "hypothetical",
+            "polarity": "positive",
+            "reason": "This is the imagined purchase used in a legal example, not a historical transaction.",
+            "evidence": [
+              {
+                "source_id": "s2",
+                "quote": "לקח הימנו חטים בדינר זהב",
+                "occurrence": 1
+              }
+            ]
+          }
+        ]
+      },
+      "provenance": {
+        "source": "captured source texts and independent reading",
+        "independentFile": "independent-source-sample/readings/jobs/v18-bavli-051.json",
+        "independentSha256": "a44d4a5e31c0f88de6e8d3f1a8d2eaa619f06dd1567fb87ed31cee68e4211f80",
+        "status": "Research projection of real readings; not a new model response or historical approval."
+      }
+    },
+    {
+      "job": {
+        "job_id": "v18-bavli-101",
+        "focal_ref": "Pesachim 71b:10",
+        "sources": [
+          {
+            "source_id": "s1",
+            "ref": "Pesachim 71b:8",
+            "text": "ושאר כל הזבחים ששחטן לשם פסח אם אינן ראויין חייב ואם ראויין הן רבי אליעזר מחייב חטאת ור' יהושע פוטר",
+            "sha256": "6a8d0fcb5f430c5c5269a8f5532741bbc12b07ed99231f07143ebcf9f38f9dc5",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Pesachim|71b|8|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Pesachim",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:09:05Z",
+              "source_url": "https://www.sefaria.org/Pesachim%2071b",
+              "raw_file": "raw/bavli/pesachim/wikisource-talmud-bavli/71b.json",
+              "raw_file_sha256": "719d5c8f8daec3de2adc8da0bbb23797311e711209e5f23fabd5dc59d60a0307",
+              "unit_segments_sha256": "3d9465c003dd3778a7be0586603358634237435c4ef9d31bd4b29672c4195089",
+              "address": "8",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s2",
+            "ref": "Pesachim 71b:9",
+            "text": "א\"ל ר' אליעזר מה אם הפסח שהוא מותר לשמו כששינה את שמו חייב זבחים שהן אסורין לשמן כששינה את שמן אינו דין שיהא חייב א\"ל ר' יהושע לא אם אמרת בפסח ששינהו בדבר אסור תאמר בזבחים ששינן בדבר המותר",
+            "sha256": "549969003ace12f17eb9dfd22de82f4fb448e1feb4fee2921d2f03aa4e5b427b",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Pesachim|71b|9|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Pesachim",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:09:05Z",
+              "source_url": "https://www.sefaria.org/Pesachim%2071b",
+              "raw_file": "raw/bavli/pesachim/wikisource-talmud-bavli/71b.json",
+              "raw_file_sha256": "719d5c8f8daec3de2adc8da0bbb23797311e711209e5f23fabd5dc59d60a0307",
+              "unit_segments_sha256": "3d9465c003dd3778a7be0586603358634237435c4ef9d31bd4b29672c4195089",
+              "address": "9",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s3",
+            "ref": "Pesachim 71b:10",
+            "text": "א\"ל ר\"א אימורי ציבור יוכיחו שהן מותרין לשמן והשוחט לשמן חייב א\"ל ר' יהושע לא אם אמרת באימורי ציבור שיש להן קצבה תאמר בפסח שאין לו קצבה",
+            "sha256": "081e6d60843b38173eecb2620932ebcf1640e15d89687c248d7349cfcbd55898",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Pesachim|71b|10|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Pesachim",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:09:05Z",
+              "source_url": "https://www.sefaria.org/Pesachim%2071b",
+              "raw_file": "raw/bavli/pesachim/wikisource-talmud-bavli/71b.json",
+              "raw_file_sha256": "719d5c8f8daec3de2adc8da0bbb23797311e711209e5f23fabd5dc59d60a0307",
+              "unit_segments_sha256": "3d9465c003dd3778a7be0586603358634237435c4ef9d31bd4b29672c4195089",
+              "address": "10",
+              "focal": true
+            }
+          },
+          {
+            "source_id": "s4",
+            "ref": "Pesachim 71b:11",
+            "text": "רבי מאיר אומר אף השוחט לשם אימורי ציבור פטור",
+            "sha256": "93798d9de5e3fecd82c923a547162e02ccac0cdc5b4a7c6ba5bad3fab2ba9772",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Pesachim|71b|11|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Pesachim",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:09:05Z",
+              "source_url": "https://www.sefaria.org/Pesachim%2071b",
+              "raw_file": "raw/bavli/pesachim/wikisource-talmud-bavli/71b.json",
+              "raw_file_sha256": "719d5c8f8daec3de2adc8da0bbb23797311e711209e5f23fabd5dc59d60a0307",
+              "unit_segments_sha256": "3d9465c003dd3778a7be0586603358634237435c4ef9d31bd4b29672c4195089",
+              "address": "11",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s5",
+            "ref": "Pesachim 71b:12",
+            "text": "שחטו שלא לאוכליו ושלא למנויו לערלין ולטמאין חייב לאוכליו ושלא לאוכליו למנויו ושלא למנויו למולין ולערלים לטמאין ולטהורין פטור",
+            "sha256": "85d2632cad2270bba24ba387cdd5638196c81a50c2aef2f9a6f01cbeb3bf703c",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Pesachim|71b|12|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Pesachim",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:09:05Z",
+              "source_url": "https://www.sefaria.org/Pesachim%2071b",
+              "raw_file": "raw/bavli/pesachim/wikisource-talmud-bavli/71b.json",
+              "raw_file_sha256": "719d5c8f8daec3de2adc8da0bbb23797311e711209e5f23fabd5dc59d60a0307",
+              "unit_segments_sha256": "3d9465c003dd3778a7be0586603358634237435c4ef9d31bd4b29672c4195089",
+              "address": "12",
+              "focal": false
+            }
+          }
+        ]
+      },
+      "reading": {
+        "schema_version": "compact-source-v1",
+        "job_id": "v18-bavli-101",
+        "episode": {
+          "coverage": "complete_for_supplied_text",
+          "needed_context": [],
+          "notes": [
+            "A debate recorded in the Mishnah: a scene in an edited text, not proof of a meeting."
+          ]
+        },
+        "people": [
+          {
+            "id": "p1",
+            "kind": "person",
+            "label": "רבי אליעזר",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "רבי אליעזר",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s2",
+                "quote": "ר' אליעזר",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s3",
+                "quote": "ר\"א",
+                "occurrence": 1
+              }
+            ],
+            "reason": "The full names and alternating replies identify the abbreviated speaker locally.",
+            "alternatives": []
+          },
+          {
+            "id": "p2",
+            "kind": "person",
+            "label": "ר' יהושע",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "ור' יהושע",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s2",
+                "quote": "ר' יהושע",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s3",
+                "quote": "ר' יהושע",
+                "occurrence": 1
+              }
+            ],
+            "reason": "The same named speaker answers Eliezer in both rounds.",
+            "alternatives": []
+          },
+          {
+            "id": "p3",
+            "kind": "person",
+            "label": "רבי מאיר",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s4",
+                "quote": "רבי מאיר",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Meir states a ruling; no direct exchange is asserted for him.",
+            "alternatives": []
+          },
+          {
+            "id": "p4",
+            "kind": "person",
+            "label": "the slaughterer in the legal examples",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "ששחטן",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s3",
+                "quote": "והשוחט",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s4",
+                "quote": "השוחט",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s5",
+                "quote": "שחטו",
+                "occurrence": 1
+              }
+            ],
+            "reason": "The rulings discuss a hypothetical slaughterer, distinct from the debating sages.",
+            "alternatives": []
+          },
+          {
+            "id": "p5",
+            "kind": "group",
+            "label": "eaters",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s5",
+                "quote": "לאוכליו",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s5",
+                "quote": "לאוכליו",
+                "occurrence": 2
+              },
+              {
+                "source_id": "s5",
+                "quote": "לאוכליו",
+                "occurrence": 3
+              }
+            ],
+            "reason": "A category of hypothetical recipients; it is not a historical group identity.",
+            "alternatives": []
+          },
+          {
+            "id": "p6",
+            "kind": "group",
+            "label": "registered eaters",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s5",
+                "quote": "למנויו",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s5",
+                "quote": "למנויו",
+                "occurrence": 2
+              },
+              {
+                "source_id": "s5",
+                "quote": "למנויו",
+                "occurrence": 3
+              }
+            ],
+            "reason": "A category of hypothetical recipients; it is not a historical group identity.",
+            "alternatives": []
+          },
+          {
+            "id": "p7",
+            "kind": "group",
+            "label": "uncircumcised people",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s5",
+                "quote": "לערלין",
+                "occurrence": 1
+              }
+            ],
+            "reason": "A category of hypothetical recipients; it is not a historical group identity.",
+            "alternatives": []
+          },
+          {
+            "id": "p8",
+            "kind": "group",
+            "label": "impure people",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s5",
+                "quote": "ולטמאין",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s5",
+                "quote": "לטמאין",
+                "occurrence": 2
+              }
+            ],
+            "reason": "A category of hypothetical recipients; it is not a historical group identity.",
+            "alternatives": []
+          },
+          {
+            "id": "p9",
+            "kind": "group",
+            "label": "circumcised people",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s5",
+                "quote": "למולין",
+                "occurrence": 1
+              }
+            ],
+            "reason": "A category of hypothetical recipients; it is not a historical group identity.",
+            "alternatives": []
+          },
+          {
+            "id": "p10",
+            "kind": "group",
+            "label": "pure people",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s5",
+                "quote": "ולטהורין",
+                "occurrence": 1
+              }
+            ],
+            "reason": "A category of hypothetical recipients; it is not a historical group identity.",
+            "alternatives": []
+          }
+        ],
+        "relationships": [
+          {
+            "id": "r1",
+            "subject": "p1",
+            "object": "p2",
+            "alternatives": [],
+            "category": "action",
+            "relation": "speaks_to",
+            "direction": "directed",
+            "verb": "presents an argument",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "The recorded reply follows the preceding speaker; hypothetical sacrifices do not make these speaking turns hypothetical.",
+            "evidence": [
+              {
+                "source_id": "s2",
+                "quote": "א\"ל ר' אליעזר מה אם הפסח",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r2",
+            "subject": "p2",
+            "object": "p1",
+            "alternatives": [],
+            "category": "debate",
+            "relation": "answers",
+            "direction": "directed",
+            "verb": "answers the argument",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "The recorded reply follows the preceding speaker; hypothetical sacrifices do not make these speaking turns hypothetical.",
+            "evidence": [
+              {
+                "source_id": "s2",
+                "quote": "א\"ל ר' יהושע לא אם אמרת בפסח",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r3",
+            "subject": "p1",
+            "object": "p2",
+            "alternatives": [],
+            "category": "action",
+            "relation": "speaks_to",
+            "direction": "directed",
+            "verb": "offers a further argument",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "The recorded reply follows the preceding speaker; hypothetical sacrifices do not make these speaking turns hypothetical.",
+            "evidence": [
+              {
+                "source_id": "s3",
+                "quote": "א\"ל ר\"א אימורי ציבור יוכיחו",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r4",
+            "subject": "p2",
+            "object": "p1",
+            "alternatives": [],
+            "category": "debate",
+            "relation": "answers",
+            "direction": "directed",
+            "verb": "answers the further argument",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "The recorded reply follows the preceding speaker; hypothetical sacrifices do not make these speaking turns hypothetical.",
+            "evidence": [
+              {
+                "source_id": "s3",
+                "quote": "א\"ל ר' יהושע לא אם אמרת באימורי ציבור",
+                "occurrence": 1
+              }
+            ]
+          }
+        ]
+      },
+      "provenance": {
+        "source": "captured source texts and independent reading",
+        "independentFile": "independent-source-sample/readings/jobs/v18-bavli-101.json",
+        "independentSha256": "c347185b2cd24a532cd968070c0061b62cd93822bc26db26b0dc71e1f258db6f",
+        "status": "Research projection of real readings; not a new model response or historical approval."
+      }
+    }
+  ]
+}
