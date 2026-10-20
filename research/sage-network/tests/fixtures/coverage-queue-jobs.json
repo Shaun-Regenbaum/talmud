@@ -1,0 +1,893 @@
+{
+  "provenance": "Eight unchanged source jobs from the frozen full-Bavli v18 capture. Transport tests do not generate historical claims.",
+  "jobs": [
+    {
+      "job_id": "v18-bavli-c00002",
+      "focal_ref": "Arakhin 2a:3",
+      "sources": [
+        {
+          "source_id": "s1",
+          "ref": "Arakhin 2a:1",
+          "text": "מתני׳ הכל מעריכין ונערכין נודרין ונידרין כהנים לוים וישראלים נשים ועבדים",
+          "sha256": "88e13f4667a8a2217e06c2dba27b585611791e52d9c88db7850f59090862566f",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|1|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "1",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s2",
+          "ref": "Arakhin 2a:2",
+          "text": "טומטום ואנדרוגינוס נודרין ונידרין ומעריכין אבל לא נערכין שאינו נערך אלא הזכר ודאי ונקבה ודאית",
+          "sha256": "0a816a91d9dcd8d1c34e1c0b009914dc93c1f19f1c6e4881da385d195e150ffb",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|2|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "2",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s3",
+          "ref": "Arakhin 2a:3",
+          "text": "חרש שוטה וקטן נידרין ונערכין אבל לא נודרין ולא מעריכין מפני שאין בהם דעת:",
+          "sha256": "8b4b604374045cc9fc66ef8bc146012062d96a1eac9d1419254c7be99612ec33",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|3|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "3",
+            "focal": true
+          }
+        },
+        {
+          "source_id": "s4",
+          "ref": "Arakhin 2a:4",
+          "text": "גמ׳ הכל מעריכין לאתויי מאי לאתויי מופלא סמוך לאיש",
+          "sha256": "8f46539e5ea4ea93738a87bcc75d0cf1e2b184741d6ed864a357842dbc006cda",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|4|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "4",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s5",
+          "ref": "Arakhin 2a:5",
+          "text": "נערכין לאתויי מאי לאתויי מנוול ומוכה שחין",
+          "sha256": "46de9a3af90afd7f40c9e8bfad89d37f830d2ccff232ed8676eee2e194337907",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|5|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "5",
+            "focal": false
+          }
+        }
+      ]
+    },
+    {
+      "job_id": "v18-bavli-t00007",
+      "focal_ref": "Arakhin 2a:8",
+      "sources": [
+        {
+          "source_id": "s1",
+          "ref": "Arakhin 2a:6",
+          "text": "סד\"א נדר בערכך כתיב כל שישנו בדמים ישנו בערכין וכל שאינו בדמים אינו בערכין",
+          "sha256": "5d07ba5ca920e537c71ee61341bb61164bc39248d004190cdd4ed253cb1a0b5f",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|6|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "6",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s2",
+          "ref": "Arakhin 2a:7",
+          "text": "קמ\"ל נפשות כל דהו",
+          "sha256": "8b4f4dcf7ef70db012a6c241a65817ba06ed9d7803d9e5f69a2394a8c40d8ca9",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|7|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "7",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s3",
+          "ref": "Arakhin 2a:8",
+          "text": "נודרין לאתויי מאי נידרין איצטריך ליה",
+          "sha256": "b63d9e1f46c708d4b683ae0d45de977fbd9611e679c5b435ca9b49fd9fe0275b",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|8|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "8",
+            "focal": true
+          }
+        },
+        {
+          "source_id": "s4",
+          "ref": "Arakhin 2a:9",
+          "text": "נידרין לאתויי מאי אי לאתויי טומטום ואנדרוגינוס בהדיא קתני להו ואי לאתויי חרש שוטה וקטן בהדיא קתני להו",
+          "sha256": "4ec5a61da476362f0bd3e337322fa41b726af5f703452fccb8c847fbde83d54c",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|9|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "9",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s5",
+          "ref": "Arakhin 2a:10",
+          "text": "אי לאתויי פחות מבן חודש בהדיא קתני להו ואי לאתויי עובד כוכבים בהדיא קתני להו לעולם לאתויי פחות מבן חודש ותני והדר מפרש",
+          "sha256": "ba53b92003aac278288d8eb23703feee2f0fbc13967dc05615bd904c71e9f597",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|10|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "10",
+            "focal": false
+          }
+        }
+      ]
+    },
+    {
+      "job_id": "v18-bavli-q00321",
+      "focal_ref": "Arakhin 2a:13",
+      "sources": [
+        {
+          "source_id": "s1",
+          "ref": "Arakhin 2a:11",
+          "text": "הכל סומכין לאתויי מאי לאתויי יורש ודלא כרבי יהודה",
+          "sha256": "b2a6816df53b06c5d169397a9f16f3ce0ee96bcafdf0485c7608dcfc4a9538e8",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|11|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "11",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s2",
+          "ref": "Arakhin 2a:12",
+          "text": "הכל ממירין לאתויי מאי לאתויי יורש ודלא כרבי יהודה",
+          "sha256": "b4965e8f565123f6a9c13e4ef33d2d4585095f00daac41830cf2ff7bfd9b6be6",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|12|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "12",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s3",
+          "ref": "Arakhin 2a:13",
+          "text": "דתניא יורש סומך יורש מימר ר' יהודה אומר יורש אינו סומך יורש אינו מימר",
+          "sha256": "e1dea66c8fcee3ddb77b8dfebe49f9e470fc779fe49bd3909c8032effc92e7ee",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|13|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "13",
+            "focal": true
+          }
+        },
+        {
+          "source_id": "s4",
+          "ref": "Arakhin 2a:14",
+          "text": "מאי טעמא דרבי יהודה (ויקרא א, ג) קרבנו ולא קרבן אביו ויליף תחלת הקדש מסוף הקדש מה סוף הקדש יורש אינו סומך אף תחלת הקדש יורש אינו מימר",
+          "sha256": "25e6e0a18f8ced0011146bcda22af13802f8c1863c618d387c9d4e7edde86c15",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|14|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "14",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s5",
+          "ref": "Arakhin 2a:15",
+          "text": "ורבנן (ויקרא כז, י) המר ימיר לרבות את היורש וילפינן סוף הקדש מתחלת הקדש מה תחלת הקדש יורש מימר אף סוף הקדש יורש סומך",
+          "sha256": "b91cc622a42e05e4700d48719d6ff31ddc4508bfa68515f1ec119dd8055adf31",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|15|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "15",
+            "focal": false
+          }
+        }
+      ]
+    },
+    {
+      "job_id": "v18-bavli-t00017",
+      "focal_ref": "Arakhin 2b:1",
+      "sources": [
+        {
+          "source_id": "s1",
+          "ref": "Arakhin 2a:16",
+          "text": "ורבנן האי קרבנו מאי עבדי ליה מיבעי ליה קרבנו ולא קרבן עובד כוכבים קרבנו ולא קרבן חבירו קרבנו לרבות כל בעלי חוברין לסמיכה",
+          "sha256": "c75f94a89944fe2bd857a694e96a8643968f657dac5126826d45231e39ae1ffc",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|16|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "16",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s2",
+          "ref": "Arakhin 2a:17",
+          "text": "ורבי יהודה לרבות כל בעלי חוברין לסמיכה לית ליה ואי נמי אית ליה",
+          "sha256": "94f1c9f144904bcfd434af95b54c382ff16073e4ec3cca7281ec75865e64cae2",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2a|17|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:23Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2a.json",
+            "raw_file_sha256": "0482232abbf90213c069e77c1d1ca58b66aabda15312646c616920c09e30e20a",
+            "unit_segments_sha256": "14a23af4f848845745c4466cdc5c7bdf6ef1744339a36da4069ef256d889ebab",
+            "address": "17",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s3",
+          "ref": "Arakhin 2b:1",
+          "text": "עובד כוכבים וחבירו מחד קרא נפקי אייתרי להו תרי חד קרבנו ולא קרבן אביו ואידך לרבות כל בעלי חוברין לסמיכה",
+          "sha256": "78f86abcc7ec4b1b4b6181f2fed444e47e3595f6e860c8cc8a18e9fb16b8587d",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|1|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "1",
+            "focal": true
+          }
+        },
+        {
+          "source_id": "s4",
+          "ref": "Arakhin 2b:2",
+          "text": "ורבי יהודה האי (ויקרא כז, י) המר ימיר מאי עביד ליה מיבעי ליה לרבות את האשה דתניא לפי שכל הענין אינו מדבר אלא בלשון זכר מה סופינו לרבות את האשה ת\"ל ואם המר ימיר",
+          "sha256": "2d209e5b6470c70b3937d43962af2abdb8d89aa641fac36bc6d3ee302fadbb85",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|2|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "2",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s5",
+          "ref": "Arakhin 2b:3",
+          "text": "ורבנן מואם ור' יהודה ואם לא דריש:",
+          "sha256": "384b2a95230b1ff5d174a7d493d23d7290e0733b1a93ce56aa169700d30134bf",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|3|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "3",
+            "focal": false
+          }
+        }
+      ]
+    },
+    {
+      "job_id": "v18-bavli-c00022",
+      "focal_ref": "Arakhin 2b:6",
+      "sources": [
+        {
+          "source_id": "s1",
+          "ref": "Arakhin 2b:4",
+          "text": "הכל חייבין בסוכה לאיתויי מאי לאיתויי קטן שאינו צריך לאמו דתנן קטן שאינו צריך לאמו חייב בסוכה",
+          "sha256": "5105b6f89b621260cadeb9fc3b488b69ba0735f5c064439b250206ef87334ec0",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|4|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "4",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s2",
+          "ref": "Arakhin 2b:5",
+          "text": "הכל חייבין בלולב לאיתויי מאי לאיתויי קטן היודע לנענע דתנן קטן היודע לנענע חייב בלולב",
+          "sha256": "e63e0dc7d710edf4b6f926f4730f00eb539ae2fef5479caf16874550a7477c11",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|5|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "5",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s3",
+          "ref": "Arakhin 2b:6",
+          "text": "הכל חייבין בציצית לאיתויי מאי לאיתויי קטן היודע להתעטף דתניא קטן היודע להתעטף חייב בציצית",
+          "sha256": "e072eb9665329f8b1434e68b7019a93f584723c6ac3c45bb9507836d1696d484",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|6|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "6",
+            "focal": true
+          }
+        },
+        {
+          "source_id": "s4",
+          "ref": "Arakhin 2b:7",
+          "text": "הכל חייבין בתפילין לאיתויי מאי לאיתויי קטן היודע לשמור תפלין דתניא קטן היודע לשמור תפלין אביו לוקח לו תפלין",
+          "sha256": "4d308b4943962286bcedb3ff474601546c4fc64b9ae633e9d004e27488a70fff",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|7|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "7",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s5",
+          "ref": "Arakhin 2b:8",
+          "text": "הכל חייבין בראייה לאיתויי מאי לאיתויי מי שחציו עבד וחציו בן חורין",
+          "sha256": "f86f15bb122ab643ff6ef65103ef37d76084ca142ecc84feeff6f6cc1098705e",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|8|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "8",
+            "focal": false
+          }
+        }
+      ]
+    },
+    {
+      "job_id": "v18-bavli-t00027",
+      "focal_ref": "Arakhin 2b:11",
+      "sources": [
+        {
+          "source_id": "s1",
+          "ref": "Arakhin 2b:9",
+          "text": "ולרבינא דאמר מי שחציו עבד וחציו בן חורין פטור מן הראייה לאיתויי חיגר ביום ראשון ונתפשט ביום שני",
+          "sha256": "d8fe9b20a29bdf9682be3052042f6021bce68650eb8451d094d5238ca391d8e9",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|9|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "9",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s2",
+          "ref": "Arakhin 2b:10",
+          "text": "הניחא למאן דאמר כולן תשלומין זה לזה אלא למ\"ד כולן תשלומין לראשון לאיתויי מאי",
+          "sha256": "a8dbe44a34a58a9957fa965dec5823c713d66fef1e1ae69a2038bda6f08745fb",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|10|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "10",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s3",
+          "ref": "Arakhin 2b:11",
+          "text": "לאיתויי סומא באחת מעיניו ודלא כי האי תנא",
+          "sha256": "f54233af13adc55de4fcb891c0b7ed909ab1f1c21d1c5917eb2739fe2204c865",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|11|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "11",
+            "focal": true
+          }
+        },
+        {
+          "source_id": "s4",
+          "ref": "Arakhin 2b:12",
+          "text": "דתניא יוחנן בן דהבאי אומר משום רבי יהודה סומא באחת מעיניו פטור מן הראייה שנאמר {שמות כג } יראה יראה כדרך שבא לראות כך בא ליראות מה לראות בשתי עיניו אף ליראות בשתי עיניו",
+          "sha256": "cadf791ca9956dcb44eec95383dd441c958dcd8d69a64bc5a2a41ab344e4cc28",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|12|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "12",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s5",
+          "ref": "Arakhin 2b:13",
+          "text": "ואיבעית אימא לעולם לאיתויי מי שחציו עבד וחציו בן חורין ודקא קשיא לך דרבינא לא קשיא כאן במשנה ראשונה כאן במשנה אחרונה",
+          "sha256": "070fc8d73bd7d5198e32e91cb2d47875bb3d52defa6b9511098ee429914ad98f",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|13|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "13",
+            "focal": false
+          }
+        }
+      ]
+    },
+    {
+      "job_id": "v18-bavli-c00032",
+      "focal_ref": "Arakhin 2b:16",
+      "sources": [
+        {
+          "source_id": "s1",
+          "ref": "Arakhin 2b:14",
+          "text": "דתנן מי שחציו עבד וחציו בן חורין עובד את רבו יום אחד ואת עצמו יום אחד דברי ב\"ה",
+          "sha256": "80d69cc8fa2293aed79a80f3db25e9b9f5ddfaeda2e1f9988bb33910473d7d87",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|14|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "14",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s2",
+          "ref": "Arakhin 2b:15",
+          "text": "אמרו להם ב\"ש תיקנתם את רבו ואת עצמו לא תיקנתם לישא שפחה אינו יכול בת חורין אינו יכול יבטל והלא לא נברא העולם אלא לפריה ורביה שנאמר (ישעיהו מה, יח) לא תוהו בראה לשבת יצרה",
+          "sha256": "8c31a2bbeee3d9d73d9a541202b45d9e4a979339f44ec88b008beff688bb5006",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|15|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "15",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s3",
+          "ref": "Arakhin 2b:16",
+          "text": "אלא מפני תיקון העולם כופין את רבו ועושה אותו בן חורין וכותב שטר על חצי דמיו וחזרו בית הלל להורות כדברי ב\"ש",
+          "sha256": "89b02598405b2a468adce9e34bd86a3905d950993fee4e5ada0c91283bdeefac",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|16|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "16",
+            "focal": true
+          }
+        },
+        {
+          "source_id": "s4",
+          "ref": "Arakhin 2b:17",
+          "text": "הכל חייבין בתקיעת שופר לאיתויי מאי לאיתויי קטן שהגיע לחינוך דתנן אין מעכבין את הקטן מלתקוע ביו\"ט",
+          "sha256": "50f63d3dd9a912ae27ae9d38a8309a1bf6d5231d06c0ff18575742558edf49ec",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|17|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "17",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s5",
+          "ref": "Arakhin 2b:18",
+          "text": "הכל חייבין במקרא מגילה הכל כשרין לקרות את המגילה לאיתויי",
+          "sha256": "fec082b275de14e64f056a5afdea9a414dd9af320471cb7f61b9cabac51590a2",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|2b|18|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%202b",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+            "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+            "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+            "address": "18",
+            "focal": false
+          }
+        }
+      ]
+    },
+    {
+      "job_id": "v18-bavli-q00403",
+      "focal_ref": "Arakhin 3a:3",
+      "sources": [
+        {
+          "source_id": "s1",
+          "ref": "Arakhin 3a:1",
+          "text": "מאי לאתויי נשים וכדר' יהושע בן לוי דאמר ר' יהושע בן לוי נשים חייבות במקרא מגילה שאף הן היו באותו הנס",
+          "sha256": "b93fc9e78f312ed495f553c5754e7a22da9c4f30ffc9a5b974e7ca01a4af553a",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|3a|1|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%203a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/3a.json",
+            "raw_file_sha256": "e0a13a9220d97514d195cfeef13882c25e7703082c4a3a223bb043a80bb81981",
+            "unit_segments_sha256": "549e57d807d7ff19530d2536e09dddb525fefed8b5a474d431458a7d44701517",
+            "address": "1",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s2",
+          "ref": "Arakhin 3a:2",
+          "text": "הכל חייבין בזימון לאתויי מאי לאתויי נשים ועבדים דתניא נשים מזמנות לעצמן ועבדים מזמנין לעצמן",
+          "sha256": "15e483c3070def38f9b7c6c2d65dde9df9ddec692be427d534d8e74ccc757711",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|3a|2|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%203a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/3a.json",
+            "raw_file_sha256": "e0a13a9220d97514d195cfeef13882c25e7703082c4a3a223bb043a80bb81981",
+            "unit_segments_sha256": "549e57d807d7ff19530d2536e09dddb525fefed8b5a474d431458a7d44701517",
+            "address": "2",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s3",
+          "ref": "Arakhin 3a:3",
+          "text": "הכל מצטרפין לזימון לאתויי מאי לאתויי קטן היודע למי מברכין דאמר רב נחמן יודע למי מברכין מזמנין עליו",
+          "sha256": "312fc09378efcf5e09f0fa77fe5421306af5ddbd0ee810bac6649ffefec1de5a",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|3a|3|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%203a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/3a.json",
+            "raw_file_sha256": "e0a13a9220d97514d195cfeef13882c25e7703082c4a3a223bb043a80bb81981",
+            "unit_segments_sha256": "549e57d807d7ff19530d2536e09dddb525fefed8b5a474d431458a7d44701517",
+            "address": "3",
+            "focal": true
+          }
+        },
+        {
+          "source_id": "s4",
+          "ref": "Arakhin 3a:4",
+          "text": "הכל מטמאין בזיבה לאתויי מאי לאתויי תינוק בן יומו דתניא איש מה ת\"ל (ויקרא טו, ב) איש איש לרבות תינוק בן יום אחד שמטמא בזיבה דברי רבי יהודה",
+          "sha256": "9dcb9ded52243afb80097d4d5113c5a03118a5fa241c7274305fd1e9bba418cf",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|3a|4|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%203a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/3a.json",
+            "raw_file_sha256": "e0a13a9220d97514d195cfeef13882c25e7703082c4a3a223bb043a80bb81981",
+            "unit_segments_sha256": "549e57d807d7ff19530d2536e09dddb525fefed8b5a474d431458a7d44701517",
+            "address": "4",
+            "focal": false
+          }
+        },
+        {
+          "source_id": "s5",
+          "ref": "Arakhin 3a:5",
+          "text": "רבי ישמעאל בנו של רבי יוחנן בן ברוקה אומר אינו צריך הרי הוא אומר (ויקרא טו, לג) והזב את זובו לזכר ולנקבה לזכר כל שהוא זכר בין קטן בין גדול לנקבה כל שהיא נקבה בין קטנה בין גדולה אם כן מה תלמוד לומר איש איש דברה תורה כלשון בני אדם",
+          "sha256": "b1eff756bb9459465a82adbafe82f85831fb8594e6bd3a7fd46660d73fd45a9d",
+          "edition": "Wikisource Talmud Bavli",
+          "provenance": {
+            "segment_id": "bavli|Arakhin|3a|5|Wikisource Talmud Bavli",
+            "corpus": "bavli",
+            "work": "Arakhin",
+            "license": "CC-BY-SA",
+            "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+            "captured_at": "2026-09-20T08:24:24Z",
+            "source_url": "https://www.sefaria.org/Arakhin%203a",
+            "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/3a.json",
+            "raw_file_sha256": "e0a13a9220d97514d195cfeef13882c25e7703082c4a3a223bb043a80bb81981",
+            "unit_segments_sha256": "549e57d807d7ff19530d2536e09dddb525fefed8b5a474d431458a7d44701517",
+            "address": "5",
+            "focal": false
+          }
+        }
+      ]
+    }
+  ]
+}
