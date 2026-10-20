@@ -14,6 +14,8 @@ import subprocess
 import threading
 import time
 
+from provider_errors import ProviderError, parse_response
+
 API = 'https://openrouter.ai/api/v1/'
 KEY_CAP = 100.0
 MAX_RUN_CAP = 50.0
@@ -90,7 +92,7 @@ class Transport:
         with self.lock:
             if self.closed:
                 raise RuntimeError('Transport stopped')
-            child = subprocess.Popen(['curl', '--silent', '--show-error', '--fail',
+            child = subprocess.Popen(['curl', '--silent', '--show-error', '--write-out', '\n%{http_code}',
                 '--connect-timeout', '10', '--max-time', '360', '--max-filesize', '16777216',
                 '--config', '-'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE, text=True, start_new_session=True)
@@ -102,9 +104,7 @@ class Transport:
                 os.killpg(child.pid, signal.SIGKILL)
                 child.communicate()
                 raise TimeoutError('Provider wall deadline exceeded') from None
-            if child.returncode:
-                raise RuntimeError('Provider request failed; curl code ' + str(child.returncode))
-            return json.loads(stdout)
+            return parse_response(stdout, child.returncode, key)
         finally:
             with self.lock:
                 self.children.discard(child)
@@ -171,6 +171,8 @@ def config_check(config, manifest, recipe, concurrency):
         raise ValueError('Input manifest differs')
     if config.get('recipeFiles') != recipe_files(recipe):
         raise ValueError('Frozen recipe files differ')
+    if config.get('providerErrorsHash') != file_hash(Path(__file__).with_name('provider_errors.py')):
+        raise ValueError('Frozen provider diagnostics code differs')
     if config.get('runnerHash') != file_hash(Path(__file__)):
         raise ValueError('Frozen queue code differs')
     if type(concurrency) is not int or not 1 <= concurrency <= 128:
@@ -256,6 +258,8 @@ def read_one(job, payload, adapter, config_hash, key, request):
         raw = request(API + 'chat/completions', key, payload)
     except Exception as error:
         result.update(errorKind='provider', error=type(error).__name__)
+        if isinstance(error, ProviderError):
+            result['providerDiagnostic'] = error.diagnostic
     else:
         result['response'] = raw
         try:

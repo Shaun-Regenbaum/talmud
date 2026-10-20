@@ -82,7 +82,8 @@ class QueueHarness(unittest.TestCase):
         q.atomic(self.inputs/'queue-manifest.json', self.manifest)
         self.config = dict(runId='transport-test', budgetUsd=1.0, approvedConcurrency=16,
             inputManifestHash=q.digest(self.manifest), recipeFiles=q.recipe_files(self.recipe),
-            runnerHash=q.file_hash(Path(q.__file__)), keyFingerprint=hashlib.sha256(b'test-only').hexdigest(),
+            runnerHash=q.file_hash(Path(q.__file__)),
+            providerErrorsHash=q.file_hash(Path(q.__file__).with_name('provider_errors.py')), keyFingerprint=hashlib.sha256(b'test-only').hexdigest(),
             route=dict(provider='test-transport', inputPrice=0.000001, outputPrice=0.000001),
             parameters=dict(model='test-transport', max_tokens=1024, reasoning={'effort':'none'},
                             response_format={'type':'json_object'}, temperature=0))
