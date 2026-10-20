@@ -2320,6 +2320,11 @@
       "reason": "Engineering instructions for graph storage, import verification, and deployment order. No research findings or dataset; belongs with the storage code in Git.",
       "sha256": "d6223d4b66eb8e96ea33dd5591c8bba2a83476a7e34bc0bbd46719112d80ccf1"
     },
+    "research/sage-network/storage/source-readings.md": {
+      "disposition": "excluded",
+      "reason": "Engineering importer contract and release procedure; no research findings or dataset report.",
+      "sha256": "933bf3ab52b1b7e205f8653db30e20ba85c0fd62941bb8202d94ee0131b6c27e"
+    },
     "research/sage-network/tests/fixtures/namesake-network.json": {
       "disposition": "excluded",
       "reason": "Regression fixture containing saved public passage records for the personal Talmud project; project instructions prohibit uploading this research to a company service.",
