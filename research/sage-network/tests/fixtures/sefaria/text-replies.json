@@ -1,0 +1,134 @@
+{
+  "note": "Real Sefaria v3 text replies fetched 2026-10-20. Text bodies are removed to keep the fixture small; every other kept field is copied unchanged, and replyFileSha256 is the hash of the full original reply.",
+  "replies": [
+    {
+      "requestedRef": "Sifrei Zuta 3a",
+      "requestedEdition": "Leipzig, 1917",
+      "replyFileSha256": "a3786630c167805a3835e7567a15c14271bc376e36bcfc2e0d82a2cbfbeeb8ec",
+      "reply": {
+        "ref": "Sifrei Zuta",
+        "sections": [],
+        "toSections": [],
+        "versions": [
+          {
+            "versionTitle": "Leipzig, 1917",
+            "language": "he"
+          }
+        ]
+      },
+      "segmentsInReply": 726
+    },
+    {
+      "requestedRef": "Mekhilta DeRabbi Shimon Ben Yochai 10b",
+      "requestedEdition": "Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+      "replyFileSha256": "757be03d0a5d433ff9b1a91de87b6c6fc124b6a75075829781d72a4863ba97aa",
+      "reply": {
+        "ref": "Mekhilta DeRabbi Shimon Ben Yochai",
+        "sections": [],
+        "toSections": [],
+        "versions": [
+          {
+            "versionTitle": "Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+            "language": "he"
+          }
+        ]
+      },
+      "segmentsInReply": 363
+    },
+    {
+      "requestedRef": "Sifrei Zuta 5",
+      "requestedEdition": "Leipzig, 1917",
+      "replyFileSha256": "23d93933bc144613b0c15ff70d94e6e5e7ec1b5d1d3b77d9aa5021f95741017c",
+      "reply": {
+        "ref": "Sifrei Zuta 5",
+        "sections": ["5"],
+        "toSections": ["5"],
+        "versions": [
+          {
+            "versionTitle": "Leipzig, 1917",
+            "language": "he"
+          }
+        ]
+      },
+      "segmentsInReply": 82
+    },
+    {
+      "requestedRef": "Mekhilta DeRabbi Shimon Ben Yochai 12",
+      "requestedEdition": "Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+      "replyFileSha256": "8dc75bddf348a3ea44dd402c54ad27c83ab27cbef40662f465e2e1ed7be9a80c",
+      "reply": {
+        "ref": "Mekhilta DeRabbi Shimon Ben Yochai 12",
+        "sections": ["12"],
+        "toSections": ["12"],
+        "versions": [
+          {
+            "versionTitle": "Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+            "language": "he"
+          }
+        ]
+      },
+      "segmentsInReply": 51
+    },
+    {
+      "requestedRef": "Berakhot 2a",
+      "requestedEdition": "Wikisource Talmud Bavli",
+      "replyFileSha256": "07fadc56bd7b2e80dff0fab96514b55df993d9dae35ed8afa01fd45347dcef52",
+      "reply": {
+        "ref": "Berakhot 2a",
+        "sections": ["2a"],
+        "toSections": ["2a"],
+        "versions": [
+          {
+            "versionTitle": "Wikisource Talmud Bavli",
+            "language": "he"
+          }
+        ]
+      },
+      "segmentsInReply": 14
+    },
+    {
+      "requestedRef": "Jerusalem Talmud Berakhot 1",
+      "requestedEdition": null,
+      "replyFileSha256": "2718deb029ed7df7bc6650c5287787b7e51fd543dae9b1ecfe287ab1d38bca0b",
+      "reply": {
+        "ref": "Jerusalem Talmud Berakhot 1",
+        "sections": ["1"],
+        "toSections": ["1"],
+        "versions": [
+          {
+            "versionTitle": "The Jerusalem Talmud, edition by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015",
+            "language": "he"
+          }
+        ]
+      },
+      "segmentsInReply": 88
+    },
+    {
+      "requestedRef": "Mekhilta DeRabbi Shimon Ben Yochai, Additions 3",
+      "requestedEdition": "Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+      "replyFileSha256": "c4f2fa1a9ed5c6f04cefaecc402e20be3138f9d372cab0800402c7739a3ad4dd",
+      "reply": {
+        "ref": "Mekhilta DeRabbi Shimon Ben Yochai, Additions 3",
+        "sections": ["3"],
+        "toSections": ["3"],
+        "versions": [
+          {
+            "versionTitle": "Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+            "language": "he"
+          }
+        ]
+      },
+      "segmentsInReply": 8
+    },
+    {
+      "requestedRef": "Mekhilta DeRabbi Shimon Ben Yochai, Additions 1",
+      "requestedEdition": "Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
+      "replyFileSha256": "3340cf5dc5280e0d3f4ba1615b53fb43ff651dcf20c802d31448d07df3d71c87",
+      "reply": {
+        "error": "We have no text for Mekhilta DeRabbi Shimon Ben Yochai, Additions 1.",
+        "versions": []
+      },
+      "segmentsInReply": 0
+    }
+  ]
+}

@@ -87,25 +87,64 @@ def hebrew_editions(work):
     return [t for t in titles if not ('vocalized' in t.lower() and key(t) in plain)]
 
 
-def chapter_refs(work):
+class AmbiguousShape(ValueError):
+    """The shape could be Talmud pages but the index does not say so, and nothing is guessed."""
+
+
+class ResponseMismatch(ValueError):
+    """Sefaria answered a different reference or edition than the one asked for."""
+
+
+def index_address_types(index, work):
+    """{full node title: addressTypes} for every text node of a Sefaria index record.
+
+    A default node keeps the work's title; a named node adds its English title
+    after a comma, as Sefaria writes it ("Mekhilta DeRabbi Shimon Ben Yochai,
+    Additions").
+    """
+    out = {}
+
+    def walk(node, title):
+        if node.get('nodes'):
+            for sub in node['nodes']:
+                if sub.get('default') or sub.get('key') == 'default':
+                    walk(sub, title)
+                else:
+                    name = next((t['text'] for t in sub.get('titles') or []
+                                 if t.get('lang') == 'en' and t.get('primary')), sub.get('key'))
+                    walk(sub, f'{title}, {name}')
+        elif node.get('addressTypes'):
+            out[title] = list(node['addressTypes'])
+    walk((index or {}).get('schema') or {}, work)
+    return out
+
+
+def chapter_refs(work, fetch=None):
     """(unit label, ref) for every top-level section, from Sefaria's own shape.
 
     The Bavli is addressed by page side, the Yerushalmi by chapter and halakhah,
     a midrash by chapter, and some works are trees of named parts. Asking the
     Yerushalmi for a page returns nothing, silently, so the shape is read
-    rather than assumed.
+    rather than assumed. Whether a node is Talmud pages comes from the index's
+    address types. A named part that the work's shape leaves out (Mekhilta
+    DeRabbi Shimon's Additions) is found in the index and read by its own title.
     """
-    shape = get('shape/' + urllib.parse.quote(work))
+    fetch = fetch or get
+    types = index_address_types(fetch('v2/raw/index/' + urllib.parse.quote(work)), work)
+    shape = fetch('shape/' + urllib.parse.quote(work))
     if not shape:
         return []
-    nodes = shape if isinstance(shape, list) else [shape]
-    out = []
-    for nd in nodes:
-        _walk_shape(nd, nd.get('title') or work, out)
+    out, seen = [], set()
+    for nd in (shape if isinstance(shape, list) else [shape]):
+        _walk_shape(nd, nd.get('title') or work, out, types, seen)
+    for title in sorted(set(types) - seen):
+        part = fetch('shape/' + urllib.parse.quote(title))
+        for nd in (part if isinstance(part, list) else [part] if part else []):
+            _walk_shape(dict(nd, _named=True), title, out, types, seen)
     return out
 
 
-def _walk_shape(nd, title, out):
+def _walk_shape(nd, title, out, types=None, seen=None):
     """Collect (unit, ref) from one shape node, at any depth.
 
     `chapters` comes in three forms. A list of numbers: the node's sections. A
@@ -114,6 +153,8 @@ def _walk_shape(nd, title, out):
     Sifra is 278 such blocks, and treating that number as a list is what
     stopped the first full run.
     """
+    if seen is not None:
+        seen.add(title)
     ch = nd.get('chapters')
     if isinstance(ch, int):
         if ch:
@@ -124,9 +165,9 @@ def _walk_shape(nd, title, out):
     if ch and isinstance(ch[0], dict):
         for sub in ch:
             sub = dict(sub, _named=True)
-            _walk_shape(sub, sub.get('title') or title, out)
+            _walk_shape(sub, sub.get('title') or title, out, types, seen)
         return
-    is_daf = _is_talmud_daf(nd)
+    is_daf = _is_talmud_daf(nd, (types or {}).get(title))
     for i, c in enumerate(ch):
         if not c:
             continue                              # 1a, 1b and other empty slots
@@ -137,12 +178,39 @@ def _walk_shape(nd, title, out):
             out.append((f'{slug(title)}-{i + 1}' if nd.get('_named') else str(i + 1), f'{title} {i + 1}'))
 
 
-def _is_talmud_daf(nd):
-    # Bavli shapes list one entry per page side, beginning with two empty
-    # slots for 1a and 1b, and the title has no "Jerusalem Talmud" prefix.
+def _is_talmud_daf(nd, address_types=None):
+    """Talmud page sides, as the index's first address type says.
+
+    An earlier rule guessed pages from two empty slots at the start of the
+    shape. Sifrei Zuta and Mekhilta DeRabbi Shimon also start with empty slots
+    (their text begins at Numbers 5 and Exodus 3), so they were fetched as
+    pages, and Sefaria answered each "page" with the whole book. Without an
+    address type, a shape that could be pages is refused rather than guessed.
+    """
+    if address_types:
+        return address_types[0] == 'Talmud'
     ch = nd.get('chapters') or []
-    return (len(ch) > 3 and ch[0] == 0 and ch[1] == 0
-            and not str(nd.get('title', '')).startswith('Jerusalem Talmud'))
+    if len(ch) > 1 and ch[0] == 0 and ch[1] == 0:
+        raise AmbiguousShape(f'{nd.get("title")}: the shape starts with empty slots and the index gives no address type')
+    return False
+
+
+def response_problem(doc, ref, edition):
+    """Why a text response cannot be saved as `ref` in `edition`, or None.
+
+    Sefaria answers a reference it cannot place with a wider one: "Sifrei Zuta
+    3a" came back as "Sifrei Zuta", the whole book. Only the reference and the
+    edition that were asked for are kept.
+    """
+    if not doc:
+        return 'no response'
+    got = (doc.get('ref') or '').strip()
+    if got != ref.strip():
+        return f'asked for {ref!r}, Sefaria answered {got!r}'
+    vs = doc.get('versions') or []
+    if vs and (vs[0].get('versionTitle') or '').strip() != edition.strip():
+        return f'asked for edition {edition!r}, Sefaria answered {vs[0].get("versionTitle")!r}'
+    return None
 
 
 def flatten(text, prefix=''):
@@ -190,6 +258,9 @@ def fetch_work(corpus, title):
             vs = (doc or {}).get('versions') or []
             if not vs:
                 continue
+            problem = response_problem(doc, ref, ed0)
+            if problem:
+                raise ResponseMismatch(f'{work} | {ed} | {unit}: {problem}')
             addrs, segs = flatten(vs[0].get('text'))
             if not segs:
                 continue
@@ -238,6 +309,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--corpus', default=None)
     ap.add_argument('--limit', type=int, default=0, help='first N works per corpus (smoke test)')
+    ap.add_argument('--work', action='append', default=[], help='fetch only this work (repeatable)')
     ap.add_argument('--list', action='store_true', help='print the plan and fetch nothing')
     ap.add_argument('--check', action='store_true',
                     help='read every work\'s shape and editions, fetch no text, and report '
@@ -249,6 +321,8 @@ def main():
         if a.corpus and a.corpus != label:
             continue
         ws = works_in(path)
+        if a.work:
+            ws = [w for w in ws if w in a.work]
         if a.limit:
             ws = ws[:a.limit]
         print(f'{label}: {len(ws)} works')
