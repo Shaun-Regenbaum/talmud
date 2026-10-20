@@ -14,3 +14,11 @@ Sources:
 - The public endpoint snapshot in `../tests/fixtures/text-pricing-endpoint.json`, captured 2026-10-20.
 
 A configuration must also pass the existing independently reviewed plan, request hash and shared spending checks. This change does not dispatch work or increase any spending allowance.
+
+The separate `gemini38-flex-text-only-v1` contract allows only `google/gemini-3.8-flash` through `google-ai-studio/flex`. It requires the live endpoint to identify the same model and the flex tier. Its captured discount metadata must remain `0.5`, but no discount multiplication is performed: the displayed prompt/completion rates are used directly for reservation and request price limits. A changed metadata value is refused.
+
+The exact flex slug in `provider.only` selects the tier, while disabled fallbacks prevent another route. The official service-tier documentation says tier endpoints are billed at their listed endpoint price. Flex provides lower processing priority, so the trial uses a bounded deadline and preserves unknown-cost holds after failures.
+
+- https://openrouter.ai/docs/guides/features/service-tiers
+- https://openrouter.ai/docs/guides/community/for-providers (displayed pricing already incorporates provider discounts)
+- Captured endpoint: `../tests/fixtures/text-flex-pricing-endpoint.json`.

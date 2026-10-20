@@ -235,13 +235,18 @@ def text_pricing_check(config, pricing=None):
     policy = config.get('pricingApplicability')
     if policy is None:
         return
+    reviewed = {
+        'gemini-text-only-v1': ('google/gemini-2.5-flash-lite', 'google-ai-studio', 0),
+        'gemini38-flex-text-only-v1': ('google/gemini-3.8-flash', 'google-ai-studio/flex', 0.5),
+    }
+    selected = reviewed.get(policy.get('version')) if isinstance(policy, dict) else None
     expected = {'version', 'input', 'tools', 'plugins', 'explicitCache', 'pricing'}
     if (not isinstance(policy, dict) or set(policy) != expected or
-            policy['version'] != 'gemini-text-only-v1' or policy['input'] != 'plain_text' or
+            selected is None or policy['input'] != 'plain_text' or
             policy['tools'] is not False or policy['plugins'] is not False or
             policy['explicitCache'] is not False or
-            config['parameters']['model'] != 'google/gemini-2.5-flash-lite' or
-            config['route']['provider'] != 'google-ai-studio'):
+            config['parameters']['model'] != selected[0] or
+            config['route']['provider'] != selected[1]):
         raise ValueError('Unreviewed text-only pricing applicability')
     frozen = policy['pricing']
     required = {'prompt', 'completion', 'image', 'audio', 'input_audio_cache',
@@ -257,8 +262,9 @@ def text_pricing_check(config, pricing=None):
     route = config['route']
     if (rates['prompt'] != route['inputPrice'] or rates['completion'] != route['outputPrice'] or
             rates['internal_reasoning'] > route['outputPrice'] or
-            rates['input_cache_read'] > route['inputPrice'] or rates['discount'] != 0):
+            rates['input_cache_read'] > route['inputPrice'] or rates['discount'] != selected[2]):
         raise ValueError('Text rates exceed the frozen reservation')
+    # Prompt/completion are the endpoint rates; discount metadata is never applied again.
     # Explicit cache writes need cache_control, which this request shape cannot carry.
     # Media and search fees need content blocks, tools, plugins or an online model route.
     if pricing is not None and pricing != frozen:
@@ -296,6 +302,10 @@ def preflight(config, key, request):
     pricing = endpoint['pricing']
     if config.get('pricingApplicability') is not None:
         text_pricing_check(config, pricing)
+        if (config['pricingApplicability']['version'] == 'gemini38-flex-text-only-v1' and
+                (endpoint.get('service_tier') != 'flex' or
+                 endpoint.get('model_id') != config['parameters']['model'])):
+            raise RuntimeError('Frozen flex endpoint identity changed')
     if (pricing.get('overrides') or float(pricing['prompt']) != route['inputPrice'] or
             float(pricing['completion']) != route['outputPrice'] or
             (config.get('pricingApplicability') is None and
