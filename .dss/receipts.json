@@ -2330,6 +2330,11 @@
       "reason": "Engineering instructions for running identity jobs and importing unaccepted proposals; no measured research findings.",
       "sha256": "a35de97cd30c20dc1cec7edd3f98d7faa22214bced190554b0b0969bcb1b1f07"
     },
+    "research/sage-network/storage/INITIAL-NAME-PLACEMENT.md": {
+      "disposition": "excluded",
+      "reason": "Engineering contract for immutable source bindings, reader placement validation and rollout prerequisites; no research findings or dataset.",
+      "sha256": "ceb294f22c5b64917b9d046c0973e7663b5958612ff6c32e7f842110332f4280"
+    },
     "research/sage-network/storage/README.md": {
       "disposition": "excluded",
       "reason": "Engineering instructions for graph storage, import verification, and deployment order. No research findings or dataset; belongs with the storage code in Git.",

@@ -21,6 +21,7 @@ import { dedupeBy, partitionSections } from '../lib/argumentMoves';
 import { DafRenderer } from '../lib/daf-render';
 import type { DafGeoModel } from '../lib/geographyModel';
 import { perakimOf, perekAt } from '../lib/perakim';
+import type { InitialPlacement } from '../lib/sage-graph/initial-placement';
 import type { TalmudPageData } from '../lib/sefref';
 import { clampAmud, dafRefHe, TRACTATE_OPTIONS } from '../lib/sefref';
 import { conceptToTerm, glossaryForDaf, type Term } from '../lib/terms/registry';
@@ -56,6 +57,7 @@ import { buildTokenRange } from './highlightRange';
 import { lang, setLang, t } from './i18n';
 import { injectCheckedNames } from './injectCheckedNames';
 import { injectHadran } from './injectHadran';
+import { injectInitialNames } from './injectInitialNames';
 import { type GenerationRabbi, injectRabbiUnderlines } from './injectRabbiUnderlines';
 import { injectSegmentMarkers } from './injectSegmentMarkers';
 import { inspectRequest } from './inspectBridge';
@@ -442,6 +444,30 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const [daf] = createResource(ref, fetchDaf);
   const [checkedGraph, { refetch: retryCheckedGraph }] = createResource(ref, (value) =>
     fetchCheckedGraph(value).catch(() => null),
+  );
+
+  const [initialNames] = createResource(
+    () =>
+      !checkedGraph.loading && checkedGraph()?.revision
+        ? { ref: `${tractate()} ${page()}`, revision: checkedGraph()!.revision }
+        : undefined,
+    async (value) => {
+      try {
+        const params = new URLSearchParams({ ...value, placement: 'v1' });
+        const response = await fetch(`/api/sage-graph/initial?${params}`);
+        if (!response.ok) return null;
+        const result = (await response.json()) as {
+          revision: string;
+          placement?: InitialPlacement;
+        };
+        return result.revision === value.revision &&
+          result.placement?.version === 'initial-name-placement-v1'
+          ? { ...value, placement: result.placement }
+          : null;
+      } catch {
+        return null;
+      }
+    },
   );
 
   // Open the materialized daf-view as early as the daf itself: load the cached
@@ -2312,6 +2338,16 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (!checkedGraph.loading && checkedGraph())
       main = injectCheckedNames(main, checkedGraph()!.occurrences);
 
+    const initial = initialNames();
+    if (
+      (newSystemRabbi || showGenMarkers()) &&
+      !initialNames.loading &&
+      initial &&
+      initial.ref === `${tractate()} ${page()}` &&
+      initial.revision === checkedGraph()?.revision
+    )
+      main = injectInitialNames(main, initial.placement).html;
+
     // City-marker wraps + the per-daf places list come from the `places`
     // worker mark via applyMarkRenderers above; the geography mark's compute
     // fn reads the same places run server-side to build its model.
@@ -3075,7 +3111,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const openRabbiSlug = async (slug: string) => {
     const navigation = ++sidebarNavigation;
     clearCommentarySelection();
-    if (slug.startsWith('local:')) {
+    if (/^(local|reading|proposal):/.test(slug)) {
       setActiveRabbi(null);
       setActivePlace(null);
       pushSidebar({ kind: 'source-person', id: slug });

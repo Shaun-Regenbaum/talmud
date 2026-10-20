@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { canonicalSlug } from '../lib/rabbi/identity';
 import { identityCards } from '../lib/sage-graph/identity-readings';
+import { initialPlacement } from '../lib/sage-graph/initial-placement';
 import {
   type InitialOccurrence,
   type InitialReading,
@@ -462,7 +463,43 @@ sageGraph.get('/initial', async (c) => {
       else occurrences.set(occurrence.key, occurrence);
     }
   }
+  const placementRows: LegacyRow[] = [];
+  if (c.req.query('placement') === 'v1') {
+    for (const pid of new Set([...passageIds, ...older.results.map((r) => r.passage_id)])) {
+      const bound = await db
+        .prepare(
+          "SELECT record_id,kind,passage_id,ref,authority,decision,payload_sha256,payload_json FROM sage_graph_all_records WHERE revision_id=? AND passage_id=? AND kind IN ('passage','person','source_binding','source_reading_unit','graph_node') ORDER BY record_id LIMIT 401",
+        )
+        .bind(saved.id, pid)
+        .all<LegacyRow>();
+      if (bound.results.length > 400)
+        return c.json({ error: 'Choose one passage to see its readings' }, 422);
+      placementRows.push(...bound.results);
+    }
+    // Some existing local nodes deliberately have no passage index.
+    const nodeKeys = [
+      ...new Set(
+        [...occurrences.values()]
+          .flatMap((o) => o.people)
+          .filter((p) => p.id.startsWith('proposal:'))
+          .map((p) => `graph_node:local:${p.id.slice('proposal:'.length)}`),
+      ),
+    ].filter((key) => !placementRows.some((r) => r.record_id === key));
+    for (let start = 0; start < nodeKeys.length; start += 50) {
+      const batch = nodeKeys.slice(start, start + 50);
+      const nodes = await db
+        .prepare(
+          `SELECT record_id,kind,passage_id,ref,authority,decision,payload_sha256,payload_json FROM sage_graph_all_records WHERE revision_id=? AND kind='graph_node' AND record_id IN (${batch.map(() => '?').join(',')})`,
+        )
+        .bind(saved.id, ...batch)
+        .all<LegacyRow>();
+      placementRows.push(...nodes.results);
+    }
+  }
   return c.json({
+    ...(c.req.query('placement') === 'v1'
+      ? { placement: await initialPlacement([...occurrences.values()], placementRows) }
+      : {}),
     revision: saved.id,
     occurrences: [...occurrences.values()],
     status: 'initial_proposal',
