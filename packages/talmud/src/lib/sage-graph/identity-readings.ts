@@ -1,3 +1,4 @@
+import { canonicalSlug } from '../rabbi/identity';
 import type { InitialOccurrence, ReadingAnchor } from './initial-readings';
 import { type LegacyRow, legacyPersonId, wholeName } from './legacy-readings';
 import type { SourcePerson } from './types';
@@ -373,9 +374,18 @@ export async function identityCards(
       preferred.some(
         (r) => r.authority === 'user_correction' && r.decision === 'accepted_registry_identity',
       ) && card.initialReading!.reviewedPeople.length > 0;
-    if (humanAccepted && card.initialReading!.reviewedPeople.some((p) => p.id === answer.personId))
+    if (
+      humanAccepted &&
+      card.initialReading!.reviewedPeople.some(
+        (p) => canonicalSlug(p.id) === canonicalSlug(answer.personId ?? ''),
+      )
+    )
       currentProposal.reviewDecision = 'current';
-    else if (card.initialReading!.reviewedPeople.some((p) => p.id !== answer.personId))
+    else if (
+      card.initialReading!.reviewedPeople.some(
+        (p) => canonicalSlug(p.id) !== canonicalSlug(answer.personId ?? ''),
+      )
+    )
       currentProposal.reviewDecision = 'superseded';
     else if (decisions.size === 1 && decisions.has('rejected'))
       currentProposal.reviewDecision = 'rejected';

@@ -223,3 +223,15 @@ it('keeps a real mixed-status identity reason without upgrading its accepted-loc
   expect(card.initialReading!.reviewedPeople ?? []).toEqual([]);
   expect(card.generation).toBeNull();
 });
+it('does not call an explicitly registered alias a different historical identity', async () => {
+  const result = await identityCards('captured', saved.registryAlias as LegacyRow[]);
+  const card = result.cards.find((c) => c.id === 'proposal:b485-p1/M')!;
+  const proposal = card.initialReading!.proposals!.find(
+    (p) => p.candidate?.id === 'rabbi-shimon-bar-abba',
+  )!;
+  expect(proposal).toBeDefined();
+  expect(proposal.reviewDecision).not.toBe('superseded');
+  expect(card.initialReading!.reviewedPeople!.some((p) => p.id === 'rabbi-shimon-b-abba')).toBe(
+    true,
+  );
+});
