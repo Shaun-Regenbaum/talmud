@@ -193,6 +193,9 @@ def config_check(config, manifest, recipe, concurrency):
                 config.get('executionMode') != 'full' or approved > 16 or config['budgetUsd'] > 5 or
                 config.get('qualityBridgeHash') != file_hash(Path(__file__).with_name('quality_bridge.py'))):
             raise ValueError('Invalid bounded source-reading quality trial')
+    if config.get('comparisonTrial') is not None:
+        from matched_transition import bounds
+        bounds(config, manifest)
     params = config['parameters']
     if (type(params.get('max_tokens')) is not int or not 1 <= params['max_tokens'] <= 32768 or
             not params.get('model') or not isinstance(params.get('reasoning'), dict)):
@@ -320,7 +323,7 @@ def saved(job, directory, config, adapter):
 def verified_carry(config, output):
     expected_scope = dict(runId=config['runId'], configHash=digest(config))
     carried_unknown = config.get('carriedUnknownReservedUsd', 0)
-    if carried_unknown or config.get('qualityTrial'):
+    if carried_unknown or config.get('qualityTrial') or config.get('comparisonTrial'):
         prior = config.get('priorRun', {})
         archive = output/'budget-history'/(prior.get('configHash', '') + '-' + digest(config) + '.json')
         receipt = load(archive)
@@ -380,7 +383,7 @@ def run(config, inputs, recipe, output, commit, concurrency=16, request=None,
             if path.stem not in seen:
                 raise ValueError('Saved record outside frozen queue')
     recent_saved = [r[2] for r in sorted(past_results)[-16:]]
-    quality_trial = config.get('qualityTrial') == 'source-readings-210-v1'
+    quality_trial = config.get('qualityTrial') == 'source-readings-210-v1' or config.get('comparisonTrial') is not None
     if recent_saved.count('provider') >= 4 or (not quality_trial and recent_saved.count('validation') >= 8):
         raise RuntimeError('Saved failure burst requires explicit reconciliation')
     old = load(directory/'progress.json') if (directory/'progress.json').exists() else {}
