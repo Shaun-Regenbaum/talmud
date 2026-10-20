@@ -35,6 +35,11 @@
       "reason": "Plan and method documents for the sage study. They describe what to build and link to the published results; they hold no measured findings of their own.",
       "sha256": "8b7d033875b2692f66f8fc0931c7263f7bb8f0c2bfc72faaa421082d6bf91c69"
     },
+    "research/sage-network/coverage/README.md": {
+      "disposition": "excluded",
+      "reason": "Engineering instructions for the bounded source-reading transport; private reading results and measured accuracy remain outside Git.",
+      "sha256": "34a3900ef89214249348e01f46682ced9f528c78d7811ce586e724ddd12b6d36"
+    },
     "research/sage-network/data/checkpoint/CHECKPOINT.md": {
       "disposition": "published",
       "sha256": "ca1a1af6d10d2ae43cb0cf3fe59d50ddcc5600640e78710db6059b822c18fb18",
