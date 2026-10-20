@@ -157,6 +157,16 @@ const CATALOG = {
   'initial.cardTitle': { en: 'Initial reading', he: 'קריאה ראשונית' },
   'initial.title': { en: 'Initial readings', he: 'קריאות ראשוניות' },
   'initial.reviewedIdentity': { en: 'Reviewed identity:', he: 'זהות שנבדקה:' },
+  'initial.currentMatch': { en: 'Reviewed identity:', he: 'זהות שנבדקה:' },
+  'initial.assessment.current': {
+    en: 'The current correction accepts this identity.',
+    he: 'התיקון הנוכחי מאשר זהות זו.',
+  },
+  'initial.earlierMatch': { en: 'Earlier proposed identity:', he: 'זהות שהוצעה קודם:' },
+  'initial.assessment.superseded': {
+    en: 'A later review chose a different identity.',
+    he: 'בדיקה מאוחרת בחרה זהות אחרת.',
+  },
   'initial.possibleMatch': { en: 'Possible identity:', he: 'זהות אפשרית:' },
   'initial.eraReason': { en: 'Era reading:', he: 'קריאת התקופה:' },
   'initial.sourceWarning': {
@@ -182,6 +192,26 @@ const CATALOG = {
   'initial.review.questioned': {
     en: 'This connection still needs checking.',
     he: 'קשר זה עדיין טעון בדיקה.',
+  },
+  'initial.basisUnavailable': {
+    en: 'Could not load the reading evidence.',
+    he: 'לא ניתן לטעון את הראיות לקריאה.',
+  },
+  'initial.assessment.disagreement': {
+    en: 'A second reading disagreed.',
+    he: 'קריאה נוספת חלקה על הזיהוי.',
+  },
+  'initial.assessment.accepted': {
+    en: 'This review accepted the proposed identity.',
+    he: 'בדיקה זו קיבלה את הזיהוי המוצע.',
+  },
+  'initial.assessment.held': {
+    en: 'This review left the identity open.',
+    he: 'בדיקה זו הותירה את הזיהוי פתוח.',
+  },
+  'initial.assessment.rejected': {
+    en: 'This review rejected the proposed identity.',
+    he: 'בדיקה זו דחתה את הזיהוי המוצע.',
   },
   'initial.basis': { en: 'Why this reading', he: 'הבסיס לקריאה זו' },
   'initial.description': {

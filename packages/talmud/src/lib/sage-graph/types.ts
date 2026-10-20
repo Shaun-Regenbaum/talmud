@@ -69,6 +69,8 @@ export interface ReviewedPlace {
 }
 export interface SourcePerson {
   initialReading?: InitialReading;
+  readingBasis?: InitialReading;
+  readingBasisUnavailable?: boolean;
   revision: string;
   id: string;
   name: string;
