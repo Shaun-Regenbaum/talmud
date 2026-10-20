@@ -117,6 +117,12 @@ class NameReadingTests(ReadingFixture):
         case['reading']['alternatives'][0]['registryId'] = 'no-such-person'
         self.rejects('unknown, duplicate or unbound registry person', [reading_record(case)])
 
+    def test_reference_correction_field_is_reserved(self):
+        for value in ({}, dict(resolvesSourceQualityWarning=True)):
+            case = copy.deepcopy(self.local)
+            case['referenceCorrection'] = value
+            self.rejects('reserved for a reference correction', [reading_record(case)])
+
     def test_reading_is_bound_to_the_current_source(self):
         for path in (('source', 'livePassagePayloadSha256'), ('source', 'sourceSha256'), ('original', 'livePersonPayloadSha256')):
             case = copy.deepcopy(self.local)

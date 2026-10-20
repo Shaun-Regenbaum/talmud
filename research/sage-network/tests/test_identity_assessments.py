@@ -18,7 +18,7 @@ FIXTURE = json.loads((Path(__file__).parent / 'fixtures/identity-proposal.json')
 UNRESOLVED = json.loads((Path(__file__).parent / 'fixtures/identity-unresolved-proposal.json').read_text())
 
 
-def import_records(root, records, change_records):
+def import_records(root, records, change_records, **change_fields):
     rows = []
     for item in records:
         payload = encode(item['data'])
@@ -40,7 +40,7 @@ def import_records(root, records, change_records):
         db.execute("UPDATE sage_graph_revisions SET state='verified'")
         (root / 'parent.sql').write_text('\n'.join(db.iterdump()))
     (root / 'manifest.json').write_text(json.dumps(parent))
-    changes = dict(parentRevision=parent['revision'], description='Review saved pilot identity', records=list(change_records))
+    changes = dict(dict(parentRevision=parent['revision'], description='Review saved pilot identity', records=list(change_records)), **change_fields)
     (root / 'changes.json').write_text(json.dumps(changes))
     return prepare(root/'parent.sql', root/'manifest.json', root/'changes.json', root/'output', shared=True)
 
@@ -236,6 +236,24 @@ class UnresolvedProposalTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Passage reference is unverified'):
             self.run_import(self.records_for())
         self.records[-1]['data']['sourceQuality']['sourceReferenceVerified'] = True
+        self.assertEqual(self.run_import(self.records_for())['changedRecords'], 3)
+
+    def test_only_a_matching_passage_correction_resolves_a_warning(self):
+        # Test-only markers. This passage's real reference is not in doubt; the rows stand in for a
+        # warned reading and for a reference correction of its passage, which is what the guard reads.
+        ref = self.proposal['ref']
+        reading = dict(record_id='name_reading:test-only/case-0', kind='name_reading', passage_id=self.pid, ref=ref, authority='screening',
+                       decision='needs_review', data=dict(sourceQuality=dict(sourceReferenceVerified=False, ref='Old Label 2a:1'),
+                                                          referenceCorrection=dict(resolvesSourceQualityWarning=True, passageId=self.pid,
+                                                                                   legacyRef='Old Label 2a:1', canonicalRef=ref)))
+        self.records.append(reading)
+        with self.assertRaisesRegex(ValueError, 'Passage reference is unverified'):
+            self.run_import(self.records_for())  # the passage itself was never corrected
+        passage = next(r for r in self.records if r['record_id'] == 'passage:' + self.pid)
+        passage['data']['referenceCorrection'] = dict(legacyRef='Old Label 2a:9', canonicalRef=ref)
+        with self.assertRaisesRegex(ValueError, 'Passage reference is unverified'):
+            self.run_import(self.records_for())  # the passage was corrected from another reference
+        passage['data']['referenceCorrection']['legacyRef'] = 'Old Label 2a:1'
         self.assertEqual(self.run_import(self.records_for())['changedRecords'], 3)
 
     def test_proposal_null_is_kept(self):

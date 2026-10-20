@@ -15,6 +15,7 @@ from prepare_d1 import encode
 from verify_d1 import verify
 import shared_records
 import identity_proposals
+import reference_correction
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "identity"))
 from prepare_scan import build as build_namesake_changes
@@ -437,12 +438,19 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
         if source_batch:
             import source_readings
             source_readings.validate_changes(changes, rows)
-        if 'namesakeRegistry' in changes or 'namesakeRegistrySha256' in changes or any(item['kind'] in {'namesake_scan','namesake_registry'} for item in changes['records']):
+        # A reference correction only re-points records already in the parent, so every record is
+        # rebuilt from the parent and the frozen map and must match exactly.
+        correcting = 'referenceCorrection' in changes
+        if correcting and source_batch:
+            raise ValueError('A reference correction cannot carry source readings')
+        if correcting and changes != reference_correction.build(list(rows.values()), changes['referenceCorrection'], parent):
+            raise ValueError('Reference correction differs from verified parent recomputation')
+        if not correcting and ('namesakeRegistry' in changes or 'namesakeRegistrySha256' in changes or any(item['kind'] in {'namesake_scan','namesake_registry'} for item in changes['records'])):
             # Recompute every proposed record from the verified parent before import.
             expected = build_namesake_changes(list(rows.values()), changes.get('namesakeRegistry', {}), parent)
             if changes != expected:
                 raise ValueError('Namesake scan differs from verified parent recomputation')
-        proposals = [item for item in changes['records'] if item['kind'] == 'identity_proposal']
+        proposals = [item for item in changes['records'] if item['kind'] == 'identity_proposal' and not correcting]
         if proposals:
             if len(proposals) != len(changes['records']):
                 raise ValueError('Proposal archives cannot alter graph facts')
@@ -505,14 +513,14 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             if len(set(keys)) != len(keys):
                 raise ValueError('Duplicate proposal person')
         readings = [item for item in changes['records'] if item['kind'] == 'name_reading']
-        if readings and len(readings) != len(changes['records']):
+        if readings and not correcting and len(readings) != len(changes['records']):
             raise ValueError('Name readings cannot alter graph facts')
         changed, previous = {}, {}
         for item in changes['records']:
             key = item['record_id']
             if key in changed:
                 raise ValueError('Duplicate change: ' + key)
-            if item['kind'] not in (ALLOWED_KINDS | (source_readings.KINDS if source_batch else set())) or not key.startswith(item['kind'] + ':'):
+            if (not correcting and item['kind'] not in (ALLOWED_KINDS | (source_readings.KINDS if source_batch else set()))) or not key.startswith(item['kind'] + ':'):
                 raise ValueError('Unsupported review kind: ' + key)
             old = rows.get(key)
             if old and old[6] == 'user_correction':
@@ -521,7 +529,12 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                 raise ValueError('Replacement must name the previous hash: ' + key)
             if not old and item.get('replacesSha256'):
                 raise ValueError('Replacement does not exist: ' + key)
-            if source_batch:
+            if correcting:
+                pass  # rebuilt from the parent above: same kind, authority, decision and people
+            elif 'referenceCorrection' in item['data']:
+                # Only a reference correction, rebuilt from the parent and the frozen map, may write this field.
+                raise ValueError('referenceCorrection is reserved for a reference correction: ' + key)
+            elif source_batch:
                 if old or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
                     raise ValueError('Source readings must be new proposals: ' + key)
             elif item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry', 'identity_proposal', 'name_reading'}:
@@ -554,6 +567,8 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             return passage
 
         for key, row in changed.items():
+            if correcting:
+                break  # every corrected record was rebuilt from the parent and the map above
             data = json.loads(row[-1])
             if row[1] == 'identity_proposal':
                 identity_proposals.validate(data, payload('passage:' + row[2]))
@@ -676,8 +691,18 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                     raise ValueError('Name source hash differs: ' + key)
         # A passage whose reference is in doubt cannot gain confirmed identities, name links,
         # places or connections until the reference is verified. Existing records stay as they are.
-        unverified = {r[2] for r in rows.values() if r[1] == 'name_reading' and
-                      (json.loads(r[-1]).get('sourceQuality') or {}).get('sourceReferenceVerified') is False}
+        def warned(row):
+            data = json.loads(row[-1])
+            if (data.get('sourceQuality') or {}).get('sourceReferenceVerified') is not False:
+                return False
+            # A warning is resolved only by a reference correction of this passage: the reading's block
+            # and the passage's block name the same old and new reference, and both now sit on the new one.
+            block, passage = data.get('referenceCorrection'), rows.get('passage:' + str(row[2]))
+            fixed = json.loads(passage[-1]).get('referenceCorrection') if passage else None
+            return not (isinstance(block, dict) and isinstance(fixed, dict) and block.get('resolvesSourceQualityWarning') is True and
+                        block.get('passageId') == row[2] and block.get('legacyRef') == fixed.get('legacyRef') == data['sourceQuality'].get('ref') and
+                        block.get('canonicalRef') == fixed.get('canonicalRef') == row[3] == passage[3])
+        unverified = {r[2] for r in rows.values() if r[1] == 'name_reading' and warned(r)}
         for key, row in changed.items():
             accepts = row[1] == 'identity_assessment' and json.loads(row[-1]).get('acceptedPersonId')
             if row[2] in unverified and (row[1] in {'source_identity', 'name_occurrence', 'connection', 'place_review'} or accepts):
