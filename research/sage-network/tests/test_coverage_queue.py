@@ -268,6 +268,15 @@ class ProbeTransitionTests(QueueHarness):
         q.atomic(next_input/'config.json', following)
         return all_inputs, following
 
+    def test_transition_honors_one_slot_approval(self):
+        from queue_transition import transition
+        inputs, following = self.prepare_transition()
+        following['approvedConcurrency'] = 1
+        q.atomic(inputs/following['runId']/'config.json', following)
+        receipt = transition(inputs, self.output, self.config['runId'], following['runId'],
+                             q.digest(self.config), q.digest(following), self.commit)
+        self.assertEqual(receipt['nextScope']['configHash'], q.digest(following))
+
     def test_explicit_transition_preserves_cost_and_is_idempotent(self):
         from queue_transition import transition
         inputs, following = self.prepare_transition()

@@ -39,7 +39,7 @@ def transition(inputs_root, output_root, prior_run, next_run, prior_hash, next_h
         raise ValueError('Transition requires exactly three completed probe requests')
     if recipe_files(prior_input/'recipe') != prior['recipeFiles']:
         raise ValueError('Prior recipe files differ')
-    config_check(following, next_manifest, next_input/'recipe', 3)
+    config_check(following, next_manifest, next_input/'recipe', following['approvedConcurrency'])
     for directory in (prior_input, next_input):
         for name, field in [('source-manifest.json','sourceManifestSha256'),
                             ('source-verification.json','sourceVerificationSha256')]:
