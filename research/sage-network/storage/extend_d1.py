@@ -19,7 +19,9 @@ import identity_proposals
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "identity"))
 from prepare_scan import build as build_namesake_changes
 
-ALLOWED_KINDS = {'identity_assessment', 'identity_proposal', 'graph_node', 'registry_person', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review', 'era_assessment', 'namesake_scan', 'namesake_registry'}
+ALLOWED_KINDS = {'identity_assessment', 'identity_proposal', 'graph_node', 'registry_person', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review', 'era_assessment', 'namesake_scan', 'namesake_registry', 'name_reading'}
+READING_KINDS = {'sage', 'biblical_person', 'other_human', 'deity', 'angel', 'supernatural', 'group', 'not_a_person'}
+READING_STATUSES = {'registry_candidate', 'local', 'unresolved', 'nonhuman', 'error'}
 
 COLUMNS = 'record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json'
 
@@ -165,6 +167,136 @@ def validate_unresolved_acceptance(key, data, proposal, proposal_row, accepted, 
             raise ValueError('Review receipt is not bound to this case: ' + key)
     if len({r['reviewer'] for r in reviews}) != len(reviews) or len({r['fileSha256'] for r in reviews}) != len(reviews):
         raise ValueError('Override reviews must come from different reviewers and files: ' + key)
+
+
+def claim_projection(claim_row):
+    """The fields a reading copies from a live claim record, in the reading's own names."""
+    live = json.loads(claim_row[-1])
+    claim = live['claim']
+    speech = claim.get('field') == 'speech'
+    a, b = (claim.get('speaker'), claim.get('addressee')) if speech else (claim.get('a'), claim.get('b'))
+    people = {p['id']: p for p in live.get('participants') or []}
+    return {'field': claim.get('field'), 'kind': claim.get('kind') if speech else claim.get('relation'), 'from': a, 'to': b,
+            'quote': claim.get('quote'), 'quoteLocation': claim.get('quoteLocation'), 'classification': live.get('classification'),
+            'reviewReasons': live.get('reviewReasons'),
+            'participants': [{k: people[i].get(k) for k in ('id', 'label', 'localId', 'named')} for i in (a, b) if i in people]}
+
+
+def registry_text(record, field):
+    value = record.get(field)
+    return [value] if isinstance(value, str) else [v for v in value if isinstance(v, str)] if isinstance(value, list) else []
+
+
+def validate_name_reading(key, row, data, rows):
+    # A first reading of one source person: a proposal with its reasons and
+    # quotes. It never resolves an identity and never becomes a connection.
+    match = re.fullmatch(r'name_reading:([a-z0-9][a-z0-9-]*)/(case-[0-9a-f]+)', key)
+    person_key = data.get('personKey') or ''
+    pid, _, local = person_key.partition('/')
+    if not match or match[2] != data.get('caseId'):
+        raise ValueError('Reading key differs from its case: ' + key)
+    if not local or row[2] != pid or data.get('passageId') != pid or row[4] != 'local:' + person_key or row[5] is not None:
+        raise ValueError('Reading indexes differ from its person: ' + key)
+    passage_row, person_row = rows.get('passage:' + pid), rows.get('person:' + person_key)
+    if not passage_row or not person_row or person_row[1] != 'person':
+        raise ValueError('Reading needs its passage and person: ' + key)
+    passage = json.loads(passage_row[-1])
+    source, original = data.get('source') or {}, data.get('original') or {}
+    if (source.get('livePassagePayloadSha256') != passage_row[-2] or row[3] != passage['ref'] or
+            source.get('sourceSha256') != digest(encode(passage['source'])) or  # readings hash the compact form
+            original.get('livePersonPayloadSha256') != person_row[-2] or
+            not any(p['id'] == local for p in passage['people'])):
+        raise ValueError('Reading is not bound to the current source: ' + key)
+    local_ids = {pid + '/' + p['id'] for p in passage['people']}
+    # Everything the reader saved stays byte-for-byte: strip what the builder added and compare.
+    copied = {k: v for k, v in data.items() if k not in ('runId', 'chunk', 'caseFileSha256', 'caseSha256', 'registryRecords')}
+    if 'relationships' not in data or digest(encode(copied)) != data.get('caseSha256'):
+        raise ValueError('Reading differs from the saved case: ' + key)
+
+    def in_source(quote, location):
+        locations = ('before', 'after') if location == 'context' else (location,)  # stored claims use "context" for the line before or after
+        return bool(quote) and any(isinstance(passage['source'].get(k), str) and quote in passage['source'][k] for k in locations)
+
+    # Registry people named anywhere in the reading are bound to their current record by hash.
+    bound = data.get('registryRecords') or {}
+
+    def registry(slug):
+        record_row = rows.get('registry_person:' + slug)
+        if not record_row or canonical_registry_slug(slug) != slug or bound.get(slug) != record_row[-2]:
+            raise ValueError('Reading names an unknown, duplicate or unbound registry person: ' + key)
+        return json.loads(record_row[-1])
+
+    reading, named = data.get('reading') or {}, set()
+    if (data.get('proposalOnly') is not True or reading.get('status') != 'read' or reading.get('isInitialProposal') is not True or
+            reading.get('historicalIdentityResolved') is not False):
+        raise ValueError('A reading must stay an unresolved initial proposal: ' + key)
+    if reading.get('entityKind') not in READING_KINDS or reading.get('identityStatus') not in READING_STATUSES:
+        raise ValueError('Unknown reading kind or status: ' + key)
+    if not isinstance(reading.get('reason'), str) or not reading['reason'].strip():
+        raise ValueError('Reading needs a reason: ' + key)
+    proposed = reading.get('proposedRegistryId')
+    if (proposed is not None) != (reading['identityStatus'] == 'registry_candidate'):
+        raise ValueError('Only a registry candidate names a registry person: ' + key)
+    if proposed is not None:
+        record = registry(proposed); named.add(proposed)
+        if reading.get('proposedRegistryName') != {'canonical': record.get('canonical'), 'canonicalHe': record.get('canonicalHe')}:
+            raise ValueError('Reading misstates a registry name: ' + key)
+    for alternative in reading.get('alternatives') or []:
+        if not isinstance(alternative.get('why'), str) or not alternative['why'].strip():
+            raise ValueError('Reading alternative needs a reason: ' + key)
+        if alternative.get('registryId') is not None:
+            record = registry(alternative['registryId']); named.add(alternative['registryId'])
+            if 'canonicalHe' in alternative and alternative['canonicalHe'] != record.get('canonicalHe'):
+                raise ValueError('Reading misstates a registry name: ' + key)
+    for evidence in list(reading.get('registryEvidence') or []) + [a['registryEvidence'] for a in reading.get('alternatives') or [] if a.get('registryEvidence')]:
+        record = registry(evidence.get('registryId')); named.add(evidence['registryId'])
+        if not evidence.get('quote') or not any(evidence['quote'] in text for text in registry_text(record, evidence.get('field'))):
+            raise ValueError('Registry evidence is not in the registry record: ' + key)
+    if not isinstance(reading.get('evidence'), list) or not reading['evidence']:
+        raise ValueError('Reading needs evidence: ' + key)
+    for item in reading['evidence']:
+        if not in_source(item.get('quote'), item.get('location')):
+            raise ValueError('Reading quote is not in its source: ' + key)
+    if set(bound) != named:
+        raise ValueError('Registry bindings differ from the people the reading names: ' + key)
+    for seen in reading.get('existingReviewedRecords') or []:
+        existing = rows.get(seen.get('recordId'))
+        if not existing or existing[1] != seen.get('kind') or existing[7] != seen.get('decision'):
+            raise ValueError('Reading misstates an existing reviewed record: ' + key)
+    claims = (data.get('relationships') or {}).get('claims') or []
+    for claim in claims:
+        live = claim.get('liveClaimRecord') or {}
+        claim_row = rows.get(live.get('recordId'))
+        if (not claim_row or claim_row[1] != 'claim' or claim_row[2] != pid or claim_row[-2] != live.get('payloadSha256') or
+                live.get('decision') != claim_row[7] or claim.get('proposalOnly') is not True or
+                any(claim.get(k) != v for k, v in claim_projection(claim_row).items()) or
+                (claim.get('carried') and not in_source(claim.get('quote'), claim.get('quoteLocation')))):
+            raise ValueError('Reading misstates a claim: ' + key)
+        if not isinstance(claim.get('readerVerdictMeaning'), str) or not claim['readerVerdictMeaning'].strip() or (
+                claim.get('readerVerdict') in ('unc', 'bad') and not (claim.get('readerNote') or '').strip()):
+            raise ValueError('Claim reading needs its reason: ' + key)
+    # A correction is made in the case file itself; the replaced file is kept by the reader.
+    # The wrong claim stays as written but is no longer carried, and what the text does say
+    # sits beside it as a sourced proposal. Unnamed people stay unnamed.
+    correction = data.get('correction')
+    corrected = [claim for claim in claims if 'correctedBy' in claim or 'correctedEvent' in claim]
+    if (correction is not None or corrected) and (
+            not isinstance(correction, dict) or not corrected or not str(correction.get('reviewId') or '').strip() or
+            not re.fullmatch(r'[0-9a-f]{64}', str(correction.get('supersedesCaseFileSha256'))) or
+            correction['supersedesCaseFileSha256'] == data.get('caseFileSha256')):
+        raise ValueError('Correction is not bound to the file it replaced: ' + key)
+    for claim in corrected:
+        event = claim.get('correctedEvent')
+        if claim.get('correctedBy') != correction['reviewId'] or (event is not None and claim.get('carried') is not False):
+            raise ValueError('Corrected claim does not match its correction: ' + key)
+        if event is None:
+            continue
+        ends = [event.get('observer') or {}, event.get('seen') or {}]
+        if (event.get('derivedFromClaimId') != claim.get('claimId') or event.get('proposalOnly') is not True or
+                event.get('isInitialProposal') is not True or not in_source(event.get('quote'), event.get('quoteLocation')) or
+                not any(e.get('localId') for e in ends) or any(e.get('localId') and e['localId'] not in local_ids for e in ends) or
+                any(not e.get('localId') and e.get('named') != 'unnamed_not_captured' for e in ends)):
+            raise ValueError('Corrected event is not a sourced proposal: ' + key)
 
 
 def validate_identity_assessment(key, row, data, rows, parent_keys, member):
@@ -336,6 +468,9 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             keys = [item['data']['case']['personKey'] for item in proposals]
             if len(set(keys)) != len(keys):
                 raise ValueError('Duplicate proposal person')
+        readings = [item for item in changes['records'] if item['kind'] == 'name_reading']
+        if readings and len(readings) != len(changes['records']):
+            raise ValueError('Name readings cannot alter graph facts')
         changed = {}
         for item in changes['records']:
             key = item['record_id']
@@ -350,7 +485,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                 raise ValueError('Replacement must name the previous hash: ' + key)
             if not old and item.get('replacesSha256'):
                 raise ValueError('Replacement does not exist: ' + key)
-            if item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry', 'identity_proposal'}:
+            if item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry', 'identity_proposal', 'name_reading'}:
                 if old or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
                     raise ValueError('Screens must be new unaccepted reviews: ' + key)
             elif item['authority'] != 'source_review':
@@ -387,6 +522,8 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                     raise ValueError('Proposal indexes differ: ' + key)
             if row[1] == 'identity_assessment':
                 validate_identity_assessment(key, row, data, rows, parent_keys, member)
+            if row[1] == 'name_reading':
+                validate_name_reading(key, row, data, rows)
             if row[1] == 'registry_person':
                 validate_registry_person(key, row, data)
             if data.get('passageId', row[2]) != row[2] or data.get('ref', row[3]) != row[3]:
