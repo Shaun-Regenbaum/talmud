@@ -64,6 +64,7 @@ export function InitialReadingsPage() {
                 <section class="person-biography">
                   <p>
                     <bdi>{occurrence.quote}</bdi> · {occurrence.ref}
+                    <Show when={occurrence.passageOnly}> · {t('initial.passageOnly')}</Show>
                   </p>
                   <For each={occurrence.people}>
                     {(person) => (

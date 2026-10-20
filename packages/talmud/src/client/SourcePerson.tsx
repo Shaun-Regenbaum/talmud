@@ -44,6 +44,16 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
             <h2>
               <bdi>{lang() === 'he' ? p().nameHe : p().name}</bdi>
             </h2>
+            <Show when={p().initialReading?.proposals}>
+              <For each={p().initialReading?.reviewedPeople}>
+                {(person) => (
+                  <p>
+                    {t('initial.reviewedIdentity')}{' '}
+                    <a href={`#sages/${encodeURIComponent(person.id)}`}>{person.name}</a>
+                  </p>
+                )}
+              </For>
+            </Show>
             <PersonEra reviewed={p().era} generation={p().generation} />
             <section class="person-biography">
               <h4>{t('person.biography')}</h4>
@@ -69,7 +79,7 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
                   <details class="person-passage">
                     <summary>{t('initial.basis')}</summary>
                     <p>{reading().reason}</p>
-                    <For each={reading().reviewedPeople}>
+                    <For each={reading().proposals ? [] : reading().reviewedPeople}>
                       {(reviewed) => (
                         <p>
                           {t('initial.reviewedAtWords')}{' '}
@@ -83,6 +93,48 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
                             {reviewed.name}
                           </a>
                         </p>
+                      )}
+                    </For>
+                    <For each={reading().proposals}>
+                      {(proposal) => (
+                        <section>
+                          <Show when={proposal.sourceWarning}>
+                            <PersonStatus error>{t('initial.sourceWarning')}</PersonStatus>
+                          </Show>
+                          <Show when={proposal.candidate}>
+                            {(candidate) => (
+                              <p>
+                                {t('initial.possibleMatch')}{' '}
+                                <a href={`#sages/${encodeURIComponent(candidate().id)}`}>
+                                  {lang() === 'he' ? candidate().nameHe : candidate().name}
+                                </a>
+                              </p>
+                            )}
+                          </Show>
+                          <p>{proposal.reason}</p>
+                          <For each={proposal.alternatives}>{(reason) => <p>{reason}</p>}</For>
+                          <Show when={proposal.eraReason}>
+                            <p>
+                              {t('initial.eraReason')} {proposal.eraReason}
+                            </p>
+                          </Show>
+                          <For each={proposal.evidence}>
+                            {(evidence) => (
+                              <details class="person-passage">
+                                <summary>
+                                  {evidence.ref}
+                                  <Show when={evidence.location && evidence.location !== 'passage'}>
+                                    {' '}
+                                    · {t('initial.context')}
+                                  </Show>
+                                </summary>
+                                <blockquote lang="he" dir="rtl">
+                                  {evidence.quote}
+                                </blockquote>
+                              </details>
+                            )}
+                          </For>
+                        </section>
                       )}
                     </For>
                     <For each={reading().alternatives}>
