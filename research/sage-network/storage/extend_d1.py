@@ -434,7 +434,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             f'SELECT {COLUMNS} FROM {table} WHERE revision_id=?',
             (parent['revision'],))}
         parent_keys = set(rows)
-        source_batch = any(key in changes for key in ('sourceReadingBundles', 'sourceReadingVersion', 'sourceReadingInputs'))
+        source_batch = any(key in changes for key in ('sourceReadingBundles', 'sourceReadingVersion', 'sourceReadingInputs', 'sourceReadingOwnership'))
         if source_batch:
             import source_readings
             source_readings.validate_changes(changes, rows)
@@ -660,7 +660,14 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                 if not passage:
                     raise ValueError('Missing passage: ' + key)
                 source = json.loads(passage[-1])
-                if row[3] != source['ref']:
+                if row[1] == 'source_reading_unit':
+                    segments = source.get('sourceSegments', [])
+                    matching = [s for s in segments if s['source_id'] == data.get('sourceId')]
+                    if (len(matching) != 1 or row[3] != data.get('ref') or
+                            any(matching[0].get(field) != data.get(target) for field, target in
+                                [('ref', 'ref'), ('edition', 'edition'), ('sha256', 'sourceSha256')])):
+                        raise ValueError('Owned source reference differs: ' + key)
+                elif row[3] != source['ref']:
                     raise ValueError('Passage reference differs: ' + key)
                 for evidence in data.get('evidence', []):
                     text = source['source'].get(evidence['location'])

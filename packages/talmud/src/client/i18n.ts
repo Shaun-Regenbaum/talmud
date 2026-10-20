@@ -189,8 +189,8 @@ const CATALOG = {
     he: 'שמות וקשרים שנקראו מתוך הטקסט. קריאות אלה טרם נבדקו בבדיקה עצמאית.',
   },
   'initial.counts': {
-    en: 'Proposed connections from this passage. Each count is a distinct source excerpt.',
-    he: 'קשרים מוצעים מתוך הקטע. כל מספר מייצג מובאה נפרדת.',
+    en: 'Proposed connections from these readings. Each count is a distinct source passage.',
+    he: 'קשרים מוצעים מתוך הקריאות האלה. כל מספר מייצג קטע מקור נפרד.',
   },
   'initial.evidence': { en: 'Source readings', he: 'קריאות המקור' },
   'initial.otherEvidence': {

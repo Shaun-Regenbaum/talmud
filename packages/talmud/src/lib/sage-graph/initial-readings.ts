@@ -1,6 +1,12 @@
 import type { SourcePerson } from './types';
 
 export interface ReadingAnchor {
+  source_id?: string;
+  segmentId?: string;
+  published?: boolean;
+  segmentStart?: number;
+  segmentEnd?: number;
+  segmentSha256?: string;
   location?: string;
   occurrenceKey: string;
   ref: string;
@@ -85,7 +91,7 @@ export function initialOccurrences(
 ): InitialOccurrence[] {
   const occurrences = new Map<string, InitialOccurrence>();
   for (const person of people) {
-    for (const anchor of person.mentions.filter((m) => m.primary)) {
+    for (const anchor of person.mentions.filter((m) => m.published ?? m.primary)) {
       const occurrence = occurrences.get(anchor.occurrenceKey) ?? {
         key: anchor.occurrenceKey,
         ref: anchor.ref,
@@ -111,7 +117,7 @@ export function initialPerson(
 ): SourcePerson | null {
   const person = people.find((p) => p.id === localId);
   if (!person) return null;
-  const anchor = person.mentions.find((m) => m.primary) ?? person.mentions[0];
+  const anchor = person.mentions.find((m) => m.published ?? m.primary) ?? person.mentions[0];
   if (!anchor) return null;
   const relationships = claims
     .filter((c) => c.claim.a === localId || c.claim.b === localId)

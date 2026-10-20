@@ -31,7 +31,7 @@ class SourceReadingTests(unittest.TestCase):
         self.assertEqual(len(changes['records']), 22)
         self.assertEqual({r['authority'] for r in changes['records']}, {'screening'})
         self.assertEqual({r['decision'] for r in changes['records']}, {'needs_review'})
-        self.assertEqual({r['kind'] for r in changes['records']}, importer.KINDS)
+        self.assertEqual({r['kind'] for r in changes['records']}, importer.BASE_KINDS)
         readings = [r['data'] for r in changes['records'] if r['kind'] == 'source_reading']
         self.assertEqual(sum(len(r['primaryOccurrenceKeys']) for r in readings), 3)
         # Evidence counts use exact spans, not the number of relationship rows.

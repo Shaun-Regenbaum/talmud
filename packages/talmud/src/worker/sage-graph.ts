@@ -8,6 +8,11 @@ import {
   type ReadingPerson,
 } from '../lib/sage-graph/initial-readings';
 import { type LegacyPayload, type LegacyRow, legacyCards } from '../lib/sage-graph/legacy-readings';
+import {
+  applyReadingCoverage,
+  type OwnedReadingUnit,
+  type ReadingCoverage,
+} from '../lib/sage-graph/source-reading-coverage';
 import type {
   CheckedConnection,
   CheckedGraph,
@@ -245,7 +250,7 @@ sageGraph.get('/checked', async (c) => {
 async function readInitialPassage(db: D1Database, revisionId: string, passageId: string) {
   const result = await db
     .prepare(
-      "SELECT kind,payload_json FROM sage_graph_all_records WHERE revision_id=? AND passage_id=? AND authority='screening' AND decision='needs_review' AND kind IN ('person','claim','source_reading') ORDER BY record_id LIMIT 401",
+      "SELECT kind,payload_json FROM sage_graph_all_records WHERE revision_id=? AND passage_id=? AND authority='screening' AND decision='needs_review' AND kind IN ('person','claim','source_reading','source_reading_coverage','passage') ORDER BY record_id LIMIT 401",
     )
     .bind(revisionId, passageId)
     .all<{ kind: string; payload_json: string }>();
@@ -254,11 +259,23 @@ async function readInitialPassage(db: D1Database, revisionId: string, passageId:
   const provenance = rows.filter((r) => r.kind === 'source_reading');
   if (provenance.length !== 1 || provenance[0].data.version !== 'source-reading-import-v1')
     return null;
-  return {
-    people: rows.filter((r) => r.kind === 'person').map((r) => r.data as ReadingPerson),
-    claims: rows.filter((r) => r.kind === 'claim').map((r) => r.data as ReadingClaim),
-    neededContext: provenance[0].data.episode.needed_context as string[],
-  };
+  let people = rows.filter((r) => r.kind === 'person').map((r) => r.data as ReadingPerson);
+  let claims = rows.filter((r) => r.kind === 'claim').map((r) => r.data as ReadingClaim);
+  const coverage = rows.filter((r) => r.kind === 'source_reading_coverage');
+  if (coverage.length > 1) throw Error('Conflicting source ownership');
+  if (coverage.length) {
+    const passage = rows.find((r) => r.kind === 'passage');
+    if (!passage) throw Error('Source ownership has no passage');
+    ({ people, claims } = applyReadingCoverage(
+      passageId,
+      provenance[0].data.provenance.jobSha256,
+      passage.data.sourceSegments,
+      coverage[0].data as ReadingCoverage,
+      people,
+      claims,
+    ));
+  }
+  return { people, claims, neededContext: provenance[0].data.episode.needed_context as string[] };
 }
 
 async function reviewedPeopleAtSameWords(
@@ -267,7 +284,7 @@ async function reviewedPeopleAtSameWords(
   person: ReadingPerson,
 ) {
   const links = new Map<string, { id: string; name: string }>();
-  for (const anchor of person.mentions.filter((m) => m.primary).slice(0, 20)) {
+  for (const anchor of person.mentions.filter((m) => m.published ?? m.primary).slice(0, 20)) {
     const candidates = await db
       .prepare(
         "SELECT payload_json FROM sage_graph_all_records WHERE revision_id=? AND kind='name_occurrence' AND authority IN ('source_review','user_correction') AND ref=? LIMIT 101",
@@ -362,17 +379,28 @@ sageGraph.get('/initial', async (c) => {
   const bounds = ref.includes(':') ? [ref] : [prefix, `${prefix}\uffff`];
   const result = await db
     .prepare(
-      `SELECT passage_id FROM sage_graph_all_records WHERE revision_id=? AND kind='source_reading' AND authority='screening' AND decision='needs_review' AND ${where} ORDER BY record_id LIMIT 51`,
+      `SELECT passage_id,kind,payload_json FROM sage_graph_all_records AS r WHERE revision_id=? AND (kind='source_reading_unit' OR (kind='source_reading' AND NOT EXISTS (SELECT 1 FROM sage_graph_all_records AS coverage WHERE coverage.revision_id=r.revision_id AND coverage.record_id='source_reading_coverage:' || r.passage_id))) AND authority='screening' AND decision='needs_review' AND ${where} ORDER BY record_id LIMIT 501`,
     )
     .bind(saved.id, ...bounds)
-    .all<{ passage_id: string }>();
-  if (result.results.length > 50)
+    .all<{ passage_id: string; kind: string; payload_json: string }>();
+  const sources = new Map<string, OwnedReadingUnit & { readingPassageIds: string[] }>();
+  for (const row of result.results.filter((r) => r.kind === 'source_reading_unit')) {
+    const unit = JSON.parse(row.payload_json) as OwnedReadingUnit;
+    const previous = sources.get(unit.unitKey);
+    if (previous) {
+      if (!previous.readingPassageIds.includes(row.passage_id))
+        previous.readingPassageIds.push(row.passage_id);
+    } else sources.set(unit.unitKey, { ...unit, readingPassageIds: [row.passage_id] });
+  }
+  const passageIds = [...new Set(result.results.map((row) => row.passage_id))];
+  if (result.results.length > 500 || passageIds.length > 50)
     return c.json({ error: 'Choose one passage to see its readings' }, 422);
   const occurrences = new Map<string, InitialOccurrence>();
-  for (const row of result.results) {
-    const passage = await readInitialPassage(db, saved.id, row.passage_id);
+  for (const passageId of passageIds) {
+    const passage = await readInitialPassage(db, saved.id, passageId);
     if (!passage) return c.json({ error: 'Source reading is incomplete' }, 503);
-    for (const occurrence of initialOccurrences(row.passage_id, passage.people)) {
+    for (const occurrence of initialOccurrences(passageId, passage.people)) {
+      if (ref.includes(':') ? occurrence.ref !== ref : !occurrence.ref.startsWith(prefix)) continue;
       const previous = occurrences.get(occurrence.key);
       if (previous)
         previous.people.push(
@@ -404,6 +432,7 @@ sageGraph.get('/initial', async (c) => {
     revision: saved.id,
     occurrences: [...occurrences.values()],
     status: 'initial_proposal',
+    sources: [...sources.values()],
   });
 });
 
