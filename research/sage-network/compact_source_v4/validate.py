@@ -19,14 +19,14 @@ from jsonschema import Draft202012Validator
 
 try:
     from . import units
-    from .body import assemble_request, digest, recipe_binding, source_bindings
+    from .body import RecipeChanged, assemble_request, digest, recipe_binding, source_bindings, verify_running_code
     from .contract import SCHEMA, VERSION
-    from .dependency import V2
+    from .dependency import V2, DependencyError
 except ImportError:
     import units
-    from body import assemble_request, digest, recipe_binding, source_bindings
+    from body import RecipeChanged, assemble_request, digest, recipe_binding, source_bindings, verify_running_code
     from contract import SCHEMA, VERSION
-    from dependency import V2
+    from dependency import V2, DependencyError
 
 
 class Invalid(ValueError):
@@ -40,7 +40,15 @@ def require(condition, code, detail):
         raise Invalid(code, detail)
 
 
+def check_running_code():
+    try:
+        verify_running_code()
+    except (DependencyError, RecipeChanged) as e:
+        raise Invalid('recipe_changed', str(e))
+
+
 def check_job(job):
+    check_running_code()
     try:
         sources = V2.check_job(job)
     except V2.Invalid as e:

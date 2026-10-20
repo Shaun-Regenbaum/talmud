@@ -25,12 +25,10 @@ class DependencyError(ImportError):
     pass
 
 
-def load_v2(root=DEFAULT_ROOT):
-    """Return the v2 validate module built from the pinned bytes in `root`."""
-    root = Path(root)
+def _pinned_bytes(root):
     blobs = {}
     for name, want in PINNED.items():
-        path = root / name
+        path = Path(root) / name
         if not path.is_file():
             raise DependencyError(f'{path} is missing')
         data = path.read_bytes()
@@ -38,6 +36,20 @@ def load_v2(root=DEFAULT_ROOT):
         if got != want:
             raise DependencyError(f'{path} has sha256 {got}, pinned {want}')
         blobs[name] = data
+    return blobs
+
+
+def verify():
+    """Re-hash the v2 files the loaded code came from. Called before every build and check, so a
+    file edited after import fails at once instead of being recorded under a new hash."""
+    _pinned_bytes(LOADED_ROOT)
+
+
+def load_v2(root=DEFAULT_ROOT):
+    """Return the v2 validate module built from the pinned bytes in `root`. The files are re-hashed
+    on every call, also when the module is already loaded."""
+    root = Path(root)
+    blobs = _pinned_bytes(root)
     if f'{NAMESPACE}.validate' in sys.modules:
         loaded = sys.modules[f'{NAMESPACE}.validate']
         if Path(loaded.__file__).parent.resolve() == root.resolve():
@@ -66,4 +78,5 @@ def load_v2(root=DEFAULT_ROOT):
     return sys.modules[f'{NAMESPACE}.validate']
 
 
-V2 = load_v2()
+LOADED_ROOT = DEFAULT_ROOT
+V2 = load_v2(LOADED_ROOT)

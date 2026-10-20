@@ -16,6 +16,11 @@ package: `contract.py`, `validate.py`, `request.py` and `reader.md`. It checks e
 sha256, and it refuses to load if any one differs. It then runs the checked bytes as
 `_compact_source_v2_<hash>.contract` and `.validate`.
 
+**Every build and every check first re-hashes those four v2 files, and the seven v4 code files.**
+The v4 files are checked against the hashes taken at import. If any file was edited after import,
+the build or check fails at once with `recipe_changed`. It never records a new recipe hash for
+code that is no longer on disk.
+
 - **`compact_source_v4.request.build_request(job) -> request`**
   - In: the frozen job exactly as queued, with `text` and `sha256` per source.
   - Out: `{recipe_version, recipe, job_sha256, units, request_sha256, messages, response_format}`.
@@ -33,6 +38,7 @@ sha256, and it refuses to load if any one differs. It then runs the checked byte
     - `v2_check`: the unchanged output of `compact_source_v2.validate.check`
     - `record_sha256`
   - On any failure it raises `validate.Invalid`. Its `code` is one of:
+    - `recipe_changed`: a pinned v2 file or a v4 code file changed after import
     - `job`, `source`, `source_id`, `source_hash`, `focal_ref`: the job
     - `request`, `request_recipe`, `request_job`, `request_units`, `request_body`: the request does
       not match the one this recipe builds for this job. The check rebuilds the whole request and
@@ -51,7 +57,7 @@ sha256, and it refuses to load if any one differs. It then runs the checked byte
   holds the four pinned v2 hashes.
 - **`compact_source_v4.contract`**: `VERSION = 'compact-source-v4'`, `SCHEMA`, `RELATIONS`.
 
-The recipe sha256 at commit is `6465006588fe9184e1f6888721e94d0115c75a648d4b270e795b90944586862a`.
+The recipe sha256 at commit is `6099a2e7a7f7a84ce8190a4e8163ec1c707633752f8c7451007d11446bf620f5`.
 The tokenizer is `source-units-v1`, and the shown layout is `word-with-following-v1`.
 
 ## For a runner adapter
@@ -68,3 +74,12 @@ The tokenizer is `source-units-v1`, and the shown layout is `word-with-following
 - **The request builder and the validator share one module, `body.py`.** So a request can only
   pass if it is exactly the one this recipe builds.
 - **Dependencies.** jsonschema is required, as it is for v2.
+
+## A known gap in coverage
+
+A father whose name is only inside one abbreviated unit together with his son, such as Gamliel in
+`רשב"ג`, is kept in the son's reason. He is not a separate person, and he has no `child_of` link.
+Root accepted this for the first three controls (005, 011 and 061).
+
+v4 does not cover all fathers, and nothing built on it may claim that it does. No full run happens
+until typed preservation of embedded relatives is added.

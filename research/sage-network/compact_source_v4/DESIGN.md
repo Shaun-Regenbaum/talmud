@@ -16,12 +16,14 @@ The entry points are in `README.md`. These do not exist:
 - any runner, cache or importer change
 - any deploy
 
-Two choices are taken as defaults until root decides otherwise:
+Root's decisions so far:
 
-- **The shown layout is G.** Each unit is one word with the spaces and marks that follow it, and
-  it is numbered by word.
+- **The shown layout is G, approved.** Each unit is one word with the spaces and marks that follow
+  it, and it is numbered by word.
 - **A father inside one abbreviated unit with his son** (`רשב"ג`) is kept in the son's reason, not
-  as a separate person. This keeps the unchanged v2 rule on shared spans.
+  as a separate person. This keeps the unchanged v2 rule on shared spans. Root accepted it for the
+  three controls only, as a known gap in coverage. v4 must not claim to cover all fathers. There is
+  no full run until typed preservation of embedded relatives is added.
 
 No model calls were made. v2 and v3 are unchanged, and a test pins their files.
 

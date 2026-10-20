@@ -206,6 +206,63 @@ class CompactSourceV4Tests(unittest.TestCase):
             v4.check(job, bad, req)
         self.assertEqual(e.exception.code, 'job_id')
 
+    def test_load_v2_rehashes_even_when_already_loaded(self):
+        import shutil
+        import tempfile
+        keys = [k for k in sys.modules if k == dependency.NAMESPACE or k.startswith(dependency.NAMESPACE + '.')]
+        saved = {k: sys.modules[k] for k in keys}
+        try:
+            with tempfile.TemporaryDirectory() as d:
+                root = Path(d) / 'compact_source_v2'
+                shutil.copytree(ROOT / 'compact_source_v2', root, ignore=shutil.ignore_patterns('__pycache__'))
+                first = dependency.load_v2(root)
+                self.assertIs(dependency.load_v2(root), first)
+                (root / 'contract.py').write_bytes((root / 'contract.py').read_bytes() + b'\n')
+                with self.assertRaises(dependency.DependencyError):
+                    dependency.load_v2(root)
+        finally:
+            for k in [k for k in sys.modules if k == dependency.NAMESPACE or k.startswith(dependency.NAMESPACE + '.')]:
+                del sys.modules[k]
+            sys.modules.update(saved)
+        self.assertIs(dependency.load_v2(), dependency.V2)
+
+    def test_a_file_edited_after_import_stops_build_and_check_at_once(self):
+        import shutil
+        import tempfile
+        from compact_source_v4 import body
+        job, good = first_valid()
+        req = build_request(job)
+        v4.check(job, good, req)
+        with tempfile.TemporaryDirectory() as d:
+            # a v2 dependency edited after import
+            v2_copy = Path(d) / 'compact_source_v2'
+            shutil.copytree(ROOT / 'compact_source_v2', v2_copy, ignore=shutil.ignore_patterns('__pycache__'))
+            real_v2_root = dependency.LOADED_ROOT
+            dependency.LOADED_ROOT = v2_copy
+            try:
+                v4.check(job, good, req)
+                (v2_copy / 'validate.py').write_bytes((v2_copy / 'validate.py').read_bytes() + b'\n# edited after import\n')
+                for call in (lambda: v4.check(job, good, req), lambda: build_request(job)):
+                    with self.assertRaises(v4.Invalid) as e:
+                        call()
+                    self.assertEqual(e.exception.code, 'recipe_changed')
+            finally:
+                dependency.LOADED_ROOT = real_v2_root
+            # a v4 code file edited after import
+            v4_copy = Path(d) / 'compact_source_v4'
+            shutil.copytree(ROOT / 'compact_source_v4', v4_copy, ignore=shutil.ignore_patterns('__pycache__'))
+            real_v4_root = body.ROOT
+            body.ROOT = v4_copy
+            try:
+                v4.check(job, good, req)
+                (v4_copy / 'units.py').write_bytes((v4_copy / 'units.py').read_bytes() + b'\n# edited after import\n')
+                with self.assertRaises(v4.Invalid) as e:
+                    v4.check(job, good, req)
+                self.assertEqual(e.exception.code, 'recipe_changed')
+            finally:
+                body.ROOT = real_v4_root
+        v4.check(job, good, req)
+
     def test_an_edited_request_is_refused_even_with_its_metadata_kept(self):
         job, good = first_valid()
         req = build_request(job)
