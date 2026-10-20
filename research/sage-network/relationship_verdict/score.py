@@ -4,16 +4,17 @@ The reference is whatever is passed in. For the pilot it is one reader's 16 hand
 not gold: a match means agreement with that reader, not accuracy. For each reference claim the report
 gives exact matches on the five typed fields and on two compiled results (pair kept, original passed on),
 the full record of every mismatch, every review flag, and every raw failure (no result, a failed or
-interrupted request, or a claim no job contains).
+interrupted request, a saved result whose checksum differs, an answer the current validator refuses, or a
+claim no job contains). It also totals the reported cost of the results it was given.
 """
 import argparse
 import json
 from pathlib import Path
 
 try:
-    from .validate import compile_claim
+    from .validate import Invalid, check, compile_claim, digest
 except ImportError:
-    from validate import compile_claim
+    from validate import Invalid, check, compile_claim, digest
 
 FIELDS = ('claim_as_written', 'supported_kind', 'direction', 'family_degree', 'verdict')
 COMPILED = ('pair_connection', 'original_endorsed')
@@ -29,6 +30,21 @@ def compiled_fields(claim, verdict, text):
     return {'pair_connection': c['pair']['connection'], 'original_endorsed': c['original']['endorsed']}, c
 
 
+def unusable(job, result):
+    """Why a saved result cannot be scored, or None. The queue's own checksum and the current validator decide."""
+    if result is None:
+        return 'no result'
+    if 'resultHash' in result and digest({k: v for k, v in result.items() if k != 'resultHash'}) != result['resultHash']:
+        return 'result checksum differs'
+    if result.get('status') not in SUCCESS:
+        return result.get('status')
+    try:
+        check(job, result['answer'])
+    except (Invalid, KeyError, TypeError) as error:
+        return 'answer fails the current validator: ' + str(error)[:300]
+    return None
+
+
 def score(jobs, results, reference, label):
     """jobs: {job_id: job}; results: {job_id: saved result}; reference: {claim_id: verdict}."""
     where = {c['claim_id']: (jid, c) for jid, job in jobs.items() for c in job['claims']}
@@ -41,8 +57,9 @@ def score(jobs, results, reference, label):
             continue
         jid, claim = where[cid]
         result = results.get(jid)
-        if result is None or result.get('status') not in SUCCESS:
-            failures.append({'claimId': cid, 'jobId': jid, 'failure': 'no result' if result is None else result.get('status'),
+        why = unusable(jobs[jid], result)
+        if why is not None:
+            failures.append({'claimId': cid, 'jobId': jid, 'failure': why,
                              'errorKind': (result or {}).get('errorKind'), 'error': (result or {}).get('error')})
             continue
         got = next(v for v in result['answer']['verdicts'] if v['claim_id'] == cid)
@@ -63,7 +80,10 @@ def score(jobs, results, reference, label):
         if got_compiled['audit_flags']:
             flags.append({'claimId': cid, 'jobId': jid, 'flags': got_compiled['audit_flags']})
         rows.append(row)
+    costs = [r.get('costUsd') for r in results.values()]
     return {'label': label, 'referenceIsGold': False,
+            'cost': {'results': len(costs), 'reportedCostUsd': round(sum(c for c in costs if isinstance(c, (int, float))), 9),
+                     'resultsWithoutReportedCost': sum(1 for c in costs if not isinstance(c, (int, float)))},
             'note': 'Agreement with the reference only. The reference is not gold; it needs an independent source review.',
             'referenceClaims': len(reference), 'compared': compared, 'rawFailures': failures,
             'exactMatches': {f: {'matches': matches[f], 'compared': compared} for f in FIELDS + COMPILED},

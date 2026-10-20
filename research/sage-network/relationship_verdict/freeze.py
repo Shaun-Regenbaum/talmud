@@ -38,7 +38,8 @@ def status(answer):
     return answer_status(answer)
 '''
 SHARD = 'jobs-001.jsonl'
-PACKAGE_FILES = ('__init__.py', 'contract.py', 'reader.md', 'request.py', 'validate.py', 'score.py', 'freeze.py', 'README.md')
+# Only what the queue needs at run time. The scorer and this freezer run offline, so changing them never changes a recipe.
+PACKAGE_FILES = ('__init__.py', 'contract.py', 'reader.md', 'request.py', 'validate.py', 'README.md')
 
 
 def file_hash(path):

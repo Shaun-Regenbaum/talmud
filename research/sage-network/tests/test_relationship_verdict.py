@@ -304,6 +304,46 @@ class Scorer(unittest.TestCase):
         self.assertEqual(report['auditFlags'][0]['flags'], ['speech_claim_supported_as_other_kind'])
 
 
+class ScorerOnSavedRuns(unittest.TestCase):
+    """Results in the queue's own layout (attempts/ and results/, each result checksummed). Changes are made up."""
+
+    def saved(self, run, case, **change):
+        result = dict({'jobId': case['job']['job_id'], 'status': 'complete', 'errorKind': None, 'costUsd': 0.001,
+                       'answer': case['answer'], 'compiled': V.check(case['job'], case['answer'])}, **change)
+        result['resultHash'] = V.digest(result)
+        for kind in ('attempts', 'results'):
+            (run / kind).mkdir(parents=True, exist_ok=True)
+        (run / 'attempts' / (result['jobId'] + '.json')).write_text('{}')
+        (run / 'results' / (result['jobId'] + '.json')).write_text(json.dumps(result, ensure_ascii=False))
+        return result
+
+    def test_checksums_validator_and_costs_are_applied(self):
+        jobs = {c['job']['job_id']: c['job'] for c in FIXTURE['cases']}
+        reference = {c['answer']['verdicts'][0]['claim_id']: c['answer']['verdicts'][0] for c in FIXTURE['cases']}
+        with tempfile.TemporaryDirectory() as tmp:
+            run = Path(tmp)
+            for c in FIXTURE['cases']:
+                self.saved(run, c)
+            tampered = json.loads((run / 'results/mc-03.json').read_text())
+            tampered['answer']['verdicts'][0]['supported_kind'] = 'family'
+            (run / 'results/mc-03.json').write_text(json.dumps(tampered, ensure_ascii=False))
+            broken = copy.deepcopy(CASES['mc-05']['answer'])
+            broken['verdicts'] = []
+            result = dict(json.loads((run / 'results/mc-05.json').read_text()), answer=broken)
+            result.pop('resultHash')
+            result['resultHash'] = V.digest(result)
+            (run / 'results/mc-05.json').write_text(json.dumps(result, ensure_ascii=False))
+            (run / 'results/mc-06.json').unlink()
+            report = S.score(jobs, S.load_results(run), reference, 'saved-run check')
+        failures = {f['jobId']: f['failure'] for f in report['rawFailures']}
+        self.assertEqual(failures['mc-03'], 'result checksum differs')
+        self.assertTrue(failures['mc-05'].startswith('answer fails the current validator'))
+        self.assertEqual(failures['mc-06'], 'interrupted')
+        self.assertEqual(report['compared'], 13)
+        self.assertEqual(report['mismatches'], [])
+        self.assertEqual(report['cost'], {'results': 16, 'reportedCostUsd': 0.015, 'resultsWithoutReportedCost': 1})
+
+
 class Freeze(unittest.TestCase):
     def test_frozen_directory_is_replayable_and_loads_like_the_queue(self):
         with tempfile.TemporaryDirectory() as tmp:
