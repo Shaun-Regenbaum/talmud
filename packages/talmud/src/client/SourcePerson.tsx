@@ -55,7 +55,12 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
                 )}
               </For>
             </Show>
-            <PersonEra reviewed={p().era} generation={p().generation} />
+            <PersonEra
+              reviewed={p().era}
+              generation={p().generation}
+              possible={p().possibleEra}
+              revision={p().revision}
+            />
             <section class="person-biography">
               <h4>{t('person.biography')}</h4>
               <PersonStatus>{t('person.bioEmpty')}</PersonStatus>

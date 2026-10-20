@@ -108,6 +108,21 @@ type Entry = { en: string; he: string };
 
 const CATALOG = {
   'person.era': { en: 'Era', he: 'תקופה' },
+  'person.possibleAccepted': {
+    en: 'Possible era from the accepted identity: {name}.',
+    he: 'תקופה אפשרית לפי הזיהוי שהתקבל: {name}.',
+  },
+  'person.possibleCandidate': {
+    en: 'If this is {name}, this is a possible era.',
+    he: 'אם זהו {name}, זו תקופה אפשרית.',
+  },
+  'person.possibleRange': {
+    en: 'Approximate activity range from the generation guide, not a lifespan. The era has not been confirmed.',
+    he: 'טווח פעילות משוער לפי מדריך הדורות, לא שנות חיים. התקופה לא אושרה.',
+  },
+  'person.possibleBasis': { en: 'Why this possible era', he: 'מדוע תקופה זו אפשרית' },
+  'person.possibleIdentitySource': { en: 'Identity evidence', he: 'ראיות לזיהוי' },
+  'person.possibleRegistrySource': { en: 'Generation source', he: 'מקור הדור' },
   'person.eraUnknown': { en: 'The era has not been established.', he: 'התקופה טרם נקבעה.' },
   'person.generationRange': {
     en: 'Approximate generation range, not a lifespan.',
