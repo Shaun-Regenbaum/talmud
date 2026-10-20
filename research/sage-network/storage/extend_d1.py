@@ -525,6 +525,9 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                 raise ValueError('Replacement does not exist: ' + key)
             if correcting:
                 pass  # rebuilt from the parent above: same kind, authority, decision and people
+            elif 'referenceCorrection' in item['data']:
+                # Only a reference correction, rebuilt from the parent and the frozen map, may write this field.
+                raise ValueError('referenceCorrection is reserved for a reference correction: ' + key)
             elif item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry', 'identity_proposal', 'name_reading'}:
                 # Only a reading may be superseded, and only to add a source reference warning (checked below).
                 if (old and item['kind'] != 'name_reading') or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
@@ -679,9 +682,18 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                     raise ValueError('Name source hash differs: ' + key)
         # A passage whose reference is in doubt cannot gain confirmed identities, name links,
         # places or connections until the reference is verified. Existing records stay as they are.
-        def warned(data):
-            return (data.get('sourceQuality') or {}).get('sourceReferenceVerified') is False and 'referenceCorrection' not in data
-        unverified = {r[2] for r in rows.values() if r[1] == 'name_reading' and warned(json.loads(r[-1]))}
+        def warned(row):
+            data = json.loads(row[-1])
+            if (data.get('sourceQuality') or {}).get('sourceReferenceVerified') is not False:
+                return False
+            # A warning is resolved only by a reference correction of this passage: the reading's block
+            # and the passage's block name the same old and new reference, and both now sit on the new one.
+            block, passage = data.get('referenceCorrection'), rows.get('passage:' + str(row[2]))
+            fixed = json.loads(passage[-1]).get('referenceCorrection') if passage else None
+            return not (isinstance(block, dict) and isinstance(fixed, dict) and block.get('resolvesSourceQualityWarning') is True and
+                        block.get('passageId') == row[2] and block.get('legacyRef') == fixed.get('legacyRef') == data['sourceQuality'].get('ref') and
+                        block.get('canonicalRef') == fixed.get('canonicalRef') == row[3] == passage[3])
+        unverified = {r[2] for r in rows.values() if r[1] == 'name_reading' and warned(r)}
         for key, row in changed.items():
             accepts = row[1] == 'identity_assessment' and json.loads(row[-1]).get('acceptedPersonId')
             if row[2] in unverified and (row[1] in {'source_identity', 'name_occurrence', 'connection', 'place_review'} or accepts):
