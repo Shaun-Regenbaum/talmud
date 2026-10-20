@@ -74,6 +74,8 @@ def freeze(source, package, destination, settings):
                   providerErrorsHash=file_hash(Path(__file__).with_name('provider_errors.py')),
                   coordinatorHash=file_hash(Path(__file__).with_name('queue_job.py')),
                   transitionHash=file_hash(Path(__file__).with_name('queue_transition.py')))
+    if config.get('qualityTrial'):
+        config['qualityBridgeHash'] = file_hash(Path(__file__).with_name('quality_bridge.py'))
     config_check(config, manifest, pending/'recipe', min(16, config.get('approvedConcurrency', 16)))
     atomic(pending/'config.json', config)
     pending.replace(destination)
