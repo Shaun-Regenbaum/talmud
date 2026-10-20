@@ -1,5 +1,12 @@
 import { Hono } from 'hono';
 import { canonicalSlug } from '../lib/rabbi/identity';
+import {
+  type InitialOccurrence,
+  initialOccurrences,
+  initialPerson,
+  type ReadingClaim,
+  type ReadingPerson,
+} from '../lib/sage-graph/initial-readings';
 import type {
   CheckedConnection,
   CheckedGraph,
@@ -234,12 +241,150 @@ sageGraph.get('/checked', async (c) => {
   return c.json(body);
 });
 
+async function readInitialPassage(db: D1Database, revisionId: string, passageId: string) {
+  const result = await db
+    .prepare(
+      "SELECT kind,payload_json FROM sage_graph_all_records WHERE revision_id=? AND passage_id=? AND authority='screening' AND decision='needs_review' AND kind IN ('person','claim','source_reading') ORDER BY record_id LIMIT 401",
+    )
+    .bind(revisionId, passageId)
+    .all<{ kind: string; payload_json: string }>();
+  if (result.results.length > 400) throw Error('Too many source reading records');
+  const rows = result.results.map((r) => ({ kind: r.kind, data: JSON.parse(r.payload_json) }));
+  const provenance = rows.filter((r) => r.kind === 'source_reading');
+  if (provenance.length !== 1 || provenance[0].data.version !== 'source-reading-import-v1')
+    return null;
+  return {
+    people: rows.filter((r) => r.kind === 'person').map((r) => r.data as ReadingPerson),
+    claims: rows.filter((r) => r.kind === 'claim').map((r) => r.data as ReadingClaim),
+    neededContext: provenance[0].data.episode.needed_context as string[],
+  };
+}
+
+async function reviewedPeopleAtSameWords(
+  db: D1Database,
+  revisionId: string,
+  person: ReadingPerson,
+) {
+  const links = new Map<string, { id: string; name: string }>();
+  for (const anchor of person.mentions.filter((m) => m.primary).slice(0, 20)) {
+    const candidates = await db
+      .prepare(
+        "SELECT payload_json FROM sage_graph_all_records WHERE revision_id=? AND kind='name_occurrence' AND authority IN ('source_review','user_correction') AND ref=? LIMIT 101",
+      )
+      .bind(revisionId, anchor.ref)
+      .all<{ payload_json: string }>();
+    if (candidates.results.length > 100) continue;
+    for (const candidate of candidates.results) {
+      const occurrence = JSON.parse(candidate.payload_json);
+      if (
+        occurrence.quote !== anchor.quote ||
+        occurrence.characterStart !== anchor.start ||
+        occurrence.characterEnd !== anchor.end
+      )
+        continue;
+      const source = await db
+        .prepare(
+          "SELECT payload_json FROM sage_graph_all_records WHERE revision_id=? AND record_id=? AND kind='passage'",
+        )
+        .bind(revisionId, `passage:${occurrence.passageId}`)
+        .first<{ payload_json: string }>();
+      if (!source) continue;
+      const passage = JSON.parse(source.payload_json);
+      // Older records without a known edition cannot establish this crosslink.
+      const segment = passage.sourceSegments?.find(
+        (s: { ref: string; edition: string; sha256: string; text: string }) =>
+          s.ref === anchor.ref &&
+          s.edition === anchor.edition &&
+          s.sha256 === anchor.source_sha256 &&
+          s.text === passage.source?.passage,
+      );
+      if (
+        !segment ||
+        Array.from(segment.text).slice(anchor.start, anchor.end).join('') !== anchor.quote
+      )
+        continue;
+      const nodeRow = await db
+        .prepare(
+          "SELECT payload_json FROM sage_graph_all_records WHERE revision_id=? AND record_id=? AND kind='graph_node'",
+        )
+        .bind(revisionId, `graph_node:${occurrence.personId}`)
+        .first<{ payload_json: string }>();
+      if (!nodeRow) continue;
+      const node = JSON.parse(nodeRow.payload_json);
+      if (!node.personKeys?.includes(occurrence.personKey)) continue;
+      links.set(occurrence.personId, { id: occurrence.personId, name: node.label });
+    }
+  }
+  return [...links.values()];
+}
+
+sageGraph.get('/initial', async (c) => {
+  const db = c.env.SAGE_GRAPH_DB;
+  if (!db) return c.json({ error: 'Graph database is unavailable' }, 503);
+  const ref = c.req.query('ref')?.trim();
+  if (!ref || ref.length > 160 || Array.from(ref).some((character) => character.charCodeAt(0) < 32))
+    return c.json({ error: 'Choose a page or passage' }, 400);
+  const saved = await revision(db, c.req.query('revision'));
+  if (!saved) return c.json({ error: 'No verified graph import was found' }, 404);
+  const prefix = ref.includes(':') ? ref : `${ref}:`;
+  const where = ref.includes(':') ? 'ref=?' : '(ref>=? AND ref<?)';
+  const bounds = ref.includes(':') ? [ref] : [prefix, `${prefix}\uffff`];
+  const result = await db
+    .prepare(
+      `SELECT passage_id FROM sage_graph_all_records WHERE revision_id=? AND kind='source_reading' AND authority='screening' AND decision='needs_review' AND ${where} ORDER BY record_id LIMIT 51`,
+    )
+    .bind(saved.id, ...bounds)
+    .all<{ passage_id: string }>();
+  if (result.results.length > 50)
+    return c.json({ error: 'Choose one passage to see its readings' }, 422);
+  const occurrences = new Map<string, InitialOccurrence>();
+  for (const row of result.results) {
+    const passage = await readInitialPassage(db, saved.id, row.passage_id);
+    if (!passage) return c.json({ error: 'Source reading is incomplete' }, 503);
+    for (const occurrence of initialOccurrences(row.passage_id, passage.people)) {
+      const previous = occurrences.get(occurrence.key);
+      if (previous)
+        previous.people.push(
+          ...occurrence.people.filter((p) => !previous.people.some((old) => old.id === p.id)),
+        );
+      else occurrences.set(occurrence.key, occurrence);
+    }
+  }
+  return c.json({
+    revision: saved.id,
+    occurrences: [...occurrences.values()],
+    status: 'initial_proposal',
+  });
+});
+
 sageGraph.get('/person', async (c) => {
   const db = c.env.SAGE_GRAPH_DB;
   if (!db) return c.json({ error: 'Graph database is unavailable' }, 503);
   const saved = await revision(db, c.req.query('revision'));
   if (!saved) return c.json({ error: 'No verified graph import was found' }, 404);
   const id = c.req.query('id');
+  if (id?.startsWith('reading:')) {
+    const match = /^reading:(sr1-[a-f0-9]{64})\/(p[1-9][0-9]*)$/.exec(id);
+    if (!match) return c.json({ error: 'Unknown person' }, 404);
+    const reading = await readInitialPassage(db, saved.id, match[1]);
+    const person =
+      reading &&
+      initialPerson(
+        saved.id,
+        match[1],
+        match[2],
+        reading.people,
+        reading.claims,
+        reading.neededContext,
+      );
+    if (person?.initialReading && reading)
+      person.initialReading.reviewedPeople = await reviewedPeopleAtSameWords(
+        db,
+        saved.id,
+        reading.people.find((p) => p.id === match[2])!,
+      );
+    return person ? c.json(person) : c.json({ error: 'Unknown person' }, 404);
+  }
   if (!id?.startsWith('local:')) return c.json({ error: 'Unknown person' }, 404);
   const row = await db
     .prepare(

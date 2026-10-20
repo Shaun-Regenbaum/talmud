@@ -40,3 +40,24 @@
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+
+.initial-reading-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.initial-reading-form label {
+  grid-column: 1 / -1;
+  white-space: normal;
+  font-size: 0.875rem;
+}
+.initial-reading-form input {
+  min-width: 0;
+  width: 100%;
+}
+.initial-readings-page .person-biography,
+.source-person-initial .person-biography,
+.source-person-initial .person-connections,
+.source-person-initial .ui-source-card {
+  margin-block: 0 12px;
+}

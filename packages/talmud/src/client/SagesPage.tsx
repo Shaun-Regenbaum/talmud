@@ -141,7 +141,8 @@ export function SagesPage(): JSX.Element {
         </a>
       </header>
       <p>
-        <a href="#stories">{t('stories.title')}</a>
+        <a href="#stories">{t('stories.title')}</a> ·{' '}
+        <a href="#initial-readings">{t('initial.title')}</a>
       </p>
       <SageAutocomplete
         rows={index()?.rows ?? []}
