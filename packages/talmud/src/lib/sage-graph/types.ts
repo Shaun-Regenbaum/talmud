@@ -1,3 +1,5 @@
+import type { InitialReading } from './initial-readings';
+
 export interface CheckedConnection {
   id: string;
   passageId: string;
@@ -66,6 +68,7 @@ export interface ReviewedPlace {
   mapPlace: string | null;
 }
 export interface SourcePerson {
+  initialReading?: InitialReading;
   revision: string;
   id: string;
   name: string;

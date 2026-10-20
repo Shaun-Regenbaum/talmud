@@ -1,5 +1,6 @@
 import { createResource, createSignal, For, onCleanup, Show } from 'solid-js';
 import type { SourcePerson as SourcePersonData } from '../lib/sage-graph/types';
+import { InitialInteractions } from './InitialInteractions';
 import { lang, t } from './i18n';
 import { PersonConnections } from './PersonConnections';
 import { PersonEra } from './PersonEra';
@@ -21,7 +22,11 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
     },
   );
   return (
-    <section class="source-person" dir={lang() === 'he' ? 'rtl' : 'ltr'}>
+    <section
+      class="source-person"
+      classList={{ 'source-person-initial': !!person()?.initialReading }}
+      dir={lang() === 'he' ? 'rtl' : 'ltr'}
+    >
       <Show when={person.loading}>
         <p>{t('sourcePerson.loading')}</p>
       </Show>
@@ -33,7 +38,9 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
       <Show when={!person.loading && person()}>
         {(p) => (
           <>
-            <p class="source-person-caption">{t('sourcePerson.title')}</p>
+            <p class="source-person-caption">
+              {t(p().initialReading ? 'initial.cardTitle' : 'sourcePerson.title')}
+            </p>
             <h2>
               <bdi>{lang() === 'he' ? p().nameHe : p().name}</bdi>
             </h2>
@@ -56,12 +63,55 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
                 </a>
               </details>
             </section>
-            <PersonConnections
-              id={p().resolvedTo ?? p().id}
-              name={lang() === 'he' ? p().nameHe : p().name}
-              revision={p().revision}
-              onPerson={props.onPerson}
-            />
+            <Show when={p().initialReading}>
+              {(reading) => (
+                <>
+                  <details class="person-passage">
+                    <summary>{t('initial.basis')}</summary>
+                    <p>{reading().reason}</p>
+                    <For each={reading().reviewedPeople}>
+                      {(reviewed) => (
+                        <p>
+                          {t('initial.reviewedAtWords')}{' '}
+                          <a
+                            href={
+                              reviewed.id.startsWith('local:')
+                                ? `#source-person/${encodeURIComponent(reviewed.id)}`
+                                : `#sages/${encodeURIComponent(reviewed.id)}`
+                            }
+                          >
+                            {reviewed.name}
+                          </a>
+                        </p>
+                      )}
+                    </For>
+                    <For each={reading().alternatives}>
+                      {(alternative) => <p>{alternative.reason}</p>}
+                    </For>
+                    <For each={reading().neededContext}>
+                      {(context) => (
+                        <p>
+                          {t('initial.needsContext')} {context}
+                        </p>
+                      )}
+                    </For>
+                  </details>
+                  <InitialInteractions
+                    id={p().id}
+                    name={lang() === 'he' ? p().nameHe : p().name}
+                    reading={reading()}
+                  />
+                </>
+              )}
+            </Show>
+            <Show when={!p().initialReading}>
+              <PersonConnections
+                id={p().resolvedTo ?? p().id}
+                name={lang() === 'he' ? p().nameHe : p().name}
+                revision={p().revision}
+                onPerson={props.onPerson}
+              />
+            </Show>
             <section class="person-places">
               <h4>{t('person.places')}</h4>
               <Show

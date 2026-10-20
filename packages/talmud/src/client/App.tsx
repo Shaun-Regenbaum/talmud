@@ -6,6 +6,7 @@ import { ArgumentGraphPage } from './ArgumentGraphPage';
 import Compare from './Compare';
 import DafViewer from './DafViewer';
 import { HowItWorksPage } from './HowItWorksPage';
+import { InitialReadingsPage } from './InitialReadingsPage';
 import { McpPage } from './McpPage';
 import { NotFoundPage } from './NotFoundPage';
 import PretextSpike from './PretextSpike';
@@ -27,6 +28,7 @@ const KNOWN_ROUTES = new Set([
   'spike',
   'sages',
   'stories',
+  'initial-readings',
   'settings',
   'about',
   'mcp',
@@ -113,6 +115,9 @@ export default function App() {
         </Match>
         <Match when={route() === 'stories'}>
           <StoryReadingsPage />
+        </Match>
+        <Match when={route() === 'initial-readings'}>
+          <InitialReadingsPage />
         </Match>
         <Match when={route() === 'source-person'}>
           <SourcePersonPage />
