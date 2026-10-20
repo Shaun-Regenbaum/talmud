@@ -417,8 +417,7 @@ export async function identityCards(
     if (
       !data.reason?.trim() ||
       !['accepted_passage_identity', 'accepted_registry_identity'].includes(data.status) ||
-      row.decision !==
-        (data.status === 'accepted_passage_identity' ? 'accepted_local' : data.status)
+      !['accepted_local', 'accepted_registry_identity'].includes(row.decision ?? '')
     )
       continue;
     if (

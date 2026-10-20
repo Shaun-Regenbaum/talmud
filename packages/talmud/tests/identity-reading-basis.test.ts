@@ -215,3 +215,11 @@ it('lets a current human accepted identity outrank an older rejected assessment'
     card.initialReading!.proposals!.find((p) => p.id === assessment.record_id)!.reviewDecision,
   ).toBe('rejected');
 });
+it('keeps a real mixed-status identity reason without upgrading its accepted-local row', async () => {
+  const result = await identityCards('captured', saved.mixedStatusIdentity as LegacyRow[]);
+  const card = result.cards.find((c) => c.id === 'proposal:b059-p9/B')!;
+  expect(card.initialReading!.proposals![0].reason).toContain('Distinctive full patronymic');
+  expect(card.resolvedTo).toBeUndefined();
+  expect(card.initialReading!.reviewedPeople ?? []).toEqual([]);
+  expect(card.generation).toBeNull();
+});
