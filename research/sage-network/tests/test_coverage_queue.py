@@ -291,6 +291,33 @@ class ProbeTransitionTests(QueueHarness):
                        q.digest(self.config), q.digest(following), self.commit)
         self.assertEqual(q.load(self.output/'budget-scope.json')['runId'], self.config['runId'])
 
+    def test_explicit_hash_review_allows_new_model_route_and_parameters(self):
+        from queue_transition import transition
+        inputs, following = self.prepare_transition()
+        following['parameters'].update(model='different-transport', max_tokens=8192,
+                                        reasoning={'effort':'none'})
+        following['route'].update(provider='different-transport-route', outputPrice=.000002)
+        q.atomic(inputs/following['runId']/'config.json', following)
+        receipt = transition(inputs, self.output, self.config['runId'], following['runId'],
+                             q.digest(self.config), q.digest(following), self.commit)
+        self.assertEqual(receipt['nextScope']['configHash'], q.digest(following))
+        self.assertEqual(receipt['priorCost']['reportedCostUsd'], .000003)
+        self.assertEqual(len(self.wire.calls), 3)
+
+    def test_model_comparison_still_rejects_other_key_or_excess_budget(self):
+        from queue_transition import transition
+        inputs, following = self.prepare_transition()
+        for field, value, error in [('keyFingerprint', '0'*64, 'keyFingerprint'),
+                                     ('budgetUsd', .11, 'bounded probe'),
+                                     ('inputManifestHash', '0'*64, 'inputManifestHash')]:
+            corrupt = copy.deepcopy(following)
+            corrupt[field] = value
+            q.atomic(inputs/following['runId']/'config.json', corrupt)
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, error):
+                transition(inputs, self.output, self.config['runId'], following['runId'],
+                           q.digest(self.config), q.digest(corrupt), self.commit)
+        self.assertEqual(q.load(self.output/'budget-scope.json')['runId'], self.config['runId'])
+
     def test_transition_rejects_unknown_charge(self):
         from queue_transition import transition
         inputs, following = self.prepare_transition()

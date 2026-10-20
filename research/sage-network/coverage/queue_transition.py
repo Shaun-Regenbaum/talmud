@@ -28,14 +28,9 @@ def transition(inputs_root, output_root, prior_run, next_run, prior_hash, next_h
     if (prior.get('executionMode') != 'probe' or following.get('executionMode') != 'probe' or
             following.get('budgetUsd', 1) > .1 or following.get('approvedConcurrency', 16) > 3):
         raise ValueError('Transition is only for another bounded probe')
-    for field in ('inputManifestHash', 'recipeFiles', 'keyFingerprint', 'route'):
+    for field in ('inputManifestHash', 'recipeFiles', 'keyFingerprint'):
         if prior[field] != following[field]:
             raise ValueError('Probe transition changes frozen ' + field)
-    if {k:v for k,v in prior['parameters'].items() if k != 'reasoning'} != {
-            k:v for k,v in following['parameters'].items() if k != 'reasoning'}:
-        raise ValueError('Probe transition may change only reasoning parameters')
-    if following['parameters']['reasoning'] != {'effort': 'low'}:
-        raise ValueError('This reviewed probe transition requires low reasoning')
     prior_manifest = load(prior_input/'queue-manifest.json')
     next_manifest = load(next_input/'queue-manifest.json')
     if digest(prior_manifest) != prior['inputManifestHash'] or prior_manifest != next_manifest:
@@ -76,7 +71,7 @@ def transition(inputs_root, output_root, prior_run, next_run, prior_hash, next_h
         raise ValueError('New probe must carry the exact prior cost receipt')
     receipt = dict(previousScope=old_scope, nextScope=new_scope, priorCost=carried,
                    evidence=evidence, acceptedFacts=0,
-                   reason='Explicit reviewed repeat of the same three source jobs with low reasoning')
+                   reason='Explicit reviewed comparison of the same three source jobs with separately frozen model parameters')
     receipt['transitionHash'] = digest(receipt)
     archive = output_root/'budget-history'/(prior_hash + '-' + next_hash + '.json')
     if archive.exists():
