@@ -10,13 +10,16 @@ def bounds(config, manifest):
     trial = config.get('comparisonTrial', {})
     required = {'version', 'experimentId', 'arm', 'incrementalCapUsd', 'priorExperimentCostUsd', 'baselineRun', 'baselineConfigHash', 'baselineKnownCostUsd', 'baselineUnknownReservedUsd'}
     if (set(trial) != required or trial['version'] != VERSION or trial['arm'] not in ('none', 'low') or
-            (manifest['jobs'] != 30 and config.get('providerRecovery') is None) or config.get('executionMode') != 'full' or
+            (manifest['jobs'] != 30 and config.get('providerRecovery') is None and config.get('sourceUnitTrial') is None) or config.get('executionMode') != 'full' or
             config.get('approvedConcurrency', 16) > 16 or config.get('qualityTrial') is not None or
             config.get('matchedTransitionHash') != file_hash(Path(__file__)) or not config.get('priorRun')):
         raise ValueError('Invalid matched thirty-job comparison')
     if config.get('providerRecovery') is not None:
         from provider_recovery import bounds as recovery_bounds
         recovery_bounds(config, manifest)
+    if config.get('sourceUnitTrial') is not None:
+        from unit_trial_transition import bounds as unit_bounds
+        unit_bounds(config, manifest)
     safe_id(trial['experimentId']); safe_id(trial['baselineRun'])
     from queue_core import money
     for field in ('incrementalCapUsd', 'priorExperimentCostUsd', 'baselineKnownCostUsd', 'baselineUnknownReservedUsd'):
