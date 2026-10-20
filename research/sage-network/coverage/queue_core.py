@@ -12,6 +12,7 @@ import re
 import signal
 import subprocess
 import threading
+import tempfile
 import time
 
 from provider_errors import ProviderError, parse_response
@@ -89,12 +90,14 @@ class Transport:
             config += 'header = ' + json.dumps('Authorization: Bearer ' + key) + '\n'
         if body is not None:
             config += 'header = "Content-Type: application/json"\nrequest = "POST"\ndata = ' + json.dumps(canonical(body), ensure_ascii=False) + '\n'
+        headers = tempfile.TemporaryFile(mode='w+b')
         with self.lock:
             if self.closed:
+                headers.close()
                 raise RuntimeError('Transport stopped')
             child = subprocess.Popen(['curl', '--silent', '--show-error', '--write-out', '\n%{http_code}',
                 '--connect-timeout', '10', '--max-time', '360', '--max-filesize', '16777216',
-                '--config', '-'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                '--dump-header', '/dev/fd/' + str(headers.fileno()), '--config', '-'], pass_fds=(headers.fileno(),), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE, text=True, start_new_session=True)
             self.children.add(child)
         try:
@@ -104,8 +107,11 @@ class Transport:
                 os.killpg(child.pid, signal.SIGKILL)
                 child.communicate()
                 raise TimeoutError('Provider wall deadline exceeded') from None
-            return parse_response(stdout, child.returncode, key)
+            headers.seek(0)
+            safe_headers = headers.read(65537).decode('ascii', errors='replace')
+            return parse_response(stdout, child.returncode, key, safe_headers)
         finally:
+            headers.close()
             with self.lock:
                 self.children.discard(child)
 
@@ -193,6 +199,8 @@ def config_check(config, manifest, recipe, concurrency):
                 config.get('executionMode') != 'full' or approved > 16 or config['budgetUsd'] > 5 or
                 config.get('qualityBridgeHash') != file_hash(Path(__file__).with_name('quality_bridge.py'))):
             raise ValueError('Invalid bounded source-reading quality trial')
+    if config.get('providerRecovery') is not None and config.get('comparisonTrial') is None:
+        raise ValueError('Provider recovery requires the shared comparison budget')
     if config.get('comparisonTrial') is not None:
         from matched_transition import bounds
         bounds(config, manifest)

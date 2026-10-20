@@ -75,3 +75,25 @@ class ProviderErrorTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class SafeProviderMetadataTests(unittest.TestCase):
+    def test_allowlisted_name_and_retry_delay(self):
+        from provider_errors import diagnostic
+        body=json.dumps({'error':{'code':429,'message':'Provider returned error','metadata':{'provider_name':'OpenInference','raw':'secret upstream body'}}})
+        result=diagnostic(429,0,body,headers='HTTP/2 429\r\nRetry-After: 30\r\nAuthorization: secret\r\n\r\n')
+        self.assertEqual(result['providerName'],'OpenInference');self.assertEqual(result['retryAfter'],30)
+        self.assertNotIn('secret',json.dumps(result))
+
+    def test_unknown_metadata_and_header_credentials_are_dropped(self):
+        from provider_errors import diagnostic
+        body=json.dumps({'error':{'metadata':{'provider_name':'Bearer secret','code':'secret'}}})
+        result=diagnostic(429,0,body,headers='HTTP/2 429\r\nRetry-After: Bearer secret\r\n\r\n')
+        self.assertNotIn('providerName',result);self.assertNotIn('retryAfter',result)
+        self.assertNotIn('secret',json.dumps(result))
+
+    def test_retry_date_and_duplicate_and_limits(self):
+        from provider_errors import retry_after
+        self.assertEqual(retry_after('HTTP/2 429\nRetry-After: Tue, 20 Oct 2026 12:30:00 GMT\n\n'),'2026-10-20T12:30:00+00:00')
+        for value in ('999999','30\nRetry-After: 50','sk-secret','Tue, 99 Oct 2026 12:30:00 GMT'):
+            self.assertIsNone(retry_after('HTTP/2 429\nRetry-After: '+value+'\n\n'))
