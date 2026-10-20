@@ -28,7 +28,7 @@ def transition(inputs_root, output_root, prior_run, next_run, prior_hash, next_h
     if (prior.get('executionMode') != 'probe' or following.get('executionMode') != 'probe' or
             following.get('budgetUsd', 1) > .1 or following.get('approvedConcurrency', 16) > 3):
         raise ValueError('Transition is only for another bounded probe')
-    for field in ('inputManifestHash', 'recipeFiles', 'keyFingerprint'):
+    for field in ('inputManifestHash', 'keyFingerprint'):
         if prior[field] != following[field]:
             raise ValueError('Probe transition changes frozen ' + field)
     prior_manifest = load(prior_input/'queue-manifest.json')
@@ -45,7 +45,11 @@ def transition(inputs_root, output_root, prior_run, next_run, prior_hash, next_h
                             ('source-verification.json','sourceVerificationSha256')]:
             if file_hash(directory/name) != prior_manifest[field]:
                 raise ValueError('Probe source receipt differs')
-    next_jobs = {j['job_id']: digest(j) for j in jobs(next_input, next_manifest)}
+    next_adapter = recipe_adapter(next_input/'recipe')
+    next_jobs = {}
+    for job in jobs(next_input, next_manifest):
+        next_adapter.messages(job)
+        next_jobs[job['job_id']] = digest(job)
     adapter = recipe_adapter(prior_input/'recipe')
     evidence = []
     cost = Decimal(0)
@@ -71,7 +75,7 @@ def transition(inputs_root, output_root, prior_run, next_run, prior_hash, next_h
         raise ValueError('New probe must carry the exact prior cost receipt')
     receipt = dict(previousScope=old_scope, nextScope=new_scope, priorCost=carried,
                    evidence=evidence, acceptedFacts=0,
-                   reason='Explicit reviewed comparison of the same three source jobs with separately frozen model parameters')
+                   reason='Explicit reviewed comparison of the same three source jobs with separately frozen recipes and model parameters')
     receipt['transitionHash'] = digest(receipt)
     archive = output_root/'budget-history'/(prior_hash + '-' + next_hash + '.json')
     if archive.exists():

@@ -318,6 +318,34 @@ class ProbeTransitionTests(QueueHarness):
                            q.digest(self.config), q.digest(corrupt), self.commit)
         self.assertEqual(q.load(self.output/'budget-scope.json')['runId'], self.config['runId'])
 
+    def test_reviewed_recipe_change_keeps_prior_validator_isolated(self):
+        from queue_transition import transition
+        inputs, following = self.prepare_transition()
+        recipe = inputs/following['runId']/'recipe'
+        # A deliberately incompatible transport validator must not be used to
+        # validate the old run's source-hash echoes.
+        (recipe/'queue_adapter.py').write_text(ADAPTER.replace(
+            "expected = {'sourceHashes':[s['sha256'] for s in job['sources']]}",
+            "expected = {'differentTransportFormat': True}"))
+        following['recipeFiles'] = q.recipe_files(recipe)
+        q.atomic(inputs/following['runId']/'config.json', following)
+        old_adapter = q.recipe_adapter(inputs/self.config['runId']/'recipe')
+        new_adapter = q.recipe_adapter(recipe)
+        self.assertNotEqual(old_adapter.__name__, new_adapter.__name__)
+        receipt = transition(inputs, self.output, self.config['runId'], following['runId'],
+                             q.digest(self.config), q.digest(following), self.commit)
+        self.assertEqual(receipt['priorCost']['reportedCostUsd'], .000003)
+        self.assertEqual(len(self.wire.calls), 3)
+
+    def test_unreviewed_recipe_edit_does_not_switch_budget(self):
+        from queue_transition import transition
+        inputs, following = self.prepare_transition()
+        (inputs/following['runId']/'recipe/queue_adapter.py').write_text(ADAPTER+'\n')
+        with self.assertRaisesRegex(ValueError, 'recipe'):
+            transition(inputs, self.output, self.config['runId'], following['runId'],
+                       q.digest(self.config), q.digest(following), self.commit)
+        self.assertEqual(q.load(self.output/'budget-scope.json')['runId'], self.config['runId'])
+
     def test_transition_rejects_unknown_charge(self):
         from queue_transition import transition
         inputs, following = self.prepare_transition()
