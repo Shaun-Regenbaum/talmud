@@ -4,15 +4,16 @@ spec = importlib.util.spec_from_file_location('fetch', os.path.join(os.path.dirn
 fetch = importlib.util.module_from_spec(spec); spec.loader.exec_module(fetch)
 
 
-def walk(node, title='T'):
+def walk(node, title='T', types=None):
     out = []
-    fetch._walk_shape(node, title, out)
+    fetch._walk_shape(node, title, out, types)
     return out
 
 
 class EveryShapeSefariaReturns(unittest.TestCase):
     def test_pages_of_the_bavli_skip_the_two_empty_slots(self):
-        self.assertEqual(walk({'title': 'Berakhot', 'chapters': [0, 0, 14, 9]}, 'Berakhot'),
+        # Whether a node is pages now comes from the index (test_fetch_sources.py has the real Berakhot shape).
+        self.assertEqual(walk({'title': 'Berakhot', 'chapters': [0, 0, 14, 9]}, 'Berakhot', {'Berakhot': ['Talmud', 'Integer']}),
                          [('2a', 'Berakhot 2a'), ('2b', 'Berakhot 2b')])
 
     def test_numbered_chapters(self):
