@@ -203,11 +203,14 @@ def config_check(config, manifest, recipe, concurrency):
                 config.get('executionMode') != 'full' or approved > 16 or config['budgetUsd'] > 5 or
                 config.get('qualityBridgeHash') != file_hash(Path(__file__).with_name('quality_bridge.py'))):
             raise ValueError('Invalid bounded source-reading quality trial')
-    if config.get('providerRecovery') is not None and config.get('comparisonTrial') is None:
+    if (config.get('providerRecovery') is not None or config.get('sourceUnitTrial') is not None) and config.get('comparisonTrial') is None:
         raise ValueError('Provider recovery requires the shared comparison budget')
     if config.get('comparisonTrial') is not None:
         from matched_transition import bounds
         bounds(config, manifest)
+    if config.get('sourceUnitTrial') is not None:
+        from unit_trial_transition import validate_controls
+        validate_controls(config, jobs(recipe.parent, manifest))
     params = config['parameters']
     if (type(params.get('max_tokens')) is not int or not 1 <= params['max_tokens'] <= 32768 or
             not params.get('model') or not isinstance(params.get('reasoning'), dict)):
