@@ -156,14 +156,14 @@ const CATALOG = {
   'initial.uncertainPerson': { en: 'Uncertain person', he: 'אדם לא ודאי' },
   'initial.cardTitle': { en: 'Initial reading', he: 'קריאה ראשונית' },
   'initial.title': { en: 'Initial readings', he: 'קריאות ראשוניות' },
-  'initial.basis': { en: 'Why this person was identified', he: 'הבסיס לזיהוי' },
+  'initial.basis': { en: 'Why this reading', he: 'הבסיס לקריאה זו' },
   'initial.description': {
     en: 'Names and relationships read from the text. These readings have not yet been independently checked.',
     he: 'שמות וקשרים שנקראו מתוך הטקסט. קריאות אלה טרם נבדקו בבדיקה עצמאית.',
   },
   'initial.counts': {
-    en: 'Initial readings: each count is a distinct source excerpt on this page. These counts are separate from checked connections.',
-    he: 'קריאות ראשוניות: כל מספר מייצג מובאה נפרדת בדף זה. ספירה זו נפרדת מהקשרים שנבדקו.',
+    en: 'Proposed connections from this passage. Each count is a distinct source excerpt.',
+    he: 'קשרים מוצעים מתוך הקטע. כל מספר מייצג מובאה נפרדת.',
   },
   'initial.evidence': { en: 'Source readings', he: 'קריאות המקור' },
   'initial.otherEvidence': {
