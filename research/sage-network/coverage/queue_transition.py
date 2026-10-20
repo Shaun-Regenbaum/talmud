@@ -1,6 +1,6 @@
 """Explicitly reconcile one finished three-job probe before another approved probe."""
 from decimal import Decimal
-from queue_core import atomic, config_check, digest, file_hash, jobs, load, recipe_adapter, recipe_files, saved
+from queue_core import atomic, config_check, digest, file_hash, jobs, load, recipe_adapter, recipe_files, saved, verified_carry
 
 
 def transition(inputs_root, output_root, prior_run, next_run, prior_hash, next_hash, commit):
@@ -53,27 +53,35 @@ def transition(inputs_root, output_root, prior_run, next_run, prior_hash, next_h
     adapter = recipe_adapter(prior_input/'recipe')
     evidence = []
     cost = Decimal(0)
+    unknown = Decimal(0)
     prior_directory = output_root/prior_run
     for job in jobs(prior_input, prior_manifest):
         if next_jobs.get(job['job_id']) != digest(job):
             raise ValueError('Probe source job differs')
         attempt, result = saved(job, prior_directory, prior, adapter)
-        if (attempt is None or result is None or result['status'] == 'interrupted' or
-                result.get('costUsd') is None):
-            raise ValueError('Probe has an unfinished request or unknown charge')
-        if result['costUsd'] > attempt['reservedUsd']:
-            raise ValueError('Probe charge exceeds reservation')
-        cost += Decimal(str(result['costUsd']))
+        if attempt is None or result is None or result['status'] == 'interrupted':
+            raise ValueError('Probe has an unfinished request')
+        if result.get('costUsd') is None:
+            unknown += Decimal(str(attempt['reservedUsd']))
+        else:
+            if result['costUsd'] > attempt['reservedUsd']:
+                raise ValueError('Probe charge exceeds reservation')
+            cost += Decimal(str(result['costUsd']))
         evidence.append(dict(jobId=job['job_id'], status=result['status'], costUsd=result['costUsd'],
             attemptSha256=file_hash(prior_directory/'attempts'/(job['job_id']+'.json')),
             resultSha256=file_hash(prior_directory/'results'/(job['job_id']+'.json'))))
     for kind in ('attempts','results'):
         if {p.stem for p in (prior_directory/kind).glob('*.json')} != set(next_jobs):
             raise ValueError('Probe has extra or missing saved records')
-    carried = dict(runId=prior_run, configHash=prior_hash, reportedCostUsd=float(cost), unknownReservedUsd=0)
+    carried = dict(runId=prior_run, configHash=prior_hash, reportedCostUsd=float(cost), unknownReservedUsd=float(unknown))
     if following.get('priorRun') != carried:
         raise ValueError('New probe must carry the exact prior cost receipt')
-    receipt = dict(previousScope=old_scope, nextScope=new_scope, priorCost=carried,
+    carried_unknown = float(Decimal(str(verified_carry(prior, output_root))) + unknown)
+    if following.get('carriedUnknownReservedUsd', 0) != carried_unknown:
+        raise ValueError('New probe must preserve all prior unknown reservations')
+    if carried_unknown >= following['budgetUsd']:
+        raise ValueError('Carried unknown reservations exhaust the new budget')
+    receipt = dict(carriedUnknownReservedUsd=carried_unknown, previousScope=old_scope, nextScope=new_scope, priorCost=carried,
                    evidence=evidence, acceptedFacts=0,
                    reason='Explicit reviewed comparison of the same three source jobs with separately frozen recipes and model parameters')
     receipt['transitionHash'] = digest(receipt)
