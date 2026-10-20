@@ -173,8 +173,8 @@ def jobs(directory, manifest):
 def config_check(config, manifest, recipe, concurrency):
     safe_id(config['runId'])
     deadline = config.get('requestTimeoutSeconds', 360)
-    if type(deadline) is not int or not 30 <= deadline <= 360:
-        raise ValueError('Request timeout must be explicitly bounded to 30–360 seconds')
+    if type(deadline) is not int or not 30 <= deadline <= (600 if config.get('reviewedTrial') is not None else 360):
+        raise ValueError('Request timeout exceeds the explicitly reviewed bound')
     if not money(config.get('budgetUsd')) or not 0 < config['budgetUsd'] <= MAX_RUN_CAP:
         raise ValueError('Explicit run budget must be within 50 USD')
     if not money(config.get('carriedUnknownReservedUsd', 0)):
@@ -203,7 +203,7 @@ def config_check(config, manifest, recipe, concurrency):
                 config.get('executionMode') != 'full' or approved > 16 or config['budgetUsd'] > 5 or
                 config.get('qualityBridgeHash') != file_hash(Path(__file__).with_name('quality_bridge.py'))):
             raise ValueError('Invalid bounded source-reading quality trial')
-    if (config.get('providerRecovery') is not None or config.get('sourceUnitTrial') is not None) and config.get('comparisonTrial') is None:
+    if (config.get('providerRecovery') is not None or config.get('sourceUnitTrial') is not None or config.get('reviewedTrial') is not None) and config.get('comparisonTrial') is None:
         raise ValueError('Provider recovery requires the shared comparison budget')
     if config.get('comparisonTrial') is not None:
         from matched_transition import bounds
@@ -211,6 +211,9 @@ def config_check(config, manifest, recipe, concurrency):
     if config.get('sourceUnitTrial') is not None:
         from unit_trial_transition import validate_controls
         validate_controls(config, jobs(recipe.parent, manifest))
+    if config.get('reviewedTrial') is not None:
+        from reviewed_trial_transition import check_plan
+        check_plan(config, manifest, recipe.parent)
     params = config['parameters']
     if (type(params.get('max_tokens')) is not int or not 1 <= params['max_tokens'] <= 32768 or
             not params.get('model') or not isinstance(params.get('reasoning'), dict)):
@@ -359,6 +362,9 @@ def run(config, inputs, recipe, output, commit, concurrency=16, request=None,
             raise ValueError('Captured source receipt differs')
     config_check(config, manifest, recipe, concurrency)
     adapter = recipe_adapter(recipe)
+    reviewed_plan = load(inputs/'reviewed-plan.json') if config.get('reviewedTrial') is not None else None
+    if reviewed_plan is not None and digest(reviewed_plan) != config['reviewedTrial']['planHash']:
+        raise ValueError('Reviewed plan changed before dispatch')
     owned_transport = request is None
     request = request or Transport(config.get('requestTimeoutSeconds', 360))
     if isinstance(request, Transport):
@@ -463,6 +469,8 @@ def run(config, inputs, recipe, output, commit, concurrency=16, request=None,
                     if (directory/'attempts'/(job['job_id']+'.json')).exists():
                         continue
                     payload = payload_for(job, adapter, config)
+                    if reviewed_plan is not None and digest(payload) != reviewed_plan['requestHashes'].get(job['job_id']):
+                        raise ValueError('Dispatch payload differs from the reviewed request')
                     reserve = reservation(payload, config)
                     if reserve > allowance:
                         stop_reason = 'budget_limit'
