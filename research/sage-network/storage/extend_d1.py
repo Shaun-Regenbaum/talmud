@@ -433,6 +433,10 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             f'SELECT {COLUMNS} FROM {table} WHERE revision_id=?',
             (parent['revision'],))}
         parent_keys = set(rows)
+        source_batch = any(key in changes for key in ('sourceReadingBundles', 'sourceReadingVersion', 'sourceReadingInputs'))
+        if source_batch:
+            import source_readings
+            source_readings.validate_changes(changes, rows)
         if 'namesakeRegistry' in changes or 'namesakeRegistrySha256' in changes or any(item['kind'] in {'namesake_scan','namesake_registry'} for item in changes['records']):
             # Recompute every proposed record from the verified parent before import.
             expected = build_namesake_changes(list(rows.values()), changes.get('namesakeRegistry', {}), parent)
@@ -508,7 +512,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             key = item['record_id']
             if key in changed:
                 raise ValueError('Duplicate change: ' + key)
-            if item['kind'] not in ALLOWED_KINDS or not key.startswith(item['kind'] + ':'):
+            if item['kind'] not in (ALLOWED_KINDS | (source_readings.KINDS if source_batch else set())) or not key.startswith(item['kind'] + ':'):
                 raise ValueError('Unsupported review kind: ' + key)
             old = rows.get(key)
             if old and old[6] == 'user_correction':
@@ -517,7 +521,10 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                 raise ValueError('Replacement must name the previous hash: ' + key)
             if not old and item.get('replacesSha256'):
                 raise ValueError('Replacement does not exist: ' + key)
-            if item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry', 'identity_proposal', 'name_reading'}:
+            if source_batch:
+                if old or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
+                    raise ValueError('Source readings must be new proposals: ' + key)
+            elif item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry', 'identity_proposal', 'name_reading'}:
                 # Only a reading may be superseded, and only to add a source reference warning (checked below).
                 if (old and item['kind'] != 'name_reading') or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
                     raise ValueError('Screens must be new unaccepted reviews: ' + key)
