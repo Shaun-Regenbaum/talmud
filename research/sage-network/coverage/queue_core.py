@@ -70,7 +70,8 @@ def safe_id(value):
 
 class Transport:
     """Bound wall time and response bytes, and reap all outstanding curl children."""
-    def __init__(self):
+    def __init__(self, timeout_seconds=360):
+        self.timeout_seconds = timeout_seconds
         self.children = set()
         self.lock = threading.Lock()
         self.closed = False
@@ -96,13 +97,13 @@ class Transport:
                 headers.close()
                 raise RuntimeError('Transport stopped')
             child = subprocess.Popen(['curl', '--silent', '--show-error', '--write-out', '\n%{http_code}',
-                '--connect-timeout', '10', '--max-time', '360', '--max-filesize', '16777216',
+                '--connect-timeout', '10', '--max-time', str(self.timeout_seconds), '--max-filesize', '16777216',
                 '--dump-header', '/dev/fd/' + str(headers.fileno()), '--config', '-'], pass_fds=(headers.fileno(),), stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE, text=True, start_new_session=True)
             self.children.add(child)
         try:
             try:
-                stdout, _ = child.communicate(config, timeout=370)
+                stdout, _ = child.communicate(config, timeout=self.timeout_seconds + 10)
             except subprocess.TimeoutExpired:
                 os.killpg(child.pid, signal.SIGKILL)
                 child.communicate()
@@ -171,6 +172,9 @@ def jobs(directory, manifest):
 
 def config_check(config, manifest, recipe, concurrency):
     safe_id(config['runId'])
+    deadline = config.get('requestTimeoutSeconds', 360)
+    if type(deadline) is not int or not 30 <= deadline <= 360:
+        raise ValueError('Request timeout must be explicitly bounded to 30–360 seconds')
     if not money(config.get('budgetUsd')) or not 0 < config['budgetUsd'] <= MAX_RUN_CAP:
         raise ValueError('Explicit run budget must be within 50 USD')
     if not money(config.get('carriedUnknownReservedUsd', 0)):
@@ -353,7 +357,9 @@ def run(config, inputs, recipe, output, commit, concurrency=16, request=None,
     config_check(config, manifest, recipe, concurrency)
     adapter = recipe_adapter(recipe)
     owned_transport = request is None
-    request = request or Transport()
+    request = request or Transport(config.get('requestTimeoutSeconds', 360))
+    if isinstance(request, Transport):
+        request.timeout_seconds = config.get('requestTimeoutSeconds', 360)
     stop_event = stop_event or threading.Event()
     key = os.environ['REVIEW_API_KEY']
     directory = output / config['runId']

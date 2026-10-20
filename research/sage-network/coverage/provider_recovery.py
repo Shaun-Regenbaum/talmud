@@ -4,13 +4,16 @@ from pathlib import Path
 import re
 from queue_core import atomic, config_check, digest, file_hash, jobs, load, payload_for, recipe_adapter, recipe_files, reservation, safe_id, saved, verified_carry
 
-VERSION = 'matched-provider-recovery-v1'
+VERSION = 'matched-provider-recovery-v2'
+LEGACY_VERSION = 'matched-provider-recovery-v1'
+MAX_PROBES = 8
 
 
 def bounds(config, manifest):
     recovery = config.get('providerRecovery', {})
-    required = {'version', 'stage', 'originRun', 'originConfigHash', 'eligibleJobsHash'}
+    required = {'version', 'stage', 'originRun', 'originConfigHash', 'eligibleJobsHash', 'probeNumber'}
     if (set(recovery) != required or recovery['version'] != VERSION or recovery['stage'] not in ('probe', 'remainder') or
+            type(recovery.get('probeNumber')) is not int or not 1 <= recovery['probeNumber'] <= MAX_PROBES or
             not re.fullmatch('[0-9a-f]{64}', recovery.get('originConfigHash', '')) or
             not re.fullmatch('[0-9a-f]{64}', recovery.get('eligibleJobsHash', '')) or
             config.get('comparisonTrial', {}).get('arm') != 'low' or
@@ -55,6 +58,44 @@ def read_state(inputs, output, config):
     return entries, evidence, known, unknown
 
 
+
+def verify_chain(inputs_root, output_root, latest, recovery):
+    """Reconcile all prior probe receipts back to the unchanged original thirty jobs."""
+    current = latest; seen = set(); number = recovery.get('probeNumber', 1)
+    if type(number) is not int or not 1 <= number <= MAX_PROBES:
+        raise ValueError('Invalid saved recovery probe number')
+    for expected_number in range(number, 0, -1):
+        h = digest(current)
+        if h in seen:
+            raise ValueError('Recovery chain repeats a scope')
+        seen.add(h)
+        step = current.get('providerRecovery', {})
+        if (step.get('version') not in (LEGACY_VERSION, VERSION) or step.get('stage') != 'probe' or
+                step.get('probeNumber', 1) != expected_number or
+                any(step.get(k) != recovery[k] for k in ('originRun', 'originConfigHash', 'eligibleJobsHash'))):
+            raise ValueError('Recovery chain changed origin or probe order')
+        link = current['priorRun']; parent = load(inputs_root/link['runId']/'config.json')
+        if digest(parent) != link['configHash'] or load(output_root/parent['runId']/'config.json') != parent:
+            raise ValueError('Recovery chain prior config differs')
+        _, evidence, known, unknown = read_state(inputs_root/parent['runId'], output_root, parent)
+        archive = load(output_root/'budget-history'/(digest(parent)+'-'+h+'.json'))
+        verified_carry(current, output_root)
+        if archive.get('evidence') != evidence:
+            raise ValueError('Recovery origin evidence changed after the probe')
+        actual_link = dict(runId=parent['runId'], configHash=digest(parent), reportedCostUsd=float(known), unknownReservedUsd=float(unknown))
+        if (link != actual_link or current['carriedUnknownReservedUsd'] != float(Decimal(str(verified_carry(parent, output_root))) + unknown) or
+                current['comparisonTrial'] != dict(parent['comparisonTrial'], priorExperimentCostUsd=float(Decimal(str(parent['comparisonTrial']['priorExperimentCostUsd'])) + known)) or
+                current['recipeFiles'] != parent['recipeFiles'] or current['parameters'] != parent['parameters'] or
+                current['keyFingerprint'] != parent['keyFingerprint']):
+            raise ValueError('Recovery chain dropped costs, holds or frozen identity')
+        current = parent
+    if current['runId'] != recovery['originRun'] or digest(current) != recovery['originConfigHash'] or current.get('providerRecovery') is not None:
+        raise ValueError('Recovery chain does not end at the original stopped trial')
+    original, _, _, _ = read_state(inputs_root/current['runId'], output_root, current)
+    if len(original) != 30:
+        raise ValueError('Recovery origin must contain thirty jobs')
+    return current, {jid: entry[0] for jid, entry in original.items()}
+
 def transition(inputs_root, output_root, prior_run, next_run, prior_hash, next_hash, commit):
     """Caller holds the shared queue lock. This does not contact a provider."""
     safe_id(prior_run); safe_id(next_run)
@@ -74,10 +115,11 @@ def transition(inputs_root, output_root, prior_run, next_run, prior_hash, next_h
             following['parameters'] != prior['parameters'] or following['recipeFiles'] != prior['recipeFiles']):
         raise ValueError('Recovery changed key, model parameters or recipe')
     entries, evidence, known, unknown = read_state(prior_input, output_root, prior)
-    if recovery['stage'] == 'probe':
-        if (prior.get('providerRecovery') is not None or prior.get('comparisonTrial', {}).get('arm') != 'low' or
-                len(entries) != 30 or recovery['originRun'] != prior_run or recovery['originConfigHash'] != prior_hash or
-                following['route']['provider'] == prior['route']['provider'] or
+    previous = prior.get('providerRecovery')
+    if previous is None:
+        if (recovery['stage'] != 'probe' or recovery['probeNumber'] != 1 or
+                prior.get('comparisonTrial', {}).get('arm') != 'low' or len(entries) != 30 or
+                recovery['originRun'] != prior_run or recovery['originConfigHash'] != prior_hash or
                 load(output_root/prior_run/'progress.json').get('stopReason') != 'provider_failure_burst'):
             raise ValueError('Probe must follow the stopped thirty-job low arm')
         eligible = {}
@@ -92,23 +134,26 @@ def transition(inputs_root, output_root, prior_run, next_run, prior_hash, next_h
         if not any(item[1] is not None for item in entries.values()):
             raise ValueError('Probe requires saved provider failures')
     else:
-        previous = prior.get('providerRecovery', {})
-        if (previous.get('stage') != 'probe' or previous.get('version') != VERSION or
-                recovery != dict(previous, stage='remainder') or following['route'] != prior['route'] or
+        if (previous.get('stage') != 'probe' or previous.get('version') not in (LEGACY_VERSION, VERSION) or
+                any(recovery[k] != previous[k] for k in ('originRun', 'originConfigHash', 'eligibleJobsHash')) or
                 len(entries) != 1):
-            raise ValueError('Remainder must follow the exact single provider probe')
-        # A structurally validated, charged answer is needed before expanding this route.
+            raise ValueError('Recovery successor must follow an exact single provider probe')
+        origin, eligible = verify_chain(inputs_root, output_root, prior, previous)
         probe = next(iter(entries.values()))
-        if probe[2] is None or probe[2]['status'] not in ('complete', 'needs_context') or probe[2]['costUsd'] is None:
-            raise ValueError('Provider probe has not succeeded with a known charge')
-        origin_input = inputs_root/recovery['originRun']; origin = load(origin_input/'config.json')
-        if digest(origin) != recovery['originConfigHash']:
-            raise ValueError('Recovery origin differs')
-        origin_entries, origin_evidence, _, _ = read_state(origin_input, output_root, origin)
-        probe_archive = load(output_root/'budget-history'/(recovery['originConfigHash']+'-'+prior_hash+'.json'))
-        if probe_archive.get('evidence') != origin_evidence:
-            raise ValueError('Recovery origin evidence changed after the probe')
-        eligible = {jid: item[0] for jid, item in origin_entries.items()}
+        if probe[2] is None:
+            raise ValueError('Provider probe has not finished')
+        previous_number = previous.get('probeNumber', 1)
+        if recovery['stage'] == 'probe':
+            if (recovery['probeNumber'] != previous_number + 1 or probe[2]['status'] != 'failed' or
+                    probe[2].get('errorKind') != 'provider'):
+                raise ValueError('Another probe requires a terminal provider failure and increasing probe number')
+        else:
+            if (recovery['probeNumber'] != previous_number or following['route'] != prior['route'] or
+                    following.get('requestTimeoutSeconds', 360) != prior.get('requestTimeoutSeconds', 360) or
+                    probe[2]['status'] not in ('complete', 'needs_context') or probe[2]['costUsd'] is None):
+                raise ValueError('Provider probe has not succeeded with a known charge on the unchanged route')
+    if recovery['stage'] == 'probe' and following['route']['provider'] == prior['route']['provider']:
+        raise ValueError('Recovery probe requires a different explicitly approved provider')
     eligible_hash = digest({jid: digest(job) for jid, job in sorted(eligible.items())})
     if recovery['eligibleJobsHash'] != eligible_hash:
         raise ValueError('Recovery eligible source set differs')

@@ -37,7 +37,9 @@ class ProviderRecoveryTests(MatchedTransitionTests):
                     unknown += Decimal(str(q.load(self.full_runs/prior['runId']/'attempts'/(job['job_id']+'.json'))['reservedUsd']))
                 else: known += Decimal(str(result['costUsd']))
         following=copy.deepcopy(prior)
-        following.update(runId='recovery-'+stage, approvedConcurrency=1,
+        probe_number=prior.get('providerRecovery',{}).get('probeNumber',0)+1
+        run_id='recovery-'+stage+('-'+str(probe_number) if stage=='probe' and probe_number>1 else '')
+        following.update(runId=run_id, approvedConcurrency=1,
             providerRecoveryHash=q.file_hash(Path(q.__file__).with_name('provider_recovery.py')),
             carriedUnknownReservedUsd=float(Decimal(str(q.verified_carry(prior,self.full_runs)))+unknown),
             priorRun=dict(runId=prior['runId'],configHash=q.digest(prior),reportedCostUsd=float(known),unknownReservedUsd=float(unknown)))
@@ -45,9 +47,14 @@ class ProviderRecoveryTests(MatchedTransitionTests):
         following['budgetUsd']=float(Decimal('.75')-Decimal(str(following['comparisonTrial']['priorExperimentCostUsd']))+Decimal(str(following['comparisonTrial']['baselineUnknownReservedUsd'])))
         if stage=='probe':
             following['route']['provider']='open-inference/fp4'
-            self.origin_jobs=old_jobs
             selected=old_jobs[:1]
-            following['providerRecovery']=dict(version=VERSION,stage=stage,originRun=prior['runId'],originConfigHash=q.digest(prior),eligibleJobsHash=q.digest({j['job_id']:q.digest(j) for j in old_jobs}))
+            if prior.get('providerRecovery'):
+                following['providerRecovery']=dict(prior['providerRecovery'],version=VERSION,probeNumber=probe_number)
+                following['route']['provider']='deepinfra/fp8'
+                following['requestTimeoutSeconds']=180
+            else:
+                self.origin_jobs=old_jobs
+                following['providerRecovery']=dict(version=VERSION,stage=stage,probeNumber=1,originRun=prior['runId'],originConfigHash=q.digest(prior),eligibleJobsHash=q.digest({j['job_id']:q.digest(j) for j in old_jobs}))
         else:
             selected=[j for j in self.origin_jobs if j['job_id'] not in {v['job_id'] for v in old_jobs}]
             following['providerRecovery']['stage']=stage
@@ -68,7 +75,7 @@ class ProviderRecoveryTests(MatchedTransitionTests):
         def route_wire(url,key=None,body=None):
             result=wire(url,key,body)
             if url.endswith('/endpoints'):
-                result['data']['endpoints'][0]['tag']='open-inference/fp4'
+                result['data']['endpoints'][0]['tag']=self.next_config['route']['provider']
             return result
         return q.run(self.next_config,self.next_input,self.next_input/'recipe',self.full_runs,lambda:None,concurrency=1,request=route_wire)
 
@@ -154,3 +161,55 @@ class ProviderRecoveryTests(MatchedTransitionTests):
         manifest=q.load(self.next_input/'queue-manifest.json');manifest['shards'][0]['sha256']=q.file_hash(shard)
         self.next_config['inputManifestHash']=q.digest(manifest);q.atomic(self.next_input/'queue-manifest.json',manifest);self.save_config()
         with self.assertRaisesRegex(ValueError,'exclude the successful'):self.recover()
+
+    def fail_probe(self):
+        wire=self.wire
+        def failed(url,key=None,body=None):
+            if body is not None:
+                raise ProviderError(dict(httpStatus=200,curlCode=28,providerErrorCode=None,message='Provider returned no structured error message'))
+            result=wire(url,key,body)
+            if url.endswith('/endpoints'):result['data']['endpoints'][0]['tag']=self.next_config['route']['provider']
+            return result
+        return q.run(self.next_config,self.next_input,self.next_input/'recipe',self.full_runs,lambda:None,concurrency=1,request=failed)
+
+    def stopped_probe(self):
+        self.stopped_low();self.recover();self.fail_probe()
+        self.prior,self.previous_input=self.next_config,self.next_input
+        self.prepare_recovery('probe')
+
+    def test_explicit_successor_preserves_timed_out_probe_hold(self):
+        self.stopped_probe();old_carry=self.prior['carriedUnknownReservedUsd'];receipt=self.recover()
+        self.assertGreater(receipt['carriedUnknownReservedUsd'],old_carry)
+        self.assertEqual(receipt['providerRecovery']['probeNumber'],2)
+        self.assertEqual(self.next_config['requestTimeoutSeconds'],180)
+
+    def test_successor_rejects_probe_number_reset(self):
+        self.stopped_probe();self.next_config['providerRecovery']['probeNumber']=1;self.save_config()
+        with self.assertRaisesRegex(ValueError,'increasing probe'):self.recover()
+
+    def test_successor_rejects_changed_original_ledger(self):
+        self.stopped_probe()
+        origin=self.full_runs/self.next_config['providerRecovery']['originRun']
+        path=next((origin/'results').glob('*.json'));r=q.load(path);r['costUsd']=0;r.pop('resultHash');r['resultHash']=q.digest(r);q.atomic(path,r)
+        with self.assertRaisesRegex(ValueError,'evidence changed'):self.recover()
+
+    def test_probe_limit_rejects_unbounded_chain(self):
+        self.stopped_probe();self.next_config['providerRecovery']['probeNumber']=9;self.save_config()
+        with self.assertRaisesRegex(ValueError,'Invalid bounded'):self.recover()
+
+    def test_transport_deadline_must_be_bounded(self):
+        self.stopped_probe();self.next_config['requestTimeoutSeconds']=0;self.save_config()
+        with self.assertRaisesRegex(ValueError,'timeout'):self.recover()
+
+    def test_successful_successor_allows_exact_remaining_jobs(self):
+        self.stopped_probe();self.recover();self.run_probe()
+        self.prior,self.previous_input=self.next_config,self.next_input
+        self.prepare_recovery('remainder');receipt=self.recover()
+        self.assertEqual(receipt['providerRecovery']['probeNumber'],2)
+        self.assertEqual(self.run_probe()['counts']['complete'],29)
+
+    def test_successor_archive_crash_replay_preserves_holds(self):
+        self.stopped_probe()
+        with self.assertRaisesRegex(RuntimeError,'commit'):
+            self.recover(lambda:(_ for _ in ()).throw(RuntimeError('commit')))
+        receipt=self.recover();self.assertEqual(self.recover(),receipt)
