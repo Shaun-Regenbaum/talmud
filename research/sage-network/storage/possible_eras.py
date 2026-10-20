@@ -175,7 +175,8 @@ def build(rows, policy, parent_revision):
                     raise ValueError('Possible eras are append-only; use a new reviewed version')
             else:
                 additions.append(item)
-    return dict(parentRevision=parent_revision, possibleEraPolicy=policy, records=additions)
+    return dict(parentRevision=parent_revision, description='Add conditional generation hints from the reviewed identity policy',
+                possibleEraPolicy=policy, records=additions)
 
 
 def validate_changes(changes, rows):
