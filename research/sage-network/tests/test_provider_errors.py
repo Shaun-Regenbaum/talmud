@@ -97,3 +97,10 @@ class SafeProviderMetadataTests(unittest.TestCase):
         self.assertEqual(retry_after('HTTP/2 429\nRetry-After: Tue, 20 Oct 2026 12:30:00 GMT\n\n'),'2026-10-20T12:30:00+00:00')
         for value in ('999999','30\nRetry-After: 50','sk-secret','Tue, 99 Oct 2026 12:30:00 GMT'):
             self.assertIsNone(retry_after('HTTP/2 429\nRetry-After: '+value+'\n\n'))
+
+    def test_unexpected_provider_name_type_is_ignored(self):
+        for name in ([], {}, 42):
+            result=diagnostic(429,0,json.dumps({'error':{'metadata':{'provider_name':name}}}))
+            self.assertNotIn('providerName',result)
+        result=diagnostic(429,0,json.dumps({'error':{'metadata':{'provider_name':'DeepInfra'}}}))
+        self.assertEqual(result['providerName'],'DeepInfra')

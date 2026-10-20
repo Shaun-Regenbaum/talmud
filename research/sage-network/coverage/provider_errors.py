@@ -25,7 +25,7 @@ def sanitize(value, key, limit):
     return ' '.join(text.split())[:limit]
 
 
-KNOWN_PROVIDERS = {'Sail', 'Sail Research', 'OpenInference', 'Open Inference', 'Decart',
+KNOWN_PROVIDERS = {'Sail', 'Sail Research', 'OpenInference', 'Open Inference', 'Decart', 'DeepInfra',
                    'sail-research', 'sail-research/fp4', 'open-inference', 'open-inference/fp4', 'decart', 'decart/fp4'}
 
 
@@ -65,7 +65,8 @@ def diagnostic(http_status, curl_code, body, key=None, headers=None):
         result['providerErrorCode'] = None
         result['message'] = 'Provider returned no structured error message'
     metadata = error.get('metadata') if isinstance(error, dict) else None
-    if isinstance(metadata, dict) and metadata.get('provider_name') in KNOWN_PROVIDERS:
+    if (isinstance(metadata, dict) and isinstance(metadata.get('provider_name'), str) and
+            metadata['provider_name'] in KNOWN_PROVIDERS):
         result['providerName'] = metadata['provider_name']
     delay = retry_after(headers)
     if delay is not None:
