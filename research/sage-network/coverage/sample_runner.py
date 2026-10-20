@@ -110,8 +110,17 @@ def run(bundle, root, commit):
     validate_bundle(bundle)
     sys.path.insert(0, '/app/pilot')
     from validate import check
-    from contract import SCHEMA
-    guide = Path('/app/pilot/reader.md').read_text()
+    from contract import SCHEMA, PREDICATES
+    guide = (Path('/app/pilot/reader.md').read_text()
+             + '\n\nPredicate rules from contract.py. Each value lists the family, allowed subject kinds, '
+             'allowed object kinds, and direction:\n' + canonical(PREDICATES)
+             + '\n\nValidator requirements: IDs must be unique across mentions, entities, claims, groups '
+             'and branches. Every referenced ID must exist. Every mention must belong to an entity or '
+             'a coreference candidate; every person/group entity needs at least one mention. '
+             'Do not repeat IDs within an ID list or repeat anchors within an evidence list. '
+             'If a claim references a branch-specific entity (including roles or voice), its scope '
+             'must include that group and only branches where the entity exists. '
+             'needed_context must be nonempty exactly when coverage is needs_context, otherwise empty.')
     key = os.environ['REVIEW_API_KEY']
     budget = request('https://openrouter.ai/api/v1/key', key)['data']
     if budget.get('limit') is None or budget['limit'] > KEY_CAP or budget.get('limit_reset'):
