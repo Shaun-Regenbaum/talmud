@@ -1,5 +1,6 @@
 """Two source-reading stores on captured real bundles: routing, import, read-back check, refusals."""
 import copy
+import gzip
 import json
 import sqlite3
 import sys
@@ -51,15 +52,24 @@ def app_fixture():
     view = compact_store.reader_view(v1_rows)
     differs = [stored(r) for r, old in zip(view, v1_rows) if r != old]
     assert {r['kind'] for r in differs} == {'passage', 'source_reading'}
-    source = copy.deepcopy(bundles[0]['job']['sources'][0])
-    # Constructed, not a reading: no captured reading has a split piece yet, so this checks only the key formula.
-    source['provenance']['piece'] = dict(index=2, of=3, raw_start=40, raw_end=40 + len(source['text']), segment_text_sha256='a' * 64)
+    # No captured reading covers a split piece yet. This is a real captured piece (Midrash Tanchuma,
+    # Tazria 8:1, piece 2 of 2) with the real name סנחריב in it. The key is computed on the whole piece.
+    # The app test gets the text cut to its first 700 code points, which still hold the name.
+    tiles = json.loads(gzip.decompress((Path(__file__).parent / 'fixtures/tile-ownership-real.json.gz').read_bytes()))
+    piece = tiles['other']['jobs'][1]['sources'][2]
+    assert piece['provenance']['piece']['index'] == 2 and piece['ref'] == 'Midrash Tanchuma midrash-tanchuma-tazria-8:1'
+    name = 'סַנְחֵרִיב'
+    start = piece['text'].index(name)
+    truncated = dict(copy.deepcopy(piece), text=piece['text'][:700])
     return dict(
         provenance='Actual validated v8 source readings 001 and 101 with ownership for this subset only. Not accepted facts. '
-                   'pieceKey is a constructed source that checks the occurrence key formula only.',
+                   'pieceKey uses a real captured piece whose text is cut short on purpose; see pieceKey.truncated.',
         storeBlock=stores.store_block('bavli'), v1=[stored(r) for r in v1_rows],
         stored=[stored(r) for r in compact_store.compact(v1_rows)], readerView=differs,
-        pieceKey=dict(source=source, start=1, end=3, key=importer.occurrence_key(source, 1, 3)))
+        pieceKey=dict(source=truncated, start=start, end=start + len(name), quote=name,
+                      truncated=dict(keptCodePoints=700, fullCodePoints=len(piece['text']), fullTextSha256=piece['sha256'],
+                                     note='Test input only: the text is cut short. The key does not depend on the text.'),
+                      key=importer.occurrence_key(piece, start, start + len(name))))
 
 
 def database(path=':memory:'):

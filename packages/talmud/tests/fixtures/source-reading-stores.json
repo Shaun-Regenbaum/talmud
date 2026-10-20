@@ -1,5 +1,5 @@
 {
- "provenance": "Actual validated v8 source readings 001 and 101 with ownership for this subset only. Not accepted facts. pieceKey is a constructed source that checks the occurrence key formula only.",
+ "provenance": "Actual validated v8 source readings 001 and 101 with ownership for this subset only. Not accepted facts. pieceKey uses a real captured piece whose text is cut short on purpose; see pieceKey.truncated.",
  "storeBlock": {
   "name": "bavli",
   "database": "talmud-source-readings-bavli",
@@ -893,35 +893,42 @@
  ],
  "pieceKey": {
   "source": {
-   "edition": "Wikisource Talmud Bavli",
+   "source_id": "s3",
+   "ref": "Midrash Tanchuma midrash-tanchuma-tazria-8:1",
+   "text": "וְהָיָה מֻטּוֹת כְּנָפָיו, הַמֻּטָּה הַזּוֹ שֶׁל תַּרְנְגוֹל אֶחָד מִן שִׁשִּׁים בִּכְנָפָיו. כֵּיוָן שֶׁבָּא לְהִכָּנֵס לִירוּשָׁלַיִם, אָמַר לְאוּכְלֻסָּיו, שִׁכְבוּ הַלַּיְלָה וּבַבֹּקֶר אָנוּ מַשְׁלִיכִים לְתוֹכָהּ אֶת הַטַּבָּעוֹת שֶׁלָּנוּ וְנִסְקֹל אוֹתָם בָּהֶם. הֱוֵי אוֹמֵר, אָיֹם וְנוֹרָא הוּא. מִמֶּנּוּ מִשְׁפָּטוֹ וּשְׂאֵתוֹ יֵצֵא, אֵלּוּ בָּנָיו, שֶׁכְּשֶׁעָלָה לִירוּשָׁלַיִם לְהַחֲרִיב אוֹתָהּ וְלֹא עָלְתָה בְיָדוֹ, שֶׁנֶּאֱמַר: וַיֵּצֵא מַלְאַךְ ה' וַיַּךְ בְּמַחֲנֵה אַשּׁוּר וְגוֹ' (מ״ב יט, לה), וּכְתִיב: וַיָּשָׁב בְּבֹשֶׁת פָּנִים לְאַרְצוֹ וַיָּבֹא בֵּית אֱלֹהָיו וְגוֹ' (דה״ב לב, כא). הֱוֵי אוֹמֵר, אָיֹם וְנוֹרָא הוּא, זֶה סַנְחֵרִיב. מִמֶּנּוּ מִשְׁפָּטוֹ וּשְׂאֵתוֹ יֵצֵא",
+   "sha256": "883fe71a1a389f6fa486a05ef9047c460da139c121c9b28a1800c94bc12ed6fd",
+   "edition": "Midrash Tanchuma -- Torat Emet",
    "provenance": {
-    "address": "11",
-    "captured_at": "2026-09-20T08:10:19Z",
-    "corpus": "bavli",
+    "segment_id": "midrash-aggadah|Midrash Tanchuma|midrash-tanchuma-tazria-8|1|Midrash Tanchuma -- Torat Emet",
+    "corpus": "midrash-aggadah",
+    "work": "Midrash Tanchuma",
+    "license": "Public Domain",
+    "version_source": "http://www.toratemetfreeware.com/online/a_root.html",
+    "captured_at": "2026-09-20T08:29:50Z",
+    "source_url": "https://www.sefaria.org/Midrash%20Tanchuma%2C%20Tazria%208",
+    "raw_file": "raw/midrash-aggadah/midrash-tanchuma/midrash-tanchuma-torat-emet/midrash-tanchuma-tazria-8.json",
+    "raw_file_sha256": "d052a2576ea132fb6b56a13ce63975258b77fa32406b150603dbcdff74dc67e1",
+    "unit_segments_sha256": "8eca803f120000d2303d0c1d58fcf26593860ee9bc67c46c8b9347b33805bf01",
+    "address": "1",
     "focal": false,
-    "license": "CC-BY-SA",
-    "raw_file": "raw/bavli/shabbat/wikisource-talmud-bavli/153b.json",
-    "raw_file_sha256": "e1a62d8bade72e530a08e1898be457314a2518d7e2e77e70f1a00d4e036f70d4",
-    "segment_id": "bavli|Shabbat|153b|11|Wikisource Talmud Bavli",
-    "source_url": "https://www.sefaria.org/Shabbat%20153b",
-    "unit_segments_sha256": "408181e452efab7785f735c9a9381d2f5129f7c637002185444c540649664f95",
-    "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
-    "work": "Shabbat",
     "piece": {
      "index": 2,
-     "of": 3,
-     "raw_start": 40,
-     "raw_end": 181,
-     "segment_text_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+     "of": 2,
+     "raw_start": 2998,
+     "raw_end": 5941,
+     "segment_text_sha256": "814db726d09beca3f956a5ed0d28aeab6b438a642b1340ccabfd0dd949d6ff02"
     }
-   },
-   "ref": "Shabbat 153b:11",
-   "sha256": "e77fb88671e8d329865afd09c271584ecda3a4bf6d07c7f42c184891942e6794",
-   "source_id": "s1",
-   "text": "מאי טעמא כיון דלית ליה היכירא אתי למיעבד עקירה והנחה סוף סוף כי מטא לביתיה אי אפשר דלא קאי פורתא וקמעייל מרשות הרבים לרה\"י דזריק ליה כלאחר יד"
+   }
   },
-  "start": 1,
-  "end": 3,
-  "key": "occ-29ac5d66c8ee015a8aef3708503e813e8a9958fdb9fc8c373a67fc8a6edb45b8"
+  "start": 650,
+  "end": 660,
+  "quote": "סַנְחֵרִיב",
+  "truncated": {
+   "keptCodePoints": 700,
+   "fullCodePoints": 2943,
+   "fullTextSha256": "883fe71a1a389f6fa486a05ef9047c460da139c121c9b28a1800c94bc12ed6fd",
+   "note": "Test input only: the text is cut short. The key does not depend on the text."
+  },
+  "key": "occ-cea4607e5f095c6ee9cbf50d9e649437fe18667795bfd740ca223c6075473a94"
  }
 }
