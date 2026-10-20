@@ -1,4 +1,5 @@
 import type { InitialReading } from './initial-readings';
+import type { PossibleEra } from './possible-era';
 
 export interface CheckedConnection {
   id: string;
@@ -71,6 +72,7 @@ export interface SourcePerson {
   /** The source-reading store revisions this card was read with, and the store that held it. */
   sourceRevisions?: Record<'bavli' | 'other', string | null>;
   sourceStore?: 'bavli' | 'other';
+  possibleEra?: PossibleEra;
   initialReading?: InitialReading;
   readingBasis?: InitialReading;
   readingBasisUnavailable?: boolean;

@@ -17,6 +17,7 @@ import shared_records
 import identity_proposals
 import reference_correction
 import source_bindings
+import possible_eras
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "identity"))
 from prepare_scan import build as build_namesake_changes
@@ -442,6 +443,11 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             if not shared:
                 raise ValueError('A source-reading store uses shared records')
             source_reading_stores.validate_changes(changes, rows, parent)
+        era_batch = 'possibleEraPolicy' in changes
+        if era_batch:
+            possible_eras.validate_changes(changes, rows)
+        elif any(item['kind'] == 'possible_era' or 'possible_era:' in json.dumps(item['data']) for item in changes['records']):
+            raise ValueError('Possible eras cannot become identity or dating evidence')
         binding_batch = 'sourceBindingManifests' in changes
         if binding_batch:
             source_bindings.validate_changes(changes, rows)
@@ -531,7 +537,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             key = item['record_id']
             if key in changed:
                 raise ValueError('Duplicate change: ' + key)
-            allowed = source_reading_stores.KINDS if store_batch else ALLOWED_KINDS | ({source_bindings.KIND} if binding_batch else set()) | (source_readings.KINDS if source_batch else set())
+            allowed = source_reading_stores.KINDS if store_batch else ALLOWED_KINDS | ({'possible_era'} if era_batch else set()) | ({source_bindings.KIND} if binding_batch else set()) | (source_readings.KINDS if source_batch else set())
             if (not correcting and item['kind'] not in allowed) or not key.startswith(item['kind'] + ':'):
                 raise ValueError('Unsupported review kind: ' + key)
             old = rows.get(key)
@@ -546,7 +552,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             elif 'referenceCorrection' in item['data']:
                 # Only a reference correction, rebuilt from the parent and the frozen map, may write this field.
                 raise ValueError('referenceCorrection is reserved for a reference correction: ' + key)
-            elif source_batch or binding_batch or store_batch:
+            elif source_batch or binding_batch or era_batch or store_batch:
                 if old or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
                     raise ValueError('Source readings must be new proposals: ' + key)
             elif item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry', 'identity_proposal', 'name_reading'}:
