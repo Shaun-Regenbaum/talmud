@@ -1,0 +1,637 @@
+{
+  "provenance": {
+    "detectorSha256": "c17945b133fefc0e7aa3635842e4f40d77388f76ffa12ed77110bf020cd8dd21",
+    "registrySha256": "2f581dadbc8f8e5e99c3d2731da71af4feb9b051358c8c15bc357442e18b72c7",
+    "slugSetSha256": "5e36fa8eed9ec3209c65aa8f1da2598fd3d95b33bd4ded2e7b68b94142bacd49"
+  },
+  "note": "Actual captured source units and unchanged detector output; no invented people or source text.",
+  "cases": [
+    {
+      "source": {
+        "source_id": "s1",
+        "ref": "Arakhin 2b:9",
+        "text": "ולרבינא דאמר מי שחציו עבד וחציו בן חורין פטור מן הראייה לאיתויי חיגר ביום ראשון ונתפשט ביום שני",
+        "sha256": "d8fe9b20a29bdf9682be3052042f6021bce68650eb8451d094d5238ca391d8e9",
+        "edition": "Wikisource Talmud Bavli",
+        "provenance": {
+          "segment_id": "bavli|Arakhin|2b|9|Wikisource Talmud Bavli",
+          "corpus": "bavli",
+          "work": "Arakhin",
+          "license": "CC-BY-SA",
+          "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+          "captured_at": "2026-09-20T08:24:24Z",
+          "source_url": "https://www.sefaria.org/Arakhin%202b",
+          "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+          "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+          "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+          "address": "9",
+          "focal": false
+        }
+      },
+      "hits": [
+        {
+          "wordIdx": 0,
+          "len": 1,
+          "surface": "ולרבינא",
+          "name": "רבינא",
+          "prefix": "ול",
+          "exactSlugs": ["ravina-(i)"],
+          "slugs": ["ravina-(i)", "rav-avina-bar-rav-huna", "ravina-b-amotzia"],
+          "unique": false,
+          "virtual": false,
+          "bareToken": true
+        }
+      ],
+      "normalized": "ולרבינא דאמר מי שחציו עבד וחציו בן חורין פטור מן הראייה לאיתויי חיגר ביום ראשון ונתפשט ביום שני",
+      "pointed": false
+    },
+    {
+      "source": {
+        "source_id": "s3",
+        "ref": "Arakhin 2b:16",
+        "text": "אלא מפני תיקון העולם כופין את רבו ועושה אותו בן חורין וכותב שטר על חצי דמיו וחזרו בית הלל להורות כדברי ב\"ש",
+        "sha256": "89b02598405b2a468adce9e34bd86a3905d950993fee4e5ada0c91283bdeefac",
+        "edition": "Wikisource Talmud Bavli",
+        "provenance": {
+          "segment_id": "bavli|Arakhin|2b|16|Wikisource Talmud Bavli",
+          "corpus": "bavli",
+          "work": "Arakhin",
+          "license": "CC-BY-SA",
+          "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+          "captured_at": "2026-09-20T08:24:24Z",
+          "source_url": "https://www.sefaria.org/Arakhin%202b",
+          "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/2b.json",
+          "raw_file_sha256": "a6717d9cb71ac29ac59e9899f4ca57a2b1b4f1d341a15a111c21126c7a3726fe",
+          "unit_segments_sha256": "242f9cf7a9adf1b22363657d60b4df7e2f0ce5b5541b54367b13bfd3a9c3f1ee",
+          "address": "16",
+          "focal": true
+        }
+      },
+      "hits": [
+        {
+          "wordIdx": 18,
+          "len": 1,
+          "surface": "הלל",
+          "name": "הלל",
+          "prefix": "",
+          "exactSlugs": ["hillel", "hallel"],
+          "slugs": ["hillel", "hallel"],
+          "unique": false,
+          "virtual": false,
+          "bareToken": true
+        }
+      ],
+      "normalized": "אלא מפני תיקון העולם כופין את רבו ועושה אותו בן חורין וכותב שטר על חצי דמיו וחזרו בית הלל להורות כדברי ב ש",
+      "pointed": false
+    },
+    {
+      "source": {
+        "source_id": "s5",
+        "ref": "Nedarim 32b:6",
+        "text": "אמר רבי זכריה משום רבי ישמעאל ביקש הקב\"ה להוציא כהונה משֵם שנאמר והוא כהן לאל עליון (בראשית יד, יח) כיוון שהקדים ברכת אברהם לברכת המקום הוציאה מאברהם",
+        "sha256": "d2da447f43b95c14079000c01dc3e98ce6c5653fa45fd09e14ab715dc4ffaddb",
+        "edition": "Wikisource Talmud Bavli",
+        "provenance": {
+          "segment_id": "bavli|Nedarim|32b|6|Wikisource Talmud Bavli",
+          "corpus": "bavli",
+          "work": "Nedarim",
+          "license": "CC-BY-SA",
+          "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+          "captured_at": "2026-09-20T08:20:01Z",
+          "source_url": "https://www.sefaria.org/Nedarim%2032b",
+          "raw_file": "raw/bavli/nedarim/wikisource-talmud-bavli/32b.json",
+          "raw_file_sha256": "9c62c66345d6a92d983697307a1bc393e4f9a9cacddd389597fd0ad5e73a2f3a",
+          "unit_segments_sha256": "e8a6836f49626075db7da996bbd0f1216f54c32f521e131840762feae8195174",
+          "address": "6",
+          "focal": false
+        }
+      },
+      "hits": [
+        {
+          "wordIdx": 1,
+          "len": 2,
+          "surface": "רבי זכריה",
+          "name": "רבי זכריה",
+          "prefix": "",
+          "exactSlugs": [],
+          "slugs": ["rabbi-zechariah-b-hakatzav", "rabbi-zechariah-b-avkulos"],
+          "unique": false,
+          "virtual": true,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 4,
+          "len": 2,
+          "surface": "רבי ישמעאל",
+          "name": "רבי ישמעאל",
+          "prefix": "",
+          "exactSlugs": ["rabbi-yishmael-b-elisha"],
+          "slugs": [
+            "rabbi-yishmael-b-elisha",
+            "rabbi-yishmael-b-yohanan-b-berokah",
+            "rabbi-yishmael-b-elisha-2",
+            "rabbi-yishmael-b-rabbi-yosei"
+          ],
+          "unique": false,
+          "virtual": false,
+          "bareToken": false
+        }
+      ],
+      "normalized": "אמר רבי זכריה משום רבי ישמעאל ביקש הקב ה להוציא כהונה משם שנאמר והוא כהן לאל עליון בראשית יד יח כיוון שהקדים ברכת אברהם לברכת המקום הוציאה מאברהם",
+      "pointed": true
+    },
+    {
+      "source": {
+        "source_id": "s1",
+        "ref": "Midrash Shmuel 1:1",
+        "text": "עת לעשות לה' הפרו תורתך (תהלים קי\"ט קכ\"ו). תני בשם רבי נתן מסרס את המקרא הפרו תורתך עת לעשות לה'. רבי פנחס ורבי חלקיה בשם רבי סימון העושה תורתו עתים [הרי זה] מפר ברית, ומה טעמיה הפרו תורתך [עת לעשות לה'], אמר רבי אלעזר מה התינוק הזה מבקש לאכול בכל שעות היום, כך אדם צריך להיות יגע בתורה בכל שעות היום. רבי יונה בשם רבי יהושע בר גזורא כל כרביא בישין וכרביא דאורייתא טבין, כל פיטטיא בישין ופיטטיא דאורייתא טבין. אמר רבי שמואל בר רב יצחק במגלת חסידים מצאו כתוב אם יום תעזבה יומים תעזבך. לשנים שיצאו אחד מטבריא ואחד מצפורי, ופגעו זה בזה בחדא משכנא, והסיחו זה עם זה, ופרשו [זה מזה], זה הלך מיל, וזה הלך מיל, נמצא זה רחוק מחברו שנים מיל, וזה רחוק מחברו שנים מיל, כך לאחד שהיה יושב ומצפה לאשה כל ימים שהוא תובע בה היא ממתנת לו, הפליג דעתו ממנה, היא הולכת ונשאת לאחר. אל תבוז כי זקנה אמך (משלי כ\"ג כ\"ב), הלל הזקן אמר בשעה דמבדרין כנוש, ובשעה דמכנשין בדר, הוא היה אומר ראית תורה חביבה בישראל והכל שמחין בה פזר, דכתיב יש מפזר ונוסף עוד (שם י\"א כ\"ד). תני רבי שמעון בן יוחי אם ראית ישראל שפשטו ידיהן מן התורה, עמוד ותחזק בה, ואת זכי ליטול שכר כולם, [מ\"ט הפרו תורתך עת לעשות לה']. אמר רבי יוסי בר רבי אבין אם נתישנה תורתך בפיך אל תבוז עליה. אמר רבי זעירא אם נזדקנה אומתך אל תבוז עליה, כשם שהיה עושה אלקנה כשהיה מדריך את ישראל ומעלה אותן לשילה, לא בדרך שהיה עולה בשנה זו היה עולה בשנה אחרת, אלא כל שנה ושנה היה עולה בדרך אחרת, בשביל לשמע את ישראל לשילה, לפיכך הכתוב מיחסו, ויהי איש אחד מן הרמתים צופים מהר אפרים ושמו אלקנה בן ירוחם בן אליהוא בן תחו בן צוף אפרתי (שמואל א’ א' א').",
+        "sha256": "662d8a734e690d06935a868bb4a2a7b38d4aecd7f4774ef27335b45cf2c5c3b5",
+        "edition": "Krakow, 1893",
+        "provenance": {
+          "segment_id": "midrash-aggadah|Midrash Shmuel|1|1|Krakow, 1893",
+          "corpus": "midrash-aggadah",
+          "work": "Midrash Shmuel",
+          "license": "Public Domain",
+          "version_source": "https://www.nli.org.il/he/books/NNL_ALEPH001987598/NLI",
+          "captured_at": "2026-09-20T08:27:23Z",
+          "source_url": "https://www.sefaria.org/Midrash%20Shmuel%201",
+          "raw_file": "raw/midrash-aggadah/midrash-shmuel/krakow-1893/1.json",
+          "raw_file_sha256": "f3a5d3f1a5dd304ce72be523cd6f622f80427c4c21aa022338a8dfb809ba053c",
+          "unit_segments_sha256": "fd37afe9033ab26d33f6bb14814ff375f1140fc97bdcd00aa7d60e837959a875",
+          "address": "1",
+          "focal": false
+        }
+      },
+      "hits": [
+        {
+          "wordIdx": 12,
+          "len": 2,
+          "surface": "רבי נתן",
+          "name": "רבי נתן",
+          "prefix": "",
+          "exactSlugs": ["rabbi-natan-habavli"],
+          "slugs": ["rabbi-natan-habavli"],
+          "unique": true,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 22,
+          "len": 2,
+          "surface": "רבי פנחס",
+          "name": "רבי פנחס",
+          "prefix": "",
+          "exactSlugs": ["rabbi-pinchas"],
+          "slugs": ["rabbi-pinchas", "rabbi-pinchas-b-yair", "rabbi-pinchas-b-hama"],
+          "unique": false,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 24,
+          "len": 2,
+          "surface": "ורבי חלקיה",
+          "name": "רבי חלקיה",
+          "prefix": "ו",
+          "exactSlugs": ["rabbi-hilkiah"],
+          "slugs": ["rabbi-hilkiah"],
+          "unique": true,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 27,
+          "len": 2,
+          "surface": "רבי סימון",
+          "name": "רבי סימון",
+          "prefix": "",
+          "exactSlugs": ["rabbi-shimon-b-pazzi-2"],
+          "slugs": ["rabbi-shimon-b-pazzi-2"],
+          "unique": true,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 44,
+          "len": 2,
+          "surface": "רבי אלעזר",
+          "name": "רבי אלעזר",
+          "prefix": "",
+          "exactSlugs": [],
+          "slugs": [
+            "rabbi-elazar-b-shamua",
+            "rabbi-elazar-b-azaryah",
+            "rabbi-elazar-b-shimon",
+            "rabbi-elazar-b-yose",
+            "rabbi-elazar-b-arakh",
+            "rabbi-elazar-b-pedat",
+            "rabbi-elazar-b-parta",
+            "rabbi-elazar-b-hananiah",
+            "rabbi-elazar-b-rabbi-tzadok",
+            "rabbi-elazar-b-matya",
+            "rabbi-elazar-ha-moda-i",
+            "rabbi-elazar-b-yehuda-ish-birtota",
+            "rabbi-elazar-b-chisma",
+            "rabbi-elazar-b-rabbi-shimon",
+            "rabbi-eliezer-hakappar"
+          ],
+          "unique": false,
+          "virtual": true,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 63,
+          "len": 2,
+          "surface": "רבי יונה",
+          "name": "רבי יונה",
+          "prefix": "",
+          "exactSlugs": ["rabbi-yonah"],
+          "slugs": ["rabbi-yonah", "rabbi-yona-of-bostra"],
+          "unique": false,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 66,
+          "len": 2,
+          "surface": "רבי יהושע",
+          "name": "רבי יהושע",
+          "prefix": "",
+          "exactSlugs": [],
+          "slugs": [
+            "rabbi-yehoshua-b-levi",
+            "rabbi-yehoshua-b-hananiah",
+            "rabbi-yehoshua-b-kapusai",
+            "rabbi-yehoshua-b-korcha",
+            "rabbi-yehoshua-ha-garsi",
+            "rabbi-yehoshua-onya",
+            "rabbi-yehoshua-of-sakhnin"
+          ],
+          "unique": false,
+          "virtual": true,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 83,
+          "len": 2,
+          "surface": "רבי שמואל",
+          "name": "רבי שמואל",
+          "prefix": "",
+          "exactSlugs": ["rebbi-samuel"],
+          "slugs": ["rebbi-samuel", "rabbi-shmuel-b-nahmani", "rabbi-shmuel-bar-nachmani"],
+          "unique": false,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 86,
+          "len": 2,
+          "surface": "רב יצחק",
+          "name": "רב יצחק",
+          "prefix": "",
+          "exactSlugs": ["rav-yitzchak-of-peroz-shapur"],
+          "slugs": [
+            "rav-yitzchak-of-peroz-shapur",
+            "rabbi-yitzchak-b-avdimi",
+            "rav-yitzchak-b-shmuel-b-marta",
+            "rav-yitzchak-b-ashian",
+            "rav-yitzchak-b-yehuda"
+          ],
+          "unique": false,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 163,
+          "len": 1,
+          "surface": "הלל",
+          "name": "הלל",
+          "prefix": "",
+          "exactSlugs": ["hillel", "hallel"],
+          "slugs": ["hillel", "hallel"],
+          "unique": false,
+          "virtual": false,
+          "bareToken": true
+        },
+        {
+          "wordIdx": 194,
+          "len": 2,
+          "surface": "רבי שמעון",
+          "name": "רבי שמעון",
+          "prefix": "",
+          "exactSlugs": [],
+          "slugs": [
+            "shimon-bar-yochai",
+            "rabbi-shimon-b-lakish",
+            "rabbi-shimon-b-elazar",
+            "rabbi-shimon-b-pazzi",
+            "rabbi-shimon-b-yehudah",
+            "rabbi-shimon-b-rabbi",
+            "shimon-b-chalafta",
+            "rabbi-shimon-ish-hamitzpeh",
+            "rabbi-shimon-b-hasgan",
+            "rabbi-shimon-shezuri",
+            "rabbi-shimon-b-akshia",
+            "rabbi-shimon-bar-abba",
+            "rabbi-shimon-chasida",
+            "rabbi-shimon-b-elikim",
+            "rabbi-shimon-b-karsana"
+          ],
+          "unique": false,
+          "virtual": true,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 221,
+          "len": 2,
+          "surface": "רבי יוסי",
+          "name": "רבי יוסי",
+          "prefix": "",
+          "exactSlugs": ["rabbi-yose-b-chalafta"],
+          "slugs": [
+            "rabbi-yose-b-chalafta",
+            "rabbi-yose-b-yehudah",
+            "rebbi-yose-b-rebbu-abun",
+            "rabbi-yose-b-kippar",
+            "rabbi-yose-b-kisma",
+            "rabbi-yosei-ha-kohen",
+            "rabbi-yosei-b-dormaskit",
+            "rabbi-yosei-b-kisma",
+            "rabbi-yosei-ben-ha-chotef-efrati",
+            "rabbi-yosei-b-zimra",
+            "rabbi-yosei-b-rabbi-yehuda",
+            "rabbi-yosei-b-yehuda-ish-kfar-habavli",
+            "rabbi-yosei-b-shaul",
+            "rabbi-yosei-ha-glila",
+            "rabbi-yosei-of-yokrat",
+            "rabbi-yosei-tzidonia",
+            "rabbi-yosei-berabbi-bun",
+            "rabbi-yosei-bar-zevida"
+          ],
+          "unique": false,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 224,
+          "len": 2,
+          "surface": "רבי אבין",
+          "name": "רבי אבין",
+          "prefix": "",
+          "exactSlugs": ["rabbi-avin-(ravin)"],
+          "slugs": ["rabbi-avin-(ravin)", "rebbi-abun-b-rebbi-hiyya", "rav-avin-naggara"],
+          "unique": false,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 234,
+          "len": 4,
+          "surface": "רבי זעירא אם נזדקנה",
+          "name": "רבי",
+          "prefix": "",
+          "exactSlugs": [],
+          "slugs": [],
+          "unique": false,
+          "bareToken": false,
+          "unlisted": true,
+          "unknownName": "רבי זעירא אם נזדקנה"
+        },
+        {
+          "wordIdx": 298,
+          "len": 1,
+          "surface": "שמואל",
+          "name": "שמואל",
+          "prefix": "",
+          "exactSlugs": ["shmuel-(amora)"],
+          "slugs": ["shmuel-(amora)"],
+          "unique": true,
+          "virtual": false,
+          "bareToken": true
+        }
+      ],
+      "normalized": "עת לעשות לה הפרו תורתך תהלים קי ט קכ ו תני בשם רבי נתן מסרס את המקרא הפרו תורתך עת לעשות לה רבי פנחס ורבי חלקיה בשם רבי סימון העושה תורתו עתים הרי זה מפר ברית ומה טעמיה הפרו תורתך עת לעשות לה אמר רבי אלעזר מה התינוק הזה מבקש לאכול בכל שעות היום כך אדם צריך להיות יגע בתורה בכל שעות היום רבי יונה בשם רבי יהושע בר גזורא כל כרביא בישין וכרביא דאורייתא טבין כל פיטטיא בישין ופיטטיא דאורייתא טבין אמר רבי שמואל בר רב יצחק במגלת חסידים מצאו כתוב אם יום תעזבה יומים תעזבך לשנים שיצאו אחד מטבריא ואחד מצפורי ופגעו זה בזה בחדא משכנא והסיחו זה עם זה ופרשו זה מזה זה הלך מיל וזה הלך מיל נמצא זה רחוק מחברו שנים מיל וזה רחוק מחברו שנים מיל כך לאחד שהיה יושב ומצפה לאשה כל ימים שהוא תובע בה היא ממתנת לו הפליג דעתו ממנה היא הולכת ונשאת לאחר אל תבוז כי זקנה אמך משלי כ ג כ ב הלל הזקן אמר בשעה דמבדרין כנוש ובשעה דמכנשין בדר הוא היה אומר ראית תורה חביבה בישראל והכל שמחין בה פזר דכתיב יש מפזר ונוסף עוד שם י א כ ד תני רבי שמעון בן יוחי אם ראית ישראל שפשטו ידיהן מן התורה עמוד ותחזק בה ואת זכי ליטול שכר כולם מ ט הפרו תורתך עת לעשות לה אמר רבי יוסי בר רבי אבין אם נתישנה תורתך בפיך אל תבוז עליה אמר רבי זעירא אם נזדקנה אומתך אל תבוז עליה כשם שהיה עושה אלקנה כשהיה מדריך את ישראל ומעלה אותן לשילה לא בדרך שהיה עולה בשנה זו היה עולה בשנה אחרת אלא כל שנה ושנה היה עולה בדרך אחרת בשביל לשמע את ישראל לשילה לפיכך הכתוב מיחסו ויהי איש אחד מן הרמתים צופים מהר אפרים ושמו אלקנה בן ירוחם בן אליהוא בן תחו בן צוף אפרתי שמואל א’ א א",
+      "pointed": false
+    },
+    {
+      "source": {
+        "source_id": "s2",
+        "ref": "Midrash Shmuel 1:2",
+        "text": "זכר צדיק לברכה ושם רשעים ירקב (משלי י' ז'). אמר רבי יצחק כל מי שהוא מזכיר צדיק ואינו מברכו עובר בעשה, דכתיב זכר צדיק לברכה, וכל מי שהוא מזכיר רשע ואינו מקללו עובר בעשה, דכתיב ושם רשעים ירקב. אמר ר' יצחק הרשעים דומין לכלי קוריס, אם אין אדם משתמש בהן מרקיבין הן, כך ראית מימיך אדם קורא לבנו פרעה סיסרא סנחריב, מהו קורא אותו, אברהם יצחק יעקב. רבי ברכיה ורבי חלבו בשם רבי שמואל בר נחמן, רבי יונתן כשהיה מגיע לפסוק הזה, אשר הגלה מירושלים עם הגולה אשר הגלתה עם יכניה מלך יהודה אשר הגלה נבוכדנצר מלך בבל (אסתר ב' ו'), הוה אמר נבוכדנצר מלך בבל שחיק עצמות, ולמה לא הוה אמר כן בירמיהו, אלא כל נבוכדנצר שבירמיהו חי, ברם הכא מת היה, רב אמר ארור המן ארורים בניו. רבי פנחס אמר חרבונה זכור לטוב. רבי ברכיה בשם ר' לוי מצינו כשהקב\"ה מזכיר את ישראל מברכן, ומה טעמיה ה' זכרנו יברך (תהלים קט\"ו י\"ב), אין לי אלא כל ישראל, כל אחד ואחד מנין, אמר רב הונא בשם רבי אבין וה' אמר המכסה אני מאברהם וגו' (בראשית י\"ח י\"ז), לא הוה צריך קרייא למימרא, אלא ויאמר ה' זעקת סדום ועמורה כי רבה וגו' (שם שם כ'), אלא אמר הקב\"ה מה אני מזכיר את הצדיק ואיני מברכו, אלא אברכו ואחר כך אודיעו, הדא הוא דכתיב ואברהם היו יהיה לגוי גדול ועצום ונברכו בו וגו' (שם שם י\"ח), מה כתיב אחריו ויאמר ה' זעקת סדום ועמורה וגו'.",
+        "sha256": "8b7f5d463b89889895f313067d514411b512da0455c31d6747212633c2f0b22c",
+        "edition": "Krakow, 1893",
+        "provenance": {
+          "segment_id": "midrash-aggadah|Midrash Shmuel|1|2|Krakow, 1893",
+          "corpus": "midrash-aggadah",
+          "work": "Midrash Shmuel",
+          "license": "Public Domain",
+          "version_source": "https://www.nli.org.il/he/books/NNL_ALEPH001987598/NLI",
+          "captured_at": "2026-09-20T08:27:23Z",
+          "source_url": "https://www.sefaria.org/Midrash%20Shmuel%201",
+          "raw_file": "raw/midrash-aggadah/midrash-shmuel/krakow-1893/1.json",
+          "raw_file_sha256": "f3a5d3f1a5dd304ce72be523cd6f622f80427c4c21aa022338a8dfb809ba053c",
+          "unit_segments_sha256": "fd37afe9033ab26d33f6bb14814ff375f1140fc97bdcd00aa7d60e837959a875",
+          "address": "2",
+          "focal": false
+        }
+      },
+      "hits": [
+        {
+          "wordIdx": 10,
+          "len": 2,
+          "surface": "רבי יצחק",
+          "name": "רבי יצחק",
+          "prefix": "",
+          "exactSlugs": ["rabbi-yitzhak"],
+          "slugs": [
+            "rabbi-yitzhak",
+            "rabbi-yitzhak-nappaha",
+            "rabbi-yitzhak-b-nahman",
+            "rabbi-yitzhak-b-elazar",
+            "rabbi-yitzchak-of-magdala",
+            "rabbi-yitzchak-bar-abba",
+            "rabbi-yitzchak-atushia"
+          ],
+          "unique": false,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 39,
+          "len": 2,
+          "surface": "רבי יצחק",
+          "name": "רבי יצחק",
+          "prefix": "",
+          "exactSlugs": ["rabbi-yitzhak"],
+          "slugs": [
+            "rabbi-yitzhak",
+            "rabbi-yitzhak-nappaha",
+            "rabbi-yitzhak-b-nahman",
+            "rabbi-yitzhak-b-elazar",
+            "rabbi-yitzchak-of-magdala",
+            "rabbi-yitzchak-bar-abba",
+            "rabbi-yitzchak-atushia"
+          ],
+          "unique": false,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 67,
+          "len": 2,
+          "surface": "רבי ברכיה",
+          "name": "רבי ברכיה",
+          "prefix": "",
+          "exactSlugs": ["rabbi-berekhyah"],
+          "slugs": ["rabbi-berekhyah"],
+          "unique": true,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 69,
+          "len": 2,
+          "surface": "ורבי חלבו",
+          "name": "רבי חלבו",
+          "prefix": "ו",
+          "exactSlugs": ["rabbi-helbo"],
+          "slugs": ["rabbi-helbo"],
+          "unique": true,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 72,
+          "len": 2,
+          "surface": "רבי שמואל",
+          "name": "רבי שמואל",
+          "prefix": "",
+          "exactSlugs": ["rebbi-samuel"],
+          "slugs": ["rebbi-samuel", "rabbi-shmuel-b-nahmani", "rabbi-shmuel-bar-nachmani"],
+          "unique": false,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 76,
+          "len": 2,
+          "surface": "רבי יונתן",
+          "name": "רבי יונתן",
+          "prefix": "",
+          "exactSlugs": ["rabbi-yonatan"],
+          "slugs": ["rabbi-yonatan", "rabbi-yonatan-b-harkinas", "rabbi-yonatan-b-elazar"],
+          "unique": false,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 123,
+          "len": 1,
+          "surface": "רב",
+          "name": "רב",
+          "prefix": "",
+          "exactSlugs": ["rav"],
+          "slugs": ["rav"],
+          "unique": true,
+          "virtual": false,
+          "bareToken": true
+        },
+        {
+          "wordIdx": 129,
+          "len": 2,
+          "surface": "רבי פנחס",
+          "name": "רבי פנחס",
+          "prefix": "",
+          "exactSlugs": ["rabbi-pinchas"],
+          "slugs": ["rabbi-pinchas", "rabbi-pinchas-b-yair", "rabbi-pinchas-b-hama"],
+          "unique": false,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 135,
+          "len": 2,
+          "surface": "רבי ברכיה",
+          "name": "רבי ברכיה",
+          "prefix": "",
+          "exactSlugs": ["rabbi-berekhyah"],
+          "slugs": ["rabbi-berekhyah"],
+          "unique": true,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 138,
+          "len": 2,
+          "surface": "רבי לוי",
+          "name": "רבי לוי",
+          "prefix": "",
+          "exactSlugs": ["rabbi-levi"],
+          "slugs": ["rabbi-levi"],
+          "unique": true,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 167,
+          "len": 2,
+          "surface": "רב הונא",
+          "name": "רב הונא",
+          "prefix": "",
+          "exactSlugs": ["rav-huna"],
+          "slugs": [
+            "rav-huna",
+            "rabbi-huna-kama",
+            "rav-huna-son-of-rav-ika",
+            "rav-huna-bar-hiyya",
+            "rav-huna-b-hinena",
+            "rav-huna-b-yehuda",
+            "rav-huna-b-rav-yehoshua",
+            "rav-huna-b-natan",
+            "rav-huna-b-manoach"
+          ],
+          "unique": false,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 170,
+          "len": 2,
+          "surface": "רבי אבין",
+          "name": "רבי אבין",
+          "prefix": "",
+          "exactSlugs": ["rabbi-avin-(ravin)"],
+          "slugs": ["rabbi-avin-(ravin)", "rebbi-abun-b-rebbi-hiyya", "rav-avin-naggara"],
+          "unique": false,
+          "virtual": false,
+          "bareToken": false
+        },
+        {
+          "wordIdx": 195,
+          "len": 1,
+          "surface": "רבה",
+          "name": "רבה",
+          "prefix": "",
+          "exactSlugs": ["rabbah-b-nachmani"],
+          "slugs": [
+            "rabbah-b-nachmani",
+            "rabbah-bar-bar-chanah",
+            "rabbah-b-rav-huna",
+            "rav-rabbah-b-avuha",
+            "rav-rabbah-b-yirmeyah",
+            "rabbah-bar-nahmani",
+            "rav-rabba-b-ulla",
+            "rabbah-bar-rav-hanan",
+            "rav-rabbah-tosfaah",
+            "rabbah-yosei"
+          ],
+          "unique": false,
+          "virtual": false,
+          "bareToken": true
+        }
+      ],
+      "normalized": "זכר צדיק לברכה ושם רשעים ירקב משלי י ז אמר רבי יצחק כל מי שהוא מזכיר צדיק ואינו מברכו עובר בעשה דכתיב זכר צדיק לברכה וכל מי שהוא מזכיר רשע ואינו מקללו עובר בעשה דכתיב ושם רשעים ירקב אמר רבי יצחק הרשעים דומין לכלי קוריס אם אין אדם משתמש בהן מרקיבין הן כך ראית מימיך אדם קורא לבנו פרעה סיסרא סנחריב מהו קורא אותו אברהם יצחק יעקב רבי ברכיה ורבי חלבו בשם רבי שמואל בר נחמן רבי יונתן כשהיה מגיע לפסוק הזה אשר הגלה מירושלים עם הגולה אשר הגלתה עם יכניה מלך יהודה אשר הגלה נבוכדנצר מלך בבל אסתר ב ו הוה אמר נבוכדנצר מלך בבל שחיק עצמות ולמה לא הוה אמר כן בירמיהו אלא כל נבוכדנצר שבירמיהו חי ברם הכא מת היה רב אמר ארור המן ארורים בניו רבי פנחס אמר חרבונה זכור לטוב רבי ברכיה בשם רבי לוי מצינו כשהקב ה מזכיר את ישראל מברכן ומה טעמיה ה זכרנו יברך תהלים קט ו י ב אין לי אלא כל ישראל כל אחד ואחד מנין אמר רב הונא בשם רבי אבין וה אמר המכסה אני מאברהם וגו בראשית י ח י ז לא הוה צריך קרייא למימרא אלא ויאמר ה זעקת סדום ועמורה כי רבה וגו שם שם כ אלא אמר הקב ה מה אני מזכיר את הצדיק ואיני מברכו אלא אברכו ואחר כך אודיעו הדא הוא דכתיב ואברהם היו יהיה לגוי גדול ועצום ונברכו בו וגו שם שם י ח מה כתיב אחריו ויאמר ה זעקת סדום ועמורה וגו",
+      "pointed": false
+    }
+  ]
+}

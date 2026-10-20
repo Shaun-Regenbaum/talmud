@@ -35,6 +35,16 @@
       "reason": "Plan and method documents for the sage study. They describe what to build and link to the published results; they hold no measured findings of their own.",
       "sha256": "8b7d033875b2692f66f8fc0931c7263f7bb8f0c2bfc72faaa421082d6bf91c69"
     },
+    "research/sage-network/candidate_screening/README.md": {
+      "disposition": "excluded",
+      "reason": "Engineering contract for an offline candidate guard adapter; measured census remains in private review artifacts.",
+      "sha256": "e3abe8dbe40883e3b02271341d20e3602b41f464e8993dc72722e4d4176a4cb5"
+    },
+    "research/sage-network/candidate_screening/actual-detector-cases.json": {
+      "disposition": "excluded",
+      "reason": "Actual captured source and detector outputs used only as regression fixtures for exact anchors and conservative holds.",
+      "sha256": "020f558c173cc162f98ed348250dd6917f963443d4e5f941ab98c624ac8bb4c6"
+    },
     "research/sage-network/compact_source/README.md": {
       "disposition": "excluded",
       "reason": "Engineering instructions for an isolated source-reading recipe and validator; measured benchmark results are outside the repository.",
