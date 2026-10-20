@@ -306,12 +306,14 @@ def validate_name_reading(key, row, data, rows, previous=None):
                 claim.get('readerVerdict') in ('unc', 'bad') and not (claim.get('readerNote') or '').strip()):
             raise ValueError('Claim reading needs its reason: ' + key)
     # A correction is made in the case file itself; the replaced file is kept by the reader.
-    # The wrong claim stays as written but is no longer carried, and what the text does say
+    # It may fix the reading (a registry row, a missing note) without touching any claim.
+    # A wrong claim stays as written but is no longer carried, and what the text does say
     # sits beside it as a sourced proposal. Unnamed people stay unnamed.
     correction = data.get('correction')
     corrected = [claim for claim in claims if 'correctedBy' in claim or 'correctedEvent' in claim]
     if (correction is not None or corrected) and (
-            not isinstance(correction, dict) or not corrected or not str(correction.get('reviewId') or '').strip() or
+            not isinstance(correction, dict) or set(correction) != {'reviewId', 'reviewFile', 'supersedesCaseFileSha256', 'supersededCopy'} or
+            any(not isinstance(correction[k], str) or not correction[k].strip() for k in ('reviewId', 'reviewFile', 'supersededCopy')) or
             not re.fullmatch(r'[0-9a-f]{64}', str(correction.get('supersedesCaseFileSha256'))) or
             correction['supersedesCaseFileSha256'] == data.get('caseFileSha256')):
         raise ValueError('Correction is not bound to the file it replaced: ' + key)

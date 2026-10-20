@@ -1,7 +1,7 @@
 {
   "provenance": {
-    "revision": "sage-graph-f15358515d466f49b619",
-    "note": "Verbatim live records and four frozen first readings (missing-names v18, chunk-003). Test data only; readings are proposals, not approved identities."
+    "revision": "sage-graph-855ff7af6dbec1955fc6",
+    "note": "Verbatim live records and five frozen first readings (missing-names v18, chunk-003 and chunk-007). Test data only; readings are proposals, not approved identities."
   },
   "records": [
     {
@@ -1615,6 +1615,459 @@
         "quoteLocation": "passage"
       },
       "payloadSha256": "90bcf2e57564e3b0b35d8ffa4689e33951104b96b57acb012c799785a085146b"
+    },
+    {
+      "record_id": "passage:b028-p3",
+      "kind": "passage",
+      "passage_id": "b028-p3",
+      "ref": "Jerusalem Talmud Pesachim 1:8:11",
+      "subject_id": null,
+      "object_id": null,
+      "authority": "source",
+      "decision": null,
+      "data": {
+        "claims": [
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s0",
+            "kind": "quoted_teaching",
+            "note": "No audience is specified.",
+            "quote": "ר' אבהו בשם ר' לעזר אתיא דרבי יודה כרבן גמליאל. דרבנין כרבי אליעזר דר' שמעון כר' יושוע",
+            "quoteLocation": "passage",
+            "speaker": "A",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s1",
+            "kind": "taught",
+            "note": "The teaching is attributed through ר' אבהו; this is not a separate narrated conversation.",
+            "quote": "בשם ר' לעזר אתיא דרבי יודה כרבן גמליאל. דרבנין כרבי אליעזר דר' שמעון כר' יושוע",
+            "quoteLocation": "passage",
+            "speaker": "B",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "none",
+            "addressee_basis": "context",
+            "field": "speech",
+            "id": "s2",
+            "kind": "quoted_teaching",
+            "note": "The transmitting voice is unnamed; the stated source is ר\"ש.",
+            "quote": "תני בשם ר\"ש יקיז אף על פי שהוא מתכוין לעשות בו מום",
+            "quoteLocation": "passage",
+            "speaker": "I",
+            "speaker_basis": "text"
+          },
+          {
+            "addressee": "L",
+            "addressee_basis": "text",
+            "field": "speech",
+            "id": "s3",
+            "kind": "taught",
+            "note": "קומי explicitly places the speech before רבי זעירא; it does not establish a teacher–student relation.",
+            "quote": "א\"ר בון בר חייה קומי רבי זעירא תיפתר בקדשים שהוא חייב באחריותן כר\"ש",
+            "quoteLocation": "passage",
+            "speaker": "J",
+            "speaker_basis": "text"
+          },
+          {
+            "a": "A",
+            "b": "B",
+            "basis": "text",
+            "field": "relations",
+            "id": "r0",
+            "note": "Transmission attribution only.",
+            "quote": "ר' אבהו בשם ר' לעזר",
+            "quoteLocation": "passage",
+            "relation": "other:reports_in_name_of"
+          },
+          {
+            "a": "C",
+            "b": "D",
+            "basis": "text",
+            "field": "relations",
+            "id": "r1",
+            "note": "Comparison of opinions, not evidence of personal contact.",
+            "quote": "אתיא דרבי יודה כרבן גמליאל",
+            "quoteLocation": "passage",
+            "relation": "other:opinion_aligned_with"
+          },
+          {
+            "a": "E",
+            "b": "F",
+            "basis": "text",
+            "field": "relations",
+            "id": "r2",
+            "note": "",
+            "quote": "דרבנין כרבי אליעזר",
+            "quoteLocation": "passage",
+            "relation": "other:opinion_aligned_with"
+          },
+          {
+            "a": "G",
+            "b": "H",
+            "basis": "text",
+            "field": "relations",
+            "id": "r3",
+            "note": "",
+            "quote": "דר' שמעון כר' יושוע",
+            "quoteLocation": "passage",
+            "relation": "other:opinion_aligned_with"
+          },
+          {
+            "a": "I",
+            "b": "H",
+            "basis": "context",
+            "field": "relations",
+            "id": "r4",
+            "note": "The alignment belongs to the teaching attributed to ר\"ש.",
+            "quote": "תני בשם ר\"ש יקיז אף על פי שהוא מתכוין לעשות בו מום ואתיא כר' יושוע אחרייא",
+            "quoteLocation": "passage",
+            "relation": "other:opinion_aligned_with"
+          },
+          {
+            "a": "J",
+            "b": "K",
+            "basis": "text",
+            "field": "relations",
+            "id": "r5",
+            "note": "",
+            "quote": "א\"ר בון בר חייה",
+            "quoteLocation": "passage",
+            "relation": "child_of"
+          },
+          {
+            "a": "J",
+            "b": "L",
+            "basis": "text",
+            "field": "relations",
+            "id": "r6",
+            "note": "A narrated setting for speech.",
+            "quote": "א\"ר בון בר חייה קומי רבי זעירא",
+            "quoteLocation": "passage",
+            "relation": "in_the_presence_of"
+          }
+        ],
+        "id": "b028-p3",
+        "people": [
+          {
+            "id": "A",
+            "label": "ר' אבהו",
+            "named": "name",
+            "quote": "ר' אבהו",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "B",
+            "label": "ר' לעזר",
+            "named": "name",
+            "quote": "ר' לעזר",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "C",
+            "label": "רבי יודה",
+            "named": "name",
+            "quote": "דרבי יודה",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "D",
+            "label": "רבן גמליאל",
+            "named": "name",
+            "quote": "כרבן גמליאל",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "E",
+            "label": "רבנין",
+            "named": "group",
+            "quote": "דרבנין",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "F",
+            "label": "רבי אליעזר",
+            "named": "name",
+            "quote": "כרבי אליעזר",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "G",
+            "label": "ר' שמעון",
+            "named": "name",
+            "quote": "דר' שמעון",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "H",
+            "label": "ר' יושוע",
+            "named": "name",
+            "quote": "כר' יושוע",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "I",
+            "label": "ר\"ש",
+            "named": "name",
+            "quote": "תני בשם ר\"ש",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "J",
+            "label": "ר' בון בר חייה",
+            "named": "name",
+            "quote": "א\"ר בון בר חייה",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "K",
+            "label": "חייה",
+            "named": "father_of_named",
+            "quote": "בר חייה",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "L",
+            "label": "רבי זעירא",
+            "named": "name",
+            "quote": "קומי רבי זעירא",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "M",
+            "label": "The hypothetical person letting blood",
+            "named": "pronoun_only",
+            "quote": "יקיז אף על פי שהוא מתכוין לעשות בו מום",
+            "quoteLocation": "passage"
+          },
+          {
+            "id": "N",
+            "label": "The hypothetical person responsible for offerings",
+            "named": "pronoun_only",
+            "quote": "שהוא חייב באחריותן",
+            "quoteLocation": "passage"
+          }
+        ],
+        "ref": "Jerusalem Talmud Pesachim 1:8:11",
+        "source": {
+          "after": "ר' אבהו בשם ר\"ש בן לקיש טעמא דר' יודה (דברים יב) לא תאכלנו על הארץ תשפכנו כמים לא היתרתי לך את דמו אלא בשפיכה. התיב ר' אבא מרי אחוה דרבי יוסה והכתיב אף בפסולי המוקדשין כן לא תאכלנו על הארץ תשפכנו כמים. אמר ר' חייה בר אחא להכשיר אית אמרת. מה המים מכשירין אף הדם יהא מכשיר.",
+          "before": "תמן תנינן הבכור שאחזו דם אפילו מת אין מקיזין לו את הדם דברי ר' יהודה. וחכ\"א יקיז ובלבד שלא יעשה בו מום אם עשה בו מום הרי זה לא ישחוט עליו. ר' שמעון אומר יקיז אע\"פ שהוא עושה בו מום.",
+          "passage": "ר' אבהו בשם ר' לעזר אתיא דרבי יודה כרבן גמליאל. דרבנין כרבי אליעזר דר' שמעון כר' יושוע תני בשם ר\"ש יקיז אף על פי שהוא מתכוין לעשות בו מום ואתיא כר' יושוע אחרייא. א\"ר בון בר חייה קומי רבי זעירא תיפתר בקדשים שהוא חייב באחריותן כר\"ש."
+        },
+        "unclear": [
+          "ר\"ש is not expressly equated with the written ר' שמעון.",
+          "ר' לעזר is not equated with רבי אליעזר.",
+          "The transmitter in תני בשם ר\"ש is unnamed.",
+          "אחרייא qualifies the reference to ר' יושוע; it does not securely introduce another person.",
+          "The hypothetical bloodletter and person liable for offerings need not be distinct people."
+        ]
+      },
+      "payloadSha256": "1195debda7a0e8959b3fcca668ea40315a7bbc0971eb123e15fe5084bd65248e"
+    },
+    {
+      "record_id": "person:b028-p3/H",
+      "kind": "person",
+      "passage_id": "b028-p3",
+      "ref": "Jerusalem Talmud Pesachim 1:8:11",
+      "subject_id": null,
+      "object_id": null,
+      "authority": "source",
+      "decision": null,
+      "data": {
+        "id": "H",
+        "label": "ר' יושוע",
+        "named": "name",
+        "quote": "כר' יושוע",
+        "quoteLocation": "passage"
+      },
+      "payloadSha256": "d2335026b205e3b5468275a84713d592aa24c446cdebc886dfaece58b976dff0"
+    },
+    {
+      "record_id": "claim:b028-p3/r3",
+      "kind": "claim",
+      "passage_id": "b028-p3",
+      "ref": "Jerusalem Talmud Pesachim 1:8:11",
+      "subject_id": "b028-p3/G",
+      "object_id": "b028-p3/H",
+      "authority": "classification",
+      "decision": "supported",
+      "data": {
+        "claim": {
+          "a": "G",
+          "b": "H",
+          "basis": "text",
+          "field": "relations",
+          "id": "r3",
+          "note": "",
+          "quote": "דר' שמעון כר' יושוע",
+          "quoteLocation": "passage",
+          "relation": "other:opinion_aligned_with"
+        },
+        "classification": {
+          "decision": "supported",
+          "flags": ["comparison"],
+          "groups": ["views"],
+          "id": "r3",
+          "mode": "stated"
+        },
+        "graphReady": false,
+        "historicalIdentityStatus": "unresolved",
+        "id": "b028-p3/r3",
+        "packSha256": "99b2bf95fbe1a0ba756e9b44668c4d9f2ade6e786f82c19a74e1fc700afcb29c",
+        "participants": [
+          {
+            "historicalId": null,
+            "id": "G",
+            "label": "ר' שמעון",
+            "localId": "b028-p3/G",
+            "named": "name",
+            "quote": "דר' שמעון",
+            "quoteLocation": "passage"
+          },
+          {
+            "historicalId": null,
+            "id": "H",
+            "label": "ר' יושוע",
+            "localId": "b028-p3/H",
+            "named": "name",
+            "quote": "כר' יושוע",
+            "quoteLocation": "passage"
+          }
+        ],
+        "passageId": "b028-p3",
+        "ref": "Jerusalem Talmud Pesachim 1:8:11",
+        "reviewReasons": [],
+        "sourcePack": "b028"
+      },
+      "payloadSha256": "3378befd4a1010acabed6e17097e527267cc64368df58c375da3099b2b1b007d"
+    },
+    {
+      "record_id": "claim:b028-p3/r4",
+      "kind": "claim",
+      "passage_id": "b028-p3",
+      "ref": "Jerusalem Talmud Pesachim 1:8:11",
+      "subject_id": "b028-p3/I",
+      "object_id": "b028-p3/H",
+      "authority": "classification",
+      "decision": "supported",
+      "data": {
+        "claim": {
+          "a": "I",
+          "b": "H",
+          "basis": "context",
+          "field": "relations",
+          "id": "r4",
+          "note": "The alignment belongs to the teaching attributed to ר\"ש.",
+          "quote": "תני בשם ר\"ש יקיז אף על פי שהוא מתכוין לעשות בו מום ואתיא כר' יושוע אחרייא",
+          "quoteLocation": "passage",
+          "relation": "other:opinion_aligned_with"
+        },
+        "classification": {
+          "decision": "supported",
+          "flags": ["comparison", "context", "indirect"],
+          "groups": ["views"],
+          "id": "r4",
+          "mode": "stated"
+        },
+        "graphReady": false,
+        "historicalIdentityStatus": "unresolved",
+        "id": "b028-p3/r4",
+        "packSha256": "99b2bf95fbe1a0ba756e9b44668c4d9f2ade6e786f82c19a74e1fc700afcb29c",
+        "participants": [
+          {
+            "historicalId": null,
+            "id": "I",
+            "label": "ר\"ש",
+            "localId": "b028-p3/I",
+            "named": "name",
+            "quote": "תני בשם ר\"ש",
+            "quoteLocation": "passage"
+          },
+          {
+            "historicalId": null,
+            "id": "H",
+            "label": "ר' יושוע",
+            "localId": "b028-p3/H",
+            "named": "name",
+            "quote": "כר' יושוע",
+            "quoteLocation": "passage"
+          }
+        ],
+        "passageId": "b028-p3",
+        "ref": "Jerusalem Talmud Pesachim 1:8:11",
+        "reviewReasons": ["context"],
+        "sourcePack": "b028"
+      },
+      "payloadSha256": "409896802f3c3cec1f971368859289786b2b58febe6daec4d737d7fa012aeaec"
+    },
+    {
+      "record_id": "registry_person:rabbi-yehoshua-b-hananyah",
+      "kind": "registry_person",
+      "passage_id": null,
+      "ref": null,
+      "subject_id": "rabbi-yehoshua-b-hananyah",
+      "object_id": null,
+      "authority": "source_review",
+      "decision": "supported",
+      "data": {
+        "aliases": [
+          "Rabbi Yehoshua [b. Hananyah]",
+          "Rabbi Yehoshua b. Hananya",
+          "Rabbi Yehoshua b. Hananyah",
+          "Rabbi Yehoshua",
+          "Rabbi Yehoshua b. Chananyah",
+          "Rabbi Joshua",
+          "Rabbi Joshua b. Hananiah",
+          "Rabbi Yehoshua ben Hananya",
+          "Rabbi Yehoshua ben Hananyah",
+          "Rabbi Yehoshua ben Chananyah",
+          "Rabbi Joshua ben Hananiah",
+          "Rebbi Joshua",
+          "Rebbi Joshua b. Hananiah",
+          "Rebbi Joshua b. Hanania",
+          "Joshua b. Hanania",
+          "Rebbi Yehoshua"
+        ],
+        "bio": "Rabbi Yehoshua ben Levi was esteemed as the second most prominent student of Rabbi Yochanan ben Zakkai, establishing his own academy in Peki'in and emerging as a rival to Rabbi Eliezer. Despite his independent stance, Rabbi Yehoshua's disagreements with Rabban Gamliel led to eventual submission. This transformation elevated him to become the most influential scholar of his era.",
+        "bioSource": "sefaria",
+        "canonical": "Rabbi Yehoshua [b. Hananyah]",
+        "canonicalHe": "ר יהושע",
+        "era": {
+          "end": 120,
+          "label": "Second tannaitic generation, about 80–120 CE; activity period, not a lifespan.",
+          "labelHe": "הדור השני לתנאים, בקירוב 80–120 לספירה; תקופת פעילות, לא שנות חיים.",
+          "source": {
+            "title": "Jewish Encyclopedia: Tannaim and Amoraim",
+            "url": "https://jewishencyclopedia.com/articles/14238-tanna"
+          },
+          "start": 80
+        },
+        "generation": "tanna-2",
+        "identityStatus": "reviewed_person",
+        "image": null,
+        "moved": null,
+        "numSources": null,
+        "places": ["Peki'in"],
+        "region": "israel",
+        "reviewNotes": [
+          "The displayed interval is a broad period of activity, not birth and death dates. Biography and places are retained from the previous registry."
+        ],
+        "reviewedFields": ["generation", "era"],
+        "sources": [
+          {
+            "title": "Jewish Encyclopedia: Tannaim and Amoraim",
+            "url": "https://jewishencyclopedia.com/articles/14238-tanna"
+          }
+        ],
+        "wiki": null
+      },
+      "payloadSha256": "80e145dce42799d3632d3256218596345adcbfdf2a3d9b21c0bc630c8216c2da"
     }
   ],
   "cases": [
@@ -2042,7 +2495,7 @@
     }
   ],
   "flagged": {
-    "note": "A live reading (Mekhilta DeRabbi Shimon Ben Yochai 3b:17:8) whose reference repeats in the capture, the reading as production serves it, and the source reference warning built for it by rest-import/tools/quality.py.",
+    "note": "A live reading (Mekhilta DeRabbi Shimon Ben Yochai 3b:17:8) whose reference repeats in the capture, as production served it before its warning was added (revision f153), and the source reference warning built for it by rest-import/tools/quality.py.",
     "case": {
       "file": "initial-import/frozen/chunk-003/cases/case-7c5432b01877b8b87c54.json",
       "sha256": "995b5dd7c32a8c3712e063c9c3fc3066b538ee5f0131fd68beb29d9cc4f2542a",
@@ -2249,6 +2702,185 @@
           "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|17b|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905",
           "midrash-halakhah|Mekhilta DeRabbi Shimon Ben Yochai|18a|17:8|Mechilta de-Rabbi Simon b. Jochai, Dr. D. Hoffman, Frankfurt 1905"
         ]
+      }
+    }
+  },
+  "fixedReading": {
+    "note": "Jerusalem Talmud Pesachim 1:8:11: the reader replaced a duplicate registry row with its main row (rabbi-yehoshua-b-hananyah) by a logged correction. No claim changed.",
+    "case": {
+      "file": "final-import/frozen/chunk-007/cases/case-296d8ece351577e4eec3.json",
+      "sha256": "4fcb31dd3bc58defb3cb8ebf519da2e916fad609fbf5ddbbe0480b429123c965",
+      "case": {
+        "schema": "missing-name-reading/v2",
+        "caseId": "case-296d8ece351577e4eec3",
+        "personKey": "b028-p3/H",
+        "passageId": "b028-p3",
+        "ref": "Jerusalem Talmud Pesachim 1:8:11",
+        "original": {
+          "personKey": "b028-p3/H",
+          "ref": "Jerusalem Talmud Pesachim 1:8:11",
+          "label": "ר' יושוע",
+          "named": "name",
+          "quote": "כר' יושוע",
+          "quoteLocation": "passage",
+          "livePersonRecord": "person:b028-p3/H",
+          "livePersonPayloadSha256": "d2335026b205e3b5468275a84713d592aa24c446cdebc886dfaece58b976dff0",
+          "personMatchesLive": true
+        },
+        "source": {
+          "liveRevision": "sage-graph-be60d672d43df1924af0",
+          "livePassageRecord": "passage:b028-p3",
+          "livePassagePayloadSha256": "1195debda7a0e8959b3fcca668ea40315a7bbc0971eb123e15fe5084bd65248e",
+          "sourceSha256": "dc49f7fa98b910a4b33a5a4de394221b25d6a06c0faace20b62c14f318ddf917",
+          "sourceMatchesNoCandidatesFile": true
+        },
+        "reading": {
+          "status": "read",
+          "isInitialProposal": true,
+          "entityKind": "sage",
+          "identityStatus": "registry_candidate",
+          "proposedRegistryId": "rabbi-yehoshua-b-hananyah",
+          "proposedRegistryName": {
+            "canonical": "Rabbi Yehoshua [b. Hananyah]",
+            "canonicalHe": "ר יהושע"
+          },
+          "historicalIdentityResolved": false,
+          "confidence": "low",
+          "localIdentity": {
+            "personKey": "b028-p3/H",
+            "label": "ר' יושוע",
+            "gloss": null
+          },
+          "alternatives": [],
+          "reason": "The passage lines up R. Shimon's view with that of R. Yehoshua (spelled יושוע), next to the views of R. Yehudah, Rabban Gamliel and R. Eliezer. The registry's main row for R. Yehoshua b. Hananyah lists the name Rabbi Yehoshua. A further line in the passage speaks of 'R. Yehoshua the latter', so another R. Yehoshua may be meant there.",
+          "evidence": [
+            {
+              "location": "passage",
+              "quote": "כר' יושוע",
+              "role": "name as extracted"
+            },
+            {
+              "location": "passage",
+              "quote": "דר' שמעון כר' יושוע",
+              "role": "reader evidence"
+            }
+          ],
+          "registryEvidence": [
+            {
+              "registryId": "rabbi-yehoshua-b-hananyah",
+              "field": "aliases",
+              "quote": "Rabbi Yehoshua"
+            }
+          ],
+          "existingReviewedRecords": [],
+          "datesOrGenerationsAssigned": null
+        },
+        "relationships": {
+          "status": "claims_read",
+          "note": null,
+          "claims": [
+            {
+              "claimId": "b028-p3/r3",
+              "liveClaimRecord": {
+                "recordId": "claim:b028-p3/r3",
+                "decision": "supported",
+                "payloadSha256": "3378befd4a1010acabed6e17097e527267cc64368df58c375da3099b2b1b007d"
+              },
+              "field": "relations",
+              "kind": "other:opinion_aligned_with",
+              "from": "G",
+              "to": "H",
+              "participants": [
+                {
+                  "id": "G",
+                  "label": "ר' שמעון",
+                  "localId": "b028-p3/G",
+                  "named": "name"
+                },
+                {
+                  "id": "H",
+                  "label": "ר' יושוע",
+                  "localId": "b028-p3/H",
+                  "named": "name"
+                }
+              ],
+              "quote": "דר' שמעון כר' יושוע",
+              "quoteLocation": "passage",
+              "originalNote": "",
+              "classification": {
+                "id": "r3",
+                "groups": ["views"],
+                "mode": "stated",
+                "decision": "supported",
+                "flags": ["comparison"]
+              },
+              "reviewReasons": [],
+              "autoType": "relation:other:opinion_aligned_with",
+              "readerVerdict": "teach",
+              "readerVerdictMeaning": "Carried as a teaching citation only. Citing a teaching does not show the two met or lived at the same time.",
+              "readerNote": "an alignment of views, not a meeting",
+              "carried": true,
+              "userCorrectionExclusions": [],
+              "proposalOnly": true
+            },
+            {
+              "claimId": "b028-p3/r4",
+              "liveClaimRecord": {
+                "recordId": "claim:b028-p3/r4",
+                "decision": "supported",
+                "payloadSha256": "409896802f3c3cec1f971368859289786b2b58febe6daec4d737d7fa012aeaec"
+              },
+              "field": "relations",
+              "kind": "other:opinion_aligned_with",
+              "from": "I",
+              "to": "H",
+              "participants": [
+                {
+                  "id": "I",
+                  "label": "ר\"ש",
+                  "localId": "b028-p3/I",
+                  "named": "name"
+                },
+                {
+                  "id": "H",
+                  "label": "ר' יושוע",
+                  "localId": "b028-p3/H",
+                  "named": "name"
+                }
+              ],
+              "quote": "תני בשם ר\"ש יקיז אף על פי שהוא מתכוין לעשות בו מום ואתיא כר' יושוע אחרייא",
+              "quoteLocation": "passage",
+              "originalNote": "The alignment belongs to the teaching attributed to ר\"ש.",
+              "classification": {
+                "id": "r4",
+                "groups": ["views"],
+                "mode": "stated",
+                "decision": "supported",
+                "flags": ["comparison", "context", "indirect"]
+              },
+              "reviewReasons": ["context"],
+              "autoType": "relation:other:opinion_aligned_with",
+              "readerVerdict": "teach",
+              "readerVerdictMeaning": "Carried as a teaching citation only. Citing a teaching does not show the two met or lived at the same time.",
+              "readerNote": "an alignment of views, not a meeting",
+              "carried": true,
+              "userCorrectionExclusions": [],
+              "proposalOnly": true
+            }
+          ]
+        },
+        "proposalOnly": true,
+        "reader": {
+          "batch": "corrections",
+          "reads": 2,
+          "note": "Corrected after an independent review found an error in the first reading. Not approved."
+        },
+        "correction": {
+          "reviewId": "case-296d8ece351577e4eec3.review-1",
+          "reviewFile": "reviews/case-296d8ece351577e4eec3.review-1.json",
+          "supersedesCaseFileSha256": "7427c4f2868fc7793a2de504e028bf5fe35c61e46f8d817a62ed088c07b37ff7",
+          "supersededCopy": "superseded/corrections/case-296d8ece351577e4eec3.7427c4f2868f.json"
+        }
       }
     }
   }
