@@ -220,7 +220,7 @@ class SourceReadingStoreTests(unittest.TestCase):
             self.extend(changes, parent='graph')
 
     def test_app_fixture_matches_the_current_rows(self):
-        # Regenerate with: python tests/test_source_reading_stores.py --write-app-fixture
+        # Regenerate with: python tests/test_source_reading_stores.py --write-app-fixture, then biome format --write it.
         self.assertEqual(json.loads(APP_FIXTURE.read_text()), app_fixture())
 
     def test_prepare_refuses_readings_the_legacy_graph_already_holds(self):

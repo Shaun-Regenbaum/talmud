@@ -17,12 +17,12 @@ import {
   possibleEra,
 } from '../lib/sage-graph/possible-era';
 import { shareReviewedRelationships } from '../lib/sage-graph/reviewed-relationships';
-import { decodeStoredPassage, type StoredRow } from '../lib/sage-graph/source-reading-store';
 import {
   applyReadingCoverage,
   type OwnedReadingUnit,
   type ReadingCoverage,
 } from '../lib/sage-graph/source-reading-coverage';
+import { decodeStoredPassage, type StoredRow } from '../lib/sage-graph/source-reading-store';
 import type {
   CheckedConnection,
   CheckedGraph,

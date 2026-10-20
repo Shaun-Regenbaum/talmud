@@ -96,10 +96,8 @@ export async function decodeStoredPassage(
 ): Promise<StoredRow[]> {
   const parsed: { row: StoredRow; data: Json }[] = [];
   for (const row of rows) {
-    require(
-      (await sha256(row.payload_json)) === row.payload_sha256,
-      'Stored source reading changed',
-    );
+    require((await sha256(row.payload_json)) ===
+      row.payload_sha256, 'Stored source reading changed');
     require(row.passage_id === passageId && KINDS.has(row.kind), 'Unexpected source store row');
     const data = JSON.parse(row.payload_json) as Json;
     require(data.format === SOURCE_READING_STORE_FORMAT, `Not ${SOURCE_READING_STORE_FORMAT} rows`);
@@ -122,26 +120,23 @@ export async function decodeStoredPassage(
   };
   require(p.id === passageId && Number.isInteger(p.focal), 'Stored passage differs');
   const sources = p.segments;
-  require(
-    sources[p.focal]?.provenance.focal === true &&
-      sources.every((s) => Object.keys(s.provenance).every((k) => KEPT_PROVENANCE.includes(k))),
-    'Stored segments differ',
-  );
+  require(sources[p.focal]?.provenance.focal === true &&
+    sources.every((s) =>
+      Object.keys(s.provenance).every((k) => KEPT_PROVENANCE.includes(k)),
+    ), 'Stored segments differ');
   const location = (i: number) => (i < p.focal ? 'before' : i === p.focal ? 'passage' : 'after');
   const anchor = async (a: CompactAnchor, path: string) => {
     require(Array.isArray(a) && a.length === 5, 'Stored anchor differs');
     const [sourceId, start, end, occurrence, quote] = a;
     const i = sources.findIndex((s) => s.source_id === sourceId);
     const s = sources[i];
-    require(
-      s &&
-        Number.isInteger(start) &&
-        Number.isInteger(end) &&
-        0 <= start &&
-        start < end &&
-        Array.from(s.text).slice(start, end).join('') === quote,
-      'Stored anchor does not match its source words',
-    );
+    require(s &&
+      Number.isInteger(start) &&
+      Number.isInteger(end) &&
+      0 <= start &&
+      start < end &&
+      Array.from(s.text).slice(start, end).join('') ===
+        quote, 'Stored anchor does not match its source words');
     return {
       path,
       source_id: sourceId,
@@ -160,7 +155,11 @@ export async function decodeStoredPassage(
     };
   };
   type Anchor = Awaited<ReturnType<typeof anchor>>;
-  const short = (m: Anchor) => ({ source_id: m.source_id, quote: m.quote, occurrence: m.occurrence });
+  const short = (m: Anchor) => ({
+    source_id: m.source_id,
+    quote: m.quote,
+    occurrence: m.occurrence,
+  });
   const first = (list: Anchor[]) => list.find((m) => m.primary) ?? list[0];
   const sid = p.sourceReadingId;
   const out = new Map<string, Json>();
@@ -206,10 +205,8 @@ export async function decodeStoredPassage(
     out.set(row.record_id, person);
   }
   const ordered = p.people.map((id) => people.get(id));
-  require(
-    ordered.every(Boolean) && ordered.length === people.size,
-    'Stored people differ from the passage',
-  );
+  require(ordered.every(Boolean) &&
+    ordered.length === people.size, 'Stored people differ from the passage');
   const claims = new Map<string, Json>();
   const evidenceKeys: Anchor[] = [];
   for (const { row, data } of get('claim')) {
@@ -272,10 +269,8 @@ export async function decodeStoredPassage(
       reviewReasons: REVIEW_REASONS,
     });
   }
-  require(
-    p.claims.every((id) => claims.has(id)) && p.claims.length === claims.size,
-    'Stored claims differ from the passage',
-  );
+  require(p.claims.every((id) => claims.has(id)) &&
+    p.claims.length === claims.size, 'Stored claims differ from the passage');
   const texts = sources.map((s) => s.text);
   out.set(prow.record_id, {
     id: p.id,
@@ -305,10 +300,8 @@ export async function decodeStoredPassage(
   }
   for (const { row, data } of get('source_reading_coverage')) {
     const owned = (data.sources as { sourceId: string; owned: boolean }[]).filter((a) => a.owned);
-    require(
-      owned.every((a) => units.has(a.sourceId)) && owned.length === units.size,
-      'Stored ownership differs from its units',
-    );
+    require(owned.every((a) => units.has(a.sourceId)) &&
+      owned.length === units.size, 'Stored ownership differs from its units');
     out.set(row.record_id, { ...data, ownedUnits: owned.map((a) => units.get(a.sourceId)!.data) });
   }
   return Promise.all(
