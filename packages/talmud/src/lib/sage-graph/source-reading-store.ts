@@ -321,7 +321,8 @@ export async function decodeStoredPassage(
   for (const { row, data } of get('source_reading_coverage')) {
     require(row.record_id === `source_reading_coverage:${passageId}`, 'Stored ownership differs');
     const owned = (data.sources as { sourceId: string; owned: boolean }[]).filter((a) => a.owned);
-    require(owned.every((a) => units.has(a.sourceId)) &&
+    require(unique(owned.map((a) => a.sourceId)) &&
+      owned.every((a) => units.has(a.sourceId)) &&
       owned.length === units.size, 'Stored ownership differs from its units');
     out.set(row.record_id, { ...data, ownedUnits: owned.map((a) => units.get(a.sourceId)!.data) });
   }

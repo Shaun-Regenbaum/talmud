@@ -154,10 +154,10 @@ def _newest_is(parent):
 
 
 def _stop_unless(revision, state):
-    # SQL scripts cannot raise. This member row is refused by the shared-record triggers of
-    # migration 0003 whenever it is inserted, so it stops the script when the check fails.
+    # SQL scripts cannot raise. This member row has no version, so NOT NULL refuses it (and so do the
+    # shared-record triggers of migration 0003). It is inserted only when the check fails, which stops the script.
     return (f"INSERT INTO sage_graph_revision_members(revision_id,record_id,version_id) SELECT {quoted(revision)},"
-            f"'store-release-check',0 WHERE NOT EXISTS (SELECT 1 FROM sage_graph_revisions WHERE id={quoted(revision)} "
+            f"'store-release-check',NULL WHERE NOT EXISTS (SELECT 1 FROM sage_graph_revisions WHERE id={quoted(revision)} "
             f"AND state={quoted(state)});")
 
 
@@ -172,9 +172,12 @@ def revision_sql(revision, manifest, parent):
 
 def activate_sql(revision, parent):
     """Activate only while the parent is still the newest verified revision, so two releases built on one
-    parent, or activated out of order, cannot both become current. A refused activation stops the script."""
+    parent, or activated out of order, cannot both become current. The release must also sort after its
+    parent, or readers would keep the parent. A refused activation stops the script."""
+    later = '' if parent is None else (f" AND (created_at,id)>(SELECT created_at,id FROM sage_graph_revisions "
+                                       f"WHERE id={quoted(parent)})")
     return (f"UPDATE sage_graph_revisions SET state='verified' WHERE id={quoted(revision)} AND state='loading' "
-            f"AND {_newest_is(parent)};\n{_stop_unless(revision, 'verified')}\n")
+            f"AND {_newest_is(parent)}{later};\n{_stop_unless(revision, 'verified')}\n")
 
 
 def genesis(store):

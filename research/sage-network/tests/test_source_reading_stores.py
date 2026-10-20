@@ -106,6 +106,11 @@ class SourceReadingStoreTests(unittest.TestCase):
         (self.root / f'{name}.json').write_text(outputs['manifest.json'])
         return json.loads(outputs['manifest.json'])
 
+    def export_now(self, name, outputs):
+        self.db.commit()
+        (self.root / f'{name}.sql').write_text('\n'.join(self.db.iterdump()))
+        (self.root / f'{name}.json').write_text(outputs['manifest.json'])
+
     def changes(self, store='bavli', ownership=None, existing=None):
         return stores.changes_for(store, self.bundles, self.manifest['revision'], self.inputs,
                                   ownership or self.ownership, LEGACY, existing)
@@ -282,6 +287,18 @@ class SourceReadingStoreTests(unittest.TestCase):
         states = dict(self.db.execute('SELECT id,state FROM sage_graph_revisions'))
         self.assertEqual(states[json.loads(a['manifest.json'])['revision']], 'verified')
         self.assertEqual(states[json.loads(b['manifest.json'])['revision']], 'loading')
+        # A release stamped earlier than its parent would never be read as newest, so it is refused.
+        parent = json.loads(a['manifest.json'])['revision']
+        self.export_now('a-now', a)
+        rows = self.db.execute(f'SELECT {stores.COLUMNS} FROM sage_graph_all_records WHERE revision_id=?', (parent,))
+        later = stores.changes_for('bavli', self.bundles[1:], parent, self.inputs, self.ownership, LEGACY,
+                                   {r[0]: stores.item(r) for r in rows})
+        c = self.extend(later, parent='a-now', out='c')[1]
+        self.db.executescript(c['import.sql'])
+        self.db.execute("UPDATE sage_graph_revisions SET created_at='2000-01-01T00:00:00.000Z' WHERE id=?",
+                        (json.loads(c['manifest.json'])['revision'],))
+        with self.assertRaises(sqlite3.DatabaseError):
+            self.db.executescript(c['activate.sql'])
 
     def test_app_fixture_matches_the_current_rows(self):
         # Regenerate with: python tests/test_source_reading_stores.py --write-app-fixture, then biome format --write it.

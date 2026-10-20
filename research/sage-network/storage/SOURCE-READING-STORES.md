@@ -107,6 +107,23 @@ cannot go into the graph. A store revision can only extend a revision of the sam
 - **Split pieces.** No captured reading covers a split piece yet. The occurrence key for a piece is
   checked only on a real captured piece, with its text cut short in the test file.
 
+## Mistakes the SQL cannot catch
+
+- **The wrong empty database.** Bavli genesis on the empty `-other` database runs cleanly. Check the
+  database name before running genesis. The app then refuses that store, because its revision names the
+  wrong store, and lists it as unavailable.
+- **A graph release run on a store database.** Readers stay safe, because the app ignores graph
+  revisions in a store. But later store releases are blocked until the database is restored.
+- **A failed import.** It can leave an unfinished `loading` revision behind. Running the same import
+  again is then refused until that revision is removed by hand.
+- **Test the guards on staging once.** They rely on D1 stopping a script at its first error, which
+  could not be tested locally. Before the first production release, run one refused import and one
+  refused activation against the staging store. Then export it and confirm nothing was written.
+
+In responses, `sourceRevisions` names the revision that was picked for each store. A store that failed
+while its revision was being picked shows `null`. A store that failed on a later read keeps its revision
+name. In both cases the store is listed in `unavailableSourceStores`.
+
 ## One-time setup, which needs the owner's approval
 
 1. Create the four databases: Bavli and other, each in production and staging.

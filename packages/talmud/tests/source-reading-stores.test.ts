@@ -158,6 +158,17 @@ describe('the compact store decoder', () => {
     await expect(
       decodeStoredPassage(pid, await json('person', (d) => (d.id = 'p99'))),
     ).rejects.toThrow('Stored person differs');
+    // One owned unit listed twice and another left out still has the right count, but is refused.
+    await expect(
+      decodeStoredPassage(
+        pid,
+        await json('source_reading_coverage', (d) => {
+          const sources = d.sources as { sourceId: string; owned: boolean }[];
+          const owned = sources.filter((a) => a.owned);
+          owned[1].sourceId = owned[0].sourceId;
+        }),
+      ),
+    ).rejects.toThrow('Stored ownership differs from its units');
   });
 });
 
