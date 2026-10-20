@@ -9,6 +9,7 @@ if MODE not in {'full', 'probe'}:
 APP_NAME = 'talmud-name-coverage-probe-v18' if MODE == 'probe' else 'talmud-name-coverage-queue-v18'
 app = modal.App(APP_NAME)
 volume = modal.Volume.from_name(APP_NAME, create_if_missing=True)
+probe_volume = modal.Volume.from_name('talmud-name-coverage-probe-v18')
 locks = modal.Dict.from_name('talmud-name-coverage-queue-v18-locks', create_if_missing=True)
 image = (modal.Image.debian_slim(python_version='3.12').apt_install('curl')
          .env({'COVERAGE_QUEUE_MODE': MODE})
@@ -16,7 +17,8 @@ image = (modal.Image.debian_slim(python_version='3.12').apt_install('curl')
          .add_local_file(Path(__file__).with_name('queue_core.py'), '/app/queue_core.py')
          .add_local_file(Path(__file__).with_name('provider_errors.py'), '/app/provider_errors.py')
          .add_local_file(Path(__file__), '/app/queue_job.py')
-         .add_local_file(Path(__file__).with_name('queue_transition.py'), '/app/queue_transition.py'))
+         .add_local_file(Path(__file__).with_name('queue_transition.py'), '/app/queue_transition.py')
+         .add_local_file(Path(__file__).with_name('quality_bridge.py'), '/app/quality_bridge.py'))
 
 
 @app.function(image=image, volumes={'/data': volume},
@@ -102,6 +104,35 @@ def transition_probe(prior_run: str, next_run: str, prior_hash: str, next_hash: 
             raise ValueError('Reviewed transition code hash differs')
         return transition(Path('/data/inputs'), Path('/data/runs'), prior_run, next_run,
                           prior_hash, next_hash, volume.commit)
+    finally:
+        if locks.get('queue', None) == lock:
+            locks.pop('queue')
+
+
+@app.function(image=image, volumes=({'/data': volume, '/probe': probe_volume} if MODE == 'full' else {'/data': volume}),
+              cpu=0.25, memory=512, timeout=180, retries=0, max_containers=1)
+def initialize_quality_trial(prior_run: str, next_run: str, prior_hash: str, next_hash: str):
+    import sys
+    import uuid
+    sys.path.insert(0, '/app')
+    from quality_bridge import bridge
+    from queue_core import file_hash, load, safe_id
+    if MODE != 'full':
+        raise ValueError('Quality bridge must run from the full queue app')
+    safe_id(next_run)
+    owner = str(uuid.uuid4())
+    lock = {'owner': owner, 'runId': 'quality:' + prior_run + ':' + next_run}
+    if not locks.put('queue', lock, skip_if_exists=True):
+        raise RuntimeError('A queue or transition is already running')
+    try:
+        volume.reload(); probe_volume.reload()
+        config = load(Path('/data/inputs')/next_run/'config.json')
+        if (config.get('coordinatorHash') != file_hash(Path('/app/queue_job.py')) or
+                config.get('qualityBridgeHash') != file_hash(Path('/app/quality_bridge.py'))):
+            raise ValueError('Reviewed quality coordinator hash differs')
+        return bridge(Path('/probe/inputs'), Path('/probe/runs'),
+                      Path('/data/inputs'), Path('/data/runs'), prior_run, next_run,
+                      prior_hash, next_hash, probe_volume.commit, volume.commit)
     finally:
         if locks.get('queue', None) == lock:
             locks.pop('queue')

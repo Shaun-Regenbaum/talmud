@@ -187,6 +187,12 @@ def config_check(config, manifest, recipe, concurrency):
         if (approval.get('approvedConcurrency') != approved or not approval.get('approvedBy') or
                 not re.fullmatch('[0-9a-f]{64}', approval.get('sampleSha256', ''))):
             raise ValueError('Higher concurrency requires a frozen quality approval')
+    if config.get('qualityTrial') is not None:
+        if (config['qualityTrial'] != 'source-readings-210-v1' or manifest['jobs'] != 210 or
+                not isinstance(config.get('priorRun'), dict) or 'carriedUnknownReservedUsd' not in config or
+                config.get('executionMode') != 'full' or approved > 16 or config['budgetUsd'] > 5 or
+                config.get('qualityBridgeHash') != file_hash(Path(__file__).with_name('quality_bridge.py'))):
+            raise ValueError('Invalid bounded source-reading quality trial')
     params = config['parameters']
     if (type(params.get('max_tokens')) is not int or not 1 <= params['max_tokens'] <= 32768 or
             not params.get('model') or not isinstance(params.get('reasoning'), dict)):
@@ -314,7 +320,7 @@ def saved(job, directory, config, adapter):
 def verified_carry(config, output):
     expected_scope = dict(runId=config['runId'], configHash=digest(config))
     carried_unknown = config.get('carriedUnknownReservedUsd', 0)
-    if carried_unknown:
+    if carried_unknown or config.get('qualityTrial'):
         prior = config.get('priorRun', {})
         archive = output/'budget-history'/(prior.get('configHash', '') + '-' + digest(config) + '.json')
         receipt = load(archive)
@@ -342,7 +348,8 @@ def run(config, inputs, recipe, output, commit, concurrency=16, request=None,
     directory = output / config['runId']
     budget_scope = output / 'budget-scope.json'
     expected_scope = dict(runId=config['runId'], configHash=digest(config))
-    if budget_scope.exists() and load(budget_scope) != expected_scope:
+    if ((budget_scope.exists() and load(budget_scope) != expected_scope) or
+            (config.get('priorRun') and not budget_scope.exists())):
         raise ValueError('Queue budget belongs to another frozen run; reconcile before replacing it')
     frozen = directory / 'config.json'
     key_hash = hashlib.sha256(key.encode()).hexdigest()
@@ -373,7 +380,8 @@ def run(config, inputs, recipe, output, commit, concurrency=16, request=None,
             if path.stem not in seen:
                 raise ValueError('Saved record outside frozen queue')
     recent_saved = [r[2] for r in sorted(past_results)[-16:]]
-    if recent_saved.count('provider') >= 4 or recent_saved.count('validation') >= 8:
+    quality_trial = config.get('qualityTrial') == 'source-readings-210-v1'
+    if recent_saved.count('provider') >= 4 or (not quality_trial and recent_saved.count('validation') >= 8):
         raise RuntimeError('Saved failure burst requires explicit reconciliation')
     old = load(directory/'progress.json') if (directory/'progress.json').exists() else {}
     if old.get('stopReason') in {'provider_failure_burst', 'validation_failure_burst', 'reported_cost_exceeds_reservation'}:
@@ -470,7 +478,7 @@ def run(config, inputs, recipe, output, commit, concurrency=16, request=None,
                     writes += 1
                     if recent.count('provider') >= 4:
                         stop_reason = 'provider_failure_burst'
-                    if recent.count('validation') >= 8:
+                    if not quality_trial and recent.count('validation') >= 8:
                         stop_reason = 'validation_failure_burst'
                 progress()
                 if stop_reason and not active:
