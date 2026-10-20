@@ -8,7 +8,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from compact_source_v2.validate import check, check_saved, digest, recipe_binding, sha
 
 VERSION = 'source-reading-import-v1'
-KINDS = {'source_reading', 'passage', 'person', 'claim'}
+BASE_KINDS = {'source_reading', 'passage', 'person', 'claim'}
+from ownership.tile_ownership import source_unit
+from source_coverage import KINDS as COVERAGE_KINDS, pinned_index, records as coverage_records
+KINDS = BASE_KINDS | COVERAGE_KINDS
 
 
 def require(value, message):
@@ -18,8 +21,9 @@ def require(value, message):
 
 def occurrence_key(source, start, end):
     """Source occurrence identity does not depend on a reader's person grouping."""
+    _, raw_start, _, segment_hash = source_unit(source)
     return 'occ-' + digest([source['edition'], source['provenance']['segment_id'],
-                            source['sha256'], start, end])
+                            segment_hash, raw_start + start, raw_start + end])
 
 
 def checked_bundle(bundle):
@@ -56,7 +60,7 @@ def checked_bundle(bundle):
         for name in ('segment_id', 'raw_file_sha256', 'source_url'):
             require(isinstance(provenance.get(name), str) and bool(provenance[name]), 'Source provenance missing')
         require(provenance['source_url'].startswith('https://'), 'Source URL missing')
-    require(len({(s['edition'], s['provenance']['segment_id']) for s in sources}) == len(sources), 'Duplicate source segment')
+    require(len({(s['edition'], source_unit(s)[0]) for s in sources}) == len(sources), 'Duplicate source segment')
     return compiled, focal[0]
 
 
@@ -140,12 +144,13 @@ def records(bundle):
     return out
 
 
-def changes_for(bundles, parent_revision, input_artifacts, existing=None):
+def changes_for(bundles, parent_revision, input_artifacts, existing=None, ownership=None):
     """Existing rows are immutable; exact repeats become no-ops."""
     existing = existing or {}
     expected = {}
     require(isinstance(bundles, list) and bool(bundles), 'No source readings')
     used = set()
+    index = pinned_index(ownership) if ownership is not None else None
     for bundle in bundles:
         proof = bundle['inputProof']
         raw = input_artifacts.get(proof['sha256'])
@@ -155,7 +160,10 @@ def changes_for(bundles, parent_revision, input_artifacts, existing=None):
         require(len(matching) == 1 and len(jobs) == matching[0]['jobs'], 'Shard job count differs')
         require(type(proof['index']) is int and 0 <= proof['index'] < len(jobs) and jobs[proof['index']] == bundle['job'], 'Job not in frozen shard')
         used.add(proof['sha256'])
-        for item in records(bundle):
+        items = records(bundle)
+        if index is not None:
+            items += coverage_records(bundle['job'], items[0]['passage_id'], index)
+        for item in items:
             key = item['record_id']
             require(key not in expected, 'Duplicate source reading')
             expected[key] = item
@@ -167,8 +175,11 @@ def changes_for(bundles, parent_revision, input_artifacts, existing=None):
             require(old == item, 'Existing source record differs: ' + key)
         else:
             changed.append(item)
-    return dict(parentRevision=parent_revision, description="Add initial local name and relationship proposals from checked source readings", sourceReadingVersion=VERSION,
+    result = dict(parentRevision=parent_revision, description="Add initial local name and relationship proposals from checked source readings", sourceReadingVersion=VERSION,
                 sourceReadingBundles=copy.deepcopy(bundles), sourceReadingInputs=copy.deepcopy(input_artifacts), records=changed)
+    if ownership is not None:
+        result['sourceReadingOwnership'] = copy.deepcopy(ownership)
+    return result
 
 
 def validate_changes(changes, rows):
@@ -177,13 +188,29 @@ def validate_changes(changes, rows):
     for key, row in rows.items():
         existing[key] = dict(record_id=key, kind=row[1], passage_id=row[2], ref=row[3],
                              subject_id=row[4], object_id=row[5], authority=row[6], decision=row[7], data=json.loads(row[-1]))
-    expected = changes_for(changes['sourceReadingBundles'], changes['parentRevision'], changes['sourceReadingInputs'], existing)
+    expected = changes_for(changes['sourceReadingBundles'], changes['parentRevision'], changes['sourceReadingInputs'], existing, changes.get('sourceReadingOwnership'))
     require(changes['records'] == expected['records'], 'Source reading records differ from strict reconstruction')
 
 
 def analysis_projection(items):
     """Union exact primary anchors; keep conflicting local groupings as proposals."""
     occurrences, evidence, people, claims = {}, {}, [], []
+    coverage = {item['passage_id']: {u['sourceId'] for u in item['data']['ownedUnits']}
+                for item in items if item['kind'] == 'source_reading_coverage'}
+    published_occurrences, published_evidence = {}, {}
+    units = {(item['passage_id'], item['data']['sourceId']): item['data']
+             for item in items if item['kind'] == 'source_reading_unit'}
+    def publication_anchor(item, anchor):
+        unit = units.get((item['passage_id'], anchor['source_id']))
+        return dict(ref=anchor['ref'], edition=anchor['edition'], segmentId=anchor['segmentId'],
+                    quote=anchor['quote'], start=anchor['start'], end=anchor['end'],
+                    sourceSha256=anchor['source_sha256'], offsetUnit=anchor['offset_unit'],
+                    segmentStart=(unit['rawStart'] if unit else 0) + anchor['start'],
+                    segmentEnd=(unit['rawStart'] if unit else 0) + anchor['end'],
+                    segmentSha256=unit['segmentSha256'] if unit else anchor['source_sha256'])
+    def published(item, anchor):
+        owned = coverage.get(item['passage_id'])
+        return anchor['source_id'] in owned if owned is not None else anchor['primary']
     for item in items:
         data = item['data']
         if item['kind'] == 'person':
@@ -192,6 +219,8 @@ def analysis_projection(items):
                                occurrenceKeys=[m['occurrenceKey'] for m in data['mentions']],
                                status='initial_proposal'))
             for anchor in data['mentions']:
+                if published(item, anchor):
+                    published_occurrences.setdefault(anchor['occurrenceKey'], dict(**publication_anchor(item, anchor), personProposals=[]))['personProposals'].append(item['record_id'])
                 if anchor['primary']:
                     occurrences.setdefault(anchor['occurrenceKey'], dict(ref=anchor['ref'], quote=anchor['quote'],
                         start=anchor['start'], end=anchor['end'], offsetUnit=anchor['offset_unit'], sourceSha256=anchor['source_sha256'], personProposals=[]))['personProposals'].append(item['record_id'])
@@ -199,14 +228,18 @@ def analysis_projection(items):
             claims.append(dict(claimKey=item['record_id'], passageId=item['passage_id'],
                                relationship=data['claim']['reading'], status='initial_proposal'))
             for anchor in data['evidence']:
+                if published(item, anchor):
+                    published_evidence.setdefault(anchor['occurrenceKey'], dict(**publication_anchor(item, anchor), claimProposals=[]))['claimProposals'].append(item['record_id'])
                 if anchor['primary']:
                     evidence.setdefault(anchor['occurrenceKey'], dict(ref=anchor['ref'], quote=anchor['quote'],
                         start=anchor['start'], end=anchor['end'], offsetUnit=anchor['offset_unit'], sourceSha256=anchor['source_sha256'], claimProposals=[]))['claimProposals'].append(item['record_id'])
-    for collection, field in ((occurrences, 'personProposals'), (evidence, 'claimProposals')):
+    for collection, field in ((occurrences, 'personProposals'), (evidence, 'claimProposals'), (published_occurrences, 'personProposals'), (published_evidence, 'claimProposals')):
         for value in collection.values():
             value[field] = sorted(set(value[field]))
     return dict(version=VERSION, people=people, relationships=claims,
                 primaryOccurrences=occurrences, primaryEvidence=evidence,
+                publishedOccurrences=published_occurrences, publishedEvidence=published_evidence,
+                ownedSources=[item['data'] for item in items if item['kind'] == 'source_reading_unit'],
                 acceptedIdentity=False, acceptedEra=False, confirmedConnections=False)
 
 
@@ -218,7 +251,12 @@ def main():
     parser.add_argument('--parent-db', type=Path, required=True)
     parser.add_argument('--parent-revision', required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--ownership', type=Path, help='Reviewed source ownership manifest')
+    parser.add_argument('--ownership-hash', help='Independently reviewed ownership manifest hash')
     args = parser.parse_args()
+    require(bool(args.ownership) == bool(args.ownership_hash), 'Ownership manifest and reviewed hash must be supplied together')
+    ownership = dict(manifest=json.loads(args.ownership.read_text()), expectedManifestSha256=args.ownership_hash) if args.ownership else None
+    index = pinned_index(ownership) if ownership else None
     capture = json.loads(args.capture.read_text())
     bundles, held = [], []
     for bundle in capture['bundles']:
@@ -236,7 +274,12 @@ def main():
         table = shared_records.record_table(db)
         require(db.execute('SELECT state FROM sage_graph_revisions WHERE id=?', (args.parent_revision,)).fetchone() == ('verified',), 'Parent is not verified')
         columns = 'record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json'
-        keys = [item['record_id'] for bundle in bundles for item in records(bundle)]
+        keys = []
+        for bundle in bundles:
+            items = records(bundle)
+            if index is not None:
+                items += coverage_records(bundle['job'], items[0]['passage_id'], index)
+            keys.extend(item['record_id'] for item in items)
         rows = {}
         for start in range(0, len(keys), 100):
             chunk = keys[start:start + 100]
@@ -247,7 +290,7 @@ def main():
     # Rebuild against the parent, including exact-repeat handling.
     existing = {k: dict(record_id=k, kind=r[1], passage_id=r[2], ref=r[3], subject_id=r[4], object_id=r[5],
                         authority=r[6], decision=r[7], data=json.loads(r[-1])) for k, r in rows.items()}
-    changes = changes_for(bundles, args.parent_revision, inputs, existing)
+    changes = changes_for(bundles, args.parent_revision, inputs, existing, ownership)
     validate_changes(changes, rows)
     args.output.mkdir(parents=True, exist_ok=False)
     artifacts = args.output / 'artifacts'
@@ -255,8 +298,14 @@ def main():
     for bundle in bundles:
         (artifacts / (digest(bundle) + '.json')).write_text(
             json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False))
+    analysis_items = []
+    for bundle in bundles:
+        items = records(bundle)
+        if index is not None:
+            items += coverage_records(bundle['job'], items[0]['passage_id'], index)
+        analysis_items.extend(items)
     for name, value in [('changes.json', changes), ('held.json', held),
-                        ('analysis.json', analysis_projection([item for b in bundles for item in records(b)]))]:
+                        ('analysis.json', analysis_projection(analysis_items))]:
         (args.output / name).write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n')
 
 

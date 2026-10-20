@@ -4,8 +4,13 @@ import type { InitialOccurrence } from '../src/lib/sage-graph/initial-readings';
 import type { SourcePerson } from '../src/lib/sage-graph/types';
 import { sageGraph } from '../src/worker/sage-graph';
 import saved from './fixtures/initial-source-readings.json';
+import ownership from './fixtures/source-reading-coverage.json';
 
-type InitialResponse = { status: string; occurrences: InitialOccurrence[] };
+type InitialResponse = {
+  status: string;
+  occurrences: InitialOccurrence[];
+  sources?: { ref: string; unitKey: string; readingPassageIds: string[] }[];
+};
 let db: DatabaseSync;
 beforeEach(() => {
   db = new DatabaseSync(':memory:');
@@ -81,4 +86,103 @@ describe('initial source readings from actual captures', () => {
     expect((await request('/initial')).status).toBe(400);
     expect((await request('/person?id=reading:unknown/p1')).status).toBe(404);
   });
+});
+
+function installOwnership() {
+  for (const r of ownership.records)
+    db.prepare("INSERT INTO sage_graph_records VALUES('captured',?,?,?,?,?,?,?)").run(
+      r.record_id,
+      r.kind,
+      r.passage_id,
+      r.ref,
+      r.authority,
+      r.decision,
+      JSON.stringify(r.data),
+    );
+}
+
+describe('explicit publication ownership of captured source segments', () => {
+  it('shows context names only at their own exact source and preserves original roles', async () => {
+    const before = (await (
+      await request('/initial?ref=Shabbat%20153b:12')
+    ).json()) as InitialResponse;
+    expect(before.occurrences).toEqual([]);
+    installOwnership();
+    const response = await request('/initial?ref=Shabbat%20153b:12');
+    expect(response.status).toBe(200);
+    const result = (await response.json()) as InitialResponse;
+    expect(result.occurrences.length).toBeGreaterThan(0);
+    expect(result.occurrences.every((o) => o.ref === 'Shabbat 153b:12')).toBe(true);
+    expect(result.occurrences.some((o) => o.quote === 'רמי בר חמא')).toBe(true);
+    const card = (await (
+      await request(`/person?id=${encodeURIComponent(result.occurrences[0].people[0].id)}`)
+    ).json()) as SourcePerson;
+    expect(card.generation).toBeNull();
+    expect(card.resolvedTo).toBeUndefined();
+    const evidence = card.initialReading!.relationships.flatMap((r) => r.evidence);
+    expect(evidence.some((e) => e.published && !e.primary)).toBe(true);
+    const focal = (await (
+      await request('/initial?ref=Shabbat%20153b:13')
+    ).json()) as InitialResponse;
+    expect(focal.occurrences.every((o) => o.ref === 'Shabbat 153b:13')).toBe(true);
+  });
+  it('does not duplicate page occurrences when several owned units point to one reading', async () => {
+    installOwnership();
+    const data = (await (await request('/initial?ref=Shabbat%20153b')).json()) as InitialResponse;
+    expect(new Set(data.occurrences.map((o) => o.key)).size).toBe(data.occurrences.length);
+    expect(
+      data.occurrences.every((o) => new Set(o.people.map((p) => p.id)).size === o.people.length),
+    ).toBe(true);
+  });
+  it('does not fall back to focal publication when an indexed job owns no units', async () => {
+    installOwnership();
+    db.prepare("DELETE FROM sage_graph_records WHERE kind='source_reading_unit'").run();
+    const data = (await (await request('/initial?ref=Shabbat%20153b')).json()) as InitialResponse;
+    expect(data.occurrences).toEqual([]);
+  });
+  it('rejects mismatched source text and span eligibility without inventing placement', async () => {
+    installOwnership();
+    const rows = db
+      .prepare("SELECT record_id,payload_json FROM sage_graph_records WHERE kind='person'")
+      .all();
+    for (const row of rows) {
+      const data = JSON.parse(row.payload_json as string);
+      for (const mention of data.mentions) mention.start += 1;
+      db.prepare('UPDATE sage_graph_records SET payload_json=? WHERE record_id=?').run(
+        JSON.stringify(data),
+        row.record_id,
+      );
+    }
+    const data = (await (await request('/initial?ref=Shabbat%20153b')).json()) as InitialResponse;
+    expect(data.occurrences).toEqual([]);
+  });
+});
+
+it('reports explicitly covered sources even when the saved reading has no name there', async () => {
+  installOwnership();
+  const data = (await (await request('/initial?ref=Shabbat%20153b:11')).json()) as InitialResponse;
+  expect(data.occurrences).toEqual([]);
+  expect(data.sources).toHaveLength(1);
+  expect(data.sources![0].ref).toBe('Shabbat 153b:11');
+});
+
+it('does not accept invented absolute piece offsets', async () => {
+  installOwnership();
+  for (const row of db
+    .prepare(
+      "SELECT record_id,payload_json FROM sage_graph_records WHERE kind='source_reading_coverage'",
+    )
+    .all()) {
+    const data = JSON.parse(row.payload_json as string);
+    for (const unit of data.ownedUnits) {
+      unit.rawStart += 100;
+      unit.rawEnd += 100;
+    }
+    db.prepare('UPDATE sage_graph_records SET payload_json=? WHERE record_id=?').run(
+      JSON.stringify(data),
+      row.record_id,
+    );
+  }
+  const data = (await (await request('/initial?ref=Shabbat%20153b')).json()) as InitialResponse;
+  expect(data.occurrences).toEqual([]);
 });

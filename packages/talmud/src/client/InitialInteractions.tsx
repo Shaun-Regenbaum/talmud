@@ -21,7 +21,7 @@ const category = (r: InitialRelationship) =>
 export const countedInitialRelationship = (row: InitialRelationship) =>
   row.countable !== false &&
   !!row.partnerId &&
-  row.evidence.some((e) => e.primary) &&
+  row.evidence.some((e) => e.published ?? e.primary) &&
   row.reading.scene_status === 'actual_report' &&
   row.reading.polarity === 'positive' &&
   row.reading.modality !== 'hypothetical';
@@ -42,9 +42,14 @@ export function initialSummary(
     for (const row of rows) {
       const kind = category(row);
       const keys = kinds.get(kind) ?? new Set<string>();
-      for (const evidence of row.evidence.filter((e) => e.primary)) {
-        all.add(evidence.occurrenceKey);
-        keys.add(evidence.occurrenceKey);
+      for (const evidence of row.evidence.filter((e) => e.published ?? e.primary)) {
+        const passage = JSON.stringify([
+          evidence.edition,
+          evidence.segmentId ?? evidence.ref,
+          evidence.segmentSha256 ?? evidence.source_sha256,
+        ]);
+        all.add(passage);
+        keys.add(passage);
       }
       kinds.set(kind, keys);
     }

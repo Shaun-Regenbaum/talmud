@@ -2335,6 +2335,11 @@
       "reason": "Engineering instructions for graph storage, import verification, and deployment order. No research findings or dataset; belongs with the storage code in Git.",
       "sha256": "d6223d4b66eb8e96ea33dd5591c8bba2a83476a7e34bc0bbd46719112d80ccf1"
     },
+    "research/sage-network/storage/SOURCE-COVERAGE.md": {
+      "disposition": "excluded",
+      "reason": "Engineering documentation of versioned source ownership indexing, API eligibility and conservative crosslink limits; no research findings.",
+      "sha256": "a36e59091fa6378a4e89a3e19b79f41358e2f741e7ba8cbc51a1bfe1bce7fa17"
+    },
     "research/sage-network/storage/source-readings.md": {
       "disposition": "excluded",
       "reason": "Engineering importer contract and release procedure; no research findings or dataset report.",

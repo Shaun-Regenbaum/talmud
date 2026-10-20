@@ -17,7 +17,7 @@ const claims = capture.records
   .map((r) => r.data as unknown as ReadingClaim);
 
 describe('initial interaction summaries', () => {
-  it('counts exact primary evidence once when the same reading is repeated', () => {
+  it('counts a source passage once despite several excerpts and repeated readings', () => {
     const pesachim = capture.records.find(
       (r) => r.kind === 'passage' && r.ref === 'Pesachim 71b:10',
     )!;
@@ -40,7 +40,17 @@ describe('initial interaction summaries', () => {
     });
     expect(repeated).toEqual(first);
     expect(first.partners).toHaveLength(1);
-    expect(first.partners[0].total).toBe(2);
+    expect(first.partners[0].total).toBe(1);
+    const published = {
+      ...person.initialReading!,
+      relationships: person.initialReading!.relationships.map((row) => ({
+        ...row,
+        evidence: row.evidence.map((anchor) => ({ ...anchor, published: true })),
+      })),
+    };
+    const covered = initialSummary(person.id, person.name, published);
+    expect(covered.partners[0].total).toBe(2);
+    expect(published.relationships.flatMap((row) => row.evidence)).toHaveLength(4);
   });
   it('never counts hypothetical or negated readings as actual interactions', () => {
     const row = capture.records.find(
