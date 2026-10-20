@@ -19,6 +19,7 @@ const category = (r: InitialRelationship) =>
           : 'direct';
 
 export const countedInitialRelationship = (row: InitialRelationship) =>
+  row.countable !== false &&
   !!row.partnerId &&
   row.evidence.some((e) => e.primary) &&
   row.reading.scene_status === 'actual_report' &&
@@ -92,6 +93,9 @@ export function InitialInteractions(props: { id: string; name: string; reading: 
           reference={row.evidence[0]?.ref}
         >
           <p>{row.reading.reason}</p>
+          <Show when={row.reviewStatus}>
+            <p>{t(`initial.review.${row.reviewStatus}`)}</p>
+          </Show>
           <Show when={row.reading.scene_status !== 'actual_report'}>
             <p>{t(`initial.scene.${row.reading.scene_status}`)}</p>
           </Show>
@@ -105,7 +109,13 @@ export function InitialInteractions(props: { id: string; name: string; reading: 
           <For each={row.evidence}>
             {(anchor) => (
               <details class="person-passage">
-                <summary>{anchor.ref}</summary>
+                <summary>
+                  {anchor.ref}
+                  <Show when={anchor.location && anchor.location !== 'passage'}>
+                    {' '}
+                    · {t('initial.context')}
+                  </Show>
+                </summary>
                 <blockquote lang="he" dir="rtl">
                   {anchor.quote}
                 </blockquote>
@@ -136,9 +146,16 @@ export function InitialInteractions(props: { id: string; name: string; reading: 
           footer={t('initial.counts')}
           renderEvidence={(partner) => (
             <>
-              <a href={`#source-person/${encodeURIComponent(partner.slug!)}`}>
-                {lang() === 'he' ? partner.nameHe : partner.name}
-              </a>
+              <Show
+                when={props.reading.relationships.some(
+                  (r) => r.partnerId === partner.slug && r.partnerNavigable !== false,
+                )}
+                fallback={<bdi>{lang() === 'he' ? partner.nameHe : partner.name}</bdi>}
+              >
+                <a href={`#source-person/${encodeURIComponent(partner.slug!)}`}>
+                  {lang() === 'he' ? partner.nameHe : partner.name}
+                </a>
+              </Show>
               <details class="person-checked-evidence">
                 <summary>{t('initial.evidence')}</summary>
                 {evidence(

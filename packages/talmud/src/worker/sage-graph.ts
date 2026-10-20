@@ -7,6 +7,7 @@ import {
   type ReadingClaim,
   type ReadingPerson,
 } from '../lib/sage-graph/initial-readings';
+import { type LegacyPayload, type LegacyRow, legacyCards } from '../lib/sage-graph/legacy-readings';
 import type {
   CheckedConnection,
   CheckedGraph,
@@ -318,6 +319,36 @@ async function reviewedPeopleAtSameWords(
   return [...links.values()];
 }
 
+async function readLegacyPassage(db: D1Database, revisionId: string, passageId: string) {
+  const rows = await db
+    .prepare(
+      "SELECT record_id,kind,passage_id,ref,authority,decision,payload_sha256,payload_json FROM sage_graph_all_records WHERE revision_id=? AND passage_id=? AND kind IN ('passage','person','claim','name_reading','source_identity','graph_node') ORDER BY record_id LIMIT 801",
+    )
+    .bind(revisionId, passageId)
+    .all<LegacyRow>();
+  if (rows.results.length > 800) throw Error('Too many passage records');
+  const ids = new Set<string>();
+  for (const row of rows.results) {
+    const data = JSON.parse(row.payload_json) as LegacyPayload;
+    for (const id of Object.keys(data.registryRecords ?? {})) ids.add(id);
+    if (row.kind === 'source_identity' && data.personId) ids.add(data.personId);
+  }
+  if (ids.size > 150) throw Error('Too many possible identities');
+  const registry: LegacyRow[] = [];
+  const keys = [...ids].map((id) => `registry_person:${id}`);
+  for (let start = 0; start < keys.length; start += 50) {
+    const batch = keys.slice(start, start + 50);
+    const result = await db
+      .prepare(
+        `SELECT record_id,kind,passage_id,ref,authority,decision,payload_sha256,payload_json FROM sage_graph_all_records WHERE revision_id=? AND record_id IN (${batch.map(() => '?').join(',')}) AND kind='registry_person'`,
+      )
+      .bind(revisionId, ...batch)
+      .all<LegacyRow>();
+    registry.push(...result.results);
+  }
+  return legacyCards(revisionId, rows.results, registry);
+}
+
 sageGraph.get('/initial', async (c) => {
   const db = c.env.SAGE_GRAPH_DB;
   if (!db) return c.json({ error: 'Graph database is unavailable' }, 503);
@@ -350,6 +381,25 @@ sageGraph.get('/initial', async (c) => {
       else occurrences.set(occurrence.key, occurrence);
     }
   }
+  const older = await db
+    .prepare(
+      `SELECT DISTINCT passage_id FROM sage_graph_all_records WHERE revision_id=? AND kind='name_reading' AND authority='screening' AND decision='needs_review' AND ${where} ORDER BY passage_id LIMIT 101`,
+    )
+    .bind(saved.id, ...bounds)
+    .all<{ passage_id: string }>();
+  if (older.results.length > 100)
+    return c.json({ error: 'Choose one passage to see its readings' }, 422);
+  for (const row of older.results) {
+    const result = await readLegacyPassage(db, saved.id, row.passage_id);
+    for (const occurrence of result.occurrences) {
+      const previous = occurrences.get(occurrence.key);
+      if (previous)
+        previous.people.push(
+          ...occurrence.people.filter((p) => !previous.people.some((old) => old.id === p.id)),
+        );
+      else occurrences.set(occurrence.key, occurrence);
+    }
+  }
   return c.json({
     revision: saved.id,
     occurrences: [...occurrences.values()],
@@ -363,6 +413,13 @@ sageGraph.get('/person', async (c) => {
   const saved = await revision(db, c.req.query('revision'));
   if (!saved) return c.json({ error: 'No verified graph import was found' }, 404);
   const id = c.req.query('id');
+  if (id?.startsWith('proposal:')) {
+    const match = /^proposal:([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_-]+)$/.exec(id);
+    if (!match) return c.json({ error: 'Unknown person' }, 404);
+    const result = await readLegacyPassage(db, saved.id, match[1]);
+    const person = result.cards.find((person) => person.id === id);
+    return person ? c.json(person) : c.json({ error: 'Unknown person' }, 404);
+  }
   if (id?.startsWith('reading:')) {
     const match = /^reading:(sr1-[a-f0-9]{64})\/(p[1-9][0-9]*)$/.exec(id);
     if (!match) return c.json({ error: 'Unknown person' }, 404);

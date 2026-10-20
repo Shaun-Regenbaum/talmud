@@ -156,6 +156,33 @@ const CATALOG = {
   'initial.uncertainPerson': { en: 'Uncertain person', he: 'אדם לא ודאי' },
   'initial.cardTitle': { en: 'Initial reading', he: 'קריאה ראשונית' },
   'initial.title': { en: 'Initial readings', he: 'קריאות ראשוניות' },
+  'initial.reviewedIdentity': { en: 'Reviewed identity:', he: 'זהות שנבדקה:' },
+  'initial.possibleMatch': { en: 'Possible identity:', he: 'זהות אפשרית:' },
+  'initial.eraReason': { en: 'Era reading:', he: 'קריאת התקופה:' },
+  'initial.sourceWarning': {
+    en: 'This passage reference still needs checking. These readings are kept for review.',
+    he: 'ההפניה לקטע עדיין טעונה בדיקה. קריאות אלה נשמרות לעיון.',
+  },
+  'initial.passageOnly': { en: 'Name position uncertain', he: 'מיקום השם אינו ודאי' },
+  'initial.relation.source_connection': { en: 'Proposed connection', he: 'קשר מוצע' },
+  'initial.relation.group_descent': { en: 'Group descended from', he: 'קבוצה מצאצאי' },
+  'initial.relation.descendant_of': { en: 'Descendant of', he: 'צאצא של' },
+  'initial.relation.parent_of': { en: 'Parent of', he: 'הורה של' },
+  'initial.relation.teacher_of': { en: 'Teacher of', he: 'מורה של' },
+  'initial.relation.meets': { en: 'In the presence of', he: 'בנוכחות' },
+  'initial.context': { en: 'Surrounding text', he: 'טקסט סמוך' },
+  'initial.review.attempted': {
+    en: 'Attempted; completion is not established.',
+    he: 'ניסיון; לא נקבע שהפעולה הושלמה.',
+  },
+  'initial.review.rejected': {
+    en: 'The reader rejected this connection.',
+    he: 'הקורא דחה קשר זה.',
+  },
+  'initial.review.questioned': {
+    en: 'This connection still needs checking.',
+    he: 'קשר זה עדיין טעון בדיקה.',
+  },
   'initial.basis': { en: 'Why this reading', he: 'הבסיס לקריאה זו' },
   'initial.description': {
     en: 'Names and relationships read from the text. These readings have not yet been independently checked.',

@@ -1,6 +1,7 @@
 import type { SourcePerson } from './types';
 
 export interface ReadingAnchor {
+  location?: string;
   occurrenceKey: string;
   ref: string;
   edition: string;
@@ -38,6 +39,9 @@ export interface ReadingClaim {
   };
 }
 export interface InitialRelationship {
+  countable?: boolean;
+  reviewStatus?: string;
+  partnerNavigable?: boolean;
   subject: { id: string; name: string; nameHe: string } | null;
   object: { id: string; name: string; nameHe: string } | null;
   id: string;
@@ -48,6 +52,15 @@ export interface InitialRelationship {
   evidence: ReadingAnchor[];
 }
 export interface InitialReading {
+  proposals?: {
+    id: string;
+    reason: string;
+    candidate?: { id: string; name: string; nameHe: string };
+    alternatives: string[];
+    eraReason?: string;
+    evidence: ReadingAnchor[];
+    sourceWarning: boolean;
+  }[];
   reviewedPeople?: { id: string; name: string }[];
   reason: string;
   alternatives: { id: string | null; reason: string }[];
@@ -55,6 +68,7 @@ export interface InitialReading {
   neededContext: string[];
 }
 export interface InitialOccurrence {
+  passageOnly?: boolean;
   key: string;
   ref: string;
   quote: string;
