@@ -52,6 +52,8 @@ def _anchor(a):
 
 
 def _segment(s):
+    # Any other segment field would silently become R2-only, so it is refused instead.
+    require(set(s) == {'source_id', 'ref', 'edition', 'sha256', 'text', 'provenance'}, 'Unexpected source segment fields')
     out = {k: s[k] for k in ('source_id', 'ref', 'edition', 'sha256', 'text')}
     out['provenance'] = {k: s['provenance'][k] for k in KEPT_PROVENANCE if k in s['provenance']}
     return out

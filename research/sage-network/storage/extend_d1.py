@@ -442,6 +442,8 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             import source_reading_stores
             if not shared:
                 raise ValueError('A source-reading store uses shared records')
+            if db.execute(source_reading_stores.NEWEST).fetchone() != (parent['revision'],):
+                raise ValueError('A store release must extend the newest verified revision')
             source_reading_stores.validate_changes(changes, rows, parent)
         era_batch = 'possibleEraPolicy' in changes
         if era_batch:
@@ -759,7 +761,10 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             manifest['sourceReadingStore'] = parent['sourceReadingStore']
         prefix = source_reading_stores.revision_prefix(parent['sourceReadingStore']['name']) if store_batch else 'sage-graph-'
         revision = prefix + digest(encode(manifest))[:20]
-        sql = [f'INSERT INTO sage_graph_revisions(id,manifest_json,state) VALUES ({literal(revision)},{literal(encode(manifest))},\'loading\');']
+        if store_batch:
+            sql = source_reading_stores.revision_sql(revision, manifest, parent['revision'])
+        else:
+            sql = [f'INSERT INTO sage_graph_revisions(id,manifest_json,state) VALUES ({literal(revision)},{literal(encode(manifest))},\'loading\');']
         if shared:
             sql.extend(shared_records.statements(parent, revision, rows, changed, replaced_keys=parent_keys & set(changed)))
         else:
@@ -782,7 +787,8 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
         outputs = {
             'import.sql': script,
             'manifest.json': json.dumps(dict(revision=revision, **manifest), indent=2) + '\n',
-            'activate.sql': f"UPDATE sage_graph_revisions SET state='verified' WHERE id={literal(revision)} AND state='loading';\n",
+            'activate.sql': source_reading_stores.activate_sql(revision, parent['revision']) if store_batch else
+            f"UPDATE sage_graph_revisions SET state='verified' WHERE id={literal(revision)} AND state='loading';\n",
         }
         for name, content in outputs.items():
             target = output / name

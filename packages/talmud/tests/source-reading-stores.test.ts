@@ -97,6 +97,68 @@ describe('the compact store decoder', () => {
     ).rejects.toThrow('Stored ownership differs from its units');
     expect(() => canonicalJson({ cost: 1.5 })).toThrow('integers');
   });
+
+  it('refuses rows that are not canonical, repeat an ID, or run past their text', async () => {
+    const pid = passages[0];
+    const rows = rowsOf(stored, pid);
+    const rewrite = async (kind: string, change: (payload: string) => string) =>
+      Promise.all(
+        rows.map(async (r) => {
+          if (r.kind !== kind) return r;
+          const payload = change(r.payload_json);
+          return { ...r, payload_json: payload, payload_sha256: await sha256(payload) };
+        }),
+      );
+    type Anchor = [string, number, number, number, string];
+    const json = (kind: string, change: (data: Record<string, unknown>) => void) =>
+      rewrite(kind, (payload) => {
+        const data = JSON.parse(payload);
+        change(data);
+        return canonicalJson(data);
+      });
+    // 2.0 parses to 2, so the rebuilt bytes could not match; the row is refused instead.
+    await expect(
+      decodeStoredPassage(
+        pid,
+        await rewrite('passage', (s) =>
+          s.replace(/"focal":(\d+),"format"/, '"focal":$1.0,"format"'),
+        ),
+      ),
+    ).rejects.toThrow('not canonical');
+    await expect(
+      decodeStoredPassage(
+        pid,
+        await json('passage', (d) => {
+          const people = d.people as string[];
+          people[1] = people[0];
+        }),
+      ),
+    ).rejects.toThrow('Stored passage differs');
+    const segments = JSON.parse(rows.find((r) => r.kind === 'passage')!.payload_json).segments;
+    await expect(
+      decodeStoredPassage(
+        pid,
+        await json('person', (d) => {
+          const mentions = d.mentions as Anchor[];
+          const text = Array.from(
+            segments.find((s: { source_id: string }) => s.source_id === mentions[0][0])
+              .text as string,
+          );
+          // The quote is the text's last two letters, but the end runs three past the text.
+          mentions[0] = [
+            mentions[0][0],
+            text.length - 2,
+            text.length + 3,
+            1,
+            text.slice(-2).join(''),
+          ];
+        }),
+      ),
+    ).rejects.toThrow('does not match its source words');
+    await expect(
+      decodeStoredPassage(pid, await json('person', (d) => (d.id = 'p99'))),
+    ).rejects.toThrow('Stored person differs');
+  });
 });
 
 type Db = DatabaseSync;
@@ -314,5 +376,94 @@ describe('reading initial names from the source-reading stores', () => {
     expect(unbound.body.sourceRevisions).toEqual({ bavli: null, other: null });
     expect(unbound.body.unavailableSourceStores).toBeUndefined();
     expect((await get(`/person?id=${encodeURIComponent(id)}`)).status).toBe(404);
+  });
+
+  it('keeps graph readings when a store fails after its revision is picked', async () => {
+    // The graph holds the Shabbat reading; the store holds both readings.
+    graph.close();
+    graph = database();
+    publish(
+      graph,
+      GRAPH,
+      {},
+      v1.filter((r) => r.passage_id === passages[0]),
+      '2026-10-20T00:00:00.000Z',
+    );
+    env.SOURCE_READINGS_BAVLI_DB = {
+      prepare: (sql: string) =>
+        sql.includes('sage_graph_revisions') ? binding(bavli).prepare(sql) : broken.prepare(),
+    };
+    env.SAGE_GRAPH_DB = binding(graph);
+    const page = await get<Initial>('/initial?ref=Shabbat%20153b');
+    expect(page.status).toBe(200);
+    expect(page.body.sourceRevisions.bavli).toBe(BAVLI);
+    expect(page.body.unavailableSourceStores).toEqual(['bavli']);
+    expect(page.body.occurrences.length).toBeGreaterThan(0);
+    expect((await get(`/initial?ref=Shabbat%20153b&bavliRevision=${BAVLI}`)).status).toBe(503);
+    expect(
+      (await get(`/person?id=${encodeURIComponent(`reading:${passages[1]}/p1`)}`)).status,
+    ).toBe(503);
+    // A store without migration 0003 has no record view at all.
+    const old = new DatabaseSync(':memory:');
+    for (const name of readdirSync(migrations).sort().slice(0, 2))
+      old.exec(readFileSync(join(migrations, name), 'utf8'));
+    old
+      .prepare("INSERT INTO sage_graph_revisions(id,manifest_json,state) VALUES (?,?,'verified')")
+      .run(BAVLI, JSON.stringify({ storageFormat: 'shared-v1', ...block('bavli') }));
+    env.SOURCE_READINGS_BAVLI_DB = binding(old);
+    const stale = await get<Initial>('/initial?ref=Shabbat%20153b');
+    expect(stale.status).toBe(200);
+    expect(stale.body.unavailableSourceStores).toEqual(['bavli']);
+    expect(stale.body.occurrences).toEqual(page.body.occurrences);
+    old.close();
+    // One stored row the decoder refuses drops that store's readings, not the page.
+    const tampered = database();
+    publish(
+      tampered,
+      BAVLI,
+      block('bavli'),
+      stored.map((r) => (r.kind === 'person' ? { ...r, payload_sha256: '0'.repeat(64) } : r)),
+      '2026-10-20T00:00:01.000Z',
+    );
+    env.SOURCE_READINGS_BAVLI_DB = binding(tampered);
+    const refused = await get<Initial>('/initial?ref=Pesachim%2071b:10');
+    expect(refused.status).toBe(200);
+    expect(refused.body.unavailableSourceStores).toEqual(['bavli']);
+    expect(refused.body.occurrences).toEqual([]);
+    tampered.close();
+  });
+
+  it('never serves a store revision as the graph, and refuses an empty revision name', async () => {
+    publish(graph, BAVLI, block('bavli'), [], '2026-10-21T00:00:00.000Z');
+    const page = await get<Initial>('/initial?ref=Pesachim%2071b:10');
+    expect(page.status).toBe(200);
+    expect(page.body.revision).toBe(GRAPH);
+    expect((await get(`/initial?ref=Pesachim%2071b:10&revision=${BAVLI}`)).status).toBe(404);
+    expect((await get<{ revision: string }>('/')).body.revision).toBe(GRAPH);
+    expect((await get('/initial?ref=Pesachim%2071b:10&bavliRevision=')).status).toBe(404);
+  });
+
+  it('never reads a store for a person the graph holds, even when its graph copy is unreadable', async () => {
+    const envelope = v1.find((r) => r.kind === 'source_reading' && r.passage_id === passages[1])!;
+    const data = JSON.parse(envelope.payload_json);
+    graph.close();
+    graph = database();
+    publish(
+      graph,
+      GRAPH,
+      {},
+      [
+        {
+          ...envelope,
+          payload_json: JSON.stringify({ ...data, version: 'source-reading-import-v0' }),
+        },
+      ],
+      '2026-10-20T00:00:00.000Z',
+    );
+    env.SAGE_GRAPH_DB = binding(graph);
+    const card = await get<SourcePerson>(
+      `/person?id=${encodeURIComponent(`reading:${passages[1]}/p1`)}`,
+    );
+    expect(card.status).toBe(404);
   });
 });

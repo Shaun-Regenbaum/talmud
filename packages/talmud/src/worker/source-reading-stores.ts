@@ -16,7 +16,16 @@ export interface SourceStore {
   name: SourceStoreName;
   db: D1Database;
   revision: string;
+  /** The client asked for this revision, so a failed read must not quietly drop it. */
+  requested: boolean;
 }
+
+/**
+ * Graph revision lookups add this, so a store revision loaded into the graph database by mistake is
+ * never served as the graph. The importer refuses that mix-up too; this is the second guard.
+ */
+export const NOT_A_STORE_REVISION =
+  "id NOT LIKE 'source-readings-%' AND json_extract(manifest_json,'$.sourceReadingStore') IS NULL";
 export type SourceStoreRevisions = Record<SourceStoreName, string | null>;
 export interface ResolvedSourceStores {
   stores: SourceStore[];
@@ -55,6 +64,7 @@ export async function resolveSourceStores(
   };
   for (const { name, binding, param } of SOURCE_STORES) {
     const requested = query(param);
+    if (requested === '') return { error: 'Name a source reading revision', status: 404 };
     const db = env[binding];
     if (!db) {
       if (requested) return { error: 'Source reading store is not available', status: 404 };
@@ -86,7 +96,7 @@ export async function resolveSourceStores(
       resolved.unavailable.push(name);
       continue;
     }
-    resolved.stores.push({ name, db, revision: row.id });
+    resolved.stores.push({ name, db, revision: row.id, requested: !!requested });
     resolved.revisions[name] = row.id;
   }
   return resolved;

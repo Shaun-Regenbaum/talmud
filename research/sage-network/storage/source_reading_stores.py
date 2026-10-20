@@ -16,7 +16,7 @@ Checks, in order:
   genesis  --store S --output DIR                       the empty first revision of a store
   prepare  --store S --capture C --parent-db DB --parent-revision R --ownership M --ownership-hash H
            --legacy-db DB --legacy-revision R --output DIR
-  verify   --export SQL --manifest M --artifacts DIR --ownership M H --receipt R
+  verify   --export SQL --manifest M --artifacts DIR --ownership M H [--parent-receipt R0] --receipt R
 """
 import copy
 import hashlib
@@ -37,12 +37,16 @@ from shared_records import FORMAT as SHARED_FORMAT, record_table  # noqa: E402
 from source_coverage import pinned_index, records as coverage_records  # noqa: E402
 
 VERSION = 'source-reading-stores-v1'
+# Each store accepts only its reviewed ownership manifest, the same pins the source-binding release used.
 STORES = {
-    'bavli': dict(database='talmud-source-readings-bavli', corpora=['bavli'], ownershipSource='full-bavli-tiles v1'),
+    'bavli': dict(database='talmud-source-readings-bavli', corpora=['bavli'], ownershipSource='full-bavli-tiles v1',
+                  ownershipManifestSha256='42a7236ec9db64b1382f12ffe7493a38a096c71f4f1c75c229b3c9b9b7df5176'),
     'other': dict(database='talmud-source-readings-other',
                   corpora=['midrash-aggadah', 'midrash-halakhah', 'minor-tractates', 'mishnah', 'tosefta', 'yerushalmi'],
-                  ownershipSource='full-other-texts-tiles v3'),
+                  ownershipSource='full-other-texts-tiles v3',
+                  ownershipManifestSha256='da0c4ed080e12faf1c2eedcdddae54576baaf5bccefc6b5ea0bf7ff7385498d5'),
 }
+NEWEST = "SELECT id FROM sage_graph_revisions WHERE state='verified' ORDER BY created_at DESC, id DESC LIMIT 1"
 KINDS = v1.KINDS | {'source_reading_run'}
 CHANGE_FIELDS = {'parentRevision', 'description', 'sourceReadingStore', 'sourceReadingVersion', 'sourceReadingBundles',
                  'sourceReadingInputs', 'sourceReadingOwnership', 'legacyGraphRevision', 'records'}
@@ -97,6 +101,8 @@ def changes_for(store, bundles, parent_revision, input_artifacts, ownership, leg
     require(ownership is not None, 'A source-reading store needs a pinned ownership manifest')
     require(ownership['manifest']['manifest'].get('sourceVersion') == STORES[store]['ownershipSource'],
             'Ownership manifest belongs to another store')
+    require(ownership['expectedManifestSha256'] == STORES[store]['ownershipManifestSha256'],
+            'Ownership manifest is not the reviewed one for this store')
     require(isinstance(legacy_revision, str) and legacy_revision.startswith('sage-graph-'),
             'Name the verified legacy graph revision these readings were checked against')
     # The unchanged importer rebuilds every v1 row from the frozen inputs, with publication ownership.
@@ -137,17 +143,50 @@ def validate_changes(changes, rows, parent):
     require(changes == expected, 'Store records differ from strict reconstruction')
 
 
+def quoted(value):
+    return "'" + value.replace("'", "''") + "'"
+
+
+def _newest_is(parent):
+    if parent is None:
+        return "NOT EXISTS (SELECT 1 FROM sage_graph_revisions WHERE state='verified')"
+    return f'({NEWEST})={quoted(parent)}'
+
+
+def _stop_unless(revision, state):
+    # SQL scripts cannot raise. This member row is refused by the shared-record triggers of
+    # migration 0003 whenever it is inserted, so it stops the script when the check fails.
+    return (f"INSERT INTO sage_graph_revision_members(revision_id,record_id,version_id) SELECT {quoted(revision)},"
+            f"'store-release-check',0 WHERE NOT EXISTS (SELECT 1 FROM sage_graph_revisions WHERE id={quoted(revision)} "
+            f"AND state={quoted(state)});")
+
+
+def revision_sql(revision, manifest, parent):
+    """The loading revision row of a store release. It is inserted only in its own store and only on top of
+    its parent while that parent is still the newest verified revision. Otherwise the script stops."""
+    own = quoted(revision_prefix(manifest['sourceReadingStore']['name']) + '%')
+    insert = (f"INSERT INTO sage_graph_revisions(id,manifest_json,state) SELECT {quoted(revision)},{quoted(encode(manifest))},"
+              f"'loading' WHERE {_newest_is(parent)} AND NOT EXISTS (SELECT 1 FROM sage_graph_revisions WHERE id NOT LIKE {own});")
+    return [insert, _stop_unless(revision, 'loading')]
+
+
+def activate_sql(revision, parent):
+    """Activate only while the parent is still the newest verified revision, so two releases built on one
+    parent, or activated out of order, cannot both become current. A refused activation stops the script."""
+    return (f"UPDATE sage_graph_revisions SET state='verified' WHERE id={quoted(revision)} AND state='loading' "
+            f"AND {_newest_is(parent)};\n{_stop_unless(revision, 'verified')}\n")
+
+
 def genesis(store):
     """The empty first revision of a store, as extend_d1 would write it. Nothing to verify but the schema."""
     manifest = dict(schemaVersion=1, parentRevision=None, change=f'Create the empty {store} source-reading store',
                     recordCount=0, countsByKind={}, recordSetSha256=digest(encode([])),
                     storageFormat=SHARED_FORMAT, sourceReadingStore=store_block(store))
     revision = revision_prefix(store) + digest(encode(manifest))[:20]
-    quoted = lambda value: "'" + value.replace("'", "''") + "'"
     return {
-        'import.sql': f"INSERT INTO sage_graph_revisions(id,manifest_json,state) VALUES ({quoted(revision)},{quoted(encode(manifest))},'loading');\n",
+        'import.sql': '\n'.join(revision_sql(revision, manifest, None)) + '\n',
         'manifest.json': json.dumps(dict(revision=revision, **manifest), indent=2) + '\n',
-        'activate.sql': f"UPDATE sage_graph_revisions SET state='verified' WHERE id={quoted(revision)} AND state='loading';\n",
+        'activate.sql': activate_sql(revision, None),
     }
 
 
@@ -166,8 +205,10 @@ def route(capture):
     return out, receipt
 
 
-def verify_store(export, manifest_path, artifacts, ownership_specs):
-    """Read a store export back: every passage expands against its R2 artifact and equals the importer."""
+def verify_store(export, manifest_path, artifacts, ownership_specs, parent_receipt=None):
+    """Read a store export back after an import. Records new in this revision are rebuilt from their R2
+    artifacts, downloaded again, and must equal the importer's rows. Records kept from the parent must be
+    the parent's exact versions; the parent's own read-back receipt covers them."""
     from verify_d1 import verify
     checked = verify(export, manifest_path)
     manifest = json.loads(manifest_path.read_text())
@@ -180,8 +221,29 @@ def verify_store(export, manifest_path, artifacts, ownership_specs):
         db.executescript(export.read_text())
         found = [item(r) for r in db.execute(f'SELECT {COLUMNS} FROM {record_table(db)} WHERE revision_id=? ORDER BY record_id',
                                              (manifest['revision'],))]
+        members = lambda revision: dict(db.execute(
+            'SELECT record_id,version_id FROM sage_graph_revision_members WHERE revision_id=?', (revision,)))
+        mine, inherited = members(manifest['revision']), {}
+        parent = manifest.get('parentRevision')
+        if parent:
+            inherited = members(parent)
+            require(all(mine.get(key) == version for key, version in inherited.items()),
+                    'A store release cannot change or drop a parent record')
+            parent_manifest = json.loads(db.execute('SELECT manifest_json FROM sage_graph_revisions WHERE id=?',
+                                                    (parent,)).fetchone()[0])
+            if inherited:
+                require(isinstance(parent_receipt, dict) and parent_receipt.get('revision') == parent
+                        and parent_receipt.get('matchesImporter') is True
+                        and parent_receipt.get('recordSetSha256') == parent_manifest['recordSetSha256'],
+                        'The parent revision needs its own read-back receipt')
     require(all(r['kind'] in KINDS for r in found), 'Unexpected record kind in a source-reading store')
-    runs = {r['data']['manifestSha256'] for r in found if r['kind'] == 'source_reading_run'}
+    runs = [r for r in found if r['kind'] == 'source_reading_run']
+    for r in runs:
+        key = v1.digest(r['data']['manifest'])
+        require(r == dict(record_id='source_reading_run:' + key, kind='source_reading_run', passage_id=None, ref=None,
+                          subject_id=None, object_id=None, authority='screening', decision='needs_review',
+                          data=dict(format=compact_store.FORMAT, manifestSha256=key, manifest=r['data']['manifest'])),
+                'Run row differs from its manifest: ' + r['record_id'])
     by_passage = {}
     for r in found:
         if r['kind'] != 'source_reading_run':
@@ -192,24 +254,32 @@ def verify_store(export, manifest_path, artifacts, ownership_specs):
         require(len(envelopes) == 1, 'A passage needs exactly one source_reading envelope')
         provenance = envelopes[0]['data']['provenance']
         used.add(provenance['inputProof']['manifestSha256'])
+        if all(r['record_id'] in inherited for r in group):
+            continue  # unchanged since the parent, whose receipt covers it
         path = artifacts / (provenance['artifactSha256'] + '.json')
         require(path.exists(), 'Missing downloaded R2 artifact: ' + path.name)
-        bundle = json.loads(path.read_text())
-        # The downloaded file must be the artifact the envelope names before any of it is used.
+        # The downloaded bytes must be the artifact the envelope names before any of it is parsed.
+        raw = path.read_bytes()
+        require(hashlib.sha256(raw).hexdigest() == provenance['artifactSha256'] and len(raw) == provenance['artifactBytes'],
+                'Downloaded R2 file differs from its envelope: ' + path.name)
+        bundle = json.loads(raw)
         compact_store.verify_artifact(envelopes[0]['data'], bundle)
         require(store_for(bundle['job']) == store, 'Passage belongs to another store: ' + pid)
         coverage = [r for r in group if r['kind'] == 'source_reading_coverage']
         require(len(coverage) == 1, 'A store passage needs its ownership record')
         pins = {a['ownershipManifestSha256'] for a in coverage[0]['data']['sources']}
         require(len(pins) == 1 and next(iter(pins)) in indexes, 'Ownership manifest is not pinned for this check')
+        require(next(iter(pins)) == STORES[store]['ownershipManifestSha256'], 'Ownership manifest is not the reviewed one')
         expected = v1.records(bundle) + coverage_records(bundle['job'], pid, indexes[next(iter(pins))])
         require(expected[0]['passage_id'] == pid, 'Artifact belongs to another passage: ' + pid)
-        expanded = compact_store.expand(group + [r for r in found if r['kind'] == 'source_reading_run'], {pid: bundle})
+        expanded = compact_store.expand(group + runs, {pid: bundle})
         require(sorted(expanded, key=lambda r: r['record_id']) == sorted(expected, key=lambda r: r['record_id']),
                 'Stored passage differs from the importer: ' + pid)
         bundles[pid] = provenance['artifactSha256']
-    require(runs == used, 'Run manifests differ from the readings that use them')
-    return dict(checked, store=store, database=STORES[store]['database'], passages=len(by_passage),
+    require({r['data']['manifestSha256'] for r in runs} == used, 'Run manifests differ from the readings that use them')
+    return dict(checked, store=store, database=STORES[store]['database'], recordSetSha256=manifest['recordSetSha256'],
+                parentRevision=parent, passages=len(by_passage), passagesChecked=len(bundles),
+                passagesFromParent=len(by_passage) - len(bundles),
                 countsByKind=dict(sorted(Counter(r['kind'] for r in found).items())),
                 artifactsChecked=len(bundles), matchesImporter=True)
 
@@ -218,7 +288,8 @@ def _read_rows(path, revision, keys):
     with closing(sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True)) as db:
         require(db.execute('SELECT state FROM sage_graph_revisions WHERE id=?', (revision,)).fetchone() == ('verified',),
                 'Revision is not verified: ' + revision)
-        manifest = json.loads(db.execute('SELECT manifest_json FROM sage_graph_revisions WHERE id=?', (revision,)).fetchone()[0])
+        manifest = dict(json.loads(db.execute('SELECT manifest_json FROM sage_graph_revisions WHERE id=?', (revision,)).fetchone()[0]),
+                        newest=db.execute(NEWEST).fetchone()[0] == revision)
         table = record_table(db)
         rows = {}
         for start in range(0, len(keys), 100):
@@ -247,6 +318,7 @@ def prepare(store, capture, parent_db, parent_revision, ownership, legacy_db, le
     keys = sorted({r['record_id'] for b in bundles for r in compact_store.records(b, index)})
     parent, existing = _read_rows(parent_db, parent_revision, keys)
     require(parent.get('sourceReadingStore') == store_block(store), 'Parent revision belongs to another store')
+    require(parent['newest'], 'A store release must extend the newest verified revision')
     # The legacy graph keeps its own copy of older readings, and the reader prefers it. A store must
     # never hold a reading the graph already has, so a human correction there cannot be shadowed.
     legacy, overlap = _read_rows(legacy_db, legacy_revision, keys)
@@ -282,6 +354,7 @@ def main():
     for name in ('--export', '--manifest', '--artifacts', '--receipt'):
         p.add_argument(name, type=Path, required=True)
     p.add_argument('--ownership', nargs=2, action='append', required=True, metavar=('MANIFEST_JSON', 'REVIEWED_SHA256'))
+    p.add_argument('--parent-receipt', type=Path, help="The parent revision's read-back receipt, unless it is empty")
     args = parser.parse_args()
     if args.command == 'route':
         parts, receipt = route(json.loads(args.capture.read_text()))
@@ -302,7 +375,8 @@ def main():
                          ownership, args.legacy_db, args.legacy_revision, args.output)
     else:
         specs = [dict(manifest=json.loads(Path(m).read_text()), expectedManifestSha256=h) for m, h in args.ownership]
-        result = verify_store(args.export, args.manifest, args.artifacts, specs)
+        parent = json.loads(args.parent_receipt.read_text()) if args.parent_receipt else None
+        result = verify_store(args.export, args.manifest, args.artifacts, specs, parent)
         args.receipt.write_text(json.dumps(result, indent=2) + '\n')
     print(json.dumps(result))
 

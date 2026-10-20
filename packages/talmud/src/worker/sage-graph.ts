@@ -29,7 +29,11 @@ import type {
   CheckedNode,
   CheckedOccurrence,
 } from '../lib/sage-graph/types';
-import { resolveSourceStores, type SourceStoreName } from './source-reading-stores';
+import {
+  NOT_A_STORE_REVISION,
+  resolveSourceStores,
+  type SourceStoreName,
+} from './source-reading-stores';
 import { isKnownTractate } from './spine-coverage';
 import type { Bindings } from './types';
 
@@ -44,11 +48,11 @@ async function revision(db: D1Database, requested?: string) {
   const query = requested
     ? db
         .prepare(
-          "SELECT id, manifest_json FROM sage_graph_revisions WHERE state='verified' AND id=?",
+          `SELECT id, manifest_json FROM sage_graph_revisions WHERE state='verified' AND ${NOT_A_STORE_REVISION} AND id=?`,
         )
         .bind(requested)
     : db.prepare(
-        "SELECT id, manifest_json FROM sage_graph_revisions WHERE state='verified' ORDER BY created_at DESC, id DESC LIMIT 1",
+        `SELECT id, manifest_json FROM sage_graph_revisions WHERE state='verified' AND ${NOT_A_STORE_REVISION} ORDER BY created_at DESC, id DESC LIMIT 1`,
       );
   return query.first<{ id: string; manifest_json: string }>();
 }
@@ -271,11 +275,14 @@ async function readInitialPassage(source: ReadingSource, passageId: string) {
   if (source.store) {
     const result = await source.db
       .prepare(
-        "SELECT record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json FROM sage_graph_all_records WHERE revision_id=? AND passage_id=? AND authority='screening' AND decision='needs_review' AND kind IN ('person','claim','source_reading','source_reading_coverage','source_reading_unit','passage') ORDER BY record_id LIMIT 401",
+        "SELECT record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json FROM sage_graph_all_records WHERE revision_id=? AND passage_id=? AND authority='screening' AND decision='needs_review' AND kind IN ('person','claim','source_reading','source_reading_coverage','source_reading_unit','passage') ORDER BY record_id LIMIT 801",
       )
       .bind(source.revision, passageId)
       .all<StoredRow>();
-    if (result.results.length > 400) throw Error('Too many source reading records');
+    // The graph query does not count ownership units, so neither does this limit.
+    const readingRows = result.results.filter((r) => r.kind !== 'source_reading_unit');
+    if (readingRows.length > 400 || result.results.length > 800)
+      throw Error('Too many source reading records');
     if (!result.results.length) return null;
     stored = await decodeStoredPassage(passageId, result.results);
     found = stored;
@@ -486,11 +493,22 @@ sageGraph.get('/initial', async (c) => {
     result.results.map((row) => [row.passage_id, graphSource]),
   );
   let matched = result.results.length;
+  const unavailable = (name: SourceStoreName) => {
+    if (!stores.unavailable.includes(name)) stores.unavailable.push(name);
+  };
   for (const store of stores.stores) {
-    const found = await store.db
-      .prepare(readingsSql)
-      .bind(store.revision, ...bounds)
-      .all<{ passage_id: string }>();
+    let found: D1Result<{ passage_id: string }>;
+    try {
+      found = await store.db
+        .prepare(readingsSql)
+        .bind(store.revision, ...bounds)
+        .all<{ passage_id: string }>();
+    } catch {
+      // A store that cannot be read leaves the graph readings on the page.
+      if (store.requested) return c.json({ error: 'Source reading store is unavailable' }, 503);
+      unavailable(store.name);
+      continue;
+    }
     matched += found.results.length;
     if (matched > 500) return c.json({ error: 'Choose one passage to see its readings' }, 422);
     const ids = [...new Set(found.results.map((row) => row.passage_id))].filter(
@@ -512,11 +530,38 @@ sageGraph.get('/initial', async (c) => {
   const passageIds = [...readingSources.keys()];
   if (matched > 500 || passageIds.length > 50)
     return c.json({ error: 'Choose one passage to see its readings' }, 422);
-  const occurrences = new Map<string, InitialOccurrence>();
-  const storedRows: LegacyRow[] = [];
+  type Reading = NonNullable<Awaited<ReturnType<typeof readInitialPassage>>>;
+  const readings = new Map<string, Reading>();
   for (const [passageId, source] of readingSources) {
+    if (source.store) continue;
     const passage = await readInitialPassage(source, passageId);
     if (!passage) return c.json({ error: 'Source reading is incomplete' }, 503);
+    readings.set(passageId, passage);
+  }
+  // Each store's passages are read together, so a failure drops that whole store, never half of it.
+  for (const store of stores.stores) {
+    const ids = passageIds.filter((id) => readingSources.get(id)?.store === store.name);
+    try {
+      const found: [string, Reading][] = [];
+      for (const id of ids) {
+        const passage = await readInitialPassage(
+          { db: store.db, revision: store.revision, store: store.name },
+          id,
+        );
+        if (!passage) throw Error('Source reading is incomplete');
+        found.push([id, passage]);
+      }
+      for (const [id, passage] of found) readings.set(id, passage);
+    } catch {
+      if (store.requested) return c.json({ error: 'Source reading store is unavailable' }, 503);
+      unavailable(store.name);
+      for (const id of ids) readingSources.delete(id);
+    }
+  }
+  const occurrences = new Map<string, InitialOccurrence>();
+  const storedRows: LegacyRow[] = [];
+  for (const passageId of readingSources.keys()) {
+    const passage = readings.get(passageId)!;
     storedRows.push(...passage.stored);
     for (const row of passage.stored.filter((r) => r.kind === 'source_reading_unit')) {
       const unit = JSON.parse(row.payload_json) as OwnedReadingUnit;
@@ -553,7 +598,9 @@ sageGraph.get('/initial', async (c) => {
   }
   const placementRows: LegacyRow[] = [];
   if (c.req.query('placement') === 'v1') {
-    const graphPassages = passageIds.filter((id) => readingSources.get(id) === graphSource);
+    const graphPassages = [...readingSources.keys()].filter(
+      (id) => readingSources.get(id) === graphSource,
+    );
     for (const pid of new Set([...graphPassages, ...older.results.map((r) => r.passage_id)])) {
       const bound = await db
         .prepare(
@@ -669,12 +716,19 @@ sageGraph.get('/person', async (c) => {
     // The graph copy wins: it holds older readings, and human corrections apply there.
     let reading = await readInitialPassage({ db, revision: saved.id }, match[1]);
     let sourceStore: SourceStoreName | undefined;
-    if (!reading) {
+    // As on the page: if the graph holds this reading at all, the stores are never read for it.
+    const inGraph = await recordsPresent(db, saved.id, [`source_reading:${match[1]}`]);
+    if (!reading && !inGraph.size) {
       for (const store of stores.stores) {
-        const found = await readInitialPassage(
-          { db: store.db, revision: store.revision, store: store.name },
-          match[1],
-        );
+        let found: Awaited<ReturnType<typeof readInitialPassage>>;
+        try {
+          found = await readInitialPassage(
+            { db: store.db, revision: store.revision, store: store.name },
+            match[1],
+          );
+        } catch {
+          return c.json({ error: 'Source reading store is unavailable' }, 503);
+        }
         if (found && reading) return c.json({ error: 'Source reading is stored twice' }, 503);
         if (found) [reading, sourceStore] = [found, store.name];
       }

@@ -87,9 +87,16 @@ class SourceReadingStoreTests(unittest.TestCase):
         self.bundles = [copy.deepcopy(CAPTURE['bundles'][i]) for i in (0, 2)]
         self.inputs = CAPTURE['inputArtifacts']
         self.ownership = store_ownership(self.bundles)
+        self.pin(self.ownership)
         self.db = database(str(self.root / 'store.sqlite'))
         self.addCleanup(self.db.close)
         self.manifest = self.release(stores.genesis('bavli'), 'genesis')
+
+    def pin(self, ownership):
+        # The tests use ownership for the captured subset, so its hash stands in for the reviewed pin.
+        old = stores.STORES['bavli']['ownershipManifestSha256']
+        stores.STORES['bavli']['ownershipManifestSha256'] = ownership['expectedManifestSha256']
+        self.addCleanup(stores.STORES['bavli'].__setitem__, 'ownershipManifestSha256', old)
 
     def release(self, outputs, name):
         self.db.executescript(outputs['import.sql'])
@@ -103,10 +110,10 @@ class SourceReadingStoreTests(unittest.TestCase):
         return stores.changes_for(store, self.bundles, self.manifest['revision'], self.inputs,
                                   ownership or self.ownership, LEGACY, existing)
 
-    def extend(self, changes, parent='genesis', shared=True):
-        path = self.root / 'changes.json'
+    def extend(self, changes, parent='genesis', shared=True, out='out'):
+        path = self.root / f'{out}-changes.json'
         path.write_text(json.dumps(changes, ensure_ascii=False))
-        out = self.root / 'out'
+        out = self.root / out
         result = prepare(self.root / f'{parent}.sql', self.root / f'{parent}.json', path, out, shared=shared)
         outputs = {name: (out / name).read_text() for name in ('import.sql', 'manifest.json', 'activate.sql')}
         return result, outputs
@@ -168,10 +175,14 @@ class SourceReadingStoreTests(unittest.TestCase):
         changed = copy.deepcopy(self.bundles[0])
         changed['job']['sources'][0]['provenance']['source_url'] += '?x'
         folder = self.artifacts()
-        (folder / (importer.digest(self.bundles[0]) + '.json')).write_text(
-            json.dumps(changed, ensure_ascii=False, sort_keys=True, separators=(',', ':')))
-        with self.assertRaisesRegex(ValueError, 'R2 artifact differs'):
-            stores.verify_store(export, manifest, folder, [self.ownership])
+        path = folder / (importer.digest(self.bundles[0]) + '.json')
+        good = path.read_text()
+        # a changed URL, and two files that parse to the right bundle but are not its bytes
+        for text in (json.dumps(changed, ensure_ascii=False, sort_keys=True, separators=(',', ':')), good + '\n',
+                     '{"job":{},' + good[1:]):
+            path.write_text(text)
+            with self.assertRaisesRegex(ValueError, 'Downloaded R2 file differs from its envelope'):
+                stores.verify_store(export, manifest, folder, [self.ownership])
         (folder / (importer.digest(self.bundles[0]) + '.json')).unlink()
         with self.assertRaisesRegex(ValueError, 'Missing downloaded R2 artifact'):
             stores.verify_store(export, manifest, folder, [self.ownership])
@@ -186,6 +197,8 @@ class SourceReadingStoreTests(unittest.TestCase):
             self.changes(ownership=store_ownership(self.bundles, 'full-other-texts-tiles v3'))
         with self.assertRaisesRegex(ValueError, 'legacy graph revision'):
             stores.changes_for('bavli', self.bundles, self.manifest['revision'], self.inputs, self.ownership, None)
+        with self.assertRaisesRegex(ValueError, 'not the reviewed one'):
+            self.changes(ownership=store_ownership(self.bundles[:1]))
         changes = self.changes()
         person = next(r for r in changes['records'] if r['kind'] == 'person')
         person['data']['label'] += ' (edited)'
@@ -201,12 +214,12 @@ class SourceReadingStoreTests(unittest.TestCase):
         v1_changes = importer.changes_for(self.bundles, self.manifest['revision'], self.inputs, None, self.ownership)
         with self.assertRaisesRegex(ValueError, 'cannot carry other changes'):
             self.extend(v1_changes)
-        other = stores.genesis('other')
-        (self.root / 'other.sql').write_text('\n'.join(self.db.iterdump()) + '\n' + other['import.sql'] +
-                                             other['activate.sql'])
-        (self.root / 'other.json').write_text(other['manifest.json'])
+        other, outputs = database(), stores.genesis('other')
+        other.executescript(outputs['import.sql'] + outputs['activate.sql'])
+        (self.root / 'other.sql').write_text('\n'.join(other.iterdump()))
+        (self.root / 'other.json').write_text(outputs['manifest.json'])
         changes = self.changes()
-        changes['parentRevision'] = json.loads(other['manifest.json'])['revision']
+        changes['parentRevision'] = json.loads(outputs['manifest.json'])['revision']
         with self.assertRaisesRegex(ValueError, 'another source-reading store'):
             self.extend(changes, parent='other')
         graph = database()
@@ -218,6 +231,57 @@ class SourceReadingStoreTests(unittest.TestCase):
         changes['parentRevision'] = LEGACY
         with self.assertRaisesRegex(ValueError, 'go to a source-reading store, not the graph'):
             self.extend(changes, parent='graph')
+
+    def test_releases_stack_in_order_and_each_read_back_checks_only_new_passages(self):
+        one, two = self.bundles
+        inputs = lambda b: {b['inputProof']['sha256']: self.inputs[b['inputProof']['sha256']]}
+        changes = stores.changes_for('bavli', [one], self.manifest['revision'], inputs(one), self.ownership, LEGACY)
+        first = self.release(self.extend(changes, out='a')[1], 'first')
+        receipt = stores.verify_store(self.root / 'first.sql', self.root / 'first.json', self.artifacts([one]), [self.ownership])
+        rows = self.db.execute(f'SELECT {stores.COLUMNS} FROM sage_graph_all_records WHERE revision_id=?', (first['revision'],))
+        changes = stores.changes_for('bavli', [two], first['revision'], inputs(two), self.ownership, LEGACY,
+                                     {r[0]: stores.item(r) for r in rows})
+        self.assertNotIn('source_reading_run', {r['kind'] for r in changes['records']})  # already in the parent
+        self.release(self.extend(changes, parent='first', out='b')[1], 'second')
+        folder = self.root / 'second-artifacts'
+        folder.mkdir()
+        (folder / (importer.digest(two) + '.json')).write_text(
+            json.dumps(two, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False))
+        with self.assertRaisesRegex(ValueError, 'needs its own read-back receipt'):
+            stores.verify_store(self.root / 'second.sql', self.root / 'second.json', folder, [self.ownership])
+        second = stores.verify_store(self.root / 'second.sql', self.root / 'second.json', folder, [self.ownership], receipt)
+        self.assertEqual((second['passagesChecked'], second['passagesFromParent']), (1, 1))
+        # A release built on the first revision, now that the second is newer, is refused.
+        (self.root / 'now.sql').write_text('\n'.join(self.db.iterdump()))
+        (self.root / 'now.json').write_text((self.root / 'first.json').read_text())
+        late = stores.changes_for('bavli', [two], first['revision'], inputs(two), self.ownership, LEGACY)
+        with self.assertRaisesRegex(ValueError, 'newest verified revision'):
+            self.extend(late, parent='now', out='c')
+
+    def test_store_sql_runs_only_on_its_own_store_and_activates_only_in_order(self):
+        graph = database()
+        graph.execute("INSERT INTO sage_graph_revisions(id,manifest_json,state) VALUES (?,'{}','verified')", (LEGACY,))
+        with self.assertRaises(sqlite3.DatabaseError):
+            graph.executescript(stores.genesis('bavli')['import.sql'])
+        with self.assertRaises(sqlite3.DatabaseError):
+            graph.executescript(stores.genesis('other')['import.sql'])
+        a = self.extend(stores.changes_for('bavli', self.bundles[:1], self.manifest['revision'],
+                                           self.inputs, self.ownership, LEGACY), out='a')[1]
+        b = self.extend(stores.changes_for('bavli', self.bundles[1:], self.manifest['revision'],
+                                           self.inputs, self.ownership, LEGACY), out='b')[1]
+        with self.assertRaises(sqlite3.DatabaseError):
+            graph.executescript(a['import.sql'])
+        self.assertEqual(graph.execute('SELECT count(*) FROM sage_graph_revisions').fetchone(), (1,))
+        # two releases built on one parent: the second can no longer become current
+        self.db.executescript(a['import.sql'])
+        self.db.executescript(b['import.sql'])
+        self.db.executescript(a['activate.sql'])
+        self.db.executescript(a['activate.sql'])  # running it again changes nothing
+        with self.assertRaises(sqlite3.DatabaseError):
+            self.db.executescript(b['activate.sql'])
+        states = dict(self.db.execute('SELECT id,state FROM sage_graph_revisions'))
+        self.assertEqual(states[json.loads(a['manifest.json'])['revision']], 'verified')
+        self.assertEqual(states[json.loads(b['manifest.json'])['revision']], 'loading')
 
     def test_app_fixture_matches_the_current_rows(self):
         # Regenerate with: python tests/test_source_reading_stores.py --write-app-fixture, then biome format --write it.
@@ -234,11 +298,13 @@ class SourceReadingStoreTests(unittest.TestCase):
         legacy.execute("UPDATE sage_graph_revisions SET state='verified'")
         legacy.commit()
         # A job outside the ownership manifest is held with its reason; the others go ahead.
+        self.pin(store_ownership(self.bundles[:1]))
         held = stores.prepare('bavli', capture, self.root / 'store.sqlite', self.manifest['revision'],
                               store_ownership(self.bundles[:1]), self.root / 'legacy.sqlite', LEGACY, self.root / 'held')
         self.assertEqual((held['records'], held['held']), (len(stores.changes_for(
             'bavli', self.bundles[:1], self.manifest['revision'], {self.bundles[0]['inputProof']['sha256']: self.inputs[self.bundles[0]['inputProof']['sha256']]},
             store_ownership(self.bundles[:1]), LEGACY)['records']), 1))
+        self.pin(self.ownership)
         reasons = json.loads((self.root / 'held/held.json').read_text())
         self.assertEqual([(r['jobId'], r['reason']) for r in reasons], [(self.bundles[1]['job']['job_id'], 'Source has no ownership declaration')])
         result = stores.prepare(*args('clean'))

@@ -100,6 +100,9 @@ export async function decodeStoredPassage(
       row.payload_sha256, 'Stored source reading changed');
     require(row.passage_id === passageId && KINDS.has(row.kind), 'Unexpected source store row');
     const data = JSON.parse(row.payload_json) as Json;
+    // Only bytes that survive JSON.parse unchanged can be rebuilt exactly (1.0, -0.0 and integers
+    // above 2^53 do not), so a row that is not already canonical is refused.
+    require(canonicalJson(data) === row.payload_json, 'Stored source reading is not canonical');
     require(data.format === SOURCE_READING_STORE_FORMAT, `Not ${SOURCE_READING_STORE_FORMAT} rows`);
     parsed.push({ row, data: without(data, 'format') });
   }
@@ -118,9 +121,17 @@ export async function decodeStoredPassage(
     people: string[];
     claims: string[];
   };
-  require(p.id === passageId && Number.isInteger(p.focal), 'Stored passage differs');
+  const unique = (ids: string[]) => new Set(ids).size === ids.length;
+  require(p.id === passageId &&
+    prow.record_id === `passage:${passageId}` &&
+    envelopes[0].row.record_id === `source_reading:${passageId}` &&
+    Number.isInteger(p.focal) &&
+    unique(p.people) &&
+    unique(p.claims), 'Stored passage differs');
   const sources = p.segments;
   require(sources[p.focal]?.provenance.focal === true &&
+    sources.filter((s) => s.provenance.focal === true).length === 1 &&
+    unique(sources.map((s) => s.source_id)) &&
     sources.every((s) =>
       Object.keys(s.provenance).every((k) => KEPT_PROVENANCE.includes(k)),
     ), 'Stored segments differ');
@@ -135,6 +146,7 @@ export async function decodeStoredPassage(
       Number.isInteger(end) &&
       0 <= start &&
       start < end &&
+      end <= Array.from(s.text).length &&
       Array.from(s.text).slice(start, end).join('') ===
         quote, 'Stored anchor does not match its source words');
     return {
@@ -178,7 +190,10 @@ export async function decodeStoredPassage(
     const mentions = await Promise.all(
       d.mentions.map((a, k) => anchor(a, `people/${d.id}/mentions/${k}`)),
     );
-    require(mentions.length && Object.hasOwn(NAMED, d.form), 'Stored person differs');
+    require(mentions.length &&
+      Object.hasOwn(NAMED, d.form) &&
+      !people.has(d.id) &&
+      row.record_id === `person:${passageId}/${d.id}`, 'Stored person differs');
     const person = {
       id: d.id,
       label: d.label,
@@ -222,7 +237,9 @@ export async function decodeStoredPassage(
         anchor(a, `relationships/${rel.id}/evidence/${k}`),
       ),
     );
-    require(evidence.length, 'Stored claim differs');
+    require(evidence.length &&
+      !claims.has(rel.id) &&
+      row.record_id === `claim:${passageId}/${rel.id}`, 'Stored claim differs');
     evidenceKeys.push(...evidence);
     const claim = {
       id: rel.id,
@@ -295,10 +312,14 @@ export async function decodeStoredPassage(
   });
   const units = new Map<string, { row: StoredRow; data: Json }>();
   for (const unit of get('source_reading_unit')) {
+    require(!units.has(unit.data.sourceId as string) &&
+      unit.row.record_id ===
+        `source_reading_unit:${passageId}/${unit.data.unitKey}`, 'Stored ownership unit differs');
     units.set(unit.data.sourceId as string, unit);
     out.set(unit.row.record_id, unit.data);
   }
   for (const { row, data } of get('source_reading_coverage')) {
+    require(row.record_id === `source_reading_coverage:${passageId}`, 'Stored ownership differs');
     const owned = (data.sources as { sourceId: string; owned: boolean }[]).filter((a) => a.owned);
     require(owned.every((a) => units.has(a.sourceId)) &&
       owned.length === units.size, 'Stored ownership differs from its units');
