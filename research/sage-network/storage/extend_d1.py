@@ -435,10 +435,17 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             f'SELECT {COLUMNS} FROM {table} WHERE revision_id=?',
             (parent['revision'],))}
         parent_keys = set(rows)
+        # A source-reading store holds compact source readings and nothing else; graph changes never go there.
+        store_batch = 'sourceReadingStore' in parent or 'sourceReadingStore' in changes
+        if store_batch:
+            import source_reading_stores
+            if not shared:
+                raise ValueError('A source-reading store uses shared records')
+            source_reading_stores.validate_changes(changes, rows, parent)
         binding_batch = 'sourceBindingManifests' in changes
         if binding_batch:
             source_bindings.validate_changes(changes, rows)
-        source_batch = any(key in changes for key in ('sourceReadingBundles', 'sourceReadingVersion', 'sourceReadingInputs', 'sourceReadingOwnership'))
+        source_batch = not store_batch and any(key in changes for key in ('sourceReadingBundles', 'sourceReadingVersion', 'sourceReadingInputs', 'sourceReadingOwnership'))
         if source_batch:
             import source_readings
             source_readings.validate_changes(changes, rows)
@@ -524,7 +531,8 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             key = item['record_id']
             if key in changed:
                 raise ValueError('Duplicate change: ' + key)
-            if (not correcting and item['kind'] not in (ALLOWED_KINDS | ({source_bindings.KIND} if binding_batch else set()) | (source_readings.KINDS if source_batch else set()))) or not key.startswith(item['kind'] + ':'):
+            allowed = source_reading_stores.KINDS if store_batch else ALLOWED_KINDS | ({source_bindings.KIND} if binding_batch else set()) | (source_readings.KINDS if source_batch else set())
+            if (not correcting and item['kind'] not in allowed) or not key.startswith(item['kind'] + ':'):
                 raise ValueError('Unsupported review kind: ' + key)
             old = rows.get(key)
             if old and old[6] == 'user_correction':
@@ -538,7 +546,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             elif 'referenceCorrection' in item['data']:
                 # Only a reference correction, rebuilt from the parent and the frozen map, may write this field.
                 raise ValueError('referenceCorrection is reserved for a reference correction: ' + key)
-            elif source_batch or binding_batch:
+            elif source_batch or binding_batch or store_batch:
                 if old or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
                     raise ValueError('Source readings must be new proposals: ' + key)
             elif item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry', 'identity_proposal', 'name_reading'}:
@@ -571,8 +579,8 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             return passage
 
         for key, row in changed.items():
-            if correcting:
-                break  # every corrected record was rebuilt from the parent and the map above
+            if correcting or store_batch:
+                break  # every corrected or store record was rebuilt exactly above, from the parent and frozen inputs
             data = json.loads(row[-1])
             if row[1] == 'identity_proposal':
                 identity_proposals.validate(data, payload('passage:' + row[2]))
@@ -741,7 +749,10 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                 'proposalRecoveryReceipt', 'proposalAuditReceipt')}
         if shared:
             manifest['storageFormat'] = shared_records.FORMAT
-        revision = 'sage-graph-' + digest(encode(manifest))[:20]
+        if store_batch:
+            manifest['sourceReadingStore'] = parent['sourceReadingStore']
+        prefix = source_reading_stores.revision_prefix(parent['sourceReadingStore']['name']) if store_batch else 'sage-graph-'
+        revision = prefix + digest(encode(manifest))[:20]
         sql = [f'INSERT INTO sage_graph_revisions(id,manifest_json,state) VALUES ({literal(revision)},{literal(encode(manifest))},\'loading\');']
         if shared:
             sql.extend(shared_records.statements(parent, revision, rows, changed, replaced_keys=parent_keys & set(changed)))

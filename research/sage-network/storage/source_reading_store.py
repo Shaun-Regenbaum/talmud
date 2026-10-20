@@ -210,6 +210,24 @@ def _expand_passage(pid, group, bundle, runs):
     return out
 
 
+def reader_view(rows):
+    """What the app decodes from D1 alone (packages/talmud/src/lib/sage-graph/source-reading-store.ts):
+    the v1 rows, except that each source segment keeps only the fields `compact` keeps, and the
+    source_reading envelope keeps the queue manifest's hash (inputProof.manifestSha256) in place of
+    the manifest. Both stay in the private R2 artifact."""
+    out = []
+    for item in rows:
+        d = item['data']
+        if item['kind'] == 'passage':
+            d = dict(d, sourceSegments=[_segment(s) for s in d['sourceSegments']])
+        elif item['kind'] == 'source_reading':
+            proof = {k: v for k, v in d['provenance']['inputProof'].items() if k != 'manifest'}
+            proof['manifestSha256'] = v1.digest(d['provenance']['inputProof']['manifest'])
+            d = dict(d, provenance=dict(d['provenance'], inputProof=proof))
+        out.append(dict(item, data=d))
+    return out
+
+
 def records(bundle, ownership_index=None):
     """The v1 importer's rows for one bundle, compacted. The run row is included."""
     items = v1.records(bundle)
