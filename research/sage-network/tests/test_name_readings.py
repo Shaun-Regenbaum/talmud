@@ -1,7 +1,7 @@
 """Import rules for first readings of source people (name_reading records).
 
-The fixture holds real frozen readings, the live records they point at and one live
-reading whose reference repeats in the capture, copied verbatim. The tests check the
+The fixture holds real frozen readings, the live records they point at, one live reading
+whose reference repeats in the capture and one reading the reader fixed, copied verbatim. The tests check the
 import rules only; the readings are proposals.
 """
 import copy
@@ -22,7 +22,7 @@ RUN = 'missing-names-v18'
 
 
 REGISTRY = {r['record_id'].split(':', 1)[1]: r['payloadSha256'] for r in FIXTURE['records'] if r['kind'] == 'registry_person'}
-CASE_FILE_SHA = {c['case']['caseId']: c['sha256'] for c in FIXTURE['cases'] + [FIXTURE['flagged']['case']]}
+CASE_FILE_SHA = {c['case']['caseId']: c['sha256'] for c in FIXTURE['cases'] + [FIXTURE['flagged']['case'], FIXTURE['fixedReading']['case']]}
 
 
 def named_people(case):
@@ -218,6 +218,31 @@ class CorrectionTests(ReadingFixture):
                        lambda e: e.update(derivedFromClaimId='b407-p8/r6'), lambda e: e['observer'].update(named='name'),
                        lambda e: e['seen'].update(localId='b407-p8/ZZ'), lambda e: e['seen'].update(localId=None)):
             self.rejects('not a sourced proposal', self.mutated(lambda case, claim: change(claim['correctedEvent'])))
+
+
+class ReadingFixTests(ReadingFixture):
+    """A reading the reader fixed by a logged correction without touching any claim:
+    a duplicate registry row replaced by its main row."""
+
+    def fixed(self, change=None):
+        case = copy.deepcopy(FIXTURE['fixedReading']['case']['case'])
+        if change:
+            change(case)
+        return [reading_record(case)]
+
+    def test_fixed_reading_imports(self):
+        case = FIXTURE['fixedReading']['case']['case']
+        self.assertEqual(case['reading']['proposedRegistryId'], 'rabbi-yehoshua-b-hananyah')
+        self.assertFalse(any('correctedBy' in c or 'correctedEvent' in c for c in case['relationships']['claims']))
+        self.assertEqual(self.run_import(self.fixed())['changedRecords'], 1)
+
+    def test_correction_still_names_the_file_it_replaced(self):
+        own = FIXTURE['fixedReading']['case']['sha256']
+        for change in (lambda case: case['correction'].pop('supersededCopy'), lambda case: case['correction'].update(reviewFile=' '),
+                       lambda case: case['correction'].update(supersedesCaseFileSha256=own),
+                       lambda case: case['correction'].update(supersedesCaseFileSha256='7427c4f2868f'),
+                       lambda case: case['correction'].update(note='An extra field.')):
+            self.rejects('not bound to the file it replaced', self.fixed(change))
 
 
 class SourceQualityTests(ReadingFixture):
