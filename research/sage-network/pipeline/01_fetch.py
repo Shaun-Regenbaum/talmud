@@ -89,7 +89,9 @@ def hebrew_editions(work):
     """Every distinct Hebrew edition. A vocalised copy of an edition we already
     hold is the same text with vowel marks, which normalisation strips, so it
     would count one witness twice."""
-    vs = get('texts/versions/' + urllib.parse.quote(work)) or []
+    vs = get('texts/versions/' + urllib.parse.quote(work))
+    if not isinstance(vs, list):
+        return []                                 # fetch_work and --check treat no edition as a failure
     titles = [(v.get('versionTitle') or '').strip() for v in vs if v.get('language') == 'he']
     titles = [t for t in dict.fromkeys(titles) if t]
     key = lambda t: re.sub(r'[^a-z0-9]', '', t.lower().replace('vocalized', ''))
@@ -107,6 +109,22 @@ class ResponseMismatch(ValueError):
 
 class MissingPartShape(ValueError):
     """The index lists a named part, but its shape is missing or unusable, so the part would be lost."""
+
+
+class MissingShape(ValueError):
+    """A work's own shape is missing or unusable; the work is not treated as empty."""
+
+
+class NoEditions(ValueError):
+    """Sefaria lists no Hebrew edition for a work; the work is not treated as captured."""
+
+
+class NoUnits(ValueError):
+    """A work's shape yields no unit with text; the work is not treated as captured."""
+
+
+def _usable(nodes):
+    return bool(nodes) and all(isinstance(nd, dict) and isinstance(nd.get('chapters'), (int, list)) for nd in nodes)
 
 
 def index_address_types(index, work):
@@ -146,15 +164,16 @@ def chapter_refs(work, fetch=None):
     fetch = fetch or get
     types = index_address_types(fetch('v2/raw/index/' + urllib.parse.quote(work)), work)
     shape = fetch('shape/' + urllib.parse.quote(work))
-    if not shape:
-        return []
+    nodes = shape if isinstance(shape, list) else [shape] if shape else []
+    if not _usable(nodes):
+        raise MissingShape(f'{work}: Sefaria gave no usable shape for the work')
     out, seen = [], set()
-    for nd in (shape if isinstance(shape, list) else [shape]):
+    for nd in nodes:
         _walk_shape(nd, nd.get('title') or work, out, types, seen)
     for title in sorted(set(types) - seen):
         part = fetch('shape/' + urllib.parse.quote(title))
         nodes = part if isinstance(part, list) else [part] if part else []
-        if not nodes or not all(isinstance(nd, dict) and isinstance(nd.get('chapters'), (int, list)) for nd in nodes):
+        if not _usable(nodes):
             raise MissingPartShape(f'{work}: the index lists {title!r}, but Sefaria gave no usable shape for it')
         for nd in nodes:
             _walk_shape(dict(nd, _named=True), title, out, types, seen)
@@ -258,7 +277,11 @@ def have(path):
 def fetch_work(corpus, title):
     got = skipped = 0
     eds = hebrew_editions(title)
+    if not eds:
+        raise NoEditions(f'{title}: Sefaria lists no Hebrew edition')
     refs = chapter_refs(title)
+    if not refs:
+        raise NoUnits(f'{title}: the shape lists no unit with text')
     # "Tosefta Berakhot (Lieberman)" is a second witness of "Tosefta Berakhot"
     work, tag = title, ''
     if title.endswith(corpora.WITNESS_SUFFIX):
@@ -356,20 +379,15 @@ def main():
     if a.check:
         # Cheap, and it would have caught the shape that ended the first full
         # run: every work is parsed before an hour is spent on any of them.
-        def probe(job):
-            try:
-                return job, len(chapter_refs(job[1])), len(hebrew_editions(job[1])), None
-            except Exception as e:                # noqa: BLE001
-                return job, 0, 0, f'{type(e).__name__}: {e}'
         with cf.ThreadPoolExecutor(max_workers=a.workers) as ex:
-            rows = list(ex.map(probe, jobs))
-        bad = [r for r in rows if r[3] or not r[1] or not r[2]]
+            rows = list(ex.map(probe_work, jobs))
+        bad, status = check_status(rows)
         units = sum(r[1] * r[2] for r in rows)
         print(f'{len(rows)} works, about {units:,} requests to fetch them all')
         for (label, w), n, e, err in bad:
             print(f'  PROBLEM {label} | {w}: units={n} editions={e} {err or ""}')
         print('every work has units and an edition' if not bad else f'{len(bad)} work(s) need a look')
-        return
+        sys.exit(status)
     failures = []
 
     def guarded(job):
@@ -398,6 +416,20 @@ def main():
         print(f'{len(absences)} unit(s) have no text in an edition and are listed in fetch-absences.json; '
               'the snapshot is not complete for them')
     sys.exit(exit_status(failures, absences))
+
+
+def probe_work(job):
+    """(job, units, editions, error) for one work, fetching no text."""
+    try:
+        return job, len(chapter_refs(job[1])), len(hebrew_editions(job[1])), None
+    except Exception as e:                        # noqa: BLE001
+        return job, 0, 0, f'{type(e).__name__}: {e}'
+
+
+def check_status(rows):
+    """Rows that need a look, and the exit status: 1 when any work has an error, no unit or no edition."""
+    bad = [r for r in rows if r[3] or not r[1] or not r[2]]
+    return bad, (1 if bad else 0)
 
 
 def exit_status(failures, absences):

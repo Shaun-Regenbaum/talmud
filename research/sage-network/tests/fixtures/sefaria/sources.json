@@ -71,6 +71,13 @@
       "note": "full reply with its text; reformatted for the linter; the parsed JSON equals the original reply"
     },
     {
+      "fixture": "versions-mekhilta-drs.json",
+      "url": "https://www.sefaria.org/api/texts/versions/Mekhilta%20DeRabbi%20Shimon%20Ben%20Yochai",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "89093d1931bd9af3ea5e3c07af6cf2eb81a7b527c652db80df004893d908f9fd",
+      "note": "reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
       "fixture": "text-replies.json",
       "note": "extract of eight real v3 text replies; text bodies removed, other kept fields unchanged; each entry carries the hash of its full original reply"
     }

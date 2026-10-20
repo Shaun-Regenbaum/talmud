@@ -184,5 +184,58 @@ class AUnitWithoutTextIsRecordedNeverSkipped(unittest.TestCase):
         self.assertEqual(fetch.exit_status([{'work': 'x'}], [{'unit': '1'}]), 1)
 
 
+class MissingDataIsAFailureNotAnEmptyWork(unittest.TestCase):
+    """Withhold one real reply at a time; the work must fail, never pass as captured with nothing."""
+    FULL = {f'v2/raw/index/{MK}': 'index-mekhilta-drs.json', f'shape/{MK}': 'shape-mekhilta-drs.json',
+            f'shape/{MK}, Additions': 'shape-mekhilta-drs-additions.json', f'texts/versions/{MK}': 'versions-mekhilta-drs.json'}
+
+    def with_sefaria(self, files, fn, override=None):
+        saved = fetch.get
+        base = server(files)
+        fetch.get = (lambda path: override(path) if override and override(path) is not None else base(path))
+        try:
+            return fn()
+        finally:
+            fetch.get = saved
+
+    def without(self, key):
+        return {k: v for k, v in self.FULL.items() if k != key}
+
+    def test_the_real_replies_give_units_and_an_edition(self):
+        job, units, editions, err = self.with_sefaria(self.FULL, lambda: fetch.probe_work(('midrash-halakhah', MK)))
+        self.assertEqual((units, editions, err), (25, 1, None))
+        self.assertEqual(fetch.check_status([(job, units, editions, err)])[1], 0)
+
+    def test_a_withheld_main_shape_fails(self):
+        with self.assertRaises(fetch.MissingShape):
+            self.with_sefaria(self.without(f'shape/{MK}'), lambda: fetch.chapter_refs(MK))
+
+    def test_an_unusable_main_shape_fails(self):
+        error_reply = next(r['reply'] for r in load('text-replies.json')['replies'] if r['reply'].get('error'))
+        with self.assertRaises(fetch.MissingShape):
+            self.with_sefaria(self.FULL, lambda: fetch.chapter_refs(MK),
+                              override=lambda path: {'error': error_reply['error']} if urllib.parse.unquote(path) == f'shape/{MK}' else None)
+
+    def test_withheld_editions_fail_the_work(self):
+        with self.assertRaises(fetch.NoEditions):
+            self.with_sefaria(self.without(f'texts/versions/{MK}'), lambda: fetch.fetch_work('midrash-halakhah', MK))
+
+    def test_a_work_with_no_units_fails(self):
+        # chapter_refs is stubbed to return nothing; the editions reply is real.
+        saved = fetch.chapter_refs
+        fetch.chapter_refs = lambda title: []
+        try:
+            with self.assertRaises(fetch.NoUnits):
+                self.with_sefaria(self.FULL, lambda: fetch.fetch_work('midrash-halakhah', MK))
+        finally:
+            fetch.chapter_refs = saved
+
+    def test_check_exits_nonzero_for_a_bad_row(self):
+        for key in (f'shape/{MK}', f'texts/versions/{MK}', f'shape/{MK}, Additions'):
+            row = self.with_sefaria(self.without(key), lambda: fetch.probe_work(('midrash-halakhah', MK)))
+            bad, status = fetch.check_status([row])
+            self.assertEqual((len(bad), status), (1, 1), key)
+
+
 if __name__ == '__main__':
     unittest.main()
