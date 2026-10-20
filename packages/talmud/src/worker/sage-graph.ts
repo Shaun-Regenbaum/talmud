@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
 import { canonicalSlug } from '../lib/rabbi/identity';
+import { identityCards } from '../lib/sage-graph/identity-readings';
 import {
   type InitialOccurrence,
+  type InitialReading,
   initialOccurrences,
   initialPerson,
   type ReadingClaim,
@@ -339,7 +341,7 @@ async function reviewedPeopleAtSameWords(
 async function readLegacyPassage(db: D1Database, revisionId: string, passageId: string) {
   const rows = await db
     .prepare(
-      "SELECT record_id,kind,passage_id,ref,authority,decision,payload_sha256,payload_json FROM sage_graph_all_records WHERE revision_id=? AND passage_id=? AND kind IN ('passage','person','claim','name_reading','source_identity','graph_node') ORDER BY record_id LIMIT 801",
+      "SELECT record_id,kind,passage_id,ref,authority,decision,payload_sha256,payload_json FROM sage_graph_all_records WHERE revision_id=? AND passage_id=? AND kind IN ('passage','person','claim','name_reading','identity_proposal','identity_assessment','source_identity','graph_node') ORDER BY record_id LIMIT 801",
     )
     .bind(revisionId, passageId)
     .all<LegacyRow>();
@@ -363,7 +365,37 @@ async function readLegacyPassage(db: D1Database, revisionId: string, passageId: 
       .all<LegacyRow>();
     registry.push(...result.results);
   }
-  return legacyCards(revisionId, rows.results, registry);
+  const predecessors: LegacyRow[] = [];
+  for (const row of rows.results.filter((r) => r.kind === 'identity_proposal')) {
+    const block = (
+      JSON.parse(row.payload_json) as { referenceCorrection?: { replacesPayloadSha256: string } }
+    ).referenceCorrection;
+    if (!block) continue;
+    const previous = await db
+      .prepare(
+        'SELECT record_id,kind,passage_id,ref,authority,decision,payload_sha256,payload_json FROM sage_graph_record_versions WHERE record_id=? AND payload_sha256=? LIMIT 2',
+      )
+      .bind(row.record_id, block.replacesPayloadSha256)
+      .all<LegacyRow>();
+    predecessors.push(...previous.results);
+  }
+  const legacy = await legacyCards(revisionId, rows.results, registry);
+  const identities = await identityCards(revisionId, [...rows.results, ...registry], predecessors);
+  for (const card of identities.cards) {
+    const existing = legacy.cards.find((p) => p.id === card.id);
+    if (existing?.initialReading && card.initialReading)
+      existing.initialReading.proposals?.push(...(card.initialReading.proposals ?? []));
+    else legacy.cards.push(card);
+  }
+  for (const occurrence of identities.occurrences) {
+    const existing = legacy.occurrences.find((o) => o.key === occurrence.key);
+    if (existing)
+      existing.people.push(
+        ...occurrence.people.filter((p) => !existing.people.some((old) => old.id === p.id)),
+      );
+    else legacy.occurrences.push(occurrence);
+  }
+  return legacy;
 }
 
 sageGraph.get('/initial', async (c) => {
@@ -411,7 +443,7 @@ sageGraph.get('/initial', async (c) => {
   }
   const older = await db
     .prepare(
-      `SELECT DISTINCT passage_id FROM sage_graph_all_records WHERE revision_id=? AND kind='name_reading' AND authority='screening' AND decision='needs_review' AND ${where} ORDER BY passage_id LIMIT 101`,
+      `SELECT DISTINCT passage_id FROM sage_graph_all_records WHERE revision_id=? AND ((kind IN ('name_reading','identity_proposal') AND authority='screening' AND decision='needs_review') OR (kind='source_identity' AND authority IN ('source_review','user_correction') AND decision IN ('accepted_local','accepted_registry_identity'))) AND ${where} ORDER BY passage_id LIMIT 101`,
     )
     .bind(saved.id, ...bounds)
     .all<{ passage_id: string }>();
@@ -538,7 +570,17 @@ sageGraph.get('/person', async (c) => {
       !/^https:\/\//.test(era.source?.url ?? ''))
   )
     return c.json({ error: 'Era source could not be checked' }, 503);
+  let readingBasis: InitialReading | undefined;
+  let readingBasisUnavailable = false;
+  try {
+    const readings = await readLegacyPassage(db, saved.id, passageId);
+    readingBasis = readings.cards.find((p) => p.id === `proposal:${personKey}`)?.initialReading;
+  } catch {
+    readingBasisUnavailable = true;
+  }
   return c.json({
+    readingBasis,
+    readingBasisUnavailable,
     revision: saved.id,
     id,
     era,

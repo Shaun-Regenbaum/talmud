@@ -4,6 +4,7 @@ import { InitialInteractions } from './InitialInteractions';
 import { lang, t } from './i18n';
 import { PersonConnections } from './PersonConnections';
 import { PersonEra } from './PersonEra';
+import { PersonReadingBasis } from './PersonReadingBasis';
 import { PersonStatus } from './PersonStatus';
 import RabbiTrajectoryMap from './RabbiTrajectoryMap';
 import { sefariaUrl } from './sageInteractions';
@@ -73,81 +74,18 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
                 </a>
               </details>
             </section>
+            <Show when={p().readingBasisUnavailable}>
+              <PersonStatus error onRetry={() => void refetch()}>
+                {t('initial.basisUnavailable')}
+              </PersonStatus>
+            </Show>
+            <Show when={p().readingBasis}>
+              {(reading) => <PersonReadingBasis reading={reading()} />}
+            </Show>
             <Show when={p().initialReading}>
               {(reading) => (
                 <>
-                  <details class="person-passage">
-                    <summary>{t('initial.basis')}</summary>
-                    <p>{reading().reason}</p>
-                    <For each={reading().proposals ? [] : reading().reviewedPeople}>
-                      {(reviewed) => (
-                        <p>
-                          {t('initial.reviewedAtWords')}{' '}
-                          <a
-                            href={
-                              reviewed.id.startsWith('local:')
-                                ? `#source-person/${encodeURIComponent(reviewed.id)}`
-                                : `#sages/${encodeURIComponent(reviewed.id)}`
-                            }
-                          >
-                            {reviewed.name}
-                          </a>
-                        </p>
-                      )}
-                    </For>
-                    <For each={reading().proposals}>
-                      {(proposal) => (
-                        <section>
-                          <Show when={proposal.sourceWarning}>
-                            <PersonStatus error>{t('initial.sourceWarning')}</PersonStatus>
-                          </Show>
-                          <Show when={proposal.candidate}>
-                            {(candidate) => (
-                              <p>
-                                {t('initial.possibleMatch')}{' '}
-                                <a href={`#sages/${encodeURIComponent(candidate().id)}`}>
-                                  {lang() === 'he' ? candidate().nameHe : candidate().name}
-                                </a>
-                              </p>
-                            )}
-                          </Show>
-                          <p>{proposal.reason}</p>
-                          <For each={proposal.alternatives}>{(reason) => <p>{reason}</p>}</For>
-                          <Show when={proposal.eraReason}>
-                            <p>
-                              {t('initial.eraReason')} {proposal.eraReason}
-                            </p>
-                          </Show>
-                          <For each={proposal.evidence}>
-                            {(evidence) => (
-                              <details class="person-passage">
-                                <summary>
-                                  {evidence.ref}
-                                  <Show when={evidence.location && evidence.location !== 'passage'}>
-                                    {' '}
-                                    · {t('initial.context')}
-                                  </Show>
-                                </summary>
-                                <blockquote lang="he" dir="rtl">
-                                  {evidence.quote}
-                                </blockquote>
-                              </details>
-                            )}
-                          </For>
-                        </section>
-                      )}
-                    </For>
-                    <For each={reading().alternatives}>
-                      {(alternative) => <p>{alternative.reason}</p>}
-                    </For>
-                    <For each={reading().neededContext}>
-                      {(context) => (
-                        <p>
-                          {t('initial.needsContext')} {context}
-                        </p>
-                      )}
-                    </For>
-                  </details>
+                  <PersonReadingBasis reading={reading()} />
                   <InitialInteractions
                     id={p().id}
                     name={lang() === 'he' ? p().nameHe : p().name}

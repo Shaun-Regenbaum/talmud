@@ -60,6 +60,7 @@ export interface InitialRelationship {
 export interface InitialReading {
   proposals?: {
     id: string;
+    reviewDecision?: string;
     reason: string;
     candidate?: { id: string; name: string; nameHe: string };
     alternatives: string[];
