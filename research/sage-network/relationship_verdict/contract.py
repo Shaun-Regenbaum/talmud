@@ -4,15 +4,15 @@ The model judges claims that already exist. It never adds claims, people, quotes
 positions, and never names a historical identity.
 """
 
-VERSION = 'relationship-verdict-v0.2'
+VERSION = 'relationship-verdict-v0.3'
 MAX_CLAIMS = 12
 SOURCE_IDS = ('before', 'passage', 'after')
 
 # Does the claim hold exactly as written (its kind, direction and family degree)?
 CLAIM_AS_WRITTEN = ('supported', 'contradicted', 'uncertain')
 # What the text shows between the two people, whatever the claim says.
-SUPPORTED_KIND = ('direct_interaction', 'teaching_transmission', 'response_to_teaching', 'family',
-                  'narrative', 'hypothetical', 'none', 'unclear')
+SUPPORTED_KIND = ('direct_interaction', 'teaching_transmission', 'response_to_teaching', 'intellectual_disagreement',
+                  'family', 'narrative', 'hypothetical', 'none', 'unclear')
 DIRECTION = ('as_written', 'reversed', 'undetermined', 'symmetric')
 FAMILY_DEGREE = ('as_written', 'descent', 'unspecified', 'not_applicable')
 # The seven codes earlier readers used, kept only so results can be compared with them.
@@ -22,7 +22,8 @@ ASPECT = ('speaker', 'addressee', 'direction', 'kind', 'family_degree', 'presenc
 DETAIL_STATUS = ('unclear', 'contradicted')
 
 # Kinds that keep the two people connected even when the detailed claim is wrong.
-PAIR_KINDS = ('direct_interaction', 'teaching_transmission', 'response_to_teaching', 'family', 'narrative')
+PAIR_KINDS = ('direct_interaction', 'teaching_transmission', 'response_to_teaching', 'intellectual_disagreement', 'family',
+              'narrative')
 
 REASON_MAX = 1000
 NOTE_MAX = 300

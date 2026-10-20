@@ -1,7 +1,8 @@
 """Freeze verdict jobs into one upload directory for the existing coverage queue. No network calls.
 
 Writes the layout `coverage/queue_core.py` reads: recipe/ (this package plus queue_adapter.py),
-shards/*.jsonl and queue-manifest.json. It also writes freeze-receipt.json with every file hash
+shards/*.jsonl, source-manifest.json, source-verification.json and queue-manifest.json (which binds
+the shard and both source receipts by hash). It also writes freeze-receipt.json with every file hash
 and each request's size. The run settings (provider, prices, budget, key) are not part of the
 freeze; the person launching chooses them. Freezing the same jobs twice gives identical bytes.
 """
@@ -37,7 +38,7 @@ def status(answer):
     return answer_status(answer)
 '''
 SHARD = 'jobs-001.jsonl'
-PACKAGE_FILES = ('__init__.py', 'contract.py', 'reader.md', 'request.py', 'validate.py', 'freeze.py', 'README.md')
+PACKAGE_FILES = ('__init__.py', 'contract.py', 'reader.md', 'request.py', 'validate.py', 'score.py', 'freeze.py', 'README.md')
 
 
 def file_hash(path):
@@ -55,7 +56,7 @@ def max_reservation_usd(request_bytes, input_price, output_price, max_tokens):
     return (request_bytes + 4096) * input_price + max_tokens * output_price
 
 
-def freeze(jobs_path, destination):
+def freeze(jobs_path, destination, provenance=None):
     destination = Path(destination)
     if destination.exists():
         raise ValueError('Destination exists; never overwrite a frozen run')
@@ -81,7 +82,15 @@ def freeze(jobs_path, destination):
         lines.append(canonical(job) + '\n')
     (pending / 'shards' / SHARD).write_text(''.join(lines))
     shard_hash = file_hash(pending / 'shards' / SHARD)
-    manifest = {'jobs': len(jobs), 'shards': [{'file': SHARD, 'sha256': shard_hash, 'jobs': len(jobs)}]}
+    # The queue checks both receipts by hash before it reads any job.
+    source = {'contract': VERSION, 'jobsInputSha256': file_hash(jobs_path), 'jobs': len(jobs), 'provenance': provenance or {}}
+    (pending / 'source-manifest.json').write_text(json.dumps(source, ensure_ascii=False, indent=1, sort_keys=True) + '\n')
+    verification = {'failures': {}, 'jobs': len(jobs), 'checked': 'check_job and build_request passed for every job',
+                    'claims': sum(len(j['claims']) for j in jobs)}
+    (pending / 'source-verification.json').write_text(json.dumps(verification, indent=1, sort_keys=True) + '\n')
+    manifest = {'jobs': len(jobs), 'shards': [{'file': SHARD, 'sha256': shard_hash, 'jobs': len(jobs)}],
+                'sourceManifestSha256': file_hash(pending / 'source-manifest.json'),
+                'sourceVerificationSha256': file_hash(pending / 'source-verification.json')}
     (pending / 'queue-manifest.json').write_text(json.dumps(manifest, indent=1) + '\n')
     receipt = {'contract': VERSION, 'jobsInputSha256': file_hash(jobs_path), 'jobs': len(jobs),
                'queueManifestSha256': file_hash(pending / 'queue-manifest.json'),
@@ -97,6 +106,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('jobs', type=Path, help='verdict jobs, one JSON object per line')
     parser.add_argument('output', type=Path)
+    parser.add_argument('--provenance', type=Path, help='JSON file recorded in source-manifest.json, such as the selection receipt hashes')
     args = parser.parse_args()
-    r = freeze(args.jobs, args.output)
+    r = freeze(args.jobs, args.output, json.loads(args.provenance.read_text()) if args.provenance else None)
     print(json.dumps({k: r[k] for k in ('contract', 'jobs', 'totalRequestBytes', 'largestRequestBytes', 'queueManifestSha256')}))

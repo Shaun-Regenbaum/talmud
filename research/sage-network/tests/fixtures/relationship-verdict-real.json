@@ -1,7 +1,7 @@
 {
   "note": "Real source text from the live revision sage-graph-2ae38b2df7aee0cc75ec. Answers are one reader's hand verdicts (manual controls, not gold). They test the request and validator; they do not measure accuracy.",
-  "sourceJobsSha256": "cb90ea1c7cf0d41bcd701e22321324d774a8d1a9095a7650d5a94a3bcf873d33",
-  "handVerdictsSha256": "188f23df4ccd9bc397f15f0ed738c64ef59e110b0815c4011dcd6293e19e6073",
+  "sourceJobsSha256": "1772328328cf05d3dd4ce9739f211b2d415cdb4eb17ce1cd1794595d8b1a2161",
+  "handVerdictsSha256": "37dbbae12a7f811ad813486002f9b46515a7beb3851c2446a7ec0def00d3e695",
   "cases": [
     {
       "controlId": "mc-01",
@@ -42,7 +42,7 @@
             "to": "E"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-01",
         "part": 1,
         "parts": 1,
@@ -154,7 +154,7 @@
             "direction": "as_written",
             "family_degree": "as_written",
             "verdict": "fam",
-            "reason": "The phrase has the shape of a name with a father's name: R. Yosi, son of R. Bun. The linking word is odd, so the claim is not certain.",
+            "reason": "The phrase reads like a name with a father's name: R. Yosi, son of R. Bun. But the linking word is כד, not a clear son-of form, so the family reading stays tentative and the text is not normalized.",
             "uncertain_detail": [
               {
                 "aspect": "text_reading",
@@ -205,7 +205,7 @@
             "to": "B"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-02",
         "part": 1,
         "parts": 1,
@@ -338,7 +338,7 @@
             "to": "B"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-03",
         "part": 1,
         "parts": 1,
@@ -455,7 +455,7 @@
             "to": "D"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-04",
         "part": 1,
         "parts": 1,
@@ -589,7 +589,7 @@
             "to": "B"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-05",
         "part": 1,
         "parts": 1,
@@ -712,7 +712,7 @@
             "to": "G"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-06",
         "part": 1,
         "parts": 1,
@@ -856,7 +856,7 @@
     },
     {
       "controlId": "mc-07",
-      "tests": "human-kept control the machine rejected; real engagement, the kind is contradicted",
+      "tests": "human-kept control the machine rejected; engagement kept, the objection denied, a meeting not certain",
       "job": {
         "binding": {
           "claims": {
@@ -893,7 +893,7 @@
             "to": "B"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-07",
         "part": 1,
         "parts": 1,
@@ -941,16 +941,21 @@
           {
             "claim_id": "b489-p3/s0",
             "claim_as_written": "contradicted",
-            "supported_kind": "direct_interaction",
+            "supported_kind": "response_to_teaching",
             "direction": "as_written",
             "family_degree": "not_applicable",
-            "verdict": "ok",
-            "reason": "The text asks whether Ravina challenged Rava and answers that he supported him. Ravina did engage Rava's ruling. Only the kind of engagement is wrong.",
+            "verdict": "teach",
+            "reason": "The text asks whether Ravina challenged Rava and answers that he supported him. Ravina did engage Rava's ruling, but not as an objection, and the text does not say they met.",
             "uncertain_detail": [
               {
                 "aspect": "kind",
                 "status": "contradicted",
                 "note": "the text recasts the objection as support"
+              },
+              {
+                "aspect": "presence",
+                "status": "unclear",
+                "note": "the text does not say they met in person"
               }
             ]
           }
@@ -1004,7 +1009,7 @@
             "to": "N"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-08",
         "part": 1,
         "parts": 1,
@@ -1205,7 +1210,7 @@
             "to": "B"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-09",
         "part": 1,
         "parts": 1,
@@ -1359,7 +1364,7 @@
             "to": "E"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-10",
         "part": 1,
         "parts": 1,
@@ -1481,7 +1486,7 @@
             "to": "C"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-11",
         "part": 1,
         "parts": 1,
@@ -1583,7 +1588,7 @@
     },
     {
       "controlId": "mc-12",
-      "tests": "opposite views set side by side by the editor are not a meeting",
+      "tests": "an explicitly reported dispute is an intellectual tie, not a meeting",
       "job": {
         "binding": {
           "claims": {
@@ -1623,7 +1628,7 @@
             "to": "E"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-12",
         "part": 1,
         "parts": 1,
@@ -1701,11 +1706,11 @@
           {
             "claim_id": "b582-p1/r2",
             "claim_as_written": "supported",
-            "supported_kind": "none",
+            "supported_kind": "intellectual_disagreement",
             "direction": "symmetric",
             "family_degree": "not_applicable",
             "verdict": "teach",
-            "reason": "The editor reports that Chizkiyah said liable and R. Yochanan said exempt. Their views differ, but the text shows no exchange, transmission or response between them.",
+            "reason": "The text reports the dispute of Chizkiyah and R. Yochanan: one said liable, the other exempt. That is an explicit disagreement. It does not say they met.",
             "uncertain_detail": []
           }
         ]
@@ -1750,7 +1755,7 @@
             "to": "A"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-13",
         "part": 1,
         "parts": 1,
@@ -1847,7 +1852,7 @@
             "to": "B"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-14",
         "part": 1,
         "parts": 1,
@@ -1977,7 +1982,7 @@
             "to": "E"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-15",
         "part": 1,
         "parts": 1,
@@ -2104,7 +2109,7 @@
             "to": "B"
           }
         ],
-        "contract": "relationship-verdict-v0.2",
+        "contract": "relationship-verdict-v0.3",
         "job_id": "mc-16",
         "part": 1,
         "parts": 1,

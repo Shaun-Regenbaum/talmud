@@ -24,6 +24,15 @@ VERDICT_KEYS = {'claim_id', 'claim_as_written', 'supported_kind', 'direction', '
                 'uncertain_detail'}
 # Parent and child kinds, where an immediate degree can be wrong.
 DEGREE_KINDS = re.compile(r'^(child_of|parent_of|other:.*(descend|ancest|grand).*)$')
+# Every family kind, including those with no degree (siblings, spouses, in-laws).
+FAMILY_KINDS = re.compile(r'^(child_of|parent_of|sibling_of|spouse_of|other:.*(descend|ancest|grand|_in_law|brother|sister|'
+                          r'wife|husband|spouse|son_of|daughter_of|father_of|mother_of|uncle|aunt|nephew|niece|cousin|famil).*)$')
+# What a speech claim can be when it holds as written.
+SPEECH_KINDS = {'asked': ('direct_interaction', 'narrative'), 'answered': ('direct_interaction', 'narrative'),
+                'said': ('direct_interaction', 'narrative'), 'taught': ('direct_interaction', 'narrative'),
+                'objected': ('direct_interaction', 'narrative'), 'narration': ('direct_interaction', 'narrative'),
+                'quoted_teaching': ('direct_interaction', 'teaching_transmission', 'narrative')}
+DESCENT_RELATION = {'child_of': 'descendant_of', 'parent_of': 'ancestor_of'}
 HEBREW_RUN = re.compile(r'[א-ת][א-ת֑-ׇ"\'׳״]*(?:\s+[א-ת][א-ת֑-ׇ"\'׳״]*)+')
 OUTSIDE_FACTS = re.compile(r'\b(generations?|tannaim|tanna|amoraim|amora|century|centuries|BCE|CE|registry)\b', re.IGNORECASE)
 
@@ -57,11 +66,18 @@ def recipe_binding():
     return {'version': VERSION, 'files': files, 'sha256': digest(files)}
 
 
-def check_spans(spans, text, quote, code, ident, allow_empty):
-    require(isinstance(spans, list) and (spans or allow_empty), code, ident)
-    for span in spans:
-        require(isinstance(span, list) and len(span) == 2 and all(type(i) is int for i in span) and
-                text[span[0]:span[1]] == quote, code, ident)
+def occurrences(text, quote):
+    """Every literal occurrence, overlapping ones included, in order."""
+    return [[i, i + len(quote)] for i in range(len(text) - len(quote) + 1) if text.startswith(quote, i)]
+
+
+def check_spans(spans, text, quote, code, ident):
+    # The listed positions must be exactly all occurrences: in bounds, increasing, none repeated, none missing.
+    require(isinstance(spans, list) and all(isinstance(s, list) and len(s) == 2 and all(type(i) is int for i in s)
+                                            for s in spans), code, ident)
+    require(all(0 <= s < e <= len(text) and text[s:e] == quote for s, e in spans), code, ident)
+    require(all(a[0] < b[0] for a, b in zip(spans, spans[1:])), code, ident)
+    require(spans == occurrences(text, quote), code, ident)
 
 
 def check_job(job):
@@ -80,9 +96,13 @@ def check_job(job):
         pid, mention = person.get('id'), person.get('mention')
         require(isinstance(pid, str) and pid and pid not in people, 'person', 'missing or duplicate id')
         require(isinstance(mention, str) and mention, 'person', pid)
-        # A mention whose place cannot be fixed exactly keeps no positions rather than a guessed one.
-        check_spans(person.get('spans'), sources.get(person.get('source_id'), ''), mention, 'mention_span', pid,
-                    allow_empty=True)
+        # A mention whose place cannot be fixed exactly has no source and no positions, never a guessed one.
+        if person.get('source_id') is None:
+            require(person.get('spans') == [], 'mention_span', pid)
+        else:
+            require(person['source_id'] in sources, 'mention_span', pid)
+            check_spans(person.get('spans'), sources[person['source_id']], mention, 'mention_span', pid)
+            require(person['spans'], 'mention_span', pid)
         people[pid] = person
     claims = job.get('claims') or []
     require(1 <= len(claims) <= MAX_CLAIMS, 'claims', 'between 1 and 12 claims per job')
@@ -96,9 +116,9 @@ def check_job(job):
         quote = claim.get('quote')
         require(isinstance(quote, str) and quote, 'claim_quote', cid)
         # Every place the quote occurs is listed, so no single occurrence is chosen for the reader.
-        text = sources.get(claim.get('source_id'), '')
-        check_spans(claim.get('spans'), text, quote, 'claim_quote', cid, allow_empty=False)
-        require(len(claim['spans']) == text.count(quote), 'claim_quote', cid)
+        require(claim.get('source_id') in sources, 'claim_quote', cid)
+        check_spans(claim.get('spans'), sources[claim['source_id']], quote, 'claim_quote', cid)
+        require(claim['spans'], 'claim_quote', cid)
     return sources, people, {c['claim_id']: c for c in claims}
 
 
@@ -131,27 +151,42 @@ def check(job, answer):
             'claims': compiled}
 
 
-def audit_flags(claim, v, text):
-    """Points for a person to check against the source. None of them rejects the answer."""
-    flags = []
-    kind, cw, direction, degree = v['supported_kind'], v['claim_as_written'], v['direction'], v['family_degree']
-    # A claim about views (a dispute the editor reports) can hold as written with no tie between the people.
-    if cw == 'supported' and (direction in ('reversed', 'undetermined') or degree in ('descent', 'unspecified') or
-                              kind in ('unclear', 'hypothetical')):
-        flags.append('supported_claim_with_conflicting_fields')
-    if cw == 'supported' and any(d['status'] == 'contradicted' for d in v['uncertain_detail']):
-        flags.append('supported_claim_with_contradicted_detail')
+def field_conflicts(claim, v):
+    """Contradictions inside one answer. Each one withholds the detailed claim; none rejects the answer."""
+    kind, cw, direction, degree, legacy = (v['supported_kind'], v['claim_as_written'], v['direction'], v['family_degree'],
+                                           v['verdict'])
+    out = []
+    if cw == 'supported':
+        if direction in ('reversed', 'undetermined'):
+            out.append('supported_claim_with_' + direction + '_direction')
+        if degree in ('descent', 'unspecified'):
+            out.append('supported_claim_with_' + degree + '_degree')
+        if kind in ('unclear', 'hypothetical'):
+            out.append('supported_claim_with_' + kind + '_kind')
+        if any(d['status'] == 'contradicted' for d in v['uncertain_detail']):
+            out.append('supported_claim_with_contradicted_detail')
+        if FAMILY_KINDS.match(claim['kind']) and kind != 'family':
+            out.append('family_claim_supported_as_other_kind')
+        if not FAMILY_KINDS.match(claim['kind']) and kind == 'family':
+            out.append('other_claim_supported_as_family')
+        if claim['field'] == 'speech' and kind not in SPEECH_KINDS.get(claim['kind'], (kind,)):
+            out.append('speech_claim_supported_as_other_kind')
     if DEGREE_KINDS.match(claim['kind']) and degree == 'not_applicable':
-        flags.append('parent_claim_without_family_degree')
-    if not DEGREE_KINDS.match(claim['kind']) and degree in ('descent', 'unspecified'):
-        flags.append('family_degree_on_other_claim')
-    legacy = v['verdict']
+        out.append('parent_claim_without_family_degree')
+    if not DEGREE_KINDS.match(claim['kind']) and degree != 'not_applicable':
+        out.append('family_degree_on_other_claim')
     # Earlier readers used teach for 'does not show they met', so teach may sit with no tie.
     if (legacy == 'bad' and kind in PAIR_KINDS) or (legacy in ('ok', 'fam', 'narr') and kind not in PAIR_KINDS):
-        flags.append('legacy_verdict_disagrees_with_pair')
+        out.append('legacy_verdict_disagrees_with_pair')
     if (legacy == 'hyp') != (kind == 'hypothetical') or (legacy == 'fam' and kind != 'family') or \
             (legacy == 'narr' and kind != 'narrative'):
-        flags.append('legacy_verdict_disagrees_with_kind')
+        out.append('legacy_verdict_disagrees_with_kind')
+    return out
+
+
+def prose_flags(v, text):
+    """Points in the reason for a person to check against the source. They neither reject nor withhold."""
+    flags = []
     prose = ' '.join([v['reason']] + [d['note'] for d in v['uncertain_detail']])
     for run in HEBREW_RUN.findall(prose):
         if re.sub(r'\s+', ' ', run) not in text:
@@ -162,9 +197,29 @@ def audit_flags(claim, v, text):
     return flags
 
 
+def correction(claim, v):
+    """At most one typed correction, between the same two people. It is a proposal and is never published as a fact."""
+    reversed_ = v['direction'] == 'reversed'
+    descent = v['family_degree'] == 'descent' and DEGREE_KINDS.match(claim['kind']) is not None
+    if reversed_ or descent:
+        # Direction and degree are applied together, so a proposal never keeps one of them wrong.
+        out = {'type': 'reversed_descent' if reversed_ and descent else 'reverse_direction' if reversed_ else 'family_degree',
+               'relation': DESCENT_RELATION.get(claim['kind'], claim['kind']) if descent else claim['kind'],
+               'from': claim['to'] if reversed_ else claim['from'], 'to': claim['from'] if reversed_ else claim['to']}
+        if descent:
+            out['degree'] = 'descent'
+    elif v['claim_as_written'] == 'contradicted':
+        out = {'type': 'connection_kind', 'supported_kind': v['supported_kind'], 'people': sorted([claim['from'], claim['to']])}
+    else:
+        return []
+    out.update(status='proposal', accepted=False, publishable=False)
+    return [out]
+
+
 def compile_claim(claim, v, text):
     kind = v['supported_kind']
     pair = 'retained' if kind in PAIR_KINDS else 'uncertain' if kind == 'unclear' else 'not_retained'
+    conflicts = field_conflicts(claim, v)
     blocked = []
     if v['claim_as_written'] != 'supported':
         blocked.append('claim_' + v['claim_as_written'])
@@ -176,21 +231,8 @@ def compile_claim(claim, v, text):
         blocked.append('kind_' + kind)
     if any(d['status'] == 'contradicted' for d in v['uncertain_detail']):
         blocked.append('detail_contradicted')
+    blocked += conflicts
     endorsed = not blocked
-    corrections = []
-    if pair == 'retained':
-        # Typed corrections stay between the same two people and are never accepted facts.
-        if v['direction'] == 'reversed':
-            corrections.append({'type': 'reverse_direction', 'kind': claim['kind'], 'from': claim['to'],
-                                'to': claim['from']})
-        if v['family_degree'] == 'descent':
-            corrections.append({'type': 'family_degree', 'degree': 'descent', 'kind': claim['kind'],
-                                'from': claim['from'], 'to': claim['to']})
-        if v['claim_as_written'] == 'contradicted' and not corrections:
-            corrections.append({'type': 'connection_kind', 'supported_kind': kind, 'from': claim['from'],
-                                'to': claim['to']})
-    for c in corrections:
-        c.update(status='proposal', accepted=False)
     return {
         'claim_id': claim['claim_id'],
         'pair': {'people': sorted([claim['from'], claim['to']]), 'connection': pair, 'kind': kind},
@@ -199,9 +241,10 @@ def compile_claim(claim, v, text):
         # When the original is not endorsed, only an undirected connection of the supported kind survives.
         'general_connection': None if endorsed or pair != 'retained' else {'people': sorted([claim['from'], claim['to']]),
                                                                             'kind': kind, 'directed': False},
-        'corrections': corrections,
+        # An answer that contradicts itself gets no correction: a person must read it first.
+        'corrections': correction(claim, v) if pair == 'retained' and not conflicts else [],
         'verdict': v['verdict'], 'reason': v['reason'], 'uncertain_detail': v['uncertain_detail'],
-        'audit_flags': audit_flags(claim, v, text),
+        'audit_flags': conflicts + prose_flags(v, text),
         'proposal_only': True,
     }
 

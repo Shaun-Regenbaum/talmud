@@ -14,25 +14,29 @@ For each claim the model returns:
 
 - `claim_as_written`: supported, contradicted or uncertain;
 - `supported_kind`: what the text shows between the two people (direct_interaction, teaching_transmission,
-  response_to_teaching, family, narrative, hypothetical, none or unclear);
+  response_to_teaching, intellectual_disagreement, family, narrative, hypothetical, none or unclear). An explicitly
+  reported dispute is intellectual_disagreement: a real tie, with no meeting implied;
 - `direction` and `family_degree`;
 - `verdict`: one of the seven older codes, for comparison only;
 - `reason` and `uncertain_detail`.
 
 ## What may be passed on
 
-`validate.check(job, answer)` refuses only shape and id errors: wrong keys, a missing or extra claim, an unknown code.
-Questions of meaning become audit flags for source review, such as a quotation not found in the source or a mention of
-an outside era. The answer is never repaired.
+`validate.check(job, answer)` refuses only shape and id errors: wrong keys, a missing or extra claim, an unknown code,
+or positions that are not exactly every occurrence of a quote or mention. Questions of meaning become audit flags for
+source review, such as a quotation not found in the source or a mention of an outside era. The answer is never repaired.
 
 The check also compiles each claim:
 
 - **The original claim is passed on only when** the answer supports it as written, the direction is as written or
-  symmetric, and the family degree is as written or not applicable.
+  symmetric, the family degree is as written or not applicable, and the typed fields do not contradict each other or
+  the claim (for example, a parent claim with no family degree, or a speech claim supported as a family tie).
 - **Otherwise only an undirected connection of the supported kind survives**, with the reason and the doubts. A real
   pair stays connected even when the detailed claim is wrong.
-- **A reversed direction or a "descendant, not child" reading becomes a typed correction between the same two
-  people.** It is marked `status: proposal` and `accepted: false`, and is never a fact.
+- **A reversed direction or a "descendant, not child" reading becomes one typed correction between the same two
+  people.** When both apply they form one `reversed_descent` proposal, so no proposal keeps a wrong direction or degree.
+  It is marked `status: proposal`, `accepted: false` and `publishable: false`. An answer that contradicts itself gets no
+  correction at all.
 
 Human corrections outrank everything here. The compiled output carries `proposal_only: true`, and the importer keeps
 human-authored records.
@@ -40,9 +44,13 @@ human-authored records.
 ## Running it
 
 `freeze.py jobs.jsonl out/` writes the directory that `research/sage-network/coverage/queue_core.py` reads:
-`recipe/` (this package plus `queue_adapter.py`), `shards/` and `queue-manifest.json`, with `freeze-receipt.json`.
+`recipe/` (this package plus `queue_adapter.py`), `shards/`, `source-manifest.json`, `source-verification.json` and
+`queue-manifest.json`, with `freeze-receipt.json`.
 Freezing the same jobs twice gives identical bytes. Provider, prices, budget and key are chosen at launch, not here.
 `max_reservation_usd` gives the queue's own upper bound per request once prices are known.
+
+`score.py` compares saved answers with reference verdicts: exact matches per typed field and on what is passed on,
+every mismatch in full, every flag and every raw failure. A reference such as the 16 hand verdicts is not gold.
 
 Tests: `python3 -m unittest discover -s research/sage-network/tests -p test_relationship_verdict.py`. They use 16 real
 passages and one reader's hand verdicts (manual controls, not gold). They check the request, the validator and what
