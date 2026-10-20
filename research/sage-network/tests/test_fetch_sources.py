@@ -265,5 +265,65 @@ class MissingDataIsAFailureNotAnEmptyWork(unittest.TestCase):
             self.assertEqual((len(bad), status), (1, 1), key)
 
 
+class GapsFoundInTheFinalReview(unittest.TestCase):
+    """A broken nested part, records lost on a rerun, and a requested work that matches nothing."""
+    SIFRA = staticmethod(server({'v2/raw/index/Sifra': 'index-sifra.json', 'shape/Sifra': 'shape-sifra.json'}))
+
+    def test_the_real_sifra_shape_gives_its_named_blocks(self):
+        parts = load('shape-sifra.json')[0]['chapters']
+        units = fetch.chapter_refs('Sifra', self.SIFRA)
+        self.assertEqual(len(units), sum(1 for p in parts if p['chapters']))
+        self.assertIn(('sifra-baraita-derabbi-yishmael', 'Sifra, Baraita DeRabbi Yishmael'), units)
+
+    def test_a_nested_part_without_a_chapter_list_fails(self):
+        shape = load('shape-sifra.json')
+        shape[0]['chapters'][5]['chapters'] = None          # one real part, its chapter list withheld
+        files = {'v2/raw/index/Sifra': load('index-sifra.json'), 'shape/Sifra': shape}
+        with self.assertRaises(fetch.MissingPartShape):
+            fetch.chapter_refs('Sifra', lambda path: files.get(urllib.parse.unquote(path)))
+
+    def absence_from_a_real_run(self):
+        run = AUnitWithoutTextIsRecordedNeverSkipped('test_text_is_saved_and_an_empty_unit_is_listed')
+        _, absent = run.run_work([('mekhilta-derabbi-shimon-ben-yochai-additions-1', f'{MK}, Additions 1')],
+                                 {f'{MK}, Additions 1': run.replies[f'{MK}, Additions 1']})
+        return absent
+
+    def test_a_rerun_of_another_work_keeps_earlier_gap_records(self):
+        import tempfile
+        absent = self.absence_from_a_real_run()
+        self.assertEqual(len(absent), 1)
+        data = tempfile.mkdtemp()
+        saved = fetch.RAW
+        fetch.RAW = os.path.join(data, 'raw')
+        try:
+            fetch.record_run(data, {MK}, [], absent, [])
+            _, kept, _ = fetch.record_run(data, {'Sifrei Zuta'}, [], [], [])
+            self.assertEqual(kept, absent)                         # another work's run keeps it
+            self.assertEqual(fetch.exit_status([], kept), 2)
+            _, redone, _ = fetch.record_run(data, {MK}, [], [], [])
+            self.assertEqual(redone, [])                           # re-running the same work replaces it
+        finally:
+            fetch.RAW = saved
+
+    def test_an_unreadable_record_file_is_not_ignored(self):
+        import tempfile
+        data = tempfile.mkdtemp()
+        with open(os.path.join(data, 'fetch-absences.json'), 'w') as f:
+            f.write('{"not": "a list"}')
+        with self.assertRaises(ValueError):
+            fetch.record_run(data, {MK}, [], [], [])
+
+    def test_a_requested_work_that_matches_nothing_is_reported(self):
+        yer = next(path for label, path, _, _ in fetch.corpora.CORPORA if label == 'yerushalmi')
+        discover = lambda path: ['Jerusalem Talmud Berakhot'] if path == yer else []
+        jobs, unmatched, _ = fetch.plan_jobs('yerushalmi', ['Berakhot'], 0, discover)
+        self.assertEqual((jobs, unmatched), ([], ['Berakhot']))
+        jobs, unmatched, _ = fetch.plan_jobs('yerushalmi', ['Jerusalem Talmud Berakhot'], 0, discover)
+        self.assertEqual((jobs, unmatched), ([('yerushalmi', 'Jerusalem Talmud Berakhot')], []))
+
+    def test_checking_nothing_is_not_a_pass(self):
+        self.assertEqual(fetch.check_status([])[1], 1)
+
+
 if __name__ == '__main__':
     unittest.main()
