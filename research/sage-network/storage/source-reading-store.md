@@ -2,8 +2,8 @@
 
 `source_reading_store.py` adds a smaller storage version for source readings. The v1 importer
 (`source_readings.py`, `source-reading-import-v1`) and every reader of v1 rows are unchanged.
-Nothing writes v2 rows to any database yet. The plan is a separate source-reading store, so the
-legacy graph is never touched.
+Nothing writes v2 rows to any database yet. They are meant for the two source-reading stores in
+`SOURCE-READING-STORES.md`, so the legacy graph is never touched.
 
 ## What it does
 
@@ -25,6 +25,10 @@ legacy graph is never touched.
   longer stores those fields. Then only the dropped segment provenance is read from it, and the
   fields D1 kept must agree with it.
 
+- **`reader_view(rows)`** is what the app's decoder rebuilds from D1 alone, without R2. It equals the
+  v1 rows, with two exceptions. Segment provenance keeps only `segment_id`, `focal` and `piece`. The
+  queue manifest is replaced by its hash, `inputProof.manifestSha256`.
+
 ## What stays in D1 for readers
 
 - source texts and their hashes
@@ -43,5 +47,8 @@ Measured locally, not in CI.
 - **The round trip is byte-identical** for all 93 cases.
 - **The payload shrinks from 33.7 KB to 9.8 KB a job.**
 - **The stored size, indexes included, shrinks from 60.2 KB to 32.2 KB a job.**
+- **Jobs with ownership rows shrink less: from 60.1 KB to 40.3 KB a job, or 67%.** Every store job has
+  these rows. Most of the 93 did not. This was measured on the 31 trial jobs that the Bavli ownership
+  manifest covers. Ownership rows are stored whole, so they do not shrink.
 
 The CI tests in `tests/test_source_reading_store.py` use the captured real fixture bundles.

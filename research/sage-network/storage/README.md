@@ -54,5 +54,8 @@ The read view orders its joins so selective lookups do not depend on statistics
 being present. Keep corrections as indexed existence checks: joining a whole
 union view can cause SQLite to copy every historical row into a temporary table.
 
+New source readings are kept in two separate databases with this same schema. See
+`SOURCE-READING-STORES.md`.
+
 Research exports and measured storage results stay in the owner's results
 folder. This directory contains the storage code and its operating instructions.

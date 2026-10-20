@@ -233,6 +233,14 @@ class SourceReadingStoreTests(unittest.TestCase):
                             self.root / 'legacy.sqlite', LEGACY, self.root / out)
         legacy.execute("UPDATE sage_graph_revisions SET state='verified'")
         legacy.commit()
+        # A job outside the ownership manifest is held with its reason; the others go ahead.
+        held = stores.prepare('bavli', capture, self.root / 'store.sqlite', self.manifest['revision'],
+                              store_ownership(self.bundles[:1]), self.root / 'legacy.sqlite', LEGACY, self.root / 'held')
+        self.assertEqual((held['records'], held['held']), (len(stores.changes_for(
+            'bavli', self.bundles[:1], self.manifest['revision'], {self.bundles[0]['inputProof']['sha256']: self.inputs[self.bundles[0]['inputProof']['sha256']]},
+            store_ownership(self.bundles[:1]), LEGACY)['records']), 1))
+        reasons = json.loads((self.root / 'held/held.json').read_text())
+        self.assertEqual([(r['jobId'], r['reason']) for r in reasons], [(self.bundles[1]['job']['job_id'], 'Source has no ownership declaration')])
         result = stores.prepare(*args('clean'))
         self.assertEqual(json.loads((self.root / 'clean/changes.json').read_text()), self.changes())
         self.assertEqual((result['records'], result['held']), (len(self.changes()['records']), 0))

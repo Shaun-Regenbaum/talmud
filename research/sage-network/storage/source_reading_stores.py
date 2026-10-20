@@ -229,10 +229,13 @@ def _read_rows(path, revision, keys):
 
 
 def prepare(store, capture, parent_db, parent_revision, ownership, legacy_db, legacy_revision, output):
+    index = pinned_index(ownership)
     bundles, held = [], []
     for bundle in capture['bundles']:
         try:
             v1.checked_bundle(bundle)
+            # A store reading always records ownership, so a job outside the manifest waits for one.
+            index.sources_for(bundle['job'])
         except (ValueError, KeyError, TypeError) as error:
             held.append(dict(jobId=bundle.get('job', {}).get('job_id'), bundleSha256=v1.digest(bundle),
                              status='needs_review', reason=str(error)))
@@ -241,7 +244,6 @@ def prepare(store, capture, parent_db, parent_revision, ownership, legacy_db, le
     require(bool(bundles), 'No fully validated readings; no import created')
     used = {b['inputProof']['sha256'] for b in bundles}
     inputs = {key: capture['inputArtifacts'][key] for key in used}
-    index = pinned_index(ownership)
     keys = sorted({r['record_id'] for b in bundles for r in compact_store.records(b, index)})
     parent, existing = _read_rows(parent_db, parent_revision, keys)
     require(parent.get('sourceReadingStore') == store_block(store), 'Parent revision belongs to another store')
