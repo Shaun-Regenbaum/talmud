@@ -21,10 +21,15 @@ export function SourcePerson(props: {
   id: string;
   /** The revisions of the page this card was opened from. A missing revision is an error, never the newest. */
   pins?: ReadingPins;
+  /** On a daf page the card reads only the page's revisions: nothing while they load or if they failed. */
+  pinsRequired?: boolean;
+  pinsLoading?: boolean;
+  onRetryPins?: () => void;
   onPerson?: (id: string) => void;
 }) {
+  const waiting = () => !!props.pinsRequired && !props.pins;
   const [person, { refetch }] = createResource(
-    () => ({ id: props.id, pins: props.pins }),
+    () => (waiting() ? false : { id: props.id, pins: props.pins }),
     async ({ id, pins }) => {
       try {
         const query = pinQuery(pins);
@@ -43,10 +48,15 @@ export function SourcePerson(props: {
       classList={{ 'source-person-initial': !!person()?.initialReading }}
       dir={lang() === 'he' ? 'rtl' : 'ltr'}
     >
-      <Show when={person.loading}>
+      <Show when={person.loading || (waiting() && props.pinsLoading)}>
         <p>{t('sourcePerson.loading')}</p>
       </Show>
-      <Show when={!person.loading && !person()}>
+      <Show when={waiting() && !props.pinsLoading}>
+        <PersonStatus error onRetry={() => props.onRetryPins?.()}>
+          {t('sourcePerson.error')}
+        </PersonStatus>
+      </Show>
+      <Show when={!waiting() && !person.loading && !person()}>
         <PersonStatus error onRetry={() => void refetch()}>
           {t('sourcePerson.error')}
         </PersonStatus>
