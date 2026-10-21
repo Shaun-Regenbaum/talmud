@@ -3127,6 +3127,13 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       ? initial.pins
       : graphPins(graph.revision);
   });
+  // Both the desktop sidebar and the phone shelf read the page's revisions through this.
+  const pageRevisions = {
+    required: true,
+    pins: pagePins,
+    loading: () => checkedGraph.loading,
+    retry: () => void retryCheckedGraph(),
+  };
   const openRabbiSlug = async (slug: string) => {
     const navigation = ++sidebarNavigation;
     clearCommentarySelection();
@@ -4190,14 +4197,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             }}
           >
             <Show when={sidebar() !== null}>
-              <PagePins.Provider
-                value={{
-                  required: true,
-                  pins: pagePins,
-                  loading: () => checkedGraph.loading,
-                  retry: () => void retryCheckedGraph(),
-                }}
-              >
+              <PagePins.Provider value={pageRevisions}>
                 <ArgumentSidebar
                   content={sidebar()}
                   tractate={tractate()}
@@ -4235,36 +4235,38 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       </div>
 
       <Show when={isMobile()}>
-        <MobileShelf
-          sidebar={sidebar()}
-          onCloseExpansion={() => {
-            setSidebar(null);
-            setActiveRabbi(null);
-            setArgumentMoveHighlight(null);
-            if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
-          }}
-          tractate={tractate()}
-          page={page()}
-          activeRabbi={activeRabbi()}
-          onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
-          onPushRabbi={pushRabbi}
-          previousLabel={
-            sidebarStack().length > 1
-              ? sidebarLabel(sidebarStack()[sidebarStack().length - 2])
-              : null
-          }
-          onBack={popSidebar}
-          dafRabbis={dafRabbis()}
-          dafRabbiNames={dafRabbiNames()}
-          glossaryTerms={glossaryTerms()}
-          onHighlightRange={setArgumentMoveHighlight}
-          onOpenRabbiSlug={openRabbiSlug}
-          generationByName={generationByName()}
-          dafSections={analysis()?.sections ?? []}
-          onOpenArgument={openArgument}
-          onFocusSection={focusOverviewSection}
-          geography={geographyExtras()}
-        />
+        <PagePins.Provider value={pageRevisions}>
+          <MobileShelf
+            sidebar={sidebar()}
+            onCloseExpansion={() => {
+              setSidebar(null);
+              setActiveRabbi(null);
+              setArgumentMoveHighlight(null);
+              if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
+            }}
+            tractate={tractate()}
+            page={page()}
+            activeRabbi={activeRabbi()}
+            onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
+            onPushRabbi={pushRabbi}
+            previousLabel={
+              sidebarStack().length > 1
+                ? sidebarLabel(sidebarStack()[sidebarStack().length - 2])
+                : null
+            }
+            onBack={popSidebar}
+            dafRabbis={dafRabbis()}
+            dafRabbiNames={dafRabbiNames()}
+            glossaryTerms={glossaryTerms()}
+            onHighlightRange={setArgumentMoveHighlight}
+            onOpenRabbiSlug={openRabbiSlug}
+            generationByName={generationByName()}
+            dafSections={analysis()?.sections ?? []}
+            onOpenArgument={openArgument}
+            onFocusSection={focusOverviewSection}
+            geography={geographyExtras()}
+          />
+        </PagePins.Provider>
       </Show>
 
       {/* Mobile "Layers" sheet. MarksRegistryPanel must stay MOUNTED for its
