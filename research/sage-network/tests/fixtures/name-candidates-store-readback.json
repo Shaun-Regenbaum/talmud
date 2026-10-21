@@ -1,6 +1,6 @@
 {
-  "provenance": "Made by source_reading_stores.readback at commit 1fdf69b (branch checked-source-stores; not yet independently reviewed), from the store owner test setup: real v8 readings 001 and 101 released into a test Bavli store on its genesis revision, with an ownership manifest made for these two readings only. Nothing edited after.",
-  "commit": "1fdf69b",
+  "provenance": "Made by source_reading_stores.readback at commit 427c06d (branch checked-source-stores; not yet independently reviewed), from the store owner test setup: real v8 readings 001 and 101 released into a test Bavli store on its genesis revision, with an ownership manifest made for these two readings only. Nothing edited after.",
+  "commit": "427c06d",
   "readback": {
     "version": "source-reading-store-readback-v1",
     "store": "bavli",
@@ -10,7 +10,7 @@
     "readBack": {
       "revision": "source-readings-bavli-d5c579182b65878fe1dd",
       "verifiedRecords": 35,
-      "exportSha256": "dd93ed6e1c2ec2ce839726343eaeebf13b9aa250ee1dbbf2165de2fbc5242460",
+      "exportSha256": "bdd95a0c5b6b1e1b97fd159d22342a208c4bbfa191daf445a7c446db8636d877",
       "indexedAndPayloadsMatch": true,
       "store": "bavli",
       "database": "talmud-source-readings-bavli",
@@ -29,9 +29,11 @@
         "source_reading_unit": 10
       },
       "artifactsChecked": 2,
-      "matchesImporter": true
+      "matchesImporter": true,
+      "revisionState": "verified",
+      "passagesSha256": "dee044f991d816cc3a66f4d685f3dfd5e66c4556b004a1da7758cbe2ba770cd7"
     },
-    "readBackSha256": "15c0146d34c898a45e9fb8696fc64a6392caec00a65053ee1c381cf313b718ff",
+    "readBackSha256": "59a862a445773732895a3b9d457caebaa794c40c268d9f3c161878c7b870e13e",
     "complete": true,
     "passages": {
       "sr1-8b3d9cdeb11d0f31cf3ee609ad9d6f403bbad4c618862bd33f176c6f0f328dea": {
@@ -3652,5 +3654,7 @@
         ]
       }
     }
-  }
+  },
+  "producerCodeSha256": "b32563880e2556e9ab8ff67b1a3165e265d97a994f6fdeba2f5d46d84a09a633",
+  "producerCode": "research/sage-network/storage/source_reading_stores.py at commit 427c06d"
 }

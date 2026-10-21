@@ -3,8 +3,9 @@
 The test parent is made only of real rows: 115 registry and decision records copied from live revision 8b0f4c, and
 the approved v8 readings 001 and 101 as the reading importer builds them, held by the graph. Its manifest is made for
 the test from those rows. Where a test needs a situation the rows do not contain, it says so and changes as little as
-it can. The store read-back file was made by the store owner's readback() at commit 1fdf69b, not yet reviewed, from
-the same two readings in a test Bavli store; its fixture says how.
+it can. The store read-back file was made by the store owner's readback() at commit 427c06d, not yet reviewed, from
+the same two readings in a test Bavli store; its fixture says how. In a release, root writes the pins from the reviewed
+files; here pins_for plays that part.
 """
 import copy
 import json
@@ -24,7 +25,10 @@ import source_readings  # noqa: E402
 FIXTURES = Path(__file__).parent / 'fixtures'
 PARENT_ROWS = json.loads((FIXTURES / 'name-candidates-import-parent.json').read_text())['rows']
 READINGS = json.loads((FIXTURES / 'source-reading-real-v8.json').read_text())
-READBACK = json.loads((FIXTURES / 'name-candidates-store-readback.json').read_text())['readback']
+STORE_FIXTURE = json.loads((FIXTURES / 'name-candidates-store-readback.json').read_text())
+READBACK = STORE_FIXTURE['readback']
+# The store owner's test setup made its own ownership manifest for these two readings; only these tests accept it.
+TEST_OWNERSHIP = dict(imp.REVIEWED_OWNERSHIP, bavli='ec3e9c3b191ce5674925fdf263261df647b1eef7e14949554e4776dcaaff12cb')
 ALIASES = (imp.DATA / 'rabbi-he-aliases.json').read_bytes()
 DUPLICATES = (imp.DATA / 'rabbi-duplicates.json').read_bytes()
 R001 = 'sr1-ad0865bdfd579608bb25441c125ae17d9a260b9555f181ce925cada5c4ae5ffc'
@@ -59,12 +63,36 @@ def graph_only():
     return rows, dict(revision='test-parent-of-real-rows', recordCount=len(rows), recordSetSha256=nc.sha(imp.d1_encode([list(r[:-1]) for r in rows])))
 
 
-class NameCandidateImportTests(unittest.TestCase):
-    def build(self, rows, manifest):
-        return imp.build(rows, manifest, [], ALIASES, DUPLICATES)
+def file_bytes(readback):
+    """A read-back file's exact bytes."""
+    return json.dumps(readback, ensure_ascii=False, sort_keys=True, indent=1).encode()
 
-    def check(self, changes, rows, manifest):
-        return imp.validate_changes(changes, rows, manifest, [], ALIASES, DUPLICATES)
+
+def pins_for(manifest, files=()):
+    """The pins root writes for a release: the exact parent, and for each reviewed read-back file its exact bytes, store
+    and database, revision, record set, parent, export, ownership manifest, producer code, and that the revision was
+    found verified. Here the test plays root."""
+    def pin(raw):
+        f = json.loads(raw)
+        owned = {s['ownershipManifestSha256'] for p in f['passages'].values() for x in p['v1']
+                 if x['row']['kind'] == 'source_reading_coverage' for s in x['row']['data']['sources']}
+        return dict(sha256=nc.sha256_bytes(raw), store=f['store'], database=f['readBack']['database'], revision=f['revision'],
+                    recordSetSha256=f['recordSetSha256'], parentRevision=f['parentRevision'], exportSha256=f['readBack']['exportSha256'],
+                    ownershipManifestSha256=next(iter(owned)), revisionState='verified',
+                    producer=dict(commit=STORE_FIXTURE['commit'], codeSha256=STORE_FIXTURE['producerCodeSha256']))
+    return dict(version=imp.PINS, graph=dict(revision=manifest['revision'], recordSetSha256=manifest['recordSetSha256']),
+                readbacks=[pin(raw) for raw in files])
+
+
+STORE_FILE = file_bytes(READBACK)
+
+
+class NameCandidateImportTests(unittest.TestCase):
+    def build(self, rows, manifest, files=(), pins=None, ownership=TEST_OWNERSHIP):
+        return imp.build(rows, manifest, list(files), pins or pins_for(manifest, files), ALIASES, DUPLICATES, ownership)
+
+    def check(self, changes, rows, manifest, files=(), pins=None):
+        return imp.validate_changes(changes, rows, manifest, list(files), pins or pins_for(manifest, files), ALIASES, DUPLICATES, TEST_OWNERSHIP)
 
     def test_prepare_and_check_graph_readings(self):
         rows, manifest = parent()
@@ -166,8 +194,8 @@ class NameCandidateImportTests(unittest.TestCase):
 
     def test_store_readings_cite_the_stored_rows(self):
         rows, manifest = graph_only()
-        store = imp.build(rows, manifest, [READBACK], ALIASES, DUPLICATES)
-        self.assertEqual(imp.validate_changes(store, rows, manifest, [READBACK], ALIASES, DUPLICATES)['records'], 8)
+        store = self.build(rows, manifest, [STORE_FILE])
+        self.assertEqual(self.check(store, rows, manifest, [STORE_FILE])['records'], 8)
         # The same readings in the graph give the same suggestions; only the citations differ.
         grows, gmanifest = parent()
         graph = self.build(grows, gmanifest)
@@ -180,8 +208,11 @@ class NameCandidateImportTests(unittest.TestCase):
                 b = record['data']['bindings'][name]
                 self.assertEqual((b['store'], b['revision'], b['payloadFormat']), ('bavli', READBACK['revision'], imp.STORE_FORMAT))
                 self.assertEqual((b['payloadSha256'], b['v1PayloadSha256']), (stored[b['recordId']]['payloadSha256'], v1[b['recordId']]))
-        self.assertEqual(store['nameCandidateInputs']['sources'], [dict(store='bavli', revision=READBACK['revision'], parentRevision=READBACK['parentRevision'],
-                                                                        recordSetSha256=READBACK['recordSetSha256'], readBackSha256=READBACK['readBackSha256'])])
+        pin = pins_for(manifest, [STORE_FILE])['readbacks'][0]
+        self.assertEqual(store['nameCandidateInputs']['sources'], [dict(
+            store='bavli', revision=READBACK['revision'], parentRevision=READBACK['parentRevision'], recordSetSha256=READBACK['recordSetSha256'],
+            readBackSha256=READBACK['readBackSha256'], fileSha256=nc.sha256_bytes(STORE_FILE), database='talmud-source-readings-bavli',
+            exportSha256=READBACK['readBack']['exportSha256'], ownershipManifestSha256=pin['ownershipManifestSha256'], producer=pin['producer'])])
 
     def test_a_readback_file_must_be_whole_and_checked(self):
         rows, manifest = graph_only()
@@ -191,22 +222,126 @@ class NameCandidateImportTests(unittest.TestCase):
             (lambda f: f['readBack'].update(matchesImporter=False), 'did not check every passage'),
             (lambda f: f['readBack'].update(passagesChecked=1), 'differs from its hash'),
             (lambda f: f.update(revision='source-readings-bavli-' + '0' * 20), 'names another revision'),
-            (lambda f: f['passages'][pid]['stored'].pop(), 'Stored and rebuilt rows differ'),
-            (lambda f: f['passages'][pid]['v1'][0].update(v1PayloadSha256='0' * 64), 'differs from its v1 hash'),
-            (lambda f: f['passages'][pid]['stored'][0].update(payloadFormat=imp.V1_FORMAT), 'not compact store rows'),
             (lambda f: f.update(version='checked-source-reading-v1'), 'Not a source-reading store read-back file'),
         ]
         for edit, message in edits:
+            # Even a file root pinned as it is must pass these checks.
             changed = copy.deepcopy(READBACK)
             edit(changed)
             with self.assertRaisesRegex(ValueError, message):
-                imp.build(rows, manifest, [changed], ALIASES, DUPLICATES)
-        with self.assertRaisesRegex(ValueError, 'in two read-back files'):
-            imp.build(rows, manifest, [READBACK, READBACK], ALIASES, DUPLICATES)
+                self.build(rows, manifest, [file_bytes(changed)])
+        rows_edits = [
+            (lambda f: f['passages'][pid]['stored'].pop(), 'Stored and rebuilt rows differ'),
+            (lambda f: f['passages'][pid]['v1'][0].update(v1PayloadSha256='0' * 64), 'differs from its v1 hash'),
+            (lambda f: f['passages'][pid]['stored'][0].update(payloadFormat=imp.V1_FORMAT), 'not compact store rows'),
+        ]
+        for edit, message in rows_edits:
+            changed = copy.deepcopy(READBACK)
+            edit(changed)
+            # The receipt's passages hash refuses the edit first.
+            with self.assertRaisesRegex(ValueError, 'Passages differ from the read-back receipt'):
+                self.build(rows, manifest, [file_bytes(changed)])
+            # Behind it, the row checks still refuse a receipt whose hashes were made to fit the edit.
+            changed['readBack']['passagesSha256'] = imp.d1_hash(changed['passages'])
+            changed['readBackSha256'] = imp.d1_hash(changed['readBack'])
+            with self.assertRaisesRegex(ValueError, message):
+                self.build(rows, manifest, [file_bytes(changed)])
+        # Checked readings are never read as original rows. A file holding any is refused whole; so is an unknown field.
+        for edit, message in ((lambda f: f.update(checkedPassages={'cs1-' + '0' * 64: {}}), 'does not read checked readings'),
+                              (lambda f: f['readBack'].update(checkedPassages=1), 'does not read checked readings'),
+                              (lambda f: f.update(somethingNew=[]), 'fields this version does not know')):
+            changed = copy.deepcopy(READBACK)
+            edit(changed)
+            with self.assertRaisesRegex(ValueError, message):
+                self.build(rows, manifest, [file_bytes(changed)])
+        # The same file twice. (One reading in two different files needs two real read-backs, which no fixture has.)
+        with self.assertRaisesRegex(ValueError, 'given twice'):
+            self.build(rows, manifest, [STORE_FILE, STORE_FILE], pins_for(manifest, [STORE_FILE]))
+        with self.assertRaisesRegex(ValueError, 'pinned twice'):
+            self.build(rows, manifest, [STORE_FILE], pins_for(manifest, [STORE_FILE, STORE_FILE]))
         # The graph copy wins, so a reading the graph holds cannot be cited from a store.
         grows, gmanifest = parent()
         with self.assertRaisesRegex(ValueError, 'graph copy wins'):
-            imp.build(grows, gmanifest, [READBACK], ALIASES, DUPLICATES)
+            self.build(grows, gmanifest, [STORE_FILE])
+
+    def test_only_the_pinned_bytes_count(self):
+        # The read-back receipt does not cover the passages. These edits keep it, and its hash, unchanged.
+        rows, manifest = graph_only()
+        pins = pins_for(manifest, [STORE_FILE])
+        pid = sorted(READBACK['passages'])[0]
+        zeroed = copy.deepcopy(READBACK)
+        zeroed['passages'][pid]['stored'][0]['payloadSha256'] = '0' * 64
+        reworded = copy.deepcopy(READBACK)
+        entry = next(x for x in reworded['passages'][pid]['v1'] if x['row']['kind'] == 'person')
+        entry['row']['data']['reading']['reason'] = 'Changed for this test.'
+        entry['v1PayloadSha256'] = imp.d1_hash(entry['row']['data'])
+        for changed in (zeroed, reworded):
+            self.assertEqual((changed['readBack'], changed['readBackSha256']), (READBACK['readBack'], READBACK['readBackSha256']))
+            with self.assertRaisesRegex(ValueError, 'differ from the release pins'):
+                self.build(rows, manifest, [file_bytes(changed)], pins)
+        # Even if root pinned the changed bytes, the receipt's own passages hash refuses them.
+        for changed in (zeroed, reworded):
+            with self.assertRaisesRegex(ValueError, 'Passages differ from the read-back receipt'):
+                self.build(rows, manifest, [file_bytes(changed)])
+        # A receipt of a revision that is not verified is refused, even with its own hash made to fit.
+        unverified = copy.deepcopy(READBACK)
+        unverified['readBack']['revisionState'] = 'loading'
+        unverified['readBackSha256'] = imp.d1_hash(unverified['readBack'])
+        with self.assertRaisesRegex(ValueError, 'not verified'):
+            self.build(rows, manifest, [file_bytes(unverified)])
+        good = self.build(rows, manifest, [STORE_FILE], pins)
+        with self.assertRaisesRegex(ValueError, 'differ from the release pins'):
+            self.check(good, rows, manifest, [file_bytes(zeroed)], pins)
+        # Every pinned file must be given, and only pinned files.
+        with self.assertRaisesRegex(ValueError, 'differ from the release pins'):
+            self.build(rows, manifest, [], pins)
+        with self.assertRaisesRegex(ValueError, 'differ from the release pins'):
+            self.build(rows, manifest, [STORE_FILE], pins_for(manifest))
+        # A pin naming another revision, or another graph parent, is refused.
+        wrong = copy.deepcopy(pins)
+        wrong['readbacks'][0]['revision'] = 'source-readings-bavli-' + '0' * 20
+        with self.assertRaisesRegex(ValueError, 'another revision than its pin'):
+            self.build(rows, manifest, [STORE_FILE], wrong)
+        wrong = copy.deepcopy(pins)
+        wrong['graph']['recordSetSha256'] = '0' * 64
+        with self.assertRaisesRegex(ValueError, 'graph parent differs from the release pins'):
+            self.build(rows, manifest, [STORE_FILE], wrong)
+        # The physical database, the export, the ownership, the verified state and the producer must all be pinned.
+        for field, value, message in (('database', 'talmud-source-readings-other', 'names another database'),
+                                      ('exportSha256', '0' * 64, 'another database or export'),
+                                      ('ownershipManifestSha256', imp.REVIEWED_OWNERSHIP['bavli'], 'owned under another manifest'),
+                                      ('revisionState', 'loading', 'store revision verified'),
+                                      ('producer', dict(commit='1fdf69b'), 'producer commit and code hash')):
+            wrong = copy.deepcopy(pins)
+            wrong['readbacks'][0][field] = value
+            with self.assertRaisesRegex(ValueError, message):
+                self.build(rows, manifest, [STORE_FILE], wrong, ownership=dict(TEST_OWNERSHIP, bavli=wrong['readbacks'][0]['ownershipManifestSha256']))
+        wrong = copy.deepcopy(pins)
+        del wrong['readbacks'][0]['exportSha256']
+        with self.assertRaisesRegex(ValueError, 'Each read-back pin needs exactly'):
+            self.build(rows, manifest, [STORE_FILE], wrong)
+        # Outside tests, only the reviewed ownership manifest counts, so this test-made store is refused.
+        with self.assertRaisesRegex(ValueError, 'not the reviewed one'):
+            imp.build(rows, manifest, [STORE_FILE], pins, ALIASES, DUPLICATES)
+
+    def test_json_is_read_strictly(self):
+        rows, manifest = graph_only()
+        repeated = STORE_FILE.replace(b'{\n "complete": true,', b'{\n "complete": false,\n "complete": true,', 1)
+        self.assertNotEqual(repeated, STORE_FILE)
+        with self.assertRaisesRegex(ValueError, 'Repeated JSON key'):
+            self.build(rows, manifest, [repeated])
+        odd = copy.deepcopy(READBACK)
+        odd['readBack']['note'] = float('nan')
+        with self.assertRaisesRegex(ValueError, 'Non-finite JSON number'):
+            self.build(rows, manifest, [json.dumps(odd, sort_keys=True).encode()])
+        pins = imp.d1_encode(pins_for(manifest, [STORE_FILE])).encode()
+        self.assertEqual(imp.load_pins(pins)['graph']['revision'], manifest['revision'])
+        with self.assertRaisesRegex(ValueError, 'Not a name_candidates release pin file'):
+            self.build(rows, manifest, [STORE_FILE], dict(pins_for(manifest, [STORE_FILE]), version='other'))
+        for broken, message in ((pins.replace(b'{"graph"', b'{"graph":{},"graph"', 1), 'Repeated JSON key'),
+                                (pins.replace(b'"version"', b'"extra":1,"version"', 1), 'Not a name_candidates release pin file')):
+            with self.assertRaisesRegex(ValueError, message):
+                imp.load_pins(broken)
 
     def test_read_graph_checks_the_record_set(self):
         rows, manifest = parent()
@@ -224,6 +359,12 @@ class NameCandidateImportTests(unittest.TestCase):
             with closing(sqlite3.connect(path)) as db, db:
                 db.execute("UPDATE sage_graph_records SET ref='Ketubot 99a:1' WHERE record_id=?", (rows[0][0],))
             with self.assertRaisesRegex(ValueError, 'record set differs'):
+                imp.read_graph(path, manifest['revision'])
+            # A payload changed without its hash is caught row by row, before any record set check.
+            with closing(sqlite3.connect(path)) as db, db:
+                db.execute("UPDATE sage_graph_records SET ref=? WHERE record_id=?", (rows[0][3], rows[0][0]))
+                db.execute("UPDATE sage_graph_records SET payload_json=replace(payload_json, 'shmuel', 'shmuel ') WHERE record_id=?", (rows[0][0],))
+            with self.assertRaisesRegex(ValueError, 'payload differs from its hash'):
                 imp.read_graph(path, manifest['revision'])
 
 
