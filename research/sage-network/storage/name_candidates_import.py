@@ -12,10 +12,20 @@ A record is built only from checked inputs:
   store revision verified. The read-back receipt does not cover the passages, so only that outside pin binds them: a
   file whose bytes differ from its pin is refused, whatever its own fields say. A file never pins itself.
 
+Checked readings (checked-source-store-v1 rows in a store) need pin file version 2
+(`name-candidates-release-pins-v2`). Each read-back pin then also lists the sorted hashes of root's checked selections
+that file holds. The caller gives each selection file once (`--checked-selection`, repeated) and the approved artifacts
+(`--artifacts`); the read-back must be made with `--with-checked-rows`. A checked reading is read only against the
+selection its envelope names, and only if its pin lists it; its rows must hash to the stored hashes, its ownership must
+be the pinned manifest's, and its artifact must match by hash and length. Only owned `printed_name` mentions are looked
+up. A checked reading replaces every raw reading of the same raw result and job; it is refused if the graph holds one, or
+if a reviewed or human decision covers a person of one.
+
 Every JSON input is read strictly: a repeated key or a non-finite number is refused.
 
 Each candidate cites the person, passage and source_reading rows exactly as stored (store, revision, stored hash and
-format) together with the rebuilt v1 hash. The check rebuilds every record from the same inputs, refuses any
+format) together with the rebuilt v1 hash. A checked candidate cites its checked_person, checked_reading,
+checked_ownership and checked_coverage rows the same way, and the approved artifact by hash and length. The check rebuilds every record from the same inputs, refuses any
 difference, and re-checks human precedence, coverage at every mention and the alias guards on its own.
 
 `release` hands a checked changes file to extend_d1.prepare() with root's pins and the read-back files, which runs the
@@ -32,6 +42,7 @@ import json
 import math
 import sqlite3
 import sys
+from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -48,6 +59,8 @@ PINS = 'name-candidates-release-pins-v1'
 PINS_V2 = 'name-candidates-release-pins-v2'
 CHECKED_FORMAT = 'checked-source-store-v1'
 CHECKED_ROW_KINDS = ('checked_reading', 'checked_person', 'checked_ownership', 'checked_coverage', 'checked_decision')
+# The stored rows a checked record cites: the person, and the reading's envelope, ownership and coverage.
+CHECKED_CITED = ('person', 'reading', 'ownership', 'coverage')
 STORES = ('bavli', 'other')
 # The physical store databases and their reviewed ownership manifests (the hashes the source-binding release used).
 DATABASES = {'bavli': 'talmud-source-readings-bavli', 'other': 'talmud-source-readings-other'}
@@ -171,6 +184,17 @@ def checked_passage(pid, p, pin, selections, artifacts):
     require(len(one('checked_reading')) == len(one('checked_ownership')) == len(one('checked_coverage')) == 1, 'A checked passage needs one envelope: ' + pid)
     reading = one('checked_reading')[0]
     rd = reading['data']
+    # A passage is named by its own approved artifact; its envelope, ownership and coverage rows say so too.
+    require(rd['readingId'] == pid == 'cs1-' + rd['artifactHash'] and
+            [r['record_id'] for r in (reading, one('checked_ownership')[0], one('checked_coverage')[0])] ==
+            ['checked_reading:' + pid, 'checked_ownership:' + pid, 'checked_coverage:' + pid], 'Checked passage is named for another reading: ' + pid)
+    # Owned units decide which printed names are looked up, so they are held to the pinned manifest, as raw readings are.
+    ownership, job = one('checked_ownership')[0]['data'], rd['binding']['jobHash']
+    require(ownership['passageId'] == pid and ownership['jobSha256'] == job and
+            all(u['passageId'] == pid and u['jobSha256'] == job for u in ownership['ownedUnits']) and
+            {x['ownershipManifestSha256'] for x in ownership['ownedUnits'] + ownership['sources']} <= {pin['ownershipManifestSha256']},
+            'Checked ownership is for another reading or manifest than its pin: ' + pid)
+    require(one('checked_coverage')[0]['data']['readingId'] == pid, 'Checked coverage is for another reading: ' + pid)
     # Root's selection, never the row, says which plan, approval and artifact this reading may use. The row only names
     # which pinned selection to look in; a case is never taken from another selection.
     require(rd['selectionSha256'] in pin['checkedSelectionSha256s'], 'Checked reading names a selection its pin does not list: ' + pid)
@@ -187,9 +211,9 @@ def checked_passage(pid, p, pin, selections, artifacts):
     for source in strict_json(raw)['job']['sources']:
         require(hashlib.sha256(source['text'].encode()).hexdigest() == source['sha256'], 'Artifact source differs from its hash: ' + pid)
         sources[source['source_id']] = source
-    return dict(passageId=pid, stored=stored, row=reading, people=one('checked_person'), ownership=one('checked_ownership')[0]['data'],
+    return dict(passageId=pid, stored=stored, row=reading, people=one('checked_person'), ownership=ownership,
                 coverage=one('checked_coverage')[0]['data'], holds=one('checked_decision'), sources=sources,
-                rawResultHash=rd['supersedes']['rawResultHash'])
+                rawResultHash=rd['supersedes']['rawResultHash'], jobHash=job)
 
 
 def selection_cases(checked_selections, pins):
@@ -282,16 +306,24 @@ def readings(graph_rows, readbacks, pins, reviewed_ownership=REVIEWED_OWNERSHIP,
     both = set(own) & set(held)
     require(not both, 'A reading is in the graph and in a store; the graph copy wins, so the store copy cannot be cited: ' + ', '.join(sorted(both)))
     raw = {**own, **held}
-    # A checked reading supersedes the raw reading of the same raw result, as the reader does. The graph copy wins on
-    # the page, so a checked reading whose raw result the graph holds would never show: it is refused, not hidden.
-    result = lambda p: next(r['data']['provenance'].get('resultSha256') for r in p['v1'] if r['kind'] == 'source_reading')
-    by_result = {result(p): pid for pid, p in raw.items()}
-    superseded = []
+    # A checked reading supersedes every raw reading of the same raw result, as the reader does (supersededReadings).
+    # The graph copy wins on the page, so a checked reading whose raw result the graph holds would never show: it is
+    # refused, not hidden. A raw reading of another job, or one whose people a reviewed or human decision covers, is
+    # refused too: replacing it would hide that decision.
+    provenance = lambda p: next(r['data']['provenance'] for r in p['v1'] if r['kind'] == 'source_reading')
+    by_result = defaultdict(list)
+    for pid, p in sorted(raw.items()):
+        by_result[provenance(p).get('resultSha256')].append(pid)
+    superseded, decisions = [], None
     for pid, c in sorted(checked.items()):
-        other = by_result.get(c['rawResultHash'])
-        if other in own:
-            raise ValueError('The graph holds the raw reading this checked reading supersedes: ' + pid)
-        if other:
+        others = by_result.get(c['rawResultHash'], [])
+        require(not set(others) & set(own), 'The graph holds the raw reading this checked reading supersedes: ' + pid)
+        for other in others:
+            require(provenance(raw[other]).get('jobSha256') == c['jobHash'], 'The raw reading this checked reading supersedes is of another job: ' + other)
+            decisions = decisions or nc.Decisions(graph_rows)
+            people = [r['data']['id'] for r in raw[other]['v1'] if r['kind'] == 'person']
+            require(not any(decisions.about(other + '/' + person) for person in people),
+                    'A reviewed or human decision covers a person of the raw reading this checked reading supersedes: ' + other)
             superseded.append(dict(passageId=other, reason='A checked reading of the same raw result supersedes this raw reading', checkedPassageId=pid))
             del raw[other]
     return raw, checked, sources, superseded
@@ -326,7 +358,7 @@ def build(graph_rows, graph_manifest, readbacks, pins, he_aliases_bytes, duplica
         checked_cases, checked_held = nc.build_checked([checked[pid] for pid in sorted(checked)], registry, duplicates, parent, spans, decisions)
         for case in checked_cases:
             c = checked[case['passageId']]
-            for name in ('person', 'reading'):
+            for name in CHECKED_CITED:
                 b = case['bindings'][name]
                 stored = c['stored'][b['recordId']]
                 b.update(store=c['store'], revision=c['revision'], payloadSha256=stored['payloadSha256'], payloadFormat=stored['payloadFormat'])
@@ -393,7 +425,7 @@ def validate_changes(changes, graph_rows, graph_manifest, readbacks, pins, he_al
             require(data['clearestShape'] == 'full' and not any(m['notes'] for m in data['mentions']) and found
                     and not any(h['registryLabels'] or h.get('readings') for h in found) and chosen['registryDuplicate'] is None,
                     'A tentative suggestion needs one exact full name: ' + key)
-        names, held_by = (('person', 'reading'), checked) if data.get('basis') == nc.CHECKED_BASIS else (('person', 'passage', 'sourceReading'), passages)
+        names, held_by = (CHECKED_CITED, checked) if data.get('basis') == nc.CHECKED_BASIS else (('person', 'passage', 'sourceReading'), passages)
         for b in (data['bindings'][n] for n in names):
             stored = held_by[data['passageId']]['stored'][b['recordId']]
             require((b['payloadSha256'], b['payloadFormat']) == (stored['payloadSha256'], stored['payloadFormat']) and b['store'] and b['revision'],
