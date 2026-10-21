@@ -46,8 +46,8 @@ async function shown(label: string) {
   const view = render(() => <SourcePerson id={data.id} pins={pins} />);
   await waitFor(() => expect(view.container.querySelector('.person-name-suggestion')).toBeTruthy());
   const section = view.container.querySelector('.person-name-suggestion')!;
-  // On the card itself, not inside the collapsed "Why this reading" details.
-  expect(section.closest('details')).toBeNull();
+  // Registry evidence stays available inside the reading details, below era and biography.
+  expect(section.closest('details')?.open).toBe(false);
   return { section, card: view.container };
 }
 
