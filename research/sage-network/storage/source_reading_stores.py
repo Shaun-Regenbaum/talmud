@@ -42,6 +42,8 @@ VERSION = 'source-reading-stores-v1'
 # explicit upgrade revision; the compact rows and their decoder stay as they are.
 CONTRACT_2 = 'source-reading-stores-v2'
 READBACK_VERSION = 'source-reading-store-readback-v1'
+# Checked rows a read-back carries in full, so consumers such as the name-candidate importer cite rows the receipt covers.
+CHECKED_ROWS_FOR_CONSUMERS = ('checked_reading', 'checked_person', 'checked_ownership', 'checked_coverage', 'checked_decision')
 # Each store accepts only its reviewed ownership manifest, the same pins the source-binding release used.
 STORES = {
     'bavli': dict(database='talmud-source-readings-bavli', corpora=['bavli'], ownershipSource='full-bavli-tiles v1',
@@ -366,7 +368,9 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
             checked_passages[pid] = dict(
                 artifactSha256=data['artifact']['sha256'], jobId=data['jobId'],
                 stored=[dict(recordId=r['record_id'], kind=r['kind'], payloadSha256=hashes[r['record_id']],
-                             payloadFormat=r['data']['format']) for r in group])
+                             payloadFormat=r['data']['format']) for r in group],
+                # The rows a name-candidate consumer reads, exactly as stored and just checked against the artifact.
+                rows=sorted((r for r in group if r['kind'] in CHECKED_ROWS_FOR_CONSUMERS), key=lambda r: r['record_id']))
             continue
         envelopes = [r for r in group if r['kind'] == 'source_reading']
         require(len(envelopes) == 1, 'A passage needs exactly one source_reading envelope')
