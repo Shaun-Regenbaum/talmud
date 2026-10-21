@@ -664,6 +664,50 @@ describe('real Hebrew names and duplicate readings', () => {
     expect(apart.every((o) => o.overlapsOtherReading)).toBe(true);
   });
 
+  it('lets a pointed prefix letter carry its own vowel marks', () => {
+    // Real pointed words from the captured Tanchuma piece; the two readings here are built on them.
+    const { source } = fixture.pieceKey;
+    const text = Array.from(source.text);
+    const at = (word: string) => Array.from(source.text.slice(0, source.text.indexOf(word))).length;
+    const reading = (passageId: string, quote: string) => {
+      const start = at(quote);
+      const mention = {
+        occurrenceKey: `${passageId}:${start}`,
+        ref: source.ref,
+        edition: source.edition,
+        segmentId: source.provenance.segment_id,
+        source_id: source.source_id,
+        source_sha256: source.sha256,
+        quote,
+        start,
+        end: start + Array.from(quote).length,
+        offset_unit: 'Unicode code points',
+        primary: true,
+      };
+      expect(text.slice(mention.start, mention.end).join('')).toBe(quote);
+      return {
+        passageId,
+        people: [
+          {
+            id: 'p1',
+            label: quote,
+            named: 'name',
+            mentions: [mention],
+            reading: { reason: '', alternatives: [] },
+          },
+        ],
+      };
+    };
+    // The source's own spelling of "to Jerusalem": ל with its hiriq, then the name.
+    const word = source.text
+      .split(/\s+/)
+      .map((w) => w.replace(/\p{P}/gu, ''))
+      .find((w) => w.replace(/\p{M}/gu, '') === 'לירושלים')!;
+    const name = Array.from(word).slice(2).join('');
+    const shown = readingOccurrences([reading('first', word), reading('second', name)], () => true);
+    expect(shown.map((o) => [o.quote, o.people.length])).toEqual([[name, 2]]);
+  });
+
   it('uses the same prefix letters as the reviewed prefix amendment', () => {
     const python = readFileSync(
       join(__dirname, '../../../research/sage-network/anchor_repair_v2.py'),

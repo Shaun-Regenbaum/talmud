@@ -1,5 +1,6 @@
 import { createResource, createSignal, For, onCleanup, Show } from 'solid-js';
 import {
+  graphPins,
   parseSourcePersonHash,
   pinQuery,
   type ReadingPins,
@@ -121,6 +122,7 @@ export function SourcePerson(props: {
                 id={p().resolvedTo ?? p().id}
                 name={lang() === 'he' ? p().nameHe : p().name}
                 revision={p().revision}
+                pins={linkPins(p(), props.pins) ?? graphPins(p().revision)}
                 onPerson={props.onPerson}
               />
             </Show>

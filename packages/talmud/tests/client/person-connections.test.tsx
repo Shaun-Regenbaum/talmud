@@ -1,7 +1,9 @@
-import { describe, expect, it } from 'vitest';
-import { mergePersonConnections } from '../../src/client/PersonConnections';
+import { fireEvent, render, waitFor } from '@solidjs/testing-library';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { mergePersonConnections, PersonConnections } from '../../src/client/PersonConnections';
 import { generationRange } from '../../src/client/PersonEra';
 import type { SageInteractions } from '../../src/client/sageInteractions';
+import { parseSourcePersonHash } from '../../src/lib/sage-graph/reading-pins';
 import fixture from '../fixtures/person-connections.json';
 import teaching from '../fixtures/reviewed-teaching-connection.json';
 
@@ -45,4 +47,58 @@ describe('generation dates', () => {
     expect(generationRange('c. 170 BCE – 10 CE')).toEqual([-170, 10]));
   it('does not invent an end date for an open era', () =>
     expect(generationRange('c. 1500 CE –')).toBeNull());
+});
+
+describe('links from a person card to the people it connects', () => {
+  const revision = fixture.graph.revision;
+  // The saved graph, with its local nodes marked as having a source profile so their card links show.
+  const withProfiles = {
+    ...fixture.graph,
+    nodes: fixture.graph.nodes.map((n) =>
+      n.id.startsWith('local:') ? { ...n, hasSourceProfile: true } : n,
+    ),
+  };
+  const open = async (pins?: {
+    revision: string;
+    bavliRevision: string;
+    otherRevision: string;
+  }) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) =>
+        String(url).startsWith('/api/sage-graph/checked')
+          ? new Response(JSON.stringify(withProfiles))
+          : new Response('{}', { status: 404 }),
+      ),
+    );
+    const { container } = render(() => <PersonConnections id="rav-pappa" pins={pins} />);
+    await waitFor(() => expect(container.querySelector('button[aria-expanded]')).toBeTruthy());
+    for (const row of container.querySelectorAll<HTMLButtonElement>('button[aria-expanded]'))
+      fireEvent.click(row);
+    return [...container.querySelectorAll<HTMLAnchorElement>('a[href^="#source-person/"]')];
+  };
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('pass on the revisions the card was read with', async () => {
+    const pins = {
+      revision,
+      bavliRevision: 'source-readings-bavli-00000000000000000001',
+      otherRevision: 'none',
+    };
+    const links = await open(pins);
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links)
+      expect(parseSourcePersonHash(link.getAttribute('href')!).pins).toEqual(pins);
+  });
+
+  it('read the graph revision they came from, and no store, when the card had no pins', async () => {
+    const links = await open();
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links)
+      expect(parseSourcePersonHash(link.getAttribute('href')!).pins).toEqual({
+        revision,
+        bavliRevision: 'none',
+        otherRevision: 'none',
+      });
+  });
 });

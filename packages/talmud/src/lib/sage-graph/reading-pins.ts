@@ -22,6 +22,16 @@ export function readingPins(
   };
 }
 
+/**
+ * Pins for a link to a card that only reads the graph, such as a `local:` person: the graph revision
+ * the link came from, and no store revision, so the card never reads the newest store.
+ */
+export function graphPins(revision: string | undefined): ReadingPins | undefined {
+  return revision
+    ? { revision, bavliRevision: NO_STORE_REVISION, otherRevision: NO_STORE_REVISION }
+    : undefined;
+}
+
 export function pinQuery(pins: ReadingPins | undefined): string {
   if (!pins) return '';
   return new URLSearchParams({

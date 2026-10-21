@@ -22,7 +22,7 @@ import { DafRenderer } from '../lib/daf-render';
 import type { DafGeoModel } from '../lib/geographyModel';
 import { perakimOf, perekAt } from '../lib/perakim';
 import type { InitialPlacement } from '../lib/sage-graph/initial-placement';
-import { readingPins } from '../lib/sage-graph/reading-pins';
+import { graphPins, readingPins } from '../lib/sage-graph/reading-pins';
 import type { TalmudPageData } from '../lib/sefref';
 import { clampAmud, dafRefHe, TRACTATE_OPTIONS } from '../lib/sefref';
 import { conceptToTerm, glossaryForDaf, type Term } from '../lib/terms/registry';
@@ -3125,7 +3125,11 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       pushSidebar({
         kind: 'source-person',
         id: slug,
-        pins: initial?.ref === `${tractate()} ${page()}` ? initial.pins : undefined,
+        // Before the page's names load, a card still reads the page's graph revision and no store.
+        pins:
+          initial?.ref === `${tractate()} ${page()}` && initial.pins
+            ? initial.pins
+            : graphPins(checkedGraph()?.revision),
       });
       setLastInteractedCard('argument');
       return;

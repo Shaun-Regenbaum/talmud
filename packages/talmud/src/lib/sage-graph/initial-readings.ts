@@ -185,14 +185,22 @@ export function readingOccurrences(
   };
   const readingsOf = (g: number) =>
     new Set(items.flatMap((item, i) => (root(i) === g ? [...item.readings] : [])));
-  // The same name, by the source words: one quote is the other with one attached prefix letter.
-  const prefixed = (long: Item, short: Item) =>
-    long.segment === short.segment &&
-    long.end === short.end &&
-    long.start + 1 === short.start &&
-    Array.from(long.occurrence.quote).length === Array.from(short.occurrence.quote).length + 1 &&
-    NAME_PREFIX_LETTERS.includes(Array.from(long.occurrence.quote)[0]) &&
-    Array.from(long.occurrence.quote).slice(1).join('') === short.occurrence.quote;
+  // The same name, by the source words: one quote is the other with one attached prefix letter,
+  // which in pointed text may carry its own vowel marks (וְרַבִּי / רַבִּי).
+  const prefixed = (long: Item, short: Item) => {
+    const letters = Array.from(long.occurrence.quote);
+    const width = Array.from(short.occurrence.quote).length;
+    const prefix = letters.slice(0, letters.length - width);
+    return (
+      long.segment === short.segment &&
+      long.end === short.end &&
+      long.start + prefix.length === short.start &&
+      prefix.length >= 1 &&
+      NAME_PREFIX_LETTERS.includes(prefix[0]) &&
+      prefix.slice(1).every((mark) => /\p{M}/u.test(mark)) &&
+      letters.slice(prefix.length).join('') === short.occurrence.quote
+    );
+  };
   for (const [i, a] of items.entries()) {
     for (const [j, b] of items.entries()) {
       if (!prefixed(a, b)) continue;
