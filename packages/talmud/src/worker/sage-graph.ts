@@ -19,7 +19,7 @@ import {
   readingOccurrences,
 } from '../lib/sage-graph/initial-readings';
 import { type LegacyPayload, type LegacyRow, legacyCards } from '../lib/sage-graph/legacy-readings';
-import { checkedNameProposal } from '../lib/sage-graph/name-candidates';
+import { checkedNameSuggestion } from '../lib/sage-graph/name-candidates';
 import {
   POSSIBLE_ERA_SCOPE_SQL,
   type PossibleEra,
@@ -749,7 +749,14 @@ async function readCheckedName(
       )
       .bind(revisionId, `name_candidates:v1/${passage.id}/${localId}`)
       .first<StoredRow>();
-    return await checkedNameProposal(row, passage, localId, store);
+    if (!row) return undefined;
+    // A reviewed or human decision about this person in this revision outranks the suggestion, even a later one.
+    const key = `${passage.id}/${localId}`;
+    const scope = await db
+      .prepare(POSSIBLE_ERA_SCOPE_SQL)
+      .bind(revisionId, passage.id, key, key, key, key, key, key)
+      .all<StoredRow>();
+    return await checkedNameSuggestion(row, passage, localId, store, scope.results);
   } catch {
     // A missing or unreadable suggestion must not replace the checked person card.
     return undefined;
@@ -865,8 +872,14 @@ sageGraph.get('/person', async (c) => {
             reading.neededContext,
           ));
     if (person?.initialReading && reading?.checked && sourceStore) {
-      const proposal = await readCheckedName(db, saved.id, reading.checked, match[2], sourceStore);
-      if (proposal) person.initialReading.proposals = [proposal];
+      const suggestion = await readCheckedName(
+        db,
+        saved.id,
+        reading.checked,
+        match[2],
+        sourceStore,
+      );
+      if (suggestion) person.initialReading.nameSuggestion = suggestion;
     }
     if (person?.initialReading && reading && !reading.checked)
       person.initialReading.reviewedPeople = await reviewedPeopleAtSameWords(

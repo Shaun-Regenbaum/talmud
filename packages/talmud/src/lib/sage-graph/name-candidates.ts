@@ -1,11 +1,13 @@
 import { CHECKED_FORMAT, type CheckedPassage } from './checked-readings';
-import type { InitialReading } from './initial-readings';
+import type { NameSuggestion } from './initial-readings';
+import { decidingRows } from './possible-era';
 import { type StoredRow, sha256 } from './source-reading-store';
 
 /** A card names at most this many registry entries for a short name; the rest are only counted. */
 export const LISTED_ENTRIES = 12;
+/** More scope rows than this and the decisions cannot all be checked, so nothing is shown (as for possible eras). */
+const SCOPE_LIMIT = 2000;
 
-type Proposal = NonNullable<InitialReading['proposals']>[number];
 interface Binding {
   recordId: string;
   store: string | null;
@@ -27,20 +29,25 @@ interface NameCandidates {
 }
 
 /**
- * The graph's first registry suggestion for one checked person, as a proposal on that person's card. It is shown only
- * when the record cites the exact checked rows this card was read from (the person, and the reading's envelope,
- * ownership and coverage), in the same store, and only that person's printed names. It never becomes an accepted identity: one exact full name shows as a possible identity, and a short name
- * lists the registry entries it fits.
+ * The graph's first registry suggestion for one checked person, for that person's card. It is shown only when the
+ * record cites the exact checked rows this card was read from (the person, and the reading's envelope, ownership and
+ * coverage), in the same store, and only that person's printed names. A reviewed or human decision about this person in
+ * the same graph revision outranks it, even one made after it, and then nothing is shown. scope: the person's scope rows
+ * in that revision (POSSIBLE_ERA_SCOPE_SQL). It never becomes an accepted identity: one exact full name shows as a
+ * possible identity, and a short name lists the registry entries it fits.
  */
-export async function checkedNameProposal(
+export async function checkedNameSuggestion(
   row: StoredRow | null,
   passage: CheckedPassage,
   localId: string,
   store: string,
-): Promise<Proposal | undefined> {
+  scope: StoredRow[],
+): Promise<NameSuggestion | undefined> {
   const key = `${passage.id}/${localId}`;
   if (
     !row ||
+    scope.length > SCOPE_LIMIT ||
+    decidingRows(scope, key).length ||
     row.record_id !== `name_candidates:v1/${key}` ||
     row.kind !== 'name_candidates' ||
     row.subject_id !== key ||
@@ -91,6 +98,9 @@ export async function checkedNameProposal(
   if (data.status === 'tentative' && (!chosen || data.candidates.length !== 1)) return undefined;
   return {
     id: row.record_id,
+    payloadSha256: row.payload_sha256,
+    personKey: key,
+    status: data.status,
     reason: data.reason,
     candidate: data.status === 'tentative' ? entry(chosen!) : undefined,
     registryEntries:
@@ -100,8 +110,6 @@ export async function checkedNameProposal(
             total: data.candidates.length,
           }
         : undefined,
-    alternatives: [],
     evidence: evidence as NonNullable<(typeof evidence)[number]>[],
-    sourceWarning: false,
   };
 }

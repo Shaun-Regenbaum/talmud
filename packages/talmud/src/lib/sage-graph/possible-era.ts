@@ -55,16 +55,18 @@ const same = (row: LegacyRow | undefined, b: EraBinding) =>
   row.authority === b.authority &&
   row.decision === b.decision;
 
+const about = (d: ReturnType<typeof JSON.parse>, personKey: string) =>
+  d.personKey === personKey ||
+  d.case?.personKey === personKey ||
+  d.identityDecision?.personKey === personKey ||
+  d.personKeys?.includes(personKey) ||
+  d.a?.personKey === personKey ||
+  d.b?.personKey === personKey;
+
 function decisionScope(rows: EraRow[], personKey: string, candidate: string) {
   const [pid, local] = personKey.split('/');
   const payload = (r: LegacyRow) => JSON.parse(r.payload_json);
-  const direct = (d: ReturnType<typeof JSON.parse>) =>
-    d.personKey === personKey ||
-    d.case?.personKey === personKey ||
-    d.identityDecision?.personKey === personKey ||
-    d.personKeys?.includes(personKey) ||
-    d.a?.personKey === personKey ||
-    d.b?.personKey === personKey;
+  const direct = (d: ReturnType<typeof JSON.parse>) => about(d, personKey);
   const groups = new Set(
     rows
       .filter((r) => r.kind === 'identity_assignment' && direct(payload(r)))
@@ -99,6 +101,21 @@ function decisionScope(rows: EraRow[], personKey: string, candidate: string) {
     }
     return keep;
   });
+}
+
+/**
+ * Reviewed and human decisions about one person, and withheld passages, found as the importers find them
+ * (name_candidates.Decisions.about): the decision scope above, plus any other record that names the person directly.
+ * rows: the person's scope rows (POSSIBLE_ERA_SCOPE_SQL) in one graph revision.
+ */
+export function decidingRows(rows: EraRow[], personKey: string): EraRow[] {
+  const found = [
+    ...decisionScope(rows, personKey, '<no registry candidate>'),
+    ...rows.filter((r) => !scopeKinds.has(r.kind) && about(JSON.parse(r.payload_json), personKey)),
+  ].filter(
+    (r) => ['source_review', 'user_correction'].includes(r.authority) || r.kind === 'withheld',
+  );
+  return [...new Map(found.map((r) => [r.record_id, r])).values()];
 }
 
 export async function possibleEra(

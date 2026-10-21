@@ -55,29 +55,6 @@ export function PersonReadingBasis(props: { reading: InitialReading; pins?: Read
               <p>{t(`initial.assessment.${proposal.reviewDecision}`)}</p>
             </Show>
             <p>{proposal.reason}</p>
-            <Show when={proposal.registryEntries}>
-              {(entries) => (
-                <p>
-                  {t('initial.registryEntries')}{' '}
-                  <For each={entries().listed}>
-                    {(entry, i) => (
-                      <>
-                        {i() > 0 ? ', ' : ''}
-                        <a href={`#sages/${encodeURIComponent(entry.id)}`}>
-                          {lang() === 'he' ? entry.nameHe : entry.name}
-                        </a>
-                      </>
-                    )}
-                  </For>
-                  <Show when={entries().total > entries().listed.length}>
-                    {' '}
-                    {t('initial.registryEntriesMore', {
-                      count: entries().total - entries().listed.length,
-                    })}
-                  </Show>
-                </p>
-              )}
-            </Show>
             <For each={proposal.alternatives}>{(reason) => <p>{reason}</p>}</For>
             <Show when={proposal.eraReason}>
               <p>
