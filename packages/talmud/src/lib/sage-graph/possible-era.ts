@@ -234,5 +234,17 @@ async function checkedPossibleEra(
   return value;
 }
 
+/**
+ * The rows the identity-decision guards need about one person: POSSIBLE_ERA_SCOPE_SQL's predicate, unchanged, applied
+ * only to rows that can change a decisionScope or decidingRows result. Those are every reviewed or human row of any kind,
+ * every row of a scope, group or withheld kind (any authority, as the link guard counts them all), and every claim, which a
+ * human correction's claimIds can name on any passage: by kind, and by a `claim:` record ID whatever its kind, since
+ * decisionScope looks claims up by record ID and stored rows need not match their ID prefix. The JSON predicate then runs only on those rows, so the
+ * guards no longer parse the JSON of unrelated records; the cheap scan of every row's metadata remains. decisionScope and decidingRows give the same results on these
+ * rows as on the full scope. Not for possibleEra(), which needs the full scope rows. The same bindings as
+ * POSSIBLE_ERA_SCOPE_SQL; more than 2000 rows still fails closed.
+ */
+export const DECISION_GUARD_SQL = `SELECT record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json FROM sage_graph_all_records WHERE revision_id=? AND (authority IN ('source_review','user_correction') OR kind IN ('source_identity','identity_assessment','identity_proposal','name_reading','era_review','era_assessment','accepted_identity','identity_assignment','withheld','identity_group','identity_review','identity_finding','claim') OR record_id GLOB 'claim:*') AND (passage_id=? OR kind IN ('identity_group','identity_review','identity_finding') OR authority='user_correction' OR json_extract(payload_json,'$.personKey')=? OR json_extract(payload_json,'$.a.personKey')=? OR json_extract(payload_json,'$.b.personKey')=? OR json_extract(payload_json,'$.case.personKey')=? OR json_extract(payload_json,'$.identityDecision.personKey')=? OR EXISTS (SELECT 1 FROM json_each(sage_graph_all_records.payload_json,'$.personKeys') WHERE value=?)) LIMIT 2001`;
+
 /** Include exact-key decisions even when older writers omitted their passage index. */
 export const POSSIBLE_ERA_SCOPE_SQL = `SELECT record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json FROM sage_graph_all_records WHERE revision_id=? AND (passage_id=? OR kind IN ('identity_group','identity_review','identity_finding') OR authority='user_correction' OR json_extract(payload_json,'$.personKey')=? OR json_extract(payload_json,'$.a.personKey')=? OR json_extract(payload_json,'$.b.personKey')=? OR json_extract(payload_json,'$.case.personKey')=? OR json_extract(payload_json,'$.identityDecision.personKey')=? OR EXISTS (SELECT 1 FROM json_each(sage_graph_all_records.payload_json,'$.personKeys') WHERE value=?)) LIMIT 2001`;

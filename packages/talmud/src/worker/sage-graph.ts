@@ -39,6 +39,7 @@ import type {
   CheckedOccurrence,
 } from '../lib/sage-graph/types';
 import { loadConditionalProfile } from './conditional-person-profile';
+import { type DecisionGuard, decisionGuard } from './decision-guard';
 import { readIndexIdentityCandidate } from './index-identity-link';
 import {
   NOT_A_STORE_REVISION,
@@ -743,6 +744,7 @@ async function readCheckedName(
   passage: CheckedPassage,
   localId: string,
   store: SourceStoreName,
+  guard: DecisionGuard,
 ) {
   try {
     const row = await db
@@ -754,10 +756,9 @@ async function readCheckedName(
     if (!row) return undefined;
     // A reviewed or human decision about this person in this revision outranks the suggestion, even a later one.
     const key = `${passage.id}/${localId}`;
-    const scope = await db
-      .prepare(POSSIBLE_ERA_SCOPE_SQL)
-      .bind(revisionId, passage.id, key, key, key, key, key, key)
-      .all<StoredRow>();
+    if (guard.revision !== revisionId || guard.personKey !== key)
+      throw Error('Decisions read for another person');
+    const scope = await guard.read();
     if (scope.success !== true) throw Error('Could not read current identity decisions');
     return await checkedNameSuggestion(row, passage, localId, store, scope.results);
   } catch {
@@ -875,25 +876,33 @@ sageGraph.get('/person', async (c) => {
             reading.neededContext,
           ));
     if (person?.initialReading && reading?.checked && sourceStore) {
+      // Every guard below reads this person's current decisions from this one shared, request-local read.
+      const guard = decisionGuard(db, saved.id, `${match[1]}/${match[2]}`);
       const suggestion = await readCheckedName(
         db,
         saved.id,
         reading.checked,
         match[2],
         sourceStore,
+        guard,
       );
       if (suggestion) {
         person.initialReading.nameSuggestion = suggestion;
         if (suggestion.candidate && suggestion.registrySha256)
-          person.conditionalProfile = await loadConditionalProfile(db, saved.id, {
-            id: suggestion.candidate.id,
-            registrySha256: suggestion.registrySha256,
-            proof: {
-              recordId: suggestion.id,
-              payloadSha256: suggestion.payloadSha256,
-              personKey: suggestion.personKey,
+          person.conditionalProfile = await loadConditionalProfile(
+            db,
+            saved.id,
+            {
+              id: suggestion.candidate.id,
+              registrySha256: suggestion.registrySha256,
+              proof: {
+                recordId: suggestion.id,
+                payloadSha256: suggestion.payloadSha256,
+                personKey: suggestion.personKey,
+              },
             },
-          });
+            guard,
+          );
       }
       if (!suggestion?.candidate) {
         const linked = await readIndexIdentityCandidate(
@@ -902,8 +911,10 @@ sageGraph.get('/person', async (c) => {
           reading.checked,
           match[2],
           sourceStore,
+          guard,
         );
-        if (linked) person.conditionalProfile = await loadConditionalProfile(db, saved.id, linked);
+        if (linked)
+          person.conditionalProfile = await loadConditionalProfile(db, saved.id, linked, guard);
       }
     }
     if (person?.initialReading && reading && !reading.checked)
