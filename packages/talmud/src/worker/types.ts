@@ -65,6 +65,10 @@ export interface Bindings {
   GENERATION_DISABLED?: string;
   BILLING_DB?: D1Database;
   SAGE_GRAPH_DB?: D1Database;
+  // Source-reading stores (talmud-source-readings-bavli / -other). Each data release adds a
+  // verified revision; the worker reads the newest one, so data releases need no redeploy.
+  SOURCE_READINGS_BAVLI_DB?: D1Database;
+  SOURCE_READINGS_OTHER_DB?: D1Database;
   BILLING_APP?: string;
   ASSETS: Fetcher;
   AI?: Ai;

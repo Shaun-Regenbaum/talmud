@@ -69,6 +69,9 @@ export interface ReviewedPlace {
   mapPlace: string | null;
 }
 export interface SourcePerson {
+  /** The source-reading store revisions this card was read with, and the store that held it. */
+  sourceRevisions?: Record<'bavli' | 'other', string | null>;
+  sourceStore?: 'bavli' | 'other';
   possibleEra?: PossibleEra;
   initialReading?: InitialReading;
   readingBasis?: InitialReading;

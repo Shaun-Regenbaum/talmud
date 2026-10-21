@@ -2,6 +2,7 @@ import { canonicalSlug } from '../lib/rabbi/identity';
 import { isValidAmud } from '../lib/sefref/amudim';
 import { TRACTATE_OPTIONS } from '../lib/sefref/tractates';
 import type { RegistryDatabase } from './reviewed-rabbi';
+import { NOT_A_STORE_REVISION } from './source-reading-stores';
 
 const tractates = new Map(TRACTATE_OPTIONS.map((t) => [t.value.toLowerCase(), t.value]));
 
@@ -34,7 +35,7 @@ export async function loadReviewedCoverage(db: RegistryDatabase | undefined, req
   if (!db) throw new Error('Reviewed coverage is unavailable');
   const revision = await db
     .prepare(
-      "SELECT id FROM sage_graph_revisions WHERE state='verified' ORDER BY created_at DESC,id DESC LIMIT 1",
+      `SELECT id FROM sage_graph_revisions WHERE state='verified' AND ${NOT_A_STORE_REVISION} ORDER BY created_at DESC,id DESC LIMIT 1`,
     )
     .first<{ id: string }>();
   if (!revision) throw new Error('Reviewed coverage has no verified revision');

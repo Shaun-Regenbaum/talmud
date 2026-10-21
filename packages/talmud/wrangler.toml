@@ -218,6 +218,21 @@ database_name = "talmud-sage-graph"
 database_id = "f4dde848-d1a8-434d-a8f8-c5220f3cbb7a"
 migrations_dir = "migrations-sage-graph"
 
+# Source-reading stores: the graph's schema, compact source readings only. A data release adds a
+# verified revision to a store; the worker reads it without a redeploy. See
+# research/sage-network/storage/SOURCE-READING-STORES.md.
+[[d1_databases]]
+binding = "SOURCE_READINGS_BAVLI_DB"
+database_name = "talmud-source-readings-bavli"
+database_id = "3f2c1fb6-ce55-4893-93f6-1536a87632f6"
+migrations_dir = "migrations-sage-graph"
+
+[[d1_databases]]
+binding = "SOURCE_READINGS_OTHER_DB"
+database_name = "talmud-source-readings-other"
+database_id = "7f3f6285-61e3-443b-8bc7-5371066ef435"
+migrations_dir = "migrations-sage-graph"
+
 # Review new releases here before approving production.
 [env.staging]
 name = "talmud-staging"
@@ -287,4 +302,16 @@ run_worker_first = ["/", "/api/*", "/mcp", "/gallery-api/*"]
 binding = "SAGE_GRAPH_DB"
 database_name = "talmud-sage-graph-staging"
 database_id = "c1f6d83d-bc0f-4777-bb9f-435a5adba309"
+migrations_dir = "migrations-sage-graph"
+
+[[env.staging.d1_databases]]
+binding = "SOURCE_READINGS_BAVLI_DB"
+database_name = "talmud-source-readings-bavli-staging"
+database_id = "d3f2040c-606c-449c-834a-1ab931907b40"
+migrations_dir = "migrations-sage-graph"
+
+[[env.staging.d1_databases]]
+binding = "SOURCE_READINGS_OTHER_DB"
+database_name = "talmud-source-readings-other-staging"
+database_id = "57b0591f-4bf2-408f-a932-e118a0770a46"
 migrations_dir = "migrations-sage-graph"

@@ -1,9 +1,10 @@
 import { For, Show } from 'solid-js';
 import type { InitialReading } from '../lib/sage-graph/initial-readings';
+import { type ReadingPins, sourcePersonHash } from '../lib/sage-graph/reading-pins';
 import { lang, t } from './i18n';
 import { PersonStatus } from './PersonStatus';
 
-export function PersonReadingBasis(props: { reading: InitialReading }) {
+export function PersonReadingBasis(props: { reading: InitialReading; pins?: ReadingPins }) {
   return (
     <details class="person-passage">
       <summary>{t('initial.basis')}</summary>
@@ -15,7 +16,7 @@ export function PersonReadingBasis(props: { reading: InitialReading }) {
             <a
               href={
                 reviewed.id.startsWith('local:')
-                  ? `#source-person/${encodeURIComponent(reviewed.id)}`
+                  ? sourcePersonHash(reviewed.id, props.pins)
                   : `#sages/${encodeURIComponent(reviewed.id)}`
               }
             >
