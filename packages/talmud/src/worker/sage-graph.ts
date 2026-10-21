@@ -19,6 +19,7 @@ import {
   readingOccurrences,
 } from '../lib/sage-graph/initial-readings';
 import { type LegacyPayload, type LegacyRow, legacyCards } from '../lib/sage-graph/legacy-readings';
+import { checkedNameSuggestion } from '../lib/sage-graph/name-candidates';
 import {
   POSSIBLE_ERA_SCOPE_SQL,
   type PossibleEra,
@@ -733,6 +734,35 @@ sageGraph.get('/initial', async (c) => {
   });
 });
 
+/** The graph's first registry suggestion for one checked person, if it cites the exact stored rows on the card. */
+async function readCheckedName(
+  db: D1Database,
+  revisionId: string,
+  passage: CheckedPassage,
+  localId: string,
+  store: SourceStoreName,
+) {
+  try {
+    const row = await db
+      .prepare(
+        'SELECT record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json FROM sage_graph_all_records WHERE revision_id=? AND record_id=?',
+      )
+      .bind(revisionId, `name_candidates:v1/${passage.id}/${localId}`)
+      .first<StoredRow>();
+    if (!row) return undefined;
+    // A reviewed or human decision about this person in this revision outranks the suggestion, even a later one.
+    const key = `${passage.id}/${localId}`;
+    const scope = await db
+      .prepare(POSSIBLE_ERA_SCOPE_SQL)
+      .bind(revisionId, passage.id, key, key, key, key, key, key)
+      .all<StoredRow>();
+    return await checkedNameSuggestion(row, passage, localId, store, scope.results);
+  } catch {
+    // A missing or unreadable suggestion must not replace the checked person card.
+    return undefined;
+  }
+}
+
 async function readPossibleEra(db: D1Database, revisionId: string, personKey: string) {
   try {
     const columns =
@@ -841,6 +871,16 @@ sageGraph.get('/person', async (c) => {
             reading.claims,
             reading.neededContext,
           ));
+    if (person?.initialReading && reading?.checked && sourceStore) {
+      const suggestion = await readCheckedName(
+        db,
+        saved.id,
+        reading.checked,
+        match[2],
+        sourceStore,
+      );
+      if (suggestion) person.initialReading.nameSuggestion = suggestion;
+    }
     if (person?.initialReading && reading && !reading.checked)
       person.initialReading.reviewedPeople = await reviewedPeopleAtSameWords(
         db,

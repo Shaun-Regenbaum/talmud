@@ -195,6 +195,17 @@ const CATALOG = {
     he: 'בדיקה מאוחרת בחרה זהות אחרת.',
   },
   'initial.possibleMatch': { en: 'Possible identity:', he: 'זהות אפשרית:' },
+  'nameSuggestion.title': { en: 'Registry lookup', he: 'חיפוש במאגר' },
+  'nameSuggestion.possible': {
+    en: 'Possible identity, not confirmed:',
+    he: 'זהות אפשרית, לא מאושרת:',
+  },
+  'nameSuggestion.notIdentified': { en: 'Not identified yet.', he: 'עדיין לא זוהה.' },
+  'nameSuggestion.entries': {
+    en: 'Registry entries the printed name fits. None is chosen, and the person may not be among them:',
+    he: 'רשומות במאגר שהשם המודפס מתאים להן. לא נבחרה אף אחת, וייתכן שהאדם אינו ביניהן:',
+  },
+  'nameSuggestion.more': { en: 'and {count} more', he: 'ועוד {count}' },
   'initial.eraReason': { en: 'Era reading:', he: 'קריאת התקופה:' },
   'initial.sourceWarning': {
     en: 'This passage reference still needs checking. These readings are kept for review.',

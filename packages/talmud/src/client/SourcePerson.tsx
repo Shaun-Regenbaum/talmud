@@ -9,6 +9,7 @@ import {
 import type { SourcePerson as SourcePersonData } from '../lib/sage-graph/types';
 import { InitialInteractions } from './InitialInteractions';
 import { lang, t } from './i18n';
+import { NameSuggestion } from './NameSuggestion';
 import { PersonConnections } from './PersonConnections';
 import { PersonEra } from './PersonEra';
 import { PersonReadingBasis } from './PersonReadingBasis';
@@ -85,6 +86,9 @@ export function SourcePerson(props: {
                   </p>
                 )}
               </For>
+            </Show>
+            <Show when={p().initialReading?.nameSuggestion}>
+              {(suggestion) => <NameSuggestion suggestion={suggestion()} />}
             </Show>
             <PersonEra
               reviewed={p().era}
