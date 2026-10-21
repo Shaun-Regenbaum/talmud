@@ -1,5 +1,13 @@
 import { Hono } from 'hono';
 import { canonicalSlug } from '../lib/rabbi/identity';
+import {
+  CHECKED_KINDS,
+  type CheckedPassage,
+  checkedPerson,
+  checkedPlacement,
+  decodeCheckedPassage,
+  supersededReadings,
+} from '../lib/sage-graph/checked-readings';
 import { identityCards } from '../lib/sage-graph/identity-readings';
 import { initialPlacement } from '../lib/sage-graph/initial-placement';
 import {
@@ -272,6 +280,27 @@ interface ReadingSource {
 }
 
 async function readInitialPassage(source: ReadingSource, passageId: string) {
+  if (passageId.startsWith('cs1-')) {
+    if (!source.store) return null;
+    const result = await source.db
+      .prepare(
+        `SELECT record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json FROM sage_graph_all_records WHERE revision_id=? AND passage_id=? AND kind IN (${CHECKED_KINDS.map(() => '?').join(',')}) ORDER BY record_id LIMIT 801`,
+      )
+      .bind(source.revision, passageId, ...CHECKED_KINDS)
+      .all<StoredRow>();
+    if (!result.results.length) return null;
+    if (result.results.length > 800) throw Error('Too many checked records');
+    const checked = await decodeCheckedPassage(passageId, result.results);
+    return {
+      people: checked.people,
+      claims: [] as ReadingClaim[],
+      neededContext: [] as string[],
+      stored: checked.stored,
+      checked,
+      rawResultHash: checked.envelope.supersedes.rawResultHash,
+      jobHash: checked.envelope.binding.jobHash,
+    };
+  }
   let stored: StoredRow[] = [];
   let found: { kind: string; payload_json: string }[];
   if (source.store) {
@@ -323,6 +352,9 @@ async function readInitialPassage(source: ReadingSource, passageId: string) {
     claims,
     neededContext: provenance[0].data.episode.needed_context as string[],
     stored,
+    checked: undefined as CheckedPassage | undefined,
+    rawResultHash: provenance[0].data.provenance.resultSha256 as string | undefined,
+    jobHash: provenance[0].data.provenance.jobSha256 as string | undefined,
   };
 }
 
@@ -475,7 +507,7 @@ sageGraph.get('/initial', async (c) => {
   const where = ref.includes(':') ? 'ref=?' : '(ref>=? AND ref<?)';
   const bounds = ref.includes(':') ? [ref] : [prefix, `${prefix}\uffff`];
   const onPage = (value: string) => (ref.includes(':') ? value === ref : value.startsWith(prefix));
-  const readingsSql = `SELECT passage_id,kind,payload_json FROM sage_graph_all_records AS r WHERE revision_id=? AND (kind='source_reading_unit' OR (kind='source_reading' AND NOT EXISTS (SELECT 1 FROM sage_graph_all_records AS coverage WHERE coverage.revision_id=r.revision_id AND coverage.record_id='source_reading_coverage:' || r.passage_id))) AND authority='screening' AND decision='needs_review' AND ${where} ORDER BY record_id LIMIT 501`;
+  const readingsSql = `SELECT passage_id,kind,payload_json FROM sage_graph_all_records AS r WHERE revision_id=? AND (kind IN ('source_reading_unit','checked_unit') OR (kind='source_reading' AND NOT EXISTS (SELECT 1 FROM sage_graph_all_records AS coverage WHERE coverage.revision_id=r.revision_id AND coverage.record_id='source_reading_coverage:' || r.passage_id))) AND authority='screening' AND decision='needs_review' AND ${where} ORDER BY record_id LIMIT 501`;
   const result = await db
     .prepare(readingsSql)
     .bind(saved.id, ...bounds)
@@ -560,13 +592,51 @@ sageGraph.get('/initial', async (c) => {
       for (const id of ids) readingSources.delete(id);
     }
   }
+  try {
+    const checkedHashes = [
+      ...new Set([...readings.values()].filter((p) => p.checked).map((p) => p.rawResultHash!)),
+    ];
+    const legacyHashes = new Set<string>();
+    if (checkedHashes.length) {
+      const overlap = await db
+        .prepare(
+          `SELECT DISTINCT json_extract(payload_json,'$.provenance.resultSha256') AS raw_hash FROM sage_graph_all_records WHERE revision_id=? AND kind='source_reading' AND json_extract(payload_json,'$.provenance.resultSha256') IN (${checkedHashes.map(() => '?').join(',')})`,
+        )
+        .bind(saved.id, ...checkedHashes)
+        .all<{ raw_hash: string }>();
+      for (const row of overlap.results) legacyHashes.add(row.raw_hash);
+    }
+    for (const [id, passage] of readings) {
+      if (passage.checked && legacyHashes.has(passage.rawResultHash!)) {
+        readings.delete(id);
+        readingSources.delete(id);
+      }
+    }
+    const hidden = supersededReadings(
+      [...readings].map(([id, p]) => ({
+        id,
+        checked: !!p.checked,
+        rawResultHash: p.rawResultHash,
+        jobHash: p.jobHash,
+        legacy: !readingSources.get(id)?.store,
+      })),
+    );
+    for (const id of hidden) {
+      readings.delete(id);
+      readingSources.delete(id);
+    }
+  } catch {
+    return c.json({ error: 'Conflicting checked source readings' }, 503);
+  }
   const occurrences = new Map<string, InitialOccurrence>();
   const pageReadings: { passageId: string; people: ReadingPerson[] }[] = [];
   const storedRows: LegacyRow[] = [];
   for (const passageId of readingSources.keys()) {
     const passage = readings.get(passageId)!;
     storedRows.push(...passage.stored);
-    for (const row of passage.stored.filter((r) => r.kind === 'source_reading_unit')) {
+    for (const row of passage.stored.filter((r) =>
+      ['source_reading_unit', 'checked_unit'].includes(r.kind),
+    )) {
       const unit = JSON.parse(row.payload_json) as OwnedReadingUnit;
       if (onPage(unit.ref)) addSource(unit, passageId);
     }
@@ -634,10 +704,26 @@ sageGraph.get('/initial', async (c) => {
       ...storedRows.filter((r) => ['passage', 'person', 'source_reading_unit'].includes(r.kind)),
     );
   }
+  let placement: Awaited<ReturnType<typeof initialPlacement>> | undefined;
+  if (c.req.query('placement') === 'v1') {
+    const base = await initialPlacement(
+      [...occurrences.values()].filter(
+        (o) => !o.people.some((p) => p.id.startsWith('reading:cs1-')),
+      ),
+      placementRows,
+    );
+    const checked = await checkedPlacement(
+      [...occurrences.values()],
+      [...readings.values()].flatMap((r) => (r.checked ? [r.checked] : [])),
+    );
+    placement = {
+      version: base.version,
+      sources: [...base.sources, ...checked.sources],
+      occurrences: [...base.occurrences, ...checked.occurrences],
+    };
+  }
   return c.json({
-    ...(c.req.query('placement') === 'v1'
-      ? { placement: await initialPlacement([...occurrences.values()], placementRows) }
-      : {}),
+    ...(placement ? { placement } : {}),
     revision: saved.id,
     sourceRevisions: stores.revisions,
     ...(stores.unavailable.length ? { unavailableSourceStores: stores.unavailable } : {}),
@@ -707,7 +793,8 @@ sageGraph.get('/person', async (c) => {
     return person ? c.json(person) : c.json({ error: 'Unknown person' }, 404);
   }
   if (id?.startsWith('reading:')) {
-    const match = /^reading:(sr1-[a-f0-9]{64})\/(p[1-9][0-9]*)$/.exec(id);
+    const match =
+      /^reading:((?:sr1|cs1)-[a-f0-9]{64})\/((?:p[1-9][0-9]*|add:[a-zA-Z0-9_-]+))$/.exec(id);
     if (!match) return c.json({ error: 'Unknown person' }, 404);
     const stores = await resolveSourceStores(c.env, (name) => c.req.query(name));
     if ('error' in stores) return c.json({ error: stores.error }, stores.status);
@@ -733,17 +820,28 @@ sageGraph.get('/person', async (c) => {
       if (!reading && stores.unavailable.length)
         return c.json({ error: 'Source reading store is unavailable' }, 503);
     }
+    if (reading?.checked) {
+      const legacyRaw = await db
+        .prepare(
+          "SELECT record_id FROM sage_graph_all_records WHERE revision_id=? AND kind='source_reading' AND json_extract(payload_json,'$.provenance.resultSha256')=? LIMIT 1",
+        )
+        .bind(saved.id, reading.checked.envelope.supersedes.rawResultHash)
+        .first();
+      if (legacyRaw) return c.json({ error: 'The graph holds this source reading' }, 503);
+    }
     const person =
       reading &&
-      initialPerson(
-        saved.id,
-        match[1],
-        match[2],
-        reading.people,
-        reading.claims,
-        reading.neededContext,
-      );
-    if (person?.initialReading && reading)
+      (reading.checked
+        ? checkedPerson(saved.id, reading.checked, match[2])
+        : initialPerson(
+            saved.id,
+            match[1],
+            match[2],
+            reading.people,
+            reading.claims,
+            reading.neededContext,
+          ));
+    if (person?.initialReading && reading && !reading.checked)
       person.initialReading.reviewedPeople = await reviewedPeopleAtSameWords(
         db,
         saved.id,

@@ -9,15 +9,24 @@ import type { Partner, SageInteractions } from './sageInteractions';
 import { sefariaUrl } from './sageInteractions';
 
 const category = (r: InitialRelationship) =>
-  r.reading.category === 'family'
-    ? 'kin'
-    : r.reading.modality === 'response_to_teaching'
-      ? 'response'
-      : r.reading.category === 'teaching'
-        ? 'cites'
-        : r.reading.relation === 'acts_on'
-          ? 'action'
-          : 'direct';
+  r.checked
+    ? (
+        {
+          family: 'kin',
+          transmission: 'cites',
+          intellectual_connection: 'intellectual',
+          direct_interaction: 'direct',
+        } as const
+      )[r.checked.broadType]
+    : r.reading.category === 'family'
+      ? 'kin'
+      : r.reading.modality === 'response_to_teaching'
+        ? 'response'
+        : r.reading.category === 'teaching'
+          ? 'cites'
+          : r.reading.relation === 'acts_on'
+            ? 'action'
+            : 'direct';
 
 export const countedInitialRelationship = (row: InitialRelationship) =>
   row.countable !== false &&
@@ -90,8 +99,18 @@ export function InitialInteractions(props: {
                   : t('initial.uncertainPerson')}
               </bdi>
               {' · '}
-              {t(`initial.relation.${row.reading.relation}`)}{' '}
-              <span aria-hidden="true">{row.reading.direction === 'symmetric' ? '↔' : '→'}</span>{' '}
+              {t(
+                row.checked?.predicate.status === 'held'
+                  ? `checked.relation.${row.checked.broadType}`
+                  : `initial.relation.${row.reading.relation}`,
+              )}{' '}
+              <span aria-hidden="true">
+                {row.checked?.direction.status === 'held'
+                  ? '·'
+                  : row.reading.direction === 'symmetric'
+                    ? '↔'
+                    : '→'}
+              </span>{' '}
               <bdi>
                 {row.object
                   ? lang() === 'he'
@@ -154,7 +173,7 @@ export function InitialInteractions(props: {
         <RabbiInteractions
           data={data()}
           subjectName={props.name}
-          footer={t('initial.counts')}
+          footer={t(props.reading.checked ? 'checked.counts' : 'initial.counts')}
           renderEvidence={(partner) => (
             <>
               <Show

@@ -11,6 +11,7 @@ import { canonicalSlug } from '../lib/rabbi/identity';
  */
 
 export type InteractionKind =
+  | 'intellectual'
   | 'direct'
   | 'response'
   | 'action'
@@ -60,6 +61,7 @@ export const KINDS: ReadonlyArray<{
   mine?: { en: string; he: string };
   theirs?: { en: string; he: string };
 }> = [
+  { kind: 'intellectual', color: 'var(--ink-ochre)', en: 'compared teachings', he: 'השוואת דעות' },
   {
     kind: 'direct',
     color: 'var(--ink-blue)',
