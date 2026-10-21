@@ -144,10 +144,30 @@ In responses, `sourceRevisions` names the revision that was picked for each stor
 while its revision was being picked shows `null`. A store that failed on a later read keeps its revision
 name. In both cases the store is listed in `unavailableSourceStores`.
 
-## One-time setup, which needs the owner's approval
+## One-time setup
 
-1. Create the four databases: Bavli and other, each in production and staging.
-2. Add the two bindings to `packages/talmud/wrangler.toml`, for production and for staging.
-3. Add their `wrangler d1 migrations apply` steps to `.github/workflows/release.yml`.
-4. Deploy the app once. After this, releases are data only.
-5. Import and activate each store's empty first revision: `source_reading_stores.py genesis --store S`.
+Done on 2026-10-21, with root's approval:
+
+1. **The four databases are created, empty, in the PropheX account.** That is the account that
+   `release.yml` deploys to. Each sits in the region of its graph database.
+
+   | database | id | region |
+   |---|---|---|
+   | `talmud-source-readings-bavli` | `3f2c1fb6-ce55-4893-93f6-1536a87632f6` | WEUR |
+   | `talmud-source-readings-other` | `7f3f6285-61e3-443b-8bc7-5371066ef435` | WEUR |
+   | `talmud-source-readings-bavli-staging` | `d3f2040c-606c-449c-834a-1ab931907b40` | EEUR |
+   | `talmud-source-readings-other-staging` | `57b0591f-4bf2-408f-a932-e118a0770a46` | EEUR |
+
+2. **The bindings `SOURCE_READINGS_BAVLI_DB` and `SOURCE_READINGS_OTHER_DB` are in
+   `packages/talmud/wrangler.toml`,** for production and staging. They use the graph's migrations
+   directory.
+3. **`release.yml` applies migrations 0001–0003 to them**, before each deploy, next to the graph's.
+
+Still to do, each needing its own approval:
+
+4. **Merge the PR.** The release then creates the schema and deploys the bindings. Until then, nothing
+   reads the stores.
+5. **On staging only, import and activate each store's empty first revision**:
+   `source_reading_stores.py genesis --store S`. Then run one refused import and one refused
+   activation, export the store, and confirm nothing was written.
+6. **Do the same in production.** Then import data releases one at a time, each exactly approved.
