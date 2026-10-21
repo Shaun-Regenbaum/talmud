@@ -20,6 +20,9 @@ assert.deepEqual(
     ? [
         ['BILLING_DB', '49930fc7-f92a-446b-886d-0ec8ae882dc6'],
         ['SAGE_GRAPH_DB', 'c1f6d83d-bc0f-4777-bb9f-435a5adba309'],
+        // The staging source-reading stores, never production's.
+        ['SOURCE_READINGS_BAVLI_DB', 'd3f2040c-606c-449c-834a-1ab931907b40'],
+        ['SOURCE_READINGS_OTHER_DB', '57b0591f-4bf2-408f-a932-e118a0770a46'],
       ]
     : [['BILLING_DB', '49930fc7-f92a-446b-886d-0ec8ae882dc6']]
   ).sort(),
