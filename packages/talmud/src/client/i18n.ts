@@ -195,6 +195,11 @@ const CATALOG = {
     he: 'בדיקה מאוחרת בחרה זהות אחרת.',
   },
   'initial.possibleMatch': { en: 'Possible identity:', he: 'זהות אפשרית:' },
+  'initial.registryEntries': {
+    en: 'Registry entries with this name (none is chosen):',
+    he: 'רשומות במאגר בשם זה (לא נבחרה אף אחת):',
+  },
+  'initial.registryEntriesMore': { en: 'and {count} more', he: 'ועוד {count}' },
   'initial.eraReason': { en: 'Era reading:', he: 'קריאת התקופה:' },
   'initial.sourceWarning': {
     en: 'This passage reference still needs checking. These readings are kept for review.',
