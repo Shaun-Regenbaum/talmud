@@ -129,6 +129,19 @@ const CATALOG = {
     he: 'טווח משוער של הדור, לא שנות חיים.',
   },
   'person.biography': { en: 'Biography', he: 'ביוגרפיה' },
+  'person.conditionalProfile': {
+    en: 'Possible match: {name}. These details apply if the match is correct.',
+    he: 'זיהוי אפשרי: {name}. פרטים אלה נכונים אם הזיהוי נכון.',
+  },
+  'person.profileUnavailable': {
+    en: 'Could not load the saved profile for this possible identity.',
+    he: 'לא ניתן לטעון את המידע השמור על הזיהוי האפשרי.',
+  },
+  'person.profilePlaces': {
+    en: 'These places belong to the saved profile, not necessarily this passage. No travel order is known.',
+    he: 'מקומות אלה שייכים למידע השמור, ולא בהכרח לקטע הזה. סדר הנסיעות אינו ידוע.',
+  },
+  'person.savedProfilePlace': { en: 'Place in the saved profile', he: 'מקום במידע השמור' },
   'person.bioEmpty': { en: 'No biography is currently available.', he: 'אין כרגע ביוגרפיה זמינה.' },
   'person.bioCredits': {
     en: 'No biography yet. There are no credits left to create it.',
