@@ -478,6 +478,14 @@ def prepare_checked(store, selection_path, selection_pin, parent_db, parent_revi
     legacy, overlap = _read_rows(legacy_db, legacy_revision, keys)
     require(not is_store(legacy), 'The legacy revision is a source-reading store')
     require(not overlap, 'The legacy graph already holds these records: ' + ', '.join(sorted(overlap)[:5]))
+    # A graph reading of the same raw queue result may carry human corrections that a checked reading
+    # would shadow. Until a reviewed mapping exists for that, such a bundle is refused.
+    raws = sorted(r['data']['supersedes']['rawResultHash'] for r in rows if r['kind'] == 'checked_reading')
+    with closing(sqlite3.connect(legacy_db.resolve().as_uri() + '?mode=ro', uri=True)) as db:
+        held = [r[0] for r in db.execute(
+            f"SELECT record_id FROM {record_table(db)} WHERE revision_id=? AND kind='source_reading' AND "
+            f"json_extract(payload_json,'$.provenance.resultSha256') IN ({','.join('?' for _ in raws)})", (legacy_revision, *raws))]
+    require(not held, 'The legacy graph already has a reading of this raw result: ' + ', '.join(held[:5]))
     with closing(sqlite3.connect(parent_db.resolve().as_uri() + '?mode=ro', uri=True)) as db:
         stored = {r[0]: item(r) for r in db.execute(
             f"SELECT {COLUMNS} FROM {record_table(db)} WHERE revision_id=? AND kind='checked_reading'", (parent_revision,))}
@@ -491,7 +499,7 @@ def prepare_checked(store, selection_path, selection_pin, parent_db, parent_revi
         (output / 'artifacts' / (cases[job]['bundleFileSha256'] + '.json')).write_text(bundles[job])
     (output / 'changes.json').write_text(json.dumps(changes, ensure_ascii=False, indent=2) + '\n')
     return dict(store=store, readings=len(mine), selectedReadings=len(cases), records=len(changes['records']),
-                parentRevision=parent_revision)
+                parentRevision=parent_revision, legacyGraph=legacy_revision, rawResultsInLegacyGraph=0)
 
 
 def checked_inputs(selection_path, selection_pin):
