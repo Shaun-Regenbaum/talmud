@@ -2,12 +2,9 @@ import { z } from 'zod';
 import { GENERATION_ID_SET } from '../client/generations';
 import { canonicalSlug } from '../lib/rabbi/identity';
 import type { ConditionalProfileResult } from '../lib/sage-graph/conditional-profile';
-import {
-  decidingRows,
-  decisionScope,
-  POSSIBLE_ERA_SCOPE_SQL,
-} from '../lib/sage-graph/possible-era';
+import { decidingRows, decisionScope } from '../lib/sage-graph/possible-era';
 import { type StoredRow, sha256 } from '../lib/sage-graph/source-reading-store';
+import { type DecisionGuard, decisionGuard } from './decision-guard';
 import { type RegistryDatabase, reviewedEraShape, reviewedRabbiShape } from './reviewed-rabbi';
 
 export interface VerifiedProfileCandidate {
@@ -37,15 +34,15 @@ export async function loadConditionalProfile(
   db: RegistryDatabase,
   revision: string,
   candidate: VerifiedProfileCandidate,
+  guard: DecisionGuard = decisionGuard(db, revision, candidate.proof.personKey),
 ): Promise<ConditionalProfileResult | undefined> {
   try {
     const slug = canonicalSlug(candidate.id);
     if (!/^[a-z0-9()-]+$/.test(slug)) return undefined;
     const key = candidate.proof.personKey;
-    const scope: { results: StoredRow[]; success?: boolean } = await db
-      .prepare(POSSIBLE_ERA_SCOPE_SQL)
-      .bind(revision, key.split('/')[0], key, key, key, key, key, key)
-      .all<StoredRow>();
+    if (guard.revision !== revision || guard.personKey !== key)
+      throw Error('Decisions read for another person');
+    const scope = await guard.read();
     if (scope.success !== true) throw Error('Could not read current identity decisions');
     if (
       scope.results.length > 2000 ||

@@ -1,7 +1,8 @@
 import type { CheckedPassage } from '../lib/sage-graph/checked-readings';
 import { checkedNameSuggestion } from '../lib/sage-graph/name-candidates';
-import { decisionScope, POSSIBLE_ERA_SCOPE_SQL } from '../lib/sage-graph/possible-era';
+import { decisionScope } from '../lib/sage-graph/possible-era';
 import { type StoredRow, sha256 } from '../lib/sage-graph/source-reading-store';
+import { type DecisionGuard, decisionGuard } from './decision-guard';
 
 type Binding = {
   recordId: string;
@@ -114,9 +115,11 @@ export async function readIndexIdentityCandidate(
   passage: CheckedPassage,
   localId: string,
   store: string,
+  guard: DecisionGuard = decisionGuard(db, revision, `${passage.id}/${localId}`),
 ): Promise<IndexIdentityCandidate | undefined> {
   try {
     const key = `${passage.id}/${localId}`;
+    if (guard.revision !== revision || guard.personKey !== key) return;
     const read = (id: string) =>
       db
         .prepare(
@@ -130,10 +133,7 @@ export async function readIndexIdentityCandidate(
     const [candidate, registry, scope] = await Promise.all([
       read(`name_candidates:v1/${key}`),
       read(`registry_person:${d.candidate}`),
-      db
-        .prepare(POSSIBLE_ERA_SCOPE_SQL)
-        .bind(revision, passage.id, key, key, key, key, key, key)
-        .all<StoredRow>(),
+      guard.read(),
     ]);
     if (!candidate || !registry || !scope.success) return;
     return await indexIdentityCandidate(
